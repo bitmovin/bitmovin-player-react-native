@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { StyleSheet, View } from 'react-native';
 import { PlayerReactNativeBridgeView } from 'player-react-native-bridge';
@@ -6,7 +6,7 @@ import { PlayerReactNativeBridgeView } from 'player-react-native-bridge';
 export default function App() {
   return (
     <View style={styles.container}>
-      <PlayerReactNativeBridgeViewManager color="#32a852" style={styles.box} />
+      <PlayerReactNativeBridgeView color="#32a852" style={styles.box} />
     </View>
   );
 }

@@ -28,6 +28,7 @@ DerivedData
 *.ipa
 *.xcuserstate
 project.xcworkspace
+*.hprof
 
 # Android/IJ
 #
@@ -42,7 +43,8 @@ android.iml
 
 # Cocoapods
 #
-example/ios/Pods
+example/ios/Pods/
+example/vendor/bundle/
 
 # node.js
 #
