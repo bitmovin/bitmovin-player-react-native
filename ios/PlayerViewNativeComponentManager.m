@@ -1,11 +1,11 @@
 #import <React/RCTViewManager.h>
 
-@interface PlayerReactNativeBridgeViewManager : RCTViewManager
+@interface PlayerViewNativeComponentManager : RCTViewManager
 @end
 
-@implementation PlayerReactNativeBridgeViewManager
+@implementation PlayerViewNativeComponentManager
 
-RCT_EXPORT_MODULE(PlayerReactNativeBridgeView)
+RCT_EXPORT_MODULE(PlayerViewNativeComponent)
 
 - (UIView *)view
 {

@@ -1,7 +1,7 @@
 {
   "name": "player-react-native-bridge",
   "version": "0.1.0",
-  "description": "Bitmovin Player React Native Wrapper",
+  "description": "Bitmovin Player React Native Bridge",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
   "types": "lib/index.d.ts",
@@ -28,7 +28,7 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "prepare": "tsup ./src/index.tsx --dts --target es2020 --format cjs,esm -d lib",
     "release": "release-it",
-    "example": "yarn --cwd example",
+    "example": "yarn prepare && yarn --cwd example",
     "pods": "cd example && pod-install --quiet",
     "bootstrap": "yarn example && yarn && yarn pods"
   },

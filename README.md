@@ -1,6 +1,6 @@
 # player-react-native-bridge
 
-Bitmovin Player React Native Wrapper
+Bitmovin Player React Native Bridge
 
 ## Installation
 
@@ -11,11 +11,11 @@ npm install player-react-native-bridge
 ## Usage
 
 ```js
-import { PlayerReactNativeBridgeView } from "player-react-native-bridge";
+import { PlayerView } from "player-react-native-bridge";
 
 // ...
 
-<PlayerReactNativeBridgeView color="tomato" />
+// TODO: Add usage example
 ```
 
 ## Contributing
