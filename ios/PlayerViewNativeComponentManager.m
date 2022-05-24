@@ -1,7 +1,9 @@
+#import <React/RCTUIManager.h>
 #import <React/RCTViewManager.h>
 #import <BitmovinPlayer/BitmovinPlayer.h>
 
 @interface PlayerViewNativeComponentManager : RCTViewManager
+
 @end
 
 @implementation PlayerViewNativeComponentManager
@@ -10,26 +12,40 @@ RCT_EXPORT_MODULE(PlayerViewNativeComponent)
 
 - (UIView *)view
 {
-  return [[UIView alloc] init];
+  UIView *playerView = [[BMPPlayerView alloc] initWithPlayer:nil frame:CGRectZero];
+  playerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+  return playerView;
 }
 
-RCT_CUSTOM_VIEW_PROPERTY(color, NSString, UIView)
+RCT_EXPORT_METHOD(createPlayer:(nonnull NSNumber *)reactTag config:(id)json)
 {
-  [view setBackgroundColor:[self hexStringToColor:json]];
+  [self addUIBlock:reactTag completion:^(BMPPlayerView *playerView) {
+    BMPPlayerConfig *config = [BMPPlayerConfig new];
+    if (json[@"key"]) {
+      [config setKey:json[@"key"]];
+    }
+    id<BMPPlayer> player = [BMPPlayerFactory createWithPlayerConfig:config];
+    [playerView setPlayer:player];
+  }];
 }
 
-- hexStringToColor:(NSString *)stringToConvert
+RCT_EXPORT_METHOD(destroyPlayer:(nonnull NSNumber *)reactTag)
 {
-  NSString *noHashString = [stringToConvert stringByReplacingOccurrencesOfString:@"#" withString:@""];
-  NSScanner *stringScanner = [NSScanner scannerWithString:noHashString];
+  [self addUIBlock:reactTag completion:^(BMPPlayerView *playerView) {
+    [playerView.player destroy];
+  }];
+}
 
-  unsigned hex;
-  if (![stringScanner scanHexInt:&hex]) return nil;
-  int r = (hex >> 16) & 0xFF;
-  int g = (hex >> 8) & 0xFF;
-  int b = (hex) & 0xFF;
-
-  return [UIColor colorWithRed:r / 255.0f green:g / 255.0f blue:b / 255.0f alpha:1.0f];
+- (void)addUIBlock:(NSNumber *)reactTag completion:(void (^)(BMPPlayerView *))completion
+{
+  [self.bridge.uiManager addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    UIView *view = viewRegistry[reactTag];
+    if (!view || ![view isKindOfClass:[BMPPlayerView class]]) {
+      RCTLogError(@"Cannot find PlayerView with tag #%@", reactTag);
+      return;
+    }
+    completion((BMPPlayerView *)view);
+  }];
 }
 
 @end

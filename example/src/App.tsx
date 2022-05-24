@@ -3,10 +3,14 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { PlayerView } from 'player-react-native-bridge';
 
+const playerConfig = {
+  key: '496AB151-A9A2-45AE-A239-AF2650935D3B',
+};
+
 export default function App() {
   return (
     <View style={styles.container}>
-      <PlayerView color="#32a852" style={styles.box} />
+      <PlayerView config={playerConfig} style={styles.box} />
     </View>
   );
 }
@@ -18,8 +22,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   box: {
-    width: 60,
-    height: 60,
-    marginVertical: 20,
+    width: '100%',
+    height: '100%',
   },
 });
