@@ -19,7 +19,7 @@ RCT_EXPORT_MODULE(PlayerViewNativeComponent)
 
 RCT_EXPORT_METHOD(createPlayer:(nonnull NSNumber *)reactTag config:(id)json)
 {
-  [self addUIBlock:reactTag completion:^(BMPPlayerView *playerView) {
+  [self getPlayerView:reactTag completion:^(BMPPlayerView *playerView) {
     BMPPlayerConfig *config = [BMPPlayerConfig new];
     if (json[@"key"]) {
       [config setKey:json[@"key"]];
@@ -31,12 +31,12 @@ RCT_EXPORT_METHOD(createPlayer:(nonnull NSNumber *)reactTag config:(id)json)
 
 RCT_EXPORT_METHOD(destroyPlayer:(nonnull NSNumber *)reactTag)
 {
-  [self addUIBlock:reactTag completion:^(BMPPlayerView *playerView) {
+  [self getPlayerView:reactTag completion:^(BMPPlayerView *playerView) {
     [playerView.player destroy];
   }];
 }
 
-- (void)addUIBlock:(NSNumber *)reactTag completion:(void (^)(BMPPlayerView *))completion
+- (void)getPlayerView:(nonnull NSNumber *)reactTag completion:(void (^)(BMPPlayerView *))completion
 {
   [self.bridge.uiManager addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
     UIView *view = viewRegistry[reactTag];
