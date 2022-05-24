@@ -1,4 +1,5 @@
 #import <React/RCTViewManager.h>
+#import <BitmovinPlayer/BitmovinPlayer.h>
 
 @interface PlayerViewNativeComponentManager : RCTViewManager
 @end
