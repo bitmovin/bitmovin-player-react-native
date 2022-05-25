@@ -6,19 +6,33 @@ import {
   requireNativeComponent,
 } from 'react-native';
 
-export interface PlayerConfig {
-  key: string;
+const NativePlayerViewModule = 'NativePlayerView';
+const NativePlayerView = requireNativeComponent<{ style?: ViewStyle }>(
+  NativePlayerViewModule
+);
+
+export type ConfigSourceType =
+  | 'none'
+  | 'hls'
+  | 'dash'
+  | 'progressive'
+  | 'movpkg';
+
+export interface Config {
+  player: {
+    licenseKey: string;
+  };
+  source: {
+    url: string;
+    type?: ConfigSourceType;
+    poster?: string;
+  };
 }
 
 export interface PlayerViewProps {
   style?: ViewStyle;
-  config: PlayerConfig;
+  config: Config;
 }
-
-const PlayerViewNativeComponentName = 'PlayerViewNativeComponent';
-const PlayerViewNativeComponent = requireNativeComponent<{ style?: ViewStyle }>(
-  PlayerViewNativeComponentName
-);
 
 export class PlayerView extends Component<PlayerViewProps> {
   props: PlayerViewProps;
@@ -30,37 +44,30 @@ export class PlayerView extends Component<PlayerViewProps> {
     this.nativeRef = React.createRef();
   }
 
-  componentDidMount() {
-    this.createPlayer(this.props.config);
-  }
-
-  componentWillUnmount() {
-    this.destroyPlayer();
-  }
-
-  render() {
-    return (
-      <PlayerViewNativeComponent
-        ref={this.nativeRef}
-        style={this.props.style}
-      />
-    );
-  }
-
-  // Native view commands.
-  createPlayer = (config: PlayerConfig) =>
+  loadConfig = (config: Config) =>
     UIManager.dispatchViewManagerCommand(
       findNodeHandle(this.nativeRef.current),
-      UIManager.getViewManagerConfig(PlayerViewNativeComponentName).Commands
-        .createPlayer,
+      UIManager.getViewManagerConfig(NativePlayerViewModule).Commands
+        .loadConfig,
       [config]
     );
 
-  destroyPlayer = () =>
+  dispose = () =>
     UIManager.dispatchViewManagerCommand(
       findNodeHandle(this.nativeRef.current),
-      UIManager.getViewManagerConfig(PlayerViewNativeComponentName).Commands
-        .destroyPlayer,
+      UIManager.getViewManagerConfig(NativePlayerViewModule).Commands.dispose,
       []
     );
+
+  componentDidMount() {
+    this.loadConfig(this.props.config);
+  }
+
+  componentWillUnmount() {
+    this.dispose();
+  }
+
+  render() {
+    return <NativePlayerView ref={this.nativeRef} style={this.props.style} />;
+  }
 }

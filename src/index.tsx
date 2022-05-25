@@ -1,1 +1,1 @@
-export { PlayerView, PlayerViewProps } from './PlayerView';
+export * from './PlayerView';
