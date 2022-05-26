@@ -28,6 +28,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#000000',
   },
   player: {
     width: '100%',
