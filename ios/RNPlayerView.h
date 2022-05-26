@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <BitmovinPlayer/BitmovinPlayer.h>
 
-@interface RCTPlayerView : BMPPlayerView
+@interface RNPlayerView : BMPPlayerView
 
 - (instancetype)init;
 

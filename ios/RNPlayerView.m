@@ -1,8 +1,8 @@
-#import "RCTPlayerView.h"
+#import "RNPlayerView.h"
 #import "RCTConvert+Bitmovin.h"
 #import <React/RCTLog.h>
 
-@implementation RCTPlayerView
+@implementation RNPlayerView
 
 - (instancetype)init
 {

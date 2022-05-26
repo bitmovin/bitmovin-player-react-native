@@ -21,7 +21,7 @@ target 'PlayerReactNativeBridgeExample' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  pod 'player-react-native-bridge', :path => '../..'
+  pod 'RNBitmovinPlayer', :path => '../..'
 
   # Enables Flipper.
   #

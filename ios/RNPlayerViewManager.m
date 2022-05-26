@@ -1,44 +1,44 @@
-#import "RCTPlayerView.h"
+#import "RNPlayerView.h"
 #import <React/RCTUIManager.h>
 #import <React/RCTViewManager.h>
 #import <BitmovinPlayer/BitmovinPlayer.h>
 
-@interface RCTPlayerViewManager : RCTViewManager
+@interface RNPlayerViewManager : RCTViewManager
 
 @end
 
-@implementation RCTPlayerViewManager
+@implementation RNPlayerViewManager
 
 RCT_EXPORT_MODULE(NativePlayerView)
 
 - (UIView *)view
 {
-  return [[RCTPlayerView alloc] init];
+  return [[RNPlayerView alloc] init];
 }
 
 RCT_EXPORT_METHOD(loadConfig:(nonnull NSNumber *)reactTag config:(id)json)
 {
-  [self viewForTag:reactTag completion:^(RCTPlayerView *view) {
+  [self viewForTag:reactTag completion:^(RNPlayerView *view) {
     [view loadConfig:json];
   }];
 }
 
 RCT_EXPORT_METHOD(dispose:(nonnull NSNumber *)reactTag)
 {
-  [self viewForTag:reactTag completion:^(RCTPlayerView *view) {
+  [self viewForTag:reactTag completion:^(RNPlayerView *view) {
     [view dispose:reactTag];
   }];
 }
 
-- (void)viewForTag:(nonnull NSNumber *)reactTag completion:(void (^)(RCTPlayerView *))completion
+- (void)viewForTag:(nonnull NSNumber *)reactTag completion:(void (^)(RNPlayerView *))completion
 {
   [self.bridge.uiManager addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
     UIView *view = viewRegistry[reactTag];
-    if (!view || ![view isKindOfClass:[RCTPlayerView class]]) {
+    if (!view || ![view isKindOfClass:[RNPlayerView class]]) {
       RCTLogError(@"Cannot find PlayerView with tag #%@", reactTag);
       return;
     }
-    completion((RCTPlayerView *)view);
+    completion((RNPlayerView *)view);
   }];
 }
 
