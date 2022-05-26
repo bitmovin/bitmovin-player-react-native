@@ -2,6 +2,7 @@ import React, { Component, PropsWithRef } from 'react';
 import {
   ViewStyle,
   UIManager,
+  NativeModules,
   findNodeHandle,
   requireNativeComponent,
 } from 'react-native';
@@ -11,7 +12,7 @@ const NativePlayerView = requireNativeComponent<{ style?: ViewStyle }>(
   'NativePlayerView'
 );
 
-// const PlayerModule = NativeModules.NativePlayerView;
+const PlayerModule = NativeModules.NativePlayerView;
 
 type PlayerProps = PropsWithRef<{
   style?: ViewStyle;
@@ -45,6 +46,13 @@ export class Player extends Component<PlayerProps> {
   mute = () => this.dispatch('mute');
 
   unmute = () => this.dispatch('unmute');
+
+  currentTime = (mode?: 'absolute' | 'relative'): Promise<number> =>
+    new Promise((resolve) =>
+      PlayerModule.currentTime(this.nodeHandle(), mode, (time: number) => {
+        resolve(time);
+      })
+    );
 
   destroy = () => this.dispatch('destroy');
 

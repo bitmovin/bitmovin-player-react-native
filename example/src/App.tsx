@@ -21,6 +21,13 @@ export default function App() {
     player?.setup(playerConfig);
     // load stream
     player?.loadSource(sourceConfig);
+
+    setInterval(() => {
+      player?.currentTime().then((time) => {
+        console.log('current time:', time);
+      });
+    }, 2000);
+
     // destroy player during unmount
     return () => player?.destroy();
   }, []);

@@ -89,6 +89,18 @@ RCT_EXPORT_METHOD(unmute:(nonnull NSNumber *)reactTag)
   }];
 }
 
+RCT_EXPORT_METHOD(currentTime:(nonnull NSNumber *)reactTag mode:(id)mode callback:(RCTResponseSenderBlock)callback)
+{
+  [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
+    if (RCTNilIfNull(mode)) {
+      BMPTimeMode timeMode = [RCTConvert BMPTimeMode:mode];
+      callback(@[@([view.player currentTime:timeMode])]);
+    } else {
+      callback(@[@([view.player currentTime])]);
+    }
+  }];
+}
+
 RCT_EXPORT_METHOD(destroy:(nonnull NSNumber *)reactTag)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {

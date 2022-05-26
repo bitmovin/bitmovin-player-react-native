@@ -5,7 +5,6 @@
 RCT_ENUM_CONVERTER(
     BMPTimeMode,
     (@{
-      @"default": @(BMPTimeModeAbsoluteTime),
       @"absolute": @(BMPTimeModeAbsoluteTime),
       @"relative": @(BMPTimeModeRelativeTime),
     }),
