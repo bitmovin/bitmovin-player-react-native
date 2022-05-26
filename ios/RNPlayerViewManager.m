@@ -23,10 +23,10 @@ RCT_EXPORT_METHOD(loadConfig:(nonnull NSNumber *)reactTag config:(id)json)
   }];
 }
 
-RCT_EXPORT_METHOD(dispose:(nonnull NSNumber *)reactTag)
+RCT_EXPORT_METHOD(destroy:(nonnull NSNumber *)reactTag)
 {
   [self viewForTag:reactTag completion:^(RNPlayerView *view) {
-    [view dispose:reactTag];
+    [view destroy:reactTag];
   }];
 }
 

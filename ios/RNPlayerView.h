@@ -6,6 +6,6 @@
 - (instancetype)init;
 
 - (void)loadConfig:(id)json;
-- (void)dispose:(NSNumber *)tag;
+- (void)destroy:(NSNumber *)tag;
 
 @end

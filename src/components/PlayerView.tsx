@@ -35,10 +35,10 @@ export class PlayerView extends Component<PlayerViewProps> {
       [config]
     );
 
-  dispose = () =>
+  destroy = () =>
     UIManager.dispatchViewManagerCommand(
       findNodeHandle(this.nativeRef.current),
-      UIManager.getViewManagerConfig(NativePlayerViewModule).Commands.dispose,
+      UIManager.getViewManagerConfig(NativePlayerViewModule).Commands.destroy,
       []
     );
 
@@ -47,7 +47,7 @@ export class PlayerView extends Component<PlayerViewProps> {
   }
 
   componentWillUnmount() {
-    this.dispose();
+    this.destroy();
   }
 
   render() {
