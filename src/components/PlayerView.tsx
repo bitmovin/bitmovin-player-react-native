@@ -5,29 +5,12 @@ import {
   findNodeHandle,
   requireNativeComponent,
 } from 'react-native';
+import { Config } from '../config';
 
 const NativePlayerViewModule = 'NativePlayerView';
 const NativePlayerView = requireNativeComponent<{ style?: ViewStyle }>(
   NativePlayerViewModule
 );
-
-export type ConfigSourceType =
-  | 'none'
-  | 'hls'
-  | 'dash'
-  | 'progressive'
-  | 'movpkg';
-
-export interface Config {
-  player: {
-    licenseKey: string;
-  };
-  source: {
-    url: string;
-    type?: ConfigSourceType;
-    poster?: string;
-  };
-}
 
 export interface PlayerViewProps {
   style?: ViewStyle;
