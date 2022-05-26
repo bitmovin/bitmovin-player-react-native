@@ -24,30 +24,25 @@ export class Player extends Component<PlayerProps> {
     this.viewRef = React.createRef();
   }
 
-  setup = (config: PlayerConfig) =>
-    UIManager.dispatchViewManagerCommand(
-      findNodeHandle(this.viewRef.current),
-      UIManager.getViewManagerConfig(NativePlayerViewModule).Commands.setup,
-      [config]
-    );
+  setup = (config: PlayerConfig) => this.dispatch('setup', config);
 
-  loadSource = (config: SourceConfig) =>
-    UIManager.dispatchViewManagerCommand(
-      findNodeHandle(this.viewRef.current),
-      UIManager.getViewManagerConfig(NativePlayerViewModule).Commands
-        .loadSource,
-      [config]
-    );
+  loadSource = (config: SourceConfig) => this.dispatch('loadSource', config);
 
-  destroy = () =>
-    UIManager.dispatchViewManagerCommand(
-      findNodeHandle(this.viewRef.current),
-      UIManager.getViewManagerConfig(NativePlayerViewModule).Commands.destroy,
-      []
-    );
+  destroy = () => this.dispatch('destroy');
 
   render() {
     const { style } = this.props;
     return <NativePlayerView style={style} ref={this.viewRef} />;
   }
+
+  // View manager utilities
+  private dispatch = (command: string, ...args: any[]) =>
+    UIManager.dispatchViewManagerCommand(
+      findNodeHandle(this.viewRef.current),
+      this.getCommandId(command),
+      args ?? []
+    );
+
+  private getCommandId = (name: string): number =>
+    UIManager.getViewManagerConfig(NativePlayerViewModule).Commands[name];
 }
