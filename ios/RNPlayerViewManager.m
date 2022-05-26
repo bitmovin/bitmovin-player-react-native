@@ -16,10 +16,17 @@ RCT_EXPORT_MODULE(NativePlayerView)
   return [[RNPlayerView alloc] init];
 }
 
-RCT_EXPORT_METHOD(loadConfig:(nonnull NSNumber *)reactTag config:(id)json)
+RCT_EXPORT_METHOD(setup:(nonnull NSNumber *)reactTag config:(id)json)
 {
   [self viewForTag:reactTag completion:^(RNPlayerView *view) {
-    [view loadConfig:json];
+    [view setup:reactTag config:json];
+  }];
+}
+
+RCT_EXPORT_METHOD(loadSource:(nonnull NSNumber *)reactTag config:(id)json)
+{
+  [self viewForTag:reactTag completion:^(RNPlayerView *view) {
+    [view loadSource:reactTag config:json];
   }];
 }
 

@@ -16,24 +16,19 @@ RCT_ENUM_CONVERTER(
 
 + (BMPPlayerConfig *)BMPPlayerConfig:(id)json
 {
-  id configJson = json[@"player"];
   BMPPlayerConfig *config = [BMPPlayerConfig new];
-  [config setKey:[RCTConvert NSString:configJson[@"licenseKey"]]];
+  [config setKey:[RCTConvert NSString:json[@"licenseKey"]]];
   return config;
 }
 
 + (BMPSourceConfig *)BMPSourceConfig:(id)json
 {
-  id configJson = json[@"source"];
-
-  NSURL *url = [RCTConvert NSURL:configJson[@"url"]];
-  BMPSourceType type = [RCTConvert BMPSourceType:configJson[@"type"]];
+  NSURL *url = [RCTConvert NSURL:json[@"url"]];
+  BMPSourceType type = [RCTConvert BMPSourceType:json[@"type"]];
   BMPSourceConfig *config = [[BMPSourceConfig alloc] initWithUrl:url type:type];
-
-  if (configJson[@"poster"]) {
-    [config setPosterSource:[RCTConvert NSURL:configJson[@"poster"]]];
+  if (json[@"poster"]) {
+    [config setPosterSource:[RCTConvert NSURL:json[@"poster"]]];
   }
-
   return config;
 }
 

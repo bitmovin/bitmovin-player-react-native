@@ -1,56 +1,53 @@
-import React, { Component } from 'react';
+import React, { Component, PropsWithRef } from 'react';
 import {
   UIManager,
   ViewStyle,
   findNodeHandle,
   requireNativeComponent,
 } from 'react-native';
-import { Config } from '../config';
+import { PlayerConfig, SourceConfig } from '../config';
 
 const NativePlayerViewModule = 'NativePlayerView';
 const NativePlayerView = requireNativeComponent<{ style?: ViewStyle }>(
   NativePlayerViewModule
 );
 
-export interface PlayerViewProps {
+type PlayerProps = PropsWithRef<{
   style?: ViewStyle;
-  config: Config;
-}
+}>;
 
-export class PlayerView extends Component<PlayerViewProps> {
-  props: PlayerViewProps;
-  nativeRef: React.RefObject<any>;
+export class Player extends Component<PlayerProps> {
+  private viewRef: React.RefObject<any>;
 
-  constructor(props: PlayerViewProps) {
+  constructor(props: PlayerProps) {
     super(props);
-    this.props = props;
-    this.nativeRef = React.createRef();
+    this.viewRef = React.createRef();
   }
 
-  loadConfig = (config: Config) =>
+  setup = (config: PlayerConfig) =>
     UIManager.dispatchViewManagerCommand(
-      findNodeHandle(this.nativeRef.current),
+      findNodeHandle(this.viewRef.current),
+      UIManager.getViewManagerConfig(NativePlayerViewModule).Commands.setup,
+      [config]
+    );
+
+  loadSource = (config: SourceConfig) =>
+    UIManager.dispatchViewManagerCommand(
+      findNodeHandle(this.viewRef.current),
       UIManager.getViewManagerConfig(NativePlayerViewModule).Commands
-        .loadConfig,
+        .loadSource,
       [config]
     );
 
   destroy = () =>
     UIManager.dispatchViewManagerCommand(
-      findNodeHandle(this.nativeRef.current),
+      findNodeHandle(this.viewRef.current),
       UIManager.getViewManagerConfig(NativePlayerViewModule).Commands.destroy,
       []
     );
 
-  componentDidMount() {
-    this.loadConfig(this.props.config);
-  }
-
-  componentWillUnmount() {
-    this.destroy();
-  }
-
   render() {
-    return <NativePlayerView ref={this.nativeRef} style={this.props.style} />;
+    const { style } = this.props;
+    return <NativePlayerView style={style} ref={this.viewRef} />;
   }
 }

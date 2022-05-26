@@ -12,21 +12,29 @@
   #pragma clang diagnostic pop
 }
 
-- (void)loadConfig:(id)json
+- (void)setup:(NSNumber *)tag config:(id)json
 {
-  BMPPlayerConfig *playerConfig = [RCTConvert BMPPlayerConfig:json];
-  BMPSourceConfig *sourceConfig = [RCTConvert BMPSourceConfig:json];
-  self.player = [BMPPlayerFactory createWithPlayerConfig:playerConfig];
-  [self.player loadSourceConfig:sourceConfig];
+  BMPPlayerConfig *config = [RCTConvert BMPPlayerConfig:json];
+  self.player = [BMPPlayerFactory createWithPlayerConfig:config];
+}
+
+- (void)loadSource:(NSNumber *)tag config:(id)json
+{
+  if (!self.player) {
+    RCTLogError(@"RNPlayerView #%@ has no player instance.", tag);
+    return;
+  }
+  BMPSourceConfig *config = [RCTConvert BMPSourceConfig:json];
+  [self.player loadSourceConfig:config];
 }
 
 - (void)destroy:(NSNumber *)tag
 {
-  if (!self.player.isDestroyed) {
-    [self.player destroy];
-  } else {
-    RCTLogWarn(@"RCTPlayerView #%@ is already disposed.", tag);
+  if (!self.player) {
+    RCTLogError(@"RNPlayerView #%@ has no player instance.", tag);
+    return;
   }
+  [self.player destroy];
 }
 
 @end

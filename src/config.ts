@@ -1,17 +1,11 @@
-export type ConfigSourceType =
-  | 'none'
-  | 'hls'
-  | 'dash'
-  | 'progressive'
-  | 'movpkg';
+export interface PlayerConfig {
+  licenseKey: string;
+}
 
-export interface Config {
-  player: {
-    licenseKey: string;
-  };
-  source: {
-    url: string;
-    type?: ConfigSourceType;
-    poster?: string;
-  };
+export type SourceType = 'none' | 'hls' | 'dash' | 'progressive' | 'movpkg';
+
+export interface SourceConfig {
+  url: string;
+  type?: SourceType;
+  poster?: string;
 }
