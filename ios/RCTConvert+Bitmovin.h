@@ -5,5 +5,6 @@
 
 + (BMPPlayerConfig *)BMPPlayerConfig:(id)json;
 + (BMPSourceConfig *)BMPSourceConfig:(id)json;
++ (BMPTimeMode)BMPTimeMode:(id)json;
 
 @end

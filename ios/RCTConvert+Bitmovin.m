@@ -3,6 +3,16 @@
 @implementation RCTConvert(Bitmovin)
 
 RCT_ENUM_CONVERTER(
+    BMPTimeMode,
+    (@{
+      @"default": @(BMPTimeModeAbsoluteTime),
+      @"absolute": @(BMPTimeModeAbsoluteTime),
+      @"relative": @(BMPTimeModeRelativeTime),
+    }),
+    BMPTimeModeAbsoluteTime,
+    unsignedIntegerValue)
+
+RCT_ENUM_CONVERTER(
     BMPSourceType,
     (@{
       @"none": @(BMPSourceTypeNone),

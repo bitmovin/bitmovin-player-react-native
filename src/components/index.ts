@@ -1,1 +1,1 @@
-export * from './PlayerView';
+export * from './Player';
