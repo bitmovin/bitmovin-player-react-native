@@ -17,9 +17,10 @@ export default function App() {
   const playerRef = useRef<Player>(null);
   useEffect(() => {
     const player = playerRef.current;
-    // initialize native player with license key
-    player?.setup(playerConfig);
-    // load stream
+    // initialize native player with a license key
+    player?.create(playerConfig);
+
+    // load stream source
     player?.loadSource(sourceConfig);
 
     setInterval(() => {
@@ -28,7 +29,7 @@ export default function App() {
       });
     }, 2000);
 
-    // destroy player during unmount
+    // destroy player on App unmount
     return () => player?.destroy();
   }, []);
   return (

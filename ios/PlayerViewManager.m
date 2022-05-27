@@ -20,7 +20,7 @@ RCT_EXPORT_MODULE(NativePlayerView)
   #pragma clang diagnostic pop
 }
 
-RCT_EXPORT_METHOD(setup:(nonnull NSNumber *)reactTag config:(id)json)
+RCT_EXPORT_METHOD(create:(nonnull NSNumber *)reactTag config:(id)json)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
     if (view.player) {

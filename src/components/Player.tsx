@@ -31,7 +31,7 @@ export class Player extends Component<PlayerProps> {
     return <NativePlayerView style={style} ref={this.viewRef} />;
   }
 
-  setup = (config: PlayerConfig) => this.dispatch('setup', config);
+  create = (config: PlayerConfig) => this.dispatch('create', config);
 
   loadSource = (config: SourceConfig) => this.dispatch('loadSource', config);
 
