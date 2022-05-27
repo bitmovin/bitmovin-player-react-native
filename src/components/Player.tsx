@@ -31,32 +31,38 @@ export class Player extends Component<PlayerProps> {
     return <NativePlayerView style={style} ref={this.viewRef} />;
   }
 
-  create = (config: PlayerConfig) => this.dispatch('create', config);
+  create = (config: PlayerConfig): void => this.dispatch('create', config);
 
-  loadSource = (config: SourceConfig) => this.dispatch('loadSource', config);
+  loadSource = (config: SourceConfig): void =>
+    this.dispatch('loadSource', config);
 
-  unload = () => this.dispatch('unload');
+  unload = (): void => this.dispatch('unload');
 
-  play = () => this.dispatch('play');
+  play = (): void => this.dispatch('play');
 
-  pause = () => this.dispatch('pause');
+  pause = (): void => this.dispatch('pause');
 
-  seek = (time: number) => this.dispatch('seek', time);
+  seek = (time: number): void => this.dispatch('seek', time);
 
-  mute = () => this.dispatch('mute');
+  mute = (): void => this.dispatch('mute');
 
-  unmute = () => this.dispatch('unmute');
+  unmute = (): void => this.dispatch('unmute');
+
+  destroy = (): void => this.dispatch('destroy');
+
+  setVolume = (volume: number): void => this.dispatch('setVolume', volume);
+
+  getVolume = (): Promise<number> =>
+    new Promise((resolve) =>
+      PlayerModule.getVolume(this.nodeHandle(), resolve)
+    );
 
   currentTime = (mode?: 'absolute' | 'relative'): Promise<number> =>
     new Promise((resolve) =>
-      PlayerModule.currentTime(this.nodeHandle(), mode, (time: number) => {
-        resolve(time);
-      })
+      PlayerModule.currentTime(this.nodeHandle(), mode, resolve)
     );
 
-  destroy = () => this.dispatch('destroy');
-
-  private dispatch = (command: string, ...args: any[]) =>
+  private dispatch = (command: string, ...args: any[]): void =>
     UIManager.dispatchViewManagerCommand(
       this.nodeHandle(),
       this.getCommandId(command),
@@ -66,6 +72,6 @@ export class Player extends Component<PlayerProps> {
   private nodeHandle = (): number | null =>
     findNodeHandle(this.viewRef.current);
 
-  private getCommandId = (name: string): number =>
-    UIManager.getViewManagerConfig('NativePlayerView').Commands[name];
+  private getCommandId = (command: string): number =>
+    UIManager.getViewManagerConfig('NativePlayerView').Commands[command];
 }

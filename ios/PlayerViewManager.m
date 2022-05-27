@@ -90,6 +90,27 @@ RCT_EXPORT_METHOD(unmute:(nonnull NSNumber *)reactTag)
   }];
 }
 
+RCT_EXPORT_METHOD(destroy:(nonnull NSNumber *)reactTag)
+{
+  [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
+    [view.player destroy];
+  }];
+}
+
+RCT_EXPORT_METHOD(setVolume:(nonnull NSNumber *)reactTag volume:(nonnull NSNumber *)volume)
+{
+  [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
+    view.player.volume = [volume integerValue];
+  }];
+}
+
+RCT_EXPORT_METHOD(getVolume:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+{
+  [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
+    callback(@[@(view.player.volume)]);
+  }];
+}
+
 RCT_EXPORT_METHOD(currentTime:(nonnull NSNumber *)reactTag mode:(id)mode callback:(RCTResponseSenderBlock)callback)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
@@ -99,13 +120,6 @@ RCT_EXPORT_METHOD(currentTime:(nonnull NSNumber *)reactTag mode:(id)mode callbac
     } else {
       callback(@[@([view.player currentTime])]);
     }
-  }];
-}
-
-RCT_EXPORT_METHOD(destroy:(nonnull NSNumber *)reactTag)
-{
-  [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
-    [view.player destroy];
   }];
 }
 
