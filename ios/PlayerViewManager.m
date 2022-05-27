@@ -25,6 +25,7 @@ RCT_EXPORT_METHOD(create:(nonnull NSNumber *)reactTag config:(id)json)
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
     if (view.player) {
       RCTLogWarn(@"PlayerView #%@ already has a player instance. It will get overwritten.", reactTag);
+      view.player = nil;
     }
     BMPPlayerConfig *config = [RCTConvert BMPPlayerConfig:json];
     if (!config) {
@@ -68,7 +69,7 @@ RCT_EXPORT_METHOD(pause:(nonnull NSNumber *)reactTag)
   }];
 }
 
-RCT_EXPORT_METHOD(seek:(nonnull NSNumber *)reactTag time:(NSNumber *)time)
+RCT_EXPORT_METHOD(seek:(nonnull NSNumber *)reactTag time:(nonnull NSNumber *)time)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
     [view.player seek:[time doubleValue]];
