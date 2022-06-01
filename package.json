@@ -1,13 +1,11 @@
 {
-  "name": "player-react-native-bridge",
-  "version": "0.1.0",
-  "description": "Bitmovin Player React Native Bridge",
+  "name": "@bitmovin/player-react-native",
+  "version": "0.0.1",
+  "description": "Bitmovin Player React Native",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
   "types": "lib/index.d.ts",
-  "author": [
-    ""
-  ],
+  "author": "Murilo Paixão <murilo.paixao.2@gmail.com>",
   "files": [
     "src",
     "lib",

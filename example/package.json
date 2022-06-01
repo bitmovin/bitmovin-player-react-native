@@ -1,8 +1,8 @@
 {
-  "name": "player-react-native-bridge-example",
-  "description": "Example app for player-react-native-bridge",
-  "version": "0.0.1",
   "private": true,
+  "name": "player-react-native-example",
+  "description": "Example app for @bitmovin/player-react-native",
+  "version": "0.0.1",
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",

@@ -1,6 +1,10 @@
 import React, { useRef, useEffect } from 'react';
 import { View } from 'react-native';
-import { Player, PlayerConfig, SourceConfig } from 'player-react-native-bridge';
+import {
+  Player,
+  PlayerConfig,
+  SourceConfig,
+} from '@bitmovin/player-react-native';
 import styles from './styles';
 
 const playerConfig: PlayerConfig = {
@@ -17,24 +21,49 @@ export default function App() {
   const playerRef = useRef<Player>(null);
   useEffect(() => {
     const player = playerRef.current;
-    // initialize native player with a license key
-    player?.create(playerConfig);
-
     // load stream source
     player?.loadSource(sourceConfig);
 
-    setInterval(() => {
-      player?.currentTime().then((time) => {
-        console.log('current time:', time);
+    setTimeout(() => {
+      player?.play();
+      player?.getVolume().then((volume) => {
+        console.log('volume:', volume);
       });
-    }, 2000);
-
-    // destroy player on App unmount
-    return () => player?.destroy();
+      player?.getDuration().then((duration) => {
+        console.log('duration:', duration);
+      });
+      player?.getCurrentTime().then((time) => {
+        console.log('current time (default):', time);
+      });
+      player?.getCurrentTime('absolute').then((time) => {
+        console.log('current time (absolute):', time);
+      });
+      player?.getCurrentTime('relative').then((time) => {
+        console.log('current time (relative):', time);
+      });
+      player?.isDestroyed().then((isDestroyed) => {
+        console.log('destroyed:', isDestroyed);
+      });
+      player?.isMuted().then((isMuted) => {
+        console.log('muted:', isMuted);
+      });
+      player?.isPlaying().then((isPlaying) => {
+        console.log('playing:', isPlaying);
+      });
+      player?.isLive().then((isLive) => {
+        console.log('live:', isLive);
+      });
+      player?.isAirPlayActive().then((isAirPlayActive) => {
+        console.log('active airplay:', isAirPlayActive);
+      });
+      player?.isAirPlayAvailable().then((isAirPlayAvailable) => {
+        console.log('available airplay:', isAirPlayAvailable);
+      });
+    }, 1500);
   }, []);
   return (
     <View style={styles.container}>
-      <Player ref={playerRef} style={styles.player} />
+      <Player config={playerConfig} ref={playerRef} style={styles.player} />
     </View>
   );
 }
