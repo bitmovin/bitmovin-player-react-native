@@ -50,8 +50,8 @@ export class Player extends Component<PlayerProps> {
   }
 
   componentWillUnmount() {
-    // When setting the `config` prop, the user opts-in for default
-    // handling of native player's creation/destruction during the
+    // When setting the `config` prop, the user enables the default
+    // handling of the native player's creation/destruction process inside the
     // component's lifecycle (`componentDidMount`/`componentWillUnmount`).
     //
     // If the `config` prop is not provided, then manual handling
