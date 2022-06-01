@@ -3,7 +3,20 @@ import { ViewStyle, UIManager, findNodeHandle, StyleSheet } from 'react-native';
 import { PlayerConfig, SourceConfig } from '../config';
 import { NativePlayerView, NativePlayerModule } from './NativePlayer';
 
-type PlayerProps = PropsWithRef<{
+export enum LoadingState {
+  UNLOADED = 0,
+  LOADING = 1,
+  LOADED = 2,
+}
+
+export type Source = {
+  duration: number;
+  isActive: boolean;
+  isAttachedToPlayer: boolean;
+  loadingState: LoadingState;
+};
+
+export type PlayerProps = PropsWithRef<{
   config?: PlayerConfig;
   style?: ViewStyle;
 }>;
@@ -75,7 +88,7 @@ export class Player extends PureComponent<PlayerProps> {
       NativePlayerModule.getVolume(this.nodeHandle(), resolve)
     );
 
-  getSource = (): Promise<any> =>
+  getSource = (): Promise<Source | null> =>
     new Promise((resolve) =>
       NativePlayerModule.source(this.nodeHandle(), resolve)
     );
