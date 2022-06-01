@@ -62,6 +62,34 @@ export class Player extends Component<PlayerProps> {
       PlayerModule.currentTime(this.nodeHandle(), mode, resolve)
     );
 
+  duration = (): Promise<number> =>
+    new Promise((resolve) => PlayerModule.duration(this.nodeHandle(), resolve));
+
+  isDestroyed = (): Promise<boolean> =>
+    new Promise((resolve) =>
+      PlayerModule.isDestroyed(this.nodeHandle(), resolve)
+    );
+
+  isMuted = (): Promise<boolean> =>
+    new Promise((resolve) => PlayerModule.isMuted(this.nodeHandle(), resolve));
+
+  isPaused = (): Promise<boolean> =>
+    new Promise((resolve) => PlayerModule.isPaused(this.nodeHandle(), resolve));
+
+  isPlaying = (): Promise<boolean> =>
+    new Promise((resolve) =>
+      PlayerModule.isPlaying(this.nodeHandle(), resolve)
+    );
+
+  isLive = (): Promise<boolean> =>
+    new Promise((resolve) => PlayerModule.isLive(this.nodeHandle(), resolve));
+
+  isAirPlayActive = (): Promise<boolean> =>
+    new Promise((resolve) => PlayerModule.isLive(this.nodeHandle(), resolve));
+
+  isAirPlayAvailable = (): Promise<boolean> =>
+    new Promise((resolve) => PlayerModule.isLive(this.nodeHandle(), resolve));
+
   private dispatch = (command: string, ...args: any[]): void =>
     UIManager.dispatchViewManagerCommand(
       this.nodeHandle(),

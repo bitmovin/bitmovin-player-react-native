@@ -123,7 +123,63 @@ RCT_EXPORT_METHOD(currentTime:(nonnull NSNumber *)reactTag mode:(id)mode callbac
   }];
 }
 
-- (void)viewForTag:(nonnull NSNumber *)reactTag completion:(void (^)(BMPPlayerView *view))completion
+RCT_EXPORT_METHOD(duration:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+{
+  [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
+    callback(@[@(view.player.duration)]);
+  }];
+}
+
+RCT_EXPORT_METHOD(isDestroyed:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+{
+  [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
+    callback(@[@(view.player.isDestroyed)]);
+  }];
+}
+
+RCT_EXPORT_METHOD(isMuted:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+{
+  [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
+    callback(@[@(view.player.isMuted)]);
+  }];
+}
+
+RCT_EXPORT_METHOD(isPaused:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+{
+  [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
+    callback(@[@(view.player.isPaused)]);
+  }];
+}
+
+RCT_EXPORT_METHOD(isPlaying:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+{
+  [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
+    callback(@[@(view.player.isPlaying)]);
+  }];
+}
+
+RCT_EXPORT_METHOD(isLive:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+{
+  [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
+    callback(@[@(view.player.isLive)]);
+  }];
+}
+
+RCT_EXPORT_METHOD(isAirPlayActive:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+{
+  [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
+    callback(@[@(view.player.isAirPlayActive)]);
+  }];
+}
+
+RCT_EXPORT_METHOD(isAirPlayAvailable:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+{
+  [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
+    callback(@[@(view.player.isAirPlayAvailable)]);
+  }];
+}
+
+- (void)viewForTag:(nonnull NSNumber *)reactTag completion:(void(^)(BMPPlayerView *view))completion
 {
   [self.bridge.uiManager addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
     UIView *view = viewRegistry[reactTag];
