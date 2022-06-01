@@ -32,15 +32,6 @@ export default function App() {
       player?.getDuration().then((duration) => {
         console.log('duration:', duration);
       });
-      player?.getCurrentTime().then((time) => {
-        console.log('current time (default):', time);
-      });
-      player?.getCurrentTime('absolute').then((time) => {
-        console.log('current time (absolute):', time);
-      });
-      player?.getCurrentTime('relative').then((time) => {
-        console.log('current time (relative):', time);
-      });
       player?.isDestroyed().then((isDestroyed) => {
         console.log('destroyed:', isDestroyed);
       });
@@ -59,7 +50,20 @@ export default function App() {
       player?.isAirPlayAvailable().then((isAirPlayAvailable) => {
         console.log('available airplay:', isAirPlayAvailable);
       });
-    }, 1500);
+      setInterval(() => {
+        console.log('\n');
+        player?.getCurrentTime().then((time) => {
+          console.log('current time (default):', time);
+        });
+        player?.getCurrentTime('absolute').then((time) => {
+          console.log('current time (absolute):', time);
+        });
+        player?.getCurrentTime('relative').then((time) => {
+          console.log('current time (relative):', time);
+        });
+        console.log('\n');
+      }, 2000);
+    }, 2000);
   }, []);
   return (
     <View style={styles.container}>

@@ -40,7 +40,15 @@ export class Player extends Component<PlayerProps> {
   }
 
   componentWillUnmount() {
-    this.destroy();
+    // When setting the `config` prop, the user opts-in for default
+    // handling of native player's creation/destruction during the
+    // component's lifecycle (`componentDidMount`/`componentWillUnmount`).
+    //
+    // If the `config` prop is not provided, then manual handling
+    // of the creation/destruction process is required from the user.
+    if (this.props.config) {
+      this.destroy();
+    }
   }
 
   create = (config: PlayerConfig): void => this.dispatch('create', config);
@@ -69,12 +77,12 @@ export class Player extends Component<PlayerProps> {
       PlayerModule.getVolume(this.nodeHandle(), resolve)
     );
 
-  currentTime = (mode?: 'absolute' | 'relative'): Promise<number> =>
+  getCurrentTime = (mode?: 'absolute' | 'relative'): Promise<number> =>
     new Promise((resolve) =>
       PlayerModule.currentTime(this.nodeHandle(), mode, resolve)
     );
 
-  duration = (): Promise<number> =>
+  getDuration = (): Promise<number> =>
     new Promise((resolve) => PlayerModule.duration(this.nodeHandle(), resolve));
 
   isDestroyed = (): Promise<boolean> =>
