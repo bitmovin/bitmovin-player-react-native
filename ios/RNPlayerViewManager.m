@@ -4,11 +4,11 @@
 #import <React/RCTViewManager.h>
 #import <BitmovinPlayer/BitmovinPlayer.h>
 
-@interface PlayerViewManager : RCTViewManager
+@interface RNPlayerViewManager : RCTViewManager
 
 @end
 
-@implementation PlayerViewManager
+@implementation RNPlayerViewManager
 
 RCT_EXPORT_MODULE(NativePlayerView)
 
@@ -16,8 +16,12 @@ RCT_EXPORT_MODULE(NativePlayerView)
 {
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wnonnull"
-  return [[BMPPlayerView alloc] initWithPlayer:nil frame:CGRectZero];
+  UIView *view = [[BMPPlayerView alloc] initWithPlayer:nil frame:CGRectZero];
   #pragma clang diagnostic pop
+  view.autoresizingMask =
+    UIViewAutoresizingFlexibleWidth
+  | UIViewAutoresizingFlexibleHeight;
+  return view;
 }
 
 RCT_EXPORT_METHOD(create:(nonnull NSNumber *)reactTag config:(id)json)
