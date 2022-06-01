@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useLayoutEffect, useCallback } from 'react';
 import { View } from 'react-native';
 import {
   Player,
@@ -19,55 +19,20 @@ const sourceConfig: SourceConfig = {
 
 export default function App() {
   const playerRef = useRef<Player>(null);
-  useEffect(() => {
+  const setup = useCallback(async () => {
     const player = playerRef.current;
-    // load stream source
-    player?.loadSource(sourceConfig);
-
-    setTimeout(() => {
-      player?.play();
-      player?.getVolume().then((volume) => {
-        console.log('volume:', volume);
-      });
-      player?.getDuration().then((duration) => {
-        console.log('duration:', duration);
-      });
-      player?.isDestroyed().then((isDestroyed) => {
-        console.log('destroyed:', isDestroyed);
-      });
-      player?.isMuted().then((isMuted) => {
-        console.log('muted:', isMuted);
-      });
-      player?.isPlaying().then((isPlaying) => {
-        console.log('playing:', isPlaying);
-      });
-      player?.isLive().then((isLive) => {
-        console.log('live:', isLive);
-      });
-      player?.isAirPlayActive().then((isAirPlayActive) => {
-        console.log('active airplay:', isAirPlayActive);
-      });
-      player?.isAirPlayAvailable().then((isAirPlayAvailable) => {
-        console.log('available airplay:', isAirPlayAvailable);
-      });
-      setInterval(() => {
-        console.log('\n');
-        player?.getCurrentTime().then((time) => {
-          console.log('current time (default):', time);
-        });
-        player?.getCurrentTime('absolute').then((time) => {
-          console.log('current time (absolute):', time);
-        });
-        player?.getCurrentTime('relative').then((time) => {
-          console.log('current time (relative):', time);
-        });
-        console.log('\n');
-      }, 2000);
-    }, 2000);
+    const source = await player?.getSource();
+    if (!source) {
+      player?.loadSource(sourceConfig);
+    }
+    player?.play();
   }, []);
+  useLayoutEffect(() => {
+    setup();
+  }, [setup]);
   return (
     <View style={styles.container}>
-      <Player config={playerConfig} ref={playerRef} style={styles.player} />
+      <Player ref={playerRef} config={playerConfig} style={styles.player} />
     </View>
   );
 }

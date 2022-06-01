@@ -115,6 +115,23 @@ RCT_EXPORT_METHOD(getVolume:(nonnull NSNumber *)reactTag callback:(RCTResponseSe
   }];
 }
 
+RCT_EXPORT_METHOD(source:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+{
+  [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
+    id<BMPSource> source = view.player.source;
+    if (!source) {
+      callback(@[[NSNull null]]);
+    } else {
+      callback(@[@{
+        @"duration": @(source.duration),
+        @"isActive": @(source.isActive),
+        @"isAttachedToPlayer": @(source.isAttachedToPlayer),
+        @"loadingState": @(source.loadingState)
+      }]);
+    }
+  }];
+}
+
 RCT_EXPORT_METHOD(currentTime:(nonnull NSNumber *)reactTag mode:(id)mode callback:(RCTResponseSenderBlock)callback)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {

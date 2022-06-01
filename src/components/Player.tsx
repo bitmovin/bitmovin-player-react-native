@@ -1,19 +1,7 @@
-import React, { Component, PropsWithRef } from 'react';
-import {
-  ViewStyle,
-  UIManager,
-  NativeModules,
-  findNodeHandle,
-  requireNativeComponent,
-  StyleSheet,
-} from 'react-native';
+import React, { PureComponent, PropsWithRef } from 'react';
+import { ViewStyle, UIManager, findNodeHandle, StyleSheet } from 'react-native';
 import { PlayerConfig, SourceConfig } from '../config';
-
-const NativePlayerView = requireNativeComponent<{ style?: ViewStyle }>(
-  'NativePlayerView'
-);
-
-const PlayerModule = NativeModules.NativePlayerView;
+import { NativePlayerView, NativePlayerModule } from './NativePlayer';
 
 type PlayerProps = PropsWithRef<{
   config?: PlayerConfig;
@@ -26,7 +14,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export class Player extends Component<PlayerProps> {
+export class Player extends PureComponent<PlayerProps> {
   private viewRef: React.RefObject<any>;
 
   constructor(props: PlayerProps) {
@@ -84,41 +72,58 @@ export class Player extends Component<PlayerProps> {
 
   getVolume = (): Promise<number> =>
     new Promise((resolve) =>
-      PlayerModule.getVolume(this.nodeHandle(), resolve)
+      NativePlayerModule.getVolume(this.nodeHandle(), resolve)
+    );
+
+  getSource = (): Promise<any> =>
+    new Promise((resolve) =>
+      NativePlayerModule.source(this.nodeHandle(), resolve)
     );
 
   getCurrentTime = (mode?: 'absolute' | 'relative'): Promise<number> =>
     new Promise((resolve) =>
-      PlayerModule.currentTime(this.nodeHandle(), mode, resolve)
+      NativePlayerModule.currentTime(this.nodeHandle(), mode, resolve)
     );
 
   getDuration = (): Promise<number> =>
-    new Promise((resolve) => PlayerModule.duration(this.nodeHandle(), resolve));
+    new Promise((resolve) =>
+      NativePlayerModule.duration(this.nodeHandle(), resolve)
+    );
 
   isDestroyed = (): Promise<boolean> =>
     new Promise((resolve) =>
-      PlayerModule.isDestroyed(this.nodeHandle(), resolve)
+      NativePlayerModule.isDestroyed(this.nodeHandle(), resolve)
     );
 
   isMuted = (): Promise<boolean> =>
-    new Promise((resolve) => PlayerModule.isMuted(this.nodeHandle(), resolve));
+    new Promise((resolve) =>
+      NativePlayerModule.isMuted(this.nodeHandle(), resolve)
+    );
 
   isPaused = (): Promise<boolean> =>
-    new Promise((resolve) => PlayerModule.isPaused(this.nodeHandle(), resolve));
+    new Promise((resolve) =>
+      NativePlayerModule.isPaused(this.nodeHandle(), resolve)
+    );
 
   isPlaying = (): Promise<boolean> =>
     new Promise((resolve) =>
-      PlayerModule.isPlaying(this.nodeHandle(), resolve)
+      NativePlayerModule.isPlaying(this.nodeHandle(), resolve)
     );
 
   isLive = (): Promise<boolean> =>
-    new Promise((resolve) => PlayerModule.isLive(this.nodeHandle(), resolve));
+    new Promise((resolve) =>
+      NativePlayerModule.isLive(this.nodeHandle(), resolve)
+    );
 
   isAirPlayActive = (): Promise<boolean> =>
-    new Promise((resolve) => PlayerModule.isLive(this.nodeHandle(), resolve));
+    new Promise((resolve) =>
+      NativePlayerModule.isLive(this.nodeHandle(), resolve)
+    );
 
   isAirPlayAvailable = (): Promise<boolean> =>
-    new Promise((resolve) => PlayerModule.isLive(this.nodeHandle(), resolve));
+    new Promise((resolve) =>
+      NativePlayerModule.isLive(this.nodeHandle(), resolve)
+    );
 
   private dispatch = (command: string, ...args: any[]): void =>
     UIManager.dispatchViewManagerCommand(
