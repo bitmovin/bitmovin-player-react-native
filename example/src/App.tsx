@@ -26,6 +26,28 @@ export default function App() {
       player?.loadSource(sourceConfig);
     }
     player?.play();
+    setTimeout(async () => {
+      const data = JSON.stringify(
+        {
+          volume: await player?.getVolume(),
+          source: await player?.getSource(),
+          currentTime: await player?.getCurrentTime(),
+          currentTimeRelative: await player?.getCurrentTime('relative'),
+          currentTimeAbsolute: await player?.getCurrentTime('absolute'),
+          duration: await player?.getDuration(),
+          isDestroyed: await player?.isDestroyed(),
+          isMuted: await player?.isMuted(),
+          isPaused: await player?.isPaused(),
+          isPlaying: await player?.isPlaying(),
+          isLive: await player?.isLive(),
+          isAirPlayActive: await player?.isAirPlayActive(),
+          isAirPlayAvailable: await player?.isAirPlayAvailable(),
+        },
+        null,
+        2
+      );
+      console.log(data);
+    }, 2000);
   }, []);
   useLayoutEffect(() => {
     setup();

@@ -84,59 +84,36 @@ export class Player extends PureComponent<PlayerProps> {
   setVolume = (volume: number): void => this.dispatch('setVolume', volume);
 
   getVolume = (): Promise<number> =>
-    new Promise((resolve) =>
-      NativePlayerModule.getVolume(this.nodeHandle(), resolve)
-    );
+    NativePlayerModule.getVolume(this.nodeHandle());
 
   getSource = (): Promise<Source | null> =>
-    new Promise((resolve) =>
-      NativePlayerModule.source(this.nodeHandle(), resolve)
-    );
+    NativePlayerModule.source(this.nodeHandle());
 
   getCurrentTime = (mode?: 'absolute' | 'relative'): Promise<number> =>
-    new Promise((resolve) =>
-      NativePlayerModule.currentTime(this.nodeHandle(), mode, resolve)
-    );
+    NativePlayerModule.currentTime(this.nodeHandle(), mode);
 
   getDuration = (): Promise<number> =>
-    new Promise((resolve) =>
-      NativePlayerModule.duration(this.nodeHandle(), resolve)
-    );
+    NativePlayerModule.duration(this.nodeHandle());
 
   isDestroyed = (): Promise<boolean> =>
-    new Promise((resolve) =>
-      NativePlayerModule.isDestroyed(this.nodeHandle(), resolve)
-    );
+    NativePlayerModule.isDestroyed(this.nodeHandle());
 
   isMuted = (): Promise<boolean> =>
-    new Promise((resolve) =>
-      NativePlayerModule.isMuted(this.nodeHandle(), resolve)
-    );
+    NativePlayerModule.isMuted(this.nodeHandle());
 
   isPaused = (): Promise<boolean> =>
-    new Promise((resolve) =>
-      NativePlayerModule.isPaused(this.nodeHandle(), resolve)
-    );
+    NativePlayerModule.isPaused(this.nodeHandle());
 
   isPlaying = (): Promise<boolean> =>
-    new Promise((resolve) =>
-      NativePlayerModule.isPlaying(this.nodeHandle(), resolve)
-    );
+    NativePlayerModule.isPlaying(this.nodeHandle());
 
-  isLive = (): Promise<boolean> =>
-    new Promise((resolve) =>
-      NativePlayerModule.isLive(this.nodeHandle(), resolve)
-    );
+  isLive = (): Promise<boolean> => NativePlayerModule.isLive(this.nodeHandle());
 
   isAirPlayActive = (): Promise<boolean> =>
-    new Promise((resolve) =>
-      NativePlayerModule.isAirPlayActive(this.nodeHandle(), resolve)
-    );
+    NativePlayerModule.isAirPlayActive(this.nodeHandle());
 
   isAirPlayAvailable = (): Promise<boolean> =>
-    new Promise((resolve) =>
-      NativePlayerModule.isAirPlayAvailable(this.nodeHandle(), resolve)
-    );
+    NativePlayerModule.isAirPlayAvailable(this.nodeHandle());
 
   private dispatch = (command: string, ...args: any[]): void =>
     UIManager.dispatchViewManagerCommand(

@@ -108,95 +108,118 @@ RCT_EXPORT_METHOD(setVolume:(nonnull NSNumber *)reactTag volume:(nonnull NSNumbe
   }];
 }
 
-RCT_EXPORT_METHOD(getVolume:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getVolume:(nonnull NSNumber *)reactTag
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
-    callback(@[@(view.player.volume)]);
+    resolve(@(view.player.volume));
   }];
 }
 
-RCT_EXPORT_METHOD(source:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(source:(nonnull NSNumber *)reactTag
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
     id<BMPSource> source = view.player.source;
     if (!source) {
-      callback(@[[NSNull null]]);
+      resolve([NSNull null]);
     } else {
-      callback(@[@{
+      resolve(@{
         @"duration": @(source.duration),
         @"isActive": @(source.isActive),
         @"isAttachedToPlayer": @(source.isAttachedToPlayer),
         @"loadingState": @(source.loadingState)
-      }]);
+      });
     }
   }];
 }
 
-RCT_EXPORT_METHOD(currentTime:(nonnull NSNumber *)reactTag mode:(id)mode callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(currentTime:(nonnull NSNumber *)reactTag
+                  mode:(id)mode
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
     if (RCTNilIfNull(mode)) {
       BMPTimeMode timeMode = [RCTConvert BMPTimeMode:mode];
-      callback(@[@([view.player currentTime:timeMode])]);
+      resolve(@([view.player currentTime:timeMode]));
     } else {
-      callback(@[@([view.player currentTime])]);
+      resolve(@([view.player currentTime]));
     }
   }];
 }
 
-RCT_EXPORT_METHOD(duration:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(duration:(nonnull NSNumber *)reactTag
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
-    callback(@[@(view.player.duration)]);
+    resolve(@(view.player.duration));
   }];
 }
 
-RCT_EXPORT_METHOD(isDestroyed:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(isDestroyed:(nonnull NSNumber *)reactTag
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
-    callback(@[@(view.player.isDestroyed)]);
+    resolve(@(view.player.isDestroyed));
   }];
 }
 
-RCT_EXPORT_METHOD(isMuted:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(isMuted:(nonnull NSNumber *)reactTag
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
-    callback(@[@(view.player.isMuted)]);
+    resolve(@(view.player.isMuted));
   }];
 }
 
-RCT_EXPORT_METHOD(isPaused:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(isPaused:(nonnull NSNumber *)reactTag
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
-    callback(@[@(view.player.isPaused)]);
+    resolve(@(view.player.isPaused));
   }];
 }
 
-RCT_EXPORT_METHOD(isPlaying:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(isPlaying:(nonnull NSNumber *)reactTag
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
-    callback(@[@(view.player.isPlaying)]);
+    resolve(@(view.player.isPlaying));
   }];
 }
 
-RCT_EXPORT_METHOD(isLive:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(isLive:(nonnull NSNumber *)reactTag
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
-    callback(@[@(view.player.isLive)]);
+    resolve(@(view.player.isLive));
   }];
 }
 
-RCT_EXPORT_METHOD(isAirPlayActive:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(isAirPlayActive:(nonnull NSNumber *)reactTag
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
-    callback(@[@(view.player.isAirPlayActive)]);
+    resolve(@(view.player.isAirPlayActive));
   }];
 }
 
-RCT_EXPORT_METHOD(isAirPlayAvailable:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(isAirPlayAvailable:(nonnull NSNumber *)reactTag
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
   [self viewForTag:reactTag completion:^(BMPPlayerView *view) {
-    callback(@[@(view.player.isAirPlayAvailable)]);
+    resolve(@(view.player.isAirPlayAvailable));
   }];
 }
 
