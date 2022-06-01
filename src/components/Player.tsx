@@ -117,12 +117,12 @@ export class Player extends PureComponent<PlayerProps> {
 
   isAirPlayActive = (): Promise<boolean> =>
     new Promise((resolve) =>
-      NativePlayerModule.isLive(this.nodeHandle(), resolve)
+      NativePlayerModule.isAirPlayActive(this.nodeHandle(), resolve)
     );
 
   isAirPlayAvailable = (): Promise<boolean> =>
     new Promise((resolve) =>
-      NativePlayerModule.isLive(this.nodeHandle(), resolve)
+      NativePlayerModule.isAirPlayAvailable(this.nodeHandle(), resolve)
     );
 
   private dispatch = (command: string, ...args: any[]): void =>
