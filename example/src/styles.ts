@@ -5,10 +5,10 @@ export default StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#000000',
   },
   player: {
-    width: '100%',
-    height: '100%',
+    flex: 1,
+    margin: 30,
+    backgroundColor: 'black',
   },
 });

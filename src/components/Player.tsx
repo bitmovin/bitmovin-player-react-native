@@ -5,6 +5,7 @@ import {
   NativeModules,
   findNodeHandle,
   requireNativeComponent,
+  StyleSheet,
 } from 'react-native';
 import { PlayerConfig, SourceConfig } from '../config';
 
@@ -15,9 +16,15 @@ const NativePlayerView = requireNativeComponent<{ style?: ViewStyle }>(
 const PlayerModule = NativeModules.NativePlayerView;
 
 type PlayerProps = PropsWithRef<{
-  style?: ViewStyle;
   config?: PlayerConfig;
+  style?: ViewStyle;
 }>;
+
+const styles = StyleSheet.create({
+  baseStyle: {
+    alignSelf: 'stretch',
+  },
+});
 
 export class Player extends Component<PlayerProps> {
   private viewRef: React.RefObject<any>;
@@ -28,8 +35,11 @@ export class Player extends Component<PlayerProps> {
   }
 
   render() {
-    const { style } = this.props;
-    return <NativePlayerView style={style} ref={this.viewRef} />;
+    const nativeStyle = StyleSheet.flatten([
+      styles.baseStyle,
+      this.props.style,
+    ]);
+    return <NativePlayerView ref={this.viewRef} style={nativeStyle} />;
   }
 
   componentDidMount() {
