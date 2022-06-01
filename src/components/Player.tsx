@@ -16,6 +16,7 @@ const PlayerModule = NativeModules.NativePlayerView;
 
 type PlayerProps = PropsWithRef<{
   style?: ViewStyle;
+  config?: PlayerConfig;
 }>;
 
 export class Player extends Component<PlayerProps> {
@@ -29,6 +30,17 @@ export class Player extends Component<PlayerProps> {
   render() {
     const { style } = this.props;
     return <NativePlayerView style={style} ref={this.viewRef} />;
+  }
+
+  componentDidMount() {
+    const { config } = this.props;
+    if (config) {
+      this.create(config);
+    }
+  }
+
+  componentWillUnmount() {
+    this.destroy();
   }
 
   create = (config: PlayerConfig): void => this.dispatch('create', config);
