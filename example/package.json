@@ -1,7 +1,7 @@
 {
   "private": true,
-  "name": "player-react-native-example",
-  "description": "Example app for @bitmovin/player-react-native",
+  "name": "react-native-bitmovin-player-example",
+  "description": "Example app for react-native-bitmovin-player",
   "version": "0.0.1",
   "scripts": {
     "android": "react-native run-android",

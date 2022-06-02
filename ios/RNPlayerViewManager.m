@@ -3,6 +3,7 @@
 #import <React/RCTUIManager.h>
 #import <React/RCTViewManager.h>
 #import <BitmovinPlayer/BitmovinPlayer.h>
+#import <RNBitmovinPlayer-Swift.h>
 
 @interface RNPlayerViewManager : RCTViewManager
 

@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
     :tag => "#{s.version}"
   }
 
-  s.source_files = "ios/**/*.{h,m,mm}"
+  s.source_files = "ios/**/*.{h,m,mm,swift}"
 
   s.dependency "React-Core"
   s.dependency "BitmovinPlayer", "3.19.0"
