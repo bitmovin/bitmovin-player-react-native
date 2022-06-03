@@ -1,6 +1,6 @@
 #import <BitmovinPlayer/BitmovinPlayer.h>
 
-@interface RNPlayerView : BMPPlayerView
+@interface RNBasePlayerView : BMPPlayerView
 
 - (instancetype)init;
 

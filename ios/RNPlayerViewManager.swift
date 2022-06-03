@@ -17,6 +17,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Create a `Player` instance for `reactTag`'s view from `json`.
+   
    - Parameter reactTag: Native view ID.
    - Parameter json: JS player configuration object.
    */
@@ -32,11 +33,13 @@ public class RNPlayerViewManager: RCTViewManager {
         view.player = nil
       }
       view.player = PlayerFactory.create(playerConfig: playerConfig)
+      view.addPlayerListener()
     }
   }
 
   /**
    Create a `SourceConfig` from `json` and load it into `reactTag`s player.
+
    - Parameter reactTag: Native view ID.
    - Parameter json: JS source configuration object.
    */
@@ -57,6 +60,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Unload `reactTag`'s player current source.
+
    - Parameter reactTag: Native view ID.
    */
   @objc(unload:)
@@ -72,6 +76,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Start `reactTag`'s player.
+
    - Parameter reactTag: Native view ID.
    */
   @objc(play:)
@@ -87,6 +92,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Pause `reactTag`'s player.
+
    - Parameter reactTag: Native view ID.
    */
   @objc(pause:)
@@ -102,6 +108,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Move `reactTag`'s player cursor to the given time.
+
    - Parameter reactTag: Native view ID.
    */
   @objc(seek:time:)
@@ -117,6 +124,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Mute `reactTag`'s player.
+
    - Parameter reactTag: Native view ID.
    */
   @objc(mute:)
@@ -132,6 +140,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Unmute `reactTag`'s player.
+
    - Parameter reactTag: Native view ID.
    */
   @objc(unmute:)
@@ -147,6 +156,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Destroy `reactTag`'s player.
+
    - Parameter reactTag: Native view ID.
    */
   @objc(destroy:)
@@ -156,6 +166,7 @@ public class RNPlayerViewManager: RCTViewManager {
         self?.reportNilPlayer(reactTag)
         return
       }
+      view.removePlayerListener()
       player.destroy()
       view.player = nil
     }
@@ -163,6 +174,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Set `reactTag`'s player volume.
+
    - Parameter reactTag: Native view ID.
    */
   @objc(setVolume:volume:)
@@ -178,6 +190,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Get `reactTag`'s player volume.
+
    - Parameter reactTag: Native view ID.
    - Parameter resolver: JS promise resolver.
    - Parameter rejecter: JS promise rejecter.
@@ -197,6 +210,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Get `reactTag`'s player source information.
+
    - Parameter reactTag: Native view ID.
    - Parameter resolver: JS promise resolver.
    - Parameter rejecter: JS promise rejecter.
@@ -222,6 +236,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Get `reactTag`'s player current time.
+
    - Parameter reactTag: Native view ID.
    - Parameter mode: Time mode, either absolute or relative.
    - Parameter resolver: JS promise resolver.
@@ -246,6 +261,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Get `reactTag`'s player source duration.
+
    - Parameter reactTag: Native view ID.
    - Parameter resolver: JS promise resolver.
    - Parameter rejecter: JS promise rejecter.
@@ -265,6 +281,7 @@ public class RNPlayerViewManager: RCTViewManager {
   
   /**
    Get `reactTag`'s player `isDestroyed` state.
+
    - Parameter reactTag: Native view ID.
    - Parameter resolver: JS promise resolver.
    - Parameter rejecter: JS promise rejecter.
@@ -284,6 +301,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Get `reactTag`'s player `isMuted` state.
+
    - Parameter reactTag: Native view ID.
    - Parameter resolver: JS promise resolver.
    - Parameter rejecter: JS promise rejecter.
@@ -303,6 +321,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Get `reactTag`'s player `isPlaying` state.
+
    - Parameter reactTag: Native view ID.
    - Parameter resolver: JS promise resolver.
    - Parameter rejecter: JS promise rejecter.
@@ -322,6 +341,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Get `reactTag`'s player `isPaused` state.
+
    - Parameter reactTag: Native view ID.
    - Parameter resolver: JS promise resolver.
    - Parameter rejecter: JS promise rejecter.
@@ -341,6 +361,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Get `reactTag`'s player `isLive` state.
+
    - Parameter reactTag: Native view ID.
    - Parameter resolver: JS promise resolver.
    - Parameter rejecter: JS promise rejecter.
@@ -360,6 +381,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Get `reactTag`'s player `isAirPlayActive` state.
+
    - Parameter reactTag: Native view ID.
    - Parameter resolver: JS promise resolver.
    - Parameter rejecter: JS promise rejecter.
@@ -379,6 +401,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Get `reactTag`'s player `isAirPlayAvailable` state.
+
    - Parameter reactTag: Native view ID.
    - Parameter resolver: JS promise resolver.
    - Parameter rejecter: JS promise rejecter.
@@ -398,6 +421,7 @@ public class RNPlayerViewManager: RCTViewManager {
 
   /**
    Fetches the `RNPlayerView` associated with the `reactTag` received from react's `findNodeHandle`.
+
    - Parameter reactTag: Native view ID.
    - Parameter completion: UI callback receiving `RNPlayerView`.
    */

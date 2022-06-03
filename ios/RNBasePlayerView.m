@@ -1,6 +1,6 @@
-#import <RNPlayerView.h>
+#import <RNBasePlayerView.h>
 
-@implementation RNPlayerView
+@implementation RNBasePlayerView
 
 - (instancetype)init
 {

@@ -19,42 +19,42 @@ const sourceConfig: SourceConfig = {
 
 export default function App() {
   const playerRef = useRef<Player>(null);
-  const setup = useCallback(async () => {
+
+  const initPlayer = useCallback(async () => {
     const player = playerRef.current;
     const source = await player?.getSource();
     if (!source) {
       player?.loadSource(sourceConfig);
     }
-    player?.play();
-    setTimeout(async () => {
-      const data = JSON.stringify(
-        {
-          volume: await player?.getVolume(),
-          source: await player?.getSource(),
-          currentTime: await player?.getCurrentTime(),
-          currentTimeRelative: await player?.getCurrentTime('relative'),
-          currentTimeAbsolute: await player?.getCurrentTime('absolute'),
-          duration: await player?.getDuration(),
-          isDestroyed: await player?.isDestroyed(),
-          isMuted: await player?.isMuted(),
-          isPaused: await player?.isPaused(),
-          isPlaying: await player?.isPlaying(),
-          isLive: await player?.isLive(),
-          isAirPlayActive: await player?.isAirPlayActive(),
-          isAirPlayAvailable: await player?.isAirPlayAvailable(),
-        },
-        null,
-        2
-      );
-      console.log(data);
-    }, 2000);
   }, []);
+
   useLayoutEffect(() => {
-    setup();
-  }, [setup]);
+    initPlayer();
+  }, [initPlayer]);
+
+  const onEvent = useCallback((event) => {
+    console.log(`[EVENT] ${event.name}`, JSON.stringify(event, null, 2));
+  }, []);
+
+  const onReady = useCallback(
+    async (event) => {
+      onEvent(event);
+      const player = playerRef.current;
+      player?.play();
+    },
+    [onEvent]
+  );
+
   return (
     <View style={styles.container}>
-      <Player ref={playerRef} config={playerConfig} style={styles.player} />
+      <Player
+        ref={playerRef}
+        config={playerConfig}
+        style={styles.player}
+        onEvent={onEvent}
+        onPlay={onEvent}
+        onReady={onReady}
+      />
     </View>
   );
 }

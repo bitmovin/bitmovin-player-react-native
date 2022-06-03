@@ -1,7 +1,14 @@
 import React, { PureComponent, PropsWithRef } from 'react';
-import { ViewStyle, UIManager, findNodeHandle, StyleSheet } from 'react-native';
+import {
+  ViewStyle,
+  UIManager,
+  findNodeHandle,
+  StyleSheet,
+  NativeSyntheticEvent,
+} from 'react-native';
 import { PlayerConfig, SourceConfig } from '../config';
 import { NativePlayerView, NativePlayerModule } from './NativePlayer';
+import { Event, PlayEvent } from '../events';
 
 export enum LoadingState {
   UNLOADED = 0,
@@ -19,6 +26,9 @@ export type Source = {
 export type PlayerProps = PropsWithRef<{
   config?: PlayerConfig;
   style?: ViewStyle;
+  onEvent?: (event: Event) => void;
+  onReady?: (event: Event) => void;
+  onPlay?: (event: PlayEvent) => void;
 }>;
 
 const styles = StyleSheet.create({
@@ -33,14 +43,6 @@ export class Player extends PureComponent<PlayerProps> {
   constructor(props: PlayerProps) {
     super(props);
     this.viewRef = React.createRef();
-  }
-
-  render() {
-    const nativeStyle = StyleSheet.flatten([
-      styles.baseStyle,
-      this.props.style,
-    ]);
-    return <NativePlayerView ref={this.viewRef} style={nativeStyle} />;
   }
 
   componentDidMount() {
@@ -60,6 +62,43 @@ export class Player extends PureComponent<PlayerProps> {
     if (this.props.config) {
       this.destroy();
     }
+  }
+
+  _onEvent = (event: NativeSyntheticEvent<Event>) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onEvent?.(nativeEvent);
+    }
+  };
+
+  _onReady = (event: NativeSyntheticEvent<Event>) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onReady?.(nativeEvent);
+    }
+  };
+
+  _onPlay = (event: NativeSyntheticEvent<PlayEvent>) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onPlay?.(nativeEvent);
+    }
+  };
+
+  render() {
+    const nativeStyle = StyleSheet.flatten([
+      styles.baseStyle,
+      this.props.style,
+    ]);
+    return (
+      <NativePlayerView
+        ref={this.viewRef}
+        style={nativeStyle}
+        onPlay={this._onPlay}
+        onEvent={this._onEvent}
+        onReady={this._onReady}
+      />
+    );
   }
 
   create = (config: PlayerConfig): void => this.dispatch('create', config);

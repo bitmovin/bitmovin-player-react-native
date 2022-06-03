@@ -1,6 +1,6 @@
 private func rctLog(_ level: RCTLogLevel, _ message: String) {
-  let log = RCTGetLogFunction()
   if RCT_DEBUG != 0 {
+    let log = RCTGetLogFunction()
     log?(level, .native, nil, nil, message)
     log?(level, .javaScript, nil, nil, message)
   }
