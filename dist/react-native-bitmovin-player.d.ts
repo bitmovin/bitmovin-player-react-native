@@ -109,6 +109,10 @@ export declare class Player extends PureComponent<PlayerProps> {
  * @public
  */
 export declare interface PlayerConfig {
+    /**
+     * The player's license key
+     * @public
+     */
     licenseKey: string;
 }
 

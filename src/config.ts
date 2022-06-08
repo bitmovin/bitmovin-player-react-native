@@ -3,6 +3,10 @@
  * @public
  */
 export interface PlayerConfig {
+  /**
+   * The player's license key
+   * @public
+   */
   licenseKey: string;
 }
 

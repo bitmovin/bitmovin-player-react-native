@@ -25,7 +25,7 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "build": "tsup ./src/index.ts --dts --target es2020 --format cjs,esm -d lib",
     "predocs": "yarn api-extractor run --local --verbose",
-    "docs": "api-documenter markdown -i temp -o docs",
+    "docs": "yarn api-documenter markdown",
     "release": "release-it",
     "example": "yarn build && yarn --cwd example",
     "pods": "cd example && pod-install --quiet",

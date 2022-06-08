@@ -116,7 +116,6 @@ export class Player extends PureComponent<PlayerProps> {
 
 // @public
 export interface PlayerConfig {
-    // (undocumented)
     licenseKey: string;
 }
 

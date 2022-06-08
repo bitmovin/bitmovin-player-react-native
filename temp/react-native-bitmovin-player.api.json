@@ -1324,7 +1324,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "react-native-bitmovin-player!PlayerConfig#licenseKey:member",
-              "docComment": "",
+              "docComment": "/**\n * The player's license key\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
