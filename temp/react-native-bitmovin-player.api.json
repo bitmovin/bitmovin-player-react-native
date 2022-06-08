@@ -1771,7 +1771,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "2"
+                  "text": "\"dash\""
                 }
               ],
               "releaseTag": "Public",
@@ -1792,7 +1792,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "1"
+                  "text": "\"hls\""
                 }
               ],
               "releaseTag": "Public",
@@ -1813,7 +1813,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "4"
+                  "text": "\"movpkg\""
                 }
               ],
               "releaseTag": "Public",
@@ -1834,7 +1834,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "0"
+                  "text": "\"none\""
                 }
               ],
               "releaseTag": "Public",
@@ -1855,7 +1855,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "3"
+                  "text": "\"progressive\""
                 }
               ],
               "releaseTag": "Public",

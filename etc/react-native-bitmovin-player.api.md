@@ -155,15 +155,15 @@ export interface SourceConfig {
 // @public
 export enum SourceType {
     // (undocumented)
-    DASH = 2,
+    DASH = "dash",
     // (undocumented)
-    HLS = 1,
+    HLS = "hls",
     // (undocumented)
-    MOVPKG = 4,
+    MOVPKG = "movpkg",
     // (undocumented)
-    NONE = 0,
+    NONE = "none",
     // (undocumented)
-    PROGRESSIVE = 3
+    PROGRESSIVE = "progressive"
 }
 
 // (No @packageDocumentation comment for this package)

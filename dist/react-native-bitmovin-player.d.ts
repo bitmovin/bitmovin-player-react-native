@@ -159,11 +159,11 @@ export declare interface SourceConfig {
  * @public
  */
 export declare enum SourceType {
-    NONE = 0,
-    HLS = 1,
-    DASH = 2,
-    PROGRESSIVE = 3,
-    MOVPKG = 4
+    NONE = "none",
+    HLS = "hls",
+    DASH = "dash",
+    PROGRESSIVE = "progressive",
+    MOVPKG = "movpkg"
 }
 
 export { }
