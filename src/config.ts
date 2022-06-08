@@ -1,9 +1,27 @@
+/**
+ * A player configuration
+ * @public
+ */
 export interface PlayerConfig {
   licenseKey: string;
 }
 
-export type SourceType = 'none' | 'hls' | 'dash' | 'progressive' | 'movpkg';
+/**
+ * A source type.
+ * @public
+ */
+export enum SourceType {
+  NONE = 0,
+  HLS = 1,
+  DASH = 2,
+  PROGRESSIVE = 3,
+  MOVPKG = 4,
+}
 
+/**
+ * A source configuration.
+ * @public
+ */
 export interface SourceConfig {
   url: string;
   type?: SourceType;

@@ -1,13 +1,25 @@
-export type BasicEvent = {
+/**
+ * A basic event.
+ * @public
+ */
+export interface BasicEvent {
   type: string;
   target: number;
-};
+}
 
-export type Event = BasicEvent & {
+/**
+ * An event.
+ * @public
+ */
+export interface Event extends BasicEvent {
   name: string;
   timestamp: string;
-};
+}
 
-export type PlayEvent = Event & {
+/**
+ * A play event.
+ * @public
+ */
+export interface PlayEvent extends Event {
   time: string;
-};
+}

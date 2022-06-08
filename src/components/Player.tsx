@@ -9,34 +9,54 @@ import {
 import { PlayerConfig, SourceConfig } from '../config';
 import { NativePlayerView, NativePlayerModule } from './NativePlayer';
 import { Event, PlayEvent } from '../events';
-
+/**
+ * A loading state.
+ * @public
+ */
 export enum LoadingState {
   UNLOADED = 0,
   LOADING = 1,
   LOADED = 2,
 }
 
-export type Source = {
+/**
+ * A source.
+ * @public
+ */
+export interface Source {
   duration: number;
   isActive: boolean;
   isAttachedToPlayer: boolean;
   loadingState: LoadingState;
-};
+}
 
-export type PlayerProps = PropsWithRef<{
-  config?: PlayerConfig;
-  style?: ViewStyle;
-  onEvent?: (event: Event) => void;
-  onReady?: (event: Event) => void;
-  onPlay?: (event: PlayEvent) => void;
-}>;
+/**
+ * Props for the player view.
+ * @public
+ */
+export interface PlayerProps
+  extends PropsWithRef<{
+    config?: PlayerConfig;
+    style?: ViewStyle;
+    onEvent?: (event: Event) => void;
+    onReady?: (event: Event) => void;
+    onPlay?: (event: PlayEvent) => void;
+  }> {}
 
-const styles = StyleSheet.create({
+/**
+ * Default styles for the player view.
+ * @public
+ */
+export const defaultStyles = StyleSheet.create({
   baseStyle: {
     alignSelf: 'stretch',
   },
 });
 
+/**
+ * The player component.
+ * @public
+ */
 export class Player extends PureComponent<PlayerProps> {
   private viewRef: React.RefObject<any>;
 
@@ -87,7 +107,7 @@ export class Player extends PureComponent<PlayerProps> {
 
   render() {
     const nativeStyle = StyleSheet.flatten([
-      styles.baseStyle,
+      defaultStyles.baseStyle,
       this.props.style,
     ]);
     return (
