@@ -4,3 +4,9 @@
 
 ## API Reference
 
+## Packages
+
+|  Package | Description |
+|  --- | --- |
+|  [react-native-bitmovin-player](./react-native-bitmovin-player.md) |  |
+
