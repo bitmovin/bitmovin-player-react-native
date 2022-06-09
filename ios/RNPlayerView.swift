@@ -1,45 +1,40 @@
 import Foundation
 
-@objc public class RNPlayerView: RNBasePlayerView {
+@objc public class RNPlayerView: UIView {
   @objc var onReady: RCTBubblingEventBlock?
   @objc var onPlay: RCTBubblingEventBlock?
   @objc var onEvent: RCTBubblingEventBlock?
 
-  func addPlayerListener() {
+  var playerView: PlayerView? {
+    didSet {
+      guard let playerView = playerView else {
+        return
+      }
+      playerView.bounds = bounds
+      addSubview(playerView)
+    }
+  }
+
+  var player: Player? {
+    get {
+      return self.playerView?.player
+    }
+    set {
+      self.playerView?.player = newValue
+    }
+  }
+
+  /**
+   Start listening and emitting player events back to the React layer.  (e.g. onPlay, onEvent, onReady etc.)
+   */
+  func registerEvents() {
     self.player?.add(listener: self)
   }
 
-  func removePlayerListener() {
+  /**
+   Stop listening and emitting player events to React.
+   */
+  func unregisterEvents() {
     self.player?.remove(listener: self)
-  }
-}
-
-extension RNPlayerView: PlayerListener {
-  public func onReady(_ event: ReadyEvent, player: Player) {
-    if let onReady = self.onReady {
-      onReady([
-        "name": event.name,
-        "timestamp": event.timestamp
-      ])
-    }
-  }
-
-  public func onPlay(_ event: PlayEvent, player: Player) {
-    if let onPlay = self.onPlay {
-      onPlay([
-        "name": event.name,
-        "time": event.time,
-        "timestamp": event.timestamp
-      ])
-    }
-  }
-
-  public func onEvent(_ event: Event, player: Player) {
-    if let onEvent = self.onEvent {
-      onEvent([
-        "name": event.name,
-        "timestamp": event.timestamp
-      ])
-    }
   }
 }

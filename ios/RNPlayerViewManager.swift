@@ -1,4 +1,21 @@
 import Foundation
+import BitmovinPlayer
+
+/**
+ Shared bitmovin's `PlayerView` instance to be reused across react components.
+ */
+var sharedPlayerView: PlayerView? = nil
+func playerView(with config: PlayerConfig) -> PlayerView {
+  let player = PlayerFactory.create(playerConfig: config)
+  if let sharedPlayerView = sharedPlayerView {
+    sharedPlayerView.removeFromSuperview()
+    sharedPlayerView.player = player
+  } else {
+    sharedPlayerView = PlayerView(player: player, frame: .zero)
+    sharedPlayerView?.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+  }
+  return sharedPlayerView!
+}
 
 @objc(RNPlayerViewManager)
 public class RNPlayerViewManager: RCTViewManager {
@@ -10,9 +27,7 @@ public class RNPlayerViewManager: RCTViewManager {
    Component's native view factory.
    */
   override public func view() -> UIView! {
-    let view = RNPlayerView()
-    view?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-    return view
+    return RNPlayerView(frame: .zero)
   }
 
   /**
@@ -25,15 +40,15 @@ public class RNPlayerViewManager: RCTViewManager {
   public func create(_ reactTag: NSNumber, json: Any?) {
     self.view(for: reactTag) { view in
       guard let playerConfig = RCTConvert.bmpPlayerConfig(json) else {
-        Log.error("Failed to convert json into a BMPPlayerConfig:\njson -> \(json ?? "nil")")
+        Logging.error("Failed to convert json into a BMPPlayerConfig:\njson -> \(json ?? "nil")")
         return
       }
       if (view.player != nil) {
-        Log.warn("RNPlayerView #\(reactTag): Player instance is already created. It will get overwritten.")
+        Logging.warn("RNPlayerView #\(reactTag): Player instance is already created. It will get overwritten.")
         view.player = nil
       }
-      view.player = PlayerFactory.create(playerConfig: playerConfig)
-      view.addPlayerListener()
+      view.playerView = playerView(with: playerConfig)
+      view.registerEvents()
     }
   }
 
@@ -47,7 +62,7 @@ public class RNPlayerViewManager: RCTViewManager {
   public func loadSource(_ reactTag: NSNumber, json: Any?) {
     self.view(for: reactTag) { [weak self] view in
       guard let sourceConfig = RCTConvert.bmpSourceConfig(json) else {
-        Log.error("RNPlayerView #\(reactTag): Failed to convert json into a BMPSourceConfig.\njson -> \(json ?? "nil")")
+        Logging.error("RNPlayerView #\(reactTag): Failed to convert json into a BMPSourceConfig.\njson -> \(json ?? "nil")")
         return
       }
       guard let player = view.player else {
@@ -162,11 +177,11 @@ public class RNPlayerViewManager: RCTViewManager {
   @objc(destroy:)
   public func destroy(_ reactTag: NSNumber) {
     self.view(for: reactTag) { [weak self] view in
+      view.unregisterEvents()
       guard let player = view.player else {
         self?.reportNilPlayer(reactTag)
         return
       }
-      view.removePlayerListener()
       player.destroy()
       view.player = nil
     }
@@ -431,7 +446,7 @@ public class RNPlayerViewManager: RCTViewManager {
         let viewsRegistry = viewsRegistry,
         let view = viewsRegistry[reactTag] as? RNPlayerView
       else {
-        Log.warn("Could not find RNPlayerView #\(reactTag) inside viewsRegistry.")
+        Logging.warn("Could not find RNPlayerView #\(reactTag) inside viewsRegistry.")
         return
       }
       completion(view)
@@ -442,6 +457,6 @@ public class RNPlayerViewManager: RCTViewManager {
    Helper function that encapsulates a common error message for nil player access.
    */
   private func reportNilPlayer(_ reactTag: NSNumber) {
-    Log.error("RNPlayerView #\(reactTag): Tried to access an empty Player instance. Make sure to call .create() first.")
+    Logging.error("RNPlayerView #\(reactTag): Tried to access an empty Player instance. Make sure to call .create() first.")
   }
 }

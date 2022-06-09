@@ -6,7 +6,7 @@ private func rctLog(_ level: RCTLogLevel, _ message: String) {
   }
 }
 
-public struct Log {
+public struct Logging {
   public static func info(_ message: String) {
     rctLog(.info, message)
   }
