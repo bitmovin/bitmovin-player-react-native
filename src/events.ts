@@ -5,7 +5,7 @@ export type BasicEvent = {
 
 export type Event = BasicEvent & {
   name: string;
-  timestamp: string;
+  timestamp: number;
 };
 
 export type PlayEvent = Event & {

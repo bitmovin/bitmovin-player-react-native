@@ -5,53 +5,40 @@ import Foundation
   @objc var onPlay: RCTBubblingEventBlock?
   @objc var onEvent: RCTBubblingEventBlock?
 
-  private var isListening = false
   func addPlayerListener() {
-    if !isListening {
-      self.player?.add(listener: self)
-      isListening = true
-    }
+    self.player?.add(listener: self)
   }
 
   func removePlayerListener() {
-    if isListening {
-      self.player?.remove(listener: self)
-      isListening = false
-    }
-  }
-
-  // Date helper
-  lazy var isoDateFormatter = ISO8601DateFormatter()
-  func dateString(from timestamp: TimeInterval) -> String {
-    return isoDateFormatter.string(from: Date(timeIntervalSince1970: timestamp))
+    self.player?.remove(listener: self)
   }
 }
 
 extension RNPlayerView: PlayerListener {
   public func onReady(_ event: ReadyEvent, player: Player) {
-    if let onReady = self.onReady, isListening {
+    if let onReady = self.onReady {
       onReady([
         "name": event.name,
-        "timestamp": dateString(from: event.timestamp)
+        "timestamp": event.timestamp
       ])
     }
   }
 
   public func onPlay(_ event: PlayEvent, player: Player) {
-    if let onPlay = self.onPlay, isListening {
+    if let onPlay = self.onPlay {
       onPlay([
         "name": event.name,
         "time": event.time,
-        "timestamp": dateString(from: event.timestamp)
+        "timestamp": event.timestamp
       ])
     }
   }
 
   public func onEvent(_ event: Event, player: Player) {
-    if let onEvent = self.onEvent, isListening {
+    if let onEvent = self.onEvent {
       onEvent([
         "name": event.name,
-        "timestamp": dateString(from: event.timestamp)
+        "timestamp": event.timestamp
       ])
     }
   }
