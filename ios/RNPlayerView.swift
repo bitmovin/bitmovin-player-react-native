@@ -5,16 +5,27 @@ import Foundation
   @objc var onPlay: RCTBubblingEventBlock?
   @objc var onEvent: RCTBubblingEventBlock?
 
+  /**
+   Child bitmovin's player view set during configuration. Intendent to be used across components.
+   */
   var playerView: PlayerView? {
+    willSet {
+      if let playerView = newValue {
+        playerView.removeFromSuperview()
+        playerView.frame = bounds
+      }
+    }
     didSet {
       guard let playerView = playerView else {
         return
       }
-      playerView.bounds = bounds
       addSubview(playerView)
     }
   }
 
+  /**
+   Handy property accessor for `playerView`'s player instance.
+   */
   var player: Player? {
     get {
       return self.playerView?.player
@@ -25,14 +36,15 @@ import Foundation
   }
 
   /**
-   Start listening and emitting player events back to the React layer.  (e.g. onPlay, onEvent, onReady etc.)
+   Start listening and emitting player events as React events, .e.g. onPlay,
+   onEvent, onReady etc.
    */
   func registerEvents() {
     self.player?.add(listener: self)
   }
 
   /**
-   Stop listening and emitting player events to React.
+   Stop listening and emitting React events.
    */
   func unregisterEvents() {
     self.player?.remove(listener: self)

@@ -1,62 +1,48 @@
 import Foundation
 import BitmovinPlayer
 
-/**
- Shared bitmovin's `PlayerView` instance to be reused across react components.
- */
-var sharedPlayerView: PlayerView? = nil
-func playerView(with config: PlayerConfig) -> PlayerView {
-  let player = PlayerFactory.create(playerConfig: config)
-  if let sharedPlayerView = sharedPlayerView {
-    sharedPlayerView.removeFromSuperview()
-    sharedPlayerView.player = player
-  } else {
-    sharedPlayerView = PlayerView(player: player, frame: .zero)
-    sharedPlayerView?.autoresizingMask = [.flexibleHeight, .flexibleWidth]
-  }
-  return sharedPlayerView!
-}
-
 @objc(RNPlayerViewManager)
 public class RNPlayerViewManager: RCTViewManager {
+  /**
+   Initialize module on the main thread.
+   */
   public override class func requiresMainQueueSetup() -> Bool {
     return true
   }
 
   /**
-   Component's native view factory.
+   `UIView` factory for component instances on react.
    */
   override public func view() -> UIView! {
     return RNPlayerView(frame: .zero)
   }
 
   /**
-   Create a `Player` instance for `reactTag`'s view from `json`.
+   Initialize the `Player` instance of `reactTag`'s player view.
    
    - Parameter reactTag: Native view ID.
-   - Parameter json: JS player configuration object.
+   - Parameter json: JS player configuration.
    */
   @objc(create:json:)
   public func create(_ reactTag: NSNumber, json: Any?) {
-    self.view(for: reactTag) { view in
+    self.view(for: reactTag) { [weak self] view in
       guard let playerConfig = RCTConvert.bmpPlayerConfig(json) else {
         Logging.error("Failed to convert json into a BMPPlayerConfig:\njson -> \(json ?? "nil")")
         return
       }
-      if (view.player != nil) {
+      if view.player != nil {
         Logging.warn("RNPlayerView #\(reactTag): Player instance is already created. It will get overwritten.")
-        view.player = nil
       }
-      view.playerView = playerView(with: playerConfig)
+      view.playerView = self?.sharedPlayerView(with: playerConfig)
       view.registerEvents()
     }
   }
 
   /**
-   Create a `SourceConfig` from `json` and load it into `reactTag`s player.
+   Initialize and load the player source of `reactTag`'s  view.
 
    - Parameter reactTag: Native view ID.
-   - Parameter json: JS source configuration object.
+   - Parameter json: JS source configuration.
    */
   @objc(loadSource:json:)
   public func loadSource(_ reactTag: NSNumber, json: Any?) {
@@ -183,7 +169,6 @@ public class RNPlayerViewManager: RCTViewManager {
         return
       }
       player.destroy()
-      view.player = nil
     }
   }
 
@@ -435,10 +420,10 @@ public class RNPlayerViewManager: RCTViewManager {
   }
 
   /**
-   Fetches the `RNPlayerView` associated with the `reactTag` received from react's `findNodeHandle`.
+   Fetch the `RNPlayerView` associated with some `reactTag`. React tags are computed on js code using `findNodeHandle`.
 
    - Parameter reactTag: Native view ID.
-   - Parameter completion: UI callback receiving `RNPlayerView`.
+   - Parameter completion: UI callback passing the located `RNPlayerView`.
    */
   private func view(for reactTag: NSNumber, completion: @escaping (RNPlayerView) -> Void) {
     self.bridge.uiManager.addUIBlock { _, viewsRegistry in
@@ -458,5 +443,25 @@ public class RNPlayerViewManager: RCTViewManager {
    */
   private func reportNilPlayer(_ reactTag: NSNumber) {
     Logging.error("RNPlayerView #\(reactTag): Tried to access an empty Player instance. Make sure to call .create() first.")
+  }
+
+  /**
+   Bitmovin's `PlayerView` instance shared across components. Created only once during the app's lifecycle.
+   */
+  private var sharedPlayerView: PlayerView? = nil
+
+  /**
+   Manages the `sharedPlayerView` creation and its player configuration updates.
+   */
+  func sharedPlayerView(with config: PlayerConfig) -> PlayerView? {
+    let player = PlayerFactory.create(playerConfig: config)
+    guard let sharedPlayerView = sharedPlayerView else {
+      sharedPlayerView = PlayerView(player: player, frame: .zero)
+      sharedPlayerView?.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+      return sharedPlayerView
+    }
+    sharedPlayerView.player = nil
+    sharedPlayerView.player = player
+    return sharedPlayerView
   }
 }
