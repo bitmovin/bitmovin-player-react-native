@@ -1,5 +1,5 @@
-import React, { useRef, useLayoutEffect, useCallback } from 'react';
-import { View } from 'react-native';
+import React, { useRef, useEffect, useCallback } from 'react';
+import { Platform, View } from 'react-native';
 import {
   Player,
   PlayerConfig,
@@ -12,8 +12,15 @@ const playerConfig: PlayerConfig = {
 };
 
 const sourceConfig: SourceConfig = {
-  type: 'hls',
-  url: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
+  type: Platform.select({
+    ios: 'hls',
+    android: 'dash',
+  }),
+  url: Platform.select({
+    ios: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
+    android:
+      'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
+  }) as string,
   poster: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg',
 };
 
@@ -26,11 +33,20 @@ export default function App() {
     if (!source) {
       player?.loadSource(sourceConfig);
     }
+    setTimeout(() => {
+      player?.play();
+    }, 5000);
   }, []);
 
-  useLayoutEffect(() => {
+  const destroy = useCallback(() => {
+    const player = playerRef.current;
+    player?.destroy();
+  }, []);
+
+  useEffect(() => {
     initPlayer();
-  }, [initPlayer]);
+    return () => destroy();
+  }, [initPlayer, destroy]);
 
   const onEvent = useCallback((event) => {
     console.log(`[EVENT] ${event.name}`, JSON.stringify(event, null, 2));

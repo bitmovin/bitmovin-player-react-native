@@ -9,10 +9,10 @@ import com.facebook.react.uimanager.ViewManager
 
 class PlayerViewPackage : ReactPackage {
   override fun createNativeModules(reactContext: ReactApplicationContext): MutableList<NativeModule> {
-    return mutableListOf()
+    return mutableListOf(PlayerViewManager(reactContext))
   }
 
   override fun createViewManagers(reactContext: ReactApplicationContext): MutableList<ViewManager<out View, out ReactShadowNode<*>>> {
-    return mutableListOf(PlayerViewManager())
+    return mutableListOf(PlayerViewManager(reactContext))
   }
 }

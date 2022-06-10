@@ -1,5 +1,6 @@
 import React, { PureComponent, PropsWithRef } from 'react';
 import {
+  Platform,
   ViewStyle,
   UIManager,
   findNodeHandle,
@@ -158,12 +159,19 @@ export class Player extends PureComponent<PlayerProps> {
     UIManager.dispatchViewManagerCommand(
       this.nodeHandle(),
       this.getCommandId(command),
-      args ?? []
+      Platform.select({
+        ios: args ?? [],
+        android: [this.nodeHandle(), ...args],
+      })
     );
 
   private nodeHandle = (): number | null =>
     findNodeHandle(this.viewRef.current);
 
   private getCommandId = (command: string): number =>
-    UIManager.getViewManagerConfig('NativePlayerView').Commands[command];
+    Platform.select({
+      ios: UIManager.getViewManagerConfig('NativePlayerView').Commands[command],
+      // @ts-ignore
+      android: UIManager.NativePlayerView.Commands[command].toString(),
+    });
 }
