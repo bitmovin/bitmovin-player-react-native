@@ -1,8 +1,6 @@
 private func rctLog(_ level: RCTLogLevel, _ message: String) {
-  if RCT_DEBUG != 0 {
-    let log = RCTGetLogFunction()
-    log?(level, .native, nil, nil, message)
-    log?(level, .javaScript, nil, nil, message)
+  if RCT_DEV == 1 {
+    RCTDefaultLogFunction(level, .native, nil, nil, message)
   }
 }
 
@@ -18,5 +16,8 @@ public struct Logging {
   }
   public static func fatal(_ message: String) {
     rctLog(.fatal, message)
+  }
+  public static func trace(_ message: String) {
+    rctLog(.trace, message)
   }
 }
