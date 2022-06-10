@@ -1,33 +1,39 @@
 buildscript {
-    if (project == rootProject) {
-        repositories {
-            google()
-            mavenCentral()
-            jcenter()
-        }
-
-        dependencies {
-            classpath 'com.android.tools.build:gradle:3.5.3'
-        }
+    ext {
+        kotlinVersion = '1.6.10'
+        androidToolsVersion = '7.0.4'
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:$androidToolsVersion"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
     }
 }
 
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 
-def safeExtGet(prop, fallback) {
-    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+repositories {
+    mavenLocal()
+    maven {
+        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+        url "$rootDir/../node_modules/react-native/android"
+    }
+    google()
+    mavenCentral()
 }
 
 android {
-    compileSdkVersion safeExtGet('PlayerReactNativeBridge_compileSdkVersion', 29)
+    compileSdk 30
     defaultConfig {
-        minSdkVersion safeExtGet('PlayerReactNativeBridge_minSdkVersion', 16)
-        targetSdkVersion safeExtGet('PlayerReactNativeBridge_targetSdkVersion', 29)
+        minSdkVersion 16
+        targetSdkVersion 30
         versionCode 1
-        versionName "1.0"
-
+        versionName '1.0'
     }
-
     buildTypes {
         release {
             minifyEnabled false
@@ -42,18 +48,8 @@ android {
     }
 }
 
-repositories {
-    mavenLocal()
-    maven {
-        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-        url("$rootDir/../node_modules/react-native/android")
-    }
-    google()
-    mavenCentral()
-    jcenter()
-}
-
 dependencies {
-    //noinspection GradleDynamicVersion
-    implementation "com.facebook.react:react-native:+"  // From node_modules
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    implementation 'com.bitmovin.player:player:3.18.1'
+    implementation 'com.facebook.react:react-native:+'
 }

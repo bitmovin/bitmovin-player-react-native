@@ -265,6 +265,7 @@ dependencies {
     debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.flipper'
     }
+    implementation project(':bitmovin-react-native-sdk')
 
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
@@ -274,7 +275,6 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation project(':playerreactnativebridge')
 }
 
 if (isNewArchitectureEnabled()) {
