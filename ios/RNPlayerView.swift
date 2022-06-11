@@ -1,9 +1,28 @@
 import Foundation
 
 @objc public class RNPlayerView: UIView {
-  @objc var onReady: RCTBubblingEventBlock?
-  @objc var onPlay: RCTBubblingEventBlock?
+  /**
+   React component's bubbling events. Note they'll be accessible as props.
+   */
   @objc var onEvent: RCTBubblingEventBlock?
+  @objc var onPlayerError: RCTBubblingEventBlock?
+  @objc var onPlayerWarning: RCTBubblingEventBlock?
+  @objc var onDestroy: RCTBubblingEventBlock?
+  @objc var onMuted: RCTBubblingEventBlock?
+  @objc var onUnmuted: RCTBubblingEventBlock?
+  @objc var onReady: RCTBubblingEventBlock?
+  @objc var onPaused: RCTBubblingEventBlock?
+  @objc var onPlay: RCTBubblingEventBlock?
+  @objc var onPlaying: RCTBubblingEventBlock?
+  @objc var onPlaybackFinished: RCTBubblingEventBlock?
+  @objc var onSeek: RCTBubblingEventBlock?
+  @objc var onSeeked: RCTBubblingEventBlock?
+  @objc var onTimeChanged: RCTBubblingEventBlock?
+  @objc var onSourceLoad: RCTBubblingEventBlock?
+  @objc var onSourceLoaded: RCTBubblingEventBlock?
+  @objc var onSourceUnloaded: RCTBubblingEventBlock?
+  @objc var onSourceError: RCTBubblingEventBlock?
+  @objc var onSourceWarning: RCTBubblingEventBlock?
 
   /**
    Child bitmovin's player view set during configuration. Intendent to be used across components.

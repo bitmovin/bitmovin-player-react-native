@@ -5,11 +5,21 @@ import {
   UIManager,
   findNodeHandle,
   StyleSheet,
-  NativeSyntheticEvent,
 } from 'react-native';
 import { PlayerConfig, SourceConfig } from '../config';
-import { NativePlayerView, NativePlayerModule } from './NativePlayer';
-import { Event, PlayEvent } from '../events';
+import {
+  NativePlayerView,
+  NativePlayerModule,
+  SyntheticEvent,
+} from './NativePlayer';
+import {
+  PlayerEvent,
+  PlayerErrorEvent,
+  TimedEvent,
+  TimeChangedEvent,
+  SeekEvent,
+  SourceEvent,
+} from '../events';
 
 export enum LoadingState {
   UNLOADED = 0,
@@ -21,15 +31,34 @@ export type Source = {
   duration: number;
   isActive: boolean;
   isAttachedToPlayer: boolean;
-  loadingState: LoadingState;
+  metadata?: Record<string, any>;
+  loadingState?: LoadingState;
 };
+
+export type EventProp<T> = (event: Omit<T, 'target'>) => void;
 
 export type PlayerProps = PropsWithRef<{
   config?: PlayerConfig;
   style?: ViewStyle;
-  onEvent?: (event: Event) => void;
-  onReady?: (event: Event) => void;
-  onPlay?: (event: PlayEvent) => void;
+  onEvent?: EventProp<PlayerEvent>;
+  onPlayerError?: EventProp<PlayerErrorEvent>;
+  onPlayerWarning?: EventProp<PlayerErrorEvent>;
+  onDestroy?: EventProp<PlayerEvent>;
+  onMuted?: EventProp<PlayerEvent>;
+  onUnmuted?: EventProp<PlayerEvent>;
+  onReady?: EventProp<PlayerEvent>;
+  onPaused?: EventProp<TimedEvent>;
+  onPlay?: EventProp<TimedEvent>;
+  onPlaying?: EventProp<TimedEvent>;
+  onPlaybackFinished?: EventProp<PlayerEvent>;
+  onSeek?: EventProp<SeekEvent>;
+  onSeeked?: EventProp<PlayerEvent>;
+  onTimeChanged?: EventProp<TimeChangedEvent>;
+  onSourceLoad?: EventProp<SourceEvent>;
+  onSourceLoaded?: EventProp<SourceEvent>;
+  onSourceUnloaded?: EventProp<SourceEvent>;
+  onSourceError?: EventProp<PlayerErrorEvent>;
+  onSourceWarning?: EventProp<PlayerErrorEvent>;
 }>;
 
 const styles = StyleSheet.create({
@@ -63,43 +92,6 @@ export class Player extends PureComponent<PlayerProps> {
     if (this.props.config) {
       this.destroy();
     }
-  }
-
-  _onEvent = (event: NativeSyntheticEvent<Event>) => {
-    const { nativeEvent } = event;
-    if (nativeEvent.target === this.nodeHandle()) {
-      this.props.onEvent?.(nativeEvent);
-    }
-  };
-
-  _onReady = (event: NativeSyntheticEvent<Event>) => {
-    const { nativeEvent } = event;
-    if (nativeEvent.target === this.nodeHandle()) {
-      this.props.onReady?.(nativeEvent);
-    }
-  };
-
-  _onPlay = (event: NativeSyntheticEvent<PlayEvent>) => {
-    const { nativeEvent } = event;
-    if (nativeEvent.target === this.nodeHandle()) {
-      this.props.onPlay?.(nativeEvent);
-    }
-  };
-
-  render() {
-    const nativeStyle = StyleSheet.flatten([
-      styles.baseStyle,
-      this.props.style,
-    ]);
-    return (
-      <NativePlayerView
-        ref={this.viewRef}
-        style={nativeStyle}
-        onPlay={this._onPlay}
-        onEvent={this._onEvent}
-        onReady={this._onReady}
-      />
-    );
   }
 
   create = (config: PlayerConfig): void => this.dispatch('create', config);
@@ -154,6 +146,171 @@ export class Player extends PureComponent<PlayerProps> {
 
   isAirPlayAvailable = (): Promise<boolean> =>
     NativePlayerModule.isAirPlayAvailable(this.nodeHandle());
+
+  _onEvent: SyntheticEvent<PlayerEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onEvent?.(nativeEvent);
+    }
+  };
+
+  _onPlayerError: SyntheticEvent<PlayerErrorEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onPlayerError?.(nativeEvent);
+    }
+  };
+
+  _onPlayerWarning: SyntheticEvent<PlayerErrorEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onPlayerWarning?.(nativeEvent);
+    }
+  };
+
+  _onDestroy: SyntheticEvent<PlayerEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onDestroy?.(nativeEvent);
+    }
+  };
+
+  _onMuted: SyntheticEvent<PlayerEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onMuted?.(nativeEvent);
+    }
+  };
+
+  _onUnmuted: SyntheticEvent<PlayerEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onUnmuted?.(nativeEvent);
+    }
+  };
+
+  _onReady: SyntheticEvent<PlayerEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onReady?.(nativeEvent);
+    }
+  };
+
+  _onPaused: SyntheticEvent<TimedEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onPaused?.(nativeEvent);
+    }
+  };
+
+  _onPlay: SyntheticEvent<TimedEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onPlay?.(nativeEvent);
+    }
+  };
+
+  _onPlaying: SyntheticEvent<TimedEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onPlaying?.(nativeEvent);
+    }
+  };
+
+  _onPlaybackFinished: SyntheticEvent<PlayerEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onPlaybackFinished?.(nativeEvent);
+    }
+  };
+
+  _onSeek: SyntheticEvent<SeekEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onSeek?.(nativeEvent);
+    }
+  };
+
+  _onSeeked: SyntheticEvent<PlayerEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onSeeked?.(nativeEvent);
+    }
+  };
+
+  _onTimeChanged: SyntheticEvent<TimeChangedEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onTimeChanged?.(nativeEvent);
+    }
+  };
+
+  _onSourceLoad: SyntheticEvent<SourceEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onSourceLoad?.(nativeEvent);
+    }
+  };
+
+  _onSourceLoaded: SyntheticEvent<SourceEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onSourceLoaded?.(nativeEvent);
+    }
+  };
+
+  _onSourceUnloaded: SyntheticEvent<SourceEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onSourceUnloaded?.(nativeEvent);
+    }
+  };
+
+  _onSourceError: SyntheticEvent<PlayerErrorEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onSourceError?.(nativeEvent);
+    }
+  };
+
+  _onSourceWarning: SyntheticEvent<PlayerErrorEvent> = (event) => {
+    const { nativeEvent } = event;
+    if (nativeEvent.target === this.nodeHandle()) {
+      this.props.onSourceWarning?.(nativeEvent);
+    }
+  };
+
+  render() {
+    const nativeStyle = StyleSheet.flatten([
+      styles.baseStyle,
+      this.props.style,
+    ]);
+    return (
+      <NativePlayerView
+        ref={this.viewRef}
+        style={nativeStyle}
+        onEvent={this._onEvent}
+        onPlayerError={this._onPlayerError}
+        onPlayerWarning={this._onPlayerWarning}
+        onDestroy={this._onDestroy}
+        onMuted={this._onMuted}
+        onUnmuted={this._onUnmuted}
+        onReady={this._onReady}
+        onPaused={this._onPaused}
+        onPlay={this._onPlay}
+        onPlaying={this._onPlaying}
+        onPlaybackFinished={this._onPlaybackFinished}
+        onSeek={this._onSeek}
+        onSeeked={this._onSeeked}
+        onTimeChanged={this._onTimeChanged}
+        onSourceLoad={this._onSourceLoad}
+        onSourceLoaded={this._onSourceLoaded}
+        onSourceUnloaded={this._onSourceUnloaded}
+        onSourceError={this._onSourceError}
+        onSourceWarning={this._onSourceWarning}
+      />
+    );
+  }
 
   private dispatch = (command: string, ...args: any[]): void =>
     UIManager.dispatchViewManagerCommand(

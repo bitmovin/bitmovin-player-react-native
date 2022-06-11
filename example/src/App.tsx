@@ -49,7 +49,7 @@ export default function App() {
   }, [initPlayer, destroy]);
 
   const onEvent = useCallback((event) => {
-    console.log(`[EVENT] ${event.name}`, JSON.stringify(event, null, 2));
+    console.log(`[${event.name}]`, JSON.stringify(event, null, 2));
   }, []);
 
   const onReady = useCallback(
@@ -67,9 +67,23 @@ export default function App() {
         ref={playerRef}
         config={playerConfig}
         style={styles.player}
-        onEvent={onEvent}
-        onPlay={onEvent}
         onReady={onReady}
+        onPlayerError={onEvent}
+        onPlayerWarning={onEvent}
+        onDestroy={onEvent}
+        onMuted={onEvent}
+        onUnmuted={onEvent}
+        onPaused={onEvent}
+        onPlay={onEvent}
+        onPlaying={onEvent}
+        onPlaybackFinished={onEvent}
+        onSeek={onEvent}
+        onSeeked={onEvent}
+        onSourceLoad={onEvent}
+        onSourceLoaded={onEvent}
+        onSourceUnloaded={onEvent}
+        onSourceError={onEvent}
+        onSourceWarning={onEvent}
       />
     </View>
   );
