@@ -53,7 +53,7 @@ export default function App() {
   }, []);
 
   const onReady = useCallback(
-    async (event) => {
+    (event) => {
       onEvent(event);
       const player = playerRef.current;
       player?.play();
