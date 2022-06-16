@@ -12,7 +12,7 @@ import com.facebook.soloader.SoLoader;
 import com.example.playerreactnativebridge.newarchitecture.MainApplicationReactNativeHost;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import com.bitmovin.reactnative.PlayerViewPackage;
+import com.bitmovin.reactnative.player.RNPlayerViewPackage;
 
 public class MainApplication extends Application implements ReactApplication {
 
@@ -29,7 +29,7 @@ public class MainApplication extends Application implements ReactApplication {
           List<ReactPackage> packages = new PackageList(this).getPackages();
           // Packages that cannot be autolinked yet can be added manually here, for PlayerReactNativeBridgeExample:
           // packages.add(new MyReactNativePackage());
-          packages.add(new PlayerViewPackage());
+          packages.add(new RNPlayerViewPackage());
           return packages;
         }
 
