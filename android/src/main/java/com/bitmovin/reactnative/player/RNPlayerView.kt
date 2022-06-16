@@ -14,18 +14,9 @@ class RNPlayerView(private val context: ReactApplicationContext) : LinearLayout(
       playerView?.player = value
     }
 
-  fun create(config: PlayerConfig) {
-    val newPlayer = Player.create(context, config)
-    if (playerView == null) {
-      playerView = PlayerView(context, newPlayer)
-      playerView?.layoutParams = LayoutParams(
-        LayoutParams.MATCH_PARENT,
-        LayoutParams.MATCH_PARENT)
-      addView(playerView)
-      return
-    }
-    player?.destroy()
-    player = newPlayer
+  fun addPlayerView(playerView: PlayerView) {
+    this.playerView = playerView
+    addView(playerView)
   }
 
   override fun requestLayout() {

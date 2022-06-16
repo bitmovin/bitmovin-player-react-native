@@ -1,17 +1,22 @@
 package com.bitmovin.reactnative.player
 
 import android.util.Log
+import android.widget.LinearLayout
+import com.bitmovin.player.PlayerView
+import com.bitmovin.player.api.Player
+import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.reactnative.converter.JsonConverter
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 
-enum class PlayerViewCommands {
+enum class Commands {
   CREATE,
   LOAD_SOURCE,
   PLAY,
-  DESTROY
+  DESTROY,
+  UNLOAD,
 }
 
 class RNPlayerViewManager(private val context: ReactApplicationContext) : SimpleViewManager<RNPlayerView>() {
@@ -22,11 +27,12 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
   }
 
   override fun getCommandsMap(): MutableMap<String, Int>? {
-    return mutableMapOf<String, Int>(
-      "create" to PlayerViewCommands.CREATE.ordinal,
-      "loadSource" to PlayerViewCommands.LOAD_SOURCE.ordinal,
-      "play" to PlayerViewCommands.PLAY.ordinal,
-      "destroy" to PlayerViewCommands.DESTROY.ordinal
+    return mutableMapOf(
+      "create" to Commands.CREATE.ordinal,
+      "loadSource" to Commands.LOAD_SOURCE.ordinal,
+      "play" to Commands.PLAY.ordinal,
+      "destroy" to Commands.DESTROY.ordinal,
+      "unload" to Commands.UNLOAD.ordinal
     )
   }
 
@@ -34,10 +40,11 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     super.receiveCommand(root, commandId, args)
     commandId?.toInt()?.let {
       when(it) {
-        PlayerViewCommands.CREATE.ordinal -> create(root, args?.getMap(1))
-        PlayerViewCommands.LOAD_SOURCE.ordinal -> loadSource(root, args?.getMap(1))
-        PlayerViewCommands.PLAY.ordinal -> play(root)
-        PlayerViewCommands.DESTROY.ordinal -> destroy(root)
+        Commands.CREATE.ordinal -> create(root, args?.getMap(1))
+        Commands.LOAD_SOURCE.ordinal -> loadSource(root, args?.getMap(1))
+        Commands.PLAY.ordinal -> play(root)
+        Commands.DESTROY.ordinal -> destroy(root)
+        Commands.UNLOAD.ordinal -> unload(root)
         else -> {}
       }
     }
@@ -50,7 +57,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
       Log.w(javaClass.name, "Failed to converter json to PlayerConfig.\njson -> $json")
       return
     }
-    view.create(playerConfig)
+    view.addPlayerView(makePlayerView(playerConfig))
   }
 
   private fun loadSource(view: RNPlayerView, json: ReadableMap?) {
@@ -70,6 +77,10 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     view.player?.destroy()
   }
 
+  private fun unload(view: RNPlayerView) {
+    view.player?.unload()
+  }
+
   // Module method exports
   @ReactMethod
   fun source(reactTag: Int, promise: Promise) {
@@ -84,5 +95,19 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     if (view != null && view is RNPlayerView) {
       view.post(Runnable { callback(view) })
     }
+  }
+
+  var sharedPlayerView: PlayerView? = null
+  private fun makePlayerView(config: PlayerConfig): PlayerView {
+    val newPlayer = Player.create(context, config)
+    if (sharedPlayerView == null) {
+      sharedPlayerView = PlayerView(context, newPlayer)
+      sharedPlayerView?.layoutParams = LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT,
+        LinearLayout.LayoutParams.MATCH_PARENT)
+    } else {
+      sharedPlayerView?.player = newPlayer
+    }
+    return sharedPlayerView as PlayerView
   }
 }
