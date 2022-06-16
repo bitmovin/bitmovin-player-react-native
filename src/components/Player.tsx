@@ -38,7 +38,6 @@ export type Source = {
 export type EventProp<T> = (event: Omit<T, 'target'>) => void;
 
 export type PlayerProps = PropsWithRef<{
-  config?: PlayerConfig;
   style?: ViewStyle;
   onEvent?: EventProp<PlayerEvent>;
   onPlayerError?: EventProp<PlayerErrorEvent>;
@@ -73,25 +72,6 @@ export class Player extends PureComponent<PlayerProps> {
   constructor(props: PlayerProps) {
     super(props);
     this.viewRef = React.createRef();
-  }
-
-  componentDidMount() {
-    const { config } = this.props;
-    if (config) {
-      this.create(config);
-    }
-  }
-
-  componentWillUnmount() {
-    // When setting the `config` prop, the user enables the default
-    // handling of the native player's creation/destruction process inside the
-    // component's lifecycle (`componentDidMount`/`componentWillUnmount`).
-    //
-    // If the `config` prop is not provided, then manual handling
-    // of the creation/destruction process is required from the user.
-    if (this.props.config) {
-      this.destroy();
-    }
   }
 
   create = (config: PlayerConfig): void => this.dispatch('create', config);
