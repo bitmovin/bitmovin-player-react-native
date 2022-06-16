@@ -19,8 +19,18 @@ enum class Commands {
   UNLOAD,
 }
 
-class RNPlayerViewManager(private val context: ReactApplicationContext) : SimpleViewManager<RNPlayerView>() {
+class RNPlayerViewManager(private val context: ReactApplicationContext) : SimpleViewManager<RNPlayerView>(), LifecycleEventListener {
   override fun getName() = "NativePlayerView"
+
+  override fun initialize() {
+    super.initialize()
+    context.addLifecycleEventListener(this)
+  }
+
+  override fun invalidate() {
+    context.removeLifecycleEventListener(this)
+    super.invalidate()
+  }
 
   override fun createViewInstance(reactContext: ThemedReactContext): RNPlayerView {
     return RNPlayerView(context)
@@ -32,7 +42,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
       "loadSource" to Commands.LOAD_SOURCE.ordinal,
       "play" to Commands.PLAY.ordinal,
       "destroy" to Commands.DESTROY.ordinal,
-      "unload" to Commands.UNLOAD.ordinal
+      "unload" to Commands.UNLOAD.ordinal,
     )
   }
 
@@ -54,7 +64,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
   private fun create(view: RNPlayerView, json: ReadableMap?) {
     val playerConfig = JsonConverter.toPlayerConfig(json)
     if (playerConfig == null) {
-      Log.w(javaClass.name, "Failed to converter json to PlayerConfig.\njson -> $json")
+      Log.w(javaClass.name, "Failed to convert json to PlayerConfig.\njson -> $json")
       return
     }
     view.addPlayerView(makePlayerView(playerConfig))
@@ -66,7 +76,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
       view.player?.load(sourceConfig)
       return
     }
-    Log.w(javaClass.name, "Failed to converter json to SourceConfig.\njson -> $json")
+    Log.w(javaClass.name, "Failed to convert json to SourceConfig.\njson -> $json")
   }
 
   private fun play(view: RNPlayerView) {
@@ -89,15 +99,21 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     }
   }
 
-  private fun viewForTag(reactTag: Int, callback: (RNPlayerView) -> Unit) {
-    val uiManager = context.getNativeModule(UIManagerModule::class.java)
-    val view = uiManager?.resolveView(reactTag)
-    if (view != null && view is RNPlayerView) {
-      view.post(Runnable { callback(view) })
-    }
+  // Shared player view setup
+  var sharedPlayerView: PlayerView? = null
+
+  override fun onHostDestroy() {
+    sharedPlayerView?.onDestroy()
   }
 
-  var sharedPlayerView: PlayerView? = null
+  override fun onHostPause() {
+    sharedPlayerView?.onPause()
+  }
+
+  override fun onHostResume() {
+    sharedPlayerView?.onResume()
+  }
+
   private fun makePlayerView(config: PlayerConfig): PlayerView {
     val newPlayer = Player.create(context, config)
     if (sharedPlayerView == null) {
@@ -109,5 +125,14 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
       sharedPlayerView?.player = newPlayer
     }
     return sharedPlayerView as PlayerView
+  }
+
+  // Utility function for view fetching
+  private fun viewForTag(reactTag: Int, callback: (RNPlayerView) -> Unit) {
+    val uiManager = context.getNativeModule(UIManagerModule::class.java)
+    val view = uiManager?.resolveView(reactTag)
+    if (view != null && view is RNPlayerView) {
+      view.post(Runnable { callback(view) })
+    }
   }
 }

@@ -30,7 +30,7 @@ export default function App() {
   const initPlayer = useCallback(async () => {
     const player = playerRef.current;
     player?.create(playerConfig);
-    console.log('player initialized');
+    console.log('initialized');
     player?.loadSource(sourceConfig);
     console.log('source loaded');
     setTimeout(() => {
@@ -41,7 +41,7 @@ export default function App() {
   const destroy = useCallback(() => {
     const player = playerRef.current;
     player?.destroy();
-    console.log('player destroyed');
+    console.log('destroyed');
   }, []);
 
   useEffect(() => {

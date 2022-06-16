@@ -3,7 +3,6 @@ package com.bitmovin.reactnative.player
 import android.widget.LinearLayout
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
-import com.bitmovin.player.api.PlayerConfig
 import com.facebook.react.bridge.ReactApplicationContext
 
 class RNPlayerView(private val context: ReactApplicationContext) : LinearLayout(context) {
