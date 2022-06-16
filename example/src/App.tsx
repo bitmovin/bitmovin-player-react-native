@@ -29,10 +29,10 @@ export default function App() {
 
   const initPlayer = useCallback(async () => {
     const player = playerRef.current;
-    const source = await player?.getSource();
-    if (!source) {
-      player?.loadSource(sourceConfig);
-    }
+    player?.create(playerConfig);
+    console.log('player initialized');
+    player?.loadSource(sourceConfig);
+    console.log('source loaded');
     setTimeout(() => {
       player?.play();
     }, 5000);
@@ -41,6 +41,7 @@ export default function App() {
   const destroy = useCallback(() => {
     const player = playerRef.current;
     player?.destroy();
+    console.log('player destroyed');
   }, []);
 
   useEffect(() => {
@@ -65,7 +66,6 @@ export default function App() {
     <View style={styles.container}>
       <Player
         ref={playerRef}
-        config={playerConfig}
         style={styles.player}
         onReady={onReady}
         onPlayerError={onEvent}
