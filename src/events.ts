@@ -1,10 +1,6 @@
 import { Source } from './components/Player';
 
-export interface ReactEvent {
-  target: number;
-}
-
-export interface PlayerEvent extends ReactEvent {
+export interface PlayerEvent {
   name: string;
   timestamp: number;
 }

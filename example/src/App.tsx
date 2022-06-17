@@ -33,9 +33,6 @@ export default function App() {
     console.log('initialized');
     player?.loadSource(sourceConfig);
     console.log('source loaded');
-    setTimeout(() => {
-      player?.play();
-    }, 5000);
   }, []);
 
   const destroy = useCallback(() => {

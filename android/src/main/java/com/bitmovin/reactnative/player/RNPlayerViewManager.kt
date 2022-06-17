@@ -11,15 +11,15 @@ import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 
-enum class Commands {
-  CREATE,
-  LOAD_SOURCE,
-  PLAY,
-  DESTROY,
-  UNLOAD,
-}
-
 class RNPlayerViewManager(private val context: ReactApplicationContext) : SimpleViewManager<RNPlayerView>(), LifecycleEventListener {
+  enum class Commands {
+    CREATE,
+    LOAD_SOURCE,
+    PLAY,
+    DESTROY,
+    UNLOAD,
+  }
+
   override fun getName() = "NativePlayerView"
 
   override fun initialize() {
@@ -35,6 +35,11 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
   override fun createViewInstance(reactContext: ThemedReactContext): RNPlayerView {
     return RNPlayerView(context)
   }
+
+  override fun getExportedCustomBubblingEventTypeConstants(): MutableMap<String, Any> =
+    mutableMapOf(
+      "ready" to mapOf("phasedRegistrationNames" to mapOf("bubbled" to "onReady"))
+    )
 
   override fun getCommandsMap(): MutableMap<String, Int>? {
     return mutableMapOf(
@@ -68,6 +73,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
       return
     }
     view.addPlayerView(makePlayerView(playerConfig))
+    view.registerEvents()
   }
 
   private fun loadSource(view: RNPlayerView, json: ReadableMap?) {
@@ -84,6 +90,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
   }
 
   private fun destroy(view: RNPlayerView) {
+    view.unregisterEvents()
     view.player?.destroy()
   }
 
@@ -96,6 +103,15 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
   fun source(reactTag: Int, promise: Promise) {
     viewForTag(reactTag) {
       promise.resolve(JsonConverter.fromSource(it.player?.source))
+    }
+  }
+
+  // Utility function for view fetching
+  private fun viewForTag(reactTag: Int, callback: (RNPlayerView) -> Unit) {
+    val uiManager = context.getNativeModule(UIManagerModule::class.java)
+    val view = uiManager?.resolveView(reactTag)
+    if (view != null && view is RNPlayerView) {
+      view.post(Runnable { callback(view) })
     }
   }
 
@@ -125,14 +141,5 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
       sharedPlayerView?.player = newPlayer
     }
     return sharedPlayerView as PlayerView
-  }
-
-  // Utility function for view fetching
-  private fun viewForTag(reactTag: Int, callback: (RNPlayerView) -> Unit) {
-    val uiManager = context.getNativeModule(UIManagerModule::class.java)
-    val view = uiManager?.resolveView(reactTag)
-    if (view != null && view is RNPlayerView) {
-      view.post(Runnable { callback(view) })
-    }
   }
 }

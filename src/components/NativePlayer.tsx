@@ -41,4 +41,4 @@ type Props = {
 export const NativePlayerView =
   requireNativeComponent<Props>('NativePlayerView');
 
-export const NativePlayerModule = NativeModules.NativePlayerView;
+export const NativePlayer = NativeModules.NativePlayerView;
