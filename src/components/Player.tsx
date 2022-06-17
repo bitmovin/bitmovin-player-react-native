@@ -262,17 +262,11 @@ export class Player extends PureComponent<PlayerProps> {
   }
 
   private dispatch = (command: string, ...args: any[]): void =>
-    Platform.OS === 'android'
-      ? UIManager.dispatchViewManagerCommand(
-          this.nodeHandle(),
-          this.getCommandId(command),
-          [this.nodeHandle(), ...args]
-        )
-      : UIManager.dispatchViewManagerCommand(
-          this.nodeHandle(),
-          this.getCommandId(command),
-          [...args]
-        );
+    UIManager.dispatchViewManagerCommand(
+      this.nodeHandle(),
+      this.getCommandId(command),
+      Platform.OS === 'android' ? [this.nodeHandle(), ...args] : args
+    );
 
   private nodeHandle = (): number | null =>
     findNodeHandle(this.viewRef.current);
