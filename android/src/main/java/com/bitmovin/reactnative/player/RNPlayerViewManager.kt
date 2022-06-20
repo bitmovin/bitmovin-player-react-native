@@ -189,9 +189,17 @@ class RNPlayerViewManager(
   /**
    * Activity lifecycle listener callbacks.
    */
-  override fun onHostPause() = sharedPlayerView?.onPause() as Unit
-  override fun onHostResume() = sharedPlayerView?.onResume() as Unit
-  override fun onHostDestroy() = sharedPlayerView?.onDestroy() as Unit
+  override fun onHostPause() {
+    sharedPlayerView?.onPause()
+  }
+
+  override fun onHostResume() {
+    sharedPlayerView?.onResume()
+  }
+
+  override fun onHostDestroy() {
+    sharedPlayerView?.onDestroy()
+  }
 
   /**
    * Reset the configuration of the shared player view instance. Also, create
