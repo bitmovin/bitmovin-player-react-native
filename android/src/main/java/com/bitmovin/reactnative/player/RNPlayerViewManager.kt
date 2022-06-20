@@ -133,7 +133,9 @@ class RNPlayerViewManager(
    * Call `.play()` on `view`'s native player.
    * @param view Component's native view instance.
    */
-  private fun play(view: RNPlayerView) = view.player?.play()
+  private fun play(view: RNPlayerView) {
+    view.player?.play()
+  }
 
   /**
    * Call `.destroy()` on `view`'s native player and stop
@@ -150,7 +152,9 @@ class RNPlayerViewManager(
    * Call `.unload()` on `view`'s native player source.
    * @param view Component's native view instance.
    */
-  private fun unload(view: RNPlayerView) = view.player?.unload()
+  private fun unload(view: RNPlayerView) {
+    view.player?.unload()
+  }
 
   /**
    * Resolves the player source from the native view with id `reactTag`.
