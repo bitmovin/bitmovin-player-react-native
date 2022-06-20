@@ -11,7 +11,12 @@ import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 
-class RNPlayerViewManager(private val context: ReactApplicationContext) : SimpleViewManager<RNPlayerView>(), LifecycleEventListener {
+class RNPlayerViewManager(
+  private val context: ReactApplicationContext
+) : SimpleViewManager<RNPlayerView>(), LifecycleEventListener {
+  /**
+   * Native component functions.
+   */
   enum class Commands {
     CREATE,
     LOAD_SOURCE,
@@ -20,28 +25,51 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     UNLOAD,
   }
 
+  /**
+   * Exported js module name.
+   */
   override fun getName() = "NativePlayerView"
 
+  /**
+   * Module's initialization hook.
+   */
   override fun initialize() {
     super.initialize()
     context.addLifecycleEventListener(this)
   }
 
+  /**
+   * Module's invalidation hook.
+   */
   override fun invalidate() {
     context.removeLifecycleEventListener(this)
     super.invalidate()
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): RNPlayerView {
-    return RNPlayerView(context)
-  }
+  /**
+   * The component's native view factory. RN calls this method multiple times
+   * for each component instance.
+   */
+  override fun createViewInstance(reactContext: ThemedReactContext) = RNPlayerView(context)
 
+  /**
+   * Component's event registry. Bubbling events are directly mapped to react props. No
+   * need to use proxy functions or `NativeEventEmitter`.
+   * @return map between event names (sent from native code) to js props.
+   */
   override fun getExportedCustomBubblingEventTypeConstants(): MutableMap<String, Any> =
     mutableMapOf(
+      // e.g. this event can be accessed as `<NativePlayerView onReady={...} />` from js.
       "ready" to mapOf("phasedRegistrationNames" to mapOf("bubbled" to "onReady"))
     )
 
-  override fun getCommandsMap(): MutableMap<String, Int>? {
+  /**
+   * Component's command registry. They enable granular control over
+   * instances of a certain native component from js and give the ability
+   * to call 'functions' on them.
+   * @return map between names (used in js) and command ids (used in native code).
+   */
+  override fun getCommandsMap(): MutableMap<String, Int> {
     return mutableMapOf(
       "create" to Commands.CREATE.ordinal,
       "loadSource" to Commands.LOAD_SOURCE.ordinal,
@@ -51,6 +79,12 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     )
   }
 
+  /**
+   * Callback triggered in response to command dispatches from the js side.
+   * @param root Root native view of the targeted component.
+   * @param commandId Command number identifier. It's a number even though RN sends it as a string.
+   * @param args Arguments list sent from the js side.
+   */
   override fun receiveCommand(root: RNPlayerView, commandId: String?, args: ReadableArray?) {
     super.receiveCommand(root, commandId, args)
     commandId?.toInt()?.let {
@@ -65,7 +99,12 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     }
   }
 
-  // Command methods
+  /**
+   * Create or reset the shared native `PlayerView` that bakes the instances
+   * of this component on the js side and start bubbling events.
+   * @param view Component's native view instance.
+   * @param json Configuration options sent from js.
+   */
   private fun create(view: RNPlayerView, json: ReadableMap?) {
     val playerConfig = JsonConverter.toPlayerConfig(json)
     if (playerConfig == null) {
@@ -73,9 +112,14 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
       return
     }
     view.addPlayerView(makePlayerView(playerConfig))
-    view.registerEvents()
+    view.startBubblingEvents()
   }
 
+  /**
+   * Load the source of the shared native `PlayerView` used by this component.
+   * @param view Component's native view instance.
+   * @param json Configuration options sent from js.
+   */
   private fun loadSource(view: RNPlayerView, json: ReadableMap?) {
     val sourceConfig = JsonConverter.toSourceConfig(json)
     if (sourceConfig != null) {
@@ -85,20 +129,34 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     Log.w(javaClass.name, "Failed to convert json to SourceConfig.\njson -> $json")
   }
 
-  private fun play(view: RNPlayerView) {
-    view.player?.play()
-  }
+  /**
+   * Call `.play()` on `view`'s native player.
+   * @param view Component's native view instance.
+   */
+  private fun play(view: RNPlayerView) = view.player?.play()
 
+  /**
+   * Call `.destroy()` on `view`'s native player and stop
+   * bubbling events.
+   * @param view Component's native view instance.
+   */
   private fun destroy(view: RNPlayerView) {
-    view.unregisterEvents()
     view.player?.destroy()
+    view.stopBubblingEvents()
+    view.removeAllViews()
   }
 
-  private fun unload(view: RNPlayerView) {
-    view.player?.unload()
-  }
+  /**
+   * Call `.unload()` on `view`'s native player source.
+   * @param view Component's native view instance.
+   */
+  private fun unload(view: RNPlayerView) = view.player?.unload()
 
-  // Module method exports
+  /**
+   * Resolves the player source from the native view with id `reactTag`.
+   * @param reactTag Native view id.
+   * @param promise JS promise resolver.
+   */
   @ReactMethod
   fun source(reactTag: Int, promise: Promise) {
     viewForTag(reactTag) {
@@ -106,7 +164,12 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     }
   }
 
-  // Utility function for view fetching
+  /**
+   * Fetch a native view instance registered inside RN's UIManager using
+   * some `reactTag` as id.
+   * @param reactTag Id indexing some native view inside RN's UIManager.
+   * @param callback Function called with the fetched view.
+   */
   private fun viewForTag(reactTag: Int, callback: (RNPlayerView) -> Unit) {
     val uiManager = context.getNativeModule(UIManagerModule::class.java)
     val view = uiManager?.resolveView(reactTag)
@@ -115,21 +178,26 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     }
   }
 
-  // Shared player view setup
-  var sharedPlayerView: PlayerView? = null
+  /**
+   * Shared `PlayerView` instance used by all `<NativePlayerView ... />` components
+   * from react. By design, each component must have their own native view instance
+   * which is handled by RN. For that, `RNPlayerView` is used as a view wrapper for this
+   * shared view, but its setup is handled via the `create/destroy` commands instead.
+   */
+  private var sharedPlayerView: PlayerView? = null
 
-  override fun onHostDestroy() {
-    sharedPlayerView?.onDestroy()
-  }
+  /**
+   * Activity lifecycle listener callbacks.
+   */
+  override fun onHostPause() = sharedPlayerView?.onPause() as Unit
+  override fun onHostResume() = sharedPlayerView?.onResume() as Unit
+  override fun onHostDestroy() = sharedPlayerView?.onDestroy() as Unit
 
-  override fun onHostPause() {
-    sharedPlayerView?.onPause()
-  }
-
-  override fun onHostResume() {
-    sharedPlayerView?.onResume()
-  }
-
+  /**
+   * Reset the configuration of the shared player view instance. Also, create
+   * a new one if none exists yet.
+   * @return The shared player view instance.
+   */
   private fun makePlayerView(config: PlayerConfig): PlayerView {
     val newPlayer = Player.create(context, config)
     if (sharedPlayerView == null) {

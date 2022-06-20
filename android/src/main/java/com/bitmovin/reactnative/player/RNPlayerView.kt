@@ -38,11 +38,11 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
     emitEvent("ready", json)
   }
 
-  fun registerEvents() {
+  fun startBubblingEvents() {
     player?.on(onReady)
   }
 
-  fun unregisterEvents() {
+  fun stopBubblingEvents() {
     player?.off(onReady)
   }
 
