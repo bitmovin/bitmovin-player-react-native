@@ -143,7 +143,7 @@ class RNPlayerViewManager(
   private fun destroy(view: RNPlayerView) {
     view.player?.destroy()
     view.stopBubblingEvents()
-    view.removeAllViews()
+    view.removePlayerView()
   }
 
   /**

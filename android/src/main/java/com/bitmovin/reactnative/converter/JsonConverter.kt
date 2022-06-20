@@ -8,8 +8,16 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 
+/**
+ * Helper class to gather all conversion methods between JS -> Native objects.
+ */
 class JsonConverter {
   companion object {
+    /**
+     * Converts an arbitrary `json` to `PlayerConfig`.
+     * @param json JS object representing the `PlayerConfig`.
+     * @return The generated `PlayerConfig` if successful, `null` otherwise.
+     */
     @JvmStatic
     fun toPlayerConfig(json: ReadableMap?): PlayerConfig? {
       if (json == null) {
@@ -18,6 +26,11 @@ class JsonConverter {
       return PlayerConfig(key = json.getString("licenseKey"))
     }
 
+    /**
+     * Converts an arbitrary `json` to `SourceConfig`.
+     * @param json JS object representing the `SourceConfig`.
+     * @return The generated `SourceConfig` if successful, `null` otherwise.
+     */
     @JvmStatic
     fun toSourceConfig(json: ReadableMap?): SourceConfig? {
       val url = json?.getString("url")
@@ -30,6 +43,11 @@ class JsonConverter {
       return config
     }
 
+    /**
+     * Converts an arbitrary `json` to `SourceType`.
+     * @param json JS string representing the `SourceType`.
+     * @return The generated `SourceType` if successful or `SourceType.Dash` otherwise.
+     */
     @JvmStatic
     fun toSourceType(json: String?): SourceType = when(json) {
       "dash" -> SourceType.Dash
@@ -39,6 +57,11 @@ class JsonConverter {
       else -> SourceType.Dash
     }
 
+    /**
+     * Converts any given `Source` object into its `json` representation.
+     * @param source Source object to be converted.
+     * @return The `json` representation of the given `Source`.
+     */
     @JvmStatic
     fun fromSource(source: Source?): WritableMap? {
       if (source == null) {
