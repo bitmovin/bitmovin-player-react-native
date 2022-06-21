@@ -92,32 +92,46 @@ export class Player extends PureComponent<PlayerProps> {
 
   setVolume = (volume: number): void => this.dispatch('setVolume', volume);
 
-  getVolume = (): Promise<number> => NativePlayer.getVolume(this.nodeHandle());
+  getVolume = async (): Promise<number> =>
+    NativePlayer.getVolume(this.nodeHandle());
 
-  getSource = (): Promise<Source | null> =>
+  getSource = async (): Promise<Source | null> =>
     NativePlayer.source(this.nodeHandle());
 
-  getCurrentTime = (mode?: 'absolute' | 'relative'): Promise<number> =>
+  getCurrentTime = async (mode?: 'absolute' | 'relative'): Promise<number> =>
     NativePlayer.currentTime(this.nodeHandle(), mode);
 
-  getDuration = (): Promise<number> => NativePlayer.duration(this.nodeHandle());
+  getDuration = async (): Promise<number> =>
+    NativePlayer.duration(this.nodeHandle());
 
-  isDestroyed = (): Promise<boolean> =>
-    NativePlayer.isDestroyed(this.nodeHandle());
+  isMuted = async (): Promise<boolean> =>
+    NativePlayer.isMuted(this.nodeHandle());
 
-  isMuted = (): Promise<boolean> => NativePlayer.isMuted(this.nodeHandle());
+  isPaused = async (): Promise<boolean> =>
+    NativePlayer.isPaused(this.nodeHandle());
 
-  isPaused = (): Promise<boolean> => NativePlayer.isPaused(this.nodeHandle());
+  isPlaying = async (): Promise<boolean> =>
+    NativePlayer.isPlaying(this.nodeHandle());
 
-  isPlaying = (): Promise<boolean> => NativePlayer.isPlaying(this.nodeHandle());
+  isLive = async (): Promise<boolean> => NativePlayer.isLive(this.nodeHandle());
 
-  isLive = (): Promise<boolean> => NativePlayer.isLive(this.nodeHandle());
+  isAirPlayActive = async (): Promise<boolean> => {
+    if (Platform.OS === 'ios') {
+      return NativePlayer.isAirPlayActive(this.nodeHandle());
+    }
+    console.warn(`Player.isAirPlayActive() is only available for iOS devices.`);
+    return false;
+  };
 
-  isAirPlayActive = (): Promise<boolean> =>
-    NativePlayer.isAirPlayActive(this.nodeHandle());
-
-  isAirPlayAvailable = (): Promise<boolean> =>
-    NativePlayer.isAirPlayAvailable(this.nodeHandle());
+  isAirPlayAvailable = async (): Promise<boolean> => {
+    if (Platform.OS === 'ios') {
+      return NativePlayer.isAirPlayAvailable(this.nodeHandle());
+    }
+    console.warn(
+      `Player.isAirPlayAvailable() is only available for iOS devices.`
+    );
+    return false;
+  };
 
   _onEvent: SyntheticEvent<PlayerEvent> = (event) =>
     this.props.onEvent?.(

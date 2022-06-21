@@ -265,25 +265,6 @@ public class RNPlayerViewManager: RCTViewManager {
       resolve(player.duration)
     }
   }
-  
-  /**
-   Get native player's current destruction state.
-   - Parameter reactTag: Native view id.
-   - Parameter resolver: JS promise resolver.
-   - Parameter rejecter: JS promise rejecter.
-   */
-  @objc(isDestroyed:resolver:rejecter:)
-  public func isDestroyed(_ reactTag: NSNumber,
-                          resolver resolve: @escaping RCTPromiseResolveBlock,
-                          rejecter reject: @escaping RCTPromiseRejectBlock) {
-    self.view(for: reactTag) { view in
-      guard let player = view.player else {
-        resolve(true)
-        return
-      }
-      resolve(player.isDestroyed)
-    }
-  }
 
   /**
    Get native player's current muting state.

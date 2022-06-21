@@ -20,9 +20,14 @@ class RNPlayerViewManager(
   enum class Commands {
     CREATE,
     LOAD_SOURCE,
-    PLAY,
-    DESTROY,
     UNLOAD,
+    PLAY,
+    PAUSE,
+    SEEK,
+    MUTE,
+    UNMUTE,
+    DESTROY,
+    SET_VOLUME,
   }
 
   /**
@@ -73,9 +78,14 @@ class RNPlayerViewManager(
     return mutableMapOf(
       "create" to Commands.CREATE.ordinal,
       "loadSource" to Commands.LOAD_SOURCE.ordinal,
-      "play" to Commands.PLAY.ordinal,
-      "destroy" to Commands.DESTROY.ordinal,
       "unload" to Commands.UNLOAD.ordinal,
+      "play" to Commands.PLAY.ordinal,
+      "pause" to Commands.PAUSE.ordinal,
+      "seek" to Commands.SEEK.ordinal,
+      "mute" to Commands.MUTE.ordinal,
+      "unmute" to Commands.UNMUTE.ordinal,
+      "destroy" to Commands.DESTROY.ordinal,
+      "setVolume" to Commands.SET_VOLUME.ordinal,
     )
   }
 
@@ -91,9 +101,14 @@ class RNPlayerViewManager(
       when(it) {
         Commands.CREATE.ordinal -> create(root, args?.getMap(1))
         Commands.LOAD_SOURCE.ordinal -> loadSource(root, args?.getMap(1))
-        Commands.PLAY.ordinal -> play(root)
-        Commands.DESTROY.ordinal -> destroy(root)
         Commands.UNLOAD.ordinal -> unload(root)
+        Commands.PLAY.ordinal -> play(root)
+        Commands.PAUSE.ordinal -> pause(root)
+        Commands.SEEK.ordinal -> seek(root, args?.getDouble(1))
+        Commands.MUTE.ordinal -> mute(root)
+        Commands.UNMUTE.ordinal -> unmute(root)
+        Commands.DESTROY.ordinal -> destroy(root)
+        Commands.SET_VOLUME.ordinal -> setVolume(root, args?.getInt(1))
         else -> {}
       }
     }
@@ -130,11 +145,55 @@ class RNPlayerViewManager(
   }
 
   /**
+   * Call `.unload()` on `view`'s native player source.
+   * @param view Component's native view instance.
+   */
+  private fun unload(view: RNPlayerView) {
+    view.player?.unload()
+  }
+
+  /**
    * Call `.play()` on `view`'s native player.
    * @param view Component's native view instance.
    */
   private fun play(view: RNPlayerView) {
     view.player?.play()
+  }
+
+  /**
+   * Call `.pause()` on `view`'s native player.
+   * @param view Component's native view instance.
+   */
+  private fun pause(view: RNPlayerView) {
+    view.player?.pause()
+  }
+
+  /**
+   * Call `.seek(time:)` on `view`'s native player.
+   * @param view Component's native view instance.
+   * @param time Seek offset in seconds.
+   */
+  private fun seek(view: RNPlayerView, time: Double?) {
+    if (time == null) {
+      return
+    }
+    view.player?.seek(time)
+  }
+
+  /**
+   * Call `.mute()` on `view`'s native player.
+   * @param view Component's native view instance.
+   */
+  private fun mute(view: RNPlayerView) {
+    view.player?.mute()
+  }
+
+  /**
+   * Call `.unmute()` on `view`'s native player.
+   * @param view Component's native view instance.
+   */
+  private fun unmute(view: RNPlayerView) {
+    view.player?.unmute()
   }
 
   /**
@@ -149,15 +208,31 @@ class RNPlayerViewManager(
   }
 
   /**
-   * Call `.unload()` on `view`'s native player source.
+   * Call `.setVolume(volume:)` on `view`'s native player.
    * @param view Component's native view instance.
+   * @param volume Volume level from 0 to 100.
    */
-  private fun unload(view: RNPlayerView) {
-    view.player?.unload()
+  private fun setVolume(view: RNPlayerView, volume: Int?) {
+    if (volume == null) {
+      return
+    }
+    view.player?.volume = volume
   }
 
   /**
-   * Resolves the player source from the native view with id `reactTag`.
+   * Resolves native player's current volume level.
+   * @param reactTag Native view id.
+   * @param promise JS promise resolver.
+   */
+  @ReactMethod
+  fun getVolume(reactTag: Int, promise: Promise) {
+    viewForTag(reactTag) {
+      promise.resolve(it.player?.volume)
+    }
+  }
+
+  /**
+   * Resolves the player source from the native view id = `reactTag`.
    * @param reactTag Native view id.
    * @param promise JS promise resolver.
    */
@@ -165,6 +240,90 @@ class RNPlayerViewManager(
   fun source(reactTag: Int, promise: Promise) {
     viewForTag(reactTag) {
       promise.resolve(JsonConverter.fromSource(it.player?.source))
+    }
+  }
+
+  /**
+   * Resolves native player's current playback time.
+   * @param reactTag Native view id.
+   * @param mode Current time's time mode.
+   * @param promise JS promise resolver.
+   */
+  @ReactMethod
+  fun currentTime(reactTag: Int, mode: String?, promise: Promise) {
+    viewForTag(reactTag) {
+      var timeOffset: Double = 0.0
+      if (mode != null) {
+        timeOffset = if (mode == "relative") {
+          it.player?.playbackTimeOffsetToRelativeTime ?: 0.0
+        } else {
+          it.player?.playbackTimeOffsetToAbsoluteTime ?: 0.0
+        }
+      }
+      val currentTime = it.player?.currentTime
+      if (currentTime != null) {
+        promise.resolve(currentTime + timeOffset)
+      }
+    }
+  }
+
+  /**
+   * Resolves native player's playback duration.
+   * @param reactTag Native view id.
+   * @param promise JS promise resolver.
+   */
+  @ReactMethod
+  fun duration(reactTag: Int, promise: Promise) {
+    viewForTag(reactTag) {
+      promise.resolve(it.player?.duration)
+    }
+  }
+
+  /**
+   * Resolves native player's isMuted state.
+   * @param reactTag Native view id.
+   * @param promise JS promise resolver.
+   */
+  @ReactMethod
+  fun isMuted(reactTag: Int, promise: Promise) {
+    viewForTag(reactTag) {
+      promise.resolve(it.player?.isMuted)
+    }
+  }
+
+  /**
+   * Resolves native player's isPlaying state.
+   * @param reactTag Native view id.
+   * @param promise JS promise resolver.
+   */
+  @ReactMethod
+  fun isPlaying(reactTag: Int, promise: Promise) {
+    viewForTag(reactTag) {
+      promise.resolve(it.player?.isPlaying)
+    }
+  }
+
+  /**
+   * Resolves native player's isPaused state.
+   * @param reactTag Native view id.
+   * @param promise JS promise resolver.
+   */
+  @ReactMethod
+  fun isPaused(reactTag: Int, promise: Promise) {
+    viewForTag(reactTag) {
+      promise.resolve(it.player?.isPaused)
+    }
+  }
+
+  /**
+   * Resolves native player's isLive state.
+   * @param reactTag Native view id.
+   * @param promise JS promise resolver.
+   */
+  @ReactMethod
+  fun isLive(reactTag: Int, promise: Promise) {
+    viewForTag(reactTag) {
+      promise.resolve(it.player?.isLive)
     }
   }
 
