@@ -5,8 +5,11 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
+import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
+import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.on
+import com.bitmovin.reactnative.converter.JsonConverter
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
@@ -75,27 +78,186 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
   }
 
   /**
+   * `onEvent` event callback.
+   */
+  private val onEvent: (PlayerEvent) -> Unit = {
+    emitEvent("event", it)
+  }
+
+  /**
+   * `onPlayerError` event callback.
+   */
+  private val onPlayerError: (PlayerEvent.Error) -> Unit = {
+    emitEvent("playerError", it)
+  }
+
+  /**
+   * `onPlayerWarning` event callback.
+   */
+  private val onPlayerWarning: (PlayerEvent.Warning) -> Unit = {
+    emitEvent("playerWarning", it)
+  }
+
+  /**
+   * `onDestroy` event callback.
+   */
+  private val onDestroy: (PlayerEvent.Destroy) -> Unit = {
+    emitEvent("destroy", it)
+  }
+
+  /**
+   * `onMuted` event callback.
+   */
+  private val onMuted: (PlayerEvent.Muted) -> Unit = {
+    emitEvent("muted", it)
+  }
+
+  /**
+   * `onUnmuted` event callback.
+   */
+  private val onUnmuted: (PlayerEvent.Unmuted) -> Unit = {
+    emitEvent("unmuted", it)
+  }
+
+  /**
    * `onReady` event callback.
    */
   private val onReady: (PlayerEvent.Ready) -> Unit = {
-    val json = Arguments.createMap()
-    json.putString("name", "on${it.javaClass.simpleName}")
-    json.putDouble("timestamp", it.timestamp.toDouble())
-    emitEvent("ready", json)
+    emitEvent("ready", it)
+  }
+
+  /**
+   * `onPaused` event callback.
+   */
+  private val onPaused: (PlayerEvent.Paused) -> Unit = {
+    emitEvent("paused", it)
+  }
+
+  /**
+   * `onPlay` event callback.
+   */
+  private val onPlay: (PlayerEvent.Play) -> Unit = {
+    emitEvent("play", it)
+  }
+
+  /**
+   * `onPlaying` event callback.
+   */
+  private val onPlaying: (PlayerEvent.Playing) -> Unit = {
+    emitEvent("playing", it)
+  }
+
+  /**
+   * `onPlaybackFinished` event callback.
+   */
+  private val onPlaybackFinished: (PlayerEvent.PlaybackFinished) -> Unit = {
+    emitEvent("playbackFinished", it)
+  }
+
+  /**
+   * `onSeek` event callback.
+   */
+  private val onSeek: (PlayerEvent.Seek) -> Unit = {
+    emitEvent("seek", it)
+  }
+
+  /**
+   * `onSeeked` event callback.
+   */
+  private val onSeeked: (PlayerEvent.Seeked) -> Unit = {
+    emitEvent("seeked", it)
+  }
+
+  /**
+   * `onTimeChanged` event callback.
+   */
+  private val onTimeChanged: (PlayerEvent.TimeChanged) -> Unit = {
+    emitEvent("timeChanged", it)
+  }
+
+  /**
+   * `onSourceLoad` event callback.
+   */
+  private val onSourceLoad: (SourceEvent.Load) -> Unit = {
+    emitEvent("sourceLoad", it)
+  }
+
+  /**
+   * `onSourceLoaded` event callback.
+   */
+  private val onSourceLoaded: (SourceEvent.Loaded) -> Unit = {
+    emitEvent("sourceLoaded", it)
+  }
+
+  /**
+   * `onSourceUnloaded` event callback.
+   */
+  private val onSourceUnloaded: (SourceEvent.Unloaded) -> Unit = {
+    emitEvent("sourceUnloaded", it)
+  }
+
+  /**
+   * `onSourceError` event callback.
+   */
+  private val onSourceError: (SourceEvent.Error) -> Unit = {
+    emitEvent("sourceError", it)
+  }
+
+  /**
+   * `onSourceWarning` event callback.
+   */
+  private val onSourceWarning: (SourceEvent.Warning) -> Unit = {
+    emitEvent("sourceWarning", it)
   }
 
   /**
    * Start listening and emitting player events as bubbling events to the js side.
    */
   fun startBubblingEvents() {
+    player?.on(onEvent)
+    player?.on(onPlayerError)
+    player?.on(onPlayerWarning)
+    player?.on(onDestroy)
+    player?.on(onMuted)
+    player?.on(onUnmuted)
     player?.on(onReady)
+    player?.on(onPaused)
+    player?.on(onPlay)
+    player?.on(onPlaying)
+    player?.on(onPlaybackFinished)
+    player?.on(onSeek)
+    player?.on(onSeeked)
+    player?.on(onTimeChanged)
+    player?.on(onSourceLoad)
+    player?.on(onSourceLoaded)
+    player?.on(onSourceUnloaded)
+    player?.on(onSourceError)
+    player?.on(onSourceWarning)
   }
 
   /**
    * Stop listening for player events and cease to emit bubbling events.
    */
   fun stopBubblingEvents() {
+    player?.off(onEvent)
+    player?.off(onPlayerError)
+    player?.off(onPlayerWarning)
+    player?.off(onDestroy)
+    player?.off(onMuted)
+    player?.off(onUnmuted)
     player?.off(onReady)
+    player?.off(onPaused)
+    player?.off(onPlay)
+    player?.off(onPlaying)
+    player?.off(onPlaybackFinished)
+    player?.off(onSeek)
+    player?.off(onSeeked)
+    player?.off(onTimeChanged)
+    player?.off(onSourceLoad)
+    player?.off(onSourceLoaded)
+    player?.off(onSourceUnloaded)
+    player?.off(onSourceError)
+    player?.off(onSourceWarning)
   }
 
   /**
@@ -103,10 +265,15 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
    * @param event Native event name.
    * @param json Optional js object to be sent as payload.
    */
-  private fun emitEvent(event: String, json: WritableMap?) {
+  private inline fun <reified E: Event>emitEvent(name: String, event: E) {
+    val payload = if (event is PlayerEvent) {
+      JsonConverter.fromPlayerEvent(event)
+    } else {
+      JsonConverter.fromSourceEvent(event as SourceEvent)
+    }
     val reactContext = context as ReactContext
     reactContext
       .getJSModule(RCTEventEmitter::class.java)
-      .receiveEvent(id, event, json)
+      .receiveEvent(id, name, payload)
   }
 }

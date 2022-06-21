@@ -6,18 +6,9 @@ export interface PlayerEvent {
 }
 
 export interface PlayerErrorEvent extends PlayerEvent {
-  code?: number;
   message: string;
-  data?: {
-    code: number;
-    message: string;
-    underlyingError?: {
-      code: number;
-      domain: string;
-      description: string;
-      localizedDescription: string;
-    };
-  };
+  code?: number;
+  data?: Record<string, any>;
 }
 
 export interface TimedEvent extends PlayerEvent {

@@ -1,12 +1,16 @@
 package com.bitmovin.reactnative.converter
 
 import com.bitmovin.player.api.PlayerConfig
+import com.bitmovin.player.api.deficiency.ErrorEvent
+import com.bitmovin.player.api.deficiency.WarningEvent
+import com.bitmovin.player.api.event.PlayerEvent
+import com.bitmovin.player.api.event.SourceEvent
+import com.bitmovin.player.api.event.data.SeekPosition
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableMap
+import com.bitmovin.reactnative.extensions.getName
+import com.facebook.react.bridge.*
 
 /**
  * Helper class to gather all conversion methods between JS -> Native objects.
@@ -59,7 +63,7 @@ class JsonConverter {
 
     /**
      * Converts any given `Source` object into its `json` representation.
-     * @param source Source object to be converted.
+     * @param source `Source` object to be converted.
      * @return The `json` representation of the given `Source`.
      */
     @JvmStatic
@@ -73,6 +77,83 @@ class JsonConverter {
       json.putBoolean("isAttachedToPlayer", source.isAttachedToPlayer)
       json.putInt("loadingState", source.loadingState.ordinal)
       json.putNull("metadata")
+      return json
+    }
+
+    /**
+     * Converts any given `SeekPosition` object into its `json` representation.
+     * @param seekPosition `SeekPosition` object to be converted.
+     * @return The `json` representation of the given `SeekPosition`.
+     */
+    @JvmStatic
+    fun fromSeekPosition(seekPosition: SeekPosition): WritableMap? {
+      val json = Arguments.createMap()
+      json.putDouble("time", seekPosition.time)
+      json.putMap("source", fromSource(seekPosition.source))
+      return json
+    }
+
+    /**
+     * Converts any given `SourceEvent` object into its `json` representation.
+     * @param event `SourceEvent` object to be converted.
+     * @return The `json` representation of the given `SourceEvent`.
+     */
+    @JvmStatic
+    fun fromSourceEvent(event: SourceEvent): WritableMap? {
+      val json = Arguments.createMap()
+      json.putString("name", event.getName())
+      json.putDouble("timestamp", event.timestamp.toDouble())
+      if (event is SourceEvent.Load) {
+        json.putMap("source", fromSource(event.source))
+      }
+      if (event is SourceEvent.Loaded) {
+        json.putMap("source", fromSource(event.source))
+      }
+      if (event is SourceEvent.Error) {
+        json.putInt("code", event.code.value)
+        json.putString("message", event.message)
+      }
+      if (event is SourceEvent.Warning) {
+        json.putInt("code", event.code.value)
+        json.putString("message", event.message)
+      }
+      return json
+    }
+
+    /**
+     * Converts any given `PlayerEvent` object into its `json` representation.
+     * @param event `PlayerEvent` object to be converted.
+     * @return The `json` representation of given `PlayerEvent`.
+     */
+    @JvmStatic
+    fun fromPlayerEvent(event: PlayerEvent): WritableMap? {
+      val json = Arguments.createMap()
+      json.putString("name", event.getName())
+      json.putDouble("timestamp", event.timestamp.toDouble())
+      if (event is PlayerEvent.Error) {
+        json.putInt("code", event.code.value)
+        json.putString("message", event.message)
+      }
+      if (event is PlayerEvent.Warning) {
+        json.putInt("code", event.code.value)
+        json.putString("message", event.message)
+      }
+      if (event is PlayerEvent.Play) {
+        json.putDouble("time", event.time)
+      }
+      if (event is PlayerEvent.Playing) {
+        json.putDouble("time", event.time)
+      }
+      if (event is PlayerEvent.Paused) {
+        json.putDouble("time", event.time)
+      }
+      if (event is PlayerEvent.TimeChanged) {
+        json.putDouble("currentTime", event.time)
+      }
+      if (event is PlayerEvent.Seek) {
+        json.putMap("from", fromSeekPosition(event.from))
+        json.putMap("to", fromSeekPosition(event.to))
+      }
       return json
     }
   }

@@ -196,7 +196,7 @@ export class Player extends PureComponent<PlayerProps> {
 
   _onSeek: SyntheticEvent<SeekEvent> = (event) =>
     this.props.onSeek?.(
-      pick<SeekEvent>(['name', 'timestamp'], event.nativeEvent)
+      pick<SeekEvent>(['name', 'timestamp', 'from', 'to'], event.nativeEvent)
     );
 
   _onSeeked: SyntheticEvent<PlayerEvent> = (event) =>
@@ -224,7 +224,7 @@ export class Player extends PureComponent<PlayerProps> {
 
   _onSourceUnloaded: SyntheticEvent<SourceEvent> = (event) =>
     this.props.onSourceUnloaded?.(
-      pick<SourceEvent>(['name', 'timestamp', 'source'], event.nativeEvent)
+      pick<SourceEvent>(['name', 'timestamp'], event.nativeEvent)
     );
 
   _onSourceError: SyntheticEvent<PlayerErrorEvent> = (event) =>

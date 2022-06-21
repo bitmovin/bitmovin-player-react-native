@@ -64,8 +64,64 @@ class RNPlayerViewManager(
    */
   override fun getExportedCustomBubblingEventTypeConstants(): MutableMap<String, Any> =
     mutableMapOf(
-      // e.g. this event can be accessed as `<NativePlayerView onReady={...} />` from js.
-      "ready" to mapOf("phasedRegistrationNames" to mapOf("bubbled" to "onReady"))
+      // e.g. this event can be accessed as `<NativePlayerView onEvent={...} />` from js.
+      "event" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onEvent")
+      ),
+      "playerError" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onPlayerError")
+      ),
+      "playerWarning" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onPlayerWarning")
+      ),
+      "destroy" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onDestroy")
+      ),
+      "muted" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onMuted")
+      ),
+      "unmuted" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onUnmuted")
+      ),
+      "ready" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onReady")
+      ),
+      "paused" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onPaused")
+      ),
+      "play" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onPlay")
+      ),
+      "playing" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onPlaying")
+      ),
+      "playbackFinished" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onPlaybackFinished")
+      ),
+      "seek" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onSeek")
+      ),
+      "seeked" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onSeeked")
+      ),
+      "timeChanged" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onTimeChanged")
+      ),
+      "sourceLoad" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onSourceLoad")
+      ),
+      "sourceLoaded" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onSourceLoaded")
+      ),
+      "sourceUnloaded" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onSourceUnloaded")
+      ),
+      "sourceError" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onSourceError")
+      ),
+      "sourceWarning" to mapOf(
+        "phasedRegistrationNames" to mapOf("bubbled" to "onSourceWarning")
+      ),
     )
 
   /**
