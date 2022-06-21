@@ -1,6 +1,7 @@
 package com.bitmovin.reactnative.player
 
 import android.annotation.SuppressLint
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
@@ -11,6 +12,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.RCTEventEmitter
+import java.lang.ref.WeakReference
 
 /**
  * Native view wrapper for component instances. It both serves as the main view
@@ -22,15 +24,15 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
   /**
    * Reference to the shared player view set as child.
    */
-  private var playerView: PlayerView? = null
+  private lateinit var playerView: WeakReference<PlayerView>
 
   /**
    * Handy property accessor for `playerView`'s player instance.
    */
   var player: Player?
-    get() = playerView?.player
+    get() = playerView.get()?.player
     set(value) {
-      playerView?.player = value
+      playerView.get()?.player = value
     }
 
   /**
@@ -38,7 +40,10 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
    * @param playerView Shared player view instance.
    */
   fun addPlayerView(playerView: PlayerView) {
-    this.playerView = playerView
+    this.playerView = WeakReference(playerView)
+    if (playerView.parent != null) {
+      (playerView.parent as ViewGroup).removeView(playerView)
+    }
     addView(playerView)
   }
 
@@ -47,8 +52,11 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
    * from this view hierarchy and cleanup its reference.
    */
   fun removePlayerView() {
-    removeAllViews()
-    this.playerView = null
+    if (playerView.get() != null) {
+      removeView(playerView.get())
+    }
+    player = null
+    playerView.clear()
   }
 
   /**

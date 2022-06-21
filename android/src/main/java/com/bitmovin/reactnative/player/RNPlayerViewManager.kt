@@ -218,6 +218,8 @@ class RNPlayerViewManager(
         LinearLayout.LayoutParams.MATCH_PARENT,
         LinearLayout.LayoutParams.MATCH_PARENT)
     } else {
+      sharedPlayerView?.player?.destroy()
+      sharedPlayerView?.player = null
       sharedPlayerView?.player = newPlayer
     }
     return sharedPlayerView as PlayerView
