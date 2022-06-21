@@ -67,7 +67,7 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
   }
 
   /**
-   * Player `onReady` event callback.
+   * `onReady` event callback.
    */
   private val onReady: (PlayerEvent.Ready) -> Unit = {
     val json = Arguments.createMap()

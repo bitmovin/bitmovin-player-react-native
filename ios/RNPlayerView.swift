@@ -1,9 +1,7 @@
 import Foundation
 
 @objc public class RNPlayerView: UIView {
-  /**
-   React component's bubbling events. Note they'll be accessible as props.
-   */
+  /// List of bubbling events supported by the React component. Each event name listed here maps directly to a javascript prop.
   @objc var onEvent: RCTBubblingEventBlock?
   @objc var onPlayerError: RCTBubblingEventBlock?
   @objc var onPlayerWarning: RCTBubblingEventBlock?
@@ -24,9 +22,7 @@ import Foundation
   @objc var onSourceError: RCTBubblingEventBlock?
   @objc var onSourceWarning: RCTBubblingEventBlock?
 
-  /**
-   Child bitmovin's player view set during configuration. Intendent to be used across components.
-   */
+  /// Reference to the shared `PlayerView` instance used by React components.
   var playerView: PlayerView? {
     willSet {
       if let playerView = newValue {
@@ -42,9 +38,7 @@ import Foundation
     }
   }
 
-  /**
-   Handy property accessor for `playerView`'s player instance.
-   */
+  /// Handy property accessor for `playerView`'s player.
   var player: Player? {
     get {
       return self.playerView?.player
@@ -54,18 +48,13 @@ import Foundation
     }
   }
 
-  /**
-   Start listening and emitting player events as React events, .e.g. onPlay,
-   onEvent, onReady etc.
-   */
-  func registerEvents() {
+  /// Start listening to player events and emitting bubbled versions to js.
+  func startBubblingEvents() {
     self.player?.add(listener: self)
   }
 
-  /**
-   Stop listening and emitting React events.
-   */
-  func unregisterEvents() {
+  /// Stop listening to player events and emitting bubbled versions to js.
+  func stopBubblingEvents() {
     self.player?.remove(listener: self)
   }
 }
