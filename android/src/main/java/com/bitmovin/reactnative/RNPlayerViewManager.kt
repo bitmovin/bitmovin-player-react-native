@@ -1,4 +1,4 @@
-package com.bitmovin.reactnative.player
+package com.bitmovin.reactnative
 
 import android.util.Log
 import android.widget.LinearLayout

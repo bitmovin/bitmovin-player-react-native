@@ -1,4 +1,4 @@
-package com.bitmovin.reactnative.player
+package com.bitmovin.reactnative
 
 import android.annotation.SuppressLint
 import android.view.ViewGroup
