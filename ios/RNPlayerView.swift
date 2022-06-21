@@ -23,7 +23,7 @@ import Foundation
   @objc var onSourceWarning: RCTBubblingEventBlock?
 
   /// Reference to the shared `PlayerView` instance used by React components.
-  var playerView: PlayerView? {
+  weak var playerView: PlayerView? {
     willSet {
       if let playerView = newValue {
         playerView.removeFromSuperview()
@@ -39,7 +39,7 @@ import Foundation
   }
 
   /// Handy property accessor for `playerView`'s player.
-  var player: Player? {
+  weak var player: Player? {
     get {
       return self.playerView?.player
     }
