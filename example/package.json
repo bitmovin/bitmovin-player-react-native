@@ -1,7 +1,7 @@
 {
   "private": true,
-  "name": "react-native-bitmovin-player-example",
-  "description": "Example app for react-native-bitmovin-player",
+  "name": "bitmovin-player-react-native-sample",
+  "description": "Example app showcasing bitmovin's RN player SDK",
   "version": "0.0.1",
   "scripts": {
     "android": "react-native run-android",
@@ -13,10 +13,10 @@
     "react-native": "0.68.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.19",
-    "@babel/runtime": "^7.12.5",
-    "babel-plugin-module-resolver": "^4.0.0",
-    "metro-config": "^0.70.3",
-    "metro-react-native-babel-preset": "^0.67.0"
+    "@babel/core": "7.18.5",
+    "@babel/runtime": "7.18.3",
+    "babel-plugin-module-resolver": "4.1.0",
+    "metro-config": "0.70.3",
+    "metro-react-native-babel-preset": "0.70.3"
   }
 }

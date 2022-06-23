@@ -4,7 +4,7 @@ import {
   Player,
   PlayerConfig,
   SourceConfig,
-} from 'react-native-bitmovin-player';
+} from 'bitmovin-player-react-native-sdk';
 import styles from './styles';
 
 const playerConfig: PlayerConfig = {
