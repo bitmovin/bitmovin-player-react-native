@@ -17,7 +17,7 @@ extension Source {
 
 extension SeekEvent {
   func toJSON() -> [AnyHashable: Any] {
-    return [
+    [
       "name": name,
       "timestamp": timestamp,
       "from": [
@@ -34,19 +34,19 @@ extension SeekEvent {
 
 extension TimeChangedEvent {
   func toJSON() -> [AnyHashable: Any] {
-    return ["name": name, "timestamp": timestamp, "currentTime": currentTime]
+    ["name": name, "timestamp": timestamp, "currentTime": currentTime]
   }
 }
 
 extension Event {
   func toJSON() -> [AnyHashable: Any] {
-    return ["name": name, "timestamp": timestamp]
+    ["name": name, "timestamp": timestamp]
   }
 }
 
 extension NSError {
   func toJSON() -> [AnyHashable: Any] {
-    return [
+    [
       "code": code,
       "domain": domain,
       "description": description,
@@ -109,7 +109,7 @@ protocol SourceEventType: Event {
 
 extension SourceEventType {
   func toJSON() -> [AnyHashable: Any] {
-    return ["name": name, "timestamp": timestamp, "source": source.toJSON()]
+    ["name": name, "timestamp": timestamp, "source": source.toJSON()]
   }
 }
 
@@ -123,10 +123,10 @@ protocol TimedEventType: Event {
 
 extension TimedEventType {
   func toJSON() -> [AnyHashable: Any] {
-    return ["name": name, "timestamp": timestamp, "time": time]
+    ["name": name, "timestamp": timestamp, "time": time]
   }
 }
 
-extension PausedEvent: TimedEventType {}
 extension PlayEvent: TimedEventType {}
+extension PausedEvent: TimedEventType {}
 extension PlayingEvent: TimedEventType {}

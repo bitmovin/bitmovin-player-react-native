@@ -6,15 +6,13 @@ public class RNPlayerViewManager: RCTViewManager {
   /**
    Enable module initialization on the main thread.
    */
-  public override class func requiresMainQueueSetup() -> Bool {
-    return true
-  }
+  public override class func requiresMainQueueSetup() -> Bool { true }
 
   /**
    `UIView` factory for instances of the `NativePlayerView` component.
    */
   override public func view() -> UIView! {
-    return RNPlayerView(frame: .zero)
+    RNPlayerView(frame: .zero)
   }
 
   /**
@@ -186,9 +184,11 @@ public class RNPlayerViewManager: RCTViewManager {
    - Parameter rejecter: JS promise rejecter.
    */
   @objc(getVolume:resolver:rejecter:)
-  public func getVolume(_ reactTag: NSNumber,
-                        resolver resolve: @escaping RCTPromiseResolveBlock,
-                        rejecter reject: @escaping RCTPromiseRejectBlock) {
+  public func getVolume(
+    _ reactTag: NSNumber,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
     self.view(for: reactTag) { [weak self] view in
       guard let player = view.player else {
         self?.reportNilPlayer(reactTag)
@@ -205,9 +205,11 @@ public class RNPlayerViewManager: RCTViewManager {
    - Parameter rejecter: JS promise rejecter.
    */
   @objc(source:resolver:rejecter:)
-  public func source(_ reactTag: NSNumber,
-                     resolver resolve: @escaping RCTPromiseResolveBlock,
-                     rejecter reject: @escaping RCTPromiseRejectBlock) {
+  public func source(
+    _ reactTag: NSNumber,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
     self.view(for: reactTag) { view in
       guard let player = view.player, let source = player.source else {
         resolve(nil)
@@ -231,9 +233,11 @@ public class RNPlayerViewManager: RCTViewManager {
    - Parameter rejecter: JS promise rejecter.
    */
   @objc(currentTime:mode:resolver:rejecter:)
-  public func currentTime(_ reactTag: NSNumber, mode: Any?,
-                          resolver resolve: @escaping RCTPromiseResolveBlock,
-                          rejecter reject: RCTPromiseRejectBlock) {
+  public func currentTime(
+    _ reactTag: NSNumber, mode: Any?,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: RCTPromiseRejectBlock
+  ) {
     self.view(for: reactTag) { [weak self] view in
       guard let player = view.player else {
         self?.reportNilPlayer(reactTag)
@@ -254,9 +258,11 @@ public class RNPlayerViewManager: RCTViewManager {
    - Parameter rejecter: JS promise rejecter.
    */
   @objc(duration:resolver:rejecter:)
-  public func duration(_ reactTag: NSNumber,
-                       resolver resolve: @escaping RCTPromiseResolveBlock,
-                       rejecter reject: @escaping RCTPromiseRejectBlock) {
+  public func duration(
+    _ reactTag: NSNumber,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
     self.view(for: reactTag) { [weak self] view in
       guard let player = view.player else {
         self?.reportNilPlayer(reactTag)
@@ -273,9 +279,11 @@ public class RNPlayerViewManager: RCTViewManager {
    - Parameter rejecter: JS promise rejecter.
    */
   @objc(isMuted:resolver:rejecter:)
-  public func isMuted(_ reactTag: NSNumber,
-                      resolver resolve: @escaping RCTPromiseResolveBlock,
-                      rejecter reject: @escaping RCTPromiseRejectBlock) {
+  public func isMuted(
+    _ reactTag: NSNumber,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
     self.view(for: reactTag) { [weak self] view in
       guard let player = view.player else {
         self?.reportNilPlayer(reactTag)
@@ -292,9 +300,11 @@ public class RNPlayerViewManager: RCTViewManager {
    - Parameter rejecter: JS promise rejecter.
    */
   @objc(isPlaying:resolver:rejecter:)
-  public func isPlaying(_ reactTag: NSNumber,
-                        resolver resolve: @escaping RCTPromiseResolveBlock,
-                        rejecter reject: @escaping RCTPromiseRejectBlock) {
+  public func isPlaying(
+    _ reactTag: NSNumber,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
     self.view(for: reactTag) { [weak self] view in
       guard let player = view.player else {
         self?.reportNilPlayer(reactTag)
@@ -311,9 +321,11 @@ public class RNPlayerViewManager: RCTViewManager {
    - Parameter rejecter: JS promise rejecter.
    */
   @objc(isPaused:resolver:rejecter:)
-  public func isPaused(_ reactTag: NSNumber,
-                       resolver resolve: @escaping RCTPromiseResolveBlock,
-                       rejecter reject: @escaping RCTPromiseRejectBlock) {
+  public func isPaused(
+    _ reactTag: NSNumber,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
     self.view(for: reactTag) { [weak self] view in
       guard let player = view.player else {
         self?.reportNilPlayer(reactTag)
@@ -331,9 +343,11 @@ public class RNPlayerViewManager: RCTViewManager {
    - Parameter rejecter: JS promise rejecter.
    */
   @objc(isLive:resolver:rejecter:)
-  public func isLive(_ reactTag: NSNumber,
-                     resolver resolve: @escaping RCTPromiseResolveBlock,
-                     rejecter reject: @escaping RCTPromiseRejectBlock) {
+  public func isLive(
+    _ reactTag: NSNumber,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
     self.view(for: reactTag) { [weak self] view in
       guard let player = view.player else {
         self?.reportNilPlayer(reactTag)
@@ -350,9 +364,11 @@ public class RNPlayerViewManager: RCTViewManager {
    - Parameter rejecter: JS promise rejecter.
    */
   @objc(isAirPlayActive:resolver:rejecter:)
-  public func isAirPlayActive(_ reactTag: NSNumber,
-                              resolver resolve: @escaping RCTPromiseResolveBlock,
-                              rejecter reject: @escaping RCTPromiseRejectBlock) {
+  public func isAirPlayActive(
+    _ reactTag: NSNumber,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
     self.view(for: reactTag) { [weak self] view in
       guard let player = view.player else {
         self?.reportNilPlayer(reactTag)
@@ -369,9 +385,11 @@ public class RNPlayerViewManager: RCTViewManager {
    - Parameter rejecter: JS promise rejecter.
    */
   @objc(isAirPlayAvailable:resolver:rejecter:)
-  public func isAirPlayAvailable(_ reactTag: NSNumber,
-                                 resolver resolve: @escaping RCTPromiseResolveBlock,
-                                 rejecter reject: @escaping RCTPromiseRejectBlock) {
+  public func isAirPlayAvailable(
+    _ reactTag: NSNumber,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
     self.view(for: reactTag) { [weak self] view in
       guard let player = view.player else {
         self?.reportNilPlayer(reactTag)
@@ -387,7 +405,10 @@ public class RNPlayerViewManager: RCTViewManager {
    - Parameter reactTag: Id of the native view to lookup.
    - Parameter completion: Callback resolving the found `UIView`, if any.
    */
-  private func view(for reactTag: NSNumber, completion: @escaping (RNPlayerView) -> Void) {
+  private func view(
+    for reactTag: NSNumber,
+    completion: @escaping (RNPlayerView) -> Void
+  ) {
     self.bridge.uiManager.addUIBlock { _, viewsRegistry in
       guard
         let viewsRegistry = viewsRegistry,
