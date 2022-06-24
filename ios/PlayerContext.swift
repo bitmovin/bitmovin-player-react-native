@@ -13,9 +13,9 @@ import BitmovinPlayer
   /// `Player` instance.
   let player: Player
   /// Initial source configuration waiting to be loaded once the player is ready
-  var pendingSourceConfig: SourceConfig?
+  private var pendingSourceConfig: SourceConfig?
   /// Flag signaling whether the player has been attached to a view or not.
-  var isPlayerAttachedToView = false
+  private var isPlayerAttachedToView = false
 
   init(playerConfig: PlayerConfig) {
     self.player = PlayerFactory.create(playerConfig: playerConfig)

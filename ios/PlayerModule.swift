@@ -222,7 +222,6 @@ class PlayerModule: NSObject, RCTBridgeModule {
     resolve(registry[playerId]?.player.isMuted)
   }
 
-
   /**
    Resolve `playerId`'s current playing state.
    - Parameter playerId: Target player Id.
