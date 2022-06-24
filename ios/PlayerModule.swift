@@ -67,15 +67,58 @@ class PlayerModule: NSObject, RCTBridgeModule {
   }
 
   /**
+   Call `.unload()` on `playerId`'s player.
+   - Parameter playerId: Target player Id.
+   */
+  @objc(unload:)
+  func unload(_ playerId: String) {
+    registry[playerId]?.player.unload()
+  }
+
+  /**
    Call `.play()` on `playerId`'s player.
    - Parameter playerId: Target player Id.
    */
   @objc(play:)
   func play(_ playerId: String) {
-    guard let context = registry[playerId] else {
-      return
-    }
-    context.player.play()
+    registry[playerId]?.player.play()
+  }
+
+  /**
+   Call `.pause()` on `playerId`'s player.
+   - Parameter playerId: Target player Id.
+   */
+  @objc(pause:)
+  public func pause(_ playerId: String) {
+    registry[playerId]?.player.pause()
+  }
+
+  /**
+   Call `.seek(time:)` on `playerId`'s player.
+   - Parameter playerId: Target player Id.
+   - Parameter time: Time to seek in seconds.
+   */
+  @objc(seek:time:)
+  public func seek(_ playerId: String, time: NSNumber) {
+    registry[playerId]?.player.seek(time: time.doubleValue)
+  }
+
+  /**
+   Call `.mute()` on `playerId`'s player.
+   - Parameter playerId: Target player Id.
+   */
+  @objc(mute:)
+  public func mute(_ playerId: String) {
+    registry[playerId]?.player.mute()
+  }
+
+  /**
+   Call `.unmute()` on `playerId`'s player.
+   - Parameter playerId: Target player Id.
+   */
+  @objc(unmute:)
+  public func unmute(_ playerId: String) {
+    registry[playerId]?.player.unmute()
   }
 
   /**
@@ -84,15 +127,22 @@ class PlayerModule: NSObject, RCTBridgeModule {
    */
   @objc(destroy:)
   func destroy(_ playerId: String) {
-    guard let context = registry[playerId] else {
-      return
-    }
-    context.player.destroy()
+    registry[playerId]?.player.destroy()
+  }
+
+  /**
+   Call `.setVolume(volume:)` on `playerId`'s player.
+   - Parameter playerId: Target player Id.
+   - Parameter volume: Integer representing the volume level (between 0 to 100).
+   */
+  @objc(setVolume:volume:)
+  public func setVolume(_ playerId: String, volume: NSNumber) {
+    registry[playerId]?.player.volume = volume.intValue
   }
 
   /**
    Resolve the source of `playerId`'s player.
-   - Parameter playerId: Target player Id;
+   - Parameter playerId: Target player Id.
    - Parameter resolver: JS promise resolver.
    - Parameter rejecter: JS promise rejecter.
    */
@@ -102,9 +152,150 @@ class PlayerModule: NSObject, RCTBridgeModule {
     resolver resolve: @escaping RCTPromiseResolveBlock,
     rejecter reject: @escaping RCTPromiseRejectBlock
   ) {
-    guard let context = registry[playerId] else {
-      return
+    resolve(registry[playerId]?.player.source?.toJSON())
+  }
+
+  /**
+   Resolve `playerId`'s current volume.
+   - Parameter playerId: Target player Id.
+   - Parameter resolver: JS promise resolver.
+   - Parameter rejecter: JS promise rejecter.
+   */
+  @objc(getVolume:resolver:rejecter:)
+  public func getVolume(
+    _ playerId: String,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    resolve(registry[playerId]?.player.volume)
+  }
+
+  /**
+   Resolve `playerId`'s current playback time.
+   - Parameter playerId: Target player Id.
+   - Parameter mode: Time mode: either relative or absolute. Can be empty.
+   - Parameter resolver: JS promise resolver.
+   - Parameter rejecter: JS promise rejecter.
+   */
+  @objc(currentTime:mode:resolver:rejecter:)
+  public func currentTime(
+    _ playerId: String,
+    mode: String?,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: RCTPromiseRejectBlock
+  ) {
+    let player = registry[playerId]?.player
+    if let mode = mode {
+      resolve(player?.currentTime(RCTConvert.bmpTimeMode(mode)))
+    } else {
+      resolve(player?.currentTime)
     }
-    resolve(context.player.source?.toJSON())
+  }
+
+  /**
+   Resolve `playerId`'s active source duration.
+   - Parameter playerId: Target player Id.
+   - Parameter resolver: JS promise resolver.
+   - Parameter rejecter: JS promise rejecter.
+   */
+  @objc(duration:resolver:rejecter:)
+  public func duration(
+    _ playerId: String,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    resolve(registry[playerId]?.player.duration)
+  }
+
+  /**
+   Resolve `playerId`'s current muted state.
+   - Parameter playerId: Target player Id.
+   - Parameter resolver: JS promise resolver.
+   - Parameter rejecter: JS promise rejecter.
+   */
+  @objc(isMuted:resolver:rejecter:)
+  public func isMuted(
+    _ playerId: String,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    resolve(registry[playerId]?.player.isMuted)
+  }
+
+
+  /**
+   Resolve `playerId`'s current playing state.
+   - Parameter playerId: Target player Id.
+   - Parameter resolver: JS promise resolver.
+   - Parameter rejecter: JS promise rejecter.
+   */
+  @objc(isPlaying:resolver:rejecter:)
+  public func isPlaying(
+    _ playerId: String,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    resolve(registry[playerId]?.player.isPlaying)
+  }
+
+  /**
+   Resolve `playerId`'s current paused state.
+   - Parameter playerId: Target player Id.
+   - Parameter resolver: JS promise resolver.
+   - Parameter rejecter: JS promise rejecter.
+   */
+  @objc(isPaused:resolver:rejecter:)
+  public func isPaused(
+    _ playerId: String,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    resolve(registry[playerId]?.player.isPaused)
+  }
+
+  /**
+   Resolve `playerId`'s live streaming state.
+   `true` if source is a live streaming.
+   - Parameter playerId: Target player Id.
+   - Parameter resolver: JS promise resolver.
+   - Parameter rejecter: JS promise rejecter.
+   */
+  @objc(isLive:resolver:rejecter:)
+  public func isLive(
+    _ playerId: String,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    resolve(registry[playerId]?.player.isLive)
+  }
+
+  /**
+   Resolve `playerId`'s air play activation state.
+   - Parameter playerId: Target player Id.
+   - Parameter resolver: JS promise resolver.
+   - Parameter rejecter: JS promise rejecter.
+   */
+  @objc(isAirPlayActive:resolver:rejecter:)
+  public func isAirPlayActive(
+    _ playerId: String,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    resolve(registry[playerId]?.player.isAirPlayActive)
+  }
+
+  /**
+   Resolve `playerId`'s air play availability state.
+   - Parameter playerId: Target player Id.
+   - Parameter resolver: JS promise resolver.
+   - Parameter rejecter: JS promise rejecter.
+   */
+  @objc(isAirPlayAvailable:resolver:rejecter:)
+  public func isAirPlayAvailable(
+    _ playerId: String,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    resolve(registry[playerId]?.player.isAirPlayAvailable)
   }
 }
