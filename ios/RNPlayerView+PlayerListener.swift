@@ -5,6 +5,10 @@ extension RNPlayerView: PlayerListener {
     onEvent?(event.toJSON())
   }
 
+  func onPlayerActive(_ event: PlayerActiveEvent, player: Player) {
+    onPlayerActive?(event.toJSON())
+  }
+
   public func onPlayerError(_ event: PlayerErrorEvent, player: Player) {
     onPlayerError?(event.toJSON())
   }

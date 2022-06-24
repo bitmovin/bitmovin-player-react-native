@@ -1,8 +1,10 @@
-import Foundation
+import BitmovinPlayer
 
-@objc public class RNPlayerView: UIView {
-  /// List of bubbling events supported by the React component. Each event name listed here maps directly to a javascript prop.
+@objc(RNPlayerView)
+class RNPlayerView: UIView {
+  /// Component events.
   @objc var onEvent: RCTBubblingEventBlock?
+  @objc var onPlayerActive: RCTBubblingEventBlock?
   @objc var onPlayerError: RCTBubblingEventBlock?
   @objc var onPlayerWarning: RCTBubblingEventBlock?
   @objc var onDestroy: RCTBubblingEventBlock?
@@ -22,39 +24,27 @@ import Foundation
   @objc var onSourceError: RCTBubblingEventBlock?
   @objc var onSourceWarning: RCTBubblingEventBlock?
 
-  /// Reference to the shared `PlayerView` instance used by React components.
-  weak var playerView: PlayerView? {
+  /// Bitmovin's player view.
+  /// Get's initialized when there's a player instance ready to be used.
+  var playerView: PlayerView? {
     willSet {
-      if let playerView = newValue {
-        playerView.removeFromSuperview()
-        playerView.frame = bounds
-      }
+      newValue?.autoresizingMask = [
+        .flexibleWidth,
+        .flexibleHeight
+      ]
     }
     didSet {
-      guard let playerView = playerView else {
-        return
+      if let playerView = playerView {
+        addSubview(playerView)
       }
-      addSubview(playerView)
     }
   }
 
-  /// Handy property accessor for `playerView`'s player.
-  weak var player: Player? {
-    get {
-      return self.playerView?.player
-    }
-    set {
-      self.playerView?.player = newValue
-    }
+  init() {
+    super.init(frame: .zero)
   }
 
-  /// Start listening to player events and emitting bubbled versions to js.
-  func startBubblingEvents() {
-    self.player?.add(listener: self)
-  }
-
-  /// Stop listening to player events and emitting bubbled versions to js.
-  func stopBubblingEvents() {
-    self.player?.remove(listener: self)
+  required init?(coder: NSCoder) {
+    super.init(coder: coder)
   }
 }
