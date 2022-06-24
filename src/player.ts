@@ -11,18 +11,14 @@ export interface PlayerConfig {
 export class Player {
   id: string;
   config: PlayerConfig;
-  isInitialized = false;
 
   constructor(config: PlayerConfig) {
+    PlayerModule.initWithConfig(config);
     this.id = config.id;
     this.config = config;
   }
 
   load = (source: SourceConfig) => {
-    if (!this.isInitialized) {
-      PlayerModule.initWithConfig(this.config);
-      this.isInitialized = true;
-    }
     PlayerModule.load(this.id, source);
   };
 
