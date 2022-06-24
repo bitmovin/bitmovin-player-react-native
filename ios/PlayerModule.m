@@ -13,45 +13,45 @@ RCT_EXTERN_METHOD(unmute:(NSString *)playerId)
 RCT_EXTERN_METHOD(destroy:(NSString *)playerId)
 RCT_EXTERN_METHOD(setVolume:(NSString *)playerId volume:(nonnull NSNumber *)volume)
 RCT_EXTERN_METHOD(
-  getSource:(NSString *)playerId
-  resolver:(RCTPromiseResolveBlock)resolve
-  rejecter:(RCTPromiseRejectBlock)reject)
+    getSource:(NSString *)playerId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-  getVolume:(NSString *)playerId
-  resolver:(RCTPromiseResolveBlock)resolve
-  rejecter:(RCTPromiseRejectBlock)reject)
+    getVolume:(NSString *)playerId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-  currentTime:(NSString *)playerId
-  mode:(NSString *)mode
-  resolver:(RCTPromiseResolveBlock)resolve
-  rejecter:(RCTPromiseRejectBlock)reject)
+    currentTime:(NSString *)playerId
+    mode:(NSString *)mode
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-  duration:(NSString *)playerId
-  resolver:(RCTPromiseResolveBlock)resolve
-  rejecter:(RCTPromiseRejectBlock)reject)
+    duration:(NSString *)playerId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-  isMuted:(NSString *)playerId
-  resolver:(RCTPromiseResolveBlock)resolve
-  rejecter:(RCTPromiseRejectBlock)reject)
+    isMuted:(NSString *)playerId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-  isPlaying:(NSString *)playerId
-  resolver:(RCTPromiseResolveBlock)resolve
-  rejecter:(RCTPromiseRejectBlock)reject)
+    isPlaying:(NSString *)playerId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-  isPaused:(NSString *)playerId
-  resolver:(RCTPromiseResolveBlock)resolve
-  rejecter:(RCTPromiseRejectBlock)reject)
+    isPaused:(NSString *)playerId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-  isLive:(NSString *)playerId
-  resolver:(RCTPromiseResolveBlock)resolve
-  rejecter:(RCTPromiseRejectBlock)reject)
+    isLive:(NSString *)playerId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-  isAirPlayActive:(NSString *)playerId
-  resolver:(RCTPromiseResolveBlock)resolve
-  rejecter:(RCTPromiseRejectBlock)reject)
+    isAirPlayActive:(NSString *)playerId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-  isAirPlayAvailable:(NSString *)playerId
-  resolver:(RCTPromiseResolveBlock)resolve
-  rejecter:(RCTPromiseRejectBlock)reject)
+    isAirPlayAvailable:(NSString *)playerId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 
 @end
