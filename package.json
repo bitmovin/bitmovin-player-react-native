@@ -1,5 +1,5 @@
 {
-  "name": "bitmovin-player-react-native-sdk",
+  "name": "bitmovin-player-react-native",
   "version": "0.0.1",
   "description": "Bitmovin Player SDK for React Native",
   "main": "lib/index.js",
