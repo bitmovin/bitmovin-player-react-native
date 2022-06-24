@@ -18,7 +18,7 @@ class RNPlayerViewManager: RCTViewManager {
    - Parameter viewId: `RNPlayerView` id inside `UIManager`'s registry.
    - Parameter playerId: `Player` instance id inside `PlayerModule`'s registry.
    */
-  @objc func setPlayer(_ viewId: NSNumber, playerId: String) {
+  @objc func attachPlayer(_ viewId: NSNumber, playerId: String) {
     self.bridge.uiManager.addUIBlock { [weak self] _, views in
       guard
         let view = views?[viewId] as? RNPlayerView,
@@ -27,9 +27,11 @@ class RNPlayerViewManager: RCTViewManager {
       else {
         return
       }
-      view.playerView = PlayerView(player: context.player, frame: view.bounds)
-      context.player.add(listener: view)
-      context.loadPendingSource()
+      if view.playerView == nil {
+        view.playerView = PlayerView(player: context.player, frame: view.bounds)
+        context.player.add(listener: view)
+        context.loadPendingSource()
+      }
     }
   }
 
