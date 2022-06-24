@@ -1,2 +1,1 @@
-export * from './NativePlayer';
-export * from './Player';
+export * from './PlayerView';
