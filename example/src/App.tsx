@@ -4,7 +4,7 @@ import {
   usePlayer,
   PlayerView,
   SourceType,
-} from 'bitmovin-player-react-native-sdk';
+} from 'bitmovin-player-react-native';
 import styles from './styles';
 
 export default function App() {
@@ -22,9 +22,9 @@ export default function App() {
     });
   }, [player]);
 
-  const onPlayerActive = useCallback(
+  const onReady = useCallback(
     (event) => {
-      console.log('EVENT', JSON.stringify(event, null, 2));
+      console.log(`EVENT [${event.name}]`, JSON.stringify(event, null, 2));
       player.play();
     },
     [player]
@@ -32,7 +32,7 @@ export default function App() {
 
   const onSourceLoaded = useCallback(
     (event) => {
-      console.log('EVENT', JSON.stringify(event, null, 2));
+      console.log(`EVENT [${event.name}]`, JSON.stringify(event, null, 2));
       player.getSource().then((source) => {
         console.log('SOURCE', JSON.stringify(source, null, 2));
       });
@@ -45,7 +45,7 @@ export default function App() {
       <PlayerView
         player={player}
         style={styles.player}
-        onPlayerActive={onPlayerActive}
+        onReady={onReady}
         onSourceLoaded={onSourceLoaded}
       />
     </View>
