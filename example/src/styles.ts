@@ -8,6 +8,5 @@ export default StyleSheet.create({
   },
   player: {
     flex: 1,
-    margin: 20,
   },
 });
