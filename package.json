@@ -42,6 +42,7 @@
     "@react-native-community/eslint-config": "3.0.2",
     "@release-it/conventional-changelog": "2.0.1",
     "@types/jest": "26.0.24",
+    "@types/lodash.omit": "4.5.0",
     "@types/react": "17.0.39",
     "@types/react-native": "0.67.7",
     "commitlint": "11.0.0",
@@ -82,5 +83,8 @@
         "preset": "angular"
       }
     }
+  },
+  "dependencies": {
+    "lodash.omit": "^4.5.0"
   }
 }

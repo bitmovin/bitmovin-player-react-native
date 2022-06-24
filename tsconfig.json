@@ -4,6 +4,7 @@
     "paths": {
       "bitmovin-player-react-native-sdk": ["./src/index"]
     },
+    "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "esModuleInterop": true,
