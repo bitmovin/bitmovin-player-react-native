@@ -1,4 +1,4 @@
-package com.example.playerreactnativebridge.newarchitecture.modules;
+package com.bitmovin.player.reactnative.example.newarchitecture.modules;
 
 import com.facebook.jni.HybridData;
 import com.facebook.react.ReactPackage;

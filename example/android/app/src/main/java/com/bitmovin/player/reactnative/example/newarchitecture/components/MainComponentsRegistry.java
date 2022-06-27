@@ -1,4 +1,4 @@
-package com.example.playerreactnativebridge.newarchitecture.components;
+package com.bitmovin.player.reactnative.example.newarchitecture.components;
 
 import com.facebook.jni.HybridData;
 import com.facebook.proguard.annotations.DoNotStrip;

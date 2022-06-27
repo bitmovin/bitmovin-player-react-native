@@ -1,4 +1,4 @@
-package com.example.playerreactnativebridge.newarchitecture;
+package com.bitmovin.player.reactnative.example.newarchitecture;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
@@ -19,9 +19,9 @@ import com.facebook.react.fabric.CoreComponentsRegistry;
 import com.facebook.react.fabric.EmptyReactNativeConfig;
 import com.facebook.react.fabric.FabricJSIModuleProvider;
 import com.facebook.react.uimanager.ViewManagerRegistry;
-import com.example.playerreactnativebridge.BuildConfig;
-import com.example.playerreactnativebridge.newarchitecture.components.MainComponentsRegistry;
-import com.example.playerreactnativebridge.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
+import com.bitmovin.player.reactnative.example.BuildConfig;
+import com.bitmovin.player.reactnative.example.newarchitecture.components.MainComponentsRegistry;
+import com.bitmovin.player.reactnative.example.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
 import java.util.ArrayList;
 import java.util.List;
 

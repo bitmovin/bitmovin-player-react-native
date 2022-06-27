@@ -1,4 +1,4 @@
-package com.example.playerreactnativebridge;
+package com.bitmovin.player.reactnative.example;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
@@ -12,7 +12,7 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "PlayerReactNativeBridgeExample";
+    return "BitmovinPlayerReactNativeExample";
   }
 
   /**
