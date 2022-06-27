@@ -5,6 +5,8 @@
   "main": "lib/index.js",
   "module": "lib/index.mjs",
   "types": "lib/index.d.ts",
+  "source": "src/index.ts",
+  "react-native": "src/index.ts",
   "author": "Bitmovin Inc",
   "files": [
     "src",
