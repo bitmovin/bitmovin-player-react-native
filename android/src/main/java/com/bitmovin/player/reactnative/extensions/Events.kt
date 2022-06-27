@@ -1,4 +1,5 @@
 package com.bitmovin.player.reactnative.extensions
+
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 
