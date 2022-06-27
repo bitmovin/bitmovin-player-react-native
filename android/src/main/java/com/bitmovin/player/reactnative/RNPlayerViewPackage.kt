@@ -1,4 +1,4 @@
-package com.bitmovin.reactnative
+package com.bitmovin.player.reactnative
 
 import android.view.View
 import com.facebook.react.ReactPackage

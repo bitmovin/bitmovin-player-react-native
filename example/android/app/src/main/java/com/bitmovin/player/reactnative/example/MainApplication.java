@@ -12,7 +12,7 @@ import com.facebook.soloader.SoLoader;
 import com.bitmovin.player.reactnative.example.newarchitecture.MainApplicationReactNativeHost;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import com.bitmovin.reactnative.RNPlayerViewPackage;
+import com.bitmovin.player.reactnative.RNPlayerViewPackage;
 
 public class MainApplication extends Application implements ReactApplication {
 

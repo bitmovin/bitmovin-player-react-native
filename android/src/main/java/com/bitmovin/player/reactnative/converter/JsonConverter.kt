@@ -1,15 +1,13 @@
-package com.bitmovin.reactnative.converter
+package com.bitmovin.player.reactnative.converter
 
 import com.bitmovin.player.api.PlayerConfig
-import com.bitmovin.player.api.deficiency.ErrorEvent
-import com.bitmovin.player.api.deficiency.WarningEvent
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.SeekPosition
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
-import com.bitmovin.reactnative.extensions.getName
+import com.bitmovin.player.reactnative.extensions.getName
 import com.facebook.react.bridge.*
 
 /**

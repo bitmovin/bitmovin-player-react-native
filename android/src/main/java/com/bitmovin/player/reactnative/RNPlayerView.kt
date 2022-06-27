@@ -1,4 +1,4 @@
-package com.bitmovin.reactnative
+package com.bitmovin.player.reactnative
 
 import android.annotation.SuppressLint
 import android.view.ViewGroup
@@ -9,11 +9,9 @@ import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.on
-import com.bitmovin.reactnative.converter.JsonConverter
-import com.facebook.react.bridge.Arguments
+import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
-import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.RCTEventEmitter
 import java.lang.ref.WeakReference
 

@@ -1,11 +1,11 @@
-package com.bitmovin.reactnative
+package com.bitmovin.player.reactnative
 
 import android.util.Log
 import android.widget.LinearLayout
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
-import com.bitmovin.reactnative.converter.JsonConverter
+import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
