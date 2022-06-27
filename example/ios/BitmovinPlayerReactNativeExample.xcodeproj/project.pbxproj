@@ -10,58 +10,40 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		4C39C56BAD484C67AA576FFA /* libPods-PlayerReactNativeBridgeExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA3E69C5B9553B26FBA2DF04 /* libPods-PlayerReactNativeBridgeExample.a */; };
 		4CD973822836B701003409B0 /* AppDelegate.h in Sources */ = {isa = PBXBuildFile; fileRef = 4CD973812836B701003409B0 /* AppDelegate.h */; };
+		5915995436EFADAE00A71930 /* libPods-BitmovinPlayerReactNativeExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 06D60B6FD8A3297CA32930A9 /* libPods-BitmovinPlayerReactNativeExample.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		00E356F41AD99517003FC87E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
-			remoteInfo = PlayerReactNativeBridgeExample;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
 		008F07F21AC5B25A0029DE68 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
-		00E356EE1AD99517003FC87E /* PlayerReactNativeBridgeExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlayerReactNativeBridgeExampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07F961A680F5B00A75B9A /* PlayerReactNativeBridgeExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlayerReactNativeBridgeExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = PlayerReactNativeBridgeExample/AppDelegate.mm; sourceTree = "<group>"; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = PlayerReactNativeBridgeExample/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = PlayerReactNativeBridgeExample/Info.plist; sourceTree = "<group>"; };
-		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = PlayerReactNativeBridgeExample/main.m; sourceTree = "<group>"; };
-		47F7ED3B7971BE374F7B8635 /* Pods-PlayerReactNativeBridgeExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PlayerReactNativeBridgeExample.debug.xcconfig"; path = "Target Support Files/Pods-PlayerReactNativeBridgeExample/Pods-PlayerReactNativeBridgeExample.debug.xcconfig"; sourceTree = "<group>"; };
-		4CD973812836B701003409B0 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = PlayerReactNativeBridgeExample/AppDelegate.h; sourceTree = "<group>"; };
-		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = PlayerReactNativeBridgeExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		CA3E69C5B9553B26FBA2DF04 /* libPods-PlayerReactNativeBridgeExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PlayerReactNativeBridgeExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E00ACF0FDA8BF921659E2F9A /* Pods-PlayerReactNativeBridgeExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PlayerReactNativeBridgeExample.release.xcconfig"; path = "Target Support Files/Pods-PlayerReactNativeBridgeExample/Pods-PlayerReactNativeBridgeExample.release.xcconfig"; sourceTree = "<group>"; };
+		06D60B6FD8A3297CA32930A9 /* libPods-BitmovinPlayerReactNativeExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BitmovinPlayerReactNativeExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07F961A680F5B00A75B9A /* BitmovinPlayerReactNativeExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BitmovinPlayerReactNativeExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = BitmovinPlayerReactNativeExample/AppDelegate.mm; sourceTree = "<group>"; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = BitmovinPlayerReactNativeExample/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = BitmovinPlayerReactNativeExample/Info.plist; sourceTree = "<group>"; };
+		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = BitmovinPlayerReactNativeExample/main.m; sourceTree = "<group>"; };
+		4451A76D9ED45CF044433360 /* Pods-BitmovinPlayerReactNativeExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitmovinPlayerReactNativeExample.release.xcconfig"; path = "Target Support Files/Pods-BitmovinPlayerReactNativeExample/Pods-BitmovinPlayerReactNativeExample.release.xcconfig"; sourceTree = "<group>"; };
+		4CD973812836B701003409B0 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = BitmovinPlayerReactNativeExample/AppDelegate.h; sourceTree = "<group>"; };
+		7D2D062A80C63508C52FD003 /* Pods-BitmovinPlayerReactNativeExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitmovinPlayerReactNativeExample.debug.xcconfig"; path = "Target Support Files/Pods-BitmovinPlayerReactNativeExample/Pods-BitmovinPlayerReactNativeExample.debug.xcconfig"; sourceTree = "<group>"; };
+		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = BitmovinPlayerReactNativeExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		00E356EB1AD99517003FC87E /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4C39C56BAD484C67AA576FFA /* libPods-PlayerReactNativeBridgeExample.a in Frameworks */,
+				5915995436EFADAE00A71930 /* libPods-BitmovinPlayerReactNativeExample.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		13B07FAE1A68108700A75B9A /* PlayerReactNativeBridgeExample */ = {
+		13B07FAE1A68108700A75B9A /* BitmovinPlayerReactNativeExample */ = {
 			isa = PBXGroup;
 			children = (
 				4CD973812836B701003409B0 /* AppDelegate.h */,
@@ -72,7 +54,7 @@
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
 			);
-			name = PlayerReactNativeBridgeExample;
+			name = BitmovinPlayerReactNativeExample;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
@@ -80,7 +62,7 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
-				CA3E69C5B9553B26FBA2DF04 /* libPods-PlayerReactNativeBridgeExample.a */,
+				06D60B6FD8A3297CA32930A9 /* libPods-BitmovinPlayerReactNativeExample.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -88,8 +70,8 @@
 		6B9684456A2045ADE5A6E47E /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				47F7ED3B7971BE374F7B8635 /* Pods-PlayerReactNativeBridgeExample.debug.xcconfig */,
-				E00ACF0FDA8BF921659E2F9A /* Pods-PlayerReactNativeBridgeExample.release.xcconfig */,
+				7D2D062A80C63508C52FD003 /* Pods-BitmovinPlayerReactNativeExample.debug.xcconfig */,
+				4451A76D9ED45CF044433360 /* Pods-BitmovinPlayerReactNativeExample.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -104,7 +86,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				13B07FAE1A68108700A75B9A /* PlayerReactNativeBridgeExample */,
+				13B07FAE1A68108700A75B9A /* BitmovinPlayerReactNativeExample */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
@@ -118,8 +100,7 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* PlayerReactNativeBridgeExample.app */,
-				00E356EE1AD99517003FC87E /* PlayerReactNativeBridgeExampleTests.xctest */,
+				13B07F961A680F5B00A75B9A /* BitmovinPlayerReactNativeExample.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -127,43 +108,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		00E356ED1AD99517003FC87E /* PlayerReactNativeBridgeExampleTests */ = {
+		13B07F861A680F5B00A75B9A /* BitmovinPlayerReactNativeExample */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "PlayerReactNativeBridgeExampleTests" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "BitmovinPlayerReactNativeExample" */;
 			buildPhases = (
-				00E356EA1AD99517003FC87E /* Sources */,
-				00E356EB1AD99517003FC87E /* Frameworks */,
-				00E356EC1AD99517003FC87E /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				00E356F51AD99517003FC87E /* PBXTargetDependency */,
-			);
-			name = PlayerReactNativeBridgeExampleTests;
-			productName = PlayerReactNativeBridgeExampleTests;
-			productReference = 00E356EE1AD99517003FC87E /* PlayerReactNativeBridgeExampleTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		13B07F861A680F5B00A75B9A /* PlayerReactNativeBridgeExample */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "PlayerReactNativeBridgeExample" */;
-			buildPhases = (
-				4F0A6FC082772762E3E4C96C /* [CP] Check Pods Manifest.lock */,
+				5E3559E12AFFB82ED8822C46 /* [CP] Check Pods Manifest.lock */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				C1D60D28B925C94BD88E79D7 /* [CP] Copy Pods Resources */,
-				A49001E1A8CBE982E2C2EC3F /* [CP] Embed Pods Frameworks */,
+				A2CB793523186225AE46687F /* [CP] Embed Pods Frameworks */,
+				A46BFF240E7BC6134A18CB69 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = PlayerReactNativeBridgeExample;
+			name = BitmovinPlayerReactNativeExample;
 			productName = PlayerReactNativeBridgeExample;
-			productReference = 13B07F961A680F5B00A75B9A /* PlayerReactNativeBridgeExample.app */;
+			productReference = 13B07F961A680F5B00A75B9A /* BitmovinPlayerReactNativeExample.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -174,10 +137,6 @@
 			attributes = {
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
-					00E356ED1AD99517003FC87E = {
-						CreatedOnToolsVersion = 6.2;
-						TestTargetID = 13B07F861A680F5B00A75B9A;
-					};
 					13B07F861A680F5B00A75B9A = {
 						DevelopmentTeam = 423Q26AEEM;
 						LastSwiftMigration = 1330;
@@ -185,7 +144,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "PlayerReactNativeBridgeExample" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "BitmovinPlayerReactNativeExample" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -198,20 +157,12 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* PlayerReactNativeBridgeExample */,
-				00E356ED1AD99517003FC87E /* PlayerReactNativeBridgeExampleTests */,
+				13B07F861A680F5B00A75B9A /* BitmovinPlayerReactNativeExample */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		00E356EC1AD99517003FC87E /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		13B07F8E1A680F5B00A75B9A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -238,7 +189,7 @@
 			shellPath = /bin/sh;
 			shellScript = "# export NODE_BINARY=node\n# ../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
-		4F0A6FC082772762E3E4C96C /* [CP] Check Pods Manifest.lock */ = {
+		5E3559E12AFFB82ED8822C46 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -253,20 +204,20 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-PlayerReactNativeBridgeExample-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-BitmovinPlayerReactNativeExample-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		A49001E1A8CBE982E2C2EC3F /* [CP] Embed Pods Frameworks */ = {
+		A2CB793523186225AE46687F /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-PlayerReactNativeBridgeExample/Pods-PlayerReactNativeBridgeExample-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-BitmovinPlayerReactNativeExample/Pods-BitmovinPlayerReactNativeExample-frameworks.sh",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/BitmovinPlayer/BitmovinPlayer.framework/BitmovinPlayer",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Flipper-DoubleConversion/double-conversion.framework/double-conversion",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Flipper-Glog/glog.framework/glog",
@@ -281,16 +232,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-PlayerReactNativeBridgeExample/Pods-PlayerReactNativeBridgeExample-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BitmovinPlayerReactNativeExample/Pods-BitmovinPlayerReactNativeExample-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		C1D60D28B925C94BD88E79D7 /* [CP] Copy Pods Resources */ = {
+		A46BFF240E7BC6134A18CB69 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-PlayerReactNativeBridgeExample/Pods-PlayerReactNativeBridgeExample-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-BitmovinPlayerReactNativeExample/Pods-BitmovinPlayerReactNativeExample-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
@@ -299,19 +250,12 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-PlayerReactNativeBridgeExample/Pods-PlayerReactNativeBridgeExample-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BitmovinPlayerReactNativeExample/Pods-BitmovinPlayerReactNativeExample-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		00E356EA1AD99517003FC87E /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		13B07F871A680F5B00A75B9A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -324,59 +268,10 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXTargetDependency section */
-		00E356F51AD99517003FC87E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 13B07F861A680F5B00A75B9A /* PlayerReactNativeBridgeExample */;
-			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
 /* Begin XCBuildConfiguration section */
-		00E356F61AD99517003FC87E /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = PlayerReactNativeBridgeExampleTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-lc++",
-					"$(inherited)",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.playerreactnativebridge;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PlayerReactNativeBridgeExample.app/PlayerReactNativeBridgeExample";
-			};
-			name = Debug;
-		};
-		00E356F71AD99517003FC87E /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				COPY_PHASE_STRIP = NO;
-				INFOPLIST_FILE = PlayerReactNativeBridgeExampleTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-lc++",
-					"$(inherited)",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.playerreactnativebridge;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PlayerReactNativeBridgeExample.app/PlayerReactNativeBridgeExample";
-			};
-			name = Release;
-		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 47F7ED3B7971BE374F7B8635 /* Pods-PlayerReactNativeBridgeExample.debug.xcconfig */;
+			baseConfigurationReference = 7D2D062A80C63508C52FD003 /* Pods-BitmovinPlayerReactNativeExample.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
@@ -386,7 +281,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 423Q26AEEM;
 				ENABLE_BITCODE = NO;
-				INFOPLIST_FILE = PlayerReactNativeBridgeExample/Info.plist;
+				INFOPLIST_FILE = BitmovinPlayerReactNativeExample/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -394,10 +289,10 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmovin.PlayerReactNativeBridge-Example";
-				PRODUCT_NAME = PlayerReactNativeBridgeExample;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmovin.PlayerReactNative-Example";
+				PRODUCT_NAME = BitmovinPlayerReactNativeExample;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_OBJC_BRIDGING_HEADER = "PlayerReactNativeBridgeExample-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "BitmovinPlayerReactNativeExample-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -407,7 +302,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E00ACF0FDA8BF921659E2F9A /* Pods-PlayerReactNativeBridgeExample.release.xcconfig */;
+			baseConfigurationReference = 4451A76D9ED45CF044433360 /* Pods-BitmovinPlayerReactNativeExample.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
@@ -416,7 +311,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 423Q26AEEM;
-				INFOPLIST_FILE = PlayerReactNativeBridgeExample/Info.plist;
+				INFOPLIST_FILE = BitmovinPlayerReactNativeExample/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -424,10 +319,10 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmovin.PlayerReactNativeBridge-Example";
-				PRODUCT_NAME = PlayerReactNativeBridgeExample;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmovin.PlayerReactNative-Example";
+				PRODUCT_NAME = BitmovinPlayerReactNativeExample;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_OBJC_BRIDGING_HEADER = "PlayerReactNativeBridgeExample-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "BitmovinPlayerReactNativeExample-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -552,16 +447,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "PlayerReactNativeBridgeExampleTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				00E356F61AD99517003FC87E /* Debug */,
-				00E356F71AD99517003FC87E /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "PlayerReactNativeBridgeExample" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "BitmovinPlayerReactNativeExample" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -570,7 +456,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "PlayerReactNativeBridgeExample" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "BitmovinPlayerReactNativeExample" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,

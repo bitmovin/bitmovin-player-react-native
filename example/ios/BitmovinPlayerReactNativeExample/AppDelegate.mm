@@ -41,7 +41,7 @@
   bridge.surfacePresenter = _bridgeAdapter.surfacePresenter;
 #endif
 
-  UIView *rootView = RCTAppSetupDefaultRootView(bridge, @"PlayerReactNativeBridgeExample", nil);
+  UIView *rootView = RCTAppSetupDefaultRootView(bridge, @"BitmovinPlayerReactNativeExample", nil);
   rootView.backgroundColor = [UIColor blackColor];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
