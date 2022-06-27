@@ -265,7 +265,7 @@ dependencies {
     debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.flipper'
     }
-    implementation project(':bitmovin-react-native-sdk')
+    implementation project(':bitmovin-player-react-native')
 
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
