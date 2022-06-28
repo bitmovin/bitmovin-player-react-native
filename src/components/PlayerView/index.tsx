@@ -1,5 +1,11 @@
-import React, { useRef, useEffect } from 'react';
-import { UIManager, ViewStyle, StyleSheet, findNodeHandle } from 'react-native';
+import React, { useRef, useLayoutEffect } from 'react';
+import {
+  Platform,
+  UIManager,
+  ViewStyle,
+  StyleSheet,
+  findNodeHandle,
+} from 'react-native';
 import { PlayerViewEvents } from './events';
 import { NativePlayerView } from './native';
 import { Player } from '../../player';
@@ -19,18 +25,33 @@ const styles = StyleSheet.create({
   },
 });
 
-function attachPlayer(node: number | null, player: Player) {
-  const attachCommand =
-    UIManager.getViewManagerConfig('NativePlayerView').Commands.attachPlayer;
-  UIManager.dispatchViewManagerCommand(node, attachCommand, [player.id]);
+function dispatch(command: string, node: number | null, playerId: string) {
+  const commandId =
+    Platform.OS === 'android'
+      ? (UIManager as any).NativePlayerView.Commands[command].toString()
+      : UIManager.getViewManagerConfig('NativePlayerView').Commands[command];
+  UIManager.dispatchViewManagerCommand(
+    node,
+    commandId,
+    Platform.select({
+      ios: [playerId],
+      android: [node, playerId],
+    })
+  );
 }
 
 export function PlayerView(props: PlayerViewProps) {
   const nativeView = useRef(null);
   const style = StyleSheet.flatten([styles.baseStyle, props.style]);
-  useEffect(() => {
-    attachPlayer(findNodeHandle(nativeView.current), props.player);
-  }, [props.player]);
+  useLayoutEffect(() => {
+    const node = findNodeHandle(nativeView.current);
+    dispatch('attachPlayer', node, props.player.id);
+    console.log('ATTACH');
+    return () => {
+      dispatch('detachPlayer', node, props.player.id);
+      console.log('DETACH');
+    };
+  }, [props.player.id]);
   return (
     <NativePlayerView
       ref={nativeView}

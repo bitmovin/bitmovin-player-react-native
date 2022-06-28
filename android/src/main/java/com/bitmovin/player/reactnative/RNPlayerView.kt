@@ -13,7 +13,6 @@ import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
-import java.lang.ref.WeakReference
 
 /**
  * Native view wrapper for component instances. It both serves as the main view
@@ -25,39 +24,39 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
     /**
      * Reference to the shared player view set as child.
      */
-    private lateinit var playerView: WeakReference<PlayerView>
+    private var playerView: PlayerView? = null
 
     /**
      * Handy property accessor for `playerView`'s player instance.
      */
     var player: Player?
-        get() = playerView.get()?.player
+        get() = playerView?.player
         set(value) {
-            playerView.get()?.player = value
+            playerView?.player = value
         }
 
     /**
-     * Set the given `playerView` as child.
+     * Set the given `playerView` as child and start bubbling events.
      * @param playerView Shared player view instance.
      */
     fun addPlayerView(playerView: PlayerView) {
-        this.playerView = WeakReference(playerView)
-        if (playerView.parent != null) {
-            (playerView.parent as ViewGroup).removeView(playerView)
+        this.playerView = playerView
+        if (playerView.parent != this) {
+            (playerView.parent as ViewGroup?)?.removeView(playerView)
+            addView(playerView)
         }
-        addView(playerView)
+        startBubblingEvents()
     }
 
     /**
-     * Remove the currently associated `playerView` instance
-     * from this view hierarchy and cleanup its reference.
+     * Remove `playerView` if it's child and stop bubbling events.
      */
     fun removePlayerView() {
-        if (playerView.get() != null) {
-            removeView(playerView.get())
+        if (playerView != null) {
+            stopBubblingEvents()
+            playerView?.player = null
+            removeView(playerView)
         }
-        player = null
-        playerView.clear()
     }
 
     /**

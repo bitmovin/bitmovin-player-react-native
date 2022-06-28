@@ -40,11 +40,18 @@ export default function App() {
     [player]
   );
 
+  const onEvent = useCallback((event) => {
+    console.log(`EVENT [${event.name}]`, JSON.stringify(event, null, 2));
+  }, []);
+
   return (
     <View style={styles.container}>
       <PlayerView
         player={player}
         style={styles.player}
+        onPlay={onEvent}
+        onPlaying={onEvent}
+        onPaused={onEvent}
         onReady={onReady}
         onSourceLoaded={onSourceLoaded}
       />

@@ -16,7 +16,10 @@ class RNPlayerViewPackage : ReactPackage {
      * accessing methods on `NativePlayerView` on the js side.
      */
     override fun createNativeModules(reactContext: ReactApplicationContext): MutableList<NativeModule> {
-        return mutableListOf(RNPlayerViewManager(reactContext))
+        return mutableListOf(
+            PlayerModule(reactContext),
+            RNPlayerViewManager(reactContext),
+        )
     }
 
     /**
