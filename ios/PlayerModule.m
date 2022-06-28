@@ -3,7 +3,7 @@
 @interface RCT_EXTERN_REMAP_MODULE(PlayerModule, PlayerModule, NSObject)
 
 RCT_EXTERN_METHOD(initWithConfig:(id)config)
-RCT_EXTERN_METHOD(load:(NSString *)playerId config:(id)config)
+RCT_EXTERN_METHOD(loadSource:(NSString *)playerId config:(id)config)
 RCT_EXTERN_METHOD(unload:(NSString *)playerId)
 RCT_EXTERN_METHOD(play:(NSString *)playerId)
 RCT_EXTERN_METHOD(pause:(NSString *)playerId)

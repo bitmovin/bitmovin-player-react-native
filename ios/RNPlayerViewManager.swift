@@ -1,4 +1,5 @@
 import BitmovinPlayer
+import Foundation
 
 @objc(RNPlayerViewManager)
 class RNPlayerViewManager: RCTViewManager {
@@ -19,19 +20,36 @@ class RNPlayerViewManager: RCTViewManager {
      - Parameter playerId: `Player` instance id inside `PlayerModule`'s registry.
      */
     @objc func attachPlayer(_ viewId: NSNumber, playerId: String) {
-        self.bridge.uiManager.addUIBlock { [weak self] _, views in
+        bridge.uiManager.addUIBlock { [weak self] _, views in
             guard
                 let view = views?[viewId] as? RNPlayerView,
-                let playerModule = self?.getPlayerModule(),
-                let context = playerModule.playerContext(with: playerId)
+                let player = self?.getPlayerModule()?.player(with: playerId)
             else {
                 return
             }
-            if view.playerView == nil {
-                view.playerView = PlayerView(player: context.player, frame: view.bounds)
-                context.player.add(listener: view)
-                context.loadPendingSource()
+            if let playerView = view.playerView {
+                playerView.player = player
+            } else {
+                view.playerView = PlayerView(player: player, frame: view.bounds)
             }
+            player.add(listener: view)
+        }
+    }
+    
+    /**
+     Remove `RNPlayerView` from its associated `Player` listeners list.
+     - Parameter viewId: `RNPlayerView` id inside `UIManager`'s registry.
+     - Parameter playerId: `Player` instance id inside `PlayerModule`'s registry.
+     */
+    @objc func detachPlayer(_ viewId: NSNumber, playerId: String) {
+        bridge.uiManager.addUIBlock { [weak self] _, views in
+            guard
+                let view = views?[viewId] as? RNPlayerView,
+                let player = self?.getPlayerModule()?.player(with: playerId)
+            else {
+                return
+            }
+            player.remove(listener: view)
         }
     }
 

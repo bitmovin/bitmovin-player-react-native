@@ -1,4 +1,4 @@
-import React, { useRef, useLayoutEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   Platform,
   UIManager,
@@ -43,39 +43,37 @@ function dispatch(command: string, node: number | null, playerId: string) {
 export function PlayerView(props: PlayerViewProps) {
   const nativeView = useRef(null);
   const style = StyleSheet.flatten([styles.baseStyle, props.style]);
-  useLayoutEffect(() => {
+  useEffect(() => {
     const node = findNodeHandle(nativeView.current);
     dispatch('attachPlayer', node, props.player.id);
-    console.log('ATTACH');
     return () => {
       dispatch('detachPlayer', node, props.player.id);
-      console.log('DETACH');
     };
   }, [props.player.id]);
   return (
     <NativePlayerView
       ref={nativeView}
       style={style}
-      onEvent={useProxy(props.onEvent)}
-      onPlayerActive={useProxy(props.onPlayerActive)}
-      onPlayerError={useProxy(props.onPlayerError)}
-      onPlayerWarning={useProxy(props.onPlayerWarning)}
-      onDestroy={useProxy(props.onDestroy)}
-      onMuted={useProxy(props.onMuted)}
-      onUnmuted={useProxy(props.onUnmuted)}
-      onReady={useProxy(props.onReady)}
-      onPaused={useProxy(props.onPaused)}
-      onPlay={useProxy(props.onPlay)}
-      onPlaying={useProxy(props.onPlaying)}
-      onPlaybackFinished={useProxy(props.onPlaybackFinished)}
-      onSeek={useProxy(props.onSeek)}
-      onSeeked={useProxy(props.onSeeked)}
-      onTimeChanged={useProxy(props.onTimeChanged)}
-      onSourceLoad={useProxy(props.onSourceLoad)}
-      onSourceLoaded={useProxy(props.onSourceLoaded)}
-      onSourceUnloaded={useProxy(props.onSourceUnloaded)}
-      onSourceError={useProxy(props.onSourceError)}
-      onSourceWarning={useProxy(props.onSourceWarning)}
+      onEvent={useProxy(nativeView, props.onEvent)}
+      onPlayerActive={useProxy(nativeView, props.onPlayerActive)}
+      onPlayerError={useProxy(nativeView, props.onPlayerError)}
+      onPlayerWarning={useProxy(nativeView, props.onPlayerWarning)}
+      onDestroy={useProxy(nativeView, props.onDestroy)}
+      onMuted={useProxy(nativeView, props.onMuted)}
+      onUnmuted={useProxy(nativeView, props.onUnmuted)}
+      onReady={useProxy(nativeView, props.onReady)}
+      onPaused={useProxy(nativeView, props.onPaused)}
+      onPlay={useProxy(nativeView, props.onPlay)}
+      onPlaying={useProxy(nativeView, props.onPlaying)}
+      onPlaybackFinished={useProxy(nativeView, props.onPlaybackFinished)}
+      onSeek={useProxy(nativeView, props.onSeek)}
+      onSeeked={useProxy(nativeView, props.onSeeked)}
+      onTimeChanged={useProxy(nativeView, props.onTimeChanged)}
+      onSourceLoad={useProxy(nativeView, props.onSourceLoad)}
+      onSourceLoaded={useProxy(nativeView, props.onSourceLoaded)}
+      onSourceUnloaded={useProxy(nativeView, props.onSourceUnloaded)}
+      onSourceError={useProxy(nativeView, props.onSourceError)}
+      onSourceWarning={useProxy(nativeView, props.onSourceWarning)}
     />
   );
 }

@@ -13,16 +13,13 @@ export class Player {
   config: PlayerConfig;
 
   constructor(config: PlayerConfig) {
+    PlayerModule.initWithConfig(config);
     this.id = config.id;
     this.config = config;
   }
 
-  init = () => {
-    PlayerModule.initWithConfig(this.config);
-  };
-
   load = (source: SourceConfig) => {
-    PlayerModule.load(this.id, source);
+    PlayerModule.loadSource(this.id, source);
   };
 
   unload = () => {
