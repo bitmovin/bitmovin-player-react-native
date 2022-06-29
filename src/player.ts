@@ -1,4 +1,4 @@
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import { SourceConfig, Source } from './source';
 
 const PlayerModule = NativeModules.PlayerModule;
@@ -55,7 +55,7 @@ export class Player {
   };
 
   getSource = async (): Promise<Source> => {
-    return PlayerModule.getSource(this.id);
+    return PlayerModule.source(this.id);
   };
 
   getVolume = async (): Promise<number> => {
@@ -87,10 +87,22 @@ export class Player {
   };
 
   isAirPlayActive = async (): Promise<boolean> => {
+    if (Platform.OS === 'android') {
+      console.warn(
+        `[Player ${this.id}] Method isAirPlayActive is not available for Android. Only iOS devices.`
+      );
+      return false;
+    }
     return PlayerModule.isAirPlayActive(this.id);
   };
 
   isAirPlayAvailable = async (): Promise<boolean> => {
+    if (Platform.OS === 'android') {
+      console.warn(
+        `[Player ${this.id}] Method isAirPlayAvailable is not available for Android. Only iOS devices.`
+      );
+      return false;
+    }
     return PlayerModule.isAirPlayAvailable(this.id);
   };
 }

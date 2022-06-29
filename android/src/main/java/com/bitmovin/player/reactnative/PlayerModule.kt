@@ -67,6 +67,17 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Call `.unload()` on `playerId`'s player.
+     * @param playerId Target player Id.
+     */
+    @ReactMethod
+    fun unload(playerId: String) {
+        uiManager()?.addUIBlock {
+            registry[playerId]?.unload()
+        }
+    }
+
+    /**
      * Call `.play()` on `playerId`'s player.
      * @param playerId Target player Id.
      */
@@ -78,14 +89,177 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Call `.pause()` on `playerId`'s player.
+     * @param playerId Target player Id.
+     */
+    @ReactMethod
+    fun pause(playerId: String) {
+        uiManager()?.addUIBlock {
+            registry[playerId]?.pause()
+        }
+    }
+
+    /**
+     * Call `.seek(time:)` on `playerId`'s player.
+     * @param playerId Target player Id.
+     * @param time Seek time in seconds.
+     */
+    @ReactMethod
+    fun seek(playerId: String, time: Double) {
+        uiManager()?.addUIBlock {
+            registry[playerId]?.seek(time)
+        }
+    }
+
+    /**
+     * Call `.mute()` on `playerId`'s player.
+     * @param playerId Target player Id.
+     */
+    @ReactMethod
+    fun mute(playerId: String) {
+        uiManager()?.addUIBlock {
+            registry[playerId]?.mute()
+        }
+    }
+
+    /**
+     * Call `.unmute()` on `playerId`'s player.
+     * @param playerId Target player Id.
+     */
+    @ReactMethod
+    fun unmute(playerId: String) {
+        uiManager()?.addUIBlock {
+            registry[playerId]?.unmute()
+        }
+    }
+
+    /**
+     * Call `.destroy()` on `playerId`'s player.
+     * @param playerId Target player Id.
+     */
+    @ReactMethod
+    fun destroy(playerId: String) {
+        uiManager()?.addUIBlock {
+            registry[playerId]?.destroy()
+        }
+    }
+
+    /**
+     * Call `.setVolume(volume:)` on `playerId`'s player.
+     * @param playerId Target player Id.
+     * @param volume Volume level integer between 0 to 100.
+     */
+    @ReactMethod
+    fun setVolume(playerId: String, volume: Int) {
+        uiManager()?.addUIBlock {
+            registry[playerId]?.volume = volume
+        }
+    }
+
+    /**
+     * Resolve `playerId`'s current volume.
+     * @param playerId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getVolume(playerId: String, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(registry[playerId]?.volume)
+        }
+    }
+
+    /**
      * Resolve the source of `playerId`'s player.
      * @param playerId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
-    fun getSource(playerId: String, promise: Promise) {
+    fun source(playerId: String, promise: Promise) {
         uiManager()?.addUIBlock {
             promise.resolve(JsonConverter.fromSource(registry[playerId]?.source))
+        }
+    }
+
+    /**
+     * Resolve `playerId`'s current playback time.
+     * @param playerId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun currentTime(playerId: String, mode: String?, promise: Promise) {
+        uiManager()?.addUIBlock {
+            var timeOffset: Double = 0.0
+            if (mode != null) {
+                timeOffset = if (mode == "relative") {
+                    registry[playerId]?.playbackTimeOffsetToRelativeTime ?: 0.0
+                } else {
+                    registry[playerId]?.playbackTimeOffsetToAbsoluteTime ?: 0.0
+                }
+            }
+            val currentTime = registry[playerId]?.currentTime
+            if (currentTime != null) {
+                promise.resolve(currentTime + timeOffset)
+            }
+        }
+    }
+
+    /**
+     * Resolve `playerId`'s current source duration.
+     * @param playerId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun duration(playerId: String, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(registry[playerId]?.duration)
+        }
+    }
+
+    /**
+     * Resolve `playerId`'s current muted state.
+     * @param playerId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun isMuted(playerId: String, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(registry[playerId]?.isMuted)
+        }
+    }
+
+    /**
+     * Resolve `playerId`'s current playing state.
+     * @param playerId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun isPlaying(playerId: String, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(registry[playerId]?.isPlaying)
+        }
+    }
+
+    /**
+     * Resolve `playerId`'s current paused state.
+     * @param playerId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun isPaused(playerId: String, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(registry[playerId]?.isPaused)
+        }
+    }
+
+    /**
+     * Resolve `playerId`'s current live state.
+     * @param playerId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun isLive(playerId: String, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(registry[playerId]?.isLive)
         }
     }
 

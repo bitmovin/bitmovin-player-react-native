@@ -13,7 +13,7 @@ RCT_EXTERN_METHOD(unmute:(NSString *)playerId)
 RCT_EXTERN_METHOD(destroy:(NSString *)playerId)
 RCT_EXTERN_METHOD(setVolume:(NSString *)playerId volume:(nonnull NSNumber *)volume)
 RCT_EXTERN_METHOD(
-    getSource:(NSString *)playerId
+    source:(NSString *)playerId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(

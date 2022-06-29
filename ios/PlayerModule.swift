@@ -169,8 +169,8 @@ class PlayerModule: NSObject, RCTBridgeModule {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc(getSource:resolver:rejecter:)
-    func getSource(
+    @objc(source:resolver:rejecter:)
+    func source(
         _ playerId: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
