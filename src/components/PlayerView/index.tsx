@@ -11,20 +11,39 @@ import { NativePlayerView } from './native';
 import { Player } from '../../player';
 import { useProxy } from '../../hooks/useProxy';
 
+/**
+ * Base `PlayerView` component props. Used to stablish common
+ * props between `NativePlayerView` and `PlayerView`.
+ * @see NativePlayerView
+ */
 export interface BasePlayerViewProps {
   style?: ViewStyle;
 }
 
+/**
+ * `PlayerView` component props.
+ * @see PlayerView
+ */
 export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
+  /**
+   * `Player` instance (generally returned from `usePlayer` hook) that will control
+   * and render audio/video inside the `PlayerView`.
+   */
   player: Player;
 }
 
+/**
+ * Base style that initializes the native view frame when no width/height prop has been set.
+ */
 const styles = StyleSheet.create({
   baseStyle: {
     alignSelf: 'stretch',
   },
 });
 
+/**
+ * Dispatches any given `NativePlayerView` commands on React's `UIManager`.
+ */
 function dispatch(command: string, node: number | null, playerId: string) {
   const commandId =
     Platform.OS === 'android'
@@ -40,13 +59,21 @@ function dispatch(command: string, node: number | null, playerId: string) {
   );
 }
 
+/**
+ * Component that provides the Bitmovin Player UI and default UI handling to an attached `Player` instance.
+ * This component needs a `Player` instance to work properly so make sure one is passed to it as a prop.
+ */
 export function PlayerView(props: PlayerViewProps) {
+  // Native view reference.
   const nativeView = useRef(null);
+  // Style resulting from merging `baseStyle` and `props.style`.
   const style = StyleSheet.flatten([styles.baseStyle, props.style]);
   useEffect(() => {
+    // Attach `props.player` to native `PlayerView`.
     const node = findNodeHandle(nativeView.current);
     dispatch('attachPlayer', node, props.player.id);
     return () => {
+      // Detach `props.player` from native `PlayerView`.
       dispatch('detachPlayer', node, props.player.id);
     };
   }, [props.player.id]);
