@@ -1,6 +1,6 @@
 import omit from 'lodash.omit';
 import { useCallback, useRef, RefObject } from 'react';
-import { Platform, NativeSyntheticEvent, findNodeHandle } from 'react-native';
+import { NativeSyntheticEvent, findNodeHandle } from 'react-native';
 import { Event } from '../events';
 
 function unwrapNativeEvent<E extends Event>(event: NativeSyntheticEvent<E>): E {
@@ -14,11 +14,8 @@ export function useProxy<E extends Event>(
   const proxyRef = useRef(proxy);
   return useCallback(
     (event) => {
-      const target =
-        Platform.OS === 'android'
-          ? event.target
-          : (event.nativeEvent as any).target;
-      if (target === findNodeHandle(viewRef.current)) {
+      const node: number = (event.target as any)._nativeTag;
+      if (node === findNodeHandle(viewRef.current)) {
         proxyRef.current?.(unwrapNativeEvent(event));
       }
     },

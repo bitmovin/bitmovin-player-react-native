@@ -1,12 +1,11 @@
 package com.bitmovin.player.reactnative
 
-import android.os.Handler
-import android.os.Looper
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.uimanager.UIManagerModule
 
 class RNPlayerViewManager(private val context: ReactApplicationContext) : SimpleViewManager<RNPlayerView>() {
     /**
@@ -72,12 +71,10 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * to call 'functions' on them.
      * @return map between names (used in js) and command ids (used in native code).
      */
-    override fun getCommandsMap(): MutableMap<String, Int> {
-        return mutableMapOf(
-            "attachPlayer" to Commands.ATTACH_PLAYER.ordinal,
-            "detachPlayer" to Commands.DETACH_PLAYER.ordinal,
-        )
-    }
+    override fun getCommandsMap(): MutableMap<String, Int> = mutableMapOf(
+        "attachPlayer" to Commands.ATTACH_PLAYER.ordinal,
+        "detachPlayer" to Commands.DETACH_PLAYER.ordinal,
+    )
 
     /**
      * Callback triggered in response to command dispatches from the js side.
@@ -102,26 +99,29 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @param playerId `Player` instance id inside `PlayerModule`'s registry.
      */
     private fun attachPlayer(view: RNPlayerView, playerId: String?) {
-        onMainThread {
-            val playerContext = getPlayerModule()?.getPlayerContext(playerId)
-            val playerView = PlayerView(context, playerContext?.player)
-            playerView.layoutParams = LayoutParams(
-                LayoutParams.MATCH_PARENT,
-                LayoutParams.MATCH_PARENT)
-            view.addPlayerView(playerView)
-            playerContext?.loadPendingSource()
+        uiManager()?.addUIBlock {
+            val player = getPlayerModule()?.getPlayer(playerId)
+            if (view.playerView != null) {
+                view.player = player
+            } else {
+                val playerView = PlayerView(context, player)
+                playerView.layoutParams = LayoutParams(
+                    LayoutParams.MATCH_PARENT,
+                    LayoutParams.MATCH_PARENT)
+                view.addPlayerView(playerView)
+            }
+            view.startBubblingEvents()
         }
     }
 
     /**
-     * Remove `Player` instance from view, stop bubbling events and mark player context as detached.
+     * Stop sending `Player` bubbling events from `PlayerView`.
      * @param view Target `RNPlayerView`.
      * @param playerId `Player` instance id inside `PlayerModule`'s registry.
      */
     private fun detachPlayer(view: RNPlayerView, playerId: String?) {
-        onMainThread {
-            view.removePlayerView()
-            getPlayerModule()?.getPlayerContext(playerId)?.isPlayerAttachedToView = false
+        uiManager()?.addUIBlock {
+            view.stopBubblingEvents()
         }
     }
 
@@ -132,8 +132,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         context.getNativeModule(PlayerModule::class.java)
 
     /**
-     * Helper function that runs any arbitrary operation on main thread.
+     * Helper function that returns the initialized `UIManager` instance.
      */
-    private fun onMainThread(runnable: Runnable) =
-        Handler(Looper.getMainLooper()).post(runnable)
+    private fun uiManager(): UIManagerModule? =
+        context.getNativeModule(UIManagerModule::class.java)
 }

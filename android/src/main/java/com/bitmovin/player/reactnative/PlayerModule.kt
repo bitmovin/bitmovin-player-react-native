@@ -1,7 +1,5 @@
 package com.bitmovin.player.reactnative
 
-import android.os.Handler
-import android.os.Looper
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.facebook.react.bridge.Promise
@@ -10,13 +8,14 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.module.annotations.ReactModule;
+import com.facebook.react.uimanager.UIManagerModule
 
 @ReactModule(name = PlayerModule.name)
 class PlayerModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
     /**
      * In-memory mapping of `id` <-> `Player`.
      */
-    private var registry: MutableMap<String, PlayerContext> = mutableMapOf()
+    private var registry: MutableMap<String, Player> = mutableMapOf()
 
     /**
      * Exported module name to JS.
@@ -26,7 +25,11 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
     override fun getName() = PlayerModule.name
 
-    fun getPlayerContext(playerId: String?): PlayerContext? {
+    /**
+     * Fetch the `Player` instance with id equal to `playerId` inside this module's `registry`.
+     * @param playerId Target player to look inside registry.
+     */
+    fun getPlayer(playerId: String?): Player? {
         if (playerId == null) {
             return null
         }
@@ -39,11 +42,11 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      */
     @ReactMethod
     fun initWithConfig(config: ReadableMap) {
-        onMainThread {
+        uiManager()?.addUIBlock {
             val id = config.getString("id")
             if (id != null && !registry.containsKey(id)) {
                 JsonConverter.toPlayerConfig(config)?.let {
-                    registry[id] = PlayerContext(Player.create(context, it))
+                    registry[id] = Player.create(context, it)
                 }
             }
         }
@@ -55,8 +58,8 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      * @param config Source configuration options from JS.
      */
     @ReactMethod
-    fun load(playerId: String, config: ReadableMap) {
-        onMainThread {
+    fun loadSource(playerId: String, config: ReadableMap) {
+        uiManager()?.addUIBlock {
             JsonConverter.toSourceConfig(config)?.let {
                 registry[playerId]?.load(it)
             }
@@ -69,8 +72,8 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      */
     @ReactMethod
     fun play(playerId: String) {
-        onMainThread {
-            registry[playerId]?.player?.play()
+        uiManager()?.addUIBlock {
+            registry[playerId]?.play()
         }
     }
 
@@ -81,14 +84,14 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      */
     @ReactMethod
     fun getSource(playerId: String, promise: Promise) {
-        onMainThread {
-            promise.resolve(JsonConverter.fromSource(registry[playerId]?.player?.source))
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromSource(registry[playerId]?.source))
         }
     }
 
     /**
-     * Helper function that runs any arbitrary operation on main thread.
+     * Helper function that returns the initialized `UIManager` instance.
      */
-    private fun onMainThread(runnable: Runnable) =
-        Handler(Looper.getMainLooper()).post(runnable)
+    private fun uiManager(): UIManagerModule? =
+        context.getNativeModule(UIManagerModule::class.java)
 }

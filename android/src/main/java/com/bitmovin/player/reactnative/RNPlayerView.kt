@@ -24,7 +24,7 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
     /**
      * Reference to the shared player view set as child.
      */
-    private var playerView: PlayerView? = null
+    var playerView: PlayerView? = null
 
     /**
      * Handy property accessor for `playerView`'s player instance.
@@ -44,18 +44,6 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
         if (playerView.parent != this) {
             (playerView.parent as ViewGroup?)?.removeView(playerView)
             addView(playerView)
-        }
-        startBubblingEvents()
-    }
-
-    /**
-     * Remove `playerView` if it's child and stop bubbling events.
-     */
-    fun removePlayerView() {
-        if (playerView != null) {
-            stopBubblingEvents()
-            playerView?.player = null
-            removeView(playerView)
         }
     }
 
