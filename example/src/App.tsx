@@ -12,9 +12,7 @@ function prettyPrint(header: string, obj: any) {
 }
 
 export default function App() {
-  const player = usePlayer({
-    licenseKey: '496AB151-A9A2-45AE-A239-AF2650935D3B',
-  });
+  const player = usePlayer();
 
   useEffect(() => {
     player.load({
