@@ -7,9 +7,12 @@ import {
 } from 'bitmovin-player-react-native';
 import styles from './styles';
 
+function prettyPrint(header: string, obj: any) {
+  console.log(header, JSON.stringify(obj, null, 2));
+}
+
 export default function App() {
   const player = usePlayer({
-    id: 'app-player',
     licenseKey: '496AB151-A9A2-45AE-A239-AF2650935D3B',
   });
 
@@ -24,7 +27,7 @@ export default function App() {
 
   const onReady = useCallback(
     (event) => {
-      console.log(`EVENT [${event.name}]`, JSON.stringify(event, null, 2));
+      prettyPrint(`EVENT [${event.name}]`, event);
       player.play();
     },
     [player]
@@ -32,16 +35,16 @@ export default function App() {
 
   const onSourceLoaded = useCallback(
     (event) => {
-      console.log(`EVENT [${event.name}]`, JSON.stringify(event, null, 2));
+      prettyPrint(`EVENT [${event.name}]`, event);
       player.getSource().then((source) => {
-        console.log('SOURCE', JSON.stringify(source, null, 2));
+        prettyPrint('SOURCE', source);
       });
     },
     [player]
   );
 
   const onEvent = useCallback((event) => {
-    console.log(`EVENT [${event.name}]`, JSON.stringify(event, null, 2));
+    prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
 
   return (

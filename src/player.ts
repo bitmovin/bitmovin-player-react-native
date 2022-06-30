@@ -8,16 +8,18 @@ const PlayerModule = NativeModules.PlayerModule;
  */
 export interface PlayerConfig {
   /**
-   * User defined `id` that identifies `Player` instances on the native side.
-   * Fetch `Player` instances and call methods on them using this property.
+   * Optional user defined id that identifies a `Player` instances on the native side.
+   * Access a certain `Player` instance and call methods on it using this property.
+   *
+   * In case it's left empty, a random uuidv4 will be generated for it.
    */
-  id: string;
+  nativeId?: string;
   /**
    * Bitmovin license key that can be found in the Bitmovin portal.
    * If a license key is set here, it will be used instead of the license key found
    * in the `Info.plist` and `AndroidManifest.xml`.
    */
-  licenseKey: string;
+  licenseKey?: string;
 }
 
 /**
@@ -31,18 +33,20 @@ export interface PlayerConfig {
  */
 export class Player {
   /**
-   * User defined `id` that identifies this `Player.
+   * User defined id or random uuidv4 that identifies this `Player`.
    */
   id: string;
+
   /**
    * Configuration object used to initialize this `Player`.
    */
   config: PlayerConfig;
 
   constructor(config: PlayerConfig) {
-    PlayerModule.initWithConfig(config);
-    this.id = config.id;
     this.config = config;
+    // this.id = config.nativeId ?? uuidv4();
+    this.id = config.nativeId ?? PlayerModule.generateUUIDv4();
+    PlayerModule.initWithConfig(this.id, config);
   }
 
   /**

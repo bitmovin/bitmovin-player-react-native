@@ -36,22 +36,28 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
+     Synchronously generate a random UUID for `Player`s native id when no `nativeId` is provided
+     by the user.
+     - Returns: Random UUID RFC 4122 version 4.
+     */
+    @objc func generateUUIDv4() -> String {
+        UUID().uuidString
+    }
+
+    /**
      Create a new `Player` instance for the given `config` if no one exists already.
      - Parameter config: Player configuration options sent from JS.
      */
-    @objc(initWithConfig:)
-    func initWithConfig(_ config: Any) {
+    @objc(initWithConfig:config:)
+    func initWithConfig(_ playerId: String, config: Any) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let config = config as? [String: Any],
-                let id = config["id"] as? String,
-                self?.registry[id] == nil
+                self?.registry[playerId] == nil,
+                let playerConfig = RCTConvert.bmpPlayerConfig(config)
             else {
                 return
             }
-            if let playerConfig = RCTConvert.bmpPlayerConfig(config) {
-                self?.registry[id] = PlayerFactory.create(playerConfig: playerConfig)
-            }
+            self?.registry[playerId] = PlayerFactory.create(playerConfig: playerConfig)
         }
     }
 

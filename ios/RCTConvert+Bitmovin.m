@@ -26,7 +26,9 @@ RCT_ENUM_CONVERTER(
 + (BMPPlayerConfig *)BMPPlayerConfig:(id)json
 {
     BMPPlayerConfig *config = [BMPPlayerConfig new];
-    [config setKey:[RCTConvert NSString:json[@"licenseKey"]]];
+    if (json[@"licenseKey"]) {
+        [config setKey:[RCTConvert NSString:json[@"licenseKey"]]];
+    }
     return config;
 }
 

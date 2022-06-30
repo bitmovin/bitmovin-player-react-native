@@ -9,6 +9,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.uimanager.UIManagerModule
+import java.util.UUID
 
 @ReactModule(name = PlayerModule.name)
 class PlayerModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
@@ -37,16 +38,23 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Synchronously generate a random UUID for `Player`s native id when no `nativeId` is provided
+     * by the user.
+     * @return Random UUID RFC 4122 version 4.
+     */
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun generateUUIDv4(): String = UUID.randomUUID().toString()
+
+    /**
      * Create a new `Player` instance for the given `config` if no one exists already.
      * @param config Player configuration options sent from JS.
      */
     @ReactMethod
-    fun initWithConfig(config: ReadableMap) {
+    fun initWithConfig(playerId: String, config: ReadableMap) {
         uiManager()?.addUIBlock {
-            val id = config.getString("id")
-            if (id != null && !registry.containsKey(id)) {
+            if (!registry.containsKey(playerId)) {
                 JsonConverter.toPlayerConfig(config)?.let {
-                    registry[id] = Player.create(context, it)
+                    registry[playerId] = Player.create(context, it)
                 }
             }
         }
