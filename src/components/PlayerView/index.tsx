@@ -71,12 +71,12 @@ export function PlayerView(props: PlayerViewProps) {
   useEffect(() => {
     // Attach `props.player` to native `PlayerView`.
     const node = findNodeHandle(nativeView.current);
-    dispatch('attachPlayer', node, props.player.id);
+    dispatch('attachPlayer', node, props.player.nativeId);
     return () => {
       // Detach `props.player` from native `PlayerView`.
-      dispatch('detachPlayer', node, props.player.id);
+      dispatch('detachPlayer', node, props.player.nativeId);
     };
-  }, [props.player.id]);
+  }, [props.player.nativeId]);
   return (
     <NativePlayerView
       ref={nativeView}

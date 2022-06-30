@@ -49,7 +49,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
      - Parameter config: Player configuration options sent from JS.
      */
     @objc(initWithConfig:config:)
-    func initWithConfig(_ playerId: String, config: Any) {
+    func initWithConfig(_ playerId: String, config: Any?) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 self?.registry[playerId] == nil,

@@ -33,48 +33,47 @@ export interface PlayerConfig {
  */
 export class Player {
   /**
-   * User defined id or random uuidv4 that identifies this `Player`.
+   * User-defined `nativeId` or a random uuidv4 that identifies this `Player`.
    */
-  id: string;
+  readonly nativeId: string;
 
   /**
    * Configuration object used to initialize this `Player`.
    */
-  config: PlayerConfig;
+  readonly config: PlayerConfig | null;
 
-  constructor(config: PlayerConfig) {
-    this.config = config;
-    // this.id = config.nativeId ?? uuidv4();
-    this.id = config.nativeId ?? PlayerModule.generateUUIDv4();
-    PlayerModule.initWithConfig(this.id, config);
+  constructor(config?: PlayerConfig) {
+    this.config = config ?? null;
+    this.nativeId = config?.nativeId ?? PlayerModule.generateUUIDv4();
+    PlayerModule.initWithConfig(this.nativeId, this.config);
   }
 
   /**
    * Loads a new `Source` into the player.
    */
   load = (source: SourceConfig) => {
-    PlayerModule.loadSource(this.id, source);
+    PlayerModule.loadSource(this.nativeId, source);
   };
 
   /**
    * Unloads all `Source`s in the player.
    */
   unload = () => {
-    PlayerModule.unload(this.id);
+    PlayerModule.unload(this.nativeId);
   };
 
   /**
    * Starts or resumes playback after being paused. Has no effect if the player is already playing.
    */
   play = () => {
-    PlayerModule.play(this.id);
+    PlayerModule.play(this.nativeId);
   };
 
   /**
    * Pauses the video if it is playing. Has no effect if the player is already paused.
    */
   pause = () => {
-    PlayerModule.pause(this.id);
+    PlayerModule.pause(this.nativeId);
   };
 
   /**
@@ -85,21 +84,21 @@ export class Player {
    * @param time - The time to seek to in seconds.
    */
   seek = (time: number) => {
-    PlayerModule.seek(this.id, time);
+    PlayerModule.seek(this.nativeId, time);
   };
 
   /**
    * Mutes the player if an audio track is available. Has no effect if the player is already muted.
    */
   mute = () => {
-    PlayerModule.mute(this.id);
+    PlayerModule.mute(this.nativeId);
   };
 
   /**
    * Unmutes the player if it is muted. Has no effect if the player is already unmuted.
    */
   unmute = () => {
-    PlayerModule.unmute(this.id);
+    PlayerModule.unmute(this.nativeId);
   };
 
   /**
@@ -107,7 +106,7 @@ export class Player {
    * The player instance must not be used after calling this method.
    */
   destroy = () => {
-    PlayerModule.destroy(this.id);
+    PlayerModule.destroy(this.nativeId);
   };
 
   /**
@@ -116,21 +115,21 @@ export class Player {
    * @param volume - The volume level to set.
    */
   setVolume = (volume: number) => {
-    PlayerModule.setVolume(this.id, volume);
+    PlayerModule.setVolume(this.nativeId, volume);
   };
 
   /**
    * @returns The currently active source or null if no source is active.
    */
   getSource = async (): Promise<Source> => {
-    return PlayerModule.source(this.id);
+    return PlayerModule.source(this.nativeId);
   };
 
   /**
    * @returns The player's current volume level.
    */
   getVolume = async (): Promise<number> => {
-    return PlayerModule.getVolume(this.id);
+    return PlayerModule.getVolume(this.nativeId);
   };
 
   /**
@@ -144,42 +143,42 @@ export class Player {
    * @param mode - The time mode to specify: an absolute UNIX timestamp ('absolute') or relative time ('relative').
    */
   getCurrentTime = async (mode?: 'relative' | 'absolute'): Promise<number> => {
-    return PlayerModule.currentTime(this.id, mode);
+    return PlayerModule.currentTime(this.nativeId, mode);
   };
 
   /**
    * @returns The total duration in seconds of the current video or INFINITY if it’s a live stream.
    */
   getDuration = async (): Promise<number> => {
-    return PlayerModule.duration(this.id);
+    return PlayerModule.duration(this.nativeId);
   };
 
   /**
    * @returns `true` if the player is muted.
    */
   isMuted = async (): Promise<boolean> => {
-    return PlayerModule.isMuted(this.id);
+    return PlayerModule.isMuted(this.nativeId);
   };
 
   /**
    * @returns `true` if the player is currently playing, i.e. has started and is not paused.
    */
   isPlaying = async (): Promise<boolean> => {
-    return PlayerModule.isPlaying(this.id);
+    return PlayerModule.isPlaying(this.nativeId);
   };
 
   /**
    * @returns `true` if the player has started playback but it's currently paused.
    */
   isPaused = async (): Promise<boolean> => {
-    return PlayerModule.isPaused(this.id);
+    return PlayerModule.isPaused(this.nativeId);
   };
 
   /**
    * @returns `true` if the displayed video is a live stream.
    */
   isLive = async (): Promise<boolean> => {
-    return PlayerModule.isLive(this.id);
+    return PlayerModule.isLive(this.nativeId);
   };
 
   /**
@@ -189,11 +188,11 @@ export class Player {
   isAirPlayActive = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.id}] Method isAirPlayActive is not available for Android. Only iOS devices.`
+        `[Player ${this.nativeId}] Method isAirPlayActive is not available for Android. Only iOS devices.`
       );
       return false;
     }
-    return PlayerModule.isAirPlayActive(this.id);
+    return PlayerModule.isAirPlayActive(this.nativeId);
   };
 
   /**
@@ -203,10 +202,10 @@ export class Player {
   isAirPlayAvailable = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.id}] Method isAirPlayAvailable is not available for Android. Only iOS devices.`
+        `[Player ${this.nativeId}] Method isAirPlayAvailable is not available for Android. Only iOS devices.`
       );
       return false;
     }
-    return PlayerModule.isAirPlayAvailable(this.id);
+    return PlayerModule.isAirPlayAvailable(this.nativeId);
   };
 }

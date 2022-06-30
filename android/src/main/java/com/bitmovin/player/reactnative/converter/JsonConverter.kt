@@ -22,10 +22,10 @@ class JsonConverter {
          */
         @JvmStatic
         fun toPlayerConfig(json: ReadableMap?): PlayerConfig? {
-            if (json == null) {
-                return null
+            if (json != null && json.hasKey("licenseKey")) {
+                return PlayerConfig(key = json.getString("licenseKey"))
             }
-            return PlayerConfig(key = json.getString("licenseKey"))
+            return PlayerConfig()
         }
 
         /**

@@ -6,7 +6,7 @@
 // fast as possible to avoid perf issues.
 RCT_EXTERN__BLOCKING_SYNCHRONOUS_METHOD(generateUUIDv4)
 
-RCT_EXTERN_METHOD(initWithConfig:(NSString *)playerId config:(id)config)
+RCT_EXTERN_METHOD(initWithConfig:(NSString *)playerId config:(nullable id)config)
 RCT_EXTERN_METHOD(loadSource:(NSString *)playerId config:(id)config)
 RCT_EXTERN_METHOD(unload:(NSString *)playerId)
 RCT_EXTERN_METHOD(play:(NSString *)playerId)

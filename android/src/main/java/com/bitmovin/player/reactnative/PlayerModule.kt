@@ -50,7 +50,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      * @param config Player configuration options sent from JS.
      */
     @ReactMethod
-    fun initWithConfig(playerId: String, config: ReadableMap) {
+    fun initWithConfig(playerId: String, config: ReadableMap?) {
         uiManager()?.addUIBlock {
             if (!registry.containsKey(playerId)) {
                 JsonConverter.toPlayerConfig(config)?.let {
@@ -66,7 +66,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      * @param config Source configuration options from JS.
      */
     @ReactMethod
-    fun loadSource(playerId: String, config: ReadableMap) {
+    fun loadSource(playerId: String, config: ReadableMap?) {
         uiManager()?.addUIBlock {
             JsonConverter.toSourceConfig(config)?.let {
                 registry[playerId]?.load(it)
