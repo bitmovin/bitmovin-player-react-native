@@ -1,13 +1,13 @@
 {
   "name": "bitmovin-player-react-native",
-  "version": "0.0.1",
-  "description": "Bitmovin Player SDK for React Native",
+  "version": "0.1.0",
+  "description": "Official Bitmovin Player SDK bindings for React Native",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
   "types": "lib/index.d.ts",
   "source": "src/index.ts",
   "react-native": "src/index.ts",
-  "author": "Bitmovin Inc",
+  "author": "Bitmovin GmbH",
   "files": [
     "src",
     "lib",
@@ -27,7 +27,7 @@
     "lint": "eslint \"**/*.{ts,tsx}\"",
     "build": "tsup ./src/index.ts --dts --target es2020 --format cjs,esm -d lib",
     "release": "release-it",
-    "example": "yarn build && yarn --cwd example",
+    "example": "yarn --cwd example",
     "pods": "cd example && pod-install --quiet",
     "bootstrap": "yarn && yarn example && yarn pods"
   },
