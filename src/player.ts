@@ -8,16 +8,34 @@ const PlayerModule = NativeModules.PlayerModule;
  */
 export interface PlayerConfig {
   /**
-   * Optional user defined id that identifies a `Player` instances on the native side.
-   * Access a certain `Player` instance and call methods on it using this property.
+   * Optionally user-defined string `id` for the native `Player` instances. Used to access a certain native `Player` instance from any point in the source code then call methods/properties on it.
    *
-   * In case it's left empty, a random uuidv4 will be generated for it.
+   * When left empty, a random `UUIDv4` is generated for it.
+   * @example
+   * Accessing or creating the `Player` with `nativeId` equal to `my-player`:
+   * ```
+   * const player = new Player({ nativeId: 'my-player' })
+   * player.play(); // call methods and properties...
+   * ```
    */
   nativeId?: string;
   /**
    * Bitmovin license key that can be found in the Bitmovin portal.
-   * If a license key is set here, it will be used instead of the license key found
-   * in the `Info.plist` and `AndroidManifest.xml`.
+   * If a license key is set here, it will be used instead of the license key found in the `Info.plist` and `AndroidManifest.xml`.
+   * @example
+   * Configuring the player license key from source code:
+   * ```
+   * const player = new Player({
+   *   licenseKey: '\<LICENSE-KEY-CODE\>',
+   * });
+   * ```
+   * @example
+   * `licenseKey` can be safely omitted from source code if it has
+   * been configured in Info.plist/AndroidManifest.xml.
+   * ```
+   * const player = new Player(); // omit `licenseKey`
+   * player.play(); // call methods and properties...
+   * ```
    */
   licenseKey?: string;
 }
@@ -33,7 +51,7 @@ export interface PlayerConfig {
  */
 export class Player {
   /**
-   * User-defined `nativeId` or a random uuidv4 that identifies this `Player`.
+   * User-defined `nativeId` string or random `UUIDv4` identifying this `Player` in the native side.
    */
   readonly nativeId: string;
 
@@ -56,7 +74,7 @@ export class Player {
   };
 
   /**
-   * Unloads all `Source`s in the player.
+   * Unloads all `Source`s from the player.
    */
   unload = () => {
     PlayerModule.unload(this.nativeId);
