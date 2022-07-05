@@ -51,9 +51,18 @@ export interface SourceConfig {
    */
   type?: SourceType;
   /**
+   * The title of the video source.
+   */
+  title?: string;
+  /**
    * The URL to a preview image displayed until the video starts.
    */
   poster?: string;
+  /**
+   * Indicates whether to show the poster image during playback.
+   * Useful, for example, for audio-only streams.
+   */
+  isPosterPersistent?: boolean;
 }
 
 /**
