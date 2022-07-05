@@ -21,7 +21,7 @@ Be aware the installation process requires some extra steps for the native part 
 
 So checkout the detailed installation instructions for each platform below or go to their respective [getting started docs](https://bitmovin.com/docs/getting-started) for more information.
 
-#### Add package dependency
+### Add package dependency
 
 This library is available as an [NPM package](https://www.npmjs.com/package/bitmovin-player-react-native) and may be added as a dependency to your project using any node-based package manager, e.g.
 
@@ -37,7 +37,7 @@ npm install bitmovin-player-react-native --save
 yarn add bitmovin-player-react-native
 ```
 
-#### Setup iOS Player SDK
+### Setup iOS Player SDK
 
 If you ran `pod install` after installing the node package and received an error similar to the one below, don't worry. That's because Bitmovin's custom cocoapods repository hasn't been added to the `Podfile` and the [`iOS Player SDK`](https://github.com/bitmovin/bitmovin-player-ios-samples) couldn't be resolved:
 
@@ -72,7 +72,7 @@ target 'MyApp' do
 
 Now run `pod install` again (try with `--repo-update` if the error persists) then everything should be just fine.
 
-#### Setup Android Player SDK
+### Setup Android Player SDK
 
 The Android setup also needs one extra step in order to correctly resolve the [Android Player SDK](https://github.com/bitmovin/bitmovin-player-android-samples) native dependency.
 
@@ -157,13 +157,13 @@ const styles = StyleSheet.create({
 
 If you're interested in a complete running example, head to [`example/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/main/example).
 
-#### Setting up a license key
+### Setting up a license key
 
 First of all, create a license key on the [Dashboard](https://bitmovin.com/dashboard) and then make sure to associate your iOS app bundle id with it (see more [here](https://bitmovin.com/docs/player/getting-started/ios#step-3-configure-your-player-license)).
 
 Then your license key can be either set from code or by configuring `Info.plist` and `AndroidManifest.xml`.
 
-**Configuring through code**
+#### Configuring through code
 
 ```typescript
 // Simply pass the `licenseKey` property to `PlayerConfig` when
@@ -182,7 +182,7 @@ const player = new Player({ // Make sure to use React.createRef if instantiating
 });
 ```
 
-**Configuring Info.plist**
+#### Configuring `Info.plist`
 
 Add the following lines to the `<dict>` section of your `ios/Info.plist`:
 
@@ -191,7 +191,7 @@ Add the following lines to the `<dict>` section of your `ios/Info.plist`:
 <string>ENTER-YOUR-LICENSE-KEY</string>
 ```
 
-**Configuring AndroidManifest.xml**
+#### Configuring `AndroidManifest.xml`
 
 Add the following line to the `<application>` section of your `android/app/src/main/AndroidManifest.xml`:
 
@@ -199,7 +199,7 @@ Add the following line to the `<application>` section of your `android/app/src/m
 <meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="ENTER-YOUR-LICENSE-KEY" />
 ```
 
-#### Accessing native `Player` instances
+### Accessing native `Player` instances
 
 When you instantiate a player with `usePlayer` or `new Player()` from javascript, you're actually either creating a new `Player` instance in the native side (see [SDKs docs](https://bitmovin.com/docs/player/sdks) for more info) or referencing an existing one.
 
@@ -233,7 +233,7 @@ export const CompB = () => {
 };
 ```
 
-#### Listening to events
+### Listening to events
 
 Both player and source events can be registered from `PlayerView`, but not all of them. For a complete list of the events currently available, checkout [`EventProps`](https://github.com/bitmovin/bitmovin-player-react-native/blob/main/src/components/PlayerView/events.ts#L29) and [`events.ts`](https://github.com/bitmovin/bitmovin-player-react-native/blob/main/src/events.ts).
 
