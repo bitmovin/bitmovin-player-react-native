@@ -213,7 +213,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         _ playerId: String,
         mode: String?,
         resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: RCTPromiseRejectBlock
+        rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             let player = self?.registry[playerId]

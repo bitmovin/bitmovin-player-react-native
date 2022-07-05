@@ -29,6 +29,8 @@ DerivedData
 *.xcuserstate
 project.xcworkspace
 *.hprof
+.xcode.env
+.xcode.env.local
 
 # Android/IJ
 #
