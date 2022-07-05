@@ -26,7 +26,6 @@
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{ts,tsx}\"",
     "build": "tsup ./src/index.ts --dts --target es2020 --format cjs,esm -d lib",
-    "release": "release-it",
     "example": "yarn --cwd example",
     "pods": "cd example && pod-install --quiet",
     "bootstrap": "yarn && yarn example && yarn pods"
@@ -42,7 +41,6 @@
   "devDependencies": {
     "@commitlint/config-conventional": "11.0.0",
     "@react-native-community/eslint-config": "3.0.2",
-    "@release-it/conventional-changelog": "2.0.1",
     "@types/jest": "26.0.24",
     "@types/lodash.omit": "4.5.0",
     "@types/react": "17.0.39",
@@ -56,7 +54,6 @@
     "pod-install": "0.1.37",
     "prettier": "2.7.1",
     "react": "17.0.2",
-    "release-it": "14.14.3",
     "tsup": "5.12.9",
     "typescript": "4.5.5"
   },
@@ -71,22 +68,5 @@
     "extends": [
       "@commitlint/config-conventional"
     ]
-  },
-  "release-it": {
-    "git": {
-      "commitMessage": "chore: release ${version}",
-      "tagName": "v${version}"
-    },
-    "npm": {
-      "publish": true
-    },
-    "github": {
-      "release": true
-    },
-    "plugins": {
-      "@release-it/conventional-changelog": {
-        "preset": "angular"
-      }
-    }
   }
 }
