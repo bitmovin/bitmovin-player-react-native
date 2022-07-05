@@ -126,8 +126,13 @@ export default function PlayerSample() {
         // Dash for Android
         : 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
       type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
+      // Optionally set a title that will appear at player's top-left corner.
+      title: 'Art of Motion',
       // Optionally load a poster image over the player.
       poster: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg'
+      // Optionally set whether poster image will persist over player.
+      // Useful for audio-only streams. Default to false.
+      isPosterPersistent: false,
     });
   }, [player]);
 
