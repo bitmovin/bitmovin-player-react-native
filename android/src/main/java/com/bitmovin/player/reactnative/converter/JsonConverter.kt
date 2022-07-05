@@ -40,8 +40,12 @@ class JsonConverter {
             if (json == null || url == null || type == null) {
                 return null
             }
-            val config = SourceConfig(url, JsonConverter.toSourceType(type))
+            val config = SourceConfig(url, toSourceType(type))
+            config.title = json.getString("title")
             config.posterSource = json.getString("poster")
+            if (json.hasKey("isPosterPersistent")) {
+                config.isPosterPersistent = json.getBoolean("isPosterPersistent")
+            }
             return config
         }
 
