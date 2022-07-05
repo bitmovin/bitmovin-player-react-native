@@ -159,9 +159,9 @@ If you're interested in a complete running example, head to [`example/`](https:/
 
 #### Setting up a license key
 
-First of all, create a license key on your [Bitmovin Dashboard](https://bitmovin.com/dashboard) account and then make sure to associate your app's bundle id with it (required for iOS). See more [here](https://bitmovin.com/docs/player/getting-started/ios#step-3-configure-your-player-license).
+First of all, create a license key on the [Dashboard](https://bitmovin.com/dashboard) and then make sure to associate your iOS app bundle id with it (see more [here](https://bitmovin.com/docs/player/getting-started/ios#step-3-configure-your-player-license)).
 
-The license key can either be set from code or by configuring `Info.plist` (iOS) and `AndroidManifest.xml` (Android).
+Then your license key can be either set from code or by configuring `Info.plist` and `AndroidManifest.xml`.
 
 **Configuring through code**
 
@@ -201,9 +201,9 @@ Add the following line to the `<application>` section of your `android/app/src/m
 
 #### Accessing native `Player` instances
 
-When you instantiate a player with `usePlayer` or `new Player()` from javascript, you're actually either creating a new `Player` instance in the native side (see SDKs docs for more info) or referencing an existing one.
+When you instantiate a player with `usePlayer` or `new Player()` from javascript, you're actually either creating a new `Player` instance in the native side (see [SDKs docs](https://bitmovin.com/docs/player/sdks) for more info) or referencing an existing one.
 
-So it means that a player with the same `nativeId` in two different parts of the code is referencing the same in-memory instance under-the-hood.
+So it means that a player with the same `nativeId` in two different parts of the code is referencing the same in-memory instance internally.
 
 **Example**
 
