@@ -20,9 +20,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     
     /// Dispatch methods on `UIManager` queue so all of them stay in sync with `RNPlayerViewManager`.
     var methodQueue: DispatchQueue! {
-        get {
-            RCTGetUIManagerQueue()
-        }
+        bridge.uiManager.methodQueue
     }
 
     /**
@@ -53,7 +51,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 self?.registry[playerId] == nil,
-                let playerConfig = RCTConvert.bmpPlayerConfig(config)
+                let playerConfig = RCTConvert.playerConfig(config)
             else {
                 return
             }
@@ -71,7 +69,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let player = self?.registry[playerId],
-                let sourceConfig = RCTConvert.bmpSourceConfig(config)
+                let sourceConfig = RCTConvert.sourceConfig(config)
             else {
                 return
             }
@@ -220,7 +218,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             let player = self?.registry[playerId]
             if let mode = mode {
-                resolve(player?.currentTime(RCTConvert.bmpTimeMode(mode)))
+                resolve(player?.currentTime(RCTConvert.timeMode(mode)))
             } else {
                 resolve(player?.currentTime)
             }
