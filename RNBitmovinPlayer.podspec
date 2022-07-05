@@ -19,5 +19,5 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,mm,swift}"
 
   s.dependency "React-Core"
-  s.dependency "BitmovinPlayer", "3.19.0"
+  s.dependency "BitmovinPlayer", "3.23.0"
 end
