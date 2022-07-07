@@ -73,6 +73,6 @@
   },
   "lint-staged": {
     "*.(ts|tsx)": "eslint",
-    "*.(ts|tsx|js|jsx|md|json)": "prettier --write"
+    "*.(ts|tsx|js|jsx|md|json|yml|yaml)": "prettier --write"
   }
 }
