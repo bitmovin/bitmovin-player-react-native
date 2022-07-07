@@ -1,10 +1,13 @@
 name: Publish to npmjs
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - v*
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
       # Setup .npmrc file to publish to npm
@@ -12,6 +15,9 @@ jobs:
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org/'
+      - uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       # Install dependencies
       - run: yarn install --frozen-lockfile
       # Build TS files
