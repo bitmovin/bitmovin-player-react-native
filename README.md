@@ -15,7 +15,6 @@ Official React Native bindings for Bitmovin's native Player SDKs.
   - [Listening to events](#listening-to-events)
 - [Contributing](#contributing)
 
-
 ## Installation
 
 Be aware the installation process requires some extra steps for the native part that cannot be managed by React Native's Autolink. That's because both Bitmovin's native SDKs are distributed through custom [Cocoapods](https://github.com/bitmovin/cocoapod-specs) and [Maven](https://artifacts.bitmovin.com/ui/native/public-releases) repositories. Not the central ones.
@@ -104,7 +103,11 @@ The following piece of code is the simplest working component one can create usi
 ```typescript
 import React, { useEffect, useCallback } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
-import { usePlayer, SourceType, PlayerView } from 'bitmovin-player-react-native';
+import {
+  usePlayer,
+  SourceType,
+  PlayerView,
+} from 'bitmovin-player-react-native';
 
 export default function PlayerSample() {
   // The `usePlayer` hook creates or references a certain native `Player`
@@ -120,17 +123,19 @@ export default function PlayerSample() {
   useEffect(() => {
     // Load a streamable video source during component's initialization.
     player.load({
-      // Select url and type dependeding on the running platform. 
-      url: Platform.OS === 'ios'
-        // HLS for iOS
-        ? 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
-        // Dash for Android
-        : 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
+      // Select url and type dependeding on the running platform.
+      url:
+        Platform.OS === 'ios'
+          ? // HLS for iOS
+            'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
+          : // Dash for Android
+            'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
       type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
       // Optionally set a title that will appear at player's top-left corner.
       title: 'Art of Motion',
       // Optionally load a poster image over the player.
-      poster: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg',
+      poster:
+        'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg',
       // Optionally set whether poster image will persist over player.
       // Useful for audio-only streams. Default to false.
       isPosterPersistent: false,
@@ -139,12 +144,15 @@ export default function PlayerSample() {
 
   // onReady is called when the player has downloaded initial
   // video and audio and is ready to start playback.
-  const onReady = useCallback((event) => {
-    // Start playback
-    player.play();
-    // Print event timestamp
-    console.log(event.timestamp);
-  }, [player]);
+  const onReady = useCallback(
+    (event) => {
+      // Start playback
+      player.play();
+      // Print event timestamp
+      console.log(event.timestamp);
+    },
+    [player]
+  );
 
   // Make sure to pass the `player` prop in `PlayerView`.
   return (
@@ -182,7 +190,8 @@ const player = usePlayer({
 
 // Without hooks
 import { Player } from 'bitmovin-player-react-native';
-const player = new Player({ // Make sure to use React.createRef if instantiating inside a component.
+const player = new Player({
+  // Make sure to use React.createRef if instantiating inside a component.
   licenseKey: '<ENTER-YOUR-LICENSE-KEY>',
 });
 ```
@@ -221,20 +230,18 @@ export const CompA = () => {
   const player = usePlayer({
     nativeId: 'my-player',
   });
-  return (
-    <PlayerView player={player} />
-  );
+  return <PlayerView player={player} />;
 };
 
 // Using `new Player()`
 export const CompB = () => {
   // Same `player` as in `CompA`.
-  const player = useRef(new Player({
-    nativeId: 'my-player',
-  }));
-  return (
-    <PlayerView player={player.current} />
+  const player = useRef(
+    new Player({
+      nativeId: 'my-player',
+    })
   );
+  return <PlayerView player={player.current} />;
 };
 ```
 

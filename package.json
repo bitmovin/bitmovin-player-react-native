@@ -25,6 +25,7 @@
     "test": "jest",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{ts,tsx}\"",
+    "format": "prettier --write .",
     "build": "tsup ./src/index.ts --dts --target es2020 --format cjs,esm -d lib",
     "example": "yarn --cwd example",
     "pods": "cd example && pod-install --quiet",
@@ -51,6 +52,7 @@
     "eslint-plugin-prettier": "4.0.0",
     "husky": "8.0.1",
     "jest": "26.6.3",
+    "lint-staged": "13.0.3",
     "pod-install": "0.1.37",
     "prettier": "2.7.1",
     "react": "17.0.2",
@@ -68,5 +70,9 @@
     "extends": [
       "@commitlint/config-conventional"
     ]
+  },
+  "lint-staged": {
+    "*.(ts|tsx)": "eslint",
+    "*.(ts|tsx|js|jsx|md|json)": "prettier --write"
   }
 }
