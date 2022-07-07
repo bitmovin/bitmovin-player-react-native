@@ -4,29 +4,29 @@ We want this community to be friendly and respectful to each other. Please follo
 
 ## Development workflow
 
-To get started with the project, run `yarn` in the root directory to install the required dependencies for each package:
+To get started with the project, run `yarn bootstrap` in the root directory to install the required dependencies for each package and cocoapods dependencies for the example app:
 
 ```sh
-yarn
+yarn bootstrap
 ```
 
 > While it's possible to use [`npm`](https://github.com/npm/cli), the tooling is built around [`yarn`](https://classic.yarnpkg.com/), so you'll have an easier time if you use `yarn` for development.
 
 While developing, you can run the [example app](/example/) to test your changes. Any changes you make in your library's JavaScript code will be reflected in the example app without a rebuild. If you change any native code, then you'll need to rebuild the example app.
 
-To start the packager:
+To start the packager, run in the root directory:
 
 ```sh
 yarn example start
 ```
 
-To run the example app on Android:
+To build and run the example app on Android:
 
 ```sh
 yarn example android
 ```
 
-To run the example app on iOS:
+To build and run the example app on iOS:
 
 ```sh
 yarn example ios
@@ -51,9 +51,9 @@ Remember to add tests for your change if possible. Run the unit tests by:
 yarn test
 ```
 
-To edit the Objective-C files, open `example/ios/PlayerReactNativeBridgeExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > player-react-native-bridge`.
+To edit the Swift/Objective-C files, open `example/ios/BitmovinPlayerReactNativeExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > RNBitmovinPlayer`.
 
-To edit the Kotlin files, open `example/android` in Android studio and find the source files at `playerreactnativebridge` under `Android`.
+To edit the Kotlin files, open `example/android` in Android studio and find the source files at `bitmovin-player-react-native` under `Android`.
 
 ### Commit message convention
 
@@ -76,21 +76,13 @@ We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint]
 
 Our pre-commit hooks verify that the linter and tests pass when committing.
 
-### Publishing to npm
-
-We use [release-it](https://github.com/release-it/release-it) to make it easier to publish new versions. It handles common tasks like bumping version based on semver, creating tags and releases etc.
-
-To publish new versions, run the following:
-
-```sh
-yarn release
-```
-
 ### Scripts
 
 The `package.json` file contains various scripts for common tasks:
 
 - `yarn bootstrap`: setup project by installing all dependencies and pods.
+- `yarn pods`: install pods only.
+- `yarn build`: compile TypeScript files into `lib/` with ESBuild.
 - `yarn typescript`: type-check files with TypeScript.
 - `yarn lint`: lint files with ESLint.
 - `yarn test`: run unit tests with Jest.
@@ -109,6 +101,16 @@ When you're sending a pull request:
 - Review the documentation to make sure it looks good.
 - Follow the pull request template when opening a pull request.
 - For pull requests that change the API or implementation, discuss with maintainers first by opening an issue.
+
+## Publishing
+
+We use [release-it](https://github.com/release-it/release-it) to make it easier to publish new versions. It handles common tasks like bumping version based on semver, creating tags and releases etc.
+
+To publish new versions, run the following:
+
+```sh
+yarn release
+```
 
 ## Code of Conduct
 
