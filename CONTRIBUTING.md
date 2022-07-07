@@ -104,13 +104,10 @@ When you're sending a pull request:
 
 ## Publishing
 
-We use [release-it](https://github.com/release-it/release-it) to make it easier to publish new versions. It handles common tasks like bumping version based on semver, creating tags and releases etc.
+Publishing happens automatically on GH Actions whenever a new tag is pushed. The package is built, sent to npmjs
+and a new release is created in github using the tag's name, which should start with `v` like `v1.2.3` for example.
 
-To publish new versions, run the following:
-
-```sh
-yarn release
-```
+See [`.github/workflows/publish.yml`](/.github/workflows/publish.yml) for more details.
 
 ## Code of Conduct
 
