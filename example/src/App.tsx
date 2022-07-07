@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { View, Platform } from 'react-native';
 import {
+  Event,
   usePlayer,
   PlayerView,
   SourceType,
@@ -28,7 +29,7 @@ export default function App() {
   }, [player]);
 
   const onReady = useCallback(
-    (event) => {
+    (event: Event) => {
       prettyPrint(`EVENT [${event.name}]`, event);
       player.play();
     },
@@ -36,7 +37,7 @@ export default function App() {
   );
 
   const onSourceLoaded = useCallback(
-    (event) => {
+    (event: Event) => {
       prettyPrint(`EVENT [${event.name}]`, event);
       player.getSource().then((source) => {
         prettyPrint('SOURCE', source);
@@ -45,7 +46,7 @@ export default function App() {
     [player]
   );
 
-  const onEvent = useCallback((event) => {
+  const onEvent = useCallback((event: Event) => {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
 
