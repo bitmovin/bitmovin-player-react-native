@@ -2,7 +2,7 @@
 
 Official React Native bindings for Bitmovin's native Player SDKs.
 
-[![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/bitmovin/bitmovin-player-react-native/blob/main/LICENSE)
+[![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![Bitmovin Community](https://img.shields.io/discourse/users?label=community&server=https%3A%2F%2Fcommunity.bitmovin.com)](https://community.bitmovin.com/?utm_source=github&utm_medium=bitmovin-player-react-native&utm_campaign=dev-community)
 
 - [Installation](#installation)
@@ -13,6 +13,7 @@ Official React Native bindings for Bitmovin's native Player SDKs.
   - [Setting up a license key](#setting-up-a-license-key)
   - [Accessing native `Player` instances](#accessing-native-player-instances)
   - [Listening to events](#listening-to-events)
+- [Contributing](#contributing)
 
 
 ## Installation
@@ -129,7 +130,7 @@ export default function PlayerSample() {
       // Optionally set a title that will appear at player's top-left corner.
       title: 'Art of Motion',
       // Optionally load a poster image over the player.
-      poster: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg'
+      poster: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg',
       // Optionally set whether poster image will persist over player.
       // Useful for audio-only streams. Default to false.
       isPosterPersistent: false,
@@ -171,8 +172,7 @@ Then your license key can be either set from code or by configuring `Info.plist`
 #### Configuring through code
 
 ```typescript
-// Simply pass the `licenseKey` property to `PlayerConfig` when
-// instantiating a player.
+// Simply pass the `licenseKey` property to `PlayerConfig` when instantiating a player.
 
 // With hooks
 import { usePlayer } from 'bitmovin-player-react-native';
