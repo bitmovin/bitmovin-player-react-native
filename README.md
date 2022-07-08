@@ -41,7 +41,7 @@ yarn add bitmovin-player-react-native
 
 ### Setup iOS Player SDK
 
-If you ran `pod install` after installing the node package and received an error similar to the one below, it is because Bitmovin's custom cocoapods repository hasn't been added to the `Podfile` and the [`iOS Player SDK`](https://github.com/bitmovin/bitmovin-player-ios-samples) couldn't be resolved:
+If you ran `pod install` after installing the node package and received an error similar to the one below, it is because Bitmovin's custom cocoapods repository has not been added to the `Podfile` and the [`iOS Player SDK`](https://github.com/bitmovin/bitmovin-player-ios-samples) could not be resolved:
 
 ```
 [!] Unable to find a specification for `BitmovinPlayer (= 3.xx.x)` depended upon by `RNBitmovinPlayer`
@@ -62,7 +62,7 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 source 'https://github.com/bitmovin/cocoapod-specs.git'
 
 # iOS version should be 12 or greater.
-# If you're running RN 0.69 you should be fine already.
+# If you are running RN 0.69 you should be fine already.
 platform :ios, '12.4'
 install! 'cocoapods', :deterministic_uuids => false
 
