@@ -34,11 +34,15 @@
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "bitmovin",
+    "player",
+    "video",
+    "streaming"
   ],
-  "repository": "https://github.com/bitmovin/player-react-native-bridge",
   "license": "MIT",
-  "homepage": "https://github.com/bitmovin/player-react-native-bridge#readme",
+  "homepage": "https://github.com/bitmovin/bitmovin-player-react-native",
+  "repository": "https://github.com/bitmovin/bitmovin-player-react-native",
   "devDependencies": {
     "@commitlint/config-conventional": "11.0.0",
     "@react-native-community/eslint-config": "3.0.2",
