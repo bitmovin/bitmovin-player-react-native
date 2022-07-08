@@ -7,6 +7,8 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 [![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![Bitmovin Community](https://img.shields.io/discourse/users?label=community&server=https%3A%2F%2Fcommunity.bitmovin.com)](https://community.bitmovin.com/?utm_source=github&utm_medium=bitmovin-player-react-native&utm_campaign=dev-community)
 
+> :warning: **Beta Version**: The library is under active development. The current Beta release supports basic playback of unprotected video assets.
+
 - [Installation](#installation)
   - [Add package dependency](#add-package-dependency)
   - [Setup iOS Player SDK](#setup-ios-player-sdk)
