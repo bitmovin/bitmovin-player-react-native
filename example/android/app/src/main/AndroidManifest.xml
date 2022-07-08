@@ -10,7 +10,7 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
       android:theme="@style/AppTheme">
-      <meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="496AB151-A9A2-45AE-A239-AF2650935D3B" />
+      <meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="<ENTER_LICENSE_KEY>" />
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
