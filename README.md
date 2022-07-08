@@ -21,9 +21,7 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 
 ## Installation
 
-Be aware the installation process requires some extra steps for the native part that cannot be managed by React Native's Autolink. That's because both Bitmovin's native SDKs are distributed through custom [Cocoapods](https://github.com/bitmovin/cocoapod-specs) and [Maven](https://artifacts.bitmovin.com/ui/native/public-releases) repositories. Not the central ones.
-
-So checkout the detailed installation instructions for each platform below or go to their respective [getting started docs](https://bitmovin.com/docs/getting-started) for more information.
+Since Bitmovin's native SDKs are distributed through custom [Cocoapods](https://github.com/bitmovin/cocoapod-specs) and [Maven](https://artifacts.bitmovin.com/ui/native/public-releases) repositories, the installation cannot be managed by React Native's Autolink and requires some extra steps. Please refer to the installation instructions for each platform below. For more information on integrating the native SDKs, refer to the [Getting Started guides](https://bitmovin.com/docs/getting-started).
 
 ### Add package dependency
 
@@ -43,7 +41,7 @@ yarn add bitmovin-player-react-native
 
 ### Setup iOS Player SDK
 
-If you ran `pod install` after installing the node package and received an error similar to the one below, don't worry. That's because Bitmovin's custom cocoapods repository hasn't been added to the `Podfile` and the [`iOS Player SDK`](https://github.com/bitmovin/bitmovin-player-ios-samples) couldn't be resolved:
+If you ran `pod install` after installing the node package and received an error similar to the one below, it is because Bitmovin's custom cocoapods repository hasn't been added to the `Podfile` and the [`iOS Player SDK`](https://github.com/bitmovin/bitmovin-player-ios-samples) couldn't be resolved:
 
 ```
 [!] Unable to find a specification for `BitmovinPlayer (= 3.xx.x)` depended upon by `RNBitmovinPlayer`
@@ -54,7 +52,7 @@ You have either:
  * not added the source repo that hosts the Podspec to your Podfile.
 ```
 
-Open up `ios/Podfile` and setup Bitmovin's pods source url:
+To fix above error, open your `ios/Podfile` and set up Bitmovin's pods source url:
 
 ```ruby
 require_relative '../node_modules/react-native/scripts/react_native_pods'
@@ -74,11 +72,11 @@ target 'MyApp' do
   # Rest of Podfile...
 ```
 
-Now run `pod install` again (try with `--repo-update` if the error persists) then everything should be just fine.
+Now run `pod install` again (try with `--repo-update` if the error persists) - the error should now be resolved.
 
 ### Setup Android Player SDK
 
-The Android setup also needs one extra step in order to correctly resolve the [Android Player SDK](https://github.com/bitmovin/bitmovin-player-android-samples) native dependency.
+The Android setup also needs an extra step in order to correctly resolve the [Android Player SDK](https://github.com/bitmovin/bitmovin-player-android-samples) native dependency.
 
 Just make sure to add Bitmovin's artifacts repository to the `allprojects.repositories` section of your `android/build.gradle`:
 
@@ -102,7 +100,7 @@ allprojects {
 
 ## Getting Started
 
-The following piece of code is the simplest working component one can create using this library:
+The following is the simplest working component one can create using this library:
 
 ```typescript
 import React, { useEffect, useCallback } from 'react';
