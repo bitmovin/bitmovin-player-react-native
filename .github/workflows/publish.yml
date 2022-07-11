@@ -23,6 +23,6 @@ jobs:
       # Build TS files
       - run: yarn build
       # Publish package
-      - run: yarn publish
+      - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
