@@ -1,33 +1,23 @@
 # Contributing
 
-Issues
-------
+## Issues
 
 With bugs and problems, please try to describe the issue as detailed as possible to help us reproduce it.
 
-Pull Requests
--------------
-
-This project applies the GitFlow branching model. Please submit bugfix pull requests against the `master` branch if they concern the current release, else against the `develop` branch. Feature branches always go against the `develop` branch. 
+## Pull Requests
 
 Before creating a pull request, please
- * make sure all guidelines are followed
- * add an appropriate entry to the [CHANGELOG](CHANGELOG.md)
- * make sure that `gulp lint` is free of warnings and errors
- * make sure your branch is free of merge conflicts
 
-TypeScript Code Style
----------------------
+- make sure all guidelines are followed
+- make sure your branch is free of merge conflicts
 
- * Follow the `tslint` rules (`gulp lint-ts`)
- * Put single(!) blank lines between functions, classes, interfaces, etc...
- * Always add return values to functions (even if `void`)
- * No unused imports
- * Class functions should be `private` by default, `protected` or `public` only when explicitly necessary (e.g. they are actually used from somewhere else) or where it strongly makes sense
-   * A public method makes sense if it relates to core functionality of a component, e.g. `getText()`/`setText(text)` on a `Label` (the label's purpose is to display text, so it makes sense to be accessible from outside)
-   * A public method does not make sense if the function `doSomeMagicWhichNobodyUnderstands()` does specific things that are needed for the component to do what it does (e.g. `renderText()` in a label which should be implicitly called by `setText(text)` but never explicitly from outside)
- * Public functions should be documented with a description that explains *what* it does
- * Every code block that does not obviously explain itself should be commented with an explanation of *why* and *what* it does
+## TypeScript Code Style
+
+- Follow the `eslint` rules (`yarn lint`). They are inforced automatically via a pre-commit git hook.
+- Always add return values to functions (even if `void`)
+- No unused imports
+- Public functions should be documented with a description that explains _what_ it does
+- Every code block that does not obviously explain itself should be commented with an explanation of _why_ and _what_ it does
 
 ## Development workflow
 
@@ -123,4 +113,3 @@ Publishing happens automatically on GH Actions whenever a new tag is pushed. The
 and a new release is created in github using the tag's name, which should start with `v` like `v1.2.3` for example.
 
 See [`.github/workflows/publish.yml`](/.github/workflows/publish.yml) for more details.
-
