@@ -2,30 +2,31 @@ import BitmovinPlayer
 
 @objc(PlayerModule)
 class PlayerModule: NSObject, RCTBridgeModule {
-    /// Accessible react bridge reference.
+    /// Injected React bridge reference.
     @objc var bridge: RCTBridge!
 
-    /// In-memory dictionary mapping id <-> `Player`.
+    /// In-memory dictionary of id <-> `Player` mappings.
     private var registry: [String: Player] = [:]
 
-    /// Exported module name to JS.
+    /// Name of JS exported module.
     static func moduleName() -> String! {
         "PlayerModule"
     }
 
-    /// Requires module initialization from main thread.
+    /// Initialize module on main thread.
     static func requiresMainQueueSetup() -> Bool {
         true
     }
     
-    /// Dispatch methods on `UIManager` queue so all of them stay in sync with `RNPlayerViewManager`.
+    /// Since most `PlayerModule` operations are UI related and require to be executed on the main thread,
+    /// they are scheduled by `UIManager`.
     var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
 
     /**
-     Resolve the current `Player` instance associated with `id`. Intented to
-     be used by other RN bridge modules such as `RNPlayerViewManager`.
+     Resolve the current `Player` instance associated with the given `id`. Intented to
+     be used by other RN bridge modules, such as `RNPlayerViewManager`.
      - Parameter id: Target player id.
      - Returns: The player instance found if there's any.
      */
@@ -34,8 +35,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Synchronously generate a random UUID for `Player`s native id when no `nativeId` is provided
-     by the user.
+     Synchronously generate a random UUID for `Player`s `nativeId` when none is provided by the user.
      - Returns: Random UUID RFC 4122 version 4.
      */
     @objc func generateUUIDv4() -> String {
@@ -43,7 +43,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Create a new `Player` instance for the given `config` if no one exists already.
+     Create a new `Player` instance for the given `config` if none exists yet.
      - Parameter config: Player configuration options sent from JS.
      */
     @objc(initWithConfig:config:)

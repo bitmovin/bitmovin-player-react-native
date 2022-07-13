@@ -3,9 +3,9 @@ import BitmovinPlayer
 
 extension RCTConvert {
     /**
-     Utility method to convert a JS object into `PlayerConfig`.
+     Utility method to instantiate a `PlayerConfig` from a JS object.
      - Parameter json: JS object
-     - Returns: Generated `Playerconfig`
+     - Returns: The produced `Playerconfig` object
      */
     static func playerConfig(_ json: Any?) -> PlayerConfig? {
         let playerConfig = PlayerConfig()
@@ -19,9 +19,9 @@ extension RCTConvert {
     }
     
     /**
-     Utility method to convert a JS object into `SourceConfig`.
+     Utility method to instantiate a `SourceConfig` from a JS object.
      - Parameter json: JS object
-     - Returns: Generated `SourceConfig`
+     - Returns: The produced `SourceConfig` object
      */
     static func sourceConfig(_ json: Any?) -> SourceConfig? {
         guard let json = json as? [String: Any?] else {
@@ -44,9 +44,9 @@ extension RCTConvert {
     }
     
     /**
-     Utility method to convert a JS object into `SourceType`.
+     Utility method to get a `SourceType` from a JS object.
      - Parameter json: JS object
-     - Returns: Generated `SourceType`
+     - Returns: The associated `SourceType` value
      */
     static func sourceType(_ json: Any?) -> SourceType {
         guard let json = json as? String else {
@@ -62,9 +62,9 @@ extension RCTConvert {
     }
     
     /**
-     Utility method to convert a JS object into `TimeMode`.
+     Utility method to get a `TimeMode` from a JS object.
      - Parameter json: JS object
-     - Returns: Generated `TimeMode`
+     - Returns: The associated `TimeMode` value
      */
     static func timeMode(_ json: Any?) -> TimeMode {
         guard let json = json as? String else {

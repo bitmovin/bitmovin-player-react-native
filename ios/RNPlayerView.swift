@@ -2,7 +2,7 @@ import BitmovinPlayer
 
 @objc(RNPlayerView)
 class RNPlayerView: UIView {
-    /// Component events.
+    /// React component events. Directly mapped to props in `NativePlayerView`.
     @objc var onEvent: RCTBubblingEventBlock?
     @objc var onPlayerActive: RCTBubblingEventBlock?
     @objc var onPlayerError: RCTBubblingEventBlock?
@@ -24,8 +24,7 @@ class RNPlayerView: UIView {
     @objc var onSourceError: RCTBubblingEventBlock?
     @objc var onSourceWarning: RCTBubblingEventBlock?
 
-    /// Bitmovin's player view.
-    /// Get's initialized when there's a player instance ready to be used.
+    /// The `PlayerView` subview.
     var playerView: PlayerView? {
         willSet {
             newValue?.autoresizingMask = [

@@ -3,8 +3,8 @@ import Foundation
 
 @objc(RNPlayerViewManager)
 class RNPlayerViewManager: RCTViewManager {
-    /// Register module to be initialized on the main thread.
-    override class func requiresMainQueueSetup() -> Bool {
+    /// Initialize module on main thread.
+    override static func requiresMainQueueSetup() -> Bool {
         true
     }
 
