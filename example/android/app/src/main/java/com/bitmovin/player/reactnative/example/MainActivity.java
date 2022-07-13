@@ -1,10 +1,16 @@
 package com.bitmovin.player.reactnative.example;
 
+import android.os.Bundle;
+import androidx.annotation.Nullable;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactRootView;
 
 public class MainActivity extends ReactActivity {
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(null);
+  }
 
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule
