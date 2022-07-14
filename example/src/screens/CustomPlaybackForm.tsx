@@ -137,7 +137,8 @@ const CustomPlaybackForm = () => {
           type="solid"
           title="Play"
           onPress={() => {
-            console.log('play');
+            // TODO: Navigate to the actual `CustomPlayback` screen passing the stream configuration
+            // stored here as navigation parameters.
           }}
           disabled={state.playDisabled}
           containerStyle={styles.button}
