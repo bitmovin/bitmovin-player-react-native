@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, KeyboardType } from 'react-native';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
 
 export interface FormInputProps {
   title: string;
@@ -8,7 +8,6 @@ export interface FormInputProps {
   onPress?: () => void;
   onChange?: (value: string) => void;
   placeholder?: string;
-  keyboardType?: KeyboardType;
 }
 
 const FormInput: React.FC<FormInputProps> = ({
@@ -18,7 +17,6 @@ const FormInput: React.FC<FormInputProps> = ({
   onChange,
   placeholder,
   onPress,
-  keyboardType,
 }) => {
   const [opacity, setOpacity] = useState(1);
   const containerStyle = StyleSheet.flatten([styles.container, { opacity }]);
@@ -26,7 +24,6 @@ const FormInput: React.FC<FormInputProps> = ({
     <View style={containerStyle}>
       <Text style={styles.inputTitle}>{title}</Text>
       <TextInput
-        keyboardType={keyboardType}
         style={styles.input}
         value={value}
         editable={editable}
