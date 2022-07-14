@@ -3,6 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ExamplesList from './screens/ExamplesList';
 import BasicPlayback from './screens/BasicPlayback';
+import BasicDRMPlayback from './screens/BasicDRMPlayback';
+import SubtitlePlayback from './screens/SubtitlePlayback';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -48,6 +50,16 @@ export default function App() {
           name="BasicPlayback"
           component={BasicPlayback}
           options={{ title: 'Basic Playback' }}
+        />
+        <RootStack.Screen
+          name="BasicDRMPlayback"
+          component={BasicDRMPlayback}
+          options={{ title: 'DRM Playback' }}
+        />
+        <RootStack.Screen
+          name="SubtitlePlayback"
+          component={SubtitlePlayback}
+          options={{ title: 'Subtitle and captions' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>

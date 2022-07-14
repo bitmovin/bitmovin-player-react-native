@@ -51,6 +51,7 @@ export default ExamplesList;
 const styles = StyleSheet.create({
   examplesList: {
     flex: 1,
+    backgroundColor: 'white',
   },
   exampleItem: {
     height: 60,
