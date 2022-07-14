@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   buttonTitle: {
+    color: 'black',
     margin: 5,
     fontSize: 14,
     fontWeight: '600',
