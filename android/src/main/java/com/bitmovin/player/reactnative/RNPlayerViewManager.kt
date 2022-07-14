@@ -1,11 +1,12 @@
 package com.bitmovin.player.reactnative
 
+import android.os.Handler
+import android.os.Looper
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
-import com.facebook.react.uimanager.UIManagerModule
 
 class RNPlayerViewManager(private val context: ReactApplicationContext) : SimpleViewManager<RNPlayerView>() {
     /**
@@ -13,7 +14,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      */
     enum class Commands {
         ATTACH_PLAYER,
-        DETACH_PLAYER,
     }
 
     /**
@@ -72,8 +72,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @return map between names (used in js) and command ids (used in native code).
      */
     override fun getCommandsMap(): MutableMap<String, Int> = mutableMapOf(
-        "attachPlayer" to Commands.ATTACH_PLAYER.ordinal,
-        "detachPlayer" to Commands.DETACH_PLAYER.ordinal,
+        "attachPlayer" to Commands.ATTACH_PLAYER.ordinal
     )
 
     /**
@@ -87,7 +86,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         commandId?.toInt()?.let {
             when (it) {
                 Commands.ATTACH_PLAYER.ordinal -> attachPlayer(view, args?.getString(1))
-                Commands.DETACH_PLAYER.ordinal -> detachPlayer(view, args?.getString(1))
                 else -> {}
             }
         }
@@ -99,7 +97,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @param playerId `Player` instance id inside `PlayerModule`'s registry.
      */
     private fun attachPlayer(view: RNPlayerView, playerId: String?) {
-        uiManager()?.addUIBlock {
+        Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
             if (view.playerView != null) {
                 view.player = player
@@ -115,25 +113,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     }
 
     /**
-     * Stop sending `Player` bubbling events from `PlayerView`.
-     * @param view Target `RNPlayerView`.
-     * @param playerId `Player` instance id inside `PlayerModule`'s registry.
-     */
-    private fun detachPlayer(view: RNPlayerView, playerId: String?) {
-        uiManager()?.addUIBlock {
-            view.stopBubblingEvents()
-        }
-    }
-
-    /**
      * Helper function that gets the instantiated `PlayerModule` from modules registry.
      */
     private fun getPlayerModule(): PlayerModule? =
         context.getNativeModule(PlayerModule::class.java)
-
-    /**
-     * Helper function that returns the initialized `UIManager` instance.
-     */
-    private fun uiManager(): UIManagerModule? =
-        context.getNativeModule(UIManagerModule::class.java)
 }

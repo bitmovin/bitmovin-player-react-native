@@ -35,23 +35,6 @@ class RNPlayerViewManager: RCTViewManager {
             player.add(listener: view)
         }
     }
-    
-    /**
-     Remove `RNPlayerView` from its associated `Player` listeners list.
-     - Parameter viewId: `RNPlayerView` id inside `UIManager`'s registry.
-     - Parameter playerId: `Player` instance id inside `PlayerModule`'s registry.
-     */
-    @objc func detachPlayer(_ viewId: NSNumber, playerId: String) {
-        bridge.uiManager.addUIBlock { [weak self] _, views in
-            guard
-                let view = views?[viewId] as? RNPlayerView,
-                let player = self?.getPlayerModule()?.player(with: playerId)
-            else {
-                return
-            }
-            player.remove(listener: view)
-        }
-    }
 
     /// Fetches the initialized `PlayerModule` instance on RN's bridge object.
     private func getPlayerModule() -> PlayerModule? {

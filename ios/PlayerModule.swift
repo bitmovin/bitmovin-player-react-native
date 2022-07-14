@@ -151,7 +151,11 @@ class PlayerModule: NSObject, RCTBridgeModule {
     @objc(destroy:)
     func destroy(_ playerId: String) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.registry[playerId]?.destroy()
+            if let player = self?.registry[playerId] {
+                player.destroy()
+                // Remove destroyed player from the registry
+                self?.registry[playerId] = nil
+            }
         }
     }
 

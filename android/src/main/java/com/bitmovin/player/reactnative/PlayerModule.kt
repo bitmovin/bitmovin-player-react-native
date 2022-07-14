@@ -148,7 +148,10 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     @ReactMethod
     fun destroy(playerId: String) {
         uiManager()?.addUIBlock {
-            registry[playerId]?.destroy()
+            registry[playerId]?.let {
+                it.destroy()
+                registry.remove(playerId)
+            }
         }
     }
 
