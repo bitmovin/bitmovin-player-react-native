@@ -1,10 +1,12 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import Button from './components/Button';
 import ExamplesList from './screens/ExamplesList';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicDRMPlayback from './screens/BasicDRMPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
+import CustomStreamPlayback from './screens/CustomStreamPlayback';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -16,7 +18,7 @@ export type RootStackParamsList = {
   BasicPlayback: undefined;
   DRMPlayback: undefined;
   SubtitlePlayback: undefined;
-  CustomPlayback: undefined;
+  CustomStreamPlayback: undefined;
 };
 
 const RootStack = createNativeStackNavigator();
@@ -28,15 +30,26 @@ export default function App() {
         <RootStack.Screen
           name="ExamplesList"
           component={ExamplesList}
-          options={{ title: 'Examples' }}
+          options={({ navigation }) => ({
+            title: 'Examples',
+            // eslint-disable-next-line react/no-unstable-nested-components
+            headerRight: () => (
+              <Button
+                title="Own stream"
+                onPress={() => {
+                  navigation.navigate('CustomStreamPlayback');
+                }}
+              />
+            ),
+          })}
           initialParams={{
             data: [
               {
-                title: 'Basic Playback',
+                title: 'Basic playback',
                 routeName: 'BasicPlayback',
               },
               {
-                title: 'DRM Playback',
+                title: 'DRM playback',
                 routeName: 'BasicDRMPlayback',
               },
               {
@@ -49,17 +62,22 @@ export default function App() {
         <RootStack.Screen
           name="BasicPlayback"
           component={BasicPlayback}
-          options={{ title: 'Basic Playback' }}
+          options={{ title: 'Basic playback' }}
         />
         <RootStack.Screen
           name="BasicDRMPlayback"
           component={BasicDRMPlayback}
-          options={{ title: 'DRM Playback' }}
+          options={{ title: 'DRM playback' }}
         />
         <RootStack.Screen
           name="SubtitlePlayback"
           component={SubtitlePlayback}
           options={{ title: 'Subtitle and captions' }}
+        />
+        <RootStack.Screen
+          name="CustomStreamPlayback"
+          component={CustomStreamPlayback}
+          options={{ title: 'Own stream' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>
