@@ -6,7 +6,7 @@ import ExamplesList from './screens/ExamplesList';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicDRMPlayback from './screens/BasicDRMPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
-import CustomStreamPlayback from './screens/CustomStreamPlayback';
+import CustomPlaybackForm from './screens/CustomPlaybackForm';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -18,7 +18,7 @@ export type RootStackParamsList = {
   BasicPlayback: undefined;
   DRMPlayback: undefined;
   SubtitlePlayback: undefined;
-  CustomStreamPlayback: undefined;
+  CustomPlaybackForm: undefined;
 };
 
 const RootStack = createNativeStackNavigator();
@@ -35,9 +35,9 @@ export default function App() {
             // eslint-disable-next-line react/no-unstable-nested-components
             headerRight: () => (
               <Button
-                title="Own stream"
+                title="Custom"
                 onPress={() => {
-                  navigation.navigate('CustomStreamPlayback');
+                  navigation.navigate('CustomPlaybackForm');
                 }}
               />
             ),
@@ -75,9 +75,9 @@ export default function App() {
           options={{ title: 'Subtitle and captions' }}
         />
         <RootStack.Screen
-          name="CustomStreamPlayback"
-          component={CustomStreamPlayback}
-          options={{ title: 'Own stream' }}
+          name="CustomPlaybackForm"
+          component={CustomPlaybackForm}
+          options={{ title: 'Custom playback' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>
