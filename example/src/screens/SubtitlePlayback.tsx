@@ -5,7 +5,7 @@ export default function SubtitlePlayback() {
   return (
     <View style={styles.container}>
       <Text style={styles.warningText}>
-        This feature is currently a work in progress 🚧
+        🚧 This feature is currently a work in progress
       </Text>
     </View>
   );
@@ -19,6 +19,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   warningText: {
+    color: 'black',
     fontSize: 20,
   },
 });
