@@ -1,9 +1,11 @@
 import React, { useState, useReducer } from 'react';
 import { View, Platform, StyleSheet, KeyboardAvoidingView } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { Picker } from '@react-native-picker/picker';
 import Modal from 'react-native-modal';
 import { SourceType } from 'bitmovin-player-react-native';
+import { RootStackParamsList } from '../App';
 import Button from '../components/Button';
 import FormInput from '../components/FormInput';
 import { capitalize } from '../utils';
@@ -87,7 +89,11 @@ const initialFormState = {
   playDisabled: true,
 };
 
-const CustomPlaybackForm = () => {
+type CustomPlaybackFormProps = NativeStackScreenProps<RootStackParamsList>;
+
+const CustomPlaybackForm: React.FC<CustomPlaybackFormProps> = ({
+  navigation,
+}) => {
   const headerHeight = useHeaderHeight();
   const [isModalVisible, setModalVisible] = useState(false);
   const [state, dispatch] = useReducer(formReducer, initialFormState);
@@ -99,16 +105,18 @@ const CustomPlaybackForm = () => {
     >
       <View style={styles.form}>
         <FormInput
+          textContentType="password"
           title="License key"
           value={state.licenseKey}
           onChange={(value) => dispatch(setLicenseKey(value))}
-          placeholder="Paste your license key from dashboard"
+          placeholder="Your license key from the dashboard"
         />
         <FormInput
+          textContentType="URL"
           title="Stream URL"
           value={state.streamURL}
           onChange={(value) => dispatch(setStreamURL(value))}
-          placeholder="e.g. https://example.com/resource.m3u8"
+          placeholder="URL path of a .m3u8, .mpd, or .mp4 file"
         />
         <FormInput
           editable={false}
@@ -126,8 +134,11 @@ const CustomPlaybackForm = () => {
             selectedValue={state.streamType.value}
             onValueChange={(value, _) => dispatch(setStreamType(value))}
           >
-            <Picker.Item label="HLS" value={SourceType.HLS} />
-            <Picker.Item label="Dash" value={SourceType.DASH} />
+            {Platform.OS === 'ios' ? (
+              <Picker.Item label="HLS" value={SourceType.HLS} />
+            ) : (
+              <Picker.Item label="Dash" value={SourceType.DASH} />
+            )}
             <Picker.Item label="Progressive" value={SourceType.PROGRESSIVE} />
           </Picker>
         </View>
@@ -136,12 +147,9 @@ const CustomPlaybackForm = () => {
         <Button
           type="solid"
           title="Play"
-          onPress={() => {
-            // TODO: Navigate to the actual `CustomPlayback` screen passing the stream configuration
-            // stored here as navigation parameters.
-          }}
           disabled={state.playDisabled}
           containerStyle={styles.button}
+          onPress={() => navigation.navigate('CustomPlayback', { ...state })}
         />
       </View>
     </KeyboardAvoidingView>
