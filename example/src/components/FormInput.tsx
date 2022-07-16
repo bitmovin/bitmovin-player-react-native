@@ -53,6 +53,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   input: {
+    color: 'black',
     height: 40,
     padding: 10,
     borderWidth: 1,
