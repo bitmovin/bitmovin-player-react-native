@@ -2,55 +2,51 @@
 
 @interface RCT_EXTERN_REMAP_MODULE(PlayerModule, PlayerModule, NSObject)
 
-RCT_EXTERN_METHOD(initWithConfig:(NSString *)playerId config:(nullable id)config)
-RCT_EXTERN_METHOD(loadSource:(NSString *)playerId config:(id)config)
-RCT_EXTERN_METHOD(unload:(NSString *)playerId)
-RCT_EXTERN_METHOD(play:(NSString *)playerId)
-RCT_EXTERN_METHOD(pause:(NSString *)playerId)
-RCT_EXTERN_METHOD(seek:(NSString *)playerId time:(nonnull NSNumber *)time)
-RCT_EXTERN_METHOD(mute:(NSString *)playerId)
-RCT_EXTERN_METHOD(unmute:(NSString *)playerId)
-RCT_EXTERN_METHOD(destroy:(NSString *)playerId)
-RCT_EXTERN_METHOD(setVolume:(NSString *)playerId volume:(nonnull NSNumber *)volume)
+RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config)
+RCT_EXTERN_METHOD(loadSource:(NSString *)nativeId sourceNativeId:(NSString *)sourceNativeId)
+RCT_EXTERN_METHOD(unload:(NSString *)nativeId)
+RCT_EXTERN_METHOD(play:(NSString *)nativeId)
+RCT_EXTERN_METHOD(pause:(NSString *)nativeId)
+RCT_EXTERN_METHOD(seek:(NSString *)nativeId time:(nonnull NSNumber *)time)
+RCT_EXTERN_METHOD(mute:(NSString *)nativeId)
+RCT_EXTERN_METHOD(unmute:(NSString *)nativeId)
+RCT_EXTERN_METHOD(destroy:(NSString *)nativeId)
+RCT_EXTERN_METHOD(setVolume:(NSString *)nativeId volume:(nonnull NSNumber *)volume)
 RCT_EXTERN_METHOD(
-    source:(NSString *)playerId
+    getVolume:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-    getVolume:(NSString *)playerId
-    resolver:(RCTPromiseResolveBlock)resolve
-    rejecter:(RCTPromiseRejectBlock)reject)
-RCT_EXTERN_METHOD(
-    currentTime:(NSString *)playerId
+    currentTime:(NSString *)nativeId
     mode:(NSString *)mode
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-    duration:(NSString *)playerId
+    duration:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-    isMuted:(NSString *)playerId
+    isMuted:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-    isPlaying:(NSString *)playerId
+    isPlaying:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-    isPaused:(NSString *)playerId
+    isPaused:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-    isLive:(NSString *)playerId
+    isLive:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-    isAirPlayActive:(NSString *)playerId
+    isAirPlayActive:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-    isAirPlayAvailable:(NSString *)playerId
+    isAirPlayAvailable:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 

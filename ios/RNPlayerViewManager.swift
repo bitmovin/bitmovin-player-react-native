@@ -23,7 +23,7 @@ class RNPlayerViewManager: RCTViewManager {
         bridge.uiManager.addUIBlock { [weak self] _, views in
             guard
                 let view = views?[viewId] as? RNPlayerView,
-                let player = self?.getPlayerModule()?.player(with: playerId)
+                let player = self?.getPlayerModule()?.retrieve(playerId)
             else {
                 return
             }

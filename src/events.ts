@@ -1,5 +1,3 @@
-import { Source } from './source';
-
 /**
  * Base event type for all events.
  */
@@ -114,14 +112,24 @@ export interface SeekEvent extends Event {
    */
   from: {
     time: number;
-    source: Source;
+    source: {
+      duration: number;
+      isActive: boolean;
+      isAttachedToPlayer: boolean;
+      metadata?: Record<string, any>;
+    };
   };
   /**
    * Added source metadata.
    */
   to: {
     time: number;
-    source: Source;
+    source: {
+      duration: number;
+      isActive: boolean;
+      isAttachedToPlayer: boolean;
+      metadata?: Record<string, any>;
+    };
   };
 }
 
@@ -149,7 +157,12 @@ export interface SourceLoadEvent extends Event {
   /**
    * Source that is about to load.
    */
-  source: Source;
+  source: {
+    duration: number;
+    isActive: boolean;
+    isAttachedToPlayer: boolean;
+    metadata?: Record<string, any>;
+  };
 }
 
 /**
@@ -160,7 +173,12 @@ export interface SourceLoadedEvent extends Event {
   /**
    * Source that was loaded into player.
    */
-  source: Source;
+  source: {
+    duration: number;
+    isActive: boolean;
+    isAttachedToPlayer: boolean;
+    metadata?: Record<string, any>;
+  };
 }
 
 /**
@@ -170,7 +188,12 @@ export interface SourceUnloadedEvent extends Event {
   /**
    * Source that was unloaded from player.
    */
-  source: Source;
+  source: {
+    duration: number;
+    isActive: boolean;
+    isAttachedToPlayer: boolean;
+    metadata?: Record<string, any>;
+  };
 }
 
 /**

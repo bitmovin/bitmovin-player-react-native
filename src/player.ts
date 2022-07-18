@@ -1,25 +1,13 @@
 import { NativeModules, Platform } from 'react-native';
 import { SourceConfig, Source } from './source';
+import NativeInstance, { NativeInstConfig } from './nativeInstance';
 
-const UUID = NativeModules.UUIDModule;
 const PlayerModule = NativeModules.PlayerModule;
 
 /**
  * Object used to configure a new `Player` instance.
  */
-export interface PlayerConfig {
-  /**
-   * Optionally user-defined string `id` for the native `Player` instances. Used to access a certain native `Player` instance from any point in the source code then call methods/properties on it.
-   *
-   * When left empty, a random `UUIDv4` is generated for it.
-   * @example
-   * Accessing or creating the `Player` with `nativeId` equal to `my-player`:
-   * ```
-   * const player = new Player({ nativeId: 'my-player' })
-   * player.play(); // call methods and properties...
-   * ```
-   */
-  nativeId?: string;
+export interface PlayerConfig extends NativeInstConfig {
   /**
    * Bitmovin license key that can be found in the Bitmovin portal.
    * If a license key is set here, it will be used instead of the license key found in the `Info.plist` and `AndroidManifest.xml`.
@@ -50,28 +38,30 @@ export interface PlayerConfig {
  * Can be attached to `PlayerView` component in order to use Bitmovin's Player Web UI.
  * @see PlayerView
  */
-export class Player {
+export class Player extends NativeInstance<PlayerConfig> {
   /**
-   * User-defined `nativeId` string or random `UUIDv4` identifying this `Player` in the native side.
+   * The currently active source or null if no source is active.
    */
-  readonly nativeId: string;
-
-  /**
-   * Configuration object used to initialize this `Player`.
-   */
-  readonly config: PlayerConfig | null;
+  source?: Source;
 
   constructor(config?: PlayerConfig) {
-    this.config = config ?? null;
-    this.nativeId = config?.nativeId ?? UUID.generate();
+    super(config);
     PlayerModule.initWithConfig(this.nativeId, this.config);
   }
 
   /**
-   * Loads a new `Source` into the player.
+   * Loads a new `Source` from `sourceConfig` into the player.
    */
-  load = (source: SourceConfig) => {
-    PlayerModule.loadSource(this.nativeId, source);
+  load = (sourceConfig: SourceConfig) => {
+    this.loadSource(new Source(sourceConfig));
+  };
+
+  /**
+   * Loads the given `Source` into the player.
+   */
+  loadSource = (source: Source) => {
+    this.source = source;
+    PlayerModule.loadSource(this.nativeId, source.nativeId);
   };
 
   /**
@@ -135,13 +125,6 @@ export class Player {
    */
   setVolume = (volume: number) => {
     PlayerModule.setVolume(this.nativeId, volume);
-  };
-
-  /**
-   * @returns The currently active source or null if no source is active.
-   */
-  getSource = async (): Promise<Source> => {
-    return PlayerModule.source(this.nativeId);
   };
 
   /**
