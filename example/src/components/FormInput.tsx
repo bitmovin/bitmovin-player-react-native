@@ -8,6 +8,8 @@ export interface FormInputProps {
   onPress?: () => void;
   onChange?: (value: string) => void;
   placeholder?: string;
+  secureTextEntry?: boolean;
+  textContentType?: TextInput['props']['textContentType'];
 }
 
 const FormInput: React.FC<FormInputProps> = ({
@@ -17,6 +19,8 @@ const FormInput: React.FC<FormInputProps> = ({
   onChange,
   placeholder,
   onPress,
+  secureTextEntry = false,
+  textContentType,
 }) => {
   const [opacity, setOpacity] = useState(1);
   const containerStyle = StyleSheet.flatten([styles.container, { opacity }]);
@@ -24,6 +28,8 @@ const FormInput: React.FC<FormInputProps> = ({
     <View style={containerStyle}>
       <Text style={styles.inputTitle}>{title}</Text>
       <TextInput
+        secureTextEntry={secureTextEntry}
+        textContentType={textContentType}
         style={styles.input}
         value={value}
         editable={editable}
@@ -47,6 +53,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   input: {
+    color: 'black',
     height: 40,
     padding: 10,
     borderWidth: 1,

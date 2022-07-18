@@ -1,12 +1,14 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SourceType } from 'bitmovin-player-react-native';
 import Button from './components/Button';
 import ExamplesList from './screens/ExamplesList';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicDRMPlayback from './screens/BasicDRMPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
+import CustomPlayback from './screens/CustomPlayback';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -19,6 +21,14 @@ export type RootStackParamsList = {
   DRMPlayback: undefined;
   SubtitlePlayback: undefined;
   CustomPlaybackForm: undefined;
+  CustomPlayback: {
+    licenseKey: string;
+    streamURL: string;
+    streamType: {
+      label: string;
+      value: SourceType;
+    };
+  };
 };
 
 const RootStack = createNativeStackNavigator();
@@ -77,6 +87,11 @@ export default function App() {
         <RootStack.Screen
           name="CustomPlaybackForm"
           component={CustomPlaybackForm}
+          options={{ title: 'Custom playback' }}
+        />
+        <RootStack.Screen
+          name="CustomPlayback"
+          component={CustomPlayback}
           options={{ title: 'Custom playback' }}
         />
       </RootStack.Navigator>
