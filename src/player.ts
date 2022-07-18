@@ -1,6 +1,7 @@
 import { NativeModules, Platform } from 'react-native';
 import { SourceConfig, Source } from './source';
 
+const UUID = NativeModules.UUIDModule;
 const PlayerModule = NativeModules.PlayerModule;
 
 /**
@@ -62,7 +63,7 @@ export class Player {
 
   constructor(config?: PlayerConfig) {
     this.config = config ?? null;
-    this.nativeId = config?.nativeId ?? PlayerModule.generateUUIDv4();
+    this.nativeId = config?.nativeId ?? UUID.generate();
     PlayerModule.initWithConfig(this.nativeId, this.config);
   }
 

@@ -35,14 +35,6 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Synchronously generate a random UUID for `Player`s `nativeId` when none is provided by the user.
-     - Returns: Random UUID RFC 4122 version 4.
-     */
-    @objc func generateUUIDv4() -> String {
-        UUID().uuidString
-    }
-
-    /**
      Create a new `Player` instance for the given `config` if none exists yet.
      - Parameter config: Player configuration options sent from JS.
      */

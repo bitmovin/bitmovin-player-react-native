@@ -2,10 +2,6 @@
 
 @interface RCT_EXTERN_REMAP_MODULE(PlayerModule, PlayerModule, NSObject)
 
-// UUID generation is sync and runs on the JS thread so it should be as
-// fast as possible to avoid perf issues.
-RCT_EXTERN__BLOCKING_SYNCHRONOUS_METHOD(generateUUIDv4)
-
 RCT_EXTERN_METHOD(initWithConfig:(NSString *)playerId config:(nullable id)config)
 RCT_EXTERN_METHOD(loadSource:(NSString *)playerId config:(id)config)
 RCT_EXTERN_METHOD(unload:(NSString *)playerId)
