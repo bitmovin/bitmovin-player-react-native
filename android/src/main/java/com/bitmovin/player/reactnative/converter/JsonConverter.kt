@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative.converter
 
+import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
@@ -157,6 +158,23 @@ class JsonConverter {
                 json.putMap("to", fromSeekPosition(event.to))
             }
             return json
+        }
+
+        /**
+         * Converts an arbitrary `json` to `PlaybackConfig`.
+         * @param json JS object representing the `PlaybackConfig`.
+         * @return The generated `PlaybackConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toPlaybackConfig(json: ReadableMap?): PlaybackConfig? {
+            if (json == null) {
+                return null
+            }
+            val playbackConfig = PlaybackConfig()
+            if (json.hasKey("isAutoplayEnabled")) {
+                playbackConfig.isAutoplayEnabled = json.getBoolean("isAutoplayEnabled")
+            }
+            return playbackConfig
         }
     }
 }

@@ -41,6 +41,28 @@ export interface PlayerConfig {
 }
 
 /**
+ * Optionally PlaybackConfig Object used to configure a new `PlaybackConfig` instance.
+ */
+export interface PlaybackConfig {
+  /**
+   * Optionally isAutoplayEnabled: Specifies whether autoplay is enabled.
+   *
+   * @example
+   * ```
+   * const player = new Player({
+   *   {
+   *     licenseKey: '\<LICENSE-KEY-CODE\>',
+   *   },
+   *   {
+   *     isAutoplayEnabled: true,
+   *   }
+   * })
+   * ```
+   */
+  isAutoplayEnabled?: boolean;
+}
+
+/**
  * Loads, controls and renders audio and video content represented through `Source`s. A player
  * instance can be created via the `usePlayer` hook and will idle until one or more `Source`s are
  * loaded. Once `load` is called, the player becomes active and initiates necessary downloads to
@@ -59,11 +81,20 @@ export class Player {
    * Configuration object used to initialize this `Player`.
    */
   readonly config: PlayerConfig | null;
+  /**
+   * Configuration object used to initialize playback configuration.
+   */
+  readonly playbackConfig: PlaybackConfig;
 
-  constructor(config?: PlayerConfig) {
+  constructor(config?: PlayerConfig, playbackConfig?: PlaybackConfig) {
     this.config = config ?? null;
     this.nativeId = config?.nativeId ?? PlayerModule.generateUUIDv4();
-    PlayerModule.initWithConfig(this.nativeId, this.config);
+    this.playbackConfig = playbackConfig ?? {};
+    PlayerModule.initWithConfig(
+      this.nativeId,
+      this.config,
+      this.playbackConfig
+    );
   }
 
   /**

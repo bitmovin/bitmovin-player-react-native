@@ -76,4 +76,20 @@ extension RCTConvert {
         default: return .absoluteTime
         }
     }
+    
+    /**
+     Utility method to instantiate a `PlaybackConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `PlaybackConfig` object
+     */
+    static func playbackConfig(_ json: Any?) -> PlaybackConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let playbackConfig = PlaybackConfig()
+        if let isAutoplayEnabled = json["isAutoplayEnabled"] as? Bool {
+            playbackConfig.isAutoplayEnabled = isAutoplayEnabled
+        }
+        return playbackConfig
+    }
 }
