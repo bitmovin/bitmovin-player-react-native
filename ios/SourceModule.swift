@@ -10,7 +10,7 @@ class SourceModule: NSObject, RCTBridgeModule {
 
     /// JS module name.
     static func moduleName() -> String! {
-        "PlayerModule"
+        "SourceModule"
     }
 
     /// Module requires main thread initialization.
@@ -47,6 +47,29 @@ class SourceModule: NSObject, RCTBridgeModule {
             }
             self?.registry[nativeId] = SourceFactory.create(from: sourceConfig)
         }
+    }
+
+    /**
+     Create a new `Source` instance for a given `nativeId` if none exists yet.
+     - Parameter config: Source config object sent from JS.
+     */
+    @objc(initWithDRMConfig:drmNativeId:config:)
+    func initWithDRMConfig(_ nativeId: String, drmNativeId: String, config: Any?) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            guard
+                self?.registry[nativeId] == nil,
+                let fairplayConfig = self?.getDRMModule()?.retrieve(drmNativeId),
+                let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: fairplayConfig)
+            else {
+                return
+            }
+            self?.registry[nativeId] = SourceFactory.create(from: sourceConfig)
+        }
+    }
+
+    /// Fetches the initialized `DRMModule` instance on RN's bridge object.
+    private func getDRMModule() -> DRMModule? {
+        bridge.module(for: DRMModule.self) as? DRMModule
     }
 
     /**

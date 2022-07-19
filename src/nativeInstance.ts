@@ -2,7 +2,7 @@ import { NativeModules } from 'react-native';
 
 const UUID = NativeModules.UUIDModule;
 
-export interface NativeInstConfig {
+export interface NativeInstanceConfig {
   /**
    * Optionally user-defined string `id` for the native instance.
    * Used to access a certain native instance from any point in the source code then call
@@ -19,7 +19,7 @@ export interface NativeInstConfig {
   nativeId?: string;
 }
 
-export default class NativeInstance<Config extends NativeInstConfig> {
+export default class NativeInstance<Config extends NativeInstanceConfig> {
   /**
    * Optionally user-defined string `id` for the native instance, or UUIDv4.
    */

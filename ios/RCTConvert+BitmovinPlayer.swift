@@ -23,7 +23,7 @@ extension RCTConvert {
      - Parameter json: JS object
      - Returns: The produced `SourceConfig` object
      */
-    static func sourceConfig(_ json: Any?) -> SourceConfig? {
+    static func sourceConfig(_ json: Any?, drmConfig: FairplayConfig? = nil) -> SourceConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
         }
@@ -31,6 +31,9 @@ extension RCTConvert {
             url: RCTConvert.nsurl(json["url"]),
             type: RCTConvert.sourceType(json["type"])
         )
+        if let drmConfig = drmConfig {
+            sourceConfig.drmConfig = drmConfig
+        }
         if let title = json["title"] as? String {
             sourceConfig.title = title
         }
@@ -75,5 +78,40 @@ extension RCTConvert {
         case "relative": return .relativeTime
         default: return .absoluteTime
         }
+    }
+    
+    /**
+     Utility method to get a `FairplayConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The generated `FairplayConfig` object
+     */
+    static func fairplayConfig(_ json: Any?) -> FairplayConfig? {
+        guard
+            let json = json as? [String: Any?],
+            let licenseURL = json["licenseUrl"] as? String,
+            let fairplayJson = json["fairPlay"] as? [String: Any?],
+            let certificateURL = fairplayJson["certificateUrl"] as? String
+        else {
+            return nil
+        }
+        let fairplayConfig = FairplayConfig(
+            license: URL(string: licenseURL),
+            certificateURL: URL(string: certificateURL)!
+        )
+        // TODO: add support for custom prepare
+        fairplayConfig.prepareMessage = { spcData, assetId in
+            spcData
+        }
+        // TODO: add support for custom prepare
+        fairplayConfig.prepareCertificate = { data in
+            data
+        }
+        if let licenseRequestHeaders = fairplayJson["licenseRequestHeaders"] as? [String: String] {
+            fairplayConfig.licenseRequestHeaders = licenseRequestHeaders
+        }
+        if let certificateRequestHeaders = fairplayJson["certificateRequestHeaders"] as? [String: String] {
+            fairplayConfig.certificateRequestHeaders = certificateRequestHeaders
+        }
+        return fairplayConfig
     }
 }

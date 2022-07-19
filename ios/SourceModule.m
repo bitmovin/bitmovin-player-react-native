@@ -3,6 +3,7 @@
 @interface RCT_EXTERN_REMAP_MODULE(SourceModule, SourceModule, NSObject)
 
 RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config)
+RCT_EXTERN_METHOD(initWithDRMConfig:(NSString *)nativeId drmNativeId:(NSString *)drmNativeId config:(nullable id)config)
 RCT_EXTERN_METHOD(
     isAttachedToPlayer:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve

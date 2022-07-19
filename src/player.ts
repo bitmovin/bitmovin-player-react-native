@@ -1,13 +1,13 @@
 import { NativeModules, Platform } from 'react-native';
 import { SourceConfig, Source } from './source';
-import NativeInstance, { NativeInstConfig } from './nativeInstance';
+import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 
 const PlayerModule = NativeModules.PlayerModule;
 
 /**
  * Object used to configure a new `Player` instance.
  */
-export interface PlayerConfig extends NativeInstConfig {
+export interface PlayerConfig extends NativeInstanceConfig {
   /**
    * Bitmovin license key that can be found in the Bitmovin portal.
    * If a license key is set here, it will be used instead of the license key found in the `Info.plist` and `AndroidManifest.xml`.

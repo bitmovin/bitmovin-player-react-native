@@ -1,5 +1,6 @@
 import { NativeModules } from 'react-native';
-import NativeInstance, { NativeInstConfig } from './nativeInstance';
+import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
+import { DRM, DRMConfig } from './drm';
 
 const SourceModule = NativeModules.SourceModule;
 
@@ -46,7 +47,7 @@ export enum LoadingState {
 /**
  * Represents a source configuration that be loaded into a player instance.
  */
-export interface SourceConfig extends NativeInstConfig {
+export interface SourceConfig extends NativeInstanceConfig {
   /**
    *  The url for this source configuration.
    */
@@ -68,15 +69,31 @@ export interface SourceConfig extends NativeInstConfig {
    * Useful, for example, for audio-only streams.
    */
   isPosterPersistent?: boolean;
+
+  drmConfig?: DRMConfig;
 }
 
 /**
  * Represents audio and video content that can be loaded into a player.
  */
 export class Source extends NativeInstance<SourceConfig> {
+  /**
+   * The DRM config for the source.
+   */
+  readonly drm?: DRM;
+
   constructor(config?: SourceConfig) {
     super(config);
-    SourceModule.initWithConfig(this.nativeId, this.config);
+    if (config?.drmConfig) {
+      this.drm = new DRM(config.drmConfig!);
+      SourceModule.initWithDRMConfig(
+        this.nativeId,
+        this.drm.nativeId,
+        this.config
+      );
+    } else {
+      SourceModule.initWithConfig(this.nativeId, this.config);
+    }
   }
 
   /**
