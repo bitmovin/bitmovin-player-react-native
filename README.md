@@ -17,6 +17,7 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
   - [Setting up a license key](#setting-up-a-license-key)
   - [Accessing native `Player` instances](#accessing-native-player-instances)
   - [Listening to events](#listening-to-events)
+  - [DRM support](#drm-support)
 - [Contributing](#contributing)
 
 ## Installation
@@ -268,6 +269,83 @@ return (
   />
 );
 ```
+
+### DRM support
+
+Simple streaming of protected assets can be enabled with just a little configuration on `SourceConfig.drmConfig`:
+
+```typescript
+// Source configuration for protected asset.
+const drmSource: SourceConfig = {
+  // Protected stream URL.
+  url: 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8',
+  // Stream type.
+  type: SourceType.HLS,
+  // DRM setup.
+  drmConfig: {
+    // Stream license URL.
+    licenseUrl:
+      'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
+    // FairPlay specific configuration. Only applicable for iOS.
+    fairplay: {
+      // FairPlay certificateUrl. Required for iOS.
+      certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
+    },
+  },
+};
+```
+
+#### Prepare hooks
+
+In the native SDKs, some DRM properties like `message` and `license` can have their value transformed before use in order
+to enable some more complex use cases: such as extracting the `license` from a `JSON`, for example.
+
+In order to handle such transformations, it's possible to hook methods onto `SourceConfig.drmConfig` to proxy DRM values
+and potentially alter them:
+
+```typescript
+// Source configuration for protected asset.
+const drmSource: SourceConfig = {
+  // Protected stream URL.
+  url: 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8',
+  // Stream type.
+  type: SourceType.HLS,
+  // DRM setup.
+  drmConfig: {
+    // Stream license URL.
+    licenseUrl:
+      'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
+    // FairPlay specific configuration. Only applicable for iOS.
+    fairplay: {
+      // FairPlay certificateUrl. Required for iOS.
+      certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
+      // Certificate data is passed as a base64 string and should be returned as a base64 string.
+      prepareCertificate: (certificate: string) => {
+        // Do somthing with the `certificate` value...
+        return certificate; // base64 transformed certificate
+      },
+    },
+    // License data is passed as a base64 string and should be returned as a base64 string.
+    prepareLicense: (license: string) => {
+      // Do something with the `license` value...
+      return license; // base64 transformed license
+    },
+    // Message data is passed as a base64 string and should be returned as a base64 string.
+    prepareMessage: (message: string, assetId?: string) => {
+      // Asset ID value is provided by iOS only.
+      if (assetId) {
+        // Do something with the `assetId` value...
+      }
+      // Do something with the `message` value...
+      return message; // base64 transformed message
+    },
+  },
+};
+```
+
+FairPlay configuration provides a bunch of hooks that can be used, checkout the source [docs](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm.ts#L10) for a complete list and more details.
+
+Also, don't forget to check out the [example](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app for a complete [DRM example](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDRMPlayback.tsx).
 
 ## Contributing
 
