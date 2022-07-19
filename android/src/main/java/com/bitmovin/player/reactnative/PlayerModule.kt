@@ -1,6 +1,5 @@
 package com.bitmovin.player.reactnative
 
-import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.facebook.react.bridge.Promise
@@ -51,14 +50,11 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      * @param config Player configuration options sent from JS.
      */
     @ReactMethod
-    fun initWithConfig(playerId: String, config: ReadableMap?, playbackConfig: ReadableMap?) {
+    fun initWithConfig(playerId: String, config: ReadableMap?) {
         uiManager()?.addUIBlock {
             if (!registry.containsKey(playerId)) {
-                JsonConverter.toPlayerConfig(config)?.let { playerConfig ->
-                    registry[playerId] = Player.create(context, playerConfig)
-                    JsonConverter.toPlaybackConfig(playbackConfig)?.let { playbackConfig ->
-                        registry[playerId]?.config!!.playbackConfig = playbackConfig
-                    }
+                JsonConverter.toPlayerConfig(config)?.let {
+                    registry[playerId] = Player.create(context, it)
                 }
             }
         }

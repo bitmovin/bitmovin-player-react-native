@@ -15,6 +15,51 @@ extension RCTConvert {
         if let licenseKey = json["licenseKey"] as? String {
             playerConfig.key = licenseKey
         }
+        /**
+         Configures the playback behaviour of the player.
+         */
+        if let playbackConfig = json["playbackConfig"] as? [String: Any?] {
+            /**
+             * Specifies whether autoplay is enabled.
+             *
+             * Default is `false`.
+             */
+            if let isAutoplayEnabled = playbackConfig["isAutoplayEnabled"] as? Bool {
+                playerConfig.playbackConfig.isAutoplayEnabled = isAutoplayEnabled
+            }
+            /**
+             * Specifies if the player should start muted.
+             *
+             * Default is `false`.
+             */
+            if let isMuted = playbackConfig["isMuted"] as? Bool {
+                playerConfig.playbackConfig.isMuted = isMuted
+            }
+            /**
+             * Specifies if time shifting (during live streaming) should be enabled.
+             *
+             * Default is `true`.
+             */
+            if let isTimeShiftEnabled = playbackConfig["isTimeShiftEnabled"] as? Bool {
+                playerConfig.playbackConfig.isTimeShiftEnabled = isTimeShiftEnabled
+            }
+            /**
+             * Specifies if isBackgroundPlaybackEnabled should be enabled.
+             *
+             * Default is `false`.
+             */
+            if let isBackgroundPlaybackEnabled = playbackConfig["isBackgroundPlaybackEnabled"] as? Bool {
+                playerConfig.playbackConfig.isBackgroundPlaybackEnabled = isBackgroundPlaybackEnabled
+            }
+            /**
+             * Specifies if isPictureInPictureEnabled should be enabled.
+             *
+             * Default is `false`.
+             */
+            if let isPictureInPictureEnabled = playbackConfig["isPictureInPictureEnabled"] as? Bool {
+                playerConfig.playbackConfig.isPictureInPictureEnabled = isPictureInPictureEnabled
+            }
+        }
         return playerConfig
     }
     
@@ -75,21 +120,5 @@ extension RCTConvert {
         case "relative": return .relativeTime
         default: return .absoluteTime
         }
-    }
-    
-    /**
-     Utility method to instantiate a `PlaybackConfig` from a JS object.
-     - Parameter json: JS object
-     - Returns: The produced `PlaybackConfig` object
-     */
-    static func playbackConfig(_ json: Any?) -> PlaybackConfig? {
-        guard let json = json as? [String: Any?] else {
-            return nil
-        }
-        let playbackConfig = PlaybackConfig()
-        if let isAutoplayEnabled = json["isAutoplayEnabled"] as? Bool {
-            playbackConfig.isAutoplayEnabled = isAutoplayEnabled
-        }
-        return playbackConfig
     }
 }

@@ -45,20 +45,17 @@ class PlayerModule: NSObject, RCTBridgeModule {
     /**
      Create a new `Player` instance for the given `config` if none exists yet.
      - Parameter config: Player configuration options sent from JS.
-     - Parameter playbackConfig: PlaybackConfig configuration options sent from JS.
      */
-    @objc(initWithConfig:config:playbackConfiguration:)
-    func initWithConfig(_ playerId: String, config: Any?, playbackConfiguration: Any?) {
+    @objc(initWithConfig:config:)
+    func initWithConfig(_ playerId: String, config: Any?) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 self?.registry[playerId] == nil,
-                let playerConfig = RCTConvert.playerConfig(config),
-                let playerPlaybackConfiguration = RCTConvert.playbackConfig(playbackConfiguration)
+                let playerConfig = RCTConvert.playerConfig(config)
             else {
                 return
             }
             self?.registry[playerId] = PlayerFactory.create(playerConfig: playerConfig)
-            self?.registry[playerId]?.config.playbackConfig = playerPlaybackConfiguration
         }
     }
 

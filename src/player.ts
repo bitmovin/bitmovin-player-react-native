@@ -38,6 +38,10 @@ export interface PlayerConfig {
    * ```
    */
   licenseKey?: string;
+  /**
+   * Configures playback behavior. A default `PlaybackConfig` is set initially.
+   */
+  playbackConfig?: PlaybackConfig;
 }
 
 /**
@@ -47,12 +51,11 @@ export interface PlaybackConfig {
   /**
    * Optionally isAutoplayEnabled: Specifies whether autoplay is enabled.
    *
+   * Default is `false`.
+   *
    * @example
    * ```
    * const player = new Player({
-   *   {
-   *     licenseKey: '\<LICENSE-KEY-CODE\>',
-   *   },
    *   {
    *     isAutoplayEnabled: true,
    *   }
@@ -60,6 +63,70 @@ export interface PlaybackConfig {
    * ```
    */
   isAutoplayEnabled?: boolean;
+  /**
+   * Optionally isMuted: Specifies if the player should start muted.
+   *
+   * Default is `false`.
+   *
+   * @example
+   * ```
+   * const player = new Player({
+   *   {
+   *     isMuted: true,
+   *   }
+   * })
+   * ```
+   */
+  isMuted?: boolean;
+  /**
+   * Optionally isTimeShiftEnabled: Specifies if time shifting (during live streaming) should be enabled.
+   *
+   * Default is `true`.
+   *
+   *  @example
+   * ```
+   * const player = new Player({
+   *   {
+   *     isTimeShiftEnabled: false,
+   *   }
+   * })
+   * ```
+   */
+  isTimeShiftEnabled?: boolean;
+  /**
+   * Optionally isBackgroundPlaybackEnabled: Specifies if isBackgroundPlaybackEnabled should be enabled.
+   *
+   * This param only work on iOS.
+   *
+   * Default is `false`.
+   *
+   *  @example
+   * ```
+   * const player = new Player({
+   *   {
+   *     isBackgroundPlaybackEnabled: true,
+   *   }
+   * })
+   * ```
+   */
+  isBackgroundPlaybackEnabled?: boolean;
+  /**
+   * Optionally isPictureInPictureEnabled: Specifies if isPictureInPictureEnabled should be enabled.
+   *
+   * This param only work on iOS.
+   *
+   * Default is `false`.
+   *
+   *  @example
+   * ```
+   * const player = new Player({
+   *   {
+   *     isPictureInPictureEnabled: true,
+   *   }
+   * })
+   * ```
+   */
+  isPictureInPictureEnabled?: boolean;
 }
 
 /**
@@ -81,20 +148,11 @@ export class Player {
    * Configuration object used to initialize this `Player`.
    */
   readonly config: PlayerConfig | null;
-  /**
-   * Configuration object used to initialize playback configuration.
-   */
-  readonly playbackConfig: PlaybackConfig;
 
-  constructor(config?: PlayerConfig, playbackConfig?: PlaybackConfig) {
+  constructor(config?: PlayerConfig) {
     this.config = config ?? null;
     this.nativeId = config?.nativeId ?? PlayerModule.generateUUIDv4();
-    this.playbackConfig = playbackConfig ?? {};
-    PlayerModule.initWithConfig(
-      this.nativeId,
-      this.config,
-      this.playbackConfig
-    );
+    PlayerModule.initWithConfig(this.nativeId, this.config);
   }
 
   /**

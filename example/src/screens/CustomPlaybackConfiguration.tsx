@@ -13,14 +13,12 @@ function prettyPrint(header: string, obj: any) {
 }
 
 export default function CustomPlaybackConfiguration() {
-  const player = usePlayer(
-    {
-      licenseKey: 'ENTER_LICENSE_KEY',
-    },
-    {
+  const player = usePlayer({
+    licenseKey: 'ENTER_LICENSE_KEY',
+    playbackConfig: {
       isAutoplayEnabled: true,
-    }
-  );
+    },
+  });
 
   useFocusEffect(
     useCallback(() => {
