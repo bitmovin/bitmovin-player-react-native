@@ -69,7 +69,9 @@ export interface SourceConfig extends NativeInstanceConfig {
    * Useful, for example, for audio-only streams.
    */
   isPosterPersistent?: boolean;
-
+  /**
+   * The DRM config for the source.
+   */
   drmConfig?: DRMConfig;
 }
 

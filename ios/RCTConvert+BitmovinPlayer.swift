@@ -17,7 +17,7 @@ extension RCTConvert {
         }
         return playerConfig
     }
-    
+
     /**
      Utility method to instantiate a `SourceConfig` from a JS object.
      - Parameter json: JS object
@@ -45,7 +45,7 @@ extension RCTConvert {
         }
         return sourceConfig
     }
-    
+
     /**
      Utility method to get a `SourceType` from a JS object.
      - Parameter json: JS object
@@ -63,7 +63,7 @@ extension RCTConvert {
         default: return .none
         }
     }
-    
+
     /**
      Utility method to get a `TimeMode` from a JS object.
      - Parameter json: JS object
@@ -79,7 +79,7 @@ extension RCTConvert {
         default: return .absoluteTime
         }
     }
-    
+
     /**
      Utility method to get a `FairplayConfig` from a JS object.
      - Parameter json: JS object
@@ -89,7 +89,7 @@ extension RCTConvert {
         guard
             let json = json as? [String: Any?],
             let licenseURL = json["licenseUrl"] as? String,
-            let fairplayJson = json["fairPlay"] as? [String: Any?],
+            let fairplayJson = json["fairplay"] as? [String: Any?],
             let certificateURL = fairplayJson["certificateUrl"] as? String
         else {
             return nil
@@ -98,14 +98,6 @@ extension RCTConvert {
             license: URL(string: licenseURL),
             certificateURL: URL(string: certificateURL)!
         )
-        // TODO: add support for custom prepare
-        fairplayConfig.prepareMessage = { spcData, assetId in
-            spcData
-        }
-        // TODO: add support for custom prepare
-        fairplayConfig.prepareCertificate = { data in
-            data
-        }
         if let licenseRequestHeaders = fairplayJson["licenseRequestHeaders"] as? [String: String] {
             fairplayConfig.licenseRequestHeaders = licenseRequestHeaders
         }

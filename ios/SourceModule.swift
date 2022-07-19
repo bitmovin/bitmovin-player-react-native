@@ -17,12 +17,12 @@ class SourceModule: NSObject, RCTBridgeModule {
     static func requiresMainQueueSetup() -> Bool {
         true
     }
-    
+
     /// Use `UIManager.addBlock` to enqueue module methods on UI thread.
     var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
-    
+
     /**
      Returns the `Source` object associated with the given `id` from this module's registry.
      - Parameter id: The source's `nativeId`.
@@ -105,7 +105,7 @@ class SourceModule: NSObject, RCTBridgeModule {
             resolve(self?.registry[nativeId]?.isActive)
         }
     }
-    
+
     /**
      The duration of `nativeId` source in seconds.
      - Parameter nativeId: Source `nativeId`.

@@ -7,12 +7,12 @@ class UUIDModule: NSObject, RCTBridgeModule {
     static func requiresMainQueueSetup() -> Bool {
         true
     }
-    
+
     /// Exported JS module name.
     static func moduleName() -> String! {
         "UUIDModule"
     }
-    
+
     /**
      Synchronously generate a random UUIDv4.
      - Returns: Random UUID RFC 4122 version 4.
