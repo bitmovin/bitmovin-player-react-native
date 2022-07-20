@@ -19,6 +19,7 @@ class RNPlayerViewPackage : ReactPackage {
         return mutableListOf(
             UUIDModule(reactContext),
             PlayerModule(reactContext),
+            SourceModule(reactContext),
             RNPlayerViewManager(reactContext),
         )
     }
