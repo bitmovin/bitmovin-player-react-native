@@ -24,8 +24,15 @@ const source: SourceConfig = {
       Platform.OS === 'ios'
         ? 'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe'
         : 'https://cwip-shaka-proxy.appspot.com/no_auth',
+    // Android only.
+    widevine: {
+      // Checkout widevine docs to know more about security levels.
+      // You should be fine with just the default level.
+      preferredSecurityLevel: 'L3', // L3 = software level DRM protection.
+    },
     // iOS only.
     fairplay: {
+      // FairPlay certificate. Required for iOS.
       certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
       prepareCertificate: (certificate) => {
         console.log(

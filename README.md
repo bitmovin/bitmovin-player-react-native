@@ -17,7 +17,7 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
   - [Setting up a license key](#setting-up-a-license-key)
   - [Accessing native `Player` instances](#accessing-native-player-instances)
   - [Listening to events](#listening-to-events)
-  - [DRM support](#drm-support)
+  - [Enabling DRM protection](#enabling-drm-protection)
 - [Contributing](#contributing)
 
 ## Installation
@@ -270,7 +270,7 @@ return (
 );
 ```
 
-### DRM support
+### Enabling DRM protection
 
 Simple streaming of protected assets can be enabled with just a little configuration on `SourceConfig.drmConfig`:
 
@@ -278,14 +278,19 @@ Simple streaming of protected assets can be enabled with just a little configura
 // Source configuration for protected asset.
 const drmSource: SourceConfig = {
   // Protected stream URL.
-  url: 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8',
+  url:
+    Platform.OS === 'ios'
+      ? 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8' // iOS stream url
+      : 'https://bitmovin-a.akamaihd.net/content/art-of-motion_drm/mpds/11331.mpd', // Android stream url
   // Stream type.
-  type: SourceType.HLS,
+  type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
   // DRM setup.
   drmConfig: {
     // Stream license URL.
     licenseUrl:
-      'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
+      Platform.OS === 'ios'
+        ? 'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe' // iOS license url
+        : 'https://cwip-shaka-proxy.appspot.com/no_auth', // Android license url
     // FairPlay specific configuration. Only applicable for iOS.
     fairplay: {
       // FairPlay certificateUrl. Required for iOS.
@@ -307,14 +312,19 @@ and potentially alter them:
 // Source configuration for protected asset.
 const drmSource: SourceConfig = {
   // Protected stream URL.
-  url: 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8',
+  url:
+    Platform.OS === 'ios'
+      ? 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8' // iOS stream url
+      : 'https://bitmovin-a.akamaihd.net/content/art-of-motion_drm/mpds/11331.mpd', // Android stream url
   // Stream type.
-  type: SourceType.HLS,
+  type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
   // DRM setup.
   drmConfig: {
     // Stream license URL.
     licenseUrl:
-      'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
+      Platform.OS === 'ios'
+        ? 'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe' // iOS license url
+        : 'https://cwip-shaka-proxy.appspot.com/no_auth', // Android license url
     // FairPlay specific configuration. Only applicable for iOS.
     fairplay: {
       // FairPlay certificateUrl. Required for iOS.
@@ -343,9 +353,9 @@ const drmSource: SourceConfig = {
 };
 ```
 
-FairPlay configuration provides a bunch of hooks that can be used, checkout the source [docs](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm.ts#L10) for a complete list and more details.
+The [`FairplayConfig`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm.ts#L10) interface provides a bunch of hooks that can be used to fetch and transform different DRM related data. Check out the [docs](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm.ts#L10) for a complete list and detailed information on them.
 
-Also, don't forget to check out the [example](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app for a complete [DRM example](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDRMPlayback.tsx).
+Also, don't forget to check out the [example](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app for a complete iOS/Android [DRM example](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDRMPlayback.tsx).
 
 ## Contributing
 
