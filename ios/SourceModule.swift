@@ -50,7 +50,8 @@ class SourceModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Create a new `Source` instance for a given `nativeId` if none exists yet.
+     Create a new `Source` instance for a given `nativeId` if none exists yet using an existing DRM object to initialize the `drmConfig` property.
+     - Parameter drmNativeId: Id of DRM object.
      - Parameter config: Source config object sent from JS.
      */
     @objc(initWithDRMConfig:drmNativeId:config:)

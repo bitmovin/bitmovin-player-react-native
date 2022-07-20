@@ -49,6 +49,24 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Create a new `Source` instance for a given `nativeId` if none exists yet using an existing DRM object to initialize the `drmConfig` property.
+     * @param drmNativeId Id of DRM object.
+     * @param config Source config object sent from JS.
+     */
+    @ReactMethod
+    fun initWithDRMConfig(nativeId: String, drmNativeId: String, config: ReadableMap?) {
+        uiManager()?.addUIBlock {
+            val drmConfig = drmModule()?.getConfig(drmNativeId)
+            if (!registry.containsKey(nativeId) && drmConfig != null) {
+                JsonConverter.toSourceConfig(config)?.let {
+                    it.drmConfig = drmConfig
+                    registry[nativeId] = Source.create(it)
+                }
+            }
+        }
+    }
+
+    /**
      * Whether `nativeId` source is currently attached to a player instance.
      * @param nativeId Source `nativeId`.
      * @param promise: JS promise object.
@@ -139,4 +157,10 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
      */
     private fun uiManager(): UIManagerModule? =
         context.getNativeModule(UIManagerModule::class.java)
+
+    /**
+     * Helper function that returns the initialized `DRMModule` instance.
+     */
+    private fun drmModule(): DRMModule? =
+        context.getNativeModule(DRMModule::class.java)
 }

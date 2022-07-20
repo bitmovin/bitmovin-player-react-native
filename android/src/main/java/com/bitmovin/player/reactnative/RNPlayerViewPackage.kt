@@ -20,6 +20,7 @@ class RNPlayerViewPackage : ReactPackage {
             UUIDModule(reactContext),
             PlayerModule(reactContext),
             SourceModule(reactContext),
+            DRMModule(reactContext),
             RNPlayerViewManager(reactContext),
         )
     }

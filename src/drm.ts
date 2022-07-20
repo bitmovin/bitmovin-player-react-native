@@ -113,7 +113,7 @@ export interface WidevineConfig {
   /**
    * Set widevine's preferred security level on Android.
    */
-  prefferedSecurityLevel?: string;
+  preferredSecurityLevel?: string;
 }
 
 /**

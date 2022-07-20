@@ -14,11 +14,16 @@ function prettyPrint(header: string, obj: any) {
 }
 
 const source: SourceConfig = {
-  url: 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8',
+  url:
+    Platform.OS === 'ios'
+      ? 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8'
+      : 'https://bitmovin-a.akamaihd.net/content/art-of-motion_drm/mpds/11331.mpd',
   type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
   drmConfig: {
     licenseUrl:
-      'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
+      Platform.OS === 'ios'
+        ? 'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe'
+        : 'https://cwip-shaka-proxy.appspot.com/no_auth',
     // iOS only.
     fairplay: {
       certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
