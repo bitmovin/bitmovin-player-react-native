@@ -38,14 +38,6 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
-     * Synchronously generate a random UUID for `Player`s native id when no `nativeId` is provided
-     * by the user.
-     * @return Random UUID RFC 4122 version 4.
-     */
-    @ReactMethod(isBlockingSynchronousMethod = true)
-    fun generateUUIDv4(): String = UUID.randomUUID().toString()
-
-    /**
      * Create a new `Player` instance for the given `config` if no one exists already.
      * @param config Player configuration options sent from JS.
      */
