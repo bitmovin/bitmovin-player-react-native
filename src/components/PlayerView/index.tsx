@@ -69,10 +69,12 @@ export function PlayerView(props: PlayerViewProps) {
   // Style resulting from merging `baseStyle` and `props.style`.
   const style = StyleSheet.flatten([styles.baseStyle, props.style]);
   useEffect(() => {
-    // Attach `props.player` to native `PlayerView`.
+    // Initialize native player instance if needed.
+    props.player.initialize();
+    // Attach native player to native `PlayerView`.
     const node = findNodeHandle(nativeView.current);
     dispatch('attachPlayer', node, props.player.nativeId);
-  }, [props.player.nativeId]);
+  }, [props.player]);
   return (
     <NativePlayerView
       ref={nativeView}

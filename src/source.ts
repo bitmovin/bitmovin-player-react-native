@@ -82,21 +82,46 @@ export class Source extends NativeInstance<SourceConfig> {
   /**
    * The DRM config for the source.
    */
-  readonly drm?: DRM;
+  drm?: DRM;
+  /**
+   * Whether the native `Source` object has been created.
+   */
+  isInitialized = false;
+  /**
+   * Whether the native `Source` object has been disposed.
+   */
+  isDestroyed = false;
 
-  constructor(config?: SourceConfig) {
-    super(config);
-    if (config?.drmConfig) {
-      this.drm = new DRM(config.drmConfig!);
-      SourceModule.initWithDRMConfig(
-        this.nativeId,
-        this.drm.nativeId,
-        this.config
-      );
-    } else {
-      SourceModule.initWithConfig(this.nativeId, this.config);
+  /**
+   * Allocates the native `Source` instance and its resources natively.
+   */
+  initialize = () => {
+    if (!this.isInitialized) {
+      if (this.config?.drmConfig) {
+        this.drm = new DRM(this.config.drmConfig);
+        this.drm.initialize();
+        SourceModule.initWithDRMConfig(
+          this.nativeId,
+          this.drm.nativeId,
+          this.config
+        );
+      } else {
+        SourceModule.initWithConfig(this.nativeId, this.config);
+      }
+      this.isInitialized = true;
     }
-  }
+  };
+
+  /**
+   * Destroys the native `Source` and releases all of its allocated resources.
+   */
+  destroy = () => {
+    if (!this.isDestroyed) {
+      SourceModule.destroy(this.nativeId);
+      this.drm?.destroy();
+      this.isDestroyed = true;
+    }
+  };
 
   /**
    * The duration of the source in seconds if it’s a VoD or `INFINITY` if it’s a live stream.

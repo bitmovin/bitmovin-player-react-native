@@ -14,12 +14,12 @@ import java.util.UUID
 @ReactModule(name = PlayerModule.name)
 class PlayerModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
     /**
-     * In-memory mapping of `id` <-> `Player`.
+     * In-memory mapping of `nativeId` strings and `Player` instances.
      */
     private var registry: MutableMap<String, Player> = mutableMapOf()
 
     /**
-     * Exported module name to JS.
+     * JS exported module name.
      */
     companion object {
         const val name = "PlayerModule"
@@ -27,8 +27,9 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     override fun getName() = PlayerModule.name
 
     /**
-     * Fetch the `Player` instance with id equal to `nativeId` inside this module's `registry`.
-     * @param nativeId Target player to look inside registry.
+     * Fetches the `Player` instance associated with `nativeId` from the internal registry.
+     * @param nativeId `Player` instance ID.
+     * @return The associated `Player` instance or `null`.
      */
     fun getPlayer(nativeId: String?): Player? {
         if (nativeId == null) {
@@ -38,8 +39,8 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
-     * Create a new `Player` instance for the given `config` if no one exists already.
-     * @param config Player configuration options sent from JS.
+     * Creates a new `Player` instance inside the internal registry using the provided `config` object.
+     * @param config `PlayerConfig` object received from JS.
      */
     @ReactMethod
     fun initWithConfig(nativeId: String, config: ReadableMap?) {

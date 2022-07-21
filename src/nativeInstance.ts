@@ -19,7 +19,9 @@ export interface NativeInstanceConfig {
   nativeId?: string;
 }
 
-export default class NativeInstance<Config extends NativeInstanceConfig> {
+export default abstract class NativeInstance<
+  Config extends NativeInstanceConfig
+> {
   /**
    * Optionally user-defined string `id` for the native instance, or UUIDv4.
    */
@@ -37,4 +39,26 @@ export default class NativeInstance<Config extends NativeInstanceConfig> {
     this.config = config;
     this.nativeId = config?.nativeId ?? UUID.generate();
   }
+
+  /**
+   * Flag indicating whether the native resources of this object have been created internally
+   * .i.e `initialize` has been called.
+   */
+  abstract isInitialized: boolean;
+
+  /**
+   * Create the native object/resources that will be managed by this instance.
+   */
+  abstract initialize(): void;
+
+  /**
+   * Flag indicating whether the native resources of this object have been disposed .i.e
+   * `destroy` has been called.
+   */
+  abstract isDestroyed: boolean;
+
+  /**
+   * Dispose the native object/resources created by this instance during `initialize`.
+   */
+  abstract destroy(): void;
 }

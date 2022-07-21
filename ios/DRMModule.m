@@ -3,6 +3,7 @@
 @interface RCT_EXTERN_REMAP_MODULE(DRMModule, DRMModule, NSObject)
 
 RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config)
+RCT_EXTERN_METHOD(destroy:(NSString *)nativeId)
 
 RCT_EXTERN__BLOCKING_SYNCHRONOUS_METHOD(setPreparedCertificate:(NSString *)nativeId certificate:(NSString *)certificate)
 RCT_EXTERN__BLOCKING_SYNCHRONOUS_METHOD(setPreparedMessage:(NSString *)nativeId message:(NSString *)message)

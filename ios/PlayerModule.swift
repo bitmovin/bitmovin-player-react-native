@@ -24,17 +24,17 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Returns the `Player` object associated with the given `id` from this module's registry.
-     - Parameter id: The player's `nativeId`.
-     - Returns: The associated `Player` object or `nil` if there's none.
+     Fetches the `Player` instance associated with `nativeId` from the internal registry.
+     - Parameter nativeId: `Player` instance ID.
+     - Returns: The associated `Player` instance or `nil`.
      */
     @objc func retrieve(_ nativeId: String) -> Player? {
         registry[nativeId]
     }
 
     /**
-     Create a new `Player` instance for the given `config` if none exists yet.
-     - Parameter config: Player configuration options sent from JS.
+     Creates a new `Player` instance inside the internal registry using the provided `config` object.
+     - Parameter config: `PlayerConfig` object received from JS.
      */
     @objc(initWithConfig:config:)
     func initWithConfig(_ nativeId: String, config: Any?) {

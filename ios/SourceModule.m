@@ -4,6 +4,7 @@
 
 RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config)
 RCT_EXTERN_METHOD(initWithDRMConfig:(NSString *)nativeId drmNativeId:(NSString *)drmNativeId config:(nullable id)config)
+RCT_EXTERN_METHOD(destroy:(NSString *)nativeId)
 RCT_EXTERN_METHOD(
     isAttachedToPlayer:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve

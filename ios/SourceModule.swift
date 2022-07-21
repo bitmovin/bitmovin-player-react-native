@@ -24,17 +24,18 @@ class SourceModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Returns the `Source` object associated with the given `id` from this module's registry.
-     - Parameter id: The source's `nativeId`.
-     - Returns: The associated `Source` object or `nil` if there's none.
+     Fetches the `Source` instance associated with `nativeId` from internal registry.
+     - Parameter nativeId: `Source` instance ID.
+     - Returns: The associated `Source` instance or `nil`.
      */
     @objc func retrieve(_ nativeId: String) -> Source? {
         registry[nativeId]
     }
 
     /**
-     Create a new `Source` instance for a given `nativeId` if none exists yet.
-     - Parameter config: Source config object sent from JS.
+     Creates a new `Source` instance inside the internal registry using the provided `config` object.
+     - Parameter nativeId: ID to be associated with the `Source` instance.
+     - Parameter config: `SourceConfig` object received from JS.
      */
     @objc(initWithConfig:config:)
     func initWithConfig(_ nativeId: String, config: Any?) {
@@ -50,9 +51,10 @@ class SourceModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Create a new `Source` instance for a given `nativeId` if none exists yet using an existing DRM object to initialize the `drmConfig` property.
-     - Parameter drmNativeId: Id of DRM object.
-     - Parameter config: Source config object sent from JS.
+     Creates a new `Source` instance inside the internal registry using the provided `config` object and an initialized DRM configuration ID.
+     - Parameter nativeId: ID to be associated with the `Source` instance.
+     - Parameter drmNativeId: ID of the DRM config object to use.
+     - Parameter config: `SourceConfig` object received from JS.
      */
     @objc(initWithDRMConfig:drmNativeId:config:)
     func initWithDRMConfig(_ nativeId: String, drmNativeId: String, config: Any?) {
@@ -71,6 +73,15 @@ class SourceModule: NSObject, RCTBridgeModule {
     /// Fetches the initialized `DRMModule` instance on RN's bridge object.
     private func getDRMModule() -> DRMModule? {
         bridge.module(for: DRMModule.self) as? DRMModule
+    }
+
+    /**
+     Removes the `Source` instance associated with `nativeId` from `registry`.
+     - Parameter nativeId: Instance to be disposed.
+     */
+    @objc(destroy:)
+    func destroy(_ nativeId: String) {
+        registry.removeValue(forKey: nativeId)
     }
 
     /**

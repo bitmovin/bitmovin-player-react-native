@@ -40,14 +40,38 @@ export interface PlayerConfig extends NativeInstanceConfig {
  */
 export class Player extends NativeInstance<PlayerConfig> {
   /**
-   * The currently active source or null if no source is active.
+   * Currently active source, or `null` if none is active.
    */
   source?: Source;
+  /**
+   * Whether the native `Player` object has been created.
+   */
+  isInitialized = false;
+  /**
+   * Whether the native `Player` object has been disposed.
+   */
+  isDestroyed = false;
 
-  constructor(config?: PlayerConfig) {
-    super(config);
-    PlayerModule.initWithConfig(this.nativeId, this.config);
-  }
+  /**
+   * Allocates the native `Player` instance and its resources natively.
+   */
+  initialize = () => {
+    if (!this.isInitialized) {
+      PlayerModule.initWithConfig(this.nativeId, this.config);
+      this.isInitialized = true;
+    }
+  };
+
+  /**
+   * Destroys the native `Player` and releases all of its allocated resources.
+   */
+  destroy = () => {
+    if (!this.isDestroyed) {
+      PlayerModule.destroy(this.nativeId);
+      this.source?.destroy();
+      this.isDestroyed = true;
+    }
+  };
 
   /**
    * Loads a new `Source` from `sourceConfig` into the player.
@@ -60,6 +84,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Loads the given `Source` into the player.
    */
   loadSource = (source: Source) => {
+    source.initialize();
     this.source = source;
     PlayerModule.loadSource(this.nativeId, source.nativeId);
   };
@@ -108,14 +133,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   unmute = () => {
     PlayerModule.unmute(this.nativeId);
-  };
-
-  /**
-   * Destroys the player and releases all of its allocated resources.
-   * The player instance must not be used after calling this method.
-   */
-  destroy = () => {
-    PlayerModule.destroy(this.nativeId);
   };
 
   /**

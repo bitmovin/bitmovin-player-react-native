@@ -24,18 +24,18 @@ class DRMModule: NSObject, RCTBridgeModule {
     }
     
     /**
-     Returns the `FairplayConfig` object associated with the given `id` from this module's registry.
-     - Parameter id: The config's `nativeId`.
-     - Returns: The associated `FairplayConfig` object or `nil`.
+     Creates a new `FairplayConfig` instance inside the internal registry using the provided `config` object.
+     - Parameter nativeId: ID to associate with the `FairplayConfig` instance.
+     - Returns: The associated `FairplayConfig` instance or `nil`.
      */
     @objc func retrieve(_ nativeId: String) -> FairplayConfig? {
         registry[nativeId]
     }
 
     /**
-     Create a new `FairplayConfig` instance for a given `nativeId` if none exists yet.
-     - Parameter nativeId: Instance nativeId.
-     - Parameter config: FairPlay config object sent from JS.
+     Creates a new `FairplayConfig` instance inside the internal registry using the provided `config` object.
+     - Parameter nativeId: ID to associate with the `FairplayConfig` instance.
+     - Parameter config: `DRMConfig` object received from JS.
      */
     @objc(initWithConfig:config:)
     func initWithConfig(_ nativeId: String, config: Any?) {
@@ -49,6 +49,24 @@ class DRMModule: NSObject, RCTBridgeModule {
             self?.registry[nativeId] = fairplayConfig
             self?.initConfigBlocks(nativeId, config)
         }
+    }
+
+    /**
+     Removes the `FairplayConfig` instance associated with `nativeId` from `registry` and all data produced during preparation hooks.
+     - Parameter nativeId Instance to be disposed.
+     */
+    @objc(destroy:)
+    func destroy(_ nativeId: String) {
+        // Remove FairplayConfig instance from registry
+        registry.removeValue(forKey: nativeId)
+        // Remove any value that might be produced by DRM hooks
+        preparedCertificates.removeValue(forKey: nativeId)
+        preparedMessages.removeValue(forKey: nativeId)
+        preparedSyncMessages.removeValue(forKey: nativeId)
+        preparedLicenses.removeValue(forKey: nativeId)
+        preparedLicenseServerUrls.removeValue(forKey: nativeId)
+        preparedContentIds.removeValue(forKey: nativeId)
+        providedLicenseData.removeValue(forKey: nativeId)
     }
 
     // MARK: - Config blocks.

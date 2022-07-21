@@ -9,12 +9,12 @@ import com.facebook.react.uimanager.UIManagerModule
 @ReactModule(name = SourceModule.name)
 class SourceModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
     /**
-     * In-memory mapping of `id` <-> `Source`.
+     * In-memory mapping of `nativeId` strings and `Source` instances.
      */
     private var registry: MutableMap<String, Source> = mutableMapOf()
 
     /**
-     * Exported module name to JS.
+     * JS exported module name.
      */
     companion object {
         const val name = "SourceModule"
@@ -22,8 +22,9 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     override fun getName() = SourceModule.name
 
     /**
-     * Fetch the `Source` instance with id equal to `nativeId` inside this module's `registry`.
-     * @param nativeId Target instance to look inside registry.
+     * Fetches the `Source` instance associated with `nativeId` from internal registry.
+     * @param nativeId `Source` instance ID.
+     * @return The associated `Source` instance or `null`.
      */
     fun getSource(nativeId: String?): Source? {
         if (nativeId == null) {
@@ -33,9 +34,9 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
-     * Create a new `Source` instance for the given `config` if none exists already.
-     * @param nativeId Source instance nativeId.
-     * @param config Source configuration options sent from JS.
+     * Creates a new `Source` instance inside the internal registry using the provided `config` object.
+     * @param nativeId ID to be associated with the `Source` instance.
+     * @param config `SourceConfig` object received from JS.
      */
     @ReactMethod
     fun initWithConfig(nativeId: String, config: ReadableMap?) {
@@ -49,9 +50,11 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
-     * Create a new `Source` instance for a given `nativeId` if none exists yet using an existing DRM object to initialize the `drmConfig` property.
-     * @param drmNativeId Id of DRM object.
-     * @param config Source config object sent from JS.
+     * Creates a new `Source` instance inside the internal registry using the provided
+     * `config` object and an initialized DRM configuration ID.
+     * @param nativeId ID to be associated with the `Source` instance.
+     * @param drmNativeId ID of the DRM config to use.
+     * @param config `SourceConfig` object received from JS.
      */
     @ReactMethod
     fun initWithDRMConfig(nativeId: String, drmNativeId: String, config: ReadableMap?) {
@@ -64,6 +67,15 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
                 }
             }
         }
+    }
+
+    /**
+     * Removes the `Source` instance associated with `nativeId` from the internal registry.
+     * @param nativeId `Source` to be disposed.
+     */
+    @ReactMethod
+    fun destroy(nativeId: String) {
+        registry.remove(nativeId)
     }
 
     /**

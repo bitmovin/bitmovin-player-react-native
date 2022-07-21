@@ -163,14 +163,38 @@ export interface DRMConfig extends NativeInstanceConfig {
  * Represents a native DRM configuration object.
  */
 export class DRM extends NativeInstance<DRMConfig> {
-  constructor(config?: DRMConfig) {
-    super(config);
-    // Register this object as a callable module so it's possible to
-    // call functions on it from native code, e.g `onPrepareMessage`.
-    BatchedBridge.registerCallableModule(`DRM-${this.nativeId}`, this);
-    // Create native configuration object.
-    DRMModule.initWithConfig(this.nativeId, this.config);
-  }
+  /**
+   * Whether this object's native instance has been created.
+   */
+  isInitialized = false;
+  /**
+   * Whether this object's native instance has been disposed.
+   */
+  isDestroyed = false;
+
+  /**
+   * Allocates the DRM config instance and its resources natively.
+   */
+  initialize = () => {
+    if (!this.isInitialized) {
+      // Register this object as a callable module so it's possible to
+      // call functions on it from native code, e.g `onPrepareMessage`.
+      BatchedBridge.registerCallableModule(`DRM-${this.nativeId}`, this);
+      // Create native configuration object.
+      DRMModule.initWithConfig(this.nativeId, this.config);
+      this.isInitialized = true;
+    }
+  };
+
+  /**
+   * Destroys the native DRM config and releases all of its allocated resources.
+   */
+  destroy = () => {
+    if (!this.isDestroyed) {
+      DRMModule.destroy(this.nativeId);
+      this.isDestroyed = true;
+    }
+  };
 
   /**
    * iOS only.
