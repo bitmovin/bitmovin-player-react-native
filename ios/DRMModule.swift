@@ -66,7 +66,6 @@ class DRMModule: NSObject, RCTBridgeModule {
         preparedLicenses.removeValue(forKey: nativeId)
         preparedLicenseServerUrls.removeValue(forKey: nativeId)
         preparedContentIds.removeValue(forKey: nativeId)
-        providedLicenseData.removeValue(forKey: nativeId)
     }
 
     // MARK: - Config blocks.
@@ -83,8 +82,6 @@ class DRMModule: NSObject, RCTBridgeModule {
     var preparedLicenseServerUrls: [String: String] = [:]
     /// Mapping between an object's `nativeId` and the value that'll be returned by its `prepareContentId` callback.
     var preparedContentIds: [String: String] = [:]
-    /// Mapping between an object's `nativeId` and the value that'll be returned by its `provideLicenseData` callback.
-    var providedLicenseData: [String: String] = [:]
 
     /**
      Function called from JS to store the computed `prepareCertificate` return value for `nativeId`.
@@ -177,21 +174,6 @@ class DRMModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Function called from JS to store the computed `provideLicenseData` return value for `nativeId`.
-
-     Note this function is **synchronous** and **blocks** the JS thread. It's important that it stays this way, otherwise we wouldn't be able to return
-     the computed JS message from inside the `fairplayConfig.provideLicenseData` Swift closure.
-     
-     Also, since RN has some limitations regarding the definition of sync JS methods from Swift, it's ncecessary to add a return type and a return value
-     (even if it's a void method like in this case) or a crash happens. So the type `Any?` and return value `nil` were used here (it could be any value).
-     */
-    @objc(setProvidedLicenseData:licenseData:)
-    func setProvidedLicenseData(_ nativeId: String, licenseData: String?) -> Any? {
-        providedLicenseData[nativeId] = licenseData
-        return nil
-    }
-
-    /**
      Initialize all configuration blocks in `FairplayConfig` applying the designated JS functions according to it's JS instance config.
 
      - Parameter nativeId: Instance nativeId.
@@ -205,8 +187,6 @@ class DRMModule: NSObject, RCTBridgeModule {
             initPrepareLicense(nativeId, config: config)
             initPrepareLicenseServerUrl(nativeId, config: config)
             initPrepareContentId(nativeId, config: config)
-            initProvideLicenseData(nativeId, config: config)
-            initPersistLicenseData(nativeId, config: config)
         }
     }
     
@@ -308,40 +288,6 @@ class DRMModule: NSObject, RCTBridgeModule {
         if let fairplay = config["fairplay"] as? [String: Any], fairplay["prepareContentId"] != nil {
             fairplayConfig.prepareContentId = { [weak self] contentId in
                 self?.prepareContentIdFromJS(nativeId, contentId) ?? contentId
-            }
-        }
-    }
-
-    /**
-     Initialize the `provideLicenseData` block in the `FairplayConfig` associated with `nativeId`.
-
-     - Parameter nativeId - Instance nativeId.
-     - Parameter config: FairPlay config object sent from JS.
-     */
-    private func initProvideLicenseData(_ nativeId: String, config: [String: Any]) {
-        guard let fairplayConfig = registry[nativeId] else {
-            return
-        }
-        if let fairplay = config["fairplay"] as? [String: Any], fairplay["provideLicenseData"] != nil {
-            fairplayConfig.provideLicenseData = { [weak self] assetId in
-                self?.provideLicenseDataFromJS(nativeId, assetId)
-            }
-        }
-    }
-
-    /**
-     Initialize the `persistLicenseData` block in the `FairplayConfig` associated with `nativeId`.
-
-     - Parameter nativeId - Instance nativeId.
-     - Parameter config: FairPlay config object sent from JS.
-     */
-    private func initPersistLicenseData(_ nativeId: String, config: [String: Any]) {
-        guard let fairplayConfig = registry[nativeId] else {
-            return
-        }
-        if let fairplay = config["fairplay"] as? [String: Any], fairplay["persistLicenseData"] != nil {
-            fairplayConfig.persistLicenseData = { [weak self] assetId, licenseData in
-                self?.persistLicenseDataFromJS(nativeId, assetId, licenseData)
             }
         }
     }
@@ -492,46 +438,5 @@ class DRMModule: NSObject, RCTBridgeModule {
         dispatchGroup.wait()
         // Return value stored by `onPrepareContentId`.
         return preparedContentIds[nativeId] ?? contentId
-    }
-
-    /**
-     Defines the body of a `provideLicenseData` block in `FairplayConfig`.
-     Used to sync Native->JS and JS->Native calls during `provideLicenseData` execution.
-
-     - Parameter nativeId: Instance nativeId.
-     - Parameter contentId: The extracted contentId received from `provideLicenseData`.
-     - Returns: JS provided license data.
-     */
-    private func provideLicenseDataFromJS(_ nativeId: String, _ assetId: String) -> Data? {
-        // Setup dispatch group
-        let dispatchGroup = DispatchGroup()
-        dispatchGroup.enter()
-        // Enqueue `onPrepareLicenseData` method to be executed on the JS DRM object and in the JS thread.
-        bridge.enqueueJSCall("DRM-\(nativeId)", method: "onProvideLicenseData", args: [assetId]) {
-            // Leave dispatch group when call to JS object finishes.
-            dispatchGroup.leave()
-        }
-        // Wait for JS `onPrepareLicenseData` to finish its execution.
-        dispatchGroup.wait()
-        // Return value stored by `onPrepareLicenseData`.
-        return Data(base64Encoded: providedLicenseData[nativeId] ?? "")
-    }
-
-    /**
-     Defines the body of a `persistLicenseData` block in `FairplayConfig`.
-     Used to dispatch the execution of `persistLicenseData` to the JS thread.
-
-     - Parameter nativeId: Instance nativeId.
-     - Parameter assetId: The `assetId` provided `persistLicenseData` callback.
-     - Parameter licenseData: The license data provided by `persistLicenseData` callback.
-     */
-    private func persistLicenseDataFromJS(_ nativeId: String, _ assetId: String, _ licenseData: Data) {
-        // Enqueue `onPersistLicenseData` method to be executed on the JS DRM object and in the JS thread.
-        bridge.enqueueJSCall(
-            "DRM-\(nativeId)",
-            method: "onPersistLicenseData",
-            args: [assetId, licenseData.base64EncodedString()],
-            completion: nil
-        )
     }
 }

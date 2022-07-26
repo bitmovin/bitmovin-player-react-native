@@ -64,46 +64,6 @@ export interface FairplayConfig {
    * @returns The processed contentId.
    */
   prepareContentId?: (contentId: string) => string;
-  /**
-   * A block to provide the license for the given `assetId`.
-   *
-   * This should only be used when the license is stored locally. If the block returns nil we will
-   * try to fetch the license using the available information in the same `FairplayConfig`.
-   *
-   * If no `certificateUrl` is present at this point we will emit a `SourceErrorEvent`.
-   *
-   * Use this block for the following use-cases:
-   *
-   * - License caching during playback or for future playback sessions.
-   *
-   * If the provided license is expired, the playback will fail. License duration handling has to be
-   * handled by the application.
-   *
-   * Note that this block return value should be a Base64 string. So use whatever solution suits you
-   * best to handle Base64 in React Native.
-   *
-   * @param assetId - Provided `assetId` value.
-   * @returns The persisted Base64 encoded license data.
-   */
-  provideLicenseData?: (assetId: string) => string | null;
-  /**
-   * A block to enable custom persisting of license data for the given `assetId`.
-   *
-   * Use this block for the following use-cases:
-   *
-   * - To store the license data locally for future playback sessions.
-   * - To update the license during a playback session if the license requires updating.
-   *
-   * In both use-cases, it’s required that the license is persistable on the device.
-   * Playback will fail otherwise.
-   *
-   * Note that the `licenseData` is provided as a Base64 string. So use whatever solution suits you
-   * best to handle Base64 in React Native.
-   *
-   * @param assetId - Provided `assetId` value.
-   * @param licenseData - License data as a Base64 encoded string.
-   */
-  persistLicenseData?: (assetId: string, licenseData: string) => void;
 }
 
 /**
@@ -305,39 +265,5 @@ export class DRM extends NativeInstance<DRMConfig> {
         this.config?.fairplay?.prepareContentId?.(contentId)
       );
     }
-  };
-
-  /**
-   * iOS only.
-   *
-   * Applies the user-defined `provideLicenseData` function to native's `assetId` string
-   * and store the result back in `DRMModule`.
-   *
-   * Called from native code when `FairplayConfig.provideLicenseData` is dispatched.
-   *
-   * @param assetId - The provided asset ID.
-   */
-  onProvideLicenseData = (assetId: string) => {
-    if (this.config?.fairplay?.provideLicenseData) {
-      DRMModule.setProvidedLicenseData(
-        this.nativeId,
-        this.config?.fairplay?.provideLicenseData?.(assetId)
-      );
-    }
-  };
-
-  /**
-   * iOS only.
-   *
-   * Applies the user-defined `persistLicenseData` function to native's `assetId` and `licenseData`
-   * Base64 encoded string.
-   *
-   * Called from native code when `FairplayConfig.persistLienseData` is dispatched.
-   *
-   * @param assetId - The provided asset ID.
-   * @param licenseData - License data as a Base64 encoded string.
-   */
-  onPersistLicenseData = (assetId: string, licenseData: string) => {
-    this.config?.fairplay?.persistLicenseData?.(assetId, licenseData);
   };
 }
