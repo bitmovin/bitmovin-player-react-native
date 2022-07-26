@@ -331,7 +331,7 @@ const drmSource: SourceConfig = {
       certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
       // Certificate data is passed as a base64 string and should be returned as a base64 string.
       prepareCertificate: (certificate: string) => {
-        // Do somthing with the `certificate` value...
+        // Do something with the `certificate` value...
         return certificate; // base64 transformed certificate
       },
     },

@@ -92,7 +92,7 @@ class DRMModule: NSObject, RCTBridgeModule {
      Note this function is **synchronous** and **blocks** the JS thread. It's important that it stays this way, otherwise we wouldn't be able to return
      the computed JS message from inside the `fairplayConfig.prepareCertificate` Swift closure.
      
-     Also, since RN has some limitations regarding the definition of sync JS methods from Swift, it's ncecessary to add a return type and a return
+     Also, since RN has some limitations regarding the definition of sync JS methods from Swift, it's necessary to add a return type and a return
      value (even if it's a void method like in this case) or a crash happens. So the type `Any?` and return value `nil` were used here (it could be any value).
      */
     @objc(setPreparedCertificate:certificate:)
