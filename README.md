@@ -9,15 +9,21 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 
 > :warning: **Beta Version**: The library is under active development. The current Beta release supports basic playback of unprotected video assets.
 
-- [Installation](#installation)
-  - [Add package dependency](#add-package-dependency)
-  - [Setup iOS Player SDK](#setup-ios-player-sdk)
-  - [Setup Android Player SDK](#setup-android-player-sdk)
-- [Getting Started](#getting-started)
-  - [Setting up a license key](#setting-up-a-license-key)
-  - [Accessing native `Player` instances](#accessing-native-player-instances)
-  - [Listening to events](#listening-to-events)
-- [Contributing](#contributing)
+- [Bitmovin Player React Native](#bitmovin-player-react-native)
+  - [Installation](#installation)
+    - [Add package dependency](#add-package-dependency)
+    - [Setup iOS Player SDK](#setup-ios-player-sdk)
+    - [Setup Android Player SDK](#setup-android-player-sdk)
+  - [Getting Started](#getting-started)
+    - [Setting up a license key](#setting-up-a-license-key)
+      - [Configuring through code](#configuring-through-code)
+    - [Setting up a playback configurations](#setting-up-a-playback-configurations)
+      - [Configuring through code](#configuring-through-code-1)
+      - [Configuring `Info.plist`](#configuring-infoplist)
+      - [Configuring `AndroidManifest.xml`](#configuring-androidmanifestxml)
+    - [Accessing native `Player` instances](#accessing-native-player-instances)
+    - [Listening to events](#listening-to-events)
+  - [Contributing](#contributing)
 
 ## Installation
 
@@ -195,6 +201,43 @@ import { Player } from 'bitmovin-player-react-native';
 const player = new Player({
   // Make sure to use React.createRef if instantiating inside a component.
   licenseKey: '<ENTER-YOUR-LICENSE-KEY>',
+});
+```
+
+### Setting up a playback configurations
+
+If you need more option to playback configuration you can add new parameter `playbackConfig`
+
+#### Configuring through code
+
+```typescript
+// Simply pass the `playbackConfig` property to `PlaybackConfig` when instantiating a player.
+
+// With hooks
+import { usePlayer } from 'bitmovin-player-react-native';
+const player = usePlayer({
+  playbackConfig: {
+    // Optionally isAutoplayEnabled: Specifies whether autoplay is enabled. Default is false.
+    isAutoplayEnabled: true,
+    // Optionally isMuted: Specifies if the player should start muted. Default is false.
+    isMuted: true,
+    // Optionally isTimeShiftEnabled: Specifies if time shifting (during live streaming) should be enabled. Default is true.
+    isTimeShiftEnabled: true,
+    // Optionally isBackgroundPlaybackEnabled: Specifies if isBackgroundPlaybackEnabled should be enabled. Only in iOS. Default is false.
+    isBackgroundPlaybackEnabled: true,
+  }
+});
+
+// Without hooks
+import { Player } from 'bitmovin-player-react-native';
+const player = new Player({
+  // Make sure to use React.createRef if instantiating inside a component.
+  playbackConfig: {
+    isAutoplayEnabled: true,
+    isMuted: true,
+    isTimeShiftEnabled: true,
+    isBackgroundPlaybackEnabled: true,
+  }
 });
 ```
 

@@ -9,7 +9,6 @@ import BasicDRMPlayback from './screens/BasicDRMPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
-import CustomPlaybackConfiguration from './screens/CustomPlaybackConfiguration';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -21,7 +20,6 @@ export type RootStackParamsList = {
   BasicPlayback: undefined;
   DRMPlayback: undefined;
   SubtitlePlayback: undefined;
-  CustomPlaybackConfiguration: undefined;
   CustomPlaybackForm: undefined;
   CustomPlayback: {
     licenseKey: string;
@@ -61,10 +59,6 @@ export default function App() {
                 routeName: 'BasicPlayback',
               },
               {
-                title: 'Custom playback configuration',
-                routeName: 'CustomPlaybackConfiguration',
-              },
-              {
                 title: 'DRM playback',
                 routeName: 'BasicDRMPlayback',
               },
@@ -79,11 +73,6 @@ export default function App() {
           name="BasicPlayback"
           component={BasicPlayback}
           options={{ title: 'Basic playback' }}
-        />
-        <RootStack.Screen
-          name="CustomPlaybackConfiguration"
-          component={CustomPlaybackConfiguration}
-          options={{ title: 'Custom playback configuration' }}
         />
         <RootStack.Screen
           name="BasicDRMPlayback"
