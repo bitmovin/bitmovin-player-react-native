@@ -224,9 +224,6 @@ class DRMModule: NSObject, RCTBridgeModule {
             fairplayConfig.prepareCertificate = { [weak self] data in
                 self?.prepareCertificateFromJS(nativeId, data) ?? data
             }
-        } else {
-            // Use default callback when `prepareCertificate` isn't set in configuration.
-            fairplayConfig.prepareCertificate = { data in data }
         }
     }
 
@@ -244,9 +241,6 @@ class DRMModule: NSObject, RCTBridgeModule {
             fairplayConfig.prepareMessage = { [weak self] spcData, assetId in
                 self?.prepareMessageFromJS(nativeId, spcData, assetId) ?? spcData
             }
-        } else {
-            // Use default callback when `prepareMessage` isn't set in configuration.
-            fairplayConfig.prepareMessage = { spcData, _ in spcData }
         }
     }
 
