@@ -272,6 +272,9 @@ return (
 
 ### Enabling DRM protection
 
+> ⚠️ **Beta Version**: For now, only `FairPlay` is supported on iOS and
+> only `Widevine` is supported on Android. More DRM systems will be added in the future.
+
 Simple streaming of protected assets can be enabled with just a little configuration on `SourceConfig.drmConfig`:
 
 ```typescript
