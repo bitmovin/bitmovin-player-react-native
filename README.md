@@ -326,7 +326,7 @@ const drmSource: SourceConfig = {
   drmConfig: {
     // Widevine is the default and only DRM system supported on Android for now.
     widevine: {
-      licenseUrl: 'https://cwip-shaka-proxy.appspot.com/no_auth'
+      licenseUrl: 'https://cwip-shaka-proxy.appspot.com/no_auth',
       // Data is passed as a base64 string and expects to return a base64 string.
       prepareLicense: (license: string) => {
         // Do something with the `license` value...
@@ -336,7 +336,8 @@ const drmSource: SourceConfig = {
     },
     // FairPlay is the default and only DRM system supported on iOS for now.
     fairplay: {
-      licenseUrl: 'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
+      licenseUrl:
+        'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
       certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
       // Data is passed as a base64 string and expects to return a base64 string.
       prepareLicense: (license: string) => {
