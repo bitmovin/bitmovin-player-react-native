@@ -88,8 +88,8 @@ extension RCTConvert {
     static func fairplayConfig(_ json: Any?) -> FairplayConfig? {
         guard
             let json = json as? [String: Any?],
-            let licenseURL = json["licenseUrl"] as? String,
             let fairplayJson = json["fairplay"] as? [String: Any?],
+            let licenseURL = fairplayJson["licenseUrl"] as? String,
             let certificateURL = fairplayJson["certificateUrl"] as? String
         else {
             return nil

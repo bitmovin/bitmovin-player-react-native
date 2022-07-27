@@ -104,7 +104,8 @@ class DRMModule(private val context: ReactApplicationContext) : ReactContextBase
      */
     private fun initPrepareMessage(nativeId: String, config: ReadableMap) {
         val widevineConfig = registry[nativeId]
-        if (widevineConfig != null && config.hasKey("prepareMessage")) {
+        val widevineJson = config.getMap("widevine")
+        if (widevineConfig != null && widevineJson != null && widevineJson.hasKey("prepareMessage")) {
             widevineConfig.prepareMessageCallback = PrepareMessageCallback {
                 val args = Arguments.createArray()
                 args.pushString(Base64.encodeToString(it, Base64.NO_WRAP))
@@ -131,7 +132,8 @@ class DRMModule(private val context: ReactApplicationContext) : ReactContextBase
      */
     private fun initPrepareLicense(nativeId: String, config: ReadableMap) {
         val widevineConfig = registry[nativeId]
-        if (widevineConfig != null && config.hasKey("prepareLicense")) {
+        val widevineJson = config.getMap("widevine")
+        if (widevineConfig != null && widevineJson != null && widevineJson.hasKey("prepareLicense")) {
             widevineConfig.prepareLicenseCallback = PrepareLicenseCallback {
                 val args = Arguments.createArray()
                 args.pushString(Base64.encodeToString(it, Base64.NO_WRAP))

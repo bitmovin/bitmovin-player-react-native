@@ -180,13 +180,13 @@ class DRMModule: NSObject, RCTBridgeModule {
      - Parameter config: FairPlay config object sent from JS.
      */
     private func initConfigBlocks(_ nativeId: String, _ config: Any?) {
-        if let config = config as? [String: Any] {
-            initPrepareCertificate(nativeId, config: config)
-            initPrepareMessage(nativeId, config: config)
-            initPrepareSyncMessage(nativeId, config: config)
-            initPrepareLicense(nativeId, config: config)
-            initPrepareLicenseServerUrl(nativeId, config: config)
-            initPrepareContentId(nativeId, config: config)
+        if let json = config as? [String: Any], let fairplayJson = json["fairplay"] as? [String: Any] {
+            initPrepareCertificate(nativeId, fairplayJson: fairplayJson)
+            initPrepareMessage(nativeId, fairplayJson: fairplayJson)
+            initPrepareSyncMessage(nativeId, fairplayJson: fairplayJson)
+            initPrepareLicense(nativeId, fairplayJson: fairplayJson)
+            initPrepareLicenseServerUrl(nativeId, fairplayJson: fairplayJson)
+            initPrepareContentId(nativeId, fairplayJson: fairplayJson)
         }
     }
     
@@ -196,11 +196,11 @@ class DRMModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initPrepareCertificate(_ nativeId: String, config: [String: Any]) {
+    private func initPrepareCertificate(_ nativeId: String, fairplayJson: [String: Any]) {
         guard let fairplayConfig = registry[nativeId] else {
             return
         }
-        if let fairplay = config["fairplay"] as? [String: Any], fairplay["prepareCertificate"] != nil {
+        if fairplayJson["prepareCertificate"] != nil {
             fairplayConfig.prepareCertificate = { [weak self] data in
                 self?.prepareCertificateFromJS(nativeId, data) ?? data
             }
@@ -213,11 +213,11 @@ class DRMModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initPrepareMessage(_ nativeId: String, config: [String: Any]) {
+    private func initPrepareMessage(_ nativeId: String, fairplayJson: [String: Any]) {
         guard let fairplayConfig = registry[nativeId] else {
             return
         }
-        if config["prepareMessage"] != nil {
+        if fairplayJson["prepareMessage"] != nil {
             fairplayConfig.prepareMessage = { [weak self] spcData, assetId in
                 self?.prepareMessageFromJS(nativeId, spcData, assetId) ?? spcData
             }
@@ -230,11 +230,11 @@ class DRMModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initPrepareSyncMessage(_ nativeId: String, config: [String: Any]) {
+    private func initPrepareSyncMessage(_ nativeId: String, fairplayJson: [String: Any]) {
         guard let fairplayConfig = registry[nativeId] else {
             return
         }
-        if let fairplay = config["fairplay"] as? [String: Any], fairplay["prepareSyncMessage"] != nil {
+        if fairplayJson["prepareSyncMessage"] != nil {
             fairplayConfig.prepareSyncMessage = { [weak self] syncSpcData, assetId in
                 self?.prepareSyncMessageFromJS(nativeId, syncSpcData, assetId) ?? syncSpcData
             }
@@ -247,11 +247,11 @@ class DRMModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initPrepareLicense(_ nativeId: String, config: [String: Any]) {
+    private func initPrepareLicense(_ nativeId: String, fairplayJson: [String: Any]) {
         guard let fairplayConfig = registry[nativeId] else {
             return
         }
-        if config["prepareLicense"] != nil {
+        if fairplayJson["prepareLicense"] != nil {
             fairplayConfig.prepareLicense = { [weak self] data in
                 self?.prepareLicenseFromJS(nativeId, data) ?? data
             }
@@ -264,11 +264,11 @@ class DRMModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initPrepareLicenseServerUrl(_ nativeId: String, config: [String: Any]) {
+    private func initPrepareLicenseServerUrl(_ nativeId: String, fairplayJson: [String: Any]) {
         guard let fairplayConfig = registry[nativeId] else {
             return
         }
-        if let fairplay = config["fairplay"] as? [String: Any], fairplay["prepareLicenseServerUrl"] != nil {
+        if fairplayJson["prepareLicenseServerUrl"] != nil {
             fairplayConfig.prepareLicenseServerUrl = { [weak self] url in
                 self?.prepareLicenseServerUrlFromJS(nativeId, url) ?? url
             }
@@ -281,11 +281,11 @@ class DRMModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initPrepareContentId(_ nativeId: String, config: [String: Any]) {
+    private func initPrepareContentId(_ nativeId: String, fairplayJson: [String: Any]) {
         guard let fairplayConfig = registry[nativeId] else {
             return
         }
-        if let fairplay = config["fairplay"] as? [String: Any], fairplay["prepareContentId"] != nil {
+        if fairplayJson["prepareContentId"] != nil {
             fairplayConfig.prepareContentId = { [weak self] contentId in
                 self?.prepareContentIdFromJS(nativeId, contentId) ?? contentId
             }

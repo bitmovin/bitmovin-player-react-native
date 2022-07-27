@@ -166,18 +166,12 @@ class JsonConverter {
          * @return The generated `WidevineConfig` if successful, `null` otherwise.
          */
         @JvmStatic
-        fun toWidevineConfig(json: ReadableMap?): WidevineConfig? {
-            val licenseUrl = json?.getString("licenseUrl")
-            if (json == null || licenseUrl == null) {
-                return null
+        fun toWidevineConfig(json: ReadableMap?): WidevineConfig? = json?.getMap("widevine")?.let {
+            val widevineConfig = WidevineConfig(it.getString("licenseUrl"))
+            if (it.hasKey("preferredSecurityLevel")) {
+                widevineConfig.preferredSecurityLevel = it.getString("preferredSecurityLevel")
             }
-            val widevineConfig = WidevineConfig(licenseUrl)
-            json.getMap("widevine")?.let {
-                if (it.hasKey("preferredSecurityLevel")) {
-                    widevineConfig.preferredSecurityLevel = it.getString("preferredSecurityLevel")
-                }
-            }
-            return widevineConfig
+            widevineConfig
         }
     }
 }

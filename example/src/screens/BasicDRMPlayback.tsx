@@ -20,20 +20,43 @@ const source: SourceConfig = {
       : 'https://bitmovin-a.akamaihd.net/content/art-of-motion_drm/mpds/11331.mpd',
   type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
   drmConfig: {
-    licenseUrl:
-      Platform.OS === 'ios'
-        ? 'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe'
-        : 'https://cwip-shaka-proxy.appspot.com/no_auth',
     // Android only.
     widevine: {
+      licenseUrl: 'https://cwip-shaka-proxy.appspot.com/no_auth',
+      prepareLicense: (license) => {
+        console.log(
+          '\n[PREPARE LICENSE]\nlicense:',
+          license.slice(0, 256) + '...\n'
+        );
+        // Do something with license...
+        return license;
+      },
+      prepareMessage: (message) => {
+        console.log(
+          '\n[PREPARE MESSAGE]\nmessage:',
+          message.slice(0, 256) + '...\n'
+        );
+        // Do something with message...
+        return message;
+      },
       // Checkout widevine docs to know more about security levels.
       // You should be fine with just the default level.
       preferredSecurityLevel: 'L3', // L3 = software level DRM protection.
     },
     // iOS only.
     fairplay: {
+      licenseUrl:
+        'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
       // FairPlay certificate. Required for iOS.
       certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
+      prepareLicense: (license) => {
+        console.log(
+          '\n[PREPARE LICENSE]\nlicense:',
+          license.slice(0, 256) + '...\n'
+        );
+        // Do something with license...
+        return license;
+      },
       prepareCertificate: (certificate) => {
         console.log(
           '\n[PREPARE CERTIFICATE]\ncertificate:',
@@ -41,6 +64,16 @@ const source: SourceConfig = {
         );
         // Do something with certificate...
         return certificate;
+      },
+      prepareMessage: (message, assetId) => {
+        console.log(
+          '\n[PREPARE MESSAGE]\nassetId:',
+          assetId,
+          '\nmessage:',
+          message.slice(0, 256) + '...\n'
+        );
+        // Do something with message...
+        return message;
       },
       prepareSyncMessage: (syncMessage, assetId) => {
         console.log(
@@ -65,22 +98,6 @@ const source: SourceConfig = {
         // Do something with licenseServerUrl...
         return licenseServerUrl;
       },
-    },
-    prepareMessage: (message, _) => {
-      console.log(
-        '\n[PREPARE MESSAGE]\nmessage:',
-        message.slice(0, 256) + '...\n'
-      );
-      // Do something with message...
-      return message;
-    },
-    prepareLicense: (license) => {
-      console.log(
-        '\n[PREPARE LICENSE]\nlicense:',
-        license.slice(0, 256) + '...\n'
-      );
-      // Do something with license...
-      return license;
     },
   },
 };
