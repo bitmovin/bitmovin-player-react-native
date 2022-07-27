@@ -285,15 +285,16 @@ const drmSource: SourceConfig = {
   // Stream type.
   type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
   // DRM setup.
+  // Each key in this object maps to a different DRM system config (`widevine` or `fairplay`).
   drmConfig: {
-    // Stream license URL.
-    licenseUrl:
-      Platform.OS === 'ios'
-        ? 'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe' // iOS license url
-        : 'https://cwip-shaka-proxy.appspot.com/no_auth', // Android license url
-    // FairPlay specific configuration. Only applicable for iOS.
+    // Widevine is the default and only DRM system supported on Android for now.
+    widevine: {
+      licenseUrl: 'https://cwip-shaka-proxy.appspot.com/no_auth',
+    },
+    // FairPlay is the default and only DRM system supported on iOS for now.
     fairplay: {
-      // FairPlay certificateUrl. Required for iOS.
+      licenseUrl:
+        'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
       certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
     },
   },
@@ -320,34 +321,32 @@ const drmSource: SourceConfig = {
   type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
   // DRM setup.
   drmConfig: {
-    // Stream license URL.
-    licenseUrl:
-      Platform.OS === 'ios'
-        ? 'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe' // iOS license url
-        : 'https://cwip-shaka-proxy.appspot.com/no_auth', // Android license url
-    // FairPlay specific configuration. Only applicable for iOS.
-    fairplay: {
-      // FairPlay certificateUrl. Required for iOS.
-      certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
-      // Certificate data is passed as a base64 string and should be returned as a base64 string.
-      prepareCertificate: (certificate: string) => {
-        // Do something with the `certificate` value...
-        return certificate; // base64 transformed certificate
+    // Widevine is the default and only DRM system supported on Android for now.
+    widevine: {
+      licenseUrl: 'https://cwip-shaka-proxy.appspot.com/no_auth'
+      // Data is passed as a base64 string and expects to return a base64 string.
+      prepareLicense: (license: string) => {
+        // Do something with the `license` value...
+        // And return processed data as base64 string.
+        return license; // base64 string
       },
     },
-    // License data is passed as a base64 string and should be returned as a base64 string.
-    prepareLicense: (license: string) => {
-      // Do something with the `license` value...
-      return license; // base64 transformed license
-    },
-    // Message data is passed as a base64 string and should be returned as a base64 string.
-    prepareMessage: (message: string, assetId?: string) => {
-      // Asset ID value is provided by iOS only.
-      if (assetId) {
-        // Do something with the `assetId` value...
-      }
-      // Do something with the `message` value...
-      return message; // base64 transformed message
+    // FairPlay is the default and only DRM system supported on iOS for now.
+    fairplay: {
+      licenseUrl: 'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
+      certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
+      // Data is passed as a base64 string and expects to return a base64 string.
+      prepareLicense: (license: string) => {
+        // Do something with the `license` value...
+        // And return processed data as base64 string.
+        return license; // base64 string
+      },
+      // Data is passed as a base64 string and expects to return a base64 string.
+      prepareMessage: (message: string, assetId: string) => {
+        // Do something with the `assetId` and `message` values...
+        // And return processed data as base64 string.
+        return message; // base64 string
+      },
     },
   },
 };
