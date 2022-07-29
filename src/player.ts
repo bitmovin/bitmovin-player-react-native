@@ -38,6 +38,95 @@ export interface PlayerConfig {
    * ```
    */
   licenseKey?: string;
+  /**
+   * Configures playback behavior. A default `PlaybackConfig` is set initially.
+   */
+  playbackConfig?: PlaybackConfig;
+}
+
+/**
+ * Optionally PlaybackConfig Object used to configure a new `PlaybackConfig` instance.
+ */
+export interface PlaybackConfig {
+  /**
+   * Optionally isAutoplayEnabled: Specifies whether autoplay is enabled.
+   *
+   * Default is `false`.
+   *
+   * @example
+   * ```
+   * const player = new Player({
+   *   {
+   *     isAutoplayEnabled: true,
+   *   }
+   * })
+   * ```
+   */
+  isAutoplayEnabled?: boolean;
+  /**
+   * Optionally isMuted: Specifies if the player should start muted.
+   *
+   * Default is `false`.
+   *
+   * @example
+   * ```
+   * const player = new Player({
+   *   {
+   *     isMuted: true,
+   *   }
+   * })
+   * ```
+   */
+  isMuted?: boolean;
+  /**
+   * Optionally isTimeShiftEnabled: Specifies if time shifting (during live streaming) should be enabled.
+   *
+   * Default is `true`.
+   *
+   *  @example
+   * ```
+   * const player = new Player({
+   *   {
+   *     isTimeShiftEnabled: false,
+   *   }
+   * })
+   * ```
+   */
+  isTimeShiftEnabled?: boolean;
+  /**
+   * Optionally isBackgroundPlaybackEnabled: Specifies if isBackgroundPlaybackEnabled should be enabled.
+   *
+   * This param only work on iOS.
+   *
+   * Default is `false`.
+   *
+   *  @example
+   * ```
+   * const player = new Player({
+   *   {
+   *     isBackgroundPlaybackEnabled: true,
+   *   }
+   * })
+   * ```
+   */
+  isBackgroundPlaybackEnabled?: boolean;
+  /**
+   * Optionally isPictureInPictureEnabled: Specifies if isPictureInPictureEnabled should be enabled.
+   *
+   * This param only work on iOS.
+   *
+   * Default is `false`.
+   *
+   *  @example
+   * ```
+   * const player = new Player({
+   *   {
+   *     isPictureInPictureEnabled: true,
+   *   }
+   * })
+   * ```
+   */
+  isPictureInPictureEnabled?: boolean;
 }
 
 /**

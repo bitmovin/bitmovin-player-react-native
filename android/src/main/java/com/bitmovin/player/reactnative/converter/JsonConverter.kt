@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative.converter
 
+import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
@@ -22,10 +23,38 @@ class JsonConverter {
          */
         @JvmStatic
         fun toPlayerConfig(json: ReadableMap?): PlayerConfig? {
+            var config = PlayerConfig()
             if (json != null && json.hasKey("licenseKey")) {
-                return PlayerConfig(key = json.getString("licenseKey"))
+                config = PlayerConfig(key = json.getString("licenseKey"))
             }
-            return PlayerConfig()
+            if (json != null && json.hasKey("playbackConfig")) {
+                var playbackConfigJson = json.getMap("playbackConfig")
+                /**
+                 * Specifies whether autoplay is enabled.
+                 *
+                 * Default is `false`.
+                 */
+                if(playbackConfigJson != null && playbackConfigJson.hasKey("isAutoplayEnabled")) {
+                    config.playbackConfig.isAutoplayEnabled = playbackConfigJson.getBoolean("isAutoplayEnabled")
+                }
+                /**
+                 * Specifies if the player should start muted.
+                 *
+                 * Default is `false`.
+                 */
+                if(playbackConfigJson != null && playbackConfigJson.hasKey("isMuted")) {
+                    config.playbackConfig.isMuted = playbackConfigJson.getBoolean("isMuted")
+                }
+                /**
+                 * Specifies if time shifting (during live streaming) should be enabled.
+                 *
+                 * Default is `true`.
+                 */
+                if(playbackConfigJson != null && playbackConfigJson.hasKey("isTimeShiftEnabled")) {
+                    config.playbackConfig.isTimeShiftEnabled = playbackConfigJson.getBoolean("isTimeShiftEnabled")
+                }
+            }
+            return config
         }
 
         /**
