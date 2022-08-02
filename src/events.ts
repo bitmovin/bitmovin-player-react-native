@@ -103,6 +103,33 @@ export interface PlayingEvent extends Event {
 export interface PlaybackFinishedEvent extends Event {}
 
 /**
+ * Source object representation the way it appears on `Event` payloads such as `SeekEvent`, for example.
+ *
+ * This interface only type hints what should be the shape of a `Source` object inside an `Event`'s
+ * payload during runtime so it has no direct relation with the `Source` class present in `src/source.ts`.
+ *
+ * Do not mistake it for a `NativeInstance` type.
+ */
+export interface EventSource {
+  /**
+   * Event's source duration in seconds.
+   */
+  duration: number;
+  /**
+   * Whether this event's source is currently active in a player.
+   */
+  isActive: boolean;
+  /**
+   * Whether this event's source is currently attached to a player instance.
+   */
+  isAttachedToPlayer: boolean;
+  /**
+   * Metadata for this event's source.
+   */
+  metadata?: Record<string, any>;
+}
+
+/**
  * Emitted when the player is about to seek to a new position.
  * Only applies to VoD streams.
  */
@@ -112,24 +139,14 @@ export interface SeekEvent extends Event {
    */
   from: {
     time: number;
-    source: {
-      duration: number;
-      isActive: boolean;
-      isAttachedToPlayer: boolean;
-      metadata?: Record<string, any>;
-    };
+    source: EventSource;
   };
   /**
    * Added source metadata.
    */
   to: {
     time: number;
-    source: {
-      duration: number;
-      isActive: boolean;
-      isAttachedToPlayer: boolean;
-      metadata?: Record<string, any>;
-    };
+    source: EventSource;
   };
 }
 
@@ -157,12 +174,7 @@ export interface SourceLoadEvent extends Event {
   /**
    * Source that is about to load.
    */
-  source: {
-    duration: number;
-    isActive: boolean;
-    isAttachedToPlayer: boolean;
-    metadata?: Record<string, any>;
-  };
+  source: EventSource;
 }
 
 /**
@@ -173,12 +185,7 @@ export interface SourceLoadedEvent extends Event {
   /**
    * Source that was loaded into player.
    */
-  source: {
-    duration: number;
-    isActive: boolean;
-    isAttachedToPlayer: boolean;
-    metadata?: Record<string, any>;
-  };
+  source: EventSource;
 }
 
 /**
@@ -188,12 +195,7 @@ export interface SourceUnloadedEvent extends Event {
   /**
    * Source that was unloaded from player.
    */
-  source: {
-    duration: number;
-    isActive: boolean;
-    isAttachedToPlayer: boolean;
-    metadata?: Record<string, any>;
-  };
+  source: EventSource;
 }
 
 /**
