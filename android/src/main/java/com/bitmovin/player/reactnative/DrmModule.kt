@@ -11,6 +11,11 @@ import com.facebook.react.uimanager.UIManagerModule
 import okhttp3.internal.notify
 import okhttp3.internal.wait
 
+/**
+ * Represents some operation that transforms data as bytes.
+ */
+typealias PrepareCallback = (ByteArray) -> ByteArray
+
 @ReactModule(name = DrmModule.name)
 class DrmModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
     /**
@@ -106,21 +111,9 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
         val widevineConfig = drmConfigs[nativeId]
         val widevineJson = config.getMap("widevine")
         if (widevineConfig != null && widevineJson != null && widevineJson.hasKey("prepareMessage")) {
+            val prepareMessage = createPrepareCallback(nativeId, "onPrepareMessage", preparedMessages)
             widevineConfig.prepareMessageCallback = PrepareMessageCallback {
-                val args = Arguments.createArray()
-                args.pushString(Base64.encodeToString(it, Base64.NO_WRAP))
-                context.catalystInstance.callFunction(
-                    "DRM-${nativeId}",
-                    "onPrepareMessage",
-                    args as NativeArray
-                )
-                var preparedMessage: ByteArray
-                synchronized(preparedMessages) {
-                    preparedMessages.wait()
-                    val result = preparedMessages[nativeId]
-                    preparedMessage = Base64.decode(result, Base64.NO_WRAP)
-                }
-                preparedMessage
+                prepareMessage(it)
             }
         }
     }
@@ -134,23 +127,31 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
         val widevineConfig = drmConfigs[nativeId]
         val widevineJson = config.getMap("widevine")
         if (widevineConfig != null && widevineJson != null && widevineJson.hasKey("prepareLicense")) {
+            val prepareLicense = createPrepareCallback(nativeId, "onPrepareLicense", preparedLicenses)
             widevineConfig.prepareLicenseCallback = PrepareLicenseCallback {
-                val args = Arguments.createArray()
-                args.pushString(Base64.encodeToString(it, Base64.NO_WRAP))
-                context.catalystInstance.callFunction(
-                    "DRM-${nativeId}",
-                    "onPrepareLicense",
-                    args as NativeArray
-                )
-                var preparedLicense: ByteArray
-                synchronized(preparedLicenses) {
-                    preparedLicenses.wait()
-                    val result = preparedLicenses[nativeId]
-                    preparedLicense = Base64.decode(result, Base64.NO_WRAP)
-                }
-                preparedLicense
+                prepareLicense(it)
             }
         }
+    }
+
+    /**
+     * Creates the body of a preparation callback e.g. `prepareMessage`, `prepareLicense`, etc.
+     * @param nativeId Instance ID.
+     * @param method JS prepare callback name.
+     * @param registry Registry where JS preparation result will be stored.
+     * @return The preparation callback function.
+     */
+    private fun createPrepareCallback(nativeId: NativeId, method: String, registry: Registry<String>): PrepareCallback = {
+        val args = Arguments.createArray()
+        args.pushString(Base64.encodeToString(it, Base64.NO_WRAP))
+        context.catalystInstance.callFunction("DRM-${nativeId}", method, args as NativeArray)
+        var preparedData: ByteArray
+        synchronized(registry) {
+            registry.wait()
+            val result = registry[nativeId]
+            preparedData = Base64.decode(result, Base64.NO_WRAP)
+        }
+        preparedData
     }
 
     /**
