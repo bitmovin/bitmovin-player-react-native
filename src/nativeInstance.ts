@@ -1,6 +1,6 @@
 import { NativeModules } from 'react-native';
 
-const UUID = NativeModules.UUIDModule;
+const Uuid = NativeModules.UuidModule;
 
 export interface NativeInstanceConfig {
   /**
@@ -37,7 +37,7 @@ export default abstract class NativeInstance<
    */
   constructor(config?: Config) {
     this.config = config;
-    this.nativeId = config?.nativeId ?? UUID.generate();
+    this.nativeId = config?.nativeId ?? Uuid.generate();
   }
 
   /**

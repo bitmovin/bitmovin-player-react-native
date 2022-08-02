@@ -171,8 +171,8 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
         context.getNativeModule(UIManagerModule::class.java)
 
     /**
-     * Helper function that returns the initialized `DRMModule` instance.
+     * Helper function that returns the initialized `DrmModule` instance.
      */
-    private fun drmModule(): DRMModule? =
-        context.getNativeModule(DRMModule::class.java)
+    private fun drmModule(): DrmModule? =
+        context.getNativeModule(DrmModule::class.java)
 }

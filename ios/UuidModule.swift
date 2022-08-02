@@ -1,8 +1,8 @@
 /**
  Native module for easy and fast unique ID generation on JS side. Used to generate native instance IDs.
  */
-@objc(UUIDModule)
-class UUIDModule: NSObject, RCTBridgeModule {
+@objc(UuidModule)
+class UuidModule: NSObject, RCTBridgeModule {
     /// Initialize this module on main thread.
     static func requiresMainQueueSetup() -> Bool {
         true
@@ -10,7 +10,7 @@ class UUIDModule: NSObject, RCTBridgeModule {
 
     /// Exported JS module name.
     static func moduleName() -> String! {
-        "UUIDModule"
+        "UuidModule"
     }
 
     /**

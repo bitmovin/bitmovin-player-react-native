@@ -61,7 +61,7 @@ class SourceModule: NSObject, RCTBridgeModule {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 self?.registry[nativeId] == nil,
-                let fairplayConfig = self?.getDRMModule()?.retrieve(drmNativeId),
+                let fairplayConfig = self?.getDrmModule()?.retrieve(drmNativeId),
                 let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: fairplayConfig)
             else {
                 return
@@ -70,9 +70,9 @@ class SourceModule: NSObject, RCTBridgeModule {
         }
     }
 
-    /// Fetches the initialized `DRMModule` instance on RN's bridge object.
-    private func getDRMModule() -> DRMModule? {
-        bridge.module(for: DRMModule.self) as? DRMModule
+    /// Fetches the initialized `DrmModule` instance on RN's bridge object.
+    private func getDrmModule() -> DrmModule? {
+        bridge.module(for: DrmModule.self) as? DrmModule
     }
 
     /**

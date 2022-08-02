@@ -1,7 +1,7 @@
 import BitmovinPlayer
 
-@objc(DRMModule)
-class DRMModule: NSObject, RCTBridgeModule {
+@objc(DrmModule)
+class DrmModule: NSObject, RCTBridgeModule {
     /// React bridge reference.
     @objc var bridge: RCTBridge!
 
@@ -10,7 +10,7 @@ class DRMModule: NSObject, RCTBridgeModule {
 
     /// JS module name.
     static func moduleName() -> String! {
-        "DRMModule"
+        "DrmModule"
     }
 
     /// Module requires main thread initialization.

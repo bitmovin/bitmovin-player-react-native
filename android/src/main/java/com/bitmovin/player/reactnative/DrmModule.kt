@@ -11,8 +11,8 @@ import com.facebook.react.uimanager.UIManagerModule
 import okhttp3.internal.notify
 import okhttp3.internal.wait
 
-@ReactModule(name = DRMModule.name)
-class DRMModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
+@ReactModule(name = DrmModule.name)
+class DrmModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
     /**
      * In-memory mapping of `nativeId` strings and `WidevineConfig` instances.
      */
@@ -32,9 +32,9 @@ class DRMModule(private val context: ReactApplicationContext) : ReactContextBase
      * JS exported module name.
      */
     companion object {
-        const val name = "DRMModule"
+        const val name = "DrmModule"
     }
-    override fun getName() = DRMModule.name
+    override fun getName() = DrmModule.name
 
     /**
      * Fetches the `WidevineConfig` instance associated with `nativeId` from internal registry.

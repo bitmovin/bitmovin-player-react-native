@@ -7,7 +7,7 @@ import { WidevineConfig } from './widevineConfig';
 // Export config types from DRM module.
 export { FairplayConfig, WidevineConfig };
 
-const DRMModule = NativeModules.DRMModule;
+const DrmModule = NativeModules.DrmModule;
 
 /**
  * Represents the general Streaming DRM config.
@@ -45,7 +45,7 @@ export class DRM extends NativeInstance<DRMConfig> {
       // call functions on it from native code, e.g `onPrepareMessage`.
       BatchedBridge.registerCallableModule(`DRM-${this.nativeId}`, this);
       // Create native configuration object.
-      DRMModule.initWithConfig(this.nativeId, this.config);
+      DrmModule.initWithConfig(this.nativeId, this.config);
       this.isInitialized = true;
     }
   };
@@ -55,7 +55,7 @@ export class DRM extends NativeInstance<DRMConfig> {
    */
   destroy = () => {
     if (!this.isDestroyed) {
-      DRMModule.destroy(this.nativeId);
+      DrmModule.destroy(this.nativeId);
       this.isDestroyed = true;
     }
   };
@@ -64,7 +64,7 @@ export class DRM extends NativeInstance<DRMConfig> {
    * iOS only.
    *
    * Applies the user-defined `prepareCertificate` function to native's `certificate` data and store
-   * the result back in `DRMModule`.
+   * the result back in `DrmModule`.
    *
    * Called from native code when `FairplayConfig.prepareCertificate` is dispatched.
    *
@@ -72,7 +72,7 @@ export class DRM extends NativeInstance<DRMConfig> {
    */
   onPrepareCertificate = (certificate: string) => {
     if (this.config?.fairplay?.prepareCertificate) {
-      DRMModule.setPreparedCertificate(
+      DrmModule.setPreparedCertificate(
         this.nativeId,
         this.config?.fairplay?.prepareCertificate?.(certificate)
       );
@@ -81,7 +81,7 @@ export class DRM extends NativeInstance<DRMConfig> {
 
   /**
    * Applies the user-defined `prepareMessage` function to native's `message` data and store
-   * the result back in `DRMModule`.
+   * the result back in `DrmModule`.
    *
    * Called from native code when `prepareMessage` is dispatched.
    *
@@ -92,7 +92,7 @@ export class DRM extends NativeInstance<DRMConfig> {
     const config =
       Platform.OS === 'ios' ? this.config?.fairplay : this.config?.widevine;
     if (config && config.prepareMessage) {
-      DRMModule.setPreparedMessage(
+      DrmModule.setPreparedMessage(
         this.nativeId,
         Platform.OS === 'ios'
           ? (config as FairplayConfig).prepareMessage?.(message, assetId!)
@@ -105,7 +105,7 @@ export class DRM extends NativeInstance<DRMConfig> {
    * iOS only.
    *
    * Applies the user-defined `prepareSyncMessage` function to native's `syncMessage` data and
-   * store the result back in `DRMModule`.
+   * store the result back in `DrmModule`.
    *
    * Called from native code when `FairplayConfig.prepareSyncMessage` is dispatched.
    *
@@ -113,7 +113,7 @@ export class DRM extends NativeInstance<DRMConfig> {
    */
   onPrepareSyncMessage = (syncMessage: string, assetId: string) => {
     if (this.config?.fairplay?.prepareSyncMessage) {
-      DRMModule.setPreparedSyncMessage(
+      DrmModule.setPreparedSyncMessage(
         this.nativeId,
         this.config?.fairplay?.prepareSyncMessage?.(syncMessage, assetId)
       );
@@ -122,7 +122,7 @@ export class DRM extends NativeInstance<DRMConfig> {
 
   /**
    * Applies the user-defined `prepareLicense` function to native's `license` data and store
-   * the result back in `DRMModule`.
+   * the result back in `DrmModule`.
    *
    * Called from native code when `prepareLicense` is dispatched.
    *
@@ -134,7 +134,7 @@ export class DRM extends NativeInstance<DRMConfig> {
         ? this.config?.fairplay?.prepareLicense
         : this.config?.widevine?.prepareLicense;
     if (prepareLicense) {
-      DRMModule.setPreparedLicense(this.nativeId, prepareLicense(license));
+      DrmModule.setPreparedLicense(this.nativeId, prepareLicense(license));
     }
   };
 
@@ -142,7 +142,7 @@ export class DRM extends NativeInstance<DRMConfig> {
    * iOS only.
    *
    * Applies the user-defined `prepareLicenseServerUrl` function to native's `licenseServerUrl` data
-   * and store the result back in `DRMModule`.
+   * and store the result back in `DrmModule`.
    *
    * Called from native code when `FairplayConfig.prepareLicenseServerUrl` is dispatched.
    *
@@ -150,7 +150,7 @@ export class DRM extends NativeInstance<DRMConfig> {
    */
   onPrepareLicenseServerUrl = (licenseServerUrl: string) => {
     if (this.config?.fairplay?.prepareLicenseServerUrl) {
-      DRMModule.setPreparedLicenseServerUrl(
+      DrmModule.setPreparedLicenseServerUrl(
         this.nativeId,
         this.config?.fairplay?.prepareLicenseServerUrl?.(licenseServerUrl)
       );
@@ -161,7 +161,7 @@ export class DRM extends NativeInstance<DRMConfig> {
    * iOS only.
    *
    * Applies the user-defined `prepareContentId` function to native's `contentId` string
-   * and store the result back in `DRMModule`.
+   * and store the result back in `DrmModule`.
    *
    * Called from native code when `FairplayConfig.prepareContentId` is dispatched.
    *
@@ -169,7 +169,7 @@ export class DRM extends NativeInstance<DRMConfig> {
    */
   onPrepareContentId = (contentId: string) => {
     if (this.config?.fairplay?.prepareContentId) {
-      DRMModule.setPreparedContentId(
+      DrmModule.setPreparedContentId(
         this.nativeId,
         this.config?.fairplay?.prepareContentId?.(contentId)
       );

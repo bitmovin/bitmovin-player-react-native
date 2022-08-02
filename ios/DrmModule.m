@@ -1,6 +1,6 @@
 #import <React/RCTBridgeModule.h>
 
-@interface RCT_EXTERN_REMAP_MODULE(DRMModule, DRMModule, NSObject)
+@interface RCT_EXTERN_REMAP_MODULE(DrmModule, DrmModule, NSObject)
 
 RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config)
 RCT_EXTERN_METHOD(destroy:(NSString *)nativeId)
