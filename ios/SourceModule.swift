@@ -5,8 +5,8 @@ class SourceModule: NSObject, RCTBridgeModule {
     /// React bridge reference.
     @objc var bridge: RCTBridge!
 
-    /// Mapping between UUID values and `Source` objects.
-    private var registry: [String: Source] = [:]
+    /// In-memory mapping from `nativeId`s to `Source` instances.
+    private var sources: Registry<Source> = [:]
 
     /// JS module name.
     static func moduleName() -> String! {
@@ -24,49 +24,49 @@ class SourceModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Fetches the `Source` instance associated with `nativeId` from internal registry.
+     Fetches the `Source` instance associated with `nativeId` from internal sources.
      - Parameter nativeId: `Source` instance ID.
      - Returns: The associated `Source` instance or `nil`.
      */
-    @objc func retrieve(_ nativeId: String) -> Source? {
-        registry[nativeId]
+    @objc func retrieve(_ nativeId: NativeId) -> Source? {
+        sources[nativeId]
     }
 
     /**
-     Creates a new `Source` instance inside the internal registry using the provided `config` object.
+     Creates a new `Source` instance inside the internal sources using the provided `config` object.
      - Parameter nativeId: ID to be associated with the `Source` instance.
      - Parameter config: `SourceConfig` object received from JS.
      */
     @objc(initWithConfig:config:)
-    func initWithConfig(_ nativeId: String, config: Any?) {
+    func initWithConfig(_ nativeId: NativeId, config: Any?) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                self?.registry[nativeId] == nil,
+                self?.sources[nativeId] == nil,
                 let sourceConfig = RCTConvert.sourceConfig(config)
             else {
                 return
             }
-            self?.registry[nativeId] = SourceFactory.create(from: sourceConfig)
+            self?.sources[nativeId] = SourceFactory.create(from: sourceConfig)
         }
     }
 
     /**
-     Creates a new `Source` instance inside the internal registry using the provided `config` object and an initialized DRM configuration ID.
+     Creates a new `Source` instance inside the internal sources using the provided `config` object and an initialized DRM configuration ID.
      - Parameter nativeId: ID to be associated with the `Source` instance.
      - Parameter drmNativeId: ID of the DRM config object to use.
      - Parameter config: `SourceConfig` object received from JS.
      */
     @objc(initWithDRMConfig:drmNativeId:config:)
-    func initWithDRMConfig(_ nativeId: String, drmNativeId: String, config: Any?) {
+    func initWithDRMConfig(_ nativeId: NativeId, drmNativeId: NativeId, config: Any?) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                self?.registry[nativeId] == nil,
+                self?.sources[nativeId] == nil,
                 let fairplayConfig = self?.getDrmModule()?.retrieve(drmNativeId),
                 let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: fairplayConfig)
             else {
                 return
             }
-            self?.registry[nativeId] = SourceFactory.create(from: sourceConfig)
+            self?.sources[nativeId] = SourceFactory.create(from: sourceConfig)
         }
     }
 
@@ -76,12 +76,12 @@ class SourceModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Removes the `Source` instance associated with `nativeId` from `registry`.
+     Removes the `Source` instance associated with `nativeId` from `sources`.
      - Parameter nativeId: Instance to be disposed.
      */
     @objc(destroy:)
-    func destroy(_ nativeId: String) {
-        registry.removeValue(forKey: nativeId)
+    func destroy(_ nativeId: NativeId) {
+        sources.removeValue(forKey: nativeId)
     }
 
     /**
@@ -92,12 +92,12 @@ class SourceModule: NSObject, RCTBridgeModule {
      */
     @objc(isAttachedToPlayer:resolver:rejecter:)
     func isAttachedToPlayer(
-        _ nativeId: String,
+        _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.registry[nativeId]?.isAttachedToPlayer)
+            resolve(self?.sources[nativeId]?.isAttachedToPlayer)
         }
     }
 
@@ -109,12 +109,12 @@ class SourceModule: NSObject, RCTBridgeModule {
      */
     @objc(isActive:resolver:rejecter:)
     func isActive(
-        _ nativeId: String,
+        _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.registry[nativeId]?.isActive)
+            resolve(self?.sources[nativeId]?.isActive)
         }
     }
 
@@ -126,12 +126,12 @@ class SourceModule: NSObject, RCTBridgeModule {
      */
     @objc(duration:resolver:rejecter:)
     func duration(
-        _ nativeId: String,
+        _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.registry[nativeId]?.duration)
+            resolve(self?.sources[nativeId]?.duration)
         }
     }
 
@@ -143,12 +143,12 @@ class SourceModule: NSObject, RCTBridgeModule {
      */
     @objc(loadingState:resolver:rejecter:)
     func loadingState(
-        _ nativeId: String,
+        _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.registry[nativeId]?.loadingState)
+            resolve(self?.sources[nativeId]?.loadingState)
         }
     }
 
@@ -160,12 +160,12 @@ class SourceModule: NSObject, RCTBridgeModule {
      */
     @objc(getMetadata:resolver:rejecter:)
     func getMetadata(
-        _ nativeId: String,
+        _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.registry[nativeId]?.metadata)
+            resolve(self?.sources[nativeId]?.metadata)
         }
     }
 
@@ -176,12 +176,12 @@ class SourceModule: NSObject, RCTBridgeModule {
      - Parameter rejecter: JS promise rejecter.
      */
     @objc(setMetadata:metadata:)
-    func setMetadata(_ nativeId: String, metadata: Any?) {
+    func setMetadata(_ nativeId: NativeId, metadata: Any?) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard let metadata = metadata as? [String: AnyObject] else {
                 return
             }
-            self?.registry[nativeId]?.metadata = metadata
+            self?.sources[nativeId]?.metadata = metadata
         }
     }
 }

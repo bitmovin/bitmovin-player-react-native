@@ -5,8 +5,8 @@ class DrmModule: NSObject, RCTBridgeModule {
     /// React bridge reference.
     @objc var bridge: RCTBridge!
 
-    /// Mapping between UUID values and `FairplayConfig` objects.
-    private var registry: [String: FairplayConfig] = [:]
+    /// In-memory mapping from `nativeId`s to `FairplayConfig` instances.
+    private var drmConfigs: Registry<FairplayConfig> = [:]
 
     /// JS module name.
     static func moduleName() -> String! {
@@ -24,41 +24,41 @@ class DrmModule: NSObject, RCTBridgeModule {
     }
     
     /**
-     Creates a new `FairplayConfig` instance inside the internal registry using the provided `config` object.
+     Creates a new `FairplayConfig` instance inside the internal drmConfigs using the provided `config` object.
      - Parameter nativeId: ID to associate with the `FairplayConfig` instance.
      - Returns: The associated `FairplayConfig` instance or `nil`.
      */
-    @objc func retrieve(_ nativeId: String) -> FairplayConfig? {
-        registry[nativeId]
+    @objc func retrieve(_ nativeId: NativeId) -> FairplayConfig? {
+        drmConfigs[nativeId]
     }
 
     /**
-     Creates a new `FairplayConfig` instance inside the internal registry using the provided `config` object.
+     Creates a new `FairplayConfig` instance inside the internal drmConfigs using the provided `config` object.
      - Parameter nativeId: ID to associate with the `FairplayConfig` instance.
      - Parameter config: `DRMConfig` object received from JS.
      */
     @objc(initWithConfig:config:)
-    func initWithConfig(_ nativeId: String, config: Any?) {
+    func initWithConfig(_ nativeId: NativeId, config: Any?) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                self?.registry[nativeId] == nil,
+                self?.drmConfigs[nativeId] == nil,
                 let fairplayConfig = RCTConvert.fairplayConfig(config)
             else {
                 return
             }
-            self?.registry[nativeId] = fairplayConfig
+            self?.drmConfigs[nativeId] = fairplayConfig
             self?.initConfigBlocks(nativeId, config)
         }
     }
 
     /**
-     Removes the `FairplayConfig` instance associated with `nativeId` from `registry` and all data produced during preparation hooks.
+     Removes the `FairplayConfig` instance associated with `nativeId` from `drmConfigs` and all data produced during preparation hooks.
      - Parameter nativeId Instance to be disposed.
      */
     @objc(destroy:)
-    func destroy(_ nativeId: String) {
-        // Remove FairplayConfig instance from registry
-        registry.removeValue(forKey: nativeId)
+    func destroy(_ nativeId: NativeId) {
+        // Remove FairplayConfig instance from drmConfigs
+        drmConfigs.removeValue(forKey: nativeId)
         // Remove any value that might be produced by DRM hooks
         preparedCertificates.removeValue(forKey: nativeId)
         preparedMessages.removeValue(forKey: nativeId)
@@ -71,17 +71,17 @@ class DrmModule: NSObject, RCTBridgeModule {
     // MARK: - Config blocks.
 
     /// Mapping between an object's `nativeId` and the value that'll be returned by its `prepareCertificate` callback.
-    var preparedCertificates: [String: String] = [:]
+    var preparedCertificates: Registry<String> = [:]
     /// Mapping between an object's `nativeId` and the value that'll be returned by its `prepareMessage` callback.
-    var preparedMessages: [String: String] = [:]
+    var preparedMessages: Registry<String> = [:]
     /// Mapping between an object's `nativeId` and the value that'll be returned by its `prepareMessage` callback.
-    var preparedSyncMessages: [String: String] = [:]
+    var preparedSyncMessages: Registry<String> = [:]
     /// Mapping between an object's `nativeId` and the value that'll be returned by its `prepareLicense` callback.
-    var preparedLicenses: [String: String] = [:]
+    var preparedLicenses: Registry<String> = [:]
     /// Mapping between an object's `nativeId` and the value that'll be returned by its `prepareLicenseServerUrl` callback.
-    var preparedLicenseServerUrls: [String: String] = [:]
+    var preparedLicenseServerUrls: Registry<String> = [:]
     /// Mapping between an object's `nativeId` and the value that'll be returned by its `prepareContentId` callback.
-    var preparedContentIds: [String: String] = [:]
+    var preparedContentIds: Registry<String> = [:]
 
     /**
      Function called from JS to store the computed `prepareCertificate` return value for `nativeId`.
@@ -93,7 +93,7 @@ class DrmModule: NSObject, RCTBridgeModule {
      value (even if it's a void method like in this case) or a crash happens. So the type `Any?` and return value `nil` were used here (it could be any value).
      */
     @objc(setPreparedCertificate:certificate:)
-    func setPreparedCertificate(_ nativeId: String, certificate: String) -> Any? {
+    func setPreparedCertificate(_ nativeId: NativeId, certificate: String) -> Any? {
         preparedCertificates[nativeId] = certificate
         return nil
     }
@@ -108,7 +108,7 @@ class DrmModule: NSObject, RCTBridgeModule {
      value (even if it's a void method like in this case) or a crash happens. So the type `Any?` and return value `nil` were used here (it could be any value).
      */
     @objc(setPreparedMessage:message:)
-    func setPreparedMessage(_ nativeId: String, message: String) -> Any? {
+    func setPreparedMessage(_ nativeId: NativeId, message: String) -> Any? {
         preparedMessages[nativeId] = message
         return nil
     }
@@ -123,7 +123,7 @@ class DrmModule: NSObject, RCTBridgeModule {
      value (even if it's a void method like in this case) or a crash happens. So the type `Any?` and return value `nil` were used here (it could be any value).
      */
     @objc(setPreparedSyncMessage:syncMessage:)
-    func setPreparedSyncMessage(_ nativeId: String, syncMessage: String) -> Any? {
+    func setPreparedSyncMessage(_ nativeId: NativeId, syncMessage: String) -> Any? {
         preparedSyncMessages[nativeId] = syncMessage
         return nil
     }
@@ -138,7 +138,7 @@ class DrmModule: NSObject, RCTBridgeModule {
      (even if it's a void method like in this case) or a crash happens. So the type `Any?` and return value `nil` were used here (it could be any value).
      */
     @objc(setPreparedLicense:license:)
-    func setPreparedLicense(_ nativeId: String, license: String) -> Any? {
+    func setPreparedLicense(_ nativeId: NativeId, license: String) -> Any? {
         preparedLicenses[nativeId] = license
         return nil
     }
@@ -153,7 +153,7 @@ class DrmModule: NSObject, RCTBridgeModule {
      (even if it's a void method like in this case) or a crash happens. So the type `Any?` and return value `nil` were used here (it could be any value).
      */
     @objc(setPreparedLicenseServerUrl:url:)
-    func setPreparedLicenseServerUrl(_ nativeId: String, url: String) -> Any? {
+    func setPreparedLicenseServerUrl(_ nativeId: NativeId, url: String) -> Any? {
         preparedLicenseServerUrls[nativeId] = url
         return nil
     }
@@ -168,7 +168,7 @@ class DrmModule: NSObject, RCTBridgeModule {
      (even if it's a void method like in this case) or a crash happens. So the type `Any?` and return value `nil` were used here (it could be any value).
      */
     @objc(setPreparedContentId:contentId:)
-    func setPreparedContentId(_ nativeId: String, contentId: String) -> Any? {
+    func setPreparedContentId(_ nativeId: NativeId, contentId: String) -> Any? {
         preparedContentIds[nativeId] = contentId
         return nil
     }
@@ -179,7 +179,7 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter nativeId: Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initConfigBlocks(_ nativeId: String, _ config: Any?) {
+    private func initConfigBlocks(_ nativeId: NativeId, _ config: Any?) {
         if let json = config as? [String: Any], let fairplayJson = json["fairplay"] as? [String: Any] {
             initPrepareCertificate(nativeId, fairplayJson: fairplayJson)
             initPrepareMessage(nativeId, fairplayJson: fairplayJson)
@@ -196,8 +196,8 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initPrepareCertificate(_ nativeId: String, fairplayJson: [String: Any]) {
-        guard let fairplayConfig = registry[nativeId] else {
+    private func initPrepareCertificate(_ nativeId: NativeId, fairplayJson: [String: Any]) {
+        guard let fairplayConfig = drmConfigs[nativeId] else {
             return
         }
         if fairplayJson["prepareCertificate"] != nil {
@@ -213,8 +213,8 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initPrepareMessage(_ nativeId: String, fairplayJson: [String: Any]) {
-        guard let fairplayConfig = registry[nativeId] else {
+    private func initPrepareMessage(_ nativeId: NativeId, fairplayJson: [String: Any]) {
+        guard let fairplayConfig = drmConfigs[nativeId] else {
             return
         }
         if fairplayJson["prepareMessage"] != nil {
@@ -230,8 +230,8 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initPrepareSyncMessage(_ nativeId: String, fairplayJson: [String: Any]) {
-        guard let fairplayConfig = registry[nativeId] else {
+    private func initPrepareSyncMessage(_ nativeId: NativeId, fairplayJson: [String: Any]) {
+        guard let fairplayConfig = drmConfigs[nativeId] else {
             return
         }
         if fairplayJson["prepareSyncMessage"] != nil {
@@ -247,8 +247,8 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initPrepareLicense(_ nativeId: String, fairplayJson: [String: Any]) {
-        guard let fairplayConfig = registry[nativeId] else {
+    private func initPrepareLicense(_ nativeId: NativeId, fairplayJson: [String: Any]) {
+        guard let fairplayConfig = drmConfigs[nativeId] else {
             return
         }
         if fairplayJson["prepareLicense"] != nil {
@@ -264,8 +264,8 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initPrepareLicenseServerUrl(_ nativeId: String, fairplayJson: [String: Any]) {
-        guard let fairplayConfig = registry[nativeId] else {
+    private func initPrepareLicenseServerUrl(_ nativeId: NativeId, fairplayJson: [String: Any]) {
+        guard let fairplayConfig = drmConfigs[nativeId] else {
             return
         }
         if fairplayJson["prepareLicenseServerUrl"] != nil {
@@ -281,8 +281,8 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initPrepareContentId(_ nativeId: String, fairplayJson: [String: Any]) {
-        guard let fairplayConfig = registry[nativeId] else {
+    private func initPrepareContentId(_ nativeId: NativeId, fairplayJson: [String: Any]) {
+        guard let fairplayConfig = drmConfigs[nativeId] else {
             return
         }
         if fairplayJson["prepareContentId"] != nil {
@@ -300,7 +300,7 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter data: Certificate data received from `prepareCertificate`.
      - Returns: JS prepared certificate value.
      */
-    private func prepareCertificateFromJS(_ nativeId: String, _ data: Data) -> Data {
+    private func prepareCertificateFromJS(_ nativeId: NativeId, _ data: Data) -> Data {
         // Setup dispatch group
         let dispatchGroup = DispatchGroup()
         dispatchGroup.enter()
@@ -324,7 +324,7 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter assetID: Asset ID value received from `prepareMessage`.
      - Returns: JS prepared message value.
      */
-    private func prepareMessageFromJS(_ nativeId: String, _ data: Data, _ assetId: String) -> Data {
+    private func prepareMessageFromJS(_ nativeId: NativeId, _ data: Data, _ assetId: String) -> Data {
         // Setup dispatch group
         let dispatchGroup = DispatchGroup()
         dispatchGroup.enter()
@@ -352,7 +352,7 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter assetID: Asset ID value received from `prepareSyncMessage`.
      - Returns: JS prepared sync message value.
      */
-    private func prepareSyncMessageFromJS(_ nativeId: String, _ data: Data, _ assetId: String) -> Data {
+    private func prepareSyncMessageFromJS(_ nativeId: NativeId, _ data: Data, _ assetId: String) -> Data {
         // Setup dispatch group
         let dispatchGroup = DispatchGroup()
         dispatchGroup.enter()
@@ -379,7 +379,7 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter data: License data received from `prepareLicense`.
      - Returns: JS prepared license value.
      */
-    private func prepareLicenseFromJS(_ nativeId: String, _ data: Data) -> Data {
+    private func prepareLicenseFromJS(_ nativeId: NativeId, _ data: Data) -> Data {
         // Setup dispatch group
         let dispatchGroup = DispatchGroup()
         dispatchGroup.enter()
@@ -402,7 +402,7 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter url: License server url string received from `prepareLicenseServerUrl`.
      - Returns: JS prepared license server url value.
      */
-    private func prepareLicenseServerUrlFromJS(_ nativeId: String, _ url: String) -> String {
+    private func prepareLicenseServerUrlFromJS(_ nativeId: NativeId, _ url: String) -> String {
         // Setup dispatch group
         let dispatchGroup = DispatchGroup()
         dispatchGroup.enter()
@@ -425,7 +425,7 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter contentId: The extracted contentId received from `prepareContentId`.
      - Returns: JS prepared contentId.
      */
-    private func prepareContentIdFromJS(_ nativeId: String, _ contentId: String) -> String {
+    private func prepareContentIdFromJS(_ nativeId: NativeId, _ contentId: String) -> String {
         // Setup dispatch group
         let dispatchGroup = DispatchGroup()
         dispatchGroup.enter()

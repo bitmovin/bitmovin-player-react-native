@@ -9,9 +9,9 @@ import com.facebook.react.uimanager.UIManagerModule
 @ReactModule(name = SourceModule.name)
 class SourceModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
     /**
-     * In-memory mapping of `nativeId` strings and `Source` instances.
+     * In-memory mapping from `nativeId`s to `Source` instances.
      */
-    private var registry: MutableMap<String, Source> = mutableMapOf()
+    private var sources: Registry<Source> = mutableMapOf()
 
     /**
      * JS exported module name.
@@ -22,60 +22,60 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     override fun getName() = SourceModule.name
 
     /**
-     * Fetches the `Source` instance associated with `nativeId` from internal registry.
+     * Fetches the `Source` instance associated with `nativeId` from internal sources.
      * @param nativeId `Source` instance ID.
      * @return The associated `Source` instance or `null`.
      */
-    fun getSource(nativeId: String?): Source? {
+    fun getSource(nativeId: NativeId?): Source? {
         if (nativeId == null) {
             return null
         }
-        return registry[nativeId]
+        return sources[nativeId]
     }
 
     /**
-     * Creates a new `Source` instance inside the internal registry using the provided `config` object.
+     * Creates a new `Source` instance inside the internal sources using the provided `config` object.
      * @param nativeId ID to be associated with the `Source` instance.
      * @param config `SourceConfig` object received from JS.
      */
     @ReactMethod
-    fun initWithConfig(nativeId: String, config: ReadableMap?) {
+    fun initWithConfig(nativeId: NativeId, config: ReadableMap?) {
         uiManager()?.addUIBlock {
-            if (!registry.containsKey(nativeId)) {
+            if (!sources.containsKey(nativeId)) {
                 JsonConverter.toSourceConfig(config)?.let {
-                    registry[nativeId] = Source.create(it)
+                    sources[nativeId] = Source.create(it)
                 }
             }
         }
     }
 
     /**
-     * Creates a new `Source` instance inside the internal registry using the provided
+     * Creates a new `Source` instance inside the internal sources using the provided
      * `config` object and an initialized DRM configuration ID.
      * @param nativeId ID to be associated with the `Source` instance.
      * @param drmNativeId ID of the DRM config to use.
      * @param config `SourceConfig` object received from JS.
      */
     @ReactMethod
-    fun initWithDRMConfig(nativeId: String, drmNativeId: String, config: ReadableMap?) {
+    fun initWithDRMConfig(nativeId: NativeId, drmNativeId: NativeId, config: ReadableMap?) {
         uiManager()?.addUIBlock {
             val drmConfig = drmModule()?.getConfig(drmNativeId)
-            if (!registry.containsKey(nativeId) && drmConfig != null) {
+            if (!sources.containsKey(nativeId) && drmConfig != null) {
                 JsonConverter.toSourceConfig(config)?.let {
                     it.drmConfig = drmConfig
-                    registry[nativeId] = Source.create(it)
+                    sources[nativeId] = Source.create(it)
                 }
             }
         }
     }
 
     /**
-     * Removes the `Source` instance associated with `nativeId` from the internal registry.
+     * Removes the `Source` instance associated with `nativeId` from the internal sources.
      * @param nativeId `Source` to be disposed.
      */
     @ReactMethod
-    fun destroy(nativeId: String) {
-        registry.remove(nativeId)
+    fun destroy(nativeId: NativeId) {
+        sources.remove(nativeId)
     }
 
     /**
@@ -84,9 +84,9 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
      * @param promise: JS promise object.
      */
     @ReactMethod
-    fun isAttachedToPlayer(nativeId: String, promise: Promise) {
+    fun isAttachedToPlayer(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(registry[nativeId]?.isAttachedToPlayer)
+            promise.resolve(sources[nativeId]?.isAttachedToPlayer)
         }
     }
 
@@ -96,9 +96,9 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
      * @param promise: JS promise object.
      */
     @ReactMethod
-    fun isActive(nativeId: String, promise: Promise) {
+    fun isActive(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(registry[nativeId]?.isActive)
+            promise.resolve(sources[nativeId]?.isActive)
         }
     }
 
@@ -108,9 +108,9 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
      * @param promise: JS promise object.
      */
     @ReactMethod
-    fun duration(nativeId: String, promise: Promise) {
+    fun duration(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(registry[nativeId]?.duration)
+            promise.resolve(sources[nativeId]?.duration)
         }
     }
 
@@ -120,9 +120,9 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
      * @param promise: JS promise object.
      */
     @ReactMethod
-    fun loadingState(nativeId: String, promise: Promise) {
+    fun loadingState(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(registry[nativeId]?.loadingState?.ordinal)
+            promise.resolve(sources[nativeId]?.loadingState?.ordinal)
         }
     }
 
@@ -132,9 +132,9 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
      * @param promise: JS promise object.
      */
     @ReactMethod
-    fun getMetadata(nativeId: String, promise: Promise) {
+    fun getMetadata(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(registry[nativeId]?.config?.metadata)
+            promise.resolve(sources[nativeId]?.config?.metadata)
         }
     }
 
@@ -144,9 +144,9 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
      * @param promise: JS promise object.
      */
     @ReactMethod
-    fun setMetadata(nativeId: String, metadata: ReadableMap?) {
+    fun setMetadata(nativeId: NativeId, metadata: ReadableMap?) {
         uiManager()?.addUIBlock {
-            registry[nativeId]?.config?.metadata = asStringMap(metadata)
+            sources[nativeId]?.config?.metadata = asStringMap(metadata)
         }
     }
 

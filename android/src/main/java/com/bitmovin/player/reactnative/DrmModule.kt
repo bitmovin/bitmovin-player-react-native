@@ -14,19 +14,19 @@ import okhttp3.internal.wait
 @ReactModule(name = DrmModule.name)
 class DrmModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
     /**
-     * In-memory mapping of `nativeId` strings and `WidevineConfig` instances.
+     * In-memory mapping from `nativeId`s to `WidevineConfig` instances.
      */
-    private var registry = mutableMapOf<String, WidevineConfig>()
+    private var drmConfigs: Registry<WidevineConfig> = mutableMapOf()
 
     /**
      * Mapping between an object's `nativeId` and the value that'll be returned by its `prepareMessage` callback.
      */
-    private var preparedMessages = mutableMapOf<String, String>()
+    private var preparedMessages: Registry<String> = mutableMapOf()
 
     /**
      * Mapping between an object's `nativeId` and the value that'll be returned by its `prepareLicense` callback.
      */
-    private var preparedLicenses = mutableMapOf<String, String>()
+    private var preparedLicenses: Registry<String> = mutableMapOf()
 
     /**
      * JS exported module name.
@@ -37,28 +37,28 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
     override fun getName() = DrmModule.name
 
     /**
-     * Fetches the `WidevineConfig` instance associated with `nativeId` from internal registry.
+     * Fetches the `WidevineConfig` instance associated with `nativeId` from internal drmConfigs.
      * @param nativeId `WidevineConfig` instance ID.
      * @return The associated `WidevineConfig` instance or `null`.
      */
-    fun getConfig(nativeId: String?): WidevineConfig? {
+    fun getConfig(nativeId: NativeId?): WidevineConfig? {
         if (nativeId == null) {
             return null
         }
-        return registry[nativeId]
+        return drmConfigs[nativeId]
     }
 
     /**
-     * Creates a new `WidevineConfig` instance inside the internal registry using the provided `config` object.
+     * Creates a new `WidevineConfig` instance inside the internal drmConfigs using the provided `config` object.
      * @param nativeId ID to associate with the `WidevineConfig` instance.
      * @param config `DRMConfig` object received from JS.
      */
     @ReactMethod
-    fun initWithConfig(nativeId: String, config: ReadableMap?) {
+    fun initWithConfig(nativeId: NativeId, config: ReadableMap?) {
         uiManager()?.addUIBlock {
-            if (!registry.containsKey(nativeId) && config != null) {
+            if (!drmConfigs.containsKey(nativeId) && config != null) {
                 JsonConverter.toWidevineConfig(config)?.let {
-                    registry[nativeId] = it
+                    drmConfigs[nativeId] = it
                     initPrepareMessage(nativeId, config)
                     initPrepareLicense(nativeId, config)
                 }
@@ -67,19 +67,19 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
     }
 
     /**
-     * Removes the `WidevineConfig` instance associated with `nativeId` from the internal registry.
+     * Removes the `WidevineConfig` instance associated with `nativeId` from the internal drmConfigs.
      * @param nativeId `WidevineConfig` to be disposed.
      */
     @ReactMethod
-    fun destroy(nativeId: String) {
-        registry.remove(nativeId)
+    fun destroy(nativeId: NativeId) {
+        drmConfigs.remove(nativeId)
     }
 
     /**
      * Function called from JS to store the computed `prepareMessage` return value for `nativeId`.
      */
     @ReactMethod(isBlockingSynchronousMethod = true)
-    fun setPreparedMessage(nativeId: String, message: String) {
+    fun setPreparedMessage(nativeId: NativeId, message: String) {
         synchronized(preparedMessages) {
             preparedMessages[nativeId] = message
             preparedMessages.notify()
@@ -90,7 +90,7 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
      * Function called from JS to store the computed `prepareLicense` return value for `nativeId`.
      */
     @ReactMethod(isBlockingSynchronousMethod = true)
-    fun setPreparedLicense(nativeId: String, license: String) {
+    fun setPreparedLicense(nativeId: NativeId, license: String) {
         synchronized(preparedLicenses) {
             preparedLicenses[nativeId] = license
             preparedLicenses.notify()
@@ -102,8 +102,8 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
      * @param nativeId Instance ID.
      * @param config `DRMConfig` config object sent from JS.
      */
-    private fun initPrepareMessage(nativeId: String, config: ReadableMap) {
-        val widevineConfig = registry[nativeId]
+    private fun initPrepareMessage(nativeId: NativeId, config: ReadableMap) {
+        val widevineConfig = drmConfigs[nativeId]
         val widevineJson = config.getMap("widevine")
         if (widevineConfig != null && widevineJson != null && widevineJson.hasKey("prepareMessage")) {
             widevineConfig.prepareMessageCallback = PrepareMessageCallback {
@@ -130,8 +130,8 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
      * @param nativeId Instance ID.
      * @param config `DRMConfig` config object sent from JS.
      */
-    private fun initPrepareLicense(nativeId: String, config: ReadableMap) {
-        val widevineConfig = registry[nativeId]
+    private fun initPrepareLicense(nativeId: NativeId, config: ReadableMap) {
+        val widevineConfig = drmConfigs[nativeId]
         val widevineJson = config.getMap("widevine")
         if (widevineConfig != null && widevineJson != null && widevineJson.hasKey("prepareLicense")) {
             widevineConfig.prepareLicenseCallback = PrepareLicenseCallback {
