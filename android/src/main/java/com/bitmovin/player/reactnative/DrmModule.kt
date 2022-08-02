@@ -8,8 +8,9 @@ import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.UIManagerModule
-import okhttp3.internal.notify
-import okhttp3.internal.wait
+import java.util.concurrent.locks.Condition
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * Represents some operation that transforms data as bytes.
@@ -24,14 +25,29 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
     private val drmConfigs: Registry<WidevineConfig> = mutableMapOf()
 
     /**
+     * Module's local lock object used to sync calls between Kotlin and JS.
+     */
+    private val lock = ReentrantLock()
+
+    /**
      * Mapping between an object's `nativeId` and the value that'll be returned by its `prepareMessage` callback.
      */
     private val preparedMessages: Registry<String> = mutableMapOf()
 
     /**
+     *  Lock condition used to sync read/write operations on `preparedMessages`.
+     */
+    private val preparedMessagesCondition = lock.newCondition()
+
+    /**
      * Mapping between an object's `nativeId` and the value that'll be returned by its `prepareLicense` callback.
      */
     private val preparedLicenses: Registry<String> = mutableMapOf()
+
+    /**
+     *  Lock condition used to sync read/write operations on `preparedMessages`.
+     */
+    private val preparedLicensesCondition = lock.newCondition()
 
     /**
      * JS exported module name.
@@ -85,9 +101,9 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
      */
     @ReactMethod(isBlockingSynchronousMethod = true)
     fun setPreparedMessage(nativeId: NativeId, message: String) {
-        synchronized(preparedMessages) {
+        lock.withLock {
             preparedMessages[nativeId] = message
-            preparedMessages.notify()
+            preparedMessagesCondition.signal()
         }
     }
 
@@ -96,9 +112,9 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
      */
     @ReactMethod(isBlockingSynchronousMethod = true)
     fun setPreparedLicense(nativeId: NativeId, license: String) {
-        synchronized(preparedLicenses) {
+        lock.withLock {
             preparedLicenses[nativeId] = license
-            preparedLicenses.notify()
+            preparedLicensesCondition.signal()
         }
     }
 
@@ -111,7 +127,12 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
         val widevineConfig = drmConfigs[nativeId]
         val widevineJson = config.getMap("widevine")
         if (widevineConfig != null && widevineJson != null && widevineJson.hasKey("prepareMessage")) {
-            val prepareMessage = createPrepareCallback(nativeId, "onPrepareMessage", preparedMessages)
+            val prepareMessage = createPrepareCallback(
+                nativeId,
+                "onPrepareMessage",
+                preparedMessages,
+                preparedMessagesCondition
+            )
             widevineConfig.prepareMessageCallback = PrepareMessageCallback {
                 prepareMessage(it)
             }
@@ -127,7 +148,12 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
         val widevineConfig = drmConfigs[nativeId]
         val widevineJson = config.getMap("widevine")
         if (widevineConfig != null && widevineJson != null && widevineJson.hasKey("prepareLicense")) {
-            val prepareLicense = createPrepareCallback(nativeId, "onPrepareLicense", preparedLicenses)
+            val prepareLicense = createPrepareCallback(
+                nativeId,
+                "onPrepareLicense",
+                preparedLicenses,
+                preparedLicensesCondition
+            )
             widevineConfig.prepareLicenseCallback = PrepareLicenseCallback {
                 prepareLicense(it)
             }
@@ -141,13 +167,18 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
      * @param registry Registry where JS preparation result will be stored.
      * @return The preparation callback function.
      */
-    private fun createPrepareCallback(nativeId: NativeId, method: String, registry: Registry<String>): PrepareCallback = {
+    private fun createPrepareCallback(
+        nativeId: NativeId,
+        method: String,
+        registry: Registry<String>,
+        registryCondition: Condition
+    ): PrepareCallback = {
         val args = Arguments.createArray()
         args.pushString(Base64.encodeToString(it, Base64.NO_WRAP))
         context.catalystInstance.callFunction("DRM-${nativeId}", method, args as NativeArray)
-        var preparedData: ByteArray
-        synchronized(registry) {
-            registry.wait()
+        val preparedData: ByteArray
+        lock.withLock {
+            registryCondition.await()
             val result = registry[nativeId]
             preparedData = Base64.decode(result, Base64.NO_WRAP)
         }
