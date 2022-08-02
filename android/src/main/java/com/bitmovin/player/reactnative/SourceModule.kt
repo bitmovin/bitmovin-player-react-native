@@ -11,7 +11,7 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     /**
      * In-memory mapping from `nativeId`s to `Source` instances.
      */
-    private var sources: Registry<Source> = mutableMapOf()
+    private val sources: Registry<Source> = mutableMapOf()
 
     /**
      * JS exported module name.

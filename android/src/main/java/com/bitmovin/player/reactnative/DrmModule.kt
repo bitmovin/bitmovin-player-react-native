@@ -21,17 +21,17 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
     /**
      * In-memory mapping from `nativeId`s to `WidevineConfig` instances.
      */
-    private var drmConfigs: Registry<WidevineConfig> = mutableMapOf()
+    private val drmConfigs: Registry<WidevineConfig> = mutableMapOf()
 
     /**
      * Mapping between an object's `nativeId` and the value that'll be returned by its `prepareMessage` callback.
      */
-    private var preparedMessages: Registry<String> = mutableMapOf()
+    private val preparedMessages: Registry<String> = mutableMapOf()
 
     /**
      * Mapping between an object's `nativeId` and the value that'll be returned by its `prepareLicense` callback.
      */
-    private var preparedLicenses: Registry<String> = mutableMapOf()
+    private val preparedLicenses: Registry<String> = mutableMapOf()
 
     /**
      * JS exported module name.

@@ -16,7 +16,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     /**
      * In-memory mapping from `nativeId`s to `Player` instances.
      */
-    private var players: Registry<Player> = mutableMapOf()
+    private val players: Registry<Player> = mutableMapOf()
 
     /**
      * JS exported module name.
