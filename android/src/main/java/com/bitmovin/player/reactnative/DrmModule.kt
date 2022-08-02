@@ -176,13 +176,11 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
         val args = Arguments.createArray()
         args.pushString(Base64.encodeToString(it, Base64.NO_WRAP))
         context.catalystInstance.callFunction("DRM-${nativeId}", method, args as NativeArray)
-        val preparedData: ByteArray
         lock.withLock {
             registryCondition.await()
             val result = registry[nativeId]
-            preparedData = Base64.decode(result, Base64.NO_WRAP)
+            Base64.decode(result, Base64.NO_WRAP)
         }
-        preparedData
     }
 
     /**
