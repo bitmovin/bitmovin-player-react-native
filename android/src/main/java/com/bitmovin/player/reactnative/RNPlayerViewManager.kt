@@ -96,7 +96,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @param view Target `RNPlayerView`.
      * @param playerId `Player` instance id inside `PlayerModule`'s registry.
      */
-    private fun attachPlayer(view: RNPlayerView, playerId: String?) {
+    private fun attachPlayer(view: RNPlayerView, playerId: NativeId?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
             if (view.playerView != null) {

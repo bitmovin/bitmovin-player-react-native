@@ -37,16 +37,6 @@ export default function BasicPlayback() {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
 
-  const onSourceLoaded = useCallback(
-    (event: Event) => {
-      prettyPrint(`EVENT [${event.name}]`, event);
-      player.getSource().then((source) => {
-        prettyPrint('SOURCE', source);
-      });
-    },
-    [player]
-  );
-
   const onEvent = useCallback((event: Event) => {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
@@ -60,7 +50,9 @@ export default function BasicPlayback() {
         onPlaying={onEvent}
         onPaused={onEvent}
         onReady={onReady}
-        onSourceLoaded={onSourceLoaded}
+        onSourceLoaded={onEvent}
+        onSeek={onEvent}
+        onSeeked={onEvent}
       />
     </View>
   );
