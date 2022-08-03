@@ -57,7 +57,7 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
      * @param config `SourceConfig` object received from JS.
      */
     @ReactMethod
-    fun initWithDRMConfig(nativeId: NativeId, drmNativeId: NativeId, config: ReadableMap?) {
+    fun initWithDrmConfig(nativeId: NativeId, drmNativeId: NativeId, config: ReadableMap?) {
         uiManager()?.addUIBlock {
             val drmConfig = drmModule()?.getConfig(drmNativeId)
             if (!sources.containsKey(nativeId) && drmConfig != null) {

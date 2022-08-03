@@ -41,7 +41,7 @@ const source: SourceConfig = {
       },
       // Checkout widevine docs to know more about security levels.
       // You should be fine with just the default level.
-      preferredSecurityLevel: 'L3', // L3 = software level DRM protection.
+      preferredSecurityLevel: 'L3', // L3 = software level Drm protection.
     },
     // iOS only.
     fairplay: {
@@ -102,7 +102,7 @@ const source: SourceConfig = {
   },
 };
 
-export default function BasicDRMPlayback() {
+export default function BasicDrmPlayback() {
   const player = usePlayer();
 
   useFocusEffect(

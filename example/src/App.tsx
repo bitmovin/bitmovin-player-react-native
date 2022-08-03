@@ -5,7 +5,7 @@ import { SourceType } from 'bitmovin-player-react-native';
 import Button from './components/Button';
 import ExamplesList from './screens/ExamplesList';
 import BasicPlayback from './screens/BasicPlayback';
-import BasicDRMPlayback from './screens/BasicDRMPlayback';
+import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
@@ -18,7 +18,7 @@ export type RootStackParamsList = {
     }[];
   };
   BasicPlayback: undefined;
-  DRMPlayback: undefined;
+  BasicDrmPlayback: undefined;
   SubtitlePlayback: undefined;
   CustomPlaybackForm: undefined;
   CustomPlayback: {
@@ -59,8 +59,8 @@ export default function App() {
                 routeName: 'BasicPlayback',
               },
               {
-                title: 'DRM playback',
-                routeName: 'BasicDRMPlayback',
+                title: 'Basic Drm playback',
+                routeName: 'BasicDrmPlayback',
               },
               {
                 title: 'Subtitle and captions',
@@ -75,9 +75,9 @@ export default function App() {
           options={{ title: 'Basic playback' }}
         />
         <RootStack.Screen
-          name="BasicDRMPlayback"
-          component={BasicDRMPlayback}
-          options={{ title: 'DRM playback' }}
+          name="BasicDrmPlayback"
+          component={BasicDrmPlayback}
+          options={{ title: 'Basic Drm playback' }}
         />
         <RootStack.Screen
           name="SubtitlePlayback"

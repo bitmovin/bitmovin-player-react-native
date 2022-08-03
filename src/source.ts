@@ -1,6 +1,6 @@
 import { NativeModules } from 'react-native';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
-import { DRM, DRMConfig } from './drm';
+import { Drm, DrmConfig } from './drm';
 
 const SourceModule = NativeModules.SourceModule;
 
@@ -72,7 +72,7 @@ export interface SourceConfig extends NativeInstanceConfig {
   /**
    * The DRM config for the source.
    */
-  drmConfig?: DRMConfig;
+  drmConfig?: DrmConfig;
 }
 
 /**
@@ -80,9 +80,9 @@ export interface SourceConfig extends NativeInstanceConfig {
  */
 export class Source extends NativeInstance<SourceConfig> {
   /**
-   * The DRM config for the source.
+   * The native DRM config reference of this source.
    */
-  drm?: DRM;
+  drm?: Drm;
   /**
    * Whether the native `Source` object has been created.
    */
@@ -98,9 +98,9 @@ export class Source extends NativeInstance<SourceConfig> {
   initialize = () => {
     if (!this.isInitialized) {
       if (this.config?.drmConfig) {
-        this.drm = new DRM(this.config.drmConfig);
+        this.drm = new Drm(this.config.drmConfig);
         this.drm.initialize();
-        SourceModule.initWithDRMConfig(
+        SourceModule.initWithDrmConfig(
           this.nativeId,
           this.drm.nativeId,
           this.config

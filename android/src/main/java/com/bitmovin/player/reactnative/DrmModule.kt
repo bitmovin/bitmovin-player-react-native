@@ -72,7 +72,7 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
     /**
      * Creates a new `WidevineConfig` instance inside the internal drmConfigs using the provided `config` object.
      * @param nativeId ID to associate with the `WidevineConfig` instance.
-     * @param config `DRMConfig` object received from JS.
+     * @param config `DrmConfig` object received from JS.
      */
     @ReactMethod
     fun initWithConfig(nativeId: NativeId, config: ReadableMap?) {
@@ -121,7 +121,7 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
     /**
      * Initialize the `prepareMessage` block in the `WidevineConfig` associated with `nativeId`.
      * @param nativeId Instance ID.
-     * @param config `DRMConfig` config object sent from JS.
+     * @param config `DrmConfig` config object sent from JS.
      */
     private fun initPrepareMessage(nativeId: NativeId, config: ReadableMap) {
         val widevineConfig = drmConfigs[nativeId]
@@ -142,7 +142,7 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
     /**
      * Initialize the `prepareLicense` block in the `WidevineConfig` associated with `nativeId`.
      * @param nativeId Instance ID.
-     * @param config `DRMConfig` config object sent from JS.
+     * @param config `DrmConfig` config object sent from JS.
      */
     private fun initPrepareLicense(nativeId: NativeId, config: ReadableMap) {
         val widevineConfig = drmConfigs[nativeId]

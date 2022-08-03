@@ -56,8 +56,8 @@ class SourceModule: NSObject, RCTBridgeModule {
      - Parameter drmNativeId: ID of the DRM config object to use.
      - Parameter config: `SourceConfig` object received from JS.
      */
-    @objc(initWithDRMConfig:drmNativeId:config:)
-    func initWithDRMConfig(_ nativeId: NativeId, drmNativeId: NativeId, config: Any?) {
+    @objc(initWithDrmConfig:drmNativeId:config:)
+    func initWithDrmConfig(_ nativeId: NativeId, drmNativeId: NativeId, config: Any?) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 self?.sources[nativeId] == nil,

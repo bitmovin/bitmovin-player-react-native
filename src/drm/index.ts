@@ -12,13 +12,13 @@ const DrmModule = NativeModules.DrmModule;
 /**
  * Represents the general Streaming DRM config.
  */
-export interface DRMConfig extends NativeInstanceConfig {
+export interface DrmConfig extends NativeInstanceConfig {
   /**
-   * FairPlay specific configuration. Only appliable for iOS.
+   * FairPlay specific configuration. Only applicable for iOS.
    */
   fairplay?: FairplayConfig;
   /**
-   * Widevine specific configuration. Only appliable for Android.
+   * Widevine specific configuration. Only applicable for Android.
    */
   widevine?: WidevineConfig;
 }
@@ -26,7 +26,7 @@ export interface DRMConfig extends NativeInstanceConfig {
 /**
  * Represents a native DRM configuration object.
  */
-export class DRM extends NativeInstance<DRMConfig> {
+export class Drm extends NativeInstance<DrmConfig> {
   /**
    * Whether this object's native instance has been created.
    */

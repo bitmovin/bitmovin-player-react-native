@@ -35,7 +35,7 @@ class DrmModule: NSObject, RCTBridgeModule {
     /**
      Creates a new `FairplayConfig` instance inside the internal drmConfigs using the provided `config` object.
      - Parameter nativeId: ID to associate with the `FairplayConfig` instance.
-     - Parameter config: `DRMConfig` object received from JS.
+     - Parameter config: `DrmConfig` object received from JS.
      */
     @objc(initWithConfig:config:)
     func initWithConfig(_ nativeId: NativeId, config: Any?) {
