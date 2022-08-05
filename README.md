@@ -7,7 +7,7 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 [![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![Bitmovin Community](https://img.shields.io/discourse/users?label=community&server=https%3A%2F%2Fcommunity.bitmovin.com)](https://community.bitmovin.com/?utm_source=github&utm_medium=bitmovin-player-react-native&utm_campaign=dev-community)
 
-> :warning: **Beta Version**: The library is under active development. The current Beta release supports basic playback of unprotected video assets.
+> :warning: **Beta Version**: The library is under active development.
 
 - [Installation](#installation)
   - [Add package dependency](#add-package-dependency)
@@ -17,6 +17,7 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
   - [Setting up a license key](#setting-up-a-license-key)
   - [Accessing native `Player` instances](#accessing-native-player-instances)
   - [Listening to events](#listening-to-events)
+  - [Enabling DRM protection](#enabling-drm-protection)
 - [Contributing](#contributing)
 
 ## Installation
@@ -268,6 +269,96 @@ return (
   />
 );
 ```
+
+### Enabling DRM protection
+
+> ⚠️ **Beta Version**: For now, only `FairPlay` is supported on iOS and
+> only `Widevine` is supported on Android. More DRM systems will be added in the future.
+
+Simple streaming of protected assets can be enabled with just a little configuration on `SourceConfig.drmConfig`:
+
+```typescript
+// Source configuration for protected asset.
+const drmSource: SourceConfig = {
+  // Protected stream URL.
+  url:
+    Platform.OS === 'ios'
+      ? 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8' // iOS stream url
+      : 'https://bitmovin-a.akamaihd.net/content/art-of-motion_drm/mpds/11331.mpd', // Android stream url
+  // Stream type.
+  type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
+  // DRM setup.
+  // Each key in this object maps to a different DRM system config (`widevine` or `fairplay`).
+  drmConfig: {
+    // Widevine is the default and only DRM system supported on Android for now.
+    widevine: {
+      licenseUrl: 'https://cwip-shaka-proxy.appspot.com/no_auth',
+    },
+    // FairPlay is the default and only DRM system supported on iOS for now.
+    fairplay: {
+      licenseUrl:
+        'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
+      certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
+    },
+  },
+};
+```
+
+#### Prepare hooks
+
+In the native SDKs, some DRM properties like `message` and `license` can have their value transformed before use in order
+to enable some more complex use cases: such as extracting the `license` from a `JSON`, for example.
+
+In order to handle such transformations, it's possible to hook methods onto `SourceConfig.drmConfig` to proxy DRM values
+and potentially alter them:
+
+```typescript
+// Source configuration for protected asset.
+const drmSource: SourceConfig = {
+  // Protected stream URL.
+  url:
+    Platform.OS === 'ios'
+      ? 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8' // iOS stream url
+      : 'https://bitmovin-a.akamaihd.net/content/art-of-motion_drm/mpds/11331.mpd', // Android stream url
+  // Stream type.
+  type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
+  // DRM setup.
+  drmConfig: {
+    // Widevine is the default and only DRM system supported on Android for now.
+    widevine: {
+      licenseUrl: 'https://cwip-shaka-proxy.appspot.com/no_auth',
+      // Data is passed as a base64 string and expects to return a base64 string.
+      prepareLicense: (license: string) => {
+        // Do something with the `license` value...
+        // And return processed data as base64 string.
+        return license; // base64 string
+      },
+    },
+    // FairPlay is the default and only DRM system supported on iOS for now.
+    fairplay: {
+      licenseUrl:
+        'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
+      certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
+      // Data is passed as a base64 string and expects to return a base64 string.
+      prepareLicense: (license: string) => {
+        // Do something with the `license` value...
+        // And return processed data as base64 string.
+        return license; // base64 string
+      },
+      // Data is passed as a base64 string and expects to return a base64 string.
+      prepareMessage: (message: string, assetId: string) => {
+        // Do something with the `assetId` and `message` values...
+        // And return processed data as base64 string.
+        return message; // base64 string
+      },
+    },
+  },
+};
+```
+
+The [`FairplayConfig`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm.ts#L10) interface provides a bunch of hooks that can be used to fetch and transform different DRM related data. Check out the [docs](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm.ts#L10) for a complete list and detailed information on them.
+
+Also, don't forget to check out the [example](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app for a complete iOS/Android [DRM example](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDRMPlayback.tsx).
 
 ## Contributing
 

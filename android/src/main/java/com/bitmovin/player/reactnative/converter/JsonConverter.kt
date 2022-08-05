@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative.converter
 
 import com.bitmovin.player.api.PlayerConfig
+import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.SeekPosition
@@ -157,6 +158,20 @@ class JsonConverter {
                 json.putMap("to", fromSeekPosition(event.to))
             }
             return json
+        }
+
+        /**
+         * Converts an arbitrary `json` to `WidevineConfig`.
+         * @param json JS object representing the `WidevineConfig`.
+         * @return The generated `WidevineConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toWidevineConfig(json: ReadableMap?): WidevineConfig? = json?.getMap("widevine")?.let {
+            val widevineConfig = WidevineConfig(it.getString("licenseUrl"))
+            if (it.hasKey("preferredSecurityLevel")) {
+                widevineConfig.preferredSecurityLevel = it.getString("preferredSecurityLevel")
+            }
+            widevineConfig
         }
     }
 }

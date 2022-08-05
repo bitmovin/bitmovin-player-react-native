@@ -1,3 +1,9 @@
+import { NativeModules } from 'react-native';
+import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
+import { Drm, DrmConfig } from './drm';
+
+const SourceModule = NativeModules.SourceModule;
+
 /**
  * Types of media that can be handled by the player.
  */
@@ -41,7 +47,7 @@ export enum LoadingState {
 /**
  * Represents a source configuration that be loaded into a player instance.
  */
-export interface SourceConfig {
+export interface SourceConfig extends NativeInstanceConfig {
   /**
    *  The url for this source configuration.
    */
@@ -63,33 +69,102 @@ export interface SourceConfig {
    * Useful, for example, for audio-only streams.
    */
   isPosterPersistent?: boolean;
+  /**
+   * The DRM config for the source.
+   */
+  drmConfig?: DrmConfig;
 }
 
 /**
  * Represents audio and video content that can be loaded into a player.
  */
-export interface Source {
+export class Source extends NativeInstance<SourceConfig> {
+  /**
+   * The native DRM config reference of this source.
+   */
+  drm?: Drm;
+  /**
+   * Whether the native `Source` object has been created.
+   */
+  isInitialized = false;
+  /**
+   * Whether the native `Source` object has been disposed.
+   */
+  isDestroyed = false;
+
+  /**
+   * Allocates the native `Source` instance and its resources natively.
+   */
+  initialize = () => {
+    if (!this.isInitialized) {
+      if (this.config?.drmConfig) {
+        this.drm = new Drm(this.config.drmConfig);
+        this.drm.initialize();
+        SourceModule.initWithDrmConfig(
+          this.nativeId,
+          this.drm.nativeId,
+          this.config
+        );
+      } else {
+        SourceModule.initWithConfig(this.nativeId, this.config);
+      }
+      this.isInitialized = true;
+    }
+  };
+
+  /**
+   * Destroys the native `Source` and releases all of its allocated resources.
+   */
+  destroy = () => {
+    if (!this.isDestroyed) {
+      SourceModule.destroy(this.nativeId);
+      this.drm?.destroy();
+      this.isDestroyed = true;
+    }
+  };
+
   /**
    * The duration of the source in seconds if it’s a VoD or `INFINITY` if it’s a live stream.
    * Default value is `0` if the duration is not available or not known.
    */
-  duration: number;
+  duration = async (): Promise<number> => {
+    return SourceModule.duration(this.nativeId);
+  };
+
   /**
    * Whether the source is currently active in a player (i.e. playing back or paused).
    * Only one source can be active in the same player instance at any time.
    */
-  isActive: boolean;
+  isActive = async (): Promise<boolean> => {
+    return SourceModule.isActive(this.nativeId);
+  };
+
   /**
    * Whether the source is currently attached to a player instance.
    */
-  isAttachedToPlayer: boolean;
+  isAttachedToPlayer = async (): Promise<boolean> => {
+    return SourceModule.isAttachedToPlayer(this.nativeId);
+  };
+
   /**
    * Metadata for the currently loaded source.
-   * Setting the metadata value for a source is not supported yet.
    */
-  metadata?: Record<string, any>;
+  metadata = async (): Promise<Record<string, any> | null> => {
+    return SourceModule.getMetadata(this.nativeId);
+  };
+
+  /**
+   * Set metadata for the currently loaded source.
+   * Setting the metadata to `null` clears the metadata object in native source.
+   */
+  setMetadata = (metadata: Record<string, any> | null): void => {
+    SourceModule.setMetadata(this.nativeId, metadata);
+  };
+
   /**
    * The current `LoadingState` of the source.
    */
-  loadingState?: LoadingState;
+  loadingState = async (): Promise<LoadingState> => {
+    return SourceModule.loadingState(this.nativeId);
+  };
 }
