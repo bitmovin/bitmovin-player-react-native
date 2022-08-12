@@ -195,6 +195,14 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
         emitEvent("sourceWarning", it)
     }
 
+    private val onCueEnter: (PlayerEvent.CueEnter) -> Unit = {
+        emitEvent("cueEnter", it)
+    }
+
+    private val onCueExit: (PlayerEvent.CueExit) -> Unit = {
+        emitEvent("cueExit", it)
+    }
+
     /**
      * Start listening and emitting player events as bubbling events to the js side.
      */
@@ -218,6 +226,8 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
         player?.on(onSourceUnloaded)
         player?.on(onSourceError)
         player?.on(onSourceWarning)
+        player?.on(onCueEnter)
+        player?.on(onCueExit)
     }
 
     /**
@@ -243,6 +253,8 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
         player?.off(onSourceUnloaded)
         player?.off(onSourceError)
         player?.off(onSourceWarning)
+        player?.off(onCueEnter)
+        player?.off(onCueExit)
     }
 
     /**

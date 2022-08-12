@@ -1,16 +1,21 @@
 package com.bitmovin.player.reactnative.converter
 
+import android.graphics.Bitmap
+import android.text.Layout
+import android.util.Base64
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.SeekPosition
+import com.bitmovin.player.api.media.subtitle.Cue
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.reactnative.extensions.getName
 import com.facebook.react.bridge.*
+import java.io.ByteArrayOutputStream
 import java.util.UUID
 
 /**
@@ -167,7 +172,95 @@ class JsonConverter {
                 json.putMap("from", fromSeekPosition(event.from))
                 json.putMap("to", fromSeekPosition(event.to))
             }
+            if (event is PlayerEvent.CueEnter) {
+                json.putDouble("end", event.end)
+                json.putDouble("start", event.start)
+                json.putString("html", event.html)
+                json.putString("text", event.text)
+                event.image?.let {
+                    json.putString("image", fromImageBitmap(it))
+                }
+                json.putMap("cue", fromCue(event.cue))
+            }
+            if (event is PlayerEvent.CueExit) {
+                json.putDouble("end", event.end)
+                json.putDouble("start", event.start)
+                json.putString("html", event.html)
+                json.putString("text", event.text)
+                event.image?.let {
+                    json.putString("image", fromImageBitmap(it))
+                }
+                json.putMap("cue", fromCue(event.cue))
+            }
             return json
+        }
+
+        /**
+         * Converts any arbitrary `Cue` into its json representation.
+         * @param cue The cue object to be converted.
+         * @return The cue json representation.
+         */
+        @JvmStatic
+        fun fromCue(cue: Cue): WritableMap {
+            val json = Arguments.createMap()
+            json.putDouble("end", cue.end)
+            json.putDouble("start", cue.start)
+            json.putDouble("size", cue.size.toDouble())
+            json.putString("text", cue.text)
+            json.putString("html", cue.html)
+            cue.image?.let {
+                json.putString("image", fromImageBitmap(cue.image))
+            }
+            json.putString("direction", when (cue.verticalType) {
+                Cue.VerticalType.VerticalTypeLeftToRight -> "leftToRight"
+                Cue.VerticalType.VerticalTypeRightToLeft -> "rightToLeft"
+                else -> "horizontal"
+            })
+            json.putString("textAlignment", when (cue.textAlignment) {
+                Layout.Alignment.ALIGN_CENTER -> "center"
+                Layout.Alignment.ALIGN_NORMAL -> "start"
+                Layout.Alignment.ALIGN_OPPOSITE -> "end"
+                else -> "unset"
+            })
+            // Line positioning data
+            val lineJson = Arguments.createMap()
+            lineJson.putDouble("value", cue.line.toDouble())
+            lineJson.putString("type", when (cue.lineType) {
+                Cue.LineType.LineTypeNumber -> "numeric"
+                else -> "auto"
+            })
+            lineJson.putString("align", when (cue.lineAnchor) {
+                Cue.AnchorType.AnchorTypeStart -> "start"
+                Cue.AnchorType.AnchorTypeEnd -> "end"
+                Cue.AnchorType.AnchorTypeMiddle -> "center"
+                else -> "unset"
+            })
+            json.putMap("line", lineJson)
+            // VTT positioning data
+            val positionJson = Arguments.createMap()
+            positionJson.putDouble("value", cue.fractionalPosition.toDouble())
+            positionJson.putString("type", "numeric")
+            positionJson.putString("align", when (cue.positionAnchor) {
+                Cue.AnchorType.AnchorTypeStart -> "start"
+                Cue.AnchorType.AnchorTypeEnd -> "end"
+                Cue.AnchorType.AnchorTypeMiddle -> "center"
+                else -> "unset"
+            })
+            json.putMap("vttPosition", positionJson)
+            return json
+        }
+
+        /**
+         * Converts any arbitrary android `Bitmap` image to its RN compatible base64 representation.
+         * @param image The image bitmap to convert to base64.
+         * @return The base64 png representation of the image.
+         */
+        @JvmStatic
+        fun fromImageBitmap(image: Bitmap): String {
+            val output = ByteArrayOutputStream()
+            image.compress(Bitmap.CompressFormat.PNG, 100, output)
+            val base64 = Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
+            return "data:image/png;base64,${base64}"
         }
 
         /**
