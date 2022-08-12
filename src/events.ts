@@ -234,6 +234,11 @@ export interface CueEvent extends Event {
    * The cue text.
    */
   text?: string;
+  /**
+   * The cue image data as a base64 png source.
+   * Can be passed to the `<Image />` component as the `src` prop.
+   */
+  image?: string;
 }
 
 /**

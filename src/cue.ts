@@ -156,4 +156,9 @@ export interface Cue {
    * The anchor point in which text should be rendered.
    */
   textAlignment?: CueAlignment;
+  /**
+   * The cue image data as a base64 png source.
+   * Can be passed to the `<Image />` component as the `src` prop.
+   */
+  image?: string;
 }

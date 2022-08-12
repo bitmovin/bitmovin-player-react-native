@@ -151,54 +151,38 @@ extension CueEvent where Self: Event {
             "end": endTime,
         ]
 
+        // Compute cue image base64 if available.
+        if let data = image?.pngData() {
+            // Source string should be compatible with RN's `Image` base64 data format.
+            let imageSrc = "data:image/png;base64,\(data.base64EncodedString())"
+            json["image"] = imageSrc
+            cueJson["image"] = imageSrc
+        }
+
         // Define CEA-only positioning properties.
         if let position = position {
-            cueJson.merge([
-                "ceaPosition": [
-                    "row": position.row,
-                    "column": position.column
-                ]
-            ]) { $1 }
+            cueJson["ceaPosition"] = [
+                "row": position.row,
+                "column": position.column
+            ]
         }
 
         // Define VTT positioning properties.
         if let cue = vtt {
-            let direction: String = {
+            // Box size
+            cueJson["size"] = cue.size
+
+            // Writing direction
+            cueJson["direction"] = {
                 switch cue.vertical {
                 case .leftToRight: return "leftToRight"
                 case .rightToLeft: return "rightToLeft"
                 default: return "horizontal"
                 }
             }()
-            let lineType: String = {
-                switch cue.line.type {
-                case .auto: return "auto"
-                case .value: return "numeric"
-                }
-            }()
-            let lineAlign: String = {
-                switch cue.lineAlign {
-                case .start: return "start"
-                case .end: return "end"
-                case .center: return "center"
-                default: return "unset"
-                }
-            }()
-            let vttPositionType: String = {
-                switch cue.position.type {
-                case .auto: return "auto"
-                case .value: return "numeric"
-                }
-            }()
-            let vttPositionAlign: String = {
-                switch cue.positionAlign {
-                case .lineLeft: return "left"
-                case .lineRight: return "right"
-                case .center: return "center"
-                default: return "unset"
-                }
-            }()
-            let textAlignment: String = {
+
+            // Text alignment
+            cueJson["textAlignment"] = {
                 switch cue.align {
                 case .start: return "start"
                 case .end: return "end"
@@ -208,22 +192,46 @@ extension CueEvent where Self: Event {
                 default: return "unset"
                 }
             }()
-            cueJson.merge([
-                "direction": direction,
-                "line": [
-                    "type": lineType,
-                    "align": lineAlign,
-                    "value": cue.line.value
-                ],
-                "vttPosition": [
-                    "type": vttPositionType,
-                    "align": vttPositionAlign,
-                    "value": cue.position.value
-                ],
-                "size": cue.size,
-                "textAlignment": textAlignment
-            ]) { $1 }
+
+            // Vertical positioning data
+            cueJson["line"] = [
+                "value": cue.line.value,
+                "type": {
+                    switch cue.line.type {
+                    case .auto: return "auto"
+                    case .value: return "numeric"
+                    }
+                }(),
+                "align": {
+                    switch cue.lineAlign {
+                    case .start: return "start"
+                    case .end: return "end"
+                    case .center: return "center"
+                    default: return "unset"
+                    }
+                }(),
+            ] as [AnyHashable: Any]
+
+            // Horizontal positioning data
+            cueJson["vttPosition"] = [
+                "value": cue.position.value,
+                "type": {
+                    switch cue.position.type {
+                    case .auto: return "auto"
+                    case .value: return "numeric"
+                    }
+                }(),
+                "align": {
+                    switch cue.positionAlign {
+                    case .lineLeft: return "left"
+                    case .lineRight: return "right"
+                    case .center: return "center"
+                    default: return "unset"
+                    }
+                }()
+            ] as [AnyHashable: Any]
         }
+
         json["cue"] = cueJson
         return json
     }
