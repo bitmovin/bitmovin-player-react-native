@@ -33,7 +33,6 @@ export default function SubtitlePlayback() {
             format: SubtitleFormat.WEBVTT,
             label: 'Nederlands',
             language: 'nl',
-            identifier: 'sintel-nl',
           },
           // Add italian (it) track.
           // In some cases, the file format can be ommited and automatically selected by the SDK.
@@ -41,7 +40,6 @@ export default function SubtitlePlayback() {
             url: 'https://raw.githubusercontent.com/bitmovin/bitmovin-player-react-native/feature/subtitle-tracks/example/assets/subtitles/sintel_it.vtt',
             label: 'Italiano',
             language: 'it',
-            identifier: 'sintel-it',
           },
         ],
       });
@@ -49,6 +47,15 @@ export default function SubtitlePlayback() {
         player.destroy();
       };
     }, [player])
+  );
+
+  const onReady = useCallback(
+    (_: Event) => {
+      player.getAvailableSubtitles().then((subtitles) => {
+        prettyPrint('AVAILABLE SUBTITLES', subtitles);
+      });
+    },
+    [player]
   );
 
   const onEvent = useCallback((event: Event) => {
@@ -60,6 +67,7 @@ export default function SubtitlePlayback() {
       <PlayerView
         player={player}
         style={styles.player}
+        onReady={onReady}
         onCueEnter={onEvent}
         onCueExit={onEvent}
       />

@@ -122,13 +122,16 @@ extension RCTConvert {
     static func subtitleTrack(_ json: [String: Any]) -> SubtitleTrack? {
         guard
             let url = RCTConvert.nsurl(json["url"]),
-            let label = json["label"] as? String,
-            let identifier = json["identifier"] as? String
+            let label = json["label"] as? String
         else {
             return nil
         }
+
         let language = json["language"] as? String
         let isDefaultTrack = json["isDefault"] as? Bool ?? false
+        let isForced = json["isForced"] as? Bool ?? false
+        let identifier = json["identifier"] as? String ?? UUID().uuidString
+
         if let format = RCTConvert.subtitleFormat(json["format"]) {
             return SubtitleTrack(
                 url: url,
@@ -136,7 +139,8 @@ extension RCTConvert {
                 label: label,
                 identifier: identifier,
                 isDefaultTrack: isDefaultTrack,
-                language: language
+                language: language,
+                forced: isForced
             )
         }
         return SubtitleTrack(
@@ -144,7 +148,8 @@ extension RCTConvert {
             label: label,
             identifier: identifier,
             isDefaultTrack: isDefaultTrack,
-            language: language
+            language: language,
+            forced: isForced
         )
     }
 
@@ -163,5 +168,28 @@ extension RCTConvert {
         case "cea": return .cea
         default: return nil
         }
+    }
+
+    /**
+     Utility method to get a json dictionary value from a `SubtitleTrack` object.
+     - Parameter subtitleTrack: The track to convert to json format.
+     - Returns: The generated json dictionary.
+     */
+    static func subtitleTrackJson(_ subtitleTrack: SubtitleTrack) -> [AnyHashable: Any] {
+        [
+            "url": subtitleTrack.url?.absoluteString,
+            "label": subtitleTrack.label,
+            "isDefault": subtitleTrack.isDefaultTrack,
+            "identifier": subtitleTrack.identifier,
+            "language": subtitleTrack.language,
+            "isForced": subtitleTrack.isForced,
+            "format": {
+                switch subtitleTrack.format {
+                case .cea: return "cea"
+                case .ttml: return "ttml"
+                case .webVtt: return "webVtt"
+                }
+            }(),
+        ]
     }
 }
