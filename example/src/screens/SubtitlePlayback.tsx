@@ -6,6 +6,7 @@ import {
   usePlayer,
   PlayerView,
   SourceType,
+  SubtitleFormat,
 } from 'bitmovin-player-react-native';
 
 function prettyPrint(header: string, obj: any) {
@@ -29,12 +30,14 @@ export default function SubtitlePlayback() {
           // Add dutch (nl) track and makes it the default.
           {
             url: 'https://raw.githubusercontent.com/bitmovin/bitmovin-player-react-native/feature/subtitle-tracks/example/assets/subtitles/sintel_nl.vtt',
+            format: SubtitleFormat.WEBVTT,
             label: 'Nederlands',
             language: 'nl',
             identifier: 'sintel-nl',
             isDefault: true,
           },
           // Add italian (it) track.
+          // In some cases, the file format can be ommited and automatically selected by the SDK.
           {
             url: 'https://raw.githubusercontent.com/bitmovin/bitmovin-player-react-native/feature/subtitle-tracks/example/assets/subtitles/sintel_it.vtt',
             label: 'Italiano',
