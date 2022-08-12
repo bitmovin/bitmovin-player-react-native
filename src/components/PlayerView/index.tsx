@@ -79,26 +79,28 @@ export function PlayerView(props: PlayerViewProps) {
     <NativePlayerView
       ref={nativeView}
       style={style}
+      onCueEnter={useProxy(nativeView, props.onCueEnter)}
+      onCueExit={useProxy(nativeView, props.onCueExit)}
+      onDestroy={useProxy(nativeView, props.onDestroy)}
       onEvent={useProxy(nativeView, props.onEvent)}
+      onMuted={useProxy(nativeView, props.onMuted)}
+      onPaused={useProxy(nativeView, props.onPaused)}
+      onPlay={useProxy(nativeView, props.onPlay)}
+      onPlaybackFinished={useProxy(nativeView, props.onPlaybackFinished)}
       onPlayerActive={useProxy(nativeView, props.onPlayerActive)}
       onPlayerError={useProxy(nativeView, props.onPlayerError)}
       onPlayerWarning={useProxy(nativeView, props.onPlayerWarning)}
-      onDestroy={useProxy(nativeView, props.onDestroy)}
-      onMuted={useProxy(nativeView, props.onMuted)}
-      onUnmuted={useProxy(nativeView, props.onUnmuted)}
-      onReady={useProxy(nativeView, props.onReady)}
-      onPaused={useProxy(nativeView, props.onPaused)}
-      onPlay={useProxy(nativeView, props.onPlay)}
       onPlaying={useProxy(nativeView, props.onPlaying)}
-      onPlaybackFinished={useProxy(nativeView, props.onPlaybackFinished)}
+      onReady={useProxy(nativeView, props.onReady)}
       onSeek={useProxy(nativeView, props.onSeek)}
       onSeeked={useProxy(nativeView, props.onSeeked)}
-      onTimeChanged={useProxy(nativeView, props.onTimeChanged)}
+      onSourceError={useProxy(nativeView, props.onSourceError)}
       onSourceLoad={useProxy(nativeView, props.onSourceLoad)}
       onSourceLoaded={useProxy(nativeView, props.onSourceLoaded)}
       onSourceUnloaded={useProxy(nativeView, props.onSourceUnloaded)}
-      onSourceError={useProxy(nativeView, props.onSourceError)}
       onSourceWarning={useProxy(nativeView, props.onSourceWarning)}
+      onTimeChanged={useProxy(nativeView, props.onTimeChanged)}
+      onUnmuted={useProxy(nativeView, props.onUnmuted)}
     />
   );
 }

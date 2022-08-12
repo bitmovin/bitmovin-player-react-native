@@ -34,7 +34,6 @@ export default function SubtitlePlayback() {
             label: 'Nederlands',
             language: 'nl',
             identifier: 'sintel-nl',
-            isDefault: true,
           },
           // Add italian (it) track.
           // In some cases, the file format can be ommited and automatically selected by the SDK.
@@ -52,10 +51,6 @@ export default function SubtitlePlayback() {
     }, [player])
   );
 
-  const onReady = useCallback((event: Event) => {
-    prettyPrint(`EVENT [${event.name}]`, event);
-  }, []);
-
   const onEvent = useCallback((event: Event) => {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
@@ -65,13 +60,8 @@ export default function SubtitlePlayback() {
       <PlayerView
         player={player}
         style={styles.player}
-        onPlay={onEvent}
-        onPlaying={onEvent}
-        onPaused={onEvent}
-        onReady={onReady}
-        onSourceLoaded={onEvent}
-        onSeek={onEvent}
-        onSeeked={onEvent}
+        onCueEnter={onEvent}
+        onCueExit={onEvent}
       />
     </View>
   );

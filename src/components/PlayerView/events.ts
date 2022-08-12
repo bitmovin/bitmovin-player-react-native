@@ -1,25 +1,27 @@
 import { NativeSyntheticEvent } from 'react-native';
 import {
+  CueEnterEvent,
+  CueExitEvent,
+  DestroyEvent,
   Event,
+  MutedEvent,
+  PausedEvent,
+  PlayEvent,
+  PlaybackFinishedEvent,
   PlayerActiveEvent,
   PlayerErrorEvent,
   PlayerWarningEvent,
-  DestroyEvent,
-  MutedEvent,
-  UnmutedEvent,
-  ReadyEvent,
-  PausedEvent,
-  PlayEvent,
   PlayingEvent,
-  PlaybackFinishedEvent,
+  ReadyEvent,
   SeekEvent,
   SeekedEvent,
-  TimeChangedEvent,
+  SourceErrorEvent,
   SourceLoadEvent,
   SourceLoadedEvent,
   SourceUnloadedEvent,
-  SourceErrorEvent,
   SourceWarningEvent,
+  TimeChangedEvent,
+  UnmutedEvent,
 } from '../../events';
 
 /**
@@ -27,26 +29,28 @@ import {
  * Used to generate the specific events interface for each component.
  */
 interface EventProps {
+  onCueEnter: CueEnterEvent;
+  onCueExit: CueExitEvent;
+  onDestroy: DestroyEvent;
   onEvent: Event;
+  onMuted: MutedEvent;
+  onPaused: PausedEvent;
+  onPlay: PlayEvent;
+  onPlaybackFinished: PlaybackFinishedEvent;
   onPlayerActive: PlayerActiveEvent;
   onPlayerError: PlayerErrorEvent;
   onPlayerWarning: PlayerWarningEvent;
-  onDestroy: DestroyEvent;
-  onMuted: MutedEvent;
-  onUnmuted: UnmutedEvent;
-  onReady: ReadyEvent;
-  onPaused: PausedEvent;
-  onPlay: PlayEvent;
   onPlaying: PlayingEvent;
-  onPlaybackFinished: PlaybackFinishedEvent;
+  onReady: ReadyEvent;
   onSeek: SeekEvent;
   onSeeked: SeekedEvent;
-  onTimeChanged: TimeChangedEvent;
+  onSourceError: SourceErrorEvent;
   onSourceLoad: SourceLoadEvent;
   onSourceLoaded: SourceLoadedEvent;
   onSourceUnloaded: SourceUnloadedEvent;
-  onSourceError: SourceErrorEvent;
   onSourceWarning: SourceWarningEvent;
+  onTimeChanged: TimeChangedEvent;
+  onUnmuted: UnmutedEvent;
 }
 
 /**
