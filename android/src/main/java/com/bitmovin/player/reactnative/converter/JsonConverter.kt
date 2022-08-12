@@ -5,6 +5,7 @@ import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.SeekPosition
+import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
@@ -46,6 +47,14 @@ class JsonConverter {
             config.posterSource = json.getString("poster")
             if (json.hasKey("isPosterPersistent")) {
                 config.isPosterPersistent = json.getBoolean("isPosterPersistent")
+            }
+            if (json.hasKey("subtitleTracks")) {
+                val subtitleTracks = json.getArray("subtitleTracks") as ReadableArray
+                for (i in 0 until subtitleTracks.size()) {
+                    toSubtitleTrack(subtitleTracks.getMap(i))?.let {
+                        config.addSubtitleTrack(it)
+                    }
+                }
             }
             return config
         }
@@ -172,6 +181,33 @@ class JsonConverter {
                 widevineConfig.preferredSecurityLevel = it.getString("preferredSecurityLevel")
             }
             widevineConfig
+        }
+
+        /**
+         * Converts an arbitrary `json` into a `SubtitleTrack`.
+         * @param json JS object representing the `SubtitleTrack`.
+         * @return The generated `SubtitleTrack` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toSubtitleTrack(json: ReadableMap?): SubtitleTrack? {
+            val url = json?.getString("url")
+            val label = json?.getString("label")
+            val identifier = json?.getString("identifier")
+            if (json == null || url == null || label == null || identifier == null) {
+                return null
+            }
+            val isDefault = if (json.hasKey("isDefault")) {
+                json.getBoolean("isDefault")
+            } else {
+                false
+            }
+            return SubtitleTrack(
+                url = url,
+                label = label,
+                id = identifier,
+                isDefault = isDefault,
+                language = json.getString("language")
+            )
         }
     }
 }
