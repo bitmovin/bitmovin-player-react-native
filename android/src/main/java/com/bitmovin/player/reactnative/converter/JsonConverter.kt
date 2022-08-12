@@ -11,6 +11,7 @@ import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.reactnative.extensions.getName
 import com.facebook.react.bridge.*
+import java.util.UUID
 
 /**
  * Helper class to gather all conversion methods between JS -> Native objects.
@@ -192,22 +193,84 @@ class JsonConverter {
         fun toSubtitleTrack(json: ReadableMap?): SubtitleTrack? {
             val url = json?.getString("url")
             val label = json?.getString("label")
-            val identifier = json?.getString("identifier")
-            if (json == null || url == null || label == null || identifier == null) {
+            if (json == null || url == null || label == null) {
                 return null
             }
+            val identifier = json.getString("identifier") ?: UUID.randomUUID().toString()
             val isDefault = if (json.hasKey("isDefault")) {
                 json.getBoolean("isDefault")
             } else {
                 false
+            }
+            val isForced = if (json.hasKey("isForced")) {
+                json.getBoolean("isForced")
+            } else {
+                false
+            }
+            val format = json.getString("format")
+            if (format != null && format.isNotBlank()) {
+                return SubtitleTrack(
+                    url = url,
+                    label = label,
+                    id = identifier,
+                    isDefault = isDefault,
+                    language = json.getString("language"),
+                    isForced = isForced,
+                    mimeType = toSubtitleMimeType(format),
+                )
             }
             return SubtitleTrack(
                 url = url,
                 label = label,
                 id = identifier,
                 isDefault = isDefault,
-                language = json.getString("language")
+                language = json.getString("language"),
+                isForced = isForced,
             )
+        }
+
+        /**
+         * Converts any subtitle format name in its mime type representation.
+         * @param format The file format string received from JS.
+         * @return The subtitle file mime type.
+         */
+        @JvmStatic
+        fun toSubtitleMimeType(format: String?): String? {
+            if (format == null) {
+                return null
+            }
+            return "text/${format}"
+        }
+
+        /**
+         * Converts any `SubtitleTrack` into its json representation.
+         * @param subtitleTrack `SubtitleTrack` object to be converted.
+         * @return The generated json map.
+         */
+        @JvmStatic
+        fun fromSubtitleTrack(subtitleTrack: SubtitleTrack): WritableMap {
+            val json = Arguments.createMap()
+            json.putString("url", subtitleTrack.url)
+            json.putString("label", subtitleTrack.label)
+            json.putBoolean("isDefault", subtitleTrack.isDefault)
+            json.putString("identifier", subtitleTrack.id)
+            json.putString("language", subtitleTrack.language)
+            json.putBoolean("isForced", subtitleTrack.isForced)
+            json.putString("format", fromSubtitleMimeType(subtitleTrack.mimeType))
+            return json
+        }
+
+        /**
+         * Converts any subtitle track mime type into its json representation (file format value).
+         * @param mimeType `SubtitleTrack` file mime type.
+         * @return The extracted file format.
+         */
+        @JvmStatic
+        fun fromSubtitleMimeType(mimeType: String?): String? {
+            if (mimeType == null) {
+                return null
+            }
+            return mimeType.split("/").last()
         }
     }
 }

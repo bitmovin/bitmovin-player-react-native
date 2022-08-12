@@ -30,7 +30,7 @@ export default function SubtitlePlayback() {
           // Add dutch (nl) track and makes it the default.
           {
             url: 'https://raw.githubusercontent.com/bitmovin/bitmovin-player-react-native/feature/subtitle-tracks/example/assets/subtitles/sintel_nl.vtt',
-            format: SubtitleFormat.WEBVTT,
+            format: SubtitleFormat.VTT,
             label: 'Nederlands',
             language: 'nl',
           },

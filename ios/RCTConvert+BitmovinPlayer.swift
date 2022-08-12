@@ -163,9 +163,9 @@ extension RCTConvert {
             return nil
         }
         switch json {
-        case "webVtt": return .webVtt
-        case "ttml": return .ttml
         case "cea": return .cea
+        case "vtt": return .webVtt
+        case "ttml": return .ttml
         default: return nil
         }
     }
@@ -186,8 +186,8 @@ extension RCTConvert {
             "format": {
                 switch subtitleTrack.format {
                 case .cea: return "cea"
+                case .webVtt: return "vtt"
                 case .ttml: return "ttml"
-                case .webVtt: return "webVtt"
                 }
             }(),
         ]

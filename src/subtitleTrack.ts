@@ -2,9 +2,9 @@
  * Supported subtitle/caption file formats.
  */
 export enum SubtitleFormat {
-  WEBVTT = 'webVtt',
-  TTML = 'ttml',
   CEA = 'cea',
+  TTML = 'ttml',
+  VTT = 'vtt',
 }
 
 /**
