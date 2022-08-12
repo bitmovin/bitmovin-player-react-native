@@ -26,17 +26,17 @@ export default function SubtitlePlayback() {
         poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
         // Custom subtitle tracks to be added on the source.
         subtitleTracks: [
-          // Adds portuguese (pt) subtitle track and makes it the default.
+          // Add dutch (nl) track and makes it the default.
           {
-            url: 'https://durian.blender.org/wp-content/content/subtitles/sintel_pt.srt',
-            label: 'Português',
-            language: 'pt',
-            identifier: 'sintel-pt',
+            url: 'https://raw.githubusercontent.com/bitmovin/bitmovin-player-react-native/feature/subtitle-tracks/example/assets/subtitles/sintel_nl.vtt',
+            label: 'Nederlands',
+            language: 'nl',
+            identifier: 'sintel-nl',
             isDefault: true,
           },
-          // Adds italian (it) subtitle track.
+          // Add italian (it) track.
           {
-            url: 'https://durian.blender.org/wp-content/content/subtitles/sintel_it.srt',
+            url: 'https://raw.githubusercontent.com/bitmovin/bitmovin-player-react-native/feature/subtitle-tracks/example/assets/subtitles/sintel_it.vtt',
             label: 'Italiano',
             language: 'it',
             identifier: 'sintel-it',
