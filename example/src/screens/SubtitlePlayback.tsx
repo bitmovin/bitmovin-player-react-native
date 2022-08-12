@@ -24,6 +24,24 @@ export default function SubtitlePlayback() {
             : 'https://bitmovin-a.akamaihd.net/content/sintel/sintel.mpd',
         type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
         poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
+        // Custom subtitle tracks to be added on the source.
+        subtitleTracks: [
+          // Adds portuguese (pt) subtitle track and makes it the default.
+          {
+            url: 'https://durian.blender.org/wp-content/content/subtitles/sintel_pt.srt',
+            label: 'Português',
+            language: 'pt',
+            identifier: 'sintel-pt',
+            isDefault: true,
+          },
+          // Adds italian (it) subtitle track.
+          {
+            url: 'https://durian.blender.org/wp-content/content/subtitles/sintel_it.srt',
+            label: 'Italiano',
+            language: 'it',
+            identifier: 'sintel-it',
+          },
+        ],
       });
       return () => {
         player.destroy();
