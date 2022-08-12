@@ -22,6 +22,8 @@ RCT_EXPORT_VIEW_PROPERTY(onSourceLoaded, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onSourceUnloaded, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onSourceError, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onSourceWarning, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onCueEnter, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onCueExit, RCTBubblingEventBlock)
 
 RCT_EXTERN_METHOD(attachPlayer:(nonnull NSNumber *)viewId playerId:(NSString *)playerId)
 

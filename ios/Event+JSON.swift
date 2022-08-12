@@ -130,3 +130,101 @@ extension TimedEventType {
 extension PlayEvent: TimedEventType {}
 extension PausedEvent: TimedEventType {}
 extension PlayingEvent: TimedEventType {}
+
+extension CueEvent where Self: Event {
+    func toJSON() -> [AnyHashable: Any] {
+        // Initial JS event object.
+        var json: [AnyHashable: Any] = [
+            "name": name,
+            "timestamp": timestamp,
+            "html": html,
+            "text": text,
+            "start": startTime,
+            "end": endTime
+        ]
+
+        // Initial JS cue object.
+        var cueJson: [AnyHashable: Any] = [
+            "text": text,
+            "html": html,
+            "start": startTime,
+            "end": endTime,
+        ]
+
+        // Define CEA-only positioning properties.
+        if let position = position {
+            cueJson.merge([
+                "ceaPosition": [
+                    "row": position.row,
+                    "column": position.column
+                ]
+            ]) { $1 }
+        }
+
+        // Define VTT positioning properties.
+        if let cue = vtt {
+            let direction: String = {
+                switch cue.vertical {
+                case .leftToRight: return "leftToRight"
+                case .rightToLeft: return "rightToLeft"
+                default: return "horizontal"
+                }
+            }()
+            let lineType: String = {
+                switch cue.line.type {
+                case .auto: return "auto"
+                case .value: return "numeric"
+                }
+            }()
+            let lineAlign: String = {
+                switch cue.lineAlign {
+                case .start: return "start"
+                case .end: return "end"
+                case .center: return "center"
+                default: return "unset"
+                }
+            }()
+            let vttPositionType: String = {
+                switch cue.position.type {
+                case .auto: return "auto"
+                case .value: return "numeric"
+                }
+            }()
+            let vttPositionAlign: String = {
+                switch cue.positionAlign {
+                case .lineLeft: return "left"
+                case .lineRight: return "right"
+                case .center: return "center"
+                default: return "unset"
+                }
+            }()
+            let textAlignment: String = {
+                switch cue.align {
+                case .start: return "start"
+                case .end: return "end"
+                case .left: return "left"
+                case .right: return "right"
+                case .center: return "center"
+                default: return "unset"
+                }
+            }()
+            cueJson.merge([
+                "direction": direction,
+                "line": [
+                    "type": lineType,
+                    "align": lineAlign,
+                    "value": cue.line.value
+                ],
+                "vttPosition": [
+                    "type": vttPositionType,
+                    "align": vttPositionAlign,
+                    "value": cue.position.value
+                ],
+                "size": cue.size,
+                "textAlignment": textAlignment
+            ]) { $1 }
+        }
+        json["cue"] = cueJson
+        return json
+    }
+}
