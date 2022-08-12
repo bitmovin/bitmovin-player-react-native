@@ -43,6 +43,13 @@ extension RCTConvert {
         if let isPosterPersistent = json["isPosterPersistent"] as? Bool {
             sourceConfig.isPosterPersistent = isPosterPersistent
         }
+        if let subtitleTracks = json["subtitleTracks"] as? [[String: Any]] {
+            subtitleTracks.forEach {
+                if let track = RCTConvert.subtitleTrack($0) {
+                    sourceConfig.add(subtitleTrack: track)
+                }
+            }
+        }
         return sourceConfig
     }
 
@@ -105,5 +112,56 @@ extension RCTConvert {
             fairplayConfig.certificateRequestHeaders = certificateRequestHeaders
         }
         return fairplayConfig
+    }
+
+    /**
+     Utility method to get a `SubtitleTrack` instance from a JS object.
+     - Parameter json: JS object.
+     - Returns: The generated `SubtitleTrack`.
+     */
+    static func subtitleTrack(_ json: [String: Any]) -> SubtitleTrack? {
+        guard
+            let url = RCTConvert.nsurl(json["url"]),
+            let label = json["label"] as? String,
+            let identifier = json["identifier"] as? String
+        else {
+            return nil
+        }
+        let language = json["language"] as? String
+        let isDefaultTrack = json["isDefault"] as? Bool ?? false
+        if let format = RCTConvert.subtitleFormat(json["format"]) {
+            return SubtitleTrack(
+                url: url,
+                format: format,
+                label: label,
+                identifier: identifier,
+                isDefaultTrack: isDefaultTrack,
+                language: language
+            )
+        }
+        return SubtitleTrack(
+            url: url,
+            label: label,
+            identifier: identifier,
+            isDefaultTrack: isDefaultTrack,
+            language: language
+        )
+    }
+
+    /**
+     Utility method to get a `SubtitleFormat` value from a JS object.
+     - Parameter json: JS object.
+     - Returns: The associated `SubtitleFormat` value or nil.
+     */
+    static func subtitleFormat(_ json: Any?) -> SubtitleFormat? {
+        guard let json = json as? String else {
+            return nil
+        }
+        switch json {
+        case "webVtt": return .webVtt
+        case "ttml": return .ttml
+        case "cea": return .cea
+        default: return nil
+        }
     }
 }
