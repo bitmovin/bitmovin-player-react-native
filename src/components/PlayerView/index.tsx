@@ -99,6 +99,9 @@ export function PlayerView(props: PlayerViewProps) {
       onSourceLoaded={useProxy(nativeView, props.onSourceLoaded)}
       onSourceUnloaded={useProxy(nativeView, props.onSourceUnloaded)}
       onSourceWarning={useProxy(nativeView, props.onSourceWarning)}
+      onSubtitleAdded={useProxy(nativeView, props.onSubtitleAdded)}
+      onSubtitleChanged={useProxy(nativeView, props.onSubtitleChanged)}
+      onSubtitleRemoved={useProxy(nativeView, props.onSubtitleRemoved)}
       onTimeChanged={useProxy(nativeView, props.onTimeChanged)}
       onUnmuted={useProxy(nativeView, props.onUnmuted)}
     />

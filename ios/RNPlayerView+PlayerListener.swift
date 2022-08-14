@@ -88,4 +88,16 @@ extension RNPlayerView: PlayerListener {
     func onCueExit(_ event: CueExitEvent, player: Player) {
         onCueExit?(event.toJSON())
     }
+
+    func onSubtitleAdded(_ event: SubtitleAddedEvent, player: Player) {
+        onSubtitleAdded?(event.toJSON())
+    }
+
+    func onSubtitleRemoved(_ event: SubtitleRemovedEvent, player: Player) {
+        onSubtitleRemoved?(event.toJSON())
+    }
+
+    func onSubtitleChanged(_ event: SubtitleChangedEvent, player: Player) {
+        onSubtitleChanged?(event.toJSON())
+    }
 }

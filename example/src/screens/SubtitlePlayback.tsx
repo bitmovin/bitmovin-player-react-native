@@ -49,15 +49,6 @@ export default function SubtitlePlayback() {
     }, [player])
   );
 
-  const onReady = useCallback(
-    (_: Event) => {
-      player.getAvailableSubtitles().then((subtitles) => {
-        prettyPrint('AVAILABLE SUBTITLES', subtitles);
-      });
-    },
-    [player]
-  );
-
   const onEvent = useCallback((event: Event) => {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
@@ -67,9 +58,11 @@ export default function SubtitlePlayback() {
       <PlayerView
         player={player}
         style={styles.player}
-        onReady={onReady}
         onCueEnter={onEvent}
         onCueExit={onEvent}
+        onSubtitleAdded={onEvent}
+        onSubtitleChanged={onEvent}
+        onSubtitleRemoved={onEvent}
       />
     </View>
   );

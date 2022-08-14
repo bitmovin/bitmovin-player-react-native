@@ -236,3 +236,34 @@ extension CueEvent where Self: Event {
         return json
     }
 }
+
+extension SubtitleAddedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "subtitleTrack": RCTConvert.subtitleTrackJson(subtitleTrack)
+        ]
+    }
+}
+
+extension SubtitleRemovedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "subtitleTrack": RCTConvert.subtitleTrackJson(subtitleTrack)
+        ]
+    }
+}
+
+extension SubtitleChangedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "oldSubtitleTrack": RCTConvert.subtitleTrackJson(subtitleTrackOld),
+            "newSubtitleTrack": RCTConvert.subtitleTrackJson(subtitleTrackNew)
+        ]
+    }
+}

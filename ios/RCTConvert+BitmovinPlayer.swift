@@ -175,8 +175,11 @@ extension RCTConvert {
      - Parameter subtitleTrack: The track to convert to json format.
      - Returns: The generated json dictionary.
      */
-    static func subtitleTrackJson(_ subtitleTrack: SubtitleTrack) -> [AnyHashable: Any] {
-        [
+    static func subtitleTrackJson(_ subtitleTrack: SubtitleTrack?) -> [AnyHashable: Any]? {
+        guard let subtitleTrack = subtitleTrack else {
+            return nil
+        }
+        return [
             "url": subtitleTrack.url?.absoluteString,
             "label": subtitleTrack.label,
             "isDefault": subtitleTrack.isDefaultTrack,

@@ -20,6 +20,9 @@ import {
   SourceLoadedEvent,
   SourceUnloadedEvent,
   SourceWarningEvent,
+  SubtitleAddedEvent,
+  SubtitleChangedEvent,
+  SubtitleRemovedEvent,
   TimeChangedEvent,
   UnmutedEvent,
 } from '../../events';
@@ -49,6 +52,9 @@ interface EventProps {
   onSourceLoaded: SourceLoadedEvent;
   onSourceUnloaded: SourceUnloadedEvent;
   onSourceWarning: SourceWarningEvent;
+  onSubtitleAdded: SubtitleAddedEvent;
+  onSubtitleChanged: SubtitleChangedEvent;
+  onSubtitleRemoved: SubtitleRemovedEvent;
   onTimeChanged: TimeChangedEvent;
   onUnmuted: UnmutedEvent;
 }

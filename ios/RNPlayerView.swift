@@ -25,6 +25,9 @@ class RNPlayerView: UIView {
     @objc var onSourceWarning: RCTBubblingEventBlock?
     @objc var onCueEnter: RCTBubblingEventBlock?
     @objc var onCueExit: RCTBubblingEventBlock?
+    @objc var onSubtitleAdded: RCTBubblingEventBlock?
+    @objc var onSubtitleRemoved: RCTBubblingEventBlock?
+    @objc var onSubtitleChanged: RCTBubblingEventBlock?
 
     /// The `PlayerView` subview.
     var playerView: PlayerView? {
