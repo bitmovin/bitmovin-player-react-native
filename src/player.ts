@@ -1,7 +1,7 @@
 import { NativeModules, Platform } from 'react-native';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
-import { SubtitleTrack } from './subtitleTrack';
+import { SubtitleTrack } from './subtitle';
 
 const PlayerModule = NativeModules.PlayerModule;
 

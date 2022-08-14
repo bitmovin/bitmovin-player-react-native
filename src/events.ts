@@ -1,4 +1,4 @@
-import { Cue } from './cue';
+import { Cue } from './subtitle/cue';
 
 /**
  * Base event type for all events.

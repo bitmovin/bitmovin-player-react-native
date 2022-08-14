@@ -29,7 +29,7 @@ class JsonConverter {
          * @return The generated `PlayerConfig` if successful, `null` otherwise.
          */
         @JvmStatic
-        fun toPlayerConfig(json: ReadableMap?): PlayerConfig? {
+        fun toPlayerConfig(json: ReadableMap?): PlayerConfig {
             if (json != null && json.hasKey("licenseKey")) {
                 return PlayerConfig(key = json.getString("licenseKey"))
             }

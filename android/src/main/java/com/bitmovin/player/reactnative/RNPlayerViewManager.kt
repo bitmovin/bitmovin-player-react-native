@@ -79,7 +79,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
 
     /**
      * Callback triggered in response to command dispatches from the js side.
-     * @param root Root native view of the targeted component.
+     * @param view Root native view of the targeted component.
      * @param commandId Command number identifier. It's a number even though RN sends it as a string.
      * @param args Arguments list sent from the js side.
      */
