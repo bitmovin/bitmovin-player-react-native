@@ -66,6 +66,8 @@ function dispatch(command: string, node: number | null, playerId: string) {
 export function PlayerView(props: PlayerViewProps) {
   // Native view reference.
   const nativeView = useRef(null);
+  // Native events proxy helper.
+  const proxy = useProxy(nativeView);
   // Style resulting from merging `baseStyle` and `props.style`.
   const style = StyleSheet.flatten([styles.baseStyle, props.style]);
   useEffect(() => {
@@ -79,31 +81,31 @@ export function PlayerView(props: PlayerViewProps) {
     <NativePlayerView
       ref={nativeView}
       style={style}
-      onCueEnter={useProxy(nativeView, props.onCueEnter)}
-      onCueExit={useProxy(nativeView, props.onCueExit)}
-      onDestroy={useProxy(nativeView, props.onDestroy)}
-      onEvent={useProxy(nativeView, props.onEvent)}
-      onMuted={useProxy(nativeView, props.onMuted)}
-      onPaused={useProxy(nativeView, props.onPaused)}
-      onPlay={useProxy(nativeView, props.onPlay)}
-      onPlaybackFinished={useProxy(nativeView, props.onPlaybackFinished)}
-      onPlayerActive={useProxy(nativeView, props.onPlayerActive)}
-      onPlayerError={useProxy(nativeView, props.onPlayerError)}
-      onPlayerWarning={useProxy(nativeView, props.onPlayerWarning)}
-      onPlaying={useProxy(nativeView, props.onPlaying)}
-      onReady={useProxy(nativeView, props.onReady)}
-      onSeek={useProxy(nativeView, props.onSeek)}
-      onSeeked={useProxy(nativeView, props.onSeeked)}
-      onSourceError={useProxy(nativeView, props.onSourceError)}
-      onSourceLoad={useProxy(nativeView, props.onSourceLoad)}
-      onSourceLoaded={useProxy(nativeView, props.onSourceLoaded)}
-      onSourceUnloaded={useProxy(nativeView, props.onSourceUnloaded)}
-      onSourceWarning={useProxy(nativeView, props.onSourceWarning)}
-      onSubtitleAdded={useProxy(nativeView, props.onSubtitleAdded)}
-      onSubtitleChanged={useProxy(nativeView, props.onSubtitleChanged)}
-      onSubtitleRemoved={useProxy(nativeView, props.onSubtitleRemoved)}
-      onTimeChanged={useProxy(nativeView, props.onTimeChanged)}
-      onUnmuted={useProxy(nativeView, props.onUnmuted)}
+      onCueEnter={proxy(props.onCueEnter)}
+      onCueExit={proxy(props.onCueExit)}
+      onDestroy={proxy(props.onDestroy)}
+      onEvent={proxy(props.onEvent)}
+      onMuted={proxy(props.onMuted)}
+      onPaused={proxy(props.onPaused)}
+      onPlay={proxy(props.onPlay)}
+      onPlaybackFinished={proxy(props.onPlaybackFinished)}
+      onPlayerActive={proxy(props.onPlayerActive)}
+      onPlayerError={proxy(props.onPlayerError)}
+      onPlayerWarning={proxy(props.onPlayerWarning)}
+      onPlaying={proxy(props.onPlaying)}
+      onReady={proxy(props.onReady)}
+      onSeek={proxy(props.onSeek)}
+      onSeeked={proxy(props.onSeeked)}
+      onSourceError={proxy(props.onSourceError)}
+      onSourceLoad={proxy(props.onSourceLoad)}
+      onSourceLoaded={proxy(props.onSourceLoaded)}
+      onSourceUnloaded={proxy(props.onSourceUnloaded)}
+      onSourceWarning={proxy(props.onSourceWarning)}
+      onSubtitleAdded={proxy(props.onSubtitleAdded)}
+      onSubtitleChanged={proxy(props.onSubtitleChanged)}
+      onSubtitleRemoved={proxy(props.onSubtitleRemoved)}
+      onTimeChanged={proxy(props.onTimeChanged)}
+      onUnmuted={proxy(props.onUnmuted)}
     />
   );
 }
