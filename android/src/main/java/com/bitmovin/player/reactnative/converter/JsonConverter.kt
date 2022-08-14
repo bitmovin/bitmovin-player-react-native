@@ -135,6 +135,16 @@ class JsonConverter {
                 json.putInt("code", event.code.value)
                 json.putString("message", event.message)
             }
+            if (event is SourceEvent.SubtitleTrackAdded) {
+                json.putMap("subtitleTrack", fromSubtitleTrack(event.subtitleTrack))
+            }
+            if (event is SourceEvent.SubtitleTrackRemoved) {
+                json.putMap("subtitleTrack", fromSubtitleTrack(event.subtitleTrack))
+            }
+            if (event is SourceEvent.SubtitleTrackChanged) {
+                json.putMap("oldSubtitleTrack", fromSubtitleTrack(event.oldSubtitleTrack))
+                json.putMap("newSubtitleTrack", fromSubtitleTrack(event.newSubtitleTrack))
+            }
             return json
         }
 
@@ -341,7 +351,10 @@ class JsonConverter {
          * @return The generated json map.
          */
         @JvmStatic
-        fun fromSubtitleTrack(subtitleTrack: SubtitleTrack): WritableMap {
+        fun fromSubtitleTrack(subtitleTrack: SubtitleTrack?): WritableMap? {
+            if (subtitleTrack == null) {
+                return null
+            }
             val json = Arguments.createMap()
             json.putString("url", subtitleTrack.url)
             json.putString("label", subtitleTrack.label)

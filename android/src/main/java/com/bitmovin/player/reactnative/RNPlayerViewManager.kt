@@ -53,6 +53,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "sourceWarning" to "onSourceWarning",
         "cueEnter" to "onCueEnter",
         "cueExit" to "onCueExit",
+        "subtitleAdded" to "onSubtitleAdded",
+        "subtitleChanged" to "onSubtitleChanged",
+        "subtitleRemoved" to "onSubtitleRemoved",
     )
 
     /**
