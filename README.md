@@ -320,7 +320,7 @@ and potentially alter them:
 import { Platform } from 'react-native';
 import { SourceConfig, SourceType } from 'bitmovin-player-react-native';
 
-// Source configuration for protected asset.
+// Source configuration for protected assets.
 const drmSource: SourceConfig = {
   // Protected stream URL.
   url:
