@@ -25,15 +25,13 @@ export default function SubtitlePlayback() {
         type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
         poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
         // External subtitle tracks to be added to the source.
-        subtitleTracks: [
+        addSubtitleTracks: [
           // Add custom english subtitles. You can select 'Custom English' in the subtitles menu.
           {
             url: 'https://bitdash-a.akamaihd.net/content/sintel/subtitles/subtitles_en.vtt',
             label: 'Custom English',
             language: 'en',
-            identifier: 'sub1',
           },
-          // You may add more subtitle options in this list...
         ],
       });
       return () => {

@@ -43,7 +43,7 @@ extension RCTConvert {
         if let isPosterPersistent = json["isPosterPersistent"] as? Bool {
             sourceConfig.isPosterPersistent = isPosterPersistent
         }
-        if let subtitleTracks = json["subtitleTracks"] as? [[String: Any]] {
+        if let subtitleTracks = json["addSubtitleTracks"] as? [[String: Any]] {
             subtitleTracks.forEach {
                 if let track = RCTConvert.subtitleTrack($0) {
                     sourceConfig.add(subtitleTrack: track)

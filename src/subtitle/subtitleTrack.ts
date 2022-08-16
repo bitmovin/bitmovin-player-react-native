@@ -1,3 +1,5 @@
+import { MakeRequired } from '../utils';
+
 /**
  * Supported subtitle/caption file formats.
  */
@@ -44,3 +46,15 @@ export interface SubtitleTrack {
    */
   language?: string;
 }
+
+/**
+ * Helper type that represents an entry in the `SourceConfig.addSubtitleTracks` list.
+ *
+ * Since `SubtitleTrack` has all of its properties as optionals for total compatibility with
+ * values that may be sent from native code, this type serves as a reinforcer of what properties
+ * should be required during the registration of an external subtitle track from JS.
+ */
+export type AddSubtitleTrack = MakeRequired<
+  SubtitleTrack,
+  'url' | 'label' | 'language'
+>;

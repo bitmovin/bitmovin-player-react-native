@@ -390,7 +390,7 @@ const config: SourceConfig = {
   type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
   poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
   // External subtitle tracks list to be added to this source.
-  subtitleTracks: [
+  addSubtitleTracks: [
     // You can select 'Custom English' in the subtitles menu.
     {
       // The URL of the subtitle file. Required.

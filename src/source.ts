@@ -1,7 +1,7 @@
 import { NativeModules } from 'react-native';
 import { Drm, DrmConfig } from './drm';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
-import { SubtitleTrack } from './subtitle';
+import { AddSubtitleTrack } from './subtitle';
 
 const SourceModule = NativeModules.SourceModule;
 
@@ -77,7 +77,7 @@ export interface SourceConfig extends NativeInstanceConfig {
   /**
    * Custom subtitle tracks to be added to the source.
    */
-  subtitleTracks?: SubtitleTrack[];
+  addSubtitleTracks?: AddSubtitleTrack[];
 }
 
 /**
