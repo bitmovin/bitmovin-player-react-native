@@ -3,9 +3,8 @@ package com.bitmovin.player.reactnative
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.facebook.react.bridge.*
-import com.facebook.react.module.annotations.ReactModule;
+import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.UIManagerModule
-import java.util.UUID
 
 @ReactModule(name = PlayerModule.name)
 class PlayerModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
