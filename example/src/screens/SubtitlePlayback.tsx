@@ -6,7 +6,6 @@ import {
   usePlayer,
   PlayerView,
   SourceType,
-  SubtitleFormat,
 } from 'bitmovin-player-react-native';
 
 function prettyPrint(header: string, obj: any) {
@@ -25,22 +24,16 @@ export default function SubtitlePlayback() {
             : 'https://bitmovin-a.akamaihd.net/content/sintel/sintel.mpd',
         type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
         poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
-        // Custom subtitle tracks to be added on the source.
+        // External subtitle tracks to be added to the source.
         subtitleTracks: [
-          // Add dutch (nl) track and makes it the default.
+          // Add custom english subtitles. You can select 'Custom English' in the subtitles menu.
           {
-            url: 'https://raw.githubusercontent.com/bitmovin/bitmovin-player-react-native/feature/subtitle-tracks/example/assets/subtitles/sintel_nl.vtt',
-            format: SubtitleFormat.VTT,
-            label: 'Nederlands',
-            language: 'nl',
+            url: 'https://bitdash-a.akamaihd.net/content/sintel/subtitles/subtitles_en.vtt',
+            label: 'Custom English',
+            language: 'en',
+            identifier: 'sub1',
           },
-          // Add italian (it) track.
-          // In some cases, the file format can be ommited and automatically selected by the SDK.
-          {
-            url: 'https://raw.githubusercontent.com/bitmovin/bitmovin-player-react-native/feature/subtitle-tracks/example/assets/subtitles/sintel_it.vtt',
-            label: 'Italiano',
-            language: 'it',
-          },
+          // You may add more subtitle options in this list...
         ],
       });
       return () => {
