@@ -6,6 +6,7 @@ import {
   usePlayer,
   PlayerView,
   SourceType,
+  SubtitleFormat,
 } from 'bitmovin-player-react-native';
 
 function prettyPrint(header: string, obj: any) {
@@ -25,12 +26,13 @@ export default function SubtitlePlayback() {
         type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
         poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
         // External subtitle tracks to be added to the source.
-        addSubtitleTracks: [
+        subtitleTracks: [
           // Add custom english subtitles. You can select 'Custom English' in the subtitles menu.
           {
             url: 'https://bitdash-a.akamaihd.net/content/sintel/subtitles/subtitles_en.vtt',
             label: 'Custom English',
             language: 'en',
+            format: SubtitleFormat.VTT,
           },
         ],
       });

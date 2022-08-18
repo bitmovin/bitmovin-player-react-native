@@ -49,8 +49,8 @@ class JsonConverter {
             if (json.hasKey("isPosterPersistent")) {
                 config.isPosterPersistent = json.getBoolean("isPosterPersistent")
             }
-            if (json.hasKey("addSubtitleTracks")) {
-                val subtitleTracks = json.getArray("addSubtitleTracks") as ReadableArray
+            if (json.hasKey("subtitleTracks")) {
+                val subtitleTracks = json.getArray("subtitleTracks") as ReadableArray
                 for (i in 0 until subtitleTracks.size()) {
                     toSubtitleTrack(subtitleTracks.getMap(i))?.let {
                         config.addSubtitleTrack(it)

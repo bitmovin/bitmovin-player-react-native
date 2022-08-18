@@ -48,13 +48,13 @@ export interface SubtitleTrack {
 }
 
 /**
- * Helper type that represents an entry in the `SourceConfig.addSubtitleTracks` list.
+ * Helper type that represents an entry in `SourceConfig.subtitleTracks` list.
  *
  * Since `SubtitleTrack` has all of its properties as optionals for total compatibility with
  * values that may be sent from native code, this type serves as a reinforcer of what properties
  * should be required during the registration of an external subtitle track from JS.
  */
-export type AddSubtitleTrack = MakeRequired<
+export type SideLoadedSubtitleTrack = MakeRequired<
   SubtitleTrack,
-  'url' | 'label' | 'language'
+  'url' | 'label' | 'language' | 'format'
 >;
