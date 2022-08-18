@@ -51,8 +51,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "sourceUnloaded" to "onSourceUnloaded",
         "sourceError" to "onSourceError",
         "sourceWarning" to "onSourceWarning",
-        "cueEnter" to "onCueEnter",
-        "cueExit" to "onCueExit",
         "subtitleAdded" to "onSubtitleAdded",
         "subtitleChanged" to "onSubtitleChanged",
         "subtitleRemoved" to "onSubtitleRemoved",

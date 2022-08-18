@@ -1,7 +1,7 @@
 import { NativeModules } from 'react-native';
 import { Drm, DrmConfig } from './drm';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
-import { AddSubtitleTrack } from './subtitle';
+import { AddSubtitleTrack } from './subtitleTrack';
 
 const SourceModule = NativeModules.SourceModule;
 

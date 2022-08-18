@@ -1,4 +1,4 @@
-import { Cue, SubtitleTrack } from './subtitle';
+import { SubtitleTrack } from './subtitleTrack';
 
 /**
  * Base event type for all events.
@@ -209,47 +209,6 @@ export interface SourceErrorEvent extends ErrorEvent {}
  * Emitted when a source warning happens.
  */
 export interface SourceWarningEvent extends ErrorEvent {}
-
-/**
- * Event object containing the specific information about a subtitle cue.
- */
-export interface CueEvent extends Event {
-  /**
-   * The cue positioning data if available.
-   */
-  cue?: Cue;
-  /**
-   * The end time of the cue in seconds.
-   */
-  end: number;
-  /**
-   * The cue text as HTML.
-   */
-  html?: string;
-  /**
-   * The end time of the cue in seconds.
-   */
-  start: number;
-  /**
-   * The cue text.
-   */
-  text?: string;
-  /**
-   * The cue image data as a base64 png source.
-   * Can be passed to the `<Image />` component as the `src` prop.
-   */
-  image?: string;
-}
-
-/**
- * Emitted when a subtitle cue should be visible on screen.
- */
-export interface CueEnterEvent extends CueEvent {}
-
-/**
- * Emitted when a subtitle cue should be removed from screen.
- */
-export interface CueExitEvent extends CueEvent {}
 
 /**
  * Emitted when a new subtitle track is added to the player.

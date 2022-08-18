@@ -41,7 +41,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     fun initWithConfig(nativeId: NativeId, config: ReadableMap?) {
         uiManager()?.addUIBlock {
             if (!players.containsKey(nativeId)) {
-                JsonConverter.toPlayerConfig(config)?.let {
+                JsonConverter.toPlayerConfig(config).let {
                     players[nativeId] = Player.create(context, it)
                 }
             }

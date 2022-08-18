@@ -4,4 +4,4 @@ export * from './events';
 export * from './hooks';
 export * from './player';
 export * from './source';
-export * from './subtitle';
+export * from './subtitleTrack';

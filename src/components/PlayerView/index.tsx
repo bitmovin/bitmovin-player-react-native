@@ -81,8 +81,6 @@ export function PlayerView(props: PlayerViewProps) {
     <NativePlayerView
       ref={nativeView}
       style={style}
-      onCueEnter={proxy(props.onCueEnter)}
-      onCueExit={proxy(props.onCueExit)}
       onDestroy={proxy(props.onDestroy)}
       onEvent={proxy(props.onEvent)}
       onMuted={proxy(props.onMuted)}

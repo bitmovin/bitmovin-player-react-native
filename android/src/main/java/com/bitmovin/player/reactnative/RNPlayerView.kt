@@ -196,20 +196,6 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
     }
 
     /**
-     * `onCueEnter` event callback.
-     */
-    private val onCueEnter: (PlayerEvent.CueEnter) -> Unit = {
-        emitEvent("cueEnter", it)
-    }
-
-    /**
-     * `onCueExit` event callback.
-     */
-    private val onCueExit: (PlayerEvent.CueExit) -> Unit = {
-        emitEvent("cueExit", it)
-    }
-
-    /**
      * `onSubtitleAdded` event callback.
      */
     private val onSubtitleAdded: (SourceEvent.SubtitleTrackAdded) -> Unit = {
@@ -253,8 +239,6 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
         player?.on(onSourceUnloaded)
         player?.on(onSourceError)
         player?.on(onSourceWarning)
-        player?.on(onCueEnter)
-        player?.on(onCueExit)
         player?.on(onSubtitleAdded)
         player?.on(onSubtitleChanged)
         player?.on(onSubtitleRemoved)
@@ -283,8 +267,6 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
         player?.off(onSourceUnloaded)
         player?.off(onSourceError)
         player?.off(onSourceWarning)
-        player?.off(onCueEnter)
-        player?.off(onCueExit)
         player?.off(onSubtitleAdded)
         player?.off(onSubtitleChanged)
         player?.off(onSubtitleRemoved)

@@ -1,4 +1,4 @@
-import { MakeRequired } from '../utils';
+import { MakeRequired } from './utils';
 
 /**
  * Supported subtitle/caption file formats.

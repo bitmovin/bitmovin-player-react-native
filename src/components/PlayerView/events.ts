@@ -1,7 +1,5 @@
 import { NativeSyntheticEvent } from 'react-native';
 import {
-  CueEnterEvent,
-  CueExitEvent,
   DestroyEvent,
   Event,
   MutedEvent,
@@ -32,8 +30,6 @@ import {
  * Used to generate the specific events interface for each component.
  */
 interface EventProps {
-  onCueEnter: CueEnterEvent;
-  onCueExit: CueExitEvent;
   onDestroy: DestroyEvent;
   onEvent: Event;
   onMuted: MutedEvent;
