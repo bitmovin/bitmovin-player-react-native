@@ -403,7 +403,7 @@ const config: SourceConfig = {
       format: SubtitleFormat.VTT,
       // Label for this track shown under the selection menu. Required.
       label: 'Custom English',
-      // The language tag for this track. Required.
+      // The IETF BCP 47 language tag associated with this track. Required.
       language: 'en',
       // The unique identifier used for this track.
       // The default value for this options is a randomly generated UUID.
