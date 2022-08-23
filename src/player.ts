@@ -1,6 +1,7 @@
 import { NativeModules, Platform } from 'react-native';
-import { SourceConfig, Source } from './source';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
+import { Source, SourceConfig } from './source';
+import { SubtitleTrack } from './subtitleTrack';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -226,5 +227,12 @@ export class Player extends NativeInstance<PlayerConfig> {
       return false;
     }
     return PlayerModule.isAirPlayAvailable(this.nativeId);
+  };
+
+  /**
+   * @returns An array containing SubtitleTrack objects for all available subtitle tracks.
+   */
+  getAvailableSubtitles = async (): Promise<SubtitleTrack[]> => {
+    return PlayerModule.getAvailableSubtitles(this.nativeId);
   };
 }

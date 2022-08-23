@@ -49,5 +49,9 @@ RCT_EXTERN_METHOD(
     isAirPlayAvailable:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    getAvailableSubtitles:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 
 @end

@@ -18,6 +18,7 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
   - [Accessing native `Player` instances](#accessing-native-player-instances)
   - [Listening to events](#listening-to-events)
   - [Enabling DRM protection](#enabling-drm-protection)
+  - [Adding external subtitle tracks](#adding-subtitle-tracks)
 - [Contributing](#contributing)
 
 ## Installation
@@ -278,7 +279,10 @@ return (
 Simple streaming of protected assets can be enabled with just a little configuration on `SourceConfig.drmConfig`:
 
 ```typescript
-// Source configuration for protected asset.
+import { Platform } from 'react-native';
+import { SourceConfig, SourceType } from 'bitmovin-player-react-native';
+
+// Source configuration for protected assets.
 const drmSource: SourceConfig = {
   // Protected stream URL.
   url:
@@ -313,7 +317,10 @@ In order to handle such transformations, it's possible to hook methods onto `Sou
 and potentially alter them:
 
 ```typescript
-// Source configuration for protected asset.
+import { Platform } from 'react-native';
+import { SourceConfig, SourceType } from 'bitmovin-player-react-native';
+
+// Source configuration for protected assets.
 const drmSource: SourceConfig = {
   // Protected stream URL.
   url:
@@ -359,6 +366,70 @@ const drmSource: SourceConfig = {
 The [`FairplayConfig`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm.ts#L10) interface provides a bunch of hooks that can be used to fetch and transform different DRM related data. Check out the [docs](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm.ts#L10) for a complete list and detailed information on them.
 
 Also, don't forget to check out the [example](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app for a complete iOS/Android [DRM example](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDRMPlayback.tsx).
+
+### Adding external subtitle tracks
+
+Usually, subtitle tracks are provided in the manifest of your content (see [Enconding Manifests API](https://bitmovin.com/docs/encoding/api-reference/sections/manifests) for more information). And if they are provided this way, the player already recognizes them and show them in the subtitles selection menu without any further configuration.
+
+Otherwise, it's also possible to add external tracks via the subtitle API:
+
+```typescript
+import { Platform } from 'react-native';
+import {
+  SourceConfig,
+  SourceType,
+  SubtitleFormat,
+} from 'bitmovin-player-react-native';
+
+// Source config with an external subtitle track.
+const config: SourceConfig = {
+  url:
+    Platform.OS === 'ios'
+      ? 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8'
+      : 'https://bitmovin-a.akamaihd.net/content/sintel/sintel.mpd',
+  type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
+  poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
+  // External subtitle tracks list to be added to this source.
+  subtitleTracks: [
+    // You can select 'Custom English' in the subtitles menu.
+    {
+      // The URL of the subtitle file. Required.
+      url: 'https://bitdash-a.akamaihd.net/content/sintel/subtitles/subtitles_en.vtt',
+      // External file format.
+      // Supports `.vtt`, `.ttml` and `.cea` extensions.
+      //
+      // This option can be left empty since the player automatically recognizes the format
+      // from the provided url most of the time.
+      format: SubtitleFormat.VTT,
+      // Label for this track shown under the selection menu. Required.
+      label: 'Custom English',
+      // The IETF BCP 47 language tag associated with this track. Required.
+      language: 'en',
+      // The unique identifier used for this track.
+      // The default value for this options is a randomly generated UUID.
+      identifier: 'sub1',
+      // This track is considered the default if set to `true`.
+      // The default value for this option is `false`.
+      isDefault: false,
+      // If set to `true` it means that the player should automatically select and switch this
+      // subtitle according to the selected audio language. Forced subtitles do not appear in
+      // `Player.getAvailableSubtitles`.
+      //
+      // The default value for this option is `false`.
+      isForced: false,
+    },
+    // You may add even more tracks to the list...
+  ],
+};
+```
+
+The supported `PlayerView` events for subtitles are:
+
+- `onSubtitleAdded`
+- `onSubtitleRemoved`
+- `onSubtitleChanged`
+
+You might check out a complete subtitle example in the [`example/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app.
 
 ## Contributing
 

@@ -1,3 +1,5 @@
+import { SubtitleTrack } from './subtitleTrack';
+
 /**
  * Base event type for all events.
  */
@@ -207,3 +209,37 @@ export interface SourceErrorEvent extends ErrorEvent {}
  * Emitted when a source warning happens.
  */
 export interface SourceWarningEvent extends ErrorEvent {}
+
+/**
+ * Emitted when a new subtitle track is added to the player.
+ */
+export interface SubtitleAddedEvent extends Event {
+  /**
+   * Subtitle track that has been added.
+   */
+  subtitleTrack: SubtitleTrack;
+}
+
+/**
+ * Emitted when a subtitle track is removed from the player.
+ */
+export interface SubtitleRemovedEvent extends Event {
+  /**
+   * Subtitle track that has been removed.
+   */
+  subtitleTrack: SubtitleTrack;
+}
+
+/**
+ * Emitted when the player's selected subtitle track has changed.
+ */
+export interface SubtitleChangedEvent extends Event {
+  /**
+   * Subtitle track that was previously selected.
+   */
+  oldSubtitleTrack: SubtitleTrack;
+  /**
+   * Subtitle track that is selected now.
+   */
+  newSubtitleTrack: SubtitleTrack;
+}

@@ -2,14 +2,9 @@ package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.reactnative.converter.JsonConverter
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.module.annotations.ReactModule;
+import com.facebook.react.bridge.*
+import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.UIManagerModule
-import java.util.UUID
 
 @ReactModule(name = PlayerModule.name)
 class PlayerModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
@@ -46,7 +41,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     fun initWithConfig(nativeId: NativeId, config: ReadableMap?) {
         uiManager()?.addUIBlock {
             if (!players.containsKey(nativeId)) {
-                JsonConverter.toPlayerConfig(config)?.let {
+                JsonConverter.toPlayerConfig(config).let {
                     players[nativeId] = Player.create(context, it)
                 }
             }
@@ -264,6 +259,24 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     fun isLive(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
             promise.resolve(players[nativeId]?.isLive)
+        }
+    }
+
+    /**
+     * Resolve `nativeId`'s player available subtitle tracks.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getAvailableSubtitles(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            val subtitleTracks = Arguments.createArray()
+            players[nativeId]?.source?.availableSubtitleTracks?.let { tracks ->
+                tracks.forEach {
+                    subtitleTracks.pushMap(JsonConverter.fromSubtitleTrack(it))
+                }
+            }
+            promise.resolve(subtitleTracks)
         }
     }
 

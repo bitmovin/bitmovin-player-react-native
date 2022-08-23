@@ -326,4 +326,24 @@ class PlayerModule: NSObject, RCTBridgeModule {
             resolve(self?.players[nativeId]?.isAirPlayAvailable)
         }
     }
+
+    /**
+     Resolve `nativeId`'s player available subtitle tracks.
+     - Parameter nativeId: Target player Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getAvailableSubtitles:resolver:rejecter:)
+    func getAvailableSubtitles(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            let subtitlesJson = self?.players[nativeId]?.availableSubtitles.map {
+                RCTConvert.subtitleTrackJson($0)
+            }
+            resolve(subtitlesJson ?? [])
+        }
+    }
 }
