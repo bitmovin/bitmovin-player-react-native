@@ -2,24 +2,19 @@ package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.reactnative.converter.JsonConverter
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.module.annotations.ReactModule;
+import com.facebook.react.bridge.*
+import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.UIManagerModule
-import java.util.UUID
 
 @ReactModule(name = PlayerModule.name)
 class PlayerModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
     /**
-     * In-memory mapping of `id` <-> `Player`.
+     * In-memory mapping from `nativeId`s to `Player` instances.
      */
-    private var registry: MutableMap<String, Player> = mutableMapOf()
+    private val players: Registry<Player> = mutableMapOf()
 
     /**
-     * Exported module name to JS.
+     * JS exported module name.
      */
     companion object {
         const val name = "PlayerModule"
@@ -27,187 +22,180 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     override fun getName() = PlayerModule.name
 
     /**
-     * Fetch the `Player` instance with id equal to `playerId` inside this module's `registry`.
-     * @param playerId Target player to look inside registry.
+     * Fetches the `Player` instance associated with `nativeId` from the internal players.
+     * @param nativeId `Player` instance ID.
+     * @return The associated `Player` instance or `null`.
      */
-    fun getPlayer(playerId: String?): Player? {
-        if (playerId == null) {
+    fun getPlayer(nativeId: NativeId?): Player? {
+        if (nativeId == null) {
             return null
         }
-        return registry[playerId]
+        return players[nativeId]
     }
 
     /**
-     * Synchronously generate a random UUID for `Player`s native id when no `nativeId` is provided
-     * by the user.
-     * @return Random UUID RFC 4122 version 4.
-     */
-    @ReactMethod(isBlockingSynchronousMethod = true)
-    fun generateUUIDv4(): String = UUID.randomUUID().toString()
-
-    /**
-     * Create a new `Player` instance for the given `config` if no one exists already.
-     * @param config Player configuration options sent from JS.
+     * Creates a new `Player` instance inside the internal players using the provided `config` object.
+     * @param config `PlayerConfig` object received from JS.
      */
     @ReactMethod
-    fun initWithConfig(playerId: String, config: ReadableMap?) {
+    fun initWithConfig(nativeId: NativeId, config: ReadableMap?) {
         uiManager()?.addUIBlock {
-            if (!registry.containsKey(playerId)) {
-                JsonConverter.toPlayerConfig(config)?.let {
-                    registry[playerId] = Player.create(context, it)
+            if (!players.containsKey(nativeId)) {
+                JsonConverter.toPlayerConfig(config).let {
+                    players[nativeId] = Player.create(context, it)
                 }
             }
         }
     }
 
     /**
-     * Load the source of the given `playerId` with `config` options from JS.
-     * @param playerId Target player.
+     * Load the source of the given `nativeId` with `config` options from JS.
+     * @param nativeId Target player.
      * @param config Source configuration options from JS.
      */
     @ReactMethod
-    fun loadSource(playerId: String, config: ReadableMap?) {
+    fun loadSource(nativeId: NativeId, sourceNativeId: String) {
         uiManager()?.addUIBlock {
-            JsonConverter.toSourceConfig(config)?.let {
-                registry[playerId]?.load(it)
+            sourceModule()?.getSource(sourceNativeId)?.let {
+                players[nativeId]?.load(it)
             }
         }
     }
 
     /**
-     * Call `.unload()` on `playerId`'s player.
-     * @param playerId Target player Id.
+     * Call `.unload()` on `nativeId`'s player.
+     * @param nativeId Target player Id.
      */
     @ReactMethod
-    fun unload(playerId: String) {
+    fun unload(nativeId: NativeId) {
         uiManager()?.addUIBlock {
-            registry[playerId]?.unload()
+            players[nativeId]?.unload()
         }
     }
 
     /**
-     * Call `.play()` on `playerId`'s player.
-     * @param playerId Target player Id.
+     * Call `.play()` on `nativeId`'s player.
+     * @param nativeId Target player Id.
      */
     @ReactMethod
-    fun play(playerId: String) {
+    fun play(nativeId: NativeId) {
         uiManager()?.addUIBlock {
-            registry[playerId]?.play()
+            players[nativeId]?.play()
         }
     }
 
     /**
-     * Call `.pause()` on `playerId`'s player.
-     * @param playerId Target player Id.
+     * Call `.pause()` on `nativeId`'s player.
+     * @param nativeId Target player Id.
      */
     @ReactMethod
-    fun pause(playerId: String) {
+    fun pause(nativeId: NativeId) {
         uiManager()?.addUIBlock {
-            registry[playerId]?.pause()
+            players[nativeId]?.pause()
         }
     }
 
     /**
-     * Call `.seek(time:)` on `playerId`'s player.
-     * @param playerId Target player Id.
+     * Call `.seek(time:)` on `nativeId`'s player.
+     * @param nativeId Target player Id.
      * @param time Seek time in seconds.
      */
     @ReactMethod
-    fun seek(playerId: String, time: Double) {
+    fun seek(nativeId: NativeId, time: Double) {
         uiManager()?.addUIBlock {
-            registry[playerId]?.seek(time)
+            players[nativeId]?.seek(time)
         }
     }
 
     /**
-     * Call `.mute()` on `playerId`'s player.
-     * @param playerId Target player Id.
+     * Call `.mute()` on `nativeId`'s player.
+     * @param nativeId Target player Id.
      */
     @ReactMethod
-    fun mute(playerId: String) {
+    fun mute(nativeId: NativeId) {
         uiManager()?.addUIBlock {
-            registry[playerId]?.mute()
+            players[nativeId]?.mute()
         }
     }
 
     /**
-     * Call `.unmute()` on `playerId`'s player.
-     * @param playerId Target player Id.
+     * Call `.unmute()` on `nativeId`'s player.
+     * @param nativeId Target player Id.
      */
     @ReactMethod
-    fun unmute(playerId: String) {
+    fun unmute(nativeId: NativeId) {
         uiManager()?.addUIBlock {
-            registry[playerId]?.unmute()
+            players[nativeId]?.unmute()
         }
     }
 
     /**
-     * Call `.destroy()` on `playerId`'s player.
-     * @param playerId Target player Id.
+     * Call `.destroy()` on `nativeId`'s player.
+     * @param nativeId Target player Id.
      */
     @ReactMethod
-    fun destroy(playerId: String) {
+    fun destroy(nativeId: NativeId) {
         uiManager()?.addUIBlock {
-            registry[playerId]?.let {
+            players[nativeId]?.let {
                 it.destroy()
-                registry.remove(playerId)
+                players.remove(nativeId)
             }
         }
     }
 
     /**
-     * Call `.setVolume(volume:)` on `playerId`'s player.
-     * @param playerId Target player Id.
+     * Call `.setVolume(volume:)` on `nativeId`'s player.
+     * @param nativeId Target player Id.
      * @param volume Volume level integer between 0 to 100.
      */
     @ReactMethod
-    fun setVolume(playerId: String, volume: Int) {
+    fun setVolume(nativeId: NativeId, volume: Int) {
         uiManager()?.addUIBlock {
-            registry[playerId]?.volume = volume
+            players[nativeId]?.volume = volume
         }
     }
 
     /**
-     * Resolve `playerId`'s current volume.
-     * @param playerId Target player Id.
+     * Resolve `nativeId`'s current volume.
+     * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
-    fun getVolume(playerId: String, promise: Promise) {
+    fun getVolume(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(registry[playerId]?.volume)
+            promise.resolve(players[nativeId]?.volume)
         }
     }
 
     /**
-     * Resolve the source of `playerId`'s player.
-     * @param playerId Target player Id.
+     * Resolve the source of `nativeId`'s player.
+     * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
-    fun source(playerId: String, promise: Promise) {
+    fun source(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(JsonConverter.fromSource(registry[playerId]?.source))
+            promise.resolve(JsonConverter.fromSource(players[nativeId]?.source))
         }
     }
 
     /**
-     * Resolve `playerId`'s current playback time.
-     * @param playerId Target player Id.
+     * Resolve `nativeId`'s current playback time.
+     * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
-    fun currentTime(playerId: String, mode: String?, promise: Promise) {
+    fun currentTime(nativeId: NativeId, mode: String?, promise: Promise) {
         uiManager()?.addUIBlock {
             var timeOffset: Double = 0.0
             if (mode != null) {
                 timeOffset = if (mode == "relative") {
-                    registry[playerId]?.playbackTimeOffsetToRelativeTime ?: 0.0
+                    players[nativeId]?.playbackTimeOffsetToRelativeTime ?: 0.0
                 } else {
-                    registry[playerId]?.playbackTimeOffsetToAbsoluteTime ?: 0.0
+                    players[nativeId]?.playbackTimeOffsetToAbsoluteTime ?: 0.0
                 }
             }
-            val currentTime = registry[playerId]?.currentTime
+            val currentTime = players[nativeId]?.currentTime
             if (currentTime != null) {
                 promise.resolve(currentTime + timeOffset)
             }
@@ -215,62 +203,80 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
-     * Resolve `playerId`'s current source duration.
-     * @param playerId Target player Id.
+     * Resolve `nativeId`'s current source duration.
+     * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
-    fun duration(playerId: String, promise: Promise) {
+    fun duration(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(registry[playerId]?.duration)
+            promise.resolve(players[nativeId]?.duration)
         }
     }
 
     /**
-     * Resolve `playerId`'s current muted state.
-     * @param playerId Target player Id.
+     * Resolve `nativeId`'s current muted state.
+     * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
-    fun isMuted(playerId: String, promise: Promise) {
+    fun isMuted(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(registry[playerId]?.isMuted)
+            promise.resolve(players[nativeId]?.isMuted)
         }
     }
 
     /**
-     * Resolve `playerId`'s current playing state.
-     * @param playerId Target player Id.
+     * Resolve `nativeId`'s current playing state.
+     * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
-    fun isPlaying(playerId: String, promise: Promise) {
+    fun isPlaying(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(registry[playerId]?.isPlaying)
+            promise.resolve(players[nativeId]?.isPlaying)
         }
     }
 
     /**
-     * Resolve `playerId`'s current paused state.
-     * @param playerId Target player Id.
+     * Resolve `nativeId`'s current paused state.
+     * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
-    fun isPaused(playerId: String, promise: Promise) {
+    fun isPaused(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(registry[playerId]?.isPaused)
+            promise.resolve(players[nativeId]?.isPaused)
         }
     }
 
     /**
-     * Resolve `playerId`'s current live state.
-     * @param playerId Target player Id.
+     * Resolve `nativeId`'s current live state.
+     * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
-    fun isLive(playerId: String, promise: Promise) {
+    fun isLive(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(registry[playerId]?.isLive)
+            promise.resolve(players[nativeId]?.isLive)
+        }
+    }
+
+    /**
+     * Resolve `nativeId`'s player available subtitle tracks.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getAvailableSubtitles(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            val subtitleTracks = Arguments.createArray()
+            players[nativeId]?.source?.availableSubtitleTracks?.let { tracks ->
+                tracks.forEach {
+                    subtitleTracks.pushMap(JsonConverter.fromSubtitleTrack(it))
+                }
+            }
+            promise.resolve(subtitleTracks)
         }
     }
 
@@ -279,4 +285,10 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      */
     private fun uiManager(): UIManagerModule? =
         context.getNativeModule(UIManagerModule::class.java)
+
+    /**
+     * Helper function that returns the initialized `SourceModule` instance.
+     */
+    private fun sourceModule(): SourceModule? =
+        context.getNativeModule(SourceModule::class.java)
 }

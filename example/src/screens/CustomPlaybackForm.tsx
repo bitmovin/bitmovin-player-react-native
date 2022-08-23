@@ -1,11 +1,12 @@
-import React, { useState, useReducer } from 'react';
+import React, { useReducer } from 'react';
 import { View, Platform, StyleSheet, KeyboardAvoidingView } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { Picker } from '@react-native-picker/picker';
-import Modal from 'react-native-modal';
 import { SourceType } from 'bitmovin-player-react-native';
+import { RootStackParamsList } from '../App';
 import Button from '../components/Button';
 import FormInput from '../components/FormInput';
+import FormPicker from '../components/FormPicker';
 import { capitalize } from '../utils';
 
 enum FormAction {
@@ -80,68 +81,70 @@ const setStreamType = (value: SourceType): Action => ({
 const initialFormState = {
   licenseKey: '',
   streamURL: '',
-  streamType: {
-    label: 'HLS',
-    value: SourceType.HLS,
-  },
+  streamType:
+    Platform.OS === 'ios'
+      ? { label: 'HLS', value: SourceType.HLS }
+      : { label: 'Dash', value: SourceType.DASH },
   playDisabled: true,
 };
 
-const CustomPlaybackForm = () => {
+type CustomPlaybackFormProps = NativeStackScreenProps<RootStackParamsList>;
+
+const CustomPlaybackForm: React.FC<CustomPlaybackFormProps> = ({
+  navigation,
+}) => {
   const headerHeight = useHeaderHeight();
-  const [isModalVisible, setModalVisible] = useState(false);
   const [state, dispatch] = useReducer(formReducer, initialFormState);
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={headerHeight}
+      behavior="padding"
+      keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
     >
       <View style={styles.form}>
         <FormInput
+          textContentType="password"
           title="License key"
           value={state.licenseKey}
           onChange={(value) => dispatch(setLicenseKey(value))}
-          placeholder="Paste your license key from dashboard"
+          placeholder="Your license key from the dashboard"
         />
         <FormInput
+          textContentType="URL"
           title="Stream URL"
           value={state.streamURL}
           onChange={(value) => dispatch(setStreamURL(value))}
-          placeholder="e.g. https://example.com/resource.m3u8"
+          placeholder="URL path of a .m3u8, .mpd, or .mp4 file"
         />
-        <FormInput
-          editable={false}
+        <FormPicker
           title="Stream type"
-          value={state.streamType.label}
-          onPress={() => setModalVisible(true)}
+          options={[
+            Platform.select({
+              ios: {
+                label: 'HLS',
+                value: SourceType.HLS,
+              },
+              android: {
+                label: 'Dash',
+                value: SourceType.DASH,
+              },
+            })!,
+            {
+              label: 'Progressive',
+              value: SourceType.PROGRESSIVE,
+            },
+          ]}
+          selected={state.streamType.value}
+          onChange={(value) => dispatch(setStreamType(value as SourceType))}
         />
       </View>
-      <Modal
-        isVisible={isModalVisible}
-        onBackdropPress={() => setModalVisible(false)}
-      >
-        <View style={styles.modal}>
-          <Picker
-            selectedValue={state.streamType.value}
-            onValueChange={(value, _) => dispatch(setStreamType(value))}
-          >
-            <Picker.Item label="HLS" value={SourceType.HLS} />
-            <Picker.Item label="Dash" value={SourceType.DASH} />
-            <Picker.Item label="Progressive" value={SourceType.PROGRESSIVE} />
-          </Picker>
-        </View>
-      </Modal>
       <View style={styles.buttonContainer}>
         <Button
           type="solid"
           title="Play"
-          onPress={() => {
-            // TODO: Navigate to the actual `CustomPlayback` screen passing the stream configuration
-            // stored here as navigation parameters.
-          }}
           disabled={state.playDisabled}
           containerStyle={styles.button}
+          onPress={() => navigation.navigate('CustomPlayback', { ...state })}
         />
       </View>
     </KeyboardAvoidingView>

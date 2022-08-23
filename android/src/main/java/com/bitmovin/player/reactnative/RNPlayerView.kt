@@ -196,53 +196,84 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
     }
 
     /**
+     * `onSubtitleAdded` event callback.
+     */
+    private val onSubtitleAdded: (SourceEvent.SubtitleTrackAdded) -> Unit = {
+        emitEvent("subtitleAdded", it)
+    }
+
+    /**
+     * `onSubtitleChanged` event callback.
+     */
+    private val onSubtitleChanged: (SourceEvent.SubtitleTrackChanged) -> Unit = {
+        emitEvent("subtitleChanged", it)
+    }
+
+    /**
+     * `onSubtitleRemoved` event callback.
+     */
+    private val onSubtitleRemoved: (SourceEvent.SubtitleTrackRemoved) -> Unit = {
+        emitEvent("subtitleRemoved", it)
+    }
+
+    /**
      * Start listening and emitting player events as bubbling events to the js side.
      */
     fun startBubblingEvents() {
-        player?.on(onEvent)
-        player?.on(onPlayerError)
-        player?.on(onPlayerWarning)
-        player?.on(onDestroy)
-        player?.on(onMuted)
-        player?.on(onUnmuted)
-        player?.on(onReady)
-        player?.on(onPaused)
-        player?.on(onPlay)
-        player?.on(onPlaying)
-        player?.on(onPlaybackFinished)
-        player?.on(onSeek)
-        player?.on(onSeeked)
-        player?.on(onTimeChanged)
-        player?.on(onSourceLoad)
-        player?.on(onSourceLoaded)
-        player?.on(onSourceUnloaded)
-        player?.on(onSourceError)
-        player?.on(onSourceWarning)
+        player?.apply {
+            on(onEvent)
+            on(onPlayerError)
+            on(onPlayerWarning)
+            on(onDestroy)
+            on(onMuted)
+            on(onUnmuted)
+            on(onReady)
+            on(onPaused)
+            on(onPlay)
+            on(onPlaying)
+            on(onPlaybackFinished)
+            on(onSeek)
+            on(onSeeked)
+            on(onTimeChanged)
+            on(onSourceLoad)
+            on(onSourceLoaded)
+            on(onSourceUnloaded)
+            on(onSourceError)
+            on(onSourceWarning)
+            on(onSubtitleAdded)
+            on(onSubtitleChanged)
+            on(onSubtitleRemoved)
+        }
     }
 
     /**
      * Stop listening for player events and cease to emit bubbling events.
      */
     fun stopBubblingEvents() {
-        player?.off(onEvent)
-        player?.off(onPlayerError)
-        player?.off(onPlayerWarning)
-        player?.off(onDestroy)
-        player?.off(onMuted)
-        player?.off(onUnmuted)
-        player?.off(onReady)
-        player?.off(onPaused)
-        player?.off(onPlay)
-        player?.off(onPlaying)
-        player?.off(onPlaybackFinished)
-        player?.off(onSeek)
-        player?.off(onSeeked)
-        player?.off(onTimeChanged)
-        player?.off(onSourceLoad)
-        player?.off(onSourceLoaded)
-        player?.off(onSourceUnloaded)
-        player?.off(onSourceError)
-        player?.off(onSourceWarning)
+        player?.apply {
+            off(onEvent)
+            off(onPlayerError)
+            off(onPlayerWarning)
+            off(onDestroy)
+            off(onMuted)
+            off(onUnmuted)
+            off(onReady)
+            off(onPaused)
+            off(onPlay)
+            off(onPlaying)
+            off(onPlaybackFinished)
+            off(onSeek)
+            off(onSeeked)
+            off(onTimeChanged)
+            off(onSourceLoad)
+            off(onSourceLoaded)
+            off(onSourceUnloaded)
+            off(onSourceError)
+            off(onSourceWarning)
+            off(onSubtitleAdded)
+            off(onSubtitleChanged)
+            off(onSubtitleRemoved)
+        }
     }
 
     /**

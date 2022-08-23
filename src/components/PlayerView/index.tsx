@@ -66,37 +66,44 @@ function dispatch(command: string, node: number | null, playerId: string) {
 export function PlayerView(props: PlayerViewProps) {
   // Native view reference.
   const nativeView = useRef(null);
+  // Native events proxy helper.
+  const proxy = useProxy(nativeView);
   // Style resulting from merging `baseStyle` and `props.style`.
   const style = StyleSheet.flatten([styles.baseStyle, props.style]);
   useEffect(() => {
-    // Attach `props.player` to native `PlayerView`.
+    // Initialize native player instance if needed.
+    props.player.initialize();
+    // Attach native player to native `PlayerView`.
     const node = findNodeHandle(nativeView.current);
     dispatch('attachPlayer', node, props.player.nativeId);
-  }, [props.player.nativeId]);
+  }, [props.player]);
   return (
     <NativePlayerView
       ref={nativeView}
       style={style}
-      onEvent={useProxy(nativeView, props.onEvent)}
-      onPlayerActive={useProxy(nativeView, props.onPlayerActive)}
-      onPlayerError={useProxy(nativeView, props.onPlayerError)}
-      onPlayerWarning={useProxy(nativeView, props.onPlayerWarning)}
-      onDestroy={useProxy(nativeView, props.onDestroy)}
-      onMuted={useProxy(nativeView, props.onMuted)}
-      onUnmuted={useProxy(nativeView, props.onUnmuted)}
-      onReady={useProxy(nativeView, props.onReady)}
-      onPaused={useProxy(nativeView, props.onPaused)}
-      onPlay={useProxy(nativeView, props.onPlay)}
-      onPlaying={useProxy(nativeView, props.onPlaying)}
-      onPlaybackFinished={useProxy(nativeView, props.onPlaybackFinished)}
-      onSeek={useProxy(nativeView, props.onSeek)}
-      onSeeked={useProxy(nativeView, props.onSeeked)}
-      onTimeChanged={useProxy(nativeView, props.onTimeChanged)}
-      onSourceLoad={useProxy(nativeView, props.onSourceLoad)}
-      onSourceLoaded={useProxy(nativeView, props.onSourceLoaded)}
-      onSourceUnloaded={useProxy(nativeView, props.onSourceUnloaded)}
-      onSourceError={useProxy(nativeView, props.onSourceError)}
-      onSourceWarning={useProxy(nativeView, props.onSourceWarning)}
+      onDestroy={proxy(props.onDestroy)}
+      onEvent={proxy(props.onEvent)}
+      onMuted={proxy(props.onMuted)}
+      onPaused={proxy(props.onPaused)}
+      onPlay={proxy(props.onPlay)}
+      onPlaybackFinished={proxy(props.onPlaybackFinished)}
+      onPlayerActive={proxy(props.onPlayerActive)}
+      onPlayerError={proxy(props.onPlayerError)}
+      onPlayerWarning={proxy(props.onPlayerWarning)}
+      onPlaying={proxy(props.onPlaying)}
+      onReady={proxy(props.onReady)}
+      onSeek={proxy(props.onSeek)}
+      onSeeked={proxy(props.onSeeked)}
+      onSourceError={proxy(props.onSourceError)}
+      onSourceLoad={proxy(props.onSourceLoad)}
+      onSourceLoaded={proxy(props.onSourceLoaded)}
+      onSourceUnloaded={proxy(props.onSourceUnloaded)}
+      onSourceWarning={proxy(props.onSourceWarning)}
+      onSubtitleAdded={proxy(props.onSubtitleAdded)}
+      onSubtitleChanged={proxy(props.onSubtitleChanged)}
+      onSubtitleRemoved={proxy(props.onSubtitleRemoved)}
+      onTimeChanged={proxy(props.onTimeChanged)}
+      onUnmuted={proxy(props.onUnmuted)}
     />
   );
 }

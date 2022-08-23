@@ -17,13 +17,13 @@ extension RCTConvert {
         }
         return playerConfig
     }
-    
+
     /**
      Utility method to instantiate a `SourceConfig` from a JS object.
      - Parameter json: JS object
      - Returns: The produced `SourceConfig` object
      */
-    static func sourceConfig(_ json: Any?) -> SourceConfig? {
+    static func sourceConfig(_ json: Any?, drmConfig: FairplayConfig? = nil) -> SourceConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
         }
@@ -31,6 +31,9 @@ extension RCTConvert {
             url: RCTConvert.nsurl(json["url"]),
             type: RCTConvert.sourceType(json["type"])
         )
+        if let drmConfig = drmConfig {
+            sourceConfig.drmConfig = drmConfig
+        }
         if let title = json["title"] as? String {
             sourceConfig.title = title
         }
@@ -40,9 +43,16 @@ extension RCTConvert {
         if let isPosterPersistent = json["isPosterPersistent"] as? Bool {
             sourceConfig.isPosterPersistent = isPosterPersistent
         }
+        if let subtitleTracks = json["subtitleTracks"] as? [[String: Any]] {
+            subtitleTracks.forEach {
+                if let track = RCTConvert.subtitleTrack($0) {
+                    sourceConfig.add(subtitleTrack: track)
+                }
+            }
+        }
         return sourceConfig
     }
-    
+
     /**
      Utility method to get a `SourceType` from a JS object.
      - Parameter json: JS object
@@ -60,7 +70,7 @@ extension RCTConvert {
         default: return .none
         }
     }
-    
+
     /**
      Utility method to get a `TimeMode` from a JS object.
      - Parameter json: JS object
@@ -75,5 +85,114 @@ extension RCTConvert {
         case "relative": return .relativeTime
         default: return .absoluteTime
         }
+    }
+
+    /**
+     Utility method to get a `FairplayConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The generated `FairplayConfig` object
+     */
+    static func fairplayConfig(_ json: Any?) -> FairplayConfig? {
+        guard
+            let json = json as? [String: Any?],
+            let fairplayJson = json["fairplay"] as? [String: Any?],
+            let licenseURL = fairplayJson["licenseUrl"] as? String,
+            let certificateURL = fairplayJson["certificateUrl"] as? String
+        else {
+            return nil
+        }
+        let fairplayConfig = FairplayConfig(
+            license: URL(string: licenseURL),
+            certificateURL: URL(string: certificateURL)!
+        )
+        if let licenseRequestHeaders = fairplayJson["licenseRequestHeaders"] as? [String: String] {
+            fairplayConfig.licenseRequestHeaders = licenseRequestHeaders
+        }
+        if let certificateRequestHeaders = fairplayJson["certificateRequestHeaders"] as? [String: String] {
+            fairplayConfig.certificateRequestHeaders = certificateRequestHeaders
+        }
+        return fairplayConfig
+    }
+
+    /**
+     Utility method to get a `SubtitleTrack` instance from a JS object.
+     - Parameter json: JS object.
+     - Returns: The generated `SubtitleTrack`.
+     */
+    static func subtitleTrack(_ json: [String: Any]) -> SubtitleTrack? {
+        guard
+            let url = RCTConvert.nsurl(json["url"]),
+            let label = json["label"] as? String
+        else {
+            return nil
+        }
+
+        let language = json["language"] as? String
+        let isDefaultTrack = json["isDefault"] as? Bool ?? false
+        let isForced = json["isForced"] as? Bool ?? false
+        let identifier = json["identifier"] as? String ?? UUID().uuidString
+
+        if let format = RCTConvert.subtitleFormat(json["format"]) {
+            return SubtitleTrack(
+                url: url,
+                format: format,
+                label: label,
+                identifier: identifier,
+                isDefaultTrack: isDefaultTrack,
+                language: language,
+                forced: isForced
+            )
+        }
+        return SubtitleTrack(
+            url: url,
+            label: label,
+            identifier: identifier,
+            isDefaultTrack: isDefaultTrack,
+            language: language,
+            forced: isForced
+        )
+    }
+
+    /**
+     Utility method to get a `SubtitleFormat` value from a JS object.
+     - Parameter json: JS object.
+     - Returns: The associated `SubtitleFormat` value or nil.
+     */
+    static func subtitleFormat(_ json: Any?) -> SubtitleFormat? {
+        guard let json = json as? String else {
+            return nil
+        }
+        switch json {
+        case "cea": return .cea
+        case "vtt": return .webVtt
+        case "ttml": return .ttml
+        default: return nil
+        }
+    }
+
+    /**
+     Utility method to get a json dictionary value from a `SubtitleTrack` object.
+     - Parameter subtitleTrack: The track to convert to json format.
+     - Returns: The generated json dictionary.
+     */
+    static func subtitleTrackJson(_ subtitleTrack: SubtitleTrack?) -> [AnyHashable: Any]? {
+        guard let subtitleTrack = subtitleTrack else {
+            return nil
+        }
+        return [
+            "url": subtitleTrack.url?.absoluteString,
+            "label": subtitleTrack.label,
+            "isDefault": subtitleTrack.isDefaultTrack,
+            "identifier": subtitleTrack.identifier,
+            "language": subtitleTrack.language,
+            "isForced": subtitleTrack.isForced,
+            "format": {
+                switch subtitleTrack.format {
+                case .cea: return "cea"
+                case .webVtt: return "vtt"
+                case .ttml: return "ttml"
+                }
+            }(),
+        ]
     }
 }
