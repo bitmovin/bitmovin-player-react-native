@@ -218,7 +218,8 @@ const player = usePlayer({
     isMuted: true,
     // Specifies if time shift for live streams should be enabled. Default is true.
     isTimeShiftEnabled: true,
-    // Optionally isBackgroundPlaybackEnabled: Specifies if isBackgroundPlaybackEnabled should be enabled. Only in iOS. Default is false.
+    // Whether background playback is enabled or not. Default is false.
+    // Only available for iOS.
     isBackgroundPlaybackEnabled: true,
   }
 });
