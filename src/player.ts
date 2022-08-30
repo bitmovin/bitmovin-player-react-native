@@ -29,7 +29,7 @@ export interface PlayerConfig extends NativeInstanceConfig {
    */
   licenseKey?: string;
   /**
-   * Configures playback behavior. A default `PlaybackConfig` is set initially.
+   * Configuration options for player's default playback behavior.
    */
   playbackConfig?: PlaybackConfig;
 }
