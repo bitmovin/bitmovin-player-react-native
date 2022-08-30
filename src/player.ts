@@ -35,7 +35,7 @@ export interface PlayerConfig extends NativeInstanceConfig {
 }
 
 /**
- * Optionally PlaybackConfig Object used to configure a new `PlaybackConfig` instance.
+ * Configuration options for player's default playback behavior.
  */
 export interface PlaybackConfig {
   /**
