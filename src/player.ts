@@ -51,17 +51,14 @@ export interface PlaybackConfig {
    */
   isAutoplayEnabled?: boolean;
   /**
-   * Optionally isMuted: Specifies if the player should start muted.
-   *
-   * Default is `false`.
-   *
+   * Whether the sound is muted on startup or not. Default value is `false`.
    * @example
    * ```
    * const player = new Player({
-   *   {
+   *   playbackConfig: {
    *     isMuted: true,
-   *   }
-   * })
+   *   },
+   * });
    * ```
    */
   isMuted?: boolean;
