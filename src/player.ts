@@ -63,17 +63,14 @@ export interface PlaybackConfig {
    */
   isMuted?: boolean;
   /**
-   * Optionally isTimeShiftEnabled: Specifies if time shifting (during live streaming) should be enabled.
-   *
-   * Default is `true`.
-   *
+   * Whether time shift / DVR for live streams is enabled or not. Default is `true`.
    *  @example
    * ```
    * const player = new Player({
-   *   {
+   *   playbackConfig: {
    *     isTimeShiftEnabled: false,
-   *   }
-   * })
+   *   },
+   * });
    * ```
    */
   isTimeShiftEnabled?: boolean;
