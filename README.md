@@ -216,7 +216,7 @@ const player = usePlayer({
     isAutoplayEnabled: true,
     // Specifies if playback starts muted. Default is false.
     isMuted: true,
-    // Optionally isTimeShiftEnabled: Specifies if time shifting (during live streaming) should be enabled. Default is true.
+    // Specifies if time shift for live streams should be enabled. Default is true.
     isTimeShiftEnabled: true,
     // Optionally isBackgroundPlaybackEnabled: Specifies if isBackgroundPlaybackEnabled should be enabled. Only in iOS. Default is false.
     isBackgroundPlaybackEnabled: true,
