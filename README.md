@@ -212,7 +212,7 @@ If needed, the default player behavior can be configured through the `playbackCo
 import { usePlayer } from 'bitmovin-player-react-native';
 const player = usePlayer({
   playbackConfig: {
-    // Optionally isAutoplayEnabled: Specifies whether autoplay is enabled. Default is false.
+    // Specifies whether the playback starts immediately after loading a source or not. Default is false.
     isAutoplayEnabled: true,
     // Optionally isMuted: Specifies if the player should start muted. Default is false.
     isMuted: true,
