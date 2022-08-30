@@ -39,17 +39,14 @@ export interface PlayerConfig extends NativeInstanceConfig {
  */
 export interface PlaybackConfig {
   /**
-   * Optionally isAutoplayEnabled: Specifies whether autoplay is enabled.
-   *
-   * Default is `false`.
-   *
+   * Whether the player starts playing automatically after loading a source or not. Default is `false`.
    * @example
    * ```
    * const player = new Player({
-   *   {
+   *   playbackConfig: {
    *     isAutoplayEnabled: true,
-   *   }
-   * })
+   *   },
+   * });
    * ```
    */
   isAutoplayEnabled?: boolean;
