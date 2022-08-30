@@ -204,7 +204,6 @@ const player = new Player({
 
 If needed, the default player behavior can be configured through the `playbackConfig` key when initialized.
 
-#### Configuring through code
 
 ```typescript
 // Simply pass the `playbackConfig` property to `PlaybackConfig` when instantiating a player.
