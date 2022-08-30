@@ -92,19 +92,14 @@ export interface PlaybackConfig {
    */
   isBackgroundPlaybackEnabled?: boolean;
   /**
-   * Optionally isPictureInPictureEnabled: Specifies if isPictureInPictureEnabled should be enabled.
-   *
-   * This param only work on iOS.
-   *
-   * Default is `false`.
-   *
+   * Whether the picture-in-picture mode option is enabled for iOS or not. Default is `false`.
    *  @example
    * ```
    * const player = new Player({
-   *   {
+   *   playbackConfig: {
    *     isPictureInPictureEnabled: true,
-   *   }
-   * })
+   *   },
+   * });
    * ```
    */
   isPictureInPictureEnabled?: boolean;
