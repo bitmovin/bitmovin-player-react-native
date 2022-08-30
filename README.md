@@ -202,7 +202,7 @@ const player = new Player({
 
 ### Setting up a playback configurations
 
-If you need more option to playback configuration you can add new parameter `playbackConfig`
+If needed, the default player behavior can be configured through the `playbackConfig` key when initialized.
 
 #### Configuring through code
 
