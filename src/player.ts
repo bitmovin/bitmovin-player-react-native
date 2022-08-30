@@ -1,24 +1,14 @@
 import { NativeModules, Platform } from 'react-native';
-import { SourceConfig, Source } from './source';
+import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
+import { Source, SourceConfig } from './source';
+import { SubtitleTrack } from './subtitleTrack';
 
 const PlayerModule = NativeModules.PlayerModule;
 
 /**
  * Object used to configure a new `Player` instance.
  */
-export interface PlayerConfig {
-  /**
-   * Optionally user-defined string `id` for the native `Player` instances. Used to access a certain native `Player` instance from any point in the source code then call methods/properties on it.
-   *
-   * When left empty, a random `UUIDv4` is generated for it.
-   * @example
-   * Accessing or creating the `Player` with `nativeId` equal to `my-player`:
-   * ```
-   * const player = new Player({ nativeId: 'my-player' })
-   * player.play(); // call methods and properties...
-   * ```
-   */
-  nativeId?: string;
+export interface PlayerConfig extends NativeInstanceConfig {
   /**
    * Bitmovin license key that can be found in the Bitmovin portal.
    * If a license key is set here, it will be used instead of the license key found in the `Info.plist` and `AndroidManifest.xml`.
@@ -138,28 +128,55 @@ export interface PlaybackConfig {
  * Can be attached to `PlayerView` component in order to use Bitmovin's Player Web UI.
  * @see PlayerView
  */
-export class Player {
+export class Player extends NativeInstance<PlayerConfig> {
   /**
-   * User-defined `nativeId` string or random `UUIDv4` identifying this `Player` in the native side.
+   * Currently active source, or `null` if none is active.
    */
-  readonly nativeId: string;
+  source?: Source;
+  /**
+   * Whether the native `Player` object has been created.
+   */
+  isInitialized = false;
+  /**
+   * Whether the native `Player` object has been disposed.
+   */
+  isDestroyed = false;
 
   /**
-   * Configuration object used to initialize this `Player`.
+   * Allocates the native `Player` instance and its resources natively.
    */
-  readonly config: PlayerConfig | null;
-
-  constructor(config?: PlayerConfig) {
-    this.config = config ?? null;
-    this.nativeId = config?.nativeId ?? PlayerModule.generateUUIDv4();
-    PlayerModule.initWithConfig(this.nativeId, this.config);
-  }
+  initialize = () => {
+    if (!this.isInitialized) {
+      PlayerModule.initWithConfig(this.nativeId, this.config);
+      this.isInitialized = true;
+    }
+  };
 
   /**
-   * Loads a new `Source` into the player.
+   * Destroys the native `Player` and releases all of its allocated resources.
    */
-  load = (source: SourceConfig) => {
-    PlayerModule.loadSource(this.nativeId, source);
+  destroy = () => {
+    if (!this.isDestroyed) {
+      PlayerModule.destroy(this.nativeId);
+      this.source?.destroy();
+      this.isDestroyed = true;
+    }
+  };
+
+  /**
+   * Loads a new `Source` from `sourceConfig` into the player.
+   */
+  load = (sourceConfig: SourceConfig) => {
+    this.loadSource(new Source(sourceConfig));
+  };
+
+  /**
+   * Loads the given `Source` into the player.
+   */
+  loadSource = (source: Source) => {
+    source.initialize();
+    this.source = source;
+    PlayerModule.loadSource(this.nativeId, source.nativeId);
   };
 
   /**
@@ -209,27 +226,12 @@ export class Player {
   };
 
   /**
-   * Destroys the player and releases all of its allocated resources.
-   * The player instance must not be used after calling this method.
-   */
-  destroy = () => {
-    PlayerModule.destroy(this.nativeId);
-  };
-
-  /**
    * Sets the player's volume between 0 (silent) and 100 (max volume).
    *
    * @param volume - The volume level to set.
    */
   setVolume = (volume: number) => {
     PlayerModule.setVolume(this.nativeId, volume);
-  };
-
-  /**
-   * @returns The currently active source or null if no source is active.
-   */
-  getSource = async (): Promise<Source> => {
-    return PlayerModule.source(this.nativeId);
   };
 
   /**
@@ -314,5 +316,12 @@ export class Player {
       return false;
     }
     return PlayerModule.isAirPlayAvailable(this.nativeId);
+  };
+
+  /**
+   * @returns An array containing SubtitleTrack objects for all available subtitle tracks.
+   */
+  getAvailableSubtitles = async (): Promise<SubtitleTrack[]> => {
+    return PlayerModule.getAvailableSubtitles(this.nativeId);
   };
 }

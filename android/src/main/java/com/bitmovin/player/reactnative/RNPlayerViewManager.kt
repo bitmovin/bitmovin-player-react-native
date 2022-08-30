@@ -51,6 +51,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "sourceUnloaded" to "onSourceUnloaded",
         "sourceError" to "onSourceError",
         "sourceWarning" to "onSourceWarning",
+        "subtitleAdded" to "onSubtitleAdded",
+        "subtitleChanged" to "onSubtitleChanged",
+        "subtitleRemoved" to "onSubtitleRemoved",
     )
 
     /**
@@ -77,7 +80,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
 
     /**
      * Callback triggered in response to command dispatches from the js side.
-     * @param root Root native view of the targeted component.
+     * @param view Root native view of the targeted component.
      * @param commandId Command number identifier. It's a number even though RN sends it as a string.
      * @param args Arguments list sent from the js side.
      */
@@ -96,7 +99,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @param view Target `RNPlayerView`.
      * @param playerId `Player` instance id inside `PlayerModule`'s registry.
      */
-    private fun attachPlayer(view: RNPlayerView, playerId: String?) {
+    private fun attachPlayer(view: RNPlayerView, playerId: NativeId?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
             if (view.playerView != null) {

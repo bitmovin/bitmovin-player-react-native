@@ -10,6 +10,15 @@ fun PlayerEvent.getName(): String {
     return "on${this.javaClass.simpleName}"
 }
 
-fun SourceEvent.getName(): String {
-    return "onSource${this.javaClass.simpleName}"
+/**
+ * TODO: Until a certain point, all source events supported by this library followed the pattern
+ *  `onSource{EventName}`. But it's necessary to improve the way how event names are dynamically
+ *   computed based on the event type so they can match the same names provided by iOS and possibly
+ *   other platforms.
+ */
+fun SourceEvent.getName(): String = when (this) {
+    is SourceEvent.SubtitleTrackAdded -> "onSubtitleAdded"
+    is SourceEvent.SubtitleTrackChanged -> "onSubtitleChanged"
+    is SourceEvent.SubtitleTrackRemoved -> "onSubtitleRemoved"
+    else -> "onSource${this.javaClass.simpleName}"
 }

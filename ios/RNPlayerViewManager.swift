@@ -19,11 +19,11 @@ class RNPlayerViewManager: RCTViewManager {
      - Parameter viewId: `RNPlayerView` id inside `UIManager`'s registry.
      - Parameter playerId: `Player` instance id inside `PlayerModule`'s registry.
      */
-    @objc func attachPlayer(_ viewId: NSNumber, playerId: String) {
+    @objc func attachPlayer(_ viewId: NSNumber, playerId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, views in
             guard
                 let view = views?[viewId] as? RNPlayerView,
-                let player = self?.getPlayerModule()?.player(with: playerId)
+                let player = self?.getPlayerModule()?.retrieve(playerId)
             else {
                 return
             }

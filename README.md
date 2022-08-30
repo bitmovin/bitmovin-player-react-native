@@ -7,23 +7,19 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 [![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![Bitmovin Community](https://img.shields.io/discourse/users?label=community&server=https%3A%2F%2Fcommunity.bitmovin.com)](https://community.bitmovin.com/?utm_source=github&utm_medium=bitmovin-player-react-native&utm_campaign=dev-community)
 
-> :warning: **Beta Version**: The library is under active development. The current Beta release supports basic playback of unprotected video assets.
+> :warning: **Beta Version**: The library is under active development.
 
-- [Bitmovin Player React Native](#bitmovin-player-react-native)
-  - [Installation](#installation)
-    - [Add package dependency](#add-package-dependency)
-    - [Setup iOS Player SDK](#setup-ios-player-sdk)
-    - [Setup Android Player SDK](#setup-android-player-sdk)
-  - [Getting Started](#getting-started)
-    - [Setting up a license key](#setting-up-a-license-key)
-      - [Configuring through code](#configuring-through-code)
-    - [Setting up a playback configurations](#setting-up-a-playback-configurations)
-      - [Configuring through code](#configuring-through-code-1)
-      - [Configuring `Info.plist`](#configuring-infoplist)
-      - [Configuring `AndroidManifest.xml`](#configuring-androidmanifestxml)
-    - [Accessing native `Player` instances](#accessing-native-player-instances)
-    - [Listening to events](#listening-to-events)
-  - [Contributing](#contributing)
+- [Installation](#installation)
+  - [Add package dependency](#add-package-dependency)
+  - [Setup iOS Player SDK](#setup-ios-player-sdk)
+  - [Setup Android Player SDK](#setup-android-player-sdk)
+- [Getting Started](#getting-started)
+  - [Setting up a license key](#setting-up-a-license-key)
+  - [Accessing native `Player` instances](#accessing-native-player-instances)
+  - [Listening to events](#listening-to-events)
+  - [Enabling DRM protection](#enabling-drm-protection)
+  - [Adding external subtitle tracks](#adding-subtitle-tracks)
+- [Contributing](#contributing)
 
 ## Installation
 
@@ -311,6 +307,166 @@ return (
   />
 );
 ```
+
+### Enabling DRM protection
+
+> ⚠️ **Beta Version**: For now, only `FairPlay` is supported on iOS and
+> only `Widevine` is supported on Android. More DRM systems will be added in the future.
+
+Simple streaming of protected assets can be enabled with just a little configuration on `SourceConfig.drmConfig`:
+
+```typescript
+import { Platform } from 'react-native';
+import { SourceConfig, SourceType } from 'bitmovin-player-react-native';
+
+// Source configuration for protected assets.
+const drmSource: SourceConfig = {
+  // Protected stream URL.
+  url:
+    Platform.OS === 'ios'
+      ? 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8' // iOS stream url
+      : 'https://bitmovin-a.akamaihd.net/content/art-of-motion_drm/mpds/11331.mpd', // Android stream url
+  // Stream type.
+  type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
+  // DRM setup.
+  // Each key in this object maps to a different DRM system config (`widevine` or `fairplay`).
+  drmConfig: {
+    // Widevine is the default and only DRM system supported on Android for now.
+    widevine: {
+      licenseUrl: 'https://cwip-shaka-proxy.appspot.com/no_auth',
+    },
+    // FairPlay is the default and only DRM system supported on iOS for now.
+    fairplay: {
+      licenseUrl:
+        'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
+      certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
+    },
+  },
+};
+```
+
+#### Prepare hooks
+
+In the native SDKs, some DRM properties like `message` and `license` can have their value transformed before use in order
+to enable some more complex use cases: such as extracting the `license` from a `JSON`, for example.
+
+In order to handle such transformations, it's possible to hook methods onto `SourceConfig.drmConfig` to proxy DRM values
+and potentially alter them:
+
+```typescript
+import { Platform } from 'react-native';
+import { SourceConfig, SourceType } from 'bitmovin-player-react-native';
+
+// Source configuration for protected assets.
+const drmSource: SourceConfig = {
+  // Protected stream URL.
+  url:
+    Platform.OS === 'ios'
+      ? 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8' // iOS stream url
+      : 'https://bitmovin-a.akamaihd.net/content/art-of-motion_drm/mpds/11331.mpd', // Android stream url
+  // Stream type.
+  type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
+  // DRM setup.
+  drmConfig: {
+    // Widevine is the default and only DRM system supported on Android for now.
+    widevine: {
+      licenseUrl: 'https://cwip-shaka-proxy.appspot.com/no_auth',
+      // Data is passed as a base64 string and expects to return a base64 string.
+      prepareLicense: (license: string) => {
+        // Do something with the `license` value...
+        // And return processed data as base64 string.
+        return license; // base64 string
+      },
+    },
+    // FairPlay is the default and only DRM system supported on iOS for now.
+    fairplay: {
+      licenseUrl:
+        'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
+      certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
+      // Data is passed as a base64 string and expects to return a base64 string.
+      prepareLicense: (license: string) => {
+        // Do something with the `license` value...
+        // And return processed data as base64 string.
+        return license; // base64 string
+      },
+      // Data is passed as a base64 string and expects to return a base64 string.
+      prepareMessage: (message: string, assetId: string) => {
+        // Do something with the `assetId` and `message` values...
+        // And return processed data as base64 string.
+        return message; // base64 string
+      },
+    },
+  },
+};
+```
+
+The [`FairplayConfig`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm.ts#L10) interface provides a bunch of hooks that can be used to fetch and transform different DRM related data. Check out the [docs](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm.ts#L10) for a complete list and detailed information on them.
+
+Also, don't forget to check out the [example](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app for a complete iOS/Android [DRM example](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDRMPlayback.tsx).
+
+### Adding external subtitle tracks
+
+Usually, subtitle tracks are provided in the manifest of your content (see [Enconding Manifests API](https://bitmovin.com/docs/encoding/api-reference/sections/manifests) for more information). And if they are provided this way, the player already recognizes them and show them in the subtitles selection menu without any further configuration.
+
+Otherwise, it's also possible to add external tracks via the subtitle API:
+
+```typescript
+import { Platform } from 'react-native';
+import {
+  SourceConfig,
+  SourceType,
+  SubtitleFormat,
+} from 'bitmovin-player-react-native';
+
+// Source config with an external subtitle track.
+const config: SourceConfig = {
+  url:
+    Platform.OS === 'ios'
+      ? 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8'
+      : 'https://bitmovin-a.akamaihd.net/content/sintel/sintel.mpd',
+  type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
+  poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
+  // External subtitle tracks list to be added to this source.
+  subtitleTracks: [
+    // You can select 'Custom English' in the subtitles menu.
+    {
+      // The URL of the subtitle file. Required.
+      url: 'https://bitdash-a.akamaihd.net/content/sintel/subtitles/subtitles_en.vtt',
+      // External file format.
+      // Supports `.vtt`, `.ttml` and `.cea` extensions.
+      //
+      // This option can be left empty since the player automatically recognizes the format
+      // from the provided url most of the time.
+      format: SubtitleFormat.VTT,
+      // Label for this track shown under the selection menu. Required.
+      label: 'Custom English',
+      // The IETF BCP 47 language tag associated with this track. Required.
+      language: 'en',
+      // The unique identifier used for this track.
+      // The default value for this options is a randomly generated UUID.
+      identifier: 'sub1',
+      // This track is considered the default if set to `true`.
+      // The default value for this option is `false`.
+      isDefault: false,
+      // If set to `true` it means that the player should automatically select and switch this
+      // subtitle according to the selected audio language. Forced subtitles do not appear in
+      // `Player.getAvailableSubtitles`.
+      //
+      // The default value for this option is `false`.
+      isForced: false,
+    },
+    // You may add even more tracks to the list...
+  ],
+};
+```
+
+The supported `PlayerView` events for subtitles are:
+
+- `onSubtitleAdded`
+- `onSubtitleRemoved`
+- `onSubtitleChanged`
+
+You might check out a complete subtitle example in the [`example/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app.
 
 ## Contributing
 
