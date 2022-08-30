@@ -214,7 +214,7 @@ const player = usePlayer({
   playbackConfig: {
     // Specifies whether the playback starts immediately after loading a source or not. Default is false.
     isAutoplayEnabled: true,
-    // Optionally isMuted: Specifies if the player should start muted. Default is false.
+    // Specifies if playback starts muted. Default is false.
     isMuted: true,
     // Optionally isTimeShiftEnabled: Specifies if time shifting (during live streaming) should be enabled. Default is true.
     isTimeShiftEnabled: true,
