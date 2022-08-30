@@ -4,6 +4,7 @@ import BitmovinPlayer
 class PlayerModule: NSObject, RCTBridgeModule {
     /// React bridge reference.
     @objc var bridge: RCTBridge!
+    fileprivate var customMessageHandler: CustomMessageHandler?
 
     /// In-memory mapping from `nativeId`s to `Player` instances.
     private var players: Registry<Player> = [:]
@@ -41,7 +42,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 self?.players[nativeId] == nil,
-                let playerConfig = RCTConvert.playerConfig(config)
+                let playerConfig = RCTConvert.playerConfig(config, bitmovinUserInterfaceConfig: self?.bitmovinUserInterfaceConfig)
             else {
                 return
             }
@@ -66,6 +67,17 @@ class PlayerModule: NSObject, RCTBridgeModule {
             player.load(source: source)
         }
     }
+
+    fileprivate var bitmovinUserInterfaceConfig: BitmovinUserInterfaceConfig {
+        // Configure the JS <> Native communication
+        let bitmovinUserInterfaceConfig = BitmovinUserInterfaceConfig()
+        // Create an instance of the custom message handler
+        customMessageHandler = CustomMessageHandler()
+        customMessageHandler?.delegate = self
+        bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandler
+        return bitmovinUserInterfaceConfig
+    }
+    
 
     /// Fetches the initialized `SourceModule` instance on RN's bridge object.
     private func getSourceModule() -> SourceModule? {

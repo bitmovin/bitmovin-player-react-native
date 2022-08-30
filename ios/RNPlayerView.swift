@@ -11,6 +11,8 @@ class RNPlayerView: UIView {
     @objc var onMuted: RCTBubblingEventBlock?
     @objc var onUnmuted: RCTBubblingEventBlock?
     @objc var onReady: RCTBubblingEventBlock?
+    @objc var onReceivedSynchronousMessage: RCTBubblingEventBlock?
+    @objc var onReceivedAsynchronousMessage: RCTBubblingEventBlock?
     @objc var onPaused: RCTBubblingEventBlock?
     @objc var onPlay: RCTBubblingEventBlock?
     @objc var onPlaying: RCTBubblingEventBlock?

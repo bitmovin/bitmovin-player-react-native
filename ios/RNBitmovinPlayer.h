@@ -3,5 +3,4 @@
 #import <React/RCTUIManager.h>
 #import <React/RCTUIManagerUtils.h>
 #import <React/RCTViewManager.h>
-#import <React/RCTViewManager.h>
 #import <React/RCTComponent.h>

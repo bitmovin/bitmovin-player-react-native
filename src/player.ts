@@ -28,7 +28,31 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * ```
    */
   licenseKey?: string;
+  /**
+   * Bitmovin Custom Player Skin.
+   * If you add this configuration you need to host your skin CSS and JS files on an external server
+   * @example
+   * Configuring the Bitmovin player skin
+   * ```
+   * const player = new Player({
+   *   styleConfig: {
+   *      playerUiCss: '\<SKIN-URL-CSS\>',
+   *      playerUiJs:  '\<SKIN-URL-JS\>',
+   *   }
+   * });
+   * ```
+   */
+  styleConfig?: StyleConfig;
 }
+
+/**
+ * Object used to configure a custom html ui.
+ * Go to https://github.com/bitmovin/bitmovin-player-ui to get started with creating a custom player UI.
+ */
+export type StyleConfig = {
+  playerUiCss: string;
+  playerUiJs: string;
+};
 
 /**
  * Loads, controls and renders audio and video content represented through `Source`s. A player

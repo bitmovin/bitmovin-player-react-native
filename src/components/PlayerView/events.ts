@@ -11,6 +11,8 @@ import {
   PlayerWarningEvent,
   PlayingEvent,
   ReadyEvent,
+  ReceivedSynchronousMessage,
+  ReceivedAsynchronousMessage,
   SeekEvent,
   SeekedEvent,
   SourceErrorEvent,
@@ -41,6 +43,8 @@ interface EventProps {
   onPlayerWarning: PlayerWarningEvent;
   onPlaying: PlayingEvent;
   onReady: ReadyEvent;
+  onReceivedSynchronousMessage: ReceivedSynchronousMessage;
+  onReceivedAsynchronousMessage: ReceivedAsynchronousMessage;
   onSeek: SeekEvent;
   onSeeked: SeekedEvent;
   onSourceError: SourceErrorEvent;

@@ -92,6 +92,8 @@ export function PlayerView(props: PlayerViewProps) {
       onPlayerWarning={proxy(props.onPlayerWarning)}
       onPlaying={proxy(props.onPlaying)}
       onReady={proxy(props.onReady)}
+      onReceivedSynchronousMessage={proxy(props.onReceivedSynchronousMessage)}
+      onReceivedAsynchronousMessage={proxy(props.onReceivedAsynchronousMessage)}
       onSeek={proxy(props.onSeek)}
       onSeeked={proxy(props.onSeeked)}
       onSourceError={proxy(props.onSourceError)}

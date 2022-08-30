@@ -7,13 +7,22 @@ extension RCTConvert {
      - Parameter json: JS object
      - Returns: The produced `Playerconfig` object
      */
-    static func playerConfig(_ json: Any?) -> PlayerConfig? {
+    static func playerConfig(_ json: Any?, bitmovinUserInterfaceConfig: UserInterfaceConfig?) -> PlayerConfig? {
         let playerConfig = PlayerConfig()
         guard let json = json as? [String: Any?] else {
             return playerConfig
         }
         if let licenseKey = json["licenseKey"] as? String {
             playerConfig.key = licenseKey
+        }
+        if let styleConfigKey = json["styleConfig"] as? [String: Any?] {
+            if let css = styleConfigKey["playerUiCss"] as? String, let js = styleConfigKey["playerUiJs"] as? String {
+                if (css != "" && js != "") {
+                    playerConfig.styleConfig.playerUiCss = RCTConvert.nsurl(css)
+                    playerConfig.styleConfig.playerUiJs = RCTConvert.nsurl(js)
+                    playerConfig.styleConfig.userInterfaceConfig = bitmovinUserInterfaceConfig
+                }
+            }
         }
         return playerConfig
     }

@@ -243,3 +243,31 @@ export interface SubtitleChangedEvent extends Event {
    */
   newSubtitleTrack: SubtitleTrack;
 }
+
+/**
+ * Emitted when send custom messages synchronous with custom html ui.
+ */
+export interface ReceivedSynchronousMessage extends Event {
+  /**
+   * Message.
+   */
+  message: string;
+  /**
+   * Underlying data emitted with the message.
+   */
+  data?: Record<string, any>;
+}
+
+/**
+ * Emitted when send custom messages asynchronous with custom html ui.
+ */
+export interface ReceivedAsynchronousMessage extends Event {
+  /**
+   * Message.
+   */
+  message: string;
+  /**
+   * Underlying data emitted with the message.
+   */
+  data?: Record<string, any>;
+}

@@ -9,6 +9,7 @@ import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
+import CustomHtmlUi from './screens/CustomHtmlUi';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -63,6 +64,10 @@ export default function App() {
                 routeName: 'BasicDrmPlayback',
               },
               {
+                title: 'Custom Html Ui',
+                routeName: 'CustomHtmlUi',
+              },
+              {
                 title: 'Subtitle and captions',
                 routeName: 'SubtitlePlayback',
               },
@@ -93,6 +98,11 @@ export default function App() {
           name="CustomPlayback"
           component={CustomPlayback}
           options={{ title: 'Custom playback' }}
+        />
+        <RootStack.Screen
+          name="CustomHtmlUi"
+          component={CustomHtmlUi}
+          options={{ title: 'Custom Html Ui' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>
