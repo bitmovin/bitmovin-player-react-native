@@ -5,11 +5,12 @@ source 'https://cdn.cocoapods.org'
 source 'https://github.com/bitmovin/cocoapod-specs.git'
 source 'https://github.com/react-native-tvos/react-native-tvos-podspecs.git'
 
-platform :ios, '12.4'
 install! 'cocoapods', :deterministic_uuids => false
 
-target 'BitmovinPlayerReactNativeExample' do
+def setup os
   inhibit_all_warnings!
+  platform os, '12.4'
+
   config = use_native_modules!
 
   # Flags change depending on the env values.
@@ -26,14 +27,23 @@ target 'BitmovinPlayerReactNativeExample' do
 
   pod 'RNBitmovinPlayer', :path => '../..'
 
-  # Enables Flipper.
-  #
-  # Note that if you have use_frameworks! enabled, Flipper will not work and
-  # you should disable the next line.
-  use_flipper!({ 'Flipper' => '0.151.0' })
-
-  post_install do |installer|
-    react_native_post_install(installer)
-    __apply_Xcode_12_5_M1_post_install_workaround(installer)
+  # Enables Flipper for iOS development only.
+  if os == :ios
+    # Note that if you have use_frameworks! enabled, Flipper will not work and
+    # you should disable the next line.
+    use_flipper!({ 'Flipper' => '0.151.0' })
   end
+end
+
+target 'BitmovinPlayerReactNativeExample' do
+  setup :ios
+end
+
+target 'BitmovinPlayerReactNativeExample-tvOS' do
+  setup :tvos
+end
+
+post_install do |installer|
+  react_native_post_install(installer)
+  __apply_Xcode_12_5_M1_post_install_workaround(installer)
 end

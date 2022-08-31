@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => "12.4" }
+  s.platforms    = { :ios => "12.4", :tvos => "12.4" }
   s.source       = {
     :git => "https://github.com/bitmovin/bitmovin-player-react-native.git",
     :tag => "v#{s.version}"
