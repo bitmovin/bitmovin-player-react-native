@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SourceType } from 'bitmovin-player-react-native';
@@ -36,7 +37,12 @@ const RootStack = createNativeStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <RootStack.Navigator initialRouteName="ExamplesList">
+      <RootStack.Navigator
+        screenOptions={{
+          headerShown: !Platform.isTV,
+        }}
+        initialRouteName="ExamplesList"
+      >
         <RootStack.Screen
           name="ExamplesList"
           component={ExamplesList}
