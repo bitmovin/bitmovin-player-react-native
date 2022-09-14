@@ -30,7 +30,7 @@
     "example": "yarn --cwd example",
     "pods": "cd example && pod-install --quiet",
     "bootstrap": "yarn && yarn example && yarn pods",
-    "postinstall": "husky install"
+    "prepare": "husky install"
   },
   "keywords": [
     "react-native",
