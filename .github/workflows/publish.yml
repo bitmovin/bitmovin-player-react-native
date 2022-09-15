@@ -1,4 +1,4 @@
-name: Publish to npmjs
+name: Release npm package
 on:
   push:
     tags:
@@ -9,20 +9,33 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v3
-      # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup node and npm registry
+        uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '16'
           registry-url: 'https://registry.npmjs.org/'
-      - uses: ncipollo/release-action@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-      # Install dependencies
-      - run: yarn install --frozen-lockfile
-      # Build TS files
-      - run: yarn build
-      # Publish package
-      - run: npm publish
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build TypeScript files
+        run: yarn build
+
+      - name: Publish npm package
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Extract changelog
+        id: changelog
+        uses: ffurrer2/extract-release-notes@v1
+
+      - name: Create GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: ${{ steps.changelog.outputs.release_notes }}
