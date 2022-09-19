@@ -325,7 +325,7 @@ PODS:
     - React-jsi (= 0.68.2-6)
     - React-logger (= 0.68.2-6)
     - React-perflogger (= 0.68.2-6)
-  - RNBitmovinPlayer (0.2.0):
+  - RNBitmovinPlayer (0.2.1):
     - BitmovinPlayer (= 3.23.0)
     - React-Core
   - RNCPicker (2.4.2):
@@ -532,7 +532,7 @@ SPEC CHECKSUMS:
   React-RCTText: a5a94554fcb4462cbb5dd028e6875a8a34c9c6e0
   React-runtimeexecutor: 5920bc763ba4eb773126970494e36a8e675ded65
   ReactCommon: 4320aa74395db105f7e878f7da780b49f070b677
-  RNBitmovinPlayer: 3b87ef5d057ced96adb73d09a9e1f741a01a41b3
+  RNBitmovinPlayer: d01588c6db8875b27c3088e9bfac047160c0297d
   RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
