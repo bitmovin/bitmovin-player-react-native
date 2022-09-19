@@ -1,6 +1,6 @@
 {
   "name": "bitmovin-player-react-native",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Official React Native bindings for Bitmovin's mobile Player SDKs.",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
@@ -30,7 +30,7 @@
     "example": "yarn --cwd example",
     "pods": "cd example && pod-install --quiet",
     "bootstrap": "yarn && yarn example && yarn pods",
-    "postinstall": "husky install"
+    "prepare": "husky install"
   },
   "keywords": [
     "react-native",
