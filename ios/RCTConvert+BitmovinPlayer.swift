@@ -16,11 +16,6 @@ extension RCTConvert {
             playerConfig.key = licenseKey
         }
         if let playbackConfig = json["playbackConfig"] as? [String: Any?] {
-            /**
-             * Specifies whether autoplay is enabled.
-             *
-             * Default is `false`.
-             */
             if let isAutoplayEnabled = playbackConfig["isAutoplayEnabled"] as? Bool {
                 playerConfig.playbackConfig.isAutoplayEnabled = isAutoplayEnabled
             }

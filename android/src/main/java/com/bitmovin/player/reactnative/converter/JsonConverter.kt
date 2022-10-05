@@ -26,33 +26,25 @@ class JsonConverter {
          */
         @JvmStatic
         fun toPlayerConfig(json: ReadableMap?): PlayerConfig {
-            var config = PlayerConfig()
-            if (json != null && json.hasKey("licenseKey")) {
-                config = PlayerConfig(key = json.getString("licenseKey"))
+            if (json == null) return PlayerConfig()
+            val playerConfig = if (json.hasKey("licenseKey")) {
+                PlayerConfig(key = json.getString("licenseKey"))
+            } else {
+                PlayerConfig()
             }
-            if (json != null && json.hasKey("playbackConfig")) {
+            if (json.hasKey("playbackConfig")) {
                 var playbackConfigJson = json.getMap("playbackConfig")
                 if (playbackConfigJson?.hasKey("isAutoplayEnabled") == true) {
-                    config.playbackConfig.isAutoplayEnabled = playbackConfigJson.getBoolean("isAutoplayEnabled")
+                    playerConfig.playbackConfig.isAutoplayEnabled = playbackConfigJson.getBoolean("isAutoplayEnabled")
                 }
-                /**
-                 * Specifies if the player should start muted.
-                 *
-                 * Default is `false`.
-                 */
-                if(playbackConfigJson != null && playbackConfigJson.hasKey("isMuted")) {
-                    config.playbackConfig.isMuted = playbackConfigJson.getBoolean("isMuted")
+                if(playbackConfigJson?.hasKey("isMuted") == true) {
+                    playerConfig.playbackConfig.isMuted = playbackConfigJson.getBoolean("isMuted")
                 }
-                /**
-                 * Specifies if time shifting (during live streaming) should be enabled.
-                 *
-                 * Default is `true`.
-                 */
-                if(playbackConfigJson != null && playbackConfigJson.hasKey("isTimeShiftEnabled")) {
-                    config.playbackConfig.isTimeShiftEnabled = playbackConfigJson.getBoolean("isTimeShiftEnabled")
+                if(playbackConfigJson?.hasKey("isTimeShiftEnabled") == true) {
+                    playerConfig.playbackConfig.isTimeShiftEnabled = playbackConfigJson.getBoolean("isTimeShiftEnabled")
                 }
             }
-            return config
+            return playerConfig
         }
 
         /**
