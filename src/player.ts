@@ -29,13 +29,13 @@ export interface PlayerConfig extends NativeInstanceConfig {
    */
   licenseKey?: string;
   /**
-   * Configuration options for player's default playback behavior.
+   * Configures playback behaviour. A default PlaybackConfig is set initially.
    */
   playbackConfig?: PlaybackConfig;
 }
 
 /**
- * Configuration options for player's default playback behavior.
+ * Configures the playback behaviour of the player.
  */
 export interface PlaybackConfig {
   /**
@@ -75,9 +75,15 @@ export interface PlaybackConfig {
    */
   isTimeShiftEnabled?: boolean;
   /**
-   * Optionally isBackgroundPlaybackEnabled: Specifies if isBackgroundPlaybackEnabled should be enabled.
+   * Whether background playback is enabled or not.
+   * Default is `false`.
    *
-   * This param only work on iOS.
+   * When set to `true`, playback is not automatically paused
+   * anymore when the app moves to the background.
+   * When set to `true`, also make sure to properly configure your app to allow
+   * background playback.
+   *
+   * On tvOS, background playback is only supported for audio-only content.
    *
    * Default is `false`.
    *

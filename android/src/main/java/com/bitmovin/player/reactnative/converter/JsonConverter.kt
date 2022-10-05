@@ -32,12 +32,7 @@ class JsonConverter {
             }
             if (json != null && json.hasKey("playbackConfig")) {
                 var playbackConfigJson = json.getMap("playbackConfig")
-                /**
-                 * Specifies whether autoplay is enabled.
-                 *
-                 * Default is `false`.
-                 */
-                if(playbackConfigJson != null && playbackConfigJson.hasKey("isAutoplayEnabled")) {
+                if (playbackConfigJson?.hasKey("isAutoplayEnabled") == true) {
                     config.playbackConfig.isAutoplayEnabled = playbackConfigJson.getBoolean("isAutoplayEnabled")
                 }
                 /**
