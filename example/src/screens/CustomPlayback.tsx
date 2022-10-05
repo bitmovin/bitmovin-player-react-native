@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { usePlayer, PlayerView } from 'bitmovin-player-react-native';
 import { RootStackParamsList } from '../App';
+import { useTVGestures } from '../hooks';
 
 type CustomPlaybackProps = NativeStackScreenProps<
   RootStackParamsList,
@@ -11,6 +12,8 @@ type CustomPlaybackProps = NativeStackScreenProps<
 >;
 
 const CustomPlayback: React.FC<CustomPlaybackProps> = ({ route }) => {
+  useTVGestures();
+
   const player = usePlayer({
     licenseKey: route.params?.licenseKey,
   });
