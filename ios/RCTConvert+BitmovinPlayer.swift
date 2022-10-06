@@ -19,35 +19,15 @@ extension RCTConvert {
             if let isAutoplayEnabled = playbackConfig["isAutoplayEnabled"] as? Bool {
                 playerConfig.playbackConfig.isAutoplayEnabled = isAutoplayEnabled
             }
-            /**
-             * Specifies if the player should start muted.
-             *
-             * Default is `false`.
-             */
             if let isMuted = playbackConfig["isMuted"] as? Bool {
                 playerConfig.playbackConfig.isMuted = isMuted
             }
-            /**
-             * Specifies if time shifting (during live streaming) should be enabled.
-             *
-             * Default is `true`.
-             */
             if let isTimeShiftEnabled = playbackConfig["isTimeShiftEnabled"] as? Bool {
                 playerConfig.playbackConfig.isTimeShiftEnabled = isTimeShiftEnabled
             }
-            /**
-             * Specifies if isBackgroundPlaybackEnabled should be enabled.
-             *
-             * Default is `false`.
-             */
             if let isBackgroundPlaybackEnabled = playbackConfig["isBackgroundPlaybackEnabled"] as? Bool {
                 playerConfig.playbackConfig.isBackgroundPlaybackEnabled = isBackgroundPlaybackEnabled
             }
-            /**
-             * Specifies if isPictureInPictureEnabled should be enabled.
-             *
-             * Default is `false`.
-             */
             if let isPictureInPictureEnabled = playbackConfig["isPictureInPictureEnabled"] as? Bool {
                 playerConfig.playbackConfig.isPictureInPictureEnabled = isPictureInPictureEnabled
             }
