@@ -2,7 +2,7 @@ name: Release npm package
 on:
   push:
     tags:
-      - v*
+      - v*.*.*
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -30,12 +30,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Extract changelog
-        id: changelog
+      - name: Extract release notes
+        id: extract-release-notes
         uses: ffurrer2/extract-release-notes@v1
 
       - name: Create GitHub release
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          body: ${{ steps.changelog.outputs.release_notes }}
+          body: ${{ steps.extract-release-notes.outputs.release_notes }}
