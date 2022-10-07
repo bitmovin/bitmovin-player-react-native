@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `tvos` to the list of supported platforms in `RNBitmovinPlayer.podspec`.
+- Setup a new testing tvOS target in `example/ios/BitmovinPlayerReactNativeExample.xcodeproj`.
+
+### Changed
+
+- Replace `react-native` with `react-native-tvos` on `example/` app.
+
 ## [0.2.1] - 2022-09-19
 
 ### Fixed

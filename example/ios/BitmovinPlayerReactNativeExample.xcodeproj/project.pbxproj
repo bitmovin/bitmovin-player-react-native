@@ -11,8 +11,13 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		4CD973822836B701003409B0 /* AppDelegate.h in Sources */ = {isa = PBXBuildFile; fileRef = 4CD973812836B701003409B0 /* AppDelegate.h */; };
+		4CE382FA28BFD10E002DDF82 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4CE382F928BFD10E002DDF82 /* Assets.xcassets */; };
+		4CE382FD28BFD10E002DDF82 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4CE382FB28BFD10E002DDF82 /* LaunchScreen.storyboard */; };
+		4CE382FF28BFD10E002DDF82 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CE382FE28BFD10E002DDF82 /* main.m */; };
+		4CE3830528BFD270002DDF82 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4CE3830428BFD270002DDF82 /* AppDelegate.mm */; };
 		5915995436EFADAE00A71930 /* libPods-BitmovinPlayerReactNativeExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 06D60B6FD8A3297CA32930A9 /* libPods-BitmovinPlayerReactNativeExample.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		B3861322686908F1A14AEDFF /* libPods-BitmovinPlayerReactNativeExample-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B0574780FC6EB7D0D35EDF5 /* libPods-BitmovinPlayerReactNativeExample-tvOS.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,9 +29,19 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = BitmovinPlayerReactNativeExample/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = BitmovinPlayerReactNativeExample/main.m; sourceTree = "<group>"; };
 		4451A76D9ED45CF044433360 /* Pods-BitmovinPlayerReactNativeExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitmovinPlayerReactNativeExample.release.xcconfig"; path = "Target Support Files/Pods-BitmovinPlayerReactNativeExample/Pods-BitmovinPlayerReactNativeExample.release.xcconfig"; sourceTree = "<group>"; };
+		4CA624FB28BFE2A2008D4FDA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4CD973812836B701003409B0 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = BitmovinPlayerReactNativeExample/AppDelegate.h; sourceTree = "<group>"; };
+		4CE382EE28BFD10C002DDF82 /* RN Player Example TV.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RN Player Example TV.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4CE382F928BFD10E002DDF82 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		4CE382FC28BFD10E002DDF82 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		4CE382FE28BFD10E002DDF82 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		4CE3830328BFD1E2002DDF82 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		4CE3830428BFD270002DDF82 /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
+		7B0574780FC6EB7D0D35EDF5 /* libPods-BitmovinPlayerReactNativeExample-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BitmovinPlayerReactNativeExample-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7D2D062A80C63508C52FD003 /* Pods-BitmovinPlayerReactNativeExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitmovinPlayerReactNativeExample.debug.xcconfig"; path = "Target Support Files/Pods-BitmovinPlayerReactNativeExample/Pods-BitmovinPlayerReactNativeExample.debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = BitmovinPlayerReactNativeExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		BDAFF5A7A0416D4C35F3B620 /* Pods-BitmovinPlayerReactNativeExample-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitmovinPlayerReactNativeExample-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-BitmovinPlayerReactNativeExample-tvOS/Pods-BitmovinPlayerReactNativeExample-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
+		CAA1356D0B7800248D07E196 /* Pods-BitmovinPlayerReactNativeExample-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitmovinPlayerReactNativeExample-tvOS.release.xcconfig"; path = "Target Support Files/Pods-BitmovinPlayerReactNativeExample-tvOS/Pods-BitmovinPlayerReactNativeExample-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
@@ -37,6 +52,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				5915995436EFADAE00A71930 /* libPods-BitmovinPlayerReactNativeExample.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4CE382EB28BFD10C002DDF82 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B3861322686908F1A14AEDFF /* libPods-BitmovinPlayerReactNativeExample-tvOS.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -63,8 +86,22 @@
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
 				06D60B6FD8A3297CA32930A9 /* libPods-BitmovinPlayerReactNativeExample.a */,
+				7B0574780FC6EB7D0D35EDF5 /* libPods-BitmovinPlayerReactNativeExample-tvOS.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		4CE382EF28BFD10C002DDF82 /* BitmovinPlayerReactNativeExample-tvOS */ = {
+			isa = PBXGroup;
+			children = (
+				4CA624FB28BFE2A2008D4FDA /* Info.plist */,
+				4CE382F928BFD10E002DDF82 /* Assets.xcassets */,
+				4CE382FB28BFD10E002DDF82 /* LaunchScreen.storyboard */,
+				4CE382FE28BFD10E002DDF82 /* main.m */,
+				4CE3830328BFD1E2002DDF82 /* AppDelegate.h */,
+				4CE3830428BFD270002DDF82 /* AppDelegate.mm */,
+			);
+			path = "BitmovinPlayerReactNativeExample-tvOS";
 			sourceTree = "<group>";
 		};
 		6B9684456A2045ADE5A6E47E /* Pods */ = {
@@ -72,6 +109,8 @@
 			children = (
 				7D2D062A80C63508C52FD003 /* Pods-BitmovinPlayerReactNativeExample.debug.xcconfig */,
 				4451A76D9ED45CF044433360 /* Pods-BitmovinPlayerReactNativeExample.release.xcconfig */,
+				BDAFF5A7A0416D4C35F3B620 /* Pods-BitmovinPlayerReactNativeExample-tvOS.debug.xcconfig */,
+				CAA1356D0B7800248D07E196 /* Pods-BitmovinPlayerReactNativeExample-tvOS.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -88,6 +127,7 @@
 			children = (
 				13B07FAE1A68108700A75B9A /* BitmovinPlayerReactNativeExample */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
+				4CE382EF28BFD10C002DDF82 /* BitmovinPlayerReactNativeExample-tvOS */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				6B9684456A2045ADE5A6E47E /* Pods */,
@@ -101,6 +141,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* BitmovinPlayerReactNativeExample.app */,
+				4CE382EE28BFD10C002DDF82 /* RN Player Example TV.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -116,8 +157,8 @@
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
-				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				A2CB793523186225AE46687F /* [CP] Embed Pods Frameworks */,
+				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				A46BFF240E7BC6134A18CB69 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
@@ -127,6 +168,27 @@
 			name = BitmovinPlayerReactNativeExample;
 			productName = PlayerReactNativeBridgeExample;
 			productReference = 13B07F961A680F5B00A75B9A /* BitmovinPlayerReactNativeExample.app */;
+			productType = "com.apple.product-type.application";
+		};
+		4CE382ED28BFD10C002DDF82 /* BitmovinPlayerReactNativeExample-tvOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4CE3830228BFD10E002DDF82 /* Build configuration list for PBXNativeTarget "BitmovinPlayerReactNativeExample-tvOS" */;
+			buildPhases = (
+				3D81CB9D0E05C6D400C2E01A /* [CP] Check Pods Manifest.lock */,
+				4CE382EA28BFD10C002DDF82 /* Sources */,
+				4CE382EB28BFD10C002DDF82 /* Frameworks */,
+				4CE382EC28BFD10C002DDF82 /* Resources */,
+				2C9AF44BCA3409CD3FDD5056 /* [CP] Embed Pods Frameworks */,
+				4CA624F828BFDACB008D4FDA /* Bundle React Native code and images */,
+				8BED34B25FCFA1CCB65C57DC /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "BitmovinPlayerReactNativeExample-tvOS";
+			productName = "BitmovinPlayerReactNativeExample-tvOS";
+			productReference = 4CE382EE28BFD10C002DDF82 /* RN Player Example TV.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -140,6 +202,12 @@
 					13B07F861A680F5B00A75B9A = {
 						DevelopmentTeam = 423Q26AEEM;
 						LastSwiftMigration = 1330;
+						ProvisioningStyle = Automatic;
+					};
+					4CE382ED28BFD10C002DDF82 = {
+						CreatedOnToolsVersion = 13.4.1;
+						DevelopmentTeam = 423Q26AEEM;
+						LastSwiftMigration = 1340;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -158,6 +226,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* BitmovinPlayerReactNativeExample */,
+				4CE382ED28BFD10C002DDF82 /* BitmovinPlayerReactNativeExample-tvOS */,
 			);
 		};
 /* End PBXProject section */
@@ -169,6 +238,15 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4CE382EC28BFD10C002DDF82 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4CE382FD28BFD10E002DDF82 /* LaunchScreen.storyboard in Resources */,
+				4CE382FA28BFD10E002DDF82 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -187,6 +265,66 @@
 				"$(SRCROOT)/.xcode.env",
 			);
 			name = "Bundle React Native code and images";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
+		};
+		2C9AF44BCA3409CD3FDD5056 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-BitmovinPlayerReactNativeExample-tvOS/Pods-BitmovinPlayerReactNativeExample-tvOS-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/BitmovinPlayer/BitmovinPlayer.framework/BitmovinPlayer",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/BitmovinPlayer.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BitmovinPlayerReactNativeExample-tvOS/Pods-BitmovinPlayerReactNativeExample-tvOS-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		3D81CB9D0E05C6D400C2E01A /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-BitmovinPlayerReactNativeExample-tvOS-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		4CA624F828BFDACB008D4FDA /* Bundle React Native code and images */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/.xcode.env",
+				"$(SRCROOT)/.xcode.env.local",
+			);
+			name = "Bundle React Native code and images";
+			outputFileListPaths = (
+			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -213,6 +351,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		8BED34B25FCFA1CCB65C57DC /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-BitmovinPlayerReactNativeExample-tvOS/Pods-BitmovinPlayerReactNativeExample-tvOS-resources.sh",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core-tvOS/AccessibilityResources.bundle",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BitmovinPlayerReactNativeExample-tvOS/Pods-BitmovinPlayerReactNativeExample-tvOS-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		A2CB793523186225AE46687F /* [CP] Embed Pods Frameworks */ = {
@@ -246,7 +402,7 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-BitmovinPlayerReactNativeExample/Pods-BitmovinPlayerReactNativeExample-resources.sh",
-				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core-iOS/AccessibilityResources.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
@@ -270,7 +426,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4CE382EA28BFD10C002DDF82 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4CE3830528BFD270002DDF82 /* AppDelegate.mm in Sources */,
+				4CE382FF28BFD10E002DDF82 /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		4CE382FB28BFD10E002DDF82 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				4CE382FC28BFD10E002DDF82 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
@@ -333,6 +509,81 @@
 			};
 			name = Release;
 		};
+		4CE3830028BFD10E002DDF82 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = BDAFF5A7A0416D4C35F3B620 /* Pods-BitmovinPlayerReactNativeExample-tvOS.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 423Q26AEEM;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "BitmovinPlayerReactNativeExample-tvOS/Info.plist";
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmovin.PlayerReactNativeExample-tvOS";
+				PRODUCT_NAME = "RN Player Example TV";
+				SDKROOT = appletvos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 12.4;
+			};
+			name = Debug;
+		};
+		4CE3830128BFD10E002DDF82 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = CAA1356D0B7800248D07E196 /* Pods-BitmovinPlayerReactNativeExample-tvOS.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 423Q26AEEM;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "BitmovinPlayerReactNativeExample-tvOS/Info.plist";
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bitmovin.PlayerReactNativeExample-tvOS";
+				PRODUCT_NAME = "RN Player Example TV";
+				SDKROOT = appletvos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 12.4;
+			};
+			name = Release;
+		};
 		83CBBA201A601CBA00E9B192 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -365,7 +616,7 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -427,7 +678,7 @@
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -458,6 +709,15 @@
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
 				13B07F951A680F5B00A75B9A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4CE3830228BFD10E002DDF82 /* Build configuration list for PBXNativeTarget "BitmovinPlayerReactNativeExample-tvOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4CE3830028BFD10E002DDF82 /* Debug */,
+				4CE3830128BFD10E002DDF82 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
