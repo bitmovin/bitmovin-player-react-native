@@ -31,11 +31,11 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Extract release notes
-        id: extract-release-notes
+        id: extract_release_notes
         uses: ffurrer2/extract-release-notes@v1
 
       - name: Create GitHub release
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          body: ${{ steps.extract-release-notes.outputs.release_notes }}
+          body: ${{ steps.extract_release_notes.outputs.release_notes }}
