@@ -116,7 +116,7 @@ When the `development` branch gets ready for a new release version, a few steps 
 - Create a new branch, usually called `release/v*.*.*`.
 - Update the library version on `package.json`.
 - Run `yarn bootstrap` on the project again to update `example/ios/Podfile.lock` and commit it.
-- Add an entry on `RELEASENOTES.md` for the new release version.
+- Add an entry on `CHANGELOG.md` for the new version.
 - Open a PR, usually called `Release v*.*.*`, and set the target branch as `development`.
 
 #### Pull Request from `development` to `main`
