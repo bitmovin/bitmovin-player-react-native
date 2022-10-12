@@ -1,38 +1,44 @@
-# Release notes
+# Changelog
 
-### [0.2.1] (2022-09-19)
+## [0.2.1] (2022-09-19)
 
-- Library:
-  - Fix installation error caused by bad husky setup.
+Fixes an NPM installation issue.
 
-### [0.2.0] (2022-08-23)
+### Fixed
 
-- UI:
-  - Enable listening to `SubtitleTrack` events via `PlayerView`'s component props.
-- Player:
-  - Enable listing currently available subtitle tracks via `Player.getAvailableSubtitles()`.
-- Source:
-  - Add JS interface to create, access and control native `Source` objects.
-  - Enable DRM configuration for a single source via `SourceConfig.drmConfig` option.
-  - Enable loading external subtitles for a single source via `SourceConfig.subtitleTracks` option.
-- Example:
-  - Enable listing multiple samples under the same app with [React Navigation](https://github.com/react-navigation/react-navigation).
-  - Add DRM example.
-  - Add External Subtitles example.
-- DRM:
-  - Add JS interface to create, access and control native `DRMConfig` objects.
+- Fix installation error caused by wrong husky setup when fetching package from NPM.
 
-### [0.1.0] (2022-07-11)
+## [0.2.0] (2022-08-23)
 
-- UI:
-  - Add component bridge to native `PlayerView`.
-  - Enable listening to some `Player` and `Source` events via `PlayerView`'s component props.
-- Player:
-  - Add JS interface to create, access and control native `Player` objects.
-- Source:
-  - Enable simple source loading via `Player.load(...opts)`.
-- Example:
-  - Bootstrap a React Native app under `example/` to test changes made to the library during development.
+Adds support for DRM playback on Android (Widevine only) and iOS (FairPlay only), as well as configuring
+external subtitle tracks for a stream source.
+
+### Added
+
+- Basic DRM playback support.
+- External subtitle tracks option on the source configuration.
+- Support for listening subtitle track events via `PlayerView`'s component props.
+- `Player.getAvailableSubtitles()` method for fetching the available subtitle tracks in the player's active source.
+
+### Changed
+
+- Setup a list of examples in the example app using [React Navigation](https://github.com/react-navigation/react-navigation).
+
+### Fixed
+
+- Fix error caused when navigating back from screens containing a `PlayerView` child.
+
+## [0.1.0] (2022-07-11)
+
+Adds support for basic playback using Bitmovin's Web UI as the default (and only) player UI.
+No support for custom UI yet.
+
+### Added
+
+- Native react component bridge to SDKs `PlayerView`.
+- Minimal set of Player APIs through `Player` and `usePlayer` constructs.
+- Support for listening most of `Player` and `Source` events via `PlayerView`'s component props.
+- Simple React Native app to exemplify and test library features in development.
 
 [0.2.1]: https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v0.2.1
 [0.2.0]: https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v0.2.0
