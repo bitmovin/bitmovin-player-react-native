@@ -10,8 +10,6 @@ Before creating a pull request, please
 
 - Make sure all guidelines are followed
 - Make sure your branch is free of merge conflicts
-- List the changes your branch is making to the project under the section `Unreleased` of `CHANGELOG.md`
-  - And please, make sure to follow the guideline principles in [`Keep a Changelog`](https://keepachangelog.com/en/1.0.0/#how) before editing it
 
 ## TypeScript Code Style
 
@@ -113,70 +111,19 @@ The `package.json` file contains various scripts for common tasks:
 
 When the `development` branch gets ready for a new release version, a few steps must be followed before it can be released:
 
-#### Release pull request
+#### Release Pull Request
 
-- Create a new branch, usually called `release/v*.*.*`
-- Bump `package.json`'s version to match `v*.*.*` on the newly created branch
-- Run `yarn bootstrap` on the project again to update `example/ios/Podfile.lock` and commit it
-- Update the `Unreleased` section in changelog to match the new version name and create a new empty `Unreleased` section to be used on the next release
+- Create a new branch, usually called `release/v*.*.*`.
+- Update the library version on `package.json`.
+- Run `yarn bootstrap` on the project again to update `example/ios/Podfile.lock` and commit it.
+- Add an entry on `CHANGELOG.md` for the new version.
+- Open a PR, usually called `Release v*.*.*`, and set the target branch as `development`.
 
-  - For example, consider an an imaginary `vx.3.0` release:
-
-  ```markdown
-  [Unreleased]
-
-  ### Added
-
-  - Feat A
-  - Feat B
-  - Feat C
-
-  #### Changed
-
-  - Refactors
-
-  [x.2.0] YYYY-MM-dd # <!-- latest release -->
-
-  ### Added ...
-
-  [unreleased]: https://github.com/bitmovin/bitmovin-player-react-native/compare/vx.2.0...development
-  [x.2.0]: https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/vx.2.0
-  ```
-
-  - This would be the changelog updates for such release:
-
-  ```markdown
-  [Unreleased] <!-- Empty again until next development process -->
-
-  [x.3.0] YYYY-MM-dd <!-- Unreleased has been renamed to vx.3.0 and is now the latest -->
-
-  ### Added
-
-  - feat A
-  - feat B
-  - feat C
-
-  #### Changed
-
-  - refactor A
-  - refactor B
-
-  [x.2.0] YYYY-MM-dd
-
-  ### Added ...
-
-  [Unreleased]: https://github.com/bitmovin/bitmovin-player-react-native/compare/vx.3.0...development <!-- Update link with new latest tag -->
-  [x.3.0]: https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/vx.3.0 <!-- Link vx.3.0 tag -->
-  [x.2.0]: https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/vx.2.0
-  ```
-
-- Open the new pull request targeting `development`
-
-#### Pull request from `development` to `main`
+#### Pull Request from `development` to `main`
 
 Now that all metadata for the new release is updated on the `development` branch, a new pull request merging the contents of `development` into `main` can be created.
 
-#### Pull request from `main` to `development`
+#### Pull Request from `main` to `development`
 
 Usually, once the merge from `development` to `main` happens, a new merge commit on the `main` branch that doesn't exist in `development` is created. So in order to keep the two branches even with one another, a pull request from `main` to `development` is often necessary.
 
