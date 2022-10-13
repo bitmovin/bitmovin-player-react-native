@@ -3,13 +3,14 @@
 Official React Native bindings for Bitmovin's mobile Player SDKs.
 
 [![npm](https://img.shields.io/npm/v/bitmovin-player-react-native)](https://www.npmjs.com/package/bitmovin-player-react-native)
-![Supports Android and iOS](https://img.shields.io/badge/platforms-android%20%7C%20ios-lightgrey.svg)
+![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20tvOS%20%7C%20Android%20%7C%20Android%20TV-lightgrey.svg)
 [![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![Bitmovin Community](https://img.shields.io/discourse/users?label=community&server=https%3A%2F%2Fcommunity.bitmovin.com)](https://community.bitmovin.com/?utm_source=github&utm_medium=bitmovin-player-react-native&utm_campaign=dev-community)
 
 > The library is under active development.
 
 - [Bitmovin Player React Native](#bitmovin-player-react-native)
+  - [Platform Support](#platform-support)
   - [Installation](#installation)
     - [Add package dependency](#add-package-dependency)
     - [Setup iOS Player SDK](#setup-ios-player-sdk)
@@ -26,6 +27,18 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
       - [Prepare hooks](#prepare-hooks)
     - [Adding external subtitle tracks](#adding-external-subtitle-tracks)
   - [Contributing](#contributing)
+
+## Platform Support
+
+This library requires at least React Native 0.64+ and React 17+ to work properly. And the currently supported platforms are:
+
+- iOS 12.0+
+- tvOS 12.0+
+- Android SDK 16+
+- Android TV SDK 21+
+- Fire TV (just make sure the Android SDK version is at least 21+)
+
+Please, note that browsers and other browser-like environments such as webOS and Tizen are **not** supported at the moment.
 
 ## Installation
 
