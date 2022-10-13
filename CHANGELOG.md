@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.3.0] (2022-10-13)
+
+Adds support for tvOS projects and ability to customize the default playback behavior of `Player` objects.
+
+### Added
+
+- Custom playback configuration option as `PlayerConfig.playbackConfig`. (Thanks to @jonathanm-tkf)
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `v3.28.0`.
+- Update Bitmovin's native Android SDK version to `v3.24.2`.
+- Setup a new tvOS target on example app's `.xcodeproj` file.
+- Replace `react-native` with `react-native-tvos` on the example app.
+
+### Fixed
+
+- Fix pod installation error on tvOS projects by adding `:tvos => 12.4` to the list of supported platforms.
+
 ## [0.2.1] (2022-09-19)
 
 Fixes an NPM installation issue.
@@ -40,6 +59,7 @@ No support for custom UI yet.
 - Support for listening most of `Player` and `Source` events via `PlayerView`'s component props.
 - Simple React Native app to exemplify and test library features in development.
 
+[0.3.0]: https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v0.3.0
 [0.2.1]: https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v0.2.1
 [0.2.0]: https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v0.2.0
 [0.1.0]: https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v0.1.0
