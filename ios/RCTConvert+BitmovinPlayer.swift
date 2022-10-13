@@ -15,6 +15,23 @@ extension RCTConvert {
         if let licenseKey = json["licenseKey"] as? String {
             playerConfig.key = licenseKey
         }
+        if let playbackConfig = json["playbackConfig"] as? [String: Any?] {
+            if let isAutoplayEnabled = playbackConfig["isAutoplayEnabled"] as? Bool {
+                playerConfig.playbackConfig.isAutoplayEnabled = isAutoplayEnabled
+            }
+            if let isMuted = playbackConfig["isMuted"] as? Bool {
+                playerConfig.playbackConfig.isMuted = isMuted
+            }
+            if let isTimeShiftEnabled = playbackConfig["isTimeShiftEnabled"] as? Bool {
+                playerConfig.playbackConfig.isTimeShiftEnabled = isTimeShiftEnabled
+            }
+            if let isBackgroundPlaybackEnabled = playbackConfig["isBackgroundPlaybackEnabled"] as? Bool {
+                playerConfig.playbackConfig.isBackgroundPlaybackEnabled = isBackgroundPlaybackEnabled
+            }
+            if let isPictureInPictureEnabled = playbackConfig["isPictureInPictureEnabled"] as? Bool {
+                playerConfig.playbackConfig.isPictureInPictureEnabled = isPictureInPictureEnabled
+            }
+        }
         return playerConfig
     }
 

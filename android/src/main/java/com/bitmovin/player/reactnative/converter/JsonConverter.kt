@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative.converter
 
+import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
@@ -25,10 +26,25 @@ class JsonConverter {
          */
         @JvmStatic
         fun toPlayerConfig(json: ReadableMap?): PlayerConfig {
-            if (json != null && json.hasKey("licenseKey")) {
-                return PlayerConfig(key = json.getString("licenseKey"))
+            if (json == null) return PlayerConfig()
+            val playerConfig = if (json.hasKey("licenseKey")) {
+                PlayerConfig(key = json.getString("licenseKey"))
+            } else {
+                PlayerConfig()
             }
-            return PlayerConfig()
+            if (json.hasKey("playbackConfig")) {
+                var playbackConfigJson = json.getMap("playbackConfig")
+                if (playbackConfigJson?.hasKey("isAutoplayEnabled") == true) {
+                    playerConfig.playbackConfig.isAutoplayEnabled = playbackConfigJson.getBoolean("isAutoplayEnabled")
+                }
+                if(playbackConfigJson?.hasKey("isMuted") == true) {
+                    playerConfig.playbackConfig.isMuted = playbackConfigJson.getBoolean("isMuted")
+                }
+                if(playbackConfigJson?.hasKey("isTimeShiftEnabled") == true) {
+                    playerConfig.playbackConfig.isTimeShiftEnabled = playbackConfigJson.getBoolean("isTimeShiftEnabled")
+                }
+            }
+            return playerConfig
         }
 
         /**

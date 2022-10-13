@@ -8,12 +8,15 @@ import {
   SourceType,
   SubtitleFormat,
 } from 'bitmovin-player-react-native';
+import { useTVGestures } from '../hooks';
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
 }
 
 export default function SubtitlePlayback() {
+  useTVGestures();
+
   const player = usePlayer();
 
   useFocusEffect(

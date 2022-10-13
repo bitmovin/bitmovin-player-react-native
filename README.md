@@ -3,23 +3,42 @@
 Official React Native bindings for Bitmovin's mobile Player SDKs.
 
 [![npm](https://img.shields.io/npm/v/bitmovin-player-react-native)](https://www.npmjs.com/package/bitmovin-player-react-native)
-![Supports Android and iOS](https://img.shields.io/badge/platforms-android%20%7C%20ios-lightgrey.svg)
+![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20tvOS%20%7C%20Android%20%7C%20Android%20TV-lightgrey.svg)
 [![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![Bitmovin Community](https://img.shields.io/discourse/users?label=community&server=https%3A%2F%2Fcommunity.bitmovin.com)](https://community.bitmovin.com/?utm_source=github&utm_medium=bitmovin-player-react-native&utm_campaign=dev-community)
 
-> :warning: **Beta Version**: The library is under active development.
+> The library is under active development.
 
-- [Installation](#installation)
-  - [Add package dependency](#add-package-dependency)
-  - [Setup iOS Player SDK](#setup-ios-player-sdk)
-  - [Setup Android Player SDK](#setup-android-player-sdk)
-- [Getting Started](#getting-started)
-  - [Setting up a license key](#setting-up-a-license-key)
-  - [Accessing native `Player` instances](#accessing-native-player-instances)
-  - [Listening to events](#listening-to-events)
-  - [Enabling DRM protection](#enabling-drm-protection)
-  - [Adding external subtitle tracks](#adding-subtitle-tracks)
-- [Contributing](#contributing)
+- [Bitmovin Player React Native](#bitmovin-player-react-native)
+  - [Platform Support](#platform-support)
+  - [Installation](#installation)
+    - [Add package dependency](#add-package-dependency)
+    - [Setup iOS Player SDK](#setup-ios-player-sdk)
+    - [Setup Android Player SDK](#setup-android-player-sdk)
+  - [Getting Started](#getting-started)
+    - [Setting up a license key](#setting-up-a-license-key)
+      - [Configuring through code](#configuring-through-code)
+    - [Setting up a playback configurations](#setting-up-a-playback-configurations)
+      - [Configuring `Info.plist`](#configuring-infoplist)
+      - [Configuring `AndroidManifest.xml`](#configuring-androidmanifestxml)
+    - [Accessing native `Player` instances](#accessing-native-player-instances)
+    - [Listening to events](#listening-to-events)
+    - [Enabling DRM protection](#enabling-drm-protection)
+      - [Prepare hooks](#prepare-hooks)
+    - [Adding external subtitle tracks](#adding-external-subtitle-tracks)
+  - [Contributing](#contributing)
+
+## Platform Support
+
+This library requires at least React Native 0.64+ and React 17+ to work properly. The currently supported platforms are:
+
+- iOS 12.0+
+- tvOS 12.0+
+- Android API 16+
+- Android TV API 17+
+- Fire TV (just make sure the Android API level is at least 17+)
+
+Please note that browsers and other browser-like environments such as webOS and Tizen are not supported.
 
 ## Installation
 
@@ -197,6 +216,42 @@ import { Player } from 'bitmovin-player-react-native';
 const player = new Player({
   // Make sure to use React.createRef if instantiating inside a component.
   licenseKey: '<ENTER-YOUR-LICENSE-KEY>',
+});
+```
+
+### Setting up a playback configurations
+
+If needed, the default player behavior can be configured through the `playbackConfig` key when initialized.
+
+```typescript
+// Simply pass the `playbackConfig` property to `PlayerConfig` when instantiating a player.
+
+// With hooks
+import { usePlayer } from 'bitmovin-player-react-native';
+const player = usePlayer({
+  playbackConfig: {
+    // Specifies whether the playback starts immediately after loading a source or not. Default is false.
+    isAutoplayEnabled: true,
+    // Specifies if playback starts muted. Default is false.
+    isMuted: true,
+    // Specifies if time shift for live streams should be enabled. Default is true.
+    isTimeShiftEnabled: true,
+    // Whether background playback is enabled or not. Default is false.
+    // Only available for iOS.
+    isBackgroundPlaybackEnabled: true,
+  },
+});
+
+// Without hooks
+import { Player } from 'bitmovin-player-react-native';
+const player = new Player({
+  // Make sure to use React.createRef if instantiating inside a component.
+  playbackConfig: {
+    isAutoplayEnabled: true,
+    isMuted: true,
+    isTimeShiftEnabled: true,
+    isBackgroundPlaybackEnabled: true,
+  },
 });
 ```
 

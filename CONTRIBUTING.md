@@ -8,8 +8,8 @@ With bugs and problems, please try to describe the issue as detailed as possible
 
 Before creating a pull request, please
 
-- make sure all guidelines are followed
-- make sure your branch is free of merge conflicts
+- Make sure all guidelines are followed
+- Make sure your branch is free of merge conflicts
 
 ## TypeScript Code Style
 
@@ -109,7 +109,23 @@ The `package.json` file contains various scripts for common tasks:
 
 ## Publishing
 
-Publishing happens automatically on GH Actions whenever a new tag is pushed. The package is built, sent to npmjs
-and a new release is created in github using the tag's name, which should start with `v` like `v1.2.3` for example.
+When the `development` branch gets ready for a new release version, a few steps must be followed before it can be released:
+
+#### Release Pull Request
+
+- Create a new branch from `development` usually called `release/v*.*.*`.
+- Update the library version on `package.json`.
+- Run `yarn bootstrap` on the project again to update `example/ios/Podfile.lock` and commit it.
+- Add an entry on `CHANGELOG.md` for the new version.
+- Open a PR, usually called `Release v*.*.*` and set the target branch as `main`.
+
+#### Pull Request from `main` to `development`
+
+Usually, once the merge from `release/v*.*.*` to `main` happens the contents from `main` and `development` diverge. So in order to make them even again, just open a Pull Request from `main` -> `development`.
+
+#### Push the new tag
+
+When `main` and `development` branches are even with one another, create a new tag from `main` matching the version name `v*.*.*` and push it
+to the remote repository. The tag will trigger a new npm release workflow on GitHub Actions and a new release in GitHub as well. No more processes needed.
 
 See [`.github/workflows/publish.yml`](/.github/workflows/publish.yml) for more details.
