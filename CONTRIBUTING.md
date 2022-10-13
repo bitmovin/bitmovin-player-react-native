@@ -113,19 +113,15 @@ When the `development` branch gets ready for a new release version, a few steps 
 
 #### Release Pull Request
 
-- Create a new branch, usually called `release/v*.*.*`.
+- Create a new branch from `development` usually called `release/v*.*.*`.
 - Update the library version on `package.json`.
 - Run `yarn bootstrap` on the project again to update `example/ios/Podfile.lock` and commit it.
 - Add an entry on `CHANGELOG.md` for the new version.
-- Open a PR, usually called `Release v*.*.*`, and set the target branch as `development`.
-
-#### Pull Request from `development` to `main`
-
-Now that all metadata for the new release is updated on the `development` branch, a new pull request merging the contents of `development` into `main` can be created.
+- Open a PR, usually called `Release v*.*.*` and set the target branch as `main`.
 
 #### Pull Request from `main` to `development`
 
-Usually, once the merge from `development` to `main` happens, a new merge commit on the `main` branch that doesn't exist in `development` is created. So in order to keep the two branches even with one another, a pull request from `main` to `development` is often necessary.
+Usually, once the merge from `release/v*.*.*` to `main` happens the contents from `main` and `development` diverge. So in order to make them even again, just open a Pull Request from `main` -> `development`.
 
 #### Push the new tag
 
