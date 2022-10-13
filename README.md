@@ -34,9 +34,9 @@ This library requires at least React Native 0.64+ and React 17+ to work properly
 
 - iOS 12.0+
 - tvOS 12.0+
-- Android SDK 16+
-- Android TV SDK 21+
-- Fire TV (just make sure the Android SDK version is at least 21+)
+- Android API 16+
+- Android TV API 17+
+- Fire TV (just make sure the Android API level is at least 17+)
 
 Please, note that browsers and other browser-like environments such as webOS and Tizen are **not** supported at the moment.
 
