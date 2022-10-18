@@ -81,6 +81,17 @@ export function PlayerView(props: PlayerViewProps) {
     <NativePlayerView
       ref={nativeView}
       style={style}
+      onAdBreakFinished={proxy(props.onAdBreakFinished)}
+      onAdBreakStarted={proxy(props.onAdBreakStarted)}
+      onAdClicked={proxy(props.onAdClicked)}
+      onAdError={proxy(props.onAdError)}
+      onAdFinished={proxy(props.onAdFinished)}
+      onAdManifestLoad={proxy(props.onAdManifestLoad)}
+      onAdManifestLoaded={proxy(props.onAdManifestLoaded)}
+      onAdQuartile={proxy(props.onAdQuartile)}
+      onAdScheduled={proxy(props.onAdScheduled)}
+      onAdSkipped={proxy(props.onAdSkipped)}
+      onAdStarted={proxy(props.onAdStarted)}
       onDestroy={proxy(props.onDestroy)}
       onEvent={proxy(props.onEvent)}
       onMuted={proxy(props.onMuted)}
