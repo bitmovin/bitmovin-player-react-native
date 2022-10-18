@@ -1,4 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
+import { AdvertisingConfig } from './advertising';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { SubtitleTrack } from './subtitleTrack';
@@ -32,6 +33,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures playback behaviour. A default PlaybackConfig is set initially.
    */
   playbackConfig?: PlaybackConfig;
+  /**
+   * Configures advertising functionality. A default AdvertisingConfig is set initially.
+   */
+  advertisingConfig?: AdvertisingConfig;
 }
 
 /**
