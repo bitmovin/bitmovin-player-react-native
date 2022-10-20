@@ -2,6 +2,7 @@ import { NativeModules, Platform } from 'react-native';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { SubtitleTrack } from './subtitleTrack';
+import { TweaksConfig } from './tweaksConfig';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -32,6 +33,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures playback behaviour. A default PlaybackConfig is set initially.
    */
   playbackConfig?: PlaybackConfig;
+  /**
+   * Configures experimental features. A default TweaksConfig is set initially.
+   */
+  tweaksConfig?: TweaksConfig;
 }
 
 /**
