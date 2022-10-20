@@ -32,6 +32,40 @@ extension RCTConvert {
                 playerConfig.playbackConfig.isPictureInPictureEnabled = isPictureInPictureEnabled
             }
         }
+        if let tweaksConfig = json["tweaksConfig"] as? [String: Any?] {
+            if let isNativeHlsParsingEnabled = tweaksConfig["isNativeHlsParsingEnabled"] as? Bool {
+                playerConfig.tweaksConfig.isNativeHlsParsingEnabled = isNativeHlsParsingEnabled
+            }
+            if let isCustomHlsLoadingEnabled = tweaksConfig["isCustomHlsLoadingEnabled"] as? Bool {
+                playerConfig.tweaksConfig.isCustomHlsLoadingEnabled = isCustomHlsLoadingEnabled
+            }
+            if let timeChangedInterval = tweaksConfig["timeChangedInterval"] as? NSNumber {
+                playerConfig.tweaksConfig.timeChangedInterval = timeChangedInterval.doubleValue
+            }
+            if let seekToEndThreshold = tweaksConfig["seekToEndThreshold"] as? NSNumber {
+                playerConfig.tweaksConfig.seekToEndThreshold = seekToEndThreshold.doubleValue
+            }
+            if let playbackStartBehaviour = tweaksConfig["playbackStartBehaviour"] as? String {
+                switch playbackStartBehaviour {
+                case "relaxed":
+                    playerConfig.tweaksConfig.playbackStartBehaviour = .relaxed
+                case "aggressive":
+                    playerConfig.tweaksConfig.playbackStartBehaviour = .aggressive
+                default:
+                    break
+                }
+            }
+            if let unstallingBehaviour = tweaksConfig["unstallingBehaviour"] as? String {
+                switch unstallingBehaviour {
+                case "relaxed":
+                    playerConfig.tweaksConfig.unstallingBehaviour = .relaxed
+                case "aggressive":
+                    playerConfig.tweaksConfig.unstallingBehaviour = .aggressive
+                default:
+                    break
+                }
+            }
+        }
         return playerConfig
     }
 
