@@ -1,17 +1,17 @@
 # Example
 
-This is a React Native app built to showcase `bitmovin-player-react-native`'s features. The code for all feature samples are contained
-inside the [`src/screens/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example/src/screens) directory. Check them out for snippets and tips:
+This is a React Native app built to showcase the features of `bitmovin-player-react-native`. The code for all feature samples is contained
+inside the [`src/screens/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example/src/screens) directory:
 
 - [Basic playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicPlayback.tsx)
 - [Basic DRM playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDrmPlayback.tsx)
 - [Custom subtitles](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/SubtitlePlayback.tsx)
 
-### Custom playback
+### Custom asset playback
 
-It's also possible to setup a simple playback session using the [Custom playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/CustomPlayback.tsx) example. Just select the `Custom` button at the top-right corner, fill in the form with the necessary stream information (URL, type and license key) then select `Play` to start it on a `PlayerView` component. It's useful to see how some type of stream/setup will behave with the library.
+To play back a custom video asset, it is possible to set up a simple playback session using the [Custom playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/CustomPlayback.tsx) example. Just tap the `Custom` button at the top-right corner, fill in the form with the necessary video asset/stream information (URL, type and license key) then select `Play` to start playback in the `PlayerView` component. This example can also be useful to check how certain types of videos/streams will behave with the library.
 
-**Note** that custom playback is disabled by default on TV devices due to issues with the focus engine, but it's possible to re-enable it, if desired, by removing [this line](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDrmPlayback.tsx) from code.
+**Note** that custom playback is disabled by default on TV devices due to issues with the focus engine, but it is possible to re-enable it, if desired, by removing [this line](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDrmPlayback.tsx) from code.
 
 ## Getting started
 
@@ -22,9 +22,9 @@ cd bitmovin-player-react-native # Go to lib's root directory
 yarn bootstrap # Install all dependencies
 ```
 
-## Configure your license key
+## Configuring your license key
 
-Before running the app, make sure to setup your Bitmovin's license key in the native metadata file of each platform:
+Before running the app, make sure to set up your Bitmovin's license key in the native metadata file of each platform:
 
 **iOS**
 
@@ -45,7 +45,7 @@ Edit the license key in `android/app/src/main/AndroidManifest.xml`:
 
 **Programmatically**
 
-Alternatively you can provide your license key programmatically via the config object of `usePlayer`. Providing it this way removes the need for the step above, but keep in mind at least of them is necessary to run the examples successfully.
+Alternatively you can provide your license key programmatically via the config object of `usePlayer`. Providing it this way removes the need for the step above, but keep in mind that at least one of them is necessary to successfully run the examples.
 
 ```ts
 const player = usePlayer({
@@ -54,7 +54,7 @@ const player = usePlayer({
 });
 ```
 
-## Run the app
+## Running the app
 
 First start the metro bundler by running the following command on the lib's root (always execute `yarn` from the lib's root):
 
