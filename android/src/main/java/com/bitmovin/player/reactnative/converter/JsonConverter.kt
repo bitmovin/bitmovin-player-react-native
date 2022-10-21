@@ -1,6 +1,8 @@
 package com.bitmovin.player.reactnative.converter
 
-import com.bitmovin.player.api.PlaybackConfig
+import com.bitmovin.player.api.DeviceDescription
+import com.bitmovin.player.api.DeviceDescription.DeviceName
+import com.bitmovin.player.api.DeviceDescription.ModelName
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
@@ -33,7 +35,7 @@ class JsonConverter {
                 PlayerConfig()
             }
             if (json.hasKey("playbackConfig")) {
-                var playbackConfigJson = json.getMap("playbackConfig")
+                val playbackConfigJson = json.getMap("playbackConfig")
                 if (playbackConfigJson?.hasKey("isAutoplayEnabled") == true) {
                     playerConfig.playbackConfig.isAutoplayEnabled = playbackConfigJson.getBoolean("isAutoplayEnabled")
                 }
@@ -42,6 +44,50 @@ class JsonConverter {
                 }
                 if(playbackConfigJson?.hasKey("isTimeShiftEnabled") == true) {
                     playerConfig.playbackConfig.isTimeShiftEnabled = playbackConfigJson.getBoolean("isTimeShiftEnabled")
+                }
+            }
+            if (json.hasKey("tweaksConfig")) {
+                val tweaksConfigJson = json.getMap("tweaksConfig")
+                if (tweaksConfigJson?.hasKey("timeChangedInterval") == true) {
+                    playerConfig.tweaksConfig.timeChangedInterval = tweaksConfigJson.getDouble("timeChangedInterval")
+                }
+                if (tweaksConfigJson?.hasKey("bandwidthEstimateWeightLimit") == true) {
+                    playerConfig.tweaksConfig.bandwidthEstimateWeightLimit = tweaksConfigJson.getInt("bandwidthEstimateWeightLimit")
+                }
+                if (tweaksConfigJson?.hasKey("devicesThatRequireSurfaceWorkaround") == true) {
+                    val devices = tweaksConfigJson.getMap("devicesThatRequireSurfaceWorkaround")
+                    val deviceNames = devices?.getArray("deviceNames")
+                    val modelNames = devices?.getArray("modelNames")
+                    val descriptions = ArrayList<DeviceDescription>()
+                    if (deviceNames != null) {
+                        for (i in 0 until deviceNames.size()) {
+                            descriptions.add(DeviceName(deviceNames.getString(i)))
+                        }
+                    }
+                    if (modelNames != null) {
+                        for (i in 0 until modelNames.size()) {
+                            descriptions.add(ModelName(modelNames.getString(i)))
+                        }
+                    }
+                    playerConfig.tweaksConfig.devicesThatRequireSurfaceWorkaround = descriptions
+                }
+                if (tweaksConfigJson?.hasKey("languagePropertyNormalization") == true) {
+                    playerConfig.tweaksConfig.languagePropertyNormalization = tweaksConfigJson.getBoolean("languagePropertyNormalization")
+                }
+                if (tweaksConfigJson?.hasKey("localDynamicDashWindowUpdateInterval") == true) {
+                    playerConfig.tweaksConfig.localDynamicDashWindowUpdateInterval = tweaksConfigJson.getDouble("localDynamicDashWindowUpdateInterval")
+                }
+                if (tweaksConfigJson?.hasKey("shouldApplyTtmlRegionWorkaround") == true) {
+                    playerConfig.tweaksConfig.shouldApplyTtmlRegionWorkaround = tweaksConfigJson.getBoolean("shouldApplyTtmlRegionWorkaround")
+                }
+                if (tweaksConfigJson?.hasKey("useDrmSessionForClearPeriods") == true) {
+                    playerConfig.tweaksConfig.useDrmSessionForClearPeriods = tweaksConfigJson.getBoolean("useDrmSessionForClearPeriods")
+                }
+                if (tweaksConfigJson?.hasKey("useDrmSessionForClearSources") == true) {
+                    playerConfig.tweaksConfig.useDrmSessionForClearSources = tweaksConfigJson.getBoolean("useDrmSessionForClearSources")
+                }
+                if (tweaksConfigJson?.hasKey("useFiletypeExtractorFallbackForHls") == true) {
+                    playerConfig.tweaksConfig.useFiletypeExtractorFallbackForHls = tweaksConfigJson.getBoolean("useFiletypeExtractorFallbackForHls")
                 }
             }
             return playerConfig

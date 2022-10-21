@@ -73,6 +73,7 @@ export interface TweaksConfig {
   unstallingBehaviour?: 'relaxed' | 'aggressive';
   /**
    * Constantly aggregated and weighted bandwidth samples are summed up to this weight limit to calculate an bandwidth estimation. Remaining samples (i.e. that would lead to exceeding the limit) are dropped from memory as they are not relevant anymore.
+   * Default is 2000.
    *
    * @platform Android
    */
