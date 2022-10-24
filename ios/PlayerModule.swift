@@ -17,7 +17,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     static func requiresMainQueueSetup() -> Bool {
         true
     }
-    
+
     /// Since most `PlayerModule` operations are UI related and need to be executed on the main thread, they are scheduled with `UIManager.addBlock`.
     var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
@@ -48,7 +48,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
             self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
         }
     }
-    
+
     /**
      Loads the given source configuration into `nativeId`'s `Player` object.
      - Parameter nativeId: Target player.
@@ -344,6 +344,21 @@ class PlayerModule: NSObject, RCTBridgeModule {
                 RCTConvert.subtitleTrackJson($0)
             }
             resolve(subtitlesJson ?? [])
+        }
+    }
+
+    /**
+     Set `nativeId`'s player subtitle track.
+     - Parameter nativeId: Target player Id.
+     - Parameter nativeId: Target player Id.
+     */
+    @objc(setSubtitleTrack:subtitleIdentifier:)
+    func setSubtitleTrack(
+        _ nativeId: NativeId,
+        trackIdentifier: String
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.setSubtitle(trackIdentifier:trackIdentifier)
         }
     }
 }

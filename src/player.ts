@@ -316,4 +316,11 @@ export class Player extends NativeInstance<PlayerConfig> {
   getAvailableSubtitles = async (): Promise<SubtitleTrack[]> => {
     return PlayerModule.getAvailableSubtitles(this.nativeId);
   };
+
+  /**
+   * Sets the source's selected subtitle track
+   */
+  setSubtitleTrack = async (trackIdentifier: string) => {
+    PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier);
+  };
 }
