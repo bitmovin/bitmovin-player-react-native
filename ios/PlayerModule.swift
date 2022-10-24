@@ -328,6 +328,46 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
+     Resolve `nativeId`'s player available audio tracks.
+     - Parameter nativeId: Target player Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getAvailableAudioTracks:resolver:rejecter:)
+    func getAvailableAudioTracks(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            let audioTracksJson = self?.players[nativeId]?.availableAudio.map {
+                RCTConvert.audioTrackJson($0)
+            }
+            resolve(audioTracksJson ?? [])
+        }
+    }
+
+    /**
+     Set `nativeId`'s player audio track.
+     - Parameter nativeId: Target player Id.
+     - Parameter trackIdentifier: The audio track identifier.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(setAudioTrack:trackIdentifier:resolver:rejecter:)
+    func setAudioTrack(
+        _ nativeId: NativeId,
+        trackIdentifier: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.setAudio(trackIdentifier:trackIdentifier)
+            resolve(nil)
+        }
+    }
+
+    /**
      Resolve `nativeId`'s player available subtitle tracks.
      - Parameter nativeId: Target player Id.
      - Parameter resolver: JS promise resolver.
@@ -350,15 +390,20 @@ class PlayerModule: NSObject, RCTBridgeModule {
     /**
      Set `nativeId`'s player subtitle track.
      - Parameter nativeId: Target player Id.
-     - Parameter nativeId: Target player Id.
+     - Parameter trackIdentifier: The subtitle track identifier..
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
      */
-    @objc(setSubtitleTrack:subtitleIdentifier:)
+    @objc(setSubtitleTrack:trackIdentifier:resolver:rejecter:)
     func setSubtitleTrack(
         _ nativeId: NativeId,
-        trackIdentifier: String
+        trackIdentifier: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             self?.players[nativeId]?.setSubtitle(trackIdentifier:trackIdentifier)
+            resolve(nil)
         }
     }
 }

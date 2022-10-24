@@ -1,6 +1,7 @@
 import { NativeModules, Platform } from 'react-native';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
+import { AudioTrack } from './audioTrack';
 import { SubtitleTrack } from './subtitleTrack';
 
 const PlayerModule = NativeModules.PlayerModule;
@@ -311,6 +312,20 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * @returns An array containing AudioTrack objects for all available audio tracks.
+   */
+  getAvailableAudioTracks = async (): Promise<AudioTrack[]> => {
+    return PlayerModule.getAvailableAudioTracks(this.nativeId);
+  };
+
+  /**
+   * Sets the source's selected subtitle track
+   */
+  setAudioTrack = async (trackIdentifier: string): Promise<void> => {
+    PlayerModule.setAudioTrack(this.nativeId, trackIdentifier);
+  };
+
+  /**
    * @returns An array containing SubtitleTrack objects for all available subtitle tracks.
    */
   getAvailableSubtitles = async (): Promise<SubtitleTrack[]> => {
@@ -320,7 +335,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Sets the source's selected subtitle track
    */
-  setSubtitleTrack = async (trackIdentifier: string) => {
+  setSubtitleTrack = async (trackIdentifier: string): Promise<void> => {
     PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier);
   };
 }
