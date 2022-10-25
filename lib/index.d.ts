@@ -70,6 +70,32 @@ interface SubtitleTrack {
 declare type SideLoadedSubtitleTrack = MakeRequired<SubtitleTrack, 'url' | 'label' | 'language' | 'format'>;
 
 /**
+ * Represents an audio track for a video.
+ */
+interface AudioTrack {
+    /**
+     * The URL to the timed file, e.g. WebVTT file.
+     */
+    url?: string;
+    /**
+     * The label for this track.
+     */
+    label?: string;
+    /**
+     * The unique identifier for this track. If no value is provided, a random UUIDv4 will be generated for it.
+     */
+    identifier?: string;
+    /**
+     * If set to true, this track would be considered as default. Default is `false`.
+     */
+    isDefault?: boolean;
+    /**
+     * The IETF BCP 47 language tag associated with this track, e.g. `pt`, `en`, `es` etc.
+     */
+    language?: string;
+}
+
+/**
  * Base event type for all events.
  */
 interface Event {
@@ -269,6 +295,37 @@ interface SourceErrorEvent extends ErrorEvent {
 interface SourceWarningEvent extends ErrorEvent {
 }
 /**
+ * Emitted when a new audio track is added to the player.
+ */
+interface AudioAddedEvent extends Event {
+    /**
+     * Audio track that has been added.
+     */
+    audioTrack: AudioTrack;
+}
+/**
+ * Emitted when the player's selected audio track has changed.
+ */
+interface AudioChangedEvent extends Event {
+    /**
+     * Audio track that was previously selected.
+     */
+    oldAudioTrack: AudioTrack;
+    /**
+     * Audio track that is selected now.
+     */
+    newAudioTrack: AudioTrack;
+}
+/**
+ * Emitted when an audio track is removed from the player.
+ */
+interface AudioRemovedEvent extends Event {
+    /**
+     * Audio track that has been removed.
+     */
+    audioTrack: AudioTrack;
+}
+/**
  * Emitted when a new subtitle track is added to the player.
  */
 interface SubtitleAddedEvent extends Event {
@@ -323,6 +380,9 @@ interface EventProps {
     onSourceLoaded: SourceLoadedEvent;
     onSourceUnloaded: SourceUnloadedEvent;
     onSourceWarning: SourceWarningEvent;
+    onAudioAdded: AudioAddedEvent;
+    onAudioChanged: AudioChangedEvent;
+    onAudioRemoved: AudioRemovedEvent;
     onSubtitleAdded: SubtitleAddedEvent;
     onSubtitleChanged: SubtitleChangedEvent;
     onSubtitleRemoved: SubtitleRemovedEvent;
@@ -962,9 +1022,21 @@ declare class Player extends NativeInstance<PlayerConfig> {
      */
     isAirPlayAvailable: () => Promise<boolean>;
     /**
+     * @returns An array containing AudioTrack objects for all available audio tracks.
+     */
+    getAvailableAudioTracks: () => Promise<AudioTrack[]>;
+    /**
+     * Sets the source's selected audio track
+     */
+    setAudioTrack: (trackIdentifier: string) => Promise<void>;
+    /**
      * @returns An array containing SubtitleTrack objects for all available subtitle tracks.
      */
     getAvailableSubtitles: () => Promise<SubtitleTrack[]>;
+    /**
+     * Sets the source's selected subtitle track
+     */
+    setSubtitleTrack: (trackIdentifier: string) => Promise<void>;
 }
 
 /**
@@ -998,4 +1070,4 @@ declare function PlayerView(props: PlayerViewProps): JSX.Element;
  */
 declare function usePlayer(config?: PlayerConfig): Player;
 
-export { BasePlayerViewProps, DestroyEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, LoadingState, MutedEvent, PausedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, TimeChangedEvent, UnmutedEvent, WidevineConfig, usePlayer };
+export { AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, BasePlayerViewProps, DestroyEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, LoadingState, MutedEvent, PausedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, TimeChangedEvent, UnmutedEvent, WidevineConfig, usePlayer };
