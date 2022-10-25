@@ -8,6 +8,7 @@ import ExamplesList from './screens/ExamplesList';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
+import ProgrammaticTrackSelection from './screens/ProgrammaticTrackSelection';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
 
@@ -72,6 +73,10 @@ export default function App() {
                 title: 'Subtitle and captions',
                 routeName: 'SubtitlePlayback',
               },
+              {
+                title: 'Programmatic Track Selection',
+                routeName: 'ProgrammaticTrackSelection',
+              },
             ],
           }}
         />
@@ -89,6 +94,11 @@ export default function App() {
           name="SubtitlePlayback"
           component={SubtitlePlayback}
           options={{ title: 'Subtitle and captions' }}
+        />
+        <RootStack.Screen
+          name="ProgrammaticTrackSelection"
+          component={ProgrammaticTrackSelection}
+          options={{ title: 'Programmatic Track Selection' }}
         />
         <RootStack.Screen
           name="CustomPlaybackForm"

@@ -17,6 +17,9 @@ fun PlayerEvent.getName(): String {
  *   other platforms.
  */
 fun SourceEvent.getName(): String = when (this) {
+    is SourceEvent.AudioTrackAdded -> "onAudioAdded"
+    is SourceEvent.AudioTrackChanged -> "onAudioChanged"
+    is SourceEvent.AudioTrackRemoved -> "onAudioRemoved"
     is SourceEvent.SubtitleTrackAdded -> "onSubtitleAdded"
     is SourceEvent.SubtitleTrackChanged -> "onSubtitleChanged"
     is SourceEvent.SubtitleTrackRemoved -> "onSubtitleRemoved"

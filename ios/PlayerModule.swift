@@ -390,7 +390,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     /**
      Set `nativeId`'s player subtitle track.
      - Parameter nativeId: Target player Id.
-     - Parameter trackIdentifier: The subtitle track identifier..
+     - Parameter trackIdentifier: The subtitle track identifier.
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */

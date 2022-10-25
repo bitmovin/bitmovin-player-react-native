@@ -196,6 +196,27 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
     }
 
     /**
+     * `onAudioAdded` event callback.
+     */
+    private val onAudioAdded: (SourceEvent.AudioTrackAdded) -> Unit = {
+        emitEvent("audioAdded", it)
+    }
+
+    /**
+     * `onAudioChanged` event callback.
+     */
+    private val onAudioChanged: (SourceEvent.AudioTrackChanged) -> Unit = {
+        emitEvent("audioChanged", it)
+    }
+
+    /**
+     * `onAudioRemoved` event callback.
+     */
+    private val onAudioRemoved: (SourceEvent.AudioTrackRemoved) -> Unit = {
+        emitEvent("audioRemoved", it)
+    }
+
+    /**
      * `onSubtitleAdded` event callback.
      */
     private val onSubtitleAdded: (SourceEvent.SubtitleTrackAdded) -> Unit = {
@@ -240,6 +261,9 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
             on(onSourceUnloaded)
             on(onSourceError)
             on(onSourceWarning)
+            on(onAudioAdded)
+            on(onAudioChanged)
+            on(onAudioRemoved)
             on(onSubtitleAdded)
             on(onSubtitleChanged)
             on(onSubtitleRemoved)
@@ -270,6 +294,9 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
             off(onSourceUnloaded)
             off(onSourceError)
             off(onSourceWarning)
+            off(onAudioAdded)
+            off(onAudioChanged)
+            off(onAudioRemoved)
             off(onSubtitleAdded)
             off(onSubtitleChanged)
             off(onSubtitleRemoved)
