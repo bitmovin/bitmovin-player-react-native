@@ -15,6 +15,7 @@ import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.reactnative.extensions.getName
+import com.bitmovin.player.reactnative.extensions.toList
 import com.facebook.react.bridge.*
 import java.util.UUID
 
@@ -92,19 +93,16 @@ class JsonConverter {
             if (json.hasKey("devicesThatRequireSurfaceWorkaround")) {
                 val devices = json.getMap("devicesThatRequireSurfaceWorkaround")
                 val deviceNames = devices?.getArray("deviceNames")
+                    ?.toList<String>()
+                    ?.mapNotNull { it }
+                    ?.map { DeviceName(it) }
+                    ?: emptyList()
                 val modelNames = devices?.getArray("modelNames")
-                val descriptions = ArrayList<DeviceDescription>()
-                if (deviceNames != null) {
-                    for (i in 0 until deviceNames.size()) {
-                        descriptions.add(DeviceName(deviceNames.getString(i)))
-                    }
-                }
-                if (modelNames != null) {
-                    for (i in 0 until modelNames.size()) {
-                        descriptions.add(ModelName(modelNames.getString(i)))
-                    }
-                }
-                tweaksConfig.devicesThatRequireSurfaceWorkaround = descriptions
+                    ?.toList<String>()
+                    ?.mapNotNull { it }
+                    ?.map { ModelName(it) }
+                    ?: emptyList()
+                tweaksConfig.devicesThatRequireSurfaceWorkaround = deviceNames + modelNames
             }
             if (json.hasKey("languagePropertyNormalization")) {
                 tweaksConfig.languagePropertyNormalization = json.getBoolean("languagePropertyNormalization")
