@@ -263,6 +263,38 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Resolve `nativeId`'s player available audio tracks.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getAvailableAudioTracks(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            val audioTracks = Arguments.createArray()
+            players[nativeId]?.source?.availableAudioTracks?.let { tracks ->
+                tracks.forEach {
+                    audioTracks.pushMap(JsonConverter.fromAudioTrack(it))
+                }
+            }
+            promise.resolve(audioTracks)
+        }
+    }
+
+    /**
+     * Set `nativeId`'s player audio track.
+     * @param nativeId Target player Id.
+     * @param trackIdentifier The audio track identifier.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun setAudioTrack(nativeId: NativeId, trackIdentifier: String, promise: Promise) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.source?.setAudioTrack(trackIdentifier)
+            promise.resolve(null)
+        }
+    }
+
+    /**
      * Resolve `nativeId`'s player available subtitle tracks.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
@@ -277,6 +309,20 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
                 }
             }
             promise.resolve(subtitleTracks)
+        }
+    }
+
+    /**
+     * Set `nativeId`'s player subtitle track.
+     * @param nativeId Target player Id.
+     * @param trackIdentifier The subtitle track identifier.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun setSubtitleTrack(nativeId: NativeId, trackIdentifier: String, promise: Promise) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.source?.setSubtitleTrack(trackIdentifier)
+            promise.resolve(null)
         }
     }
 

@@ -80,6 +80,18 @@ extension RNPlayerView: PlayerListener {
     func onSourceWarning(_ event: SourceWarningEvent, player: Player) {
         onSourceWarning?(event.toJSON())
     }
+    
+    func onAudioAdded(_ event: AudioAddedEvent, player: Player) {
+        onAudioAdded?(event.toJSON())
+    }
+
+    func onAudioRemoved(_ event: AudioRemovedEvent, player: Player) {
+        onAudioRemoved?(event.toJSON())
+    }
+
+    func onAudioChanged(_ event: AudioChangedEvent, player: Player) {
+        onAudioChanged?(event.toJSON())
+    }
 
     func onSubtitleAdded(_ event: SubtitleAddedEvent, player: Player) {
         onSubtitleAdded?(event.toJSON())

@@ -131,6 +131,38 @@ extension PlayEvent: TimedEventType {}
 extension PausedEvent: TimedEventType {}
 extension PlayingEvent: TimedEventType {}
 
+extension AudioAddedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "audioTrack": RCTConvert.audioTrackJson(audioTrack)
+        ]
+    }
+}
+
+extension AudioRemovedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "audioTrack": RCTConvert.audioTrackJson(audioTrack)
+        ]
+    }
+}
+
+extension AudioChangedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "oldAudioTrack": RCTConvert.audioTrackJson(audioTrackOld),
+            "newAudioTrack": RCTConvert.audioTrackJson(audioTrackNew)
+        ]
+    }
+}
+
+
 extension SubtitleAddedEvent {
     func toJSON() -> [AnyHashable: Any] {
         [

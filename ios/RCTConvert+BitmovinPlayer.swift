@@ -132,6 +132,24 @@ extension RCTConvert {
     }
 
     /**
+     Utility method to get a json dictionary value from a `AudioTrack` object.
+     - Parameter audioTrack: The track to convert to json format.
+     - Returns: The generated json dictionary.
+     */
+    static func audioTrackJson(_ audioTrack: AudioTrack?) -> [AnyHashable: Any]? {
+        guard let audioTrack = audioTrack else {
+            return nil
+        }
+        return [
+            "url": audioTrack.url?.absoluteString,
+            "label": audioTrack.label,
+            "isDefault": audioTrack.isDefaultTrack,
+            "identifier": audioTrack.identifier,
+            "language": audioTrack.language
+        ]
+    }
+
+    /**
      Utility method to get a `SubtitleTrack` instance from a JS object.
      - Parameter json: JS object.
      - Returns: The generated `SubtitleTrack`.
