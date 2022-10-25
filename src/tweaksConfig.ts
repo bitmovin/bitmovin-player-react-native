@@ -7,7 +7,9 @@
 export interface TweaksConfig {
   /**
    * The frequency in seconds onTimeChanged is called with TimeChangedEvents.
-   * Default is 1. Minimum is 0.025.
+   *
+   * Default value in iOS is `1.0`.
+   * Default value in Android is `0.2`.
    *
    * @platform iOS, Android
    */
