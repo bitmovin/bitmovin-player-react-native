@@ -43,7 +43,7 @@ export interface TweaksConfig {
   isCustomHlsLoadingEnabled?: boolean;
   /**
    * The threshold which will be applied when seeking to the end in seconds. This value will be used
-   * to calculate the maximum seekable time when calling player.seek(time:) orplayer.playlist.seek(source:time:),
+   * to calculate the maximum seekable time when calling player.seek(time:) or player.playlist.seek(source:time:),
    * so the maximum value will be duration - seekToEndThreshold.
    *
    * This is useful if the duration of the segments does not match the duration specified in the
@@ -91,13 +91,13 @@ export interface TweaksConfig {
      *
      * @see Build.DEVICE: https://developer.android.com/reference/kotlin/android/os/Build.html#DEVICE--
      */
-    deviceNames?: string[]; // Mapped to an array of `DeviceName`s in Kotlin
+    deviceNames?: string[];
     /**
      * A model name as reported by Build.MODEL.
      *
      * @see Build.MODEL: https://developer.android.com/reference/kotlin/android/os/Build.html#MODEL--
      */
-    modelNames?: string[]; // Mapped to an array of `ModelName`s in Kotlin
+    modelNames?: string[];
   };
   /**
    * Specifies if the language property on DASH Representations, HLS Renditions and SmoothStreaming QualityLevels is normalized.
