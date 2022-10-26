@@ -1,6 +1,5 @@
 package com.bitmovin.player.reactnative.converter
 
-import com.bitmovin.player.api.DeviceDescription
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.DeviceDescription.ModelName
 import com.bitmovin.player.api.PlaybackConfig
