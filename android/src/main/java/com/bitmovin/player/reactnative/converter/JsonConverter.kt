@@ -46,6 +46,12 @@ class JsonConverter {
                     playerConfig.tweaksConfig = it
                 }
             }
+            if (json.hasKey("styleConfig")) {
+                var styleConfigJson = json.getMap("styleConfig")
+                if (styleConfigJson?.hasKey("isUiEnabled") == true) {
+                    playerConfig.styleConfig.isUiEnabled = styleConfigJson.getBoolean("isUiEnabled")
+                }
+            }
             return playerConfig
         }
 

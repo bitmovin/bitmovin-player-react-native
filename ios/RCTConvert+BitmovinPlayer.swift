@@ -21,6 +21,11 @@ extension RCTConvert {
         if let tweaksConfig = RCTConvert.tweaksConfig(json["tweaksConfig"]) {
             playerConfig.tweaksConfig = tweaksConfig
         }
+        if let styleConfig = json["styleConfig"] as? [String: Any?] {
+            if let isUiEnabled = styleConfig["isUiEnabled"] as? Bool {
+                playerConfig.styleConfig.isUiEnabled = isUiEnabled
+            }
+        }
         return playerConfig
     }
 
