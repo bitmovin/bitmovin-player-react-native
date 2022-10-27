@@ -1,6 +1,10 @@
 package com.bitmovin.player.reactnative.converter
 
+import com.bitmovin.player.api.DeviceDescription.DeviceName
+import com.bitmovin.player.api.DeviceDescription.ModelName
+import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.PlayerConfig
+import com.bitmovin.player.api.TweaksConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
@@ -11,6 +15,7 @@ import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.reactnative.extensions.getName
+import com.bitmovin.player.reactnative.extensions.toList
 import com.facebook.react.bridge.*
 import java.util.UUID
 
@@ -33,15 +38,13 @@ class JsonConverter {
                 PlayerConfig()
             }
             if (json.hasKey("playbackConfig")) {
-                var playbackConfigJson = json.getMap("playbackConfig")
-                if (playbackConfigJson?.hasKey("isAutoplayEnabled") == true) {
-                    playerConfig.playbackConfig.isAutoplayEnabled = playbackConfigJson.getBoolean("isAutoplayEnabled")
+                toPlaybackConfig(json.getMap("playbackConfig"))?.let {
+                    playerConfig.playbackConfig = it
                 }
-                if(playbackConfigJson?.hasKey("isMuted") == true) {
-                    playerConfig.playbackConfig.isMuted = playbackConfigJson.getBoolean("isMuted")
-                }
-                if(playbackConfigJson?.hasKey("isTimeShiftEnabled") == true) {
-                    playerConfig.playbackConfig.isTimeShiftEnabled = playbackConfigJson.getBoolean("isTimeShiftEnabled")
+            }
+            if (json.hasKey("tweaksConfig")) {
+                toTweaksConfig(json.getMap("tweaksConfig"))?.let {
+                    playerConfig.tweaksConfig = it
                 }
             }
             if (json.hasKey("styleConfig")) {
@@ -51,6 +54,81 @@ class JsonConverter {
                 }
             }
             return playerConfig
+        }
+
+        /**
+         * Converts any JS object into a `PlaybackConfig` object.
+         * @param json JS object representing the `PlaybackConfig`.
+         * @return The generated `PlaybackConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toPlaybackConfig(json: ReadableMap?): PlaybackConfig? {
+            if (json == null) {
+                return null
+            }
+            val playbackConfig = PlaybackConfig()
+            if (json.hasKey("isAutoplayEnabled")) {
+                playbackConfig.isAutoplayEnabled = json.getBoolean("isAutoplayEnabled")
+            }
+            if (json.hasKey("isMuted")) {
+                playbackConfig.isMuted = json.getBoolean("isMuted")
+            }
+            if (json.hasKey("isTimeShiftEnabled")) {
+                playbackConfig.isTimeShiftEnabled = json.getBoolean("isTimeShiftEnabled")
+            }
+            return playbackConfig
+        }
+
+        /**
+         * Converts any JS object into a `TweaksConfig` object.
+         * @param json JS object representing the `TweaksConfig`.
+         * @return The generated `TweaksConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toTweaksConfig(json: ReadableMap?): TweaksConfig? {
+            if (json == null) {
+                return null
+            }
+            val tweaksConfig = TweaksConfig()
+            if (json.hasKey("timeChangedInterval")) {
+                tweaksConfig.timeChangedInterval = json.getDouble("timeChangedInterval")
+            }
+            if (json.hasKey("bandwidthEstimateWeightLimit")) {
+                tweaksConfig.bandwidthEstimateWeightLimit = json.getInt("bandwidthEstimateWeightLimit")
+            }
+            if (json.hasKey("devicesThatRequireSurfaceWorkaround")) {
+                val devices = json.getMap("devicesThatRequireSurfaceWorkaround")
+                val deviceNames = devices?.getArray("deviceNames")
+                    ?.toList<String>()
+                    ?.mapNotNull { it }
+                    ?.map { DeviceName(it) }
+                    ?: emptyList()
+                val modelNames = devices?.getArray("modelNames")
+                    ?.toList<String>()
+                    ?.mapNotNull { it }
+                    ?.map { ModelName(it) }
+                    ?: emptyList()
+                tweaksConfig.devicesThatRequireSurfaceWorkaround = deviceNames + modelNames
+            }
+            if (json.hasKey("languagePropertyNormalization")) {
+                tweaksConfig.languagePropertyNormalization = json.getBoolean("languagePropertyNormalization")
+            }
+            if (json.hasKey("localDynamicDashWindowUpdateInterval")) {
+                tweaksConfig.localDynamicDashWindowUpdateInterval = json.getDouble("localDynamicDashWindowUpdateInterval")
+            }
+            if (json.hasKey("shouldApplyTtmlRegionWorkaround")) {
+                tweaksConfig.shouldApplyTtmlRegionWorkaround = json.getBoolean("shouldApplyTtmlRegionWorkaround")
+            }
+            if (json.hasKey("useDrmSessionForClearPeriods")) {
+                tweaksConfig.useDrmSessionForClearPeriods = json.getBoolean("useDrmSessionForClearPeriods")
+            }
+            if (json.hasKey("useDrmSessionForClearSources")) {
+                tweaksConfig.useDrmSessionForClearSources = json.getBoolean("useDrmSessionForClearSources")
+            }
+            if (json.hasKey("useFiletypeExtractorFallbackForHls")) {
+                tweaksConfig.useFiletypeExtractorFallbackForHls = json.getBoolean("useFiletypeExtractorFallbackForHls")
+            }
+            return tweaksConfig
         }
 
         /**
