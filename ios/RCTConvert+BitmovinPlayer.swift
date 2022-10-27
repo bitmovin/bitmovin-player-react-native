@@ -18,13 +18,11 @@ extension RCTConvert {
         if let playbackConfig = RCTConvert.playbackConfig(json["playbackConfig"]) {
             playerConfig.playbackConfig = playbackConfig
         }
+        if let styleConfig = RCTConvert.styleConfig(json["styleConfig"]) {
+            playerConfig.styleConfig = styleConfig
+        }
         if let tweaksConfig = RCTConvert.tweaksConfig(json["tweaksConfig"]) {
             playerConfig.tweaksConfig = tweaksConfig
-        }
-        if let styleConfig = json["styleConfig"] as? [String: Any?] {
-            if let isUiEnabled = styleConfig["isUiEnabled"] as? Bool {
-                playerConfig.styleConfig.isUiEnabled = isUiEnabled
-            }
         }
         return playerConfig
     }
@@ -55,6 +53,34 @@ extension RCTConvert {
             playbackConfig.isPictureInPictureEnabled = isPictureInPictureEnabled
         }
         return playbackConfig
+    }
+
+    /**
+     Utility method to instantiate a `StyleConfig` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `StyleConfig` object.
+     */
+    static func styleConfig(_ json: Any?) -> StyleConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let styleConfig = StyleConfig()
+        if let isUiEnabled = json["isUiEnabled"] as? Bool {
+            styleConfig.isUiEnabled = isUiEnabled
+        }
+        if let userInterfaceType = json["userInterfaceType"] as? String {
+            switch userInterfaceType {
+            case "bitmovin":
+                styleConfig.userInterfaceType = .bitmovin
+            case "system":
+                styleConfig.userInterfaceType = .system
+            case "subtitle":
+                styleConfig.userInterfaceType = .subtitle
+            default:
+                break
+            }
+        }
+        return styleConfig
     }
 
     /**
