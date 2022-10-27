@@ -32,6 +32,13 @@ extension RCTConvert {
                 playerConfig.playbackConfig.isPictureInPictureEnabled = isPictureInPictureEnabled
             }
         }
+        if let styleConfig = json["styleConfig"] as? [String: Any?] {
+            if let isUiEnabled = styleConfig["isUiEnabled"] as? Bool {
+                playerConfig.styleConfig.isUiEnabled = isUiEnabled
+            }
+            
+            playerConfig.styleConfig.userInterfaceType = .subtitle
+        }
         return playerConfig
     }
 
