@@ -3,6 +3,7 @@ import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { AudioTrack } from './audioTrack';
 import { SubtitleTrack } from './subtitleTrack';
+import { StyleConfig } from './styleConfig';
 import { TweaksConfig } from './tweaksConfig';
 
 const PlayerModule = NativeModules.PlayerModule;
@@ -35,10 +36,13 @@ export interface PlayerConfig extends NativeInstanceConfig {
    */
   playbackConfig?: PlaybackConfig;
   /**
+   * Configures the visual presentation and behaviour of the player UI. A default StyleConfig is set initially.
+   */
+  styleConfig?: StyleConfig;
+  /**
    * Configures experimental features. A default TweaksConfig is set initially.
    */
   tweaksConfig?: TweaksConfig;
-  styleConfig?: StyleConfig;
 }
 
 /**
@@ -116,24 +120,6 @@ export interface PlaybackConfig {
    * ```
    */
   isPictureInPictureEnabled?: boolean;
-}
-
-/**
- * Contains config values which can be used to alter the visual presentation and behaviour of the player UI.
- */
-export interface StyleConfig {
-  /**
-   * Sets if the UI should be enabled or not. Default value is true.
-   * @example
-   * ```
-   * const player = new Player({
-   *   styleConfig: {
-   *     isUiEnabled: false,
-   *   },
-   * });
-   * ```
-   */
-  isUiEnabled: boolean;
 }
 
 /**

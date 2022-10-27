@@ -14,6 +14,7 @@ import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
+import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.toList
 import com.facebook.react.bridge.*
@@ -42,15 +43,14 @@ class JsonConverter {
                     playerConfig.playbackConfig = it
                 }
             }
+            if (json.hasKey("styleConfig")) {
+                toStyleConfig(json.getMap("styleConfig"))?.let {
+                    playerConfig.styleConfig = it
+                }
+            }
             if (json.hasKey("tweaksConfig")) {
                 toTweaksConfig(json.getMap("tweaksConfig"))?.let {
                     playerConfig.tweaksConfig = it
-                }
-            }
-            if (json.hasKey("styleConfig")) {
-                var styleConfigJson = json.getMap("styleConfig")
-                if (styleConfigJson?.hasKey("isUiEnabled") == true) {
-                    playerConfig.styleConfig.isUiEnabled = styleConfigJson.getBoolean("isUiEnabled")
                 }
             }
             return playerConfig
@@ -77,6 +77,23 @@ class JsonConverter {
                 playbackConfig.isTimeShiftEnabled = json.getBoolean("isTimeShiftEnabled")
             }
             return playbackConfig
+        }
+
+        /**
+         * Converts any JS object into a `StyleConfig` object.
+         * @param json JS object representing the `StyleConfig`.
+         * @return The generated `StyleConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toStyleConfig(json: ReadableMap?): StyleConfig? {
+            if (json == null) {
+                return null
+            }
+            val styleConfig = StyleConfig()
+            if (json.hasKey("isUiEnabled")) {
+                styleConfig.isUiEnabled = json.getBoolean("isUiEnabled")
+            }
+            return styleConfig
         }
 
         /**
