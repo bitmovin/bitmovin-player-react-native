@@ -111,6 +111,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
+            // TODO: determine isPictureInPictureEnabled value from player's playbackConfig
+            view.isPictureInPictureEnabled = true
             if (view.playerView != null) {
                 view.player = player
             } else {
