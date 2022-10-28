@@ -10,6 +10,7 @@ import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.on
 import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
@@ -20,7 +21,7 @@ import com.facebook.react.uimanager.events.RCTEventEmitter
  * exposes player events as bubbling events.
  */
 @SuppressLint("ViewConstructor")
-class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
+class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context), LifecycleEventListener {
     /**
      * Reference to the shared player view set as child.
      */
@@ -34,6 +35,26 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
         set(value) {
             playerView?.player = value
         }
+
+    init {
+        context.addLifecycleEventListener(this)
+    }
+
+    fun dispose() {
+        (context as ReactApplicationContext).removeLifecycleEventListener(this)
+    }
+
+    override fun onHostPause() {
+        playerView?.onPause()
+    }
+
+    override fun onHostResume() {
+        playerView?.onResume()
+    }
+
+    override fun onHostDestroy() {
+        playerView?.onDestroy()
+    }
 
     /**
      * Set the given `playerView` as child and start bubbling events.

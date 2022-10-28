@@ -22,10 +22,19 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     override fun getName() = "NativePlayerView"
 
     /**
-     * The component's native view factory. RN calls this method multiple times
+     * The component's native view factory. RN may call this method multiple times
      * for each component instance.
      */
     override fun createViewInstance(reactContext: ThemedReactContext) = RNPlayerView(context)
+
+    /**
+     * Called when the component's view gets detached from the view hierarchy. Useful to perform
+     * cleanups.
+     */
+    override fun onDropViewInstance(view: RNPlayerView) {
+        super.onDropViewInstance(view)
+        view.dispose()
+    }
 
     /**
      * A mapping between a event native identifier and its bubbled version that will
