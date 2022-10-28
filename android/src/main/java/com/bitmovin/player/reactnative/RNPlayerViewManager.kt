@@ -97,7 +97,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         super.receiveCommand(view, commandId, args)
         commandId?.toInt()?.let {
             when (it) {
-                Commands.ATTACH_PLAYER.ordinal -> attachPlayer(view, args?.getString(1))
+                Commands.ATTACH_PLAYER.ordinal -> attachPlayer(view, args?.getString(1), args?.getMap(2))
                 else -> {}
             }
         }
@@ -108,11 +108,14 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @param view Target `RNPlayerView`.
      * @param playerId `Player` instance id inside `PlayerModule`'s registry.
      */
-    private fun attachPlayer(view: RNPlayerView, playerId: NativeId?) {
+    private fun attachPlayer(view: RNPlayerView, playerId: NativeId?, playerConfig: ReadableMap?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
-            // TODO: determine isPictureInPictureEnabled value from player's playbackConfig
-            view.isPictureInPictureEnabled = true
+            // set picture in picture value based on playback config's option
+            playerConfig?.getMap("playbackConfig")?.getBoolean("isPictureInPictureEnabled")?.let {
+                view.isPictureInPictureEnabled = it
+            }
+            // setup PlayerView
             if (view.playerView != null) {
                 view.player = player
             } else {
