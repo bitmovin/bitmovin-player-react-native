@@ -17,15 +17,16 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
     - [Setup Android Player SDK](#setup-android-player-sdk)
   - [Getting Started](#getting-started)
     - [Setting up a license key](#setting-up-a-license-key)
-      - [Configuring through code](#configuring-through-code)
-    - [Setting up a playback configurations](#setting-up-a-playback-configurations)
-      - [Configuring `Info.plist`](#configuring-infoplist)
-      - [Configuring `AndroidManifest.xml`](#configuring-androidmanifestxml)
+      - [Through code](#through-code)
+      - [Through `Info.plist`](#through-infoplist)
+      - [Through `AndroidManifest.xml`](#through-androidmanifestxml)
+    - [Setting up the playback configuration](#setting-up-the-playback-configuration)
     - [Accessing native `Player` instances](#accessing-native-player-instances)
     - [Listening to events](#listening-to-events)
     - [Enabling DRM protection](#enabling-drm-protection)
       - [Prepare hooks](#prepare-hooks)
     - [Adding external subtitle tracks](#adding-external-subtitle-tracks)
+    - [Enabling Picture In Picture mode](#enabling-picture-in-picture-mode)
   - [Contributing](#contributing)
 
 ## Platform Support
@@ -200,7 +201,7 @@ First of all, create a license key on the [Dashboard](https://bitmovin.com/dashb
 
 Then your license key can be either set from code or by configuring `Info.plist` and `AndroidManifest.xml`.
 
-#### Configuring through code
+#### Through code
 
 ```typescript
 // Simply pass the `licenseKey` property to `PlayerConfig` when instantiating a player.
@@ -219,7 +220,24 @@ const player = new Player({
 });
 ```
 
-### Setting up a playback configurations
+#### Through `Info.plist`
+
+Add the following lines to the `<dict>` section of your `ios/Info.plist`:
+
+```xml
+<key>BitmovinPlayerLicenseKey</key>
+<string>ENTER-YOUR-LICENSE-KEY</string>
+```
+
+#### Through `AndroidManifest.xml`
+
+Add the following line to the `<application>` section of your `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="ENTER-YOUR-LICENSE-KEY" />
+```
+
+### Setting up the playback configuration
 
 If needed, the default player behavior can be configured through the `playbackConfig` key when initialized.
 
@@ -239,6 +257,14 @@ const player = usePlayer({
     // Whether background playback is enabled or not. Default is false.
     // Only available for iOS.
     isBackgroundPlaybackEnabled: true,
+    // Enable the Picture In Picture mode option on the player controls.
+    //
+    // Note iOS requires the audio session category of your app to be set to `playback` otherwise
+    // PiP mode won't work.
+    //
+    // Check out `Enabling Picture In Picture mode` section of README for more information
+    // on how to properly configure your app to support PiP.
+    isPictureInPictureEnabled: true,
   },
 });
 
@@ -251,25 +277,9 @@ const player = new Player({
     isMuted: true,
     isTimeShiftEnabled: true,
     isBackgroundPlaybackEnabled: true,
+    isPictureInPictureEnabled: true,
   },
 });
-```
-
-#### Configuring `Info.plist`
-
-Add the following lines to the `<dict>` section of your `ios/Info.plist`:
-
-```xml
-<key>BitmovinPlayerLicenseKey</key>
-<string>ENTER-YOUR-LICENSE-KEY</string>
-```
-
-#### Configuring `AndroidManifest.xml`
-
-Add the following line to the `<application>` section of your `android/app/src/main/AndroidManifest.xml`:
-
-```xml
-<meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="ENTER-YOUR-LICENSE-KEY" />
 ```
 
 ### Accessing native `Player` instances
