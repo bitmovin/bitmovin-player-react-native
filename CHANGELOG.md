@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1] (2022-10-26)
+
+Adds tweaks configuration support.
+
+### Added
+
+- Support for setting `TweaksConfig` on both Android and iOS.
+
 ## [0.3.0] (2022-10-13)
 
 Adds support for tvOS projects and ability to customize the default playback behavior of `Player` objects.
@@ -59,6 +67,7 @@ No support for custom UI yet.
 - Support for listening most of `Player` and `Source` events via `PlayerView`'s component props.
 - Simple React Native app to exemplify and test library features in development.
 
+[0.3.1]: https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v0.3.1
 [0.3.0]: https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v0.3.0
 [0.2.1]: https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v0.2.1
 [0.2.0]: https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v0.2.0

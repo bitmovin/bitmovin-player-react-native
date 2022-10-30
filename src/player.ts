@@ -3,6 +3,7 @@ import { AdvertisingConfig } from './advertising';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { SubtitleTrack } from './subtitleTrack';
+import { TweaksConfig } from './tweaksConfig';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -37,6 +38,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures advertising functionality. A default AdvertisingConfig is set initially.
    */
   advertisingConfig?: AdvertisingConfig;
+  /**
+   * Configures experimental features. A default TweaksConfig is set initially.
+   */
+  tweaksConfig?: TweaksConfig;
 }
 
 /**
