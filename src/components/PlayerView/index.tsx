@@ -94,6 +94,8 @@ export function PlayerView(props: PlayerViewProps) {
       onReady={proxy(props.onReady)}
       onSeek={proxy(props.onSeek)}
       onSeeked={proxy(props.onSeeked)}
+      onStallStarted={proxy(props.onStallStarted)}
+      onStallEnded={proxy(props.onStallEnded)}
       onSourceError={proxy(props.onSourceError)}
       onSourceLoad={proxy(props.onSourceLoad)}
       onSourceLoaded={proxy(props.onSourceLoaded)}

@@ -56,6 +56,14 @@ extension RNPlayerView: PlayerListener {
     func onSeeked(_ event: SeekedEvent, player: Player) {
         onSeeked?(event.toJSON())
     }
+    
+    func onStallStarted(_ event: StallStartedEvent, player: Player) {
+        onStallStarted?(event.toJSON())
+    }
+
+    func onStallEnded(_ event: StallEndedEvent, player: Player) {
+        onStallEnded?(event.toJSON())
+    }
 
     func onTimeChanged(_ event: TimeChangedEvent, player: Player) {
         onTimeChanged?(event.toJSON())
