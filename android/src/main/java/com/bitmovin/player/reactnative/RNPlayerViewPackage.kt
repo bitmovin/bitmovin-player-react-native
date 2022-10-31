@@ -22,6 +22,7 @@ class RNPlayerViewPackage : ReactPackage {
             SourceModule(reactContext),
             DrmModule(reactContext),
             RNPlayerViewManager(reactContext),
+            RNSubtitleViewManager(reactContext)
         )
     }
 
@@ -31,6 +32,9 @@ class RNPlayerViewPackage : ReactPackage {
      * side.
      */
     override fun createViewManagers(reactContext: ReactApplicationContext): MutableList<ViewManager<out View, out ReactShadowNode<*>>> {
-        return mutableListOf(RNPlayerViewManager(reactContext))
+        return mutableListOf(
+            RNPlayerViewManager(reactContext),
+            RNSubtitleViewManager(reactContext)
+        )
     }
 }

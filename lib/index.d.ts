@@ -1,4 +1,4 @@
-import { ViewStyle } from 'react-native';
+import { ViewStyle, StyleProp } from 'react-native';
 
 /**
  * Utility type that maps the specified optional props from the target `Type` to be
@@ -1291,9 +1291,34 @@ interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
 declare function PlayerView(props: PlayerViewProps): JSX.Element;
 
 /**
+ * Base `SubtitleView` component props. Used to establish common
+ * props between `NativeSubtitleView` and `SubtitleView`.
+ * @see NativePlayerView
+ */
+interface BaseSubtitleViewProps {
+    style?: StyleProp<ViewStyle>;
+}
+/**
+ * `SubtitleView` component props.
+ * @see SubtitleView
+ */
+interface SubtitleViewProps extends BaseSubtitleViewProps {
+    /**
+     * `Player` instance (generally returned from `usePlayer` hook) that will control
+     * and render audio/video inside the `PlayerView`.
+     */
+    player: Player;
+}
+/**
+ * Component that provides the Bitmovin Android SubtitleView for a `Player` instance.
+ * This component needs a `Player` instance to work properly so make sure one is passed to it as a prop.
+ */
+declare function SubtitleView(props: SubtitleViewProps): JSX.Element | null;
+
+/**
  * React hook that creates and returns a reference to a `Player` instance
  * that can be used inside any component.
  */
 declare function usePlayer(config?: PlayerConfig): Player;
 
-export { AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, BasePlayerViewProps, DestroyEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, LoadingState, MutedEvent, PausedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, TimeChangedEvent, UnmutedEvent, UserInterfaceType, WidevineConfig, usePlayer };
+export { AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, BasePlayerViewProps, BaseSubtitleViewProps, DestroyEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, LoadingState, MutedEvent, PausedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TimeChangedEvent, UnmutedEvent, UserInterfaceType, WidevineConfig, usePlayer };
