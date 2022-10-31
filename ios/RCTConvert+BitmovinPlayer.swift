@@ -21,6 +21,9 @@ extension RCTConvert {
         if let tweaksConfig = RCTConvert.tweaksConfig(json["tweaksConfig"]) {
             playerConfig.tweaksConfig = tweaksConfig
         }
+        if let advertisingConfig = RCTConvert.advertisingConfig(json["advertisingConfig"]) {
+            playerConfig.advertisingConfig = advertisingConfig
+        }
         return playerConfig
     }
 
@@ -95,6 +98,73 @@ extension RCTConvert {
             }
         }
         return tweaksConfig
+    }
+
+    /**
+     Utility method to instantiate an `AdvertisingConfig` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `AdvertisingConfig` object.
+     */
+    static func advertisingConfig(_ json: Any?) -> AdvertisingConfig? {
+        guard
+            let json = json as? [String: Any?],
+            let schedule = json["schedule"] as? [[String: Any?]]
+        else {
+            return nil
+        }
+        return AdvertisingConfig(schedule: schedule.compactMap { RCTConvert.adItem($0) })
+    }
+
+    /**
+     Utility method to instantiate an `AdItem` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `AdItem` object.
+     */
+    static func adItem(_ json: Any?) -> AdItem? {
+        guard
+            let json = json as? [String: Any?],
+            let sources = json["sources"] as? [[String: Any?]]
+        else {
+            return nil
+        }
+        return AdItem(
+            adSources: sources.compactMap { RCTConvert.adSource($0) },
+            atPosition: json["position"] as? String
+        )
+    }
+
+    /**
+     Utility method to instantiate an `AdSource` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `AdSource` object.
+     */
+    static func adSource(_ json: Any?) -> AdSource? {
+        guard
+            let json = json as? [String: Any?],
+            let tag = RCTConvert.nsurl(json["tag"])
+        else {
+            return nil
+        }
+        return AdSource(tag: tag, ofType: RCTConvert.adSourceType(json["type"]))
+    }
+
+    /**
+     Utility method to instantiate an `AdSourceType` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `AdSourceType` object.
+     */
+    static func adSourceType(_ json: Any?) -> AdSourceType {
+        guard let json = json as? String else {
+            return .unknown
+        }
+        switch json {
+        case "ima":
+            return .ima
+        case "progressive":
+            return .progressive
+        default:
+            return .unknown
+        }
     }
 
     /**
