@@ -319,7 +319,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      * @param promise JS promise object.
      */
     @ReactMethod
-    fun setSubtitleTrack(nativeId: NativeId, trackIdentifier: String, promise: Promise) {
+    fun setSubtitleTrack(nativeId: NativeId, trackIdentifier: String?, promise: Promise) {
         uiManager()?.addUIBlock {
             players[nativeId]?.source?.setSubtitleTrack(trackIdentifier)
             promise.resolve(null)
