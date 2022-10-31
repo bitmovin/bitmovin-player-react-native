@@ -278,10 +278,12 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-BitmovinPlayerReactNativeExample-tvOS/Pods-BitmovinPlayerReactNativeExample-tvOS-frameworks.sh",
+				"${PODS_ROOT}/GoogleAds-IMA-tvOS-SDK/GoogleInteractiveMediaAds.framework",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/BitmovinPlayer/BitmovinPlayer.framework/BitmovinPlayer",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GoogleInteractiveMediaAds.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/BitmovinPlayer.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
