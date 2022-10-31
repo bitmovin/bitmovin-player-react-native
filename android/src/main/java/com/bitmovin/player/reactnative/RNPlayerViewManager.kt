@@ -54,6 +54,17 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "subtitleAdded" to "onSubtitleAdded",
         "subtitleChanged" to "onSubtitleChanged",
         "subtitleRemoved" to "onSubtitleRemoved",
+        "adBreakFinished" to "onAdBreakFinished",
+        "adBreakStarted" to "onAdBreakStarted",
+        "adClicked" to "onAdClicked",
+        "adError" to "onAdError",
+        "adFinished" to "onAdFinished",
+        "adManifestLoad" to "onAdManifestLoad",
+        "adManifestLoaded" to "onAdManifestLoaded",
+        "adQuartile" to "onAdQuartile",
+        "adScheduled" to "onAdScheduled",
+        "adSkipped" to "onAdSkipped",
+        "adStarted" to "onAdStarted",
     )
 
     /**

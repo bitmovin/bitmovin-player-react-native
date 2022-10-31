@@ -387,10 +387,12 @@ extension RCTConvert {
         switch adSourceType {
         case .ima:
             return "ima"
+        case .unknown:
+            return "unknown"
         case .progressive:
             return "progressive"
         default:
-            return "unknown"
+            return nil
         }
     }
 
