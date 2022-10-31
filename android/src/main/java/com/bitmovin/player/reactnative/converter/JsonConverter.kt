@@ -5,6 +5,10 @@ import com.bitmovin.player.api.DeviceDescription.ModelName
 import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.TweaksConfig
+import com.bitmovin.player.api.advertising.AdItem
+import com.bitmovin.player.api.advertising.AdSource
+import com.bitmovin.player.api.advertising.AdSourceType
+import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
@@ -44,6 +48,11 @@ class JsonConverter {
             if (json.hasKey("tweaksConfig")) {
                 toTweaksConfig(json.getMap("tweaksConfig"))?.let {
                     playerConfig.tweaksConfig = it
+                }
+            }
+            if (json.hasKey("advertisingConfig")) {
+                toAdvertisingConfig(json.getMap("advertisingConfig"))?.let {
+                    playerConfig.advertisingConfig = it
                 }
             }
             return playerConfig
@@ -122,6 +131,50 @@ class JsonConverter {
                 tweaksConfig.useFiletypeExtractorFallbackForHls = json.getBoolean("useFiletypeExtractorFallbackForHls")
             }
             return tweaksConfig
+        }
+
+        /**
+         * Converts any JS object into an `AdvertisingConfig` object.
+         * @param json JS object representing the `AdvertisingConfig`.
+         * @return The generated `AdvertisingConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toAdvertisingConfig(json: ReadableMap?): AdvertisingConfig? = json?.getArray("schedule")
+            ?.toList<ReadableMap>()
+            ?.mapNotNull(::toAdItem)
+            ?.let { AdvertisingConfig(it) }
+
+        /**
+         * Converts any JS object into an `AdItem` object.
+         * @param json JS object representing the `AdItem`.
+         * @return The generated `AdItem` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toAdItem(json: ReadableMap?): AdItem? = json?.getArray("sources")
+            ?.toList<ReadableMap>()
+            ?.mapNotNull(::toAdSource)
+            ?.let { AdItem(it.toTypedArray(), json.getString("position") ?: "pre") }
+
+        /**
+         * Converts any JS object into an `AdSource` object.
+         * @param json JS object representing the `AdSource`.
+         * @return The generated `AdSource` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toAdSource(json: ReadableMap?): AdSource? = json?.getString("tag")?.let {
+            AdSource(toAdSourceType(json.getString("type")), it)
+        }
+
+        /**
+         * Converts any JS string into an `AdSourceType` enum value.
+         * @param json JS string representing the `AdSourceType`.
+         * @return The generated `AdSourceType`.
+         */
+        @JvmStatic
+        fun toAdSourceType(json: String?): AdSourceType = when (json) {
+            "ima" -> AdSourceType.Ima
+            "progressive" -> AdSourceType.Progressive
+            else -> AdSourceType.Unknown
         }
 
         /**
