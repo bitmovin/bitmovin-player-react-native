@@ -402,7 +402,12 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.setSubtitle(trackIdentifier:trackIdentifier)
+            if ((trackIdentifier ?? "").isEmpty) {
+                self?.players[nativeId]?.setSubtitle(trackIdentifier:nil)
+            } else {
+                self?.players[nativeId]?.setSubtitle(trackIdentifier:trackIdentifier)
+            }
+            
             resolve(nil)
         }
     }
