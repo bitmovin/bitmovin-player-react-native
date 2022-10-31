@@ -344,4 +344,137 @@ extension RCTConvert {
             }(),
         ]
     }
+
+    /**
+     Utility method to compute a JS value from an `AdItem` object.
+     - Parameter adItem: `AdItem` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(adItem: AdItem?) -> [String: Any?]? {
+        guard let adItem = adItem else {
+            return nil
+        }
+        return [
+            "position": adItem.position,
+            "sources": adItem.sources.compactMap { RCTConvert.toJson(adSource: $0) }
+        ]
+    }
+
+    /**
+     Utility method to compute a JS value from an `AdSource` object.
+     - Parameter adSource: `AdSource` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(adSource: AdSource?) -> [String: Any?]? {
+        guard let adSource = adSource else {
+            return nil
+        }
+        return [
+            "tag": adSource.tag,
+            "type": RCTConvert.toJson(adSourceType: adSource.type)
+        ]
+    }
+
+    /**
+     Utility method to compute a JS value from an `AdSourceType` value.
+     - Parameter adSourceType: `AdSourceType` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(adSourceType: AdSourceType?) -> String? {
+        guard let adSourceType = adSourceType else {
+            return nil
+        }
+        switch adSourceType {
+        case .ima:
+            return "ima"
+        case .progressive:
+            return "progressive"
+        default:
+            return "unknown"
+        }
+    }
+
+    /**
+     Utility method to compute a JS value from an `AdConfig` object.
+     - Parameter adConfig: `AdConfig` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(adConfig: AdConfig?) -> [String: Any?]? {
+        guard let adConfig = adConfig else {
+            return nil
+        }
+        return ["replaceContentDuration": adConfig.replaceContentDuration]
+    }
+
+    /**
+     Utility method to compute a JS string from an `AdQuartile` value.
+     - Parameter adQuartile: `AdQuartile` value to be converted.
+     - Returns: The produced JS string.
+     */
+    static func toJson(adQuartile: AdQuartile?) -> String? {
+        guard let adQuartile = adQuartile else {
+            return nil
+        }
+        switch adQuartile {
+        case .firstQuartile:
+            return "first"
+        case .midpoint:
+            return "mid_point"
+        case .thirdQuartile:
+            return "third"
+        }
+    }
+
+    /**
+     Utility method to compute a JS value from an `AdBreak` object.
+     - Parameter adBreak: `AdBreak` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(adBreak: AdBreak?) -> [String: Any?]? {
+        guard let adBreak = adBreak else {
+            return nil
+        }
+        return [
+            "ads": adBreak.ads.compactMap { RCTConvert.toJson(ad: $0) },
+            "id": adBreak.identifier,
+            "scheduleTime": adBreak.scheduleTime
+        ]
+    }
+
+    /**
+     Utility method to compute a JS value from an `Ad` object.
+     - Parameter ad: `Ad` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(ad: Ad?) -> [String: Any?]? {
+        guard let ad = ad else {
+            return nil
+        }
+        return [
+            "clickThroughUrl": ad.clickThroughUrl?.absoluteString,
+            "data": RCTConvert.toJson(adData: ad.data),
+            "height": ad.height,
+            "id": ad.identifier,
+            "isLinear": ad.isLinear,
+            "mediaFileUrl": ad.mediaFileUrl?.absoluteString,
+            "width": ad.width
+        ]
+    }
+
+    /**
+     Utility method to compute a JS value from an `AdData` object.
+     - Parameter adData `AdData` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(adData: AdData?) -> [String: Any?]? {
+        guard let adData = adData else {
+            return nil
+        }
+        return [
+            "bitrate": adData.bitrate,
+            "maxBitrate": adData.maxBitrate,
+            "mimeType": adData.mimeType,
+            "minBitrate": adData.minBitrate
+        ]
+    }
 }
