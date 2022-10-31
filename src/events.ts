@@ -160,6 +160,16 @@ export interface SeekEvent extends Event {
 export interface SeekedEvent extends Event {}
 
 /**
+ * Emitted when the player begins to stall and to buffer due to an empty buffer.
+ */
+export interface StallStartedEvent extends Event {}
+
+/**
+ * Emitted when the player ends stalling, due to enough data in the buffer.
+ */
+export interface StallEndedEvent extends Event {}
+
+/**
  * Emitted when the current playback time has changed.
  */
 export interface TimeChangedEvent extends Event {

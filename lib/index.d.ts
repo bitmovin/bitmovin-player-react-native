@@ -247,6 +247,16 @@ interface SeekEvent extends Event {
 interface SeekedEvent extends Event {
 }
 /**
+ * Emitted when the player begins to stall and to buffer due to an empty buffer.
+ */
+interface StallStartedEvent extends Event {
+}
+/**
+ * Emitted when the player ends stalling, due to enough data in the buffer.
+ */
+interface StallEndedEvent extends Event {
+}
+/**
  * Emitted when the current playback time has changed.
  */
 interface TimeChangedEvent extends Event {
@@ -375,6 +385,8 @@ interface EventProps {
     onReady: ReadyEvent;
     onSeek: SeekEvent;
     onSeeked: SeekedEvent;
+    onStallStarted: StallStartedEvent;
+    onStallEnded: StallEndedEvent;
     onSourceError: SourceErrorEvent;
     onSourceLoad: SourceLoadEvent;
     onSourceLoaded: SourceLoadedEvent;
@@ -1284,4 +1296,4 @@ declare function PlayerView(props: PlayerViewProps): JSX.Element;
  */
 declare function usePlayer(config?: PlayerConfig): Player;
 
-export { AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, BasePlayerViewProps, DestroyEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, LoadingState, MutedEvent, PausedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, TimeChangedEvent, UnmutedEvent, UserInterfaceType, WidevineConfig, usePlayer };
+export { AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, BasePlayerViewProps, DestroyEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, LoadingState, MutedEvent, PausedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, TimeChangedEvent, UnmutedEvent, UserInterfaceType, WidevineConfig, usePlayer };

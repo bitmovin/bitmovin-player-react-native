@@ -154,6 +154,20 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
     }
 
     /**
+     * `onStallStarted` event callback.
+     */
+    private val onStallStarted: (PlayerEvent.StallStarted) -> Unit = {
+        emitEvent("stallStarted", it)
+    }
+
+    /**
+     * `onStallEnded` event callback.
+     */
+    private val onStallEnded: (PlayerEvent.StallEnded) -> Unit = {
+        emitEvent("stallEnded", it)
+    }
+
+    /**
      * `onTimeChanged` event callback.
      */
     private val onTimeChanged: (PlayerEvent.TimeChanged) -> Unit = {
@@ -255,6 +269,8 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
             on(onPlaybackFinished)
             on(onSeek)
             on(onSeeked)
+            on(onStallStarted)
+            on(onStallEnded)
             on(onTimeChanged)
             on(onSourceLoad)
             on(onSourceLoaded)
@@ -288,6 +304,8 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
             off(onPlaybackFinished)
             off(onSeek)
             off(onSeeked)
+            off(onStallStarted)
+            off(onStallEnded)
             off(onTimeChanged)
             off(onSourceLoad)
             off(onSourceLoaded)
