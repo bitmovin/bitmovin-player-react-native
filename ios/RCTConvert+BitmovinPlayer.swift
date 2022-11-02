@@ -141,11 +141,12 @@ extension RCTConvert {
     static func adSource(_ json: Any?) -> AdSource? {
         guard
             let json = json as? [String: Any?],
-            let tag = RCTConvert.nsurl(json["tag"])
+            let tag = RCTConvert.nsurl(json["tag"]),
+            let type = RCTConvert.adSourceType(json["type"])
         else {
             return nil
         }
-        return AdSource(tag: tag, ofType: RCTConvert.adSourceType(json["type"]))
+        return AdSource(tag: tag, ofType: type)
     }
 
     /**
@@ -153,17 +154,19 @@ extension RCTConvert {
      - Parameter json: JS object.
      - Returns: The produced `AdSourceType` object.
      */
-    static func adSourceType(_ json: Any?) -> AdSourceType {
+    static func adSourceType(_ json: Any?) -> AdSourceType? {
         guard let json = json as? String else {
-            return .unknown
+            return nil
         }
         switch json {
         case "ima":
             return .ima
+        case "unknown":
+            return .unknown
         case "progressive":
             return .progressive
         default:
-            return .unknown
+            return nil
         }
     }
 
