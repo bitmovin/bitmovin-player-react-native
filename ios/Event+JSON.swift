@@ -198,7 +198,9 @@ extension AdErrorEvent {
             "name": name,
             "timestamp": timestamp,
             "adConfig": RCTConvert.toJson(adConfig: adConfig),
-            "adItem": RCTConvert.toJson(adItem: adItem)
+            "adItem": RCTConvert.toJson(adItem: adItem),
+            "code": code,
+            "message": message
         ]
     }
 }

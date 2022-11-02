@@ -53,5 +53,11 @@ RCT_EXTERN_METHOD(
     getAvailableSubtitles:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(scheduleAd:(NSString *)nativeId adItemJson:(nullable id)adItemJson)
+RCT_EXTERN_METHOD(skipAd:(NSString *)nativeId)
+RCT_EXTERN_METHOD(
+    isAd:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 
 @end
