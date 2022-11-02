@@ -7,10 +7,16 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 [![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![Bitmovin Community](https://img.shields.io/discourse/users?label=community&server=https%3A%2F%2Fcommunity.bitmovin.com)](https://community.bitmovin.com/?utm_source=github&utm_medium=bitmovin-player-react-native&utm_campaign=dev-community)
 
-> The library is under active development.
+> As the library is under active development, this means certain features from our native SDKs are not yet exposed through these React Native bindings.  
+> See [Feature Support](#feature-support) for an overview of the supported features.
+>
+> Not seeing the features you’re looking for?  
+> We are accepting community pull requests to this open-source project so please feel free to contribute  
+> or let us know in [our community](https://community.bitmovin.com/c/requests/14) what features we should work on next
 
 - [Bitmovin Player React Native](#bitmovin-player-react-native)
   - [Platform Support](#platform-support)
+  - [Feature Support](#platform-support)
   - [Installation](#installation)
     - [Add package dependency](#add-package-dependency)
     - [Setup iOS Player SDK](#setup-ios-player-sdk)
@@ -39,6 +45,19 @@ This library requires at least React Native 0.64+ and React 17+ to work properly
 - Fire TV (just make sure the Android API level is at least 17+)
 
 Please note that browsers and other browser-like environments such as webOS and Tizen are not supported.
+
+## Feature Support
+
+Features of the native mobile Player SDKs are progressively being implemented in this React Native library. The table below summarizes the current state of the main Player SDK features.
+
+| Feature | State |
+| --- | --- |
+| Playback of DRM-protected assets | :white_check_mark:  Available since v0.2.0 |
+| Subtitles & Captions | :white_check_mark:  Available since v0.2.0 |
+| Advertising | :gear:  In progress, Q4 2022 |
+| Playlist API | :x:  Not available |
+| Offline Playback | :x:  Not available |
+| Analytics | :x:  Coming Q1 2023 |
 
 ## Installation
 
