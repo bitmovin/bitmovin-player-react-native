@@ -7,6 +7,9 @@ import {
   PlayerView,
   SourceType,
   AdSourceType,
+  AdSkippedEvent,
+  AdQuartileEvent,
+  AdQuartile,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
@@ -25,7 +28,7 @@ const adTags = {
     'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator='
   ),
   vast2: withCorrelator(
-    'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/ad_rule_samples&ciu_szs=300x250&ad_rule=1&impl=s&gdfp_req=1&env=vp&output=vmap&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ar%3Dpostonly&cmsid=496&vid=short_onecue&correlator='
+    'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/ad_rule_samples&ciu_szs=300x250&ad_rule=1&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ar%3Dpostonly&cmsid=496&vid=short_onecue&correlator='
   ),
 };
 
@@ -46,16 +49,6 @@ const advertisingConfig = {
       sources: [
         {
           tag: adTags.vast1,
-          type: AdSourceType.IMA,
-        },
-      ],
-    },
-    // Third ad item at "post" position.
-    {
-      position: 'post',
-      sources: [
-        {
-          tag: adTags.vast2,
           type: AdSourceType.IMA,
         },
       ],
@@ -86,26 +79,74 @@ export default function BasicAds() {
     }, [player])
   );
 
-  const onAdEvent = useCallback((event: Event) => {
-    prettyPrint(`AD EVENT [${event.name}]`, event);
+  const onEvent = useCallback((event: Event) => {
+    prettyPrint(`[${event.name}]`, event);
   }, []);
+
+  const onSourceLoaded = useCallback(
+    (event: Event) => {
+      onEvent(event);
+      // Dinamically schedule an ad to play after the video
+      player.scheduleAd({
+        position: 'post',
+        sources: [
+          {
+            tag: adTags.vast2,
+            type: AdSourceType.IMA,
+          },
+        ],
+      });
+    },
+    [player, onEvent]
+  );
+
+  const onAdStarted = useCallback(
+    (event: Event) => {
+      onEvent(event);
+      // Check if an ad is playing right now
+      player.isAd().then((isAd) => {
+        prettyPrint('is Ad playing?', isAd);
+      });
+    },
+    [player, onEvent]
+  );
+
+  const onAdQuartile = useCallback(
+    (event: AdQuartileEvent) => {
+      onEvent(event);
+      if (event.quartile === AdQuartile.MID_POINT) {
+        // Tries to skip the ad when skippable and has reached its mid point.
+        player.skipAd();
+      }
+    },
+    [player, onEvent]
+  );
+
+  const onAdSkipped = useCallback(
+    (event: AdSkippedEvent) => {
+      onEvent(event);
+      prettyPrint(`[${event.name}]`, `ID (${event.ad?.id})`);
+    },
+    [onEvent]
+  );
 
   return (
     <View style={styles.container}>
       <PlayerView
         player={player}
         style={styles.player}
-        onAdBreakFinished={onAdEvent}
-        onAdBreakStarted={onAdEvent}
-        onAdClicked={onAdEvent}
-        onAdError={onAdEvent}
-        onAdFinished={onAdEvent}
-        onAdManifestLoad={onAdEvent}
-        onAdManifestLoaded={onAdEvent}
-        onAdQuartile={onAdEvent}
-        onAdScheduled={onAdEvent}
-        onAdSkipped={onAdEvent}
-        onAdStarted={onAdEvent}
+        onAdBreakFinished={onEvent}
+        onAdBreakStarted={onEvent}
+        onAdClicked={onEvent}
+        onAdError={onEvent}
+        onAdFinished={onEvent}
+        onAdManifestLoad={onEvent}
+        onAdManifestLoaded={onEvent}
+        onAdQuartile={onAdQuartile}
+        onAdScheduled={onEvent}
+        onAdSkipped={onAdSkipped}
+        onAdStarted={onAdStarted}
+        onSourceLoaded={onSourceLoaded}
       />
     </View>
   );

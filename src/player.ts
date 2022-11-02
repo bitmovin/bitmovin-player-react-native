@@ -1,5 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
-import { AdvertisingConfig } from './advertising';
+import { AdItem, AdvertisingConfig } from './advertising';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { SubtitleTrack } from './subtitleTrack';
@@ -325,5 +325,35 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   getAvailableSubtitles = async (): Promise<SubtitleTrack[]> => {
     return PlayerModule.getAvailableSubtitles(this.nativeId);
+  };
+
+  /**
+   * Dynamically schedules the `adItem` for playback.
+   * Has no effect if there is no active playback session.
+   *
+   * @param adItem - Ad to be scheduled for playback.
+   *
+   * @platform iOS, Android
+   */
+  scheduleAd = (adItem: AdItem) => {
+    PlayerModule.scheduleAd(this.nativeId, adItem);
+  };
+
+  /**
+   * Skips the current ad.
+   * Has no effect if the current ad is not skippable or if no ad is being played back.
+   *
+   * @platform iOS, Android
+   */
+  skipAd = () => {
+    PlayerModule.skipAd(this.nativeId);
+  };
+
+  /**
+   * @returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
+   * @platform iOS, Android
+   */
+  isAd = (): Promise<boolean> => {
+    return PlayerModule.isAd(this.nativeId);
   };
 }
