@@ -4,6 +4,8 @@ import {
   Event,
   MutedEvent,
   PausedEvent,
+  PictureInPictureEnterEvent,
+  PictureInPictureExitEvent,
   PlayEvent,
   PlaybackFinishedEvent,
   PlayerActiveEvent,
@@ -34,6 +36,8 @@ interface EventProps {
   onEvent: Event;
   onMuted: MutedEvent;
   onPaused: PausedEvent;
+  onPictureInPictureEnter: PictureInPictureEnterEvent;
+  onPictureInPictureExit: PictureInPictureExitEvent;
   onPlay: PlayEvent;
   onPlaybackFinished: PlaybackFinishedEvent;
   onPlayerActive: PlayerActiveEvent;

@@ -2,12 +2,17 @@ import React, { useCallback } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
+  Event,
   usePlayer,
   PlayerView,
   SourceType,
   AudioSession,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
+
+function prettyPrint(header: string, obj: any) {
+  console.log(header, JSON.stringify(obj, null, 2));
+}
 
 export default function BasicPictureInPicture() {
   useTVGestures();
@@ -51,9 +56,18 @@ export default function BasicPictureInPicture() {
     }, [player])
   );
 
+  const onEvent = useCallback((event: Event) => {
+    prettyPrint(`[${event.name}]`, event);
+  }, []);
+
   return (
     <View style={styles.container}>
-      <PlayerView player={player} style={styles.player} />
+      <PlayerView
+        player={player}
+        style={styles.player}
+        onPictureInPictureExit={onEvent}
+        onPictureInPictureEnter={onEvent}
+      />
     </View>
   );
 }

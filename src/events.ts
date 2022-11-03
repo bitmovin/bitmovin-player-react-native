@@ -243,3 +243,13 @@ export interface SubtitleChangedEvent extends Event {
    */
   newSubtitleTrack: SubtitleTrack;
 }
+
+/**
+ * Emitted when the player enters Picture-In-Picture mode.
+ */
+export interface PictureInPictureEnterEvent extends Event {}
+
+/**
+ * Emitted when the player exits Picture-In-Picture mode.
+ */
+export interface PictureInPictureExitEvent extends Event {}
