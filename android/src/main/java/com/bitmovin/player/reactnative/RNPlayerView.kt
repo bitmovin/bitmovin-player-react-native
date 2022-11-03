@@ -63,6 +63,7 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context), Li
      */
     fun dispose() {
         (context as ReactApplicationContext).removeLifecycleEventListener(this)
+        stopBubblingEvents()
     }
 
     /**
@@ -310,10 +311,24 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context), Li
     }
 
     /**
+     * `onPictureInPictureEnter` event callback.
+     */
+    private val onPictureInPictureEnter: (PlayerEvent.PictureInPictureEnter) -> Unit = {
+        emitEvent("pictureInPictureEnter", it)
+    }
+
+    /**
+     * `onPictureInPictureExit` event callback.
+     */
+    private val onPictureInPictureExit: (PlayerEvent.PictureInPictureExit) -> Unit = {
+        emitEvent("pictureInPictureExit", it)
+    }
+
+    /**
      * Start listening and emitting player events as bubbling events to the js side.
      */
     fun startBubblingEvents() {
-        player?.apply {
+        playerView?.apply {
             on(onEvent)
             on(onPlayerError)
             on(onPlayerWarning)
@@ -336,6 +351,8 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context), Li
             on(onSubtitleAdded)
             on(onSubtitleChanged)
             on(onSubtitleRemoved)
+            on(onPictureInPictureEnter)
+            on(onPictureInPictureExit)
         }
     }
 
@@ -343,7 +360,7 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context), Li
      * Stop listening for player events and cease to emit bubbling events.
      */
     fun stopBubblingEvents() {
-        player?.apply {
+        playerView?.apply {
             off(onEvent)
             off(onPlayerError)
             off(onPlayerWarning)
@@ -366,6 +383,8 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context), Li
             off(onSubtitleAdded)
             off(onSubtitleChanged)
             off(onSubtitleRemoved)
+            off(onPictureInPictureEnter)
+            off(onPictureInPictureExit)
         }
     }
 
