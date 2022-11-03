@@ -43,6 +43,11 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures experimental features. A default TweaksConfig is set initially.
    */
   tweaksConfig?: TweaksConfig;
+  tempAngelAdConfig?: TemporaryAngelAdConfig;
+}
+
+export interface TemporaryAngelAdConfig {
+  adSourceUrl?: string;
 }
 
 /**

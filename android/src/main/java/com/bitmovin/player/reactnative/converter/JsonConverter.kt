@@ -5,6 +5,10 @@ import com.bitmovin.player.api.DeviceDescription.ModelName
 import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.TweaksConfig
+import com.bitmovin.player.api.advertising.AdItem
+import com.bitmovin.player.api.advertising.AdSource
+import com.bitmovin.player.api.advertising.AdSourceType
+import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
@@ -53,7 +57,30 @@ class JsonConverter {
                     playerConfig.tweaksConfig = it
                 }
             }
+            if(json.hasKey("tempAngelAdConfig")) {
+                toTempAngelAdConfig(json.getMap("tempAngelAdConfig"))?.let {
+                    playerConfig.advertisingConfig = it
+                }
+            }
             return playerConfig
+        }
+
+        @JvmStatic
+        fun toTempAngelAdConfig(json: ReadableMap?): AdvertisingConfig? {
+            if (json == null) {
+                return null
+            }
+            var adConfig = AdvertisingConfig()
+            if (json.hasKey("adSourceUrl")) {
+                val adUrl = json.getString("adSourceUrl")
+                if (!adUrl.isNullOrEmpty()) {
+                    val adSource = AdSource(AdSourceType.Ima, adUrl)
+                    val adItem = AdItem(adSource)
+
+                    adConfig = AdvertisingConfig(listOf(adItem))
+                }
+            }
+            return adConfig
         }
 
         /**

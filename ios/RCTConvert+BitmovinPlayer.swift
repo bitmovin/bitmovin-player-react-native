@@ -24,7 +24,27 @@ extension RCTConvert {
         if let tweaksConfig = RCTConvert.tweaksConfig(json["tweaksConfig"]) {
             playerConfig.tweaksConfig = tweaksConfig
         }
+        if let tempAdConfig = RCTConvert.tempAngelAdConfig(json["tempAngelAdConfig"]) {
+            playerConfig.advertisingConfig = tempAdConfig
+        }
         return playerConfig
+    }
+
+    static func tempAngelAdConfig(_ json: Any?) -> AdvertisingConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        var adConfig = AdvertisingConfig()
+        if let adSourceUrl = json["adSourceUrl"] as? String {
+            if let adUrl = URL(string: adSourceUrl) {
+                let adSource = AdSource(tag: adUrl, ofType: .ima)
+                let adItem = AdItem(adSources: [adSource])
+
+                adConfig = AdvertisingConfig(schedule: [adItem])
+            }
+        }
+
+        return adConfig
     }
 
     /**
@@ -54,7 +74,7 @@ extension RCTConvert {
         }
         return playbackConfig
     }
-    
+
     /**
      Utility method to instantiate a `StyleConfig` from a JS object.
      - Parameter json: JS object.
