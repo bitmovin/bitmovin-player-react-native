@@ -65,8 +65,11 @@ export default function BasicPictureInPicture() {
       <PlayerView
         player={player}
         style={styles.player}
-        onPictureInPictureExit={onEvent}
+        onPictureInPictureAvailabilityChanged={onEvent}
         onPictureInPictureEnter={onEvent}
+        onPictureInPictureEntered={onEvent}
+        onPictureInPictureExit={onEvent}
+        onPictureInPictureExited={onEvent}
       />
     </View>
   );

@@ -85,8 +85,13 @@ export function PlayerView({ style, player, ...props }: PlayerViewProps) {
       onEvent={proxy(props.onEvent)}
       onMuted={proxy(props.onMuted)}
       onPaused={proxy(props.onPaused)}
+      onPictureInPictureAvailabilityChanged={proxy(
+        props.onPictureInPictureAvailabilityChanged
+      )}
       onPictureInPictureEnter={proxy(props.onPictureInPictureEnter)}
+      onPictureInPictureEntered={proxy(props.onPictureInPictureEntered)}
       onPictureInPictureExit={proxy(props.onPictureInPictureExit)}
+      onPictureInPictureExited={proxy(props.onPictureInPictureExited)}
       onPlay={proxy(props.onPlay)}
       onPlaybackFinished={proxy(props.onPlaybackFinished)}
       onPlayerActive={proxy(props.onPlayerActive)}

@@ -33,6 +33,7 @@ class RNPlayerViewManager: RCTViewManager {
                 view.playerView = PlayerView(player: player, frame: view.bounds)
             }
             player.add(listener: view)
+            view.playerView?.add(listener: view)
         }
     }
 
