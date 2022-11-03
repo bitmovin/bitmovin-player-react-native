@@ -311,6 +311,13 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context), Li
     }
 
     /**
+     * `onPictureInPictureAvailabilityChanged` event callback.
+     */
+    private val onPictureInPictureAvailabilityChanged: (PlayerEvent.PictureInPictureAvailabilityChanged) -> Unit = {
+        emitEvent("pictureInPictureAvailabilityChanged", it)
+    }
+
+    /**
      * `onPictureInPictureEnter` event callback.
      */
     private val onPictureInPictureEnter: (PlayerEvent.PictureInPictureEnter) -> Unit = {
@@ -328,7 +335,7 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context), Li
      * Start listening and emitting player events as bubbling events to the js side.
      */
     fun startBubblingEvents() {
-        playerView?.apply {
+        player?.apply {
             on(onEvent)
             on(onPlayerError)
             on(onPlayerWarning)
@@ -351,6 +358,9 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context), Li
             on(onSubtitleAdded)
             on(onSubtitleChanged)
             on(onSubtitleRemoved)
+        }
+        playerView?.apply {
+            on(onPictureInPictureAvailabilityChanged)
             on(onPictureInPictureEnter)
             on(onPictureInPictureExit)
         }
@@ -360,7 +370,7 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context), Li
      * Stop listening for player events and cease to emit bubbling events.
      */
     fun stopBubblingEvents() {
-        playerView?.apply {
+        player?.apply {
             off(onEvent)
             off(onPlayerError)
             off(onPlayerWarning)
@@ -383,6 +393,9 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context), Li
             off(onSubtitleAdded)
             off(onSubtitleChanged)
             off(onSubtitleRemoved)
+        }
+        playerView?.apply {
+            off(onPictureInPictureAvailabilityChanged)
             off(onPictureInPictureEnter)
             off(onPictureInPictureExit)
         }
