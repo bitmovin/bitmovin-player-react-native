@@ -128,7 +128,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     LayoutParams.MATCH_PARENT)
                 view.addPlayerView(playerView)
             }
-            view.startBubblingEvents()
         }
     }
 

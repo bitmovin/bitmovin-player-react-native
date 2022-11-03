@@ -1,20 +1,13 @@
 package com.bitmovin.player.reactnative
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration
-import android.os.Build
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import androidx.appcompat.app.AppCompatActivity
 import com.bitmovin.player.PlayerView
-import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.on
 import com.bitmovin.player.reactnative.converter.JsonConverter
-import com.bitmovin.player.ui.DefaultPictureInPictureHandler
-import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
@@ -25,45 +18,21 @@ import com.facebook.react.uimanager.events.RCTEventEmitter
  * exposes player events as bubbling events.
  */
 @SuppressLint("ViewConstructor")
-class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context), LifecycleEventListener {
+class RNPlayerView(context: ReactApplicationContext) : RNBasePlayerView(context) {
     /**
-     * Reference to the shared player view set as child.
-     */
-    var playerView: PlayerView? = null
-
-    /**
-     * Handy property accessor for `playerView`'s player instance.
-     */
-    var player: Player?
-        get() = playerView?.player
-        set(value) {
-            playerView?.player = value
-        }
-
-    /**
-     * Indicates whether this view should apply the necessary workarounds to properly support
-     * picture in picture mode.
-     */
-    var isPictureInPictureEnabled = false
-
-    /**
-     * Indicates whether this view is currently in picture in picture mode.
-     */
-    private var isInPictureInPictureMode = false
-
-    /**
-     * Register this view as an activity lifecycle listener.
+     * Register this view as an activity lifecycle listener on initialization.
      */
     init {
         context.addLifecycleEventListener(this)
     }
 
     /**
-     * Remove this view from activity's lifecycle listeners.
+     * Cleans up the resources and listeners produced by this view.
      */
-    fun dispose() {
-        (context as ReactApplicationContext).removeLifecycleEventListener(this)
+    override fun dispose() {
+        super.dispose()
         stopBubblingEvents()
+        context.removeLifecycleEventListener(this)
     }
 
     /**
@@ -75,12 +44,11 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context), Li
         if (playerView.parent != this) {
             (playerView.parent as ViewGroup?)?.removeView(playerView)
             addView(playerView)
+            startBubblingEvents()
         }
-        if (isPictureInPictureEnabled) {
-            playerView.player?.let {
-                val activity = (context as ReactApplicationContext).currentActivity as AppCompatActivity
-                playerView.setPictureInPictureHandler(DefaultPictureInPictureHandler(activity, it))
-            }
+        if (isPictureInPictureAvailable) {
+            enableSmoothTransitions()
+            playerView.setPictureInPictureHandler(this)
         }
     }
 
@@ -97,63 +65,6 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context), Li
                 MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY))
             layout(left, top, right, bottom)
         }
-    }
-
-    /**
-     * React activity's onPause()
-     */
-    override fun onHostPause() {
-        playerView?.onPause()
-    }
-
-    /**
-     * React activity's onResume()
-     */
-    override fun onHostResume() {
-        playerView?.onResume()
-    }
-
-    /**
-     * React activity's onDestroy()
-     */
-    override fun onHostDestroy() {
-        playerView?.onDestroy()
-    }
-
-    /**
-     * Called whenever the current activity content resources have changed.
-     */
-    override fun onConfigurationChanged(newConfig: Configuration?) {
-        super.onConfigurationChanged(newConfig)
-        handlePictureInPictureChanges(newConfig)
-    }
-
-    /**
-     * Checks whether activity's `isInPictureInPictureMode` value has changed since the last lifecycle
-     * state update.
-     */
-    private fun handlePictureInPictureChanges(newConfig: Configuration?) {
-        // PiP mode is only support on versions >= Android 7.0.
-        if (!isPictureInPictureEnabled || Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            return
-        }
-        val activity = (context as ReactApplicationContext).currentActivity as AppCompatActivity
-        if (isInPictureInPictureMode != activity.isInPictureInPictureMode) {
-            isInPictureInPictureMode = activity.isInPictureInPictureMode
-            onPictureInPictureModeChanged(activity, newConfig)
-        }
-    }
-
-    /**
-     * Apply the necessary UI updates whenever activity's picture in picture mode changes.
-     */
-    private fun onPictureInPictureModeChanged(activity: AppCompatActivity, newConfig: Configuration?) {
-        if (isInPictureInPictureMode) {
-            activity.supportActionBar?.hide()
-        } else {
-            activity.supportActionBar?.show()
-        }
-        playerView?.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
     }
 
     /**
