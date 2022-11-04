@@ -80,6 +80,19 @@ extension RCTConvert {
                 break
             }
         }
+        if let scalingMode = json["scalingMode"] as? String {
+            switch scalingMode {
+            case "Fit":
+                styleConfig.scalingMode = .fit
+            case "Stretch":
+                styleConfig.scalingMode = .stretch
+            case "Zoom":
+                styleConfig.scalingMode = .zoom
+            default:
+                styleConfig.scalingMode = .fit
+                break
+            }
+        }
         return styleConfig
     }
 

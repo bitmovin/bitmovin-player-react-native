@@ -31,6 +31,19 @@ export interface StyleConfig {
    * ```
    */
   userInterfaceType?: UserInterfaceType;
+  /**
+   * Determines how the video content is scaled or stretched within the parent container’s bounds.  Possible values are defined in ScalingMode.
+   * Default value is ScalingMode.fit.
+   * @example
+   * ```
+   * const player = new Player({
+   *   styleConfig: {
+   *     scalingMode: ScalingMode.Zoom,
+   *   },
+   * });
+   * ```
+   */
+  scalingMode?: ScalingMode;
 }
 
 /**
@@ -49,4 +62,22 @@ export enum UserInterfaceType {
    * Indicates that only subtitles should be displayed along with the video content
    */
   subtitle = 'subtitle',
+}
+
+/**
+ * Specifies how the video content is scaled or stretched.
+ */
+export enum ScalingMode {
+  /**
+   * Specifies that the player should preserve the video’s aspect ratio and fit the video within the container's bounds.
+   */
+  Fit = 'Fit',
+  /**
+   * Specifies that the video should be stretched to fill the container’s bounds. The aspect ratio may not be preserved.
+   */
+  Stretch = 'Stretch',
+  /**
+   * Specifies that the player should preserve the video’s aspect ratio and fill the container’s bounds.
+   */
+  Zoom = 'Zoom',
 }
