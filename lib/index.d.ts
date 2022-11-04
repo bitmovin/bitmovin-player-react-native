@@ -845,6 +845,19 @@ interface StyleConfig {
      * ```
      */
     userInterfaceType?: UserInterfaceType;
+    /**
+     * Determines how the video content is scaled or stretched within the parent container’s bounds.  Possible values are defined in ScalingMode.
+     * Default value is ScalingMode.fit.
+     * @example
+     * ```
+     * const player = new Player({
+     *   styleConfig: {
+     *     scalingMode: ScalingMode.Zoom,
+     *   },
+     * });
+     * ```
+     */
+    scalingMode?: ScalingMode;
 }
 /**
  * Indicates which type of UI should be used.
@@ -862,6 +875,23 @@ declare enum UserInterfaceType {
      * Indicates that only subtitles should be displayed along with the video content
      */
     subtitle = "subtitle"
+}
+/**
+ * Specifies how the video content is scaled or stretched.
+ */
+declare enum ScalingMode {
+    /**
+     * Specifies that the player should preserve the video’s aspect ratio and fit the video within the container's bounds.
+     */
+    Fit = "Fit",
+    /**
+     * Specifies that the video should be stretched to fill the container’s bounds. The aspect ratio may not be preserved.
+     */
+    Stretch = "Stretch",
+    /**
+     * Specifies that the player should preserve the video’s aspect ratio and fill the container’s bounds.
+     */
+    Zoom = "Zoom"
 }
 
 /**
@@ -1325,4 +1355,4 @@ declare function SubtitleView(props: SubtitleViewProps): JSX.Element | null;
  */
 declare function usePlayer(config?: PlayerConfig): Player;
 
-export { AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, BasePlayerViewProps, BaseSubtitleViewProps, DestroyEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, LoadingState, MutedEvent, PausedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TemporaryAngelAdConfig, TimeChangedEvent, UnmutedEvent, UserInterfaceType, WidevineConfig, usePlayer };
+export { AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, BasePlayerViewProps, BaseSubtitleViewProps, DestroyEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, LoadingState, MutedEvent, PausedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TemporaryAngelAdConfig, TimeChangedEvent, UnmutedEvent, UserInterfaceType, WidevineConfig, usePlayer };

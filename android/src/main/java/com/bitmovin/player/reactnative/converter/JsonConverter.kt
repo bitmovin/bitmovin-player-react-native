@@ -18,6 +18,7 @@ import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
+import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.toList
@@ -119,6 +120,12 @@ class JsonConverter {
             val styleConfig = StyleConfig()
             if (json.hasKey("isUiEnabled")) {
                 styleConfig.isUiEnabled = json.getBoolean("isUiEnabled")
+            }
+            if (json.hasKey("scalingMode")) {
+                val scalingMode = json.getString("scalingMode")
+                if (!scalingMode.isNullOrEmpty()) {
+                    styleConfig.scalingMode = ScalingMode.valueOf(scalingMode)
+                }
             }
             return styleConfig
         }
