@@ -184,6 +184,38 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
+     Call `.setPlaybackSpeed(speed:)` on `nativeId`'s player.
+     - Slow motion is used by values between 0 and 1, fast forward by values greater than 2, slow reverse is used by values between 0 and -1, and fast reverse is used by values less than -1.
+     - Negative values are ignored during Casting.
+     - During reverse playback the playback will continue until the beginning of the active source is reached. When reaching the beginning of the source, playback will be paused and the playback speed will be reset to its default value of 1. No PlaybackFinishedEvent will be emitted in this case.
+     - Parameter nativeId: Target player Id.
+     - Parameter volume: Set the playback speed of the player. Fast forward, slow motion and reverse playback are supported.
+     */
+    @objc(setPlaybackSpeed:speed:)
+    func setPlaybackSpeed(_ nativeId: NativeId, speed: Float) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.playbackSpeed = speed
+        }
+    }
+
+    /**
+     Resolve `nativeId`'s current playbackSpeed.
+     - Parameter nativeId: Target player Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getPlaybackSpeed:resolver:rejecter:)
+    func getPlaybackSpeed(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(self?.players[nativeId]?.playbackSpeed)
+        }
+    }
+
+    /**
      Resolve `nativeId`'s current playback time.
      - Parameter nativeId: Target player Id.
      - Parameter mode: Time mode: either relative or absolute. Can be empty.
@@ -407,7 +439,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
             } else {
                 self?.players[nativeId]?.setSubtitle(trackIdentifier:trackIdentifier)
             }
-            
+
             resolve(nil)
         }
     }

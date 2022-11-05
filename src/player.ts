@@ -250,6 +250,23 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * The playback speed of the player. Slow motion can be achieved by setting the speed to values between 0 and 1,
+   * while fast forward is possible with values greater than 1. Values that are less than or equal to zero are ignored.
+   *
+   * @param speed - The playback speed of the player.
+   */
+  setPlaybackSpeed = (speed: number) => {
+    PlayerModule.setPlaybackSpeed(this.nativeId, speed);
+  };
+
+  /**
+   * @returns The player's current playback speed.
+   */
+  getPlaybackSpeed = async (): Promise<number> => {
+    return PlayerModule.getPlaybackSpeed(this.nativeId);
+  };
+
+  /**
    * @returns The current playback time in seconds.
    *
    * For VoD streams the returned time ranges between 0 and the duration of the asset.

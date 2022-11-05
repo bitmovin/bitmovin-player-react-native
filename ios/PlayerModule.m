@@ -16,6 +16,11 @@ RCT_EXTERN_METHOD(
     getVolume:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(setPlaybackSpeed:(NSString *)nativeId speed:(nonnull float *)speed)
+RCT_EXTERN_METHOD(
+    getPlaybackSpeed:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
     currentTime:(NSString *)nativeId
     mode:(NSString *)mode

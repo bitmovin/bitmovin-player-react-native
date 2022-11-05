@@ -168,6 +168,37 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Call `.setPlaybackSpeed(speed:)` on `nativeId`'s player.
+     *
+     * Slow motion can be achieved by setting the speed to values between 0 and 1,
+     * while fast forward is possible with values greater than 1. Values that are less than or equal to zero are ignored.
+     * Setting a new playback speed has no effect if there is no active playback session.
+     *
+     * The default playback speed is 1.
+     *
+     * @param nativeId Target player Id.
+     * @param speed Speed level integer between 0 to 100.
+     */
+    @ReactMethod
+    fun setPlaybackSpeed(nativeId: NativeId, speed: Float) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.playbackSpeed = speed
+        }
+    }
+
+    /**
+     * Resolve `nativeId`'s current playback speed.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getPlaybackSpeed(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.playbackSpeed)
+        }
+    }
+
+    /**
      * Resolve the source of `nativeId`'s player.
      * @param nativeId Target player Id.
      * @param promise JS promise object.

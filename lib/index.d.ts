@@ -1237,6 +1237,13 @@ declare class Player extends NativeInstance<PlayerConfig> {
      */
     setVolume: (volume: number) => void;
     /**
+     * The playback speed of the player. Slow motion can be achieved by setting the speed to values between 0 and 1,
+     * while fast forward is possible with values greater than 1. Values that are less than or equal to zero are ignored.
+     *
+     * @param speed - The playback speed of the player.
+     */
+    setPlaybackSpeed: (speed: number) => void;
+    /**
      * @returns The player's current volume level.
      */
     getVolume: () => Promise<number>;
