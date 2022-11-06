@@ -109,6 +109,17 @@ export function PlayerView(props: PlayerViewProps) {
       onSubtitleRemoved={proxy(props.onSubtitleRemoved)}
       onTimeChanged={proxy(props.onTimeChanged)}
       onUnmuted={proxy(props.onUnmuted)}
+      onAdStarted={proxy(props.onAdStarted)}
+      onAdFinished={proxy(props.onAdFinished)}
+      onAdQuartile={proxy(props.onAdQuartile)}
+      onAdBreakStarted={proxy(props.onAdBreakStarted)}
+      onAdBreakFinished={proxy(props.onAdBreakFinished)}
+      onAdScheduled={proxy(props.onAdScheduled)}
+      onAdSkipped={proxy(props.onAdSkipped)}
+      onAdClicked={proxy(props.onAdClicked)}
+      onAdError={proxy(props.onAdError)}
+      onAdManifestLoad={proxy(props.onAdManifestLoad)}
+      onAdManifestLoaded={proxy(props.onAdManifestLoaded)}
     />
   );
 }

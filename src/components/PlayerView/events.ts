@@ -28,6 +28,17 @@ import {
   SubtitleRemovedEvent,
   TimeChangedEvent,
   UnmutedEvent,
+  AdStartedEvent,
+  AdFinishedEvent,
+  AdQuartileEvent,
+  AdBreakStartedEvent,
+  AdBreakFinishedEvent,
+  AdScheduledEvent,
+  AdSkippedEvent,
+  AdClickedEvent,
+  AdErrorEvent,
+  AdManifestLoadEvent,
+  AdManifestLoadedEvent,
 } from '../../events';
 
 /**
@@ -63,6 +74,19 @@ interface EventProps {
   onSubtitleRemoved: SubtitleRemovedEvent;
   onTimeChanged: TimeChangedEvent;
   onUnmuted: UnmutedEvent;
+
+  // --- Temp Ad Events --- //
+  onAdStarted: AdStartedEvent;
+  onAdFinished: AdFinishedEvent;
+  onAdQuartile: AdQuartileEvent;
+  onAdBreakStarted: AdBreakStartedEvent;
+  onAdBreakFinished: AdBreakFinishedEvent;
+  onAdScheduled: AdScheduledEvent;
+  onAdSkipped: AdSkippedEvent;
+  onAdClicked: AdClickedEvent;
+  onAdError: AdErrorEvent;
+  onAdManifestLoad: AdManifestLoadEvent;
+  onAdManifestLoaded: AdManifestLoadedEvent;
 }
 
 /**

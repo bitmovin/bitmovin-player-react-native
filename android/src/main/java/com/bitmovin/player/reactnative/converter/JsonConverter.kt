@@ -5,10 +5,7 @@ import com.bitmovin.player.api.DeviceDescription.ModelName
 import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.TweaksConfig
-import com.bitmovin.player.api.advertising.AdItem
-import com.bitmovin.player.api.advertising.AdSource
-import com.bitmovin.player.api.advertising.AdSourceType
-import com.bitmovin.player.api.advertising.AdvertisingConfig
+import com.bitmovin.player.api.advertising.*
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
@@ -338,6 +335,174 @@ class JsonConverter {
                 json.putMap("from", fromSeekPosition(event.from))
                 json.putMap("to", fromSeekPosition(event.to))
             }
+
+            // --- Temp Ad Events --- //
+            if (event is PlayerEvent.AdStarted) {
+                json.putString("clientType", fromAdSourceType(event.clientType))
+                json.putString("clickThrougUrl", event.clickThroughUrl)
+                json.putInt("indexInQueue", event.indexInQueue)
+                json.putDouble("duration", event.duration)
+                json.putDouble("timeOffset", event.timeOffset)
+                json.putString("position", event.position)
+                json.putDouble("skipOffset", event.skipOffset)
+                json.putMap("ad", fromAd(event.ad))
+            }
+
+            if (event is PlayerEvent.AdFinished) {
+                json.putMap("ad", fromAd(event.ad))
+            }
+
+            if (event is PlayerEvent.AdQuartile) {
+                json.putMap("quartile", fromAdQuartile(event.quartile))
+            }
+
+            if (event is PlayerEvent.AdBreakStarted) {
+                json.putMap("adBreak", fromAdBreak(event.adBreak))
+            }
+
+            if (event is PlayerEvent.AdBreakFinished) {
+                json.putMap("adBreak", fromAdBreak(event.adBreak))
+            }
+
+            if (event is PlayerEvent.AdScheduled) {
+                json.putInt("numberOfAds", event.numberOfAds)
+            }
+
+            if (event is PlayerEvent.AdSkipped) {
+                json.putMap("ad", fromAd(event.ad))
+            }
+
+            if (event is PlayerEvent.AdClicked) {
+                json.putString("clickThroughUrl", event.clickThroughUrl)
+            }
+
+            if (event is PlayerEvent.AdError) {
+                json.putMap("adConfig", fromAdConfig(event.adConfig))
+                json.putMap("adItem", fromAdItem(event.adItem))
+                json.putInt("code", event.code)
+                json.putString("message", event.message)
+            }
+
+            if (event is PlayerEvent.AdManifestLoad) {
+                json.putMap("adBreak", fromAdBreak(event.adBreak))
+                json.putMap("adConfig", fromAdConfig(event.adConfig))
+            }
+
+            if (event is PlayerEvent.AdManifestLoaded) {
+                json.putMap("adBreak", fromAdBreak(event.adBreak))
+                json.putMap("adConfig", fromAdConfig(event.adConfig))
+                json.putInt("downloadTime", event.downloadTime.toInt())
+            }
+
+            return json
+        }
+
+        // --- Temp Ad Converters --- //
+
+        @JvmStatic
+        fun fromAdSourceType(adSourceType: AdSourceType?): String? {
+            if (adSourceType === null) {
+                return null
+            }
+
+            return adSourceType.name
+        }
+
+        @JvmStatic
+        fun fromAd(ad: Ad?): WritableMap? {
+            if (ad === null) {
+                return null
+            }
+
+            val json = Arguments.createMap()
+            json.putString("clickThroughUrl", ad.clickThroughUrl)
+            json.putMap("data", fromAdData(ad.data))
+            json.putInt("height", ad.height)
+            json.putInt("width", ad.width)
+            json.putString("id", ad.id)
+            json.putBoolean("isLinear", ad.isLinear)
+            json.putString("mediaFileUrl", ad.mediaFileUrl)
+            return json
+        }
+
+        @JvmStatic
+        fun fromAdData(adData: AdData?): WritableMap? {
+            if (adData === null) {
+                return null
+            }
+
+            val json = Arguments.createMap()
+            adData.bitrate?.let { json.putInt("bitrate", it) }
+            adData.maxBitrate?.let { json.putInt("maxBitrate", it) }
+            adData.minBitrate?.let { json.putInt("minBitrate", it) }
+            adData.mimeType?.let { json.putString("mimeType", it) }
+            return json
+        }
+
+        @JvmStatic
+        fun fromAdQuartile(adQuartile: AdQuartile?): WritableMap? {
+            if (adQuartile === null) {
+                return null
+            }
+
+            val json = Arguments.createMap()
+            json.putDouble("percentage", adQuartile.percentage)
+            return json
+        }
+
+        @JvmStatic
+        fun fromAdBreak(adBreak: AdBreak?): WritableMap? {
+            if (adBreak === null) {
+                return null
+            }
+
+            val ads = Arguments.createArray()
+            adBreak.ads.forEach { ads.pushMap(fromAd(it)) }
+
+            val json = Arguments.createMap()
+            json.putArray("ads", ads)
+            json.putString("id", adBreak.id)
+            json.putDouble("scheduleTime", adBreak.scheduleTime)
+            return json
+        }
+
+        @JvmStatic
+        fun fromAdConfig(adConfig: AdConfig?): WritableMap? {
+            if (adConfig === null) {
+                return null
+            }
+
+            val json = Arguments.createMap()
+            adConfig.replaceContentDuration?.let { json.putDouble("replaceContentDuration", it) }
+            return json
+        }
+
+        @JvmStatic
+        fun fromAdSource(adSource: AdSource?): WritableMap? {
+            if (adSource === null) {
+                return null
+            }
+
+            val json = Arguments.createMap()
+            json.putString("tag", adSource.tag)
+            json.putString("type", fromAdSourceType(adSource.type))
+            return json
+        }
+
+        @JvmStatic
+        fun fromAdItem(adItem: AdItem?): WritableMap? {
+            if (adItem === null) {
+                return null
+            }
+
+            val sources = Arguments.createArray()
+            adItem.sources.forEach { sources.pushMap(fromAdSource(it)) }
+
+            val json = Arguments.createMap()
+            json.putArray("sources", sources)
+            json.putString("position", adItem.position)
+            json.putDouble("preloadOffset", adItem.preloadOffset)
+            json.putDouble("replaceContentDuration", adItem.replaceContentDuration)
             return json
         }
 

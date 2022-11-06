@@ -356,4 +356,109 @@ extension RCTConvert {
             }(),
         ]
     }
+    
+    // --- Temp Ad Converts --- //
+    
+    static func adJson(_ ad: Ad?) -> [AnyHashable: Any]? {
+        guard let ad = ad else {
+            return nil
+        }
+        
+        return [
+            "clickThroughUrl": ad.clickThroughUrl,
+            "data": RCTConvert.adDataJson(ad.data),
+            "height": ad.height,
+            "width": ad.width,
+            "id": ad.identifier,
+            "isLinear": ad.isLinear,
+            "mediaFileUrl": ad.mediaFileUrl
+        ]
+    }
+    
+    static func adDataJson(_ adData: AdData?) -> [AnyHashable: Any]? {
+        guard let adData = adData else {
+            return nil
+        }
+        
+        return [
+            "bitrate": adData.bitrate,
+            "maxBitrate": adData.maxBitrate,
+            "minBitrate": adData.minBitrate,
+            "mimeType": adData.mimeType
+        ]
+    }
+    
+    static func adSourceTypeJson(_ adSourceType: AdSourceType?) -> String? {
+        guard let adSourceType = adSourceType else {
+            return nil
+        }
+        
+        switch adSourceType {
+        case .ima: return "Ima"
+        case .progressive: return "Progressive"
+        case .unknown: return "Uknown"
+        default: return "Unknown"
+        }
+    }
+    
+    static func adQuartileJson(_ adQuartile: AdQuartile?) -> [AnyHashable: Any]? {
+        guard let adQuartile = adQuartile else {
+            return nil
+        }
+        
+        return [
+            "percentage": {
+                switch adQuartile {
+                case .firstQuartile: return 0.25
+                case .midpoint: return 0.50
+                case .thirdQuartile: return 0.75
+                }
+            }()
+        ]
+    }
+    
+    static func adBreakJson(_ adBreak: AdBreak?) -> [AnyHashable: Any]? {
+        guard let adBreak = adBreak else {
+            return nil
+        }
+        
+        return [
+            "id": adBreak.identifier,
+            "scheduleTime": adBreak.scheduleTime,
+            "ads": adBreak.ads.map { RCTConvert.adJson($0) }
+        ]
+    }
+    
+    static func adConfigJson(_ adConfig: AdConfig?) -> [AnyHashable: Any]? {
+        guard let adConfig = adConfig else {
+            return nil
+        }
+        
+        return [
+            "replaceContentDuration": adConfig.replaceContentDuration
+        ]
+    }
+    
+    static func adItemJson(_ adItem: AdItem?) -> [AnyHashable: Any]? {
+        guard let adItem = adItem else {
+            return nil
+        }
+        
+        return [
+            "sources": adItem.sources.map { RCTConvert.adSourceJson($0) },
+            "position": adItem.position
+        ]
+    }
+    
+    static func adSourceJson(_ adSource: AdSource?) -> [AnyHashable: Any]? {
+        guard let adSource = adSource else {
+            return nil
+        }
+        
+        return [
+            "tag": adSource.tag,
+            "type": RCTConvert.adSourceTypeJson(adSource.type)
+        ]
+    }
+    
 }

@@ -31,6 +31,19 @@ class RNPlayerView: UIView {
     @objc var onSubtitleAdded: RCTBubblingEventBlock?
     @objc var onSubtitleRemoved: RCTBubblingEventBlock?
     @objc var onSubtitleChanged: RCTBubblingEventBlock?
+    
+    // --- Temp Ad Callbacks --- //
+    @objc var onAdStarted: RCTBubblingEventBlock?
+    @objc var onAdFinished: RCTBubblingEventBlock?
+    @objc var onAdQuartile: RCTBubblingEventBlock?
+    @objc var onAdBreakStarted: RCTBubblingEventBlock?
+    @objc var onAdBreakFinished: RCTBubblingEventBlock?
+    @objc var onAdScheduled: RCTBubblingEventBlock?
+    @objc var onAdSkipped: RCTBubblingEventBlock?
+    @objc var onAdClicked: RCTBubblingEventBlock?
+    @objc var onAdError: RCTBubblingEventBlock?
+    @objc var onAdManifestLoad: RCTBubblingEventBlock?
+    @objc var onAdManifestLoaded: RCTBubblingEventBlock?
 
     /// The `PlayerView` subview.
     var playerView: PlayerView? {

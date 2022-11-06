@@ -31,6 +31,19 @@ RCT_EXPORT_VIEW_PROPERTY(onSubtitleAdded, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onSubtitleRemoved, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onSubtitleChanged, RCTBubblingEventBlock)
 
+// --- Temp Ad Events --- //
+RCT_EXPORT_VIEW_PROPERTY(onAdStarted, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onAdFinished, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onAdQuartile, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onAdBreakStarted, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onAdBreakFinished, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onAdScheduled, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onAdSkipped, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onAdClicked, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onAdError, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onAdManifestLoad, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onAdManifestLoaded, RCTBubblingEventBlock)
+
 RCT_EXTERN_METHOD(attachPlayer:(nonnull NSNumber *)viewId playerId:(NSString *)playerId)
 
 @end

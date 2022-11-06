@@ -288,3 +288,111 @@ export interface SubtitleChangedEvent extends Event {
    */
   newSubtitleTrack: SubtitleTrack;
 }
+
+// --- Temporary Ad Events --- //
+
+export enum AdSourceType {
+  Ima = 'Ima',
+  Unknown = 'Unknown',
+  Progressive = 'Progressive',
+}
+
+export interface AdData {
+  bitrate?: number;
+  maxBitrate?: number;
+  minBitrate?: number;
+  mimeType?: string;
+}
+
+export interface Ad {
+  clickThroughUrl?: string;
+  data?: AdData;
+  height: number;
+  width: number;
+  id?: string;
+  isLinear: boolean;
+  mediaFileUrl?: string;
+}
+
+export interface AdQuartile {
+  percentage: number;
+}
+
+export interface AdBreak {
+  ads: [Ad];
+  id: string;
+  scheduleTime: number;
+}
+
+export interface AdConfig {
+  replaceContentDuration?: number;
+}
+
+export interface AdSource {
+  tag: string;
+  type: AdSourceType;
+}
+
+export interface AdItem {
+  sources: [AdSource];
+  position: string;
+  preloadOffset?: number;
+  replaceContentDuration?: number;
+}
+
+export interface AdStartedEvent extends Event {
+  clientType?: AdSourceType;
+  clickThroughUrl?: string;
+  indexInQueue: number;
+  duration: number;
+  timeOffset: number;
+  position?: string;
+  skipOffset: number;
+  ad?: Ad;
+}
+
+export interface AdFinishedEvent extends Event {
+  ad?: Ad;
+}
+
+export interface AdQuartileEvent extends Event {
+  quartile: AdQuartile;
+}
+
+export interface AdBreakStartedEvent extends Event {
+  adBreak?: AdBreak;
+}
+
+export interface AdBreakFinishedEvent extends Event {
+  adBreak?: AdBreak;
+}
+
+export interface AdScheduledEvent extends Event {
+  numberOfAds: number;
+}
+
+export interface AdSkippedEvent extends Event {
+  ad?: Ad;
+}
+
+export interface AdClickedEvent extends Event {
+  clickThroughUrl?: string;
+}
+
+export interface AdErrorEvent extends Event {
+  adConfig?: AdConfig;
+  adItem?: AdItem;
+  code: number;
+  message?: string;
+}
+
+export interface AdManifestLoadEvent extends Event {
+  adBreak?: AdBreak;
+  adConfig: AdConfig;
+}
+
+export interface AdManifestLoadedEvent extends Event {
+  adBreak?: AdBreak;
+  adConfig: AdConfig;
+  downloadTime: number;
+}

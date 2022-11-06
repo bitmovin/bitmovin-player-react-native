@@ -251,6 +251,20 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
         emitEvent("subtitleRemoved", it)
     }
 
+    // ---- Temporary Ad Events ---- //
+
+    private val onAdStarted: (PlayerEvent.AdStarted) -> Unit = { emitEvent("adStarted", it) }
+    private val onAdFinished: (PlayerEvent.AdFinished) -> Unit = { emitEvent("adFinished", it) }
+    private val onAdQuartile: (PlayerEvent.AdQuartile) -> Unit = { emitEvent("adQuartile", it) }
+    private val onAdBreakStarted: (PlayerEvent.AdBreakStarted) -> Unit = { emitEvent("adBreakStarted", it) }
+    private val onAdBreakFinished: (PlayerEvent.AdBreakFinished) -> Unit = { emitEvent("adBreakFinished", it) }
+    private val onAdScheduled: (PlayerEvent.AdScheduled) -> Unit = { emitEvent("adScheduled", it) }
+    private val onAdSkipped: (PlayerEvent.AdSkipped) -> Unit = { emitEvent("adSkipped", it) }
+    private val onAdClicked: (PlayerEvent.AdClicked) -> Unit = { emitEvent("adClicked", it) }
+    private val onAdError: (PlayerEvent.AdError) -> Unit = { emitEvent("adError", it) }
+    private val onAdManifestLoad: (PlayerEvent.AdManifestLoad) -> Unit = { emitEvent("adManifestLoad", it) }
+    private val onAdManifestLoaded: (PlayerEvent.AdManifestLoaded) -> Unit = { emitEvent("adManifestLoaded", it) }
+
     /**
      * Start listening and emitting player events as bubbling events to the js side.
      */
@@ -283,6 +297,19 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
             on(onSubtitleAdded)
             on(onSubtitleChanged)
             on(onSubtitleRemoved)
+
+            // --- Temporary Ad Events --- //
+            on(onAdStarted)
+            on(onAdFinished)
+            on(onAdQuartile)
+            on(onAdBreakStarted)
+            on(onAdBreakFinished)
+            on(onAdScheduled)
+            on(onAdSkipped)
+            on(onAdClicked)
+            on(onAdError)
+            on(onAdManifestLoad)
+            on(onAdManifestLoaded)
         }
     }
 
@@ -318,6 +345,19 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
             off(onSubtitleAdded)
             off(onSubtitleChanged)
             off(onSubtitleRemoved)
+
+            // --- Temporary Ad Events --- //
+            off(onAdStarted)
+            off(onAdFinished)
+            off(onAdQuartile)
+            off(onAdBreakStarted)
+            off(onAdBreakFinished)
+            off(onAdScheduled)
+            off(onAdSkipped)
+            off(onAdClicked)
+            off(onAdError)
+            off(onAdManifestLoad)
+            off(onAdManifestLoaded)
         }
     }
 

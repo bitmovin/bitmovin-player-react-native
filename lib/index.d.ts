@@ -366,6 +366,93 @@ interface SubtitleChangedEvent extends Event {
      */
     newSubtitleTrack: SubtitleTrack;
 }
+declare enum AdSourceType {
+    Ima = "Ima",
+    Unknown = "Unknown",
+    Progressive = "Progressive"
+}
+interface AdData {
+    bitrate?: number;
+    maxBitrate?: number;
+    minBitrate?: number;
+    mimeType?: string;
+}
+interface Ad {
+    clickThroughUrl?: string;
+    data?: AdData;
+    height: number;
+    width: number;
+    id?: string;
+    isLinear: boolean;
+    mediaFileUrl?: string;
+}
+interface AdQuartile {
+    percentage: number;
+}
+interface AdBreak {
+    ads: [Ad];
+    id: string;
+    scheduleTime: number;
+}
+interface AdConfig {
+    replaceContentDuration?: number;
+}
+interface AdSource {
+    tag: string;
+    type: AdSourceType;
+}
+interface AdItem {
+    sources: [AdSource];
+    position: string;
+    preloadOffset?: number;
+    replaceContentDuration?: number;
+}
+interface AdStartedEvent extends Event {
+    clientType?: AdSourceType;
+    clickThroughUrl?: string;
+    indexInQueue: number;
+    duration: number;
+    timeOffset: number;
+    position?: string;
+    skipOffset: number;
+    ad?: Ad;
+}
+interface AdFinishedEvent extends Event {
+    ad?: Ad;
+}
+interface AdQuartileEvent extends Event {
+    quartile: AdQuartile;
+}
+interface AdBreakStartedEvent extends Event {
+    adBreak?: AdBreak;
+}
+interface AdBreakFinishedEvent extends Event {
+    adBreak?: AdBreak;
+}
+interface AdScheduledEvent extends Event {
+    numberOfAds: number;
+}
+interface AdSkippedEvent extends Event {
+    ad?: Ad;
+}
+interface AdClickedEvent extends Event {
+    clickThroughUrl?: string;
+}
+interface AdErrorEvent extends Event {
+    adConfig?: AdConfig;
+    adItem?: AdItem;
+    code: number;
+    message?: string;
+}
+interface AdManifestLoadEvent extends Event {
+    adBreak?: AdBreak;
+    adConfig: AdConfig;
+}
+interface AdManifestLoadedEvent extends Event {
+    adBreak?: AdBreak;
+    adConfig: AdConfig;
+    downloadTime: number;
+}
 
 /**
  * Type that defines all event props supported by `PlayerView` and `NativePlayerView`.
@@ -400,6 +487,17 @@ interface EventProps {
     onSubtitleRemoved: SubtitleRemovedEvent;
     onTimeChanged: TimeChangedEvent;
     onUnmuted: UnmutedEvent;
+    onAdStarted: AdStartedEvent;
+    onAdFinished: AdFinishedEvent;
+    onAdQuartile: AdQuartileEvent;
+    onAdBreakStarted: AdBreakStartedEvent;
+    onAdBreakFinished: AdBreakFinishedEvent;
+    onAdScheduled: AdScheduledEvent;
+    onAdSkipped: AdSkippedEvent;
+    onAdClicked: AdClickedEvent;
+    onAdError: AdErrorEvent;
+    onAdManifestLoad: AdManifestLoadEvent;
+    onAdManifestLoaded: AdManifestLoadedEvent;
 }
 /**
  * Event props for `PlayerView`.
@@ -1237,6 +1335,10 @@ declare class Player extends NativeInstance<PlayerConfig> {
      */
     setVolume: (volume: number) => void;
     /**
+     * @returns The player's current volume level.
+     */
+    getVolume: () => Promise<number>;
+    /**
      * The playback speed of the player. Slow motion can be achieved by setting the speed to values between 0 and 1,
      * while fast forward is possible with values greater than 1. Values that are less than or equal to zero are ignored.
      *
@@ -1244,9 +1346,9 @@ declare class Player extends NativeInstance<PlayerConfig> {
      */
     setPlaybackSpeed: (speed: number) => void;
     /**
-     * @returns The player's current volume level.
+     * @returns The player's current playback speed.
      */
-    getVolume: () => Promise<number>;
+    getPlaybackSpeed: () => Promise<number>;
     /**
      * @returns The current playback time in seconds.
      *
@@ -1362,4 +1464,4 @@ declare function SubtitleView(props: SubtitleViewProps): JSX.Element | null;
  */
 declare function usePlayer(config?: PlayerConfig): Player;
 
-export { AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, BasePlayerViewProps, BaseSubtitleViewProps, DestroyEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, LoadingState, MutedEvent, PausedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TemporaryAngelAdConfig, TimeChangedEvent, UnmutedEvent, UserInterfaceType, WidevineConfig, usePlayer };
+export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, BasePlayerViewProps, BaseSubtitleViewProps, DestroyEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, LoadingState, MutedEvent, PausedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TemporaryAngelAdConfig, TimeChangedEvent, UnmutedEvent, UserInterfaceType, WidevineConfig, usePlayer };
