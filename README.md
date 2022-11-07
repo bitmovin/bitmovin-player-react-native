@@ -32,7 +32,7 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
     - [Enabling DRM protection](#enabling-drm-protection)
       - [Prepare hooks](#prepare-hooks)
     - [Adding external subtitle tracks](#adding-external-subtitle-tracks)
-    - [Enabling picture-in-picture mode](#enabling-picture-in-picture-mode)
+    - [Enabling Picture in Picture mode](#enabling-picture-in-picture-mode)
   - [Contributing](#contributing)
 
 ## Platform Support
@@ -276,12 +276,12 @@ const player = usePlayer({
     // Whether background playback is enabled or not. Default is false.
     // Only available for iOS.
     isBackgroundPlaybackEnabled: true,
-    // Enable the picture-in-picture mode option on the player controls.
+    // Enable the Picture in Picture mode option on the player controls.
     //
     // Note iOS requires the audio session category of your app to be set to `playback` otherwise
     // PiP mode won't work.
     //
-    // Check out `Enabling picture-in-picture mode` section of README for more information
+    // Check out `Enabling Picture in Picture mode` section of README for more information
     // on how to properly configure your app to support PiP.
     isPictureInPictureEnabled: true,
   },
@@ -515,15 +515,15 @@ The supported `PlayerView` events for subtitles are:
 
 You might check out a complete subtitle example in the [`example/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app.
 
-### Enabling picture-in-picture mode
+### Enabling Picture in Picture mode
 
-In order to make use of the picture-in-picture functionalities provided by the player, it's first necessary to configure your native application to properly support PiP.
+In order to make use of the Picture in Picture functionalities provided by the player, it's first necessary to configure your native application to properly support PiP.
 
 The steps required for each platform are described below:
 
 #### Android
 
-**Declare picture-in-picture support on AndroidManifest.xml**
+**Declare Picture in Picture support on AndroidManifest.xml**
 
 Open `android/app/src/main/AndroidManifest.xml` and set `android:supportsPictureInPicture` to `true`
 on your main activity's manifest. Also, specify that your activity handles layout configuration changes
@@ -574,14 +574,14 @@ const App = () => {
 };
 ```
 
-This is step is required in order to properly enable background reproduction of audio content on iOS. Without it, the picture-in-picture option appears on the player UI but doesn't work.
+This step is required in order to properly enable background playback on iOS. Without it, the Picture in Picture option appears on the player UI but has no effect when used.
 
 You can read more about it on [Apple's docs](https://developer.apple.com/documentation/avfaudio/avaudiosession/category/1616509-playback).
 
-#### Showing the picture-in-picture UI option
+#### Showing the Picture in Picture UI option
 
 Now that your native application is properly configured to support PiP changes, the player instance
-in your JS code can be configured to show the picture-in-picture option in the player UI.
+in your JS code can be configured to show the Picture in Picture option in the player UI.
 
 Simply add `isPictureInPictureEnabled: true` on your player's `playbackConfig` option:
 
@@ -593,9 +593,9 @@ const player = usePlayer({
 });
 ```
 
-#### Supported picture-in-picture events
+#### Supported Picture in Picture events
 
-The supported picture-in-picture events on `PlayerView` are:
+The supported Picture in Picture events on `PlayerView` are:
 
 - `onPictureInPictureEnter`
 - `onPictureInPictureExit`
