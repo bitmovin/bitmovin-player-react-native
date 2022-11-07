@@ -70,7 +70,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "adClicked" to "onAdClicked",
         "adError" to "onAdError",
         "adManifestLoad" to "onAdManifestLoad",
-        "adManifestedLoaded" to "onAdManifestLoaded"
+        "adManifestLoaded" to "onAdManifestLoaded"
     )
 
     /**
