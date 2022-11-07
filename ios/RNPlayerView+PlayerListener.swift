@@ -1,6 +1,6 @@
 import BitmovinPlayer
 
-extension RNPlayerView: PlayerListener, UserInterfaceListener {
+extension RNPlayerView: PlayerListener {
     func onEvent(_ event: Event, player: Player) {
         onEvent?(event.toJSON())
     }
@@ -91,21 +91,5 @@ extension RNPlayerView: PlayerListener, UserInterfaceListener {
 
     func onSubtitleChanged(_ event: SubtitleChangedEvent, player: Player) {
         onSubtitleChanged?(event.toJSON())
-    }
-
-    func onPictureInPictureEnter(_ event: PictureInPictureEnterEvent, view: PlayerView) {
-        onPictureInPictureEnter?(event.toJSON())
-    }
-
-    func onPictureInPictureEntered(_ event: PictureInPictureEnteredEvent, view: PlayerView) {
-        onPictureInPictureEntered?(event.toJSON())
-    }
-
-    func onPictureInPictureExit(_ event: PictureInPictureExitEvent, view: PlayerView) {
-        onPictureInPictureExit?(event.toJSON())
-    }
-
-    func onPictureInPictureExited(_ event: PictureInPictureExitedEvent, view: PlayerView) {
-        onPictureInPictureExited?(event.toJSON())
     }
 }
