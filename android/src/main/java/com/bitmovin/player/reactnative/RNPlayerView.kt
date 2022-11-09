@@ -216,6 +216,13 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
         emitEvent("subtitleRemoved", it)
     }
 
+    private val onVideoPlaybackQualityChanged: (PlayerEvent.VideoPlaybackQualityChanged) -> Unit = {
+        emitEvent("videoPlaybackQualityChanged", it)
+    }
+
+    private val onVideoSizeChanged: (PlayerEvent.VideoSizeChanged) -> Unit = {
+        emitEvent("videoSizeChanged", it)
+    }
     /**
      * Start listening and emitting player events as bubbling events to the js side.
      */
@@ -243,6 +250,8 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
             on(onSubtitleAdded)
             on(onSubtitleChanged)
             on(onSubtitleRemoved)
+            on(onVideoPlaybackQualityChanged)
+            on(onVideoSizeChanged)
         }
     }
 
@@ -273,6 +282,8 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
             off(onSubtitleAdded)
             off(onSubtitleChanged)
             off(onSubtitleRemoved)
+            off(onVideoPlaybackQualityChanged)
+            off(onVideoSizeChanged)
         }
     }
 

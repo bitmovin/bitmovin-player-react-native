@@ -92,4 +92,12 @@ extension RNPlayerView: PlayerListener {
     func onSubtitleChanged(_ event: SubtitleChangedEvent, player: Player) {
         onSubtitleChanged?(event.toJSON())
     }
+
+    func onVideoPlaybackQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
+        onVideoPlaybackQualityChanged?(event.toJSON())
+    }
+
+    func onVideoSizeChanged(_ event: VideoSizeChangedEvent, player: Player) {
+        onVideoSizeChanged?(event.toJSON())
+    }
 }
