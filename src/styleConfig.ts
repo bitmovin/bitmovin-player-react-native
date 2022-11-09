@@ -32,6 +32,20 @@ export interface StyleConfig {
    */
   userInterfaceType?: UserInterfaceType;
   /**
+   * Set the CSS file that will be used for the UI. The default CSS file will be completely replaced by the CSS file set with this property.
+   * @example
+   * ```
+   * const player = new Player({
+   *   styleConfig: {
+   *     playerUiCss: 'https://domain.tld/path/to/bitmovinplayer-ui.css',
+   *   },
+   * });
+   * ```
+   */
+  playerUiCss?: string;
+  supplementalPlayerUiCss?: string;
+  playerUiJs?: string;
+  /**
    * Determines how the video content is scaled or stretched within the parent container’s bounds.  Possible values are defined in ScalingMode.
    * Default value is ScalingMode.fit.
    * @example

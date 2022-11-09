@@ -56,7 +56,7 @@ extension RNPlayerView: PlayerListener {
     func onSeeked(_ event: SeekedEvent, player: Player) {
         onSeeked?(event.toJSON())
     }
-    
+
     func onStallStarted(_ event: StallStartedEvent, player: Player) {
         onStallStarted?(event.toJSON())
     }
@@ -88,7 +88,7 @@ extension RNPlayerView: PlayerListener {
     func onSourceWarning(_ event: SourceWarningEvent, player: Player) {
         onSourceWarning?(event.toJSON())
     }
-    
+
     func onAudioAdded(_ event: AudioAddedEvent, player: Player) {
         onAudioAdded?(event.toJSON())
     }
@@ -112,51 +112,59 @@ extension RNPlayerView: PlayerListener {
     func onSubtitleChanged(_ event: SubtitleChangedEvent, player: Player) {
         onSubtitleChanged?(event.toJSON())
     }
-    
+
+    func onVideoPlaybackQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
+        onVideoPlaybackQualityChanged?(event.toJSON())
+    }
+
+    func onVideoSizeChanged(_ event: VideoSizeChangedEvent, player: Player) {
+        onVideoSizeChanged?(event.toJSON())
+    }
+
     // --- Temporary Ad Events --- //
-    
+
     func onAdStarted(_ event: AdStartedEvent, player: Player) {
         onAdStarted?(event.toJSON())
     }
-    
+
     func onAdFinished(_ event: AdFinishedEvent, player: Player) {
         onAdFinished?(event.toJSON())
     }
-    
+
     func onAdQuartile(_ event: AdQuartileEvent, player: Player) {
         onAdQuartile?(event.toJSON())
     }
-    
+
     func onAdBreakStarted(_ event: AdBreakStartedEvent, player: Player) {
         onAdBreakStarted?(event.toJSON())
     }
-    
+
     func onAdBreakFinished(_ event: AdBreakFinishedEvent, player: Player) {
         onAdBreakFinished?(event.toJSON())
     }
-    
+
     func onAdScheduled(_ event: AdScheduledEvent, player: Player) {
         onAdScheduled?(event.toJSON())
     }
-    
+
     func onAdSkipped(_ event: AdSkippedEvent, player: Player) {
         onAdSkipped?(event.toJSON())
     }
-    
+
     func onAdClicked(_ event: AdClickedEvent, player: Player) {
         onAdClicked?(event.toJSON())
     }
-    
+
     func onAdError(_ event: AdErrorEvent, player: Player) {
         onAdError?(event.toJSON())
     }
-    
+
     func onAdManifestLoad(_ event: AdManifestLoadEvent, player: Player) {
         onAdManifestLoad?(event.toJSON())
     }
-    
+
     func onAdManifestLoaded(_ event: AdManifestLoadedEvent, player: Player) {
         onAdManifestLoaded?(event.toJSON())
     }
-    
+
 }

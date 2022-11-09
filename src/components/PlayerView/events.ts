@@ -28,6 +28,8 @@ import {
   SubtitleRemovedEvent,
   TimeChangedEvent,
   UnmutedEvent,
+  VideoPlaybackQualityChangedEvent,
+  VideoSizeChangedEvent,
   AdStartedEvent,
   AdFinishedEvent,
   AdQuartileEvent,
@@ -74,6 +76,8 @@ interface EventProps {
   onSubtitleRemoved: SubtitleRemovedEvent;
   onTimeChanged: TimeChangedEvent;
   onUnmuted: UnmutedEvent;
+  onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
+  onVideoSizeChanged: VideoSizeChangedEvent;
 
   // --- Temp Ad Events --- //
   onAdStarted: AdStartedEvent;

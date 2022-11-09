@@ -194,6 +194,36 @@ extension SubtitleChangedEvent {
     }
 }
 
+extension VideoSizeChangedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp
+        ]
+    }
+}
+
+extension VideoDownloadQualityChangedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "newVideoQuality": [
+                "height": videoQualityNew?.height,
+                "width": videoQualityNew?.width,
+                "codec": videoQualityNew?.codec,
+                "bitrate": videoQualityNew?.bitrate,
+            ],
+            "oldVideoQuality": [
+                "height": videoQualityOld?.height,
+                "width": videoQualityOld?.width,
+                "codec": videoQualityOld?.codec,
+                "bitrate": videoQualityOld?.bitrate,
+            ],
+            "name": name,
+            "timestamp": timestamp
+        ]
+    }
+}
+
 // --- Temp Ad Events --- //
 
 extension AdStartedEvent {
@@ -209,7 +239,7 @@ extension AdStartedEvent {
             "position": position,
             "skipOffset": skipOffset,
             "ad": RCTConvert.adJson(ad)
-            
+
         ]
     }
 }

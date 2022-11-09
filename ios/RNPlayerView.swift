@@ -31,7 +31,9 @@ class RNPlayerView: UIView {
     @objc var onSubtitleAdded: RCTBubblingEventBlock?
     @objc var onSubtitleRemoved: RCTBubblingEventBlock?
     @objc var onSubtitleChanged: RCTBubblingEventBlock?
-    
+    @objc var onVideoPlaybackQualityChanged: RCTBubblingEventBlock?
+    @objc var onVideoSizeChanged: RCTBubblingEventBlock?
+
     // --- Temp Ad Callbacks --- //
     @objc var onAdStarted: RCTBubblingEventBlock?
     @objc var onAdFinished: RCTBubblingEventBlock?

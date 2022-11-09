@@ -289,6 +289,29 @@ export interface SubtitleChangedEvent extends Event {
   newSubtitleTrack: SubtitleTrack;
 }
 
+export interface VideoPlaybackQualityChangedEvent extends Event {
+  newVideoQuality: {
+    height?: number;
+    width?: number;
+    frameRate?: number;
+    bitrate?: number;
+    codec?: string;
+  };
+  oldVideoQuality: {
+    height?: number;
+    width?: number;
+    frameRate?: number;
+    bitrate?: number;
+    codec?: string;
+  };
+}
+
+export interface VideoSizeChangedEvent extends Event {
+  height?: number;
+  width?: number;
+  aspectRatio?: number;
+}
+
 // --- Temporary Ad Events --- //
 
 export enum AdSourceType {
