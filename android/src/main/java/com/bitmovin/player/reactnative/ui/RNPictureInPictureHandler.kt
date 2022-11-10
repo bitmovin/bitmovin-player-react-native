@@ -1,38 +1,50 @@
-package com.bitmovin.player.reactnative
+package com.bitmovin.player.reactnative.ui
 
-import android.annotation.SuppressLint
 import android.app.PictureInPictureParams
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.os.Build
 import android.util.Rational
-import android.view.View
-import android.widget.LinearLayout
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import com.bitmovin.player.PlayerView
-import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.ui.PictureInPictureHandler
-import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 
-@SuppressLint("ViewConstructor")
-open class RNBasePlayerView(val context: ReactApplicationContext): LinearLayout(context),
-    LifecycleEventListener, PictureInPictureHandler, View.OnLayoutChangeListener {
+/**
+ * Delegate object for `RNPictureInPictureHandler`. It delegates all view logic that needs
+ * to be performed during each PiP state to this object.
+ */
+interface RNPictureInPictureDelegate {
     /**
-     * Associated bitmovin's `PlayerView`.
+     * Called whenever the handler's `isInPictureInPictureMode` changes to `true`.
      */
-    var playerView: PlayerView? = null
+    fun onExitPictureInPicture()
+    /**
+     * Called whenever the handler's `isInPictureInPictureMode` changes to `false`.
+     */
+    fun onEnterPictureInPicture()
+    /**
+     * Called whenever the activity's PiP mode state changes with the new resources configuration.
+     */
+    fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration?)
+    /**
+     * Called whenever the handler needs to compute a new `sourceRectHint` for PiP params.
+     * The passed rect reference is expected to be fulfilled with the PlayerView's global visible
+     * rect.
+     */
+    fun setSourceRectHint(sourceRectHint: Rect)
+}
 
+/**
+ * Custom Bitmovin player's `PictureInPictureHandler` designed for React Native.
+ * It relies on React Native's application context to manage the application's PiP state.
+ */
+class RNPictureInPictureHandler(val context: ReactApplicationContext): PictureInPictureHandler {
     /**
-     * Handy property accessor for `playerView`'s player instance.
+     * PiP delegate object that contains the view logic to be performed on each PiP state change.
      */
-    var player: Player?
-        get() = playerView?.player
-        set(value) {
-            playerView?.player = value
-        }
+    private var delegate: RNPictureInPictureDelegate? = null
 
     /**
      * Whether the user has enabled PiP support via `isPictureInPictureEnabled` playback configuration in JS.
@@ -43,12 +55,6 @@ open class RNBasePlayerView(val context: ReactApplicationContext): LinearLayout(
      * Whether this view is currently in PiP mode.
      */
     var isInPictureInPictureMode = false
-
-    /**
-     * Whether this view should pause video playback when activity's onPause is called.
-     * By default, `shouldPausePlayback` is set to false when entering PiP mode.
-     */
-    private var shouldPausePlayback: Boolean = true
 
     /**
      * Whether the current Android version supports PiP mode.
@@ -81,27 +87,14 @@ open class RNBasePlayerView(val context: ReactApplicationContext): LinearLayout(
         }
 
     /**
-     * Activity's onResume
+     * Sets the new delegate object and update the activity's PiP parameters accordingly.
      */
-    override fun onHostResume() {
-        playerView?.onResume()
-    }
-
-    /**
-     * Activity's onPause
-     */
-    override fun onHostPause() {
-        if (shouldPausePlayback) {
-            playerView?.onPause()
+    fun setDelegate(delegate: RNPictureInPictureDelegate?) {
+        this.delegate = delegate
+        // Update the activity's PiP params once the delegate has been set.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPictureInPictureAvailable) {
+            applyPictureInPictureParams()
         }
-        shouldPausePlayback = true
-    }
-
-    /**
-     * Activity's onDestroy
-     */
-    override fun onHostDestroy() {
-        playerView?.onDestroy()
     }
 
     /**
@@ -128,8 +121,7 @@ open class RNBasePlayerView(val context: ReactApplicationContext): LinearLayout(
     /**
      * Called whenever the activity content resources have changed.
      */
-    override fun onConfigurationChanged(newConfig: Configuration?) {
-        super.onConfigurationChanged(newConfig)
+    fun onConfigurationChanged(newConfig: Configuration?) {
         // PiP mode is supported since Android 7.0
         if (isPictureInPictureAvailable) {
             handlePictureInPictureModeChanges(newConfig)
@@ -143,34 +135,14 @@ open class RNBasePlayerView(val context: ReactApplicationContext): LinearLayout(
     @RequiresApi(Build.VERSION_CODES.N)
     private fun handlePictureInPictureModeChanges(newConfig: Configuration?) = currentActivity?.let {
         if (isInPictureInPictureMode != it.isInPictureInPictureMode) {
-            playerView?.onPictureInPictureModeChanged(it.isInPictureInPictureMode, newConfig)
-            // update view PiP state
+            delegate?.onPictureInPictureModeChanged(it.isInPictureInPictureMode, newConfig)
             if (it.isInPictureInPictureMode) {
-                // if the player has just changed to PiP mode, then don't pause playback
-                shouldPausePlayback = false
+                delegate?.onEnterPictureInPicture()
             } else {
-                // manually call `exitPictureInPicture()` on player view otherwise `PictureInPictureExit`
-                // event won't get dispatched.
-                playerView?.exitPictureInPicture()
+                delegate?.onExitPictureInPicture()
             }
             isInPictureInPictureMode = it.isInPictureInPictureMode
         }
-    }
-
-    /**
-     * Some improvements in Android's PiP API have been added since version 8.0+ and this function
-     * automatically applies them if available.
-     *
-     * You can read more about the recommended settings for PiP here:
-     * - https://developer.android.com/develop/ui/views/picture-in-picture
-     */
-    fun enableSmoothTransitions() {
-        // Android improvements for PiP transitions start from 8.0+ (Oreo)
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return
-        }
-        applyPictureInPictureParams()
-        playerView?.addOnLayoutChangeListener(this)
     }
 
     /**
@@ -184,7 +156,7 @@ open class RNBasePlayerView(val context: ReactApplicationContext): LinearLayout(
     private fun applyPictureInPictureParams() = currentActivity?.let {
         // See also: https://developer.android.com/develop/ui/views/picture-in-picture#smoother-transition
         val sourceRectHint = Rect()
-        playerView?.getGlobalVisibleRect(sourceRectHint)
+        delegate?.setSourceRectHint(sourceRectHint)
         val ratio = Rational(16, 9)
         val params = PictureInPictureParams.Builder()
             .setAspectRatio(ratio)
@@ -200,42 +172,19 @@ open class RNBasePlayerView(val context: ReactApplicationContext): LinearLayout(
     }
 
     /**
-     * Called whenever player view's layout changes.
-     */
-    @RequiresApi(Build.VERSION_CODES.O)
-    override fun onLayoutChange(
-        view: View?,
-        left: Int,
-        top: Int,
-        right: Int,
-        bottom: Int,
-        oldLeft: Int,
-        oldTop: Int,
-        oldRight: Int,
-        oldBottom: Int,
-    ) {
-        if (left != oldLeft || right != oldRight || top != oldTop || bottom != oldBottom) {
-            updateSourceRectHint()
-        }
-    }
-
-    /**
-     * Dispose player view layout listeners.
-     */
-    open fun dispose() {
-        playerView?.removeOnLayoutChangeListener(this)
-    }
-
-    /**
      * Update source rect hint on activity's PiP params.
      */
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun updateSourceRectHint() = currentActivity?.let {
-        val sourceRectHint = Rect()
-        playerView?.getGlobalVisibleRect(sourceRectHint)
-        it.setPictureInPictureParams(
-            PictureInPictureParams.Builder()
-                .setSourceRectHint(sourceRectHint)
-                .build())
+    fun updateSourceRectHint() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !isPictureInPictureAvailable) {
+            return
+        }
+        currentActivity?.let {
+            val sourceRectHint = Rect()
+            delegate?.setSourceRectHint(sourceRectHint)
+            it.setPictureInPictureParams(
+                PictureInPictureParams.Builder()
+                    .setSourceRectHint(sourceRectHint)
+                    .build())
+        }
     }
 }

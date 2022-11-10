@@ -4,6 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
@@ -116,9 +117,12 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             val player = getPlayerModule()?.getPlayer(playerId)
             // set picture in picture value based on playback config's option
             playerConfig?.getMap("playbackConfig")?.getBoolean("isPictureInPictureEnabled")?.let {
-                view.isPictureInPictureEnabled = it
+                // create a new RNPictureInPictureHandler with the passed `isPictureInPictureEnabled` value.
+                val pictureInPictureHandler = RNPictureInPictureHandler(context)
+                pictureInPictureHandler.isPictureInPictureEnabled = it
+                // set the view's PiP handler.
+                view.pictureInPictureHandler = pictureInPictureHandler
             }
-            // setup PlayerView
             if (view.playerView != null) {
                 view.player = player
             } else {

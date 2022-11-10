@@ -1,13 +1,23 @@
 package com.bitmovin.player.reactnative
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
+import android.graphics.Rect
+import android.os.Build
+import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import androidx.annotation.RequiresApi
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.on
 import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
+import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
@@ -18,7 +28,33 @@ import com.facebook.react.uimanager.events.RCTEventEmitter
  * exposes player events as bubbling events.
  */
 @SuppressLint("ViewConstructor")
-class RNPlayerView(context: ReactApplicationContext) : RNBasePlayerView(context) {
+class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context),
+    LifecycleEventListener, View.OnLayoutChangeListener, RNPictureInPictureDelegate {
+    /**
+     * Associated bitmovin's `PlayerView`.
+     */
+    var playerView: PlayerView? = null
+
+    /**
+     * Handy property accessor for `playerView`'s player instance.
+     */
+    var player: Player?
+        get() = playerView?.player
+        set(value) {
+            playerView?.player = value
+        }
+
+    /**
+     * Object that handles PiP mode changes in React Native.
+     */
+    var pictureInPictureHandler: RNPictureInPictureHandler? = null
+
+    /**
+     * Whether this view should pause video playback when activity's onPause is called.
+     * By default, `shouldPausePlayback` is set to false when entering PiP mode.
+     */
+    private var shouldPausePlayback: Boolean = true
+
     /**
      * Register this view as an activity lifecycle listener on initialization.
      */
@@ -29,10 +65,34 @@ class RNPlayerView(context: ReactApplicationContext) : RNBasePlayerView(context)
     /**
      * Cleans up the resources and listeners produced by this view.
      */
-    override fun dispose() {
-        super.dispose()
+    fun dispose() {
         stopBubblingEvents()
         context.removeLifecycleEventListener(this)
+        playerView?.removeOnLayoutChangeListener(this)
+    }
+
+    /**
+     * Activity's onResume
+     */
+    override fun onHostResume() {
+        playerView?.onResume()
+    }
+
+    /**
+     * Activity's onPause
+     */
+    override fun onHostPause() {
+        if (shouldPausePlayback) {
+            playerView?.onPause()
+        }
+        shouldPausePlayback = true
+    }
+
+    /**
+     * Activity's onDestroy
+     */
+    override fun onHostDestroy() {
+        playerView?.onDestroy()
     }
 
     /**
@@ -46,9 +106,71 @@ class RNPlayerView(context: ReactApplicationContext) : RNBasePlayerView(context)
             addView(playerView)
             startBubblingEvents()
         }
-        if (isPictureInPictureAvailable) {
-            enableSmoothTransitions()
-            playerView.setPictureInPictureHandler(this)
+        pictureInPictureHandler?.let {
+            if (it.isPictureInPictureAvailable) {
+                it.setDelegate(this)
+                playerView.setPictureInPictureHandler(it)
+                playerView.addOnLayoutChangeListener(this)
+            }
+        }
+    }
+
+    /**
+     * Called whenever this view's activity configuration changes.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        pictureInPictureHandler?.onConfigurationChanged(newConfig)
+    }
+
+    /**
+     * Called when the player has just entered PiP mode.
+     */
+    override fun onEnterPictureInPicture() {
+        // Playback shouldn't be paused when entering PiP mode.
+        shouldPausePlayback = false
+    }
+
+    /**
+     * Called when the player has just exited PiP mode.
+     */
+    override fun onExitPictureInPicture() {
+        // Explicitly call `exitPictureInPicture()` on PlayerView when exiting PiP state, otherwise
+        // the `PictureInPictureExit` event won't get dispatched.
+        playerView?.exitPictureInPicture()
+    }
+
+    /**
+     * Called when the player's PiP mode changes with a new configuration object.
+     */
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration?) {
+        playerView?.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+    }
+
+    /**
+     * Called whenever the PiP handler needs to compute the PlayerView's global visible rect.
+     */
+    override fun setSourceRectHint(sourceRectHint: Rect) {
+        playerView?.getGlobalVisibleRect(sourceRectHint)
+    }
+
+    /**
+     * Called whenever PlayerView's layout changes.
+     */
+    override fun onLayoutChange(
+        view: View?,
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int,
+        oldLeft: Int,
+        oldTop: Int,
+        oldRight: Int,
+        oldBottom: Int,
+    ) {
+        if (left != oldLeft || right != oldRight || top != oldTop || bottom != oldBottom) {
+            // Update source rect hint whenever the player's layout change
+            pictureInPictureHandler?.updateSourceRectHint()
         }
     }
 
