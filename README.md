@@ -32,6 +32,7 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
     - [Enabling DRM protection](#enabling-drm-protection)
       - [Prepare hooks](#prepare-hooks)
     - [Adding external subtitle tracks](#adding-external-subtitle-tracks)
+    - [Setting up ads](#setting-up-ads)
   - [Contributing](#contributing)
 
 ## Platform Support
@@ -50,14 +51,14 @@ Please note that browsers and other browser-like environments such as webOS and 
 
 Features of the native mobile Player SDKs are progressively being implemented in this React Native library. The table below summarizes the current state of the main Player SDK features.
 
-| Feature | State |
-| --- | --- |
-| Playback of DRM-protected assets | :white_check_mark:  Available since v0.2.0 |
-| Subtitles & Captions | :white_check_mark:  Available since v0.2.0 |
-| Advertising | :gear:  In progress, Q4 2022 |
-| Playlist API | :x:  Not available |
-| Offline Playback | :x:  Not available |
-| Analytics | :x:  Coming Q1 2023 |
+| Feature                          | State                                     |
+| -------------------------------- | ----------------------------------------- |
+| Playback of DRM-protected assets | :white_check_mark: Available since v0.2.0 |
+| Subtitles & Captions             | :white_check_mark: Available since v0.2.0 |
+| Advertising                      | :gear: In progress, Q4 2022               |
+| Playlist API                     | :x: Not available                         |
+| Offline Playback                 | :x: Not available                         |
+| Analytics                        | :x: Coming Q1 2023                        |
 
 ## Installation
 
@@ -504,6 +505,94 @@ The supported `PlayerView` events for subtitles are:
 - `onSubtitleChanged`
 
 You might check out a complete subtitle example in the [`example/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app.
+
+### Setting up ads
+
+The Bitmovin Player SDKs are capable of serving Ads out of the box and there are two ways they can be
+configured with the player. One option is to use static configuration in the player config object,
+and the other is to schedule them dynamically using `Player.scheduleAd`.
+
+#### Static ads configuration
+
+The easiest way to configure Ads is by adding the `advertisingConfig` property to the player configuration object.
+All that needs to be provided is a URL pointing to a target Ad server along with the type of advertising tag.
+
+```typescript
+const player = usePlayer({
+  licenseKey: '<PLAYER_LICENSE_KEY>',
+  advertisingConfig: {
+    // Each object in `schedule` represents an `AdItem`.
+    schedule: [
+      // An `AdItem` represents a time slot within the streamed content dedicated to ads playback.
+      {
+        // Each item specifies a list of sources with a type and URL to the ad manifest in the ads
+        // server. All but the first source act as fallback if the first one fails to load.
+        // The start and end of an ad break are signaled via `AdBreakStartedEvent` and `AdBreakFinishedEvent`.
+        sources: [
+          {
+            type: AdSourceType.IMA,
+            tag: 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dskippablelinear&correlator=',
+          },
+          // Fallback sources...
+        ],
+        // Each item also specifies the position where it should appear during playback.
+        // The possible position values are documented below.
+        // The default value is `pre`.
+        position: '20%',
+      },
+    ],
+  },
+});
+```
+
+The possible `AdItem` position values are:
+
+- `"pre"`: pre-roll ad (for VoD and Live streaming; appears before playback starts)
+- `"post"`: post-roll ad (for VoD streaming only; appears after playback finishes)
+- Fractional seconds: `"10"`, `"12.5"` (mid-roll ad, for VoD and Live streaming)
+- Percentage of the entire video duration: `"25%"`, `"50%"` (mid-roll ad, for VoD streaming only)
+- Timecode `hh:mm:ss.mmm`: `"00:10:30.000"`, `"01:00:00.000"` (mid-roll ad, for VoD streaming only)
+
+#### Dynamic ads scheduling
+
+To gain more flexibility, it is also possible to schedule an `AdItem` dynamically in code using the
+`Player` instance. To do this, you need to call the `scheduleAd` method.
+
+```typescript
+// The object passed to `scheduleAd` must be an `AdItem`.
+player.scheduleAd({
+  // Ad source with fallbacks.
+  sources: [
+    {
+      tag: '<AD-URL>',
+      type: AdSourceType.IMA,
+    },
+  ],
+});
+```
+
+An `AdScheduledEvent` event is dispatched when the ad is successfully scheduled via `scheduleAd`.
+
+Also, during playback, it's also possible to check whether an ad is being played with `player.isAd()`
+and skip the ad being currently played with `player.skipAd()` (see `AdSkippedEvent`).
+
+#### Supported ads events
+
+The supported `PlayerView` events for ads are:
+
+- `onAdBreakFinished`
+- `onAdBreakStarted`
+- `onAdClicked`
+- `onAdError`
+- `onAdFinished`
+- `onAdManifestLoad`
+- `onAdManifestLoaded`
+- `onAdQuartile`
+- `onAdScheduled`
+- `onAdSkipped`
+- `onAdStarted`
+
+You can check out a complete ads example in the [`example/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app.
 
 ## Contributing
 
