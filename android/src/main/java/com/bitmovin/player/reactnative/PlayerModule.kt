@@ -8,16 +8,16 @@ import com.facebook.react.uimanager.UIManagerModule
 
 @ReactModule(name = PlayerModule.name)
 class PlayerModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
-    /**
-     * In-memory mapping from `nativeId`s to `Player` instances.
-     */
-    private val players: Registry<Player> = mutableMapOf()
 
-    /**
-     * JS exported module name.
-     */
     companion object {
+        /**
+         * JS exported module name.
+         */
         const val name = "PlayerModule"
+        /**
+         * In-memory mapping from `nativeId`s to `Player` instances.
+         */
+        private val players: Registry<Player> = mutableMapOf()
     }
     override fun getName() = PlayerModule.name
 

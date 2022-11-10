@@ -366,6 +366,27 @@ interface SubtitleChangedEvent extends Event {
      */
     newSubtitleTrack: SubtitleTrack;
 }
+interface VideoPlaybackQualityChangedEvent extends Event {
+    newVideoQuality: {
+        height?: number;
+        width?: number;
+        frameRate?: number;
+        bitrate?: number;
+        codec?: string;
+    };
+    oldVideoQuality: {
+        height?: number;
+        width?: number;
+        frameRate?: number;
+        bitrate?: number;
+        codec?: string;
+    };
+}
+interface VideoSizeChangedEvent extends Event {
+    height?: number;
+    width?: number;
+    aspectRatio?: number;
+}
 declare enum AdSourceType {
     Ima = "Ima",
     Unknown = "Unknown",
@@ -487,6 +508,8 @@ interface EventProps {
     onSubtitleRemoved: SubtitleRemovedEvent;
     onTimeChanged: TimeChangedEvent;
     onUnmuted: UnmutedEvent;
+    onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
+    onVideoSizeChanged: VideoSizeChangedEvent;
     onAdStarted: AdStartedEvent;
     onAdFinished: AdFinishedEvent;
     onAdQuartile: AdQuartileEvent;
@@ -943,6 +966,20 @@ interface StyleConfig {
      * ```
      */
     userInterfaceType?: UserInterfaceType;
+    /**
+     * Set the CSS file that will be used for the UI. The default CSS file will be completely replaced by the CSS file set with this property.
+     * @example
+     * ```
+     * const player = new Player({
+     *   styleConfig: {
+     *     playerUiCss: 'https://domain.tld/path/to/bitmovinplayer-ui.css',
+     *   },
+     * });
+     * ```
+     */
+    playerUiCss?: string;
+    supplementalPlayerUiCss?: string;
+    playerUiJs?: string;
     /**
      * Determines how the video content is scaled or stretched within the parent container’s bounds.  Possible values are defined in ScalingMode.
      * Default value is ScalingMode.fit.
@@ -1464,4 +1501,4 @@ declare function SubtitleView(props: SubtitleViewProps): JSX.Element | null;
  */
 declare function usePlayer(config?: PlayerConfig): Player;
 
-export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, BasePlayerViewProps, BaseSubtitleViewProps, DestroyEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, LoadingState, MutedEvent, PausedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TemporaryAngelAdConfig, TimeChangedEvent, UnmutedEvent, UserInterfaceType, WidevineConfig, usePlayer };
+export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, BasePlayerViewProps, BaseSubtitleViewProps, DestroyEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, LoadingState, MutedEvent, PausedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TemporaryAngelAdConfig, TimeChangedEvent, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoSizeChangedEvent, WidevineConfig, usePlayer };

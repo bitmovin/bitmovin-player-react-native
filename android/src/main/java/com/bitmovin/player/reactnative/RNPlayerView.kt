@@ -20,7 +20,7 @@ import com.facebook.react.uimanager.events.RCTEventEmitter
  * exposes player events as bubbling events.
  */
 @SuppressLint("ViewConstructor")
-class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
+class RNPlayerView(context: ReactContext) : LinearLayout(context) {
     /**
      * Reference to the shared player view set as child.
      */

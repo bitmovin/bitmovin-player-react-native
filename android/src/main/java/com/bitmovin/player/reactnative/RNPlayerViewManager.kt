@@ -25,7 +25,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * The component's native view factory. RN calls this method multiple times
      * for each component instance.
      */
-    override fun createViewInstance(reactContext: ThemedReactContext) = RNPlayerView(context)
+    override fun createViewInstance(reactContext: ThemedReactContext) = RNPlayerView(reactContext)
 
     /**
      * A mapping between a event native identifier and its bubbled version that will
