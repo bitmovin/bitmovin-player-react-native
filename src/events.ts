@@ -312,6 +312,10 @@ export interface VideoSizeChangedEvent extends Event {
   aspectRatio?: number;
 }
 
+export interface DurationChangedEvent extends Event {
+  duration: number;
+}
+
 // --- Temporary Ad Events --- //
 
 export enum AdSourceType {

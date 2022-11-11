@@ -61,6 +61,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "subtitleRemoved" to "onSubtitleRemoved",
         "videoPlaybackQualityChanged" to "onVideoPlaybackQualityChanged",
         "videoSizeChanged" to "onVideoSizeChanged",
+        "durationChanged" to "onDurationChanged",
         // --- Temp Ad Events --- //
         "adStarted" to "onAdStarted",
         "adFinished" to "onAdFinished",

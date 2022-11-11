@@ -298,6 +298,9 @@ class JsonConverter {
                 json.putMap("oldSubtitleTrack", fromSubtitleTrack(event.oldSubtitleTrack))
                 json.putMap("newSubtitleTrack", fromSubtitleTrack(event.newSubtitleTrack))
             }
+            if(event is SourceEvent.DurationChanged) {
+                json.putDouble("duration", event.to)
+            }
             return json
         }
 

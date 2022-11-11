@@ -224,6 +224,16 @@ extension VideoDownloadQualityChangedEvent {
     }
 }
 
+extension DurationChangedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "duration": duration,
+            "name": name,
+            "timestamp": timestamp
+        ]
+    }
+}
+
 // --- Temp Ad Events --- //
 
 extension AdStartedEvent {

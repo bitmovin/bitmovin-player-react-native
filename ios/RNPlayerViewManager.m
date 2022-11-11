@@ -32,6 +32,7 @@ RCT_EXPORT_VIEW_PROPERTY(onSubtitleRemoved, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onSubtitleChanged, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onVideoPlaybackQualityChanged, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onVideoSizeChanged, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onDurationChanged, RCTBubblingEventBlock)
 
 // --- Temp Ad Events --- //
 RCT_EXPORT_VIEW_PROPERTY(onAdStarted, RCTBubblingEventBlock)

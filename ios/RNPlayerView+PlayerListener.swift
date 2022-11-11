@@ -120,6 +120,10 @@ extension RNPlayerView: PlayerListener {
     func onVideoSizeChanged(_ event: VideoSizeChangedEvent, player: Player) {
         onVideoSizeChanged?(event.toJSON())
     }
+    
+    func onDurationChanged(_ event: DurationChangedEvent, player: Player) {
+        onDurationChanged?(event.toJSON())
+    }
 
     // --- Temporary Ad Events --- //
 

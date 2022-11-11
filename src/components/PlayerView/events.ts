@@ -41,6 +41,7 @@ import {
   AdErrorEvent,
   AdManifestLoadEvent,
   AdManifestLoadedEvent,
+  DurationChangedEvent,
 } from '../../events';
 
 /**
@@ -78,6 +79,7 @@ interface EventProps {
   onUnmuted: UnmutedEvent;
   onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
   onVideoSizeChanged: VideoSizeChangedEvent;
+  onDurationChanged: DurationChangedEvent;
 
   // --- Temp Ad Events --- //
   onAdStarted: AdStartedEvent;

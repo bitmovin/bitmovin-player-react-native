@@ -23,5 +23,6 @@ fun SourceEvent.getName(): String = when (this) {
     is SourceEvent.SubtitleTrackAdded -> "onSubtitleAdded"
     is SourceEvent.SubtitleTrackChanged -> "onSubtitleChanged"
     is SourceEvent.SubtitleTrackRemoved -> "onSubtitleRemoved"
+    is SourceEvent.DurationChanged -> "onDurationChanged"
     else -> "onSource${this.javaClass.simpleName}"
 }

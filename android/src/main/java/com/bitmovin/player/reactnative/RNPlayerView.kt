@@ -258,6 +258,11 @@ class RNPlayerView(context: ReactContext) : LinearLayout(context) {
     private val onVideoSizeChanged: (PlayerEvent.VideoSizeChanged) -> Unit = {
         emitEvent("videoSizeChanged", it)
     }
+
+    private val onDurationChanged: (SourceEvent.DurationChanged) -> Unit = {
+        emitEvent("durationChanged", it)
+    }
+
     // ---- Temporary Ad Events ---- //
 
     private val onAdStarted: (PlayerEvent.AdStarted) -> Unit = { emitEvent("adStarted", it) }
@@ -306,6 +311,7 @@ class RNPlayerView(context: ReactContext) : LinearLayout(context) {
             on(onSubtitleRemoved)
             on(onVideoPlaybackQualityChanged)
             on(onVideoSizeChanged)
+            on(onDurationChanged)
 
             // --- Temporary Ad Events --- //
             on(onAdStarted)
@@ -356,6 +362,7 @@ class RNPlayerView(context: ReactContext) : LinearLayout(context) {
             off(onSubtitleRemoved)
             off(onVideoPlaybackQualityChanged)
             off(onVideoSizeChanged)
+            off(onDurationChanged)
 
             // --- Temporary Ad Events --- //
             off(onAdStarted)
