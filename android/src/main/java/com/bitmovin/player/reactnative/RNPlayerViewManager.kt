@@ -6,9 +6,11 @@ import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.*
+import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 
+@ReactModule(name = RNPlayerViewManager.name)
 class RNPlayerViewManager(private val context: ReactApplicationContext) : SimpleViewManager<RNPlayerView>() {
     /**
      * Native component functions.
@@ -20,7 +22,17 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     /**
      * Exported module name to JS.
      */
-    override fun getName() = "NativePlayerView"
+    companion object {
+        const val name = "NativePlayerView"
+    }
+    override fun getName() = RNPlayerViewManager.name
+
+    /**
+     * React Native PiP handler instance. It can be subclassed, then set from other native
+     * modules in case a full-custom implementation is needed. A default implementation is provided
+     * out-of-the-box.
+     */
+    var pictureInPictureHandler = RNPictureInPictureHandler(context)
 
     /**
      * The component's native view factory. RN may call this method multiple times
@@ -117,10 +129,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             val player = getPlayerModule()?.getPlayer(playerId)
             // set picture in picture value based on playback config's option
             playerConfig?.getMap("playbackConfig")?.getBoolean("isPictureInPictureEnabled")?.let {
-                // create a new RNPictureInPictureHandler with the passed `isPictureInPictureEnabled` value.
-                val pictureInPictureHandler = RNPictureInPictureHandler(context)
+                // set PiP handler's `isPictureInPictureEnabled` value.
                 pictureInPictureHandler.isPictureInPictureEnabled = it
-                // set the view's PiP handler.
+                // set the view's PiP handler instance.
                 view.pictureInPictureHandler = pictureInPictureHandler
             }
             if (view.playerView != null) {

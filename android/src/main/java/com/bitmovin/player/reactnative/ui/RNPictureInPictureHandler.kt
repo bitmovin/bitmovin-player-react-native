@@ -37,10 +37,11 @@ interface RNPictureInPictureDelegate {
 }
 
 /**
- * Custom Bitmovin player's `PictureInPictureHandler` designed for React Native.
- * It relies on React Native's application context to manage the application's PiP state.
+ * Custom  PictureInPictureHandler` concrete implementation designed for React Native. It relies on
+ * React Native's application context to manage the application's PiP state. Can be subclassed in
+ * order to provide custom PiP capabilities.
  */
-class RNPictureInPictureHandler(val context: ReactApplicationContext): PictureInPictureHandler {
+open class RNPictureInPictureHandler(val context: ReactApplicationContext): PictureInPictureHandler {
     /**
      * PiP delegate object that contains the view logic to be performed on each PiP state change.
      */
@@ -89,7 +90,7 @@ class RNPictureInPictureHandler(val context: ReactApplicationContext): PictureIn
     /**
      * Sets the new delegate object and update the activity's PiP parameters accordingly.
      */
-    fun setDelegate(delegate: RNPictureInPictureDelegate?) {
+    open fun setDelegate(delegate: RNPictureInPictureDelegate?) {
         this.delegate = delegate
         // Update the activity's PiP params once the delegate has been set.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPictureInPictureAvailable) {
@@ -121,7 +122,7 @@ class RNPictureInPictureHandler(val context: ReactApplicationContext): PictureIn
     /**
      * Called whenever the activity content resources have changed.
      */
-    fun onConfigurationChanged(newConfig: Configuration?) {
+    open fun onConfigurationChanged(newConfig: Configuration?) {
         // PiP mode is supported since Android 7.0
         if (isPictureInPictureAvailable) {
             handlePictureInPictureModeChanges(newConfig)
@@ -174,7 +175,7 @@ class RNPictureInPictureHandler(val context: ReactApplicationContext): PictureIn
     /**
      * Update source rect hint on activity's PiP params.
      */
-    fun updateSourceRectHint() {
+    open fun updateSourceRectHint() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !isPictureInPictureAvailable) {
             return
         }
