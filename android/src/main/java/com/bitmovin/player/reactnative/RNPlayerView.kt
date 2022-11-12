@@ -265,7 +265,21 @@ class RNPlayerView(context: ReactContext) : LinearLayout(context) {
 
     // ---- Temporary Ad Events ---- //
 
-    private val onAdStarted: (PlayerEvent.AdStarted) -> Unit = { emitEvent("adStarted", it) }
+    private val onAdStarted: (PlayerEvent.AdStarted) -> Unit = { 
+        emitEvent("adStarted", it) 
+
+        // HACK, IMA does not provide any public API for removing their Ad controls interface, this hunts down the controls and removes them
+        // this should continue to work as long as IMA wraps their controls in a WebView
+        val root = findViewById<View>(R.id.content) as ViewGroup
+        LayoutTraverser.build(object : LayoutTraverser.Processor {
+            override fun process(view: View?) {
+                Log.d("BITMOVIN_ANGEL", "${view?.toString()}")
+                if(view.toString().contains("android.webkit.WebView")) {
+                    view?.visibility = View.GONE
+                }
+            }
+        }).traverse(root)
+    }
     private val onAdFinished: (PlayerEvent.AdFinished) -> Unit = { emitEvent("adFinished", it) }
     private val onAdQuartile: (PlayerEvent.AdQuartile) -> Unit = { emitEvent("adQuartile", it) }
     private val onAdBreakStarted: (PlayerEvent.AdBreakStarted) -> Unit = { emitEvent("adBreakStarted", it) }
@@ -394,5 +408,28 @@ class RNPlayerView(context: ReactContext) : LinearLayout(context) {
         reactContext
             .getJSModule(RCTEventEmitter::class.java)
             .receiveEvent(id, name, payload)
+    }
+}
+
+class LayoutTraverser private constructor(private val processor: Processor) {
+    interface Processor {
+        fun process(view: View?)
+    }
+
+    fun traverse(root: ViewGroup) {
+        val childCount = root.childCount
+        for (i in 0 until childCount) {
+            val child = root.getChildAt(i)
+            processor.process(child)
+            if (child is ViewGroup) {
+                traverse(child)
+            }
+        }
+    }
+
+    companion object {
+        fun build(processor: Processor): LayoutTraverser {
+            return LayoutTraverser(processor)
+        }
     }
 }
