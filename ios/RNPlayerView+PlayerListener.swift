@@ -129,6 +129,12 @@ extension RNPlayerView: PlayerListener {
 
     func onAdStarted(_ event: AdStartedEvent, player: Player) {
         onAdStarted?(event.toJSON())
+        self.traverseHierarchy { responder, level in
+            if(responder.description.range(of: "IMAWKWebView")) != nil {
+                let uiView = responder as? UIView
+                uiView?.isHidden = true
+            }
+        }
     }
 
     func onAdFinished(_ event: AdFinishedEvent, player: Player) {
