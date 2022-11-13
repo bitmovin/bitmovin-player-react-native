@@ -1456,6 +1456,7 @@ declare class Player extends NativeInstance<PlayerConfig> {
  */
 interface BasePlayerViewProps {
     style?: ViewStyle;
+    disableAdUi?: boolean;
 }
 /**
  * `PlayerView` component props.

@@ -1,6 +1,8 @@
 package com.bitmovin.player.reactnative
 
 import android.annotation.SuppressLint
+import android.util.Log
+import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import com.bitmovin.player.PlayerView
@@ -10,7 +12,6 @@ import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.on
 import com.bitmovin.player.reactnative.converter.JsonConverter
-import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
 
@@ -46,6 +47,11 @@ class RNPlayerView(context: ReactContext) : LinearLayout(context) {
             addView(playerView)
         }
     }
+
+    /**
+     * Handy property accessor for disabling the ad ui
+     */
+    var disableAdUi: Boolean? = false
 
     /**
      * Try to measure and update this view layout as much as possible to
@@ -265,20 +271,28 @@ class RNPlayerView(context: ReactContext) : LinearLayout(context) {
 
     // ---- Temporary Ad Events ---- //
 
-    private val onAdStarted: (PlayerEvent.AdStarted) -> Unit = { 
-        emitEvent("adStarted", it) 
+    private val onAdStarted: (PlayerEvent.AdStarted) -> Unit = {
+        emitEvent("adStarted", it)
 
-        // HACK, IMA does not provide any public API for removing their Ad controls interface, this hunts down the controls and removes them
-        // this should continue to work as long as IMA wraps their controls in a WebView
-        val root = findViewById<View>(R.id.content) as ViewGroup
-        LayoutTraverser.build(object : LayoutTraverser.Processor {
-            override fun process(view: View?) {
-                Log.d("BITMOVIN_ANGEL", "${view?.toString()}")
-                if(view.toString().contains("android.webkit.WebView")) {
-                    view?.visibility = View.GONE
-                }
+        if (disableAdUi == true) {
+            try {
+                // HACK, IMA does not provide any public API for removing their Ad controls interface, this hunts down the controls and removes them
+                // this should continue to work as long as IMA wraps their controls in a WebView
+                LayoutTraverser.build(object : LayoutTraverser.Processor {
+                    override fun process(view: View?) {
+                        try {
+                            if(view.toString().contains("android.webkit.WebView")) {
+                                view?.visibility = View.GONE
+                            }
+                        } catch (e: Exception) {
+                            Log.e("AngelMobile", "class=RNPlayerView action=ErrorHidingAdsWebView", e)
+                        }
+                    }
+                }).traverse(this)
+            } catch (e: Exception) {
+                Log.e("AngelMobile", "class=RNPlayerView action=ErrorTraversingForAdViews", e)
             }
-        }).traverse(root)
+        }
     }
     private val onAdFinished: (PlayerEvent.AdFinished) -> Unit = { emitEvent("adFinished", it) }
     private val onAdQuartile: (PlayerEvent.AdQuartile) -> Unit = { emitEvent("adQuartile", it) }
@@ -420,9 +434,11 @@ class LayoutTraverser private constructor(private val processor: Processor) {
         val childCount = root.childCount
         for (i in 0 until childCount) {
             val child = root.getChildAt(i)
-            processor.process(child)
-            if (child is ViewGroup) {
-                traverse(child)
+            if (child !== null) {
+                processor.process(child)
+                if (child is ViewGroup) {
+                    traverse(child)
+                }
             }
         }
     }

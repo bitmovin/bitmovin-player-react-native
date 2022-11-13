@@ -4,9 +4,11 @@ import android.os.Handler
 import android.os.Looper
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
-import com.facebook.react.bridge.*
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.uimanager.annotations.ReactProp
 
 class RNPlayerViewManager(private val context: ReactApplicationContext) : SimpleViewManager<RNPlayerView>() {
     /**
@@ -26,6 +28,11 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * for each component instance.
      */
     override fun createViewInstance(reactContext: ThemedReactContext) = RNPlayerView(reactContext)
+
+    @ReactProp(name = "disableAdUi" )
+    fun setDisableAdUi(view: RNPlayerView, disableAdUi: Boolean?) {
+        view.disableAdUi = disableAdUi
+    }
 
     /**
      * A mapping between a event native identifier and its bubbled version that will

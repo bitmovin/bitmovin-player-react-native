@@ -18,6 +18,7 @@ import { useProxy } from '../../hooks/useProxy';
  */
 export interface BasePlayerViewProps {
   style?: ViewStyle;
+  disableAdUi?: boolean;
 }
 
 /**
@@ -81,6 +82,7 @@ export function PlayerView(props: PlayerViewProps) {
     <NativePlayerView
       ref={nativeView}
       style={style}
+      disableAdUi={props.disableAdUi}
       onDestroy={proxy(props.onDestroy)}
       onEvent={proxy(props.onEvent)}
       onMuted={proxy(props.onMuted)}
