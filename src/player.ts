@@ -370,4 +370,11 @@ export class Player extends NativeInstance<PlayerConfig> {
   setSubtitleTrack = async (trackIdentifier: string): Promise<void> => {
     PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier);
   };
+
+  /**
+   * Skips the current ad. Has no effect if ad is not skippable or if no ad is played back.
+   */
+  skipAd = async (): Promise<void> => {
+    PlayerModule.skipAd(this.nativeId);
+  };
 }

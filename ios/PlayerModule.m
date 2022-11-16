@@ -72,5 +72,9 @@ RCT_EXTERN_METHOD(
     trackIdentifier:(NSString *)trackIdentifier
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    skipAd:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 
 @end

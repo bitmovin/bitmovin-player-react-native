@@ -1447,6 +1447,10 @@ declare class Player extends NativeInstance<PlayerConfig> {
      * Sets the source's selected subtitle track
      */
     setSubtitleTrack: (trackIdentifier: string) => Promise<void>;
+    /**
+     * Skips the current ad. Has no effect if ad is not skippable or if no ad is played back.
+     */
+    skipAd: () => Promise<void>;
 }
 
 /**

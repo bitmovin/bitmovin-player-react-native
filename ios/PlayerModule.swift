@@ -443,4 +443,22 @@ class PlayerModule: NSObject, RCTBridgeModule {
             resolve(nil)
         }
     }
+    
+    /**
+     Skips the current ad. Has no effect if ad is not skippable or if no ad is played back.
+     - Parameter nativeId: Target player Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(skipAd:resolver:rejecter:)
+    func skipAd(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.skipAd()
+            resolve(nil)
+        }
+    }
 }

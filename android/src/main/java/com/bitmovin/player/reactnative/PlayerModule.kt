@@ -358,6 +358,19 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Skips the current ad. Has no effect if ad is not skippable or if no ad is played back.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun skipAd(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.skipAd()
+            promise.resolve(null)
+        }
+    }
+
+    /**
      * Helper function that returns the initialized `UIManager` instance.
      */
     private fun uiManager(): UIManagerModule? =
