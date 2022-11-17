@@ -51,9 +51,9 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
 
     /**
      * Whether this view should pause video playback when activity's onPause is called.
-     * By default, `shouldPausePlayback` is set to false when entering PiP mode.
+     * By default, `shouldPausePlaybackOnActivityPause` is set to false when entering PiP mode.
      */
-    private var shouldPausePlayback: Boolean = true
+    private var shouldPausePlaybackOnActivityPause = true
 
     /**
      * Register this view as an activity lifecycle listener on initialization.
@@ -82,10 +82,10 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
      * Activity's onPause
      */
     override fun onHostPause() {
-        if (shouldPausePlayback) {
+        if (shouldPausePlaybackOnActivityPause) {
             playerView?.onPause()
         }
-        shouldPausePlayback = true
+        shouldPausePlaybackOnActivityPause = true
     }
 
     /**
@@ -128,7 +128,7 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
      */
     override fun onEnterPictureInPicture() {
         // Playback shouldn't be paused when entering PiP mode.
-        shouldPausePlayback = false
+        shouldPausePlaybackOnActivityPause = false
     }
 
     /**
