@@ -107,11 +107,9 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
             startBubblingEvents()
         }
         pictureInPictureHandler?.let {
-            if (it.isPictureInPictureAvailable) {
-                it.setDelegate(this)
-                playerView.setPictureInPictureHandler(it)
-                playerView.addOnLayoutChangeListener(this)
-            }
+            it.setDelegate(this)
+            playerView.setPictureInPictureHandler(it)
+            playerView.addOnLayoutChangeListener(this)
         }
     }
 
