@@ -10,7 +10,9 @@ import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 
-@ReactModule(name = RNPlayerViewManager.name)
+private const val MODULE_NAME = "NativePlayerView"
+
+@ReactModule(name = MODULE_NAME)
 class RNPlayerViewManager(private val context: ReactApplicationContext) : SimpleViewManager<RNPlayerView>() {
     /**
      * Native component functions.
@@ -22,10 +24,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     /**
      * Exported module name to JS.
      */
-    companion object {
-        const val name = "NativePlayerView"
-    }
-    override fun getName() = RNPlayerViewManager.name
+    override fun getName() = MODULE_NAME
 
     /**
      * React Native PiP handler instance. It can be subclassed, then set from other native

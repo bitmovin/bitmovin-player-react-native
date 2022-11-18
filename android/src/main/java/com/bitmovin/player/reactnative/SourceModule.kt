@@ -6,7 +6,9 @@ import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.UIManagerModule
 
-@ReactModule(name = SourceModule.name)
+private const val MODULE_NAME = "SourceModule"
+
+@ReactModule(name = MODULE_NAME)
 class SourceModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
     /**
      * In-memory mapping from `nativeId`s to `Source` instances.
@@ -16,10 +18,7 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     /**
      * JS exported module name.
      */
-    companion object {
-        const val name = "SourceModule"
-    }
-    override fun getName() = SourceModule.name
+    override fun getName() = MODULE_NAME
 
     /**
      * Fetches the `Source` instance associated with `nativeId` from internal sources.
