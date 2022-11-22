@@ -4,9 +4,6 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
 import kotlin.reflect.KClass
 
-typealias EventListenerMap = Map<KClass<out Event>, (Event) -> Unit>
-typealias MutableEventListenerMap = MutableMap<KClass<out Event>, (Event) -> Unit>
-
 /**
  * Attaches and detaches listener for the provided forwarding events on the current [Player] instance and
  * relays the received events together with their associated name to the provided event output.
@@ -21,7 +18,7 @@ class PlayerEventRelay(
      */
     private val eventOutput: (String, Event) -> Unit
 ) {
-    private val playerEventListenersMap: MutableEventListenerMap = mutableMapOf()
+    private val playerEventListenersMap = mutableMapOf<KClass<out Event>, (Event) -> Unit>()
     /**
      * The [Player] for which the events are relayed.
      */
@@ -39,10 +36,10 @@ class PlayerEventRelay(
     }
 }
 
-private fun Player.attachListeners(eventListener: EventListenerMap) {
+private fun Player.attachListeners(eventListener: Map<KClass<out Event>, (Event) -> Unit>) {
     eventListener.forEach { on(it.key, it.value) }
 }
 
-private fun Player.detachListeners(eventListener: EventListenerMap) {
+private fun Player.detachListeners(eventListener: Map<KClass<out Event>, (Event) -> Unit>) {
     eventListener.forEach { off(it.key, it.value) }
 }
