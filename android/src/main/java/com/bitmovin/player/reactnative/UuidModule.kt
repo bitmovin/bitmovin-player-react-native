@@ -5,11 +5,13 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import java.util.*
 
+private const val MODULE_NAME = "UuidModule"
+
 class UuidModule(context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
     /**
      * Exported JS module name.
      */
-    override fun getName() = "UuidModule"
+    override fun getName() = MODULE_NAME
 
     /**
      * Synchronously generate a random UUIDv4.
