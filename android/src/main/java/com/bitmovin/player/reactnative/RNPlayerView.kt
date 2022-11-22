@@ -8,11 +8,35 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
-import com.bitmovin.player.api.event.on
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
+
+private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
+    PlayerEvent::class to "event",
+    PlayerEvent.Error::class to "playerError",
+    PlayerEvent.Warning::class to "playerWarning",
+    PlayerEvent.Destroy::class to "destroy",
+    PlayerEvent.Muted::class to "muted",
+    PlayerEvent.Unmuted::class to "unmuted",
+    PlayerEvent.Ready::class to "ready",
+    PlayerEvent.Paused::class to "paused",
+    PlayerEvent.Play::class to "play",
+    PlayerEvent.Playing::class to "playing",
+    PlayerEvent.PlaybackFinished::class to "playbackFinished",
+    PlayerEvent.Seek::class to "seek",
+    PlayerEvent.Seeked::class to "seeked",
+    PlayerEvent.TimeChanged::class to "timeChanged",
+    SourceEvent.Load::class to "sourceLoad",
+    SourceEvent.Loaded::class to "sourceLoaded",
+    SourceEvent.Unloaded::class to "sourceUnloaded",
+    SourceEvent.Error::class to "sourceError",
+    SourceEvent.Warning::class to "sourceWarning",
+    SourceEvent.SubtitleTrackAdded::class to "subtitleAdded",
+    SourceEvent.SubtitleTrackChanged::class to "subtitleChanged",
+    SourceEvent.SubtitleTrackRemoved::class to "subtitleRemoved",
+)
 
 /**
  * Native view wrapper for component instances. It both serves as the main view
@@ -22,9 +46,19 @@ import com.facebook.react.uimanager.events.RCTEventEmitter
 @SuppressLint("ViewConstructor")
 class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
     /**
+     * Relays the provided set of events, emitted by the player, together with the associated name
+     * to the `eventOutput` callback.
+     */
+    private val eventRelay = PlayerEventRelay(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING, this::emitEvent)
+
+    /**
      * Reference to the shared player view set as child.
      */
     var playerView: PlayerView? = null
+        set(value) {
+            field = value
+            eventRelay.player = field?.player
+        }
 
     /**
      * Handy property accessor for `playerView`'s player instance.
@@ -33,6 +67,7 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
         get() = playerView?.player
         set(value) {
             playerView?.player = value
+            eventRelay.player = value
         }
 
     /**
@@ -57,222 +92,9 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
         post {
             measure(
                 MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY))
+                MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+            )
             layout(left, top, right, bottom)
-        }
-    }
-
-    /**
-     * `onEvent` event callback.
-     */
-    private val onEvent: (PlayerEvent) -> Unit = {
-        emitEvent("event", it)
-    }
-
-    /**
-     * `onPlayerError` event callback.
-     */
-    private val onPlayerError: (PlayerEvent.Error) -> Unit = {
-        emitEvent("playerError", it)
-    }
-
-    /**
-     * `onPlayerWarning` event callback.
-     */
-    private val onPlayerWarning: (PlayerEvent.Warning) -> Unit = {
-        emitEvent("playerWarning", it)
-    }
-
-    /**
-     * `onDestroy` event callback.
-     */
-    private val onDestroy: (PlayerEvent.Destroy) -> Unit = {
-        emitEvent("destroy", it)
-    }
-
-    /**
-     * `onMuted` event callback.
-     */
-    private val onMuted: (PlayerEvent.Muted) -> Unit = {
-        emitEvent("muted", it)
-    }
-
-    /**
-     * `onUnmuted` event callback.
-     */
-    private val onUnmuted: (PlayerEvent.Unmuted) -> Unit = {
-        emitEvent("unmuted", it)
-    }
-
-    /**
-     * `onReady` event callback.
-     */
-    private val onReady: (PlayerEvent.Ready) -> Unit = {
-        emitEvent("ready", it)
-    }
-
-    /**
-     * `onPaused` event callback.
-     */
-    private val onPaused: (PlayerEvent.Paused) -> Unit = {
-        emitEvent("paused", it)
-    }
-
-    /**
-     * `onPlay` event callback.
-     */
-    private val onPlay: (PlayerEvent.Play) -> Unit = {
-        emitEvent("play", it)
-    }
-
-    /**
-     * `onPlaying` event callback.
-     */
-    private val onPlaying: (PlayerEvent.Playing) -> Unit = {
-        emitEvent("playing", it)
-    }
-
-    /**
-     * `onPlaybackFinished` event callback.
-     */
-    private val onPlaybackFinished: (PlayerEvent.PlaybackFinished) -> Unit = {
-        emitEvent("playbackFinished", it)
-    }
-
-    /**
-     * `onSeek` event callback.
-     */
-    private val onSeek: (PlayerEvent.Seek) -> Unit = {
-        emitEvent("seek", it)
-    }
-
-    /**
-     * `onSeeked` event callback.
-     */
-    private val onSeeked: (PlayerEvent.Seeked) -> Unit = {
-        emitEvent("seeked", it)
-    }
-
-    /**
-     * `onTimeChanged` event callback.
-     */
-    private val onTimeChanged: (PlayerEvent.TimeChanged) -> Unit = {
-        emitEvent("timeChanged", it)
-    }
-
-    /**
-     * `onSourceLoad` event callback.
-     */
-    private val onSourceLoad: (SourceEvent.Load) -> Unit = {
-        emitEvent("sourceLoad", it)
-    }
-
-    /**
-     * `onSourceLoaded` event callback.
-     */
-    private val onSourceLoaded: (SourceEvent.Loaded) -> Unit = {
-        emitEvent("sourceLoaded", it)
-    }
-
-    /**
-     * `onSourceUnloaded` event callback.
-     */
-    private val onSourceUnloaded: (SourceEvent.Unloaded) -> Unit = {
-        emitEvent("sourceUnloaded", it)
-    }
-
-    /**
-     * `onSourceError` event callback.
-     */
-    private val onSourceError: (SourceEvent.Error) -> Unit = {
-        emitEvent("sourceError", it)
-    }
-
-    /**
-     * `onSourceWarning` event callback.
-     */
-    private val onSourceWarning: (SourceEvent.Warning) -> Unit = {
-        emitEvent("sourceWarning", it)
-    }
-
-    /**
-     * `onSubtitleAdded` event callback.
-     */
-    private val onSubtitleAdded: (SourceEvent.SubtitleTrackAdded) -> Unit = {
-        emitEvent("subtitleAdded", it)
-    }
-
-    /**
-     * `onSubtitleChanged` event callback.
-     */
-    private val onSubtitleChanged: (SourceEvent.SubtitleTrackChanged) -> Unit = {
-        emitEvent("subtitleChanged", it)
-    }
-
-    /**
-     * `onSubtitleRemoved` event callback.
-     */
-    private val onSubtitleRemoved: (SourceEvent.SubtitleTrackRemoved) -> Unit = {
-        emitEvent("subtitleRemoved", it)
-    }
-
-    /**
-     * Start listening and emitting player events as bubbling events to the js side.
-     */
-    fun startBubblingEvents() {
-        player?.apply {
-            on(onEvent)
-            on(onPlayerError)
-            on(onPlayerWarning)
-            on(onDestroy)
-            on(onMuted)
-            on(onUnmuted)
-            on(onReady)
-            on(onPaused)
-            on(onPlay)
-            on(onPlaying)
-            on(onPlaybackFinished)
-            on(onSeek)
-            on(onSeeked)
-            on(onTimeChanged)
-            on(onSourceLoad)
-            on(onSourceLoaded)
-            on(onSourceUnloaded)
-            on(onSourceError)
-            on(onSourceWarning)
-            on(onSubtitleAdded)
-            on(onSubtitleChanged)
-            on(onSubtitleRemoved)
-        }
-    }
-
-    /**
-     * Stop listening for player events and cease to emit bubbling events.
-     */
-    fun stopBubblingEvents() {
-        player?.apply {
-            off(onEvent)
-            off(onPlayerError)
-            off(onPlayerWarning)
-            off(onDestroy)
-            off(onMuted)
-            off(onUnmuted)
-            off(onReady)
-            off(onPaused)
-            off(onPlay)
-            off(onPlaying)
-            off(onPlaybackFinished)
-            off(onSeek)
-            off(onSeeked)
-            off(onTimeChanged)
-            off(onSourceLoad)
-            off(onSourceLoaded)
-            off(onSourceUnloaded)
-            off(onSourceError)
-            off(onSourceWarning)
-            off(onSubtitleAdded)
-            off(onSubtitleChanged)
-            off(onSubtitleRemoved)
         }
     }
 
@@ -281,7 +103,7 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
      * @param event Native event name.
      * @param json Optional js object to be sent as payload.
      */
-    private inline fun <reified E : Event> emitEvent(name: String, event: E) {
+    private fun <E : Event> emitEvent(name: String, event: E) {
         val payload = if (event is PlayerEvent) {
             JsonConverter.fromPlayerEvent(event)
         } else {
