@@ -26,6 +26,10 @@ class RNPlayerView: UIView {
     @objc var onSubtitleAdded: RCTBubblingEventBlock?
     @objc var onSubtitleRemoved: RCTBubblingEventBlock?
     @objc var onSubtitleChanged: RCTBubblingEventBlock?
+    @objc var onPictureInPictureEnter: RCTBubblingEventBlock?
+    @objc var onPictureInPictureEntered: RCTBubblingEventBlock?
+    @objc var onPictureInPictureExit: RCTBubblingEventBlock?
+    @objc var onPictureInPictureExited: RCTBubblingEventBlock?
     @objc var onAdBreakFinished: RCTBubblingEventBlock?
     @objc var onAdBreakStarted: RCTBubblingEventBlock?
     @objc var onAdClicked: RCTBubblingEventBlock?

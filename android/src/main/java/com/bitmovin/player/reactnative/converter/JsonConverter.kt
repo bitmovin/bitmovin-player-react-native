@@ -323,6 +323,9 @@ class JsonConverter {
                 json.putMap("from", fromSeekPosition(event.from))
                 json.putMap("to", fromSeekPosition(event.to))
             }
+            if (event is PlayerEvent.PictureInPictureAvailabilityChanged) {
+                json.putBoolean("isPictureInPictureAvailable", event.isPictureInPictureAvailable)
+            }
             if (event is PlayerEvent.AdBreakFinished) {
                 json.putMap("adBreak", fromAdBreak(event.adBreak))
             }

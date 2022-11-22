@@ -253,6 +253,46 @@ export interface SubtitleChangedEvent extends Event {
 }
 
 /**
+ * Emitted when the player enters Picture in Picture mode.
+ *
+ * @platform iOS, Android
+ */
+export interface PictureInPictureEnterEvent extends Event {}
+
+/**
+ * Emitted when the player exits Picture in Picture mode.
+ *
+ * @platform iOS, Android
+ */
+export interface PictureInPictureExitEvent extends Event {}
+
+/**
+ * Emitted when the player has finished entering Picture in Picture mode on iOS.
+ *
+ * @platform iOS
+ */
+export interface PictureInPictureEnteredEvent extends Event {}
+
+/**
+ * Emitted when the player has finished exiting Picture in Picture mode on iOS.
+ *
+ * @platform iOS
+ */
+export interface PictureInPictureExitedEvent extends Event {}
+
+/**
+ * Emitted when the availability of the Picture in Picture mode changed on Android.
+ *
+ * @platform Android
+ */
+export interface PictureInPictureAvailabilityChangedEvent extends Event {
+  /**
+   * Whether Picture in Picture is available.
+   */
+  isPictureInPictureAvailable: boolean;
+}
+
+/**
  * Emitted when an ad break has started.
  */
 export interface AdBreakStartedEvent extends Event {

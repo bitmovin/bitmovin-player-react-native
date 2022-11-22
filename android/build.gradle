@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        kotlinVersion = '1.7.0'
+        kotlinVersion = '1.7.20'
         androidToolsVersion = '7.0.4'
     }
     repositories {
@@ -27,10 +27,10 @@ repositories {
 }
 
 android {
-    compileSdk 31
+    compileSdk 33
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 31
+        minSdkVersion 16
+        targetSdkVersion 33
         versionCode 1
         versionName '1.0'
     }

@@ -1,4 +1,5 @@
 export * from './advertising';
+export * from './audioSession';
 export * from './components';
 export * from './drm';
 export * from './events';
