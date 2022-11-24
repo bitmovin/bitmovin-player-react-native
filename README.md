@@ -614,14 +614,14 @@ Check [`events.ts`](https://github.com/bitmovin/bitmovin-player-react-native/blo
 
 ### Setting up ads
 
-The Bitmovin Player SDKs are capable of serving Ads out of the box and there are two ways they can be
+The Bitmovin Player SDKs are capable of displaying Ads out of the box and there are two ways they can be
 configured with the player. One option is to use static configuration in the player config object,
 and the other is to schedule them dynamically using `Player.scheduleAd`.
 
 #### Static ads configuration
 
 The easiest way to configure Ads is by adding the `advertisingConfig` property to the player configuration object.
-All that needs to be provided is a URL pointing to a target Ad server along with the type of advertising tag.
+All that needs to be provided is a URL pointing to a target Ad tag along with the type of the tag.
 
 ```typescript
 const player = usePlayer({
