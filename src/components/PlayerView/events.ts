@@ -29,6 +29,8 @@ import {
   ReadyEvent,
   SeekedEvent,
   SeekEvent,
+  StallStartedEvent,
+  StallEndedEvent,
   SourceErrorEvent,
   SourceLoadedEvent,
   SourceLoadEvent,
@@ -75,6 +77,8 @@ interface EventProps {
   onReady: ReadyEvent;
   onSeek: SeekEvent;
   onSeeked: SeekedEvent;
+  onStallStarted: StallStartedEvent;
+  onStallEnded: StallEndedEvent;
   onSourceError: SourceErrorEvent;
   onSourceLoad: SourceLoadEvent;
   onSourceLoaded: SourceLoadedEvent;

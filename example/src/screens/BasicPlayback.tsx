@@ -56,6 +56,8 @@ export default function BasicPlayback() {
         onSourceLoaded={onEvent}
         onSeek={onEvent}
         onSeeked={onEvent}
+        onStallStarted={onEvent}
+        onStallEnded={onEvent}
       />
     </View>
   );
