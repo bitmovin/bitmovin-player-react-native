@@ -3,11 +3,9 @@ package com.bitmovin.player.reactnative
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.graphics.Rect
-import android.os.Build
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import androidx.annotation.RequiresApi
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
@@ -377,6 +375,83 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
     }
 
     /**
+     * `onAdBreakFinished` event callback.
+     */
+    private val onAdBreakFinished: (PlayerEvent.AdBreakFinished) -> Unit = {
+        emitEvent("adBreakFinished", it)
+    }
+
+    /**
+     * `onAdBreakStarted` event callback.
+     */
+    private val onAdBreakStarted: (PlayerEvent.AdBreakStarted) -> Unit = {
+        emitEvent("adBreakStarted", it)
+    }
+
+    /**
+     * `onAdClicked` event callback.
+     */
+    private val onAdClicked: (PlayerEvent.AdClicked) -> Unit = {
+        emitEvent("adClicked", it)
+    }
+
+    /**
+     * `onAdError` event callback.
+     */
+    private val onAdError: (PlayerEvent.AdError) -> Unit = {
+        emitEvent("adError", it)
+    }
+
+    /**
+     * `onAdFinished` event callback.
+     */
+    private val onAdFinished: (PlayerEvent.AdFinished) -> Unit = {
+        emitEvent("adFinished", it)
+    }
+
+    /**
+     * `onAdManifestLoad` event callback.
+     */
+    private val onAdManifestLoad: (PlayerEvent.AdManifestLoad) -> Unit = {
+        emitEvent("adManifestLoad", it)
+    }
+
+    /**
+     * `onAdManifestLoaded` event callback.
+     */
+    private val onAdManifestLoaded: (PlayerEvent.AdManifestLoaded) -> Unit = {
+        emitEvent("adManifestLoaded", it)
+    }
+
+    /**
+     * `onAdQuartile` event callback.
+     */
+    private val onAdQuartile: (PlayerEvent.AdQuartile) -> Unit = {
+        emitEvent("adQuartile", it)
+    }
+
+    /**
+     * `onAdScheduled` event callback.
+     */
+    private val onAdScheduled: (PlayerEvent.AdScheduled) -> Unit = {
+        emitEvent("adScheduled", it)
+    }
+
+    /**
+     * `onAdSkipped` event callback.
+     */
+    private val onAdSkipped: (PlayerEvent.AdSkipped) -> Unit = {
+        emitEvent("adSkipped", it)
+    }
+
+    /**
+     * `onAdStarted` event callback.
+     */
+    private val onAdStarted: (PlayerEvent.AdStarted) -> Unit = {
+        emitEvent("adStarted", it)
+    }
+
+    /**
      * Start listening and emitting player events as bubbling events to the js side.
      */
     fun startBubblingEvents() {
@@ -405,6 +480,17 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
             on(onSubtitleAdded)
             on(onSubtitleChanged)
             on(onSubtitleRemoved)
+            on(onAdBreakFinished)
+            on(onAdBreakStarted)
+            on(onAdClicked)
+            on(onAdError)
+            on(onAdFinished)
+            on(onAdManifestLoad)
+            on(onAdManifestLoaded)
+            on(onAdQuartile)
+            on(onAdScheduled)
+            on(onAdSkipped)
+            on(onAdStarted)
         }
         playerView?.apply {
             on(onPictureInPictureAvailabilityChanged)
@@ -442,6 +528,17 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
             off(onSubtitleAdded)
             off(onSubtitleChanged)
             off(onSubtitleRemoved)
+            off(onAdBreakFinished)
+            off(onAdBreakStarted)
+            off(onAdClicked)
+            off(onAdError)
+            off(onAdFinished)
+            off(onAdManifestLoad)
+            off(onAdManifestLoaded)
+            off(onAdQuartile)
+            off(onAdScheduled)
+            off(onAdSkipped)
+            off(onAdStarted)
         }
         playerView?.apply {
             off(onPictureInPictureAvailabilityChanged)

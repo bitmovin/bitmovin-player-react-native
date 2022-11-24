@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SourceType } from 'bitmovin-player-react-native';
 import Button from './components/Button';
 import ExamplesList from './screens/ExamplesList';
+import BasicAds from './screens/BasicAds';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
@@ -19,6 +20,7 @@ export type RootStackParamsList = {
       routeName: keyof RootStackParamsList;
     }[];
   };
+  BasicAds: undefined;
   BasicPlayback: undefined;
   BasicDrmPlayback: undefined;
   BasicPictureInPicture: undefined;
@@ -78,8 +80,17 @@ export default function App() {
                 title: 'Basic Picture in Picture',
                 routeName: 'BasicPictureInPicture',
               },
+              {
+                title: 'Basic Ads',
+                routeName: 'BasicAds',
+              },
             ],
           }}
+        />
+        <RootStack.Screen
+          name="BasicAds"
+          component={BasicAds}
+          options={{ title: 'Basic Ads' }}
         />
         <RootStack.Screen
           name="BasicPlayback"

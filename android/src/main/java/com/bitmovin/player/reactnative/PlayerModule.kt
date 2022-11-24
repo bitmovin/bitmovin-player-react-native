@@ -280,6 +280,43 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Schedules an `AdItem` in the `nativeId`'s associated player.
+     * @param nativeId Target player id.
+     * @param adItemJson Json representation of the `AdItem` to be scheduled.
+     */
+    @ReactMethod
+    fun scheduleAd(nativeId: NativeId, adItemJson: ReadableMap?) {
+        JsonConverter.toAdItem(adItemJson)?.let { adItem ->
+            uiManager()?.addUIBlock {
+                players[nativeId]?.scheduleAd(adItem)
+            }
+        }
+    }
+
+    /**
+     * Skips the current ad in `nativeId`'s associated player.
+     * Has no effect if the current ad is not skippable or if no ad is being played back.
+     * @param nativeId Target player id.
+     */
+    @ReactMethod
+    fun skipAd(nativeId: NativeId) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.skipAd()
+        }
+    }
+
+    /**
+     * Returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
+     * @param nativeId Target player id.
+     */
+    @ReactMethod
+    fun isAd(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.isAd)
+        }
+    }
+
+    /**
      * Helper function that returns the initialized `UIManager` instance.
      */
     private fun uiManager(): UIManagerModule? =
