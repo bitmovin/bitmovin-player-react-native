@@ -66,6 +66,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "playbackFinished" to "onPlaybackFinished",
         "seek" to "onSeek",
         "seeked" to "onSeeked",
+        "stallStarted" to "onStallStarted",
+        "stallEnded" to "onStallEnded",
         "timeChanged" to "onTimeChanged",
         "sourceLoad" to "onSourceLoad",
         "sourceLoaded" to "onSourceLoaded",
