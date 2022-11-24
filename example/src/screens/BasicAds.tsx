@@ -8,8 +8,6 @@ import {
   SourceType,
   AdSourceType,
   AdSkippedEvent,
-  AdQuartileEvent,
-  AdQuartile,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
@@ -111,17 +109,6 @@ export default function BasicAds() {
     [player, onEvent]
   );
 
-  const onAdQuartile = useCallback(
-    (event: AdQuartileEvent) => {
-      onEvent(event);
-      if (event.quartile === AdQuartile.MID_POINT) {
-        // Tries to skip the ad when skippable and has reached its mid point.
-        player.skipAd();
-      }
-    },
-    [player, onEvent]
-  );
-
   const onAdSkipped = useCallback(
     (event: AdSkippedEvent) => {
       onEvent(event);
@@ -142,7 +129,7 @@ export default function BasicAds() {
         onAdFinished={onEvent}
         onAdManifestLoad={onEvent}
         onAdManifestLoaded={onEvent}
-        onAdQuartile={onAdQuartile}
+        onAdQuartile={onEvent}
         onAdScheduled={onEvent}
         onAdSkipped={onAdSkipped}
         onAdStarted={onAdStarted}
