@@ -150,10 +150,14 @@ class JsonConverter {
          * @return The generated `AdItem` if successful, `null` otherwise.
          */
         @JvmStatic
-        fun toAdItem(json: ReadableMap?): AdItem? = json?.getArray("sources")
-            ?.toList<ReadableMap>()
-            ?.mapNotNull(::toAdSource)
-            ?.let { AdItem(it.toTypedArray(), json.getString("position") ?: "pre") }
+        fun toAdItem(json: ReadableMap?): AdItem? {
+            val sources = json?.getArray("sources")
+                ?.toList<ReadableMap>()
+                ?.mapNotNull(::toAdSource)
+                ?.toTypedArray()
+                ?: return null
+            return AdItem(sources, json?.getString("position") ?: "pre")
+        }
 
         /**
          * Converts any JS object into an `AdSource` object.
