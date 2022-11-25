@@ -2,11 +2,11 @@
 
 ## [0.4.0] (2022-11-24)
 
-Adds support for the ads API, Picture in Picture and stall events on both Android and iOS.
+This version introduces the advertising API, full Picture in Picture support and exposes Stall events.
 
 ### Added
 
-- Ads API support.
+- Advertising API support.
 - Complete Picture in Picture support.
 - `onStallStarted`/`onStallEnded` events support. (Thanks to @joornby-angel)
 
