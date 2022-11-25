@@ -5,6 +5,7 @@ import {
   ViewStyle,
   StyleSheet,
   findNodeHandle,
+  NodeHandle,
 } from 'react-native';
 import { PlayerViewEvents } from './events';
 import { NativePlayerView } from './native';
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
 /**
  * Dispatches any given `NativePlayerView` commands on React's `UIManager`.
  */
-function dispatch(command: string, node: number | null, playerId: string) {
+function dispatch(command: string, node: NodeHandle, ...args: any[]) {
   const commandId =
     Platform.OS === 'android'
       ? (UIManager as any).NativePlayerView.Commands[command].toString()
@@ -52,10 +53,7 @@ function dispatch(command: string, node: number | null, playerId: string) {
   UIManager.dispatchViewManagerCommand(
     node,
     commandId,
-    Platform.select({
-      ios: [playerId],
-      android: [node, playerId],
-    })
+    Platform.select({ ios: args, android: [node, ...args] })
   );
 }
 
@@ -63,28 +61,48 @@ function dispatch(command: string, node: number | null, playerId: string) {
  * Component that provides the Bitmovin Player UI and default UI handling to an attached `Player` instance.
  * This component needs a `Player` instance to work properly so make sure one is passed to it as a prop.
  */
-export function PlayerView(props: PlayerViewProps) {
+export function PlayerView({ style, player, ...props }: PlayerViewProps) {
   // Native view reference.
   const nativeView = useRef(null);
   // Native events proxy helper.
   const proxy = useProxy(nativeView);
   // Style resulting from merging `baseStyle` and `props.style`.
-  const style = StyleSheet.flatten([styles.baseStyle, props.style]);
+  const nativeViewStyle = StyleSheet.flatten([styles.baseStyle, style]);
   useEffect(() => {
     // Initialize native player instance if needed.
-    props.player.initialize();
+    player.initialize();
     // Attach native player to native `PlayerView`.
     const node = findNodeHandle(nativeView.current);
-    dispatch('attachPlayer', node, props.player.nativeId);
-  }, [props.player]);
+    if (node) {
+      dispatch('attachPlayer', node, player.nativeId, player.config);
+    }
+  }, [player]);
   return (
     <NativePlayerView
       ref={nativeView}
-      style={style}
+      style={nativeViewStyle}
+      onAdBreakFinished={proxy(props.onAdBreakFinished)}
+      onAdBreakStarted={proxy(props.onAdBreakStarted)}
+      onAdClicked={proxy(props.onAdClicked)}
+      onAdError={proxy(props.onAdError)}
+      onAdFinished={proxy(props.onAdFinished)}
+      onAdManifestLoad={proxy(props.onAdManifestLoad)}
+      onAdManifestLoaded={proxy(props.onAdManifestLoaded)}
+      onAdQuartile={proxy(props.onAdQuartile)}
+      onAdScheduled={proxy(props.onAdScheduled)}
+      onAdSkipped={proxy(props.onAdSkipped)}
+      onAdStarted={proxy(props.onAdStarted)}
       onDestroy={proxy(props.onDestroy)}
       onEvent={proxy(props.onEvent)}
       onMuted={proxy(props.onMuted)}
       onPaused={proxy(props.onPaused)}
+      onPictureInPictureAvailabilityChanged={proxy(
+        props.onPictureInPictureAvailabilityChanged
+      )}
+      onPictureInPictureEnter={proxy(props.onPictureInPictureEnter)}
+      onPictureInPictureEntered={proxy(props.onPictureInPictureEntered)}
+      onPictureInPictureExit={proxy(props.onPictureInPictureExit)}
+      onPictureInPictureExited={proxy(props.onPictureInPictureExited)}
       onPlay={proxy(props.onPlay)}
       onPlaybackFinished={proxy(props.onPlaybackFinished)}
       onPlayerActive={proxy(props.onPlayerActive)}
@@ -94,6 +112,8 @@ export function PlayerView(props: PlayerViewProps) {
       onReady={proxy(props.onReady)}
       onSeek={proxy(props.onSeek)}
       onSeeked={proxy(props.onSeeked)}
+      onStallStarted={proxy(props.onStallStarted)}
+      onStallEnded={proxy(props.onStallEnded)}
       onSourceError={proxy(props.onSourceError)}
       onSourceLoad={proxy(props.onSourceLoad)}
       onSourceLoaded={proxy(props.onSourceLoaded)}
