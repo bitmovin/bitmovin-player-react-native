@@ -11,12 +11,12 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 > See [Feature Support](#feature-support) for an overview of the supported features.
 >
 > Not seeing the features you’re looking for?  
-> We are accepting community pull requests to this open-source project so please feel free to contribute  
-> or let us know in [our community](https://community.bitmovin.com/c/requests/14) what features we should work on next
+> We are accepting community pull requests to this open-source project so please feel free to contribute.
+> or let us know in [our community](https://community.bitmovin.com/c/requests/14) what features we should work on next.
 
 - [Bitmovin Player React Native](#bitmovin-player-react-native)
   - [Platform Support](#platform-support)
-  - [Feature Support](#platform-support)
+  - [Feature Support](#feature-support)
   - [Installation](#installation)
     - [Add package dependency](#add-package-dependency)
     - [Setup iOS Player SDK](#setup-ios-player-sdk)
