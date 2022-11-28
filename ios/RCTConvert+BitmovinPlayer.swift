@@ -365,13 +365,13 @@ extension RCTConvert {
         }
         
         return [
-            "clickThroughUrl": ad.clickThroughUrl,
+            "clickThroughUrl": ad.clickThroughUrl?.absoluteString,
             "data": RCTConvert.adDataJson(ad.data),
             "height": ad.height,
             "width": ad.width,
             "id": ad.identifier,
             "isLinear": ad.isLinear,
-            "mediaFileUrl": ad.mediaFileUrl
+            "mediaFileUrl": ad.mediaFileUrl?.absoluteString
         ]
     }
     

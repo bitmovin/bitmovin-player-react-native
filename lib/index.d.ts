@@ -1497,6 +1497,38 @@ interface SubtitleViewProps extends BaseSubtitleViewProps {
      * and render audio/video inside the `PlayerView`.
      */
     player: Player;
+    /**
+     * Sets whether font sizes embedded within the cues should be applied.
+     * Enabled by default.
+     * Only takes effect if setApplyEmbeddedStyles is set to true.
+     */
+    applyEmbeddedFontSizes?: boolean;
+    /**
+     * Sets whether styling embedded within the cues should be applied.
+     * Enabled by default.
+     * Overrides any setting made with setApplyEmbeddedFontSizes.
+     */
+    applyEmbeddedStyles?: boolean;
+    /**
+     * Sets the bottom padding fraction to apply when getLine is DIMEN_UNSET, as a fraction of the view's remaining height after its top and bottom padding have been subtracted.
+     */
+    bottomPaddingFraction?: number;
+    /**
+     * Set the text size to a given unit and value.
+     * `unit` defaults to `COMPLEX_UNIT_SP`
+     */
+    fixedTextSize?: {
+        size: number;
+        unit?: 'COMPLEX_UNIT_PX' | 'COMPLEX_UNIT_DIP' | 'COMPLEX_UNIT_SP' | 'COMPLEX_UNIT_PT' | 'COMPLEX_UNIT_IN' | 'COMPLEX_UNIT_MM';
+    };
+    /**
+     * Sets the text size to be a fraction of the height of this view.
+     * When `ignorePadding` is true, sets the text size to be a fraction of the views remaining height after its top and bottom padding have been subtracted.
+     */
+    fractionalTextSize?: {
+        fractionOfHeight: number;
+        ignorePadding?: boolean;
+    };
 }
 /**
  * Component that provides the Bitmovin Android SubtitleView for a `Player` instance.

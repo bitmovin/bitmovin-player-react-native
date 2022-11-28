@@ -242,7 +242,7 @@ extension AdStartedEvent {
             "name": name,
             "timestamp": timestamp,
             "clientType": RCTConvert.adSourceTypeJson(clientType),
-            "clickThroughUrl": clickThroughUrl,
+            "clickThroughUrl": clickThroughUrl?.absoluteString,
             "indexInQueue": indexInQueue,
             "duration": duration,
             "timeOffset": timeOffset,
@@ -319,7 +319,7 @@ extension AdClickedEvent {
         [
             "name": name,
             "timestamp": timestamp,
-            "clickThroughUrl": clickThroughUrl
+            "clickThroughUrl": clickThroughUrl?.absoluteString
         ]
     }
 }
