@@ -7,25 +7,32 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 [![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![Bitmovin Community](https://img.shields.io/discourse/users?label=community&server=https%3A%2F%2Fcommunity.bitmovin.com)](https://community.bitmovin.com/?utm_source=github&utm_medium=bitmovin-player-react-native&utm_campaign=dev-community)
 
-> The library is under active development.
+> As the library is under active development, this means certain features from our native SDKs are not yet exposed through these React Native bindings.  
+> See [Feature Support](#feature-support) for an overview of the supported features.
+>
+> Not seeing the features you’re looking for?  
+> We are accepting community pull requests to this open-source project so please feel free to contribute  
+> or let us know in [our community](https://community.bitmovin.com/c/requests/14) what features we should work on next
 
 - [Bitmovin Player React Native](#bitmovin-player-react-native)
   - [Platform Support](#platform-support)
+  - [Feature Support](#platform-support)
   - [Installation](#installation)
     - [Add package dependency](#add-package-dependency)
     - [Setup iOS Player SDK](#setup-ios-player-sdk)
     - [Setup Android Player SDK](#setup-android-player-sdk)
   - [Getting Started](#getting-started)
     - [Setting up a license key](#setting-up-a-license-key)
-      - [Configuring through code](#configuring-through-code)
-    - [Setting up a playback configurations](#setting-up-a-playback-configurations)
-      - [Configuring `Info.plist`](#configuring-infoplist)
-      - [Configuring `AndroidManifest.xml`](#configuring-androidmanifestxml)
+      - [Through code](#through-code)
+      - [Through `Info.plist`](#through-infoplist)
+      - [Through `AndroidManifest.xml`](#through-androidmanifestxml)
+    - [Setting up the playback configuration](#setting-up-the-playback-configuration)
     - [Accessing native `Player` instances](#accessing-native-player-instances)
     - [Listening to events](#listening-to-events)
     - [Enabling DRM protection](#enabling-drm-protection)
       - [Prepare hooks](#prepare-hooks)
     - [Adding external subtitle tracks](#adding-external-subtitle-tracks)
+    - [Enabling Picture in Picture mode](#enabling-picture-in-picture-mode)
   - [Contributing](#contributing)
 
 ## Platform Support
@@ -39,6 +46,19 @@ This library requires at least React Native 0.64+ and React 17+ to work properly
 - Fire TV (just make sure the Android API level is at least 17+)
 
 Please note that browsers and other browser-like environments such as webOS and Tizen are not supported.
+
+## Feature Support
+
+Features of the native mobile Player SDKs are progressively being implemented in this React Native library. The table below summarizes the current state of the main Player SDK features.
+
+| Feature                          | State                                     |
+| -------------------------------- | ----------------------------------------- |
+| Playback of DRM-protected assets | :white_check_mark: Available since v0.2.0 |
+| Subtitles & Captions             | :white_check_mark: Available since v0.2.0 |
+| Advertising                      | :gear: In progress, Q4 2022               |
+| Playlist API                     | :x: Not available                         |
+| Offline Playback                 | :x: Not available                         |
+| Analytics                        | :x: Coming Q1 2023                        |
 
 ## Installation
 
@@ -200,7 +220,7 @@ First of all, create a license key on the [Dashboard](https://bitmovin.com/dashb
 
 Then your license key can be either set from code or by configuring `Info.plist` and `AndroidManifest.xml`.
 
-#### Configuring through code
+#### Through code
 
 ```typescript
 // Simply pass the `licenseKey` property to `PlayerConfig` when instantiating a player.
@@ -219,7 +239,24 @@ const player = new Player({
 });
 ```
 
-### Setting up a playback configurations
+#### Through `Info.plist`
+
+Add the following lines to the `<dict>` section of your `ios/Info.plist`:
+
+```xml
+<key>BitmovinPlayerLicenseKey</key>
+<string>ENTER-YOUR-LICENSE-KEY</string>
+```
+
+#### Through `AndroidManifest.xml`
+
+Add the following line to the `<application>` section of your `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="ENTER-YOUR-LICENSE-KEY" />
+```
+
+### Setting up the playback configuration
 
 If needed, the default player behavior can be configured through the `playbackConfig` key when initialized.
 
@@ -239,6 +276,14 @@ const player = usePlayer({
     // Whether background playback is enabled or not. Default is false.
     // Only available for iOS.
     isBackgroundPlaybackEnabled: true,
+    // Enable the Picture in Picture mode option on the player controls.
+    //
+    // Note iOS requires the audio session category of your app to be set to `playback` otherwise
+    // PiP mode won't work.
+    //
+    // Check out `Enabling Picture in Picture mode` section of README for more information
+    // on how to properly configure your app to support PiP.
+    isPictureInPictureEnabled: true,
   },
 });
 
@@ -251,25 +296,9 @@ const player = new Player({
     isMuted: true,
     isTimeShiftEnabled: true,
     isBackgroundPlaybackEnabled: true,
+    isPictureInPictureEnabled: true,
   },
 });
-```
-
-#### Configuring `Info.plist`
-
-Add the following lines to the `<dict>` section of your `ios/Info.plist`:
-
-```xml
-<key>BitmovinPlayerLicenseKey</key>
-<string>ENTER-YOUR-LICENSE-KEY</string>
-```
-
-#### Configuring `AndroidManifest.xml`
-
-Add the following line to the `<application>` section of your `android/app/src/main/AndroidManifest.xml`:
-
-```xml
-<meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="ENTER-YOUR-LICENSE-KEY" />
 ```
 
 ### Accessing native `Player` instances
@@ -485,6 +514,102 @@ The supported `PlayerView` events for subtitles are:
 - `onSubtitleChanged`
 
 You might check out a complete subtitle example in the [`example/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app.
+
+### Enabling Picture in Picture mode
+
+In order to make use of the Picture in Picture functionalities provided by the player, it's first necessary to configure your native application to properly support PiP.
+
+The steps required for each platform are described below:
+
+#### Android
+
+**Declare Picture in Picture support on AndroidManifest.xml**
+
+Open `android/app/src/main/AndroidManifest.xml` and set `android:supportsPictureInPicture` to `true`
+on your main activity's manifest. Also, specify that your activity handles layout configuration changes
+so that your activity doesn't relaunch when layout changes occur during PiP mode transitions:
+
+```xml
+<activity android:name=".MainActivity"
+    android:supportsPictureInPicture="true"
+    android:configChanges=
+        "screenSize|smallestScreenSize|screenLayout|orientation"
+    ...
+```
+
+#### iOS
+
+**Set background modes capability**
+
+Make sure to add the `UIBackgroundModes` key to the `dict` section of your `Info.plist`:
+
+```xml
+<key>UIBackgroundModes</key>
+<array>
+  <string>audio</string>
+</array>
+```
+
+This step can also be performed from [Xcode](https://developer.apple.com/documentation/xcode/configuring-background-execution-modes).
+
+**Configure audio session on app startup**
+
+Configure your app's `AudioSession` category to `playback` during the main component's initialization:
+
+```typescript
+import { AudioSession } from 'bitmovin-player-react-native';
+
+// App's root component
+const App = () => {
+  useEffect(() => {
+    // Set your app's `AudioSession` category to `playback` on initialization.
+    // Please, note even though this step is required for iOS it won't take any effect on Android.
+    AudioSession.setCategory('playback').catch((error) => {
+      // Handle any native error that might occur during this process.
+      handleError(error);
+    });
+  });
+  // ...
+  return /* ... */;
+};
+```
+
+This step is required in order to properly enable background playback on iOS. Without it, the Picture in Picture option appears on the player UI but has no effect when used.
+
+You can read more about it on [Apple's docs](https://developer.apple.com/documentation/avfaudio/avaudiosession/category/1616509-playback).
+
+#### Showing the Picture in Picture UI option
+
+Now that your native application is properly configured to support PiP changes, the player instance
+in your JS code can be configured to show the Picture in Picture option in the player UI.
+
+Simply add `isPictureInPictureEnabled: true` on your player's `playbackConfig` option:
+
+```typescript
+const player = usePlayer({
+  playbackConfig: {
+    isPictureInPictureEnabled: true,
+  },
+});
+```
+
+#### Supported Picture in Picture events
+
+The supported Picture in Picture events on `PlayerView` are:
+
+- `onPictureInPictureEnter`
+- `onPictureInPictureExit`
+
+**iOS only**
+
+- `onPictureInPictureEntered`
+- `onPictureInPictureExited`
+
+**Android only**
+
+- `onPictureInPictureAvailabilityChanged`
+
+Check [`events.ts`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/components/PlayerView/events.ts) for more information about them.
 
 ## Contributing
 

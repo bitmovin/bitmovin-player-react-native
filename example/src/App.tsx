@@ -10,6 +10,7 @@ import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
+import BasicPictureInPicture from './screens/BasicPictureInPicture';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -20,6 +21,7 @@ export type RootStackParamsList = {
   };
   BasicPlayback: undefined;
   BasicDrmPlayback: undefined;
+  BasicPictureInPicture: undefined;
   SubtitlePlayback: undefined;
   CustomPlaybackForm: undefined;
   CustomPlayback: {
@@ -72,6 +74,10 @@ export default function App() {
                 title: 'Subtitle and captions',
                 routeName: 'SubtitlePlayback',
               },
+              {
+                title: 'Basic Picture in Picture',
+                routeName: 'BasicPictureInPicture',
+              },
             ],
           }}
         />
@@ -99,6 +105,11 @@ export default function App() {
           name="CustomPlayback"
           component={CustomPlayback}
           options={{ title: 'Custom playback' }}
+        />
+        <RootStack.Screen
+          name="BasicPictureInPicture"
+          component={BasicPictureInPicture}
+          options={{ title: 'Basic Picture in Picture' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>
