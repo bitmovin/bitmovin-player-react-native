@@ -66,24 +66,6 @@ export interface StyleConfig {
 }
 
 /**
- * Indicates which type of UI should be used.
- */
-export enum UserInterfaceType {
-  /**
-   * Indicates that Bitmovin’s customizable UI should be used.
-   */
-  bitmovin = 'bitmovin',
-  /**
-   * Indicates that the system UI should be used.
-   */
-  system = 'system',
-  /**
-   * Indicates that only subtitles should be displayed along with the video content
-   */
-  subtitle = 'subtitle',
-}
-
-/**
  * Specifies how the video content is scaled or stretched.
  */
 export enum ScalingMode {
