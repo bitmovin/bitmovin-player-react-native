@@ -17,7 +17,6 @@ export default function BasicPlayback() {
   useTVGestures();
 
   const player = usePlayer({
-    licenseKey: '60bd09ff-5a03-45ed-9453-e832798d1c7e',
     styleConfig: {
       playerUiCss:
         'https://cdn.bitmovin.com/player/web/8/bitmovinplayer-ui.css',
