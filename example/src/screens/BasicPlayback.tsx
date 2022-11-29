@@ -58,6 +58,8 @@ export default function BasicPlayback() {
         onSeeked={onEvent}
         onStallStarted={onEvent}
         onStallEnded={onEvent}
+        onVideoPlaybackQualityChanged={onEvent}
+        onVideoSizeChanged={onEvent}
       />
     </View>
   );

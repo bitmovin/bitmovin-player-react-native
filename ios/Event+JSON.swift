@@ -297,18 +297,8 @@ extension VideoSizeChangedEvent {
 extension VideoDownloadQualityChangedEvent {
     func toJSON() -> [AnyHashable: Any] {
         [
-            "newVideoQuality": [
-                "height": videoQualityNew?.height,
-                "width": videoQualityNew?.width,
-                "codec": videoQualityNew?.codec,
-                "bitrate": videoQualityNew?.bitrate,
-            ],
-            "oldVideoQuality": [
-                "height": videoQualityOld?.height,
-                "width": videoQualityOld?.width,
-                "codec": videoQualityOld?.codec,
-                "bitrate": videoQualityOld?.bitrate,
-            ],
+            "newVideoQuality": RCTConvert.toJson(videoQuality: videoQualityNew),
+            "oldVideoQuality": RCTConvert.toJson(videoQuality: videoQualityOld),
             "name": name,
             "timestamp": timestamp
         ]
