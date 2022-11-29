@@ -71,17 +71,14 @@ extension RCTConvert {
         if let isUiEnabled = json["isUiEnabled"] as? Bool {
             styleConfig.isUiEnabled = isUiEnabled
         }
-        if let userInterfaceType = json["userInterfaceType"] as? String {
-            switch userInterfaceType {
-            case "bitmovin":
-                styleConfig.userInterfaceType = .bitmovin
-            case "system":
-                styleConfig.userInterfaceType = .system
-            case "subtitle":
-                styleConfig.userInterfaceType = .subtitle
-            default:
-                break
-            }
+        if let playerUiCss = json["playerUiCss"] as? String {
+            styleConfig.playerUiCss = RCTConvert.nsurl(playerUiCss)
+        }
+        if let supplementalPlayerUiCss = json["supplementalPlayerUiCss"] as? String {
+            styleConfig.supplementalPlayerUiCss = RCTConvert.nsurl(supplementalPlayerUiCss)
+        }
+        if let playerUiJs = json["playerUiJs"] as? String {
+            styleConfig.playerUiJs = RCTConvert.nsurl(playerUiJs)
         }
         if let scalingMode = json["scalingMode"] as? String {
             switch scalingMode {

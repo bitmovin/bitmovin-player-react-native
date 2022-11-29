@@ -15,23 +15,6 @@ export interface StyleConfig {
    */
   isUiEnabled?: boolean;
   /**
-   * iOS/tvOS only.
-   *
-   * Set which user interface type should be used.
-   * Default value is UserInterfaceType.bitmovin on iOS and UserInterfaceType.system on tvOS.
-   * This setting only applies if StyleConfig#isUiEnabled is set to true.
-   * @example
-   * ```
-   * const player = new Player({
-   *   styleConfig: {
-   *     isUiEnabled: false,
-   *     userInterfaceType: UserInterfaceType.subtitle,
-   *   },
-   * });
-   * ```
-   */
-  userInterfaceType?: UserInterfaceType;
-  /**
    * Set the CSS file that will be used for the UI. The default CSS file will be completely replaced by the CSS file set with this property.
    * @example
    * ```

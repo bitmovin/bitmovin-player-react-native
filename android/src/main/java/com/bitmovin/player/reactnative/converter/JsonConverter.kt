@@ -117,7 +117,7 @@ class JsonConverter {
             if (json.hasKey("playerUiJs")) {
                 val playerUiJs = json.getString("playerUiJs")
                 if (!playerUiJs.isNullOrEmpty()) {
-                    styleConfig.supplementalPlayerUiCss = playerUiJs
+                    styleConfig.playerUiJs = playerUiJs
                 }
             }
             if (json.hasKey("scalingMode")) {
