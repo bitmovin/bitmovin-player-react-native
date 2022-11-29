@@ -407,8 +407,52 @@ class PlayerModule: NSObject, RCTBridgeModule {
             } else {
                 self?.players[nativeId]?.setSubtitle(trackIdentifier:trackIdentifier)
             }
-            
+
             resolve(nil)
+        }
+    }
+
+    /**
+     Schedules an `AdItem` in the `nativeId`'s associated player.
+     - Parameter nativeId: Target player id.
+     - Parameter adItemJson: Json representation of the `AdItem` to be scheduled.
+     */
+    @objc(scheduleAd:adItemJson:)
+    func scheduleAd(_ nativeId: NativeId, adItemJson: Any?) {
+        guard let adItem = RCTConvert.adItem(adItemJson) else {
+            return
+        }
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.scheduleAd(adItem: adItem)
+        }
+    }
+
+    /**
+     Skips the current ad in `nativeId`'s associated player.
+     Has no effect if the current ad is not skippable or if no ad is being played back.
+     - Parameter nativeId: Target player id.
+     */
+    @objc(skipAd:)
+    func skipAd(_ nativeId: NativeId) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.skipAd()
+        }
+    }
+
+    /**
+     Returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
+     - Parameter nativeId: Target player id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(isAd:resolver:rejecter:)
+    func isAd(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(self?.players[nativeId]?.isAd)
         }
     }
 }
