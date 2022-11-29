@@ -13,6 +13,7 @@ import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
 import BasicPictureInPicture from './screens/BasicPictureInPicture';
 import CustomHtmlUI from './screens/CustomHtmlUI';
+import CustomSubtitleOnlyUI from './screens/CustomSubtitleOnlyUI';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -36,6 +37,7 @@ export type RootStackParamsList = {
     };
   };
   CustomHtmlUI: undefined;
+  CustomSubtitleOnlyUI: undefined;
 };
 
 const RootStack = createNativeStackNavigator();
@@ -90,6 +92,10 @@ export default function App() {
                 title: 'Custom Html UI',
                 routeName: 'CustomHtmlUI',
               },
+              {
+                title: 'Custom Subtitle Only UI',
+                routeName: 'CustomSubtitleOnlyUI',
+              },
             ],
           }}
         />
@@ -132,6 +138,11 @@ export default function App() {
           name="CustomHtmlUI"
           component={CustomHtmlUI}
           options={{ title: 'Custom Html UI' }}
+        />
+        <RootStack.Screen
+          name="CustomSubtitleOnlyUI"
+          component={CustomSubtitleOnlyUI}
+          options={{ title: 'Custom Subtitle Only UI' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>
