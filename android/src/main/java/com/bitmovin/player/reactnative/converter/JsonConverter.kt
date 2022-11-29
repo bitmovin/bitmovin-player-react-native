@@ -93,6 +93,24 @@ class JsonConverter {
             if (json.hasKey("isUiEnabled")) {
                 styleConfig.isUiEnabled = json.getBoolean("isUiEnabled")
             }
+            if (json.hasKey("playerUiCss")) {
+                val playerUiCss = json.getString("playerUiCss")
+                if (!playerUiCss.isNullOrEmpty()) {
+                    styleConfig.playerUiCss = playerUiCss
+                }
+            }
+            if (json.hasKey("supplementalPlayerUiCss")) {
+                val supplementalPlayerUiCss = json.getString("supplementalPlayerUiCss")
+                if (!supplementalPlayerUiCss.isNullOrEmpty()) {
+                    styleConfig.supplementalPlayerUiCss = supplementalPlayerUiCss
+                }
+            }
+            if (json.hasKey("playerUiJs")) {
+                val playerUiJs = json.getString("playerUiJs")
+                if (!playerUiJs.isNullOrEmpty()) {
+                    styleConfig.supplementalPlayerUiCss = playerUiJs
+                }
+            }
             if (json.hasKey("scalingMode")) {
                 val scalingMode = json.getString("scalingMode")
                 if (!scalingMode.isNullOrEmpty()) {

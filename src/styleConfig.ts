@@ -13,7 +13,7 @@ export interface StyleConfig {
    * });
    * ```
    */
-  isUiEnabled: boolean;
+  isUiEnabled?: boolean;
   /**
    * iOS/tvOS only.
    *
@@ -31,6 +31,42 @@ export interface StyleConfig {
    * ```
    */
   userInterfaceType?: UserInterfaceType;
+  /**
+   * Set the CSS file that will be used for the UI. The default CSS file will be completely replaced by the CSS file set with this property.
+   * @example
+   * ```
+   * const player = new Player({
+   *   styleConfig: {
+   *     playerUiCss: 'https://domain.tld/path/to/bitmovinplayer-ui.css',
+   *   },
+   * });
+   * ```
+   */
+  playerUiCss?: string;
+  /**
+   * Set a CSS file which contains supplemental styles for the player UI. These styles will be added to the default CSS file or the CSS file set with StyleConfig#playerUiCss.
+   * @example
+   * ```
+   * const player = new Player({
+   *   styleConfig: {
+   *     playerUiCss: 'https://domain.tld/path/to/bitmovinplayer-supplemental-ui.css',
+   *   },
+   * });
+   * ```
+   */
+  supplementalPlayerUiCss?: string;
+  /**
+   * Sets the JS file that will be used for the UI. The default JS file will be completely replaced by the JS file set with this property.
+   * @example
+   * ```
+   * const player = new Player({
+   *   styleConfig: {
+   *     playerUiJs: 'https://domain.tld/path/to/bitmovinplayer-ui.js',
+   *   },
+   * });
+   * ```
+   */
+  playerUiJs?: string;
   /**
    * Determines how the video content is scaled or stretched within the parent container’s bounds.  Possible values are defined in ScalingMode.
    * Default value is ScalingMode.fit.
