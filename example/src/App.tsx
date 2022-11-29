@@ -5,11 +5,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SourceType } from 'bitmovin-player-react-native';
 import Button from './components/Button';
 import ExamplesList from './screens/ExamplesList';
+import BasicAds from './screens/BasicAds';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
+import BasicPictureInPicture from './screens/BasicPictureInPicture';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -18,8 +20,10 @@ export type RootStackParamsList = {
       routeName: keyof RootStackParamsList;
     }[];
   };
+  BasicAds: undefined;
   BasicPlayback: undefined;
   BasicDrmPlayback: undefined;
+  BasicPictureInPicture: undefined;
   SubtitlePlayback: undefined;
   CustomPlaybackForm: undefined;
   CustomPlayback: {
@@ -72,8 +76,21 @@ export default function App() {
                 title: 'Subtitle and captions',
                 routeName: 'SubtitlePlayback',
               },
+              {
+                title: 'Basic Picture in Picture',
+                routeName: 'BasicPictureInPicture',
+              },
+              {
+                title: 'Basic Ads',
+                routeName: 'BasicAds',
+              },
             ],
           }}
+        />
+        <RootStack.Screen
+          name="BasicAds"
+          component={BasicAds}
+          options={{ title: 'Basic Ads' }}
         />
         <RootStack.Screen
           name="BasicPlayback"
@@ -99,6 +116,11 @@ export default function App() {
           name="CustomPlayback"
           component={CustomPlayback}
           options={{ title: 'Custom playback' }}
+        />
+        <RootStack.Screen
+          name="BasicPictureInPicture"
+          component={BasicPictureInPicture}
+          options={{ title: 'Basic Picture in Picture' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>

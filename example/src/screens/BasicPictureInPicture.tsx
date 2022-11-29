@@ -6,6 +6,7 @@ import {
   usePlayer,
   PlayerView,
   SourceType,
+  AudioSession,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
@@ -13,13 +14,32 @@ function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
 }
 
-export default function BasicPlayback() {
+export default function BasicPictureInPicture() {
   useTVGestures();
 
-  const player = usePlayer();
+  const player = usePlayer({
+    playbackConfig: {
+      // Enable picture in picture UI option on player controls.
+      isPictureInPictureEnabled: true,
+    },
+  });
 
   useFocusEffect(
     useCallback(() => {
+      // iOS audio session must be set to `playback` first otherwise PiP mode won't work.
+      //
+      // Usually it's desireable to set the audio's category only once during your app's main component
+      // initialization. This way you can guarantee that your app's audio category is properly
+      // configured throughout the whole lifecycle of the application.
+      AudioSession.setCategory('playback').catch((error) => {
+        // Handle any native errors that might occur while setting the audio's category.
+        console.log(
+          "[BasicPictureInPicture] Failed to set app's audio category to `playback`:\n",
+          error
+        );
+      });
+
+      // Load desired source configuration
       player.load({
         url:
           Platform.OS === 'ios'
@@ -36,12 +56,8 @@ export default function BasicPlayback() {
     }, [player])
   );
 
-  const onReady = useCallback((event: Event) => {
-    prettyPrint(`EVENT [${event.name}]`, event);
-  }, []);
-
   const onEvent = useCallback((event: Event) => {
-    prettyPrint(`EVENT [${event.name}]`, event);
+    prettyPrint(`[${event.name}]`, event);
   }, []);
 
   return (
@@ -49,15 +65,11 @@ export default function BasicPlayback() {
       <PlayerView
         player={player}
         style={styles.player}
-        onPlay={onEvent}
-        onPlaying={onEvent}
-        onPaused={onEvent}
-        onReady={onReady}
-        onSourceLoaded={onEvent}
-        onSeek={onEvent}
-        onSeeked={onEvent}
-        onStallStarted={onEvent}
-        onStallEnded={onEvent}
+        onPictureInPictureAvailabilityChanged={onEvent}
+        onPictureInPictureEnter={onEvent}
+        onPictureInPictureEntered={onEvent}
+        onPictureInPictureExit={onEvent}
+        onPictureInPictureExited={onEvent}
       />
     </View>
   );

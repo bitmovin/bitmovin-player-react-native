@@ -57,6 +57,14 @@ extension RNPlayerView: PlayerListener {
         onSeeked?(event.toJSON())
     }
 
+    func onStallStarted(_ event: StallStartedEvent, player: Player) {
+        onStallStarted?(event.toJSON())
+    }
+
+    func onStallEnded(_ event: StallEndedEvent, player: Player) {
+        onStallEnded?(event.toJSON())
+    }
+
     func onTimeChanged(_ event: TimeChangedEvent, player: Player) {
         onTimeChanged?(event.toJSON())
     }
@@ -91,6 +99,50 @@ extension RNPlayerView: PlayerListener {
 
     func onSubtitleChanged(_ event: SubtitleChangedEvent, player: Player) {
         onSubtitleChanged?(event.toJSON())
+    }
+
+    func onAdBreakFinished(_ event: AdBreakFinishedEvent, player: Player) {
+        onAdBreakFinished?(event.toJSON())
+    }
+
+    func onAdBreakStarted(_ event: AdBreakStartedEvent, player: Player) {
+        onAdBreakStarted?(event.toJSON())
+    }
+
+    func onAdClicked(_ event: AdClickedEvent, player: Player) {
+        onAdClicked?(event.toJSON())
+    }
+
+    func onAdError(_ event: AdErrorEvent, player: Player) {
+        onAdError?(event.toJSON())
+    }
+
+    func onAdFinished(_ event: AdFinishedEvent, player: Player) {
+        onAdFinished?(event.toJSON())
+    }
+
+    func onAdManifestLoad(_ event: AdManifestLoadEvent, player: Player) {
+        onAdManifestLoad?(event.toJSON())
+    }
+
+    func onAdManifestLoaded(_ event: AdManifestLoadedEvent, player: Player) {
+        onAdManifestLoaded?(event.toJSON())
+    }
+
+    func onAdQuartile(_ event: AdQuartileEvent, player: Player) {
+        onAdQuartile?(event.toJSON())
+    }
+
+    func onAdScheduled(_ event: AdScheduledEvent, player: Player) {
+        onAdScheduled?(event.toJSON())
+    }
+
+    func onAdSkipped(_ event: AdSkippedEvent, player: Player) {
+        onAdSkipped?(event.toJSON())
+    }
+
+    func onAdStarted(_ event: AdStartedEvent, player: Player) {
+        onAdStarted?(event.toJSON())
     }
 
     func onVideoPlaybackQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
