@@ -32,7 +32,7 @@ export interface StyleConfig {
    * ```
    * const player = new Player({
    *   styleConfig: {
-   *     playerUiCss: 'https://domain.tld/path/to/bitmovinplayer-supplemental-ui.css',
+   *     supplementalPlayerUiCss: 'https://domain.tld/path/to/bitmovinplayer-supplemental-ui.css',
    *   },
    * });
    * ```
