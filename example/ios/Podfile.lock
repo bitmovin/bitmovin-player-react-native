@@ -1,5 +1,5 @@
 PODS:
-  - BitmovinPlayer (3.28.0)
+  - BitmovinPlayer (3.30.0)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -73,6 +73,8 @@ PODS:
     - FlipperKit/FlipperKitNetworkPlugin
   - fmt (7.1.3)
   - glog (0.3.5)
+  - GoogleAds-IMA-iOS-SDK (3.17.0)
+  - GoogleAds-IMA-tvOS-SDK (4.6.1)
   - libevent (2.1.12)
   - OpenSSL-Universal (1.1.1100)
   - RCT-Folly (2021.06.28.00-v2):
@@ -328,8 +330,10 @@ PODS:
     - React-jsi (= 0.69.5-2)
     - React-logger (= 0.69.5-2)
     - React-perflogger (= 0.69.5-2)
-  - RNBitmovinPlayer (0.3.1):
-    - BitmovinPlayer (= 3.28.0)
+  - RNBitmovinPlayer (0.4.0):
+    - BitmovinPlayer (= 3.30.0)
+    - GoogleAds-IMA-iOS-SDK (= 3.17.0)
+    - GoogleAds-IMA-tvOS-SDK (= 4.6.1)
     - React-Core
   - RNCPicker (2.4.2):
     - React-Core
@@ -416,6 +420,8 @@ SPEC REPOS:
     - Flipper-Glog
     - Flipper-RSocket
     - FlipperKit
+    - GoogleAds-IMA-iOS-SDK
+    - GoogleAds-IMA-tvOS-SDK
     - libevent
     - OpenSSL-Universal
     - SocketRocket
@@ -494,7 +500,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  BitmovinPlayer: 5e94eb1e06578038a188c62aef820e38dbe05b8c
+  BitmovinPlayer: ae0fa04c43ea513d4fb2ae93fc2d5f2a271d92cc
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 234abba95e31cc2aada0cf3b97cdb11bc5b90575
@@ -511,6 +517,8 @@ SPEC CHECKSUMS:
   FlipperKit: feec58b1283d3560c703adc670c45ecf400c48d9
   fmt: 135c0c55547979f715b56dfa54037ececa96d07a
   glog: bac6d5aa2990176cc22d0432fb3e28805d580aeb
+  GoogleAds-IMA-iOS-SDK: a44060982578cc9a44efd0ab4e0f02f07ac29670
+  GoogleAds-IMA-tvOS-SDK: 86df385a513f50a9deb0b37e35f1478089ce5158
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   RCT-Folly: 6955e7728b76277c5df5a5aba37ee1ff1dd99976
@@ -538,7 +546,7 @@ SPEC CHECKSUMS:
   React-RCTText: 16122ecd9be53be613b2206a13e5cf987835c8cf
   React-runtimeexecutor: 44fe73dca7d31245dfc031971a2ce14085c8d5fe
   ReactCommon: 3f6173ad12133f7e032f4c8d061dba181115c1c0
-  RNBitmovinPlayer: 2cb0e2cea5ce391e274295e7f6b4439aa98da6dd
+  RNBitmovinPlayer: 0fc60de956a25cdb676e45463dd5246bf765fa44
   RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608

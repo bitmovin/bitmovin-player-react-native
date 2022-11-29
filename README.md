@@ -11,12 +11,12 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 > See [Feature Support](#feature-support) for an overview of the supported features.
 >
 > Not seeing the features you’re looking for?  
-> We are accepting community pull requests to this open-source project so please feel free to contribute  
-> or let us know in [our community](https://community.bitmovin.com/c/requests/14) what features we should work on next
+> We are accepting community pull requests to this open-source project so please feel free to contribute.
+> or let us know in [our community](https://community.bitmovin.com/c/requests/14) what features we should work on next.
 
 - [Bitmovin Player React Native](#bitmovin-player-react-native)
   - [Platform Support](#platform-support)
-  - [Feature Support](#platform-support)
+  - [Feature Support](#feature-support)
   - [Installation](#installation)
     - [Add package dependency](#add-package-dependency)
     - [Setup iOS Player SDK](#setup-ios-player-sdk)
@@ -33,6 +33,7 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
       - [Prepare hooks](#prepare-hooks)
     - [Adding external subtitle tracks](#adding-external-subtitle-tracks)
     - [Enabling Picture in Picture mode](#enabling-picture-in-picture-mode)
+    - [Setting up ads](#setting-up-ads)
   - [Contributing](#contributing)
 
 ## Platform Support
@@ -55,7 +56,7 @@ Features of the native mobile Player SDKs are progressively being implemented in
 | -------------------------------- | ----------------------------------------- |
 | Playback of DRM-protected assets | :white_check_mark: Available since v0.2.0 |
 | Subtitles & Captions             | :white_check_mark: Available since v0.2.0 |
-| Advertising                      | :gear: In progress, Q4 2022               |
+| Advertising                      | :white_check_mark: Available since v0.4.0 |
 | Playlist API                     | :x: Not available                         |
 | Offline Playback                 | :x: Not available                         |
 | Analytics                        | :x: Coming Q1 2023                        |
@@ -610,6 +611,94 @@ The supported Picture in Picture events on `PlayerView` are:
 - `onPictureInPictureAvailabilityChanged`
 
 Check [`events.ts`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/components/PlayerView/events.ts) for more information about them.
+
+### Setting up ads
+
+The Bitmovin Player SDKs are capable of displaying Ads out of the box and there are two ways they can be
+configured with the player. One option is to use static configuration in the player config object,
+and the other is to schedule them dynamically using `Player.scheduleAd`.
+
+#### Static ads configuration
+
+The easiest way to configure Ads is by adding the `advertisingConfig` property to the player configuration object.
+All that needs to be provided is a URL pointing to a target Ad tag along with the type of the tag.
+
+```typescript
+const player = usePlayer({
+  licenseKey: '<PLAYER_LICENSE_KEY>',
+  advertisingConfig: {
+    // Each object in `schedule` represents an `AdItem`.
+    schedule: [
+      // An `AdItem` represents a time slot within the streamed content dedicated to ads playback.
+      {
+        // Each item specifies a list of sources with a type and URL to the ad manifest in the ads
+        // server. All but the first source act as fallback if the first one fails to load.
+        // The start and end of an ad break are signaled via `AdBreakStartedEvent` and `AdBreakFinishedEvent`.
+        sources: [
+          {
+            type: AdSourceType.IMA,
+            tag: 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dskippablelinear&correlator=',
+          },
+          // Fallback sources...
+        ],
+        // Each item also specifies the position where it should appear during playback.
+        // The possible position values are documented below.
+        // The default value is `pre`.
+        position: '20%',
+      },
+    ],
+  },
+});
+```
+
+The possible `AdItem` position values are:
+
+- `"pre"`: pre-roll ad (for VoD and Live streaming; appears before playback starts)
+- `"post"`: post-roll ad (for VoD streaming only; appears after playback finishes)
+- Fractional seconds: `"10"`, `"12.5"` (mid-roll ad, for VoD and Live streaming)
+- Percentage of the entire video duration: `"25%"`, `"50%"` (mid-roll ad, for VoD streaming only)
+- Timecode `hh:mm:ss.mmm`: `"00:10:30.000"`, `"01:00:00.000"` (mid-roll ad, for VoD streaming only)
+
+#### Dynamic ads scheduling
+
+To gain more flexibility, it is also possible to schedule an `AdItem` dynamically in code using the
+`Player` instance. To do this, you need to call the `scheduleAd` method.
+
+```typescript
+// The object passed to `scheduleAd` must be an `AdItem`.
+player.scheduleAd({
+  // Ad source with fallbacks.
+  sources: [
+    {
+      tag: '<AD-URL>',
+      type: AdSourceType.IMA,
+    },
+  ],
+});
+```
+
+An `AdScheduledEvent` event is dispatched when the ad is successfully scheduled via `scheduleAd`.
+
+Also, during playback, it's also possible to check whether an ad is being played with `player.isAd()`
+and skip the ad being currently played with `player.skipAd()` (see `AdSkippedEvent`).
+
+#### Supported ads events
+
+The supported `PlayerView` events for ads are:
+
+- `onAdBreakFinished`
+- `onAdBreakStarted`
+- `onAdClicked`
+- `onAdError`
+- `onAdFinished`
+- `onAdManifestLoad`
+- `onAdManifestLoaded`
+- `onAdQuartile`
+- `onAdScheduled`
+- `onAdSkipped`
+- `onAdStarted`
+
+You can check out a complete ads example in the [`example/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app.
 
 ## Contributing
 

@@ -1,5 +1,16 @@
 import { NativeSyntheticEvent } from 'react-native';
 import {
+  AdBreakFinishedEvent,
+  AdBreakStartedEvent,
+  AdClickedEvent,
+  AdErrorEvent,
+  AdFinishedEvent,
+  AdManifestLoadedEvent,
+  AdManifestLoadEvent,
+  AdQuartileEvent,
+  AdScheduledEvent,
+  AdSkippedEvent,
+  AdStartedEvent,
   DestroyEvent,
   Event,
   MutedEvent,
@@ -9,18 +20,20 @@ import {
   PictureInPictureEnteredEvent,
   PictureInPictureExitEvent,
   PictureInPictureExitedEvent,
-  PlayEvent,
   PlaybackFinishedEvent,
   PlayerActiveEvent,
   PlayerErrorEvent,
   PlayerWarningEvent,
+  PlayEvent,
   PlayingEvent,
   ReadyEvent,
-  SeekEvent,
   SeekedEvent,
+  SeekEvent,
+  StallStartedEvent,
+  StallEndedEvent,
   SourceErrorEvent,
-  SourceLoadEvent,
   SourceLoadedEvent,
+  SourceLoadEvent,
   SourceUnloadedEvent,
   SourceWarningEvent,
   SubtitleAddedEvent,
@@ -35,6 +48,17 @@ import {
  * Used to generate the specific events interface for each component.
  */
 interface EventProps {
+  onAdBreakFinished: AdBreakFinishedEvent;
+  onAdBreakStarted: AdBreakStartedEvent;
+  onAdClicked: AdClickedEvent;
+  onAdError: AdErrorEvent;
+  onAdFinished: AdFinishedEvent;
+  onAdManifestLoad: AdManifestLoadEvent;
+  onAdManifestLoaded: AdManifestLoadedEvent;
+  onAdQuartile: AdQuartileEvent;
+  onAdScheduled: AdScheduledEvent;
+  onAdSkipped: AdSkippedEvent;
+  onAdStarted: AdStartedEvent;
   onDestroy: DestroyEvent;
   onEvent: Event;
   onMuted: MutedEvent;
@@ -53,6 +77,8 @@ interface EventProps {
   onReady: ReadyEvent;
   onSeek: SeekEvent;
   onSeeked: SeekedEvent;
+  onStallStarted: StallStartedEvent;
+  onStallEnded: StallEndedEvent;
   onSourceError: SourceErrorEvent;
   onSourceLoad: SourceLoadEvent;
   onSourceLoaded: SourceLoadedEvent;

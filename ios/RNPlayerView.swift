@@ -17,6 +17,8 @@ class RNPlayerView: UIView {
     @objc var onPlaybackFinished: RCTBubblingEventBlock?
     @objc var onSeek: RCTBubblingEventBlock?
     @objc var onSeeked: RCTBubblingEventBlock?
+    @objc var onStallStarted: RCTBubblingEventBlock?
+    @objc var onStallEnded: RCTBubblingEventBlock?
     @objc var onTimeChanged: RCTBubblingEventBlock?
     @objc var onSourceLoad: RCTBubblingEventBlock?
     @objc var onSourceLoaded: RCTBubblingEventBlock?
@@ -30,6 +32,17 @@ class RNPlayerView: UIView {
     @objc var onPictureInPictureEntered: RCTBubblingEventBlock?
     @objc var onPictureInPictureExit: RCTBubblingEventBlock?
     @objc var onPictureInPictureExited: RCTBubblingEventBlock?
+    @objc var onAdBreakFinished: RCTBubblingEventBlock?
+    @objc var onAdBreakStarted: RCTBubblingEventBlock?
+    @objc var onAdClicked: RCTBubblingEventBlock?
+    @objc var onAdError: RCTBubblingEventBlock?
+    @objc var onAdFinished: RCTBubblingEventBlock?
+    @objc var onAdManifestLoad: RCTBubblingEventBlock?
+    @objc var onAdManifestLoaded: RCTBubblingEventBlock?
+    @objc var onAdQuartile: RCTBubblingEventBlock?
+    @objc var onAdScheduled: RCTBubblingEventBlock?
+    @objc var onAdSkipped: RCTBubblingEventBlock?
+    @objc var onAdStarted: RCTBubblingEventBlock?
 
     /// The `PlayerView` subview.
     var playerView: PlayerView? {

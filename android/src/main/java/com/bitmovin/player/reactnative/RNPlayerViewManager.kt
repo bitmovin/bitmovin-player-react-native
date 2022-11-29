@@ -66,6 +66,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "playbackFinished" to "onPlaybackFinished",
         "seek" to "onSeek",
         "seeked" to "onSeeked",
+        "stallStarted" to "onStallStarted",
+        "stallEnded" to "onStallEnded",
         "timeChanged" to "onTimeChanged",
         "sourceLoad" to "onSourceLoad",
         "sourceLoaded" to "onSourceLoaded",
@@ -78,6 +80,17 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "pictureInPictureAvailabilityChanged" to "onPictureInPictureAvailabilityChanged",
         "pictureInPictureEnter" to "onPictureInPictureEnter",
         "pictureInPictureExit" to "onPictureInPictureExit",
+        "adBreakFinished" to "onAdBreakFinished",
+        "adBreakStarted" to "onAdBreakStarted",
+        "adClicked" to "onAdClicked",
+        "adError" to "onAdError",
+        "adFinished" to "onAdFinished",
+        "adManifestLoad" to "onAdManifestLoad",
+        "adManifestLoaded" to "onAdManifestLoaded",
+        "adQuartile" to "onAdQuartile",
+        "adScheduled" to "onAdScheduled",
+        "adSkipped" to "onAdSkipped",
+        "adStarted" to "onAdStarted",
     )
 
     /**
