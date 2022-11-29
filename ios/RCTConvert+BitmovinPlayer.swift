@@ -1,5 +1,6 @@
 import Foundation
 import BitmovinPlayer
+import BitmovinAnalyticsCollector
 
 extension RCTConvert {
     /**
@@ -481,5 +482,51 @@ extension RCTConvert {
             "mimeType": adData.mimeType,
             "minBitrate": adData.minBitrate
         ]
+    }
+
+    static func analyticsConfig(_ json: Any?) -> BitmovinAnalyticsConfig? {
+        guard
+            let json = json as? [String: Any?],
+            let key = json["key"] as? String
+        else {
+            return nil
+        }
+        var config = BitmovinAnalyticsConfig(key: key)
+        if let playerKey = json["playerKey"] as? String {
+            config = BitmovinAnalyticsConfig(key: key, playerKey: playerKey)
+        }
+        if let cdnProvider = json["cdnProvider"] as? String {
+            config.cdnProvider = cdnProvider
+        }
+        if let customerUserId = json["customerUserId"] as? String {
+            config.customerUserId = customerUserId
+        }
+        if let experimentName = json["experimentName"] as? String {
+            config.experimentName = experimentName
+        }
+        if let videoId = json["videoId"] as? String {
+            config.videoId = videoId
+        }
+        if let title = json["title"] as? String {
+            config.title = title
+        }
+        if let path = json["path"] as? String {
+            config.path = path
+        }
+        if let isLive = json["isLive"] as? Bool {
+            config.isLive = isLive
+        }
+        if let ads = json["ads"] as? Bool {
+            config.ads = ads
+        }
+        if let randomizeUserId = json["randomizeUserId"] as? Bool {
+            config.randomizeUserId = randomizeUserId
+        }
+        for n in 1..<30 {
+            if let customDataN = json["customData\(n)"] as? String {
+                config.setValue(customDataN, forKey: "customData\(n)")
+            }
+        }
+        return config
     }
 }

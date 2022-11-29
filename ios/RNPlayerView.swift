@@ -1,4 +1,5 @@
 import BitmovinPlayer
+import BitmovinAnalyticsCollector
 
 @objc(RNPlayerView)
 class RNPlayerView: UIView {
@@ -55,6 +56,14 @@ class RNPlayerView: UIView {
         didSet {
             if let playerView = playerView {
                 addSubview(playerView)
+            }
+        }
+    }
+
+    var analyticsCollector: BitmovinPlayerCollector? {
+        didSet {
+            if let player = playerView?.player {
+                analyticsCollector?.attachPlayer(player: player)
             }
         }
     }

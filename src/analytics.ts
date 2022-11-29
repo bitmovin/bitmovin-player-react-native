@@ -1,8 +1,18 @@
-export interface AnalyticsConfig extends CustomDataForms {
+export enum CdnProvider {
+  BITMOVIN = 'bitmovin',
+  AKAMAI = 'akamai',
+  FASTLY = 'fastly',
+  MAXCDN = 'maxcdn',
+  CLOUDFRONT = 'cloudfront',
+  CHINACACHE = 'chinacache',
+  BITGRAVITY = 'bitgravity',
+}
+
+export interface AnalyticsConfig extends CustomDataConfig {
   /**
    * CDN Provide that the video playback session is using.
    */
-  cdnProvider?: string;
+  cdnProvider?: CdnProvider;
   /**
    * User ID of the customer.
    */
@@ -45,7 +55,7 @@ export interface AnalyticsConfig extends CustomDataForms {
   randomizeUserId?: boolean;
 }
 
-interface CustomDataForms {
+export interface CustomDataConfig {
   /**
    * Optional free-form custom data
    */
