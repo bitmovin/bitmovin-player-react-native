@@ -1,5 +1,6 @@
 import { NativeModules, Platform } from 'react-native';
 import { AdItem, AdvertisingConfig } from './advertising';
+import { AnalyticsConfig } from './analytics';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { SubtitleTrack } from './subtitleTrack';
@@ -42,6 +43,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures experimental features. A default TweaksConfig is set initially.
    */
   tweaksConfig?: TweaksConfig;
+  /**
+   * Configures analytics functionality.
+   */
+  analyticsConfig?: AnalyticsConfig;
 }
 
 /**
