@@ -136,7 +136,8 @@ extension AudioAddedEvent {
         [
             "name": name,
             "timestamp": timestamp,
-            "audioTrack": RCTConvert.audioTrackJson(audioTrack)
+            "audioTrack": RCTConvert.audioTrackJson(audioTrack),
+            "time": time
         ]
     }
 }
@@ -146,7 +147,8 @@ extension AudioRemovedEvent {
         [
             "name": name,
             "timestamp": timestamp,
-            "audioTrack": RCTConvert.audioTrackJson(audioTrack)
+            "audioTrack": RCTConvert.audioTrackJson(audioTrack),
+            "time": time
         ]
     }
 }

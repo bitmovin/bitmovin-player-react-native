@@ -362,7 +362,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.setAudio(trackIdentifier:trackIdentifier)
+            self?.players[nativeId]?.setAudio(trackIdentifier: trackIdentifier)
             resolve(nil)
         }
     }
@@ -403,9 +403,9 @@ class PlayerModule: NSObject, RCTBridgeModule {
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             if ((trackIdentifier ?? "").isEmpty) {
-                self?.players[nativeId]?.setSubtitle(trackIdentifier:nil)
+                self?.players[nativeId]?.setSubtitle(trackIdentifier: nil)
             } else {
-                self?.players[nativeId]?.setSubtitle(trackIdentifier:trackIdentifier)
+                self?.players[nativeId]?.setSubtitle(trackIdentifier: trackIdentifier)
             }
 
             resolve(nil)
