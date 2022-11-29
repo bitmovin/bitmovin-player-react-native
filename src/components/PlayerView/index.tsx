@@ -119,6 +119,9 @@ export function PlayerView({ style, player, ...props }: PlayerViewProps) {
       onSourceLoaded={proxy(props.onSourceLoaded)}
       onSourceUnloaded={proxy(props.onSourceUnloaded)}
       onSourceWarning={proxy(props.onSourceWarning)}
+      onAudioAdded={proxy(props.onAudioAdded)}
+      onAudioChanged={proxy(props.onAudioChanged)}
+      onAudioRemoved={proxy(props.onAudioRemoved)}
       onSubtitleAdded={proxy(props.onSubtitleAdded)}
       onSubtitleChanged={proxy(props.onSubtitleChanged)}
       onSubtitleRemoved={proxy(props.onSubtitleRemoved)}
