@@ -194,12 +194,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'black',
   },
   playerContainer: {
     flex: 1,
     width: '100%',
     alignItems: 'stretch',
-    backgroundColor: 'white',
   },
   player: {
     flex: 1,
