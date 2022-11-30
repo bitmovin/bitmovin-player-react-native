@@ -10,24 +10,20 @@ import { Player } from '../../player';
  */
 export interface BaseSubtitleViewProps {
   style?: StyleProp<ViewStyle>;
-}
-
-/**
- * `SubtitleView` component props.
- * @see SubtitleView
- */
-export interface SubtitleViewProps extends BaseSubtitleViewProps {
-  /**
-   * `Player` instance (generally returned from `usePlayer` hook) that will control
-   * and render audio/video inside the `PlayerView`.
-   */
-  player: Player;
   /**
    * Sets whether font sizes embedded within the cues should be applied.
    * Enabled by default.
    * Only takes effect if setApplyEmbeddedStyles is set to true.
    */
   applyEmbeddedFontSizes?: boolean;
+  /**
+   * Sets the caption style to be equivalent to the one returned by getUserStyle, or to a default style before API level 19.
+   */
+  userDefaultStyle?: boolean;
+  /**
+   * Sets the text size to one derived from getFontScale, or to a default size before API level 19.
+   */
+  userDefaultTextSize?: boolean;
   /**
    * Sets whether styling embedded within the cues should be applied.
    * Enabled by default.
@@ -63,6 +59,18 @@ export interface SubtitleViewProps extends BaseSubtitleViewProps {
 }
 
 /**
+ * `SubtitleView` component props.
+ * @see SubtitleView
+ */
+export interface SubtitleViewProps extends BaseSubtitleViewProps {
+  /**
+   * `Player` instance (generally returned from `usePlayer` hook) that will control
+   * and render audio/video inside the `PlayerView`.
+   */
+  player?: Player;
+}
+
+/**
  * Base style that initializes the native view frame when no width/height prop has been set.
  */
 const styles = StyleSheet.create({
@@ -80,6 +88,14 @@ export function SubtitleView(props: SubtitleViewProps) {
   const style = StyleSheet.flatten([styles.baseStyle, props.style]);
 
   return Platform.OS === 'android' ? (
-    <NativeSubtitleView style={style} playerId={props?.player?.nativeId} />
+    <NativeSubtitleView
+      style={style}
+      playerId={props?.player?.nativeId}
+      applyEmbeddedFontSizes={props.applyEmbeddedFontSizes}
+      applyEmbeddedStyles={props.applyEmbeddedStyles}
+      bottomPaddingFraction={props.bottomPaddingFraction}
+      fixedTextSize={props.fixedTextSize}
+      fractionalTextSize={props.fractionalTextSize}
+    />
   ) : null;
 }

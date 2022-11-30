@@ -54,6 +54,26 @@ class RNSubtitleViewManager(private val context: ReactApplicationContext) : Simp
     }
 
     /**
+     * Sets the caption style to be equivalent to the one returned by getUserStyle, or to a default style before API level 19.
+     */
+    @ReactProp(name = "userDefaultStyle", defaultBoolean = false )
+    fun setUserDefaultStyle(view: SubtitleView, userDefaultStyle: Boolean) {
+        if (userDefaultStyle) {
+            view.setUserDefaultStyle()
+        }
+    }
+
+    /**
+     * Sets the text size to one derived from getFontScale, or to a default size before API level 19.
+     */
+    @ReactProp(name = "userDefaultTextSize", defaultBoolean = false )
+    fun setUserDefaultTextSize(view: SubtitleView, userDefaultTextSize: Boolean) {
+        if (userDefaultTextSize) {
+            view.setUserDefaultTextSize()
+        }
+    }
+
+    /**
      * Sets the bottom padding fraction to apply when getLine is DIMEN_UNSET, as a fraction of the view's remaining height after its top and bottom padding have been subtracted.
      */
     @ReactProp(name = "bottomPaddingFraction", defaultFloat = -1.0f )

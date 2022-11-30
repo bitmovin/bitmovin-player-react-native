@@ -71,6 +71,18 @@ extension RCTConvert {
         if let isUiEnabled = json["isUiEnabled"] as? Bool {
             styleConfig.isUiEnabled = isUiEnabled
         }
+        if let userInterfaceType = json["userInterfaceType"] as? String {
+            switch userInterfaceType {
+            case "bitmovin":
+                styleConfig.userInterfaceType = .bitmovin
+            case "system":
+                styleConfig.userInterfaceType = .system
+            case "subtitle":
+                styleConfig.userInterfaceType = .subtitle
+            default:
+                break
+            }
+        }
         if let playerUiCss = json["playerUiCss"] as? String {
             styleConfig.playerUiCss = RCTConvert.nsurl(playerUiCss)
         }
