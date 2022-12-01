@@ -7,6 +7,7 @@ import {
   AdSourceType,
 } from './advertising';
 import { SubtitleTrack } from './subtitleTrack';
+import { VideoQuality } from './media';
 
 /**
  * Base event type for all events.
@@ -457,18 +458,6 @@ export interface AdManifestLoadedEvent extends Event {
 }
 
 export interface VideoPlaybackQualityChangedEvent extends Event {
-  newVideoQuality: {
-    height?: number;
-    width?: number;
-    frameRate?: number;
-    bitrate?: number;
-    codec?: string;
-  };
-  oldVideoQuality: {
-    height?: number;
-    width?: number;
-    frameRate?: number;
-    bitrate?: number;
-    codec?: string;
-  };
+  newVideoQuality: VideoQuality;
+  oldVideoQuality: VideoQuality;
 }

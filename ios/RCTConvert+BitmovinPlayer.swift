@@ -493,6 +493,8 @@ extension RCTConvert {
             return nil
         }
         return [
+            "id": videoQuality.identifier,
+            "label": videoQuality.label,
             "height": videoQuality.height,
             "width": videoQuality.width,
             "codec": videoQuality.codec,
