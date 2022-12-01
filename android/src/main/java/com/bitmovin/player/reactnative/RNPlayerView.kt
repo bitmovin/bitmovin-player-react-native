@@ -455,9 +455,6 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
         emitEvent("videoPlaybackQualityChanged", it)
     }
 
-    private val onVideoSizeChanged: (PlayerEvent.VideoSizeChanged) -> Unit = {
-        emitEvent("videoSizeChanged", it)
-    }
     /**
      * Start listening and emitting player events as bubbling events to the js side.
      */
@@ -499,7 +496,6 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
             on(onAdSkipped)
             on(onAdStarted)
             on(onVideoPlaybackQualityChanged)
-            on(onVideoSizeChanged)
         }
         playerView?.apply {
             on(onPictureInPictureAvailabilityChanged)
@@ -549,7 +545,6 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
             off(onAdSkipped)
             off(onAdStarted)
             off(onVideoPlaybackQualityChanged)
-            off(onVideoSizeChanged)
         }
         playerView?.apply {
             off(onPictureInPictureAvailabilityChanged)

@@ -42,7 +42,6 @@ import {
   TimeChangedEvent,
   UnmutedEvent,
   VideoPlaybackQualityChangedEvent,
-  VideoSizeChangedEvent,
 } from '../../events';
 
 /**
@@ -92,7 +91,6 @@ interface EventProps {
   onTimeChanged: TimeChangedEvent;
   onUnmuted: UnmutedEvent;
   onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
-  onVideoSizeChanged: VideoSizeChangedEvent;
 }
 
 /**

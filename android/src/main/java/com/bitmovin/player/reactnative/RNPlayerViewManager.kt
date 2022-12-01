@@ -92,7 +92,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "adSkipped" to "onAdSkipped",
         "adStarted" to "onAdStarted",
         "videoPlaybackQualityChanged" to "onVideoPlaybackQualityChanged",
-        "videoSizeChanged" to "onVideoSizeChanged",
     )
 
     /**

@@ -285,15 +285,6 @@ extension AdStartedEvent {
     }
 }
 
-extension VideoSizeChangedEvent {
-    func toJSON() -> [AnyHashable: Any] {
-        [
-            "name": name,
-            "timestamp": timestamp
-        ]
-    }
-}
-
 extension VideoDownloadQualityChangedEvent {
     func toJSON() -> [AnyHashable: Any] {
         [

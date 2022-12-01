@@ -125,7 +125,6 @@ export function PlayerView({ style, player, ...props }: PlayerViewProps) {
       onTimeChanged={proxy(props.onTimeChanged)}
       onUnmuted={proxy(props.onUnmuted)}
       onVideoPlaybackQualityChanged={proxy(props.onVideoPlaybackQualityChanged)}
-      onVideoSizeChanged={proxy(props.onVideoSizeChanged)}
     />
   );
 }

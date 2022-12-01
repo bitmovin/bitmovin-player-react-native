@@ -472,9 +472,3 @@ export interface VideoPlaybackQualityChangedEvent extends Event {
     codec?: string;
   };
 }
-
-export interface VideoSizeChangedEvent extends Event {
-  height?: number;
-  width?: number;
-  aspectRatio?: number;
-}
