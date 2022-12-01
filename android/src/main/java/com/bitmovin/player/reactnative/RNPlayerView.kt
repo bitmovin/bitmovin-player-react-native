@@ -451,6 +451,10 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
         emitEvent("adStarted", it)
     }
 
+
+    /**
+     * `onVideoPlaybackQualityChanged` event callback.
+     */
     private val onVideoPlaybackQualityChanged: (PlayerEvent.VideoPlaybackQualityChanged) -> Unit = {
         emitEvent("videoPlaybackQualityChanged", it)
     }
