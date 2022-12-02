@@ -484,6 +484,11 @@ extension RCTConvert {
         ]
     }
 
+    /**
+     Utility method to get a `BitmovinAnalyticsConfig` value from a JS object.
+     - Parameter json: JS object.
+     - Returns: The associated `BitmovinAnalyticsConfig` value or nil.
+     */
     static func analyticsConfig(_ json: Any?) -> BitmovinAnalyticsConfig? {
         guard
             let json = json as? [String: Any?],
