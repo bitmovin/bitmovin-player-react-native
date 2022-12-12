@@ -1,5 +1,8 @@
 package com.bitmovin.player.reactnative.converter
 
+import com.bitmovin.analytics.BitmovinAnalyticsConfig
+import com.bitmovin.analytics.bitmovin.player.BitmovinPlayerCollector
+import com.bitmovin.analytics.enums.CDNProvider
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.DeviceDescription.ModelName
 import com.bitmovin.player.api.PlaybackConfig
@@ -14,11 +17,7 @@ import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
-import com.bitmovin.player.reactnative.extensions.getName
-import com.bitmovin.player.reactnative.extensions.putInt
-import com.bitmovin.player.reactnative.extensions.putDouble
-import com.bitmovin.player.reactnative.extensions.toList
-import com.bitmovin.player.reactnative.extensions.toReadableArray
+import com.bitmovin.player.reactnative.extensions.*
 import com.facebook.react.bridge.*
 import java.util.UUID
 
@@ -594,6 +593,54 @@ class JsonConverter {
             AdQuartile.MidPoint -> "mid_point"
             AdQuartile.ThirdQuartile -> "third"
             else -> null
+        }
+
+        /**
+         * Converts an arbitrary json object into a `BitmovinAnalyticsConfig`.
+         * @param json JS object representing the `BitmovinAnalyticsConfig`.
+         * @return The produced `BitmovinAnalyticsConfig` or null.
+         */
+        @JvmStatic
+        fun toAnalyticsConfig(json: ReadableMap?): BitmovinAnalyticsConfig? = json?.let {
+            var config: BitmovinAnalyticsConfig? = null
+            it.getString("key")?.let { key ->
+                config = it.getString("playerKey")
+                    ?.let { playerKey -> BitmovinAnalyticsConfig(key, playerKey) }
+                    ?: BitmovinAnalyticsConfig(key)
+            }
+            it.getString("cdnProvider")?.let { cdnProvider ->
+                config?.cdnProvider = cdnProvider
+            }
+            it.getString("customUserId")?.let { customUserId ->
+                config?.customUserId = customUserId
+            }
+            it.getString("experimentName")?.let { experimentName ->
+                config?.experimentName = experimentName
+            }
+            it.getString("videoId")?.let { videoId ->
+                config?.videoId = videoId
+            }
+            it.getString("title")?.let { title ->
+                config?.title = title
+            }
+            it.getString("path")?.let { path ->
+                config?.path = path
+            }
+            if (it.hasKey("isLive")) {
+                config?.isLive = it.getBoolean("isLive")
+            }
+            if (it.hasKey("ads")) {
+                config?.ads = it.getBoolean("ads")
+            }
+            if (it.hasKey("randomizeUserId")) {
+                config?.randomizeUserId = it.getBoolean("randomizeUserId")
+            }
+            for (n in 1..30) {
+                it.getString("customData${n}")?.let { customDataN ->
+                    config?.setProperty("customData${n}", customDataN)
+                }
+            }
+            config
         }
     }
 }

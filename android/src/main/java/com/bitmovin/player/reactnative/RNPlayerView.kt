@@ -6,6 +6,7 @@ import android.graphics.Rect
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import com.bitmovin.analytics.bitmovin.player.BitmovinPlayerCollector
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
@@ -43,6 +44,11 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
         }
 
     /**
+     * Player analytics collector object.
+     */
+    var analyticsCollector: BitmovinPlayerCollector? = null
+
+    /**
      * Object that handles PiP mode changes in React Native.
      */
     var pictureInPictureHandler: RNPictureInPictureHandler? = null
@@ -67,6 +73,7 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
         stopBubblingEvents()
         context.removeLifecycleEventListener(this)
         playerView?.removeOnLayoutChangeListener(this)
+        analyticsCollector?.detachPlayer()
     }
 
     /**
@@ -103,6 +110,9 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
             (playerView.parent as ViewGroup?)?.removeView(playerView)
             addView(playerView)
             startBubblingEvents()
+        }
+        player?.let {
+            analyticsCollector?.attachPlayer(it)
         }
         pictureInPictureHandler?.let {
             it.setDelegate(this)

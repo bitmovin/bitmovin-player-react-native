@@ -3,7 +3,9 @@ package com.bitmovin.player.reactnative
 import android.os.Handler
 import android.os.Looper
 import android.view.ViewGroup.LayoutParams
+import com.bitmovin.analytics.bitmovin.player.BitmovinPlayerCollector
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
@@ -139,6 +141,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId?, playerConfig: ReadableMap?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
+            JsonConverter.toAnalyticsConfig(playerConfig?.getMap("analyticsConfig"))?.let {
+                view.analyticsCollector = BitmovinPlayerCollector(it, context)
+            }
             playerConfig?.getMap("playbackConfig")?.getBoolean("isPictureInPictureEnabled")?.let {
                 pictureInPictureHandler.isPictureInPictureEnabled = it
                 view.pictureInPictureHandler = pictureInPictureHandler
