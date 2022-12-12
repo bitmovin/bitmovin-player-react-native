@@ -482,4 +482,56 @@ extension RCTConvert {
             "minBitrate": adData.minBitrate
         ]
     }
+
+    static func offlineStateJson(_ offlineState: OfflineState?) -> String {
+        var notDownloaded = "NotDownloaded"
+        guard let offlineState = offlineState else {
+            return notDownloaded
+        }
+
+        switch offlineState {
+        case .downloading: return "Downloading"
+        case .downloaded: return "Downloaded"
+        case .suspended: return "Suspended"
+        default: return notDownloaded
+        }
+    }
+
+    static func offlineActionJson(_ offlineAction: OfflineTrackAction?) -> String? {
+        guard let offlineAction = offlineAction else {
+            return nil
+        }
+
+        switch offlineAction {
+        case .download: return "Download"
+        default: return nil
+        }
+    }
+
+    static func offlineTextTrackJson(_ offlineTrack: OfflineTextTrack) -> [String: Any?] {
+        return [
+            "id": offlineTrack.label,
+            "language": offlineTrack.language,
+            "action": offlineActionJson(offlineTrack.action)
+        ]
+    }
+
+    static func offlineAudioTrackJson(_ offlineTrack: OfflineAudioTrack) -> [String: Any?] {
+        return [
+            "id": offlineTrack.label,
+            "language": offlineTrack.language,
+            "action": offlineActionJson(offlineTrack.action)
+        ]
+    }
+
+    static func offlineContentOptionsJson(_ offlineTracks: OfflineTrackSelection?) -> [String: Any?]? {
+        guard let offlineTracks = offlineTracks else {
+            return nil
+        }
+
+        return [
+            "textOptions": offlineTracks.textTracks.map(RCTConvert.offlineTextTrackJson),
+            "audioOptions": offlineTracks.audioTracks.map(RCTConvert.offlineAudioTrackJson)
+        ]
+    }
 }

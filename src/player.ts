@@ -42,6 +42,7 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures experimental features. A default TweaksConfig is set initially.
    */
   tweaksConfig?: TweaksConfig;
+  offlineSourceId?: string;
 }
 
 /**
@@ -178,7 +179,11 @@ export class Player extends NativeInstance<PlayerConfig> {
   loadSource = (source: Source) => {
     source.initialize();
     this.source = source;
-    PlayerModule.loadSource(this.nativeId, source.nativeId);
+    PlayerModule.loadSource(
+      this.nativeId,
+      source.nativeId,
+      this.config?.offlineSourceId
+    );
   };
 
   /**

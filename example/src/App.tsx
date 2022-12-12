@@ -12,6 +12,7 @@ import SubtitlePlayback from './screens/SubtitlePlayback';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
 import BasicPictureInPicture from './screens/BasicPictureInPicture';
+import OfflinePlayback from './screens/OfflinePlayback';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -26,6 +27,7 @@ export type RootStackParamsList = {
   BasicPictureInPicture: undefined;
   SubtitlePlayback: undefined;
   CustomPlaybackForm: undefined;
+  OfflinePlayback: undefined;
   CustomPlayback: {
     licenseKey: string;
     streamURL: string;
@@ -84,6 +86,10 @@ export default function App() {
                 title: 'Basic Ads',
                 routeName: 'BasicAds',
               },
+              {
+                title: 'Offline playback',
+                routeName: 'OfflinePlayback',
+              },
             ],
           }}
         />
@@ -106,6 +112,11 @@ export default function App() {
           name="SubtitlePlayback"
           component={SubtitlePlayback}
           options={{ title: 'Subtitle and captions' }}
+        />
+        <RootStack.Screen
+          name="OfflinePlayback"
+          component={OfflinePlayback}
+          options={{ title: 'Offline Playback' }}
         />
         <RootStack.Screen
           name="CustomPlaybackForm"

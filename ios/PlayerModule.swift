@@ -17,7 +17,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     static func requiresMainQueueSetup() -> Bool {
         true
     }
-    
+
     /// Since most `PlayerModule` operations are UI related and need to be executed on the main thread, they are scheduled with `UIManager.addBlock`.
     var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
@@ -48,14 +48,14 @@ class PlayerModule: NSObject, RCTBridgeModule {
             self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
         }
     }
-    
+
     /**
      Loads the given source configuration into `nativeId`'s `Player` object.
      - Parameter nativeId: Target player.
      - Parameter sourceNativeId: The `nativeId` of the `Source` object.
      */
-    @objc(loadSource:sourceNativeId:)
-    func loadSource(_ nativeId: NativeId, sourceNativeId: NativeId) {
+    @objc(loadSource:sourceNativeId:offlineModuleNativeId:)
+    func loadSource(_ nativeId: NativeId, sourceNativeId: NativeId, offlineModuleNativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let player = self?.players[nativeId],
@@ -63,13 +63,24 @@ class PlayerModule: NSObject, RCTBridgeModule {
             else {
                 return
             }
-            player.load(source: source)
+
+            let offlineSourceConfig = self?.getOfflineModule()?.retrieve(offlineModuleNativeId)?.createOfflineSourceConfig(restrictedToAssetCache: true)
+            if (offlineSourceConfig != nil) {
+                player.load(sourceConfig: offlineSourceConfig!)
+            } else {
+                player.load(source: source)
+            }
         }
     }
 
     /// Fetches the initialized `SourceModule` instance on RN's bridge object.
     private func getSourceModule() -> SourceModule? {
         bridge.module(for: SourceModule.self) as? SourceModule
+    }
+
+    /// Fetches the initialized `OfflineModule` instance on RN's bridge object.
+    private func getOfflineModule() -> OfflineModule? {
+        bridge.module(for: OfflineModule.self) as? OfflineModule
     }
 
     /**
