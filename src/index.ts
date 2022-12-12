@@ -7,3 +7,6 @@ export * from './hooks';
 export * from './player';
 export * from './source';
 export * from './subtitleTrack';
+export * from './offlineContentOptions';
+export * from './offlineContentManager';
+export * from './offlineContentManagerListener';

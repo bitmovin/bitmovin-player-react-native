@@ -77,7 +77,6 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   initialize = () => {
     if (!this.isInitialized && this.config) {
       const nativeEventListener = (data?: BitmovinNativeOfflineEventData) => {
-        console.log('XXX', data);
         if (this.nativeId === data?.nativeId) {
           if (data.eventType === OfflineEventType.onCompleted) {
             this.config?.listener?.onCompleted?.(data);
