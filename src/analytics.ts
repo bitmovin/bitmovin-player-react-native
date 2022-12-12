@@ -16,7 +16,7 @@ export interface AnalyticsConfig extends CustomDataConfig {
   /**
    * User ID of the customer.
    */
-  customerUserId?: string;
+  customUserId?: string;
   /**
    * Experiment name needed for A/B testing.
    */

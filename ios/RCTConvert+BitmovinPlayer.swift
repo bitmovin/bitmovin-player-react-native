@@ -503,7 +503,7 @@ extension RCTConvert {
         if let cdnProvider = json["cdnProvider"] as? String {
             config.cdnProvider = cdnProvider
         }
-        if let customerUserId = json["customerUserId"] as? String {
+        if let customerUserId = json["customUserId"] as? String {
             config.customerUserId = customerUserId
         }
         if let experimentName = json["experimentName"] as? String {
