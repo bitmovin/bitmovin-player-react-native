@@ -1,3 +1,5 @@
+import { NativeInstanceConfig } from '../nativeInstance';
+
 export enum CdnProvider {
   BITMOVIN = 'bitmovin',
   AKAMAI = 'akamai',
@@ -8,7 +10,9 @@ export enum CdnProvider {
   BITGRAVITY = 'bitgravity',
 }
 
-export interface AnalyticsConfig extends CustomDataConfig {
+export interface AnalyticsConfig
+  extends NativeInstanceConfig,
+    CustomDataConfig {
   /**
    * CDN Provide that the video playback session is using.
    */
