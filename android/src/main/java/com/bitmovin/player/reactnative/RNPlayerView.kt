@@ -6,7 +6,6 @@ import android.graphics.Rect
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import com.bitmovin.analytics.bitmovin.player.BitmovinPlayerCollector
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event

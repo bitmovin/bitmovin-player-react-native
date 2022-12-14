@@ -1,5 +1,4 @@
 import BitmovinPlayer
-import BitmovinAnalyticsCollector
 
 @objc(RNPlayerView)
 class RNPlayerView: UIView {

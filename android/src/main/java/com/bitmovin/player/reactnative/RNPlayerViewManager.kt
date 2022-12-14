@@ -3,9 +3,7 @@ package com.bitmovin.player.reactnative
 import android.os.Handler
 import android.os.Looper
 import android.view.ViewGroup.LayoutParams
-import com.bitmovin.analytics.bitmovin.player.BitmovinPlayerCollector
 import com.bitmovin.player.PlayerView
-import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule

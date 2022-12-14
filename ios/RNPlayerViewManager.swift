@@ -1,6 +1,5 @@
-import Foundation
 import BitmovinPlayer
-import BitmovinAnalyticsCollector
+import Foundation
 
 @objc(RNPlayerViewManager)
 class RNPlayerViewManager: RCTViewManager {
