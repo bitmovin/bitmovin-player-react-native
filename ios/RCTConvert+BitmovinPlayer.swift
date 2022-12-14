@@ -534,4 +534,40 @@ extension RCTConvert {
         }
         return config
     }
+
+    /**
+     Utility method to get an analytics `CustomData` value from a JS object.
+     - Parameter json: JS object.
+     - Returns: The associated `CustomData` value or nil.
+     */
+    static func analyticsCustomData(_ json: Any?) -> CustomData? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let customData = CustomData()
+        for n in 1..<30 {
+            if let customDataN = json["customData\(n)"] as? String {
+                customData.setValue(customDataN, forKey: "customData\(n)")
+            }
+        }
+        return customData
+    }
+
+    /**
+     Utility method to get an analytics `CustomData` value from a JS object.
+     - Parameter json: JS object.
+     - Returns: The associated `CustomData` value or nil.
+     */
+    static func toJson(analyticsCustomData: CustomData?) -> [String: Any?]? {
+        guard let analyticsCustomData = analyticsCustomData else {
+            return nil
+        }
+        var json: [String: Any?] = [:]
+        for n in 1..<30 {
+            if let customDataN = analyticsCustomData.value(forKey: "customData\(n)") {
+                json["customData\(n)"] = customDataN
+            }
+        }
+        return json
+    }
 }

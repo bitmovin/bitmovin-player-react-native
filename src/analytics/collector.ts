@@ -43,4 +43,8 @@ export class AnalyticsCollector extends NativeInstance<AnalyticsConfig> {
   getCustomData = async (): Promise<CustomDataConfig> => {
     return AnalyticsModule.getCustomData(this.nativeId);
   };
+
+  getUserId = async (): Promise<string> => {
+    return AnalyticsModule.getUserId(this.nativeId);
+  };
 }

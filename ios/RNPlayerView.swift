@@ -60,15 +60,6 @@ class RNPlayerView: UIView {
         }
     }
 
-    /// Player analytics collector object.
-    var analyticsCollector: BitmovinPlayerCollector? {
-        didSet {
-            if let player = playerView?.player {
-                analyticsCollector?.attachPlayer(player: player)
-            }
-        }
-    }
-
     init() {
         super.init(frame: .zero)
     }

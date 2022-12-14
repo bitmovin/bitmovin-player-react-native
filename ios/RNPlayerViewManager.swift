@@ -33,9 +33,6 @@ class RNPlayerViewManager: RCTViewManager {
             } else {
                 view.playerView = PlayerView(player: player, frame: view.bounds)
             }
-            if let analyticsConfig = RCTConvert.analyticsConfig(playerConfig?["analyticsConfig"]) {
-                view.analyticsCollector = BitmovinPlayerCollector(config: analyticsConfig)
-            }
             player.add(listener: view)
             view.playerView?.add(listener: view)
         }
