@@ -1,5 +1,8 @@
 import { NativeInstanceConfig } from '../nativeInstance';
 
+/**
+ * Available cdn provider options for AnalyticsConfig.
+ */
 export enum CdnProvider {
   BITMOVIN = 'bitmovin',
   AKAMAI = 'akamai',
@@ -10,6 +13,9 @@ export enum CdnProvider {
   BITGRAVITY = 'bitgravity',
 }
 
+/**
+ * Object used to configure a new `AnalyticsCollector` instance.
+ */
 export interface AnalyticsConfig
   extends NativeInstanceConfig,
     CustomDataConfig {

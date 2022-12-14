@@ -29,6 +29,11 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
         bridge.uiManager.methodQueue
     }
 
+    /**
+     Retrieves a `BitmovinPlayerCollector` instance from the internal registry for the given `nativeId`.
+     - Parameter nativeId: Native Id of the collector instance.
+     - Returns: Collector instance associated with the `nativeId` or `nil`.
+     */
     @objc func retrieve(_ nativeId: NativeId) -> BitmovinPlayerCollector? {
         collectors[nativeId]
     }
@@ -48,6 +53,23 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
         }
     }
 
+    /**
+     Detaches and removes the given `BitmovinPlayerCollector` from the internal registry.
+     - Parameter nativeId: Native Id of the collector instance.
+     */
+    @objc(destroy:)
+    func destroy(_ nativeId: NativeId) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.collectors[nativeId]?.detachPlayer()
+            self?.collectors[nativeId] = nil
+        }
+    }
+
+    /**
+     Attaches a `BitmovinPlayerCollector` to the `Player` instance with native Id equal to `playerId`.
+     - Parameter nativeId: Native Id of the collector instance.
+     - Parameter playerId: Native Id of the player instance.
+     */
     @objc(attach:playerId:)
     func attach(_ nativeId: NativeId, playerId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
@@ -61,6 +83,10 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
         }
     }
 
+    /**
+     Detaches the player object from a `BitmovinPlayerCollector` instance.
+     - Parameter nativeId: Native Id of the collector instance.
+     */
     @objc(detach:)
     func detach(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
@@ -71,6 +97,11 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
         }
     }
 
+    /**
+     Updates the custom data config for a `BitmovinPlayerCollector` instance.
+     - Parameter nativeId: Native Id of the collector instance.
+     - Parameter json: Custom data config json.
+     */
     @objc(setCustomDataOnce:json:)
     func setCustomDataOnce(_ nativeId: NativeId, json: Any?) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
@@ -84,6 +115,11 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
         }
     }
 
+    /**
+     Sets the custom data config for a `BitmovinPlayerCollector` instance.
+     - Parameter nativeId: Native Id of the collector instance.
+     - Parameter json: Custom data config json.
+     */
     @objc(setCustomData:json:)
     func setCustomData(_ nativeId: NativeId, json: Any?) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
@@ -97,6 +133,12 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
         }
     }
 
+    /**
+     Gets the current custom data config for a `BitmovinPlayerCollector` instance.
+     - Parameter nativeId: Native Id of the the collector instance.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
     @objc(getCustomData:resolver:rejecter:)
     func getCustomData(
         _ nativeId: NativeId,
@@ -114,6 +156,12 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
         }
     }
 
+    /**
+     Gets the current user Id for a `BitmovinPlayerCollector` instance.
+     - Parameter nativeId: Native Id of the the collector instance.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
     @objc(getUserId:resolver:rejecter:)
     func getUserId(
         _ nativeId: NativeId,

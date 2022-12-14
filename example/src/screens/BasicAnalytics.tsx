@@ -5,39 +5,31 @@ import {
   usePlayer,
   PlayerView,
   SourceType,
-  AdSourceType,
+  CdnProvider,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
-
-const withCorrelator = (tag: string): string =>
-  `${tag}${Math.floor(Math.random() * 100000)}`;
-
-const adTags = {
-  vastSkippable: withCorrelator(
-    'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dskippablelinear&correlator='
-  ),
-};
 
 export default function BasicAds() {
   useTVGestures();
 
   const player = usePlayer({
-    advertisingConfig: {
-      schedule: [
-        {
-          position: '10%',
-          sources: [
-            {
-              tag: adTags.vastSkippable,
-              type: AdSourceType.IMA,
-            },
-          ],
-        },
-      ],
-    },
     analyticsConfig: {
-      ads: true,
-      key: '<ANALYTICS-KEY>',
+      key: '<ANALYTICS-KEY>', // `key` is the only required parameter.
+      playerKey: '<BITMOVIN-PLAYER-KEY>',
+      cdnProvider: CdnProvider.AKAMAI, // Check out `CdnProvider` for more options.
+      customUserId: 'Custom user ID',
+      randomizeUserId: false, // Default value is true.
+      experimentName: 'Experiment name',
+      videoId: 'MyVideoId',
+      title: 'Art of Motion',
+      isLive: false,
+      ads: false, // Can be changed to `true` in case `advertisingConfig` is also present.
+      path: '/examples/basic_analytics',
+      customData1: 'Custom data field 1',
+      customData2: 'Custom data field 2',
+      customData3: 'Custom data field 3',
+      customData4: 'Custom data field 4',
+      customData5: 'Custom data field 5',
     },
   });
 

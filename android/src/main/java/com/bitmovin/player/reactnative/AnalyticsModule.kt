@@ -45,6 +45,25 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
         }
     }
 
+    /**
+     * Detaches and removes the given `BitmovinPlayerCollector` from the internal registry.
+     * @param nativeId Native Id of the collector instance.
+     */
+    @ReactMethod
+    fun destroy(nativeId: NativeId) {
+        uiManager()?.addUIBlock {
+            if (collectors.containsKey(nativeId)) {
+                collectors[nativeId]?.detachPlayer()
+                collectors.remove(nativeId)
+            }
+        }
+    }
+
+    /**
+     * Attaches a `BitmovinPlayerCollector` to the `Player` instance with native Id equal to `playerId`.
+     * @param nativeId Native Id of the collector instance.
+     * @param playerId Native Id of the player instance.
+     */
     @ReactMethod
     fun attach(nativeId: NativeId, playerId: NativeId) {
         uiManager()?.addUIBlock { _ ->
@@ -54,6 +73,10 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
         }
     }
 
+    /**
+     * Detaches the player object from a `BitmovinPlayerCollector` instance.
+     * @param nativeId Native Id of the collector instance.
+     */
     @ReactMethod
     fun detach(nativeId: NativeId) {
         uiManager()?.addUIBlock { _ ->
@@ -61,6 +84,11 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
         }
     }
 
+    /**
+     * Updates the custom data config for a `BitmovinPlayerCollector` instance.
+     * @param nativeId Native Id of the collector instance.
+     * @param json Custom data config json.
+     */
     @ReactMethod
     fun setCustomDataOnce(nativeId: NativeId, json: ReadableMap?) {
         uiManager()?.addUIBlock { _ ->
@@ -70,6 +98,11 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
         }
     }
 
+    /**
+     * Sets the custom data config for a `BitmovinPlayerCollector` instance.
+     * @param nativeId Native Id of the collector instance.
+     * @param json Custom data config json.
+     */
     @ReactMethod
     fun setCustomData(nativeId: NativeId, json: ReadableMap?) {
         uiManager()?.addUIBlock { _ ->
@@ -79,6 +112,11 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
         }
     }
 
+    /**
+     * Gets the current custom data config for a `BitmovinPlayerCollector` instance.
+     * @param nativeId Native Id of the the collector instance.
+     * @param promise JS promise object.
+     */
     @ReactMethod
     fun getCustomData(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock { _ ->
@@ -88,6 +126,11 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
         }
     }
 
+    /**
+     * Gets the current user Id for a `BitmovinPlayerCollector` instance.
+     * @param nativeId Native Id of the the collector instance.
+     * @param promise JS promise object.
+     */
     @ReactMethod
     fun getUserId(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock { _ ->

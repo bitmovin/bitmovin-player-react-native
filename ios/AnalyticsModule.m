@@ -3,6 +3,7 @@
 @interface RCT_EXTERN_REMAP_MODULE(AnalyticsModule, AnalyticsModule, NSObject)
 
 RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config)
+RCT_EXTERN_METHOD(destroy:(NSString *)nativeId)
 RCT_EXTERN_METHOD(attach:(NSString *)nativeId playerId:(NSString *)playerId)
 RCT_EXTERN_METHOD(detach:(NSString *)nativeId)
 RCT_EXTERN_METHOD(setCustomDataOnce:(NSString *)nativeId json:(nullable id)json)
