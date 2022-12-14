@@ -554,9 +554,9 @@ extension RCTConvert {
     }
 
     /**
-     Utility method to get an analytics `CustomData` value from a JS object.
-     - Parameter json: JS object.
-     - Returns: The associated `CustomData` value or nil.
+     Utility method to get a JS value from a `CustomData` object.
+     - Parameter analyticsCustomData: Analytics custom data object.
+     - Returns: The JS value representing the given object.
      */
     static func toJson(analyticsCustomData: CustomData?) -> [String: Any?]? {
         guard let analyticsCustomData = analyticsCustomData else {

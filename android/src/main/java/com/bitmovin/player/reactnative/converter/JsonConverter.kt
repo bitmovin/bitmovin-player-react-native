@@ -2,6 +2,7 @@ package com.bitmovin.player.reactnative.converter
 
 import com.bitmovin.analytics.BitmovinAnalyticsConfig
 import com.bitmovin.analytics.bitmovin.player.BitmovinPlayerCollector
+import com.bitmovin.analytics.data.CustomData
 import com.bitmovin.analytics.enums.CDNProvider
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.DeviceDescription.ModelName
@@ -641,6 +642,38 @@ class JsonConverter {
                 }
             }
             config
+        }
+
+        /**
+         * Converts an arbitrary json object into an analytics `CustomData`.
+         * @param json JS object representing the `CustomData`.
+         * @return The produced `CustomData` or null.
+         */
+        @JvmStatic
+        fun toAnalyticsCustomData(json: ReadableMap?): CustomData? = json?.let {
+            val customData = CustomData()
+            for (n in 1..30) {
+                it.getString("customData${n}")?.let { customDataN ->
+                    customData.setProperty("customData${n}", customDataN)
+                }
+            }
+            customData
+        }
+
+        /**
+         * Converts an arbitrary analytics `CustomData` object into a JS value.
+         * @param customData `CustomData` to be converted.
+         * @return The produced JS value or null.
+         */
+        @JvmStatic
+        fun fromAnalyticsCustomData(customData: CustomData?): ReadableMap? = customData?.let {
+            val json = Arguments.createMap()
+            for (n in 1..30) {
+                it.getProperty<String>("customData${n}")?.getter?.call(it)?.let { customDataN ->
+                    json.putString("customData${n}", customDataN)
+                }
+            }
+            json
         }
     }
 }

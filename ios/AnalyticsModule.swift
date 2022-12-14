@@ -49,7 +49,7 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
     }
 
     @objc(attach:playerId:)
-    func attach(_ nativeId: NativeId, playerId: String) {
+    func attach(_ nativeId: NativeId, playerId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let collector = self?.collectors[nativeId],

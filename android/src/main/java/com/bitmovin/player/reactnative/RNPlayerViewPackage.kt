@@ -21,6 +21,7 @@ class RNPlayerViewPackage : ReactPackage {
             PlayerModule(reactContext),
             SourceModule(reactContext),
             DrmModule(reactContext),
+            AnalyticsModule(reactContext),
             RNPlayerViewManager(reactContext),
         )
     }
