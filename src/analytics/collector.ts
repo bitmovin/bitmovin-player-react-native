@@ -36,6 +36,10 @@ export class AnalyticsCollector extends NativeInstance<AnalyticsConfig> {
     AnalyticsModule.detach(this.nativeId);
   };
 
+  setCustomDataOnce = (customData: CustomDataConfig) => {
+    AnalyticsModule.setCustomDataOnce(this.nativeId, customData);
+  };
+
   setCustomData = (customData: CustomDataConfig) => {
     AnalyticsModule.setCustomData(this.nativeId, customData);
   };

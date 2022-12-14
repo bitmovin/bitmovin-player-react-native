@@ -71,6 +71,19 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
         }
     }
 
+    @objc(setCustomDataOnce:json:)
+    func setCustomDataOnce(_ nativeId: NativeId, json: Any?) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            guard
+                let collector = self?.collectors[nativeId],
+                let customData = RCTConvert.analyticsCustomData(json)
+            else {
+                return
+            }
+            collector.setCustomDataOnce(customData: customData)
+        }
+    }
+
     @objc(setCustomData:json:)
     func setCustomData(_ nativeId: NativeId, json: Any?) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
@@ -80,7 +93,7 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
             else {
                 return
             }
-            collector.setCustomDataOnce(customData: customData)
+            collector.setCustomData(customData: customData)
         }
     }
 

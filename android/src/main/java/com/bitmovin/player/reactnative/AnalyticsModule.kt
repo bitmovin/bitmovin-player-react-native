@@ -62,10 +62,19 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
     }
 
     @ReactMethod
-    fun setCustomData(nativeId: NativeId, json: ReadableMap?) {
+    fun setCustomDataOnce(nativeId: NativeId, json: ReadableMap?) {
         uiManager()?.addUIBlock { _ ->
             JsonConverter.toAnalyticsCustomData(json)?.let {
                 collectors[nativeId]?.setCustomDataOnce(it)
+            }
+        }
+    }
+
+    @ReactMethod
+    fun setCustomData(nativeId: NativeId, json: ReadableMap?) {
+        uiManager()?.addUIBlock { _ ->
+            JsonConverter.toAnalyticsCustomData(json)?.let {
+                collectors[nativeId]?.customData = it
             }
         }
     }
