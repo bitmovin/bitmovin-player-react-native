@@ -141,9 +141,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId?, playerConfig: ReadableMap?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
-            JsonConverter.toAnalyticsConfig(playerConfig?.getMap("analyticsConfig"))?.let {
-                view.analyticsCollector = BitmovinPlayerCollector(it, context)
-            }
             playerConfig?.getMap("playbackConfig")?.getBoolean("isPictureInPictureEnabled")?.let {
                 pictureInPictureHandler.isPictureInPictureEnabled = it
                 view.pictureInPictureHandler = pictureInPictureHandler

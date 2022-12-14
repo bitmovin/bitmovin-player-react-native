@@ -44,11 +44,6 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
         }
 
     /**
-     * Player analytics collector object.
-     */
-    var analyticsCollector: BitmovinPlayerCollector? = null
-
-    /**
      * Object that handles PiP mode changes in React Native.
      */
     var pictureInPictureHandler: RNPictureInPictureHandler? = null
@@ -73,7 +68,6 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
         stopBubblingEvents()
         context.removeLifecycleEventListener(this)
         playerView?.removeOnLayoutChangeListener(this)
-        analyticsCollector?.detachPlayer()
     }
 
     /**
@@ -110,9 +104,6 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
             (playerView.parent as ViewGroup?)?.removeView(playerView)
             addView(playerView)
             startBubblingEvents()
-        }
-        player?.let {
-            analyticsCollector?.attachPlayer(it)
         }
         pictureInPictureHandler?.let {
             it.setDelegate(this)
