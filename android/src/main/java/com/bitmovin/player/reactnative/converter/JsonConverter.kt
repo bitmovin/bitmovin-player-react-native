@@ -1,9 +1,7 @@
 package com.bitmovin.player.reactnative.converter
 
 import com.bitmovin.analytics.BitmovinAnalyticsConfig
-import com.bitmovin.analytics.bitmovin.player.BitmovinPlayerCollector
 import com.bitmovin.analytics.data.CustomData
-import com.bitmovin.analytics.enums.CDNProvider
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.DeviceDescription.ModelName
 import com.bitmovin.player.api.PlaybackConfig
@@ -15,6 +13,7 @@ import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.SeekPosition
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
+import com.bitmovin.player.api.media.video.quality.VideoQuality
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
@@ -376,6 +375,10 @@ class JsonConverter {
                 json.putDouble("skipOffset", event.skipOffset)
                 json.putDouble("timeOffset", event.timeOffset)
             }
+            if (event is PlayerEvent.VideoPlaybackQualityChanged) {
+                json.putMap("newVideoQuality", fromVideoQuality(event.newVideoQuality))
+                json.putMap("oldVideoQuality", fromVideoQuality(event.oldVideoQuality))
+            }
             return json
         }
 
@@ -674,6 +677,24 @@ class JsonConverter {
                 }
             }
             json
+        }
+
+        /**
+         * Converts any `VideoQuality` value into its json representation.
+         * @param videoQuality `VideoQuality` value.
+         * @return The produced JS string.
+         */
+        @JvmStatic
+        fun fromVideoQuality(videoQuality: VideoQuality?): WritableMap? = videoQuality?.let {
+            Arguments.createMap().apply {
+                putString("id", videoQuality.id)
+                putString("label", videoQuality.label)
+                putInt("bitrate", videoQuality.bitrate)
+                putString("codec", videoQuality.codec)
+                putDouble("frameRate", videoQuality.frameRate.toDouble())
+                putInt("height", videoQuality.height)
+                putInt("width", videoQuality.width)
+            }
         }
     }
 }
