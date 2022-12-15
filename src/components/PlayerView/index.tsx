@@ -124,6 +124,7 @@ export function PlayerView({ style, player, ...props }: PlayerViewProps) {
       onSubtitleRemoved={proxy(props.onSubtitleRemoved)}
       onTimeChanged={proxy(props.onTimeChanged)}
       onUnmuted={proxy(props.onUnmuted)}
+      onVideoPlaybackQualityChanged={proxy(props.onVideoPlaybackQualityChanged)}
     />
   );
 }

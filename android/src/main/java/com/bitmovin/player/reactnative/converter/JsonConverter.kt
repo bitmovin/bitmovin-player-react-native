@@ -11,6 +11,7 @@ import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.SeekPosition
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
+import com.bitmovin.player.api.media.video.quality.VideoQuality
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
@@ -376,6 +377,10 @@ class JsonConverter {
                 json.putDouble("skipOffset", event.skipOffset)
                 json.putDouble("timeOffset", event.timeOffset)
             }
+            if (event is PlayerEvent.VideoPlaybackQualityChanged) {
+                json.putMap("newVideoQuality", fromVideoQuality(event.newVideoQuality))
+                json.putMap("oldVideoQuality", fromVideoQuality(event.oldVideoQuality))
+            }
             return json
         }
 
@@ -594,6 +599,25 @@ class JsonConverter {
             AdQuartile.MidPoint -> "mid_point"
             AdQuartile.ThirdQuartile -> "third"
             else -> null
+        }
+
+
+        /**
+         * Converts any `VideoQuality` value into its json representation.
+         * @param videoQuality `VideoQuality` value.
+         * @return The produced JS string.
+         */
+        @JvmStatic
+        fun fromVideoQuality(videoQuality: VideoQuality?): WritableMap? = videoQuality?.let {
+            Arguments.createMap().apply {
+                putString("id", videoQuality.id)
+                putString("label", videoQuality.label)
+                putInt("bitrate", videoQuality.bitrate)
+                putString("codec", videoQuality.codec)
+                putDouble("frameRate", videoQuality.frameRate.toDouble())
+                putInt("height", videoQuality.height)
+                putInt("width", videoQuality.width)
+            }
         }
     }
 }
