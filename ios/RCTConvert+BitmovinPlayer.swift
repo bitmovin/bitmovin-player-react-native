@@ -202,6 +202,9 @@ extension RCTConvert {
                 }
             }
         }
+        if let thumbnailTrack = json["thumbnailTrack"] as? [String: Any] {
+            sourceConfig.thumbnailTrack = RCTConvert.thumbnailTrack(thumbnailTrack)
+        }
         return sourceConfig
     }
 
@@ -266,6 +269,28 @@ extension RCTConvert {
         return fairplayConfig
     }
 
+    /**
+     Utility method to get a `ThumbnailTrack` instance from a JS object.
+     - Parameter json: JS object.
+     - Returns: The generated `ThumbnailTrack`.
+     */
+    static func thumbnailTrack(_ json: [String: Any]) -> ThumbnailTrack? {
+        guard
+            let url = RCTConvert.nsurl(json["url"]),
+            let label = json["label"] as? String
+        else {
+            return nil
+        }
+        let isDefaultTrack = json["isDefault"] as? Bool ?? false
+        let identifier = json["identifier"] as? String ?? UUID().uuidString
+        return ThumbnailTrack(
+            url: url,
+            label: label,
+            identifier: identifier,
+            isDefaultTrack: isDefaultTrack
+        )
+    }
+    
     /**
      Utility method to get a `SubtitleTrack` instance from a JS object.
      - Parameter json: JS object.

@@ -11,6 +11,7 @@ import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.SeekPosition
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
+import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
@@ -207,6 +208,11 @@ class JsonConverter {
                     }
                 }
             }
+            if (json.hasKey("thumbnailTrack")) {
+                toThumbnailTrack(json.getMap("thumbnailTrack"))?.let {
+                    config.thumbnailTrack = it
+                }
+            }
             return config
         }
 
@@ -393,6 +399,19 @@ class JsonConverter {
             widevineConfig
         }
 
+        /**
+         * Converts an arbitrary `json` into a `ThumbnailsTrack`.
+         * @param json JS object representing the `ThumbnailsTrack`.
+         * @return The generated `ThumbnailsTrack` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toThumbnailTrack(json: ReadableMap?): ThumbnailTrack? {
+            val url = json?.getString("url")
+            if (json == null || url == null) {
+                return null
+            }
+            return ThumbnailTrack(url);
+        }
         /**
          * Converts an arbitrary `json` into a `SubtitleTrack`.
          * @param json JS object representing the `SubtitleTrack`.

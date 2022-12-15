@@ -32,8 +32,16 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
     - [Enabling DRM protection](#enabling-drm-protection)
       - [Prepare hooks](#prepare-hooks)
     - [Adding external subtitle tracks](#adding-external-subtitle-tracks)
+    - [Adding external thumbnail track](#adding-external-thumbnail-track)
     - [Enabling Picture in Picture mode](#enabling-picture-in-picture-mode)
+      - [Android](#android)
+      - [iOS](#ios)
+      - [Showing the Picture in Picture UI option](#showing-the-picture-in-picture-ui-option)
+      - [Supported Picture in Picture events](#supported-picture-in-picture-events)
     - [Setting up ads](#setting-up-ads)
+      - [Static ads configuration](#static-ads-configuration)
+      - [Dynamic ads scheduling](#dynamic-ads-scheduling)
+      - [Supported ads events](#supported-ads-events)
   - [Contributing](#contributing)
 
 ## Platform Support
@@ -56,7 +64,7 @@ Features of the native mobile Player SDKs are progressively being implemented in
 | -------------------------------- | ----------------------------------------- |
 | Playback of DRM-protected assets | :white_check_mark: Available since v0.2.0 |
 | Subtitles & Captions             | :white_check_mark: Available since v0.2.0 |
-| Advertising                      | :white_check_mark: Available since v0.4.0               |
+| Advertising                      | :white_check_mark: Available since v0.4.0 |
 | Playlist API                     | :x: Not available                         |
 | Offline Playback                 | :x: Not available                         |
 | Analytics                        | :x: Coming Q1 2023                        |
@@ -515,6 +523,40 @@ The supported `PlayerView` events for subtitles are:
 - `onSubtitleChanged`
 
 You might check out a complete subtitle example in the [`example/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app.
+
+### Adding external thumbnail track
+
+Thumbnail seeking is a must have for any video longer than a few minutes. It increases usability and the general QoE [(Quality of Experience)](https://bitmovin.com/ultra-high-definition-quality-experience-mpeg-dash-part-1/) dramatically.
+
+Setting up is simple with the Bitmovin Player. Thumbnails are loaded into the timeline as a track. All you need to do is to tell the player the location of the thumbnail file:
+
+```typescript
+import { Platform } from 'react-native';
+import {
+  SourceConfig,
+  SourceType,
+  SubtitleFormat,
+} from 'bitmovin-player-react-native';
+
+// Source config with an external subtitle track.
+const config: SourceConfig = {
+  url:
+    Platform.OS === 'ios'
+      ? 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8'
+      : 'https://bitmovin-a.akamaihd.net/content/sintel/sintel.mpd',
+  type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
+  poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
+  // External thumbnail tracks object to be added to this source.
+  thumbnailTrack: {
+    url: 'https://cdn.bitmovin.com/content/assets/art-of-motion-dash-hls-progressive/thumbnails/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.vtt',
+    label: 'ThumbnailsTrack',
+  },
+};
+```
+
+What’s required for a video player with thumbnails
+
+Adaptive Streaming relies on encoding your video into several groups of files (streams) at various resolutions, while thumbnails also need to be generated in the encoding process. The encoder creates a set of thumbnail images and combines them into a single image file (“Sprite”). For more information on encoding your videos, have a look at our [Cloud Encoding Service](https://bitmovin.com/encoding/).
 
 ### Enabling Picture in Picture mode
 

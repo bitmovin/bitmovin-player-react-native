@@ -2,6 +2,7 @@ import { NativeModules } from 'react-native';
 import { Drm, DrmConfig } from './drm';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { SideLoadedSubtitleTrack } from './subtitleTrack';
+import { SideLoadedThumbnailTrack } from './thumbnailTrack';
 
 const SourceModule = NativeModules.SourceModule;
 
@@ -78,6 +79,10 @@ export interface SourceConfig extends NativeInstanceConfig {
    * External subtitle tracks to be added into the player.
    */
   subtitleTracks?: SideLoadedSubtitleTrack[];
+  /**
+   * External thumbnails to be added into the player.
+   */
+  thumbnailTrack?: SideLoadedThumbnailTrack;
 }
 
 /**
