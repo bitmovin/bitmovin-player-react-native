@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Platform, StyleSheet, StatusBar } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -10,23 +10,33 @@ import {
 import { useTVGestures } from '../hooks';
 import { FullscreenHandler } from '../../../src/ui/fullscreenhandler';
 
-class SampleFullscreenHandler implements FullscreenHandler {
-  isFullscreenActive: boolean = false;
+export default function BasicFullscreenHandling({ navigation }) {
+  const [isFullscreen, setFullscreen] = useState(false);
 
-  enterFullscreen(): void {
-    StatusBar.setHidden(true);
-    this.isFullscreenActive = true;
-    console.log('enter fullscreen');
+  class SampleFullscreenHandler implements FullscreenHandler {
+    isFullscreenActive: boolean = false;
+
+    enterFullscreen(): void {
+      StatusBar.setHidden(true);
+      navigation.setOptions({ headerShown: false });
+
+      this.isFullscreenActive = true;
+      console.log('enter fullscreen');
+
+      setFullscreen(true);
+    }
+
+    exitFullscreen(): void {
+      StatusBar.setHidden(false);
+      navigation.setOptions({ headerShown: true });
+
+      this.isFullscreenActive = false;
+      console.log('exit fullscreen');
+
+      setFullscreen(false);
+    }
   }
 
-  exitFullscreen(): void {
-    StatusBar.setHidden(false);
-    this.isFullscreenActive = false;
-    console.log('exit fullscreen');
-  }
-}
-
-export default function BasicFullscreenHandling() {
   useTVGestures();
 
   const player = usePlayer();
@@ -69,7 +79,7 @@ export default function BasicFullscreenHandling() {
     <View style={styles.container}>
       <PlayerView
         player={player}
-        style={styles.player}
+        style={isFullscreen ? styles.playerFullscreen : styles.player}
         fullscreenHandler={fullscreenHandler}
       />
     </View>
@@ -81,10 +91,20 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'black',
+    backgroundColor: 'white',
+    padding: 20,
   },
   player: {
     flex: 1,
+    backgroundColor: 'black',
+  },
+  playerFullscreen: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'black',
   },
   buttonContainer: {
     margin: 20,
