@@ -80,7 +80,7 @@ export function PlayerView({
 
   var fullscreenBridge: FullscreenHandlerBridge | undefined;
   if (fullscreenHandler) {
-    fullscreenBridge = new FullscreenHandlerBridge();
+    fullscreenBridge = new FullscreenHandlerBridge(player.nativeId);
     fullscreenBridge.fullscreenHandler = fullscreenHandler;
   } else {
     fullscreenBridge = undefined;
