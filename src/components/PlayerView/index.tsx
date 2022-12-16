@@ -11,6 +11,8 @@ import { PlayerViewEvents } from './events';
 import { NativePlayerView } from './native';
 import { Player } from '../../player';
 import { useProxy } from '../../hooks/useProxy';
+import { FullscreenHandler } from '../../ui/fullscreenhandler';
+import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 
 /**
  * Base `PlayerView` component props. Used to stablish common
@@ -31,6 +33,8 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
    * and render audio/video inside the `PlayerView`.
    */
   player: Player;
+
+  fullscreenHandler?: FullscreenHandler;
 }
 
 /**
@@ -61,13 +65,26 @@ function dispatch(command: string, node: NodeHandle, ...args: any[]) {
  * Component that provides the Bitmovin Player UI and default UI handling to an attached `Player` instance.
  * This component needs a `Player` instance to work properly so make sure one is passed to it as a prop.
  */
-export function PlayerView({ style, player, ...props }: PlayerViewProps) {
+export function PlayerView({
+  style,
+  player,
+  fullscreenHandler,
+  ...props
+}: PlayerViewProps) {
   // Native view reference.
   const nativeView = useRef(null);
   // Native events proxy helper.
   const proxy = useProxy(nativeView);
   // Style resulting from merging `baseStyle` and `props.style`.
   const nativeViewStyle = StyleSheet.flatten([styles.baseStyle, style]);
+
+  var fullscreenBridge: FullscreenHandlerBridge | undefined;
+  if (fullscreenHandler) {
+    fullscreenBridge = new FullscreenHandlerBridge();
+    fullscreenBridge.fullscreenHandler = fullscreenHandler;
+  } else {
+    fullscreenBridge = undefined;
+  }
   useEffect(() => {
     // Initialize native player instance if needed.
     player.initialize();
@@ -75,12 +92,16 @@ export function PlayerView({ style, player, ...props }: PlayerViewProps) {
     const node = findNodeHandle(nativeView.current);
     if (node) {
       dispatch('attachPlayer', node, player.nativeId, player.config);
+      if (fullscreenBridge) {
+        dispatch('attachFullscreenBridge', node, fullscreenBridge.nativeId);
+      }
     }
-  }, [player]);
+  }, [player, fullscreenBridge]);
   return (
     <NativePlayerView
       ref={nativeView}
       style={nativeViewStyle}
+      fullscreenBridge={fullscreenBridge}
       onAdBreakFinished={proxy(props.onAdBreakFinished)}
       onAdBreakStarted={proxy(props.onAdBreakStarted)}
       onAdClicked={proxy(props.onAdClicked)}

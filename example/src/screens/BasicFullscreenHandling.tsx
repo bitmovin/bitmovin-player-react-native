@@ -1,29 +1,37 @@
 import React, { useCallback } from 'react';
-import { View, Platform, StyleSheet } from 'react-native';
+import { View, Platform, StyleSheet, StatusBar } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
-  Event,
   usePlayer,
   PlayerView,
   SourceType,
   AudioSession,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
-import Button from '../components/Button';
+import { FullscreenHandler } from '../../../src/ui/fullscreenhandler';
 
-function prettyPrint(header: string, obj: any) {
-  console.log(header, JSON.stringify(obj, null, 2));
+class SampleFullscreenHandler implements FullscreenHandler {
+  isFullscreenActive: boolean = false;
+
+  enterFullscreen(): void {
+    StatusBar.setHidden(true);
+    this.isFullscreenActive = true;
+    console.log('enter fullscreen');
+  }
+
+  exitFullscreen(): void {
+    StatusBar.setHidden(false);
+    this.isFullscreenActive = false;
+    console.log('exit fullscreen');
+  }
 }
 
-export default function BasicPictureInPicture() {
+export default function BasicFullscreenHandling() {
   useTVGestures();
 
-  const player = usePlayer({
-    playbackConfig: {
-      // Enable picture in picture UI option on player controls.
-      isPictureInPictureEnabled: true,
-    },
-  });
+  const player = usePlayer();
+
+  const fullscreenHandler = new SampleFullscreenHandler();
 
   useFocusEffect(
     useCallback(() => {
@@ -35,7 +43,7 @@ export default function BasicPictureInPicture() {
       AudioSession.setCategory('playback').catch((error) => {
         // Handle any native errors that might occur while setting the audio's category.
         console.log(
-          "[BasicPictureInPicture] Failed to set app's audio category to `playback`:\n",
+          "[BasicFullscreen] Failed to set app's audio category to `playback`:\n",
           error
         );
       });
@@ -57,27 +65,12 @@ export default function BasicPictureInPicture() {
     }, [player])
   );
 
-  const onEvent = useCallback((event: Event) => {
-    prettyPrint(`[${event.name}]`, event);
-  }, []);
-
   return (
     <View style={styles.container}>
-      <View style={styles.buttonContainer}>
-        <Button
-          title="aii butt"
-          type="solid"
-          onPress={() => console.log('somebody pressed the aii button')}
-        />
-      </View>
       <PlayerView
         player={player}
         style={styles.player}
-        onPictureInPictureAvailabilityChanged={onEvent}
-        onPictureInPictureEnter={onEvent}
-        onPictureInPictureEntered={onEvent}
-        onPictureInPictureExit={onEvent}
-        onPictureInPictureExited={onEvent}
+        fullscreenHandler={fullscreenHandler}
       />
     </View>
   );
