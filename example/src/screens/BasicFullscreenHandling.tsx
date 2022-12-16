@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Platform, StyleSheet, StatusBar } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -8,18 +8,30 @@ import {
   AudioSession,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
+import Button from '../components/Button';
 import { FullscreenHandler } from '../../../src/ui/fullscreenhandler';
 
 class SampleFullscreenHandler implements FullscreenHandler {
-  isFullscreenActive: boolean = false;
+  isFullscreenActive: boolean = true;
+  onFullscreen: (fullscreenMode: boolean) => void;
+
+  constructor(
+    isFullscreenActive: boolean,
+    onFullscreen: (fullscreenMode: boolean) => void
+  ) {
+    this.isFullscreenActive = isFullscreenActive;
+    this.onFullscreen = onFullscreen;
+  }
 
   enterFullscreen(): void {
+    this.onFullscreen(true);
     StatusBar.setHidden(true);
     this.isFullscreenActive = true;
     console.log('enter fullscreen');
   }
 
   exitFullscreen(): void {
+    this.onFullscreen(false);
     StatusBar.setHidden(false);
     this.isFullscreenActive = false;
     console.log('exit fullscreen');
@@ -31,8 +43,11 @@ export default function BasicFullscreenHandling() {
 
   const player = usePlayer();
 
-  const fullscreenHandler = new SampleFullscreenHandler();
-
+  const [fullscreenMode, setFullscreenMode] = useState(false);
+  const fullscreenHandler = new SampleFullscreenHandler(
+    fullscreenMode,
+    setFullscreenMode
+  );
   useFocusEffect(
     useCallback(() => {
       // iOS audio session must be set to `playback` first otherwise PiP mode won't work.
@@ -72,6 +87,13 @@ export default function BasicFullscreenHandling() {
         style={styles.player}
         fullscreenHandler={fullscreenHandler}
       />
+      <View style={fullscreenMode ? styles.hide : styles.buttonContainer}>
+        <Button
+          title="Some Button"
+          type="solid"
+          onPress={() => console.log('Somebody pressed Some Button')}
+        />
+      </View>
     </View>
   );
 }
@@ -89,5 +111,8 @@ const styles = StyleSheet.create({
   buttonContainer: {
     margin: 20,
     alignSelf: 'stretch',
+  },
+  hide: {
+    display: 'none',
   },
 });

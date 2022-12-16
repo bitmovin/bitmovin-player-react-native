@@ -78,13 +78,16 @@ export function PlayerView({
   // Style resulting from merging `baseStyle` and `props.style`.
   const nativeViewStyle = StyleSheet.flatten([styles.baseStyle, style]);
 
-  var fullscreenBridge: FullscreenHandlerBridge | undefined;
-  if (fullscreenHandler) {
-    fullscreenBridge = new FullscreenHandlerBridge();
-    fullscreenBridge.fullscreenHandler = fullscreenHandler;
-  } else {
-    fullscreenBridge = undefined;
+  const fullscreenBridge: React.MutableRefObject<
+    FullscreenHandlerBridge | undefined
+  > = useRef(undefined);
+  if (fullscreenHandler && !fullscreenBridge.current) {
+    fullscreenBridge.current = new FullscreenHandlerBridge();
   }
+  if (fullscreenBridge.current) {
+    fullscreenBridge.current.fullscreenHandler = fullscreenHandler;
+  }
+
   useEffect(() => {
     // Initialize native player instance if needed.
     player.initialize();
@@ -92,8 +95,12 @@ export function PlayerView({
     const node = findNodeHandle(nativeView.current);
     if (node) {
       dispatch('attachPlayer', node, player.nativeId, player.config);
-      if (fullscreenBridge) {
-        dispatch('attachFullscreenBridge', node, fullscreenBridge.nativeId);
+      if (fullscreenBridge.current) {
+        dispatch(
+          'attachFullscreenBridge',
+          node,
+          fullscreenBridge.current.nativeId
+        );
       }
     }
   }, [player, fullscreenBridge]);
@@ -101,7 +108,7 @@ export function PlayerView({
     <NativePlayerView
       ref={nativeView}
       style={nativeViewStyle}
-      fullscreenBridge={fullscreenBridge}
+      fullscreenBridge={fullscreenBridge.current}
       onAdBreakFinished={proxy(props.onAdBreakFinished)}
       onAdBreakStarted={proxy(props.onAdBreakStarted)}
       onAdClicked={proxy(props.onAdClicked)}
