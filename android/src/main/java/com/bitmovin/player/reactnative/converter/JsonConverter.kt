@@ -210,9 +210,7 @@ class JsonConverter {
                 }
             }
             if (json.hasKey("thumbnailTrack")) {
-                toThumbnailTrack(json.getMap("thumbnailTrack"))?.let {
-                    config.thumbnailTrack = it
-                }
+                 config.thumbnailTrack = toThumbnailTrack(json.getMap("thumbnailTrack"))
             }
             return config
         }
