@@ -16,10 +16,6 @@ export interface ThumbnailTrack {
    * The unique identifier for this track. If no value is provided, a random UUIDv4 will be generated for it.
    */
   identifier?: string;
-  /**
-   * If set to true, this track would be considered as default. Default is `false`.
-   */
-  isDefault?: boolean;
 }
 
 /**

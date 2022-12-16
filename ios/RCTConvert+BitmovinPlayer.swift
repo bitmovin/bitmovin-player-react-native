@@ -281,13 +281,12 @@ extension RCTConvert {
         else {
             return nil
         }
-        let isDefaultTrack = json["isDefault"] as? Bool ?? false
         let identifier = json["identifier"] as? String ?? UUID().uuidString
         return ThumbnailTrack(
             url: url,
             label: label,
             identifier: identifier,
-            isDefaultTrack: isDefaultTrack
+            isDefaultTrack: false
         )
     }
     
