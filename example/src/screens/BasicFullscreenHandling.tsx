@@ -10,39 +10,47 @@ import {
 import { useTVGestures } from '../hooks';
 import { FullscreenHandler } from '../../../src/ui/fullscreenhandler';
 
-export default function BasicFullscreenHandling({ navigation }) {
-  const [isFullscreen, setFullscreen] = useState(false);
+class SampleFullscreenHandler implements FullscreenHandler {
+  isFullscreenActive: boolean = true;
+  onFullscreen: (fullscreenMode: boolean) => void;
 
-  class SampleFullscreenHandler implements FullscreenHandler {
-    isFullscreenActive: boolean = false;
-
-    enterFullscreen(): void {
-      StatusBar.setHidden(true);
-      navigation.setOptions({ headerShown: false });
-
-      this.isFullscreenActive = true;
-      console.log('enter fullscreen');
-
-      setFullscreen(true);
-    }
-
-    exitFullscreen(): void {
-      StatusBar.setHidden(false);
-      navigation.setOptions({ headerShown: true });
-
-      this.isFullscreenActive = false;
-      console.log('exit fullscreen');
-
-      setFullscreen(false);
-    }
+  constructor(
+    isFullscreenActive: boolean,
+    onFullscreen: (fullscreenMode: boolean) => void
+  ) {
+    this.isFullscreenActive = isFullscreenActive;
+    this.onFullscreen = onFullscreen;
   }
 
+  enterFullscreen(): void {
+    this.onFullscreen(true);
+    StatusBar.setHidden(true);
+
+    this.isFullscreenActive = true;
+    console.log('enter fullscreen');
+  }
+
+  exitFullscreen(): void {
+    this.onFullscreen(false);
+    StatusBar.setHidden(false);
+
+    this.isFullscreenActive = false;
+    console.log('exit fullscreen');
+  }
+}
+export default function BasicFullscreenHandling({ navigation }) {
   useTVGestures();
 
   const player = usePlayer();
 
-  const fullscreenHandler = new SampleFullscreenHandler();
-
+  const [fullscreenMode, setFullscreenMode] = useState(false);
+  const fullscreenHandler = new SampleFullscreenHandler(
+    fullscreenMode,
+    (isFullscreen: boolean) => {
+      setFullscreenMode(isFullscreen);
+      navigation.setOptions({ headerShown: !isFullscreen });
+    }
+  );
   useFocusEffect(
     useCallback(() => {
       // iOS audio session must be set to `playback` first otherwise PiP mode won't work.
@@ -79,7 +87,7 @@ export default function BasicFullscreenHandling({ navigation }) {
     <View style={styles.container}>
       <PlayerView
         player={player}
-        style={isFullscreen ? styles.playerFullscreen : styles.player}
+        style={fullscreenMode ? styles.playerFullscreen : styles.player}
         fullscreenHandler={fullscreenHandler}
       />
     </View>
@@ -105,9 +113,5 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     backgroundColor: 'black',
-  },
-  buttonContainer: {
-    margin: 20,
-    alignSelf: 'stretch',
   },
 });

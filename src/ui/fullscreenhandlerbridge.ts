@@ -21,6 +21,7 @@ export class FullscreenHandlerBridge {
     FullscreenHandlerModule.registerHandler(this.nativeId);
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    * Called by native code, when the UI should enter fullscreen.
    */
@@ -32,6 +33,7 @@ export class FullscreenHandlerBridge {
     );
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    * Called by native code, when the UI should exit fullscreen.
    */
