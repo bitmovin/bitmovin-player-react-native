@@ -23,11 +23,12 @@ class FullscreenHandlerModule: NSObject, RCTBridgeModule {
     /// In-memory mapping from `nativeId`s to `FullscreenHandler` instances.
     private var fullscreenHandlers: Registry<FullscreenHandlerBridge> = [:]
 
-    private var fullscreenChangeDispatchGroup: DispatchGroup? = DispatchGroup()
+    /// Dispatch group used for blocking thread while waiting for state change
+    private let fullscreenChangeDispatchGroup = DispatchGroup()
 
     /**
-     Creates a new `FullscreenHandlerBridge` instance inside the internal fullscreenHandler using the provided `config` object.
-     - Parameter nativeId: ID to associate with the `FullscreenHandlerBridge` instance.
+     Fetches the `FullscreenHandlerBridge` instance associated with `nativeId` from internal fullscreenHandlers.
+     - Parameter nativeId: `FullscreenHandlerBridge` instance ID.
      - Returns: The associated `FullscreenHandlerBridge` instance or `nil`.
      */
     @objc func retrieve(_ nativeId: NativeId) -> FullscreenHandlerBridge? {
@@ -35,7 +36,7 @@ class FullscreenHandlerModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Removes the `FullscreenHandlerBridge` instance associated with `nativeId` from `fullscreenHandlers` and all data produced during preparation hooks.
+     Removes the `FullscreenHandlerBridge` instance associated with `nativeId` from `fullscreenHandlers`.
      - Parameter nativeId Instance to be disposed.
      */
     @objc(destroy:)
@@ -46,9 +47,7 @@ class FullscreenHandlerModule: NSObject, RCTBridgeModule {
     @objc(onFullscreenChanged:isFullscreenEnabled:)
     func onFullscreenChanged(_ nativeId: NativeId, isFullscreenEnabled: Bool) -> Any? {
         fullscreenHandlers[nativeId]?.isFullscreen = isFullscreenEnabled
-
-        fullscreenChangeDispatchGroup?.leave()
-
+        fullscreenChangeDispatchGroup.leave()
         return nil
     }
 
@@ -59,20 +58,14 @@ class FullscreenHandlerModule: NSObject, RCTBridgeModule {
     }
 
     func onFullscreenRequested(nativeId: NativeId) {
-        fullscreenChangeDispatchGroup?.enter()
-
+        fullscreenChangeDispatchGroup.enter()
         bridge.enqueueJSCall("bmFullscreenBridge-\(nativeId)", method: "enterFullscreen", args: []) {}
-
-        fullscreenChangeDispatchGroup?.wait()
-//        fullscreenChangeDispatchGroup = nil
+        fullscreenChangeDispatchGroup.wait()
     }
 
     func onFullscreenExitRequested(nativeId: NativeId) {
-        fullscreenChangeDispatchGroup?.enter()
-
+        fullscreenChangeDispatchGroup.enter()
         bridge.enqueueJSCall("bmFullscreenBridge-\(nativeId)", method: "exitFullscreen", args: []) {}
-
-        fullscreenChangeDispatchGroup?.wait()
-//        fullscreenChangeDispatchGroup = nil
+        fullscreenChangeDispatchGroup.wait()
     }
 }
