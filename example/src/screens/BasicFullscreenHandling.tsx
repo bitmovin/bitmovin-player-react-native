@@ -25,7 +25,6 @@ class SampleFullscreenHandler implements FullscreenHandler {
   enterFullscreen(): void {
     this.onFullscreen(true);
     StatusBar.setHidden(true);
-
     this.isFullscreenActive = true;
     console.log('enter fullscreen');
   }
@@ -33,7 +32,6 @@ class SampleFullscreenHandler implements FullscreenHandler {
   exitFullscreen(): void {
     this.onFullscreen(false);
     StatusBar.setHidden(false);
-
     this.isFullscreenActive = false;
     console.log('exit fullscreen');
   }
