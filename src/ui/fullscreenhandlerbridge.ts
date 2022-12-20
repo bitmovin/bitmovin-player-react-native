@@ -11,14 +11,26 @@ const FullscreenHandlerModule = NativeModules.FullscreenHandlerModule;
 export class FullscreenHandlerBridge {
   readonly nativeId: string;
   fullscreenHandler?: FullscreenHandler;
+  isDestroyed: boolean;
 
   constructor(nativeId?: string) {
     this.nativeId = nativeId ?? Uuid.generate();
+    this.isDestroyed = false;
     BatchedBridge.registerCallableModule(
       `FullscreenBridge-${this.nativeId}`,
       this
     );
     FullscreenHandlerModule.registerHandler(this.nativeId);
+  }
+
+  /**
+   * Destroys the native FullscreenHandler
+   */
+  destroy() {
+    if (!this.isDestroyed) {
+      FullscreenHandlerModule.destroy(this.nativeId);
+      this.isDestroyed = true;
+    }
   }
 
   // noinspection JSUnusedGlobalSymbols

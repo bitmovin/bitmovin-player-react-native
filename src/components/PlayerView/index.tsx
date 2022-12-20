@@ -103,6 +103,10 @@ export function PlayerView({
         );
       }
     }
+    return () => {
+      fullscreenBridge.current?.destroy();
+      fullscreenBridge.current = undefined;
+    };
   }, [player, fullscreenBridge]);
   return (
     <NativePlayerView

@@ -65,4 +65,9 @@ class FullscreenHandlerModule(private val context: ReactApplicationContext) : Re
         val fullscreenHandler = fullscreenHandler[nativeId] ?: FullscreenHandlerBridge(context, nativeId)
         this.fullscreenHandler[nativeId] = fullscreenHandler
     }
+
+    @ReactMethod
+    fun destroy(nativeId: NativeId) {
+        fullscreenHandler.remove(nativeId)
+    }
 }
