@@ -58,7 +58,7 @@ class RNPlayerViewManager: RCTViewManager {
         bridge.module(for: PlayerModule.self) as? PlayerModule
     }
 
-    /// Fetches the initialized `PlayerModule` instance on RN's bridge object.
+    /// Fetches the initialized `FullscreenHandlerModule` instance on RN's bridge object.
     private func getFullscreenHandlerModule() -> FullscreenHandlerModule? {
         bridge.module(for: FullscreenHandlerModule.self) as? FullscreenHandlerModule
     }
