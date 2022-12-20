@@ -15,7 +15,7 @@ export class FullscreenHandlerBridge {
   constructor(nativeId?: string) {
     this.nativeId = nativeId ?? Uuid.generate();
     BatchedBridge.registerCallableModule(
-      `bmFullscreenBridge-${this.nativeId}`,
+      `FullscreenBridge-${this.nativeId}`,
       this
     );
     FullscreenHandlerModule.registerHandler(this.nativeId);

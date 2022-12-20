@@ -59,13 +59,13 @@ class FullscreenHandlerModule: NSObject, RCTBridgeModule {
 
     func onFullscreenRequested(nativeId: NativeId) {
         fullscreenChangeDispatchGroup.enter()
-        bridge.enqueueJSCall("bmFullscreenBridge-\(nativeId)", method: "enterFullscreen", args: []) {}
+        bridge.enqueueJSCall("FullscreenBridge-\(nativeId)", method: "enterFullscreen", args: []) {}
         fullscreenChangeDispatchGroup.wait()
     }
 
     func onFullscreenExitRequested(nativeId: NativeId) {
         fullscreenChangeDispatchGroup.enter()
-        bridge.enqueueJSCall("bmFullscreenBridge-\(nativeId)", method: "exitFullscreen", args: []) {}
+        bridge.enqueueJSCall("FullscreenBridge-\(nativeId)", method: "exitFullscreen", args: []) {}
         fullscreenChangeDispatchGroup.wait()
     }
 }
