@@ -615,7 +615,7 @@ Check [`events.ts`](https://github.com/bitmovin/bitmovin-player-react-native/blo
 
 ### Setting up fullscreen handling
 
-In order to enable the player to support fullscreen and show thet fullscreen button when using the Bitmovin Player UI, a `FullscreenHandler` needs to be implemented.
+In order to enable the player to support fullscreen and show the fullscreen button when using the Bitmovin Player Web UI, a `FullscreenHandler` needs to be implemented.
 Its responsibility is to update the UI when transitioning between fullscreen and non-fullscreen states.
 The player view itself does not update it's presentation as the meaning of fullscreen is determined by the application integrating our library.
 
