@@ -615,8 +615,8 @@ Check [`events.ts`](https://github.com/bitmovin/bitmovin-player-react-native/blo
 
 ### Setting up fullscreen handling
 
-In order to enable the player to expand across the full screen, a `FullscreenHandler` needs to be implemented.
-It's responsibility is to update the UI when transitioning between fullscreen and non-fullscreen states.
+In order to enable the player to support fullscreen and show thet fullscreen button when using the Bitmovin Player UI, a `FullscreenHandler` needs to be implemented.
+Its responsibility is to update the UI when transitioning between fullscreen and non-fullscreen states.
 The player view itself does not update it's presentation as the meaning of fullscreen is determined by the application integrating our library.
 
 Here are the basics of enabling fullscreen support:
@@ -666,6 +666,10 @@ export default function BasicFullscreenHandling() {
         player={player}
         style={fullscreenMode ? styles.playerFullscreen : styles.player}
         fullscreenHandler={fullscreenHandler}
+        onFullscreenEnter={onFullscreenEnter}
+        onFullscreenExit={onFullscreenExit}
+        onFullscreenEnabled={onFullscreenEnabled}
+        onFullscreenDisabled={onFullscreenDisabled}
       />
     </View>
   );
@@ -689,6 +693,17 @@ const styles = StyleSheet.create({
 ```
 
 Check [`BasicFullscreenHandling.tsx`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicFullscreenHandling.tsx) for a full example implementation.
+
+#### Supported fullscreen related events
+
+The supported fullscreen events on `PlayerView` are:
+
+- `onFullscreenEnter`
+- `onFullscreenExit`
+- `onFullscreenEnabled`
+- `onFullscreenDisabled`
+
+Check [`events.ts`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/components/PlayerView/events.ts) for more information about them.
 
 ### Setting up ads
 
