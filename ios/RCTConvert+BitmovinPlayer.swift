@@ -482,4 +482,24 @@ extension RCTConvert {
             "minBitrate": adData.minBitrate
         ]
     }
+    
+    /**
+     Utility method to compute a JS value from a `VideoQuality` object.
+     - Parameter videoQuality `VideoQuality` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(videoQuality: VideoQuality?) -> [String: Any?]? {
+        guard let videoQuality = videoQuality else {
+            return nil
+        }
+        return [
+            "id": videoQuality.identifier,
+            "label": videoQuality.label,
+            "height": videoQuality.height,
+            "width": videoQuality.width,
+            "codec": videoQuality.codec,
+            "bitrate": videoQuality.bitrate,
+        ]
+    }
+    
 }

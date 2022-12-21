@@ -160,6 +160,7 @@ export function PlayerView({
       onFullscreenDisabled={proxy(props.onFullscreenDisabled)}
       onFullscreenEnter={proxy(props.onFullscreenEnter)}
       onFullscreenExit={proxy(props.onFullscreenExit)}
+      onVideoPlaybackQualityChanged={proxy(props.onVideoPlaybackQualityChanged)}
     />
   );
 }

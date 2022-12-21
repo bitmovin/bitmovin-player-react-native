@@ -45,6 +45,7 @@ import {
   FullscreenDisabledEvent,
   FullscreenEnterEvent,
   FullscreenExitEvent,
+  VideoPlaybackQualityChangedEvent,
 } from '../../events';
 
 /**
@@ -97,6 +98,7 @@ interface EventProps {
   onFullscreenDisabled: FullscreenDisabledEvent;
   onFullscreenEnter: FullscreenEnterEvent;
   onFullscreenExit: FullscreenExitEvent;
+  onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
 }
 
 /**
