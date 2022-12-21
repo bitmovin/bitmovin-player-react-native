@@ -546,11 +546,9 @@ const config: SourceConfig = {
       : 'https://bitmovin-a.akamaihd.net/content/sintel/sintel.mpd',
   type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
   poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
-  // External thumbnail tracks object to be added to this source.
-  thumbnailTrack: {
-    url: 'https://cdn.bitmovin.com/content/assets/art-of-motion-dash-hls-progressive/thumbnails/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.vtt',
-    label: 'ThumbnailsTrack',
-  },
+  // External thumbnail track url to be added to this source.
+  thumbnailTrack:
+    'https://cdn.bitmovin.com/content/assets/art-of-motion-dash-hls-progressive/thumbnails/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.vtt',
 };
 ```
 

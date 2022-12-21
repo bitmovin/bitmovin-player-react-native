@@ -210,7 +210,7 @@ class JsonConverter {
                 }
             }
             if (json.hasKey("thumbnailTrack")) {
-                 config.thumbnailTrack = toThumbnailTrack(json.getMap("thumbnailTrack"))
+                 config.thumbnailTrack = toThumbnailTrack(json.getString("thumbnailTrack"))
             }
             return config
         }
@@ -403,14 +403,13 @@ class JsonConverter {
         }
 
         /**
-         * Converts an arbitrary `json` into a `ThumbnailsTrack`.
-         * @param json JS object representing the `ThumbnailsTrack`.
+         * Converts an `url` string into a `ThumbnailsTrack`.
+         * @param url JS object representing the `ThumbnailsTrack`.
          * @return The generated `ThumbnailsTrack` if successful, `null` otherwise.
          */
         @JvmStatic
-        fun toThumbnailTrack(json: ReadableMap?): ThumbnailTrack? {
-            val url = json?.getString("url")
-            if (json == null || url == null) {
+        fun toThumbnailTrack(url: String?): ThumbnailTrack? {
+            if (url == null) {
                 return null
             }
             return ThumbnailTrack(url);
