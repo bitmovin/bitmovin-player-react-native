@@ -8,7 +8,6 @@ import {
   AudioSession,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
-import Button from '../components/Button';
 import { FullscreenHandler } from '../../../src/ui/fullscreenhandler';
 
 class SampleFullscreenHandler implements FullscreenHandler {
@@ -37,8 +36,7 @@ class SampleFullscreenHandler implements FullscreenHandler {
     console.log('exit fullscreen');
   }
 }
-
-export default function BasicFullscreenHandling() {
+export default function BasicFullscreenHandling({ navigation }) {
   useTVGestures();
 
   const player = usePlayer();
@@ -46,7 +44,10 @@ export default function BasicFullscreenHandling() {
   const [fullscreenMode, setFullscreenMode] = useState(false);
   const fullscreenHandler = new SampleFullscreenHandler(
     fullscreenMode,
-    setFullscreenMode
+    (isFullscreen: boolean) => {
+      setFullscreenMode(isFullscreen);
+      navigation.setOptions({ headerShown: !isFullscreen });
+    }
   );
   useFocusEffect(
     useCallback(() => {
@@ -84,16 +85,9 @@ export default function BasicFullscreenHandling() {
     <View style={styles.container}>
       <PlayerView
         player={player}
-        style={styles.player}
+        style={fullscreenMode ? styles.playerFullscreen : styles.player}
         fullscreenHandler={fullscreenHandler}
       />
-      <View style={fullscreenMode ? styles.hide : styles.buttonContainer}>
-        <Button
-          title="Some Button"
-          type="solid"
-          onPress={() => console.log('Somebody pressed Some Button')}
-        />
-      </View>
     </View>
   );
 }
@@ -103,16 +97,19 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'black',
+    backgroundColor: 'white',
+    padding: 20,
   },
   player: {
     flex: 1,
+    backgroundColor: 'black',
   },
-  buttonContainer: {
-    margin: 20,
-    alignSelf: 'stretch',
-  },
-  hide: {
-    display: 'none',
+  playerFullscreen: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'black',
   },
 });
