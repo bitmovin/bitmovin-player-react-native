@@ -43,11 +43,11 @@ class RNPlayerView: UIView {
     @objc var onAdScheduled: RCTBubblingEventBlock?
     @objc var onAdSkipped: RCTBubblingEventBlock?
     @objc var onAdStarted: RCTBubblingEventBlock?
+    @objc var onVideoPlaybackQualityChanged: RCTBubblingEventBlock?
     @objc var onFullscreenEnabled: RCTBubblingEventBlock?
     @objc var onFullscreenDisabled: RCTBubblingEventBlock?
     @objc var onFullscreenEnter: RCTBubblingEventBlock?
     @objc var onFullscreenExit: RCTBubblingEventBlock?
-    @objc var onVideoPlaybackQualityChanged: RCTBubblingEventBlock?
 
     /// The `PlayerView` subview.
     var playerView: PlayerView? {

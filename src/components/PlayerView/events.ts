@@ -13,6 +13,10 @@ import {
   AdStartedEvent,
   DestroyEvent,
   Event,
+  FullscreenEnabledEvent,
+  FullscreenDisabledEvent,
+  FullscreenEnterEvent,
+  FullscreenExitEvent,
   MutedEvent,
   PausedEvent,
   PictureInPictureAvailabilityChangedEvent,
@@ -41,10 +45,6 @@ import {
   SubtitleRemovedEvent,
   TimeChangedEvent,
   UnmutedEvent,
-  FullscreenEnabledEvent,
-  FullscreenDisabledEvent,
-  FullscreenEnterEvent,
-  FullscreenExitEvent,
   VideoPlaybackQualityChangedEvent,
 } from '../../events';
 
@@ -66,6 +66,10 @@ interface EventProps {
   onAdStarted: AdStartedEvent;
   onDestroy: DestroyEvent;
   onEvent: Event;
+  onFullscreenEnabled: FullscreenEnabledEvent;
+  onFullscreenDisabled: FullscreenDisabledEvent;
+  onFullscreenEnter: FullscreenEnterEvent;
+  onFullscreenExit: FullscreenExitEvent;
   onMuted: MutedEvent;
   onPaused: PausedEvent;
   onPictureInPictureAvailabilityChanged: PictureInPictureAvailabilityChangedEvent;
@@ -94,10 +98,6 @@ interface EventProps {
   onSubtitleRemoved: SubtitleRemovedEvent;
   onTimeChanged: TimeChangedEvent;
   onUnmuted: UnmutedEvent;
-  onFullscreenEnabled: FullscreenEnabledEvent;
-  onFullscreenDisabled: FullscreenDisabledEvent;
-  onFullscreenEnter: FullscreenEnterEvent;
-  onFullscreenExit: FullscreenExitEvent;
   onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
 }
 

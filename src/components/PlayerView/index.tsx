@@ -126,6 +126,10 @@ export function PlayerView({
       onAdStarted={proxy(props.onAdStarted)}
       onDestroy={proxy(props.onDestroy)}
       onEvent={proxy(props.onEvent)}
+      onFullscreenEnabled={proxy(props.onFullscreenEnabled)}
+      onFullscreenDisabled={proxy(props.onFullscreenDisabled)}
+      onFullscreenEnter={proxy(props.onFullscreenEnter)}
+      onFullscreenExit={proxy(props.onFullscreenExit)}
       onMuted={proxy(props.onMuted)}
       onPaused={proxy(props.onPaused)}
       onPictureInPictureAvailabilityChanged={proxy(
@@ -156,10 +160,6 @@ export function PlayerView({
       onSubtitleRemoved={proxy(props.onSubtitleRemoved)}
       onTimeChanged={proxy(props.onTimeChanged)}
       onUnmuted={proxy(props.onUnmuted)}
-      onFullscreenEnabled={proxy(props.onFullscreenEnabled)}
-      onFullscreenDisabled={proxy(props.onFullscreenDisabled)}
-      onFullscreenEnter={proxy(props.onFullscreenEnter)}
-      onFullscreenExit={proxy(props.onFullscreenExit)}
       onVideoPlaybackQualityChanged={proxy(props.onVideoPlaybackQualityChanged)}
     />
   );
