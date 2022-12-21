@@ -9,7 +9,6 @@ import {
   AudioSession,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
-import Button from '../components/Button';
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
@@ -63,13 +62,6 @@ export default function BasicPictureInPicture() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.buttonContainer}>
-        <Button
-          title="aii butt"
-          type="solid"
-          onPress={() => console.log('somebody pressed the aii button')}
-        />
-      </View>
       <PlayerView
         player={player}
         style={styles.player}
@@ -92,9 +84,5 @@ const styles = StyleSheet.create({
   },
   player: {
     flex: 1,
-  },
-  buttonContainer: {
-    margin: 20,
-    alignSelf: 'stretch',
   },
 });
