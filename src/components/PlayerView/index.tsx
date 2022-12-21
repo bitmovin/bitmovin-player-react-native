@@ -156,6 +156,10 @@ export function PlayerView({
       onSubtitleRemoved={proxy(props.onSubtitleRemoved)}
       onTimeChanged={proxy(props.onTimeChanged)}
       onUnmuted={proxy(props.onUnmuted)}
+      onFullscreenEnabled={proxy(props.onFullscreenEnabled)}
+      onFullscreenDisabled={proxy(props.onFullscreenDisabled)}
+      onFullscreenEnter={proxy(props.onFullscreenEnter)}
+      onFullscreenExit={proxy(props.onFullscreenExit)}
     />
   );
 }

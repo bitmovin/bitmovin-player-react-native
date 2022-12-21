@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { View, Platform, StyleSheet, StatusBar } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
+  Event,
   usePlayer,
   PlayerView,
   SourceType,
@@ -9,6 +10,10 @@ import {
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import { FullscreenHandler } from '../../../src/ui/fullscreenhandler';
+
+function prettyPrint(header: string, obj: any) {
+  console.log(header, JSON.stringify(obj, null, 2));
+}
 
 class SampleFullscreenHandler implements FullscreenHandler {
   isFullscreenActive: boolean = true;
@@ -81,12 +86,20 @@ export default function BasicFullscreenHandling({ navigation }) {
     }, [player])
   );
 
+  const onEvent = useCallback((event: Event) => {
+    prettyPrint(`[${event.name}]`, event);
+  }, []);
+
   return (
     <View style={styles.container}>
       <PlayerView
         player={player}
         style={fullscreenMode ? styles.playerFullscreen : styles.player}
         fullscreenHandler={fullscreenHandler}
+        onFullscreenEnter={onEvent}
+        onFullscreenExit={onEvent}
+        onFullscreenEnabled={onEvent}
+        onFullscreenDisabled={onEvent}
       />
     </View>
   );

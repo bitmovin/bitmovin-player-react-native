@@ -291,6 +291,34 @@ export interface PictureInPictureEnteredEvent extends Event {}
 export interface PictureInPictureExitedEvent extends Event {}
 
 /**
+ * Emitted when the fullscreen functionality has been enabled.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenEnabledEvent extends Event {}
+
+/**
+ * Emitted when the fullscreen functionality has been disabled.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenDisabledEvent extends Event {}
+
+/**
+ * Emitted when the player enters fullscreen mode.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenEnterEvent extends Event {}
+
+/**
+ * Emitted when the player exits fullscreen mode.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenExitEvent extends Event {}
+
+/**
  * Emitted when the availability of the Picture in Picture mode changed on Android.
  *
  * @platform Android

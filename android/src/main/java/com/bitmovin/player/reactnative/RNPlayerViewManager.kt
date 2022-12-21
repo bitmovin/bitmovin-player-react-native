@@ -94,7 +94,10 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "adQuartile" to "onAdQuartile",
         "adScheduled" to "onAdScheduled",
         "adSkipped" to "onAdSkipped",
-        "adStarted" to "onAdStarted",
+        "fullscreenEnabled" to "onFullscreenEnabled",
+        "fullscreenDisabled" to "onFullscreenDisabled",
+        "fullscreenEnter" to "onFullscreenEnter",
+        "fullscreenExit" to "onFullscreenExit",
     )
 
     /**

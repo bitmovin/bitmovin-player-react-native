@@ -41,6 +41,10 @@ import {
   SubtitleRemovedEvent,
   TimeChangedEvent,
   UnmutedEvent,
+  FullscreenEnabledEvent,
+  FullscreenDisabledEvent,
+  FullscreenEnterEvent,
+  FullscreenExitEvent,
 } from '../../events';
 
 /**
@@ -89,6 +93,10 @@ interface EventProps {
   onSubtitleRemoved: SubtitleRemovedEvent;
   onTimeChanged: TimeChangedEvent;
   onUnmuted: UnmutedEvent;
+  onFullscreenEnabled: FullscreenEnabledEvent;
+  onFullscreenDisabled: FullscreenDisabledEvent;
+  onFullscreenEnter: FullscreenEnterEvent;
+  onFullscreenExit: FullscreenExitEvent;
 }
 
 /**
