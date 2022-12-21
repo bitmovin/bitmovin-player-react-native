@@ -33,6 +33,7 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
       - [Prepare hooks](#prepare-hooks)
     - [Adding external subtitle tracks](#adding-external-subtitle-tracks)
     - [Enabling Picture in Picture mode](#enabling-picture-in-picture-mode)
+    - [Setting up fullscreen handling](#setting-up-fullscreen-handling)
     - [Setting up ads](#setting-up-ads)
   - [Contributing](#contributing)
 
@@ -56,7 +57,7 @@ Features of the native mobile Player SDKs are progressively being implemented in
 | -------------------------------- | ----------------------------------------- |
 | Playback of DRM-protected assets | :white_check_mark: Available since v0.2.0 |
 | Subtitles & Captions             | :white_check_mark: Available since v0.2.0 |
-| Advertising                      | :white_check_mark: Available since v0.4.0               |
+| Advertising                      | :white_check_mark: Available since v0.4.0 |
 | Playlist API                     | :x: Not available                         |
 | Offline Playback                 | :x: Not available                         |
 | Analytics                        | :x: Coming Q1 2023                        |
@@ -611,6 +612,83 @@ The supported Picture in Picture events on `PlayerView` are:
 - `onPictureInPictureAvailabilityChanged`
 
 Check [`events.ts`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/components/PlayerView/events.ts) for more information about them.
+
+### Setting up fullscreen handling
+
+In order to enable the player to expand across the full screen, a `FullscreenHandler` needs to be implemented.
+It's responsibility is to update the UI when transitioning between fullscreen and non-fullscreen states.
+The player view itself does not update it's presentation as the meaning of fullscreen is determined by the application integrating our library.
+
+Here are the basics of enabling fullscreen support:
+
+```typescript
+// Define a handler to take care of fullscreen transitions
+class SampleFullscreenHandler implements FullscreenHandler {
+  isFullscreenActive: boolean = true;
+  onFullscreen: (fullscreenMode: boolean) => void;
+
+  constructor(
+    isFullscreenActive: boolean,
+    onFullscreen: (fullscreenMode: boolean) => void
+  ) {
+    this.isFullscreenActive = isFullscreenActive;
+    this.onFullscreen = onFullscreen;
+  }
+
+  enterFullscreen(): void {
+    // Update UI state for fullscreen mode
+    this.onFullscreen(true);
+    this.isFullscreenActive = true;
+    console.log('enter fullscreen');
+  }
+
+  exitFullscreen(): void {
+    // Update UI state for non-fullscreen mode
+    this.onFullscreen(false);
+    this.isFullscreenActive = false;
+    console.log('exit fullscreen');
+  }
+}
+
+export default function BasicFullscreenHandling() {
+  // Set up player and other components
+
+  // Create SampleFullscreenHandler instance and enable it to update state
+  const [fullscreenMode, setFullscreenMode] = useState(false);
+  const fullscreenHandler = new SampleFullscreenHandler(
+    fullscreenMode,
+    setFullscreenMode
+  );
+
+  return (
+    <View>
+      <PlayerView
+        player={player}
+        style={fullscreenMode ? styles.playerFullscreen : styles.player}
+        fullscreenHandler={fullscreenHandler}
+      />
+    </View>
+  );
+}
+
+// Define your styles
+const styles = StyleSheet.create({
+  player: {
+    flex: 1,
+    backgroundColor: 'black',
+  },
+  playerFullscreen: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'black',
+  },
+});
+```
+
+Check [`BasicFullscreenHandling.tsx`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicFullscreenHandling.tsx) for a full example implementation.
 
 ### Setting up ads
 
