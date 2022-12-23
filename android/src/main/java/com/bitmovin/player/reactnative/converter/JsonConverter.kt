@@ -688,7 +688,7 @@ class JsonConverter {
         fun fromAnalyticsCustomData(customData: CustomData?): ReadableMap? = customData?.let {
             val json = Arguments.createMap()
             for (n in 1..30) {
-                it.getProperty<String>("customData${n}")?.getter?.call(it)?.let { customDataN ->
+                it.getProperty<String>("customData${n}")?.let { customDataN ->
                     json.putString("customData${n}", customDataN)
                 }
             }
