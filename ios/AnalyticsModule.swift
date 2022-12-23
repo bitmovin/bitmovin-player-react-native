@@ -150,6 +150,7 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
                 let collector = self?.collectors[nativeId],
                 let customData = RCTConvert.toJson(analyticsCustomData: collector.getCustomData())
             else {
+                reject("[AnalyticsModule]", "Could not find analytics collector with ID (\(nativeId))", nil)
                 return
             }
             resolve(customData)
@@ -170,6 +171,7 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard let collector = self?.collectors[nativeId] else {
+                reject("[AnalyticsModule]", "Could not find analytics collector with ID (\(nativeId))", nil)
                 return
             }
             resolve(collector.getUserId())
