@@ -709,17 +709,33 @@ the associated collector is disabled unless an `analyticsConfig` option is speci
 ```typescript
 const player = usePlayer({
   analyticsConfig: {
+    // Bitmovin analytics key from the Analytics Dashboard
     key: '<ANALYTICS-KEY>', // `key` is the only required parameter.
+    // Bitmovin player license key
     playerKey: '<BITMOVIN-PLAYER-KEY>',
-    cdnProvider: CdnProvider.AKAMAI, // Check out `CdnProvider` for more options.
+    // Asset CDN provider. Check out `CdnProvider` on `src/analytics/config.ts` for more options.
+    cdnProvider: CdnProvider.AKAMAI,
+    // User-defined user ID.
     customUserId: 'Custom user ID',
-    randomizeUserId: false, // Default value is true.
+    // Whether the user ID should be randomly generated or not. Default value is false.
+    randomizeUserId: false,
+    // Experiment name that'll appear at the Analytics Dashboard.
     experimentName: 'Experiment name',
+    // Video ID on your server
     videoId: 'MyVideoId',
+    // Video title
     title: 'Art of Motion',
+    // Whether this is a live stream video. Default is false.
     isLive: false,
-    ads: false, // Can be changed to `true` in case `advertisingConfig` is also present.
+    // Whether collector should also collect statistics about ads
+    // Can be changed to `true` in case `advertisingConfig` is also present.
+    // Default is false.
+    ads: false,
+    // Navigation breadcrumb.
+    // The path taken by the user inside your application.
     path: '/examples/basic_analytics',
+    // List of custom data fields to be registered at the Analytics Dashboard.
+    // Useful to customize collection with your own data along with the SDK.
     customData1: 'Custom data field 1',
     customData2: 'Custom data field 2',
     customData3: 'Custom data field 3',
@@ -729,10 +745,10 @@ const player = usePlayer({
 });
 ```
 
-And that's it. Now you should start receiving analytics information about your `player` instance.
+And that's it. Now you should start receiving analytics information about your `player` instance at https://bitmovin.com/dashboard/analytics.
 
 Optionally, you can also access the configured `analyticsCollector` object in order to get some information (like `userId`) or
-update custom data in runtime:
+update your custom data during runtime:
 
 ```typescript
 // Get the current user id.
