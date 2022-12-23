@@ -518,9 +518,11 @@ extension RCTConvert {
         else {
             return nil
         }
-        var config = BitmovinAnalyticsConfig(key: key)
+        let config: BitmovinAnalyticsConfig
         if let playerKey = json["playerKey"] as? String {
             config = BitmovinAnalyticsConfig(key: key, playerKey: playerKey)
+        } else {
+            config = BitmovinAnalyticsConfig(key: key)
         }
         if let cdnProvider = json["cdnProvider"] as? String {
             config.cdnProvider = cdnProvider
