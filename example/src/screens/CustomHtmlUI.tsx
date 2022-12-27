@@ -21,6 +21,8 @@ export default function BasicPlayback() {
       playerUiCss:
         'https://cdn.bitmovin.com/player/web/8/bitmovinplayer-ui.css',
       playerUiJs: 'https://cdn.bitmovin.com/player/web/8/bitmovinplayer-ui.js',
+      supplementalPlayerUiCss:
+        'https://storage.googleapis.com/bitmovin-player-cdn-origin/player/ui/ui-customized-sample.css',
     },
   });
 
