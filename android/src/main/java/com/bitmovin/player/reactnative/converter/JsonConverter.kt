@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative.converter
 
+import android.graphics.Typeface
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.DeviceDescription.ModelName
 import com.bitmovin.player.api.PlaybackConfig
@@ -55,7 +56,7 @@ class JsonConverter {
                     playerConfig.tweaksConfig = it
                 }
             }
-            if(json.hasKey("tempAngelAdConfig")) {
+            if (json.hasKey("tempAngelAdConfig")) {
                 toTempAngelAdConfig(json.getMap("tempAngelAdConfig"))?.let {
                     playerConfig.advertisingConfig = it
                 }
@@ -160,7 +161,8 @@ class JsonConverter {
                 tweaksConfig.timeChangedInterval = json.getDouble("timeChangedInterval")
             }
             if (json.hasKey("bandwidthEstimateWeightLimit")) {
-                tweaksConfig.bandwidthEstimateWeightLimit = json.getInt("bandwidthEstimateWeightLimit")
+                tweaksConfig.bandwidthEstimateWeightLimit =
+                    json.getInt("bandwidthEstimateWeightLimit")
             }
             if (json.hasKey("devicesThatRequireSurfaceWorkaround")) {
                 val devices = json.getMap("devicesThatRequireSurfaceWorkaround")
@@ -177,22 +179,28 @@ class JsonConverter {
                 tweaksConfig.devicesThatRequireSurfaceWorkaround = deviceNames + modelNames
             }
             if (json.hasKey("languagePropertyNormalization")) {
-                tweaksConfig.languagePropertyNormalization = json.getBoolean("languagePropertyNormalization")
+                tweaksConfig.languagePropertyNormalization =
+                    json.getBoolean("languagePropertyNormalization")
             }
             if (json.hasKey("localDynamicDashWindowUpdateInterval")) {
-                tweaksConfig.localDynamicDashWindowUpdateInterval = json.getDouble("localDynamicDashWindowUpdateInterval")
+                tweaksConfig.localDynamicDashWindowUpdateInterval =
+                    json.getDouble("localDynamicDashWindowUpdateInterval")
             }
             if (json.hasKey("shouldApplyTtmlRegionWorkaround")) {
-                tweaksConfig.shouldApplyTtmlRegionWorkaround = json.getBoolean("shouldApplyTtmlRegionWorkaround")
+                tweaksConfig.shouldApplyTtmlRegionWorkaround =
+                    json.getBoolean("shouldApplyTtmlRegionWorkaround")
             }
             if (json.hasKey("useDrmSessionForClearPeriods")) {
-                tweaksConfig.useDrmSessionForClearPeriods = json.getBoolean("useDrmSessionForClearPeriods")
+                tweaksConfig.useDrmSessionForClearPeriods =
+                    json.getBoolean("useDrmSessionForClearPeriods")
             }
             if (json.hasKey("useDrmSessionForClearSources")) {
-                tweaksConfig.useDrmSessionForClearSources = json.getBoolean("useDrmSessionForClearSources")
+                tweaksConfig.useDrmSessionForClearSources =
+                    json.getBoolean("useDrmSessionForClearSources")
             }
             if (json.hasKey("useFiletypeExtractorFallbackForHls")) {
-                tweaksConfig.useFiletypeExtractorFallbackForHls = json.getBoolean("useFiletypeExtractorFallbackForHls")
+                tweaksConfig.useFiletypeExtractorFallbackForHls =
+                    json.getBoolean("useFiletypeExtractorFallbackForHls")
             }
             return tweaksConfig
         }
@@ -316,7 +324,7 @@ class JsonConverter {
                 json.putMap("oldSubtitleTrack", fromSubtitleTrack(event.oldSubtitleTrack))
                 json.putMap("newSubtitleTrack", fromSubtitleTrack(event.newSubtitleTrack))
             }
-            if(event is SourceEvent.DurationChanged) {
+            if (event is SourceEvent.DurationChanged) {
                 json.putDouble("duration", event.to)
             }
             return json
@@ -650,6 +658,70 @@ class JsonConverter {
                 return null
             }
             return mimeType.split("/").last()
+        }
+
+        /**
+         * Converts an arbitrary `json` object into a `Typeface`.
+         * @param json JS object representing the Typeface object creation parameters.
+         * @return The `Typeface` object.
+         */
+        @JvmStatic
+        fun toTypeface(json: ReadableMap?): Typeface {
+            if (json == null) {
+                return Typeface.DEFAULT
+            }
+
+            if (json.hasKey("family") && json.hasKey("style")) {
+                return Typeface.create(
+                    toTypefaceFamily(json.getString("family")),
+                    toTypefaceStyleWeight(json.getString("style"))
+                )
+            } else if (json.hasKey("familyName") && json.hasKey("style")) {
+                return Typeface.create(
+                    json.getString("familyName"),
+                    toTypefaceStyleWeight(json.getString("style"))
+                )
+            }
+
+            return Typeface.DEFAULT
+        }
+
+        /**
+         * Converts an arbitrary `json` object into a `Typeface` family.
+         * @param json JS object representing the Typeface family object creation parameters.
+         * @return The `Typeface` object.
+         */
+        @JvmStatic
+        fun toTypefaceFamily(family: String?): Typeface {
+            if (family.isNullOrEmpty()) {
+                return Typeface.DEFAULT
+            }
+
+            return when (family) {
+                "MONOSPACE" -> Typeface.MONOSPACE
+                "SANS_SERIF" -> Typeface.SANS_SERIF
+                "SERIF" -> Typeface.SERIF
+                else -> Typeface.DEFAULT
+            }
+        }
+
+        /**
+         * Converts an arbitrary `json` object into a `Typeface` family.
+         * @param json JS object representing the Typeface family object creation parameters.
+         * @return The `Typeface` object.
+         */
+        @JvmStatic
+        fun toTypefaceStyleWeight(weight: String?): Int {
+            if (weight.isNullOrEmpty()) {
+                return Typeface.NORMAL
+            }
+
+            return when (weight) {
+                "BOLD" -> Typeface.BOLD
+                "BOLD_ITALIC" -> Typeface.BOLD_ITALIC
+                "ITALIC" -> Typeface.ITALIC
+                else -> Typeface.NORMAL
+            }
         }
     }
 }

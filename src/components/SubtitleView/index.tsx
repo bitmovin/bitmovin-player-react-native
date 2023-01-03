@@ -3,6 +3,9 @@ import { ViewStyle, StyleSheet, StyleProp, Platform } from 'react-native';
 import { NativeSubtitleView } from './native';
 import { Player } from '../../player';
 
+export type TypefaceFamily = 'DEFAULT' | 'MONOSPACE' | 'SANS_SERIF' | 'SERIF';
+export type TypefaceStyleWeight = 'NORMAL' | 'BOLD' | 'BOLD_ITALIC' | 'ITALIC';
+
 /**
  * Base `SubtitleView` component props. Used to establish common
  * props between `NativeSubtitleView` and `SubtitleView`.
@@ -56,6 +59,24 @@ export interface BaseSubtitleViewProps {
     fractionOfHeight: number;
     ignorePadding?: boolean;
   };
+  /**
+   * Sets the subtitles caption style.
+   */
+  captionStyle?: {
+    foregroundColor?: string;
+    backgroundColor?: string;
+    windowColor?: string;
+    edgeType?:
+      | 'EDGE_TYPE_NONE'
+      | 'EDGE_TYPE_OUTLINE'
+      | 'EDGE_TYPE_DROP_SHADOW'
+      | 'EDGE_TYPE_RAISED'
+      | 'EDGE_TYPE_DEPRESSED';
+    edgeColor?: string;
+    typeFace?:
+      | { family: TypefaceFamily; style: TypefaceStyleWeight }
+      | { familyName: string; style: TypefaceStyleWeight };
+  };
 }
 
 /**
@@ -96,6 +117,7 @@ export function SubtitleView(props: SubtitleViewProps) {
       bottomPaddingFraction={props.bottomPaddingFraction}
       fixedTextSize={props.fixedTextSize}
       fractionalTextSize={props.fractionalTextSize}
+      captionStyle={props.captionStyle}
     />
   ) : null;
 }

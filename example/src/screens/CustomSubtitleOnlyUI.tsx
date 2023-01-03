@@ -12,12 +12,12 @@ import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
   PausedEvent,
+  Player,
   PlayerView,
   PlayingEvent,
   SourceType,
   StyleConfig,
   SubtitleView,
-  usePlayer,
   UserInterfaceType,
 } from 'bitmovin-player-react-native';
 import Play from '../components/icons/Play.svg';
@@ -39,10 +39,7 @@ const Separator = () => <View style={styles.separator} />;
 
 const trackDisplayKeyExtractor = ({ identifier }: TrackDisplay) => identifier;
 
-export default function CustomSubtitleOnlyUI() {
-  useTVGestures();
-  const [playing, setPlaying] = useState<boolean>(false);
-
+function newPlayer() {
   const styleConfig: StyleConfig =
     Platform.OS === 'android'
       ? {
@@ -51,24 +48,42 @@ export default function CustomSubtitleOnlyUI() {
       : {
           userInterfaceType: UserInterfaceType.subtitle,
         };
-
-  const player = usePlayer({
+  return new Player({
     styleConfig,
+    playbackConfig: {
+      isAutoplayEnabled: true,
+    },
   });
+}
+
+export default function CustomSubtitleOnlyUI() {
+  useTVGestures();
+
+  const [player, setPlayer] = useState<Player>(newPlayer());
+  const [playing, setPlaying] = useState<boolean>(false);
+
   const [tracks, setTracks] = useState<TrackDisplay[]>([]);
 
   useFocusEffect(
     useCallback(() => {
-      player.load({
-        url:
-          Platform.OS === 'ios'
-            ? 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8'
-            : 'https://bitmovin-a.akamaihd.net/content/sintel/sintel.mpd',
-        type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
-        poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
-      });
+      let effectPlayer = player;
+      if (player.isDestroyed) {
+        effectPlayer = newPlayer();
+        setPlayer(effectPlayer);
+      } else {
+        player.load({
+          url:
+            Platform.OS === 'ios'
+              ? 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8'
+              : 'https://bitmovin-a.akamaihd.net/content/sintel/sintel.mpd',
+          type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
+          poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
+        });
+      }
+
       return () => {
         player.destroy();
+        setPlaying(false);
       };
     }, [player])
   );
@@ -77,16 +92,19 @@ export default function CustomSubtitleOnlyUI() {
     async (event: Event) => {
       prettyPrint(`EVENT [${event.name}]`, event);
       const subtitleTracks = await player.getAvailableSubtitles();
+      const identifiableTracks = subtitleTracks.filter(
+        (t) => !!t.identifier && !!t.label
+      );
+
+      await player.setSubtitleTrack(identifiableTracks?.[0]?.identifier);
 
       setTracks(
-        subtitleTracks
-          .filter((t) => !!t.identifier && !!t.label)
-          .map(
-            (t): TrackDisplay => ({
-              display: t.label as string,
-              identifier: t.identifier as string,
-            })
-          )
+        identifiableTracks.map(
+          (t): TrackDisplay => ({
+            display: t.label as string,
+            identifier: t.identifier as string,
+          })
+        )
       );
     },
     [player]
@@ -143,8 +161,20 @@ export default function CustomSubtitleOnlyUI() {
           player={player.isInitialized ? player : undefined}
           style={styles.subtitles}
           applyEmbeddedStyles={false}
-          userDefaultStyle={true}
-          userDefaultTextSize={true}
+          userDefaultStyle={false}
+          userDefaultTextSize={false}
+          fixedTextSize={{ size: 14, unit: 'COMPLEX_UNIT_DIP' }}
+          captionStyle={{
+            foregroundColor: '#FFFFFF',
+            backgroundColor: '#000000',
+            windowColor: '#AABBCC',
+            edgeType: 'EDGE_TYPE_RAISED',
+            edgeColor: '#000000',
+            typeFace: {
+              family: 'MONOSPACE',
+              style: 'BOLD_ITALIC',
+            },
+          }}
         />
       </View>
 
