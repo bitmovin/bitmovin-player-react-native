@@ -53,15 +53,28 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      * @param config Source configuration options from JS.
      */
     @ReactMethod
-    fun loadSource(nativeId: NativeId, sourceNativeId: String, offlineModuleNativeId: String) {
+    fun loadSource(nativeId: NativeId, sourceNativeId: String) {
         uiManager()?.addUIBlock {
-            val offlineSourceConfig = offlineModule()?.getOfflineManager(offlineModuleNativeId)?.contentManager?.offlineSourceConfig
-            val source = sourceModule()?.getSource(sourceNativeId)
+            sourceModule()?.getSource(sourceNativeId)?.let {
+                players[nativeId]?.load(it)
+            }
+        }
+    }
+
+    /**
+     * Load the `offlineSourceConfig` for the player with `nativeId` and offline source module with `offlineModuleNativeId`.
+     * @param nativeId Target player.
+     * @param nativeId Target offline module.
+     * @param config Source configuration options from JS.
+     */
+    @ReactMethod
+    fun loadOfflineSource(nativeId: NativeId, offlineModuleNativeId: String) {
+        uiManager()?.addUIBlock {
+            val offlineSourceConfig = offlineModule()?.getOfflineManager(offlineModuleNativeId)
+                ?.contentManager?.offlineSourceConfig
 
             if (offlineSourceConfig != null) {
                 players[nativeId]?.load(offlineSourceConfig)
-            } else if (source != null) {
-                players[nativeId]?.load(source)
             }
         }
     }

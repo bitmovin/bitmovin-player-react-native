@@ -3,34 +3,39 @@ import BitmovinPlayer
 
 @objc(OfflineModule)
 class OfflineModule: RCTEventEmitter, OfflineContentManagerListener {
-    
+
     /// JS module name.
     override static func moduleName() -> String! {
         "BitmovinOfflineModule"
     }
-    
+
     /// Module requires main thread initialization.
     override static func requiresMainQueueSetup() -> Bool {
         true
     }
-    
+
     override func supportedEvents() -> [String]! {
         return ["BitmovinOfflineEvent"]
     }
-    
+
     /// Since most `OfflineModule` operations are UI related and need to be executed on the main thread, they are scheduled with `UIManager.addBlock`.
     override var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
 
-    
+
     private var offlineContentManagers: [String: OfflineContentManager] = [:]
     private var offlineTrackSelections: [String: OfflineTrackSelection] = [:]
-    
+
+    /**
+     Retrieves the `OfflineContentManager` instance associated with `nativeId` from the internal offline managers.
+     - Parameter nativeId `OfflineContentManager` instance ID.
+     - Returns: The associated `OfflineContentManager` instance or `nil`.
+     */
     func retrieve(_ nativeId: NativeId) -> OfflineContentManager? {
         offlineContentManagers[nativeId]
     }
-    
+
     /**
      Creates a new `OfflineContentManager` instance inside the internal offline managers using the provided `config` object.
      - @param config `Config` object received from JS.  Should contain a sourceConfig and location.
@@ -44,20 +49,43 @@ class OfflineModule: RCTEventEmitter, OfflineContentManagerListener {
             else {
                 return
             }
-            
+
             do {
                 let contentManager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig)
                 contentManager.add(listener: self!)
-                
+
                 self?.offlineContentManagers[nativeId] = contentManager
             } catch let error as NSError {
                 reject("BitmovinOfflineModule", "Could not create an offline content manager", error)
             }
         }
     }
-    
+
     /**
-     asdf
+     Resolve `nativeId`'s current `OfflineSourceConfig`.
+     - Parameter nativeId: Target offline module Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc func getOfflineSourceConfig(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            guard
+                let contentManager = self?.offlineContentManagers[nativeId]
+            else {
+                reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
+                return
+            }
+
+            let offlineSourceConfig = contentManager.createOfflineSourceConfig(restrictedToAssetCache: true)
+
+            resolve(RCTConvert.toJson(sourceConfig: offlineSourceConfig))
+        }
+    }
+
+    /**
+     Starts the `OfflineContentManager`'s asynchronous process of fetching the `OfflineContentOptions`.
+     When the options are loaded a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onOptionsAvailable`.
+     - Parameter nativeId: Target offline module Id.
      */
     @objc func getOptions(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
@@ -66,39 +94,62 @@ class OfflineModule: RCTEventEmitter, OfflineContentManagerListener {
             else {
                 return
             }
-            
+
             contentManager.fetchAvailableTracks()
         }
     }
-    
+
     /**
-     asdf
-     - @param `config` object received from JS.  Should contain a sourceConfig and location.
+     Enqueues downloads according to the `OfflineDownloadRequest`.
+     * The promise will reject in the event of null or invalid request parameters.
+     - Parameter nativeId: Target offline module Id
+     - Parameter request: The download request js object containing the requested bit rate and track option ids to download.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
      */
     @objc func process(_ nativeId: NativeId, request: Any?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let contentManager = self?.offlineContentManagers[nativeId],
-                let tracks = self?.offlineTrackSelections[nativeId],
+                let trackSelection = self?.offlineTrackSelections[nativeId] as? OfflineTrackSelection,
                 let request = request as? [String:Any?],
                 let minimumBitrate = request["minimumBitrate"] as? NSNumber,
                 let audioOptionIds = request["audioOptionIds"] as? [String],
-                let textOptionIds = request["textOptionIds"] as? [String],
-                audioOptionIds.count > 0
+                audioOptionIds.count > 0,
+                let textOptionIds = request["textOptionIds"] as? [String]
             else {
                 reject("BitmovinOfflineModule", "Invalid download request", nil)
                 return
             }
+
+            trackSelection.audioTracks.forEach({
+                if (audioOptionIds.contains($0.label)) {
+                    $0.action = .download
+                } else {
+                    $0.action = .none
+                }
+            })
             
-            //TODO use the requested audio / text ids to set the actions correctly.
+            if (textOptionIds.count > 0) {
+                trackSelection.textTracks.forEach({
+                    if (textOptionIds.contains($0.label)) {
+                        $0.action = .download
+                    } else {
+                        $0.action = .none
+                    }
+                })
+            }
+            
             var config = DownloadConfig()
             config.minimumBitrate = minimumBitrate
-            contentManager.download(tracks: tracks, downloadConfig: config)
+            contentManager.download(tracks: trackSelection, downloadConfig: config)
+            resolve(nil)
         }
     }
-    
+
     /**
-     asdf
+     Resumes all suspended actions.
+     - Parameter nativeId: Target offline module Id
      */
     @objc func resume(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
@@ -110,9 +161,10 @@ class OfflineModule: RCTEventEmitter, OfflineContentManagerListener {
             contentManager.resumeDownload()
         }
     }
-    
+
     /**
-     asdf
+     Suspends all active actions.
+     - Parameter nativeId: Target offline module Id
      */
     @objc func suspend(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
@@ -124,9 +176,10 @@ class OfflineModule: RCTEventEmitter, OfflineContentManagerListener {
             contentManager.suspendDownload()
         }
     }
-    
+
     /**
-     asdf
+     Deletes everything related to the related content ID.
+     - Parameter nativeId: Target offline module Id
      */
     @objc func deleteAll(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
@@ -138,23 +191,12 @@ class OfflineModule: RCTEventEmitter, OfflineContentManagerListener {
             contentManager.deleteOfflineData()
         }
     }
-    
+
     /**
-     asdf
-     */
-    @objc func renewOfflineLicense(_ nativeId: NativeId) {
-        bridge.uiManager.addUIBlock { [weak self] _, _ in
-            guard
-                let contentManager = self?.offlineContentManagers[nativeId]
-            else {
-                return
-            }
-            contentManager.renewOfflineLicense()
-        }
-    }
-    
-    /**
-     asdf
+     Downloads the offline license.
+     When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onDrmLicenseUpdated`.
+     Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onError`.
+     - Parameter nativeId: Target offline module Id
      */
     @objc func downloadLicense(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
@@ -166,9 +208,29 @@ class OfflineModule: RCTEventEmitter, OfflineContentManagerListener {
             contentManager.syncOfflineDrmLicenseInformation()
         }
     }
-    
+
     /**
-     asdf
+     Renews the already downloaded DRM license.
+     When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onDrmLicenseUpdated`.
+     Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onError`.
+     - Parameter nativeId: Target offline module Id
+     */
+    @objc func renewOfflineLicense(_ nativeId: NativeId) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            guard
+                let contentManager = self?.offlineContentManagers[nativeId]
+            else {
+                return
+            }
+            contentManager.renewOfflineLicense()
+        }
+    }
+
+    /**
+     Removes the `OfflineContentManagerListener` for the `nativeId`'s offline content manager.
+     IMPORTANT: Call this when the component, in which it was created, is destroyed.
+     The `OfflineManager` should not be used after calling this method.
+     - Parameter nativeId: Target offline module Id
      */
     @objc func release(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
@@ -182,47 +244,45 @@ class OfflineModule: RCTEventEmitter, OfflineContentManagerListener {
             self?.offlineTrackSelections.removeValue(forKey: nativeId)
         }
     }
-    
+
     /**
-     asdf
+     Called when an error occurs.
      */
-    @objc func releaseLicense(_ nativeId: NativeId) {
-        bridge.uiManager.addUIBlock { [weak self] _, _ in
-            guard
-                let holder = self?.offlineContentManagers[nativeId]
-            else {
-                return
-            }
-            
-        }
-    }
-    
     func onOfflineError(_ event: OfflineErrorEvent, offlineContentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: "onError", contentManager: offlineContentManager, body: [
             "code": event.code,
             "message": event.message
         ])
     }
-    
+
+    /**
+     Called after a getOptions or when am OfflineOptionEntry has been updated during a process call.
+     */
     func onAvailableTracksFetched(_ event: AvailableTracksFetchedEvent, offlineContentManager: OfflineContentManager) {
         guard let nativeId = offlineContentManagerId(offlineContentManager) else {
             return
         }
-        
+
         offlineTrackSelections[nativeId] = event.tracks
-        
+
         sendOfflineEvent(eventType: "onOptionsAvailable", contentManager: offlineContentManager, body: [
             "options": RCTConvert.offlineContentOptionsJson(event.tracks),
             "state": RCTConvert.offlineStateJson(offlineContentManager.offlineState)
         ])
     }
-    
+
+    /**
+     Called when a process call has completed.
+     */
     func onContentDownloadFinished(_ event: ContentDownloadFinishedEvent, offlineContentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: "onCompleted", contentManager: offlineContentManager, body: [
             "state": RCTConvert.offlineStateJson(offlineContentManager.offlineState)
         ])
     }
 
+    /**
+     Called when the progress for a process call changes.
+     */
     func onContentDownloadProgressChanged(_ event: ContentDownloadProgressChangedEvent, offlineContentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: "onProgress", contentManager: offlineContentManager, body: [
             "progress": event.progress,
@@ -230,14 +290,24 @@ class OfflineModule: RCTEventEmitter, OfflineContentManagerListener {
         ])
     }
 
+
+    /**
+     Called when all actions have been suspended.
+     */
     func onContentDownloadSuspended(_ event: ContentDownloadSuspendedEvent, offlineContentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: "onSuspended", contentManager: offlineContentManager)
     }
 
+    /**
+     Called when all actions have been resumed.
+     */
     func onContentDownloadResumed(_ event: ContentDownloadResumedEvent, offlineContentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: "onResumed", contentManager: offlineContentManager)
     }
 
+    /**
+     Called when the DRM license was renewed.
+     */
     func onOfflineContentLicenseRenewed(_ event: OfflineContentLicenseRenewedEvent, offlineContentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: "onDrmLicenseUpdated", contentManager: offlineContentManager)
     }
@@ -245,12 +315,12 @@ class OfflineModule: RCTEventEmitter, OfflineContentManagerListener {
     private func sendOfflineEvent(eventType: String, contentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: eventType, contentManager: contentManager, body: nil)
     }
-    
+
     private func sendOfflineEvent(eventType: String, contentManager: OfflineContentManager, body: [String: Any?]?) {
         guard let nativeId = offlineContentManagerId(contentManager) else {
             return
         }
-        
+
         var baseEvent: [String: Any?] = [
             "nativeId": nativeId,
             "eventType": eventType,
@@ -260,7 +330,7 @@ class OfflineModule: RCTEventEmitter, OfflineContentManagerListener {
 
         sendEvent(withName: "BitmovinOfflineEvent", body: baseEvent.merging(extraParams) { (current, _) in current })
     }
-    
+
     private func offlineContentManagerId(_ contentManager: OfflineContentManager) -> NativeId? {
         return offlineContentManagers.first { $0.value === contentManager }?.key
     }

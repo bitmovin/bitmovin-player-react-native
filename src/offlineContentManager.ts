@@ -1,10 +1,8 @@
 import {
-  DeviceEventEmitter,
   NativeEventEmitter,
   EmitterSubscription,
   NativeModules,
   NativeModule,
-  Platform,
 } from 'react-native';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { SourceConfig } from './source';
@@ -20,6 +18,7 @@ interface NativeOfflineModule extends NativeModule {
     nativeId: string,
     config: { sourceConfig: SourceConfig; location?: string }
   ): void;
+  getOfflineSourceConfig(nativeId: string): Promise<SourceConfig>;
   getOptions(nativeId: string): void;
   process(nativeId: string, request: OfflineDownloadRequest): Promise<void>;
   resume(nativeId: string): void;
@@ -70,41 +69,43 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   constructor(config: OfflineContentConfig) {
     super(config);
   }
+
   /**
    * Allocates the native `OfflineManager` instance and its resources natively.
    * Registers the `DeviceEventEmitter` listener to receive data from the native `OfflineContentManagerListener` callbacks
    */
   initialize = () => {
     if (!this.isInitialized && this.config) {
-      const nativeEventListener = (data?: BitmovinNativeOfflineEventData) => {
-        if (this.nativeId === data?.nativeId) {
-          if (data.eventType === OfflineEventType.onCompleted) {
-            this.config?.listener?.onCompleted?.(data);
-          } else if (data.eventType === OfflineEventType.onError) {
-            this.config?.listener?.onError?.(data);
-          } else if (data.eventType === OfflineEventType.onProgress) {
-            this.config?.listener?.onProgress?.(data);
-          } else if (data.eventType === OfflineEventType.onOptionsAvailable) {
-            this.config?.listener?.onOptionsAvailable?.(data);
-          } else if (data.eventType === OfflineEventType.onDrmLicenseUpdated) {
-            this.config?.listener?.onDrmLicenseUpdated?.(data);
-          } else if (data.eventType === OfflineEventType.onSuspended) {
-            this.config?.listener?.onSuspended?.(data);
-          } else if (data.eventType === OfflineEventType.onResumed) {
-            this.config?.listener?.onResumed?.(data);
+      if (this.config.listener) {
+        this.eventSubscription = new NativeEventEmitter(
+          OfflineModule
+        ).addListener(
+          'BitmovinOfflineEvent',
+          (data?: BitmovinNativeOfflineEventData) => {
+            if (this.nativeId !== data?.nativeId) {
+              return;
+            }
+
+            if (data.eventType === OfflineEventType.onCompleted) {
+              this.config?.listener?.onCompleted?.(data);
+            } else if (data.eventType === OfflineEventType.onError) {
+              this.config?.listener?.onError?.(data);
+            } else if (data.eventType === OfflineEventType.onProgress) {
+              this.config?.listener?.onProgress?.(data);
+            } else if (data.eventType === OfflineEventType.onOptionsAvailable) {
+              this.config?.listener?.onOptionsAvailable?.(data);
+            } else if (
+              data.eventType === OfflineEventType.onDrmLicenseUpdated
+            ) {
+              this.config?.listener?.onDrmLicenseUpdated?.(data);
+            } else if (data.eventType === OfflineEventType.onSuspended) {
+              this.config?.listener?.onSuspended?.(data);
+            } else if (data.eventType === OfflineEventType.onResumed) {
+              this.config?.listener?.onResumed?.(data);
+            }
           }
-        }
-      };
-
-      const eventEmitter = Platform.select({
-        ios: new NativeEventEmitter(OfflineModule),
-        android: DeviceEventEmitter,
-      });
-
-      this.eventSubscription = eventEmitter?.addListener(
-        'BitmovinOfflineEvent',
-        nativeEventListener
-      );
+        );
+      }
 
       OfflineModule.initWithConfig(this.nativeId, {
         sourceConfig: this.config.sourceConfig,
@@ -125,6 +126,13 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   };
 
   /**
+   * Gets the current offline source config of the `OfflineContentManager`
+   */
+  getOfflineSourceConfig = (): Promise<SourceConfig> => {
+    return OfflineModule.getOfflineSourceConfig(this.nativeId);
+  };
+
+  /**
    * Loads the current `OfflineContentOptions`.
    * When the options are loaded the data will be passed to the `OfflineContentManagerListener.onOptionsAvailable`.
    */
@@ -133,9 +141,10 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   };
 
   /**
-   *Enqueues downloads according to the `OfflineDownloadRequest`.
+   * Enqueues downloads according to the `OfflineDownloadRequest`.
    * The promise will reject in the event of null or invalid request parameters.
    * The promise will reject when selecting an `OfflineOptionEntry` to download that is not compatible with the current state.
+   * The promise will resolve when the download has been queued.  The download will is not finished when the promise resolves.
    */
   process = (request: OfflineDownloadRequest): Promise<void> => {
     return OfflineModule.process(this.nativeId, request);

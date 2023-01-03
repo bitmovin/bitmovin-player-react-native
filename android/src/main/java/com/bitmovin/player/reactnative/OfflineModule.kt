@@ -1,6 +1,5 @@
 package com.bitmovin.player.reactnative
 
-import com.bitmovin.player.api.offline.options.OfflineOptionEntryAction
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
@@ -36,6 +35,22 @@ class OfflineModule(private val context: ReactApplicationContext) :
     }
 
     /**
+     * Callback when a new NativeEventEmitter is created from the Typescript layer.
+     */
+    @ReactMethod
+    fun addListener(eventName: String?) {
+        // NO-OP
+    }
+
+    /**
+     * Callback when a NativeEventEmitter is removed from the Typescript layer.
+     */
+    @ReactMethod
+    fun removeListeners(count: Int?) {
+        // NO-OP
+    }
+
+    /**
      * Creates a new `OfflineManager` instance inside the internal offline managers using the provided `config` object.
      * @param config `ReadableMap` object received from JS.  Should contain a sourceConfig and location.
      */
@@ -53,7 +68,16 @@ class OfflineModule(private val context: ReactApplicationContext) :
     }
 
     /**
-     * Loads the current `OfflineContentOptions`.
+     * Retrieves the current `OfflineSourceConfig`
+     * @param nativeId Target offline manager.
+     */
+    @ReactMethod
+    fun getOfflineSourceConfig(nativeId: NativeId, promise: Promise) {
+        promise.resolve(JsonConverter.toJson(getOfflineManager(nativeId)?.contentManager?.offlineSourceConfig))
+    }
+
+    /**
+     * Starts the `OfflineContentManager`'s asynchronous process of fetching the `OfflineContentOptions`.
      * When the options are loaded a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onOptionsAvailable`.
      * @param nativeId Target offline manager.
      */
@@ -81,7 +105,7 @@ class OfflineModule(private val context: ReactApplicationContext) :
             val audioOptionIds = request.getArray("audioOptionIds")?.toList<String>()
             val textOptionIds = request.getArray("textOptionIds")?.toList<String>()
 
-            if (minimumBitRate < 0 || audioOptionIds.isNullOrEmpty() || textOptionIds.isNullOrEmpty()) {
+            if (minimumBitRate < 0 || audioOptionIds.isNullOrEmpty()) {
                 promise.reject(java.lang.IllegalArgumentException("Invalid download request"))
                 return
             }

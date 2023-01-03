@@ -4,6 +4,7 @@ import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { SubtitleTrack } from './subtitleTrack';
 import { TweaksConfig } from './tweaksConfig';
+import { OfflineContentManager } from './offlineContentManager';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -42,7 +43,6 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures experimental features. A default TweaksConfig is set initially.
    */
   tweaksConfig?: TweaksConfig;
-  offlineSourceId?: string;
 }
 
 /**
@@ -174,16 +174,22 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * Loads the OfflineSourceConfig into the player.
+   */
+  loadOfflineSource = (offlineContentManager: OfflineContentManager) => {
+    PlayerModule.loadOfflineSource(
+      this.nativeId,
+      offlineContentManager.nativeId
+    );
+  };
+
+  /**
    * Loads the given `Source` into the player.
    */
   loadSource = (source: Source) => {
     source.initialize();
     this.source = source;
-    PlayerModule.loadSource(
-      this.nativeId,
-      source.nativeId,
-      this.config?.offlineSourceId
-    );
+    PlayerModule.loadSource(this.nativeId, source.nativeId);
   };
 
   /**

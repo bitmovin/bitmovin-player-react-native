@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -13,6 +13,7 @@ import {
   OfflineDownloadRequest,
   OfflineOptionEntryState,
   PlayerView,
+  SourceConfig,
   SourceType,
   usePlayer,
 } from 'bitmovin-player-react-native';
@@ -45,8 +46,14 @@ const INITIAL_DOWNLOAD_REQUEST: OfflineDownloadRequest = {
   textOptionIds: [],
 };
 
+const SOURCE_CONFIG: SourceConfig = {
+  url: 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
+  type: SourceType.HLS,
+};
+
 export default function OfflinePlayback() {
   useTVGestures();
+  const [offlineManager, setOfflineManager] = useState<OfflineContentManager>();
   const [entryState, setEntryState] = useState<OfflineOptionEntryState>();
   const [offlineOptions, setOfflineOptions] = useState<OfflineContentOptions>();
   const [progress, setProgress] = useState<number>(0);
@@ -57,84 +64,82 @@ export default function OfflinePlayback() {
     prettyPrint(`EVENT`, event);
   }, []);
 
-  const player = usePlayer({
-    licenseKey: '4766495e-67aa-4c7e-9992-5b70675b0660',
-    offlineSourceId: STABLE_OFFLINE_ID,
-  });
+  const player = usePlayer();
 
-  const offlineManager = useRef<OfflineContentManager>(
-    new OfflineContentManager({
-      nativeId: STABLE_OFFLINE_ID,
-      sourceConfig: {
-        url: 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
-        type: SourceType.HLS,
-      },
-      listener: {
-        onCompleted: (e) => {
-          onEvent(e);
-          setEntryState(e.state);
-          setOfflineOptions(e.options);
-        },
-        onError: onEvent,
-        onProgress: (e) => {
-          onEvent(e);
-          setProgress(e.progress);
-        },
-        onDrmLicenseUpdated: onEvent,
-        onOptionsAvailable: (e) => {
-          onEvent(e);
-          setEntryState(e.state);
-          setOfflineOptions(e.options);
-        },
-        onResumed: onEvent,
-        onSuspended: onEvent,
-      },
-    })
-  );
+  useFocusEffect(useCallback(() => () => player.destroy(), [player]));
 
   useFocusEffect(
     useCallback(() => {
-      offlineManager.current?.initialize();
+      const newOfflineManager = new OfflineContentManager({
+        nativeId: STABLE_OFFLINE_ID,
+        sourceConfig: SOURCE_CONFIG,
+        listener: {
+          onCompleted: (e) => {
+            onEvent(e);
+            setEntryState(e.state);
+            setOfflineOptions(e.options);
+          },
+          onError: onEvent,
+          onProgress: (e) => {
+            onEvent(e);
+            setProgress(e.progress);
+          },
+          onDrmLicenseUpdated: onEvent,
+          onOptionsAvailable: (e) => {
+            onEvent(e);
+            setEntryState(e.state);
+            setOfflineOptions(e.options);
+          },
+          onResumed: onEvent,
+          onSuspended: onEvent,
+        },
+      });
+      newOfflineManager.initialize();
+
+      setOfflineManager(newOfflineManager);
 
       return () => {
-        player.destroy();
-        offlineManager.current?.destroy?.();
+        newOfflineManager.destroy?.();
+        setOfflineManager(undefined);
       };
-    }, [player, offlineManager])
+    }, [onEvent])
   );
 
   return (
     <View style={styles.container}>
       <PlayerView player={player} style={styles.player} />
       <View style={styles.actionsContainer}>
-        <Action
-          text={'Get Options'}
-          onPress={offlineManager.current?.getOptions}
-        />
+        <Action text={'Get Options'} onPress={offlineManager?.getOptions} />
         <Action
           text={'Process'}
           onPress={() => {
             if (downloadRequest) {
-              offlineManager.current
-                ?.process(downloadRequest)
-                .catch(console.error);
+              offlineManager?.process(downloadRequest).catch(console.error);
               setDownloadRequest(INITIAL_DOWNLOAD_REQUEST);
             }
           }}
         />
-        <Action
-          text={'Delete All'}
-          onPress={offlineManager.current?.deleteAll}
-        />
-        <Action text={'Suspend'} onPress={offlineManager.current?.suspend} />
-        <Action text={'Resume'} onPress={offlineManager.current?.resume} />
+        <Action text={'Delete All'} onPress={offlineManager?.deleteAll} />
+        <Action text={'Suspend'} onPress={offlineManager?.suspend} />
+        <Action text={'Resume'} onPress={offlineManager?.resume} />
         <Action
           text={'Load Player Video'}
           onPress={() => {
-            player.load({
-              url: 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
-              type: SourceType.HLS,
-            });
+            offlineManager
+              ?.getOfflineSourceConfig?.()
+              ?.then?.((sourceConfig) => {
+                onEvent({
+                  type: 'getOfflineSourceConfig',
+                  sourceConfig,
+                });
+                if (sourceConfig != null) {
+                  onEvent('Loading the offline video');
+                  player.loadOfflineSource(offlineManager);
+                } else {
+                  onEvent('Loading the standard source configuration');
+                  player.load(SOURCE_CONFIG);
+                }
+              });
           }}
         />
         <Action text={`${entryState} - ${progress}`} />

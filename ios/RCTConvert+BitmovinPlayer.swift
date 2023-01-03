@@ -222,6 +222,42 @@ extension RCTConvert {
         default: return .none
         }
     }
+    
+    /**
+     Utility method to compute a JS value from a `SourceConfig` object.
+     - Parameter sourceConfig: `SourceConfig` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(sourceConfig: SourceConfig?) -> [String: Any?]? {
+        guard let sourceConfig = sourceConfig else {
+            return nil
+        }
+        return [
+            "url": sourceConfig.url.absoluteString,
+            "type": RCTConvert.toJson(sourceType: sourceConfig.type),
+            "title": sourceConfig.title,
+            "poster": sourceConfig.posterSource?.absoluteString,
+            "isPosterPersistent": sourceConfig.isPosterPersistent
+        ]
+    }
+    
+    /**
+     Utility method to compute a JS value from a `SourceType` object.
+     - Parameter sourceType: `Sourcetype` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(sourceType: SourceType?) -> String? {
+        guard let sourceType = sourceType else {
+            return nil
+        }
+        switch sourceType {
+        case .none: return "none"
+        case .hls: return "hls"
+        case .dash: return "dash"
+        case .progressive: return "progressive"
+        default: return "none"
+        }
+    }
 
     /**
      Utility method to get a `TimeMode` from a JS object.

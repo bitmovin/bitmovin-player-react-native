@@ -33,18 +33,16 @@ class OfflineManager(
         )
     }
 
-    fun deleteAll() {
-        contentManager.deleteAll()
-    }
-
-    fun downloadLicense() {
-        contentManager.downloadLicense()
-    }
-
     fun getOptions() {
         contentManager.getOptions()
     }
 
+    /**
+     * Process the `OfflineDownloadRequest`.
+     * The `OfflineContentOptions` are stored in memory in this class because they can not be constructed to pass to the process call.
+     * We're copying the iOS interface for the `minimumBitrate` so that react-native will have a consistent interface.
+     *
+     */
     fun process(request: OfflineDownloadRequest) {
         if (contentOptions != null) {
             contentOptions!!.videoOptions
@@ -58,28 +56,20 @@ class OfflineManager(
     }
 
     private fun changeToDownloadAction(
-        ids: List<String?>,
+        ids: List<String?>?,
         potentialOptions: List<OfflineOptionEntry>
     ) {
+        if (ids.isNullOrEmpty()) {
+            return
+        }
+
         ids.forEach { idToDownload ->
             potentialOptions.forEach { option ->
-                if (idToDownload === option.id && option.action != OfflineOptionEntryAction.Download) {
+                if (idToDownload == option.id && option.action !== OfflineOptionEntryAction.Download) {
                     option.action = OfflineOptionEntryAction.Download
                 }
             }
         }
-    }
-
-    fun release() {
-        contentManager.release()
-    }
-
-    fun releaseLicense() {
-        contentManager.releaseLicense()
-    }
-
-    fun renewOfflineLicense() {
-        contentManager.renewOfflineLicense()
     }
 
     fun resume() {
@@ -90,7 +80,32 @@ class OfflineManager(
         contentManager.suspend()
     }
 
-    fun aggregateState(options: OfflineContentOptions?): String {
+    fun deleteAll() {
+        contentManager.deleteAll()
+    }
+
+    fun downloadLicense() {
+        contentManager.downloadLicense()
+    }
+
+    fun releaseLicense() {
+        contentManager.releaseLicense()
+    }
+
+    fun renewOfflineLicense() {
+        contentManager.renewOfflineLicense()
+    }
+
+    fun release() {
+        contentManager.release()
+    }
+
+    /**
+     * Produces an aggregate state of the `OfflineOptionEntryState` for the `OfflineContentOptions`
+     * iOS does not have granular data access to the states of each entry, but instead provides a single aggregate status.
+     * Adding this produces a consistent interface in the react-native layer.
+     */
+    private fun aggregateState(options: OfflineContentOptions?): String {
         val allOptions = mutableListOf<OfflineOptionEntry>()
         options?.videoOptions?.let { allOptions.addAll(it) }
         options?.audioOptions?.let { allOptions.addAll(it) }
@@ -108,6 +123,9 @@ class OfflineManager(
         return (state ?: OfflineOptionEntryState.NotDownloaded).name
     }
 
+    /**
+     * Called when a process call has completed.
+     */
     override fun onCompleted(source: SourceConfig?, options: OfflineContentOptions?) {
         this.contentOptions = options
         sendEvent("onCompleted", Arguments.createMap().apply {
@@ -116,6 +134,9 @@ class OfflineManager(
         })
     }
 
+    /**
+     * Called when an error occurs.
+     */
     override fun onError(source: SourceConfig?, event: ErrorEvent?) {
         sendEvent("onError", Arguments.createMap().apply {
             event?.code?.value?.let { putInt("code", it) }
@@ -123,12 +144,18 @@ class OfflineManager(
         })
     }
 
+    /**
+     * Called when the progress for a process call changes.
+     */
     override fun onProgress(source: SourceConfig?, progress: Float) {
         sendEvent("onProgress", Arguments.createMap().apply {
             putDouble("progress", progress.toDouble())
         })
     }
 
+    /**
+     * Called after a getOptions or when am OfflineOptionEntry has been updated during a process call.
+     */
     override fun onOptionsAvailable(source: SourceConfig?, options: OfflineContentOptions?) {
         this.contentOptions = options
         sendEvent("onOptionsAvailable", Arguments.createMap().apply {
@@ -137,14 +164,23 @@ class OfflineManager(
         })
     }
 
+    /**
+     * Called when the DRM license was updated.
+     */
     override fun onDrmLicenseUpdated(source: SourceConfig?) {
         sendEvent("onDrmLicenseUpdated")
     }
 
+    /**
+     * Called when all actions have been suspended.
+     */
     override fun onSuspended(source: SourceConfig?) {
         sendEvent("onSuspended")
     }
 
+    /**
+     * Called when all actions have been resumed.
+     */
     override fun onResumed(source: SourceConfig?) {
         sendEvent("onResumed")
     }
