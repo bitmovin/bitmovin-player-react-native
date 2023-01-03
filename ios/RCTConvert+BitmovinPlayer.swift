@@ -202,6 +202,9 @@ extension RCTConvert {
                 }
             }
         }
+        if let thumbnailTrack = json["thumbnailTrack"] as? String {
+            sourceConfig.thumbnailTrack = RCTConvert.thumbnailTrack(thumbnailTrack)
+        }
         return sourceConfig
     }
 
@@ -222,7 +225,7 @@ extension RCTConvert {
         default: return .none
         }
     }
-    
+
     /**
      Utility method to compute a JS value from a `SourceConfig` object.
      - Parameter sourceConfig: `SourceConfig` object to be converted.
@@ -240,7 +243,7 @@ extension RCTConvert {
             "isPosterPersistent": sourceConfig.isPosterPersistent
         ]
     }
-    
+
     /**
      Utility method to compute a JS value from a `SourceType` object.
      - Parameter sourceType: `Sourcetype` object to be converted.
@@ -300,6 +303,25 @@ extension RCTConvert {
             fairplayConfig.certificateRequestHeaders = certificateRequestHeaders
         }
         return fairplayConfig
+    }
+
+    /**
+     Utility method to get a `ThumbnailTrack` instance from a JS object.
+     - Parameter url: String.
+     - Returns: The generated `ThumbnailTrack`.
+     */
+    static func thumbnailTrack(_ url: String?) -> ThumbnailTrack? {
+        guard
+            let url = RCTConvert.nsurl(url)
+        else {
+            return nil
+        }
+        return ThumbnailTrack(
+            url: url,
+            label: "Thumbnails",
+            identifier: UUID().uuidString,
+            isDefaultTrack: false
+        )
     }
 
     /**
@@ -518,6 +540,26 @@ extension RCTConvert {
             "minBitrate": adData.minBitrate
         ]
     }
+
+    /**
+     Utility method to compute a JS value from a `VideoQuality` object.
+     - Parameter videoQuality `VideoQuality` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(videoQuality: VideoQuality?) -> [String: Any?]? {
+        guard let videoQuality = videoQuality else {
+            return nil
+        }
+        return [
+            "id": videoQuality.identifier,
+            "label": videoQuality.label,
+            "height": videoQuality.height,
+            "width": videoQuality.width,
+            "codec": videoQuality.codec,
+            "bitrate": videoQuality.bitrate,
+        ]
+    }
+
 
     static func offlineStateJson(_ offlineState: OfflineState?) -> String {
         var notDownloaded = "NotDownloaded"

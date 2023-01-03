@@ -78,6 +78,10 @@ export interface SourceConfig extends NativeInstanceConfig {
    * External subtitle tracks to be added into the player.
    */
   subtitleTracks?: SideLoadedSubtitleTrack[];
+  /**
+   * External thumbnails to be added into the player.
+   */
+  thumbnailTrack?: string;
 }
 
 /**
