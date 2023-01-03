@@ -691,12 +691,7 @@ class JsonConverter {
         fun toJson(offlineEntry: OfflineOptionEntry): WritableMap {
             return Arguments.createMap().apply {
                 putString("id", offlineEntry.id)
-                putInt("bitrate", offlineEntry.bitrate)
-                putString("mimeType", offlineEntry.mimeType)
-                putString("codecs", offlineEntry.codecs)
                 putString("language", offlineEntry.language)
-                putString("state", offlineEntry.state.name)
-                putString("action", offlineEntry.action?.name)
             }
         }
 
@@ -711,38 +706,9 @@ class JsonConverter {
                 return null
             }
 
-            val videoOptions = Arguments.createArray()
-            options.videoOptions.forEach {
-                videoOptions.pushMap(toJson(it).apply {
-                    putInt("width", it.width)
-                    putInt("height", it.height)
-                    putDouble("frameRate", it.frameRate.toDouble())
-                })
-            }
-
-            val audioOptions = Arguments.createArray()
-            options.audioOptions.forEach {
-                audioOptions.pushMap(toJson(it).apply {
-                    putInt("channelCount", it.channelCount)
-                    putInt("sampleRate", it.sampleRate)
-                })
-            }
-
-            val textOptions = Arguments.createArray()
-            options.textOptions.forEach {
-                textOptions.pushMap(toJson(it))
-            }
-
-            var thumbnailOption: WritableMap? = null
-            if (options.thumbnailOption != null) {
-                thumbnailOption = toJson(options.thumbnailOption!!)
-            }
-
             return Arguments.createMap().apply {
-                putArray("videoOptions", videoOptions)
-                putArray("audioOptions", audioOptions)
-                putArray("textOptions", textOptions)
-                putMap("thumbnailOption", thumbnailOption)
+                putArray("audioOptions", options.audioOptions.map { toJson(it) }.toReadableArray())
+                putArray("textOptions", options.textOptions.map { toJson(it) }.toReadableArray())
             }
         }
 

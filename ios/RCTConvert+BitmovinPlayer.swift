@@ -580,22 +580,6 @@ extension RCTConvert {
     }
     
     /**
-     Utility method to compute a JS value from an `OfflineTrackAction` object.
-     - Parameter offlineAction `OfflineTrackAction` object to be converted.
-     - Returns: The produced JS object.
-     */
-    static func toJson(offlineAction: OfflineTrackAction?) -> String? {
-        guard let offlineAction = offlineAction else {
-            return nil
-        }
-
-        switch offlineAction {
-        case .download: return "Download"
-        default: return nil
-        }
-    }
-    
-    /**
      Utility method to compute a JS value from an `OfflineTextTrack` object.
      - Parameter offlineTrack `OfflineTextTrack` object to be converted.
      - Returns: The produced JS object.
@@ -604,7 +588,6 @@ extension RCTConvert {
         return [
             "id": offlineTrack.label,
             "language": offlineTrack.language,
-            "action": RCTConvert.toJson(offlineAction: offlineTrack.action)
         ]
     }
     
@@ -617,7 +600,6 @@ extension RCTConvert {
         return [
             "id": offlineTrack.label,
             "language": offlineTrack.language,
-            "action": RCTConvert.toJson(offlineAction: offlineTrack.action)
         ]
     }
     

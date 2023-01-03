@@ -38,7 +38,6 @@ export interface OfflineOptionEntry {
  * Represents the information from the `OfflineContentManagerListener` that is available to download
  */
 export interface OfflineContentOptions {
-  videoOptions: OfflineOptionEntry[];
   /**
    * Represents the audio options available for download
    */
