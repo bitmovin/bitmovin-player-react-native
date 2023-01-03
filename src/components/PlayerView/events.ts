@@ -44,6 +44,7 @@ import {
   SubtitleRemovedEvent,
   TimeChangedEvent,
   UnmutedEvent,
+  VideoPlaybackQualityChangedEvent,
 } from '../../events';
 
 /**
@@ -95,6 +96,7 @@ interface EventProps {
   onSubtitleRemoved: SubtitleRemovedEvent;
   onTimeChanged: TimeChangedEvent;
   onUnmuted: UnmutedEvent;
+  onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
 }
 
 /**

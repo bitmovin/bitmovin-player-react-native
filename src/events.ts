@@ -7,6 +7,7 @@ import {
   AdSourceType,
 } from './advertising';
 import { SubtitleTrack } from './subtitleTrack';
+import { VideoQuality } from './media';
 import { AudioTrack } from './audioTrack';
 
 /**
@@ -489,4 +490,18 @@ export interface AdManifestLoadedEvent extends Event {
    * How long it took for the ad tag to be downloaded in milliseconds.
    */
   downloadTime: number;
+}
+
+/**
+ * Emitted when the current video playback quality has changed.
+ */
+export interface VideoPlaybackQualityChangedEvent extends Event {
+  /**
+   * The new quality
+   */
+  newVideoQuality: VideoQuality;
+  /**
+   * The previous quality
+   */
+  oldVideoQuality: VideoQuality;
 }

@@ -45,6 +45,7 @@ RCT_EXPORT_VIEW_PROPERTY(onAdQuartile, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onAdScheduled, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onAdSkipped, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onAdStarted, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onVideoPlaybackQualityChanged, RCTBubblingEventBlock)
 
 RCT_EXTERN_METHOD(attachPlayer:(nonnull NSNumber *)viewId playerId:(NSString *)playerId playerConfig:(nullable NSDictionary *)playerConfig)
 
