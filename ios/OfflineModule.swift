@@ -266,8 +266,8 @@ class OfflineModule: RCTEventEmitter, OfflineContentManagerListener {
         offlineTrackSelections[nativeId] = event.tracks
 
         sendOfflineEvent(eventType: "onOptionsAvailable", contentManager: offlineContentManager, body: [
-            "options": RCTConvert.offlineContentOptionsJson(event.tracks),
-            "state": RCTConvert.offlineStateJson(offlineContentManager.offlineState)
+            "options": RCTConvert.toJson(offlineTracks: event.tracks),
+            "state": RCTConvert.toJson(offlineState: offlineContentManager.offlineState)
         ])
     }
 
@@ -275,8 +275,13 @@ class OfflineModule: RCTEventEmitter, OfflineContentManagerListener {
      Called when a process call has completed.
      */
     func onContentDownloadFinished(_ event: ContentDownloadFinishedEvent, offlineContentManager: OfflineContentManager) {
+        guard let nativeId = offlineContentManagerId(offlineContentManager) else {
+            return
+        }
+        
         sendOfflineEvent(eventType: "onCompleted", contentManager: offlineContentManager, body: [
-            "state": RCTConvert.offlineStateJson(offlineContentManager.offlineState)
+            "options": RCTConvert.toJson(offlineTracks: offlineTrackSelections[nativeId]),
+            "state": RCTConvert.toJson(offlineState: offlineContentManager.offlineState)
         ])
     }
 
@@ -285,8 +290,7 @@ class OfflineModule: RCTEventEmitter, OfflineContentManagerListener {
      */
     func onContentDownloadProgressChanged(_ event: ContentDownloadProgressChangedEvent, offlineContentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: "onProgress", contentManager: offlineContentManager, body: [
-            "progress": event.progress,
-            "state": RCTConvert.offlineStateJson(offlineContentManager.offlineState)
+            "progress": event.progress
         ])
     }
 

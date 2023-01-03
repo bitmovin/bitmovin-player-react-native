@@ -560,8 +560,12 @@ extension RCTConvert {
         ]
     }
 
-
-    static func offlineStateJson(_ offlineState: OfflineState?) -> String {
+    /**
+     Utility method to compute a JS value from an `OfflineState` object.
+     - Parameter offlineState `OfflineState` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineState: OfflineState?) -> String {
         var notDownloaded = "NotDownloaded"
         guard let offlineState = offlineState else {
             return notDownloaded
@@ -574,8 +578,13 @@ extension RCTConvert {
         default: return notDownloaded
         }
     }
-
-    static func offlineActionJson(_ offlineAction: OfflineTrackAction?) -> String? {
+    
+    /**
+     Utility method to compute a JS value from an `OfflineTrackAction` object.
+     - Parameter offlineAction `OfflineTrackAction` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineAction: OfflineTrackAction?) -> String? {
         guard let offlineAction = offlineAction else {
             return nil
         }
@@ -585,31 +594,46 @@ extension RCTConvert {
         default: return nil
         }
     }
-
-    static func offlineTextTrackJson(_ offlineTrack: OfflineTextTrack) -> [String: Any?] {
+    
+    /**
+     Utility method to compute a JS value from an `OfflineTextTrack` object.
+     - Parameter offlineTrack `OfflineTextTrack` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineTrack: OfflineTextTrack) -> [String: Any?] {
         return [
             "id": offlineTrack.label,
             "language": offlineTrack.language,
-            "action": offlineActionJson(offlineTrack.action)
+            "action": RCTConvert.toJson(offlineAction: offlineTrack.action)
         ]
     }
-
-    static func offlineAudioTrackJson(_ offlineTrack: OfflineAudioTrack) -> [String: Any?] {
+    
+    /**
+     Utility method to compute a JS value from an `OfflineAudioTrack` object.
+     - Parameter offlineTrack `OfflineAudioTrack` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineTrack: OfflineAudioTrack) -> [String: Any?] {
         return [
             "id": offlineTrack.label,
             "language": offlineTrack.language,
-            "action": offlineActionJson(offlineTrack.action)
+            "action": RCTConvert.toJson(offlineAction: offlineTrack.action)
         ]
     }
-
-    static func offlineContentOptionsJson(_ offlineTracks: OfflineTrackSelection?) -> [String: Any?]? {
+    
+    /**
+     Utility method to compute a JS value from an `OfflineTrackSelection` object.
+     - Parameter offlineTracks `OfflineTrackSelection` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineTracks: OfflineTrackSelection?) -> [String: Any?]? {
         guard let offlineTracks = offlineTracks else {
             return nil
         }
 
         return [
-            "textOptions": offlineTracks.textTracks.map(RCTConvert.offlineTextTrackJson),
-            "audioOptions": offlineTracks.audioTracks.map(RCTConvert.offlineAudioTrackJson)
+            "textOptions": offlineTracks.textTracks.map({ RCTConvert.toJson(offlineTrack: $0) }),
+            "audioOptions": offlineTracks.audioTracks.map({ RCTConvert.toJson(offlineTrack: $0) })
         ]
     }
 }
