@@ -100,6 +100,15 @@ extension RCTConvert {
                 break
             }
         }
+        if let playerUiCss = json["playerUiCss"] as? String {
+            styleConfig.playerUiCss = RCTConvert.nsurl(playerUiCss)
+        }
+        if let supplementalPlayerUiCss = json["supplementalPlayerUiCss"] as? String {
+            styleConfig.supplementalPlayerUiCss = RCTConvert.nsurl(supplementalPlayerUiCss)
+        }
+        if let playerUiJs = json["playerUiJs"] as? String {
+            styleConfig.playerUiJs = RCTConvert.nsurl(playerUiJs)
+        }
         if let scalingMode = json["scalingMode"] as? String {
             switch scalingMode {
             case "Fit":
@@ -356,14 +365,14 @@ extension RCTConvert {
             }(),
         ]
     }
-    
+
     // --- Temp Ad Converts --- //
-    
+
     static func adJson(_ ad: Ad?) -> [AnyHashable: Any]? {
         guard let ad = ad else {
             return nil
         }
-        
+
         return [
             "clickThroughUrl": ad.clickThroughUrl?.absoluteString,
             "data": RCTConvert.adDataJson(ad.data),
@@ -374,12 +383,12 @@ extension RCTConvert {
             "mediaFileUrl": ad.mediaFileUrl?.absoluteString
         ]
     }
-    
+
     static func adDataJson(_ adData: AdData?) -> [AnyHashable: Any]? {
         guard let adData = adData else {
             return nil
         }
-        
+
         return [
             "bitrate": adData.bitrate,
             "maxBitrate": adData.maxBitrate,
@@ -387,12 +396,12 @@ extension RCTConvert {
             "mimeType": adData.mimeType
         ]
     }
-    
+
     static func adSourceTypeJson(_ adSourceType: AdSourceType?) -> String? {
         guard let adSourceType = adSourceType else {
             return nil
         }
-        
+
         switch adSourceType {
         case .ima: return "Ima"
         case .progressive: return "Progressive"
@@ -400,12 +409,12 @@ extension RCTConvert {
         default: return "Unknown"
         }
     }
-    
+
     static func adQuartileJson(_ adQuartile: AdQuartile?) -> [AnyHashable: Any]? {
         guard let adQuartile = adQuartile else {
             return nil
         }
-        
+
         return [
             "percentage": {
                 switch adQuartile {
@@ -416,49 +425,49 @@ extension RCTConvert {
             }()
         ]
     }
-    
+
     static func adBreakJson(_ adBreak: AdBreak?) -> [AnyHashable: Any]? {
         guard let adBreak = adBreak else {
             return nil
         }
-        
+
         return [
             "id": adBreak.identifier,
             "scheduleTime": adBreak.scheduleTime,
             "ads": adBreak.ads.map { RCTConvert.adJson($0) }
         ]
     }
-    
+
     static func adConfigJson(_ adConfig: AdConfig?) -> [AnyHashable: Any]? {
         guard let adConfig = adConfig else {
             return nil
         }
-        
+
         return [
             "replaceContentDuration": adConfig.replaceContentDuration
         ]
     }
-    
+
     static func adItemJson(_ adItem: AdItem?) -> [AnyHashable: Any]? {
         guard let adItem = adItem else {
             return nil
         }
-        
+
         return [
             "sources": adItem.sources.map { RCTConvert.adSourceJson($0) },
             "position": adItem.position
         ]
     }
-    
+
     static func adSourceJson(_ adSource: AdSource?) -> [AnyHashable: Any]? {
         guard let adSource = adSource else {
             return nil
         }
-        
+
         return [
             "tag": adSource.tag,
             "type": RCTConvert.adSourceTypeJson(adSource.type)
         ]
     }
-    
+
 }

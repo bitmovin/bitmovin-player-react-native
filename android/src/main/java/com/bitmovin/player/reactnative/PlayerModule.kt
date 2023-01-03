@@ -6,7 +6,9 @@ import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.UIManagerModule
 
-@ReactModule(name = PlayerModule.name)
+private const val MODULE_NAME = "PlayerModule"
+
+@ReactModule(name = MODULE_NAME)
 class PlayerModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
 
     companion object {
@@ -19,7 +21,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
          */
         private val players: Registry<Player> = mutableMapOf()
     }
-    override fun getName() = PlayerModule.name
+    override fun getName() = MODULE_NAME
 
     /**
      * Fetches the `Player` instance associated with `nativeId` from the internal players.

@@ -11,6 +11,8 @@ import SubtitlePlayback from './screens/SubtitlePlayback';
 import ProgrammaticTrackSelection from './screens/ProgrammaticTrackSelection';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
+import CustomHtmlUI from './screens/CustomHtmlUI';
+import CustomSubtitleOnlyUI from './screens/CustomSubtitleOnlyUI';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -31,6 +33,8 @@ export type RootStackParamsList = {
       value: SourceType;
     };
   };
+  CustomHtmlUI: undefined;
+  CustomSubtitleOnlyUI: undefined;
 };
 
 const RootStack = createNativeStackNavigator();
@@ -77,6 +81,14 @@ export default function App() {
                 title: 'Programmatic Track Selection',
                 routeName: 'ProgrammaticTrackSelection',
               },
+              {
+                title: 'Custom Html UI',
+                routeName: 'CustomHtmlUI',
+              },
+              {
+                title: 'Custom Subtitle Only UI',
+                routeName: 'CustomSubtitleOnlyUI',
+              },
             ],
           }}
         />
@@ -109,6 +121,16 @@ export default function App() {
           name="CustomPlayback"
           component={CustomPlayback}
           options={{ title: 'Custom playback' }}
+        />
+        <RootStack.Screen
+          name="CustomHtmlUI"
+          component={CustomHtmlUI}
+          options={{ title: 'Custom Html UI' }}
+        />
+        <RootStack.Screen
+          name="CustomSubtitleOnlyUI"
+          component={CustomSubtitleOnlyUI}
+          options={{ title: 'Custom Subtitle Only UI' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>

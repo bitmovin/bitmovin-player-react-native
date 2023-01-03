@@ -4,22 +4,26 @@ import android.util.TypedValue
 import com.bitmovin.player.SubtitleView
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 
+private const val MODULE_NAME = "BitmovinSubtitleView"
+
+@ReactModule(name = MODULE_NAME)
 class RNSubtitleViewManager(private val context: ReactApplicationContext) : SimpleViewManager<SubtitleView>() {
 
     /**
      * Exported module name to JS.
      */
-    override fun getName() = "BitmovinSubtitleView"
+    override fun getName() = MODULE_NAME
 
     /**
      * The component's native view factory. RN calls this method multiple times
      * for each component instance.
      */
-    override fun createViewInstance(reactContext: ThemedReactContext) = SubtitleView(context)
+    override fun createViewInstance(reactContext: ThemedReactContext) = SubtitleView(reactContext)
 
     @ReactProp(name = "playerId" )
     fun setPlayerId(view: SubtitleView, playerId: String?) {
@@ -47,6 +51,26 @@ class RNSubtitleViewManager(private val context: ReactApplicationContext) : Simp
     @ReactProp(name = "applyEmbeddedStyles", defaultBoolean = true )
     fun setApplyEmbeddedStyles(view: SubtitleView, applyEmbeddedStyles: Boolean) {
         view.setApplyEmbeddedStyles(applyEmbeddedStyles)
+    }
+
+    /**
+     * Sets the caption style to be equivalent to the one returned by getUserStyle, or to a default style before API level 19.
+     */
+    @ReactProp(name = "userDefaultStyle", defaultBoolean = false )
+    fun setUserDefaultStyle(view: SubtitleView, userDefaultStyle: Boolean) {
+        if (userDefaultStyle) {
+            view.setUserDefaultStyle()
+        }
+    }
+
+    /**
+     * Sets the text size to one derived from getFontScale, or to a default size before API level 19.
+     */
+    @ReactProp(name = "userDefaultTextSize", defaultBoolean = false )
+    fun setUserDefaultTextSize(view: SubtitleView, userDefaultTextSize: Boolean) {
+        if (userDefaultTextSize) {
+            view.setUserDefaultTextSize()
+        }
     }
 
     /**

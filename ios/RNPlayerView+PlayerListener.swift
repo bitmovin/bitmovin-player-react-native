@@ -179,7 +179,7 @@ extension RNPlayerView: PlayerListener {
     func onAdManifestLoaded(_ event: AdManifestLoadedEvent, player: Player) {
         onAdManifestLoaded?(event.toJSON())
     }
-    
+
     /// Traverse a UIresponder's view hierarchy in the same way as the Debug View Hierarchy tool in Xcode.
     ///
     /// `traverseHierarchy` uses Depth First Search (DFS) to traverse the view hierarchy starting in the window. This way the method can traverse all sub-hierarchies in a correct order.
