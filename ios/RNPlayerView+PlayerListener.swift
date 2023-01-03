@@ -56,7 +56,7 @@ extension RNPlayerView: PlayerListener {
     func onSeeked(_ event: SeekedEvent, player: Player) {
         onSeeked?(event.toJSON())
     }
-    
+
     func onStallStarted(_ event: StallStartedEvent, player: Player) {
         onStallStarted?(event.toJSON())
     }
@@ -155,5 +155,9 @@ extension RNPlayerView: PlayerListener {
 
     func onAdStarted(_ event: AdStartedEvent, player: Player) {
         onAdStarted?(event.toJSON())
+    }
+
+    func onVideoPlaybackQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
+        onVideoPlaybackQualityChanged?(event.toJSON())
     }
 }
