@@ -224,6 +224,42 @@ extension RCTConvert {
     }
 
     /**
+     Utility method to compute a JS value from a `SourceConfig` object.
+     - Parameter sourceConfig: `SourceConfig` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(sourceConfig: SourceConfig?) -> [String: Any?]? {
+        guard let sourceConfig = sourceConfig else {
+            return nil
+        }
+        return [
+            "url": sourceConfig.url.absoluteString,
+            "type": RCTConvert.toJson(sourceType: sourceConfig.type),
+            "title": sourceConfig.title,
+            "poster": sourceConfig.posterSource?.absoluteString,
+            "isPosterPersistent": sourceConfig.isPosterPersistent
+        ]
+    }
+
+    /**
+     Utility method to compute a JS value from a `SourceType` object.
+     - Parameter sourceType: `Sourcetype` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(sourceType: SourceType?) -> String? {
+        guard let sourceType = sourceType else {
+            return nil
+        }
+        switch sourceType {
+        case .none: return "none"
+        case .hls: return "hls"
+        case .dash: return "dash"
+        case .progressive: return "progressive"
+        default: return "none"
+        }
+    }
+
+    /**
      Utility method to get a `TimeMode` from a JS object.
      - Parameter json: JS object
      - Returns: The associated `TimeMode` value
@@ -470,4 +506,62 @@ extension RCTConvert {
         ]
     }
 
+    /**
+     Utility method to compute a JS value from an `OfflineState` object.
+     - Parameter offlineState `OfflineState` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineState: OfflineState?) -> String {
+        var notDownloaded = "NotDownloaded"
+        guard let offlineState = offlineState else {
+            return notDownloaded
+        }
+
+        switch offlineState {
+        case .downloading: return "Downloading"
+        case .downloaded: return "Downloaded"
+        case .suspended: return "Suspended"
+        default: return notDownloaded
+        }
+    }
+
+    /**
+     Utility method to compute a JS value from an `OfflineTextTrack` object.
+     - Parameter offlineTrack `OfflineTextTrack` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineTrack: OfflineTextTrack) -> [String: Any?] {
+        return [
+            "id": offlineTrack.label,
+            "language": offlineTrack.language,
+        ]
+    }
+
+    /**
+     Utility method to compute a JS value from an `OfflineAudioTrack` object.
+     - Parameter offlineTrack `OfflineAudioTrack` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineTrack: OfflineAudioTrack) -> [String: Any?] {
+        return [
+            "id": offlineTrack.label,
+            "language": offlineTrack.language,
+        ]
+    }
+
+    /**
+     Utility method to compute a JS value from an `OfflineTrackSelection` object.
+     - Parameter offlineTracks `OfflineTrackSelection` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineTracks: OfflineTrackSelection?) -> [String: Any?]? {
+        guard let offlineTracks = offlineTracks else {
+            return nil
+        }
+
+        return [
+            "textOptions": offlineTracks.textTracks.map({ RCTConvert.toJson(offlineTrack: $0) }),
+            "audioOptions": offlineTracks.audioTracks.map({ RCTConvert.toJson(offlineTrack: $0) })
+        ]
+    }
 }

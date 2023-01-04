@@ -67,9 +67,36 @@ class PlayerModule: NSObject, RCTBridgeModule {
         }
     }
 
+    /**
+     Loads the given offline source configuration into `nativeId`'s `Player` object.
+     - Parameter nativeId: Target player.
+     - Parameter offlineModuleNativeId: The `nativeId` of the `OfflineModule` object.
+     */
+    @objc(loadOfflineSource:offlineModuleNativeId:)
+    func loadOfflineSource(_ nativeId: NativeId, offlineModuleNativeId: NativeId) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            guard
+                let player = self?.players[nativeId],
+                let offlineModule = self?.getOfflineModule()?.retrieve(offlineModuleNativeId)
+            else {
+                return
+            }
+
+            let offlineSourceConfig = offlineModule.createOfflineSourceConfig(restrictedToAssetCache: true)
+            if (offlineSourceConfig != nil) {
+                player.load(sourceConfig: offlineSourceConfig!)
+            }
+        }
+    }
+
     /// Fetches the initialized `SourceModule` instance on RN's bridge object.
     private func getSourceModule() -> SourceModule? {
         bridge.module(for: SourceModule.self) as? SourceModule
+    }
+
+    /// Fetches the initialized `OfflineModule` instance on RN's bridge object.
+    private func getOfflineModule() -> OfflineModule? {
+        bridge.module(for: OfflineModule.self) as? OfflineModule
     }
 
     /**
@@ -443,7 +470,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
             resolve(nil)
         }
     }
-    
+
     /**
      Skips the current ad. Has no effect if ad is not skippable or if no ad is played back.
      - Parameter nativeId: Target player Id.

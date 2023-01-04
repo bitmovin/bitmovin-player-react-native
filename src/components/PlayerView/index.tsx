@@ -75,7 +75,7 @@ export function PlayerView({ style, player, ...props }: PlayerViewProps) {
     // Attach native player to native `PlayerView`.
     const node = findNodeHandle(nativeView.current);
     if (node) {
-      dispatch('attachPlayer', node, player.nativeId, player.config);
+      dispatch('attachPlayer', node, player.nativeId);
     }
   }, [player]);
   return (

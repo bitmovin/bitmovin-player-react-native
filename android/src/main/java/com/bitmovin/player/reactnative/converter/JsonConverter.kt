@@ -13,13 +13,18 @@ import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.SeekPosition
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
+import com.bitmovin.player.api.offline.options.OfflineContentOptions
+import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.extensions.getName
+import com.bitmovin.player.reactnative.extensions.putInt
+import com.bitmovin.player.reactnative.extensions.putDouble
 import com.bitmovin.player.reactnative.extensions.toList
+import com.bitmovin.player.reactnative.extensions.toReadableArray
 import com.facebook.react.bridge.*
 import java.util.UUID
 
@@ -235,6 +240,27 @@ class JsonConverter {
         }
 
         /**
+         * Converts any given `SourceConfig` object into its `json` representation.
+         * @param sourceConfig `SourceConfig` object to be converted.
+         * @return The `json` representation of the given `Source`.
+         */
+        @JvmStatic
+        fun toJson(sourceConfig: SourceConfig?): WritableMap? {
+            if (sourceConfig == null) {
+                return null
+            }
+            val json = Arguments.createMap()
+            json.putString("url", sourceConfig.url)
+            json.putString("type", toJson(sourceConfig.type))
+            json.putString("title", sourceConfig.title)
+            json.putString("poster", sourceConfig.posterSource)
+            json.putBoolean("isPosterPersistent", sourceConfig.isPosterPersistent)
+            json.putArray("subtitleTracks", sourceConfig.subtitleTracks.map { ::fromSubtitleTrack }.toReadableArray())
+            json.putNull("metadata")
+            return json
+        }
+
+        /**
          * Converts an arbitrary `json` to `SourceType`.
          * @param json JS string representing the `SourceType`.
          * @return The generated `SourceType` if successful or `SourceType.Dash` otherwise.
@@ -246,6 +272,20 @@ class JsonConverter {
             "smooth" -> SourceType.Smooth
             "progressive" -> SourceType.Progressive
             else -> SourceType.Dash
+        }
+
+        /**
+         * Converts an arbitrary `SourceType` to it's json representation.
+         * @param sourceType The `SourceType` to convert.
+         * @return The `json` representation of the given `SourceType`.
+         */
+        @JvmStatic
+        fun toJson(sourceType: SourceType?): String? = when (sourceType) {
+            SourceType.Dash -> "dash"
+            SourceType.Hls -> "hls"
+            SourceType.Smooth -> "smooth"
+            SourceType.Progressive -> "progressive"
+            else -> null
         }
 
         /**
@@ -721,6 +761,36 @@ class JsonConverter {
                 "BOLD_ITALIC" -> Typeface.BOLD_ITALIC
                 "ITALIC" -> Typeface.ITALIC
                 else -> Typeface.NORMAL
+            }
+        }
+
+        /**
+         * Converts any `OfflineOptionEntry` into its json representation.
+         * @param offlineEntry `OfflineOptionEntry` object to be converted.
+         * @return The generated json map.
+         */
+        @JvmStatic
+        fun toJson(offlineEntry: OfflineOptionEntry): WritableMap {
+            return Arguments.createMap().apply {
+                putString("id", offlineEntry.id)
+                putString("language", offlineEntry.language)
+            }
+        }
+
+        /**
+         * Converts any `OfflineContentOptions` into its json representation.
+         * @param options `OfflineContentOptions` object to be converted.
+         * @return The generated json map.
+         */
+        @JvmStatic
+        fun toJson(options: OfflineContentOptions?): WritableMap? {
+            if (options == null) {
+                return null
+            }
+
+            return Arguments.createMap().apply {
+                putArray("audioOptions", options.audioOptions.map { toJson(it) }.toReadableArray())
+                putArray("textOptions", options.textOptions.map { toJson(it) }.toReadableArray())
             }
         }
     }

@@ -13,6 +13,7 @@ import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
 import CustomHtmlUI from './screens/CustomHtmlUI';
 import CustomSubtitleOnlyUI from './screens/CustomSubtitleOnlyUI';
+import OfflinePlayback from './screens/OfflinePlayback';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -25,6 +26,7 @@ export type RootStackParamsList = {
   BasicDrmPlayback: undefined;
   SubtitlePlayback: undefined;
   CustomPlaybackForm: undefined;
+  OfflinePlayback: undefined;
   CustomPlayback: {
     licenseKey: string;
     streamURL: string;
@@ -89,6 +91,10 @@ export default function App() {
                 title: 'Custom Subtitle Only UI',
                 routeName: 'CustomSubtitleOnlyUI',
               },
+              {
+                title: 'Offline playback',
+                routeName: 'OfflinePlayback',
+              },
             ],
           }}
         />
@@ -131,6 +137,11 @@ export default function App() {
           name="CustomSubtitleOnlyUI"
           component={CustomSubtitleOnlyUI}
           options={{ title: 'Custom Subtitle Only UI' }}
+        />
+        <RootStack.Screen
+          name="OfflinePlayback"
+          component={OfflinePlayback}
+          options={{ title: 'Offline Playback' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>
