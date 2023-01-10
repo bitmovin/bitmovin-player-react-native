@@ -787,7 +787,7 @@ const player = usePlayer({
 });
 ```
 
-And that's it. Now you should start receiving analytics information about your `player` instance at https://bitmovin.com/dashboard/analytics.
+And that's it. Now you should start receiving analytics information about your `player` instance on the [Analytics Dashboard](https://bitmovin.com/dashboard/analytics).
 
 Optionally, you can also access the configured `analyticsCollector` object in order to get some information (like `userId`) or
 update your custom data during runtime:
