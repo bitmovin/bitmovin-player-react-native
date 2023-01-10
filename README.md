@@ -781,6 +781,8 @@ const player = usePlayer({
     customData3: 'Custom data field 3',
     customData4: 'Custom data field 4',
     customData5: 'Custom data field 5',
+    // Usage of customData properties are supported up to 30 fields
+    customData30: 'Custom data field 30',
   },
 });
 ```
