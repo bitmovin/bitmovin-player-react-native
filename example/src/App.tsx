@@ -13,6 +13,7 @@ import SubtitlePlayback from './screens/SubtitlePlayback';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
 import BasicPictureInPicture from './screens/BasicPictureInPicture';
+import CustomHtmlUI from './screens/CustomHtmlUI';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -36,6 +37,7 @@ export type RootStackParamsList = {
       value: SourceType;
     };
   };
+  CustomHtmlUI: undefined;
 };
 
 const RootStack = createNativeStackNavigator();
@@ -87,6 +89,10 @@ export default function App() {
                 routeName: 'BasicAds',
               },
               {
+                title: 'Custom Html UI',
+                routeName: 'CustomHtmlUI',
+              },
+              {
                 title: 'Basic Analytics',
                 routeName: 'BasicAnalytics',
               },
@@ -132,6 +138,11 @@ export default function App() {
           name="BasicPictureInPicture"
           component={BasicPictureInPicture}
           options={{ title: 'Basic Picture in Picture' }}
+        />
+        <RootStack.Screen
+          name="CustomHtmlUI"
+          component={CustomHtmlUI}
+          options={{ title: 'Custom Html UI' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>

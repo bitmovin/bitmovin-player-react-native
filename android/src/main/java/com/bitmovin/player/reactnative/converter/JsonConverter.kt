@@ -18,7 +18,13 @@ import com.bitmovin.player.api.media.video.quality.VideoQuality
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
-import com.bitmovin.player.reactnative.extensions.*
+import com.bitmovin.player.api.ui.ScalingMode
+import com.bitmovin.player.api.ui.StyleConfig
+import com.bitmovin.player.reactnative.extensions.getName
+import com.bitmovin.player.reactnative.extensions.putInt
+import com.bitmovin.player.reactnative.extensions.putDouble
+import com.bitmovin.player.reactnative.extensions.toList
+import com.bitmovin.player.reactnative.extensions.toReadableArray
 import com.facebook.react.bridge.*
 import java.util.UUID
 
@@ -43,6 +49,11 @@ class JsonConverter {
             if (json.hasKey("playbackConfig")) {
                 toPlaybackConfig(json.getMap("playbackConfig"))?.let {
                     playerConfig.playbackConfig = it
+                }
+            }
+            if (json.hasKey("styleConfig")) {
+                toStyleConfig(json.getMap("styleConfig"))?.let {
+                    playerConfig.styleConfig = it
                 }
             }
             if (json.hasKey("tweaksConfig")) {
@@ -79,6 +90,47 @@ class JsonConverter {
                 playbackConfig.isTimeShiftEnabled = json.getBoolean("isTimeShiftEnabled")
             }
             return playbackConfig
+        }
+
+        /**
+         * Converts any JS object into a `StyleConfig` object.
+         * @param json JS object representing the `StyleConfig`.
+         * @return The generated `StyleConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toStyleConfig(json: ReadableMap?): StyleConfig? {
+            if (json == null) {
+                return null
+            }
+            val styleConfig = StyleConfig()
+            if (json.hasKey("isUiEnabled")) {
+                styleConfig.isUiEnabled = json.getBoolean("isUiEnabled")
+            }
+            if (json.hasKey("playerUiCss")) {
+                val playerUiCss = json.getString("playerUiCss")
+                if (!playerUiCss.isNullOrEmpty()) {
+                    styleConfig.playerUiCss = playerUiCss
+                }
+            }
+            if (json.hasKey("supplementalPlayerUiCss")) {
+                val supplementalPlayerUiCss = json.getString("supplementalPlayerUiCss")
+                if (!supplementalPlayerUiCss.isNullOrEmpty()) {
+                    styleConfig.supplementalPlayerUiCss = supplementalPlayerUiCss
+                }
+            }
+            if (json.hasKey("playerUiJs")) {
+                val playerUiJs = json.getString("playerUiJs")
+                if (!playerUiJs.isNullOrEmpty()) {
+                    styleConfig.playerUiJs = playerUiJs
+                }
+            }
+            if (json.hasKey("scalingMode")) {
+                val scalingMode = json.getString("scalingMode")
+                if (!scalingMode.isNullOrEmpty()) {
+                    styleConfig.scalingMode = ScalingMode.valueOf(scalingMode)
+                }
+            }
+            return styleConfig
         }
 
         /**

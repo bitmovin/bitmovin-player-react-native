@@ -8,3 +8,4 @@ export * from './hooks';
 export * from './player';
 export * from './source';
 export * from './subtitleTrack';
+export * from './styleConfig';

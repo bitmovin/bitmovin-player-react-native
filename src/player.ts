@@ -4,6 +4,7 @@ import { AnalyticsCollector, AnalyticsConfig } from './analytics';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { SubtitleTrack } from './subtitleTrack';
+import { StyleConfig } from './styleConfig';
 import { TweaksConfig } from './tweaksConfig';
 
 const PlayerModule = NativeModules.PlayerModule;
@@ -35,6 +36,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures playback behaviour. A default PlaybackConfig is set initially.
    */
   playbackConfig?: PlaybackConfig;
+  /**
+   * Configures the visual presentation and behaviour of the player UI. A default StyleConfig is set initially.
+   */
+  styleConfig?: StyleConfig;
   /**
    * Configures advertising functionality. A default AdvertisingConfig is set initially.
    */
