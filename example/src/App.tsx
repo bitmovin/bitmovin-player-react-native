@@ -41,6 +41,37 @@ export type RootStackParamsList = {
 const RootStack = createNativeStackNavigator();
 
 export default function App() {
+  var stackParams = {
+    data: [
+      {
+        title: 'Basic playback',
+        routeName: 'BasicPlayback',
+      },
+      {
+        title: 'Basic Drm playback',
+        routeName: 'BasicDrmPlayback',
+      },
+      {
+        title: 'Subtitle and captions',
+        routeName: 'SubtitlePlayback',
+      },
+      {
+        title: 'Basic Picture in Picture',
+        routeName: 'BasicPictureInPicture',
+      },
+      {
+        title: 'Basic Ads',
+        routeName: 'BasicAds',
+      },
+    ],
+  };
+
+  if (!Platform.isTV) {
+    stackParams.data.push({
+      title: 'Custom Html UI',
+      routeName: 'CustomHtmlUI',
+    });
+  }
   return (
     <NavigationContainer>
       <RootStack.Navigator
@@ -64,34 +95,7 @@ export default function App() {
               />
             ),
           })}
-          initialParams={{
-            data: [
-              {
-                title: 'Basic playback',
-                routeName: 'BasicPlayback',
-              },
-              {
-                title: 'Basic Drm playback',
-                routeName: 'BasicDrmPlayback',
-              },
-              {
-                title: 'Subtitle and captions',
-                routeName: 'SubtitlePlayback',
-              },
-              {
-                title: 'Basic Picture in Picture',
-                routeName: 'BasicPictureInPicture',
-              },
-              {
-                title: 'Basic Ads',
-                routeName: 'BasicAds',
-              },
-              {
-                title: 'Custom Html UI',
-                routeName: 'CustomHtmlUI',
-              },
-            ],
-          }}
+          initialParams={stackParams}
         />
         <RootStack.Screen
           name="BasicAds"
@@ -128,11 +132,13 @@ export default function App() {
           component={BasicPictureInPicture}
           options={{ title: 'Basic Picture in Picture' }}
         />
-        <RootStack.Screen
-          name="CustomHtmlUI"
-          component={CustomHtmlUI}
-          options={{ title: 'Custom Html UI' }}
-        />
+        {!Platform.isTV && (
+          <RootStack.Screen
+            name="CustomHtmlUI"
+            component={CustomHtmlUI}
+            options={{ title: 'Custom Html UI' }}
+          />
+        )}
       </RootStack.Navigator>
     </NavigationContainer>
   );
