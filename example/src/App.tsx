@@ -68,7 +68,7 @@ export default function App() {
 
   if (!Platform.isTV) {
     stackParams.data.push({
-      title: 'Custom Html UI',
+      title: 'Custom HTML UI',
       routeName: 'CustomHtmlUI',
     });
   }
