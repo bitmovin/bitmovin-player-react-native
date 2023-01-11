@@ -676,7 +676,7 @@ const player = usePlayer({
 
 #### Custom CSS
 
-Customization of the default built-in Bitmovin Player UI is possible via providing custom styling CSS by only configuring `playerUiCss`, like:
+Customization of the default built-in Bitmovin Player UI is possible via providing custom styling CSS by only configuring `playerUiCss` as shown in the following example:
 
 ```ts
 const player = usePlayer({
