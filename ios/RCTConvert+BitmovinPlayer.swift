@@ -72,6 +72,7 @@ extension RCTConvert {
         if let isUiEnabled = json["isUiEnabled"] as? Bool {
             styleConfig.isUiEnabled = isUiEnabled
         }
+#if !os(tvOS)
         if let playerUiCss = json["playerUiCss"] as? String {
             styleConfig.playerUiCss = RCTConvert.nsurl(playerUiCss)
         }
@@ -81,6 +82,7 @@ extension RCTConvert {
         if let playerUiJs = json["playerUiJs"] as? String {
             styleConfig.playerUiJs = RCTConvert.nsurl(playerUiJs)
         }
+#endif
         if let scalingMode = json["scalingMode"] as? String {
             switch scalingMode {
             case "Fit":

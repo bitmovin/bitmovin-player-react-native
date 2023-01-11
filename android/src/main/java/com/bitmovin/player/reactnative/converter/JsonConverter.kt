@@ -262,7 +262,7 @@ class JsonConverter {
                 }
             }
             if (json.hasKey("thumbnailTrack")) {
-                 config.thumbnailTrack = toThumbnailTrack(json.getString("thumbnailTrack"))
+                config.thumbnailTrack = toThumbnailTrack(json.getString("thumbnailTrack"))
             }
             return config
         }
@@ -466,6 +466,7 @@ class JsonConverter {
             }
             return ThumbnailTrack(url);
         }
+
         /**
          * Converts an arbitrary `json` into a `SubtitleTrack`.
          * @param json JS object representing the `SubtitleTrack`.

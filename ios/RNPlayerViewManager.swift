@@ -37,8 +37,29 @@ class RNPlayerViewManager: RCTViewManager {
         }
     }
 
+    @objc func attachFullscreenBridge(_ viewId: NSNumber, fullscreenBridgeId: NativeId) {
+        bridge.uiManager.addUIBlock { [weak self] _, views in
+            guard
+                let view = views?[viewId] as? RNPlayerView,
+                let fullscreenBridge = self?.getFullscreenHandlerModule()?.retrieve(fullscreenBridgeId)
+            else {
+                return
+            }
+            guard let playerView = view.playerView else {
+                return
+            }
+
+            playerView.fullscreenHandler = fullscreenBridge
+        }
+    }
+
     /// Fetches the initialized `PlayerModule` instance on RN's bridge object.
     private func getPlayerModule() -> PlayerModule? {
         bridge.module(for: PlayerModule.self) as? PlayerModule
+    }
+
+    /// Fetches the initialized `FullscreenHandlerModule` instance on RN's bridge object.
+    private func getFullscreenHandlerModule() -> FullscreenHandlerModule? {
+        bridge.module(for: FullscreenHandlerModule.self) as? FullscreenHandlerModule
     }
 }

@@ -24,6 +24,7 @@ export interface StyleConfig {
    *   },
    * });
    * ```
+   * @platform iOS, Android
    */
   playerUiCss?: string;
   /**
@@ -36,6 +37,7 @@ export interface StyleConfig {
    *   },
    * });
    * ```
+   * @platform iOS, Android
    */
   supplementalPlayerUiCss?: string;
   /**
@@ -48,6 +50,7 @@ export interface StyleConfig {
    *   },
    * });
    * ```
+   * @platform iOS, Android
    */
   playerUiJs?: string;
   /**
