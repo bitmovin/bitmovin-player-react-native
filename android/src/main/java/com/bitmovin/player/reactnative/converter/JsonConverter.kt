@@ -25,6 +25,8 @@ import com.bitmovin.player.reactnative.extensions.putInt
 import com.bitmovin.player.reactnative.extensions.putDouble
 import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.extensions.toReadableArray
+import com.bitmovin.player.reactnative.extensions.getProperty
+import com.bitmovin.player.reactnative.extensions.setProperty
 import com.facebook.react.bridge.*
 import java.util.UUID
 
