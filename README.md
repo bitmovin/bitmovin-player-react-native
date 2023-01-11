@@ -38,8 +38,9 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
       - [iOS](#ios)
       - [Showing the Picture in Picture UI option](#showing-the-picture-in-picture-ui-option)
       - [Supported Picture in Picture events](#supported-picture-in-picture-events)
+    - [Customize HTML UI](#customize-html-ui-android-and-ios-only)
     - [Setting up fullscreen handling](#setting-up-fullscreen-handling)
-        - [Supported fullscreen related events](#supported-fullscreen-related-events)
+      - [Supported fullscreen related events](#supported-fullscreen-related-events)
     - [Setting up ads](#setting-up-ads)
       - [Static ads configuration](#static-ads-configuration)
       - [Dynamic ads scheduling](#dynamic-ads-scheduling)
@@ -653,6 +654,51 @@ The supported Picture in Picture events on `PlayerView` are:
 - `onPictureInPictureAvailabilityChanged`
 
 Check [`events.ts`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/components/PlayerView/events.ts) for more information about them.
+
+### Customize HTML UI (Android and iOS only)
+
+The Bitmovin Player SDKs use the open source [Bitmovin Player Web UI](https://github.com/bitmovin/bitmovin-player-ui) on all platforms, except tvOS.
+The UI is customizable in multiple ways.
+
+#### Custom implementation
+
+Since the Bitmovin Player Web UI is open source, it can be forked and modified to tailor to any application's needs.
+See [Cusomizing the UI](https://github.com/bitmovin/bitmovin-player-ui#customizing-the-ui) section for details.
+
+In case a custom implementation of the Player UI is desired, configure the hosted JS and CSS files via the `StyleConfig` as shown in the following example:
+
+```ts
+const player = usePlayer({
+  styleConfig: {
+    playerUiCss: 'CUSTOM_UI_CSS_URL',
+    playerUiJs: 'CUSTOM_UI_JS_URL',
+  },
+});
+```
+
+#### Custom CSS
+
+Customization of the default built-in Bitmovin Player UI is possible via providing custom styling CSS by only configuring `playerUiCss` as shown in the following example:
+
+```ts
+const player = usePlayer({
+  styleConfig: {
+    playerUiCss: 'CUSTOM_UI_CSS_URL',
+  },
+});
+```
+
+#### Supplemental CSS
+
+In case the usage of the default Bitmovin Player UI is sufficient with minor additional styling, it can be achieved via providing the URL to the additional CSS stylesheet via `supplementalPlayerUiCss`.
+
+```ts
+const player = usePlayer({
+  styleConfig: {
+    supplementalPlayerUiCss: 'SUPPLEMENTAL_UI_CSS_URL',
+  },
+});
+```
 
 ### Setting up fullscreen handling
 

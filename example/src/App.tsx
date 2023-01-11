@@ -65,12 +65,15 @@ export default function App() {
         title: 'Basic Ads',
         routeName: 'BasicAds',
       },
-      {
-        title: 'Custom Html UI',
-        routeName: 'CustomHtmlUI',
-      },
     ],
   };
+
+  if (!Platform.isTVOS) {
+    stackParams.data.push({
+      title: 'Custom HTML UI',
+      routeName: 'CustomHtmlUI',
+    });
+  }
 
   if (!Platform.isTV) {
     stackParams.data.push({
@@ -139,11 +142,13 @@ export default function App() {
           component={BasicPictureInPicture}
           options={{ title: 'Basic Picture in Picture' }}
         />
-        <RootStack.Screen
-          name="CustomHtmlUI"
-          component={CustomHtmlUI}
-          options={{ title: 'Custom Html UI' }}
-        />
+        {!Platform.isTVOS && (
+          <RootStack.Screen
+            name="CustomHtmlUI"
+            component={CustomHtmlUI}
+            options={{ title: 'Custom HTML UI' }}
+          />
+        )}
         {!Platform.isTV && (
           <RootStack.Screen
             name="BasicFullscreenHandling"
