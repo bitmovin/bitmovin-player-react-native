@@ -663,7 +663,7 @@ The UI is customizable in multiple ways.
 Since the Bitmovin Player Web UI is open source, it can be forked and modified to tailor to any application's needs.
 See [Cusomizing the UI](https://github.com/bitmovin/bitmovin-player-ui#customizing-the-ui) section for details.
 
-In case a custom implementation of the Player UI is desired, configure the hosted JS and CSS files via the `StyleConfig`, like:
+In case a custom implementation of the Player UI is desired, configure the hosted JS and CSS files via the `StyleConfig` as shown in the following example:
 
 ```ts
 const player = usePlayer({
@@ -676,7 +676,7 @@ const player = usePlayer({
 
 #### Custom CSS
 
-Customization of the default built-in Bitmovin Player UI is possible via providing custom styling CSS by only configuring `playerUiCss`, like:
+Customization of the default built-in Bitmovin Player UI is possible via providing custom styling CSS by only configuring `playerUiCss` as shown in the following example:
 
 ```ts
 const player = usePlayer({

@@ -68,7 +68,7 @@ export default function App() {
 
   if (!Platform.isTVOS) {
     stackParams.data.push({
-      title: 'Custom Html UI',
+      title: 'Custom HTML UI',
       routeName: 'CustomHtmlUI',
     });
   }
@@ -136,7 +136,7 @@ export default function App() {
           <RootStack.Screen
             name="CustomHtmlUI"
             component={CustomHtmlUI}
-            options={{ title: 'Custom Html UI' }}
+            options={{ title: 'Custom HTML UI' }}
           />
         )}
       </RootStack.Navigator>
