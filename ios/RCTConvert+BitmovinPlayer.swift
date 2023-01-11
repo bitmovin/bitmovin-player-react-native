@@ -18,6 +18,9 @@ extension RCTConvert {
         if let playbackConfig = RCTConvert.playbackConfig(json["playbackConfig"]) {
             playerConfig.playbackConfig = playbackConfig
         }
+        if let styleConfig = RCTConvert.styleConfig(json["styleConfig"]) {
+            playerConfig.styleConfig = styleConfig
+        }
         if let tweaksConfig = RCTConvert.tweaksConfig(json["tweaksConfig"]) {
             playerConfig.tweaksConfig = tweaksConfig
         }
@@ -53,6 +56,44 @@ extension RCTConvert {
             playbackConfig.isPictureInPictureEnabled = isPictureInPictureEnabled
         }
         return playbackConfig
+    }
+
+    /**
+     Utility method to instantiate a `StyleConfig` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `StyleConfig` object.
+     */
+    static func styleConfig(_ json: Any?) -> StyleConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let styleConfig = StyleConfig()
+        if let isUiEnabled = json["isUiEnabled"] as? Bool {
+            styleConfig.isUiEnabled = isUiEnabled
+        }
+        if let playerUiCss = json["playerUiCss"] as? String {
+            styleConfig.playerUiCss = RCTConvert.nsurl(playerUiCss)
+        }
+        if let supplementalPlayerUiCss = json["supplementalPlayerUiCss"] as? String {
+            styleConfig.supplementalPlayerUiCss = RCTConvert.nsurl(supplementalPlayerUiCss)
+        }
+        if let playerUiJs = json["playerUiJs"] as? String {
+            styleConfig.playerUiJs = RCTConvert.nsurl(playerUiJs)
+        }
+        if let scalingMode = json["scalingMode"] as? String {
+            switch scalingMode {
+            case "Fit":
+                styleConfig.scalingMode = .fit
+            case "Stretch":
+                styleConfig.scalingMode = .stretch
+            case "Zoom":
+                styleConfig.scalingMode = .zoom
+            default:
+                styleConfig.scalingMode = .fit
+                break
+            }
+        }
+        return styleConfig
     }
 
     /**
