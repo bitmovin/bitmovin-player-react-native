@@ -66,7 +66,7 @@ export default function App() {
     ],
   };
 
-  if (!Platform.isTV) {
+  if (!Platform.isTVOS) {
     stackParams.data.push({
       title: 'Custom Html UI',
       routeName: 'CustomHtmlUI',
@@ -132,7 +132,7 @@ export default function App() {
           component={BasicPictureInPicture}
           options={{ title: 'Basic Picture in Picture' }}
         />
-        {!Platform.isTV && (
+        {!Platform.isTVOS && (
           <RootStack.Screen
             name="CustomHtmlUI"
             component={CustomHtmlUI}
