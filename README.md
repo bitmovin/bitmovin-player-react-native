@@ -656,7 +656,7 @@ Check [`events.ts`](https://github.com/bitmovin/bitmovin-player-react-native/blo
 ### Customize HTML UI (Android and iOS only)
 
 The Bitmovin Player SDKs use the open source [Bitmovin Player Web UI](https://github.com/bitmovin/bitmovin-player-ui) on all platforms, except tvOS.
-This is cusomizable in multiple ways.
+The UI is customizable in multiple ways.
 
 #### Custom implementation
 
