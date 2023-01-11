@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative
 
 import android.view.View
+import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext
@@ -22,6 +23,7 @@ class RNPlayerViewPackage : ReactPackage {
             SourceModule(reactContext),
             DrmModule(reactContext),
             RNPlayerViewManager(reactContext),
+            FullscreenHandlerModule(reactContext)
         )
     }
 

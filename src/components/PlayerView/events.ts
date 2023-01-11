@@ -13,6 +13,10 @@ import {
   AdStartedEvent,
   DestroyEvent,
   Event,
+  FullscreenEnabledEvent,
+  FullscreenDisabledEvent,
+  FullscreenEnterEvent,
+  FullscreenExitEvent,
   MutedEvent,
   PausedEvent,
   PictureInPictureAvailabilityChangedEvent,
@@ -62,6 +66,10 @@ interface EventProps {
   onAdStarted: AdStartedEvent;
   onDestroy: DestroyEvent;
   onEvent: Event;
+  onFullscreenEnabled: FullscreenEnabledEvent;
+  onFullscreenDisabled: FullscreenDisabledEvent;
+  onFullscreenEnter: FullscreenEnterEvent;
+  onFullscreenExit: FullscreenExitEvent;
   onMuted: MutedEvent;
   onPaused: PausedEvent;
   onPictureInPictureAvailabilityChanged: PictureInPictureAvailabilityChangedEvent;

@@ -665,7 +665,6 @@ class JsonConverter {
             else -> null
         }
 
-
         /**
          * Converts any `VideoQuality` value into its json representation.
          * @param videoQuality `VideoQuality` value.

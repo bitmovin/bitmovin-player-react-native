@@ -13,6 +13,7 @@ import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
 import BasicPictureInPicture from './screens/BasicPictureInPicture';
 import CustomHtmlUI from './screens/CustomHtmlUI';
+import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -25,6 +26,7 @@ export type RootStackParamsList = {
   BasicPlayback: undefined;
   BasicDrmPlayback: undefined;
   BasicPictureInPicture: undefined;
+  BasicFullscreenHandling: undefined;
   SubtitlePlayback: undefined;
   CustomPlaybackForm: undefined;
   CustomPlayback: {
@@ -72,6 +74,14 @@ export default function App() {
       routeName: 'CustomHtmlUI',
     });
   }
+
+  if (!Platform.isTV) {
+    stackParams.data.push({
+      title: 'Basic Fullscreen handling',
+      routeName: 'BasicFullscreenHandling',
+    });
+  }
+
   return (
     <NavigationContainer>
       <RootStack.Navigator
@@ -137,6 +147,13 @@ export default function App() {
             name="CustomHtmlUI"
             component={CustomHtmlUI}
             options={{ title: 'Custom HTML UI' }}
+          />
+        )}
+        {!Platform.isTV && (
+          <RootStack.Screen
+            name="BasicFullscreenHandling"
+            component={BasicFullscreenHandling}
+            options={{ title: 'Basic Fullscreen Handling' }}
           />
         )}
       </RootStack.Navigator>
