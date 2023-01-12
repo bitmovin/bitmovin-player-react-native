@@ -55,16 +55,20 @@ class OfflineModule(private val context: ReactApplicationContext) :
      * @param config `ReadableMap` object received from JS.  Should contain a sourceConfig and location.
      */
     @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap?) {
+    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, promise: Promise) {
         if (!offlineManagers.containsKey(nativeId)) {
+            val offlineId = config?.getString("offlineId")
             val sourceConfig = JsonConverter.toSourceConfig(config?.getMap("sourceConfig"))
-            val location = config?.getString("location") ?: context.cacheDir.path
 
-            if (sourceConfig == null) {
+            if (offlineId.isNullOrEmpty() || sourceConfig == null) {
+                promise.reject(java.lang.IllegalArgumentException("Invalid configuration"))
                 return
             }
-            offlineManagers[nativeId] = OfflineManager(nativeId, context, sourceConfig, location)
+
+            offlineManagers[nativeId] =
+                OfflineManager(nativeId, context, offlineId, sourceConfig, context.cacheDir.path)
         }
+        promise.resolve(null)
     }
 
     /**
@@ -110,9 +114,11 @@ class OfflineModule(private val context: ReactApplicationContext) :
                 return
             }
 
-            getOfflineManager(nativeId)?.process(OfflineDownloadRequest(
-                minimumBitRate, audioOptionIds, textOptionIds
-            ))
+            getOfflineManager(nativeId)?.process(
+                OfflineDownloadRequest(
+                    minimumBitRate, audioOptionIds, textOptionIds
+                )
+            )
             promise.resolve(null)
             return
         } catch (e: Exception) {
@@ -136,6 +142,15 @@ class OfflineModule(private val context: ReactApplicationContext) :
     @ReactMethod
     fun suspend(nativeId: NativeId) {
         getOfflineManager(nativeId)?.suspend()
+    }
+
+    /**
+     * Cancels and deletes the current download.
+     * @param nativeId Target offline manager.
+     */
+    @ReactMethod
+    fun cancelDownload(nativeId: NativeId) {
+        getOfflineManager(nativeId)?.cancelDownload()
     }
 
     /**

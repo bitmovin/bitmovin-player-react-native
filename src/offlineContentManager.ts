@@ -16,13 +16,14 @@ import { OfflineDownloadRequest } from './offlineContentOptions';
 interface NativeOfflineModule extends NativeModule {
   initWithConfig(
     nativeId: string,
-    config: { sourceConfig: SourceConfig; location?: string }
-  ): void;
+    config: { offlineId: string; sourceConfig: SourceConfig }
+  ): Promise<void>;
   getOfflineSourceConfig(nativeId: string): Promise<SourceConfig>;
   getOptions(nativeId: string): void;
   process(nativeId: string, request: OfflineDownloadRequest): Promise<void>;
   resume(nativeId: string): void;
   suspend(nativeId: string): void;
+  cancelDownload(nativeId: string): void;
   deleteAll(nativeId: string): void;
   downloadLicense(nativeId: string): void;
   releaseLicense(nativeId: string): void;
@@ -41,15 +42,11 @@ export interface OfflineContentConfig extends NativeInstanceConfig {
    * An identifier for this source that is unique within the location and must never change.
    * The root folder will contain a folder based on this id.
    */
-  nativeId: string;
+  offlineId: string;
   /**
    * The `SourceConfig` used to download the offline resources.
    */
   sourceConfig: SourceConfig;
-  /**
-   * The root folder where all downloads will preside.  Defaults to the devices cache directory.
-   */
-  location?: string;
   /**
    * The `OfflineContentManagerListener` where callbacks for event data will be passed to.
    */
@@ -74,7 +71,8 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Allocates the native `OfflineManager` instance and its resources natively.
    * Registers the `DeviceEventEmitter` listener to receive data from the native `OfflineContentManagerListener` callbacks
    */
-  initialize = () => {
+  initialize = (): Promise<void> => {
+    let initPromise = Promise.resolve();
     if (!this.isInitialized && this.config) {
       if (this.config.listener) {
         this.eventSubscription = new NativeEventEmitter(
@@ -107,11 +105,14 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
         );
       }
 
-      OfflineModule.initWithConfig(this.nativeId, {
+      initPromise = OfflineModule.initWithConfig(this.nativeId, {
+        offlineId: this.config.offlineId,
         sourceConfig: this.config.sourceConfig,
-        location: this.config.location,
       });
     }
+
+    this.isInitialized = true;
+    return initPromise;
   };
 
   /**
@@ -162,6 +163,13 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    */
   suspend = () => {
     OfflineModule.suspend(this.nativeId);
+  };
+
+  /**
+   * Cancels and deletes the active download.
+   */
+  cancelDownload = () => {
+    OfflineModule.cancelDownload(this.nativeId);
   };
 
   /**

@@ -18,6 +18,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 class OfflineManager(
     private val nativeId: NativeId,
     private val context: ReactApplicationContext,
+    private val offlineId: String,
     source: SourceConfig,
     location: String
 ) :
@@ -29,7 +30,7 @@ class OfflineManager(
 
     init {
         contentManager = OfflineContentManager.getOfflineContentManager(
-            source, location, nativeId, this, context
+            source, location, offlineId, this, context
         )
     }
 
@@ -78,6 +79,11 @@ class OfflineManager(
 
     fun suspend() {
         contentManager.suspend()
+    }
+
+    fun cancelDownload() {
+        suspend()
+        deleteAll()
     }
 
     fun deleteAll() {
@@ -192,6 +198,7 @@ class OfflineManager(
     private fun sendEvent(eventType: String, event: WritableMap?) {
         val e = event ?: Arguments.createMap()
         e.putString("nativeId", nativeId)
+        e.putString("offlineId", offlineId)
         e.putString("eventType", eventType)
 
         context

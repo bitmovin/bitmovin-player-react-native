@@ -19,6 +19,7 @@ RCT_EXTERN_METHOD(
                   rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(resume:(NSString *)nativeId)
 RCT_EXTERN_METHOD(suspend:(NSString *)nativeId)
+RCT_EXTERN_METHOD(cancelDownload:(NSString *)nativeId)
 RCT_EXTERN_METHOD(deleteAll:(NSString *)nativeId)
 RCT_EXTERN_METHOD(downloadLicense:(NSString *)nativeId)
 RCT_EXTERN_METHOD(renewOfflineLicense:(NSString *)nativeId)

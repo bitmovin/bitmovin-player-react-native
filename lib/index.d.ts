@@ -1,4 +1,4 @@
-import { EmitterSubscription, ViewStyle, StyleProp } from 'react-native';
+import { NativeSyntheticEvent, EmitterSubscription, ViewStyle, StyleProp } from 'react-native';
 
 /**
  * Utility type that maps the specified optional props from the target `Type` to be
@@ -534,6 +534,12 @@ interface EventProps {
  */
 declare type PlayerViewEvents = {
     [Prop in keyof EventProps]?: (event: EventProps[Prop]) => void;
+};
+/**
+ * Event props for `NativePlayerView`.
+ */
+declare type NativePlayerViewEvents = {
+    [Prop in keyof EventProps]?: (nativeEvent: NativeSyntheticEvent<EventProps[Prop]>) => void;
 };
 
 interface NativeInstanceConfig {
@@ -1280,6 +1286,10 @@ interface OfflineEvent<T extends OfflineEventType> {
      */
     nativeId: string;
     /**
+     * The supplied id representing the source associated with the `OfflineContentManager` emitting this event.
+     */
+    offlineId: string;
+    /**
      * The `OfflineEventType` that correlates to which native `OfflineContentManagerListener` method was called.
      */
     eventType: T;
@@ -1372,15 +1382,11 @@ interface OfflineContentConfig extends NativeInstanceConfig {
      * An identifier for this source that is unique within the location and must never change.
      * The root folder will contain a folder based on this id.
      */
-    nativeId: string;
+    offlineId: string;
     /**
      * The `SourceConfig` used to download the offline resources.
      */
     sourceConfig: SourceConfig;
-    /**
-     * The root folder where all downloads will preside.  Defaults to the devices cache directory.
-     */
-    location?: string;
     /**
      * The `OfflineContentManagerListener` where callbacks for event data will be passed to.
      */
@@ -1400,7 +1406,7 @@ declare class OfflineContentManager extends NativeInstance<OfflineContentConfig>
      * Allocates the native `OfflineManager` instance and its resources natively.
      * Registers the `DeviceEventEmitter` listener to receive data from the native `OfflineContentManagerListener` callbacks
      */
-    initialize: () => void;
+    initialize: () => Promise<void>;
     /**
      * Destroys the native `OfflineManager` and releases all of its allocated resources.
      */
@@ -1429,6 +1435,10 @@ declare class OfflineContentManager extends NativeInstance<OfflineContentConfig>
      * Suspends all active actions.
      */
     suspend: () => void;
+    /**
+     * Cancels and deletes the active download.
+     */
+    cancelDownload: () => void;
     /**
      * Deletes everything related to the related content ID.
      */
@@ -1839,4 +1849,4 @@ declare function SubtitleView(props: SubtitleViewProps): JSX.Element | null;
  */
 declare function usePlayer(config?: PlayerConfig): Player;
 
-export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinNativeOfflineEventData, DestroyEvent, Drm, DrmConfig, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, LoadingState, MutedEvent, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineOptionEntry, OfflineOptionEntryState, OnCompletedEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TemporaryAngelAdConfig, TimeChangedEvent, TypefaceFamily, TypefaceStyleWeight, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoSizeChangedEvent, WidevineConfig, usePlayer };
+export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinNativeOfflineEventData, DestroyEvent, Drm, DrmConfig, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, LoadingState, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineOptionEntry, OfflineOptionEntryState, OnCompletedEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TemporaryAngelAdConfig, TimeChangedEvent, TypefaceFamily, TypefaceStyleWeight, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoSizeChangedEvent, WidevineConfig, usePlayer };

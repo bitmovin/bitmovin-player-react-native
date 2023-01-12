@@ -22,6 +22,10 @@ export interface OfflineEvent<T extends OfflineEventType> {
    */
   nativeId: string;
   /**
+   * The supplied id representing the source associated with the `OfflineContentManager` emitting this event.
+   */
+  offlineId: string;
+  /**
    * The `OfflineEventType` that correlates to which native `OfflineContentManagerListener` method was called.
    */
   eventType: T;

@@ -73,7 +73,7 @@ export default function OfflinePlayback() {
   useFocusEffect(
     useCallback(() => {
       const newOfflineManager = new OfflineContentManager({
-        nativeId: STABLE_OFFLINE_ID,
+        offlineId: STABLE_OFFLINE_ID,
         sourceConfig: SOURCE_CONFIG,
         listener: {
           onCompleted: (e) => {
@@ -96,9 +96,13 @@ export default function OfflinePlayback() {
           onSuspended: onEvent,
         },
       });
-      newOfflineManager.initialize();
 
-      setOfflineManager(newOfflineManager);
+      newOfflineManager
+        .initialize()
+        .then(() => {
+          setOfflineManager(newOfflineManager);
+        })
+        .catch(console.error);
 
       return () => {
         newOfflineManager.destroy?.();
