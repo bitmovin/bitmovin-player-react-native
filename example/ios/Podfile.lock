@@ -1,4 +1,8 @@
 PODS:
+  - BitmovinAnalyticsCollector/BitmovinPlayer (2.9.4):
+    - BitmovinAnalyticsCollector/Core
+    - BitmovinPlayer (~> 3.0)
+  - BitmovinAnalyticsCollector/Core (2.9.4)
   - BitmovinPlayer (3.30.0)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
@@ -75,7 +79,7 @@ PODS:
   - glog (0.3.5)
   - GoogleAds-IMA-iOS-SDK (3.17.0)
   - GoogleAds-IMA-tvOS-SDK (4.6.1)
-  - libevent (2.1.12)
+  - libevent (2.1.12.1)
   - OpenSSL-Universal (1.1.1100)
   - RCT-Folly (2021.06.28.00-v2):
     - boost
@@ -331,6 +335,8 @@ PODS:
     - React-logger (= 0.69.5-2)
     - React-perflogger (= 0.69.5-2)
   - RNBitmovinPlayer (0.4.0):
+    - BitmovinAnalyticsCollector/BitmovinPlayer (= 2.9.4)
+    - BitmovinAnalyticsCollector/Core (= 2.9.4)
     - BitmovinPlayer (= 3.30.0)
     - GoogleAds-IMA-iOS-SDK (= 3.17.0)
     - GoogleAds-IMA-tvOS-SDK (= 4.6.1)
@@ -407,9 +413,11 @@ DEPENDENCIES:
 
 SPEC REPOS:
   https://github.com/bitmovin/cocoapod-specs.git:
+    - BitmovinAnalyticsCollector
     - BitmovinPlayer
   https://github.com/react-native-tvos/react-native-tvos-podspecs.git:
     - Flipper-PeerTalk
+    - libevent
   trunk:
     - CocoaAsyncSocket
     - Flipper
@@ -422,7 +430,6 @@ SPEC REPOS:
     - FlipperKit
     - GoogleAds-IMA-iOS-SDK
     - GoogleAds-IMA-tvOS-SDK
-    - libevent
     - OpenSSL-Universal
     - SocketRocket
     - YogaKit
@@ -500,6 +507,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
+  BitmovinAnalyticsCollector: e80b02754019632340556a509fc4268dbad6f219
   BitmovinPlayer: ae0fa04c43ea513d4fb2ae93fc2d5f2a271d92cc
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
@@ -519,7 +527,7 @@ SPEC CHECKSUMS:
   glog: 5b768715ae7bf8149e9d269089c22585cee27eb7
   GoogleAds-IMA-iOS-SDK: a44060982578cc9a44efd0ab4e0f02f07ac29670
   GoogleAds-IMA-tvOS-SDK: 86df385a513f50a9deb0b37e35f1478089ce5158
-  libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
+  libevent: a6d75fcd7be07cbc5070300ea8dbc8d55dfab88e
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   RCT-Folly: 5b616707d7d51519bd8d59b3e11f15df58f54df7
   RCTRequired: 0ce44b80b7973c2c12016a992af0545f9faa725f
@@ -546,7 +554,7 @@ SPEC CHECKSUMS:
   React-RCTText: 16122ecd9be53be613b2206a13e5cf987835c8cf
   React-runtimeexecutor: 44fe73dca7d31245dfc031971a2ce14085c8d5fe
   ReactCommon: 3f6173ad12133f7e032f4c8d061dba181115c1c0
-  RNBitmovinPlayer: 0fc60de956a25cdb676e45463dd5246bf765fa44
+  RNBitmovinPlayer: ab80bfc1875d17d754c06e091f61d691752cadbf
   RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608

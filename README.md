@@ -45,6 +45,7 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
       - [Static ads configuration](#static-ads-configuration)
       - [Dynamic ads scheduling](#dynamic-ads-scheduling)
       - [Supported ads events](#supported-ads-events)
+    - [Setting up analytics](#setting-up-analytics)
   - [Contributing](#contributing)
 
 ## Platform Support
@@ -879,6 +880,73 @@ The supported `PlayerView` events for ads are:
 - `onAdStarted`
 
 You can check out a complete ads example in the [`example/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app.
+
+### Setting up analytics
+
+Each `Player` instance has an associated analytics collector that can be configured to send analytics information about it. By default,
+the associated collector is disabled unless an `analyticsConfig` option is specified. So in order to get analytics up and running, add the following configuration options to your `PlayerConfig`:
+
+```typescript
+const player = usePlayer({
+  analyticsConfig: {
+    // Bitmovin analytics key from the Analytics Dashboard
+    key: '<ANALYTICS-KEY>', // `key` is the only required parameter.
+    // Bitmovin player license key
+    playerKey: '<BITMOVIN-PLAYER-KEY>',
+    // Asset CDN provider. Check out `CdnProvider` on `src/analytics/config.ts` for more options.
+    cdnProvider: CdnProvider.AKAMAI,
+    // User-defined user ID.
+    customUserId: 'Custom user ID',
+    // Whether the user ID should be randomly generated or not. Default value is false.
+    randomizeUserId: false,
+    // Experiment name that'll appear at the Analytics Dashboard.
+    experimentName: 'Experiment name',
+    // Video ID on your server
+    videoId: 'MyVideoId',
+    // Video title
+    title: 'Art of Motion',
+    // Whether this is a live stream video. Default is false.
+    isLive: false,
+    // Whether collector should also collect statistics about ads
+    // Can be changed to `true` in case `advertisingConfig` is also present.
+    // Default is false.
+    ads: false,
+    // Navigation breadcrumb.
+    // The path taken by the user inside your application.
+    path: '/examples/basic_analytics',
+    // List of custom data fields to be registered at the Analytics Dashboard.
+    // Useful to customize collection with your own data along with the SDK.
+    customData1: 'Custom data field 1',
+    customData2: 'Custom data field 2',
+    customData3: 'Custom data field 3',
+    customData4: 'Custom data field 4',
+    customData5: 'Custom data field 5',
+    // Usage of customData properties are supported up to 30 fields
+    customData30: 'Custom data field 30',
+  },
+});
+```
+
+And that's it. Now you should start receiving analytics information about your `player` instance on the [Analytics Dashboard](https://bitmovin.com/dashboard/analytics).
+
+Optionally, you can also access the configured `analyticsCollector` object in order to get some information (like `userId`) or
+update your custom data during runtime:
+
+```typescript
+// Get the current user id.
+const userId = await player.analyticsCollector?.getUserId();
+
+// Get the current custom data config.
+const customData = await player.analyticsCollector?.getCustomData();
+
+// Update the current custom data config.
+player.analyticsCollector?.setCustomDataOnce({
+  customData2: 'Updated custom data field 2',
+  customData4: 'Updated custom data field 4',
+});
+```
+
+You can check out a complete analytics example in the [`example/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app.
 
 ## Contributing
 
