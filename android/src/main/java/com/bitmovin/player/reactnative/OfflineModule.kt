@@ -109,7 +109,7 @@ class OfflineModule(private val context: ReactApplicationContext) :
             val audioOptionIds = request.getArray("audioOptionIds")?.toList<String>()
             val textOptionIds = request.getArray("textOptionIds")?.toList<String>()
 
-            if (minimumBitRate < 0 || audioOptionIds.isNullOrEmpty()) {
+            if (minimumBitRate < 0) {
                 promise.reject(java.lang.IllegalArgumentException("Invalid download request"))
                 return
             }
