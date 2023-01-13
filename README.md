@@ -69,9 +69,9 @@ Features of the native mobile Player SDKs are progressively being implemented in
 | Playback of DRM-protected assets | :white_check_mark: Available since v0.2.0 |
 | Subtitles & Captions             | :white_check_mark: Available since v0.2.0 |
 | Advertising                      | :white_check_mark: Available since v0.4.0 |
+| Analytics                        | :white_check_mark: Available since v0.5.0 |
 | Playlist API                     | :x: Not available                         |
 | Offline Playback                 | :x: Not available                         |
-| Analytics                        | :x: Coming Q1 2023                        |
 
 ## Installation
 
