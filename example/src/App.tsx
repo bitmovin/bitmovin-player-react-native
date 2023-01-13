@@ -6,12 +6,15 @@ import { SourceType } from 'bitmovin-player-react-native';
 import Button from './components/Button';
 import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
+import BasicAnalytics from './screens/BasicAnalytics';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
 import BasicPictureInPicture from './screens/BasicPictureInPicture';
+import CustomHtmlUI from './screens/CustomHtmlUI';
+import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -21,9 +24,11 @@ export type RootStackParamsList = {
     }[];
   };
   BasicAds: undefined;
+  BasicAnalytics: undefined;
   BasicPlayback: undefined;
   BasicDrmPlayback: undefined;
   BasicPictureInPicture: undefined;
+  BasicFullscreenHandling: undefined;
   SubtitlePlayback: undefined;
   CustomPlaybackForm: undefined;
   CustomPlayback: {
@@ -34,11 +39,55 @@ export type RootStackParamsList = {
       value: SourceType;
     };
   };
+  CustomHtmlUI: undefined;
 };
 
 const RootStack = createNativeStackNavigator();
 
 export default function App() {
+  var stackParams = {
+    data: [
+      {
+        title: 'Basic playback',
+        routeName: 'BasicPlayback',
+      },
+      {
+        title: 'Basic Analytics',
+        routeName: 'BasicAnalytics',
+      },
+      {
+        title: 'Basic Drm playback',
+        routeName: 'BasicDrmPlayback',
+      },
+      {
+        title: 'Subtitle and captions',
+        routeName: 'SubtitlePlayback',
+      },
+      {
+        title: 'Basic Picture in Picture',
+        routeName: 'BasicPictureInPicture',
+      },
+      {
+        title: 'Basic Ads',
+        routeName: 'BasicAds',
+      },
+    ],
+  };
+
+  if (!Platform.isTVOS) {
+    stackParams.data.push({
+      title: 'Custom HTML UI',
+      routeName: 'CustomHtmlUI',
+    });
+  }
+
+  if (!Platform.isTV) {
+    stackParams.data.push({
+      title: 'Basic Fullscreen handling',
+      routeName: 'BasicFullscreenHandling',
+    });
+  }
+
   return (
     <NavigationContainer>
       <RootStack.Navigator
@@ -62,35 +111,17 @@ export default function App() {
               />
             ),
           })}
-          initialParams={{
-            data: [
-              {
-                title: 'Basic playback',
-                routeName: 'BasicPlayback',
-              },
-              {
-                title: 'Basic Drm playback',
-                routeName: 'BasicDrmPlayback',
-              },
-              {
-                title: 'Subtitle and captions',
-                routeName: 'SubtitlePlayback',
-              },
-              {
-                title: 'Basic Picture in Picture',
-                routeName: 'BasicPictureInPicture',
-              },
-              {
-                title: 'Basic Ads',
-                routeName: 'BasicAds',
-              },
-            ],
-          }}
+          initialParams={stackParams}
         />
         <RootStack.Screen
           name="BasicAds"
           component={BasicAds}
           options={{ title: 'Basic Ads' }}
+        />
+        <RootStack.Screen
+          name="BasicAnalytics"
+          component={BasicAnalytics}
+          options={{ title: 'Basic Analytics' }}
         />
         <RootStack.Screen
           name="BasicPlayback"
@@ -122,6 +153,20 @@ export default function App() {
           component={BasicPictureInPicture}
           options={{ title: 'Basic Picture in Picture' }}
         />
+        {!Platform.isTVOS && (
+          <RootStack.Screen
+            name="CustomHtmlUI"
+            component={CustomHtmlUI}
+            options={{ title: 'Custom HTML UI' }}
+          />
+        )}
+        {!Platform.isTV && (
+          <RootStack.Screen
+            name="BasicFullscreenHandling"
+            component={BasicFullscreenHandling}
+            options={{ title: 'Basic Fullscreen Handling' }}
+          />
+        )}
       </RootStack.Navigator>
     </NavigationContainer>
   );

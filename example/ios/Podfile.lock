@@ -1,5 +1,9 @@
 PODS:
-  - BitmovinPlayer (3.30.0)
+  - BitmovinAnalyticsCollector/BitmovinPlayer (2.9.4):
+    - BitmovinAnalyticsCollector/Core
+    - BitmovinPlayer (~> 3.0)
+  - BitmovinAnalyticsCollector/Core (2.9.4)
+  - BitmovinPlayer (3.32.0)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -75,7 +79,7 @@ PODS:
   - glog (0.3.5)
   - GoogleAds-IMA-iOS-SDK (3.17.0)
   - GoogleAds-IMA-tvOS-SDK (4.6.1)
-  - libevent (2.1.12)
+  - libevent (2.1.12.1)
   - OpenSSL-Universal (1.1.1100)
   - RCT-Folly (2021.06.28.00-v2):
     - boost
@@ -330,8 +334,10 @@ PODS:
     - React-jsi (= 0.69.5-2)
     - React-logger (= 0.69.5-2)
     - React-perflogger (= 0.69.5-2)
-  - RNBitmovinPlayer (0.4.0):
-    - BitmovinPlayer (= 3.30.0)
+  - RNBitmovinPlayer (0.5.0):
+    - BitmovinAnalyticsCollector/BitmovinPlayer (= 2.9.4)
+    - BitmovinAnalyticsCollector/Core (= 2.9.4)
+    - BitmovinPlayer (= 3.32.0)
     - GoogleAds-IMA-iOS-SDK (= 3.17.0)
     - GoogleAds-IMA-tvOS-SDK (= 4.6.1)
     - React-Core
@@ -407,9 +413,11 @@ DEPENDENCIES:
 
 SPEC REPOS:
   https://github.com/bitmovin/cocoapod-specs.git:
+    - BitmovinAnalyticsCollector
     - BitmovinPlayer
   https://github.com/react-native-tvos/react-native-tvos-podspecs.git:
     - Flipper-PeerTalk
+    - libevent
   trunk:
     - CocoaAsyncSocket
     - Flipper
@@ -422,7 +430,6 @@ SPEC REPOS:
     - FlipperKit
     - GoogleAds-IMA-iOS-SDK
     - GoogleAds-IMA-tvOS-SDK
-    - libevent
     - OpenSSL-Universal
     - SocketRocket
     - YogaKit
@@ -500,10 +507,11 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  BitmovinPlayer: ae0fa04c43ea513d4fb2ae93fc2d5f2a271d92cc
+  BitmovinAnalyticsCollector: e80b02754019632340556a509fc4268dbad6f219
+  BitmovinPlayer: 7137b245f61da7bbde429a7a0c0075473dc01890
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
-  DoubleConversion: 234abba95e31cc2aada0cf3b97cdb11bc5b90575
+  DoubleConversion: 1d2f3470dfd56717030d0855f8332361bbd85236
   FBLazyVector: 3f2d9d9ca104e6837732fcde307869f4495668f6
   FBReactNativeSpec: cdb62951f332a7e8e38ae470b483669492dd37b1
   Flipper: aad62c5cd3f78d38e9e2f7a882f4e680f3369a36
@@ -516,12 +524,12 @@ SPEC CHECKSUMS:
   Flipper-RSocket: d9d9ade67cbecf6ac10730304bf5607266dd2541
   FlipperKit: feec58b1283d3560c703adc670c45ecf400c48d9
   fmt: 135c0c55547979f715b56dfa54037ececa96d07a
-  glog: bac6d5aa2990176cc22d0432fb3e28805d580aeb
+  glog: 5b768715ae7bf8149e9d269089c22585cee27eb7
   GoogleAds-IMA-iOS-SDK: a44060982578cc9a44efd0ab4e0f02f07ac29670
   GoogleAds-IMA-tvOS-SDK: 86df385a513f50a9deb0b37e35f1478089ce5158
-  libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
+  libevent: a6d75fcd7be07cbc5070300ea8dbc8d55dfab88e
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  RCT-Folly: 6955e7728b76277c5df5a5aba37ee1ff1dd99976
+  RCT-Folly: 5b616707d7d51519bd8d59b3e11f15df58f54df7
   RCTRequired: 0ce44b80b7973c2c12016a992af0545f9faa725f
   RCTTypeSafety: b3e4f7422fff0523deed2cd73e525c2195662435
   React: fbabf3b37d111a98062868b856ce79874328de72
@@ -546,7 +554,7 @@ SPEC CHECKSUMS:
   React-RCTText: 16122ecd9be53be613b2206a13e5cf987835c8cf
   React-runtimeexecutor: 44fe73dca7d31245dfc031971a2ce14085c8d5fe
   ReactCommon: 3f6173ad12133f7e032f4c8d061dba181115c1c0
-  RNBitmovinPlayer: 0fc60de956a25cdb676e45463dd5246bf765fa44
+  RNBitmovinPlayer: ecbb9527f16edbc6a3c16e055faa19d893b6ba7b
   RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608

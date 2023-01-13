@@ -452,6 +452,41 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
     }
 
     /**
+     * `onVideoPlaybackQualityChanged` event callback.
+     */
+    private val onVideoPlaybackQualityChanged: (PlayerEvent.VideoPlaybackQualityChanged) -> Unit = {
+        emitEvent("videoPlaybackQualityChanged", it)
+    }
+
+    /**
+     * `onFullscreenEnabled` event callback.
+     */
+    private val onFullscreenEnabled: (PlayerEvent.FullscreenEnabled) -> Unit = {
+      emitEvent("fullscreenEnabled", it)
+    }
+
+    /**
+     * `onFullscreenEnabled` event callback.
+     */
+    private val onFullscreenDisabled: (PlayerEvent.FullscreenDisabled) -> Unit = {
+      emitEvent("fullscreenDisabled", it)
+    }
+
+    /**
+     * `onFullscreenEnter` event callback.
+     */
+    private val onFullscreenEnter: (PlayerEvent.FullscreenEnter) -> Unit = {
+      emitEvent("fullscreenEnter", it)
+    }
+
+    /**
+     * `onFullscreenEnter` event callback.
+     */
+    private val onFullscreenExit: (PlayerEvent.FullscreenExit) -> Unit = {
+      emitEvent("fullscreenExit", it)
+    }
+
+    /**
      * Start listening and emitting player events as bubbling events to the js side.
      */
     fun startBubblingEvents() {
@@ -491,11 +526,16 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
             on(onAdScheduled)
             on(onAdSkipped)
             on(onAdStarted)
+            on(onVideoPlaybackQualityChanged)
         }
         playerView?.apply {
             on(onPictureInPictureAvailabilityChanged)
             on(onPictureInPictureEnter)
             on(onPictureInPictureExit)
+            on(onFullscreenEnabled)
+            on(onFullscreenDisabled)
+            on(onFullscreenEnter)
+            on(onFullscreenExit)
         }
     }
 
@@ -539,11 +579,16 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
             off(onAdScheduled)
             off(onAdSkipped)
             off(onAdStarted)
+            off(onVideoPlaybackQualityChanged)
         }
         playerView?.apply {
             off(onPictureInPictureAvailabilityChanged)
             off(onPictureInPictureEnter)
             off(onPictureInPictureExit)
+            off(onFullscreenEnabled)
+            off(onFullscreenDisabled)
+            off(onFullscreenEnter)
+            off(onFullscreenExit)
         }
     }
 

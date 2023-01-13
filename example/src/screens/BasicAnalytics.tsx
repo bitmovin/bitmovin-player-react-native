@@ -2,21 +2,36 @@ import React, { useCallback } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
-  Event,
   usePlayer,
   PlayerView,
   SourceType,
+  CdnProvider,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
-function prettyPrint(header: string, obj: any) {
-  console.log(header, JSON.stringify(obj, null, 2));
-}
-
-export default function BasicPlayback() {
+export default function BasicAds() {
   useTVGestures();
 
-  const player = usePlayer();
+  const player = usePlayer({
+    analyticsConfig: {
+      key: '<ANALYTICS-KEY>', // `key` is the only required parameter.
+      playerKey: '<BITMOVIN-PLAYER-KEY>',
+      cdnProvider: CdnProvider.AKAMAI, // Check out `CdnProvider` for more options.
+      customUserId: 'Custom user ID',
+      randomizeUserId: false, // Default value is true.
+      experimentName: 'Experiment name',
+      videoId: 'MyVideoId',
+      title: 'Art of Motion',
+      isLive: false,
+      ads: false, // Can be changed to `true` in case `advertisingConfig` is also present.
+      path: '/examples/basic_analytics',
+      customData1: 'Custom data field 1',
+      customData2: 'Custom data field 2',
+      customData3: 'Custom data field 3',
+      customData4: 'Custom data field 4',
+      customData5: 'Custom data field 5',
+    },
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -29,8 +44,6 @@ export default function BasicPlayback() {
         title: 'Art of Motion',
         poster:
           'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg',
-        thumbnailTrack:
-          'https://cdn.bitmovin.com/content/assets/art-of-motion-dash-hls-progressive/thumbnails/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.vtt',
       });
       return () => {
         player.destroy();
@@ -38,30 +51,9 @@ export default function BasicPlayback() {
     }, [player])
   );
 
-  const onReady = useCallback((event: Event) => {
-    prettyPrint(`EVENT [${event.name}]`, event);
-  }, []);
-
-  const onEvent = useCallback((event: Event) => {
-    prettyPrint(`EVENT [${event.name}]`, event);
-  }, []);
-
   return (
     <View style={styles.container}>
-      <PlayerView
-        player={player}
-        style={styles.player}
-        onPlay={onEvent}
-        onPlaying={onEvent}
-        onPaused={onEvent}
-        onReady={onReady}
-        onSourceLoaded={onEvent}
-        onSeek={onEvent}
-        onSeeked={onEvent}
-        onStallStarted={onEvent}
-        onStallEnded={onEvent}
-        onVideoPlaybackQualityChanged={onEvent}
-      />
+      <PlayerView style={styles.player} player={player} />
     </View>
   );
 }

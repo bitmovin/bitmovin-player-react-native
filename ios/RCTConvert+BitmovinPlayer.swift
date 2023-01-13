@@ -1,5 +1,6 @@
 import Foundation
 import BitmovinPlayer
+import BitmovinAnalyticsCollector
 
 extension RCTConvert {
     /**
@@ -17,6 +18,9 @@ extension RCTConvert {
         }
         if let playbackConfig = RCTConvert.playbackConfig(json["playbackConfig"]) {
             playerConfig.playbackConfig = playbackConfig
+        }
+        if let styleConfig = RCTConvert.styleConfig(json["styleConfig"]) {
+            playerConfig.styleConfig = styleConfig
         }
         if let tweaksConfig = RCTConvert.tweaksConfig(json["tweaksConfig"]) {
             playerConfig.tweaksConfig = tweaksConfig
@@ -53,6 +57,46 @@ extension RCTConvert {
             playbackConfig.isPictureInPictureEnabled = isPictureInPictureEnabled
         }
         return playbackConfig
+    }
+
+    /**
+     Utility method to instantiate a `StyleConfig` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `StyleConfig` object.
+     */
+    static func styleConfig(_ json: Any?) -> StyleConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let styleConfig = StyleConfig()
+        if let isUiEnabled = json["isUiEnabled"] as? Bool {
+            styleConfig.isUiEnabled = isUiEnabled
+        }
+#if !os(tvOS)
+        if let playerUiCss = json["playerUiCss"] as? String {
+            styleConfig.playerUiCss = RCTConvert.nsurl(playerUiCss)
+        }
+        if let supplementalPlayerUiCss = json["supplementalPlayerUiCss"] as? String {
+            styleConfig.supplementalPlayerUiCss = RCTConvert.nsurl(supplementalPlayerUiCss)
+        }
+        if let playerUiJs = json["playerUiJs"] as? String {
+            styleConfig.playerUiJs = RCTConvert.nsurl(playerUiJs)
+        }
+#endif
+        if let scalingMode = json["scalingMode"] as? String {
+            switch scalingMode {
+            case "Fit":
+                styleConfig.scalingMode = .fit
+            case "Stretch":
+                styleConfig.scalingMode = .stretch
+            case "Zoom":
+                styleConfig.scalingMode = .zoom
+            default:
+                styleConfig.scalingMode = .fit
+                break
+            }
+        }
+        return styleConfig
     }
 
     /**
@@ -202,6 +246,9 @@ extension RCTConvert {
                 }
             }
         }
+        if let thumbnailTrack = json["thumbnailTrack"] as? String {
+            sourceConfig.thumbnailTrack = RCTConvert.thumbnailTrack(thumbnailTrack)
+        }
         return sourceConfig
     }
 
@@ -266,6 +313,25 @@ extension RCTConvert {
         return fairplayConfig
     }
 
+    /**
+     Utility method to get a `ThumbnailTrack` instance from a JS object.
+     - Parameter url: String.
+     - Returns: The generated `ThumbnailTrack`.
+     */
+    static func thumbnailTrack(_ url: String?) -> ThumbnailTrack? {
+        guard
+            let url = RCTConvert.nsurl(url)
+        else {
+            return nil
+        }
+        return ThumbnailTrack(
+            url: url,
+            label: "Thumbnails",
+            identifier: UUID().uuidString,
+            isDefaultTrack: false
+        )
+    }
+    
     /**
      Utility method to get a `SubtitleTrack` instance from a JS object.
      - Parameter json: JS object.
@@ -480,6 +546,114 @@ extension RCTConvert {
             "maxBitrate": adData.maxBitrate,
             "mimeType": adData.mimeType,
             "minBitrate": adData.minBitrate
+        ]
+    }
+
+    /**
+     Utility method to get a `BitmovinAnalyticsConfig` value from a JS object.
+     - Parameter json: JS object.
+     - Returns: The associated `BitmovinAnalyticsConfig` value or nil.
+     */
+    static func analyticsConfig(_ json: Any?) -> BitmovinAnalyticsConfig? {
+        guard
+            let json = json as? [String: Any?],
+            let key = json["key"] as? String
+        else {
+            return nil
+        }
+        let config: BitmovinAnalyticsConfig
+        if let playerKey = json["playerKey"] as? String {
+            config = BitmovinAnalyticsConfig(key: key, playerKey: playerKey)
+        } else {
+            config = BitmovinAnalyticsConfig(key: key)
+        }
+        if let cdnProvider = json["cdnProvider"] as? String {
+            config.cdnProvider = cdnProvider
+        }
+        if let customerUserId = json["customUserId"] as? String {
+            config.customerUserId = customerUserId
+        }
+        if let experimentName = json["experimentName"] as? String {
+            config.experimentName = experimentName
+        }
+        if let videoId = json["videoId"] as? String {
+            config.videoId = videoId
+        }
+        if let title = json["title"] as? String {
+            config.title = title
+        }
+        if let path = json["path"] as? String {
+            config.path = path
+        }
+        if let isLive = json["isLive"] as? Bool {
+            config.isLive = isLive
+        }
+        if let ads = json["ads"] as? Bool {
+            config.ads = ads
+        }
+        if let randomizeUserId = json["randomizeUserId"] as? Bool {
+            config.randomizeUserId = randomizeUserId
+        }
+        for n in 1..<30 {
+            if let customDataN = json["customData\(n)"] as? String {
+                config.setValue(customDataN, forKey: "customData\(n)")
+            }
+        }
+        return config
+    }
+
+    /**
+     Utility method to get an analytics `CustomData` value from a JS object.
+     - Parameter json: JS object.
+     - Returns: The associated `CustomData` value or nil.
+     */
+    static func analyticsCustomData(_ json: Any?) -> CustomData? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let customData = CustomData()
+        for n in 1..<30 {
+            if let customDataN = json["customData\(n)"] as? String {
+                customData.setValue(customDataN, forKey: "customData\(n)")
+            }
+        }
+        return customData
+    }
+
+    /**
+     Utility method to get a JS value from a `CustomData` object.
+     - Parameter analyticsCustomData: Analytics custom data object.
+     - Returns: The JS value representing the given object.
+     */
+    static func toJson(analyticsCustomData: CustomData?) -> [String: Any?]? {
+        guard let analyticsCustomData = analyticsCustomData else {
+            return nil
+        }
+        var json: [String: Any?] = [:]
+        for n in 1..<30 {
+            if let customDataN = analyticsCustomData.value(forKey: "customData\(n)") {
+                json["customData\(n)"] = customDataN
+            }
+        }
+        return json
+    }
+
+    /**
+     Utility method to compute a JS value from a `VideoQuality` object.
+     - Parameter videoQuality `VideoQuality` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(videoQuality: VideoQuality?) -> [String: Any?]? {
+        guard let videoQuality = videoQuality else {
+            return nil
+        }
+        return [
+            "id": videoQuality.identifier,
+            "label": videoQuality.label,
+            "height": videoQuality.height,
+            "width": videoQuality.width,
+            "codec": videoQuality.codec,
+            "bitrate": videoQuality.bitrate,
         ]
     }
 }

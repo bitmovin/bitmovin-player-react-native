@@ -1,8 +1,10 @@
 import { NativeModules, Platform } from 'react-native';
 import { AdItem, AdvertisingConfig } from './advertising';
+import { AnalyticsCollector, AnalyticsConfig } from './analytics';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { SubtitleTrack } from './subtitleTrack';
+import { StyleConfig } from './styleConfig';
 import { TweaksConfig } from './tweaksConfig';
 
 const PlayerModule = NativeModules.PlayerModule;
@@ -35,6 +37,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    */
   playbackConfig?: PlaybackConfig;
   /**
+   * Configures the visual presentation and behaviour of the player UI. A default StyleConfig is set initially.
+   */
+  styleConfig?: StyleConfig;
+  /**
    * Configures advertising functionality. A default AdvertisingConfig is set initially.
    */
   advertisingConfig?: AdvertisingConfig;
@@ -42,6 +48,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures experimental features. A default TweaksConfig is set initially.
    */
   tweaksConfig?: TweaksConfig;
+  /**
+   * Configures analytics functionality.
+   */
+  analyticsConfig?: AnalyticsConfig;
 }
 
 /**
@@ -136,6 +146,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   source?: Source;
   /**
+   * Analytics collector currently attached to this player instance.
+   */
+  analyticsCollector?: AnalyticsCollector;
+  /**
    * Whether the native `Player` object has been created.
    */
   isInitialized = false;
@@ -150,6 +164,12 @@ export class Player extends NativeInstance<PlayerConfig> {
   initialize = () => {
     if (!this.isInitialized) {
       PlayerModule.initWithConfig(this.nativeId, this.config);
+      const analyticsConfig = this.config?.analyticsConfig;
+      if (analyticsConfig) {
+        this.analyticsCollector = new AnalyticsCollector(analyticsConfig);
+        this.analyticsCollector?.initialize();
+        this.analyticsCollector?.attach(this.nativeId);
+      }
       this.isInitialized = true;
     }
   };
@@ -161,6 +181,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (!this.isDestroyed) {
       PlayerModule.destroy(this.nativeId);
       this.source?.destroy();
+      this.analyticsCollector?.destroy();
       this.isDestroyed = true;
     }
   };

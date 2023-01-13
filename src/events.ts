@@ -7,6 +7,7 @@ import {
   AdSourceType,
 } from './advertising';
 import { SubtitleTrack } from './subtitleTrack';
+import { VideoQuality } from './media';
 
 /**
  * Base event type for all events.
@@ -291,6 +292,34 @@ export interface PictureInPictureEnteredEvent extends Event {}
 export interface PictureInPictureExitedEvent extends Event {}
 
 /**
+ * Emitted when the fullscreen functionality has been enabled.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenEnabledEvent extends Event {}
+
+/**
+ * Emitted when the fullscreen functionality has been disabled.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenDisabledEvent extends Event {}
+
+/**
+ * Emitted when the player enters fullscreen mode.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenEnterEvent extends Event {}
+
+/**
+ * Emitted when the player exits fullscreen mode.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenExitEvent extends Event {}
+
+/**
  * Emitted when the availability of the Picture in Picture mode changed on Android.
  *
  * @platform Android
@@ -454,4 +483,18 @@ export interface AdManifestLoadedEvent extends Event {
    * How long it took for the ad tag to be downloaded in milliseconds.
    */
   downloadTime: number;
+}
+
+/**
+ * Emitted when the current video playback quality has changed.
+ */
+export interface VideoPlaybackQualityChangedEvent extends Event {
+  /**
+   * The new quality
+   */
+  newVideoQuality: VideoQuality;
+  /**
+   * The previous quality
+   */
+  oldVideoQuality: VideoQuality;
 }
