@@ -100,6 +100,15 @@ extension RCTConvert {
                 break
             }
         }
+        if let playerUiCss = json["playerUiCss"] as? String {
+            styleConfig.playerUiCss = RCTConvert.nsurl(playerUiCss)
+        }
+        if let supplementalPlayerUiCss = json["supplementalPlayerUiCss"] as? String {
+            styleConfig.supplementalPlayerUiCss = RCTConvert.nsurl(supplementalPlayerUiCss)
+        }
+        if let playerUiJs = json["playerUiJs"] as? String {
+            styleConfig.playerUiJs = RCTConvert.nsurl(playerUiJs)
+        }
         if let scalingMode = json["scalingMode"] as? String {
             switch scalingMode {
             case "Fit":
@@ -211,6 +220,42 @@ extension RCTConvert {
         case "dash": return .dash
         case "progressive": return .progressive
         default: return .none
+        }
+    }
+
+    /**
+     Utility method to compute a JS value from a `SourceConfig` object.
+     - Parameter sourceConfig: `SourceConfig` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(sourceConfig: SourceConfig?) -> [String: Any?]? {
+        guard let sourceConfig = sourceConfig else {
+            return nil
+        }
+        return [
+            "url": sourceConfig.url.absoluteString,
+            "type": RCTConvert.toJson(sourceType: sourceConfig.type),
+            "title": sourceConfig.title,
+            "poster": sourceConfig.posterSource?.absoluteString,
+            "isPosterPersistent": sourceConfig.isPosterPersistent
+        ]
+    }
+
+    /**
+     Utility method to compute a JS value from a `SourceType` object.
+     - Parameter sourceType: `Sourcetype` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(sourceType: SourceType?) -> String? {
+        guard let sourceType = sourceType else {
+            return nil
+        }
+        switch sourceType {
+        case .none: return "none"
+        case .hls: return "hls"
+        case .dash: return "dash"
+        case .progressive: return "progressive"
+        default: return "none"
         }
     }
 
@@ -356,14 +401,14 @@ extension RCTConvert {
             }(),
         ]
     }
-    
+
     // --- Temp Ad Converts --- //
-    
+
     static func adJson(_ ad: Ad?) -> [AnyHashable: Any]? {
         guard let ad = ad else {
             return nil
         }
-        
+
         return [
             "clickThroughUrl": ad.clickThroughUrl?.absoluteString,
             "data": RCTConvert.adDataJson(ad.data),
@@ -374,12 +419,12 @@ extension RCTConvert {
             "mediaFileUrl": ad.mediaFileUrl?.absoluteString
         ]
     }
-    
+
     static func adDataJson(_ adData: AdData?) -> [AnyHashable: Any]? {
         guard let adData = adData else {
             return nil
         }
-        
+
         return [
             "bitrate": adData.bitrate,
             "maxBitrate": adData.maxBitrate,
@@ -387,12 +432,12 @@ extension RCTConvert {
             "mimeType": adData.mimeType
         ]
     }
-    
+
     static func adSourceTypeJson(_ adSourceType: AdSourceType?) -> String? {
         guard let adSourceType = adSourceType else {
             return nil
         }
-        
+
         switch adSourceType {
         case .ima: return "Ima"
         case .progressive: return "Progressive"
@@ -400,12 +445,12 @@ extension RCTConvert {
         default: return "Unknown"
         }
     }
-    
+
     static func adQuartileJson(_ adQuartile: AdQuartile?) -> [AnyHashable: Any]? {
         guard let adQuartile = adQuartile else {
             return nil
         }
-        
+
         return [
             "percentage": {
                 switch adQuartile {
@@ -416,49 +461,107 @@ extension RCTConvert {
             }()
         ]
     }
-    
+
     static func adBreakJson(_ adBreak: AdBreak?) -> [AnyHashable: Any]? {
         guard let adBreak = adBreak else {
             return nil
         }
-        
+
         return [
             "id": adBreak.identifier,
             "scheduleTime": adBreak.scheduleTime,
             "ads": adBreak.ads.map { RCTConvert.adJson($0) }
         ]
     }
-    
+
     static func adConfigJson(_ adConfig: AdConfig?) -> [AnyHashable: Any]? {
         guard let adConfig = adConfig else {
             return nil
         }
-        
+
         return [
             "replaceContentDuration": adConfig.replaceContentDuration
         ]
     }
-    
+
     static func adItemJson(_ adItem: AdItem?) -> [AnyHashable: Any]? {
         guard let adItem = adItem else {
             return nil
         }
-        
+
         return [
             "sources": adItem.sources.map { RCTConvert.adSourceJson($0) },
             "position": adItem.position
         ]
     }
-    
+
     static func adSourceJson(_ adSource: AdSource?) -> [AnyHashable: Any]? {
         guard let adSource = adSource else {
             return nil
         }
-        
+
         return [
             "tag": adSource.tag,
             "type": RCTConvert.adSourceTypeJson(adSource.type)
         ]
     }
-    
+
+    /**
+     Utility method to compute a JS value from an `OfflineState` object.
+     - Parameter offlineState `OfflineState` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineState: OfflineState?) -> String {
+        var notDownloaded = "NotDownloaded"
+        guard let offlineState = offlineState else {
+            return notDownloaded
+        }
+
+        switch offlineState {
+        case .downloading: return "Downloading"
+        case .downloaded: return "Downloaded"
+        case .suspended: return "Suspended"
+        default: return notDownloaded
+        }
+    }
+
+    /**
+     Utility method to compute a JS value from an `OfflineTextTrack` object.
+     - Parameter offlineTrack `OfflineTextTrack` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineTrack: OfflineTextTrack) -> [String: Any?] {
+        return [
+            "id": offlineTrack.label,
+            "language": offlineTrack.language,
+        ]
+    }
+
+    /**
+     Utility method to compute a JS value from an `OfflineAudioTrack` object.
+     - Parameter offlineTrack `OfflineAudioTrack` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineTrack: OfflineAudioTrack) -> [String: Any?] {
+        return [
+            "id": offlineTrack.label,
+            "language": offlineTrack.language,
+        ]
+    }
+
+    /**
+     Utility method to compute a JS value from an `OfflineTrackSelection` object.
+     - Parameter offlineTracks `OfflineTrackSelection` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineTracks: OfflineTrackSelection?) -> [String: Any?]? {
+        guard let offlineTracks = offlineTracks else {
+            return nil
+        }
+
+        return [
+            "textOptions": offlineTracks.textTracks.map({ RCTConvert.toJson(offlineTrack: $0) }),
+            "audioOptions": offlineTracks.audioTracks.map({ RCTConvert.toJson(offlineTrack: $0) })
+        ]
+    }
 }

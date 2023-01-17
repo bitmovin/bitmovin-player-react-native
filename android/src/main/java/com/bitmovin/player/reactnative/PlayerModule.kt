@@ -6,20 +6,22 @@ import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.UIManagerModule
 
-@ReactModule(name = PlayerModule.name)
+private const val MODULE_NAME = "PlayerModule"
+
+@ReactModule(name = MODULE_NAME)
 class PlayerModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
 
     companion object {
-        /**
-         * JS exported module name.
-         */
-        const val name = "PlayerModule"
         /**
          * In-memory mapping from `nativeId`s to `Player` instances.
          */
         private val players: Registry<Player> = mutableMapOf()
     }
-    override fun getName() = PlayerModule.name
+
+    /**
+     * JS exported module name.
+     */
+    override fun getName() = MODULE_NAME
 
     /**
      * Fetches the `Player` instance associated with `nativeId` from the internal players.
@@ -58,6 +60,24 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
         uiManager()?.addUIBlock {
             sourceModule()?.getSource(sourceNativeId)?.let {
                 players[nativeId]?.load(it)
+            }
+        }
+    }
+
+    /**
+     * Load the `offlineSourceConfig` for the player with `nativeId` and offline source module with `offlineModuleNativeId`.
+     * @param nativeId Target player.
+     * @param nativeId Target offline module.
+     * @param config Source configuration options from JS.
+     */
+    @ReactMethod
+    fun loadOfflineSource(nativeId: NativeId, offlineModuleNativeId: String) {
+        uiManager()?.addUIBlock {
+            val offlineSourceConfig = offlineModule()?.getOfflineManager(offlineModuleNativeId)
+                ?.contentManager?.offlineSourceConfig
+
+            if (offlineSourceConfig != null) {
+                players[nativeId]?.load(offlineSourceConfig)
             }
         }
     }
@@ -381,4 +401,10 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      */
     private fun sourceModule(): SourceModule? =
         context.getNativeModule(SourceModule::class.java)
+
+    /**
+     * Helper function that returns the initialized `OfflineModule` instance.
+     */
+    private fun offlineModule(): OfflineModule? =
+        context.getNativeModule(OfflineModule::class.java)
 }

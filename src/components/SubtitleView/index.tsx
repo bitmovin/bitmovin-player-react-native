@@ -3,6 +3,9 @@ import { ViewStyle, StyleSheet, StyleProp, Platform } from 'react-native';
 import { NativeSubtitleView } from './native';
 import { Player } from '../../player';
 
+export type TypefaceFamily = 'DEFAULT' | 'MONOSPACE' | 'SANS_SERIF' | 'SERIF';
+export type TypefaceStyleWeight = 'NORMAL' | 'BOLD' | 'BOLD_ITALIC' | 'ITALIC';
+
 /**
  * Base `SubtitleView` component props. Used to establish common
  * props between `NativeSubtitleView` and `SubtitleView`.
@@ -10,24 +13,20 @@ import { Player } from '../../player';
  */
 export interface BaseSubtitleViewProps {
   style?: StyleProp<ViewStyle>;
-}
-
-/**
- * `SubtitleView` component props.
- * @see SubtitleView
- */
-export interface SubtitleViewProps extends BaseSubtitleViewProps {
-  /**
-   * `Player` instance (generally returned from `usePlayer` hook) that will control
-   * and render audio/video inside the `PlayerView`.
-   */
-  player: Player;
   /**
    * Sets whether font sizes embedded within the cues should be applied.
    * Enabled by default.
    * Only takes effect if setApplyEmbeddedStyles is set to true.
    */
   applyEmbeddedFontSizes?: boolean;
+  /**
+   * Sets the caption style to be equivalent to the one returned by getUserStyle, or to a default style before API level 19.
+   */
+  userDefaultStyle?: boolean;
+  /**
+   * Sets the text size to one derived from getFontScale, or to a default size before API level 19.
+   */
+  userDefaultTextSize?: boolean;
   /**
    * Sets whether styling embedded within the cues should be applied.
    * Enabled by default.
@@ -60,6 +59,36 @@ export interface SubtitleViewProps extends BaseSubtitleViewProps {
     fractionOfHeight: number;
     ignorePadding?: boolean;
   };
+  /**
+   * Sets the subtitles caption style.
+   */
+  captionStyle?: {
+    foregroundColor?: string;
+    backgroundColor?: string;
+    windowColor?: string;
+    edgeType?:
+      | 'EDGE_TYPE_NONE'
+      | 'EDGE_TYPE_OUTLINE'
+      | 'EDGE_TYPE_DROP_SHADOW'
+      | 'EDGE_TYPE_RAISED'
+      | 'EDGE_TYPE_DEPRESSED';
+    edgeColor?: string;
+    typeFace?:
+      | { family: TypefaceFamily; style: TypefaceStyleWeight }
+      | { familyName: string; style: TypefaceStyleWeight };
+  };
+}
+
+/**
+ * `SubtitleView` component props.
+ * @see SubtitleView
+ */
+export interface SubtitleViewProps extends BaseSubtitleViewProps {
+  /**
+   * `Player` instance (generally returned from `usePlayer` hook) that will control
+   * and render audio/video inside the `PlayerView`.
+   */
+  player?: Player;
 }
 
 /**
@@ -80,6 +109,15 @@ export function SubtitleView(props: SubtitleViewProps) {
   const style = StyleSheet.flatten([styles.baseStyle, props.style]);
 
   return Platform.OS === 'android' ? (
-    <NativeSubtitleView style={style} playerId={props?.player?.nativeId} />
+    <NativeSubtitleView
+      style={style}
+      playerId={props?.player?.nativeId}
+      applyEmbeddedFontSizes={props.applyEmbeddedFontSizes}
+      applyEmbeddedStyles={props.applyEmbeddedStyles}
+      bottomPaddingFraction={props.bottomPaddingFraction}
+      fixedTextSize={props.fixedTextSize}
+      fractionalTextSize={props.fractionalTextSize}
+      captionStyle={props.captionStyle}
+    />
   ) : null;
 }

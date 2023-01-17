@@ -1,7 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.bitmovin.player.reactnative.example">
+  package="com.bitmovin.player.reactnative.example"
+  xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
       android:name=".MainApplication"
@@ -9,8 +13,9 @@
       android:icon="@mipmap/ic_launcher"
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
+      tools:replace="android:allowBackup"
       android:theme="@style/AppTheme">
-      <meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="ENTER_LICENSE_KEY" />
+        <meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="ENTER_LICENSE_KEY" />
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
