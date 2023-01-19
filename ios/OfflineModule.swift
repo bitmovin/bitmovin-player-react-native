@@ -88,16 +88,20 @@ class OfflineModule: RCTEventEmitter {
      Starts the `OfflineContentManager`'s asynchronous process of fetching the `OfflineContentOptions`.
      When the options are loaded a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onOptionsAvailable`.
      - Parameter nativeId: Target offline module Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
      */
-    @objc func getOptions(_ nativeId: NativeId) {
+    @objc func getOptions(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let managerHolder = self?.offlineManagerHolders[nativeId]
             else {
+                resolve(nil)
                 return
             }
             
             managerHolder.contentManager.fetchAvailableTracks()
+            resolve(nil)
         }
     }
 
@@ -153,64 +157,80 @@ class OfflineModule: RCTEventEmitter {
     /**
      Resumes all suspended actions.
      - Parameter nativeId: Target offline module Id
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
      */
-    @objc func resume(_ nativeId: NativeId) {
+    @objc func resume(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let managerHolder = self?.offlineManagerHolders[nativeId]
             else {
+                resolve(nil)
                 return
             }
             
             managerHolder.contentManager.resumeDownload()
+            resolve(nil)
         }
     }
 
     /**
      Suspends all active actions.
      - Parameter nativeId: Target offline module Id
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
      */
-    @objc func suspend(_ nativeId: NativeId) {
+    @objc func suspend(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let managerHolder = self?.offlineManagerHolders[nativeId]
             else {
+                resolve(nil)
                 return
             }
             
             managerHolder.contentManager.suspendDownload()
+            resolve(nil)
         }
     }
     
     /**
      Cancels all active downloads and removes the data.
      - Parameter nativeId: Target offline module Id
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
      */
-    @objc func cancelDownload(_ nativeId: NativeId) {
+    @objc func cancelDownload(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let managerHolder = self?.offlineManagerHolders[nativeId]
             else {
+                resolve(nil)
                 return
             }
             
             managerHolder.contentManager.cancelDownload()
+            resolve(nil)
         }
     }
 
     /**
      Deletes everything related to the related content ID.
      - Parameter nativeId: Target offline module Id
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
      */
-    @objc func deleteAll(_ nativeId: NativeId) {
+    @objc func deleteAll(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let managerHolder = self?.offlineManagerHolders[nativeId]
             else {
+                resolve(nil)
                 return
             }
             
             managerHolder.contentManager.deleteOfflineData()
+            resolve(nil)
         }
     }
 
@@ -219,16 +239,20 @@ class OfflineModule: RCTEventEmitter {
      When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onDrmLicenseUpdated`.
      Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onError`.
      - Parameter nativeId: Target offline module Id
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
      */
-    @objc func downloadLicense(_ nativeId: NativeId) {
+    @objc func downloadLicense(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let managerHolder = self?.offlineManagerHolders[nativeId]
             else {
+                resolve(nil)
                 return
             }
             
             managerHolder.contentManager.syncOfflineDrmLicenseInformation()
+            resolve(nil)
         }
     }
 
@@ -237,16 +261,20 @@ class OfflineModule: RCTEventEmitter {
      When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onDrmLicenseUpdated`.
      Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onError`.
      - Parameter nativeId: Target offline module Id
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
      */
-    @objc func renewOfflineLicense(_ nativeId: NativeId) {
+    @objc func renewOfflineLicense(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let managerHolder = self?.offlineManagerHolders[nativeId]
             else {
+                resolve(nil)
                 return
             }
             
             managerHolder.contentManager.renewOfflineLicense()
+            resolve(nil)
         }
     }
 
@@ -255,17 +283,21 @@ class OfflineModule: RCTEventEmitter {
      IMPORTANT: Call this when the component, in which it was created, is destroyed.
      The `OfflineManager` should not be used after calling this method.
      - Parameter nativeId: Target offline module Id
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.     
      */
-    @objc func release(_ nativeId: NativeId) {
+    @objc func release(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let managerHolder = self?.offlineManagerHolders[nativeId]
             else {
+                resolve(nil)
                 return
             }
             
             managerHolder.release()
             self?.offlineManagerHolders[nativeId] = nil
+            resolve(nil)
         }
     }
 }

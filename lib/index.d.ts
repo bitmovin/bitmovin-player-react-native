@@ -1410,7 +1410,7 @@ declare class OfflineContentManager extends NativeInstance<OfflineContentConfig>
     /**
      * Destroys the native `OfflineManager` and releases all of its allocated resources.
      */
-    destroy: () => void;
+    destroy: () => Promise<void>;
     /**
      * Gets the current offline source config of the `OfflineContentManager`
      */
@@ -1419,7 +1419,7 @@ declare class OfflineContentManager extends NativeInstance<OfflineContentConfig>
      * Loads the current `OfflineContentOptions`.
      * When the options are loaded the data will be passed to the `OfflineContentManagerListener.onOptionsAvailable`.
      */
-    getOptions: () => void;
+    getOptions: () => Promise<void>;
     /**
      * Enqueues downloads according to the `OfflineDownloadRequest`.
      * The promise will reject in the event of null or invalid request parameters.
@@ -1430,37 +1430,37 @@ declare class OfflineContentManager extends NativeInstance<OfflineContentConfig>
     /**
      * Resumes all suspended actions.
      */
-    resume: () => void;
+    resume: () => Promise<void>;
     /**
      * Suspends all active actions.
      */
-    suspend: () => void;
+    suspend: () => Promise<void>;
     /**
      * Cancels and deletes the active download.
      */
-    cancelDownload: () => void;
+    cancelDownload: () => Promise<void>;
     /**
      * Deletes everything related to the related content ID.
      */
-    deleteAll: () => void;
+    deleteAll: () => Promise<void>;
     /**
      * Downloads the offline license.
      * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
      * Errors are transmitted to the `OfflineContentManagerListener.onError`.
      */
-    downloadLicense: () => void;
+    downloadLicense: () => Promise<void>;
     /**
      * Releases the currently held offline license.
      * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
      * Errors are transmitted to the `OfflineContentManagerListener.onError`.
      */
-    releaseLicense: () => void;
+    releaseLicense: () => Promise<void>;
     /**
      * Renews the already downloaded DRM license.
      * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
      * Errors are transmitted to the `OfflineContentManagerListener.onError`.
      */
-    renewOfflineLicense: () => void;
+    renewOfflineLicense: () => Promise<void>;
 }
 
 /**

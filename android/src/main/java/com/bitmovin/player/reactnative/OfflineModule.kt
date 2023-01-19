@@ -86,8 +86,9 @@ class OfflineModule(private val context: ReactApplicationContext) :
      * @param nativeId Target offline manager.
      */
     @ReactMethod
-    fun getOptions(nativeId: NativeId) {
+    fun getOptions(nativeId: NativeId, promise: Promise) {
         getOfflineManager(nativeId)?.getOptions()
+        promise.resolve(null)
     }
 
     /**
@@ -131,8 +132,9 @@ class OfflineModule(private val context: ReactApplicationContext) :
      * @param nativeId Target offline manager.
      */
     @ReactMethod
-    fun resume(nativeId: NativeId) {
+    fun resume(nativeId: NativeId, promise: Promise) {
         getOfflineManager(nativeId)?.resume()
+        promise.resolve(null)
     }
 
     /**
@@ -140,8 +142,9 @@ class OfflineModule(private val context: ReactApplicationContext) :
      * @param nativeId Target offline manager.
      */
     @ReactMethod
-    fun suspend(nativeId: NativeId) {
+    fun suspend(nativeId: NativeId, promise: Promise) {
         getOfflineManager(nativeId)?.suspend()
+        promise.resolve(null)
     }
 
     /**
@@ -149,8 +152,9 @@ class OfflineModule(private val context: ReactApplicationContext) :
      * @param nativeId Target offline manager.
      */
     @ReactMethod
-    fun cancelDownload(nativeId: NativeId) {
+    fun cancelDownload(nativeId: NativeId, promise: Promise) {
         getOfflineManager(nativeId)?.cancelDownload()
+        promise.resolve(null)
     }
 
     /**
@@ -158,8 +162,9 @@ class OfflineModule(private val context: ReactApplicationContext) :
      * @param nativeId Target offline manager.
      */
     @ReactMethod
-    fun deleteAll(nativeId: NativeId) {
+    fun deleteAll(nativeId: NativeId, promise: Promise) {
         getOfflineManager(nativeId)?.deleteAll()
+        promise.resolve(null)
     }
 
     /**
@@ -169,8 +174,9 @@ class OfflineModule(private val context: ReactApplicationContext) :
      * @param nativeId Target offline manager.
      */
     @ReactMethod
-    fun downloadLicense(nativeId: NativeId) {
+    fun downloadLicense(nativeId: NativeId, promise: Promise) {
         getOfflineManager(nativeId)?.downloadLicense()
+        promise.resolve(null)
     }
 
     /**
@@ -180,8 +186,9 @@ class OfflineModule(private val context: ReactApplicationContext) :
      * @param nativeId Target offline manager.
      */
     @ReactMethod
-    fun releaseLicense(nativeId: NativeId) {
+    fun releaseLicense(nativeId: NativeId, promise: Promise) {
         getOfflineManager(nativeId)?.releaseLicense()
+        promise.resolve(null)
     }
 
     /**
@@ -191,8 +198,9 @@ class OfflineModule(private val context: ReactApplicationContext) :
      * @param nativeId Target offline manager.
      */
     @ReactMethod
-    fun renewOfflineLicense(nativeId: NativeId) {
+    fun renewOfflineLicense(nativeId: NativeId, promise: Promise) {
         getOfflineManager(nativeId)?.renewOfflineLicense()
+        promise.resolve(null)
     }
 
     /**
@@ -202,11 +210,12 @@ class OfflineModule(private val context: ReactApplicationContext) :
      * @param nativeId Target player Id.
      */
     @ReactMethod
-    fun release(nativeId: NativeId) {
+    fun release(nativeId: NativeId, promise: Promise) {
         getOfflineManager(nativeId)?.let {
             it.release()
             offlineManagers.remove(nativeId)
         }
+        promise.resolve(null)
     }
 
 }
