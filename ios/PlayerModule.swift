@@ -82,7 +82,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
                 return
             }
 
-            let offlineSourceConfig = offlineModule.createOfflineSourceConfig(restrictedToAssetCache: true)
+            let offlineSourceConfig = offlineModule.contentManager.createOfflineSourceConfig(restrictedToAssetCache: true)
             if (offlineSourceConfig != nil) {
                 player.load(sourceConfig: offlineSourceConfig!)
             }

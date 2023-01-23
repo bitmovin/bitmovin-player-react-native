@@ -16,18 +16,19 @@ import { OfflineDownloadRequest } from './offlineContentOptions';
 interface NativeOfflineModule extends NativeModule {
   initWithConfig(
     nativeId: string,
-    config: { sourceConfig: SourceConfig; location?: string }
-  ): void;
+    config: { offlineId: string; sourceConfig: SourceConfig }
+  ): Promise<void>;
   getOfflineSourceConfig(nativeId: string): Promise<SourceConfig>;
-  getOptions(nativeId: string): void;
+  getOptions(nativeId: string): Promise<void>;
   process(nativeId: string, request: OfflineDownloadRequest): Promise<void>;
-  resume(nativeId: string): void;
-  suspend(nativeId: string): void;
-  deleteAll(nativeId: string): void;
-  downloadLicense(nativeId: string): void;
-  releaseLicense(nativeId: string): void;
-  renewOfflineLicense(nativeId: string): void;
-  release(nativeId: string): void;
+  resume(nativeId: string): Promise<void>;
+  suspend(nativeId: string): Promise<void>;
+  cancelDownload(nativeId: string): Promise<void>;
+  deleteAll(nativeId: string): Promise<void>;
+  downloadLicense(nativeId: string): Promise<void>;
+  releaseLicense(nativeId: string): Promise<void>;
+  renewOfflineLicense(nativeId: string): Promise<void>;
+  release(nativeId: string): Promise<void>;
 }
 
 const OfflineModule =
@@ -41,15 +42,11 @@ export interface OfflineContentConfig extends NativeInstanceConfig {
    * An identifier for this source that is unique within the location and must never change.
    * The root folder will contain a folder based on this id.
    */
-  nativeId: string;
+  offlineId: string;
   /**
    * The `SourceConfig` used to download the offline resources.
    */
   sourceConfig: SourceConfig;
-  /**
-   * The root folder where all downloads will preside.  Defaults to the devices cache directory.
-   */
-  location?: string;
   /**
    * The `OfflineContentManagerListener` where callbacks for event data will be passed to.
    */
@@ -74,7 +71,8 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Allocates the native `OfflineManager` instance and its resources natively.
    * Registers the `DeviceEventEmitter` listener to receive data from the native `OfflineContentManagerListener` callbacks
    */
-  initialize = () => {
+  initialize = (): Promise<void> => {
+    let initPromise = Promise.resolve();
     if (!this.isInitialized && this.config) {
       if (this.config.listener) {
         this.eventSubscription = new NativeEventEmitter(
@@ -107,22 +105,28 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
         );
       }
 
-      OfflineModule.initWithConfig(this.nativeId, {
+      initPromise = OfflineModule.initWithConfig(this.nativeId, {
+        offlineId: this.config.offlineId,
         sourceConfig: this.config.sourceConfig,
-        location: this.config.location,
       });
     }
+
+    this.isInitialized = true;
+    return initPromise;
   };
 
   /**
    * Destroys the native `OfflineManager` and releases all of its allocated resources.
    */
-  destroy = () => {
+  destroy = (): Promise<void> => {
     if (!this.isDestroyed) {
       this.isDestroyed = true;
       this.eventSubscription?.remove?.();
-      OfflineModule.release(this.nativeId);
+
+      return OfflineModule.release(this.nativeId);
     }
+
+    return Promise.resolve();
   };
 
   /**
@@ -136,8 +140,8 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Loads the current `OfflineContentOptions`.
    * When the options are loaded the data will be passed to the `OfflineContentManagerListener.onOptionsAvailable`.
    */
-  getOptions = () => {
-    OfflineModule.getOptions(this.nativeId);
+  getOptions = (): Promise<void> => {
+    return OfflineModule.getOptions(this.nativeId);
   };
 
   /**
@@ -153,22 +157,29 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   /**
    * Resumes all suspended actions.
    */
-  resume = () => {
-    OfflineModule.resume(this.nativeId);
+  resume = (): Promise<void> => {
+    return OfflineModule.resume(this.nativeId);
   };
 
   /**
    * Suspends all active actions.
    */
-  suspend = () => {
-    OfflineModule.suspend(this.nativeId);
+  suspend = (): Promise<void> => {
+    return OfflineModule.suspend(this.nativeId);
+  };
+
+  /**
+   * Cancels and deletes the active download.
+   */
+  cancelDownload = (): Promise<void> => {
+    return OfflineModule.cancelDownload(this.nativeId);
   };
 
   /**
    * Deletes everything related to the related content ID.
    */
-  deleteAll = () => {
-    OfflineModule.deleteAll(this.nativeId);
+  deleteAll = (): Promise<void> => {
+    return OfflineModule.deleteAll(this.nativeId);
   };
 
   /**
@@ -176,8 +187,8 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
-  downloadLicense = () => {
-    OfflineModule.downloadLicense(this.nativeId);
+  downloadLicense = (): Promise<void> => {
+    return OfflineModule.downloadLicense(this.nativeId);
   };
 
   /**
@@ -185,8 +196,8 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
-  releaseLicense = () => {
-    OfflineModule.releaseLicense(this.nativeId);
+  releaseLicense = (): Promise<void> => {
+    return OfflineModule.releaseLicense(this.nativeId);
   };
 
   /**
@@ -194,7 +205,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
-  renewOfflineLicense = () => {
-    OfflineModule.renewOfflineLicense(this.nativeId);
+  renewOfflineLicense = (): Promise<void> => {
+    return OfflineModule.renewOfflineLicense(this.nativeId);
   };
 }

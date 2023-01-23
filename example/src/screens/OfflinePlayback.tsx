@@ -49,6 +49,8 @@ const INITIAL_DOWNLOAD_REQUEST: OfflineDownloadRequest = {
 const SOURCE_CONFIG: SourceConfig = {
   url: 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
   type: SourceType.HLS,
+  title: 'Some Title',
+  poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
 };
 
 export default function OfflinePlayback() {
@@ -71,7 +73,7 @@ export default function OfflinePlayback() {
   useFocusEffect(
     useCallback(() => {
       const newOfflineManager = new OfflineContentManager({
-        nativeId: STABLE_OFFLINE_ID,
+        offlineId: STABLE_OFFLINE_ID,
         sourceConfig: SOURCE_CONFIG,
         listener: {
           onCompleted: (e) => {
@@ -94,9 +96,13 @@ export default function OfflinePlayback() {
           onSuspended: onEvent,
         },
       });
-      newOfflineManager.initialize();
 
-      setOfflineManager(newOfflineManager);
+      newOfflineManager
+        .initialize()
+        .then(() => {
+          setOfflineManager(newOfflineManager);
+        })
+        .catch(console.error);
 
       return () => {
         newOfflineManager.destroy?.();
