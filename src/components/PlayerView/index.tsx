@@ -11,7 +11,7 @@ import { PlayerViewEvents } from './events';
 import { NativePlayerView } from './native';
 import { Player } from '../../player';
 import { useProxy } from '../../hooks/useProxy';
-import { FullscreenHandler } from '../../ui/fullscreenhandler';
+import { FullscreenHandler } from '../../ui';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 
 /**
