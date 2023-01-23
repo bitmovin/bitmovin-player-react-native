@@ -1,5 +1,7 @@
 package com.bitmovin.player.reactnative.converter
 
+import com.bitmovin.analytics.BitmovinAnalyticsConfig
+import com.bitmovin.analytics.data.CustomData
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.DeviceDescription.ModelName
 import com.bitmovin.player.api.PlaybackConfig
@@ -17,11 +19,15 @@ import com.bitmovin.player.api.media.video.quality.VideoQuality
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
+import com.bitmovin.player.api.ui.ScalingMode
+import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.putInt
 import com.bitmovin.player.reactnative.extensions.putDouble
 import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.extensions.toReadableArray
+import com.bitmovin.player.reactnative.extensions.getProperty
+import com.bitmovin.player.reactnative.extensions.setProperty
 import com.facebook.react.bridge.*
 import java.util.UUID
 
@@ -46,6 +52,11 @@ class JsonConverter {
             if (json.hasKey("playbackConfig")) {
                 toPlaybackConfig(json.getMap("playbackConfig"))?.let {
                     playerConfig.playbackConfig = it
+                }
+            }
+            if (json.hasKey("styleConfig")) {
+                toStyleConfig(json.getMap("styleConfig"))?.let {
+                    playerConfig.styleConfig = it
                 }
             }
             if (json.hasKey("tweaksConfig")) {
@@ -82,6 +93,47 @@ class JsonConverter {
                 playbackConfig.isTimeShiftEnabled = json.getBoolean("isTimeShiftEnabled")
             }
             return playbackConfig
+        }
+
+        /**
+         * Converts any JS object into a `StyleConfig` object.
+         * @param json JS object representing the `StyleConfig`.
+         * @return The generated `StyleConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toStyleConfig(json: ReadableMap?): StyleConfig? {
+            if (json == null) {
+                return null
+            }
+            val styleConfig = StyleConfig()
+            if (json.hasKey("isUiEnabled")) {
+                styleConfig.isUiEnabled = json.getBoolean("isUiEnabled")
+            }
+            if (json.hasKey("playerUiCss")) {
+                val playerUiCss = json.getString("playerUiCss")
+                if (!playerUiCss.isNullOrEmpty()) {
+                    styleConfig.playerUiCss = playerUiCss
+                }
+            }
+            if (json.hasKey("supplementalPlayerUiCss")) {
+                val supplementalPlayerUiCss = json.getString("supplementalPlayerUiCss")
+                if (!supplementalPlayerUiCss.isNullOrEmpty()) {
+                    styleConfig.supplementalPlayerUiCss = supplementalPlayerUiCss
+                }
+            }
+            if (json.hasKey("playerUiJs")) {
+                val playerUiJs = json.getString("playerUiJs")
+                if (!playerUiJs.isNullOrEmpty()) {
+                    styleConfig.playerUiJs = playerUiJs
+                }
+            }
+            if (json.hasKey("scalingMode")) {
+                val scalingMode = json.getString("scalingMode")
+                if (!scalingMode.isNullOrEmpty()) {
+                    styleConfig.scalingMode = ScalingMode.valueOf(scalingMode)
+                }
+            }
+            return styleConfig
         }
 
         /**
@@ -211,7 +263,7 @@ class JsonConverter {
                 }
             }
             if (json.hasKey("thumbnailTrack")) {
-                 config.thumbnailTrack = toThumbnailTrack(json.getString("thumbnailTrack"))
+                config.thumbnailTrack = toThumbnailTrack(json.getString("thumbnailTrack"))
             }
             return config
         }
@@ -425,6 +477,7 @@ class JsonConverter {
             }
             return ThumbnailTrack(url);
         }
+
         /**
          * Converts any `AudioTrack` into its json representation.
          * @param audioTrack `AudioTrack` object to be converted.
@@ -647,6 +700,85 @@ class JsonConverter {
             else -> null
         }
 
+        /**
+         * Converts an arbitrary json object into a `BitmovinAnalyticsConfig`.
+         * @param json JS object representing the `BitmovinAnalyticsConfig`.
+         * @return The produced `BitmovinAnalyticsConfig` or null.
+         */
+        @JvmStatic
+        fun toAnalyticsConfig(json: ReadableMap?): BitmovinAnalyticsConfig? = json?.let {
+            var config: BitmovinAnalyticsConfig? = null
+            it.getString("key")?.let { key ->
+                config = it.getString("playerKey")
+                    ?.let { playerKey -> BitmovinAnalyticsConfig(key, playerKey) }
+                    ?: BitmovinAnalyticsConfig(key)
+            }
+            it.getString("cdnProvider")?.let { cdnProvider ->
+                config?.cdnProvider = cdnProvider
+            }
+            it.getString("customUserId")?.let { customUserId ->
+                config?.customUserId = customUserId
+            }
+            it.getString("experimentName")?.let { experimentName ->
+                config?.experimentName = experimentName
+            }
+            it.getString("videoId")?.let { videoId ->
+                config?.videoId = videoId
+            }
+            it.getString("title")?.let { title ->
+                config?.title = title
+            }
+            it.getString("path")?.let { path ->
+                config?.path = path
+            }
+            if (it.hasKey("isLive")) {
+                config?.isLive = it.getBoolean("isLive")
+            }
+            if (it.hasKey("ads")) {
+                config?.ads = it.getBoolean("ads")
+            }
+            if (it.hasKey("randomizeUserId")) {
+                config?.randomizeUserId = it.getBoolean("randomizeUserId")
+            }
+            for (n in 1..30) {
+                it.getString("customData${n}")?.let { customDataN ->
+                    config?.setProperty("customData${n}", customDataN)
+                }
+            }
+            config
+        }
+
+        /**
+         * Converts an arbitrary json object into an analytics `CustomData`.
+         * @param json JS object representing the `CustomData`.
+         * @return The produced `CustomData` or null.
+         */
+        @JvmStatic
+        fun toAnalyticsCustomData(json: ReadableMap?): CustomData? = json?.let {
+            val customData = CustomData()
+            for (n in 1..30) {
+                it.getString("customData${n}")?.let { customDataN ->
+                    customData.setProperty("customData${n}", customDataN)
+                }
+            }
+            customData
+        }
+
+        /**
+         * Converts an arbitrary analytics `CustomData` object into a JS value.
+         * @param customData `CustomData` to be converted.
+         * @return The produced JS value or null.
+         */
+        @JvmStatic
+        fun fromAnalyticsCustomData(customData: CustomData?): ReadableMap? = customData?.let {
+            val json = Arguments.createMap()
+            for (n in 1..30) {
+                it.getProperty<String>("customData${n}")?.let { customDataN ->
+                    json.putString("customData${n}", customDataN)
+                }
+            }
+            json
+        }
 
         /**
          * Converts any `VideoQuality` value into its json representation.

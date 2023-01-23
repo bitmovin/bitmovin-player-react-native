@@ -4,6 +4,9 @@ import android.os.Handler
 import android.os.Looper
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.reactnative.extensions.getModule
+import com.bitmovin.player.reactnative.ui.FullscreenHandlerBridge
+import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
@@ -19,6 +22,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      */
     enum class Commands {
         ATTACH_PLAYER,
+        ATTACH_FULLSCREEN_BRIDGE
     }
 
     /**
@@ -95,6 +99,10 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "adSkipped" to "onAdSkipped",
         "adStarted" to "onAdStarted",
         "videoPlaybackQualityChanged" to "onVideoPlaybackQualityChanged",
+        "fullscreenEnabled" to "onFullscreenEnabled",
+        "fullscreenDisabled" to "onFullscreenDisabled",
+        "fullscreenEnter" to "onFullscreenEnter",
+        "fullscreenExit" to "onFullscreenExit",
     )
 
     /**
@@ -116,7 +124,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @return map between names (used in js) and command ids (used in native code).
      */
     override fun getCommandsMap(): MutableMap<String, Int> = mutableMapOf(
-        "attachPlayer" to Commands.ATTACH_PLAYER.ordinal
+        "attachPlayer" to Commands.ATTACH_PLAYER.ordinal,
+        "attachFullscreenBridge" to Commands.ATTACH_FULLSCREEN_BRIDGE.ordinal,
     )
 
     /**
@@ -130,8 +139,19 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         commandId?.toInt()?.let {
             when (it) {
                 Commands.ATTACH_PLAYER.ordinal -> attachPlayer(view, args?.getString(1), args?.getMap(2))
+                Commands.ATTACH_FULLSCREEN_BRIDGE.ordinal -> args?.getString(1)?.let { fullscreenBridgeId ->
+                    attachFullscreenBridge(view, fullscreenBridgeId)
+                }
                 else -> {}
             }
+        }
+    }
+
+    private fun attachFullscreenBridge(view: RNPlayerView, fullscreenBridgeId: NativeId) {
+        Handler(Looper.getMainLooper()).post {
+            view.playerView?.setFullscreenHandler(
+                context.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId)
+            )
         }
     }
 
@@ -153,7 +173,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 val playerView = PlayerView(context, player)
                 playerView.layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
-                    LayoutParams.MATCH_PARENT)
+                    LayoutParams.MATCH_PARENT
+                )
                 view.addPlayerView(playerView)
             }
         }
@@ -162,6 +183,5 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     /**
      * Helper function that gets the instantiated `PlayerModule` from modules registry.
      */
-    private fun getPlayerModule(): PlayerModule? =
-        context.getNativeModule(PlayerModule::class.java)
+    private fun getPlayerModule(): PlayerModule? = context.getModule()
 }
