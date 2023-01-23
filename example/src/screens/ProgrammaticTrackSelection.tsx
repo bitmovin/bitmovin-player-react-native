@@ -112,6 +112,12 @@ export default function ProgrammaticTrackSelection() {
         onAudioChanged={onEvent}
         onSubtitleChanged={onEvent}
       />
+      <TouchableOpacity
+        style={[styles.clearSubtitles, styles.trackItem]}
+        onPress={() => player.setSubtitleTrack(undefined)}
+      >
+        <Text style={styles.trackItemText}>Clear Subtitles</Text>
+      </TouchableOpacity>
       <FlatList
         data={tracks}
         style={styles.tracks}
@@ -134,6 +140,13 @@ const styles = StyleSheet.create({
   },
   player: {
     flex: 1,
+  },
+  clearSubtitles: {
+    flexGrow: 0,
+    flexShrink: 1,
+    flexBasis: 'auto',
+    backgroundColor: 'white',
+    alignSelf: 'stretch',
   },
   tracks: {
     flex: 1,

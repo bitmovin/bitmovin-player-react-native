@@ -353,7 +353,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Sets the audio track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableAudioTracks.
    */
   setAudioTrack = async (trackIdentifier: string): Promise<void> => {
-    PlayerModule.setAudioTrack(this.nativeId, trackIdentifier);
+    return PlayerModule.setAudioTrack(this.nativeId, trackIdentifier);
   };
 
   /**
@@ -366,8 +366,8 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Sets the subtitle track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableSubtitles.
    */
-  setSubtitleTrack = async (trackIdentifier: string): Promise<void> => {
-    PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier);
+  setSubtitleTrack = async (trackIdentifier?: string): Promise<void> => {
+    return PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier);
   };
 
   /**

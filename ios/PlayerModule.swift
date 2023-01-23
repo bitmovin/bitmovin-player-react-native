@@ -397,17 +397,12 @@ class PlayerModule: NSObject, RCTBridgeModule {
     @objc(setSubtitleTrack:trackIdentifier:resolver:rejecter:)
     func setSubtitleTrack(
         _ nativeId: NativeId,
-        trackIdentifier: String,
+        trackIdentifier: String?,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            if ((trackIdentifier ?? "").isEmpty) {
-                self?.players[nativeId]?.setSubtitle(trackIdentifier: nil)
-            } else {
-                self?.players[nativeId]?.setSubtitle(trackIdentifier: trackIdentifier)
-            }
-
+            self?.players[nativeId]?.setSubtitle(trackIdentifier: trackIdentifier)
             resolve(nil)
         }
     }
