@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.5.0] (2023-01-13)
+
+This version introduces analytics integration, fullscreen support and customizing the Player UI.
+
+### Added
+
+- Built-in Bitmovin Analytics integration.
+- `FullscreenHandler` support.
+- Bitmovin Player Web UI customization via `styleConfig` property on player creation.
+
 ## [0.4.0] (2022-11-24)
 
 This version introduces the advertising API, full Picture in Picture support and exposes Stall events.

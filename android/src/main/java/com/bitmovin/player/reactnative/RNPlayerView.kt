@@ -451,12 +451,39 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
         emitEvent("adStarted", it)
     }
 
-
     /**
      * `onVideoPlaybackQualityChanged` event callback.
      */
     private val onVideoPlaybackQualityChanged: (PlayerEvent.VideoPlaybackQualityChanged) -> Unit = {
         emitEvent("videoPlaybackQualityChanged", it)
+    }
+
+    /**
+     * `onFullscreenEnabled` event callback.
+     */
+    private val onFullscreenEnabled: (PlayerEvent.FullscreenEnabled) -> Unit = {
+      emitEvent("fullscreenEnabled", it)
+    }
+
+    /**
+     * `onFullscreenEnabled` event callback.
+     */
+    private val onFullscreenDisabled: (PlayerEvent.FullscreenDisabled) -> Unit = {
+      emitEvent("fullscreenDisabled", it)
+    }
+
+    /**
+     * `onFullscreenEnter` event callback.
+     */
+    private val onFullscreenEnter: (PlayerEvent.FullscreenEnter) -> Unit = {
+      emitEvent("fullscreenEnter", it)
+    }
+
+    /**
+     * `onFullscreenEnter` event callback.
+     */
+    private val onFullscreenExit: (PlayerEvent.FullscreenExit) -> Unit = {
+      emitEvent("fullscreenExit", it)
     }
 
     /**
@@ -505,6 +532,10 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
             on(onPictureInPictureAvailabilityChanged)
             on(onPictureInPictureEnter)
             on(onPictureInPictureExit)
+            on(onFullscreenEnabled)
+            on(onFullscreenDisabled)
+            on(onFullscreenEnter)
+            on(onFullscreenExit)
         }
     }
 
@@ -554,6 +585,10 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
             off(onPictureInPictureAvailabilityChanged)
             off(onPictureInPictureEnter)
             off(onPictureInPictureExit)
+            off(onFullscreenEnabled)
+            off(onFullscreenDisabled)
+            off(onFullscreenEnter)
+            off(onFullscreenExit)
         }
     }
 
