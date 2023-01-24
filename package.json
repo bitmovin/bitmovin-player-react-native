@@ -1,6 +1,6 @@
 {
   "name": "bitmovin-player-react-native",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Official React Native bindings for Bitmovin's mobile Player SDKs.",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
@@ -52,7 +52,7 @@
     "@types/jest": "26.0.24",
     "@types/lodash.omit": "4.5.0",
     "@types/react": "18.0.15",
-    "@types/react-native": "0.69.2",
+    "@types/react-native": "0.69.7",
     "babel-plugin-module-resolver": "4.1.0",
     "commitlint": "17.1.2",
     "eslint": "8.24.0",

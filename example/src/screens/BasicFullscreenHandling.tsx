@@ -7,9 +7,9 @@ import {
   PlayerView,
   SourceType,
   AudioSession,
+  FullscreenHandler,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
-import { FullscreenHandler } from '../../../src/ui/fullscreenhandler';
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.1] (2023-01-23)
+
+### Fixed
+
+- Fix missing export of `FullscreenHandler` to allow fullscreen support to be integrated.
+
 ## [0.5.0] (2023-01-13)
 
 This version introduces analytics integration, fullscreen support and customizing the Player UI.
