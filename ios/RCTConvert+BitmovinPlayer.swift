@@ -566,7 +566,7 @@ extension RCTConvert {
             "minBitrate": adData.minBitrate
         ]
     }
-/**
+    /**
      Utility method to get a `BitmovinAnalyticsConfig` value from a JS object.
      - Parameter json: JS object.
      - Returns: The associated `BitmovinAnalyticsConfig` value or nil.
