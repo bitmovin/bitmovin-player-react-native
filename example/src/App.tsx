@@ -10,6 +10,7 @@ import BasicAnalytics from './screens/BasicAnalytics';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
+import ProgrammaticTrackSelection from './screens/ProgrammaticTrackSelection';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
 import BasicPictureInPicture from './screens/BasicPictureInPicture';
@@ -45,7 +46,7 @@ export type RootStackParamsList = {
 const RootStack = createNativeStackNavigator();
 
 export default function App() {
-  var stackParams = {
+  const stackParams = {
     data: [
       {
         title: 'Basic playback',
@@ -70,6 +71,10 @@ export default function App() {
       {
         title: 'Basic Ads',
         routeName: 'BasicAds',
+      },
+      {
+        title: 'Programmatic Track Selection',
+        routeName: 'ProgrammaticTrackSelection',
       },
     ],
   };
@@ -137,6 +142,11 @@ export default function App() {
           name="SubtitlePlayback"
           component={SubtitlePlayback}
           options={{ title: 'Subtitle and captions' }}
+        />
+        <RootStack.Screen
+          name="ProgrammaticTrackSelection"
+          component={ProgrammaticTrackSelection}
+          options={{ title: 'Programmatic Track Selection' }}
         />
         <RootStack.Screen
           name="CustomPlaybackForm"
