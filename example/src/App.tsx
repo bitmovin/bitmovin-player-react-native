@@ -45,6 +45,8 @@ export type RootStackParamsList = {
 
 const RootStack = createNativeStackNavigator();
 
+const isTVOS = Platform.OS === 'ios' && Platform.isTV;
+
 export default function App() {
   const stackParams = {
     data: [
@@ -79,7 +81,7 @@ export default function App() {
     ],
   };
 
-  if (!Platform.isTVOS) {
+  if (!isTVOS) {
     stackParams.data.push({
       title: 'Custom HTML UI',
       routeName: 'CustomHtmlUI',
@@ -163,7 +165,7 @@ export default function App() {
           component={BasicPictureInPicture}
           options={{ title: 'Basic Picture in Picture' }}
         />
-        {!Platform.isTVOS && (
+        {!isTVOS && (
           <RootStack.Screen
             name="CustomHtmlUI"
             component={CustomHtmlUI}
