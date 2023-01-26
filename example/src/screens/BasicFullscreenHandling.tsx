@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { View, Platform, StyleSheet, StatusBar } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -10,6 +11,12 @@ import {
   FullscreenHandler,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
+import { RootStackParamsList } from '../App';
+
+type BasicFullscreenHandlingProps = NativeStackScreenProps<
+  RootStackParamsList,
+  'BasicFullscreenHandling'
+>;
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
@@ -41,7 +48,9 @@ class SampleFullscreenHandler implements FullscreenHandler {
     console.log('exit fullscreen');
   }
 }
-export default function BasicFullscreenHandling({ navigation }) {
+export default function BasicFullscreenHandling({
+  navigation,
+}: BasicFullscreenHandlingProps) {
   useTVGestures();
 
   const player = usePlayer();
