@@ -71,6 +71,7 @@ Features of the native mobile Player SDKs are progressively being implemented in
 | Advertising                      | :white_check_mark: Available since v0.4.0 |
 | Analytics                        | :white_check_mark: Available since v0.5.0 |
 | Playlist API                     | :x: Not available                         |
+| Casting                          | :x: Not available                         |
 | Offline Playback                 | :x: Not available                         |
 
 ## Installation
