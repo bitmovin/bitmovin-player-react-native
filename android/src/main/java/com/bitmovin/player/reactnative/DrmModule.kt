@@ -17,7 +17,9 @@ import kotlin.concurrent.withLock
  */
 typealias PrepareCallback = (ByteArray) -> ByteArray
 
-@ReactModule(name = DrmModule.name)
+private const val MODULE_NAME = "DrmModule"
+
+@ReactModule(name = MODULE_NAME)
 class DrmModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
     /**
      * In-memory mapping from `nativeId`s to `WidevineConfig` instances.
@@ -52,10 +54,7 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
     /**
      * JS exported module name.
      */
-    companion object {
-        const val name = "DrmModule"
-    }
-    override fun getName() = DrmModule.name
+    override fun getName() = MODULE_NAME
 
     /**
      * Fetches the `WidevineConfig` instance associated with `nativeId` from internal drmConfigs.

@@ -1,4 +1,14 @@
+import {
+  Ad,
+  AdBreak,
+  AdConfig,
+  AdItem,
+  AdQuartile,
+  AdSourceType,
+} from './advertising';
 import { SubtitleTrack } from './subtitleTrack';
+import { VideoQuality } from './media';
+import { AudioTrack } from './audioTrack';
 
 /**
  * Base event type for all events.
@@ -159,6 +169,16 @@ export interface SeekEvent extends Event {
 export interface SeekedEvent extends Event {}
 
 /**
+ * Emitted when the player begins to stall and to buffer due to an empty buffer.
+ */
+export interface StallStartedEvent extends Event {}
+
+/**
+ * Emitted when the player ends stalling, due to enough data in the buffer.
+ */
+export interface StallEndedEvent extends Event {}
+
+/**
  * Emitted when the current playback time has changed.
  */
 export interface TimeChangedEvent extends Event {
@@ -211,6 +231,40 @@ export interface SourceErrorEvent extends ErrorEvent {}
 export interface SourceWarningEvent extends ErrorEvent {}
 
 /**
+ * Emitted when a new audio track is added to the player.
+ */
+export interface AudioAddedEvent extends Event {
+  /**
+   * Audio track that has been added.
+   */
+  audioTrack: AudioTrack;
+}
+
+/**
+ * Emitted when the player's selected audio track has changed.
+ */
+export interface AudioChangedEvent extends Event {
+  /**
+   * Audio track that was previously selected.
+   */
+  oldAudioTrack: AudioTrack;
+  /**
+   * Audio track that is selected now.
+   */
+  newAudioTrack: AudioTrack;
+}
+
+/**
+ * Emitted when an audio track is removed from the player.
+ */
+export interface AudioRemovedEvent extends Event {
+  /**
+   * Audio track that has been removed.
+   */
+  audioTrack: AudioTrack;
+}
+
+/**
  * Emitted when a new subtitle track is added to the player.
  */
 export interface SubtitleAddedEvent extends Event {
@@ -242,4 +296,240 @@ export interface SubtitleChangedEvent extends Event {
    * Subtitle track that is selected now.
    */
   newSubtitleTrack: SubtitleTrack;
+}
+
+/**
+ * Emitted when the player enters Picture in Picture mode.
+ *
+ * @platform iOS, Android
+ */
+export interface PictureInPictureEnterEvent extends Event {}
+
+/**
+ * Emitted when the player exits Picture in Picture mode.
+ *
+ * @platform iOS, Android
+ */
+export interface PictureInPictureExitEvent extends Event {}
+
+/**
+ * Emitted when the player has finished entering Picture in Picture mode on iOS.
+ *
+ * @platform iOS
+ */
+export interface PictureInPictureEnteredEvent extends Event {}
+
+/**
+ * Emitted when the player has finished exiting Picture in Picture mode on iOS.
+ *
+ * @platform iOS
+ */
+export interface PictureInPictureExitedEvent extends Event {}
+
+/**
+ * Emitted when the fullscreen functionality has been enabled.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenEnabledEvent extends Event {}
+
+/**
+ * Emitted when the fullscreen functionality has been disabled.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenDisabledEvent extends Event {}
+
+/**
+ * Emitted when the player enters fullscreen mode.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenEnterEvent extends Event {}
+
+/**
+ * Emitted when the player exits fullscreen mode.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenExitEvent extends Event {}
+
+/**
+ * Emitted when the availability of the Picture in Picture mode changed on Android.
+ *
+ * @platform Android
+ */
+export interface PictureInPictureAvailabilityChangedEvent extends Event {
+  /**
+   * Whether Picture in Picture is available.
+   */
+  isPictureInPictureAvailable: boolean;
+}
+
+/**
+ * Emitted when an ad break has started.
+ */
+export interface AdBreakStartedEvent extends Event {
+  /**
+   * The `AdBreak` that has started.
+   */
+  adBreak?: AdBreak;
+}
+
+/**
+ * Emitted when an ad break has finished.
+ */
+export interface AdBreakFinishedEvent extends Event {
+  /**
+   * The `AdBreak` that has finished.
+   */
+  adBreak?: AdBreak;
+}
+
+/**
+ * Emitted when the playback of an ad has started.
+ */
+export interface AdStartedEvent extends Event {
+  /**
+   * The `Ad` this event is related to.
+   */
+  ad?: Ad;
+  /**
+   * The target URL to open once the user clicks on the ad.
+   */
+  clickThroughUrl?: string;
+  /**
+   * The `AdSourceType` of the started `Ad`.
+   */
+  clientType?: AdSourceType;
+  /**
+   * The duration of the ad in seconds.
+   */
+  duration: number;
+  /**
+   * The index of the ad in the queue.
+   */
+  indexInQueue: number;
+  /**
+   * The position of the corresponding `Ad`.
+   */
+  position?: string;
+  /**
+   * The skip offset of the ad in seconds.
+   */
+  skipOffset: number;
+  /**
+   * The content time at which the `Ad` is played.
+   */
+  timeOffset: number;
+}
+
+/**
+ * Emitted when an ad has finished playback.
+ */
+export interface AdFinishedEvent extends Event {
+  /**
+   * The `Ad` that finished playback.
+   */
+  ad?: Ad;
+}
+
+/**
+ * Emitted when an error with the ad playback occurs.
+ */
+export interface AdErrorEvent extends ErrorEvent {
+  /**
+   * The `AdConfig` for which the ad error occurred.
+   */
+  adConfig?: AdConfig;
+  /**
+   * The `AdItem` for which the ad error occurred.
+   */
+  adItem?: AdItem;
+}
+
+/**
+ * Emitted when an ad was clicked.
+ */
+export interface AdClickedEvent extends Event {
+  /**
+   * The click through url of the ad.
+   */
+  clickThroughUrl?: string;
+}
+
+/**
+ * Emitted when an ad was skipped.
+ */
+export interface AdSkippedEvent extends Event {
+  /**
+   * The `Ad` that was skipped.
+   */
+  ad?: Ad;
+}
+
+/**
+ * Emitted when the playback of an ad has progressed over a quartile boundary.
+ */
+export interface AdQuartileEvent extends Event {
+  /**
+   * The `AdQuartile` boundary that playback has progressed over.
+   */
+  quartile: AdQuartile;
+}
+
+/**
+ * Emitted when an ad manifest was successfully downloaded, parsed and added into the ad break schedule.
+ */
+export interface AdScheduledEvent extends Event {
+  /**
+   * The total number of scheduled ads.
+   */
+  numberOfAds: number;
+}
+
+/**
+ * Emitted when the download of an ad manifest is started.
+ */
+export interface AdManifestLoadEvent extends Event {
+  /**
+   * The `AdBreak` this event is related to.
+   */
+  adBreak?: AdBreak;
+  /**
+   * The `AdConfig` of the loaded ad manifest.
+   */
+  adConfig?: AdConfig;
+}
+
+/**
+ * Emitted when an ad manifest was successfully loaded.
+ */
+export interface AdManifestLoadedEvent extends Event {
+  /**
+   * The `AdBreak` this event is related to.
+   */
+  adBreak?: AdBreak;
+  /**
+   * The `AdConfig` of the loaded ad manifest.
+   */
+  adConfig?: AdConfig;
+  /**
+   * How long it took for the ad tag to be downloaded in milliseconds.
+   */
+  downloadTime: number;
+}
+
+/**
+ * Emitted when the current video playback quality has changed.
+ */
+export interface VideoPlaybackQualityChangedEvent extends Event {
+  /**
+   * The new quality
+   */
+  newVideoQuality: VideoQuality;
+  /**
+   * The previous quality
+   */
+  oldVideoQuality: VideoQuality;
 }

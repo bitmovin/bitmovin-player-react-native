@@ -11,27 +11,41 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 > See [Feature Support](#feature-support) for an overview of the supported features.
 >
 > Not seeing the features you’re looking for?  
-> We are accepting community pull requests to this open-source project so please feel free to contribute  
-> or let us know in [our community](https://community.bitmovin.com/c/requests/14) what features we should work on next
+> We are accepting community pull requests to this open-source project so please feel free to contribute.
+> or let us know in [our community](https://community.bitmovin.com/c/requests/14) what features we should work on next.
 
 - [Bitmovin Player React Native](#bitmovin-player-react-native)
   - [Platform Support](#platform-support)
-  - [Feature Support](#platform-support)
+  - [Feature Support](#feature-support)
   - [Installation](#installation)
     - [Add package dependency](#add-package-dependency)
     - [Setup iOS Player SDK](#setup-ios-player-sdk)
     - [Setup Android Player SDK](#setup-android-player-sdk)
   - [Getting Started](#getting-started)
     - [Setting up a license key](#setting-up-a-license-key)
-      - [Configuring through code](#configuring-through-code)
-    - [Setting up a playback configurations](#setting-up-a-playback-configurations)
-      - [Configuring `Info.plist`](#configuring-infoplist)
-      - [Configuring `AndroidManifest.xml`](#configuring-androidmanifestxml)
+      - [Through code](#through-code)
+      - [Through `Info.plist`](#through-infoplist)
+      - [Through `AndroidManifest.xml`](#through-androidmanifestxml)
+    - [Setting up the playback configuration](#setting-up-the-playback-configuration)
     - [Accessing native `Player` instances](#accessing-native-player-instances)
     - [Listening to events](#listening-to-events)
     - [Enabling DRM protection](#enabling-drm-protection)
       - [Prepare hooks](#prepare-hooks)
     - [Adding external subtitle tracks](#adding-external-subtitle-tracks)
+    - [Adding external thumbnail track](#adding-external-thumbnail-track)
+    - [Enabling Picture in Picture mode](#enabling-picture-in-picture-mode)
+      - [Android](#android)
+      - [iOS](#ios)
+      - [Showing the Picture in Picture UI option](#showing-the-picture-in-picture-ui-option)
+      - [Supported Picture in Picture events](#supported-picture-in-picture-events)
+    - [Customize HTML UI](#customize-html-ui-android-and-ios-only)
+    - [Setting up fullscreen handling](#setting-up-fullscreen-handling)
+      - [Supported fullscreen related events](#supported-fullscreen-related-events)
+    - [Setting up ads](#setting-up-ads)
+      - [Static ads configuration](#static-ads-configuration)
+      - [Dynamic ads scheduling](#dynamic-ads-scheduling)
+      - [Supported ads events](#supported-ads-events)
+    - [Setting up analytics](#setting-up-analytics)
   - [Contributing](#contributing)
 
 ## Platform Support
@@ -50,14 +64,15 @@ Please note that browsers and other browser-like environments such as webOS and 
 
 Features of the native mobile Player SDKs are progressively being implemented in this React Native library. The table below summarizes the current state of the main Player SDK features.
 
-| Feature | State |
-| --- | --- |
-| Playback of DRM-protected assets | :white_check_mark:  Available since v0.2.0 |
-| Subtitles & Captions | :white_check_mark:  Available since v0.2.0 |
-| Advertising | :gear:  In progress, Q4 2022 |
-| Playlist API | :x:  Not available |
-| Offline Playback | :x:  Not available |
-| Analytics | :x:  Coming Q1 2023 |
+| Feature                          | State                                     |
+| -------------------------------- | ----------------------------------------- |
+| Playback of DRM-protected assets | :white_check_mark: Available since v0.2.0 |
+| Subtitles & Captions             | :white_check_mark: Available since v0.2.0 |
+| Advertising                      | :white_check_mark: Available since v0.4.0 |
+| Analytics                        | :white_check_mark: Available since v0.5.0 |
+| Playlist API                     | :x: Not available                         |
+| Casting                          | :x: Not available                         |
+| Offline Playback                 | :x: Not available                         |
 
 ## Installation
 
@@ -219,7 +234,7 @@ First of all, create a license key on the [Dashboard](https://bitmovin.com/dashb
 
 Then your license key can be either set from code or by configuring `Info.plist` and `AndroidManifest.xml`.
 
-#### Configuring through code
+#### Through code
 
 ```typescript
 // Simply pass the `licenseKey` property to `PlayerConfig` when instantiating a player.
@@ -238,7 +253,24 @@ const player = new Player({
 });
 ```
 
-### Setting up a playback configurations
+#### Through `Info.plist`
+
+Add the following lines to the `<dict>` section of your `ios/Info.plist`:
+
+```xml
+<key>BitmovinPlayerLicenseKey</key>
+<string>ENTER-YOUR-LICENSE-KEY</string>
+```
+
+#### Through `AndroidManifest.xml`
+
+Add the following line to the `<application>` section of your `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="ENTER-YOUR-LICENSE-KEY" />
+```
+
+### Setting up the playback configuration
 
 If needed, the default player behavior can be configured through the `playbackConfig` key when initialized.
 
@@ -258,6 +290,14 @@ const player = usePlayer({
     // Whether background playback is enabled or not. Default is false.
     // Only available for iOS.
     isBackgroundPlaybackEnabled: true,
+    // Enable the Picture in Picture mode option on the player controls.
+    //
+    // Note iOS requires the audio session category of your app to be set to `playback` otherwise
+    // PiP mode won't work.
+    //
+    // Check out `Enabling Picture in Picture mode` section of README for more information
+    // on how to properly configure your app to support PiP.
+    isPictureInPictureEnabled: true,
   },
 });
 
@@ -270,25 +310,9 @@ const player = new Player({
     isMuted: true,
     isTimeShiftEnabled: true,
     isBackgroundPlaybackEnabled: true,
+    isPictureInPictureEnabled: true,
   },
 });
-```
-
-#### Configuring `Info.plist`
-
-Add the following lines to the `<dict>` section of your `ios/Info.plist`:
-
-```xml
-<key>BitmovinPlayerLicenseKey</key>
-<string>ENTER-YOUR-LICENSE-KEY</string>
-```
-
-#### Configuring `AndroidManifest.xml`
-
-Add the following line to the `<application>` section of your `android/app/src/main/AndroidManifest.xml`:
-
-```xml
-<meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="ENTER-YOUR-LICENSE-KEY" />
 ```
 
 ### Accessing native `Player` instances
@@ -504,6 +528,426 @@ The supported `PlayerView` events for subtitles are:
 - `onSubtitleChanged`
 
 You might check out a complete subtitle example in the [`example/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app.
+
+### Adding external thumbnail track
+
+Thumbnail seeking is a must have for any video longer than a few minutes. It increases usability and the general QoE [(Quality of Experience)](https://bitmovin.com/ultra-high-definition-quality-experience-mpeg-dash-part-1/) dramatically.
+
+Setting up is simple with the Bitmovin Player. Thumbnails are loaded into the timeline as a track. All you need to do is to tell the player the location of the thumbnail file:
+
+```typescript
+import { Platform } from 'react-native';
+import {
+  SourceConfig,
+  SourceType,
+  SubtitleFormat,
+} from 'bitmovin-player-react-native';
+
+// Source config with an external subtitle track.
+const config: SourceConfig = {
+  url:
+    Platform.OS === 'ios'
+      ? 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8'
+      : 'https://bitmovin-a.akamaihd.net/content/sintel/sintel.mpd',
+  type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
+  poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
+  // External thumbnail track url to be added to this source.
+  thumbnailTrack:
+    'https://cdn.bitmovin.com/content/assets/art-of-motion-dash-hls-progressive/thumbnails/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.vtt',
+};
+```
+
+What’s required for a video player with thumbnails
+
+Adaptive Streaming relies on encoding your video into several groups of files (streams) at various resolutions, while thumbnails also need to be generated in the encoding process. The encoder creates a set of thumbnail images and combines them into a single image file (“Sprite”). For more information on encoding your videos, have a look at our [Cloud Encoding Service](https://bitmovin.com/encoding/).
+
+### Enabling Picture in Picture mode
+
+In order to make use of the Picture in Picture functionalities provided by the player, it's first necessary to configure your native application to properly support PiP.
+
+The steps required for each platform are described below:
+
+#### Android
+
+**Declare Picture in Picture support on AndroidManifest.xml**
+
+Open `android/app/src/main/AndroidManifest.xml` and set `android:supportsPictureInPicture` to `true`
+on your main activity's manifest. Also, specify that your activity handles layout configuration changes
+so that your activity doesn't relaunch when layout changes occur during PiP mode transitions:
+
+```xml
+<activity android:name=".MainActivity"
+    android:supportsPictureInPicture="true"
+    android:configChanges=
+        "screenSize|smallestScreenSize|screenLayout|orientation"
+    ...
+```
+
+#### iOS
+
+**Set background modes capability**
+
+Make sure to add the `UIBackgroundModes` key to the `dict` section of your `Info.plist`:
+
+```xml
+<key>UIBackgroundModes</key>
+<array>
+  <string>audio</string>
+</array>
+```
+
+This step can also be performed from [Xcode](https://developer.apple.com/documentation/xcode/configuring-background-execution-modes).
+
+**Configure audio session on app startup**
+
+Configure your app's `AudioSession` category to `playback` during the main component's initialization:
+
+```typescript
+import { AudioSession } from 'bitmovin-player-react-native';
+
+// App's root component
+const App = () => {
+  useEffect(() => {
+    // Set your app's `AudioSession` category to `playback` on initialization.
+    // Please, note even though this step is required for iOS it won't take any effect on Android.
+    AudioSession.setCategory('playback').catch((error) => {
+      // Handle any native error that might occur during this process.
+      handleError(error);
+    });
+  });
+  // ...
+  return /* ... */;
+};
+```
+
+This step is required in order to properly enable background playback on iOS. Without it, the Picture in Picture option appears on the player UI but has no effect when used.
+
+You can read more about it on [Apple's docs](https://developer.apple.com/documentation/avfaudio/avaudiosession/category/1616509-playback).
+
+#### Showing the Picture in Picture UI option
+
+Now that your native application is properly configured to support PiP changes, the player instance
+in your JS code can be configured to show the Picture in Picture option in the player UI.
+
+Simply add `isPictureInPictureEnabled: true` on your player's `playbackConfig` option:
+
+```typescript
+const player = usePlayer({
+  playbackConfig: {
+    isPictureInPictureEnabled: true,
+  },
+});
+```
+
+#### Supported Picture in Picture events
+
+The supported Picture in Picture events on `PlayerView` are:
+
+- `onPictureInPictureEnter`
+- `onPictureInPictureExit`
+
+**iOS only**
+
+- `onPictureInPictureEntered`
+- `onPictureInPictureExited`
+
+**Android only**
+
+- `onPictureInPictureAvailabilityChanged`
+
+Check [`events.ts`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/components/PlayerView/events.ts) for more information about them.
+
+### Customize HTML UI (Android and iOS only)
+
+The Bitmovin Player SDKs use the open source [Bitmovin Player Web UI](https://github.com/bitmovin/bitmovin-player-ui) on all platforms, except tvOS.
+The UI is customizable in multiple ways.
+
+#### Custom implementation
+
+Since the Bitmovin Player Web UI is open source, it can be forked and modified to tailor to any application's needs.
+See [Cusomizing the UI](https://github.com/bitmovin/bitmovin-player-ui#customizing-the-ui) section for details.
+
+In case a custom implementation of the Player UI is desired, configure the hosted JS and CSS files via the `StyleConfig` as shown in the following example:
+
+```ts
+const player = usePlayer({
+  styleConfig: {
+    playerUiCss: 'CUSTOM_UI_CSS_URL',
+    playerUiJs: 'CUSTOM_UI_JS_URL',
+  },
+});
+```
+
+#### Custom CSS
+
+Customization of the default built-in Bitmovin Player UI is possible via providing custom styling CSS by only configuring `playerUiCss` as shown in the following example:
+
+```ts
+const player = usePlayer({
+  styleConfig: {
+    playerUiCss: 'CUSTOM_UI_CSS_URL',
+  },
+});
+```
+
+#### Supplemental CSS
+
+In case the usage of the default Bitmovin Player UI is sufficient with minor additional styling, it can be achieved via providing the URL to the additional CSS stylesheet via `supplementalPlayerUiCss`.
+
+```ts
+const player = usePlayer({
+  styleConfig: {
+    supplementalPlayerUiCss: 'SUPPLEMENTAL_UI_CSS_URL',
+  },
+});
+```
+
+### Setting up fullscreen handling
+
+In order to enable the player to support fullscreen and show the fullscreen button when using the Bitmovin Player Web UI, a `FullscreenHandler` needs to be implemented.
+Its responsibility is to update the UI when transitioning between fullscreen and non-fullscreen states.
+The player view itself does not update it's presentation as the meaning of fullscreen is determined by the application integrating our library.
+
+Here are the basics of enabling fullscreen support:
+
+```typescript
+// Define a handler to take care of fullscreen transitions
+class SampleFullscreenHandler implements FullscreenHandler {
+  isFullscreenActive: boolean = true;
+  onFullscreen: (fullscreenMode: boolean) => void;
+
+  constructor(
+    isFullscreenActive: boolean,
+    onFullscreen: (fullscreenMode: boolean) => void
+  ) {
+    this.isFullscreenActive = isFullscreenActive;
+    this.onFullscreen = onFullscreen;
+  }
+
+  enterFullscreen(): void {
+    // Update UI state for fullscreen mode
+    this.onFullscreen(true);
+    this.isFullscreenActive = true;
+    console.log('enter fullscreen');
+  }
+
+  exitFullscreen(): void {
+    // Update UI state for non-fullscreen mode
+    this.onFullscreen(false);
+    this.isFullscreenActive = false;
+    console.log('exit fullscreen');
+  }
+}
+
+export default function BasicFullscreenHandling() {
+  // Set up player and other components
+
+  // Create SampleFullscreenHandler instance and enable it to update state
+  const [fullscreenMode, setFullscreenMode] = useState(false);
+  const fullscreenHandler = new SampleFullscreenHandler(
+    fullscreenMode,
+    setFullscreenMode
+  );
+
+  return (
+    <View>
+      <PlayerView
+        player={player}
+        style={fullscreenMode ? styles.playerFullscreen : styles.player}
+        fullscreenHandler={fullscreenHandler}
+        onFullscreenEnter={onFullscreenEnter}
+        onFullscreenExit={onFullscreenExit}
+        onFullscreenEnabled={onFullscreenEnabled}
+        onFullscreenDisabled={onFullscreenDisabled}
+      />
+    </View>
+  );
+}
+
+// Define your styles
+const styles = StyleSheet.create({
+  player: {
+    flex: 1,
+    backgroundColor: 'black',
+  },
+  playerFullscreen: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'black',
+  },
+});
+```
+
+Check [`BasicFullscreenHandling.tsx`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicFullscreenHandling.tsx) for a full example implementation.
+
+#### Supported fullscreen related events
+
+The supported fullscreen events on `PlayerView` are:
+
+- `onFullscreenEnter`
+- `onFullscreenExit`
+- `onFullscreenEnabled`
+- `onFullscreenDisabled`
+
+Check [`events.ts`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/components/PlayerView/events.ts) for more information about them.
+
+### Setting up ads
+
+The Bitmovin Player SDKs are capable of displaying Ads out of the box and there are two ways they can be
+configured with the player. One option is to use static configuration in the player config object,
+and the other is to schedule them dynamically using `Player.scheduleAd`.
+
+#### Static ads configuration
+
+The easiest way to configure Ads is by adding the `advertisingConfig` property to the player configuration object.
+All that needs to be provided is a URL pointing to a target Ad tag along with the type of the tag.
+
+```typescript
+const player = usePlayer({
+  licenseKey: '<PLAYER_LICENSE_KEY>',
+  advertisingConfig: {
+    // Each object in `schedule` represents an `AdItem`.
+    schedule: [
+      // An `AdItem` represents a time slot within the streamed content dedicated to ads playback.
+      {
+        // Each item specifies a list of sources with a type and URL to the ad manifest in the ads
+        // server. All but the first source act as fallback if the first one fails to load.
+        // The start and end of an ad break are signaled via `AdBreakStartedEvent` and `AdBreakFinishedEvent`.
+        sources: [
+          {
+            type: AdSourceType.IMA,
+            tag: 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dskippablelinear&correlator=',
+          },
+          // Fallback sources...
+        ],
+        // Each item also specifies the position where it should appear during playback.
+        // The possible position values are documented below.
+        // The default value is `pre`.
+        position: '20%',
+      },
+    ],
+  },
+});
+```
+
+The possible `AdItem` position values are:
+
+- `"pre"`: pre-roll ad (for VoD and Live streaming; appears before playback starts)
+- `"post"`: post-roll ad (for VoD streaming only; appears after playback finishes)
+- Fractional seconds: `"10"`, `"12.5"` (mid-roll ad, for VoD and Live streaming)
+- Percentage of the entire video duration: `"25%"`, `"50%"` (mid-roll ad, for VoD streaming only)
+- Timecode `hh:mm:ss.mmm`: `"00:10:30.000"`, `"01:00:00.000"` (mid-roll ad, for VoD streaming only)
+
+#### Dynamic ads scheduling
+
+To gain more flexibility, it is also possible to schedule an `AdItem` dynamically in code using the
+`Player` instance. To do this, you need to call the `scheduleAd` method.
+
+```typescript
+// The object passed to `scheduleAd` must be an `AdItem`.
+player.scheduleAd({
+  // Ad source with fallbacks.
+  sources: [
+    {
+      tag: '<AD-URL>',
+      type: AdSourceType.IMA,
+    },
+  ],
+});
+```
+
+An `AdScheduledEvent` event is dispatched when the ad is successfully scheduled via `scheduleAd`.
+
+Also, during playback, it's also possible to check whether an ad is being played with `player.isAd()`
+and skip the ad being currently played with `player.skipAd()` (see `AdSkippedEvent`).
+
+#### Supported ads events
+
+The supported `PlayerView` events for ads are:
+
+- `onAdBreakFinished`
+- `onAdBreakStarted`
+- `onAdClicked`
+- `onAdError`
+- `onAdFinished`
+- `onAdManifestLoad`
+- `onAdManifestLoaded`
+- `onAdQuartile`
+- `onAdScheduled`
+- `onAdSkipped`
+- `onAdStarted`
+
+You can check out a complete ads example in the [`example/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app.
+
+### Setting up analytics
+
+Each `Player` instance has an associated analytics collector that can be configured to send analytics information about it. By default,
+the associated collector is disabled unless an `analyticsConfig` option is specified. So in order to get analytics up and running, add the following configuration options to your `PlayerConfig`:
+
+```typescript
+const player = usePlayer({
+  analyticsConfig: {
+    // Bitmovin analytics key from the Analytics Dashboard
+    key: '<ANALYTICS-KEY>', // `key` is the only required parameter.
+    // Bitmovin player license key
+    playerKey: '<BITMOVIN-PLAYER-KEY>',
+    // Asset CDN provider. Check out `CdnProvider` on `src/analytics/config.ts` for more options.
+    cdnProvider: CdnProvider.AKAMAI,
+    // User-defined user ID.
+    customUserId: 'Custom user ID',
+    // Whether the user ID should be randomly generated or not. Default value is false.
+    randomizeUserId: false,
+    // Experiment name that'll appear at the Analytics Dashboard.
+    experimentName: 'Experiment name',
+    // Video ID on your server
+    videoId: 'MyVideoId',
+    // Video title
+    title: 'Art of Motion',
+    // Whether this is a live stream video. Default is false.
+    isLive: false,
+    // Whether collector should also collect statistics about ads
+    // Can be changed to `true` in case `advertisingConfig` is also present.
+    // Default is false.
+    ads: false,
+    // Navigation breadcrumb.
+    // The path taken by the user inside your application.
+    path: '/examples/basic_analytics',
+    // List of custom data fields to be registered at the Analytics Dashboard.
+    // Useful to customize collection with your own data along with the SDK.
+    customData1: 'Custom data field 1',
+    customData2: 'Custom data field 2',
+    customData3: 'Custom data field 3',
+    customData4: 'Custom data field 4',
+    customData5: 'Custom data field 5',
+    // Usage of customData properties are supported up to 30 fields
+    customData30: 'Custom data field 30',
+  },
+});
+```
+
+And that's it. Now you should start receiving analytics information about your `player` instance on the [Analytics Dashboard](https://bitmovin.com/dashboard/analytics).
+
+Optionally, you can also access the configured `analyticsCollector` object in order to get some information (like `userId`) or
+update your custom data during runtime:
+
+```typescript
+// Get the current user id.
+const userId = await player.analyticsCollector?.getUserId();
+
+// Get the current custom data config.
+const customData = await player.analyticsCollector?.getCustomData();
+
+// Update the current custom data config.
+player.analyticsCollector?.setCustomDataOnce({
+  customData2: 'Updated custom data field 2',
+  customData4: 'Updated custom data field 4',
+});
+```
+
+You can check out a complete analytics example in the [`example/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app.
 
 ## Contributing
 

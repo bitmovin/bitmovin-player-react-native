@@ -19,7 +19,7 @@ class RNPlayerViewManager: RCTViewManager {
      - Parameter viewId: `RNPlayerView` id inside `UIManager`'s registry.
      - Parameter playerId: `Player` instance id inside `PlayerModule`'s registry.
      */
-    @objc func attachPlayer(_ viewId: NSNumber, playerId: NativeId) {
+    @objc func attachPlayer(_ viewId: NSNumber, playerId: NativeId, playerConfig: NSDictionary?) {
         bridge.uiManager.addUIBlock { [weak self] _, views in
             guard
                 let view = views?[viewId] as? RNPlayerView,
@@ -33,11 +33,33 @@ class RNPlayerViewManager: RCTViewManager {
                 view.playerView = PlayerView(player: player, frame: view.bounds)
             }
             player.add(listener: view)
+            view.playerView?.add(listener: view)
+        }
+    }
+
+    @objc func attachFullscreenBridge(_ viewId: NSNumber, fullscreenBridgeId: NativeId) {
+        bridge.uiManager.addUIBlock { [weak self] _, views in
+            guard
+                let view = views?[viewId] as? RNPlayerView,
+                let fullscreenBridge = self?.getFullscreenHandlerModule()?.retrieve(fullscreenBridgeId)
+            else {
+                return
+            }
+            guard let playerView = view.playerView else {
+                return
+            }
+
+            playerView.fullscreenHandler = fullscreenBridge
         }
     }
 
     /// Fetches the initialized `PlayerModule` instance on RN's bridge object.
     private func getPlayerModule() -> PlayerModule? {
         bridge.module(for: PlayerModule.self) as? PlayerModule
+    }
+
+    /// Fetches the initialized `FullscreenHandlerModule` instance on RN's bridge object.
+    private func getFullscreenHandlerModule() -> FullscreenHandlerModule? {
+        bridge.module(for: FullscreenHandlerModule.self) as? FullscreenHandlerModule
     }
 }

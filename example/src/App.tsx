@@ -2,14 +2,21 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SourceType } from 'bitmovin-player-react-native';
 import Button from './components/Button';
 import ExamplesList from './screens/ExamplesList';
+import BasicAds from './screens/BasicAds';
+import BasicAnalytics from './screens/BasicAnalytics';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
+import ProgrammaticTrackSelection from './screens/ProgrammaticTrackSelection';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
+import BasicPictureInPicture from './screens/BasicPictureInPicture';
+import CustomHtmlUI from './screens/CustomHtmlUI';
+import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -18,8 +25,14 @@ export type RootStackParamsList = {
       routeName: keyof RootStackParamsList;
     }[];
   };
+  BasicAds: undefined;
+  BasicAnalytics: undefined;
   BasicPlayback: undefined;
   BasicDrmPlayback: undefined;
+  BasicPictureInPicture: undefined;
+  BasicFullscreenHandling: {
+    navigation: NativeStackNavigationProp<RootStackParamsList>;
+  };
   SubtitlePlayback: undefined;
   CustomPlaybackForm: undefined;
   CustomPlayback: {
@@ -30,11 +43,61 @@ export type RootStackParamsList = {
       value: SourceType;
     };
   };
+  CustomHtmlUI: undefined;
 };
 
 const RootStack = createNativeStackNavigator();
 
+const isTVOS = Platform.OS === 'ios' && Platform.isTV;
+
 export default function App() {
+  const stackParams = {
+    data: [
+      {
+        title: 'Basic playback',
+        routeName: 'BasicPlayback',
+      },
+      {
+        title: 'Basic Analytics',
+        routeName: 'BasicAnalytics',
+      },
+      {
+        title: 'Basic Drm playback',
+        routeName: 'BasicDrmPlayback',
+      },
+      {
+        title: 'Subtitle and captions',
+        routeName: 'SubtitlePlayback',
+      },
+      {
+        title: 'Basic Picture in Picture',
+        routeName: 'BasicPictureInPicture',
+      },
+      {
+        title: 'Basic Ads',
+        routeName: 'BasicAds',
+      },
+      {
+        title: 'Programmatic Track Selection',
+        routeName: 'ProgrammaticTrackSelection',
+      },
+    ],
+  };
+
+  if (!isTVOS) {
+    stackParams.data.push({
+      title: 'Custom HTML UI',
+      routeName: 'CustomHtmlUI',
+    });
+  }
+
+  if (!Platform.isTV) {
+    stackParams.data.push({
+      title: 'Basic Fullscreen handling',
+      routeName: 'BasicFullscreenHandling',
+    });
+  }
+
   return (
     <NavigationContainer>
       <RootStack.Navigator
@@ -58,22 +121,17 @@ export default function App() {
               />
             ),
           })}
-          initialParams={{
-            data: [
-              {
-                title: 'Basic playback',
-                routeName: 'BasicPlayback',
-              },
-              {
-                title: 'Basic Drm playback',
-                routeName: 'BasicDrmPlayback',
-              },
-              {
-                title: 'Subtitle and captions',
-                routeName: 'SubtitlePlayback',
-              },
-            ],
-          }}
+          initialParams={stackParams}
+        />
+        <RootStack.Screen
+          name="BasicAds"
+          component={BasicAds}
+          options={{ title: 'Basic Ads' }}
+        />
+        <RootStack.Screen
+          name="BasicAnalytics"
+          component={BasicAnalytics}
+          options={{ title: 'Basic Analytics' }}
         />
         <RootStack.Screen
           name="BasicPlayback"
@@ -91,6 +149,11 @@ export default function App() {
           options={{ title: 'Subtitle and captions' }}
         />
         <RootStack.Screen
+          name="ProgrammaticTrackSelection"
+          component={ProgrammaticTrackSelection}
+          options={{ title: 'Programmatic Track Selection' }}
+        />
+        <RootStack.Screen
           name="CustomPlaybackForm"
           component={CustomPlaybackForm}
           options={{ title: 'Custom playback' }}
@@ -100,6 +163,25 @@ export default function App() {
           component={CustomPlayback}
           options={{ title: 'Custom playback' }}
         />
+        <RootStack.Screen
+          name="BasicPictureInPicture"
+          component={BasicPictureInPicture}
+          options={{ title: 'Basic Picture in Picture' }}
+        />
+        {!isTVOS && (
+          <RootStack.Screen
+            name="CustomHtmlUI"
+            component={CustomHtmlUI}
+            options={{ title: 'Custom HTML UI' }}
+          />
+        )}
+        {!Platform.isTV && (
+          <RootStack.Screen
+            name="BasicFullscreenHandling"
+            component={BasicFullscreenHandling}
+            options={{ title: 'Basic Fullscreen Handling' }}
+          />
+        )}
       </RootStack.Navigator>
     </NavigationContainer>
   );

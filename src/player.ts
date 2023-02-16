@@ -1,7 +1,11 @@
 import { NativeModules, Platform } from 'react-native';
+import { AdItem, AdvertisingConfig } from './advertising';
+import { AnalyticsCollector, AnalyticsConfig } from './analytics';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
+import { AudioTrack } from './audioTrack';
 import { SubtitleTrack } from './subtitleTrack';
+import { StyleConfig } from './styleConfig';
 import { TweaksConfig } from './tweaksConfig';
 
 const PlayerModule = NativeModules.PlayerModule;
@@ -34,9 +38,21 @@ export interface PlayerConfig extends NativeInstanceConfig {
    */
   playbackConfig?: PlaybackConfig;
   /**
+   * Configures the visual presentation and behaviour of the player UI. A default StyleConfig is set initially.
+   */
+  styleConfig?: StyleConfig;
+  /**
+   * Configures advertising functionality. A default AdvertisingConfig is set initially.
+   */
+  advertisingConfig?: AdvertisingConfig;
+  /**
    * Configures experimental features. A default TweaksConfig is set initially.
    */
   tweaksConfig?: TweaksConfig;
+  /**
+   * Configures analytics functionality.
+   */
+  analyticsConfig?: AnalyticsConfig;
 }
 
 /**
@@ -103,7 +119,7 @@ export interface PlaybackConfig {
    */
   isBackgroundPlaybackEnabled?: boolean;
   /**
-   * Whether the picture-in-picture mode option is enabled for iOS or not. Default is `false`.
+   * Whether the Picture in Picture mode option is enabled or not. Default is `false`.
    *  @example
    * ```
    * const player = new Player({
@@ -131,6 +147,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   source?: Source;
   /**
+   * Analytics collector currently attached to this player instance.
+   */
+  analyticsCollector?: AnalyticsCollector;
+  /**
    * Whether the native `Player` object has been created.
    */
   isInitialized = false;
@@ -145,6 +165,12 @@ export class Player extends NativeInstance<PlayerConfig> {
   initialize = () => {
     if (!this.isInitialized) {
       PlayerModule.initWithConfig(this.nativeId, this.config);
+      const analyticsConfig = this.config?.analyticsConfig;
+      if (analyticsConfig) {
+        this.analyticsCollector = new AnalyticsCollector(analyticsConfig);
+        this.analyticsCollector?.initialize();
+        this.analyticsCollector?.attach(this.nativeId);
+      }
       this.isInitialized = true;
     }
   };
@@ -156,6 +182,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (!this.isDestroyed) {
       PlayerModule.destroy(this.nativeId);
       this.source?.destroy();
+      this.analyticsCollector?.destroy();
       this.isDestroyed = true;
     }
   };
@@ -316,9 +343,60 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * @returns An array containing AudioTrack objects for all available audio tracks.
+   */
+  getAvailableAudioTracks = async (): Promise<AudioTrack[]> => {
+    return PlayerModule.getAvailableAudioTracks(this.nativeId);
+  };
+
+  /**
+   * Sets the audio track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableAudioTracks.
+   */
+  setAudioTrack = async (trackIdentifier: string): Promise<void> => {
+    return PlayerModule.setAudioTrack(this.nativeId, trackIdentifier);
+  };
+
+  /**
    * @returns An array containing SubtitleTrack objects for all available subtitle tracks.
    */
   getAvailableSubtitles = async (): Promise<SubtitleTrack[]> => {
     return PlayerModule.getAvailableSubtitles(this.nativeId);
+  };
+
+  /**
+   * Sets the subtitle track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableSubtitles.
+   */
+  setSubtitleTrack = async (trackIdentifier?: string): Promise<void> => {
+    return PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier);
+  };
+
+  /**
+   * Dynamically schedules the `adItem` for playback.
+   * Has no effect if there is no active playback session.
+   *
+   * @param adItem - Ad to be scheduled for playback.
+   *
+   * @platform iOS, Android
+   */
+  scheduleAd = (adItem: AdItem) => {
+    PlayerModule.scheduleAd(this.nativeId, adItem);
+  };
+
+  /**
+   * Skips the current ad.
+   * Has no effect if the current ad is not skippable or if no ad is being played back.
+   *
+   * @platform iOS, Android
+   */
+  skipAd = () => {
+    PlayerModule.skipAd(this.nativeId);
+  };
+
+  /**
+   * @returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
+   * @platform iOS, Android
+   */
+  isAd = (): Promise<boolean> => {
+    return PlayerModule.isAd(this.nativeId);
   };
 }

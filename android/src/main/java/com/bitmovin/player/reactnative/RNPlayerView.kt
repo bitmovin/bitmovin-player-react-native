@@ -1,6 +1,9 @@
 package com.bitmovin.player.reactnative
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
+import android.graphics.Rect
+import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import com.bitmovin.player.PlayerView
@@ -9,6 +12,9 @@ import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
+import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
@@ -27,6 +33,8 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
     PlayerEvent.PlaybackFinished::class to "playbackFinished",
     PlayerEvent.Seek::class to "seek",
     PlayerEvent.Seeked::class to "seeked",
+    PlayerEvent.StallStarted::class to "stallStarted",
+    PlayerEvent.StallEnded::class to "stallEnded",
     PlayerEvent.TimeChanged::class to "timeChanged",
     SourceEvent.Load::class to "sourceLoad",
     SourceEvent.Loaded::class to "sourceLoaded",
@@ -36,6 +44,31 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
     SourceEvent.SubtitleTrackAdded::class to "subtitleAdded",
     SourceEvent.SubtitleTrackChanged::class to "subtitleChanged",
     SourceEvent.SubtitleTrackRemoved::class to "subtitleRemoved",
+    SourceEvent.AudioTrackAdded::class to "audioAdded",
+    SourceEvent.AudioTrackChanged::class to "audioChanged",
+    SourceEvent.AudioTrackRemoved::class to "audioRemoved",
+    PlayerEvent.AdBreakFinished::class to "adBreakFinished",
+    PlayerEvent.AdBreakStarted::class to "adBreakStarted",
+    PlayerEvent.AdClicked::class to "adClicked",
+    PlayerEvent.AdError::class to "adError",
+    PlayerEvent.AdFinished::class to "adFinished",
+    PlayerEvent.AdManifestLoad::class to "adManifestLoad",
+    PlayerEvent.AdManifestLoaded::class to "adManifestLoaded",
+    PlayerEvent.AdQuartile::class to "adQuartile",
+    PlayerEvent.AdScheduled::class to "adScheduled",
+    PlayerEvent.AdSkipped::class to "adSkipped",
+    PlayerEvent.AdStarted::class to "adStarted",
+    PlayerEvent.VideoPlaybackQualityChanged::class to "videoPlaybackQualityChanged",
+)
+
+private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf(
+    PlayerEvent.PictureInPictureAvailabilityChanged::class to "pictureInPictureAvailabilityChanged",
+    PlayerEvent.PictureInPictureEnter::class to "pictureInPictureEnter",
+    PlayerEvent.PictureInPictureExit::class to "pictureInPictureExit",
+    PlayerEvent.FullscreenEnabled::class to "fullscreenEnabled",
+    PlayerEvent.FullscreenDisabled::class to "fullscreenDisabled",
+    PlayerEvent.FullscreenEnter::class to "fullscreenEnter",
+    PlayerEvent.FullscreenExit::class to "fullscreenExit",
 )
 
 /**
@@ -44,7 +77,8 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
  * exposes player events as bubbling events.
  */
 @SuppressLint("ViewConstructor")
-class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
+class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context),
+    LifecycleEventListener, View.OnLayoutChangeListener, RNPictureInPictureDelegate {
     /**
      * Relays the provided set of events, emitted by the player, together with the associated name
      * to the `eventOutput` callback.
@@ -52,7 +86,7 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
     private val eventRelay = PlayerEventRelay(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING, this::emitEvent)
 
     /**
-     * Reference to the shared player view set as child.
+     * Associated bitmovin's `PlayerView`.
      */
     var playerView: PlayerView? = null
         set(value) {
@@ -71,6 +105,57 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
         }
 
     /**
+     * Object that handles PiP mode changes in React Native.
+     */
+    var pictureInPictureHandler: RNPictureInPictureHandler? = null
+
+    /**
+     * Whether this view should pause video playback when activity's onPause is called.
+     * By default, `shouldPausePlaybackOnActivityPause` is set to false when entering PiP mode.
+     */
+    private var shouldPausePlaybackOnActivityPause = true
+
+    /**
+     * Register this view as an activity lifecycle listener on initialization.
+     */
+    init {
+        context.addLifecycleEventListener(this)
+    }
+
+    /**
+     * Cleans up the resources and listeners produced by this view.
+     */
+    fun dispose() {
+        eventRelay.player = null
+        context.removeLifecycleEventListener(this)
+        playerView?.removeOnLayoutChangeListener(this)
+    }
+
+    /**
+     * Activity's onResume
+     */
+    override fun onHostResume() {
+        playerView?.onResume()
+    }
+
+    /**
+     * Activity's onPause
+     */
+    override fun onHostPause() {
+        if (shouldPausePlaybackOnActivityPause) {
+            playerView?.onPause()
+        }
+        shouldPausePlaybackOnActivityPause = true
+    }
+
+    /**
+     * Activity's onDestroy
+     */
+    override fun onHostDestroy() {
+        playerView?.onDestroy()
+    }
+
+    /**
      * Set the given `playerView` as child and start bubbling events.
      * @param playerView Shared player view instance.
      */
@@ -79,6 +164,70 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context) {
         if (playerView.parent != this) {
             (playerView.parent as ViewGroup?)?.removeView(playerView)
             addView(playerView)
+        }
+        pictureInPictureHandler?.let {
+            it.setDelegate(this)
+            playerView.setPictureInPictureHandler(it)
+            playerView.addOnLayoutChangeListener(this)
+        }
+    }
+
+    /**
+     * Called whenever this view's activity configuration changes.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        pictureInPictureHandler?.onConfigurationChanged(newConfig)
+    }
+
+    /**
+     * Called when the player has just entered PiP mode.
+     */
+    override fun onEnterPictureInPicture() {
+        // Playback shouldn't be paused when entering PiP mode.
+        shouldPausePlaybackOnActivityPause = false
+    }
+
+    /**
+     * Called when the player has just exited PiP mode.
+     */
+    override fun onExitPictureInPicture() {
+        // Explicitly call `exitPictureInPicture()` on PlayerView when exiting PiP state, otherwise
+        // the `PictureInPictureExit` event won't get dispatched.
+        playerView?.exitPictureInPicture()
+    }
+
+    /**
+     * Called when the player's PiP mode changes with a new configuration object.
+     */
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration?) {
+        playerView?.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+    }
+
+    /**
+     * Called whenever the PiP handler needs to compute the PlayerView's global visible rect.
+     */
+    override fun setSourceRectHint(sourceRectHint: Rect) {
+        playerView?.getGlobalVisibleRect(sourceRectHint)
+    }
+
+    /**
+     * Called whenever PlayerView's layout changes.
+     */
+    override fun onLayoutChange(
+        view: View?,
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int,
+        oldLeft: Int,
+        oldTop: Int,
+        oldRight: Int,
+        oldBottom: Int,
+    ) {
+        if (left != oldLeft || right != oldRight || top != oldTop || bottom != oldBottom) {
+            // Update source rect hint whenever the player's layout change
+            pictureInPictureHandler?.updateSourceRectHint()
         }
     }
 

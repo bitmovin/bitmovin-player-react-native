@@ -4,28 +4,53 @@ import android.os.Handler
 import android.os.Looper
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.reactnative.extensions.getModule
+import com.bitmovin.player.reactnative.ui.FullscreenHandlerBridge
+import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
+import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.*
+import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 
+private const val MODULE_NAME = "NativePlayerView"
+
+@ReactModule(name = MODULE_NAME)
 class RNPlayerViewManager(private val context: ReactApplicationContext) : SimpleViewManager<RNPlayerView>() {
     /**
      * Native component functions.
      */
     enum class Commands {
         ATTACH_PLAYER,
+        ATTACH_FULLSCREEN_BRIDGE
     }
 
     /**
      * Exported module name to JS.
      */
-    override fun getName() = "NativePlayerView"
+    override fun getName() = MODULE_NAME
 
     /**
-     * The component's native view factory. RN calls this method multiple times
+     * React Native PiP handler instance. It can be subclassed, then set from other native
+     * modules in case a full-custom implementation is needed. A default implementation is provided
+     * out-of-the-box.
+     */
+    var pictureInPictureHandler = RNPictureInPictureHandler(context)
+
+    /**
+     * The component's native view factory. RN may call this method multiple times
      * for each component instance.
      */
     override fun createViewInstance(reactContext: ThemedReactContext) = RNPlayerView(context)
+
+    /**
+     * Called when the component's view gets detached from the view hierarchy. Useful to perform
+     * cleanups.
+     */
+    override fun onDropViewInstance(view: RNPlayerView) {
+        super.onDropViewInstance(view)
+        view.dispose()
+    }
 
     /**
      * A mapping between a event native identifier and its bubbled version that will
@@ -45,15 +70,39 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "playbackFinished" to "onPlaybackFinished",
         "seek" to "onSeek",
         "seeked" to "onSeeked",
+        "stallStarted" to "onStallStarted",
+        "stallEnded" to "onStallEnded",
         "timeChanged" to "onTimeChanged",
         "sourceLoad" to "onSourceLoad",
         "sourceLoaded" to "onSourceLoaded",
         "sourceUnloaded" to "onSourceUnloaded",
         "sourceError" to "onSourceError",
         "sourceWarning" to "onSourceWarning",
+        "audioAdded" to "onAudioAdded",
+        "audioChanged" to "onAudioChanged",
+        "audioRemoved" to "onAudioRemoved",
         "subtitleAdded" to "onSubtitleAdded",
         "subtitleChanged" to "onSubtitleChanged",
         "subtitleRemoved" to "onSubtitleRemoved",
+        "pictureInPictureAvailabilityChanged" to "onPictureInPictureAvailabilityChanged",
+        "pictureInPictureEnter" to "onPictureInPictureEnter",
+        "pictureInPictureExit" to "onPictureInPictureExit",
+        "adBreakFinished" to "onAdBreakFinished",
+        "adBreakStarted" to "onAdBreakStarted",
+        "adClicked" to "onAdClicked",
+        "adError" to "onAdError",
+        "adFinished" to "onAdFinished",
+        "adManifestLoad" to "onAdManifestLoad",
+        "adManifestLoaded" to "onAdManifestLoaded",
+        "adQuartile" to "onAdQuartile",
+        "adScheduled" to "onAdScheduled",
+        "adSkipped" to "onAdSkipped",
+        "adStarted" to "onAdStarted",
+        "videoPlaybackQualityChanged" to "onVideoPlaybackQualityChanged",
+        "fullscreenEnabled" to "onFullscreenEnabled",
+        "fullscreenDisabled" to "onFullscreenDisabled",
+        "fullscreenEnter" to "onFullscreenEnter",
+        "fullscreenExit" to "onFullscreenExit",
     )
 
     /**
@@ -75,7 +124,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @return map between names (used in js) and command ids (used in native code).
      */
     override fun getCommandsMap(): MutableMap<String, Int> = mutableMapOf(
-        "attachPlayer" to Commands.ATTACH_PLAYER.ordinal
+        "attachPlayer" to Commands.ATTACH_PLAYER.ordinal,
+        "attachFullscreenBridge" to Commands.ATTACH_FULLSCREEN_BRIDGE.ordinal,
     )
 
     /**
@@ -88,9 +138,20 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         super.receiveCommand(view, commandId, args)
         commandId?.toInt()?.let {
             when (it) {
-                Commands.ATTACH_PLAYER.ordinal -> attachPlayer(view, args?.getString(1))
+                Commands.ATTACH_PLAYER.ordinal -> attachPlayer(view, args?.getString(1), args?.getMap(2))
+                Commands.ATTACH_FULLSCREEN_BRIDGE.ordinal -> args?.getString(1)?.let { fullscreenBridgeId ->
+                    attachFullscreenBridge(view, fullscreenBridgeId)
+                }
                 else -> {}
             }
+        }
+    }
+
+    private fun attachFullscreenBridge(view: RNPlayerView, fullscreenBridgeId: NativeId) {
+        Handler(Looper.getMainLooper()).post {
+            view.playerView?.setFullscreenHandler(
+                context.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId)
+            )
         }
     }
 
@@ -99,16 +160,21 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @param view Target `RNPlayerView`.
      * @param playerId `Player` instance id inside `PlayerModule`'s registry.
      */
-    private fun attachPlayer(view: RNPlayerView, playerId: NativeId?) {
+    private fun attachPlayer(view: RNPlayerView, playerId: NativeId?, playerConfig: ReadableMap?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
+            playerConfig?.getMap("playbackConfig")?.getBoolean("isPictureInPictureEnabled")?.let {
+                pictureInPictureHandler.isPictureInPictureEnabled = it
+                view.pictureInPictureHandler = pictureInPictureHandler
+            }
             if (view.playerView != null) {
                 view.player = player
             } else {
                 val playerView = PlayerView(context, player)
                 playerView.layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
-                    LayoutParams.MATCH_PARENT)
+                    LayoutParams.MATCH_PARENT
+                )
                 view.addPlayerView(playerView)
             }
         }
@@ -117,6 +183,5 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     /**
      * Helper function that gets the instantiated `PlayerModule` from modules registry.
      */
-    private fun getPlayerModule(): PlayerModule? =
-        context.getNativeModule(PlayerModule::class.java)
+    private fun getPlayerModule(): PlayerModule? = context.getModule()
 }
