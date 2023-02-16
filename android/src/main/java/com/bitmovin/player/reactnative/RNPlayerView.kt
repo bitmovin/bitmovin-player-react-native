@@ -18,6 +18,7 @@ import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
+import kotlin.reflect.KClass
 
 private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
     PlayerEvent::class to "event",
@@ -61,7 +62,7 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
     PlayerEvent.VideoPlaybackQualityChanged::class to "videoPlaybackQualityChanged",
 )
 
-private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf(
+private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event>, String>(
     PlayerEvent.PictureInPictureAvailabilityChanged::class to "pictureInPictureAvailabilityChanged",
     PlayerEvent.PictureInPictureEnter::class to "pictureInPictureEnter",
     PlayerEvent.PictureInPictureExit::class to "pictureInPictureExit",
@@ -83,7 +84,12 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
      * Relays the provided set of events, emitted by the player, together with the associated name
      * to the `eventOutput` callback.
      */
-    private val eventRelay = PlayerEventRelay(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING, this::emitEvent)
+    private val playerEventRelay = EventRelay<Player, Event>(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING, ::emitEvent)
+    /**
+     * Relays the provided set of events, emitted by the player view, together with the associated name
+     * to the `eventOutput` callback.
+     */
+    private val viewEventRelay = EventRelay<PlayerView, Event>(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI, ::emitEvent)
 
     /**
      * Associated bitmovin's `PlayerView`.
@@ -91,7 +97,8 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
     var playerView: PlayerView? = null
         set(value) {
             field = value
-            eventRelay.player = field?.player
+            viewEventRelay.eventEmitter = field
+            playerEventRelay.eventEmitter = field?.player
         }
 
     /**
@@ -101,7 +108,7 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
         get() = playerView?.player
         set(value) {
             playerView?.player = value
-            eventRelay.player = value
+            playerEventRelay.eventEmitter = value
         }
 
     /**
@@ -126,7 +133,8 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
      * Cleans up the resources and listeners produced by this view.
      */
     fun dispose() {
-        eventRelay.player = null
+        viewEventRelay.eventEmitter = null
+        playerEventRelay.eventEmitter = null
         context.removeLifecycleEventListener(this)
         playerView?.removeOnLayoutChangeListener(this)
     }
