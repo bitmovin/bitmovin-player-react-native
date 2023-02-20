@@ -6,7 +6,7 @@ import com.bitmovin.player.api.event.EventEmitter
 import kotlin.reflect.KClass
 
 /**
- * Attaches and detaches listener for the provided forwarding events on the current [Player] instance and
+ * Attaches and detaches listener for the provided forwarding events on the current [EventEmitter] instance and
  * relays the received events together with their associated name to the provided event output.
  */
 class EventRelay<E : EventEmitter<T>, T : Event>(
@@ -21,7 +21,7 @@ class EventRelay<E : EventEmitter<T>, T : Event>(
 ) {
     private val playerEventListenersMap = mutableMapOf<KClass<out T>, (T) -> Unit>()
     /**
-     * The [Player] for which the events are relayed.
+     * The [EventEmitter] for which the events are relayed.
      */
     var eventEmitter: E? = null
         set(value) {
