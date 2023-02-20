@@ -260,7 +260,7 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
      * @param event Native event name.
      * @param json Optional js object to be sent as payload.
      */
-    private fun <E : Event> emitEvent(name: String, event: E) {
+    private inline fun <reified E : Event> emitEvent(name: String, event: E) {
         val payload = if (event is PlayerEvent) {
             JsonConverter.fromPlayerEvent(event)
         } else {
