@@ -4,6 +4,11 @@ import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.EventEmitter
 import kotlin.reflect.KClass
 
+private data class Subscription<E : Event>(
+    val eventClass: KClass<out E>,
+    val action: (E) -> Unit,
+)
+
 /**
  * Attaches and detaches listener for the provided forwarding events on the current [EventEmitter] instance and
  * relays the received events together with their associated name to the provided event output.
@@ -18,28 +23,25 @@ class EventRelay<E : EventEmitter<T>, T : Event>(
      */
     private val eventOutput: (String, Event) -> Unit
 ) {
-    private val playerEventListenersMap = mutableMapOf<KClass<out T>, (T) -> Unit>()
+    private val eventListeners = forwardingEventClassesAndNameMapping.map {
+        Subscription(it.key) { event -> eventOutput(it.value, event) }
+    }
+
     /**
      * The [EventEmitter] for which the events are relayed.
      */
     var eventEmitter: E? = null
         set(value) {
-            field?.detachListeners(playerEventListenersMap)
+            field?.detachListeners(eventListeners)
             field = value
-            value?.attachListeners(playerEventListenersMap)
+            value?.attachListeners(eventListeners)
         }
-
-    init {
-        forwardingEventClassesAndNameMapping.forEach {
-            playerEventListenersMap[it.key] = { event -> eventOutput(it.value, event) }
-        }
-    }
 }
 
-private fun <T: Event, E : T> EventEmitter<T>.attachListeners(eventListener: Map<KClass<out E>, (E) -> Unit>) {
-    eventListener.forEach { on(it.key, it.value) }
+private fun <T : Event, E : T> EventEmitter<T>.attachListeners(eventListener: List<Subscription<E>>) {
+    eventListener.forEach { on(it.eventClass, it.action) }
 }
 
-private fun <T: Event, E : T> EventEmitter<T>.detachListeners(eventListener: Map<KClass<out E>, (E) -> Unit>) {
-    eventListener.forEach { off(it.key, it.value) }
+private fun <T : Event, E : T> EventEmitter<T>.detachListeners(eventListener: List<Subscription<E>>) {
+    eventListener.forEach { off(it.eventClass, it.action) }
 }
