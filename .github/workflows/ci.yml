@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [development]
+    paths-ignore:
+      - '*.md'
+  push:
+    #    branches: [main, development]
+    paths-ignore:
+      - '*.md'
+jobs:
+  test-build-typescript:
+    name: Build Typescript
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup node and npm registry
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'
+      - name: Install node_modules
+        run: yarn install --frozen-lockfile
+      - name: Install node_modules (example/)
+        run: yarn install --frozen-lockfile --cwd example
+      - name: Compile TypeScript
+        run: yarn typescript
+  test-build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup node and npm registry
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+      - name: Install node_modules
+        run: yarn install --frozen-lockfile
+      - name: Install node_modules (example/)
+        run: yarn install --frozen-lockfile --cwd example
+      - name: Set up Gradle cache
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+      - name: Build Android example
+        run: |
+          cd example/android && ./gradlew assembleDebug --build-cache
+  test-build-ios:
+    name: Build iOS & tvOS
+    runs-on: macOS-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup node and npm registry
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '14.1'
+      - name: Install node_modules
+        run: yarn install --frozen-lockfile
+      - name: Install node_modules (example/)
+        run: yarn install --frozen-lockfile --cwd example
+      - name: Install pods
+        run: yarn pods
+      - name: Build iOS example
+        run: |
+          set -o pipefail && cd example/ios && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
+  test-build-tvos:
+    name: Build iOS & tvOS
+    runs-on: macOS-12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup node and npm registry
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '14.1'
+      - name: Install node_modules
+        run: yarn install --frozen-lockfile
+      - name: Install node_modules (example/)
+        run: yarn install --frozen-lockfile --cwd example
+      - name: Install pods
+        run: yarn pods
+      - name: Build tvOS example
+        run: |
+          set -o pipefail && cd example/ios && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample-tvOS -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
