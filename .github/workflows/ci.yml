@@ -1,5 +1,4 @@
 name: CI
-
 on:
   pull_request:
     branches: [development]
@@ -9,6 +8,9 @@ on:
     #    branches: [main, development]
     paths-ignore:
       - '*.md'
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   test-build-typescript:
     name: Build Typescript
@@ -57,7 +59,7 @@ jobs:
         run: |
           cd example/android && ./gradlew assembleDebug --build-cache
   test-build-ios:
-    name: Build iOS & tvOS
+    name: Build iOS
     runs-on: macOS-latest
     steps:
       - name: Checkout
@@ -81,7 +83,7 @@ jobs:
         run: |
           set -o pipefail && cd example/ios && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
   test-build-tvos:
-    name: Build iOS & tvOS
+    name: Build tvOS
     runs-on: macOS-12
     steps:
       - name: Checkout
