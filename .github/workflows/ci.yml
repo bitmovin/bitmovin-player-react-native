@@ -54,7 +54,7 @@ jobs:
       - name: Set up Gradle cache
         uses: gradle/gradle-build-action@v2
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          cache-read-only: ${{ github.ref != 'refs/heads/main' || github.ref != 'refs/heads/development' }}
       - name: Build Android example
         run: |
           cd example/android && ./gradlew assembleDebug --build-cache
@@ -77,8 +77,19 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
+      - name: Restore Pods cache
+        uses: actions/cache/restore@v3
+        with:
+          path: example/ios/Pods
+          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
+          restore-keys: pods-
       - name: Install pods
         run: yarn pods
+      - name: Save Pods cache
+        uses: actions/cache/save@v3
+        with:
+          path: example/ios/Pods
+          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
       - name: Build iOS example
         run: |
           set -o pipefail && cd example/ios && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
@@ -101,8 +112,19 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
+      - name: Restore Pods cache
+        uses: actions/cache/restore@v3
+        with:
+          path: example/ios/Pods
+          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
+          restore-keys: pods-
       - name: Install pods
         run: yarn pods
+      - name: Save Pods cache
+        uses: actions/cache/save@v3
+        with:
+          path: example/ios/Pods
+          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
       - name: Build tvOS example
         run: |
           set -o pipefail && cd example/ios && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample-tvOS -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
