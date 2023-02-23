@@ -54,7 +54,7 @@ jobs:
       - name: Set up Gradle cache
         uses: gradle/gradle-build-action@v2
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' || github.ref != 'refs/heads/development' || github.ref != 'refs/heads/feature/PI-2082-investigate-multithreading-crashes' }}
+      #          cache-read-only: ${{ github.ref != 'refs/heads/main' || github.ref != 'refs/heads/development' }}
       - name: Build Android example
         run: ./gradlew assembleDebug --build-cache
         working-directory: example/android
