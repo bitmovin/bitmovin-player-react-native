@@ -56,8 +56,8 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' || github.ref != 'refs/heads/development' || github.ref != 'refs/heads/feature/PI-2082-investigate-multithreading-crashes' }}
       - name: Build Android example
-        run: |
-          cd example/android && ./gradlew assembleDebug --build-cache
+        run: ./gradlew assembleDebug --build-cache
+        working-directory: example/android
   test-build-ios:
     name: Build iOS
     runs-on: macOS-latest
@@ -91,8 +91,8 @@ jobs:
           path: example/ios/Pods
           key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
       - name: Build iOS example
-        run: |
-          set -o pipefail && cd example/ios && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
+        run: set -o pipefail && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
+        working-directory: example/ios
   test-build-tvos:
     name: Build tvOS
     runs-on: macOS-12
@@ -126,5 +126,5 @@ jobs:
           path: example/ios/Pods
           key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
       - name: Build tvOS example
-        run: |
-          set -o pipefail && cd example/ios && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample-tvOS -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
+        run: set -o pipefail && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample-tvOS -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
+        working-directory: example/ios
