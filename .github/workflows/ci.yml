@@ -78,6 +78,7 @@ jobs:
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
       - name: Restore Pods cache
+        id: pods-cache-restore
         uses: actions/cache/restore@v3
         with:
           path: example/ios/Pods
@@ -86,6 +87,7 @@ jobs:
       - name: Install pods
         run: yarn pods
       - name: Save Pods cache
+        if: steps.pods-cache-restore.outputs.cache-hit != 'true'
         uses: actions/cache/save@v3
         with:
           path: example/ios/Pods
@@ -113,6 +115,7 @@ jobs:
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
       - name: Restore Pods cache
+        id: pods-cache-restore
         uses: actions/cache/restore@v3
         with:
           path: example/ios/Pods
@@ -121,6 +124,7 @@ jobs:
       - name: Install pods
         run: yarn pods
       - name: Save Pods cache
+        if: steps.pods-cache-restore.outputs.cache-hit != 'true'
         uses: actions/cache/save@v3
         with:
           path: example/ios/Pods
