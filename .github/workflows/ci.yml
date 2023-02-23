@@ -81,16 +81,22 @@ jobs:
         id: pods-cache-restore
         uses: actions/cache/restore@v3
         with:
-          path: example/ios/Pods
+          path: |
+            .cocoapods-cache
+            example/ios/Pods
           key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
           restore-keys: pods-
       - name: Install pods
         run: yarn pods
+        env:
+          CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
       - name: Save Pods cache
         if: steps.pods-cache-restore.outputs.cache-hit != 'true'
         uses: actions/cache/save@v3
         with:
-          path: example/ios/Pods
+          path: |
+            .cocoapods-cache
+            example/ios/Pods
           key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
       - name: Build iOS example
         run: set -o pipefail && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
@@ -118,16 +124,22 @@ jobs:
         id: pods-cache-restore
         uses: actions/cache/restore@v3
         with:
-          path: example/ios/Pods
+          path: |
+            .cocoapods-cache
+            example/ios/Pods
           key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
           restore-keys: pods-
       - name: Install pods
         run: yarn pods
+        env:
+          CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
       - name: Save Pods cache
         if: steps.pods-cache-restore.outputs.cache-hit != 'true'
         uses: actions/cache/save@v3
         with:
-          path: example/ios/Pods
+          path: |
+            .cocoapods-cache
+            example/ios/Pods
           key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
       - name: Build tvOS example
         run: set -o pipefail && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample-tvOS -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
