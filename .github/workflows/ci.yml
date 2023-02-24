@@ -101,6 +101,8 @@ jobs:
       - name: Build iOS example
         run: set -o pipefail && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
         working-directory: example/ios
+        env:
+          NSUnbufferedIO: YES
   test-build-tvos:
     name: Build tvOS
     runs-on: macOS-12
@@ -144,3 +146,5 @@ jobs:
       - name: Build tvOS example
         run: set -o pipefail && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample-tvOS -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
         working-directory: example/ios
+        env:
+          NSUnbufferedIO: YES
