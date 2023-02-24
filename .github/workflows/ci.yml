@@ -53,7 +53,7 @@ jobs:
         run: yarn install --frozen-lockfile --cwd example
       - name: Set up Gradle cache
         uses: gradle/gradle-build-action@v2
-        with:
+      #        with:
       #          cache-read-only: ${{ github.ref != 'refs/heads/main' || github.ref != 'refs/heads/development' }}
       - name: Build Android example
         run: ./gradlew assembleDebug --build-cache
