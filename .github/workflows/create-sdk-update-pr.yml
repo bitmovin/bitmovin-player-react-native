@@ -44,6 +44,7 @@ jobs:
         if: ${{ inputs.sdk_name == 'ios' }}
         run: |
           sed -i 's/s.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' RNBitmovinPlayer.podspec
+          cd example/ios && pod repo update bitmovin && pod update BitmovinPlayer
 
       - name: Bump Android player SDK version
         if: ${{ inputs.sdk_name == 'android' }}
@@ -52,7 +53,7 @@ jobs:
 
       - name: Commit version bump
         run: |
-          git add RNBitmovinPlayer.podspec android/build.gradle
+          git add RNBitmovinPlayer.podspec android/build.gradle example/ios/Podfile.lock
           git commit -m "chore(${{ inputs.sdk_name }}): update ${{ inputs.sdk_name }} player version to ${{ inputs.version_number }}"
           git push origin ${{ steps.branching.outputs.branch_name }}
 
