@@ -55,6 +55,7 @@ jobs:
           sed -i '' 's/s.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' RNBitmovinPlayer.podspec
           yarn install --frozen-lockfile --cwd example
           cd example/ios
+          bundle install
           pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git
           bundle exec pod update BitmovinPlayer
 
