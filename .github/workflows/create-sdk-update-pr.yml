@@ -45,6 +45,7 @@ jobs:
         if: ${{ inputs.sdk_name == 'ios' }}
         run: |
           sed -i '' 's/s.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' RNBitmovinPlayer.podspec
+          pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git
           cd example/ios && pod repo update bitmovin && pod update BitmovinPlayer
 
       - name: Bump Android player SDK version
