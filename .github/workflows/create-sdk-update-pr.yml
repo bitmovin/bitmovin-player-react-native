@@ -54,8 +54,9 @@ jobs:
         run: |
           sed -i '' 's/s.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' RNBitmovinPlayer.podspec
           yarn install --frozen-lockfile --cwd example
+          cd example/ios
           pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git
-          cd example/ios && pod update BitmovinPlayer
+          bundle exec pod update BitmovinPlayer
 
       - name: Bump Android player SDK version
         if: ${{ inputs.sdk_name == 'android' }}
