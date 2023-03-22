@@ -41,12 +41,21 @@ jobs:
           git push origin --delete ${{ steps.branching.outputs.branch_name }} || true
           git checkout -b ${{ steps.branching.outputs.branch_name }}
 
+      - name: Setup node and npm registry
+        if: ${{ inputs.sdk_name == 'ios' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'
+
       - name: Bump iOS player SDK version
         if: ${{ inputs.sdk_name == 'ios' }}
         run: |
           sed -i '' 's/s.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' RNBitmovinPlayer.podspec
+          yarn install --frozen-lockfile --cwd example
           pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git
-          cd example/ios && pod repo update bitmovin && pod update BitmovinPlayer
+          cd example/ios && pod update BitmovinPlayer
 
       - name: Bump Android player SDK version
         if: ${{ inputs.sdk_name == 'android' }}
