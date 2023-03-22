@@ -17,7 +17,7 @@ on:
 
 jobs:
   update:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
