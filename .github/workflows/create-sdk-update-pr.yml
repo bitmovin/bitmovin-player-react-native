@@ -32,7 +32,7 @@ jobs:
       - name: Set update branch name
         id: branching
         run: |
-          branch_name="update_${{ inputs.sdk_name}}_player_to_${{ inputs.version_number }}"
+          branch_name="update_${{ inputs.sdk_name }}_player_to_${{ inputs.version_number }}"
           echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
 
       - name: Create update branch
@@ -60,5 +60,5 @@ jobs:
         run: |
           gh pr create \
           --base "${{ github.ref }}" \
-          --title "Update ${{ inputs.sdk_name }} player to ${{ inputs.version_number }}" \
-          --body "Automated ${{ inputs.sdk_name }} player version update to ${{ inputs.version_number }}"
+          --title "Update ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player to ${{ inputs.version_number }}" \
+          --body "Automated ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player version update to ${{ inputs.version_number }}"
