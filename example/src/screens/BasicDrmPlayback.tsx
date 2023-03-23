@@ -45,8 +45,8 @@ const source: SourceConfig = {
       preferredSecurityLevel: 'L3', // L3 = software level Drm protection.
       shouldKeepDrmSessionsAlive: true,
       httpHeaders: {
-        'test header': 'test header value',
-        'different header': 'different value',
+        'test-header': 'test header value',
+        'different-header': 'different value',
       },
     },
     // iOS only.
