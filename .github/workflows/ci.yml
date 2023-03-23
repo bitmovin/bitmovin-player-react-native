@@ -108,9 +108,12 @@ jobs:
           key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
           restore-keys: pods-
 
+      - name: Install Bundle dependencies
+        run: bundle install
+        working-directory: example/ios
+
       - name: Install pods
         run: |
-          bundle install
           pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git
           yarn pods
         env:
