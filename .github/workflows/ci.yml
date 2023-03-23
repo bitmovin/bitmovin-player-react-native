@@ -115,7 +115,8 @@ jobs:
       - name: Install pods
         run: |
           pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git
-          yarn pods
+          bundle exec pod install --repo-update
+        working-directory: example/ios
         env:
           CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
 
