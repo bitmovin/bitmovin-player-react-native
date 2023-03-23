@@ -114,7 +114,7 @@ jobs:
 
       - name: Install pods
         run: |
-          pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git
+          bundle exec pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git || bundle exec pod repo update bitmovin
           bundle exec pod install --repo-update
         working-directory: example/ios
         env:
@@ -175,7 +175,7 @@ jobs:
 
       - name: Install pods
         run: |
-          pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git
+          bundle exec pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git || bundle exec pod repo update bitmovin
           bundle exec pod install --repo-update
         working-directory: example/ios
         env:
