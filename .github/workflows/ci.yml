@@ -7,7 +7,7 @@ on:
       - '*.md'
 
   push:
-    branches: [development]
+    branches: [development, fix-ios-ci]
     paths-ignore:
       - '*.md'
 
