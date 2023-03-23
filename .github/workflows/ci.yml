@@ -109,7 +109,10 @@ jobs:
           restore-keys: pods-
 
       - name: Install pods
-        run: yarn pods
+        run: |
+          bundle install
+          pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git
+          yarn pods
         env:
           CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
 
