@@ -28,7 +28,7 @@
     "format": "prettier --write .",
     "build": "tsup ./src/index.ts --dts --target es2020 --format cjs,esm -d lib",
     "example": "yarn --cwd example",
-    "pods": "cd example && pod-install --quiet",
+    "pods": "cd example/ios && bundle install && bundle exec pod install --silent",
     "bootstrap": "yarn && yarn example && yarn pods",
     "prepare": "husky install"
   },
@@ -63,7 +63,6 @@
     "lint-staged": "13.0.3",
     "metro-config": "0.72.3",
     "metro-react-native-babel-preset": "0.72.3",
-    "pod-install": "0.1.38",
     "prettier": "2.7.1",
     "tsup": "6.2.3",
     "typescript": "4.8.4"
