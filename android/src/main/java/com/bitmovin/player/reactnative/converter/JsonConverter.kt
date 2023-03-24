@@ -457,13 +457,26 @@ class JsonConverter {
          * @return The generated `WidevineConfig` if successful, `null` otherwise.
          */
         @JvmStatic
-        fun toWidevineConfig(json: ReadableMap?): WidevineConfig? = json?.getMap("widevine")?.let {
-            val widevineConfig = WidevineConfig(it.getString("licenseUrl"))
-            if (it.hasKey("preferredSecurityLevel")) {
-                widevineConfig.preferredSecurityLevel = it.getString("preferredSecurityLevel")
+        fun toWidevineConfig(json: ReadableMap?): WidevineConfig? = json
+            ?.getMap("widevine")
+            ?.let {
+                WidevineConfig(it.getString("licenseUrl"))
+                    .apply {
+                        if (it.hasKey("preferredSecurityLevel")) {
+                            preferredSecurityLevel = it.getString("preferredSecurityLevel")
+                        }
+                        if (it.hasKey("shouldKeepDrmSessionsAlive")) {
+                            shouldKeepDrmSessionsAlive = it.getBoolean("shouldKeepDrmSessionsAlive")
+                        }
+                        if (it.hasKey("httpHeaders")) {
+                            httpHeaders = it.getMap("httpHeaders")
+                                ?.toHashMap()
+                                ?.mapValues { entry -> entry.value as String }
+                                ?.toMutableMap()
+
+                        }
+                    }
             }
-            widevineConfig
-        }
 
         /**
          * Converts an `url` string into a `ThumbnailsTrack`.

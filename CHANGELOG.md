@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Custom header support for DRM playback on Android.
+- Support for keeping the DRM session alive for consecutive DRM protected sources on Android.
+
 ## [0.5.1] (2023-01-23)
 
 ### Fixed
