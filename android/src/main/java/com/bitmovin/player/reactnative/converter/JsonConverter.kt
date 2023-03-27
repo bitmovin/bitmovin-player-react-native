@@ -12,6 +12,7 @@ import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.SeekPosition
+import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
@@ -337,6 +338,16 @@ class JsonConverter {
                 json.putInt("code", event.code.value)
                 json.putString("message", event.message)
             }
+            if (event is SourceEvent.AudioTrackAdded) {
+                json.putMap("audioTrack", fromAudioTrack(event.audioTrack))
+            }
+            if (event is SourceEvent.AudioTrackChanged) {
+                json.putMap("oldAudioTrack", fromAudioTrack(event.oldAudioTrack))
+                json.putMap("newAudioTrack", fromAudioTrack(event.newAudioTrack))
+            }
+            if (event is SourceEvent.AudioTrackRemoved) {
+                json.putMap("audioTrack", fromAudioTrack(event.audioTrack))
+            }
             if (event is SourceEvent.SubtitleTrackAdded) {
                 json.putMap("subtitleTrack", fromSubtitleTrack(event.subtitleTrack))
             }
@@ -446,13 +457,26 @@ class JsonConverter {
          * @return The generated `WidevineConfig` if successful, `null` otherwise.
          */
         @JvmStatic
-        fun toWidevineConfig(json: ReadableMap?): WidevineConfig? = json?.getMap("widevine")?.let {
-            val widevineConfig = WidevineConfig(it.getString("licenseUrl"))
-            if (it.hasKey("preferredSecurityLevel")) {
-                widevineConfig.preferredSecurityLevel = it.getString("preferredSecurityLevel")
+        fun toWidevineConfig(json: ReadableMap?): WidevineConfig? = json
+            ?.getMap("widevine")
+            ?.let {
+                WidevineConfig(it.getString("licenseUrl"))
+                    .apply {
+                        if (it.hasKey("preferredSecurityLevel")) {
+                            preferredSecurityLevel = it.getString("preferredSecurityLevel")
+                        }
+                        if (it.hasKey("shouldKeepDrmSessionsAlive")) {
+                            shouldKeepDrmSessionsAlive = it.getBoolean("shouldKeepDrmSessionsAlive")
+                        }
+                        if (it.hasKey("httpHeaders")) {
+                            httpHeaders = it.getMap("httpHeaders")
+                                ?.toHashMap()
+                                ?.mapValues { entry -> entry.value as String }
+                                ?.toMutableMap()
+
+                        }
+                    }
             }
-            widevineConfig
-        }
 
         /**
          * Converts an `url` string into a `ThumbnailsTrack`.
@@ -465,6 +489,25 @@ class JsonConverter {
                 return null
             }
             return ThumbnailTrack(url);
+        }
+
+        /**
+         * Converts any `AudioTrack` into its json representation.
+         * @param audioTrack `AudioTrack` object to be converted.
+         * @return The generated json map.
+         */
+        @JvmStatic
+        fun fromAudioTrack(audioTrack: AudioTrack?): WritableMap? {
+            if (audioTrack == null) {
+                return null
+            }
+            val json = Arguments.createMap()
+            json.putString("url", audioTrack.url)
+            json.putString("label", audioTrack.label)
+            json.putBoolean("isDefault", audioTrack.isDefault)
+            json.putString("identifier", audioTrack.id)
+            json.putString("language", audioTrack.language)
+            return json
         }
 
         /**

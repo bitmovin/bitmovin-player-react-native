@@ -2,6 +2,7 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SourceType } from 'bitmovin-player-react-native';
 import Button from './components/Button';
 import ExamplesList from './screens/ExamplesList';
@@ -10,6 +11,7 @@ import BasicAnalytics from './screens/BasicAnalytics';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
+import ProgrammaticTrackSelection from './screens/ProgrammaticTrackSelection';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
 import BasicPictureInPicture from './screens/BasicPictureInPicture';
@@ -28,7 +30,9 @@ export type RootStackParamsList = {
   BasicPlayback: undefined;
   BasicDrmPlayback: undefined;
   BasicPictureInPicture: undefined;
-  BasicFullscreenHandling: undefined;
+  BasicFullscreenHandling: {
+    navigation: NativeStackNavigationProp<RootStackParamsList>;
+  };
   SubtitlePlayback: undefined;
   CustomPlaybackForm: undefined;
   CustomPlayback: {
@@ -44,8 +48,10 @@ export type RootStackParamsList = {
 
 const RootStack = createNativeStackNavigator();
 
+const isTVOS = Platform.OS === 'ios' && Platform.isTV;
+
 export default function App() {
-  var stackParams = {
+  const stackParams = {
     data: [
       {
         title: 'Basic playback',
@@ -71,10 +77,14 @@ export default function App() {
         title: 'Basic Ads',
         routeName: 'BasicAds',
       },
+      {
+        title: 'Programmatic Track Selection',
+        routeName: 'ProgrammaticTrackSelection',
+      },
     ],
   };
 
-  if (!Platform.isTVOS) {
+  if (!isTVOS) {
     stackParams.data.push({
       title: 'Custom HTML UI',
       routeName: 'CustomHtmlUI',
@@ -139,6 +149,11 @@ export default function App() {
           options={{ title: 'Subtitle and captions' }}
         />
         <RootStack.Screen
+          name="ProgrammaticTrackSelection"
+          component={ProgrammaticTrackSelection}
+          options={{ title: 'Programmatic Track Selection' }}
+        />
+        <RootStack.Screen
           name="CustomPlaybackForm"
           component={CustomPlaybackForm}
           options={{ title: 'Custom playback' }}
@@ -153,7 +168,7 @@ export default function App() {
           component={BasicPictureInPicture}
           options={{ title: 'Basic Picture in Picture' }}
         />
-        {!Platform.isTVOS && (
+        {!isTVOS && (
           <RootStack.Screen
             name="CustomHtmlUI"
             component={CustomHtmlUI}

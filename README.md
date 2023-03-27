@@ -71,6 +71,7 @@ Features of the native mobile Player SDKs are progressively being implemented in
 | Advertising                      | :white_check_mark: Available since v0.4.0 |
 | Analytics                        | :white_check_mark: Available since v0.5.0 |
 | Playlist API                     | :x: Not available                         |
+| Casting                          | :x: Not available                         |
 | Offline Playback                 | :x: Not available                         |
 
 ## Installation
@@ -460,9 +461,9 @@ const drmSource: SourceConfig = {
 };
 ```
 
-The [`FairplayConfig`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm.ts#L10) interface provides a bunch of hooks that can be used to fetch and transform different DRM related data. Check out the [docs](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm.ts#L10) for a complete list and detailed information on them.
+The [`FairplayConfig`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm/fairplayConfig.ts) interface provides a bunch of hooks that can be used to fetch and transform different DRM related data. Check out the [docs]([https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm/fairplayConfig.ts](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm/fairplayConfig.ts)) for a complete list and detailed information on them.
 
-Also, don't forget to check out the [example](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app for a complete iOS/Android [DRM example](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDRMPlayback.tsx).
+Also, don't forget to check out the [example](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app for a complete iOS/Android [DRM example](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDrmPlayback.tsx).
 
 ### Adding external subtitle tracks
 

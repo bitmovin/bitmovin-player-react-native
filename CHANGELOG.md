@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.0] (2023-03-27)
+
+### Added
+
+- Support for programmatic audio and subtitle track selection. (Thanks to @joornby-angel)
+- Custom header support for DRM playback on Android.
+- Support for keeping the DRM session alive for consecutive DRM protected sources on Android.
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `v3.36.0`.
+- Update Bitmovin's native Android SDK version to `v3.35.0`.
+
 ## [0.5.1] (2023-01-23)
 
 ### Fixed

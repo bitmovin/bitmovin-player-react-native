@@ -43,6 +43,11 @@ const source: SourceConfig = {
       // Checkout widevine docs to know more about security levels.
       // You should be fine with just the default level.
       preferredSecurityLevel: 'L3', // L3 = software level Drm protection.
+      shouldKeepDrmSessionsAlive: true,
+      httpHeaders: {
+        'test-header': 'test header value',
+        'different-header': 'different value',
+      },
     },
     // iOS only.
     fairplay: {

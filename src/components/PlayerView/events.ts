@@ -40,6 +40,9 @@ import {
   SourceLoadEvent,
   SourceUnloadedEvent,
   SourceWarningEvent,
+  AudioAddedEvent,
+  AudioChangedEvent,
+  AudioRemovedEvent,
   SubtitleAddedEvent,
   SubtitleChangedEvent,
   SubtitleRemovedEvent,
@@ -93,6 +96,9 @@ interface EventProps {
   onSourceLoaded: SourceLoadedEvent;
   onSourceUnloaded: SourceUnloadedEvent;
   onSourceWarning: SourceWarningEvent;
+  onAudioAdded: AudioAddedEvent;
+  onAudioChanged: AudioChangedEvent;
+  onAudioRemoved: AudioRemovedEvent;
   onSubtitleAdded: SubtitleAddedEvent;
   onSubtitleChanged: SubtitleChangedEvent;
   onSubtitleRemoved: SubtitleRemovedEvent;
