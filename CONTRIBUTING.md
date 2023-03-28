@@ -70,7 +70,7 @@ yarn test
 
 To edit the Swift/Objective-C files, open `example/ios/BitmovinPlayerReactNativeExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > RNBitmovinPlayer`.
 
-To edit the Kotlin files, open `example/android` in Android studio and find the source files at `bitmovin-player-react-native` under `Android`.
+To edit the Kotlin files, open `example/android` in Android Studio and find the source files at `bitmovin-player-react-native` under `Android`.
 
 ### Commit message convention
 
