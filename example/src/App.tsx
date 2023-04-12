@@ -16,6 +16,7 @@ import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
 import BasicPictureInPicture from './screens/BasicPictureInPicture';
 import CustomHtmlUI from './screens/CustomHtmlUI';
+import CustomHtmlUIevents from './screens/CustomHtmlUIevents';
 import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 
 export type RootStackParamsList = {
@@ -88,6 +89,11 @@ export default function App() {
     stackParams.data.push({
       title: 'Custom HTML UI',
       routeName: 'CustomHtmlUI',
+    });
+
+    stackParams.data.push({
+      title: 'Custom HTML UI with events',
+      routeName: 'CustomHtmlUIevents',
     });
   }
 
@@ -169,11 +175,18 @@ export default function App() {
           options={{ title: 'Basic Picture in Picture' }}
         />
         {!isTVOS && (
-          <RootStack.Screen
-            name="CustomHtmlUI"
-            component={CustomHtmlUI}
-            options={{ title: 'Custom HTML UI' }}
-          />
+          <>
+            <RootStack.Screen
+              name="CustomHtmlUI"
+              component={CustomHtmlUI}
+              options={{ title: 'Custom HTML UI' }}
+            />
+            <RootStack.Screen
+              name="CustomHtmlUIevents"
+              component={CustomHtmlUIevents}
+              options={{ title: 'Custom HTML UI Events' }}
+            />
+          </>
         )}
         {!Platform.isTV && (
           <RootStack.Screen
