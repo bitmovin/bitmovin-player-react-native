@@ -36,18 +36,47 @@ class PlayerModule: NSObject, RCTBridgeModule {
      Creates a new `Player` instance inside the internal players using the provided `config` object.
      - Parameter config: `PlayerConfig` object received from JS.
      */
+//    @objc(initWithConfig:config:)
+//    func initWithConfig(_ nativeId: NativeId, config: Any?) {
+//        bridge.uiManager.addUIBlock { [weak self] _, _ in
+//            guard
+//                self?.players[nativeId] == nil,
+//                let playerConfig = RCTConvert.playerConfig(config)
+//            else {
+//                return
+//            }
+//            self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
+//        }
+//    }
     @objc(initWithConfig:config:)
-    func initWithConfig(_ nativeId: NativeId, config: Any?) {
-        bridge.uiManager.addUIBlock { [weak self] _, _ in
-            guard
-                self?.players[nativeId] == nil,
-                let playerConfig = RCTConvert.playerConfig(config)
-            else {
-                return
-            }
-            self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
-        }
-    }
+     func initWithConfig(_ nativeId: NativeId, config: Any?) {
+         bridge.uiManager.addUIBlock { [weak self] _, viewsRegistry in
+             guard
+                 self?.players[nativeId] == nil,
+                 let playerConfig = RCTConvert.playerConfig(config)
+             else {
+                 return
+             }
+             // Enable custom UI support if the `styleConfig` option is set in the JS config object.
+             if let json = config as! [String: Any]?, json["styleConfig"] != nil {
+               // **Always** use `nativeId` and `viewsRegistry` whenever you need to access the native `UIView` object.
+               //
+               // A single React view manager object can manage lots of native view instances internally,
+               // each one matching an element in React (occurrences of `<ComponentType />`).
+               //
+               // Never store any of them globally inside the view manager nor create strong reference cycles between them and the view manager.
+               // Otherwise, React won't be able to clean them up and memory will be leaked.
+               //
+               // See also https://docs.swift.org/swift-book/LanguageGuide/AutomaticReferenceCounting.html
+               // See also https://cocoacasts.com/what-are-strong-reference-cycles
+               if let playerView = viewsRegistry[nativeId] as? RNPlayerView {
+                 playerView.enableCustomUi()
+                 playerConfig.userInterfaceConfig = playerView.userInterfaceConfig
+               }
+             }
+             self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
+         }
+      }
 
     /**
      Loads the given source configuration into `nativeId`'s `Player` object.

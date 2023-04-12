@@ -56,6 +56,14 @@ class RNPlayerView: UIView {
     @objc var onReceivedAsynchronousMessage: RCTBubblingEventBlock?
     weak var messageHandler: CustomMessageHandler?
     weak var userInterfaceConfig: BitmovinUserInterfaceConfig?
+    
+    func enableCustomUi() {
+       // TODO: add nil checks
+       messageHandler = CustomMessageHandler()
+       messageHandler?.delegate = self
+       userInterfaceConfig = BitmovinUserInterfaceConfig()
+       userInterfaceConfig?.customMessageHandler = messageHandler
+     }
 
     /// The `PlayerView` subview.
     var playerView: PlayerView? {
@@ -78,22 +86,5 @@ class RNPlayerView: UIView {
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-    }
-}
-
-extension RNPlayerView: CustomMessageHandlerDelegate {
-    func receivedAsynchronousMessage(_ message: String, withData data: String?) {
-        onReceivedAsynchronousMessage?(["message": message, "data": data])
-    }
-    
-    func receivedSynchronousMessage(_ message: String, withData data: String?) -> String? {
-        guard let data = data else {
-            return "No data received for message: \(message)"
-        }
-        
-        let messageData = ["message": message, "data": data]
-        onReceivedSynchronousMessage?(messageData)
-        
-        return "Received message with data: \(messageData)"
     }
 }
