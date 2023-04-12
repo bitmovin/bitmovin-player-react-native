@@ -20,10 +20,9 @@ export default function BasicPlayback() {
     licenseKey: '{LICENSE_HERE}',
     styleConfig: {
       playerUiCss:
-        'https://cdn.bitmovin.com/player/web/8/bitmovinplayer-ui.css',
-      playerUiJs: 'https://cdn.bitmovin.com/player/web/8/bitmovinplayer-ui.js',
-      supplementalPlayerUiCss:
-        'https://storage.googleapis.com/bitmovin-player-cdn-origin/player/ui/ui-customized-sample.css',
+        'https://cdn.statically.io/gh/bitmovin/bitmovin-player-ios-samples/main/CustomHtmlUi/Supporting%20Files/bitmovinplayer-ui.min.css',
+      playerUiJs:
+        'https://cdn.statically.io/gh/bitmovin/bitmovin-player-ios-samples/main/CustomHtmlUi/Supporting%20Files/bitmovinplayer-ui.min.js',
     },
   });
 
@@ -53,6 +52,14 @@ export default function BasicPlayback() {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
 
+  const onReceivedAsynchronousMessage = useCallback((event: any) => {
+    prettyPrint(`MESSAGE [${event.message}]`, event);
+  }, []);
+
+  const onReceivedSynchronousMessage = useCallback((event: any) => {
+    prettyPrint(`MESSAGE [${event.message}]`, event);
+  }, []);
+
   return (
     <View style={styles.container}>
       <PlayerView
@@ -65,6 +72,8 @@ export default function BasicPlayback() {
         onSourceLoaded={onEvent}
         onSeek={onEvent}
         onSeeked={onEvent}
+        onReceivedAsynchronousMessage={onReceivedAsynchronousMessage}
+        onReceivedSynchronousMessage={onReceivedSynchronousMessage}
       />
     </View>
   );
