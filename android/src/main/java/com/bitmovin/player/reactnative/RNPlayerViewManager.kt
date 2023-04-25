@@ -4,6 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getModule
 import com.bitmovin.player.reactnative.ui.FullscreenHandlerBridge
 import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
@@ -142,6 +143,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 Commands.ATTACH_FULLSCREEN_BRIDGE.ordinal -> args?.getString(1)?.let { fullscreenBridgeId ->
                     attachFullscreenBridge(view, fullscreenBridgeId)
                 }
+
                 else -> {}
             }
         }
@@ -163,10 +165,12 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId?, playerConfig: ReadableMap?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
-            playerConfig?.getMap("playbackConfig")?.getBoolean("isPictureInPictureEnabled")?.let {
-                pictureInPictureHandler.isPictureInPictureEnabled = it
-                view.pictureInPictureHandler = pictureInPictureHandler
-            }
+            playerConfig?.getMap("playbackConfig")
+                ?.getBooleanOrNull("isPictureInPictureEnabled")
+                ?.let {
+                    pictureInPictureHandler.isPictureInPictureEnabled = it
+                    view.pictureInPictureHandler = pictureInPictureHandler
+                }
             if (view.playerView != null) {
                 view.player = player
             } else {
