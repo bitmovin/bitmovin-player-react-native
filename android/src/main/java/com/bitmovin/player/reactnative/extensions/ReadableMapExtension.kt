@@ -4,5 +4,4 @@ import com.facebook.react.bridge.ReadableMap
 
 fun ReadableMap.getBooleanOrNull(
     key: String
-): Boolean? = takeIf { hasKey(key) }
-    ?.getBoolean(key)
+): Boolean? = takeIf { hasKey(key) }?.getBoolean(key)

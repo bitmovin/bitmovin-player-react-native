@@ -143,7 +143,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 Commands.ATTACH_FULLSCREEN_BRIDGE.ordinal -> args?.getString(1)?.let { fullscreenBridgeId ->
                     attachFullscreenBridge(view, fullscreenBridgeId)
                 }
-
                 else -> {}
             }
         }
@@ -165,7 +164,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId?, playerConfig: ReadableMap?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
-            playerConfig?.getMap("playbackConfig")
+            playerConfig
+                ?.getMap("playbackConfig")
                 ?.getBooleanOrNull("isPictureInPictureEnabled")
                 ?.let {
                     pictureInPictureHandler.isPictureInPictureEnabled = it
