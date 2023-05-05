@@ -401,6 +401,9 @@ const drmSource: SourceConfig = {
       licenseUrl:
         'https://fps.ezdrm.com/api/licenses/09cc0377-6dd4-40cb-b09d-b582236e70fe',
       certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
+      prepareMessage: (message, assetId) => {
+        return message;
+      },
     },
   },
 };
