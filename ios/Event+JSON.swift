@@ -3,7 +3,7 @@ import BitmovinPlayer
 extension Source {
     func toJSON() -> [AnyHashable: Any] {
         var json: [AnyHashable: Any] = [
-            "duration": duration,
+//            "duration": duration,
             "isActive": isActive,
             "loadingState": loadingState,
             "isAttachedToPlayer": isAttachedToPlayer

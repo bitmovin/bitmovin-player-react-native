@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => "12.4", :tvos => "12.4" }
+  s.platforms    = { :ios => "14.0", :tvos => "14.0" }
   s.source       = {
     :git => "https://github.com/bitmovin/bitmovin-player-react-native.git",
     :tag => "v#{s.version}"
@@ -19,7 +19,7 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,mm,swift}"
 
   s.dependency "React-Core"
-  s.dependency "BitmovinPlayer", "3.36.0"
+  s.dependency "BitmovinPlayer", "3.40.0-a.4"
   s.dependency "BitmovinAnalyticsCollector/Core", "2.9.4"
   s.dependency "BitmovinAnalyticsCollector/BitmovinPlayer", "2.9.4"
   s.ios.dependency "GoogleAds-IMA-iOS-SDK", "3.17.0"

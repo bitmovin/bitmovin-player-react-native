@@ -6,6 +6,8 @@
 	<string>ENTER_LICENSE_KEY</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>WebRTC apparently needs this</string>
 	<key>CFBundleDisplayName</key>
 	<string>RN Player Example</string>
 	<key>CFBundleExecutable</key>

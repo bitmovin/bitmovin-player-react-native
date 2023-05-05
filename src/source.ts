@@ -25,6 +25,8 @@ export enum SourceType {
    * Indicates media type Progressive MP4.
    */
   PROGRESSIVE = 'progressive',
+
+  WHEP = 'whep',
 }
 
 /**

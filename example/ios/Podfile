@@ -9,7 +9,7 @@ install! 'cocoapods', :deterministic_uuids => false
 
 def setup os
   inhibit_all_warnings!
-  platform os, '12.4'
+  platform os, '14.0'
 
   config = use_native_modules!
 

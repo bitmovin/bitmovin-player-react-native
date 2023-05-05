@@ -266,6 +266,7 @@ extension RCTConvert {
         case "hls": return .hls
         case "dash": return .dash
         case "progressive": return .progressive
+        case "whep": return .whep
         default: return .none
         }
     }
