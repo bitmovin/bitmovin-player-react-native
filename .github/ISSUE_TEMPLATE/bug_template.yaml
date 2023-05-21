@@ -42,8 +42,6 @@ body:
     -label: Android TV / Fire TV
     -label: iOS
     -label: tvOS
-    validations:
-      required: true
 - type: textarea
   attributes:
     label: Device / Environment
