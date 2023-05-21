@@ -46,7 +46,7 @@ body:
   attributes:
     label: Device / Environment
     description: Please provide as much detail as possible about the device(s) on which you experience the issue.
-    value: |
+    placeholder: |
         - Device:
         - Operating System:
         - ...
