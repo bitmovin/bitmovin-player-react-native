@@ -38,10 +38,10 @@ body:
     label: What platform(s) are you experiening the issue on?
     description: Please select all platforms which are affected by the bug.
     options:
-    -label: Android
-    -label: Android TV / Fire TV
-    -label: iOS
-    -label: tvOS
+    - label: Android
+    - label: Android TV / Fire TV
+    - label: iOS
+    - label: tvOS
 - type: textarea
   attributes:
     label: Device / Environment
