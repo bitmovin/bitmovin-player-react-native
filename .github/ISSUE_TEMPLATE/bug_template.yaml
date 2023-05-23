@@ -42,6 +42,12 @@ body:
     - label: Android TV / Fire TV
     - label: iOS
     - label: tvOS
+- type: input
+  attributes:
+    label: Player React Native SDK version
+    description: Please provide the version of the SDK you are experiencing the issue with.
+  validations:
+    required: true
 - type: textarea
   attributes:
     label: Device / Environment
@@ -50,6 +56,12 @@ body:
         - Device:
         - Operating System:
         - ...
+  validations:
+    required: false
+- type: input
+  attributes:
+    label: Stream URL (Optional)
+    description: To help us reproduce the bug, you can provide us with the URL of your stream. 
   validations:
     required: false
 - type: textarea
