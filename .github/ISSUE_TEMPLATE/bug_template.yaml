@@ -1,6 +1,6 @@
 name: 🐞 Bug
 description: Report a Bug you encountered in our Player React Native SDK.
-title: ""
+title: "<title>"
 labels: [Bug]
 body:
 - type: markdown
