@@ -265,6 +265,11 @@ class JsonConverter {
             if (json.hasKey("thumbnailTrack")) {
                 config.thumbnailTrack = toThumbnailTrack(json.getString("thumbnailTrack"))
             }
+            if (json.hasKey("metadata")) {
+                config.metadata = json.getMap("metadata")
+                    ?.toHashMap()
+                    ?.mapValues { entry -> entry.value as String }
+            }
             return config
         }
 
