@@ -24,12 +24,13 @@ repositories {
     }
     google()
     mavenCentral()
+    maven { url 'https://artifacts.bitmovin.com/artifactory/public-releases' }
 }
 
 android {
     compileSdk 33
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 21
         targetSdkVersion 33
         versionCode 1
         versionName '1.0'
@@ -54,5 +55,5 @@ dependencies {
     implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
     implementation 'com.bitmovin.analytics:collector-bitmovin-player:2.12.1'
     implementation 'com.bitmovin.player:player:3.37.2'
-    implementation 'com.facebook.react:react-native:+'
+    implementation 'com.facebook.react:react-native:0.69.10'
 }
