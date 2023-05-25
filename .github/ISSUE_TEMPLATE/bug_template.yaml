@@ -8,7 +8,7 @@ body:
     value: |
       Thank you for helping us make our library better by providing this bug report.
       
-      Please note that any Issue raised in Github aren’t covered by any SLA a customer might be eligible for. Only Tickets that are raised through the dashboard are considered by Support SLAs.
+      Please note that any Issues raised in Github aren’t covered by any SLA a customer might be eligible for. Only Tickets that are raised through the dashboard are considered by Support SLAs.
 - type: checkboxes
   attributes:
     label: Is there an existing issue for this?
