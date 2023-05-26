@@ -83,7 +83,7 @@ export interface SourceConfig extends NativeInstanceConfig {
    */
   thumbnailTrack?: string;
   /**
-   * The optional custom metadata. Also sent to the cast receiver when loading the [Source].
+   * The optional custom metadata. Also sent to the cast receiver when loading the Source.
    */
   metadata?: Record<string, string>;
 }

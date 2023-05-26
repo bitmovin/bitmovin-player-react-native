@@ -29,6 +29,7 @@ import com.bitmovin.player.reactnative.extensions.toReadableArray
 import com.bitmovin.player.reactnative.extensions.getProperty
 import com.bitmovin.player.reactnative.extensions.setProperty
 import com.facebook.react.bridge.*
+import com.bitmovin.player.reactnative.extensions.toReadableMap
 import java.util.UUID
 
 /**
@@ -302,7 +303,7 @@ class JsonConverter {
             json.putBoolean("isActive", source.isActive)
             json.putBoolean("isAttachedToPlayer", source.isAttachedToPlayer)
             json.putInt("loadingState", source.loadingState.ordinal)
-            json.putNull("metadata")
+            json.putMap("metadata", source.config.metadata?.toReadableMap())
             return json
         }
 
