@@ -52,11 +52,11 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 
 This library requires at least React Native 0.64+ and React 17+ to work properly. The currently supported platforms are:
 
-- iOS 12.0+
-- tvOS 12.0+
-- Android API 16+
-- Android TV API 17+
-- Fire TV (just make sure the Android API level is at least 17+)
+- iOS 14.0+
+- tvOS 14.0+
+- Android API Level 16+ (note that DRM-protected streams require API Level 19+)
+- Android TV API Level 24+
+- FireOS 5.0+
 
 Please note that browsers and other browser-like environments such as webOS and Tizen are not supported.
 
