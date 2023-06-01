@@ -249,6 +249,9 @@ extension RCTConvert {
         if let thumbnailTrack = json["thumbnailTrack"] as? String {
             sourceConfig.thumbnailTrack = RCTConvert.thumbnailTrack(thumbnailTrack)
         }
+        if let metadata = json["metadata"] as? [String: String] {
+            sourceConfig.metadata = metadata
+        }
         return sourceConfig
     }
 
