@@ -7,10 +7,10 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 [![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![Bitmovin Community](https://img.shields.io/discourse/users?label=community&server=https%3A%2F%2Fcommunity.bitmovin.com)](https://community.bitmovin.com/?utm_source=github&utm_medium=bitmovin-player-react-native&utm_campaign=dev-community)
 
-> As the library is under active development, this means certain features from our native SDKs are not yet exposed through these React Native bindings.  
+> As the library is under active development, this means certain features from our native SDKs are not yet exposed through these React Native bindings.
 > See [Feature Support](#feature-support) for an overview of the supported features.
 >
-> Not seeing the features you’re looking for?  
+> Not seeing the features you’re looking for?
 > We are accepting community pull requests to this open-source project so please feel free to contribute.
 > or let us know in [our community](https://community.bitmovin.com/c/requests/14) what features we should work on next.
 
@@ -118,7 +118,7 @@ source 'https://github.com/bitmovin/cocoapod-specs.git'
 
 # iOS version should be 12 or greater.
 # If you are running RN 0.69 you should be fine already.
-platform :ios, '12.4'
+platform :ios, '14.0'
 install! 'cocoapods', :deterministic_uuids => false
 
 target 'MyApp' do
@@ -464,7 +464,7 @@ const drmSource: SourceConfig = {
 };
 ```
 
-The [`FairplayConfig`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm/fairplayConfig.ts) interface provides a bunch of hooks that can be used to fetch and transform different DRM related data. Check out the [docs]([https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm/fairplayConfig.ts](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm/fairplayConfig.ts)) for a complete list and detailed information on them.
+The [`FairplayConfig`](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm/fairplayConfig.ts) interface provides a bunch of hooks that can be used to fetch and transform different DRM related data. Check out the [docs](<[https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm/fairplayConfig.ts](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/src/drm/fairplayConfig.ts)>) for a complete list and detailed information on them.
 
 Also, don't forget to check out the [example](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) app for a complete iOS/Android [DRM example](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDrmPlayback.tsx).
 
