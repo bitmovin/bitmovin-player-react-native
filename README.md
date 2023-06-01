@@ -7,10 +7,10 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 [![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![Bitmovin Community](https://img.shields.io/discourse/users?label=community&server=https%3A%2F%2Fcommunity.bitmovin.com)](https://community.bitmovin.com/?utm_source=github&utm_medium=bitmovin-player-react-native&utm_campaign=dev-community)
 
-> As the library is under active development, this means certain features from our native SDKs are not yet exposed through these React Native bindings.  
+> As the library is under active development, this means certain features from our native SDKs are not yet exposed through these React Native bindings.
 > See [Feature Support](#feature-support) for an overview of the supported features.
 >
-> Not seeing the features you’re looking for?  
+> Not seeing the features you’re looking for?
 > We are accepting community pull requests to this open-source project so please feel free to contribute.
 > or let us know in [our community](https://community.bitmovin.com/c/requests/14) what features we should work on next.
 

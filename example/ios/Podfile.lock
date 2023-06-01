@@ -3,7 +3,7 @@ PODS:
     - BitmovinAnalyticsCollector/Core
     - BitmovinPlayer (~> 3.0)
   - BitmovinAnalyticsCollector/Core (2.9.4)
-  - BitmovinPlayer (3.36.0)
+  - BitmovinPlayer (3.39.0)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -337,7 +337,7 @@ PODS:
   - RNBitmovinPlayer (0.6.0):
     - BitmovinAnalyticsCollector/BitmovinPlayer (= 2.9.4)
     - BitmovinAnalyticsCollector/Core (= 2.9.4)
-    - BitmovinPlayer (= 3.36.0)
+    - BitmovinPlayer (= 3.39.0)
     - GoogleAds-IMA-iOS-SDK (= 3.17.0)
     - GoogleAds-IMA-tvOS-SDK (= 4.6.1)
     - React-Core
@@ -508,7 +508,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   BitmovinAnalyticsCollector: e80b02754019632340556a509fc4268dbad6f219
-  BitmovinPlayer: 9eb681e3e05db252244743c7973ab6a882d5eecd
+  BitmovinPlayer: 71b185f064eff82f7f35e2a35a8023148e6e25c3
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 234abba95e31cc2aada0cf3b97cdb11bc5b90575
@@ -554,13 +554,13 @@ SPEC CHECKSUMS:
   React-RCTText: f72442f7436fd8624494963af4906000a5465ce6
   React-runtimeexecutor: f1383f6460ea3d66ed122b4defb0b5ba664ee441
   ReactCommon: 7857ab475239c5ba044b7ed946ba564f2e7f1626
-  RNBitmovinPlayer: c92f6d1d1e1ce37628052d37df23e2ec6bd1e132
+  RNBitmovinPlayer: 6411c4f2967389257d5bc20e59bab4e3229ddbb0
   RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   Yoga: be4fede0339d862989f5b064f8939c7429ad92c9
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 5344195acbbd7a5c37e2eda683980bac20688f8e
+PODFILE CHECKSUM: 501efef2066a65008b66c5de2015a0f7d3544f38
 
 COCOAPODS: 1.11.3
