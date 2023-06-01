@@ -29,7 +29,7 @@ This library requires at least React Native 0.64+ and React 17+ to work properly
 
 - iOS 14.0+
 - tvOS 14.0+
-- Android API Level 16+ (note that DRM-protected streams require API Level 19+)
+- Android API Level 21+
 - Android TV API Level 24+
 - Fire TV FireOS 5.0+
 
