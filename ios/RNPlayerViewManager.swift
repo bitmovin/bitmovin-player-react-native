@@ -53,6 +53,26 @@ class RNPlayerViewManager: RCTViewManager {
         }
     }
 
+    @objc func attachCustomMessageHandlerBridge(_ viewId: NSNumber, playerId: NativeId, customMessageHandlerBridgeId: NativeId) {
+        bridge.uiManager.addUIBlock { [weak self] _, views in
+            guard
+                let player = self?.getPlayerModule()?.retrieve(playerId),
+                let customMessageHandlerBridge = self?.bridge[CustomMessageHandlerModule.self]?.retrieve(customMessageHandlerBridgeId)
+            else {
+                return
+            }
+
+            guard player.config.styleConfig.userInterfaceType == .bitmovin else {
+                return
+            }
+
+            let bitmovinUserInterfaceConfig = player.config.styleConfig.userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
+            player.config.styleConfig.userInterfaceConfig = bitmovinUserInterfaceConfig
+
+            bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
+        }
+    }
+
     /// Fetches the initialized `PlayerModule` instance on RN's bridge object.
     private func getPlayerModule() -> PlayerModule? {
         bridge.module(for: PlayerModule.self) as? PlayerModule
