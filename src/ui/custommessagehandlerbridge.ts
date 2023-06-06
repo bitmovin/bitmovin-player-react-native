@@ -67,10 +67,6 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
    * Called by CustomMessageHandler, when sending a message to the UI.
    */
   sendMessage(message: string, data: string | undefined): void {
-    CustomMessageHandlerModule.sendMessageWithNativeId(
-      this.nativeId,
-      message,
-      data
-    );
+    CustomMessageHandlerModule.sendMessage(this.nativeId, message, data);
   }
 }

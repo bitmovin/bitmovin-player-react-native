@@ -57,7 +57,7 @@ class CustomMessageHandlerModule: NSObject, RCTBridgeModule {
         return nil
     }
 
-    @objc(sendMessageWithNativeId:message:data:)
+    @objc(sendMessage:message:data:)
     func sendMessage(nativeId: NativeId, message: String, data: String?) {
         customMessageHandlers[nativeId]?.sendMessage(message, withData: data)
     }
