@@ -14,12 +14,12 @@ class CustomMessageHandlerBridge(
     private var currentSynchronousResult: String? = null
 
     @JavascriptInterface
-    fun synchronousMessage(message: String, data: String?): String? = context
+    fun sendSynchronousMessage(message: String, data: String?): String? = context
             .getModule<CustomMessageHandlerModule>()
             ?.receivedSynchronousMessage(nativeId, message, data)
 
     @JavascriptInterface
-    fun asynchronousMessage(message: String, data: String?) = context
+    fun sendAsynchronousMessage(message: String, data: String?) = context
             .getModule<CustomMessageHandlerModule>()
             ?.receivedAsynchronousMessage(nativeId, message, data)
 
