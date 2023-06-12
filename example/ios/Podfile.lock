@@ -3,7 +3,9 @@ PODS:
     - BitmovinAnalyticsCollector/Core
     - BitmovinPlayer (~> 3.0)
   - BitmovinAnalyticsCollector/Core (2.9.4)
-  - BitmovinPlayer (3.39.0)
+  - BitmovinPlayer (3.40.0):
+    - BitmovinPlayerCore (= 3.40.0)
+  - BitmovinPlayerCore (3.40.0)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -337,7 +339,7 @@ PODS:
   - RNBitmovinPlayer (0.6.0):
     - BitmovinAnalyticsCollector/BitmovinPlayer (= 2.9.4)
     - BitmovinAnalyticsCollector/Core (= 2.9.4)
-    - BitmovinPlayer (= 3.39.0)
+    - BitmovinPlayer (= 3.40.0)
     - GoogleAds-IMA-iOS-SDK (= 3.17.0)
     - GoogleAds-IMA-tvOS-SDK (= 4.6.1)
     - React-Core
@@ -415,6 +417,7 @@ SPEC REPOS:
   https://github.com/bitmovin/cocoapod-specs.git:
     - BitmovinAnalyticsCollector
     - BitmovinPlayer
+    - BitmovinPlayerCore
   https://github.com/react-native-tvos/react-native-tvos-podspecs.git:
     - Flipper-PeerTalk
     - libevent
@@ -508,7 +511,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   BitmovinAnalyticsCollector: e80b02754019632340556a509fc4268dbad6f219
-  BitmovinPlayer: 71b185f064eff82f7f35e2a35a8023148e6e25c3
+  BitmovinPlayer: 57266ccab7d2fbc15144b422e4b0137c7dc373dc
+  BitmovinPlayerCore: f53717bbedf58ce9b34b0c257a93c5ddd2869e99
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 234abba95e31cc2aada0cf3b97cdb11bc5b90575
@@ -554,7 +558,7 @@ SPEC CHECKSUMS:
   React-RCTText: f72442f7436fd8624494963af4906000a5465ce6
   React-runtimeexecutor: f1383f6460ea3d66ed122b4defb0b5ba664ee441
   ReactCommon: 7857ab475239c5ba044b7ed946ba564f2e7f1626
-  RNBitmovinPlayer: 6411c4f2967389257d5bc20e59bab4e3229ddbb0
+  RNBitmovinPlayer: 6a9b4f9f1501881a9eac262138caa0cfeb03b0f9
   RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
