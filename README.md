@@ -2,10 +2,13 @@
 
 Official React Native bindings for Bitmovin's mobile Player SDKs.
 
-[![npm](https://img.shields.io/npm/v/bitmovin-player-react-native)](https://www.npmjs.com/package/bitmovin-player-react-native)
+[![Build](https://github.com/bitmovin/bitmovin-player-react-native/actions/workflows/ci.yml/badge.svg)](https://github.com/bitmovin/bitmovin-player-react-native/actions/workflows/ci.yml)
 ![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20tvOS%20%7C%20Android%20%7C%20Android%20TV-lightgrey.svg)
 [![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![Bitmovin Community](https://img.shields.io/discourse/users?label=community&server=https%3A%2F%2Fcommunity.bitmovin.com)](https://community.bitmovin.com/?utm_source=github&utm_medium=bitmovin-player-react-native&utm_campaign=dev-community)
+[![npm version](https://img.shields.io/npm/v/bitmovin-player-react-native)](https://www.npmjs.com/package/bitmovin-player-react-native)
+[![npm dm](https://img.shields.io/npm/dm/bitmovin-player-react-native.svg)](https://www.npmjs.com/package/bitmovin-player-react-native)
+[![npm dt](https://img.shields.io/npm/dt/bitmovin-player-react-native.svg)](https://www.npmjs.com/package/bitmovin-player-react-native)
 
 > As the library is under active development, this means certain features from our native SDKs are not yet exposed through these React Native bindings.
 > See [Feature Support](#feature-support) for an overview of the supported features.
