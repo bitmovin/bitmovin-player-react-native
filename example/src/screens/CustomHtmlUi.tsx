@@ -88,7 +88,6 @@ export default function CustomHtmlUi({ navigation }: CustomHtmlUiProps) {
         onPaused={onEvent}
         onReady={onReady}
       />
-      {/* <View style={{ flex: 0.1 }} /> */}
       <Button
         containerStyle={styles.buttonContainer}
         title="Toggle Close Button State"
