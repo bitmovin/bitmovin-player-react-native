@@ -114,9 +114,8 @@ export function PlayerView({
       // as we need to set the CustomMessageHandler on the BitmovinUserInterfaceConfig
       if (customMessageHandlerBridge.current) {
         dispatch(
-          'attachCustomMessageHandlerBridge',
+          'setCustomMessageHandlerBridgeId',
           node,
-          player.nativeId,
           customMessageHandlerBridge.current.nativeId
         );
       }

@@ -26,7 +26,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     enum class Commands {
         ATTACH_PLAYER,
         ATTACH_FULLSCREEN_BRIDGE,
-        ATTACH_CUSTOM_MESSAGE_HANDLER_BRIDGE,
+        SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID,
     }
 
     /**
@@ -132,7 +132,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     override fun getCommandsMap(): MutableMap<String, Int> = mutableMapOf(
         "attachPlayer" to Commands.ATTACH_PLAYER.ordinal,
         "attachFullscreenBridge" to Commands.ATTACH_FULLSCREEN_BRIDGE.ordinal,
-        "attachCustomMessageHandlerBridge" to Commands.ATTACH_CUSTOM_MESSAGE_HANDLER_BRIDGE.ordinal,
+        "setCustomMessageHandlerBridgeId" to Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID.ordinal,
     )
 
     /**
@@ -149,7 +149,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 Commands.ATTACH_FULLSCREEN_BRIDGE.ordinal -> args?.getString(1)?.let { fullscreenBridgeId ->
                     attachFullscreenBridge(view, fullscreenBridgeId)
                 }
-                Commands.ATTACH_CUSTOM_MESSAGE_HANDLER_BRIDGE.ordinal -> args?.getString(2)?.let { customMessageHandlerBridgeId ->
+                Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID.ordinal -> args?.getString(1)?.let { customMessageHandlerBridgeId ->
                     setCustomMessageHandlerBridgeId(view, customMessageHandlerBridgeId)
                 }
                 else -> {}

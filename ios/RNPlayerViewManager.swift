@@ -14,6 +14,8 @@ class RNPlayerViewManager: RCTViewManager {
         RNPlayerView()
     }
 
+    private var customMessageHandlerBridgeId: NativeId?
+
     /**
      Sets the `Player` instance for the view with `viewId` inside RN's `UIManager` registry.
      - Parameter viewId: `RNPlayerView` id inside `UIManager`'s registry.
@@ -22,11 +24,22 @@ class RNPlayerViewManager: RCTViewManager {
     @objc func attachPlayer(_ viewId: NSNumber, playerId: NativeId, playerConfig: NSDictionary?) {
         bridge.uiManager.addUIBlock { [weak self] _, views in
             guard
+                let self,
                 let view = views?[viewId] as? RNPlayerView,
-                let player = self?.getPlayerModule()?.retrieve(playerId)
+                let player = self.getPlayerModule()?.retrieve(playerId)
             else {
                 return
             }
+
+            if let customMessageHandlerBridgeId = self.customMessageHandlerBridgeId,
+               let customMessageHandlerBridge = self.bridge[CustomMessageHandlerModule.self]?.retrieve(customMessageHandlerBridgeId),
+               player.config.styleConfig.userInterfaceType == .bitmovin {
+                let bitmovinUserInterfaceConfig = player.config.styleConfig.userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
+                player.config.styleConfig.userInterfaceConfig = bitmovinUserInterfaceConfig
+
+                bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
+            }
+
             if let playerView = view.playerView {
                 playerView.player = player
             } else {
@@ -53,24 +66,8 @@ class RNPlayerViewManager: RCTViewManager {
         }
     }
 
-    @objc func attachCustomMessageHandlerBridge(_ viewId: NSNumber, playerId: NativeId, customMessageHandlerBridgeId: NativeId) {
-        bridge.uiManager.addUIBlock { [weak self] _, views in
-            guard
-                let player = self?.getPlayerModule()?.retrieve(playerId),
-                let customMessageHandlerBridge = self?.bridge[CustomMessageHandlerModule.self]?.retrieve(customMessageHandlerBridgeId)
-            else {
-                return
-            }
-
-            guard player.config.styleConfig.userInterfaceType == .bitmovin else {
-                return
-            }
-
-            let bitmovinUserInterfaceConfig = player.config.styleConfig.userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
-            player.config.styleConfig.userInterfaceConfig = bitmovinUserInterfaceConfig
-
-            bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
-        }
+    @objc func setCustomMessageHandlerBridgeId(_ viewId: NSNumber, customMessageHandlerBridgeId: NativeId) {
+        self.customMessageHandlerBridgeId = customMessageHandlerBridgeId
     }
 
     /// Fetches the initialized `PlayerModule` instance on RN's bridge object.
