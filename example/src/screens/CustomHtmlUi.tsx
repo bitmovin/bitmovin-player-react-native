@@ -34,7 +34,7 @@ export default function CustomHtmlUi({ navigation }: CustomHtmlUiProps) {
         prettyPrint('Received synchronous message', { message, payload });
         return undefined;
       },
-      (message: string, payload: any) => {
+      (message: string, payload: string | undefined) => {
         prettyPrint('Received asynchronous message', { message, payload });
       }
     )

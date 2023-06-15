@@ -1,7 +1,7 @@
 import { CustomMessageSender } from './custommessagesender';
 
 /**
- * Handles the UI state change when fullscreen should be entered or exited.
+ * Provides a two-way communication channel between the Player UI and the integration.
  */
 export class CustomMessageHandler {
   onReceivedSynchronousMessage: (
@@ -15,6 +15,14 @@ export class CustomMessageHandler {
 
   customMessageSender?: CustomMessageSender;
 
+  /**
+   * Android and iOS only.
+   *
+   * Creates a new `CustomMessageHandler` instance to handle two-way communication between the integation and the Player UI.
+   *
+   * @param onReceivedSynchronousMessage - A function that will be called when the Player UI sends a synchronous message to the integration.
+   * @param onReceivedAsynchronousMessage - A function that will be called when the Player UI sends an asynchronous message to the integration.
+   */
   constructor(
     onReceivedSynchronousMessage: (
       message: string,
