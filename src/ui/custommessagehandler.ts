@@ -48,6 +48,14 @@ export class CustomMessageHandler {
     this.onReceivedAsynchronousMessage(message, data);
   }
 
+  /**
+   * Android and iOS only.
+   *
+   * Sends a message to the Player UI.
+   *
+   * @param message - Identifier for the callback which should be called.
+   * @param data - Payload for the callback.
+   */
   sendMessage(message: string, data: string | undefined): void {
     this.customMessageSender?.sendMessage(message, data);
   }
