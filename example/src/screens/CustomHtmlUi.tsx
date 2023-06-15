@@ -26,18 +26,24 @@ export default function CustomHtmlUi({ navigation }: CustomHtmlUiProps) {
   useTVGestures();
 
   const customMessageHandler = useRef(
-    new CustomMessageHandler(
-      (message: string, payload: string | undefined) => {
+    new CustomMessageHandler({
+      onReceivedSynchronousMessage: (
+        message: string,
+        payload: string | undefined
+      ) => {
         if (message === 'closePlayer') {
           navigation.pop();
         }
         prettyPrint('Received synchronous message', { message, payload });
         return undefined;
       },
-      (message: string, payload: string | undefined) => {
+      onReceivedAsynchronousMessage: (
+        message: string,
+        payload: string | undefined
+      ) => {
         prettyPrint('Received asynchronous message', { message, payload });
-      }
-    )
+      },
+    })
   ).current;
 
   const player = usePlayer({

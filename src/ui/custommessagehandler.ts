@@ -26,16 +26,19 @@ export class CustomMessageHandler {
    * @param onReceivedSynchronousMessage - A function that will be called when the Player UI sends a synchronous message to the integration.
    * @param onReceivedAsynchronousMessage - A function that will be called when the Player UI sends an asynchronous message to the integration.
    */
-  constructor(
+  constructor({
+    onReceivedSynchronousMessage,
+    onReceivedAsynchronousMessage,
+  }: {
     onReceivedSynchronousMessage: (
       message: string,
       data: string | undefined
-    ) => string | undefined,
+    ) => string | undefined;
     onReceivedAsynchronousMessage: (
       message: string,
       data: string | undefined
-    ) => void
-  ) {
+    ) => void;
+  }) {
     this.onReceivedSynchronousMessage = onReceivedSynchronousMessage;
     this.onReceivedAsynchronousMessage = onReceivedAsynchronousMessage;
   }
