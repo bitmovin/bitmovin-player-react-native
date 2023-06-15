@@ -172,7 +172,10 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
 
     private fun attachCustomMessageHandlerBridge(view: RNPlayerView) {
         view.playerView?.setCustomMessageHandler(
-            context.getModule<CustomMessageHandlerModule>()?.getInstance(customMessageHandlerBridgeId)?.customMessageHandler
+            context.getModule<CustomMessageHandlerModule>()
+                ?.getInstance(customMessageHandlerBridgeId)
+                ?.customMessageHandler
+        )
         )
     }
 
