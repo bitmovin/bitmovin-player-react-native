@@ -7,11 +7,11 @@ import { CustomMessageSender } from './custommessagesender';
  * Provides a two-way communication channel between the Player UI and the integration.
  */
 export class CustomMessageHandler {
-  onReceivedSynchronousMessage: (
+  private readonly onReceivedSynchronousMessage: (
     message: string,
     data: string | undefined
   ) => string | undefined;
-  onReceivedAsynchronousMessage: (
+  private readonly onReceivedAsynchronousMessage: (
     message: string,
     data: string | undefined
   ) => void;
