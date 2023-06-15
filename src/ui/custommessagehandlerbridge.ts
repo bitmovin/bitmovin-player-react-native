@@ -12,7 +12,7 @@ const CustomMessageHandlerModule = NativeModules.CustomMessageHandlerModule;
 export class CustomMessageHandlerBridge implements CustomMessageSender {
   readonly nativeId: string;
   private customMessageHandler?: CustomMessageHandler;
-  isDestroyed: boolean;
+  private isDestroyed: boolean;
 
   constructor(nativeId?: string) {
     this.nativeId = nativeId ?? Uuid.generate();
