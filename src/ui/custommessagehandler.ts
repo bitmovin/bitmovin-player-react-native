@@ -1,6 +1,9 @@
 import { CustomMessageSender } from './custommessagesender';
 
 /**
+ * Android and iOS only.
+ * For Android it requires Player SDK version 3.39.0 or higher.
+ *
  * Provides a two-way communication channel between the Player UI and the integration.
  */
 export class CustomMessageHandler {
