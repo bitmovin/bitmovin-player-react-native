@@ -1,11 +1,13 @@
 import BitmovinPlayer
 
-class CustomMessageHandlerBridge: NSObject, CustomMessageHandlerDelegate {
+class CustomMessageHandlerBridge: NSObject {
+#if os(iOS)
     private(set) lazy var customMessageHandler: CustomMessageHandler = {
         let customMessageHandler = CustomMessageHandler()
         customMessageHandler.delegate = self
         return customMessageHandler
     }()
+#endif
 
     private let nativeId: NativeId
     private let bridge: RCTBridge
@@ -27,7 +29,9 @@ class CustomMessageHandlerBridge: NSObject, CustomMessageHandlerDelegate {
     }
 
     func sendMessage(_ message: String, withData data: String?) {
+#if os(iOS)
         customMessageHandler.sendMessage(message, withData: data)
+#endif
     }
 
     func pushSynchronousResult(_ result: String?) {
@@ -40,3 +44,7 @@ class CustomMessageHandlerBridge: NSObject, CustomMessageHandlerDelegate {
         return result
     }
 }
+
+#if os(iOS)
+extension CustomMessageHandlerBridge: CustomMessageHandlerDelegate {}
+#endif

@@ -30,7 +30,7 @@ class RNPlayerViewManager: RCTViewManager {
             else {
                 return
             }
-
+#if os(iOS)
             if let customMessageHandlerBridgeId = self.customMessageHandlerBridgeId,
                let customMessageHandlerBridge = self.bridge[CustomMessageHandlerModule.self]?.retrieve(customMessageHandlerBridgeId),
                player.config.styleConfig.userInterfaceType == .bitmovin {
@@ -39,6 +39,7 @@ class RNPlayerViewManager: RCTViewManager {
 
                 bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
             }
+#endif
 
             if let playerView = view.playerView {
                 playerView.player = player
