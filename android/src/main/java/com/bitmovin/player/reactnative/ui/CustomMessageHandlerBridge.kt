@@ -23,8 +23,7 @@ class CustomMessageHandlerBridge(
             .getModule<CustomMessageHandlerModule>()
             ?.receivedAsynchronousMessage(nativeId, name, data)
 
-    fun sendMessage(message: String, data: String?) =
-            customMessageHandler.sendMessage(message, data)
+    fun sendMessage(message: String, data: String?) = customMessageHandler.sendMessage(message, data)
 
     fun popSynchronousResult(): String? = currentSynchronousResult?.let {
         currentSynchronousResult = null
