@@ -107,6 +107,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Call `.timShift(offset:)` on `nativeId`'s player.
+     * @param nativeId Target player Id.
+     * @param offset Offset time in seconds.
+     */
+    @ReactMethod
+    fun timeShift(nativeId: NativeId, offset: Double) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.timeShift(offset)
+        }
+    }
+
+    /**
      * Call `.mute()` on `nativeId`'s player.
      * @param nativeId Target player Id.
      */

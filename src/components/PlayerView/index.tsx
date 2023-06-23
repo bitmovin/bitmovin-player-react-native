@@ -176,6 +176,8 @@ export function PlayerView({
       onReady={proxy(props.onReady)}
       onSeek={proxy(props.onSeek)}
       onSeeked={proxy(props.onSeeked)}
+      onTimeShift={proxy(props.onTimeShift)}
+      onTimeShifted={proxy(props.onTimeShifted)}
       onStallStarted={proxy(props.onStallStarted)}
       onStallEnded={proxy(props.onStallEnded)}
       onSourceError={proxy(props.onSourceError)}

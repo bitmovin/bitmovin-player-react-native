@@ -76,6 +76,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "playbackFinished" to "onPlaybackFinished",
         "seek" to "onSeek",
         "seeked" to "onSeeked",
+        "timeShift" to "onTimeShift",
+        "timeShifted" to "onTimeShifted",
         "stallStarted" to "onStallStarted",
         "stallEnded" to "onStallEnded",
         "timeChanged" to "onTimeChanged",
@@ -149,7 +151,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 Commands.ATTACH_FULLSCREEN_BRIDGE.ordinal -> args?.getString(1)?.let { fullscreenBridgeId ->
                     attachFullscreenBridge(view, fullscreenBridgeId)
                 }
-                Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID.ordinal -> { 
+                Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID.ordinal -> {
                     args?.getString(1)?.let { customMessageHandlerBridgeId ->
                         setCustomMessageHandlerBridgeId(view, customMessageHandlerBridgeId)
                     }

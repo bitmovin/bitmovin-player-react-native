@@ -236,6 +236,19 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * Shifts the time to the given `offset` in seconds from the live edge. The resulting offset has to be within the
+   * timeShift window as specified by `maxTimeShift` (which is a negative value) and 0. When the provided `offset` is
+   * positive, it will be interpreted as a UNIX timestamp in seconds and converted to fit into the timeShift window.
+   * When the provided `offset` is negative, but lower than `maxTimeShift`, then it will be clamped to `maxTimeShift`.
+   * Has no effect for VoD.
+   *
+   * Has no effect if there is no active playback session.
+   */
+  timeShift = (offset: number) => {
+    PlayerModule.timeShift(this.nativeId, offset);
+  };
+
+  /**
    * Mutes the player if an audio track is available. Has no effect if the player is already muted.
    */
   mute = () => {
