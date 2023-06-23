@@ -412,4 +412,20 @@ export class Player extends NativeInstance<PlayerConfig> {
   isAd = (): Promise<boolean> => {
     return PlayerModule.isAd(this.nativeId);
   };
+
+  /**
+   * The current time shift of the live stream in seconds. This value is always 0 if the active `source` is not a
+   * live stream or there is no active playback session.
+   */
+  getTimeShift = (): Promise<boolean> => {
+    return PlayerModule.getTimeShift(this.nativeId);
+  };
+
+  /**
+   * The limit in seconds for time shifting. This value is either negative or 0 and it is always 0 if the active
+   * `source` is not a live stream or there is no active playback session.
+   */
+  getMaxTimeShift = (): Promise<boolean> => {
+    return PlayerModule.getMaxTimeShift(this.nativeId);
+  };
 }

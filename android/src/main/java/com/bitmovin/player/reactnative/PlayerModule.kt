@@ -374,6 +374,20 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
         }
     }
 
+    @ReactMethod
+    fun getTimeShift(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.timeShift)
+        }
+    }
+
+    @ReactMethod
+    fun getMaxTimeShift(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.maxTimeShift)
+        }
+    }
+
     /**
      * Helper function that returns the initialized `UIManager` instance.
      */
