@@ -403,7 +403,7 @@ class JsonConverter {
             }
             if (event is PlayerEvent.TimeShift) {
                 json.putDouble("position", event.position)
-                json.putDouble("target", event.target)
+                json.putDouble("targetPosition", event.target)
             }
             if (event is PlayerEvent.TimeShifted) {
                 Unit // Nothing to add

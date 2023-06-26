@@ -118,7 +118,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
     
     /**
-     SETS `timeShoft` on `nativeId`'s player.
+     Sets `timeShift` on `nativeId`'s player.
      - Parameter nativeId: Target player Id.
      - Parameter offset: Offset to timeShift to in seconds.
      */
@@ -128,7 +128,6 @@ class PlayerModule: NSObject, RCTBridgeModule {
             self?.players[nativeId]?.timeShift = offset.doubleValue
         }
     }
-
 
     /**
      Call `.mute()` on `nativeId`'s player.

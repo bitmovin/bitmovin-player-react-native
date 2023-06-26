@@ -180,7 +180,7 @@ export interface TimeShiftEvent extends Event {
   /**
    * The position to which we want to jump for the time shift
    */
-  target: number;
+  targetPosition: number;
 }
 
 /**
