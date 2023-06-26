@@ -4,8 +4,12 @@
 
 ### Added
 
-- Support for `Source.metadata` to allow passing custom metadata to the Player UI
+- Support for `SourceConfig.metadata` and `Source.metadata` to allow passing custom metadata to the Player UI
 - Support for `CustomMessageHandler` to to allow two-way communication between the Player UI and the React Native app
+
+### Fixed
+
+- Android module build issues
 
 ## [0.6.0] (2023-03-27)
 
