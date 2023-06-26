@@ -116,6 +116,19 @@ class PlayerModule: NSObject, RCTBridgeModule {
             self?.players[nativeId]?.seek(time: time.doubleValue)
         }
     }
+    
+    /**
+     SETS `timeShoft` on `nativeId`'s player.
+     - Parameter nativeId: Target player Id.
+     - Parameter offset: Offset to timeShift to in seconds.
+     */
+    @objc(timeShift:offset:)
+    func timeShift(_ nativeId: NativeId, offset: NSNumber) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.timeShift = offset.doubleValue
+        }
+    }
+
 
     /**
      Call `.mute()` on `nativeId`'s player.
@@ -448,6 +461,40 @@ class PlayerModule: NSObject, RCTBridgeModule {
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             resolve(self?.players[nativeId]?.isAd)
+        }
+    }
+    
+    /**
+     Returns currently set timeShift.
+     - Parameter nativeId: Target player id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getTimeShift:resolver:rejecter:)
+    func getTimeShift(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(self?.players[nativeId]?.timeShift)
+        }
+    }
+    
+    /**
+     Returns the limit in seconds for time shift. Is either negative or 0. Is applicable for live streams only.
+     - Parameter nativeId: Target player id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getMaxTimeShift:resolver:rejecter:)
+    func getMaxTimeShift(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(self?.players[nativeId]?.maxTimeShift)
         }
     }
 }
