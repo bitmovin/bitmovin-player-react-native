@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative
 
 import android.view.View
+import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
 import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule
@@ -24,7 +25,8 @@ class RNPlayerViewPackage : ReactPackage {
             DrmModule(reactContext),
             AnalyticsModule(reactContext),
             RNPlayerViewManager(reactContext),
-            FullscreenHandlerModule(reactContext)
+            FullscreenHandlerModule(reactContext),
+            CustomMessageHandlerModule(reactContext)
         )
     }
 
