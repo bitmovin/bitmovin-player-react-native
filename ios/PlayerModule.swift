@@ -464,7 +464,8 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
     
     /**
-     Returns currently set timeShift.
+     The current time shift of the live stream in seconds. This value is always 0 if the active `source` is not a
+     live stream or there is no active playback session.
      - Parameter nativeId: Target player id.
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.

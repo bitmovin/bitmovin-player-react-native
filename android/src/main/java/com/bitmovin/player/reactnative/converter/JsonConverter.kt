@@ -405,9 +405,6 @@ class JsonConverter {
                 json.putDouble("position", event.position)
                 json.putDouble("targetPosition", event.target)
             }
-            if (event is PlayerEvent.TimeShifted) {
-                Unit // Nothing to add
-            }
             if (event is PlayerEvent.PictureInPictureAvailabilityChanged) {
                 json.putBoolean("isPictureInPictureAvailable", event.isPictureInPictureAvailable)
             }

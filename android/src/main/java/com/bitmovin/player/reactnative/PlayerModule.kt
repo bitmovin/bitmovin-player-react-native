@@ -374,6 +374,11 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
         }
     }
 
+    /**
+     * The current time shift of the live stream in seconds. This value is always 0 if the active [source] is not a
+     * live stream or there is no active playback session.
+     * @param nativeId Target player id.
+     */
     @ReactMethod
     fun getTimeShift(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
@@ -381,6 +386,11 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
         }
     }
 
+    /**
+     * The limit in seconds for time shifting. This value is either negative or 0 and it is always 0 if the active
+     * [source] is not a live stream or there is no active playback session.
+     * @param nativeId Target player id.
+     */
     @ReactMethod
     fun getMaxTimeShift(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
