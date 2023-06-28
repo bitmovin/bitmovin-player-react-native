@@ -423,7 +423,7 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * The limit in seconds for time shifting. This value is either negative or 0 and it is always 0 if the active
-   * `source` is not a live stream or there is no active playback session.
+   * `source` is not a live stream or no sources are loaded.
    */
   getMaxTimeShift = async (): Promise<number> => {
     return PlayerModule.getMaxTimeShift(this.nativeId);
