@@ -415,7 +415,7 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * The current time shift of the live stream in seconds. This value is always 0 if the active `source` is not a
-   * live stream or there is no active playback session.
+   * live stream or no sources are loaded.
    */
   getTimeShift = async (): Promise<number> => {
     return PlayerModule.getTimeShift(this.nativeId);
