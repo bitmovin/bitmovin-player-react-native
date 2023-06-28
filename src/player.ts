@@ -409,7 +409,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
    * @platform iOS, Android
    */
-  isAd = (): Promise<boolean> => {
+  isAd = async (): Promise<boolean> => {
     return PlayerModule.isAd(this.nativeId);
   };
 
