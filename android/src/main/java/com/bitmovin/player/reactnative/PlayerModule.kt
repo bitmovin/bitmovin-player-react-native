@@ -128,6 +128,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Call `.timeShift(offset:)` on `nativeId`'s player.
+     * @param nativeId Target player Id.
+     * @param offset Offset time in seconds.
+     */
+    @ReactMethod
+    fun timeShift(nativeId: NativeId, offset: Double) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.timeShift(offset)
+        }
+    }
+
+    /**
      * Call `.mute()` on `nativeId`'s player.
      * @param nativeId Target player Id.
      */
@@ -378,15 +390,64 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
-     * Skips the current ad. Has no effect if ad is not skippable or if no ad is played back.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
+     * Schedules an `AdItem` in the `nativeId`'s associated player.
+     * @param nativeId Target player id.
+     * @param adItemJson Json representation of the `AdItem` to be scheduled.
+     */
+    @ReactMethod
+    fun scheduleAd(nativeId: NativeId, adItemJson: ReadableMap?) {
+        JsonConverter.toAdItem(adItemJson)?.let { adItem ->
+            uiManager()?.addUIBlock {
+                players[nativeId]?.scheduleAd(adItem)
+            }
+        }
+    }
+
+    /**
+     * Skips the current ad in `nativeId`'s associated player.
+     * Has no effect if the current ad is not skippable or if no ad is being played back.
+     * @param nativeId Target player id.
      */
     @ReactMethod
     fun skipAd(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
             players[nativeId]?.skipAd()
             promise.resolve(null)
+        }
+    }
+
+    /**
+     * Returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
+     * @param nativeId Target player id.
+     */
+    @ReactMethod
+    fun isAd(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.isAd)
+        }
+    }
+
+    /**
+     * The current time shift of the live stream in seconds. This value is always 0 if the active [source] is not a
+     * live stream or there is no active playback session.
+     * @param nativeId Target player id.
+     */
+    @ReactMethod
+    fun getTimeShift(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.timeShift)
+        }
+    }
+
+    /**
+     * The limit in seconds for time shifting. This value is either negative or 0 and it is always 0 if the active
+     * [source] is not a live stream or there is no active playback session.
+     * @param nativeId Target player id.
+     */
+    @ReactMethod
+    fun getMaxTimeShift(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.maxTimeShift)
         }
     }
 

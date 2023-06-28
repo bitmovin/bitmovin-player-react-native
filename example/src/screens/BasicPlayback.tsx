@@ -29,6 +29,9 @@ export default function BasicPlayback() {
         title: 'Art of Motion',
         poster:
           'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg',
+        thumbnailTrack:
+          'https://cdn.bitmovin.com/content/assets/art-of-motion-dash-hls-progressive/thumbnails/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.vtt',
+        metadata: { platform: Platform.OS },
       });
       return () => {
         player.destroy();
@@ -56,6 +59,9 @@ export default function BasicPlayback() {
         onSourceLoaded={onEvent}
         onSeek={onEvent}
         onSeeked={onEvent}
+        onStallStarted={onEvent}
+        onStallEnded={onEvent}
+        onVideoPlaybackQualityChanged={onEvent}
       />
     </View>
   );

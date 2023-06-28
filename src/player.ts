@@ -1,4 +1,6 @@
 import { NativeModules, Platform } from 'react-native';
+import { AdItem, AdvertisingConfig } from './advertising';
+import { AnalyticsCollector, AnalyticsConfig } from './analytics';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { AudioTrack } from './audioTrack';
@@ -41,14 +43,17 @@ export interface PlayerConfig extends NativeInstanceConfig {
    */
   styleConfig?: StyleConfig;
   /**
+   * Configures advertising functionality. A default AdvertisingConfig is set initially.
+   */
+  advertisingConfig?: AdvertisingConfig;
+  /**
    * Configures experimental features. A default TweaksConfig is set initially.
    */
   tweaksConfig?: TweaksConfig;
-  tempAngelAdConfig?: TemporaryAngelAdConfig;
-}
-
-export interface TemporaryAngelAdConfig {
-  adSourceUrl?: string;
+  /**
+   * Configures analytics functionality.
+   */
+  analyticsConfig?: AnalyticsConfig;
 }
 
 /**
@@ -115,7 +120,7 @@ export interface PlaybackConfig {
    */
   isBackgroundPlaybackEnabled?: boolean;
   /**
-   * Whether the picture-in-picture mode option is enabled for iOS or not. Default is `false`.
+   * Whether the Picture in Picture mode option is enabled or not. Default is `false`.
    *  @example
    * ```
    * const player = new Player({
@@ -143,6 +148,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   source?: Source;
   /**
+   * Analytics collector currently attached to this player instance.
+   */
+  analyticsCollector?: AnalyticsCollector;
+  /**
    * Whether the native `Player` object has been created.
    */
   isInitialized = false;
@@ -157,6 +166,12 @@ export class Player extends NativeInstance<PlayerConfig> {
   initialize = () => {
     if (!this.isInitialized) {
       PlayerModule.initWithConfig(this.nativeId, this.config);
+      const analyticsConfig = this.config?.analyticsConfig;
+      if (analyticsConfig) {
+        this.analyticsCollector = new AnalyticsCollector(analyticsConfig);
+        this.analyticsCollector?.initialize();
+        this.analyticsCollector?.attach(this.nativeId);
+      }
       this.isInitialized = true;
     }
   };
@@ -168,6 +183,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (!this.isDestroyed) {
       PlayerModule.destroy(this.nativeId);
       this.source?.destroy();
+      this.analyticsCollector?.destroy();
       this.isDestroyed = true;
     }
   };
@@ -228,6 +244,19 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   seek = (time: number) => {
     PlayerModule.seek(this.nativeId, time);
+  };
+
+  /**
+   * Shifts the time to the given `offset` in seconds from the live edge. The resulting offset has to be within the
+   * timeShift window as specified by `maxTimeShift` (which is a negative value) and 0. When the provided `offset` is
+   * positive, it will be interpreted as a UNIX timestamp in seconds and converted to fit into the timeShift window.
+   * When the provided `offset` is negative, but lower than `maxTimeShift`, then it will be clamped to `maxTimeShift`.
+   * Has no effect for VoD.
+   *
+   * Has no effect if no sources are loaded.
+   */
+  timeShift = (offset: number) => {
+    PlayerModule.timeShift(this.nativeId, offset);
   };
 
   /**
@@ -362,10 +391,10 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * Sets the source's selected audio track
+   * Sets the audio track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableAudioTracks.
    */
   setAudioTrack = async (trackIdentifier: string): Promise<void> => {
-    PlayerModule.setAudioTrack(this.nativeId, trackIdentifier);
+    return PlayerModule.setAudioTrack(this.nativeId, trackIdentifier);
   };
 
   /**
@@ -376,16 +405,55 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * Sets the source's selected subtitle track
+   * Sets the subtitle track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableSubtitles.
    */
   setSubtitleTrack = async (trackIdentifier?: string): Promise<void> => {
-    PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier);
+    return PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier);
   };
 
   /**
-   * Skips the current ad. Has no effect if ad is not skippable or if no ad is played back.
+   * Dynamically schedules the `adItem` for playback.
+   * Has no effect if there is no active playback session.
+   *
+   * @param adItem - Ad to be scheduled for playback.
+   *
+   * @platform iOS, Android
+   */
+  scheduleAd = (adItem: AdItem) => {
+    PlayerModule.scheduleAd(this.nativeId, adItem);
+  };
+
+  /**
+   * Skips the current ad.
+   * Has no effect if the current ad is not skippable or if no ad is being played back.
+   *
+   * @platform iOS, Android
    */
   skipAd = async (): Promise<void> => {
-    PlayerModule.skipAd(this.nativeId);
+    return PlayerModule.skipAd(this.nativeId);
+  };
+
+  /**
+   * @returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
+   * @platform iOS, Android
+   */
+  isAd = async (): Promise<boolean> => {
+    return PlayerModule.isAd(this.nativeId);
+  };
+
+  /**
+   * The current time shift of the live stream in seconds. This value is always 0 if the active `source` is not a
+   * live stream or no sources are loaded.
+   */
+  getTimeShift = async (): Promise<number> => {
+    return PlayerModule.getTimeShift(this.nativeId);
+  };
+
+  /**
+   * The limit in seconds for time shifting. This value is either negative or 0 and it is always 0 if the active
+   * `source` is not a live stream or no sources are loaded.
+   */
+  getMaxTimeShift = async (): Promise<number> => {
+    return PlayerModule.getMaxTimeShift(this.nativeId);
   };
 }

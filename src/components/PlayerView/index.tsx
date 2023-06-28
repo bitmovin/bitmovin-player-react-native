@@ -11,6 +11,9 @@ import { PlayerViewEvents } from './events';
 import { NativePlayerView } from './native';
 import { Player } from '../../player';
 import { useProxy } from '../../hooks/useProxy';
+import { FullscreenHandler, CustomMessageHandler } from '../../ui';
+import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
+import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
 
 /**
  * Base `PlayerView` component props. Used to stablish common
@@ -32,6 +35,10 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
    * and render audio/video inside the `PlayerView`.
    */
   player: Player;
+
+  fullscreenHandler?: FullscreenHandler;
+
+  customMessageHandler?: CustomMessageHandler;
 }
 
 /**
@@ -62,31 +69,106 @@ function dispatch(command: string, node: NodeHandle, ...args: any[]) {
  * Component that provides the Bitmovin Player UI and default UI handling to an attached `Player` instance.
  * This component needs a `Player` instance to work properly so make sure one is passed to it as a prop.
  */
-export function PlayerView({ style, player, ...props }: PlayerViewProps) {
+export function PlayerView({
+  style,
+  player,
+  fullscreenHandler,
+  customMessageHandler,
+  ...props
+}: PlayerViewProps) {
   // Native view reference.
   const nativeView = useRef(null);
   // Native events proxy helper.
   const proxy = useProxy(nativeView);
   // Style resulting from merging `baseStyle` and `props.style`.
   const nativeViewStyle = StyleSheet.flatten([styles.baseStyle, style]);
+
+  const fullscreenBridge: React.MutableRefObject<
+    FullscreenHandlerBridge | undefined
+  > = useRef(undefined);
+  if (fullscreenHandler && !fullscreenBridge.current) {
+    fullscreenBridge.current = new FullscreenHandlerBridge();
+  }
+  if (fullscreenBridge.current) {
+    fullscreenBridge.current.fullscreenHandler = fullscreenHandler;
+  }
+
+  const customMessageHandlerBridge: React.MutableRefObject<
+    CustomMessageHandlerBridge | undefined
+  > = useRef(undefined);
+  if (customMessageHandler && !customMessageHandlerBridge.current) {
+    customMessageHandlerBridge.current = new CustomMessageHandlerBridge();
+  }
+  if (customMessageHandlerBridge.current && customMessageHandler) {
+    customMessageHandlerBridge.current.setCustomMessageHandler(
+      customMessageHandler
+    );
+  }
+
   useEffect(() => {
     // Initialize native player instance if needed.
     player.initialize();
     // Attach native player to native `PlayerView`.
     const node = findNodeHandle(nativeView.current);
     if (node) {
-      dispatch('attachPlayer', node, player.nativeId);
+      // For iOS this has to happen before attaching the player to the view
+      // as we need to set the CustomMessageHandler on the BitmovinUserInterfaceConfig
+      if (customMessageHandlerBridge.current) {
+        dispatch(
+          'setCustomMessageHandlerBridgeId',
+          node,
+          customMessageHandlerBridge.current.nativeId
+        );
+      }
+      dispatch('attachPlayer', node, player.nativeId, player.config);
+      if (fullscreenBridge.current) {
+        dispatch(
+          'attachFullscreenBridge',
+          node,
+          fullscreenBridge.current.nativeId
+        );
+      }
     }
+    return () => {
+      fullscreenBridge.current?.destroy();
+      fullscreenBridge.current = undefined;
+      customMessageHandlerBridge.current?.destroy();
+      customMessageHandlerBridge.current = undefined;
+    };
   }, [player]);
   return (
     <NativePlayerView
       ref={nativeView}
       style={nativeViewStyle}
       disableAdUi={props.disableAdUi}
+      fullscreenBridge={fullscreenBridge.current}
+      customMessageHandlerBridge={customMessageHandlerBridge.current}
+      onAdBreakFinished={proxy(props.onAdBreakFinished)}
+      onAdBreakStarted={proxy(props.onAdBreakStarted)}
+      onAdClicked={proxy(props.onAdClicked)}
+      onAdError={proxy(props.onAdError)}
+      onAdFinished={proxy(props.onAdFinished)}
+      onAdManifestLoad={proxy(props.onAdManifestLoad)}
+      onAdManifestLoaded={proxy(props.onAdManifestLoaded)}
+      onAdQuartile={proxy(props.onAdQuartile)}
+      onAdScheduled={proxy(props.onAdScheduled)}
+      onAdSkipped={proxy(props.onAdSkipped)}
+      onAdStarted={proxy(props.onAdStarted)}
       onDestroy={proxy(props.onDestroy)}
       onEvent={proxy(props.onEvent)}
+      onFullscreenEnabled={proxy(props.onFullscreenEnabled)}
+      onFullscreenDisabled={proxy(props.onFullscreenDisabled)}
+      onFullscreenEnter={proxy(props.onFullscreenEnter)}
+      onFullscreenExit={proxy(props.onFullscreenExit)}
       onMuted={proxy(props.onMuted)}
       onPaused={proxy(props.onPaused)}
+      onPictureInPictureAvailabilityChanged={proxy(
+        props.onPictureInPictureAvailabilityChanged
+      )}
+      onPictureInPictureEnter={proxy(props.onPictureInPictureEnter)}
+      onPictureInPictureEntered={proxy(props.onPictureInPictureEntered)}
+      onPictureInPictureExit={proxy(props.onPictureInPictureExit)}
+      onPictureInPictureExited={proxy(props.onPictureInPictureExited)}
       onPlay={proxy(props.onPlay)}
       onPlaybackFinished={proxy(props.onPlaybackFinished)}
       onPlayerActive={proxy(props.onPlayerActive)}
@@ -96,6 +178,8 @@ export function PlayerView({ style, player, ...props }: PlayerViewProps) {
       onReady={proxy(props.onReady)}
       onSeek={proxy(props.onSeek)}
       onSeeked={proxy(props.onSeeked)}
+      onTimeShift={proxy(props.onTimeShift)}
+      onTimeShifted={proxy(props.onTimeShifted)}
       onStallStarted={proxy(props.onStallStarted)}
       onStallEnded={proxy(props.onStallEnded)}
       onSourceError={proxy(props.onSourceError)}
@@ -111,20 +195,9 @@ export function PlayerView({ style, player, ...props }: PlayerViewProps) {
       onSubtitleRemoved={proxy(props.onSubtitleRemoved)}
       onTimeChanged={proxy(props.onTimeChanged)}
       onUnmuted={proxy(props.onUnmuted)}
-      onVideoPlaybackQualityChanged={proxy(props.onVideoPlaybackQualityChanged)}
       onVideoSizeChanged={proxy(props.onVideoSizeChanged)}
       onDurationChanged={proxy(props.onDurationChanged)}
-      onAdStarted={proxy(props.onAdStarted)}
-      onAdFinished={proxy(props.onAdFinished)}
-      onAdQuartile={proxy(props.onAdQuartile)}
-      onAdBreakStarted={proxy(props.onAdBreakStarted)}
-      onAdBreakFinished={proxy(props.onAdBreakFinished)}
-      onAdScheduled={proxy(props.onAdScheduled)}
-      onAdSkipped={proxy(props.onAdSkipped)}
-      onAdClicked={proxy(props.onAdClicked)}
-      onAdError={proxy(props.onAdError)}
-      onAdManifestLoad={proxy(props.onAdManifestLoad)}
-      onAdManifestLoaded={proxy(props.onAdManifestLoaded)}
+      onVideoPlaybackQualityChanged={proxy(props.onVideoPlaybackQualityChanged)}
     />
   );
 }

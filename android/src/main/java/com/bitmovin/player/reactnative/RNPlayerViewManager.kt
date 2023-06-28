@@ -4,8 +4,14 @@ import android.os.Handler
 import android.os.Looper
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
+import com.bitmovin.player.reactnative.extensions.getModule
+import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
+import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
+import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
@@ -20,6 +26,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      */
     enum class Commands {
         ATTACH_PLAYER,
+        ATTACH_FULLSCREEN_BRIDGE,
+        SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID,
     }
 
     /**
@@ -27,8 +35,17 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      */
     override fun getName() = MODULE_NAME
 
+    private var customMessageHandlerBridgeId: NativeId? = null
+
     /**
-     * The component's native view factory. RN calls this method multiple times
+     * React Native PiP handler instance. It can be subclassed, then set from other native
+     * modules in case a full-custom implementation is needed. A default implementation is provided
+     * out-of-the-box.
+     */
+    var pictureInPictureHandler = RNPictureInPictureHandler(context)
+
+    /**
+     * The component's native view factory. RN may call this method multiple times
      * for each component instance.
      */
     override fun createViewInstance(reactContext: ThemedReactContext) = RNPlayerView(reactContext)
@@ -36,6 +53,15 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     @ReactProp(name = "disableAdUi" )
     fun setDisableAdUi(view: RNPlayerView, disableAdUi: Boolean?) {
         view.disableAdUi = disableAdUi
+    }
+
+    /**
+     * Called when the component's view gets detached from the view hierarchy. Useful to perform
+     * cleanups.
+     */
+    override fun onDropViewInstance(view: RNPlayerView) {
+        super.onDropViewInstance(view)
+        view.dispose()
     }
 
     /**
@@ -56,6 +82,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "playbackFinished" to "onPlaybackFinished",
         "seek" to "onSeek",
         "seeked" to "onSeeked",
+        "timeShift" to "onTimeShift",
+        "timeShifted" to "onTimeShifted",
         "stallStarted" to "onStallStarted",
         "stallEnded" to "onStallEnded",
         "timeChanged" to "onTimeChanged",
@@ -70,21 +98,27 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "subtitleAdded" to "onSubtitleAdded",
         "subtitleChanged" to "onSubtitleChanged",
         "subtitleRemoved" to "onSubtitleRemoved",
+        "pictureInPictureAvailabilityChanged" to "onPictureInPictureAvailabilityChanged",
+        "pictureInPictureEnter" to "onPictureInPictureEnter",
+        "pictureInPictureExit" to "onPictureInPictureExit",
+        "adBreakFinished" to "onAdBreakFinished",
+        "adBreakStarted" to "onAdBreakStarted",
+        "adClicked" to "onAdClicked",
+        "adError" to "onAdError",
+        "adFinished" to "onAdFinished",
+        "adManifestLoad" to "onAdManifestLoad",
+        "adManifestLoaded" to "onAdManifestLoaded",
+        "adQuartile" to "onAdQuartile",
+        "adScheduled" to "onAdScheduled",
+        "adSkipped" to "onAdSkipped",
+        "adStarted" to "onAdStarted",
         "videoPlaybackQualityChanged" to "onVideoPlaybackQualityChanged",
         "videoSizeChanged" to "onVideoSizeChanged",
         "durationChanged" to "onDurationChanged",
-        // --- Temp Ad Events --- //
-        "adStarted" to "onAdStarted",
-        "adFinished" to "onAdFinished",
-        "adQuartile" to "onAdQuartile",
-        "adBreakStarted" to "onAdBreakStarted",
-        "adBreakFinished" to "onAdBreakFinished",
-        "adScheduled" to "onAdScheduled",
-        "adSkipped" to "onAdSkipped",
-        "adClicked" to "onAdClicked",
-        "adError" to "onAdError",
-        "adManifestLoad" to "onAdManifestLoad",
-        "adManifestLoaded" to "onAdManifestLoaded"
+        "fullscreenEnabled" to "onFullscreenEnabled",
+        "fullscreenDisabled" to "onFullscreenDisabled",
+        "fullscreenEnter" to "onFullscreenEnter",
+        "fullscreenExit" to "onFullscreenExit",
     )
 
     /**
@@ -106,7 +140,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @return map between names (used in js) and command ids (used in native code).
      */
     override fun getCommandsMap(): MutableMap<String, Int> = mutableMapOf(
-        "attachPlayer" to Commands.ATTACH_PLAYER.ordinal
+        "attachPlayer" to Commands.ATTACH_PLAYER.ordinal,
+        "attachFullscreenBridge" to Commands.ATTACH_FULLSCREEN_BRIDGE.ordinal,
+        "setCustomMessageHandlerBridgeId" to Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID.ordinal,
     )
 
     /**
@@ -119,10 +155,39 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         super.receiveCommand(view, commandId, args)
         commandId?.toInt()?.let {
             when (it) {
-                Commands.ATTACH_PLAYER.ordinal -> attachPlayer(view, args?.getString(1))
+                Commands.ATTACH_PLAYER.ordinal -> attachPlayer(view, args?.getString(1), args?.getMap(2))
+                Commands.ATTACH_FULLSCREEN_BRIDGE.ordinal -> args?.getString(1)?.let { fullscreenBridgeId ->
+                    attachFullscreenBridge(view, fullscreenBridgeId)
+                }
+                Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID.ordinal -> {
+                    args?.getString(1)?.let { customMessageHandlerBridgeId ->
+                        setCustomMessageHandlerBridgeId(view, customMessageHandlerBridgeId)
+                    }
+                }
                 else -> {}
             }
         }
+    }
+
+    private fun attachFullscreenBridge(view: RNPlayerView, fullscreenBridgeId: NativeId) {
+        Handler(Looper.getMainLooper()).post {
+            view.playerView?.setFullscreenHandler(
+                context.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId)
+            )
+        }
+    }
+
+    private fun setCustomMessageHandlerBridgeId(view: RNPlayerView, customMessageHandlerBridgeId: NativeId) {
+        this.customMessageHandlerBridgeId = customMessageHandlerBridgeId
+        attachCustomMessageHandlerBridge(view)
+    }
+
+    private fun attachCustomMessageHandlerBridge(view: RNPlayerView) {
+        view.playerView?.setCustomMessageHandler(
+            context.getModule<CustomMessageHandlerModule>()
+                ?.getInstance(customMessageHandlerBridgeId)
+                ?.customMessageHandler
+        )
     }
 
     /**
@@ -130,25 +195,32 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @param view Target `RNPlayerView`.
      * @param playerId `Player` instance id inside `PlayerModule`'s registry.
      */
-    private fun attachPlayer(view: RNPlayerView, playerId: NativeId?) {
+    private fun attachPlayer(view: RNPlayerView, playerId: NativeId?, playerConfig: ReadableMap?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
+            playerConfig
+                ?.getMap("playbackConfig")
+                ?.getBooleanOrNull("isPictureInPictureEnabled")
+                ?.let {
+                    pictureInPictureHandler.isPictureInPictureEnabled = it
+                    view.pictureInPictureHandler = pictureInPictureHandler
+                }
             if (view.playerView != null) {
                 view.player = player
             } else {
                 val playerView = PlayerView(context, player)
                 playerView.layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
-                    LayoutParams.MATCH_PARENT)
+                    LayoutParams.MATCH_PARENT
+                )
                 view.addPlayerView(playerView)
+                attachCustomMessageHandlerBridge(view)
             }
-            view.startBubblingEvents()
         }
     }
 
     /**
      * Helper function that gets the instantiated `PlayerModule` from modules registry.
      */
-    private fun getPlayerModule(): PlayerModule? =
-        context.getNativeModule(PlayerModule::class.java)
+    private fun getPlayerModule(): PlayerModule? = context.getModule()
 }

@@ -57,6 +57,14 @@ extension RNPlayerView: PlayerListener {
         onSeeked?(event.toJSON())
     }
 
+    func onTimeShift(_ event: TimeShiftEvent, player: Player) {
+        onTimeShift?(event.toJSON())
+    }
+
+    func onTimeShifted(_ event: TimeShiftedEvent, player: Player) {
+        onTimeShifted?(event.toJSON())
+    }
+
     func onStallStarted(_ event: StallStartedEvent, player: Player) {
         onStallStarted?(event.toJSON())
     }
@@ -113,10 +121,6 @@ extension RNPlayerView: PlayerListener {
         onSubtitleChanged?(event.toJSON())
     }
 
-    func onVideoPlaybackQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
-        onVideoPlaybackQualityChanged?(event.toJSON())
-    }
-
     func onVideoSizeChanged(_ event: VideoSizeChangedEvent, player: Player) {
         onVideoSizeChanged?(event.toJSON())
     }
@@ -125,7 +129,45 @@ extension RNPlayerView: PlayerListener {
         onDurationChanged?(event.toJSON())
     }
 
-    // --- Temporary Ad Events --- //
+    func onAdBreakFinished(_ event: AdBreakFinishedEvent, player: Player) {
+        onAdBreakFinished?(event.toJSON())
+    }
+
+    func onAdBreakStarted(_ event: AdBreakStartedEvent, player: Player) {
+        onAdBreakStarted?(event.toJSON())
+    }
+
+    func onAdClicked(_ event: AdClickedEvent, player: Player) {
+        onAdClicked?(event.toJSON())
+    }
+
+    func onAdError(_ event: AdErrorEvent, player: Player) {
+        onAdError?(event.toJSON())
+    }
+
+    func onAdFinished(_ event: AdFinishedEvent, player: Player) {
+        onAdFinished?(event.toJSON())
+    }
+
+    func onAdManifestLoad(_ event: AdManifestLoadEvent, player: Player) {
+        onAdManifestLoad?(event.toJSON())
+    }
+
+    func onAdManifestLoaded(_ event: AdManifestLoadedEvent, player: Player) {
+        onAdManifestLoaded?(event.toJSON())
+    }
+
+    func onAdQuartile(_ event: AdQuartileEvent, player: Player) {
+        onAdQuartile?(event.toJSON())
+    }
+
+    func onAdScheduled(_ event: AdScheduledEvent, player: Player) {
+        onAdScheduled?(event.toJSON())
+    }
+
+    func onAdSkipped(_ event: AdSkippedEvent, player: Player) {
+        onAdSkipped?(event.toJSON())
+    }
 
     func onAdStarted(_ event: AdStartedEvent, player: Player) {
         onAdStarted?(event.toJSON())
@@ -140,44 +182,8 @@ extension RNPlayerView: PlayerListener {
         }
     }
 
-    func onAdFinished(_ event: AdFinishedEvent, player: Player) {
-        onAdFinished?(event.toJSON())
-    }
-
-    func onAdQuartile(_ event: AdQuartileEvent, player: Player) {
-        onAdQuartile?(event.toJSON())
-    }
-
-    func onAdBreakStarted(_ event: AdBreakStartedEvent, player: Player) {
-        onAdBreakStarted?(event.toJSON())
-    }
-
-    func onAdBreakFinished(_ event: AdBreakFinishedEvent, player: Player) {
-        onAdBreakFinished?(event.toJSON())
-    }
-
-    func onAdScheduled(_ event: AdScheduledEvent, player: Player) {
-        onAdScheduled?(event.toJSON())
-    }
-
-    func onAdSkipped(_ event: AdSkippedEvent, player: Player) {
-        onAdSkipped?(event.toJSON())
-    }
-
-    func onAdClicked(_ event: AdClickedEvent, player: Player) {
-        onAdClicked?(event.toJSON())
-    }
-
-    func onAdError(_ event: AdErrorEvent, player: Player) {
-        onAdError?(event.toJSON())
-    }
-
-    func onAdManifestLoad(_ event: AdManifestLoadEvent, player: Player) {
-        onAdManifestLoad?(event.toJSON())
-    }
-
-    func onAdManifestLoaded(_ event: AdManifestLoadedEvent, player: Player) {
-        onAdManifestLoaded?(event.toJSON())
+    func onVideoPlaybackQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
+        onVideoPlaybackQualityChanged?(event.toJSON())
     }
 
     /// Traverse a UIresponder's view hierarchy in the same way as the Debug View Hierarchy tool in Xcode.
@@ -217,5 +223,4 @@ extension RNPlayerView: PlayerListener {
             visitor(current.responder, current.level)
         }
     }
-
 }

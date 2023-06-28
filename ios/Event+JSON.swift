@@ -32,6 +32,17 @@ extension SeekEvent {
     }
 }
 
+extension TimeShiftEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "position": position,
+            "targetPosition": target
+        ]
+    }
+}
+
 extension TimeChangedEvent {
     func toJSON() -> [AnyHashable: Any] {
         ["name": name, "timestamp": timestamp, "currentTime": currentTime]
@@ -136,7 +147,8 @@ extension AudioAddedEvent {
         [
             "name": name,
             "timestamp": timestamp,
-            "audioTrack": RCTConvert.audioTrackJson(audioTrack)
+            "audioTrack": RCTConvert.audioTrackJson(audioTrack),
+            "time": time
         ]
     }
 }
@@ -146,7 +158,8 @@ extension AudioRemovedEvent {
         [
             "name": name,
             "timestamp": timestamp,
-            "audioTrack": RCTConvert.audioTrackJson(audioTrack)
+            "audioTrack": RCTConvert.audioTrackJson(audioTrack),
+            "time": time
         ]
     }
 }
@@ -203,27 +216,6 @@ extension VideoSizeChangedEvent {
     }
 }
 
-extension VideoDownloadQualityChangedEvent {
-    func toJSON() -> [AnyHashable: Any] {
-        [
-            "newVideoQuality": [
-                "height": videoQualityNew?.height,
-                "width": videoQualityNew?.width,
-                "codec": videoQualityNew?.codec,
-                "bitrate": videoQualityNew?.bitrate,
-            ],
-            "oldVideoQuality": [
-                "height": videoQualityOld?.height,
-                "width": videoQualityOld?.width,
-                "codec": videoQualityOld?.codec,
-                "bitrate": videoQualityOld?.bitrate,
-            ],
-            "name": name,
-            "timestamp": timestamp
-        ]
-    }
-}
-
 extension DurationChangedEvent {
     func toJSON() -> [AnyHashable: Any] {
         [
@@ -234,42 +226,12 @@ extension DurationChangedEvent {
     }
 }
 
-// --- Temp Ad Events --- //
-
-extension AdStartedEvent {
+extension AdBreakFinishedEvent {
     func toJSON() -> [AnyHashable: Any] {
         [
             "name": name,
             "timestamp": timestamp,
-            "clientType": RCTConvert.adSourceTypeJson(clientType),
-            "clickThroughUrl": clickThroughUrl?.absoluteString,
-            "indexInQueue": indexInQueue,
-            "duration": duration,
-            "timeOffset": timeOffset,
-            "position": position,
-            "skipOffset": skipOffset,
-            "ad": RCTConvert.adJson(ad)
-
-        ]
-    }
-}
-
-extension AdFinishedEvent {
-    func toJSON() -> [AnyHashable: Any] {
-        [
-            "name": name,
-            "timestamp": timestamp,
-            "ad": RCTConvert.adJson(ad)
-        ]
-    }
-}
-
-extension AdQuartileEvent {
-    func toJSON() -> [AnyHashable: Any] {
-        [
-            "name": name,
-            "timestamp": timestamp,
-            "quartile": RCTConvert.adQuartileJson(adQuartile)
+            "adBreak": RCTConvert.toJson(adBreak: adBreak)
         ]
     }
 }
@@ -279,37 +241,7 @@ extension AdBreakStartedEvent {
         [
             "name": name,
             "timestamp": timestamp,
-            "adBreak": RCTConvert.adBreakJson(adBreak)
-        ]
-    }
-}
-
-extension AdBreakFinishedEvent {
-    func toJSON() -> [AnyHashable: Any] {
-        [
-            "name": name,
-            "timestamp": timestamp,
-            "adBreak": RCTConvert.adBreakJson(adBreak)
-        ]
-    }
-}
-
-extension AdScheduledEvent {
-    func toJSON() -> [AnyHashable: Any] {
-        [
-            "name": name,
-            "timestamp": timestamp,
-            "numberOfAds": numberOfAds
-        ]
-    }
-}
-
-extension AdSkippedEvent {
-    func toJSON() -> [AnyHashable: Any] {
-        [
-            "name": name,
-            "timestamp": timestamp,
-            "ad": RCTConvert.adJson(ad)
+            "adBreak": RCTConvert.toJson(adBreak: adBreak)
         ]
     }
 }
@@ -329,10 +261,20 @@ extension AdErrorEvent {
         [
             "name": name,
             "timestamp": timestamp,
+            "adConfig": RCTConvert.toJson(adConfig: adConfig),
+            "adItem": RCTConvert.toJson(adItem: adItem),
             "code": code,
-            "message": message,
-            "adConfig": RCTConvert.adConfigJson(adConfig),
-            "adItem": RCTConvert.adItemJson(adItem)
+            "message": message
+        ]
+    }
+}
+
+extension AdFinishedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "ad": RCTConvert.toJson(ad: ad)
         ]
     }
 }
@@ -342,8 +284,8 @@ extension AdManifestLoadEvent {
         [
             "name": name,
             "timestamp": timestamp,
-            "adBreak": RCTConvert.adBreakJson(adBreak),
-            "adConfig": RCTConvert.adConfigJson(adConfig)
+            "adBreak": RCTConvert.toJson(adBreak: adBreak),
+            "adConfig": RCTConvert.toJson(adConfig: adConfig)
         ]
     }
 }
@@ -353,9 +295,67 @@ extension AdManifestLoadedEvent {
         [
             "name": name,
             "timestamp": timestamp,
-            "adBreak": RCTConvert.adBreakJson(adBreak),
-            "adConfig": RCTConvert.adConfigJson(adConfig),
+            "adBreak": RCTConvert.toJson(adBreak: adBreak),
+            "adConfig": RCTConvert.toJson(adConfig: adConfig),
             "downloadTime": downloadTime
+        ]
+    }
+}
+
+extension AdQuartileEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "quartile": RCTConvert.toJson(adQuartile: adQuartile)
+        ]
+    }
+}
+
+extension AdScheduledEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "numberOfAds": numberOfAds
+        ]
+    }
+}
+
+extension AdSkippedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "ad": RCTConvert.toJson(ad: ad)
+        ]
+    }
+}
+
+extension AdStartedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "ad": RCTConvert.toJson(ad: ad),
+            "clickThroughUrl": clickThroughUrl?.absoluteString,
+            "clientType": RCTConvert.toJson(adSourceType: clientType),
+            "duration": duration,
+            "indexInQueue": indexInQueue,
+            "position": position,
+            "skipOffset": skipOffset,
+            "timeOffset": timeOffset
+        ]
+    }
+}
+
+extension VideoDownloadQualityChangedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "newVideoQuality": RCTConvert.toJson(videoQuality: videoQualityNew),
+            "oldVideoQuality": RCTConvert.toJson(videoQuality: videoQualityOld),
+            "name": name,
+            "timestamp": timestamp
         ]
     }
 }

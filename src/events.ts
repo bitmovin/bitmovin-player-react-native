@@ -1,4 +1,13 @@
+import {
+  Ad,
+  AdBreak,
+  AdConfig,
+  AdItem,
+  AdQuartile,
+  AdSourceType,
+} from './advertising';
 import { SubtitleTrack } from './subtitleTrack';
+import { VideoQuality } from './media';
 import { AudioTrack } from './audioTrack';
 
 /**
@@ -160,6 +169,27 @@ export interface SeekEvent extends Event {
 export interface SeekedEvent extends Event {}
 
 /**
+ * Emitted when the player starts time shifting.
+ * Only applies to live streams.
+ */
+export interface TimeShiftEvent extends Event {
+  /**
+   * The position from which we start the time shift
+   */
+  position: number;
+  /**
+   * The position to which we want to jump for the time shift
+   */
+  targetPosition: number;
+}
+
+/**
+ * Emitted when time shifting has finished and data is available to continue playback.
+ * Only applies to live streams.
+ */
+export interface TimeShiftedEvent extends Event {}
+
+/**
  * Emitted when the player begins to stall and to buffer due to an empty buffer.
  */
 export interface StallStartedEvent extends Event {}
@@ -289,23 +319,6 @@ export interface SubtitleChangedEvent extends Event {
   newSubtitleTrack: SubtitleTrack;
 }
 
-export interface VideoPlaybackQualityChangedEvent extends Event {
-  newVideoQuality: {
-    height?: number;
-    width?: number;
-    frameRate?: number;
-    bitrate?: number;
-    codec?: string;
-  };
-  oldVideoQuality: {
-    height?: number;
-    width?: number;
-    frameRate?: number;
-    bitrate?: number;
-    codec?: string;
-  };
-}
-
 export interface VideoSizeChangedEvent extends Event {
   height?: number;
   width?: number;
@@ -316,110 +329,238 @@ export interface DurationChangedEvent extends Event {
   duration: number;
 }
 
-// --- Temporary Ad Events --- //
+/**
+ * Emitted when the player enters Picture in Picture mode.
+ *
+ * @platform iOS, Android
+ */
+export interface PictureInPictureEnterEvent extends Event {}
 
-export enum AdSourceType {
-  Ima = 'Ima',
-  Unknown = 'Unknown',
-  Progressive = 'Progressive',
+/**
+ * Emitted when the player exits Picture in Picture mode.
+ *
+ * @platform iOS, Android
+ */
+export interface PictureInPictureExitEvent extends Event {}
+
+/**
+ * Emitted when the player has finished entering Picture in Picture mode on iOS.
+ *
+ * @platform iOS
+ */
+export interface PictureInPictureEnteredEvent extends Event {}
+
+/**
+ * Emitted when the player has finished exiting Picture in Picture mode on iOS.
+ *
+ * @platform iOS
+ */
+export interface PictureInPictureExitedEvent extends Event {}
+
+/**
+ * Emitted when the fullscreen functionality has been enabled.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenEnabledEvent extends Event {}
+
+/**
+ * Emitted when the fullscreen functionality has been disabled.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenDisabledEvent extends Event {}
+
+/**
+ * Emitted when the player enters fullscreen mode.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenEnterEvent extends Event {}
+
+/**
+ * Emitted when the player exits fullscreen mode.
+ *
+ * @platform iOS, Android
+ */
+export interface FullscreenExitEvent extends Event {}
+
+/**
+ * Emitted when the availability of the Picture in Picture mode changed on Android.
+ *
+ * @platform Android
+ */
+export interface PictureInPictureAvailabilityChangedEvent extends Event {
+  /**
+   * Whether Picture in Picture is available.
+   */
+  isPictureInPictureAvailable: boolean;
 }
 
-export interface AdData {
-  bitrate?: number;
-  maxBitrate?: number;
-  minBitrate?: number;
-  mimeType?: string;
+/**
+ * Emitted when an ad break has started.
+ */
+export interface AdBreakStartedEvent extends Event {
+  /**
+   * The `AdBreak` that has started.
+   */
+  adBreak?: AdBreak;
 }
 
-export interface Ad {
-  clickThroughUrl?: string;
-  data?: AdData;
-  height: number;
-  width: number;
-  id?: string;
-  isLinear: boolean;
-  mediaFileUrl?: string;
+/**
+ * Emitted when an ad break has finished.
+ */
+export interface AdBreakFinishedEvent extends Event {
+  /**
+   * The `AdBreak` that has finished.
+   */
+  adBreak?: AdBreak;
 }
 
-export interface AdQuartile {
-  percentage: number;
-}
-
-export interface AdBreak {
-  ads: [Ad];
-  id: string;
-  scheduleTime: number;
-}
-
-export interface AdConfig {
-  replaceContentDuration?: number;
-}
-
-export interface AdSource {
-  tag: string;
-  type: AdSourceType;
-}
-
-export interface AdItem {
-  sources: [AdSource];
-  position: string;
-  preloadOffset?: number;
-  replaceContentDuration?: number;
-}
-
+/**
+ * Emitted when the playback of an ad has started.
+ */
 export interface AdStartedEvent extends Event {
-  clientType?: AdSourceType;
+  /**
+   * The `Ad` this event is related to.
+   */
+  ad?: Ad;
+  /**
+   * The target URL to open once the user clicks on the ad.
+   */
   clickThroughUrl?: string;
-  indexInQueue: number;
+  /**
+   * The `AdSourceType` of the started `Ad`.
+   */
+  clientType?: AdSourceType;
+  /**
+   * The duration of the ad in seconds.
+   */
   duration: number;
-  timeOffset: number;
+  /**
+   * The index of the ad in the queue.
+   */
+  indexInQueue: number;
+  /**
+   * The position of the corresponding `Ad`.
+   */
   position?: string;
+  /**
+   * The skip offset of the ad in seconds.
+   */
   skipOffset: number;
-  ad?: Ad;
+  /**
+   * The content time at which the `Ad` is played.
+   */
+  timeOffset: number;
 }
 
+/**
+ * Emitted when an ad has finished playback.
+ */
 export interface AdFinishedEvent extends Event {
+  /**
+   * The `Ad` that finished playback.
+   */
   ad?: Ad;
 }
 
+/**
+ * Emitted when an error with the ad playback occurs.
+ */
+export interface AdErrorEvent extends ErrorEvent {
+  /**
+   * The `AdConfig` for which the ad error occurred.
+   */
+  adConfig?: AdConfig;
+  /**
+   * The `AdItem` for which the ad error occurred.
+   */
+  adItem?: AdItem;
+}
+
+/**
+ * Emitted when an ad was clicked.
+ */
+export interface AdClickedEvent extends Event {
+  /**
+   * The click through url of the ad.
+   */
+  clickThroughUrl?: string;
+}
+
+/**
+ * Emitted when an ad was skipped.
+ */
+export interface AdSkippedEvent extends Event {
+  /**
+   * The `Ad` that was skipped.
+   */
+  ad?: Ad;
+}
+
+/**
+ * Emitted when the playback of an ad has progressed over a quartile boundary.
+ */
 export interface AdQuartileEvent extends Event {
+  /**
+   * The `AdQuartile` boundary that playback has progressed over.
+   */
   quartile: AdQuartile;
 }
 
-export interface AdBreakStartedEvent extends Event {
-  adBreak?: AdBreak;
-}
-
-export interface AdBreakFinishedEvent extends Event {
-  adBreak?: AdBreak;
-}
-
+/**
+ * Emitted when an ad manifest was successfully downloaded, parsed and added into the ad break schedule.
+ */
 export interface AdScheduledEvent extends Event {
+  /**
+   * The total number of scheduled ads.
+   */
   numberOfAds: number;
 }
 
-export interface AdSkippedEvent extends Event {
-  ad?: Ad;
-}
-
-export interface AdClickedEvent extends Event {
-  clickThroughUrl?: string;
-}
-
-export interface AdErrorEvent extends Event {
-  adConfig?: AdConfig;
-  adItem?: AdItem;
-  code: number;
-  message?: string;
-}
-
+/**
+ * Emitted when the download of an ad manifest is started.
+ */
 export interface AdManifestLoadEvent extends Event {
+  /**
+   * The `AdBreak` this event is related to.
+   */
   adBreak?: AdBreak;
-  adConfig: AdConfig;
+  /**
+   * The `AdConfig` of the loaded ad manifest.
+   */
+  adConfig?: AdConfig;
 }
 
+/**
+ * Emitted when an ad manifest was successfully loaded.
+ */
 export interface AdManifestLoadedEvent extends Event {
+  /**
+   * The `AdBreak` this event is related to.
+   */
   adBreak?: AdBreak;
-  adConfig: AdConfig;
+  /**
+   * The `AdConfig` of the loaded ad manifest.
+   */
+  adConfig?: AdConfig;
+  /**
+   * How long it took for the ad tag to be downloaded in milliseconds.
+   */
   downloadTime: number;
+}
+
+/**
+ * Emitted when the current video playback quality has changed.
+ */
+export interface VideoPlaybackQualityChangedEvent extends Event {
+  /**
+   * The new quality
+   */
+  newVideoQuality: VideoQuality;
+  /**
+   * The previous quality
+   */
+  oldVideoQuality: VideoQuality;
 }

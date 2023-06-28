@@ -1,6 +1,8 @@
 package com.bitmovin.player.reactnative.converter
 
 import android.graphics.Typeface
+import com.bitmovin.analytics.BitmovinAnalyticsConfig
+import com.bitmovin.analytics.data.CustomData
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.DeviceDescription.ModelName
 import com.bitmovin.player.api.PlaybackConfig
@@ -13,6 +15,8 @@ import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.SeekPosition
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
+import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
+import com.bitmovin.player.api.media.video.quality.VideoQuality
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.Source
@@ -25,6 +29,9 @@ import com.bitmovin.player.reactnative.extensions.putInt
 import com.bitmovin.player.reactnative.extensions.putDouble
 import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.extensions.toReadableArray
+import com.bitmovin.player.reactnative.extensions.getProperty
+import com.bitmovin.player.reactnative.extensions.setProperty
+import com.bitmovin.player.reactnative.extensions.toReadableMap
 import com.facebook.react.bridge.*
 import java.util.UUID
 
@@ -61,30 +68,12 @@ class JsonConverter {
                     playerConfig.tweaksConfig = it
                 }
             }
-            if (json.hasKey("tempAngelAdConfig")) {
-                toTempAngelAdConfig(json.getMap("tempAngelAdConfig"))?.let {
+            if (json.hasKey("advertisingConfig")) {
+                toAdvertisingConfig(json.getMap("advertisingConfig"))?.let {
                     playerConfig.advertisingConfig = it
                 }
             }
             return playerConfig
-        }
-
-        @JvmStatic
-        fun toTempAngelAdConfig(json: ReadableMap?): AdvertisingConfig? {
-            if (json == null) {
-                return null
-            }
-            var adConfig = AdvertisingConfig()
-            if (json.hasKey("adSourceUrl")) {
-                val adUrl = json.getString("adSourceUrl")
-                if (!adUrl.isNullOrEmpty()) {
-                    val adSource = AdSource(AdSourceType.Ima, adUrl)
-                    val adItem = AdItem(adSource)
-
-                    adConfig = AdvertisingConfig(listOf(adItem))
-                }
-            }
-            return adConfig
         }
 
         /**
@@ -166,8 +155,7 @@ class JsonConverter {
                 tweaksConfig.timeChangedInterval = json.getDouble("timeChangedInterval")
             }
             if (json.hasKey("bandwidthEstimateWeightLimit")) {
-                tweaksConfig.bandwidthEstimateWeightLimit =
-                    json.getInt("bandwidthEstimateWeightLimit")
+                tweaksConfig.bandwidthEstimateWeightLimit = json.getInt("bandwidthEstimateWeightLimit")
             }
             if (json.hasKey("devicesThatRequireSurfaceWorkaround")) {
                 val devices = json.getMap("devicesThatRequireSurfaceWorkaround")
@@ -184,30 +172,72 @@ class JsonConverter {
                 tweaksConfig.devicesThatRequireSurfaceWorkaround = deviceNames + modelNames
             }
             if (json.hasKey("languagePropertyNormalization")) {
-                tweaksConfig.languagePropertyNormalization =
-                    json.getBoolean("languagePropertyNormalization")
+                tweaksConfig.languagePropertyNormalization = json.getBoolean("languagePropertyNormalization")
             }
             if (json.hasKey("localDynamicDashWindowUpdateInterval")) {
-                tweaksConfig.localDynamicDashWindowUpdateInterval =
-                    json.getDouble("localDynamicDashWindowUpdateInterval")
+                tweaksConfig.localDynamicDashWindowUpdateInterval = json.getDouble("localDynamicDashWindowUpdateInterval")
             }
             if (json.hasKey("shouldApplyTtmlRegionWorkaround")) {
-                tweaksConfig.shouldApplyTtmlRegionWorkaround =
-                    json.getBoolean("shouldApplyTtmlRegionWorkaround")
+                tweaksConfig.shouldApplyTtmlRegionWorkaround = json.getBoolean("shouldApplyTtmlRegionWorkaround")
             }
             if (json.hasKey("useDrmSessionForClearPeriods")) {
-                tweaksConfig.useDrmSessionForClearPeriods =
-                    json.getBoolean("useDrmSessionForClearPeriods")
+                tweaksConfig.useDrmSessionForClearPeriods = json.getBoolean("useDrmSessionForClearPeriods")
             }
             if (json.hasKey("useDrmSessionForClearSources")) {
-                tweaksConfig.useDrmSessionForClearSources =
-                    json.getBoolean("useDrmSessionForClearSources")
+                tweaksConfig.useDrmSessionForClearSources = json.getBoolean("useDrmSessionForClearSources")
             }
             if (json.hasKey("useFiletypeExtractorFallbackForHls")) {
-                tweaksConfig.useFiletypeExtractorFallbackForHls =
-                    json.getBoolean("useFiletypeExtractorFallbackForHls")
+                tweaksConfig.useFiletypeExtractorFallbackForHls = json.getBoolean("useFiletypeExtractorFallbackForHls")
             }
             return tweaksConfig
+        }
+
+        /**
+         * Converts any JS object into an `AdvertisingConfig` object.
+         * @param json JS object representing the `AdvertisingConfig`.
+         * @return The generated `AdvertisingConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toAdvertisingConfig(json: ReadableMap?): AdvertisingConfig? = json?.getArray("schedule")
+            ?.toList<ReadableMap>()
+            ?.mapNotNull(::toAdItem)
+            ?.let { AdvertisingConfig(it) }
+
+        /**
+         * Converts any JS object into an `AdItem` object.
+         * @param json JS object representing the `AdItem`.
+         * @return The generated `AdItem` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toAdItem(json: ReadableMap?): AdItem? {
+            val sources = json?.getArray("sources")
+                ?.toList<ReadableMap>()
+                ?.mapNotNull(::toAdSource)
+                ?.toTypedArray()
+                ?: return null
+            return AdItem(sources, json?.getString("position") ?: "pre")
+        }
+
+        /**
+         * Converts any JS object into an `AdSource` object.
+         * @param json JS object representing the `AdSource`.
+         * @return The generated `AdSource` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toAdSource(json: ReadableMap?): AdSource? = json?.getString("tag")?.let {
+            AdSource(toAdSourceType(json.getString("type")), it)
+        }
+
+        /**
+         * Converts any JS string into an `AdSourceType` enum value.
+         * @param json JS string representing the `AdSourceType`.
+         * @return The generated `AdSourceType`.
+         */
+        @JvmStatic
+        fun toAdSourceType(json: String?): AdSourceType = when (json) {
+            "ima" -> AdSourceType.Ima
+            "progressive" -> AdSourceType.Progressive
+            else -> AdSourceType.Unknown
         }
 
         /**
@@ -235,6 +265,14 @@ class JsonConverter {
                         config.addSubtitleTrack(it)
                     }
                 }
+            }
+            if (json.hasKey("thumbnailTrack")) {
+                config.thumbnailTrack = toThumbnailTrack(json.getString("thumbnailTrack"))
+            }
+            if (json.hasKey("metadata")) {
+                config.metadata = json.getMap("metadata")
+                    ?.toHashMap()
+                    ?.mapValues { entry -> entry.value as String }
             }
             return config
         }
@@ -285,7 +323,7 @@ class JsonConverter {
             SourceType.Hls -> "hls"
             SourceType.Smooth -> "smooth"
             SourceType.Progressive -> "progressive"
-            else -> null
+            else -> "dash"
         }
 
         /**
@@ -303,7 +341,7 @@ class JsonConverter {
             json.putBoolean("isActive", source.isActive)
             json.putBoolean("isAttachedToPlayer", source.isAttachedToPlayer)
             json.putInt("loadingState", source.loadingState.ordinal)
-            json.putNull("metadata")
+            json.putMap("metadata", source.config.metadata?.toReadableMap())
             return json
         }
 
@@ -404,174 +442,63 @@ class JsonConverter {
                 json.putMap("from", fromSeekPosition(event.from))
                 json.putMap("to", fromSeekPosition(event.to))
             }
-
-            // --- Temp Ad Events --- //
-            if (event is PlayerEvent.AdStarted) {
-                json.putString("clientType", fromAdSourceType(event.clientType))
-                json.putString("clickThrougUrl", event.clickThroughUrl)
-                json.putInt("indexInQueue", event.indexInQueue)
-                json.putDouble("duration", event.duration)
-                json.putDouble("timeOffset", event.timeOffset)
-                json.putString("position", event.position)
-                json.putDouble("skipOffset", event.skipOffset)
-                json.putMap("ad", fromAd(event.ad))
+            if (event is PlayerEvent.TimeShift) {
+                json.putDouble("position", event.position)
+                json.putDouble("targetPosition", event.target)
             }
-
-            if (event is PlayerEvent.AdFinished) {
-                json.putMap("ad", fromAd(event.ad))
+            if (event is PlayerEvent.PictureInPictureAvailabilityChanged) {
+                json.putBoolean("isPictureInPictureAvailable", event.isPictureInPictureAvailable)
             }
-
-            if (event is PlayerEvent.AdQuartile) {
-                json.putMap("quartile", fromAdQuartile(event.quartile))
-            }
-
-            if (event is PlayerEvent.AdBreakStarted) {
-                json.putMap("adBreak", fromAdBreak(event.adBreak))
-            }
-
             if (event is PlayerEvent.AdBreakFinished) {
                 json.putMap("adBreak", fromAdBreak(event.adBreak))
             }
-
-            if (event is PlayerEvent.AdScheduled) {
-                json.putInt("numberOfAds", event.numberOfAds)
+            if (event is PlayerEvent.AdBreakStarted) {
+                json.putMap("adBreak", fromAdBreak(event.adBreak))
             }
-
-            if (event is PlayerEvent.AdSkipped) {
-                json.putMap("ad", fromAd(event.ad))
-            }
-
             if (event is PlayerEvent.AdClicked) {
                 json.putString("clickThroughUrl", event.clickThroughUrl)
             }
-
             if (event is PlayerEvent.AdError) {
-                json.putMap("adConfig", fromAdConfig(event.adConfig))
-                json.putMap("adItem", fromAdItem(event.adItem))
                 json.putInt("code", event.code)
                 json.putString("message", event.message)
+                json.putMap("adConfig", fromAdConfig(event.adConfig))
+                json.putMap("adItem", fromAdItem(event.adItem))
             }
-
+            if (event is PlayerEvent.AdFinished) {
+                json.putMap("ad", fromAd(event.ad))
+            }
             if (event is PlayerEvent.AdManifestLoad) {
                 json.putMap("adBreak", fromAdBreak(event.adBreak))
                 json.putMap("adConfig", fromAdConfig(event.adConfig))
             }
-
             if (event is PlayerEvent.AdManifestLoaded) {
                 json.putMap("adBreak", fromAdBreak(event.adBreak))
                 json.putMap("adConfig", fromAdConfig(event.adConfig))
-                json.putInt("downloadTime", event.downloadTime.toInt())
+                json.putDouble("downloadTime", event.downloadTime.toDouble())
             }
-
-            return json
-        }
-
-        // --- Temp Ad Converters --- //
-
-        @JvmStatic
-        fun fromAdSourceType(adSourceType: AdSourceType?): String? {
-            if (adSourceType === null) {
-                return null
+            if (event is PlayerEvent.AdQuartile) {
+                json.putString("quartile", fromAdQuartile(event.quartile))
             }
-
-            return adSourceType.name
-        }
-
-        @JvmStatic
-        fun fromAd(ad: Ad?): WritableMap? {
-            if (ad === null) {
-                return null
+            if (event is PlayerEvent.AdScheduled) {
+                json.putInt("numberOfAds", event.numberOfAds)
             }
-
-            val json = Arguments.createMap()
-            json.putString("clickThroughUrl", ad.clickThroughUrl)
-            json.putMap("data", fromAdData(ad.data))
-            json.putInt("height", ad.height)
-            json.putInt("width", ad.width)
-            json.putString("id", ad.id)
-            json.putBoolean("isLinear", ad.isLinear)
-            json.putString("mediaFileUrl", ad.mediaFileUrl)
-            return json
-        }
-
-        @JvmStatic
-        fun fromAdData(adData: AdData?): WritableMap? {
-            if (adData === null) {
-                return null
+            if (event is PlayerEvent.AdSkipped) {
+                json.putMap("ad", fromAd(event.ad))
             }
-
-            val json = Arguments.createMap()
-            adData.bitrate?.let { json.putInt("bitrate", it) }
-            adData.maxBitrate?.let { json.putInt("maxBitrate", it) }
-            adData.minBitrate?.let { json.putInt("minBitrate", it) }
-            adData.mimeType?.let { json.putString("mimeType", it) }
-            return json
-        }
-
-        @JvmStatic
-        fun fromAdQuartile(adQuartile: AdQuartile?): WritableMap? {
-            if (adQuartile === null) {
-                return null
+            if (event is PlayerEvent.AdStarted) {
+                json.putMap("ad", fromAd(event.ad))
+                json.putString("clickThroughUrl", event.clickThroughUrl)
+                json.putString("clientType", fromAdSourceType(event.clientType))
+                json.putDouble("duration", event.duration)
+                json.putInt("indexInQueue", event.indexInQueue)
+                json.putString("position", event.position)
+                json.putDouble("skipOffset", event.skipOffset)
+                json.putDouble("timeOffset", event.timeOffset)
             }
-
-            val json = Arguments.createMap()
-            json.putDouble("percentage", adQuartile.percentage)
-            return json
-        }
-
-        @JvmStatic
-        fun fromAdBreak(adBreak: AdBreak?): WritableMap? {
-            if (adBreak === null) {
-                return null
+            if (event is PlayerEvent.VideoPlaybackQualityChanged) {
+                json.putMap("newVideoQuality", fromVideoQuality(event.newVideoQuality))
+                json.putMap("oldVideoQuality", fromVideoQuality(event.oldVideoQuality))
             }
-
-            val ads = Arguments.createArray()
-            adBreak.ads.forEach { ads.pushMap(fromAd(it)) }
-
-            val json = Arguments.createMap()
-            json.putArray("ads", ads)
-            json.putString("id", adBreak.id)
-            json.putDouble("scheduleTime", adBreak.scheduleTime)
-            return json
-        }
-
-        @JvmStatic
-        fun fromAdConfig(adConfig: AdConfig?): WritableMap? {
-            if (adConfig === null) {
-                return null
-            }
-
-            val json = Arguments.createMap()
-            adConfig.replaceContentDuration?.let { json.putDouble("replaceContentDuration", it) }
-            return json
-        }
-
-        @JvmStatic
-        fun fromAdSource(adSource: AdSource?): WritableMap? {
-            if (adSource === null) {
-                return null
-            }
-
-            val json = Arguments.createMap()
-            json.putString("tag", adSource.tag)
-            json.putString("type", fromAdSourceType(adSource.type))
-            return json
-        }
-
-        @JvmStatic
-        fun fromAdItem(adItem: AdItem?): WritableMap? {
-            if (adItem === null) {
-                return null
-            }
-
-            val sources = Arguments.createArray()
-            adItem.sources.forEach { sources.pushMap(fromAdSource(it)) }
-
-            val json = Arguments.createMap()
-            json.putArray("sources", sources)
-            json.putString("position", adItem.position)
-            json.putDouble("preloadOffset", adItem.preloadOffset)
-            json.putDouble("replaceContentDuration", adItem.replaceContentDuration)
             return json
         }
 
@@ -581,12 +508,38 @@ class JsonConverter {
          * @return The generated `WidevineConfig` if successful, `null` otherwise.
          */
         @JvmStatic
-        fun toWidevineConfig(json: ReadableMap?): WidevineConfig? = json?.getMap("widevine")?.let {
-            val widevineConfig = WidevineConfig(it.getString("licenseUrl"))
-            if (it.hasKey("preferredSecurityLevel")) {
-                widevineConfig.preferredSecurityLevel = it.getString("preferredSecurityLevel")
+        fun toWidevineConfig(json: ReadableMap?): WidevineConfig? = json
+            ?.getMap("widevine")
+            ?.let {
+                WidevineConfig(it.getString("licenseUrl"))
+                    .apply {
+                        if (it.hasKey("preferredSecurityLevel")) {
+                            preferredSecurityLevel = it.getString("preferredSecurityLevel")
+                        }
+                        if (it.hasKey("shouldKeepDrmSessionsAlive")) {
+                            shouldKeepDrmSessionsAlive = it.getBoolean("shouldKeepDrmSessionsAlive")
+                        }
+                        if (it.hasKey("httpHeaders")) {
+                            httpHeaders = it.getMap("httpHeaders")
+                                ?.toHashMap()
+                                ?.mapValues { entry -> entry.value as String }
+                                ?.toMutableMap()
+
+                        }
+                    }
             }
-            widevineConfig
+
+        /**
+         * Converts an `url` string into a `ThumbnailsTrack`.
+         * @param url JS object representing the `ThumbnailsTrack`.
+         * @return The generated `ThumbnailsTrack` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toThumbnailTrack(url: String?): ThumbnailTrack? {
+            if (url == null) {
+                return null
+            }
+            return ThumbnailTrack(url);
         }
 
         /**
@@ -698,6 +651,215 @@ class JsonConverter {
                 return null
             }
             return mimeType.split("/").last()
+        }
+
+        /**
+         * Converts any `AdBreak` object into its json representation.
+         * @param adBreak `AdBreak` object.
+         * @return The produced JS object.
+         */
+        @JvmStatic
+        fun fromAdBreak(adBreak: AdBreak?): WritableMap? = adBreak?.let {
+            Arguments.createMap().apply {
+                putArray("ads", it.ads.mapNotNull(::fromAd).toReadableArray())
+                putString("id", it.id)
+                putDouble("scheduleTime", it.scheduleTime)
+            }
+        }
+
+        /**
+         * Converts any `Ad` object into its json representation.
+         * @param ad `Ad` object.
+         * @return The produced JS object.
+         */
+        @JvmStatic
+        fun fromAd(ad: Ad?): WritableMap? = ad?.let {
+            Arguments.createMap().apply {
+                putString("clickThroughUrl", it.clickThroughUrl)
+                putMap("data", fromAdData(it.data))
+                putInt("height", it.height)
+                putString("id", it.id)
+                putBoolean("isLinear", it.isLinear)
+                putString("mediaFileUrl", it.mediaFileUrl)
+                putInt("width", it.width)
+            }
+        }
+
+        /**
+         * Converts any `AdData` object into its json representation.
+         * @param adData `AdData` object.
+         * @return The produced JS object.
+         */
+        @JvmStatic
+        fun fromAdData(adData: AdData?): WritableMap? = adData?.let {
+            Arguments.createMap().apply {
+                putInt("bitrate", it.bitrate)
+                putInt("maxBitrate", it.maxBitrate)
+                putString("mimeType", it.mimeType)
+                putInt("minBitrate", it.minBitrate)
+            }
+        }
+
+        /**
+         * Converts any `AdConfig` object into its json representation.
+         * @param adConfig `AdConfig` object.
+         * @return The produced JS object.
+         */
+        @JvmStatic
+        fun fromAdConfig(adConfig: AdConfig?): WritableMap? = adConfig?.let {
+            Arguments.createMap().apply {
+                putDouble("replaceContentDuration", it.replaceContentDuration)
+            }
+        }
+
+        /**
+         * Converts any `AdItem` object into its json representation.
+         * @param adItem `AdItem` object.
+         * @return The produced JS object.
+         */
+        @JvmStatic
+        fun fromAdItem(adItem: AdItem?): WritableMap? = adItem?.let {
+            Arguments.createMap().apply {
+                putString("position", it.position)
+                putArray("sources", it.sources.mapNotNull(::fromAdSource).toReadableArray())
+            }
+        }
+
+        /**
+         * Converts any `AdSource` object into its json representation.
+         * @param adSource `AdSource` object.
+         * @return The produced JS object.
+         */
+        @JvmStatic
+        fun fromAdSource(adSource: AdSource?): WritableMap? = adSource?.let {
+            Arguments.createMap().apply {
+                putString("tag", it.tag)
+                putString("type", fromAdSourceType(it.type))
+            }
+        }
+
+        /**
+         * Converts any `AdSourceType` value into its json representation.
+         * @param adSourceType `AdSourceType` value.
+         * @return The produced JS string.
+         */
+        @JvmStatic
+        fun fromAdSourceType(adSourceType: AdSourceType?): String? = when (adSourceType) {
+            AdSourceType.Ima -> "ima"
+            AdSourceType.Unknown -> "unknown"
+            AdSourceType.Progressive -> "progressive"
+            else -> null
+        }
+
+        /**
+         * Converts any `AdQuartile` value into its json representation.
+         * @param adQuartile `AdQuartile` value.
+         * @return The produced JS string.
+         */
+        @JvmStatic
+        fun fromAdQuartile(adQuartile: AdQuartile?): String? = when (adQuartile) {
+            AdQuartile.FirstQuartile -> "first"
+            AdQuartile.MidPoint -> "mid_point"
+            AdQuartile.ThirdQuartile -> "third"
+            else -> null
+        }
+
+        /**
+         * Converts an arbitrary json object into a `BitmovinAnalyticsConfig`.
+         * @param json JS object representing the `BitmovinAnalyticsConfig`.
+         * @return The produced `BitmovinAnalyticsConfig` or null.
+         */
+        @JvmStatic
+        fun toAnalyticsConfig(json: ReadableMap?): BitmovinAnalyticsConfig? = json?.let {
+            var config: BitmovinAnalyticsConfig? = null
+            it.getString("key")?.let { key ->
+                config = it.getString("playerKey")
+                    ?.let { playerKey -> BitmovinAnalyticsConfig(key, playerKey) }
+                    ?: BitmovinAnalyticsConfig(key)
+            }
+            it.getString("cdnProvider")?.let { cdnProvider ->
+                config?.cdnProvider = cdnProvider
+            }
+            it.getString("customUserId")?.let { customUserId ->
+                config?.customUserId = customUserId
+            }
+            it.getString("experimentName")?.let { experimentName ->
+                config?.experimentName = experimentName
+            }
+            it.getString("videoId")?.let { videoId ->
+                config?.videoId = videoId
+            }
+            it.getString("title")?.let { title ->
+                config?.title = title
+            }
+            it.getString("path")?.let { path ->
+                config?.path = path
+            }
+            if (it.hasKey("isLive")) {
+                config?.isLive = it.getBoolean("isLive")
+            }
+            if (it.hasKey("ads")) {
+                config?.ads = it.getBoolean("ads")
+            }
+            if (it.hasKey("randomizeUserId")) {
+                config?.randomizeUserId = it.getBoolean("randomizeUserId")
+            }
+            for (n in 1..30) {
+                it.getString("customData${n}")?.let { customDataN ->
+                    config?.setProperty("customData${n}", customDataN)
+                }
+            }
+            config
+        }
+
+        /**
+         * Converts an arbitrary json object into an analytics `CustomData`.
+         * @param json JS object representing the `CustomData`.
+         * @return The produced `CustomData` or null.
+         */
+        @JvmStatic
+        fun toAnalyticsCustomData(json: ReadableMap?): CustomData? = json?.let {
+            val customData = CustomData()
+            for (n in 1..30) {
+                it.getString("customData${n}")?.let { customDataN ->
+                    customData.setProperty("customData${n}", customDataN)
+                }
+            }
+            customData
+        }
+
+        /**
+         * Converts an arbitrary analytics `CustomData` object into a JS value.
+         * @param customData `CustomData` to be converted.
+         * @return The produced JS value or null.
+         */
+        @JvmStatic
+        fun fromAnalyticsCustomData(customData: CustomData?): ReadableMap? = customData?.let {
+            val json = Arguments.createMap()
+            for (n in 1..30) {
+                it.getProperty<String>("customData${n}")?.let { customDataN ->
+                    json.putString("customData${n}", customDataN)
+                }
+            }
+            json
+        }
+
+        /**
+         * Converts any `VideoQuality` value into its json representation.
+         * @param videoQuality `VideoQuality` value.
+         * @return The produced JS string.
+         */
+        @JvmStatic
+        fun fromVideoQuality(videoQuality: VideoQuality?): WritableMap? = videoQuality?.let {
+            Arguments.createMap().apply {
+                putString("id", videoQuality.id)
+                putString("label", videoQuality.label)
+                putInt("bitrate", videoQuality.bitrate)
+                putString("codec", videoQuality.codec)
+                putDouble("frameRate", videoQuality.frameRate.toDouble())
+                putInt("height", videoQuality.height)
+                putInt("width", videoQuality.width)
+            }
         }
 
         /**

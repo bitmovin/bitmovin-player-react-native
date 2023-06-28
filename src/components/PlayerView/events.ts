@@ -1,23 +1,45 @@
 import { NativeSyntheticEvent } from 'react-native';
 import {
+  AdBreakFinishedEvent,
+  AdBreakStartedEvent,
+  AdClickedEvent,
+  AdErrorEvent,
+  AdFinishedEvent,
+  AdManifestLoadedEvent,
+  AdManifestLoadEvent,
+  AdQuartileEvent,
+  AdScheduledEvent,
+  AdSkippedEvent,
+  AdStartedEvent,
   DestroyEvent,
   Event,
+  FullscreenEnabledEvent,
+  FullscreenDisabledEvent,
+  FullscreenEnterEvent,
+  FullscreenExitEvent,
   MutedEvent,
   PausedEvent,
-  PlayEvent,
+  PictureInPictureAvailabilityChangedEvent,
+  PictureInPictureEnterEvent,
+  PictureInPictureEnteredEvent,
+  PictureInPictureExitEvent,
+  PictureInPictureExitedEvent,
   PlaybackFinishedEvent,
   PlayerActiveEvent,
   PlayerErrorEvent,
   PlayerWarningEvent,
+  PlayEvent,
   PlayingEvent,
   ReadyEvent,
-  SeekEvent,
   SeekedEvent,
+  SeekEvent,
+  TimeShiftEvent,
+  TimeShiftedEvent,
   StallStartedEvent,
   StallEndedEvent,
   SourceErrorEvent,
-  SourceLoadEvent,
   SourceLoadedEvent,
+  SourceLoadEvent,
   SourceUnloadedEvent,
   SourceWarningEvent,
   AudioAddedEvent,
@@ -28,20 +50,9 @@ import {
   SubtitleRemovedEvent,
   TimeChangedEvent,
   UnmutedEvent,
-  VideoPlaybackQualityChangedEvent,
   VideoSizeChangedEvent,
-  AdStartedEvent,
-  AdFinishedEvent,
-  AdQuartileEvent,
-  AdBreakStartedEvent,
-  AdBreakFinishedEvent,
-  AdScheduledEvent,
-  AdSkippedEvent,
-  AdClickedEvent,
-  AdErrorEvent,
-  AdManifestLoadEvent,
-  AdManifestLoadedEvent,
   DurationChangedEvent,
+  VideoPlaybackQualityChangedEvent,
 } from '../../events';
 
 /**
@@ -49,10 +60,30 @@ import {
  * Used to generate the specific events interface for each component.
  */
 interface EventProps {
+  onAdBreakFinished: AdBreakFinishedEvent;
+  onAdBreakStarted: AdBreakStartedEvent;
+  onAdClicked: AdClickedEvent;
+  onAdError: AdErrorEvent;
+  onAdFinished: AdFinishedEvent;
+  onAdManifestLoad: AdManifestLoadEvent;
+  onAdManifestLoaded: AdManifestLoadedEvent;
+  onAdQuartile: AdQuartileEvent;
+  onAdScheduled: AdScheduledEvent;
+  onAdSkipped: AdSkippedEvent;
+  onAdStarted: AdStartedEvent;
   onDestroy: DestroyEvent;
   onEvent: Event;
+  onFullscreenEnabled: FullscreenEnabledEvent;
+  onFullscreenDisabled: FullscreenDisabledEvent;
+  onFullscreenEnter: FullscreenEnterEvent;
+  onFullscreenExit: FullscreenExitEvent;
   onMuted: MutedEvent;
   onPaused: PausedEvent;
+  onPictureInPictureAvailabilityChanged: PictureInPictureAvailabilityChangedEvent;
+  onPictureInPictureEnter: PictureInPictureEnterEvent;
+  onPictureInPictureEntered: PictureInPictureEnteredEvent;
+  onPictureInPictureExit: PictureInPictureExitEvent;
+  onPictureInPictureExited: PictureInPictureExitedEvent;
   onPlay: PlayEvent;
   onPlaybackFinished: PlaybackFinishedEvent;
   onPlayerActive: PlayerActiveEvent;
@@ -62,6 +93,8 @@ interface EventProps {
   onReady: ReadyEvent;
   onSeek: SeekEvent;
   onSeeked: SeekedEvent;
+  onTimeShift: TimeShiftEvent;
+  onTimeShifted: TimeShiftedEvent;
   onStallStarted: StallStartedEvent;
   onStallEnded: StallEndedEvent;
   onSourceError: SourceErrorEvent;
@@ -77,22 +110,9 @@ interface EventProps {
   onSubtitleRemoved: SubtitleRemovedEvent;
   onTimeChanged: TimeChangedEvent;
   onUnmuted: UnmutedEvent;
-  onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
   onVideoSizeChanged: VideoSizeChangedEvent;
   onDurationChanged: DurationChangedEvent;
-
-  // --- Temp Ad Events --- //
-  onAdStarted: AdStartedEvent;
-  onAdFinished: AdFinishedEvent;
-  onAdQuartile: AdQuartileEvent;
-  onAdBreakStarted: AdBreakStartedEvent;
-  onAdBreakFinished: AdBreakFinishedEvent;
-  onAdScheduled: AdScheduledEvent;
-  onAdSkipped: AdSkippedEvent;
-  onAdClicked: AdClickedEvent;
-  onAdError: AdErrorEvent;
-  onAdManifestLoad: AdManifestLoadEvent;
-  onAdManifestLoaded: AdManifestLoadedEvent;
+  onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
 }
 
 /**

@@ -18,6 +18,8 @@ class RNPlayerView: UIView {
     @objc var onPlaybackFinished: RCTBubblingEventBlock?
     @objc var onSeek: RCTBubblingEventBlock?
     @objc var onSeeked: RCTBubblingEventBlock?
+    @objc var onTimeShift: RCTBubblingEventBlock?
+    @objc var onTimeShifted: RCTBubblingEventBlock?
     @objc var onStallStarted: RCTBubblingEventBlock?
     @objc var onStallEnded: RCTBubblingEventBlock?
     @objc var onTimeChanged: RCTBubblingEventBlock?
@@ -32,22 +34,28 @@ class RNPlayerView: UIView {
     @objc var onSubtitleAdded: RCTBubblingEventBlock?
     @objc var onSubtitleRemoved: RCTBubblingEventBlock?
     @objc var onSubtitleChanged: RCTBubblingEventBlock?
+    @objc var onPictureInPictureEnter: RCTBubblingEventBlock?
+    @objc var onPictureInPictureEntered: RCTBubblingEventBlock?
+    @objc var onPictureInPictureExit: RCTBubblingEventBlock?
+    @objc var onPictureInPictureExited: RCTBubblingEventBlock?
+    @objc var onAdBreakFinished: RCTBubblingEventBlock?
+    @objc var onAdBreakStarted: RCTBubblingEventBlock?
+    @objc var onAdClicked: RCTBubblingEventBlock?
+    @objc var onAdError: RCTBubblingEventBlock?
+    @objc var onAdFinished: RCTBubblingEventBlock?
+    @objc var onAdManifestLoad: RCTBubblingEventBlock?
+    @objc var onAdManifestLoaded: RCTBubblingEventBlock?
+    @objc var onAdQuartile: RCTBubblingEventBlock?
+    @objc var onAdScheduled: RCTBubblingEventBlock?
+    @objc var onAdSkipped: RCTBubblingEventBlock?
+    @objc var onAdStarted: RCTBubblingEventBlock?
     @objc var onVideoPlaybackQualityChanged: RCTBubblingEventBlock?
     @objc var onVideoSizeChanged: RCTBubblingEventBlock?
     @objc var onDurationChanged: RCTBubblingEventBlock?
-
-    // --- Temp Ad Callbacks --- //
-    @objc var onAdStarted: RCTBubblingEventBlock?
-    @objc var onAdFinished: RCTBubblingEventBlock?
-    @objc var onAdQuartile: RCTBubblingEventBlock?
-    @objc var onAdBreakStarted: RCTBubblingEventBlock?
-    @objc var onAdBreakFinished: RCTBubblingEventBlock?
-    @objc var onAdScheduled: RCTBubblingEventBlock?
-    @objc var onAdSkipped: RCTBubblingEventBlock?
-    @objc var onAdClicked: RCTBubblingEventBlock?
-    @objc var onAdError: RCTBubblingEventBlock?
-    @objc var onAdManifestLoad: RCTBubblingEventBlock?
-    @objc var onAdManifestLoaded: RCTBubblingEventBlock?
+    @objc var onFullscreenEnabled: RCTBubblingEventBlock?
+    @objc var onFullscreenDisabled: RCTBubblingEventBlock?
+    @objc var onFullscreenEnter: RCTBubblingEventBlock?
+    @objc var onFullscreenExit: RCTBubblingEventBlock?
 
     /// The `PlayerView` subview.
     var playerView: PlayerView? {

@@ -4,5 +4,9 @@
 <dict>
 	<key>BitmovinPlayerLicenseKey</key>
 	<string>ENTER_LICENSE_KEY</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 </dict>
 </plist>

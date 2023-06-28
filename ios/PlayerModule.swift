@@ -145,6 +145,18 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
+     Sets `timeShift` on `nativeId`'s player.
+     - Parameter nativeId: Target player Id.
+     - Parameter offset: Offset to timeShift to in seconds.
+     */
+    @objc(timeShift:offset:)
+    func timeShift(_ nativeId: NativeId, offset: NSNumber) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.timeShift = offset.doubleValue
+        }
+    }
+
+    /**
      Call `.mute()` on `nativeId`'s player.
      - Parameter nativeId: Target player Id.
      */
@@ -421,7 +433,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.setAudio(trackIdentifier:trackIdentifier)
+            self?.players[nativeId]?.setAudio(trackIdentifier: trackIdentifier)
             resolve(nil)
         }
     }
@@ -456,7 +468,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     @objc(setSubtitleTrack:trackIdentifier:resolver:rejecter:)
     func setSubtitleTrack(
         _ nativeId: NativeId,
-        trackIdentifier: String,
+        trackIdentifier: String?,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
@@ -472,10 +484,24 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Skips the current ad. Has no effect if ad is not skippable or if no ad is played back.
-     - Parameter nativeId: Target player Id.
-     - Parameter resolver: JS promise resolver.
-     - Parameter rejecter: JS promise rejecter.
+     Schedules an `AdItem` in the `nativeId`'s associated player.
+     - Parameter nativeId: Target player id.
+     - Parameter adItemJson: Json representation of the `AdItem` to be scheduled.
+     */
+    @objc(scheduleAd:adItemJson:)
+    func scheduleAd(_ nativeId: NativeId, adItemJson: Any?) {
+        guard let adItem = RCTConvert.adItem(adItemJson) else {
+            return
+        }
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.scheduleAd(adItem: adItem)
+        }
+    }
+
+    /**
+     Skips the current ad in `nativeId`'s associated player.
+     Has no effect if the current ad is not skippable or if no ad is being played back.
+     - Parameter nativeId: Target player id.
      */
     @objc(skipAd:resolver:rejecter:)
     func skipAd(
@@ -486,6 +512,58 @@ class PlayerModule: NSObject, RCTBridgeModule {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             self?.players[nativeId]?.skipAd()
             resolve(nil)
+        }
+    }
+
+    /**
+     Returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
+     - Parameter nativeId: Target player id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(isAd:resolver:rejecter:)
+    func isAd(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(self?.players[nativeId]?.isAd)
+        }
+    }
+
+    /**
+     The current time shift of the live stream in seconds. This value is always 0 if the active `source` is not a
+     live stream or there are no sources loaded.
+     - Parameter nativeId: Target player id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getTimeShift:resolver:rejecter:)
+    func getTimeShift(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(self?.players[nativeId]?.timeShift)
+        }
+    }
+
+    /**
+     Returns the limit in seconds for time shift. Is either negative or 0. Is applicable for live streams only.
+     - Parameter nativeId: Target player id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getMaxTimeShift:resolver:rejecter:)
+    func getMaxTimeShift(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(self?.players[nativeId]?.maxTimeShift)
         }
     }
 }
