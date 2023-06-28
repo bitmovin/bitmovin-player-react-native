@@ -107,7 +107,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
-     * Call `.timShift(offset:)` on `nativeId`'s player.
+     * Call `.timeShift(offset:)` on `nativeId`'s player.
      * @param nativeId Target player Id.
      * @param offset Offset time in seconds.
      */
