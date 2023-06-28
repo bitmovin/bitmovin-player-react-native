@@ -33,6 +33,8 @@ import {
   ReadyEvent,
   SeekedEvent,
   SeekEvent,
+  TimeShiftEvent,
+  TimeShiftedEvent,
   StallStartedEvent,
   StallEndedEvent,
   SourceErrorEvent,
@@ -89,6 +91,8 @@ interface EventProps {
   onReady: ReadyEvent;
   onSeek: SeekEvent;
   onSeeked: SeekedEvent;
+  onTimeShift: TimeShiftEvent;
+  onTimeShifted: TimeShiftedEvent;
   onStallStarted: StallStartedEvent;
   onStallEnded: StallEndedEvent;
   onSourceError: SourceErrorEvent;

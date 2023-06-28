@@ -401,6 +401,10 @@ class JsonConverter {
                 json.putMap("from", fromSeekPosition(event.from))
                 json.putMap("to", fromSeekPosition(event.to))
             }
+            if (event is PlayerEvent.TimeShift) {
+                json.putDouble("position", event.position)
+                json.putDouble("targetPosition", event.target)
+            }
             if (event is PlayerEvent.PictureInPictureAvailabilityChanged) {
                 json.putBoolean("isPictureInPictureAvailable", event.isPictureInPictureAvailable)
             }

@@ -169,6 +169,27 @@ export interface SeekEvent extends Event {
 export interface SeekedEvent extends Event {}
 
 /**
+ * Emitted when the player starts time shifting.
+ * Only applies to live streams.
+ */
+export interface TimeShiftEvent extends Event {
+  /**
+   * The position from which we start the time shift
+   */
+  position: number;
+  /**
+   * The position to which we want to jump for the time shift
+   */
+  targetPosition: number;
+}
+
+/**
+ * Emitted when time shifting has finished and data is available to continue playback.
+ * Only applies to live streams.
+ */
+export interface TimeShiftedEvent extends Event {}
+
+/**
  * Emitted when the player begins to stall and to buffer due to an empty buffer.
  */
 export interface StallStartedEvent extends Event {}
