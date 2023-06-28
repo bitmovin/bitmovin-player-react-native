@@ -242,7 +242,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * When the provided `offset` is negative, but lower than `maxTimeShift`, then it will be clamped to `maxTimeShift`.
    * Has no effect for VoD.
    *
-   * Has no effect if there is no active playback session.
+   * Has no effect if no sources are loaded.
    */
   timeShift = (offset: number) => {
     PlayerModule.timeShift(this.nativeId, offset);
