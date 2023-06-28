@@ -15,7 +15,7 @@ import ProgrammaticTrackSelection from './screens/ProgrammaticTrackSelection';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
 import BasicPictureInPicture from './screens/BasicPictureInPicture';
-import CustomHtmlUI from './screens/CustomHtmlUi';
+import CustomHtmlUI from './screens/CustomHtmlUI';
 import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 import CustomSubtitleOnlyUI from './screens/CustomSubtitleOnlyUI';
 import OfflinePlayback from './screens/OfflinePlayback';
@@ -46,7 +46,7 @@ export type RootStackParamsList = {
       value: SourceType;
     };
   };
-  CustomHtmlUi: {
+  CustomHtmlUI: {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
   };
   CustomSubtitleOnlyUI: undefined;
@@ -97,7 +97,7 @@ export default function App() {
   if (!isTVOS) {
     stackParams.data.push({
       title: 'Custom HTML UI',
-      routeName: 'CustomHtmlUi',
+      routeName: 'CustomHtmlUI',
     });
   }
 
@@ -192,7 +192,7 @@ export default function App() {
         />
         {!isTVOS && (
           <RootStack.Screen
-            name="CustomHtmlUi"
+            name="CustomHtmlUI"
             component={CustomHtmlUI}
             options={{ title: 'Custom HTML UI' }}
           />
