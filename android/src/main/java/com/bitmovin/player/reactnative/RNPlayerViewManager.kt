@@ -149,7 +149,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 Commands.ATTACH_FULLSCREEN_BRIDGE.ordinal -> args?.getString(1)?.let { fullscreenBridgeId ->
                     attachFullscreenBridge(view, fullscreenBridgeId)
                 }
-                Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID.ordinal -> { 
+                Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID.ordinal -> {
                     args?.getString(1)?.let { customMessageHandlerBridgeId ->
                         setCustomMessageHandlerBridgeId(view, customMessageHandlerBridgeId)
                     }
@@ -198,6 +198,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             if (view.playerView != null) {
                 view.player = player
             } else {
+                // PlayerView needs activity context, so that the webView UI
+                // stuff can work correctly.
+                val context = context.currentActivity ?: error("No activity attached?")
                 val playerView = PlayerView(context, player)
                 playerView.layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
