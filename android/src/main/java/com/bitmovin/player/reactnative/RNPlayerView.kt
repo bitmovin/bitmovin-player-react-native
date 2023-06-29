@@ -12,11 +12,11 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
-import com.bitmovin.player.api.event.on
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.LifecycleEventListener
+import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
 import kotlin.reflect.KClass
@@ -83,7 +83,7 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event
  * exposes player events as bubbling events.
  */
 @SuppressLint("ViewConstructor")
-class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context),
+class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context),
     LifecycleEventListener, View.OnLayoutChangeListener, RNPictureInPictureDelegate {
     /**
      * Relays the provided set of events, emitted by the player, together with the associated name
@@ -271,6 +271,26 @@ class RNPlayerView(context: ReactApplicationContext) : LinearLayout(context),
      * @param json Optional js object to be sent as payload.
      */
     private inline fun <reified E : Event> emitEvent(name: String, event: E) {
+        if (disableAdUi == true && event is PlayerEvent.AdStarted) {
+            try {
+                // HACK, IMA does not provide any public API for removing their Ad controls interface, this hunts down the controls and removes them
+                // this should continue to work as long as IMA wraps their controls in a WebView
+                LayoutTraverser.build(object : LayoutTraverser.Processor {
+                    override fun process(view: View?) {
+                        try {
+                            if(view.toString().contains("android.webkit.WebView")) {
+                                view?.visibility = View.GONE
+                            }
+                        } catch (e: Exception) {
+                            Log.e("AngelMobile", "class=RNPlayerView action=ErrorHidingAdsWebView", e)
+                        }
+                    }
+                }).traverse(this)
+            } catch (e: Exception) {
+                Log.e("AngelMobile", "class=RNPlayerView action=ErrorTraversingForAdViews", e)
+            }
+        }
+
         val payload = if (event is PlayerEvent) {
             JsonConverter.fromPlayerEvent(event)
         } else {
