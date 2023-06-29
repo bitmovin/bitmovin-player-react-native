@@ -34,6 +34,8 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
     PlayerEvent.PlaybackFinished::class to "playbackFinished",
     PlayerEvent.Seek::class to "seek",
     PlayerEvent.Seeked::class to "seeked",
+    PlayerEvent.TimeShift::class to "timeShift",
+    PlayerEvent.TimeShifted::class to "timeShifted",
     PlayerEvent.StallStarted::class to "stallStarted",
     PlayerEvent.StallEnded::class to "stallEnded",
     PlayerEvent.TimeChanged::class to "timeChanged",

@@ -107,6 +107,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Call `.timeShift(offset:)` on `nativeId`'s player.
+     * @param nativeId Target player Id.
+     * @param offset Offset time in seconds.
+     */
+    @ReactMethod
+    fun timeShift(nativeId: NativeId, offset: Double) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.timeShift(offset)
+        }
+    }
+
+    /**
      * Call `.mute()` on `nativeId`'s player.
      * @param nativeId Target player Id.
      */
@@ -359,6 +371,30 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     fun isAd(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
             promise.resolve(players[nativeId]?.isAd)
+        }
+    }
+
+    /**
+     * The current time shift of the live stream in seconds. This value is always 0 if the active [source] is not a
+     * live stream or there is no active playback session.
+     * @param nativeId Target player id.
+     */
+    @ReactMethod
+    fun getTimeShift(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.timeShift)
+        }
+    }
+
+    /**
+     * The limit in seconds for time shifting. This value is either negative or 0 and it is always 0 if the active
+     * [source] is not a live stream or there is no active playback session.
+     * @param nativeId Target player id.
+     */
+    @ReactMethod
+    fun getMaxTimeShift(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.maxTimeShift)
         }
     }
 

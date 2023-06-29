@@ -17,6 +17,8 @@ class RNPlayerView: UIView {
     @objc var onPlaybackFinished: RCTBubblingEventBlock?
     @objc var onSeek: RCTBubblingEventBlock?
     @objc var onSeeked: RCTBubblingEventBlock?
+    @objc var onTimeShift: RCTBubblingEventBlock?
+    @objc var onTimeShifted: RCTBubblingEventBlock?
     @objc var onStallStarted: RCTBubblingEventBlock?
     @objc var onStallEnded: RCTBubblingEventBlock?
     @objc var onTimeChanged: RCTBubblingEventBlock?
