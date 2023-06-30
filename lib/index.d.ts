@@ -476,6 +476,32 @@ declare const AudioSession: {
 };
 
 /**
+ * Represents an audio track for a video.
+ */
+interface AudioTrack {
+    /**
+     * The URL to the timed file, e.g. WebVTT file.
+     */
+    url?: string;
+    /**
+     * The label for this track.
+     */
+    label?: string;
+    /**
+     * The unique identifier for this track. If no value is provided, a random UUIDv4 will be generated for it.
+     */
+    identifier?: string;
+    /**
+     * If set to true, this track would be considered as default. Default is `false`.
+     */
+    isDefault?: boolean;
+    /**
+     * The IETF BCP 47 language tag associated with this track, e.g. `pt`, `en`, `es` etc.
+     */
+    language?: string;
+}
+
+/**
  * Utility type that maps the specified optional props from the target `Type` to be
  * required props. Note all the other props stay unaffected.
  *
@@ -576,32 +602,6 @@ interface VideoQuality {
      * The width of the video quality.
      */
     width?: number;
-}
-
-/**
- * Represents an audio track for a video.
- */
-interface AudioTrack {
-    /**
-     * The URL to the timed file, e.g. WebVTT file.
-     */
-    url?: string;
-    /**
-     * The label for this track.
-     */
-    label?: string;
-    /**
-     * The unique identifier for this track. If no value is provided, a random UUIDv4 will be generated for it.
-     */
-    identifier?: string;
-    /**
-     * If set to true, this track would be considered as default. Default is `false`.
-     */
-    isDefault?: boolean;
-    /**
-     * The IETF BCP 47 language tag associated with this track, e.g. `pt`, `en`, `es` etc.
-     */
-    language?: string;
 }
 
 /**
@@ -2587,4 +2587,4 @@ declare function SubtitleView(props: SubtitleViewProps): JSX.Element | null;
  */
 declare function usePlayer(config?: PlayerConfig): Player;
 
-export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdvertisingConfig, AnalyticsCollector, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinNativeOfflineEventData, CdnProvider, CustomDataConfig, CustomMessageHandler, DestroyEvent, Drm, DrmConfig, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, LoadingState, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineOptionEntry, OfflineOptionEntryState, OnCompletedEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TypefaceFamily, TypefaceStyleWeight, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoSizeChangedEvent, WidevineConfig, usePlayer };
+export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdvertisingConfig, AnalyticsCollector, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinNativeOfflineEventData, CdnProvider, CustomDataConfig, CustomMessageHandler, DestroyEvent, Drm, DrmConfig, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, LoadingState, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineOptionEntry, OfflineOptionEntryState, OnCompletedEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TypefaceFamily, TypefaceStyleWeight, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoSizeChangedEvent, WidevineConfig, usePlayer };

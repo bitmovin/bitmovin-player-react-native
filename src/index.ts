@@ -1,6 +1,7 @@
 export * from './advertising';
 export * from './analytics';
 export * from './audioSession';
+export * from './audioTrack';
 export * from './components';
 export * from './drm';
 export * from './events';
