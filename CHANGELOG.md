@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Android: None of the WebUI menu items work (anything that triggers a native UI pop up)
+- Android: None of the Player Web UI menu items work (anything that triggers a native UI pop up)
 
 ## [0.7.1] (2023-06-29)
 
