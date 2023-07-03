@@ -550,7 +550,7 @@ class JsonConverter {
                     label = label,
                     id = identifier,
                     isDefault = isDefault,
-                    language = json.getString("language"),
+                    language = json.getString("label"),
                     isForced = isForced,
                     mimeType = toSubtitleMimeType(format),
                 )
@@ -560,7 +560,7 @@ class JsonConverter {
                 label = label,
                 id = identifier,
                 isDefault = isDefault,
-                language = json.getString("language"),
+                language = json.getString("label"),
                 isForced = isForced,
             )
         }
