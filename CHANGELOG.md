@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.2] (2023-07-03)
+
+### Fixed
+
+- Android: None of the WebUI menu items work (anything that triggers a native UI pop up)
+
 ## [0.7.1] (2023-06-29)
 
 ### Added
