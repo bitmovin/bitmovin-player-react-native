@@ -252,7 +252,26 @@ extension RCTConvert {
         if let metadata = json["metadata"] as? [String: String] {
             sourceConfig.metadata = metadata
         }
+        if let options = json["options"] as? [String: Any] {
+            sourceConfig.options = RCTConvert.sourceOptions(options)
+        }
         return sourceConfig
+    }
+    
+    /**
+     Utility method to instantiate a `SourceOptions` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `SourceOptions` object
+     */
+    static func sourceOptions(_ json: Any?) -> SourceOptions {
+        let sourceOptions = SourceOptions()
+        guard let json = json as? [String: Any?] else {
+            return sourceOptions
+        }
+        if let startOffset = json["startOffset"] as? NSNumber {
+            sourceOptions.startOffset = startOffset.doubleValue
+        }
+        return sourceOptions
     }
 
     /**

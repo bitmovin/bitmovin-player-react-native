@@ -46,6 +46,16 @@ export enum LoadingState {
 }
 
 /**
+ * Types of SourceOptions.
+ */
+export interface SourceOptions {
+  /**
+   * Indicates the player's offset time in seconds.
+   */
+  startOffset?: number;
+}
+
+/**
  * Represents a source configuration that be loaded into a player instance.
  */
 export interface SourceConfig extends NativeInstanceConfig {
@@ -86,6 +96,10 @@ export interface SourceConfig extends NativeInstanceConfig {
    * The optional custom metadata. Also sent to the cast receiver when loading the Source.
    */
   metadata?: Record<string, string>;
+  /**
+   * The `SourceOptions` for this configuration.
+   */
+  options?: SourceOptions;
 }
 
 /**

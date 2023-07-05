@@ -18,6 +18,7 @@ import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
+import com.bitmovin.player.api.source.SourceOptions
 import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
@@ -71,6 +72,22 @@ class JsonConverter {
                 }
             }
             return playerConfig
+        }
+
+        /**
+         * Converts an arbitrary `json` to `SourceOptions`.
+         * @param json JS object representing the `SourceOptions`.
+         * @return The generated `SourceOptions`.
+         */
+        @JvmStatic
+        fun toSourceOptions(json: ReadableMap?): SourceOptions {
+            if (json == null) return SourceOptions()
+            val sourceOptions = if (json.hasKey("startOffset")) {
+                SourceOptions(startOffset = json.getDouble("startOffset"))
+            } else {
+                SourceOptions()
+            }
+            return sourceOptions
         }
 
         /**
@@ -270,6 +287,9 @@ class JsonConverter {
                 config.metadata = json.getMap("metadata")
                     ?.toHashMap()
                     ?.mapValues { entry -> entry.value as String }
+            }
+            if (json.hasKey("options")) {
+                config.options = toSourceOptions(json.getMap("options"))
             }
             return config
         }
