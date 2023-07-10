@@ -1,3 +1,4 @@
+#if !os(tvOS)
 import Foundation
 import BitmovinPlayer
 
@@ -110,3 +111,4 @@ class OfflineManagerHolder: NSObject, OfflineContentManagerListener {
 
     }
 }
+#endif
