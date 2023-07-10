@@ -1,11 +1,27 @@
 # Changelog
 
+## [0.7.2] (2023-07-03)
+
+### Fixed
+
+- Android: None of the Player Web UI menu items work (anything that triggers a native UI pop up)
+
+## [0.7.1] (2023-06-29)
+
+### Added
+
+- Support for `Player.timeShift` and `timeShift` related events
+
+### Fixed
+
+- Project forces the usage of specific `react-native` version
+
 ## [0.7.0] (2023-06-26)
 
 ### Added
 
 - Support for `SourceConfig.metadata` and `Source.metadata` to allow passing custom metadata to the Player UI
-- Support for `CustomMessageHandler` to to allow two-way communication between the Player UI and the React Native app
+- Support for `CustomMessageHandler` to allow two-way communication between the Player UI and the React Native app
 
 ### Fixed
 

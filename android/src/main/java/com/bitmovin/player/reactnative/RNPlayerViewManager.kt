@@ -2,6 +2,7 @@ package com.bitmovin.player.reactnative
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
@@ -208,7 +209,13 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             if (view.playerView != null) {
                 view.player = player
             } else {
-                val playerView = PlayerView(context, player)
+                // PlayerView has to be initialized with Activity context
+                val currentActivity = context.currentActivity
+                if (currentActivity == null) {
+                    Log.e(MODULE_NAME, "Cannot create a PlayerView, because no activity is attached.")
+                    return@post
+                }
+                val playerView = PlayerView(currentActivity, player)
                 playerView.layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
                     LayoutParams.MATCH_PARENT
