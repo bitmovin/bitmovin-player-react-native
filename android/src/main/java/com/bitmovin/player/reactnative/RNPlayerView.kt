@@ -16,8 +16,8 @@ import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.LifecycleEventListener
-import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
+import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
 import kotlin.reflect.KClass
 
@@ -83,7 +83,7 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event
  * exposes player events as bubbling events.
  */
 @SuppressLint("ViewConstructor")
-class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context),
+class RNPlayerView(val context: ThemedReactContext) : LinearLayout(context),
     LifecycleEventListener, View.OnLayoutChangeListener, RNPictureInPictureDelegate {
     /**
      * Relays the provided set of events, emitted by the player, together with the associated name
