@@ -3,6 +3,7 @@ import { AdItem, AdvertisingConfig } from './advertising';
 import { AnalyticsCollector, AnalyticsConfig } from './analytics';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
+import { AudioTrack } from './audioTrack';
 import { SubtitleTrack } from './subtitleTrack';
 import { StyleConfig } from './styleConfig';
 import { TweaksConfig } from './tweaksConfig';
@@ -246,6 +247,19 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * Shifts the time to the given `offset` in seconds from the live edge. The resulting offset has to be within the
+   * timeShift window as specified by `maxTimeShift` (which is a negative value) and 0. When the provided `offset` is
+   * positive, it will be interpreted as a UNIX timestamp in seconds and converted to fit into the timeShift window.
+   * When the provided `offset` is negative, but lower than `maxTimeShift`, then it will be clamped to `maxTimeShift`.
+   * Has no effect for VoD.
+   *
+   * Has no effect if no sources are loaded.
+   */
+  timeShift = (offset: number) => {
+    PlayerModule.timeShift(this.nativeId, offset);
+  };
+
+  /**
    * Mutes the player if an audio track is available. Has no effect if the player is already muted.
    */
   mute = () => {
@@ -353,10 +367,31 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * @returns An array containing AudioTrack objects for all available audio tracks.
+   */
+  getAvailableAudioTracks = async (): Promise<AudioTrack[]> => {
+    return PlayerModule.getAvailableAudioTracks(this.nativeId);
+  };
+
+  /**
+   * Sets the audio track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableAudioTracks.
+   */
+  setAudioTrack = async (trackIdentifier: string): Promise<void> => {
+    return PlayerModule.setAudioTrack(this.nativeId, trackIdentifier);
+  };
+
+  /**
    * @returns An array containing SubtitleTrack objects for all available subtitle tracks.
    */
   getAvailableSubtitles = async (): Promise<SubtitleTrack[]> => {
     return PlayerModule.getAvailableSubtitles(this.nativeId);
+  };
+
+  /**
+   * Sets the subtitle track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableSubtitles.
+   */
+  setSubtitleTrack = async (trackIdentifier?: string): Promise<void> => {
+    return PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier);
   };
 
   /**
@@ -385,7 +420,23 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
    * @platform iOS, Android
    */
-  isAd = (): Promise<boolean> => {
+  isAd = async (): Promise<boolean> => {
     return PlayerModule.isAd(this.nativeId);
+  };
+
+  /**
+   * The current time shift of the live stream in seconds. This value is always 0 if the active `source` is not a
+   * live stream or no sources are loaded.
+   */
+  getTimeShift = async (): Promise<number> => {
+    return PlayerModule.getTimeShift(this.nativeId);
+  };
+
+  /**
+   * The limit in seconds for time shifting. This value is either negative or 0 and it is always 0 if the active
+   * `source` is not a live stream or no sources are loaded.
+   */
+  getMaxTimeShift = async (): Promise<number> => {
+    return PlayerModule.getMaxTimeShift(this.nativeId);
   };
 }

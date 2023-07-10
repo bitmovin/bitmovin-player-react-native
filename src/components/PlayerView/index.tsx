@@ -11,8 +11,9 @@ import { PlayerViewEvents } from './events';
 import { NativePlayerView } from './native';
 import { Player } from '../../player';
 import { useProxy } from '../../hooks/useProxy';
-import { FullscreenHandler } from '../../ui';
+import { FullscreenHandler, CustomMessageHandler } from '../../ui';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
+import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
 
 /**
  * Base `PlayerView` component props. Used to stablish common
@@ -35,6 +36,8 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
   player: Player;
 
   fullscreenHandler?: FullscreenHandler;
+
+  customMessageHandler?: CustomMessageHandler;
 }
 
 /**
@@ -69,6 +72,7 @@ export function PlayerView({
   style,
   player,
   fullscreenHandler,
+  customMessageHandler,
   ...props
 }: PlayerViewProps) {
   // Native view reference.
@@ -88,12 +92,33 @@ export function PlayerView({
     fullscreenBridge.current.fullscreenHandler = fullscreenHandler;
   }
 
+  const customMessageHandlerBridge: React.MutableRefObject<
+    CustomMessageHandlerBridge | undefined
+  > = useRef(undefined);
+  if (customMessageHandler && !customMessageHandlerBridge.current) {
+    customMessageHandlerBridge.current = new CustomMessageHandlerBridge();
+  }
+  if (customMessageHandlerBridge.current && customMessageHandler) {
+    customMessageHandlerBridge.current.setCustomMessageHandler(
+      customMessageHandler
+    );
+  }
+
   useEffect(() => {
     // Initialize native player instance if needed.
     player.initialize();
     // Attach native player to native `PlayerView`.
     const node = findNodeHandle(nativeView.current);
     if (node) {
+      // For iOS this has to happen before attaching the player to the view
+      // as we need to set the CustomMessageHandler on the BitmovinUserInterfaceConfig
+      if (customMessageHandlerBridge.current) {
+        dispatch(
+          'setCustomMessageHandlerBridgeId',
+          node,
+          customMessageHandlerBridge.current.nativeId
+        );
+      }
       dispatch('attachPlayer', node, player.nativeId, player.config);
       if (fullscreenBridge.current) {
         dispatch(
@@ -106,6 +131,8 @@ export function PlayerView({
     return () => {
       fullscreenBridge.current?.destroy();
       fullscreenBridge.current = undefined;
+      customMessageHandlerBridge.current?.destroy();
+      customMessageHandlerBridge.current = undefined;
     };
   }, [player]);
   return (
@@ -113,6 +140,7 @@ export function PlayerView({
       ref={nativeView}
       style={nativeViewStyle}
       fullscreenBridge={fullscreenBridge.current}
+      customMessageHandlerBridge={customMessageHandlerBridge.current}
       onAdBreakFinished={proxy(props.onAdBreakFinished)}
       onAdBreakStarted={proxy(props.onAdBreakStarted)}
       onAdClicked={proxy(props.onAdClicked)}
@@ -148,6 +176,8 @@ export function PlayerView({
       onReady={proxy(props.onReady)}
       onSeek={proxy(props.onSeek)}
       onSeeked={proxy(props.onSeeked)}
+      onTimeShift={proxy(props.onTimeShift)}
+      onTimeShifted={proxy(props.onTimeShifted)}
       onStallStarted={proxy(props.onStallStarted)}
       onStallEnded={proxy(props.onStallEnded)}
       onSourceError={proxy(props.onSourceError)}
@@ -155,6 +185,9 @@ export function PlayerView({
       onSourceLoaded={proxy(props.onSourceLoaded)}
       onSourceUnloaded={proxy(props.onSourceUnloaded)}
       onSourceWarning={proxy(props.onSourceWarning)}
+      onAudioAdded={proxy(props.onAudioAdded)}
+      onAudioChanged={proxy(props.onAudioChanged)}
+      onAudioRemoved={proxy(props.onAudioRemoved)}
       onSubtitleAdded={proxy(props.onSubtitleAdded)}
       onSubtitleChanged={proxy(props.onSubtitleChanged)}
       onSubtitleRemoved={proxy(props.onSubtitleRemoved)}

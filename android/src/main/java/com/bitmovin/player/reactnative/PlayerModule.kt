@@ -125,6 +125,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Call `.timeShift(offset:)` on `nativeId`'s player.
+     * @param nativeId Target player Id.
+     * @param offset Offset time in seconds.
+     */
+    @ReactMethod
+    fun timeShift(nativeId: NativeId, offset: Double) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.timeShift(offset)
+        }
+    }
+
+    /**
      * Call `.mute()` on `nativeId`'s player.
      * @param nativeId Target player Id.
      */
@@ -280,6 +292,38 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Resolve `nativeId`'s player available audio tracks.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getAvailableAudioTracks(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            val audioTracks = Arguments.createArray()
+            players[nativeId]?.source?.availableAudioTracks?.let { tracks ->
+                tracks.forEach {
+                    audioTracks.pushMap(JsonConverter.fromAudioTrack(it))
+                }
+            }
+            promise.resolve(audioTracks)
+        }
+    }
+
+    /**
+     * Set `nativeId`'s player audio track.
+     * @param nativeId Target player Id.
+     * @param trackIdentifier The audio track identifier.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun setAudioTrack(nativeId: NativeId, trackIdentifier: String, promise: Promise) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.source?.setAudioTrack(trackIdentifier)
+            promise.resolve(null)
+        }
+    }
+
+    /**
      * Resolve `nativeId`'s player available subtitle tracks.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
@@ -294,6 +338,20 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
                 }
             }
             promise.resolve(subtitleTracks)
+        }
+    }
+
+    /**
+     * Set `nativeId`'s player subtitle track.
+     * @param nativeId Target player Id.
+     * @param trackIdentifier The subtitle track identifier.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun setSubtitleTrack(nativeId: NativeId, trackIdentifier: String?, promise: Promise) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.source?.setSubtitleTrack(trackIdentifier)
+            promise.resolve(null)
         }
     }
 
@@ -331,6 +389,30 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     fun isAd(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
             promise.resolve(players[nativeId]?.isAd)
+        }
+    }
+
+    /**
+     * The current time shift of the live stream in seconds. This value is always 0 if the active [source] is not a
+     * live stream or there is no active playback session.
+     * @param nativeId Target player id.
+     */
+    @ReactMethod
+    fun getTimeShift(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.timeShift)
+        }
+    }
+
+    /**
+     * The limit in seconds for time shifting. This value is either negative or 0 and it is always 0 if the active
+     * [source] is not a live stream or there is no active playback session.
+     * @param nativeId Target player id.
+     */
+    @ReactMethod
+    fun getMaxTimeShift(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.maxTimeShift)
         }
     }
 

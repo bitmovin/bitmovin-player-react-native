@@ -143,6 +143,18 @@ class PlayerModule: NSObject, RCTBridgeModule {
             self?.players[nativeId]?.seek(time: time.doubleValue)
         }
     }
+    
+    /**
+     Sets `timeShift` on `nativeId`'s player.
+     - Parameter nativeId: Target player Id.
+     - Parameter offset: Offset to timeShift to in seconds.
+     */
+    @objc(timeShift:offset:)
+    func timeShift(_ nativeId: NativeId, offset: NSNumber) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.timeShift = offset.doubleValue
+        }
+    }
 
     /**
      Call `.mute()` on `nativeId`'s player.
@@ -355,6 +367,46 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
+     Resolve `nativeId`'s player available audio tracks.
+     - Parameter nativeId: Target player Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getAvailableAudioTracks:resolver:rejecter:)
+    func getAvailableAudioTracks(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            let audioTracksJson = self?.players[nativeId]?.availableAudio.map {
+                RCTConvert.audioTrackJson($0)
+            }
+            resolve(audioTracksJson ?? [])
+        }
+    }
+
+    /**
+     Set `nativeId`'s player audio track.
+     - Parameter nativeId: Target player Id.
+     - Parameter trackIdentifier: The audio track identifier.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(setAudioTrack:trackIdentifier:resolver:rejecter:)
+    func setAudioTrack(
+        _ nativeId: NativeId,
+        trackIdentifier: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.setAudio(trackIdentifier: trackIdentifier)
+            resolve(nil)
+        }
+    }
+
+    /**
      Resolve `nativeId`'s player available subtitle tracks.
      - Parameter nativeId: Target player Id.
      - Parameter resolver: JS promise resolver.
@@ -371,6 +423,26 @@ class PlayerModule: NSObject, RCTBridgeModule {
                 RCTConvert.subtitleTrackJson($0)
             }
             resolve(subtitlesJson ?? [])
+        }
+    }
+
+    /**
+     Set `nativeId`'s player subtitle track.
+     - Parameter nativeId: Target player Id.
+     - Parameter trackIdentifier: The subtitle track identifier.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(setSubtitleTrack:trackIdentifier:resolver:rejecter:)
+    func setSubtitleTrack(
+        _ nativeId: NativeId,
+        trackIdentifier: String?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.setSubtitle(trackIdentifier: trackIdentifier)
+            resolve(nil)
         }
     }
 
@@ -415,6 +487,41 @@ class PlayerModule: NSObject, RCTBridgeModule {
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             resolve(self?.players[nativeId]?.isAd)
+        }
+    }
+    
+    /**
+     The current time shift of the live stream in seconds. This value is always 0 if the active `source` is not a
+     live stream or there are no sources loaded.
+     - Parameter nativeId: Target player id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getTimeShift:resolver:rejecter:)
+    func getTimeShift(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(self?.players[nativeId]?.timeShift)
+        }
+    }
+    
+    /**
+     Returns the limit in seconds for time shift. Is either negative or 0. Is applicable for live streams only.
+     - Parameter nativeId: Target player id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getMaxTimeShift:resolver:rejecter:)
+    func getMaxTimeShift(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(self?.players[nativeId]?.maxTimeShift)
         }
     }
 }

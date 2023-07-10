@@ -1,5 +1,51 @@
 # Changelog
 
+## [0.7.2] (2023-07-03)
+
+### Fixed
+
+- Android: None of the Player Web UI menu items work (anything that triggers a native UI pop up)
+
+## [0.7.1] (2023-06-29)
+
+### Added
+
+- Support for `Player.timeShift` and `timeShift` related events
+
+### Fixed
+
+- Project forces the usage of specific `react-native` version
+
+## [0.7.0] (2023-06-26)
+
+### Added
+
+- Support for `SourceConfig.metadata` and `Source.metadata` to allow passing custom metadata to the Player UI
+- Support for `CustomMessageHandler` to allow two-way communication between the Player UI and the React Native app
+
+### Fixed
+
+- Android module build issues
+
+## [0.6.0] (2023-03-27)
+
+### Added
+
+- Support for programmatic audio and subtitle track selection. (Thanks to @joornby-angel)
+- Custom header support for DRM playback on Android.
+- Support for keeping the DRM session alive for consecutive DRM protected sources on Android.
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `v3.36.0`.
+- Update Bitmovin's native Android SDK version to `v3.35.0`.
+
+## [0.5.1] (2023-01-23)
+
+### Fixed
+
+- Fix missing export of `FullscreenHandler` to allow fullscreen support to be integrated.
+
 ## [0.5.0] (2023-01-13)
 
 This version introduces analytics integration, fullscreen support and customizing the Player UI.

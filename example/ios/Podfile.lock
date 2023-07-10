@@ -3,7 +3,9 @@ PODS:
     - BitmovinAnalyticsCollector/Core
     - BitmovinPlayer (~> 3.0)
   - BitmovinAnalyticsCollector/Core (2.9.4)
-  - BitmovinPlayer (3.32.0)
+  - BitmovinPlayer (3.41.0):
+    - BitmovinPlayerCore (= 3.41.0)
+  - BitmovinPlayerCore (3.41.0)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -334,10 +336,10 @@ PODS:
     - React-jsi (= 0.69.6-2)
     - React-logger (= 0.69.6-2)
     - React-perflogger (= 0.69.6-2)
-  - RNBitmovinPlayer (0.5.0):
+  - RNBitmovinPlayer (0.7.2):
     - BitmovinAnalyticsCollector/BitmovinPlayer (= 2.9.4)
     - BitmovinAnalyticsCollector/Core (= 2.9.4)
-    - BitmovinPlayer (= 3.32.0)
+    - BitmovinPlayer (= 3.41.0)
     - GoogleAds-IMA-iOS-SDK (= 3.17.0)
     - GoogleAds-IMA-tvOS-SDK (= 4.6.1)
     - React-Core
@@ -415,6 +417,7 @@ SPEC REPOS:
   https://github.com/bitmovin/cocoapod-specs.git:
     - BitmovinAnalyticsCollector
     - BitmovinPlayer
+    - BitmovinPlayerCore
   https://github.com/react-native-tvos/react-native-tvos-podspecs.git:
     - Flipper-PeerTalk
     - libevent
@@ -508,7 +511,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   BitmovinAnalyticsCollector: e80b02754019632340556a509fc4268dbad6f219
-  BitmovinPlayer: 7137b245f61da7bbde429a7a0c0075473dc01890
+  BitmovinPlayer: c8d7beb310c37df057191235cb6da5441cbe8bee
+  BitmovinPlayerCore: 13f01b25795969e312b1e5ba036789a12057eb27
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 234abba95e31cc2aada0cf3b97cdb11bc5b90575
@@ -554,13 +558,13 @@ SPEC CHECKSUMS:
   React-RCTText: f72442f7436fd8624494963af4906000a5465ce6
   React-runtimeexecutor: f1383f6460ea3d66ed122b4defb0b5ba664ee441
   ReactCommon: 7857ab475239c5ba044b7ed946ba564f2e7f1626
-  RNBitmovinPlayer: ecbb9527f16edbc6a3c16e055faa19d893b6ba7b
+  RNBitmovinPlayer: cbce3c7bae12e95bb7a79988647ef73241c07c42
   RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   Yoga: be4fede0339d862989f5b064f8939c7429ad92c9
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 5344195acbbd7a5c37e2eda683980bac20688f8e
+PODFILE CHECKSUM: 501efef2066a65008b66c5de2015a0f7d3544f38
 
 COCOAPODS: 1.11.3

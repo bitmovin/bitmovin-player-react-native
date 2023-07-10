@@ -8,6 +8,7 @@ import {
 } from './advertising';
 import { SubtitleTrack } from './subtitleTrack';
 import { VideoQuality } from './media';
+import { AudioTrack } from './audioTrack';
 
 /**
  * Base event type for all events.
@@ -168,6 +169,27 @@ export interface SeekEvent extends Event {
 export interface SeekedEvent extends Event {}
 
 /**
+ * Emitted when the player starts time shifting.
+ * Only applies to live streams.
+ */
+export interface TimeShiftEvent extends Event {
+  /**
+   * The position from which we start the time shift
+   */
+  position: number;
+  /**
+   * The position to which we want to jump for the time shift
+   */
+  targetPosition: number;
+}
+
+/**
+ * Emitted when time shifting has finished and data is available to continue playback.
+ * Only applies to live streams.
+ */
+export interface TimeShiftedEvent extends Event {}
+
+/**
  * Emitted when the player begins to stall and to buffer due to an empty buffer.
  */
 export interface StallStartedEvent extends Event {}
@@ -228,6 +250,40 @@ export interface SourceErrorEvent extends ErrorEvent {}
  * Emitted when a source warning happens.
  */
 export interface SourceWarningEvent extends ErrorEvent {}
+
+/**
+ * Emitted when a new audio track is added to the player.
+ */
+export interface AudioAddedEvent extends Event {
+  /**
+   * Audio track that has been added.
+   */
+  audioTrack: AudioTrack;
+}
+
+/**
+ * Emitted when the player's selected audio track has changed.
+ */
+export interface AudioChangedEvent extends Event {
+  /**
+   * Audio track that was previously selected.
+   */
+  oldAudioTrack: AudioTrack;
+  /**
+   * Audio track that is selected now.
+   */
+  newAudioTrack: AudioTrack;
+}
+
+/**
+ * Emitted when an audio track is removed from the player.
+ */
+export interface AudioRemovedEvent extends Event {
+  /**
+   * Audio track that has been removed.
+   */
+  audioTrack: AudioTrack;
+}
 
 /**
  * Emitted when a new subtitle track is added to the player.

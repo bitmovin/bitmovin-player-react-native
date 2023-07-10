@@ -1,26 +1,57 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
   usePlayer,
   PlayerView,
   SourceType,
+  CustomMessageHandler,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
+import Button from '../components/Button';
+import { RootStackParamsList } from '../App';
+
+type CustomHtmlUiProps = NativeStackScreenProps<
+  RootStackParamsList,
+  'CustomHtmlUi'
+>;
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
 }
 
-export default function BasicPlayback() {
+export default function CustomHtmlUi({ navigation }: CustomHtmlUiProps) {
   useTVGestures();
+
+  const customMessageHandler = useRef(
+    new CustomMessageHandler({
+      onReceivedSynchronousMessage: (
+        message: string,
+        payload: string | undefined
+      ) => {
+        if (message === 'closePlayer') {
+          navigation.pop();
+        }
+        prettyPrint('Received synchronous message', { message, payload });
+        return undefined;
+      },
+      onReceivedAsynchronousMessage: (
+        message: string,
+        payload: string | undefined
+      ) => {
+        prettyPrint('Received asynchronous message', { message, payload });
+      },
+    })
+  ).current;
 
   const player = usePlayer({
     styleConfig: {
       playerUiCss:
-        'https://cdn.bitmovin.com/player/web/8/bitmovinplayer-ui.css',
-      playerUiJs: 'https://cdn.bitmovin.com/player/web/8/bitmovinplayer-ui.js',
+        'https://cdn.statically.io/gh/bitmovin/bitmovin-player-ios-samples/main/CustomHtmlUi/Supporting%20Files/bitmovinplayer-ui.min.css',
+      playerUiJs:
+        'https://cdn.statically.io/gh/bitmovin/bitmovin-player-ios-samples/main/CustomHtmlUi/Supporting%20Files/bitmovinplayer-ui.min.js',
       supplementalPlayerUiCss:
         'https://storage.googleapis.com/bitmovin-player-cdn-origin/player/ui/ui-customized-sample.css',
     },
@@ -56,14 +87,19 @@ export default function BasicPlayback() {
     <View style={styles.container}>
       <PlayerView
         player={player}
+        customMessageHandler={customMessageHandler}
         style={styles.player}
         onPlay={onEvent}
         onPlaying={onEvent}
         onPaused={onEvent}
         onReady={onReady}
-        onSourceLoaded={onEvent}
-        onSeek={onEvent}
-        onSeeked={onEvent}
+      />
+      <Button
+        containerStyle={styles.buttonContainer}
+        title="Toggle Close Button State"
+        onPress={() => {
+          customMessageHandler.sendMessage('toggleCloseButton', undefined);
+        }}
       />
     </View>
   );
@@ -72,11 +108,14 @@ export default function BasicPlayback() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  player: {
+    flex: 0.9,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'black',
   },
-  player: {
-    flex: 1,
+  buttonContainer: {
+    margin: 5,
   },
 });

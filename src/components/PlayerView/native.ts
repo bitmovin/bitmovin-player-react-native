@@ -2,6 +2,7 @@ import { requireNativeComponent } from 'react-native';
 import { NativePlayerViewEvents } from './events';
 import { BasePlayerViewProps } from './index';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
+import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
 
 /**
  * Props type for `NativePlayerView` native component.
@@ -11,6 +12,7 @@ export interface NativePlayerViewProps
   extends BasePlayerViewProps,
     NativePlayerViewEvents {
   fullscreenBridge?: FullscreenHandlerBridge;
+  customMessageHandlerBridge?: CustomMessageHandlerBridge;
 }
 
 /**

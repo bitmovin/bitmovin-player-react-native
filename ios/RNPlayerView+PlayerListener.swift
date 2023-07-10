@@ -57,6 +57,14 @@ extension RNPlayerView: PlayerListener {
         onSeeked?(event.toJSON())
     }
 
+    func onTimeShift(_ event: TimeShiftEvent, player: Player) {
+        onTimeShift?(event.toJSON())
+    }
+
+    func onTimeShifted(_ event: TimeShiftedEvent, player: Player) {
+        onTimeShifted?(event.toJSON())
+    }
+
     func onStallStarted(_ event: StallStartedEvent, player: Player) {
         onStallStarted?(event.toJSON())
     }
@@ -87,6 +95,18 @@ extension RNPlayerView: PlayerListener {
 
     func onSourceWarning(_ event: SourceWarningEvent, player: Player) {
         onSourceWarning?(event.toJSON())
+    }
+    
+    func onAudioAdded(_ event: AudioAddedEvent, player: Player) {
+        onAudioAdded?(event.toJSON())
+    }
+
+    func onAudioRemoved(_ event: AudioRemovedEvent, player: Player) {
+        onAudioRemoved?(event.toJSON())
+    }
+
+    func onAudioChanged(_ event: AudioChangedEvent, player: Player) {
+        onAudioChanged?(event.toJSON())
     }
 
     func onSubtitleAdded(_ event: SubtitleAddedEvent, player: Player) {

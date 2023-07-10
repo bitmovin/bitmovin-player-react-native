@@ -2,6 +2,7 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SourceType } from 'bitmovin-player-react-native';
 import Button from './components/Button';
 import ExamplesList from './screens/ExamplesList';
@@ -10,10 +11,11 @@ import BasicAnalytics from './screens/BasicAnalytics';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
+import ProgrammaticTrackSelection from './screens/ProgrammaticTrackSelection';
 import CustomPlaybackForm from './screens/CustomPlaybackForm';
 import CustomPlayback from './screens/CustomPlayback';
 import BasicPictureInPicture from './screens/BasicPictureInPicture';
-import CustomHtmlUI from './screens/CustomHtmlUI';
+import CustomHtmlUi from './screens/CustomHtmlUi';
 import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 import OfflinePlayback from './screens/OfflinePlayback';
 
@@ -29,7 +31,9 @@ export type RootStackParamsList = {
   BasicPlayback: undefined;
   BasicDrmPlayback: undefined;
   BasicPictureInPicture: undefined;
-  BasicFullscreenHandling: undefined;
+  BasicFullscreenHandling: {
+    navigation: NativeStackNavigationProp<RootStackParamsList>;
+  };
   SubtitlePlayback: undefined;
   CustomPlaybackForm: undefined;
   OfflinePlayback: undefined;
@@ -41,13 +45,17 @@ export type RootStackParamsList = {
       value: SourceType;
     };
   };
-  CustomHtmlUI: undefined;
+  CustomHtmlUi: {
+    navigation: NativeStackNavigationProp<RootStackParamsList>;
+  };
 };
 
 const RootStack = createNativeStackNavigator();
 
+const isTVOS = Platform.OS === 'ios' && Platform.isTV;
+
 export default function App() {
-  var stackParams = {
+  const stackParams = {
     data: [
       {
         title: 'Basic playback',
@@ -74,16 +82,20 @@ export default function App() {
         routeName: 'BasicAds',
       },
       {
+        title: 'Programmatic Track Selection',
+        routeName: 'ProgrammaticTrackSelection',
+      },
+      {
         title: 'Offline playback',
         routeName: 'OfflinePlayback',
       },
     ],
   };
 
-  if (!Platform.isTVOS) {
+  if (!isTVOS) {
     stackParams.data.push({
       title: 'Custom HTML UI',
-      routeName: 'CustomHtmlUI',
+      routeName: 'CustomHtmlUi',
     });
   }
 
@@ -145,6 +157,11 @@ export default function App() {
           options={{ title: 'Subtitle and captions' }}
         />
         <RootStack.Screen
+          name="ProgrammaticTrackSelection"
+          component={ProgrammaticTrackSelection}
+          options={{ title: 'Programmatic Track Selection' }}
+        />
+        <RootStack.Screen
           name="OfflinePlayback"
           component={OfflinePlayback}
           options={{ title: 'Offline Playback' }}
@@ -164,10 +181,10 @@ export default function App() {
           component={BasicPictureInPicture}
           options={{ title: 'Basic Picture in Picture' }}
         />
-        {!Platform.isTVOS && (
+        {!isTVOS && (
           <RootStack.Screen
-            name="CustomHtmlUI"
-            component={CustomHtmlUI}
+            name="CustomHtmlUi"
+            component={CustomHtmlUi}
             options={{ title: 'Custom HTML UI' }}
           />
         )}

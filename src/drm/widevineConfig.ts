@@ -1,11 +1,16 @@
 /**
  * Represents a Widevine Streaming DRM config.
+ * Android only.
  */
 export interface WidevineConfig {
   /**
    * The DRM license acquisition URL.
    */
   licenseUrl: string;
+  /**
+   * A map containing the HTTP request headers, or null.
+   */
+  httpHeaders: Record<string, string>;
   /**
    * A block to prepare the data which is sent as the body of the POST license request.
    * As many DRM providers expect different, vendor-specific messages, this can be done using
@@ -31,7 +36,14 @@ export interface WidevineConfig {
    */
   prepareLicense?: (license: string) => string;
   /**
-   * Set widevine's preferred security level. Android only.
+   * Set widevine's preferred security level.
    */
   preferredSecurityLevel?: string;
+  /**
+   * Indicates if the DRM sessions should be kept alive after a source is unloaded.
+   * This allows DRM sessions to be reused over several different source items with the same DRM configuration as well
+   * as the same DRM scheme information.
+   * Default: `false`
+   */
+  shouldKeepDrmSessionsAlive: boolean;
 }

@@ -33,6 +33,8 @@ import {
   ReadyEvent,
   SeekedEvent,
   SeekEvent,
+  TimeShiftEvent,
+  TimeShiftedEvent,
   StallStartedEvent,
   StallEndedEvent,
   SourceErrorEvent,
@@ -40,6 +42,9 @@ import {
   SourceLoadEvent,
   SourceUnloadedEvent,
   SourceWarningEvent,
+  AudioAddedEvent,
+  AudioChangedEvent,
+  AudioRemovedEvent,
   SubtitleAddedEvent,
   SubtitleChangedEvent,
   SubtitleRemovedEvent,
@@ -86,6 +91,8 @@ interface EventProps {
   onReady: ReadyEvent;
   onSeek: SeekEvent;
   onSeeked: SeekedEvent;
+  onTimeShift: TimeShiftEvent;
+  onTimeShifted: TimeShiftedEvent;
   onStallStarted: StallStartedEvent;
   onStallEnded: StallEndedEvent;
   onSourceError: SourceErrorEvent;
@@ -93,6 +100,9 @@ interface EventProps {
   onSourceLoaded: SourceLoadedEvent;
   onSourceUnloaded: SourceUnloadedEvent;
   onSourceWarning: SourceWarningEvent;
+  onAudioAdded: AudioAddedEvent;
+  onAudioChanged: AudioChangedEvent;
+  onAudioRemoved: AudioRemovedEvent;
   onSubtitleAdded: SubtitleAddedEvent;
   onSubtitleChanged: SubtitleChangedEvent;
   onSubtitleRemoved: SubtitleRemovedEvent;
