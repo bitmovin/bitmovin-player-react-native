@@ -9,6 +9,7 @@ RCT_EXTERN_METHOD(
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getOfflineSourceConfig:(NSString *)nativeId
+                  options:(nullable id)config
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getOptions:(NSString *)nativeId

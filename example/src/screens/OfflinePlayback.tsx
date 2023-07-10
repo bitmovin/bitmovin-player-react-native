@@ -20,7 +20,7 @@ import {
 import { useTVGestures } from '../hooks';
 import OfflineManagementView from '../components/OfflineManagementView';
 
-const STABLE_OFFLINE_ID = 'aStableOfflineId';
+const STABLE_IDENTIFIER = 'aStableOfflineId';
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
@@ -73,7 +73,7 @@ export default function OfflinePlayback() {
   useFocusEffect(
     useCallback(() => {
       const newOfflineManager = new OfflineContentManager({
-        offlineId: STABLE_OFFLINE_ID,
+        identifier: STABLE_IDENTIFIER,
         sourceConfig: SOURCE_CONFIG,
         listener: {
           onCompleted: (e) => {

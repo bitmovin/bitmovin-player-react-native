@@ -3,6 +3,7 @@ import {
   EmitterSubscription,
   NativeModules,
   NativeModule,
+  Platform,
 } from 'react-native';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { SourceConfig } from './source';
@@ -16,9 +17,12 @@ import { OfflineDownloadRequest } from './offlineContentOptions';
 interface NativeOfflineModule extends NativeModule {
   initWithConfig(
     nativeId: string,
-    config: { offlineId: string; sourceConfig: SourceConfig }
+    config: { identifier: string; sourceConfig: SourceConfig }
   ): Promise<void>;
-  getOfflineSourceConfig(nativeId: string): Promise<SourceConfig>;
+  getOfflineSourceConfig(
+    nativeId: string,
+    options?: OfflineSourceOptions
+  ): Promise<SourceConfig>;
   getOptions(nativeId: string): Promise<void>;
   process(nativeId: string, request: OfflineDownloadRequest): Promise<void>;
   resume(nativeId: string): Promise<void>;
@@ -35,6 +39,17 @@ const OfflineModule =
   NativeModules.BitmovinOfflineModule as NativeOfflineModule;
 
 /**
+ * Object used configure how the native offline managers create and get offline source configurations
+ * iOS Only
+ */
+export interface OfflineSourceOptions {
+  /**
+   * Whether or not the player should restrict playback only to audio, video and subtitle tracks which are stored offline on the device. This has to be set to true if the device has no network access.
+   */
+  restrictedToAssetCache?: boolean;
+}
+
+/**
  * Object used to configure a new `OfflineContentManager` instance.
  */
 export interface OfflineContentConfig extends NativeInstanceConfig {
@@ -42,7 +57,7 @@ export interface OfflineContentConfig extends NativeInstanceConfig {
    * An identifier for this source that is unique within the location and must never change.
    * The root folder will contain a folder based on this id.
    */
-  offlineId: string;
+  identifier: string;
   /**
    * The `SourceConfig` used to download the offline resources.
    */
@@ -106,7 +121,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
       }
 
       initPromise = OfflineModule.initWithConfig(this.nativeId, {
-        offlineId: this.config.offlineId,
+        identifier: this.config.identifier,
         sourceConfig: this.config.sourceConfig,
       });
     }
@@ -132,7 +147,13 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   /**
    * Gets the current offline source config of the `OfflineContentManager`
    */
-  getOfflineSourceConfig = (): Promise<SourceConfig> => {
+  getOfflineSourceConfig = (
+    options?: OfflineSourceOptions
+  ): Promise<SourceConfig> => {
+    if (Platform.OS === 'ios') {
+      return OfflineModule.getOfflineSourceConfig(this.nativeId, options);
+    }
+
     return OfflineModule.getOfflineSourceConfig(this.nativeId);
   };
 

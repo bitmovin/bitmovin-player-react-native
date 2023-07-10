@@ -43,7 +43,7 @@ class OfflineModule: RCTEventEmitter {
             guard
                 self?.offlineManagerHolders[nativeId] == nil,
                 let config = config as? [String: Any?],
-                let offlineId = config["offlineId"] as? String,
+                let identifier = config["identifier"] as? String,
                 let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"])
             else {
                 reject("BitmovinOfflineModule", "Could not create an offline content manager", nil)
@@ -51,15 +51,14 @@ class OfflineModule: RCTEventEmitter {
             }
 
             do {
-                let contentManager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: offlineId)
-                let managerHolder = OfflineManagerHolder(forManager: contentManager, eventEmitter: self!, nativeId: nativeId, offlineId: offlineId)
+                let contentManager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
+                let managerHolder = OfflineManagerHolder(forManager: contentManager, eventEmitter: self!, nativeId: nativeId, identifier: identifier)
 
                 self?.offlineManagerHolders[nativeId] = managerHolder
+                resolve(nil)
             } catch let error as NSError {
                 reject("BitmovinOfflineModule", "Could not create an offline content manager", error)
             }
-
-            resolve(nil)
         }
     }
 
@@ -69,7 +68,7 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func getOfflineSourceConfig(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func getOfflineSourceConfig(_ nativeId: NativeId, options: Any?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let managerHolder = self?.offlineManagerHolders[nativeId]
@@ -78,7 +77,8 @@ class OfflineModule: RCTEventEmitter {
                 return
             }
 
-            let offlineSourceConfig = managerHolder.contentManager.createOfflineSourceConfig(restrictedToAssetCache: true)
+            let restrictedToAssetCache = (options as? [String: Any?])?["restrictedToAssetCache"] as? Bool ?? true
+            let offlineSourceConfig = managerHolder.contentManager.createOfflineSourceConfig(restrictedToAssetCache: restrictedToAssetCache)
 
             resolve(RCTConvert.toJson(sourceConfig: offlineSourceConfig))
         }
@@ -128,23 +128,23 @@ class OfflineModule: RCTEventEmitter {
             }
 
             if (audioOptionIds.count > 0) {
-                trackSelection.audioTracks.forEach({
+                trackSelection.audioTracks.forEach {
                     if (audioOptionIds.contains($0.label)) {
                         $0.action = .download
                     } else {
                         $0.action = .none
                     }
-                })
+                }
             }
 
             if (textOptionIds.count > 0) {
-                trackSelection.textTracks.forEach({
+                trackSelection.textTracks.forEach {
                     if (textOptionIds.contains($0.label)) {
                         $0.action = .download
                     } else {
                         $0.action = .none
                     }
-                })
+                }
             }
 
             var config = DownloadConfig()

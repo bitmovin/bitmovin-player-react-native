@@ -2,29 +2,29 @@ import Foundation
 import BitmovinPlayer
 
 class OfflineManagerHolder: NSObject, OfflineContentManagerListener {
-    
+
     var contentManager: OfflineContentManager
     var eventEmitter: RCTEventEmitter?
     var nativeId: NativeId
-    var offlineId: String
+    var identifier: String
     var trackSelection: OfflineTrackSelection? = nil
-    
-    init(forManager contentManager: OfflineContentManager, eventEmitter: RCTEventEmitter, nativeId: NativeId, offlineId: String) {
+
+    init(forManager contentManager: OfflineContentManager, eventEmitter: RCTEventEmitter, nativeId: NativeId, identifier: String) {
         self.contentManager = contentManager
         self.eventEmitter = eventEmitter
         self.nativeId = nativeId
-        self.offlineId = offlineId
+        self.identifier = identifier
         super.init()
-        
+
         contentManager.add(listener: self)
     }
-    
+
     func release() {
         contentManager.remove(listener: self)
         eventEmitter = nil
         trackSelection = nil
     }
-    
+
     /**
      Called when an error occurs.
      */
@@ -95,7 +95,7 @@ class OfflineManagerHolder: NSObject, OfflineContentManagerListener {
     private func sendOfflineEvent(eventType: String, contentManager: OfflineContentManager, body: [String: Any?]?) {
         var baseEvent: [String: Any?] = [
             "nativeId": nativeId,
-            "offlineId": offlineId,
+            "identifier": identifier,
             "eventType": eventType,
         ]
 
@@ -107,6 +107,6 @@ class OfflineManagerHolder: NSObject, OfflineContentManagerListener {
         } catch let error as NSError {
             print(error)
         }
-        
+
     }
 }

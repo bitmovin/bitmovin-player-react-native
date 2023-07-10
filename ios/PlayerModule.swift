@@ -72,8 +72,8 @@ class PlayerModule: NSObject, RCTBridgeModule {
      - Parameter nativeId: Target player.
      - Parameter offlineModuleNativeId: The `nativeId` of the `OfflineModule` object.
      */
-    @objc(loadOfflineSource:offlineModuleNativeId:)
-    func loadOfflineSource(_ nativeId: NativeId, offlineModuleNativeId: NativeId) {
+    @objc(loadOfflineSource:offlineModuleNativeId:options:)
+    func loadOfflineSource(_ nativeId: NativeId, offlineModuleNativeId: NativeId, options: Any?) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let player = self?.players[nativeId],
@@ -82,7 +82,8 @@ class PlayerModule: NSObject, RCTBridgeModule {
                 return
             }
 
-            let offlineSourceConfig = offlineModule.contentManager.createOfflineSourceConfig(restrictedToAssetCache: true)
+            let restrictedToAssetCache = (options as? [String: Any?])?["restrictedToAssetCache"] as? Bool ?? true
+            let offlineSourceConfig = offlineModule.contentManager.createOfflineSourceConfig(restrictedToAssetCache: restrictedToAssetCache)
             if (offlineSourceConfig != nil) {
                 player.load(sourceConfig: offlineSourceConfig!)
             }

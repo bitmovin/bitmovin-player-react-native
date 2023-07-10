@@ -1,12 +1,10 @@
 package com.bitmovin.player.reactnative.offline
 
+import android.util.Log
 import com.bitmovin.player.api.deficiency.ErrorEvent
 import com.bitmovin.player.api.offline.OfflineContentManager
 import com.bitmovin.player.api.offline.OfflineContentManagerListener
-import com.bitmovin.player.api.offline.options.OfflineContentOptions
-import com.bitmovin.player.api.offline.options.OfflineOptionEntry
-import com.bitmovin.player.api.offline.options.OfflineOptionEntryAction
-import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
+import com.bitmovin.player.api.offline.options.*
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.reactnative.NativeId
 import com.bitmovin.player.reactnative.converter.JsonConverter
@@ -18,21 +16,16 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 class OfflineManager(
     private val nativeId: NativeId,
     private val context: ReactApplicationContext,
-    private val offlineId: String,
+    private val identifier: String,
     source: SourceConfig,
     location: String
-) :
-    OfflineContentManagerListener {
+) : OfflineContentManagerListener {
 
-    val contentManager: OfflineContentManager
+    val contentManager: OfflineContentManager = OfflineContentManager.getOfflineContentManager(
+        source, location, identifier, this, context
+    )
     var contentOptions: OfflineContentOptions? = null
         private set
-
-    init {
-        contentManager = OfflineContentManager.getOfflineContentManager(
-            source, location, offlineId, this, context
-        )
-    }
 
     fun getOptions() {
         contentManager.getOptions()
@@ -46,9 +39,16 @@ class OfflineManager(
      */
     fun process(request: OfflineDownloadRequest) {
         if (contentOptions != null) {
+            val setDownloadAction: (VideoOfflineOptionEntry) -> Unit = { option ->
+                option.action = OfflineOptionEntryAction.Download
+            }
+
             contentOptions!!.videoOptions
+                .sortedBy { option -> option.bitrate }
                 .firstOrNull { option -> option.bitrate >= request.minimumBitrate }
-                ?.let { option -> option.action = OfflineOptionEntryAction.Download }
+                ?.let(setDownloadAction)
+                ?: contentOptions!!.videoOptions.lastOrNull()
+                    ?.let(setDownloadAction)
             changeToDownloadAction(request.audioOptionIds, contentOptions!!.audioOptions)
             changeToDownloadAction(request.textOptionIds, contentOptions!!.textOptions)
 
@@ -198,7 +198,7 @@ class OfflineManager(
     private fun sendEvent(eventType: String, event: WritableMap?) {
         val e = event ?: Arguments.createMap()
         e.putString("nativeId", nativeId)
-        e.putString("offlineId", offlineId)
+        e.putString("identifier", identifier)
         e.putString("eventType", eventType)
 
         context

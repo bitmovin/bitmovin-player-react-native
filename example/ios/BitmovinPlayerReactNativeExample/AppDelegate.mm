@@ -5,7 +5,7 @@
 #import <React/RCTRootView.h>
 
 #import <React/RCTAppSetupUtils.h>
-#import <BitmovinPlayer/BitmovinPlayer.h>
+#import <BitmovinPlayerCore/BitmovinPlayerCore-Swift.h>
 
 #if RCT_NEW_ARCH_ENABLED
 #import <React/CoreModulesPlugins.h>

@@ -13,14 +13,15 @@ private const val OFFLINE_MODULE = "BitmovinOfflineModule"
 class OfflineModule(private val context: ReactApplicationContext) :
     ReactContextBaseJavaModule(context) {
 
-    override fun getName() = OFFLINE_MODULE
+    /**
+     * In-memory mapping from `nativeId`s to `OfflineManager` instances.
+     */
+    private val offlineManagers : Registry<OfflineManager> = mutableMapOf()
 
-    companion object {
-        /**
-         * In-memory mapping from `nativeId`s to `OfflineManager` instances.
-         */
-        private val offlineManagers = mutableMapOf<String, OfflineManager>()
-    }
+    /**
+     * JS exported module name.
+     */
+    override fun getName() = OFFLINE_MODULE
 
     /**
      * Fetches the `OfflineManager` instance associated with `nativeId` from the internal offline managers.
@@ -57,17 +58,18 @@ class OfflineModule(private val context: ReactApplicationContext) :
     @ReactMethod
     fun initWithConfig(nativeId: NativeId, config: ReadableMap?, promise: Promise) {
         if (!offlineManagers.containsKey(nativeId)) {
-            val offlineId = config?.getString("offlineId")
+            val identifier = config?.getString("identifier")
             val sourceConfig = JsonConverter.toSourceConfig(config?.getMap("sourceConfig"))
 
-            if (offlineId.isNullOrEmpty() || sourceConfig == null) {
+            if (identifier.isNullOrEmpty() || sourceConfig == null) {
                 promise.reject(java.lang.IllegalArgumentException("Invalid configuration"))
                 return
             }
 
             offlineManagers[nativeId] =
-                OfflineManager(nativeId, context, offlineId, sourceConfig, context.cacheDir.path)
+                OfflineManager(nativeId, context, identifier, sourceConfig, context.cacheDir.path)
         }
+        promise.resolve(null)
     }
 
     /**
@@ -106,8 +108,12 @@ class OfflineModule(private val context: ReactApplicationContext) :
 
         try {
             val minimumBitRate = request.getInt("minimumBitrate")
-            val audioOptionIds = request.getArray("audioOptionIds")?.toList<String>()
-            val textOptionIds = request.getArray("textOptionIds")?.toList<String>()
+            val audioOptionIds = request.getArray("audioOptionIds")
+                ?.toList<String>()
+                ?.filterNotNull()
+            val textOptionIds = request.getArray("textOptionIds")
+                ?.toList<String>()
+                ?.filterNotNull()
 
             if (minimumBitRate < 0) {
                 promise.reject(java.lang.IllegalArgumentException("Invalid download request"))
