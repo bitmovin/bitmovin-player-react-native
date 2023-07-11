@@ -1,6 +1,5 @@
 package com.bitmovin.player.reactnative.offline
 
-import android.util.Log
 import com.bitmovin.player.api.deficiency.ErrorEvent
 import com.bitmovin.player.api.offline.OfflineContentManager
 import com.bitmovin.player.api.offline.OfflineContentManagerListener
@@ -13,7 +12,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 
-class OfflineManager(
+class OfflineContentManagerHolder(
     private val nativeId: NativeId,
     private val context: ReactApplicationContext,
     private val identifier: String,
@@ -21,14 +20,14 @@ class OfflineManager(
     location: String
 ) : OfflineContentManagerListener {
 
-    val contentManager: OfflineContentManager = OfflineContentManager.getOfflineContentManager(
+    val offlineContentManager: OfflineContentManager = OfflineContentManager.getOfflineContentManager(
         source, location, identifier, this, context
     )
     var contentOptions: OfflineContentOptions? = null
         private set
 
     fun getOptions() {
-        contentManager.getOptions()
+        offlineContentManager.getOptions()
     }
 
     /**
@@ -52,7 +51,7 @@ class OfflineManager(
             changeToDownloadAction(request.audioOptionIds, contentOptions!!.audioOptions)
             changeToDownloadAction(request.textOptionIds, contentOptions!!.textOptions)
 
-            contentManager.process(contentOptions!!)
+            offlineContentManager.process(contentOptions!!)
         }
     }
 
@@ -74,11 +73,11 @@ class OfflineManager(
     }
 
     fun resume() {
-        contentManager.resume()
+        offlineContentManager.resume()
     }
 
     fun suspend() {
-        contentManager.suspend()
+        offlineContentManager.suspend()
     }
 
     fun cancelDownload() {
@@ -87,23 +86,23 @@ class OfflineManager(
     }
 
     fun deleteAll() {
-        contentManager.deleteAll()
+        offlineContentManager.deleteAll()
     }
 
     fun downloadLicense() {
-        contentManager.downloadLicense()
+        offlineContentManager.downloadLicense()
     }
 
     fun releaseLicense() {
-        contentManager.releaseLicense()
+        offlineContentManager.releaseLicense()
     }
 
     fun renewOfflineLicense() {
-        contentManager.renewOfflineLicense()
+        offlineContentManager.renewOfflineLicense()
     }
 
     fun release() {
-        contentManager.release()
+        offlineContentManager.release()
     }
 
     /**

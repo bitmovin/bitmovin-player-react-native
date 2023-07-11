@@ -85,10 +85,6 @@ export default function App() {
         title: 'Programmatic Track Selection',
         routeName: 'ProgrammaticTrackSelection',
       },
-      {
-        title: 'Offline playback',
-        routeName: 'OfflinePlayback',
-      },
     ],
   };
 
@@ -96,6 +92,11 @@ export default function App() {
     stackParams.data.push({
       title: 'Custom HTML UI',
       routeName: 'CustomHtmlUi',
+    });
+
+    stackParams.data.push({
+      title: 'Offline playback',
+      routeName: 'OfflinePlayback',
     });
   }
 
@@ -161,11 +162,13 @@ export default function App() {
           component={ProgrammaticTrackSelection}
           options={{ title: 'Programmatic Track Selection' }}
         />
-        <RootStack.Screen
-          name="OfflinePlayback"
-          component={OfflinePlayback}
-          options={{ title: 'Offline Playback' }}
-        />
+        {!isTVOS && (
+          <RootStack.Screen
+            name="OfflinePlayback"
+            component={OfflinePlayback}
+            options={{ title: 'Offline Playback' }}
+          />
+        )}
         <RootStack.Screen
           name="CustomPlaybackForm"
           component={CustomPlaybackForm}

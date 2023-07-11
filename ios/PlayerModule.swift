@@ -66,25 +66,25 @@ class PlayerModule: NSObject, RCTBridgeModule {
             player.load(source: source)
         }
     }
-    
+
     /**
      Loads the given offline source configuration into `nativeId`'s `Player` object.
      - Parameter nativeId: Target player.
      - Parameter offlineModuleNativeId: The `nativeId` of the `OfflineModule` object.
      */
-    @objc(loadOfflineSource:offlineModuleNativeId:options:)
-    func loadOfflineSource(_ nativeId: NativeId, offlineModuleNativeId: NativeId, options: Any?) {
+    @objc(loadOfflineSource:offlineContentManagerHolderNativeId:options:)
+    func loadOfflineSource(_ nativeId: NativeId, offlineContentManagerHolderNativeId: NativeId, options: Any?) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let player = self?.players[nativeId],
-                let offlineModule = self?.getOfflineModule()?.retrieve(offlineModuleNativeId)
+                let offlineContentManagerHolder = self?.getOfflineModule()?.retrieve(offlineContentManagerHolderNativeId)
             else {
                 return
             }
 
             let restrictedToAssetCache = (options as? [String: Any?])?["restrictedToAssetCache"] as? Bool ?? true
-            let offlineSourceConfig = offlineModule.contentManager.createOfflineSourceConfig(restrictedToAssetCache: restrictedToAssetCache)
+            let offlineSourceConfig = offlineContentManagerHolder.offlineContentManager.createOfflineSourceConfig(restrictedToAssetCache: restrictedToAssetCache)
             if (offlineSourceConfig != nil) {
                 player.load(sourceConfig: offlineSourceConfig!)
             }

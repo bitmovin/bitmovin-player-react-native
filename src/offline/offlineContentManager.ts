@@ -5,8 +5,8 @@ import {
   NativeModule,
   Platform,
 } from 'react-native';
-import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
-import { SourceConfig } from './source';
+import NativeInstance, { NativeInstanceConfig } from '../nativeInstance';
+import { SourceConfig } from '../source';
 import {
   BitmovinNativeOfflineEventData,
   OfflineContentManagerListener,
