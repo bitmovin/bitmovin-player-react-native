@@ -80,12 +80,26 @@ class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
     func onContentDownloadResumed(_ event: ContentDownloadResumedEvent, offlineContentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: "onResumed")
     }
+    
+    /**
+     Called when the download of the media content was cancelled by the user and all partially downloaded content has been deleted from disk.
+     */
+    func onContentDownloadCanceled(_ event: ContentDownloadCanceledEvent, offlineContentManager: OfflineContentManager) {
+        sendOfflineEvent(eventType: "onCanceled")
+    }
 
     /**
      Called when the DRM license was renewed.
      */
     func onOfflineContentLicenseRenewed(_ event: OfflineContentLicenseRenewedEvent, offlineContentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: "onDrmLicenseUpdated")
+    }
+    
+    /**
+     Called on every call to OfflineContentManager.createOfflineSourceConfig(restrictedToAssetCache:) if it is DRM protected and the offline DRM license has expired.
+     */
+    func onOfflineContentLicenseExpired(_ event: OfflineContentLicenseExpiredEvent, offlineContentManager: OfflineContentManager) {
+        sendOfflineEvent(eventType: "onDrmLicenseExpired")
     }
 
     private func sendOfflineEvent(eventType: String, body: [String: Any?] = [:]) {

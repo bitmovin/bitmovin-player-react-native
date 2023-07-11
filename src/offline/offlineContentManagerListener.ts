@@ -12,8 +12,10 @@ export enum OfflineEventType {
   onProgress = 'onProgress',
   onOptionsAvailable = 'onOptionsAvailable',
   onDrmLicenseUpdated = 'onDrmLicenseUpdated',
+  onDrmLicenseExpired = 'onDrmLicenseExpired',
   onSuspended = 'onSuspended',
   onResumed = 'onResumed',
+  onCanceled = 'onCanceled',
 }
 
 export interface OfflineEvent<T extends OfflineEventType> {
@@ -93,6 +95,13 @@ export interface OnDrmLicenseUpdatedEvent
   extends OfflineEvent<OfflineEventType.onDrmLicenseUpdated> {}
 
 /**
+ * BitmovinOfflineEvent for when the DRM license has expired.
+ * (iOS only)
+ */
+export interface OnDrmLicenseExpiredEvent
+  extends OfflineEvent<OfflineEventType.onDrmLicenseExpired> {}
+
+/**
  * BitmovinOfflineEvent for when all active actions have been suspended.
  */
 export interface OnSuspendedEvent
@@ -105,6 +114,13 @@ export interface OnResumedEvent
   extends OfflineEvent<OfflineEventType.onResumed> {}
 
 /**
+ * BitmovinOfflineEvent for when the download of the media content was cancelled by the user and all partially downloaded content has been deleted from disk.
+ * (iOS only)
+ */
+export interface OnCanceledEvent
+  extends OfflineEvent<OfflineEventType.onCanceled> {}
+
+/**
  * The type aggregation for all possible native offline events received from the `DeviceEventEmitter`
  */
 export type BitmovinNativeOfflineEventData =
@@ -113,8 +129,10 @@ export type BitmovinNativeOfflineEventData =
   | OnProgressEvent
   | OnErrorEvent
   | OnDrmLicenseUpdatedEvent
+  | OnDrmLicenseExpiredEvent
   | OnSuspendedEvent
-  | OnResumedEvent;
+  | OnResumedEvent
+  | OnCanceledEvent;
 
 /**
  * The listener that can be passed to the `OfflineContentManager` to receive callbacks for different events.
@@ -125,6 +143,8 @@ export interface OfflineContentManagerListener {
   onProgress?: (e: OnProgressEvent) => void;
   onOptionsAvailable?: (e: OnOptionsAvailableEvent) => void;
   onDrmLicenseUpdated?: (e: OnDrmLicenseUpdatedEvent) => void;
+  onDrmLicenseExpired?: (e: OnDrmLicenseExpiredEvent) => void;
   onSuspended?: (e: OnSuspendedEvent) => void;
   onResumed?: (e: OnResumedEvent) => void;
+  onCanceled?: (e: OnCanceledEvent) => void;
 }

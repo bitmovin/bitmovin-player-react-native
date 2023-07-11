@@ -1,8 +1,8 @@
 import {
-  NativeEventEmitter,
   EmitterSubscription,
-  NativeModules,
+  NativeEventEmitter,
   NativeModule,
+  NativeModules,
   Platform,
 } from 'react-native';
 import NativeInstance, { NativeInstanceConfig } from '../nativeInstance';
@@ -111,10 +111,16 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
               data.eventType === OfflineEventType.onDrmLicenseUpdated
             ) {
               this.config?.listener?.onDrmLicenseUpdated?.(data);
+            } else if (
+              data.eventType === OfflineEventType.onDrmLicenseExpired
+            ) {
+              this.config?.listener?.onDrmLicenseExpired?.(data);
             } else if (data.eventType === OfflineEventType.onSuspended) {
               this.config?.listener?.onSuspended?.(data);
             } else if (data.eventType === OfflineEventType.onResumed) {
               this.config?.listener?.onResumed?.(data);
+            } else if (data.eventType === OfflineEventType.onCanceled) {
+              this.config?.listener?.onCanceled?.(data);
             }
           }
         );
