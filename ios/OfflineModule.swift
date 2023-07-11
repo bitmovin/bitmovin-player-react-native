@@ -1,3 +1,4 @@
+#if !os(tvOS)
 import Foundation
 import BitmovinPlayer
 
@@ -301,3 +302,4 @@ class OfflineModule: RCTEventEmitter {
         }
     }
 }
+#endif

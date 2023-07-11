@@ -67,6 +67,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         }
     }
 
+#if !os(tvOS)
     /**
      Loads the given offline source configuration into `nativeId`'s `Player` object.
      - Parameter nativeId: Target player.
@@ -89,16 +90,19 @@ class PlayerModule: NSObject, RCTBridgeModule {
             }
         }
     }
+#endif
 
     /// Fetches the initialized `SourceModule` instance on RN's bridge object.
     private func getSourceModule() -> SourceModule? {
         bridge.module(for: SourceModule.self) as? SourceModule
     }
 
+#if !os(tvOS)
     /// Fetches the initialized `OfflineModule` instance on RN's bridge object.
     private func getOfflineModule() -> OfflineModule? {
         bridge.module(for: OfflineModule.self) as? OfflineModule
     }
+#endif
 
     /**
      Call `.unload()` on `nativeId`'s player.
@@ -144,7 +148,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
             self?.players[nativeId]?.seek(time: time.doubleValue)
         }
     }
-    
+
     /**
      Sets `timeShift` on `nativeId`'s player.
      - Parameter nativeId: Target player Id.
@@ -490,7 +494,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
             resolve(self?.players[nativeId]?.isAd)
         }
     }
-    
+
     /**
      The current time shift of the live stream in seconds. This value is always 0 if the active `source` is not a
      live stream or there are no sources loaded.
@@ -508,7 +512,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
             resolve(self?.players[nativeId]?.timeShift)
         }
     }
-    
+
     /**
      Returns the limit in seconds for time shift. Is either negative or 0. Is applicable for live streams only.
      - Parameter nativeId: Target player id.
