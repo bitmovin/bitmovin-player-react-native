@@ -4,11 +4,11 @@ import BitmovinPlayer
 
 class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
 
-    var offlineContentManager: OfflineContentManager
-    var eventEmitter: RCTEventEmitter?
-    var nativeId: NativeId
-    var identifier: String
-    var trackSelection: OfflineTrackSelection? = nil
+    let offlineContentManager: OfflineContentManager
+    let eventEmitter: RCTEventEmitter?
+    let nativeId: NativeId
+    let identifier: String
+    var currentTrackSelection: OfflineTrackSelection? = nil
 
     init(forManager offlineContentManager: OfflineContentManager, eventEmitter: RCTEventEmitter, nativeId: NativeId, identifier: String) {
         self.offlineContentManager = offlineContentManager
@@ -22,8 +22,7 @@ class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
 
     func release() {
         offlineContentManager.remove(listener: self)
-        eventEmitter = nil
-        trackSelection = nil
+        currentTrackSelection = nil
     }
 
     /**
@@ -40,7 +39,7 @@ class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
      Called after a getOptions or when am OfflineOptionEntry has been updated during a process call.
      */
     func onAvailableTracksFetched(_ event: AvailableTracksFetchedEvent, offlineContentManager: OfflineContentManager) {
-        trackSelection = event.tracks
+        currentTrackSelection = event.tracks
 
         sendOfflineEvent(eventType: "onOptionsAvailable", body: [
             "options": RCTConvert.toJson(offlineTracks: event.tracks),
@@ -53,7 +52,7 @@ class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
      */
     func onContentDownloadFinished(_ event: ContentDownloadFinishedEvent, offlineContentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: "onCompleted", body: [
-            "options": RCTConvert.toJson(offlineTracks: trackSelection),
+            "options": RCTConvert.toJson(offlineTracks: currentTrackSelection),
             "state": RCTConvert.toJson(offlineState: offlineContentManager.offlineState)
         ])
     }
@@ -103,7 +102,6 @@ class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
         } catch let error as NSError {
             print(error)
         }
-
     }
 }
 #endif

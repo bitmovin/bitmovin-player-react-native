@@ -131,7 +131,7 @@ class OfflineModule: RCTEventEmitter {
             guard
                 let self = self,
                 let offlineContentManagerHolder = self.offlineContentManagerHolders[nativeId],
-                let trackSelection = offlineContentManagerHolder.trackSelection,
+                let currentTrackSelection = offlineContentManagerHolder.currentTrackSelection,
                 let request = request as? [String:Any?],
                 let minimumBitrate = request["minimumBitrate"] as? NSNumber,
                 let audioOptionIds = request["audioOptionIds"] as? [String],
@@ -142,7 +142,7 @@ class OfflineModule: RCTEventEmitter {
             }
 
             if (!audioOptionIds.isEmpty) {
-                trackSelection.audioTracks.forEach {
+                currentTrackSelection.audioTracks.forEach {
                     if (audioOptionIds.contains($0.label)) {
                         $0.action = .download
                     } else {
@@ -152,7 +152,7 @@ class OfflineModule: RCTEventEmitter {
             }
 
             if (!textOptionIds.isEmpty) {
-                trackSelection.textTracks.forEach {
+                currentTrackSelection.textTracks.forEach {
                     if (textOptionIds.contains($0.label)) {
                         $0.action = .download
                     } else {
@@ -163,7 +163,7 @@ class OfflineModule: RCTEventEmitter {
 
             let config = DownloadConfig()
             config.minimumBitrate = minimumBitrate
-            offlineContentManagerHolder.offlineContentManager.download(tracks: trackSelection, downloadConfig: config)
+            offlineContentManagerHolder.offlineContentManager.download(tracks: currentTrackSelection, downloadConfig: config)
             resolve(nil)
         }
 #endif
