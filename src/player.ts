@@ -10,7 +10,7 @@ import { TweaksConfig } from './tweaksConfig';
 import {
   OfflineContentManager,
   OfflineSourceOptions,
-} from './offlineContentManager';
+} from './offline/offlineContentManager';
 
 const PlayerModule = NativeModules.PlayerModule;
 
