@@ -1,4 +1,4 @@
-#if !os(tvOS)
+#if os(iOS)
 import Foundation
 import BitmovinPlayer
 

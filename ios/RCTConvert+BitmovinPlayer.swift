@@ -742,7 +742,7 @@ extension RCTConvert {
         ]
     }
 
-#if !os(tvOS)
+#if os(iOS)
     /**
      Utility method to compute a JS value from an `OfflineState` object.
      - Parameter offlineState `OfflineState` object to be converted.
@@ -761,9 +761,7 @@ extension RCTConvert {
         default: return notDownloaded
         }
     }
-#endif
-
-#if !os(tvOS)
+    
     /**
      Utility method to compute a JS value from an `OfflineTextTrack` object.
      - Parameter offlineTrack `OfflineTextTrack` object to be converted.
@@ -775,9 +773,7 @@ extension RCTConvert {
             "language": offlineTrack.language,
         ]
     }
-#endif
 
-#if !os(tvOS)
     /**
      Utility method to compute a JS value from an `OfflineAudioTrack` object.
      - Parameter offlineTrack `OfflineAudioTrack` object to be converted.
@@ -789,9 +785,7 @@ extension RCTConvert {
             "language": offlineTrack.language,
         ]
     }
-#endif
 
-#if !os(tvOS)
     /**
      Utility method to compute a JS value from an `OfflineTrackSelection` object.
      - Parameter offlineTracks `OfflineTrackSelection` object to be converted.
