@@ -99,6 +99,11 @@ export default function App() {
       title: 'Custom HTML UI',
       routeName: 'CustomHtmlUI',
     });
+
+    stackParams.data.push({
+      title: 'Offline playback',
+      routeName: 'OfflinePlayback',
+    });
   }
 
   if (!Platform.isTV) {
@@ -170,6 +175,13 @@ export default function App() {
           component={ProgrammaticTrackSelection}
           options={{ title: 'Programmatic Track Selection' }}
         />
+        {!isTVOS && (
+          <RootStack.Screen
+            name="OfflinePlayback"
+            component={OfflinePlayback}
+            options={{ title: 'Offline Playback' }}
+          />
+        )}
         <RootStack.Screen
           name="CustomPlaybackForm"
           component={CustomPlaybackForm}

@@ -17,6 +17,7 @@ import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
+import com.bitmovin.player.api.offline.DrmLicenseInformation
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.Source
@@ -155,7 +156,8 @@ class JsonConverter {
                 tweaksConfig.timeChangedInterval = json.getDouble("timeChangedInterval")
             }
             if (json.hasKey("bandwidthEstimateWeightLimit")) {
-                tweaksConfig.bandwidthEstimateWeightLimit = json.getInt("bandwidthEstimateWeightLimit")
+                tweaksConfig.bandwidthEstimateWeightLimit =
+                    json.getInt("bandwidthEstimateWeightLimit")
             }
             if (json.hasKey("devicesThatRequireSurfaceWorkaround")) {
                 val devices = json.getMap("devicesThatRequireSurfaceWorkaround")
@@ -172,22 +174,28 @@ class JsonConverter {
                 tweaksConfig.devicesThatRequireSurfaceWorkaround = deviceNames + modelNames
             }
             if (json.hasKey("languagePropertyNormalization")) {
-                tweaksConfig.languagePropertyNormalization = json.getBoolean("languagePropertyNormalization")
+                tweaksConfig.languagePropertyNormalization =
+                    json.getBoolean("languagePropertyNormalization")
             }
             if (json.hasKey("localDynamicDashWindowUpdateInterval")) {
-                tweaksConfig.localDynamicDashWindowUpdateInterval = json.getDouble("localDynamicDashWindowUpdateInterval")
+                tweaksConfig.localDynamicDashWindowUpdateInterval =
+                    json.getDouble("localDynamicDashWindowUpdateInterval")
             }
             if (json.hasKey("shouldApplyTtmlRegionWorkaround")) {
-                tweaksConfig.shouldApplyTtmlRegionWorkaround = json.getBoolean("shouldApplyTtmlRegionWorkaround")
+                tweaksConfig.shouldApplyTtmlRegionWorkaround =
+                    json.getBoolean("shouldApplyTtmlRegionWorkaround")
             }
             if (json.hasKey("useDrmSessionForClearPeriods")) {
-                tweaksConfig.useDrmSessionForClearPeriods = json.getBoolean("useDrmSessionForClearPeriods")
+                tweaksConfig.useDrmSessionForClearPeriods =
+                    json.getBoolean("useDrmSessionForClearPeriods")
             }
             if (json.hasKey("useDrmSessionForClearSources")) {
-                tweaksConfig.useDrmSessionForClearSources = json.getBoolean("useDrmSessionForClearSources")
+                tweaksConfig.useDrmSessionForClearSources =
+                    json.getBoolean("useDrmSessionForClearSources")
             }
             if (json.hasKey("useFiletypeExtractorFallbackForHls")) {
-                tweaksConfig.useFiletypeExtractorFallbackForHls = json.getBoolean("useFiletypeExtractorFallbackForHls")
+                tweaksConfig.useFiletypeExtractorFallbackForHls =
+                    json.getBoolean("useFiletypeExtractorFallbackForHls")
             }
             return tweaksConfig
         }
@@ -293,7 +301,9 @@ class JsonConverter {
             json.putString("title", sourceConfig.title)
             json.putString("poster", sourceConfig.posterSource)
             json.putBoolean("isPosterPersistent", sourceConfig.isPosterPersistent)
-            json.putArray("subtitleTracks", sourceConfig.subtitleTracks.map { ::fromSubtitleTrack }.toReadableArray())
+            json.putArray("subtitleTracks", sourceConfig.subtitleTracks.map { track ->
+                fromSubtitleTrack(track)
+            }.toReadableArray())
             json.putNull("metadata")
             return json
         }
@@ -955,5 +965,23 @@ class JsonConverter {
                 putArray("textOptions", options.textOptions.map { toJson(it) }.toReadableArray())
             }
         }
+
+        /**
+         * Converts any `DrmLicenseInformation` into its json representation.
+         * @param drmLicenseInformation `DrmLicenseInformation` object to be converted.
+         * @return The generated json map.
+         */
+        @JvmStatic
+        fun toJson(drmLicenseInformation: DrmLicenseInformation?): WritableMap? {
+            if (drmLicenseInformation == null) {
+                return null
+            }
+
+            return Arguments.createMap().apply {
+                putInt("licenseDuration", drmLicenseInformation.licenseDuration.toInt())
+                putInt("playbackDuration", drmLicenseInformation.playbackDuration.toInt())
+            }
+        }
+
     }
 }

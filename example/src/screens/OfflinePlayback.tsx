@@ -20,7 +20,7 @@ import {
 import { useTVGestures } from '../hooks';
 import OfflineManagementView from '../components/OfflineManagementView';
 
-const STABLE_OFFLINE_ID = 'aStableOfflineId';
+const STABLE_IDENTIFIER = 'aStableOfflineId';
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
@@ -55,7 +55,8 @@ const SOURCE_CONFIG: SourceConfig = {
 
 export default function OfflinePlayback() {
   useTVGestures();
-  const [offlineManager, setOfflineManager] = useState<OfflineContentManager>();
+  const [offlineContentManager, setOfflineContentManager] =
+    useState<OfflineContentManager>();
   const [entryState, setEntryState] = useState<OfflineOptionEntryState>();
   const [offlineOptions, setOfflineOptions] = useState<OfflineContentOptions>();
   const [progress, setProgress] = useState<number>(0);
@@ -72,10 +73,13 @@ export default function OfflinePlayback() {
 
   useFocusEffect(
     useCallback(() => {
-      const newOfflineManager = new OfflineContentManager({
-        offlineId: STABLE_OFFLINE_ID,
+      const newOfflineContentManager = new OfflineContentManager({
+        identifier: STABLE_IDENTIFIER,
         sourceConfig: SOURCE_CONFIG,
-        listener: {
+      });
+
+      const removeOfflineContentManagerListener =
+        newOfflineContentManager.addListener({
           onCompleted: (e) => {
             onEvent(e);
             setEntryState(e.state);
@@ -94,19 +98,19 @@ export default function OfflinePlayback() {
           },
           onResumed: onEvent,
           onSuspended: onEvent,
-        },
-      });
+        });
 
-      newOfflineManager
+      newOfflineContentManager
         .initialize()
         .then(() => {
-          setOfflineManager(newOfflineManager);
+          setOfflineContentManager(newOfflineContentManager);
         })
         .catch(console.error);
 
       return () => {
-        newOfflineManager.destroy?.();
-        setOfflineManager(undefined);
+        removeOfflineContentManagerListener();
+        newOfflineContentManager.destroy?.();
+        setOfflineContentManager(undefined);
       };
     }, [onEvent])
   );
@@ -115,23 +119,31 @@ export default function OfflinePlayback() {
     <View style={styles.container}>
       <PlayerView player={player} style={styles.player} />
       <View style={styles.actionsContainer}>
-        <Action text={'Get Options'} onPress={offlineManager?.getOptions} />
+        <Action
+          text={'Get Options'}
+          onPress={offlineContentManager?.getOptions}
+        />
         <Action
           text={'Process'}
           onPress={() => {
             if (downloadRequest) {
-              offlineManager?.process(downloadRequest).catch(console.error);
+              offlineContentManager
+                ?.process(downloadRequest)
+                .catch(console.error);
               setDownloadRequest(INITIAL_DOWNLOAD_REQUEST);
             }
           }}
         />
-        <Action text={'Delete All'} onPress={offlineManager?.deleteAll} />
-        <Action text={'Suspend'} onPress={offlineManager?.suspend} />
-        <Action text={'Resume'} onPress={offlineManager?.resume} />
+        <Action
+          text={'Delete All'}
+          onPress={offlineContentManager?.deleteAll}
+        />
+        <Action text={'Suspend'} onPress={offlineContentManager?.suspend} />
+        <Action text={'Resume'} onPress={offlineContentManager?.resume} />
         <Action
           text={'Load Player Video'}
           onPress={() => {
-            offlineManager
+            offlineContentManager
               ?.getOfflineSourceConfig?.()
               ?.then?.((sourceConfig) => {
                 onEvent({
@@ -140,7 +152,7 @@ export default function OfflinePlayback() {
                 });
                 if (sourceConfig != null) {
                   onEvent('Loading the offline video');
-                  player.loadOfflineSource(offlineManager);
+                  player.loadOfflineSource(offlineContentManager);
                 } else {
                   onEvent('Loading the standard source configuration');
                   player.load(SOURCE_CONFIG);

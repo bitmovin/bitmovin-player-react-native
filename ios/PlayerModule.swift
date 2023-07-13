@@ -72,21 +72,24 @@ class PlayerModule: NSObject, RCTBridgeModule {
      - Parameter nativeId: Target player.
      - Parameter offlineModuleNativeId: The `nativeId` of the `OfflineModule` object.
      */
-    @objc(loadOfflineSource:offlineModuleNativeId:)
-    func loadOfflineSource(_ nativeId: NativeId, offlineModuleNativeId: NativeId) {
+    @objc(loadOfflineSource:offlineContentManagerHolderNativeId:options:)
+    func loadOfflineSource(_ nativeId: NativeId, offlineContentManagerHolderNativeId: NativeId, options: Any?) {
+#if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let player = self?.players[nativeId],
-                let offlineModule = self?.getOfflineModule()?.retrieve(offlineModuleNativeId)
+                let offlineContentManagerHolder = self?.getOfflineModule()?.retrieve(offlineContentManagerHolderNativeId)
             else {
                 return
             }
 
-            let offlineSourceConfig = offlineModule.contentManager.createOfflineSourceConfig(restrictedToAssetCache: true)
+            let restrictedToAssetCache = (options as? [String: Any?])?["restrictedToAssetCache"] as? Bool ?? true
+            let offlineSourceConfig = offlineContentManagerHolder.offlineContentManager.createOfflineSourceConfig(restrictedToAssetCache: restrictedToAssetCache)
             if (offlineSourceConfig != nil) {
                 player.load(sourceConfig: offlineSourceConfig!)
             }
         }
+#endif
     }
 
     /// Fetches the initialized `SourceModule` instance on RN's bridge object.
@@ -94,10 +97,12 @@ class PlayerModule: NSObject, RCTBridgeModule {
         bridge.module(for: SourceModule.self) as? SourceModule
     }
 
+#if os(iOS)
     /// Fetches the initialized `OfflineModule` instance on RN's bridge object.
     private func getOfflineModule() -> OfflineModule? {
         bridge.module(for: OfflineModule.self) as? OfflineModule
     }
+#endif
 
     /**
      Call `.unload()` on `nativeId`'s player.

@@ -294,12 +294,26 @@ extension RCTConvert {
         guard let sourceConfig = sourceConfig else {
             return nil
         }
+
+        var subtitleTracks: [[AnyHashable: Any]] = []
+
+        sourceConfig.tracks.forEach {
+            if
+                let track = $0 as? SubtitleTrack,
+                let unwrappedTrack = RCTConvert.subtitleTrackJson(track) as? [AnyHashable: Any] {
+                subtitleTracks.append(unwrappedTrack)
+            }
+        }
+
         return [
             "url": sourceConfig.url.absoluteString,
             "type": RCTConvert.toJson(sourceType: sourceConfig.type),
             "title": sourceConfig.title,
             "poster": sourceConfig.posterSource?.absoluteString,
-            "isPosterPersistent": sourceConfig.isPosterPersistent
+            "isPosterPersistent": sourceConfig.isPosterPersistent,
+            "subtitleTracks": subtitleTracks,
+            "thumbnailTrack": RCTConvert.toJson(thumbnailTrack: sourceConfig.thumbnailTrack),
+            "metadata": sourceConfig.metadata
         ]
     }
 
@@ -382,8 +396,7 @@ extension RCTConvert {
             isDefaultTrack: false
         )
     }
-
-    /**
+/**
      Utility method to get a json dictionary value from a `AudioTrack` object.
      - Parameter audioTrack: The track to convert to json format.
      - Returns: The generated json dictionary.
@@ -400,7 +413,6 @@ extension RCTConvert {
             "language": audioTrack.language
         ]
     }
-
     /**
      Utility method to get a `SubtitleTrack` instance from a JS object.
      - Parameter json: JS object.
@@ -480,6 +492,24 @@ extension RCTConvert {
                 case .ttml: return "ttml"
                 }
             }(),
+        ]
+    }
+
+    /**
+     Utility method to get a json dictionary value from a `ThumbnailTrack` object.
+     - Parameter thumbnailTrack: The `ThumbnailTrack` to convert to json format.
+     - Returns: The generated json dictionary.
+     */
+    static func toJson(thumbnailTrack: ThumbnailTrack?) -> [AnyHashable: Any]? {
+        guard let thumbnailTrack = thumbnailTrack else {
+            return nil
+        }
+
+        return [
+            "url": thumbnailTrack.url?.absoluteString,
+            "label": thumbnailTrack.label,
+            "isDefault": thumbnailTrack.isDefaultTrack,
+            "identifier": thumbnailTrack.identifier
         ]
     }
 
@@ -617,7 +647,7 @@ extension RCTConvert {
             "minBitrate": adData.minBitrate
         ]
     }
-    /**
+/**
      Utility method to get a `BitmovinAnalyticsConfig` value from a JS object.
      - Parameter json: JS object.
      - Returns: The associated `BitmovinAnalyticsConfig` value or nil.
@@ -724,6 +754,7 @@ extension RCTConvert {
         ]
     }
 
+#if os(iOS)
     /**
      Utility method to compute a JS value from an `OfflineState` object.
      - Parameter offlineState `OfflineState` object to be converted.
@@ -778,8 +809,25 @@ extension RCTConvert {
         }
 
         return [
-            "textOptions": offlineTracks.textTracks.map({ RCTConvert.toJson(offlineTrack: $0) }),
-            "audioOptions": offlineTracks.audioTracks.map({ RCTConvert.toJson(offlineTrack: $0) })
+            "textOptions": offlineTracks.textTracks.compactMap { RCTConvert.toJson(offlineTrack: $0) },
+            "audioOptions": offlineTracks.audioTracks.compactMap { RCTConvert.toJson(offlineTrack: $0) }
         ]
     }
+
+    /**
+     Utility method to compute a JS value from an `DrmLicenseInformation` object.
+     - Parameter offlineDrmLicenseInformation `DrmLicenseInformation` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineDrmLicenseInformation: DrmLicenseInformation?) -> [String: Any?]? {
+        guard let offlineDrmLicenseInformation = offlineDrmLicenseInformation else {
+            return nil
+        }
+
+        return [
+            "licenseDuration": offlineDrmLicenseInformation.licenseDuration,
+            "playbackDuration": offlineDrmLicenseInformation.playbackDuration
+        ]
+    }
+#endif
 }

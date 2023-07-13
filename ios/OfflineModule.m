@@ -9,6 +9,7 @@ RCT_EXTERN_METHOD(
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getOfflineSourceConfig:(NSString *)nativeId
+                  options:(nullable id)config
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getOptions:(NSString *)nativeId
@@ -28,7 +29,13 @@ RCT_EXTERN_METHOD(suspend:(NSString *)nativeId
 RCT_EXTERN_METHOD(cancelDownload:(NSString *)nativeId
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(usedStorage:(NSString *)nativeId
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(deleteAll:(NSString *)nativeId
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(offlineDrmLicenseInformation:(NSString *)nativeId
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(downloadLicense:(NSString *)nativeId
