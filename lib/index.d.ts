@@ -1850,6 +1850,30 @@ interface TweaksConfig {
 }
 
 /**
+ * Object used to configure a new `OfflineContentManager` instance.
+ */
+interface OfflineContentConfig extends NativeInstanceConfig {
+    /**
+     * An identifier for this source that is unique within the location and must never change.
+     * The root folder will contain a folder based on this id.
+     */
+    identifier: string;
+    /**
+     * The `SourceConfig` used to download the offline resources.
+     */
+    sourceConfig: SourceConfig;
+}
+/**
+ * Object used configure how the native offline managers create and get offline source configurations
+ * iOS Only
+ */
+interface OfflineSourceOptions {
+    /**
+     * Whether or not the player should restrict playback only to audio, video and subtitle tracks which are stored offline on the device. This has to be set to true if the device has no network access.
+     */
+    restrictedToAssetCache?: boolean;
+}
+/**
  * Contains the states an OfflineOptionEntry can have.
  */
 declare enum OfflineOptionEntryState {
@@ -1901,6 +1925,19 @@ interface OfflineDownloadRequest {
     audioOptionIds: string[];
     textOptionIds: string[];
 }
+/**
+ * Contains information about a DRM license.
+ */
+interface DrmLicenseInformation {
+    /**
+     * The remaining license duration.
+     */
+    licenseDuration: number;
+    /**
+     * The remaining playback duration.
+     */
+    playbackDuration: number;
+}
 
 /**
  * Enum to hold the `eventType` on the `BitmovinNativeOfflineEventData`
@@ -1911,8 +1948,10 @@ declare enum OfflineEventType {
     onProgress = "onProgress",
     onOptionsAvailable = "onOptionsAvailable",
     onDrmLicenseUpdated = "onDrmLicenseUpdated",
+    onDrmLicenseExpired = "onDrmLicenseExpired",
     onSuspended = "onSuspended",
-    onResumed = "onResumed"
+    onResumed = "onResumed",
+    onCanceled = "onCanceled"
 }
 interface OfflineEvent<T extends OfflineEventType> {
     /**
@@ -1922,7 +1961,7 @@ interface OfflineEvent<T extends OfflineEventType> {
     /**
      * The supplied id representing the source associated with the `OfflineContentManager` emitting this event.
      */
-    offlineId: string;
+    identifier: string;
     /**
      * The `OfflineEventType` that correlates to which native `OfflineContentManagerListener` method was called.
      */
@@ -1982,6 +2021,12 @@ interface OnOptionsAvailableEvent extends OfflineEvent<OfflineEventType.onOption
 interface OnDrmLicenseUpdatedEvent extends OfflineEvent<OfflineEventType.onDrmLicenseUpdated> {
 }
 /**
+ * BitmovinOfflineEvent for when the DRM license has expired.
+ * (iOS only)
+ */
+interface OnDrmLicenseExpiredEvent extends OfflineEvent<OfflineEventType.onDrmLicenseExpired> {
+}
+/**
  * BitmovinOfflineEvent for when all active actions have been suspended.
  */
 interface OnSuspendedEvent extends OfflineEvent<OfflineEventType.onSuspended> {
@@ -1992,9 +2037,15 @@ interface OnSuspendedEvent extends OfflineEvent<OfflineEventType.onSuspended> {
 interface OnResumedEvent extends OfflineEvent<OfflineEventType.onResumed> {
 }
 /**
+ * BitmovinOfflineEvent for when the download of the media content was cancelled by the user and all partially downloaded content has been deleted from disk.
+ * (iOS only)
+ */
+interface OnCanceledEvent extends OfflineEvent<OfflineEventType.onCanceled> {
+}
+/**
  * The type aggregation for all possible native offline events received from the `DeviceEventEmitter`
  */
-declare type BitmovinNativeOfflineEventData = OnCompletedEvent | OnOptionsAvailableEvent | OnProgressEvent | OnErrorEvent | OnDrmLicenseUpdatedEvent | OnSuspendedEvent | OnResumedEvent;
+declare type BitmovinNativeOfflineEventData = OnCompletedEvent | OnOptionsAvailableEvent | OnProgressEvent | OnErrorEvent | OnDrmLicenseUpdatedEvent | OnDrmLicenseExpiredEvent | OnSuspendedEvent | OnResumedEvent | OnCanceledEvent;
 /**
  * The listener that can be passed to the `OfflineContentManager` to receive callbacks for different events.
  */
@@ -2004,28 +2055,13 @@ interface OfflineContentManagerListener {
     onProgress?: (e: OnProgressEvent) => void;
     onOptionsAvailable?: (e: OnOptionsAvailableEvent) => void;
     onDrmLicenseUpdated?: (e: OnDrmLicenseUpdatedEvent) => void;
+    onDrmLicenseExpired?: (e: OnDrmLicenseExpiredEvent) => void;
     onSuspended?: (e: OnSuspendedEvent) => void;
     onResumed?: (e: OnResumedEvent) => void;
+    onCanceled?: (e: OnCanceledEvent) => void;
 }
+declare const handleBitmovinNativeOfflineEvent: (data: BitmovinNativeOfflineEventData, listeners: Set<OfflineContentManagerListener>) => void;
 
-/**
- * Object used to configure a new `OfflineContentManager` instance.
- */
-interface OfflineContentConfig extends NativeInstanceConfig {
-    /**
-     * An identifier for this source that is unique within the location and must never change.
-     * The root folder will contain a folder based on this id.
-     */
-    offlineId: string;
-    /**
-     * The `SourceConfig` used to download the offline resources.
-     */
-    sourceConfig: SourceConfig;
-    /**
-     * The `OfflineContentManagerListener` where callbacks for event data will be passed to.
-     */
-    listener?: OfflineContentManagerListener;
-}
 /**
  * Provides the means to download and store sources locally that can be played back with a Player
  * without an active network connection.  An OfflineContentManager instance can be created via
@@ -2035,6 +2071,7 @@ declare class OfflineContentManager extends NativeInstance<OfflineContentConfig>
     isInitialized: boolean;
     isDestroyed: boolean;
     eventSubscription?: EmitterSubscription;
+    listeners: Set<OfflineContentManagerListener>;
     constructor(config: OfflineContentConfig);
     /**
      * Allocates the native `OfflineManager` instance and its resources natively.
@@ -2042,13 +2079,18 @@ declare class OfflineContentManager extends NativeInstance<OfflineContentConfig>
      */
     initialize: () => Promise<void>;
     /**
+     * Adds a listener to the receive data from the native `OfflineContentManagerListener` callbacks
+     * Returns a function that removes this listener from the `OfflineContentManager` that registered it.
+     */
+    addListener: (listener: OfflineContentManagerListener) => (() => void);
+    /**
      * Destroys the native `OfflineManager` and releases all of its allocated resources.
      */
     destroy: () => Promise<void>;
     /**
      * Gets the current offline source config of the `OfflineContentManager`
      */
-    getOfflineSourceConfig: () => Promise<SourceConfig>;
+    getOfflineSourceConfig: (options?: OfflineSourceOptions) => Promise<SourceConfig>;
     /**
      * Loads the current `OfflineContentOptions`.
      * When the options are loaded the data will be passed to the `OfflineContentManagerListener.onOptionsAvailable`.
@@ -2074,9 +2116,20 @@ declare class OfflineContentManager extends NativeInstance<OfflineContentConfig>
      */
     cancelDownload: () => Promise<void>;
     /**
+     * Resolves how many bytes of storage are used by the offline content.
+     */
+    usedStorage: () => Promise<number>;
+    /**
      * Deletes everything related to the related content ID.
      */
     deleteAll: () => Promise<void>;
+    /**
+     * Resolves A `DrmLicenseInformation` object containing the remaining drm license duration and the remaining playback duration.
+     * The promise will reject if the loading of the DRM key fails.
+     * The promise will reject if the provided DRM technology is not supported.
+     * The promise will reject if the DRM licensing call to the server fails.
+     */
+    offlineDrmLicenseInformation: () => Promise<DrmLicenseInformation>;
     /**
      * Downloads the offline license.
      * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
@@ -2258,7 +2311,7 @@ declare class Player extends NativeInstance<PlayerConfig> {
     /**
      * Loads the OfflineSourceConfig into the player.
      */
-    loadOfflineSource: (offlineContentManager: OfflineContentManager) => void;
+    loadOfflineSource: (offlineContentManager: OfflineContentManager, options?: OfflineSourceOptions) => void;
     /**
      * Loads the given `Source` into the player.
      */
@@ -2587,4 +2640,4 @@ declare function SubtitleView(props: SubtitleViewProps): JSX.Element | null;
  */
 declare function usePlayer(config?: PlayerConfig): Player;
 
-export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdvertisingConfig, AnalyticsCollector, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinNativeOfflineEventData, CdnProvider, CustomDataConfig, CustomMessageHandler, DestroyEvent, Drm, DrmConfig, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, LoadingState, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineOptionEntry, OfflineOptionEntryState, OnCompletedEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TypefaceFamily, TypefaceStyleWeight, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoSizeChangedEvent, WidevineConfig, usePlayer };
+export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdvertisingConfig, AnalyticsCollector, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinNativeOfflineEventData, CdnProvider, CustomDataConfig, CustomMessageHandler, DestroyEvent, Drm, DrmConfig, DrmLicenseInformation, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, LoadingState, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineOptionEntry, OfflineOptionEntryState, OfflineSourceOptions, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TypefaceFamily, TypefaceStyleWeight, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoSizeChangedEvent, WidevineConfig, handleBitmovinNativeOfflineEvent, usePlayer };
