@@ -7,10 +7,8 @@ import { AudioTrack } from './audioTrack';
 import { SubtitleTrack } from './subtitleTrack';
 import { StyleConfig } from './styleConfig';
 import { TweaksConfig } from './tweaksConfig';
-import {
-  OfflineContentManager,
-  OfflineSourceOptions,
-} from './offline/offlineContentManager';
+import { OfflineContentManager } from './offline/offlineContentManager';
+import { OfflineSourceOptions } from './offline/offlineContentOptions';
 
 const PlayerModule = NativeModules.PlayerModule;
 
