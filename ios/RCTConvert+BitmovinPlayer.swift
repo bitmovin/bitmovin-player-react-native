@@ -482,7 +482,7 @@ extension RCTConvert {
             }(),
         ]
     }
-    
+
     /**
      Utility method to get a json dictionary value from a `ThumbnailTrack` object.
      - Parameter thumbnailTrack: The `ThumbnailTrack` to convert to json format.
@@ -492,7 +492,7 @@ extension RCTConvert {
         guard let thumbnailTrack = thumbnailTrack else {
             return nil
         }
-        
+
         return [
             "url": thumbnailTrack.url?.absoluteString,
             "label": thumbnailTrack.label,
@@ -761,7 +761,7 @@ extension RCTConvert {
         default: return notDownloaded
         }
     }
-    
+
     /**
      Utility method to compute a JS value from an `OfflineTextTrack` object.
      - Parameter offlineTrack `OfflineTextTrack` object to be converted.
@@ -799,6 +799,22 @@ extension RCTConvert {
         return [
             "textOptions": offlineTracks.textTracks.compactMap { RCTConvert.toJson(offlineTrack: $0) },
             "audioOptions": offlineTracks.audioTracks.compactMap { RCTConvert.toJson(offlineTrack: $0) }
+        ]
+    }
+
+    /**
+     Utility method to compute a JS value from an `DrmLicenseInformation` object.
+     - Parameter offlineDrmLicenseInformation `DrmLicenseInformation` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineDrmLicenseInformation: DrmLicenseInformation?) -> [String: Any?]? {
+        guard let offlineDrmLicenseInformation = offlineDrmLicenseInformation else {
+            return nil
+        }
+
+        return [
+            "licenseDuration": offlineDrmLicenseInformation.licenseDuration,
+            "playbackDuration": offlineDrmLicenseInformation.playbackDuration
         ]
     }
 #endif

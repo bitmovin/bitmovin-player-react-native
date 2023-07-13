@@ -5,14 +5,18 @@ import {
   NativeModules,
   Platform,
 } from 'react-native';
-import NativeInstance, { NativeInstanceConfig } from '../nativeInstance';
+import NativeInstance from '../nativeInstance';
 import { SourceConfig } from '../source';
 import {
   BitmovinNativeOfflineEventData,
-  OfflineContentManagerListener,
   OfflineEventType,
 } from './offlineContentManagerListener';
-import { OfflineDownloadRequest } from './offlineContentOptions';
+import {
+  DrmLicenseInformation,
+  OfflineContentConfig,
+  OfflineDownloadRequest,
+  OfflineSourceOptions,
+} from './offlineContentOptions';
 
 interface NativeOfflineModule extends NativeModule {
   initWithConfig(
@@ -28,7 +32,11 @@ interface NativeOfflineModule extends NativeModule {
   resume(nativeId: string): Promise<void>;
   suspend(nativeId: string): Promise<void>;
   cancelDownload(nativeId: string): Promise<void>;
+  usedStorage(nativeId: string): Promise<number>;
   deleteAll(nativeId: string): Promise<void>;
+  offlineDrmLicenseInformation(
+    nativeId: string
+  ): Promise<DrmLicenseInformation>;
   downloadLicense(nativeId: string): Promise<void>;
   releaseLicense(nativeId: string): Promise<void>;
   renewOfflineLicense(nativeId: string): Promise<void>;
@@ -37,36 +45,6 @@ interface NativeOfflineModule extends NativeModule {
 
 const OfflineModule =
   NativeModules.BitmovinOfflineModule as NativeOfflineModule;
-
-/**
- * Object used configure how the native offline managers create and get offline source configurations
- * iOS Only
- */
-export interface OfflineSourceOptions {
-  /**
-   * Whether or not the player should restrict playback only to audio, video and subtitle tracks which are stored offline on the device. This has to be set to true if the device has no network access.
-   */
-  restrictedToAssetCache?: boolean;
-}
-
-/**
- * Object used to configure a new `OfflineContentManager` instance.
- */
-export interface OfflineContentConfig extends NativeInstanceConfig {
-  /**
-   * An identifier for this source that is unique within the location and must never change.
-   * The root folder will contain a folder based on this id.
-   */
-  identifier: string;
-  /**
-   * The `SourceConfig` used to download the offline resources.
-   */
-  sourceConfig: SourceConfig;
-  /**
-   * The `OfflineContentManagerListener` where callbacks for event data will be passed to.
-   */
-  listener?: OfflineContentManagerListener;
-}
 
 /**
  * Provides the means to download and store sources locally that can be played back with a Player
@@ -203,10 +181,27 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   };
 
   /**
+   * Resolves how many bytes of storage are used by the offline content.
+   */
+  usedStorage = (): Promise<number> => {
+    return OfflineModule.usedStorage(this.nativeId);
+  };
+
+  /**
    * Deletes everything related to the related content ID.
    */
   deleteAll = (): Promise<void> => {
     return OfflineModule.deleteAll(this.nativeId);
+  };
+
+  /**
+   * Resolves A `DrmLicenseInformation` object containing the remaining drm license duration and the remaining playback duration.
+   * The promise will reject if the loading of the DRM key fails.
+   * The promise will reject if the provided DRM technology is not supported.
+   * The promise will reject if the DRM licensing call to the server fails.
+   */
+  offlineDrmLicenseInformation = (): Promise<DrmLicenseInformation> => {
+    return OfflineModule.offlineDrmLicenseInformation(this.nativeId);
   };
 
   /**

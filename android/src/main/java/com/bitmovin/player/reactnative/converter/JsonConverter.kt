@@ -16,6 +16,7 @@ import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
+import com.bitmovin.player.api.offline.DrmLicenseInformation
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.Source
@@ -894,6 +895,23 @@ class JsonConverter {
             return Arguments.createMap().apply {
                 putArray("audioOptions", options.audioOptions.map { toJson(it) }.toReadableArray())
                 putArray("textOptions", options.textOptions.map { toJson(it) }.toReadableArray())
+            }
+        }
+
+        /**
+         * Converts any `DrmLicenseInformation` into its json representation.
+         * @param drmLicenseInformation `DrmLicenseInformation` object to be converted.
+         * @return The generated json map.
+         */
+        @JvmStatic
+        fun toJson(drmLicenseInformation: DrmLicenseInformation?): WritableMap? {
+            if (drmLicenseInformation == null) {
+                return null
+            }
+
+            return Arguments.createMap().apply {
+                putInt("licenseDuration", drmLicenseInformation.licenseDuration.toInt())
+                putInt("playbackDuration", drmLicenseInformation.playbackDuration.toInt())
             }
         }
 

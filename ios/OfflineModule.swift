@@ -23,7 +23,7 @@ class OfflineModule: RCTEventEmitter {
     override var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
-    
+
 #if os(iOS)
     private var offlineContentManagerHolders: Registry<OfflineContentManagerHolder> = [:]
 
@@ -36,7 +36,7 @@ class OfflineModule: RCTEventEmitter {
         offlineContentManagerHolders[nativeId]
     }
 #endif
-    
+
     /**
      Creates a new `OfflineContentManager` instance inside the internal offline managers using the provided `config` object.
      - @param config `Config` object received from JS.  Should contain a sourceConfig and location.
@@ -239,6 +239,28 @@ class OfflineModule: RCTEventEmitter {
     }
 
     /**
+      Resolve `nativeId`'s current `usedStorage`.
+     - Parameter nativeId: Target offline module Id
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc func usedStorage(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+#if os(iOS)
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            guard
+                let self = self,
+                let offlineContentManagerHolder = self.offlineContentManagerHolders[nativeId]
+            else {
+                reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
+                return
+            }
+
+            resolve(offlineContentManagerHolder.offlineContentManager.usedStorage)
+        }
+#endif
+    }
+
+    /**
      Deletes everything related to the related content ID.
      - Parameter nativeId: Target offline module Id
      - Parameter resolver: JS promise resolver.
@@ -257,6 +279,34 @@ class OfflineModule: RCTEventEmitter {
 
             offlineContentManagerHolder.offlineContentManager.deleteOfflineData()
             resolve(nil)
+        }
+#endif
+    }
+
+    /**
+     Resolve `nativeId`'s current `DrmLicenseInformation`.
+     - Parameter nativeId: Target offline module Id
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc func offlineDrmLicenseInformation(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+#if os(iOS)
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            guard
+                let self = self,
+                let offlineContentManagerHolder = self.offlineContentManagerHolders[nativeId]
+            else {
+                reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
+                return
+            }
+
+            do {
+                let offlineDrmLicenseInformation = try offlineContentManagerHolder.offlineContentManager.offlineDrmLicenseInformation
+                let offlineDrmLicenseInformationJson = try RCTConvert.toJson(offlineDrmLicenseInformation: offlineDrmLicenseInformation)
+                resolve(offlineDrmLicenseInformationJson)
+            } catch let error as NSError {
+                reject("BitmovinOfflineModule", "Could not create offline drm license information", error)
+            }
         }
 #endif
     }
