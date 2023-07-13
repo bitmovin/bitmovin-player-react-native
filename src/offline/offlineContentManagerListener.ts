@@ -148,3 +148,32 @@ export interface OfflineContentManagerListener {
   onResumed?: (e: OnResumedEvent) => void;
   onCanceled?: (e: OnCanceledEvent) => void;
 }
+
+export const handleBitmovinNativeOfflineEvent = (
+  data: BitmovinNativeOfflineEventData,
+  listeners: Set<OfflineContentManagerListener>
+) => {
+  listeners.forEach((listener) => {
+    if (!listener) return;
+
+    if (data.eventType === OfflineEventType.onCompleted) {
+      listener.onCompleted?.(data);
+    } else if (data.eventType === OfflineEventType.onError) {
+      listener.onError?.(data);
+    } else if (data.eventType === OfflineEventType.onProgress) {
+      listener.onProgress?.(data);
+    } else if (data.eventType === OfflineEventType.onOptionsAvailable) {
+      listener.onOptionsAvailable?.(data);
+    } else if (data.eventType === OfflineEventType.onDrmLicenseUpdated) {
+      listener.onDrmLicenseUpdated?.(data);
+    } else if (data.eventType === OfflineEventType.onDrmLicenseExpired) {
+      listener.onDrmLicenseExpired?.(data);
+    } else if (data.eventType === OfflineEventType.onSuspended) {
+      listener.onSuspended?.(data);
+    } else if (data.eventType === OfflineEventType.onResumed) {
+      listener.onResumed?.(data);
+    } else if (data.eventType === OfflineEventType.onCanceled) {
+      listener.onCanceled?.(data);
+    }
+  });
+};

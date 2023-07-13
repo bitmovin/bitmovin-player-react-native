@@ -9,7 +9,8 @@ import NativeInstance from '../nativeInstance';
 import { SourceConfig } from '../source';
 import {
   BitmovinNativeOfflineEventData,
-  OfflineEventType,
+  handleBitmovinNativeOfflineEvent,
+  OfflineContentManagerListener,
 } from './offlineContentManagerListener';
 import {
   DrmLicenseInformation,
@@ -55,6 +56,8 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   isInitialized = false;
   isDestroyed = false;
   eventSubscription?: EmitterSubscription = undefined;
+  listeners: Set<OfflineContentManagerListener> =
+    new Set<OfflineContentManagerListener>();
 
   constructor(config: OfflineContentConfig) {
     super(config);
@@ -67,42 +70,18 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   initialize = (): Promise<void> => {
     let initPromise = Promise.resolve();
     if (!this.isInitialized && this.config) {
-      if (this.config.listener) {
-        this.eventSubscription = new NativeEventEmitter(
-          OfflineModule
-        ).addListener(
-          'BitmovinOfflineEvent',
-          (data?: BitmovinNativeOfflineEventData) => {
-            if (this.nativeId !== data?.nativeId) {
-              return;
-            }
-
-            if (data.eventType === OfflineEventType.onCompleted) {
-              this.config?.listener?.onCompleted?.(data);
-            } else if (data.eventType === OfflineEventType.onError) {
-              this.config?.listener?.onError?.(data);
-            } else if (data.eventType === OfflineEventType.onProgress) {
-              this.config?.listener?.onProgress?.(data);
-            } else if (data.eventType === OfflineEventType.onOptionsAvailable) {
-              this.config?.listener?.onOptionsAvailable?.(data);
-            } else if (
-              data.eventType === OfflineEventType.onDrmLicenseUpdated
-            ) {
-              this.config?.listener?.onDrmLicenseUpdated?.(data);
-            } else if (
-              data.eventType === OfflineEventType.onDrmLicenseExpired
-            ) {
-              this.config?.listener?.onDrmLicenseExpired?.(data);
-            } else if (data.eventType === OfflineEventType.onSuspended) {
-              this.config?.listener?.onSuspended?.(data);
-            } else if (data.eventType === OfflineEventType.onResumed) {
-              this.config?.listener?.onResumed?.(data);
-            } else if (data.eventType === OfflineEventType.onCanceled) {
-              this.config?.listener?.onCanceled?.(data);
-            }
+      this.eventSubscription = new NativeEventEmitter(
+        OfflineModule
+      ).addListener(
+        'BitmovinOfflineEvent',
+        (data?: BitmovinNativeOfflineEventData) => {
+          if (this.nativeId !== data?.nativeId) {
+            return;
           }
-        );
-      }
+
+          handleBitmovinNativeOfflineEvent(data, this.listeners);
+        }
+      );
 
       initPromise = OfflineModule.initWithConfig(this.nativeId, {
         identifier: this.config.identifier,
@@ -115,12 +94,25 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   };
 
   /**
+   * Adds a listener to the receive data from the native `OfflineContentManagerListener` callbacks
+   * Returns a function that removes this listener from the `OfflineContentManager` that registered it.
+   */
+  addListener = (listener: OfflineContentManagerListener): (() => void) => {
+    this.listeners.add(listener);
+
+    return () => {
+      this.listeners.delete(listener);
+    };
+  };
+
+  /**
    * Destroys the native `OfflineManager` and releases all of its allocated resources.
    */
   destroy = (): Promise<void> => {
     if (!this.isDestroyed) {
       this.isDestroyed = true;
       this.eventSubscription?.remove?.();
+      this.listeners.clear();
 
       return OfflineModule.release(this.nativeId);
     }

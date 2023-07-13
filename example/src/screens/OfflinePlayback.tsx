@@ -76,7 +76,10 @@ export default function OfflinePlayback() {
       const newOfflineContentManager = new OfflineContentManager({
         identifier: STABLE_IDENTIFIER,
         sourceConfig: SOURCE_CONFIG,
-        listener: {
+      });
+
+      const removeOfflineContentManagerListener =
+        newOfflineContentManager.addListener({
           onCompleted: (e) => {
             onEvent(e);
             setEntryState(e.state);
@@ -95,8 +98,7 @@ export default function OfflinePlayback() {
           },
           onResumed: onEvent,
           onSuspended: onEvent,
-        },
-      });
+        });
 
       newOfflineContentManager
         .initialize()
@@ -106,6 +108,7 @@ export default function OfflinePlayback() {
         .catch(console.error);
 
       return () => {
+        removeOfflineContentManagerListener();
         newOfflineContentManager.destroy?.();
         setOfflineContentManager(undefined);
       };

@@ -1,6 +1,5 @@
 import { NativeInstanceConfig } from '../nativeInstance';
 import { SourceConfig } from '../source';
-import { OfflineContentManagerListener } from './offlineContentManagerListener';
 
 /**
  * Object used to configure a new `OfflineContentManager` instance.
@@ -15,10 +14,6 @@ export interface OfflineContentConfig extends NativeInstanceConfig {
    * The `SourceConfig` used to download the offline resources.
    */
   sourceConfig: SourceConfig;
-  /**
-   * The `OfflineContentManagerListener` where callbacks for event data will be passed to.
-   */
-  listener?: OfflineContentManagerListener;
 }
 
 /**

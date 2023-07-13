@@ -66,7 +66,6 @@ class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
         ])
     }
 
-
     /**
      Called when all actions have been suspended.
      */
