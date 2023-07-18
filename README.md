@@ -33,7 +33,7 @@ This library requires at least React Native 0.64+ and React 17+ to work properly
 - iOS 14.0+
 - tvOS 14.0+
 - Android API Level 21+
-- Android TV API Level 21+
+- Android TV API Level 24+
 - Fire TV FireOS 5.0+
 
 Please note that browsers and other browser-like environments such as webOS and Tizen are not supported. For more details regarding Bitmovin Player SDK platform and device support, please refer to the [Supported Platforms & Devices](https://developer.bitmovin.com/playback/docs/supported-platforms-devices-player) page of our documentation.
