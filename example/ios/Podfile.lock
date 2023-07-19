@@ -272,6 +272,8 @@ PODS:
   - React-jsinspector (0.69.6-2)
   - React-logger (0.69.6-2):
     - glog
+  - react-native-orientation-locker (1.5.0):
+    - React-Core
   - react-native-safe-area-context (4.3.1):
     - RCT-Folly
     - RCTRequired
@@ -397,6 +399,7 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
+  - react-native-orientation-locker (from `../node_modules/react-native-orientation-locker`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
@@ -478,6 +481,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
   React-logger:
     :path: "../node_modules/react-native/ReactCommon/logger"
+  react-native-orientation-locker:
+    :path: "../node_modules/react-native-orientation-locker"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   React-perflogger:
@@ -547,6 +552,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: c83eedc4e1f901add32d31ea9996313bc0701816
   React-jsinspector: 392a5ab785fe93b2d561729feef37a72c46f0aad
   React-logger: 8daf6ad98634b54430fada5c3710515211c6115a
+  react-native-orientation-locker: 851f6510d8046ea2f14aa169b1e01fcd309a94ba
   react-native-safe-area-context: 6c12e3859b6f27b25de4fee8201cfb858432d8de
   React-perflogger: da6bbceb96facda672b35dc7362dd6bf54ff6774
   React-RCTAnimation: aa95cd5bd5418b5d8569b31775e79818110ed90b

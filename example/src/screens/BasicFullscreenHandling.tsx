@@ -1,17 +1,19 @@
-import React, { useCallback, useState } from 'react';
-import { View, Platform, StyleSheet, StatusBar } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import {
+  AdSourceType,
+  AudioSession,
   Event,
-  usePlayer,
+  FullscreenHandler,
   PlayerView,
   SourceType,
-  AudioSession,
-  FullscreenHandler,
+  usePlayer,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import { RootStackParamsList } from '../App';
+import Orientation from 'react-native-orientation-locker';
 
 type BasicFullscreenHandlingProps = NativeStackScreenProps<
   RootStackParamsList,
@@ -38,6 +40,7 @@ class SampleFullscreenHandler implements FullscreenHandler {
     this.onFullscreen(true);
     StatusBar.setHidden(true);
     this.isFullscreenActive = true;
+    Orientation.lockToLandscape();
     console.log('enter fullscreen');
   }
 
@@ -45,24 +48,70 @@ class SampleFullscreenHandler implements FullscreenHandler {
     this.onFullscreen(false);
     StatusBar.setHidden(false);
     this.isFullscreenActive = false;
+    Orientation.unlockAllOrientations();
     console.log('exit fullscreen');
   }
 }
+
+const withCorrelator = (tag: string): string =>
+  `${tag}${Math.floor(Math.random() * 100000)}`;
+
+const adTags = {
+  vastSkippable: withCorrelator(
+    'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dskippablelinear&correlator='
+  ),
+  vast1: withCorrelator(
+    'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator='
+  ),
+  vast2: withCorrelator(
+    'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/ad_rule_samples&ciu_szs=300x250&ad_rule=1&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ar%3Dpostonly&cmsid=496&vid=short_onecue&correlator='
+  ),
+};
+
+const advertisingConfig = {
+  schedule: [
+    // First ad item at "pre" (default) position.
+    {
+      sources: [
+        {
+          tag: adTags.vastSkippable,
+          type: AdSourceType.IMA,
+        },
+      ],
+    },
+    // Second ad item at "20%" position.
+    {
+      position: '20%',
+      sources: [
+        {
+          tag: adTags.vast1,
+          type: AdSourceType.IMA,
+        },
+      ],
+    },
+  ],
+};
+
 export default function BasicFullscreenHandling({
   navigation,
 }: BasicFullscreenHandlingProps) {
   useTVGestures();
 
-  const player = usePlayer();
+  const player = usePlayer({
+    playbackConfig: {
+      isAutoplayEnabled: true,
+    },
+    advertisingConfig: advertisingConfig,
+  });
 
   const [fullscreenMode, setFullscreenMode] = useState(false);
-  const fullscreenHandler = new SampleFullscreenHandler(
-    fullscreenMode,
-    (isFullscreen: boolean) => {
+  const fullscreenHandler = useRef(
+    new SampleFullscreenHandler(fullscreenMode, (isFullscreen: boolean) => {
+      console.log('on fullscreen change');
       setFullscreenMode(isFullscreen);
       navigation.setOptions({ headerShown: !isFullscreen });
-    }
-  );
+    })
+  ).current;
   useFocusEffect(
     useCallback(() => {
       // iOS audio session must be set to `playback` first otherwise PiP mode won't work.
@@ -77,7 +126,6 @@ export default function BasicFullscreenHandling({
           error
         );
       });
-
       // Load desired source configuration
       player.load({
         url:
@@ -93,6 +141,14 @@ export default function BasicFullscreenHandling({
         player.destroy();
       };
     }, [player])
+  );
+  useFocusEffect(
+    useCallback(() => {
+      fullscreenHandler.enterFullscreen();
+      return () => {
+        fullscreenHandler.exitFullscreen();
+      };
+    }, [fullscreenHandler])
   );
 
   const onEvent = useCallback((event: Event) => {
