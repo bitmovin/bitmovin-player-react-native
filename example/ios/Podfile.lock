@@ -80,7 +80,7 @@ PODS:
   - fmt (7.1.3)
   - glog (0.3.5)
   - GoogleAds-IMA-iOS-SDK (3.18.4)
-  - GoogleAds-IMA-tvOS-SDK (4.6.1)
+  - GoogleAds-IMA-tvOS-SDK (4.8.2)
   - libevent (2.1.12.1)
   - OpenSSL-Universal (1.1.1100)
   - RCT-Folly (2021.06.28.00-v2):
@@ -341,7 +341,7 @@ PODS:
     - BitmovinAnalyticsCollector/Core (= 2.9.4)
     - BitmovinPlayer (= 3.41.2)
     - GoogleAds-IMA-iOS-SDK (= 3.18.4)
-    - GoogleAds-IMA-tvOS-SDK (= 4.6.1)
+    - GoogleAds-IMA-tvOS-SDK (= 4.8.2)
     - React-Core
   - RNCPicker (2.4.2):
     - React-Core

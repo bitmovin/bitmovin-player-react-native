@@ -23,5 +23,5 @@ Pod::Spec.new do |s|
   s.dependency "BitmovinAnalyticsCollector/Core", "2.9.4"
   s.dependency "BitmovinAnalyticsCollector/BitmovinPlayer", "2.9.4"
   s.ios.dependency "GoogleAds-IMA-iOS-SDK", "3.18.4"
-  s.tvos.dependency "GoogleAds-IMA-tvOS-SDK", "4.6.1"
+  s.tvos.dependency "GoogleAds-IMA-tvOS-SDK", "4.8.2"
 end
