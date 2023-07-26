@@ -57,6 +57,11 @@ class FullscreenHandlerModule: NSObject, RCTBridgeModule {
         fullscreenHandlers[nativeId] = FullscreenHandlerBridge(nativeId, bridge: bridge)
     }
 
+    @objc(setIsFullscreenActive:isFullscreen:)
+    func setIsFullscreenActive(_ nativeId: NativeId, isFullscreen: Bool) {
+        fullscreenHandlers[nativeId]?.isFullscreen = isFullscreen
+    }
+
     func onFullscreenRequested(nativeId: NativeId) {
         fullscreenChangeDispatchGroup.enter()
         bridge.enqueueJSCall("FullscreenBridge-\(nativeId)", method: "enterFullscreen", args: []) {}

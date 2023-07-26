@@ -23,6 +23,20 @@ export class FullscreenHandlerBridge {
     FullscreenHandlerModule.registerHandler(this.nativeId);
   }
 
+  setFullscreenHandler(fullscreenHandler: FullscreenHandler | undefined) {
+    if (this.fullscreenHandler === fullscreenHandler) {
+      return;
+    }
+
+    this.fullscreenHandler = fullscreenHandler;
+
+    // synchronize current state from fullscreenHandler to native
+    FullscreenHandlerModule.setIsFullscreenActive(
+      this.nativeId,
+      fullscreenHandler?.isFullscreenActive ?? false
+    );
+  }
+
   /**
    * Destroys the native FullscreenHandler
    */
