@@ -38,6 +38,8 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
   fullscreenHandler?: FullscreenHandler;
 
   customMessageHandler?: CustomMessageHandler;
+
+  isFullscreen?: Boolean;
 }
 
 /**
@@ -73,6 +75,7 @@ export function PlayerView({
   player,
   fullscreenHandler,
   customMessageHandler,
+  isFullscreen = false,
   ...props
 }: PlayerViewProps) {
   // Native view reference.
@@ -128,6 +131,7 @@ export function PlayerView({
         );
       }
     }
+
     return () => {
       fullscreenBridge.current?.destroy();
       fullscreenBridge.current = undefined;
@@ -135,6 +139,13 @@ export function PlayerView({
       customMessageHandlerBridge.current = undefined;
     };
   }, [player]);
+
+  useEffect(() => {
+    const node = findNodeHandle(nativeView.current);
+    if (node) {
+      dispatch('setFullscreen', node, isFullscreen);
+    }
+  }, [isFullscreen, nativeView]);
   return (
     <NativePlayerView
       ref={nativeView}
