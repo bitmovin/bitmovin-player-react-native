@@ -35,10 +35,22 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
    */
   player: Player;
 
+  /**
+   * The `FullscreenHandler` that is used by the `PlayerView` to control the fullscreen mode.
+   */
   fullscreenHandler?: FullscreenHandler;
 
+  /**
+   * The `CustomMessageHandler` that can be used to directly communicate with the embedded WebUi.
+   */
   customMessageHandler?: CustomMessageHandler;
 
+  /**
+   * Can be set to `true` to enter fullscreen mode, or `false` to exit fullscreen mode.
+   * By using this property to change the fullscreen state, we make sure that the embedded Player UI is also aware
+   * of potential fullscreen state changes.
+   * To use this property, a `FullscreenHandler` must be set.
+   */
   isFullscreen?: Boolean;
 }
 
