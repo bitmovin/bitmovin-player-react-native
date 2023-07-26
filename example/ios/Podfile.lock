@@ -79,8 +79,8 @@ PODS:
     - FlipperKit/FlipperKitNetworkPlugin
   - fmt (7.1.3)
   - glog (0.3.5)
-  - GoogleAds-IMA-iOS-SDK (3.17.0)
-  - GoogleAds-IMA-tvOS-SDK (4.6.1)
+  - GoogleAds-IMA-iOS-SDK (3.18.4)
+  - GoogleAds-IMA-tvOS-SDK (4.8.2)
   - libevent (2.1.12.1)
   - OpenSSL-Universal (1.1.1100)
   - RCT-Folly (2021.06.28.00-v2):
@@ -340,15 +340,15 @@ PODS:
     - BitmovinAnalyticsCollector/BitmovinPlayer (= 2.9.4)
     - BitmovinAnalyticsCollector/Core (= 2.9.4)
     - BitmovinPlayer (= 3.41.2)
-    - GoogleAds-IMA-iOS-SDK (= 3.17.0)
-    - GoogleAds-IMA-tvOS-SDK (= 4.6.1)
+    - GoogleAds-IMA-iOS-SDK (= 3.18.4)
+    - GoogleAds-IMA-tvOS-SDK (= 4.8.2)
     - React-Core
   - RNCPicker (2.4.2):
     - React-Core
   - RNScreens (3.15.0):
     - React-Core
     - React-RCTImage
-  - SocketRocket (0.6.0)
+  - SocketRocket (0.6.1)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -529,8 +529,8 @@ SPEC CHECKSUMS:
   FlipperKit: feec58b1283d3560c703adc670c45ecf400c48d9
   fmt: 135c0c55547979f715b56dfa54037ececa96d07a
   glog: bac6d5aa2990176cc22d0432fb3e28805d580aeb
-  GoogleAds-IMA-iOS-SDK: a44060982578cc9a44efd0ab4e0f02f07ac29670
-  GoogleAds-IMA-tvOS-SDK: 86df385a513f50a9deb0b37e35f1478089ce5158
+  GoogleAds-IMA-iOS-SDK: b01284e3bf3d64ba948de6692ffda531452c3713
+  GoogleAds-IMA-tvOS-SDK: 2dda9d3b34c43003222d3417315fecec22b698a1
   libevent: a6d75fcd7be07cbc5070300ea8dbc8d55dfab88e
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   RCT-Folly: 6955e7728b76277c5df5a5aba37ee1ff1dd99976
@@ -558,10 +558,10 @@ SPEC CHECKSUMS:
   React-RCTText: f72442f7436fd8624494963af4906000a5465ce6
   React-runtimeexecutor: f1383f6460ea3d66ed122b4defb0b5ba664ee441
   ReactCommon: 7857ab475239c5ba044b7ed946ba564f2e7f1626
-  RNBitmovinPlayer: 487af99b7d6bc1132856bdcadbe8e8972574508c
+  RNBitmovinPlayer: 1d10986dbfcd8cde4b8bd35ee8170923ea736306
   RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
-  SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
+  SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: be4fede0339d862989f5b064f8939c7429ad92c9
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
