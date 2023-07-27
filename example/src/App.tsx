@@ -17,6 +17,7 @@ import CustomPlayback from './screens/CustomPlayback';
 import BasicPictureInPicture from './screens/BasicPictureInPicture';
 import CustomHtmlUi from './screens/CustomHtmlUi';
 import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
+import LandscapeFullscreenHandling from './screens/LandscapeFullscreenHandling';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -31,6 +32,9 @@ export type RootStackParamsList = {
   BasicDrmPlayback: undefined;
   BasicPictureInPicture: undefined;
   BasicFullscreenHandling: {
+    navigation: NativeStackNavigationProp<RootStackParamsList>;
+  };
+  LandscapeFullscreenHandling: {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
   };
   SubtitlePlayback: undefined;
@@ -97,6 +101,10 @@ export default function App() {
     stackParams.data.push({
       title: 'Basic Fullscreen handling',
       routeName: 'BasicFullscreenHandling',
+    });
+    stackParams.data.push({
+      title: 'Landscape Fullscreen handling',
+      routeName: 'LandscapeFullscreenHandling',
     });
   }
 
@@ -182,6 +190,13 @@ export default function App() {
             name="BasicFullscreenHandling"
             component={BasicFullscreenHandling}
             options={{ title: 'Basic Fullscreen Handling' }}
+          />
+        )}
+        {!Platform.isTV && (
+          <RootStack.Screen
+            name="LandscapeFullscreenHandling"
+            component={LandscapeFullscreenHandling}
+            options={{ title: 'Lanscape Fullscreen Handling' }}
           />
         )}
       </RootStack.Navigator>
