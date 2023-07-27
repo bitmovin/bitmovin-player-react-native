@@ -59,7 +59,9 @@ export default function BasicFullscreenHandling({
   const fullscreenHandler = useRef(
     new SampleFullscreenHandler(fullscreenMode, (isFullscreen: boolean) => {
       setFullscreenMode(isFullscreen);
-      navigation.setOptions({ headerShown: !isFullscreen });
+      navigation.setOptions({
+        headerShown: !isFullscreen, // show/hide top bar
+      });
     })
   ).current;
   useFocusEffect(
