@@ -103,7 +103,6 @@ export default function BasicFullscreenHandling({
     <View style={styles.container}>
       <PlayerView
         player={player}
-        isFullscreen={false}
         style={fullscreenMode ? styles.playerFullscreen : styles.player}
         fullscreenHandler={fullscreenHandler}
         onFullscreenEnter={onEvent}
