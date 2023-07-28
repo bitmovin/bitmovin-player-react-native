@@ -37,7 +37,6 @@ class SampleFullscreenHandler implements FullscreenHandler {
   }
 
   enterFullscreen(): void {
-    this.onFullscreen(true);
     this.isFullscreenActive = true;
     if (Platform.OS === 'android') {
       // Hides navigation and status bar on Android
@@ -48,10 +47,11 @@ class SampleFullscreenHandler implements FullscreenHandler {
     }
     Orientation.lockToLandscape();
     console.log('enter fullscreen');
+    this.onFullscreen(true);
   }
 
   exitFullscreen(): void {
-    this.onFullscreen(false);
+    this.isFullscreenActive = false;
     if (Platform.OS === 'android') {
       // shows navigation and status bar on Android
       SystemNavigationBar.stickyImmersive(false);
@@ -59,9 +59,9 @@ class SampleFullscreenHandler implements FullscreenHandler {
       // shows status bar on iOS
       StatusBar.setHidden(false);
     }
-    this.isFullscreenActive = false;
     Orientation.unlockAllOrientations();
     console.log('exit fullscreen');
+    this.onFullscreen(false);
   }
 }
 
