@@ -133,9 +133,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * to call 'functions' on them.
      * @return map between names (used in js) and command ids (used in native code).
      */
-    override fun getCommandsMap(): MutableMap<String, Int> = Commands.values().associate {
+    override fun getCommandsMap(): Map<String, Int> = Commands.values().associate {
         it.command to it.ordinal
-    }.toMutableMap()
+    }
 
     /**
      * Callback triggered in response to command dispatches from the js side.
@@ -144,7 +144,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @param args Arguments list sent from the js side.
      */
     override fun receiveCommand(view: RNPlayerView, commandId: String?, args: ReadableArray?) {
-        val command = commandId?.toInt()?.toCommand() ?: return
+        val command = commandId?.toInt()?.toCommand() ?: throw IllegalArgumentException(
+            "The received command is not supported by the Bitmovin Player View"
+        )
         when (command) {
             Commands.ATTACH_PLAYER -> attachPlayer(view, args?.getString(1), args?.getMap(2))
             Commands.ATTACH_FULLSCREEN_BRIDGE -> args?.getString(1)?.let { fullscreenBridgeId ->
