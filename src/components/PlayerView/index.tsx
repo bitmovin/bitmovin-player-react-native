@@ -106,7 +106,7 @@ export function PlayerView({
     fullscreenBridge.current = new FullscreenHandlerBridge();
   }
   if (fullscreenBridge.current) {
-    fullscreenBridge.current.fullscreenHandler = fullscreenHandler;
+    fullscreenBridge.current.setFullscreenHandler(fullscreenHandler);
   }
 
   const customMessageHandlerBridge: React.MutableRefObject<
