@@ -134,7 +134,7 @@ export default function LandscapeFullscreenHandling({
     <View style={styles.container}>
       <PlayerView
         player={player}
-        isFullscreen={fullscreenMode}
+        isFullscreenRequested={fullscreenMode}
         style={fullscreenMode ? styles.playerFullscreen : styles.player}
         fullscreenHandler={fullscreenHandler}
         onFullscreenEnter={onEvent}
