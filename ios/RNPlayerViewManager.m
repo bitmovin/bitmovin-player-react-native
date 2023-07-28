@@ -56,6 +56,6 @@ RCT_EXPORT_VIEW_PROPERTY(onFullscreenExit, RCTBubblingEventBlock)
 RCT_EXTERN_METHOD(attachPlayer:(nonnull NSNumber *)viewId playerId:(NSString *)playerId playerConfig:(nullable NSDictionary *)playerConfig)
 RCT_EXTERN_METHOD(attachFullscreenBridge:(nonnull NSNumber *)viewId fullscreenBridgeId:(NSString *)fullscreenBridgeId)
 RCT_EXTERN_METHOD(setCustomMessageHandlerBridgeId:(nonnull NSNumber *)viewId customMessageHandlerBridgeId:(NSString *)fullscreenBridgeId)
- RCT_EXTERN_METHOD(setFullscreen:(nonnull NSNumber *)viewId isFullscreen:(BOOL)isFullscreen)
+RCT_EXTERN_METHOD(setFullscreen:(nonnull NSNumber *)viewId isFullscreen:(BOOL)isFullscreen)
 
 @end

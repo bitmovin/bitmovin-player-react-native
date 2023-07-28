@@ -47,7 +47,9 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
 
   /**
    * Can be set to `true` to enter fullscreen mode, or `false` to exit fullscreen mode.
-   * By using this property to change the fullscreen state, we make sure that the embedded Player UI is also aware
+   * Should not be used to get the current fullscreen state. Use `onFullscreenEnter` and `onFullscreenExit`
+   * or the `FullscreenHandler.isFullscreenActive` property to get the current state.
+   * By using this property to change the fullscreen state, it is ensured that the embedded Player UI is also aware
    * of potential fullscreen state changes.
    * To use this property, a `FullscreenHandler` must be set.
    */
@@ -104,7 +106,7 @@ export function PlayerView({
     fullscreenBridge.current = new FullscreenHandlerBridge();
   }
   if (fullscreenBridge.current) {
-    fullscreenBridge.current.fullscreenHandler = fullscreenHandler;
+    fullscreenBridge.current.setFullscreenHandler(fullscreenHandler);
   }
 
   const customMessageHandlerBridge: React.MutableRefObject<

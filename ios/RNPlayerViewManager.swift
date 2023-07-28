@@ -82,7 +82,7 @@ class RNPlayerViewManager: RCTViewManager {
              guard let playerView = view.playerView else {
                  return
              }
-             if playerView.isFullscreen == isFullscreen {
+             guard playerView.isFullscreen != isFullscreen else {
                  return
              }
              if isFullscreen {

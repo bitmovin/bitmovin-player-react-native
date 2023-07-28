@@ -67,6 +67,11 @@ class FullscreenHandlerModule(private val context: ReactApplicationContext) : Re
     }
 
     @ReactMethod
+    fun setIsFullscreenActive(nativeId: NativeId, isFullscreenActive: Boolean) {
+        fullscreenHandler[nativeId]?.isFullscreen = isFullscreenActive
+    }
+
+    @ReactMethod
     fun destroy(nativeId: NativeId) {
         fullscreenHandler.remove(nativeId)
     }
