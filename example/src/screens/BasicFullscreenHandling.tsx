@@ -12,6 +12,7 @@ import {
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import { RootStackParamsList } from '../App';
+import SystemNavigationBar from 'react-native-system-navigation-bar';
 
 type BasicFullscreenHandlingProps = NativeStackScreenProps<
   RootStackParamsList,
@@ -36,14 +37,26 @@ class SampleFullscreenHandler implements FullscreenHandler {
 
   enterFullscreen(): void {
     this.isFullscreenActive = true;
-    StatusBar.setHidden(true);
+    if (Platform.OS === 'android') {
+      // Hides navigation and status bar on Android
+      SystemNavigationBar.stickyImmersive(true);
+    } else {
+      // Hides status bar on iOS
+      StatusBar.setHidden(true);
+    }
     console.log('enter fullscreen');
     this.onFullscreen(true);
   }
 
   exitFullscreen(): void {
     this.isFullscreenActive = false;
-    StatusBar.setHidden(false);
+    if (Platform.OS === 'android') {
+      // shows navigation and status bar on Android
+      SystemNavigationBar.stickyImmersive(false);
+    } else {
+      // shows status bar on iOS
+      StatusBar.setHidden(false);
+    }
     console.log('exit fullscreen');
     this.onFullscreen(false);
   }
