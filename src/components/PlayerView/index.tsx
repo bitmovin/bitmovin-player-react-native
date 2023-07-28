@@ -46,14 +46,14 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
   customMessageHandler?: CustomMessageHandler;
 
   /**
-   * Can be set to `true` to enter fullscreen mode, or `false` to exit fullscreen mode.
+   * Can be set to `true` to request fullscreen mode, or `false` to request exit of fullscreen mode.
    * Should not be used to get the current fullscreen state. Use `onFullscreenEnter` and `onFullscreenExit`
    * or the `FullscreenHandler.isFullscreenActive` property to get the current state.
-   * By using this property to change the fullscreen state, it is ensured that the embedded Player UI is also aware
+   * Using this property to change the fullscreen state, it is ensured that the embedded Player UI is also aware
    * of potential fullscreen state changes.
    * To use this property, a `FullscreenHandler` must be set.
    */
-  isFullscreen?: Boolean;
+  isFullscreenRequested?: Boolean;
 }
 
 /**
@@ -89,7 +89,7 @@ export function PlayerView({
   player,
   fullscreenHandler,
   customMessageHandler,
-  isFullscreen = false,
+  isFullscreenRequested = false,
   ...props
 }: PlayerViewProps) {
   // Native view reference.
@@ -157,9 +157,9 @@ export function PlayerView({
   useEffect(() => {
     const node = findNodeHandle(nativeView.current);
     if (node) {
-      dispatch('setFullscreen', node, isFullscreen);
+      dispatch('setFullscreen', node, isFullscreenRequested);
     }
-  }, [isFullscreen, nativeView]);
+  }, [isFullscreenRequested, nativeView]);
   return (
     <NativePlayerView
       ref={nativeView}
