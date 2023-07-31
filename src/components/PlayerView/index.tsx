@@ -57,7 +57,6 @@ function dispatch(command: string, node: NodeHandle, ...args: any[]) {
     Platform.OS === 'android'
       ? (UIManager as any).NativePlayerView.Commands[command].toString()
       : UIManager.getViewManagerConfig('NativePlayerView').Commands[command];
-  //console.log("dispatching command %s", command)
   UIManager.dispatchViewManagerCommand(
     node,
     commandId,
@@ -76,7 +75,6 @@ export function PlayerView({
   customMessageHandler,
   ...props
 }: PlayerViewProps) {
-  // Native view reference.
   const fakeStateUpdater = useState(1)[1];
   const workaroundViewManagerCommandNotSent = useCallback(() => {
     setTimeout(
