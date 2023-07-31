@@ -6,4 +6,5 @@ RCT_EXTERN_METHOD(destroy:(NSString *)nativeId)
 
 RCT_EXTERN__BLOCKING_SYNCHRONOUS_METHOD(onFullscreenChanged:(NSString *)nativeId isFullscreenEnabled:(BOOL)isFullscreenEnabled)
 RCT_EXTERN_METHOD(registerHandler:(NSString *)nativeId)
+RCT_EXTERN_METHOD(setIsFullscreenActive:(NSString *)nativeId isFullscreen:(BOOL)isFullscreen)
 @end
