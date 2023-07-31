@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import {
   Platform,
   UIManager,
@@ -92,7 +92,17 @@ export function PlayerView({
   isFullscreenRequested = false,
   ...props
 }: PlayerViewProps) {
-  // Native view reference.
+  const fakeStateUpdater = useState(1)[1];
+  const workaroundViewManagerCommandNotSent = useCallback(() => {
+    setTimeout(
+      () =>
+        fakeStateUpdater((i) => {
+          console.log('Workaround #163'); // Player will not load 1/10th if this log is removed :((((
+          return i + 1;
+        }),
+      100
+    );
+  }, [fakeStateUpdater]);
   const nativeView = useRef(null);
   // Native events proxy helper.
   const proxy = useProxy(nativeView);
@@ -144,6 +154,11 @@ export function PlayerView({
           fullscreenBridge.current.nativeId
         );
       }
+      // Workaround React Native Command not sent until UI refresh
+      // See: https://github.com/bitmovin/bitmovin-player-react-native/issues/163
+      // Seems to be a dup of https://github.com/microsoft/react-native-windows/issues/7543
+      // Remove the workaround when React Native is updated
+      workaroundViewManagerCommandNotSent();
     }
 
     return () => {
@@ -152,7 +167,7 @@ export function PlayerView({
       customMessageHandlerBridge.current?.destroy();
       customMessageHandlerBridge.current = undefined;
     };
-  }, [player]);
+  }, [player, workaroundViewManagerCommandNotSent]);
 
   useEffect(() => {
     const node = findNodeHandle(nativeView.current);
