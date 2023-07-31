@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.8.0] (2023-07-31)
+
+### Added
+
+- Support for programmatic fullscreen request (`PlayerView.isFullscreenRequested`)
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.41.2`.
+- Update Bitmovin's native Android SDK version to `3.40.0`.
+- Update IMA SDK dependency on iOS to `3.18.4`, respectively `4.8.2` for tvOS
+- Update IMA SDK dependency on Android to `3.29.0`
+
+### Fixed
+
+- Android: Sporadic black screen after initialization
+
 ## [0.7.2] (2023-07-03)
 
 ### Fixed
