@@ -3,9 +3,9 @@ PODS:
     - BitmovinAnalyticsCollector/Core
     - BitmovinPlayer (~> 3.0)
   - BitmovinAnalyticsCollector/Core (2.9.4)
-  - BitmovinPlayer (3.41.0):
-    - BitmovinPlayerCore (= 3.41.0)
-  - BitmovinPlayerCore (3.41.0)
+  - BitmovinPlayer (3.41.2):
+    - BitmovinPlayerCore (= 3.41.2)
+  - BitmovinPlayerCore (3.41.2)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -79,8 +79,8 @@ PODS:
     - FlipperKit/FlipperKitNetworkPlugin
   - fmt (7.1.3)
   - glog (0.3.5)
-  - GoogleAds-IMA-iOS-SDK (3.17.0)
-  - GoogleAds-IMA-tvOS-SDK (4.6.1)
+  - GoogleAds-IMA-iOS-SDK (3.18.4)
+  - GoogleAds-IMA-tvOS-SDK (4.8.2)
   - libevent (2.1.12.1)
   - OpenSSL-Universal (1.1.1100)
   - RCT-Folly (2021.06.28.00-v2):
@@ -272,6 +272,8 @@ PODS:
   - React-jsinspector (0.69.6-2)
   - React-logger (0.69.6-2):
     - glog
+  - react-native-orientation-locker (1.5.0):
+    - React-Core
   - react-native-safe-area-context (4.3.1):
     - RCT-Folly
     - RCTRequired
@@ -336,19 +338,19 @@ PODS:
     - React-jsi (= 0.69.6-2)
     - React-logger (= 0.69.6-2)
     - React-perflogger (= 0.69.6-2)
-  - RNBitmovinPlayer (0.7.2):
+  - RNBitmovinPlayer (0.8.0):
     - BitmovinAnalyticsCollector/BitmovinPlayer (= 2.9.4)
     - BitmovinAnalyticsCollector/Core (= 2.9.4)
-    - BitmovinPlayer (= 3.41.0)
-    - GoogleAds-IMA-iOS-SDK (= 3.17.0)
-    - GoogleAds-IMA-tvOS-SDK (= 4.6.1)
+    - BitmovinPlayer (= 3.41.2)
+    - GoogleAds-IMA-iOS-SDK (= 3.18.4)
+    - GoogleAds-IMA-tvOS-SDK (= 4.8.2)
     - React-Core
   - RNCPicker (2.4.2):
     - React-Core
   - RNScreens (3.15.0):
     - React-Core
     - React-RCTImage
-  - SocketRocket (0.6.0)
+  - SocketRocket (0.6.1)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -397,6 +399,7 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
+  - react-native-orientation-locker (from `../node_modules/react-native-orientation-locker`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
@@ -478,6 +481,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
   React-logger:
     :path: "../node_modules/react-native/ReactCommon/logger"
+  react-native-orientation-locker:
+    :path: "../node_modules/react-native-orientation-locker"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   React-perflogger:
@@ -511,8 +516,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   BitmovinAnalyticsCollector: e80b02754019632340556a509fc4268dbad6f219
-  BitmovinPlayer: c8d7beb310c37df057191235cb6da5441cbe8bee
-  BitmovinPlayerCore: 13f01b25795969e312b1e5ba036789a12057eb27
+  BitmovinPlayer: d6dfadb088e7c69412a85afd7ca48a94594edb35
+  BitmovinPlayerCore: 12721d2d25e1c60f6099585fb8e413052c7be458
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 234abba95e31cc2aada0cf3b97cdb11bc5b90575
@@ -529,8 +534,8 @@ SPEC CHECKSUMS:
   FlipperKit: feec58b1283d3560c703adc670c45ecf400c48d9
   fmt: 135c0c55547979f715b56dfa54037ececa96d07a
   glog: bac6d5aa2990176cc22d0432fb3e28805d580aeb
-  GoogleAds-IMA-iOS-SDK: a44060982578cc9a44efd0ab4e0f02f07ac29670
-  GoogleAds-IMA-tvOS-SDK: 86df385a513f50a9deb0b37e35f1478089ce5158
+  GoogleAds-IMA-iOS-SDK: b01284e3bf3d64ba948de6692ffda531452c3713
+  GoogleAds-IMA-tvOS-SDK: 2dda9d3b34c43003222d3417315fecec22b698a1
   libevent: a6d75fcd7be07cbc5070300ea8dbc8d55dfab88e
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   RCT-Folly: 6955e7728b76277c5df5a5aba37ee1ff1dd99976
@@ -547,6 +552,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: c83eedc4e1f901add32d31ea9996313bc0701816
   React-jsinspector: 392a5ab785fe93b2d561729feef37a72c46f0aad
   React-logger: 8daf6ad98634b54430fada5c3710515211c6115a
+  react-native-orientation-locker: 851f6510d8046ea2f14aa169b1e01fcd309a94ba
   react-native-safe-area-context: 6c12e3859b6f27b25de4fee8201cfb858432d8de
   React-perflogger: da6bbceb96facda672b35dc7362dd6bf54ff6774
   React-RCTAnimation: aa95cd5bd5418b5d8569b31775e79818110ed90b
@@ -558,13 +564,13 @@ SPEC CHECKSUMS:
   React-RCTText: f72442f7436fd8624494963af4906000a5465ce6
   React-runtimeexecutor: f1383f6460ea3d66ed122b4defb0b5ba664ee441
   ReactCommon: 7857ab475239c5ba044b7ed946ba564f2e7f1626
-  RNBitmovinPlayer: cbce3c7bae12e95bb7a79988647ef73241c07c42
+  RNBitmovinPlayer: ed589b4949f06568e941c20e9e85c12a0f95971c
   RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
-  SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
+  SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: be4fede0339d862989f5b064f8939c7429ad92c9
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 501efef2066a65008b66c5de2015a0f7d3544f38
+PODFILE CHECKSUM: 17edad94fe5400835da9693908179afef9ec7372
 
 COCOAPODS: 1.11.3

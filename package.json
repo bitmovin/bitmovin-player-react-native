@@ -1,6 +1,6 @@
 {
   "name": "bitmovin-player-react-native",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "Official React Native bindings for Bitmovin's mobile Player SDKs.",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
@@ -28,7 +28,9 @@
     "format": "prettier --write .",
     "build": "tsup ./src/index.ts --dts --target es2020 --format cjs,esm -d lib",
     "example": "yarn --cwd example",
-    "pods": "cd example/ios && bundle install && bundle exec pod install --silent",
+    "pods": "yarn pods-install || yarn pods-install --repo-update || yarn pods-update",
+    "pods-install": "cd example/ios && bundle install && bundle exec pod install --silent",
+    "pods-update": "cd example/ios && bundle install && bundle exec pod update --silent",
     "bootstrap": "yarn && yarn example && yarn pods",
     "prepare": "husky install"
   },
