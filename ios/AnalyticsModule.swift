@@ -1,5 +1,5 @@
 import BitmovinPlayer
-import BitmovinAnalyticsCollector
+import BitmovinCollector
 
 @objc(AnalyticsModule)
 class AnalyticsModule: NSObject, RCTBridgeModule {
@@ -118,37 +118,50 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
     /**
      Sets the custom data config for a `BitmovinPlayerCollector` instance.
      - Parameter nativeId: Native Id of the collector instance.
+     - Parameter playerId: Native Id of the player instance.
      - Parameter json: Custom data config json.
      */
-    @objc(setCustomData:json:)
-    func setCustomData(_ nativeId: NativeId, json: Any?) {
+    @objc(setCustomData:playerId:json:)
+    func setCustomData(
+        _ nativeId: NativeId,
+        playerId: NativeId?,
+        json: Any?
+    ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let collector = self?.collectors[nativeId],
-                let customData = RCTConvert.analyticsCustomData(json)
+                let customData = RCTConvert.analyticsCustomData(json),
+                let playerId = playerId,
+                let player = self?.bridge[PlayerModule.self]?.retrieve(playerId),
+                let source = player.source
             else {
                 return
             }
-            collector.setCustomData(customData: customData)
+            collector.apply(customData: customData, for: source)
         }
     }
 
     /**
      Gets the current custom data config for a `BitmovinPlayerCollector` instance.
      - Parameter nativeId: Native Id of the the collector instance.
+     - Parameter playerId: Native Id of the player instance.
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc(getCustomData:resolver:rejecter:)
+    @objc(getCustomData:playerId:resolver:rejecter:)
     func getCustomData(
         _ nativeId: NativeId,
+        playerId: NativeId?,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let collector = self?.collectors[nativeId],
-                let customData = RCTConvert.toJson(analyticsCustomData: collector.getCustomData())
+                let playerId = playerId,
+                let player = self?.bridge[PlayerModule.self]?.retrieve(playerId),
+                let source = player.source,
+                let customData = RCTConvert.toJson(analyticsCustomData: collector.customData(for: source))
             else {
                 reject("[AnalyticsModule]", "Could not find analytics collector with ID (\(nativeId))", nil)
                 return
@@ -160,6 +173,7 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
     /**
      Gets the current user Id for a `BitmovinPlayerCollector` instance.
      - Parameter nativeId: Native Id of the the collector instance.
+     - Parameter playerId: Native Id of the player instance.
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
