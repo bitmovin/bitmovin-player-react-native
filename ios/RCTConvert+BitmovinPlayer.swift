@@ -644,6 +644,7 @@ extension RCTConvert {
         config.customData28 = json["customData28"] as? String
         config.customData29 = json["customData29"] as? String
         config.customData30 = json["customData30"] as? String
+        config.experimentName = json["experimentName"] as? String
         return config
     }
 
@@ -686,7 +687,8 @@ extension RCTConvert {
             customData27: json["customData27"] as? String,
             customData28: json["customData28"] as? String,
             customData29: json["customData29"] as? String,
-            customData30: json["customData30"] as? String
+            customData30: json["customData30"] as? String,
+            experimentName: json["experimentName"] as? String
         )
     }
 
@@ -730,6 +732,7 @@ extension RCTConvert {
         json["customData28"] = analyticsCustomData.customData28
         json["customData29"] = analyticsCustomData.customData29
         json["customData30"] = analyticsCustomData.customData30
+        json["experimentName"] = analyticsCustomData.experimentName
         return json
     }
     /**

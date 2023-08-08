@@ -215,4 +215,9 @@ export interface CustomDataConfig {
    * Optional free-form custom data
    */
   customData30?: string;
+
+  /**
+   * Optional free-form label
+   */
+  experimentName?: string;
 }

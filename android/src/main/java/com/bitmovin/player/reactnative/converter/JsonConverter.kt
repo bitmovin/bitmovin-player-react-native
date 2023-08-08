@@ -784,6 +784,9 @@ class JsonConverter {
                     customData.setProperty("customData${n}", customDataN)
                 }
             }
+            it.getString("experimentName")?.let { experimentName ->
+                customData.experimentName = experimentName
+            }
             customData
         }
 
@@ -799,6 +802,9 @@ class JsonConverter {
                 it.getProperty<String>("customData${n}")?.let { customDataN ->
                     json.putString("customData${n}", customDataN)
                 }
+            }
+            it.experimentName?.let { experimentName ->
+                json.putString("experimentName", experimentName)
             }
             json
         }
