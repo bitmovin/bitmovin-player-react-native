@@ -71,9 +71,11 @@ body:
     placeholder: |
         - React version:
         - React Native version:
+        - Node version:
         - Gradle version:
         - Android Gradle Plugin version:
-        - Node version:
+        - xCode version:
+        - Minimum deployment target for iOS/tvOS:
   validations:
     required: false
 - type: input
