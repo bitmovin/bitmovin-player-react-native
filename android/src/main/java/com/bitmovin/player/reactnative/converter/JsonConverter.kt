@@ -828,7 +828,6 @@ class JsonConverter {
             it.getString("experimentName")?.let { experimentName ->
                 sourceMetadata.experimentName = experimentName
             }
-
             sourceMetadata
         }
 
