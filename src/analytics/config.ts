@@ -240,7 +240,7 @@ export interface SourceMetadata extends CustomDataConfig {
   isLive?: boolean;
 
   /**
-   * CDN Provide that the video playback session is using
+   * CDN Provider that the video playback session is using
    */
   cdnProvider?: String;
 }
