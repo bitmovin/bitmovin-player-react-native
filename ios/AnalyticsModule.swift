@@ -173,7 +173,6 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
     /**
      Gets the current user Id for a `BitmovinPlayerCollector` instance.
      - Parameter nativeId: Native Id of the the collector instance.
-     - Parameter playerId: Native Id of the player instance.
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
