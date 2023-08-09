@@ -15,6 +15,11 @@ export class AnalyticsCollector extends NativeInstance<AnalyticsConfig> {
   isInitialized = false;
 
   /**
+   * The native player id that this analytics collector is attached to.
+   */
+  playerId?: string;
+
+  /**
    * Whether the native `AnalyticsCollector` object has been disposed.
    */
   isDestroyed = false;
@@ -37,6 +42,7 @@ export class AnalyticsCollector extends NativeInstance<AnalyticsConfig> {
     if (!this.isDestroyed) {
       AnalyticsModule.destroy(this.nativeId);
       this.isDestroyed = true;
+      this.playerId = undefined;
     }
   };
 
@@ -47,6 +53,7 @@ export class AnalyticsCollector extends NativeInstance<AnalyticsConfig> {
    * @param playerId - Native Id of the player to attach this collector instance.
    */
   attach = (playerId: string): void => {
+    this.playerId = playerId;
     AnalyticsModule.attach(this.nativeId, playerId);
   };
 
@@ -55,6 +62,7 @@ export class AnalyticsCollector extends NativeInstance<AnalyticsConfig> {
    * nothing happens.
    */
   detach = (): void => {
+    this.playerId = undefined;
     AnalyticsModule.detach(this.nativeId);
   };
 
@@ -74,7 +82,7 @@ export class AnalyticsCollector extends NativeInstance<AnalyticsConfig> {
    * @param customData - Analytics custom data config.
    */
   setCustomData = (customData: CustomDataConfig) => {
-    AnalyticsModule.setCustomData(this.nativeId, customData);
+    AnalyticsModule.setCustomData(this.nativeId, this.playerId, customData);
   };
 
   /**
@@ -83,7 +91,7 @@ export class AnalyticsCollector extends NativeInstance<AnalyticsConfig> {
    * @returns The current custom data config.
    */
   getCustomData = async (): Promise<CustomDataConfig> => {
-    return AnalyticsModule.getCustomData(this.nativeId);
+    return AnalyticsModule.getCustomData(this.nativeId, this.playerId);
   };
 
   /**

@@ -1,11 +1,12 @@
 PODS:
-  - BitmovinAnalyticsCollector/BitmovinPlayer (2.9.4):
+  - BitmovinAnalyticsCollector/BitmovinPlayer (3.0.0):
     - BitmovinAnalyticsCollector/Core
-    - BitmovinPlayer (~> 3.0)
-  - BitmovinAnalyticsCollector/Core (2.9.4)
-  - BitmovinPlayer (3.41.2):
-    - BitmovinPlayerCore (= 3.41.2)
-  - BitmovinPlayerCore (3.41.2)
+    - BitmovinPlayerCore (~> 3.41)
+  - BitmovinAnalyticsCollector/Core (3.0.0)
+  - BitmovinPlayer (3.42.0):
+    - BitmovinAnalyticsCollector/BitmovinPlayer (~> 3.0)
+    - BitmovinPlayerCore (= 3.42.0)
+  - BitmovinPlayerCore (3.42.0)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -339,9 +340,7 @@ PODS:
     - React-logger (= 0.69.6-2)
     - React-perflogger (= 0.69.6-2)
   - RNBitmovinPlayer (0.8.0):
-    - BitmovinAnalyticsCollector/BitmovinPlayer (= 2.9.4)
-    - BitmovinAnalyticsCollector/Core (= 2.9.4)
-    - BitmovinPlayer (= 3.41.2)
+    - BitmovinPlayer (= 3.42.0)
     - GoogleAds-IMA-iOS-SDK (= 3.18.4)
     - GoogleAds-IMA-tvOS-SDK (= 4.8.2)
     - React-Core
@@ -515,9 +514,9 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  BitmovinAnalyticsCollector: e80b02754019632340556a509fc4268dbad6f219
-  BitmovinPlayer: d6dfadb088e7c69412a85afd7ca48a94594edb35
-  BitmovinPlayerCore: 12721d2d25e1c60f6099585fb8e413052c7be458
+  BitmovinAnalyticsCollector: 832a7b8bd35dc3d4b24d9fdbedc33c846c63d4f8
+  BitmovinPlayer: 219df8f1b007b9c467b4ed23f87eafba833fabae
+  BitmovinPlayerCore: dcd553e4491ed2faf01db87e0b1a14546ba20ab0
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 234abba95e31cc2aada0cf3b97cdb11bc5b90575
@@ -564,7 +563,7 @@ SPEC CHECKSUMS:
   React-RCTText: f72442f7436fd8624494963af4906000a5465ce6
   React-runtimeexecutor: f1383f6460ea3d66ed122b4defb0b5ba664ee441
   ReactCommon: 7857ab475239c5ba044b7ed946ba564f2e7f1626
-  RNBitmovinPlayer: ed589b4949f06568e941c20e9e85c12a0f95971c
+  RNBitmovinPlayer: 532c43ce8c189ad5a62625fa042ddcd5d795648a
   RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
