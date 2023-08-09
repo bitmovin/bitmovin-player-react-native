@@ -735,6 +735,29 @@ extension RCTConvert {
         json["experimentName"] = analyticsCustomData.experimentName
         return json
     }
+
+    /**
+     Utility method to get an analytics `SourceMetadata` value from a JS object.
+     - Parameter json: JS object.
+     - Returns: The associated `SourceMetadata` value or nil.
+     */
+    static func analyticsSourceMetadata(_ json: Any?) -> SourceMetadata? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        let customData = analyticsCustomData(json)
+
+        return SourceMetadata(
+            videoId: json["videoId"] as? String,
+            title: json["title"] as? String,
+            path: json["path"] as? String,
+            isLive: json["isLive"] as? Bool,
+            cdnProvider: json["cdnProvider"] as? String,
+            customData: customData ?? CustomData()
+        )
+    }
+
     /**
      Utility method to compute a JS value from a `VideoQuality` object.
      - Parameter videoQuality `VideoQuality` object to be converted.

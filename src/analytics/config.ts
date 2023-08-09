@@ -28,10 +28,6 @@ export interface AnalyticsConfig
    */
   customUserId?: string;
   /**
-   * Experiment name needed for A/B testing.
-   */
-  experimentName?: string;
-  /**
    * ID of the video in the CMS system.
    */
   videoId?: string;
@@ -217,7 +213,34 @@ export interface CustomDataConfig {
   customData30?: string;
 
   /**
-   * Optional free-form label
+   * Experiment name needed for A/B testing.
    */
   experimentName?: string;
+}
+
+export interface SourceMetadata extends CustomDataConfig {
+  /**
+   * ID of the video in the CMS system
+   */
+  videoId?: String;
+
+  /**
+   * Human readable title of the video asset currently playing
+   */
+  title?: String;
+
+  /**
+   * Breadcrumb path to show where in the app the user is
+   */
+  path?: String;
+
+  /**
+   * Flag to see if stream is live before stream metadata is available
+   */
+  isLive?: boolean;
+
+  /**
+   * CDN Provide that the video playback session is using
+   */
+  cdnProvider?: String;
 }

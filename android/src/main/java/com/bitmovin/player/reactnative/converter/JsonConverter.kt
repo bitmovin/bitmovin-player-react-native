@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative.converter
 
 import com.bitmovin.analytics.BitmovinAnalyticsConfig
+import com.bitmovin.analytics.config.SourceMetadata
 import com.bitmovin.analytics.data.CustomData
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.DeviceDescription.ModelName
@@ -807,6 +808,28 @@ class JsonConverter {
                 json.putString("experimentName", experimentName)
             }
             json
+        }
+
+        @JvmStatic
+        fun toAnalyticsSourceMetadata(json: ReadableMap?): SourceMetadata? = json?.let {
+            val sourceMetadata = SourceMetadata(
+                    title = it.getString("title"),
+                    videoId = it.getString("videoId"),
+                    cdnProvider = it.getString("cdnProvider"),
+                    path = it.getString("path"),
+                    isLive = it.getBoolean("isLive")
+            )
+
+            for (n in 1..30) {
+                it.getString("customData${n}")?.let { customDataN ->
+                    sourceMetadata.setProperty("customData${n}", customDataN)
+                }
+            }
+            it.getString("experimentName")?.let { experimentName ->
+                sourceMetadata.experimentName = experimentName
+            }
+
+            sourceMetadata
         }
 
         /**

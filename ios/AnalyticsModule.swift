@@ -191,4 +191,30 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
             resolve(collector.getUserId())
         }
     }
+
+    /**
+     Applies the source metadata for the current source via the `BitmovinPlayerCollector` instance.
+     - Parameter nativeId: Native Id of the collector instance.
+     - Parameter playerId: Native Id of the player instance.
+     - Parameter json: Custom data config json.
+     */
+    @objc(addSourceMetadata:playerId:json:)
+    func addSourceMetadata(
+        _ nativeId: NativeId,
+        playerId: NativeId?,
+        json: Any?
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            guard
+                let collector = self?.collectors[nativeId],
+                let sourceMetadata = RCTConvert.analyticsSourceMetadata(json),
+                let playerId = playerId,
+                let player = self?.bridge[PlayerModule.self]?.retrieve(playerId),
+                let source = player.source
+            else {
+                return
+            }
+            collector.apply(sourceMetadata: sourceMetadata, for: source)
+        }
+    }
 }

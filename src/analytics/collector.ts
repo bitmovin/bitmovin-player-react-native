@@ -1,6 +1,6 @@
 import { NativeModules } from 'react-native';
 import NativeInstance from '../nativeInstance';
-import { AnalyticsConfig, CustomDataConfig } from './config';
+import { AnalyticsConfig, CustomDataConfig, SourceMetadata } from './config';
 
 const AnalyticsModule = NativeModules.AnalyticsModule;
 
@@ -101,5 +101,19 @@ export class AnalyticsCollector extends NativeInstance<AnalyticsConfig> {
    */
   getUserId = async (): Promise<string> => {
     return AnalyticsModule.getUserId(this.nativeId);
+  };
+
+  /**
+   * Adds source metadata for the current source loaded into the player.
+   * This method should be called every time a new source is loaded into the player to ensure
+   * that the analytics data is correct.
+   * @param sourceMetadata - Source metadata to set.
+   */
+  addSourceMetadata = (sourceMetadata: SourceMetadata) => {
+    return AnalyticsModule.addSourceMetadata(
+      this.nativeId,
+      this.playerId,
+      sourceMetadata
+    );
   };
 }
