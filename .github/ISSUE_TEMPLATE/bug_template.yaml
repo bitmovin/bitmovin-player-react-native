@@ -74,7 +74,7 @@ body:
         - Node version:
         - Gradle version:
         - Android Gradle Plugin version:
-        - xCode version:
+        - Xcode version:
         - Minimum deployment target for iOS/tvOS:
   validations:
     required: false
