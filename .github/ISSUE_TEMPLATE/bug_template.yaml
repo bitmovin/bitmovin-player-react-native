@@ -60,7 +60,7 @@ body:
     description: Please provide as much detail as possible about the device(s) on which you experience the issue.
     placeholder: |
         - Device:
-        - Operating System:
+        - Operating System and version:
         - ...
   validations:
     required: false
