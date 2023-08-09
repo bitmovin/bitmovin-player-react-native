@@ -129,10 +129,9 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
     @ReactMethod
     fun addSourceMetadata(nativeId: NativeId, playerId: NativeId?, json: ReadableMap?) {
         uiManager()?.addUIBlock { _ ->
-            playerModule()?.getPlayer(playerId)?.source?.let { playerSource ->
-                JsonConverter.toAnalyticsSourceMetadata(json)?.let { sourceMetadata ->
-                    collectors[nativeId]?.addSourceMetadata(playerSource, sourceMetadata)
-                }
+            val playerSource = playerModule()?.getPlayer(playerId)?.source ?: return
+            JsonConverter.toAnalyticsSourceMetadata(json)?.let { sourceMetadata ->
+                collectors[nativeId]?.addSourceMetadata(playerSource, sourceMetadata)
             }
         }
     }
