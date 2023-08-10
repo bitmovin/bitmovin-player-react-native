@@ -126,6 +126,16 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
         }
     }
 
+    @ReactMethod
+    fun addSourceMetadata(nativeId: NativeId, playerId: NativeId?, json: ReadableMap?) {
+        uiManager()?.addUIBlock { _ ->
+            val playerSource = playerModule()?.getPlayer(playerId)?.source ?: return@addUIBlock
+            JsonConverter.toAnalyticsSourceMetadata(json)?.let { sourceMetadata ->
+                collectors[nativeId]?.addSourceMetadata(playerSource, sourceMetadata)
+            }
+        }
+    }
+
     /**
      * Gets the current user Id for a `BitmovinPlayerCollector` instance.
      * @param nativeId Native Id of the the collector instance.

@@ -644,6 +644,7 @@ extension RCTConvert {
         config.customData28 = json["customData28"] as? String
         config.customData29 = json["customData29"] as? String
         config.customData30 = json["customData30"] as? String
+        config.experimentName = json["experimentName"] as? String
         return config
     }
 
@@ -686,7 +687,8 @@ extension RCTConvert {
             customData27: json["customData27"] as? String,
             customData28: json["customData28"] as? String,
             customData29: json["customData29"] as? String,
-            customData30: json["customData30"] as? String
+            customData30: json["customData30"] as? String,
+            experimentName: json["experimentName"] as? String
         )
     }
 
@@ -730,8 +732,32 @@ extension RCTConvert {
         json["customData28"] = analyticsCustomData.customData28
         json["customData29"] = analyticsCustomData.customData29
         json["customData30"] = analyticsCustomData.customData30
+        json["experimentName"] = analyticsCustomData.experimentName
         return json
     }
+
+    /**
+     Utility method to get an analytics `SourceMetadata` value from a JS object.
+     - Parameter json: JS object.
+     - Returns: The associated `SourceMetadata` value or nil.
+     */
+    static func analyticsSourceMetadata(_ json: Any?) -> SourceMetadata? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        let customData = analyticsCustomData(json)
+
+        return SourceMetadata(
+            videoId: json["videoId"] as? String,
+            title: json["title"] as? String,
+            path: json["path"] as? String,
+            isLive: json["isLive"] as? Bool,
+            cdnProvider: json["cdnProvider"] as? String,
+            customData: customData ?? CustomData()
+        )
+    }
+
     /**
      Utility method to compute a JS value from a `VideoQuality` object.
      - Parameter videoQuality `VideoQuality` object to be converted.
