@@ -72,6 +72,9 @@ extension RCTConvert {
         if let isUiEnabled = json["isUiEnabled"] as? Bool {
             styleConfig.isUiEnabled = isUiEnabled
         }
+        if let userInterfaceType = userInterfaceType(json["userInterfaceType"]) {
+            styleConfig.userInterfaceType = userInterfaceType
+        }
 #if !os(tvOS)
         if let playerUiCss = json["playerUiCss"] as? String {
             styleConfig.playerUiCss = RCTConvert.nsurl(playerUiCss)
@@ -775,5 +778,24 @@ extension RCTConvert {
             "codec": videoQuality.codec,
             "bitrate": videoQuality.bitrate,
         ]
+    }
+
+    /**
+     Utility method to get a `UserInterfaceType` from a JS object.
+     - Parameter json: JS object
+     - Returns: The associated `UserInterfaceType` value or `nil`
+     */
+    static func userInterfaceType(_ json: Any?) -> UserInterfaceType? {
+        guard let json = json as? String else {
+            return .none
+        }
+        switch json {
+#if os(iOS)
+        case "Bitmovin": return .bitmovin
+#endif
+        case "System": return .system
+        case "Subtitle": return .subtitle
+        default: return nil
+        }
     }
 }
