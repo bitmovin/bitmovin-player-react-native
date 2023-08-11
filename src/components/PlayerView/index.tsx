@@ -94,9 +94,8 @@ export function PlayerView({
 }: PlayerViewProps) {
   // Workaround React Native UIManager commands not sent until UI refresh
   // See: https://github.com/bitmovin/bitmovin-player-react-native/issues/163
-  // Might be a dup of https://github.com/microsoft/react-native-windows/issues/7543
-  // Remove the workaround when React Native is updated
-  // Workaround: call a native (noop) function after an arbitrary delay
+  // Might be fixed in recent RN version: https://github.com/microsoft/react-native-windows/issues/7543
+  // Workaround: call a native (noop) function after a (necessary) arbitrary delay
   const workaroundViewManagerCommandNotSent = useCallback(() => {
     setTimeout(() => player.getDuration(), 100);
   }, [player]);
