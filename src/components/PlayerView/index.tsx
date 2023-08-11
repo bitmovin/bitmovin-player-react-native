@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import {
   Platform,
   UIManager,
@@ -92,17 +92,15 @@ export function PlayerView({
   isFullscreenRequested = false,
   ...props
 }: PlayerViewProps) {
-  const fakeStateUpdater = useState(1)[1];
+  // Workaround React Native UIManager commands not sent until UI refresh
+  // See: https://github.com/bitmovin/bitmovin-player-react-native/issues/163
+  // Might be a dup of https://github.com/microsoft/react-native-windows/issues/7543
+  // Remove the workaround when React Native is updated
+  // Workaround: call a native (noop) function after an arbitrary delay
   const workaroundViewManagerCommandNotSent = useCallback(() => {
-    setTimeout(
-      () =>
-        fakeStateUpdater((i) => {
-          console.log('Workaround #163'); // Player will not load 1/10th if this log is removed :((((
-          return i + 1;
-        }),
-      100
-    );
-  }, [fakeStateUpdater]);
+    setTimeout(() => player.getDuration(), 100);
+  }, [player]);
+
   const nativeView = useRef(null);
   // Native events proxy helper.
   const proxy = useProxy(nativeView);
@@ -154,10 +152,6 @@ export function PlayerView({
           fullscreenBridge.current.nativeId
         );
       }
-      // Workaround React Native Command not sent until UI refresh
-      // See: https://github.com/bitmovin/bitmovin-player-react-native/issues/163
-      // Seems to be a dup of https://github.com/microsoft/react-native-windows/issues/7543
-      // Remove the workaround when React Native is updated
       workaroundViewManagerCommandNotSent();
     }
 
