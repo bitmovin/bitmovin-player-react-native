@@ -18,6 +18,7 @@ import BasicPictureInPicture from './screens/BasicPictureInPicture';
 import CustomHtmlUi from './screens/CustomHtmlUi';
 import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 import LandscapeFullscreenHandling from './screens/LandscapeFullscreenHandling';
+import SystemUI from './screens/SystemUi';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -105,6 +106,13 @@ export default function App() {
     stackParams.data.push({
       title: 'Landscape Fullscreen handling',
       routeName: 'LandscapeFullscreenHandling',
+    });
+  }
+
+  if (Platform.OS === 'ios' && !Platform.isTV) {
+    stackParams.data.push({
+      title: 'System UI',
+      routeName: 'SystemUI',
     });
   }
 
@@ -197,6 +205,13 @@ export default function App() {
             name="LandscapeFullscreenHandling"
             component={LandscapeFullscreenHandling}
             options={{ title: 'Lanscape Fullscreen Handling' }}
+          />
+        )}
+        {Platform.OS === 'ios' && (
+          <RootStack.Screen
+            name="SystemUI"
+            component={SystemUI}
+            options={{ title: 'System UI' }}
           />
         )}
       </RootStack.Navigator>

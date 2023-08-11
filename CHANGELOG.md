@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.9.0] (2023-08-11)
+
+### Added
+
+- Support for `Player.analyticsCollector.addSourceMetadata` to allow updating metadata assigned to the current source
+- Support for `CustomData.experimentName` for the A/B testing support with Bitmovin Analytics
+- iOS, tvOS: Support for configuring UI type via `StyleConfig.userInterfaceType`
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.42.0`
+
+### Fixed
+
+- Android: Player sometimes plays sound but no video
+
 ## [0.8.0] (2023-07-31)
 
 ### Added
@@ -8,8 +24,8 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `3.41.2`.
-- Update Bitmovin's native Android SDK version to `3.40.0`.
+- Update Bitmovin's native iOS SDK version to `3.41.2`
+- Update Bitmovin's native Android SDK version to `3.40.0`
 - Update IMA SDK dependency on iOS to `3.18.4`, respectively `4.8.2` for tvOS
 - Update IMA SDK dependency on Android to `3.29.0`
 
