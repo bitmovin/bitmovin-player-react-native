@@ -3,7 +3,7 @@
  */
 export interface StyleConfig {
   /**
-   * Sets if the UI should be enabled or not. Default value is true.
+   * Sets if the UI should be enabled or not. Default value is `true`.
    * @example
    * ```
    * const player = new Player({
@@ -15,7 +15,22 @@ export interface StyleConfig {
    */
   isUiEnabled?: boolean;
   /**
-   * Set the CSS file that will be used for the UI. The default CSS file will be completely replaced by the CSS file set with this property.
+   * Sets which user interface type should be used.
+   * Default value is `UserInterfaceType.bitmovin` on `iOS` and `UserInterfaceType.system` on `tvOS`.
+   * This setting only applies if `StyleConfig.isUiEnabled` is set to true.
+   * @example
+   * ```
+   * const player = new Player({
+   *   styleConfig: {
+   *     userInterfaceType: UserInterfaceType.System,
+   *   },
+   * });
+   * ```
+   * @platform iOS, tvOS
+   */
+  userInterfaceType?: UserInterfaceType;
+  /**
+   * Sets the CSS file that will be used for the UI. The default CSS file will be completely replaced by the CSS file set with this property.
    * @example
    * ```
    * const player = new Player({
@@ -28,7 +43,7 @@ export interface StyleConfig {
    */
   playerUiCss?: string;
   /**
-   * Set a CSS file which contains supplemental styles for the player UI. These styles will be added to the default CSS file or the CSS file set with StyleConfig#playerUiCss.
+   * Sets a CSS file which contains supplemental styles for the player UI. These styles will be added to the default CSS file or the CSS file set with `StyleConfig.playerUiCss`.
    * @example
    * ```
    * const player = new Player({
@@ -54,8 +69,8 @@ export interface StyleConfig {
    */
   playerUiJs?: string;
   /**
-   * Determines how the video content is scaled or stretched within the parent container’s bounds.  Possible values are defined in ScalingMode.
-   * Default value is ScalingMode.fit.
+   * Determines how the video content is scaled or stretched within the parent container’s bounds. Possible values are defined in `ScalingMode`.
+   * Default value is `ScalingMode.fit`.
    * @example
    * ```
    * const player = new Player({
@@ -84,4 +99,23 @@ export enum ScalingMode {
    * Specifies that the player should preserve the video’s aspect ratio and fill the container’s bounds.
    */
   Zoom = 'Zoom',
+}
+
+/**
+ * Indicates which type of UI should be used.
+ * @platform iOS, tvOS
+ */
+export enum UserInterfaceType {
+  /**
+   * Indicates that Bitmovin's customizable UI should be used.
+   */
+  Bitmovin = 'Bitmovin',
+  /**
+   * Indicates that the system UI should be used.
+   */
+  System = 'System',
+  /**
+   * Indicates that only subtitles should be displayed along with the video content.
+   */
+  Subtitle = 'Subtitle',
 }
