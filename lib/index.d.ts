@@ -2148,6 +2148,7 @@ declare class OfflineContentManager extends NativeInstance<OfflineContentConfig>
      * Errors are transmitted to the `OfflineContentManagerListener.onError`.
      */
     renewOfflineLicense: () => Promise<void>;
+    static disposeAll: () => Promise<void>;
 }
 
 /**
@@ -2463,6 +2464,7 @@ declare class Player extends NativeInstance<PlayerConfig> {
      * `source` is not a live stream or no sources are loaded.
      */
     getMaxTimeShift: () => Promise<number>;
+    static disposeAll: () => Promise<null>;
 }
 
 /**

@@ -14,10 +14,12 @@ private const val OFFLINE_MODULE = "BitmovinOfflineModule"
 class OfflineModule(private val context: ReactApplicationContext) :
     ReactContextBaseJavaModule(context) {
 
-    /**
-     * In-memory mapping from `nativeId`s to `OfflineManager` instances.
-     */
-    private val offlineContentManagerHolders : Registry<OfflineContentManagerHolder> = mutableMapOf()
+    companion object {
+        /**
+         * In-memory mapping from `nativeId`s to `OfflineManager` instances.
+         */
+        private val offlineContentManagerHolders : Registry<OfflineContentManagerHolder> = mutableMapOf()
+    }
 
     /**
      * JS exported module name.
@@ -266,10 +268,28 @@ class OfflineModule(private val context: ReactApplicationContext) :
     @ReactMethod
     fun release(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.release()
-            offlineContentManagerHolders.remove(nativeId)
+            releaseOfflineContentManager(nativeId, it)
             promise.resolve(null)
         }
+    }
+
+    /**
+     * Call `.destroy()` on all registered offline managers.
+     * @param nativeId Target player Id.
+     */
+    @ReactMethod
+    fun disposeAll(promise: Promise) {
+        offlineContentManagerHolders.keys.forEach { nativeId ->
+            getOfflineContentManagerHolder(nativeId)?.let { offlineContentManagerHolder ->
+                releaseOfflineContentManager(nativeId, offlineContentManagerHolder)
+            }
+        }
+        promise.resolve(null)
+    }
+
+    private fun releaseOfflineContentManager(nativeId: NativeId, offlineContentManagerHolder: OfflineContentManagerHolder) {
+        offlineContentManagerHolder.release()
+        offlineContentManagerHolders.remove(nativeId)
     }
 
     private fun safeOfflineContentManager(nativeId: NativeId, promise: Promise, runBlock: (OfflineContentManagerHolder) -> Unit) {

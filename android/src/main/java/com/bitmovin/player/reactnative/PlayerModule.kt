@@ -452,6 +452,20 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Call `.destroy()` on all registered players.
+     * @param nativeId Target player Id.
+     */
+    @ReactMethod
+    fun disposeAll(promise: Promise) {
+        uiManager()?.addUIBlock {
+            players.entries.forEach {
+                destroy(it.key)
+            }
+            promise.resolve(null)
+        }
+    }
+
+    /**
      * Helper function that returns the initialized `UIManager` instance.
      */
     private fun uiManager(): UIManagerModule? =

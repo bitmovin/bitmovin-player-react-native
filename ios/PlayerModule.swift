@@ -6,7 +6,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     @objc var bridge: RCTBridge!
 
     /// In-memory mapping from `nativeId`s to `Player` instances.
-    private var players: Registry<Player> = [:]
+    private static var players: Registry<Player> = [:]
 
     /// JS module name.
     static func moduleName() -> String! {
@@ -29,7 +29,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
      - Returns: The associated `Player` instance or `nil`.
      */
     @objc func retrieve(_ nativeId: NativeId) -> Player? {
-        players[nativeId]
+        PlayerModule.players[nativeId]
     }
 
     /**
@@ -40,12 +40,12 @@ class PlayerModule: NSObject, RCTBridgeModule {
     func initWithConfig(_ nativeId: NativeId, config: Any?) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                self?.players[nativeId] == nil,
+                PlayerModule.players[nativeId] == nil,
                 let playerConfig = RCTConvert.playerConfig(config)
             else {
                 return
             }
-            self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
+            PlayerModule.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
         }
     }
 
@@ -58,7 +58,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     func loadSource(_ nativeId: NativeId, sourceNativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let player = self?.players[nativeId],
+                let player = PlayerModule.players[nativeId],
                 let source = self?.getSourceModule()?.retrieve(sourceNativeId)
             else {
                 return
@@ -77,7 +77,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let player = self?.players[nativeId],
+                let player = PlayerModule.players[nativeId],
                 let offlineContentManagerHolder = self?.getOfflineModule()?.retrieve(offlineContentManagerHolderNativeId)
             else {
                 return
@@ -111,7 +111,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     @objc(unload:)
     func unload(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.unload()
+            PlayerModule.players[nativeId]?.unload()
         }
     }
 
@@ -122,7 +122,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     @objc(play:)
     func play(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.play()
+            PlayerModule.players[nativeId]?.play()
         }
     }
 
@@ -133,7 +133,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     @objc(pause:)
     func pause(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.pause()
+            PlayerModule.players[nativeId]?.pause()
         }
     }
 
@@ -145,7 +145,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     @objc(seek:time:)
     func seek(_ nativeId: NativeId, time: NSNumber) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.seek(time: time.doubleValue)
+            PlayerModule.players[nativeId]?.seek(time: time.doubleValue)
         }
     }
 
@@ -157,7 +157,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     @objc(timeShift:offset:)
     func timeShift(_ nativeId: NativeId, offset: NSNumber) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.timeShift = offset.doubleValue
+            PlayerModule.players[nativeId]?.timeShift = offset.doubleValue
         }
     }
 
@@ -168,7 +168,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     @objc(mute:)
     func mute(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.mute()
+            PlayerModule.players[nativeId]?.mute()
         }
     }
 
@@ -179,7 +179,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     @objc(unmute:)
     func unmute(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.unmute()
+            PlayerModule.players[nativeId]?.unmute()
         }
     }
 
@@ -190,10 +190,10 @@ class PlayerModule: NSObject, RCTBridgeModule {
     @objc(destroy:)
     func destroy(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            if let player = self?.players[nativeId] {
+            if let player = PlayerModule.players[nativeId] {
                 player.destroy()
                 // Remove destroyed player from the players
-                self?.players[nativeId] = nil
+                PlayerModule.players[nativeId] = nil
             }
         }
     }
@@ -206,7 +206,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     @objc(setVolume:volume:)
     func setVolume(_ nativeId: NativeId, volume: NSNumber) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.volume = volume.intValue
+            PlayerModule.players[nativeId]?.volume = volume.intValue
         }
     }
 
@@ -223,7 +223,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.players[nativeId]?.volume)
+            resolve(PlayerModule.players[nativeId]?.volume)
         }
     }
 
@@ -238,7 +238,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     @objc(setPlaybackSpeed:speed:)
     func setPlaybackSpeed(_ nativeId: NativeId, speed: Float) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.playbackSpeed = speed
+            PlayerModule.players[nativeId]?.playbackSpeed = speed
         }
     }
 
@@ -255,7 +255,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.players[nativeId]?.playbackSpeed)
+            resolve(PlayerModule.players[nativeId]?.playbackSpeed)
         }
     }
 
@@ -274,7 +274,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            let player = self?.players[nativeId]
+            let player = PlayerModule.players[nativeId]
             if let mode = mode {
                 resolve(player?.currentTime(RCTConvert.timeMode(mode)))
             } else {
@@ -296,7 +296,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.players[nativeId]?.duration)
+            resolve(PlayerModule.players[nativeId]?.duration)
         }
     }
 
@@ -313,7 +313,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.players[nativeId]?.isMuted)
+            resolve(PlayerModule.players[nativeId]?.isMuted)
         }
     }
 
@@ -330,7 +330,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.players[nativeId]?.isPlaying)
+            resolve(PlayerModule.players[nativeId]?.isPlaying)
         }
     }
 
@@ -347,7 +347,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.players[nativeId]?.isPaused)
+            resolve(PlayerModule.players[nativeId]?.isPaused)
         }
     }
 
@@ -365,7 +365,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.players[nativeId]?.isLive)
+            resolve(PlayerModule.players[nativeId]?.isLive)
         }
     }
 
@@ -382,7 +382,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.players[nativeId]?.isAirPlayActive)
+            resolve(PlayerModule.players[nativeId]?.isAirPlayActive)
         }
     }
 
@@ -399,7 +399,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.players[nativeId]?.isAirPlayAvailable)
+            resolve(PlayerModule.players[nativeId]?.isAirPlayAvailable)
         }
     }
 
@@ -416,7 +416,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            let audioTracksJson = self?.players[nativeId]?.availableAudio.map {
+            let audioTracksJson = PlayerModule.players[nativeId]?.availableAudio.map {
                 RCTConvert.audioTrackJson($0)
             }
             resolve(audioTracksJson ?? [])
@@ -438,7 +438,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.setAudio(trackIdentifier: trackIdentifier)
+            PlayerModule.players[nativeId]?.setAudio(trackIdentifier: trackIdentifier)
             resolve(nil)
         }
     }
@@ -456,7 +456,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            let subtitlesJson = self?.players[nativeId]?.availableSubtitles.map {
+            let subtitlesJson = PlayerModule.players[nativeId]?.availableSubtitles.map {
                 RCTConvert.subtitleTrackJson($0)
             }
             resolve(subtitlesJson ?? [])
@@ -479,9 +479,9 @@ class PlayerModule: NSObject, RCTBridgeModule {
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             if ((trackIdentifier ?? "").isEmpty) {
-                self?.players[nativeId]?.setSubtitle(trackIdentifier:nil)
+                PlayerModule.players[nativeId]?.setSubtitle(trackIdentifier:nil)
             } else {
-                self?.players[nativeId]?.setSubtitle(trackIdentifier:trackIdentifier)
+                PlayerModule.players[nativeId]?.setSubtitle(trackIdentifier:trackIdentifier)
             }
 
             resolve(nil)
@@ -499,7 +499,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
             return
         }
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.scheduleAd(adItem: adItem)
+            PlayerModule.players[nativeId]?.scheduleAd(adItem: adItem)
         }
     }
 
@@ -515,7 +515,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.skipAd()
+            PlayerModule.players[nativeId]?.skipAd()
             resolve(nil)
         }
     }
@@ -533,7 +533,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.players[nativeId]?.isAd)
+            resolve(PlayerModule.players[nativeId]?.isAd)
         }
     }
 
@@ -551,7 +551,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.players[nativeId]?.timeShift)
+            resolve(PlayerModule.players[nativeId]?.timeShift)
         }
     }
 
@@ -568,7 +568,24 @@ class PlayerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.players[nativeId]?.maxTimeShift)
+            resolve(PlayerModule.players[nativeId]?.maxTimeShift)
         }
+    }
+
+    /**
+     Call `.destroy()` on all registered players.
+     */
+    @objc(disposeAll:rejecter:)
+    func disposeAll(
+        _ resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        for key in PlayerModule.players.keys {
+            guard let nativeId = key as? NativeId else {
+                continue
+            }
+            self.destroy(nativeId)
+        }
+        resolve(nil)
     }
 }

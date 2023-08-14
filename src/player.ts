@@ -469,4 +469,8 @@ export class Player extends NativeInstance<PlayerConfig> {
   getMaxTimeShift = async (): Promise<number> => {
     return PlayerModule.getMaxTimeShift(this.nativeId);
   };
+
+  static disposeAll = async (): Promise<null> => {
+    return PlayerModule.disposeAll();
+  };
 }
