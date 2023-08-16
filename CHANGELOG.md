@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.0] (2023-08-16)
+
+### Fixed
+
+- Android: Player sometimes plays sound but doesn't display video nor controls.
+
 ## [0.9.0] (2023-08-11)
 
 ### Added
