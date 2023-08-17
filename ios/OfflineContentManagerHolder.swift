@@ -3,14 +3,18 @@ import Foundation
 import BitmovinPlayer
 
 class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
-
     let offlineContentManager: OfflineContentManager
     let eventEmitter: RCTEventEmitter?
     let nativeId: NativeId
     let identifier: String
     var currentTrackSelection: OfflineTrackSelection? = nil
 
-    init(forManager offlineContentManager: OfflineContentManager, eventEmitter: RCTEventEmitter, nativeId: NativeId, identifier: String) {
+    init(
+        forManager offlineContentManager: OfflineContentManager,
+        eventEmitter: RCTEventEmitter,
+        nativeId: NativeId,
+        identifier: String
+    ) {
         self.offlineContentManager = offlineContentManager
         self.eventEmitter = eventEmitter
         self.nativeId = nativeId
@@ -79,7 +83,7 @@ class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
     func onContentDownloadResumed(_ event: ContentDownloadResumedEvent, offlineContentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: "onResumed")
     }
-    
+
     /**
      Called when the download of the media content was cancelled by the user and all partially downloaded content has been deleted from disk.
      */
@@ -93,7 +97,7 @@ class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
     func onOfflineContentLicenseRenewed(_ event: OfflineContentLicenseRenewedEvent, offlineContentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: "onDrmLicenseUpdated")
     }
-    
+
     /**
      Called on every call to OfflineContentManager.createOfflineSourceConfig(restrictedToAssetCache:) if it is DRM protected and the offline DRM license has expired.
      */

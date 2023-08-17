@@ -4,7 +4,6 @@ import BitmovinPlayer
 
 @objc(OfflineModule)
 class OfflineModule: RCTEventEmitter {
-
     /// JS module name.
     override static func moduleName() -> String! {
         "BitmovinOfflineModule"
@@ -41,7 +40,12 @@ class OfflineModule: RCTEventEmitter {
      Creates a new `OfflineContentManager` instance inside the internal offline managers using the provided `config` object.
      - @param config `Config` object received from JS.  Should contain a sourceConfig and location.
      */
-    @objc func initWithConfig(_ nativeId: NativeId, config: Any?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func initWithConfig(
+        _ nativeId: NativeId,
+        config: Any?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
@@ -56,8 +60,14 @@ class OfflineModule: RCTEventEmitter {
             }
 
             do {
-                let offlineContentManager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
-                let offlineContentManagerHolder = OfflineContentManagerHolder(forManager: offlineContentManager, eventEmitter: self, nativeId: nativeId, identifier: identifier)
+                let offlineContentManager = try OfflineManager.sharedInstance()
+                    .offlineContentManager(for: sourceConfig, id: identifier)
+                let offlineContentManagerHolder = OfflineContentManagerHolder(
+                    forManager: offlineContentManager,
+                    eventEmitter: self,
+                    nativeId: nativeId,
+                    identifier: identifier
+                )
 
                 self.offlineContentManagerHolders[nativeId] = offlineContentManagerHolder
                 resolve(nil)
@@ -74,7 +84,12 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func getOfflineSourceConfig(_ nativeId: NativeId, options: Any?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func getOfflineSourceConfig(
+        _ nativeId: NativeId,
+        options: Any?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
@@ -86,7 +101,8 @@ class OfflineModule: RCTEventEmitter {
             }
 
             let restrictedToAssetCache = (options as? [String: Any?])?["restrictedToAssetCache"] as? Bool ?? true
-            let offlineSourceConfig = offlineContentManagerHolder.offlineContentManager.createOfflineSourceConfig(restrictedToAssetCache: restrictedToAssetCache)
+            let offlineSourceConfig = offlineContentManagerHolder.offlineContentManager
+                .createOfflineSourceConfig(restrictedToAssetCache: restrictedToAssetCache)
 
             resolve(RCTConvert.toJson(sourceConfig: offlineSourceConfig))
         }
@@ -100,7 +116,10 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func getOptions(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func getOptions(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
@@ -121,11 +140,16 @@ class OfflineModule: RCTEventEmitter {
      Enqueues downloads according to the `OfflineDownloadRequest`.
      * The promise will reject in the event of null or invalid request parameters.
      - Parameter nativeId: Target offline module Id
-     - Parameter request: The download request js object containing the requested bit rate and track option ids to download.
+     - Parameter request: The download request js object containing the requested bitrate and track option ids to download.
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func process(_ nativeId: NativeId, request: Any?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func process(
+        _ nativeId: NativeId,
+        request: Any?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
@@ -175,7 +199,10 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func resume(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func resume(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
@@ -198,7 +225,11 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func suspend(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func suspend(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
@@ -221,7 +252,11 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func cancelDownload(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func cancelDownload(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
@@ -239,12 +274,16 @@ class OfflineModule: RCTEventEmitter {
     }
 
     /**
-      Resolve `nativeId`'s current `usedStorage`.
+     Resolve `nativeId`'s current `usedStorage`.
      - Parameter nativeId: Target offline module Id
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func usedStorage(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func usedStorage(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
@@ -266,7 +305,11 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func deleteAll(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func deleteAll(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
@@ -289,7 +332,11 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func offlineDrmLicenseInformation(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func offlineDrmLicenseInformation(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
@@ -319,7 +366,11 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func downloadLicense(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func downloadLicense(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
@@ -344,7 +395,11 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func renewOfflineLicense(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func renewOfflineLicense(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
@@ -369,7 +424,11 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func release(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func release(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
