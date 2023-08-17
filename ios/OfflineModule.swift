@@ -166,9 +166,9 @@ class OfflineModule: RCTEventEmitter {
                 return
             }
 
-            if (!audioOptionIds.isEmpty) {
+            if !audioOptionIds.isEmpty {
                 currentTrackSelection.audioTracks.forEach {
-                    if (audioOptionIds.contains($0.label)) {
+                    if audioOptionIds.contains($0.label) {
                         $0.action = .download
                     } else {
                         $0.action = .none
@@ -176,9 +176,9 @@ class OfflineModule: RCTEventEmitter {
                 }
             }
 
-            if (!textOptionIds.isEmpty) {
+            if !textOptionIds.isEmpty {
                 currentTrackSelection.textTracks.forEach {
-                    if (textOptionIds.contains($0.label)) {
+                    if textOptionIds.contains($0.label) {
                         $0.action = .download
                     } else {
                         $0.action = .none

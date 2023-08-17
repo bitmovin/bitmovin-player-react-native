@@ -6,7 +6,7 @@ extension RCTConvert {
     /**
      Utility method to instantiate a `PlayerConfig` from a JS object.
      - Parameter json: JS object
-     - Returns: The produced `Playerconfig` object
+     - Returns: The produced `PlayerConfig` object
      */
     static func playerConfig(_ json: Any?) -> PlayerConfig? {
         let playerConfig = PlayerConfig()
@@ -289,9 +289,8 @@ extension RCTConvert {
         var subtitleTracks: [[AnyHashable: Any]] = []
 
         sourceConfig.tracks.forEach {
-            if
-                let track = $0 as? SubtitleTrack,
-                let unwrappedTrack = RCTConvert.subtitleTrackJson(track) as? [AnyHashable: Any] {
+            if let track = $0 as? SubtitleTrack,
+               let unwrappedTrack = RCTConvert.subtitleTrackJson(track) as? [AnyHashable: Any] {
                 subtitleTracks.append(unwrappedTrack)
             }
         }
@@ -387,7 +386,8 @@ extension RCTConvert {
             isDefaultTrack: false
         )
     }
-/**
+
+    /**
      Utility method to get a json dictionary value from a `AudioTrack` object.
      - Parameter audioTrack: The track to convert to json format.
      - Returns: The generated json dictionary.
@@ -638,7 +638,8 @@ extension RCTConvert {
             "minBitrate": adData.minBitrate
         ]
     }
-/**
+
+    /**
      Utility method to get a `BitmovinAnalyticsConfig` value from a JS object.
      - Parameter json: JS object.
      - Returns: The associated `BitmovinAnalyticsConfig` value or nil.
