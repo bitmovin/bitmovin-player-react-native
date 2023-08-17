@@ -59,7 +59,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let player = self?.players[nativeId],
-                let source = self?.getSourceModule()?.retrieve(sourceNativeId)
+                let source = self?.bridge[SourceModule.self]?.retrieve(sourceNativeId)
             else {
                 return
             }
@@ -78,31 +78,19 @@ class PlayerModule: NSObject, RCTBridgeModule {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let player = self?.players[nativeId],
-                let offlineContentManagerHolder = self?.getOfflineModule()?.retrieve(offlineContentManagerHolderNativeId)
+                let offlineContentManagerHolder = self?.bridge[OfflineModule.self]?.retrieve(offlineContentManagerHolderNativeId)
             else {
                 return
             }
-
-            let restrictedToAssetCache = (options as? [String: Any?])?["restrictedToAssetCache"] as? Bool ?? true
+            let optionsDictionary = options as? [String: Any?] ?? [:]
+            let restrictedToAssetCache = optionsDictionary["restrictedToAssetCache"] as? Bool ?? true
             let offlineSourceConfig = offlineContentManagerHolder.offlineContentManager.createOfflineSourceConfig(restrictedToAssetCache: restrictedToAssetCache)
-            if (offlineSourceConfig != nil) {
-                player.load(sourceConfig: offlineSourceConfig!)
-            }
+
+            guard let offlineSourceConfig = offlineSourceConfig else { return }
+            player.load(sourceConfig: offlineSourceConfig)
         }
 #endif
     }
-
-    /// Fetches the initialized `SourceModule` instance on RN's bridge object.
-    private func getSourceModule() -> SourceModule? {
-        bridge.module(for: SourceModule.self) as? SourceModule
-    }
-
-#if os(iOS)
-    /// Fetches the initialized `OfflineModule` instance on RN's bridge object.
-    private func getOfflineModule() -> OfflineModule? {
-        bridge.module(for: OfflineModule.self) as? OfflineModule
-    }
-#endif
 
     /**
      Call `.unload()` on `nativeId`'s player.

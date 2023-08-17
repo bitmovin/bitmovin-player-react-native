@@ -100,7 +100,8 @@ class OfflineModule: RCTEventEmitter {
                 return
             }
 
-            let restrictedToAssetCache = (options as? [String: Any?])?["restrictedToAssetCache"] as? Bool ?? true
+            let optionsDictionary = options as? [String: Any?] ?? [:]
+            let restrictedToAssetCache = optionsDictionary["restrictedToAssetCache"] as? Bool ?? true
             let offlineSourceConfig = offlineContentManagerHolder.offlineContentManager
                 .createOfflineSourceConfig(restrictedToAssetCache: restrictedToAssetCache)
 
