@@ -155,13 +155,13 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
             val sourceMetadata = JsonConverter.toAnalyticsSourceMetadata(json)
             when {
                 source == null -> Log.d(
-                    "[AnalyticsModule]", "Could not find source for player with ID ($playerId)"
+                    "[AnalyticsModule]", "Could not find source for player ($playerId)"
                 )
                 collector == null -> Log.d(
-                    "[AnalyticsModule]", "Could not find analytics collector with ID ($nativeId)"
+                    "[AnalyticsModule]", "Could not find analytics collector ($nativeId)"
                 )
                 sourceMetadata == null -> Log.d(
-                    "[AnalyticsModule]", "Could not convert source metadata, thus they are not applied to the collector with ID ($nativeId)"
+                    "[AnalyticsModule]", "Could not convert source metadata, thus they are not applied to the collector ($nativeId)"
                 )
                 else -> collector.addSourceMetadata(source,  sourceMetadata)
             }
