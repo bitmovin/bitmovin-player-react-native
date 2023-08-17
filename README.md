@@ -11,11 +11,6 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 [![npm dt](https://img.shields.io/npm/dt/bitmovin-player-react-native.svg)](https://www.npmjs.com/package/bitmovin-player-react-native)
 
 > As the library is under active development, this means certain features from our native SDKs are not yet exposed through these React Native bindings.
-> See [Feature Support](#feature-support) for an overview of the supported features.
->
-> Not seeing the features you’re looking for?
-> We are accepting community pull requests to this open-source project so please feel free to contribute.
-> or let us know in [our community](https://community.bitmovin.com/c/requests/14) what features we should work on next.
 
 - [Bitmovin Player React Native](#bitmovin-player-react-native)
   - [Platform Support](#platform-support)
@@ -33,24 +28,14 @@ This library requires at least React Native 0.64+ and React 17+ to work properly
 - iOS 14.0+
 - tvOS 14.0+
 - Android API Level 21+
-- Android TV API Level 21+
+- Android TV API Level 24+
 - Fire TV FireOS 5.0+
 
 Please note that browsers and other browser-like environments such as webOS and Tizen are not supported. For more details regarding Bitmovin Player SDK platform and device support, please refer to the [Supported Platforms & Devices](https://developer.bitmovin.com/playback/docs/supported-platforms-devices-player) page of our documentation.
 
 ## Feature Support
 
-Features of the native mobile Player SDKs are progressively being implemented in this React Native library. The table below summarizes the current state of the main Player SDK features.
-
-| Feature                          | State                                     |
-| -------------------------------- | ----------------------------------------- |
-| Playback of DRM-protected assets | :white_check_mark: Available since v0.2.0 |
-| Subtitles & Captions             | :white_check_mark: Available since v0.2.0 |
-| Advertising                      | :white_check_mark: Available since v0.4.0 |
-| Analytics                        | :white_check_mark: Available since v0.5.0 |
-| Playlist API                     | :x: Not available                         |
-| Casting                          | :x: Not available                         |
-| Offline Playback                 | :x: Not available                         |
+Please refer to the [Features](https://developer.bitmovin.com/playback/docs/react-native-introduction#features) section of our documentation for an up-to-date list of supported Player features.
 
 ## Documentation
 

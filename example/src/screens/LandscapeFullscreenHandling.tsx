@@ -1,22 +1,23 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { View, Platform, StyleSheet, StatusBar } from 'react-native';
+import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import {
+  AudioSession,
   Event,
-  usePlayer,
+  FullscreenHandler,
   PlayerView,
   SourceType,
-  AudioSession,
-  FullscreenHandler,
+  usePlayer,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import { RootStackParamsList } from '../App';
+import Orientation from 'react-native-orientation-locker';
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 
-type BasicFullscreenHandlingProps = NativeStackScreenProps<
+type LandscapeFullscreenHandlingProps = NativeStackScreenProps<
   RootStackParamsList,
-  'BasicFullscreenHandling'
+  'LandscapeFullscreenHandling'
 >;
 
 function prettyPrint(header: string, obj: any) {
@@ -44,6 +45,7 @@ class SampleFullscreenHandler implements FullscreenHandler {
       // Hides status bar on iOS
       StatusBar.setHidden(true);
     }
+    Orientation.lockToLandscape();
     console.log('enter fullscreen');
     this.onFullscreen(true);
   }
@@ -57,24 +59,29 @@ class SampleFullscreenHandler implements FullscreenHandler {
       // shows status bar on iOS
       StatusBar.setHidden(false);
     }
+    Orientation.unlockAllOrientations();
     console.log('exit fullscreen');
     this.onFullscreen(false);
   }
 }
-export default function BasicFullscreenHandling({
+
+export default function LandscapeFullscreenHandling({
   navigation,
-}: BasicFullscreenHandlingProps) {
+}: LandscapeFullscreenHandlingProps) {
   useTVGestures();
 
-  const player = usePlayer();
+  const player = usePlayer({
+    playbackConfig: {
+      isAutoplayEnabled: true,
+    },
+  });
 
-  const [fullscreenMode, setFullscreenMode] = useState(false);
+  const [fullscreenMode, setFullscreenMode] = useState(true);
   const fullscreenHandler = useRef(
     new SampleFullscreenHandler(fullscreenMode, (isFullscreen: boolean) => {
+      console.log('on fullscreen change');
       setFullscreenMode(isFullscreen);
-      navigation.setOptions({
-        headerShown: !isFullscreen, // show/hide top bar
-      });
+      navigation.setOptions({ headerShown: !isFullscreen });
     })
   ).current;
   useFocusEffect(
@@ -87,11 +94,10 @@ export default function BasicFullscreenHandling({
       AudioSession.setCategory('playback').catch((error) => {
         // Handle any native errors that might occur while setting the audio's category.
         console.log(
-          "[BasicFullscreen] Failed to set app's audio category to `playback`:\n",
+          "[LandscapeFullscreen] Failed to set app's audio category to `playback`:\n",
           error
         );
       });
-
       // Load desired source configuration
       player.load({
         url:
@@ -108,21 +114,35 @@ export default function BasicFullscreenHandling({
       };
     }, [player])
   );
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        fullscreenHandler.exitFullscreen();
+      };
+    }, [fullscreenHandler])
+  );
 
   const onEvent = useCallback((event: Event) => {
     prettyPrint(`[${event.name}]`, event);
+  }, []);
+
+  const onError = useCallback(() => {
+    setFullscreenMode(false);
   }, []);
 
   return (
     <View style={styles.container}>
       <PlayerView
         player={player}
+        isFullscreenRequested={fullscreenMode}
         style={fullscreenMode ? styles.playerFullscreen : styles.player}
         fullscreenHandler={fullscreenHandler}
         onFullscreenEnter={onEvent}
         onFullscreenExit={onEvent}
         onFullscreenEnabled={onEvent}
         onFullscreenDisabled={onEvent}
+        onPlayerError={onError}
+        onSourceError={onError}
       />
     </View>
   );

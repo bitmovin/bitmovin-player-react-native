@@ -104,7 +104,7 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
      * @param json Custom data config json.
      */
     @ReactMethod
-    fun setCustomData(nativeId: NativeId, json: ReadableMap?) {
+    fun setCustomData(nativeId: NativeId, playerId: NativeId?, json: ReadableMap?) {
         uiManager()?.addUIBlock { _ ->
             JsonConverter.toAnalyticsCustomData(json)?.let {
                 collectors[nativeId]?.customData = it
@@ -118,10 +118,20 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
      * @param promise JS promise object.
      */
     @ReactMethod
-    fun getCustomData(nativeId: NativeId, promise: Promise) {
+    fun getCustomData(nativeId: NativeId, playerId: NativeId?, promise: Promise) {
         uiManager()?.addUIBlock { _ ->
             collectors[nativeId]?.let {
                 promise.resolve(JsonConverter.fromAnalyticsCustomData(it.customData))
+            }
+        }
+    }
+
+    @ReactMethod
+    fun addSourceMetadata(nativeId: NativeId, playerId: NativeId?, json: ReadableMap?) {
+        uiManager()?.addUIBlock { _ ->
+            val playerSource = playerModule()?.getPlayer(playerId)?.source ?: return@addUIBlock
+            JsonConverter.toAnalyticsSourceMetadata(json)?.let { sourceMetadata ->
+                collectors[nativeId]?.addSourceMetadata(playerSource, sourceMetadata)
             }
         }
     }

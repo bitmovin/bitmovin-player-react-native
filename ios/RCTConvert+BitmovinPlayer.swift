@@ -1,6 +1,6 @@
 import Foundation
 import BitmovinPlayer
-import BitmovinAnalyticsCollector
+import BitmovinCollector
 
 extension RCTConvert {
     /**
@@ -71,6 +71,9 @@ extension RCTConvert {
         let styleConfig = StyleConfig()
         if let isUiEnabled = json["isUiEnabled"] as? Bool {
             styleConfig.isUiEnabled = isUiEnabled
+        }
+        if let userInterfaceType = userInterfaceType(json["userInterfaceType"]) {
+            styleConfig.userInterfaceType = userInterfaceType
         }
 #if !os(tvOS)
         if let playerUiCss = json["playerUiCss"] as? String {
@@ -680,11 +683,37 @@ extension RCTConvert {
         if let randomizeUserId = json["randomizeUserId"] as? Bool {
             config.randomizeUserId = randomizeUserId
         }
-        for n in 1..<30 {
-            if let customDataN = json["customData\(n)"] as? String {
-                config.setValue(customDataN, forKey: "customData\(n)")
-            }
-        }
+        config.customData1 = json["customData1"] as? String
+        config.customData2 = json["customData2"] as? String
+        config.customData3 = json["customData3"] as? String
+        config.customData4 = json["customData4"] as? String
+        config.customData5 = json["customData5"] as? String
+        config.customData6 = json["customData6"] as? String
+        config.customData7 = json["customData7"] as? String
+        config.customData8 = json["customData8"] as? String
+        config.customData9 = json["customData9"] as? String
+        config.customData10 = json["customData10"] as? String
+        config.customData11 = json["customData11"] as? String
+        config.customData12 = json["customData12"] as? String
+        config.customData13 = json["customData13"] as? String
+        config.customData14 = json["customData14"] as? String
+        config.customData15 = json["customData15"] as? String
+        config.customData16 = json["customData16"] as? String
+        config.customData17 = json["customData17"] as? String
+        config.customData18 = json["customData18"] as? String
+        config.customData19 = json["customData19"] as? String
+        config.customData20 = json["customData20"] as? String
+        config.customData21 = json["customData21"] as? String
+        config.customData22 = json["customData22"] as? String
+        config.customData23 = json["customData23"] as? String
+        config.customData24 = json["customData24"] as? String
+        config.customData25 = json["customData25"] as? String
+        config.customData26 = json["customData26"] as? String
+        config.customData27 = json["customData27"] as? String
+        config.customData28 = json["customData28"] as? String
+        config.customData29 = json["customData29"] as? String
+        config.customData30 = json["customData30"] as? String
+        config.experimentName = json["experimentName"] as? String
         return config
     }
 
@@ -697,13 +726,39 @@ extension RCTConvert {
         guard let json = json as? [String: Any?] else {
             return nil
         }
-        let customData = CustomData()
-        for n in 1..<30 {
-            if let customDataN = json["customData\(n)"] as? String {
-                customData.setValue(customDataN, forKey: "customData\(n)")
-            }
-        }
-        return customData
+        return CustomData(
+            customData1: json["customData1"] as? String,
+            customData2: json["customData2"] as? String,
+            customData3: json["customData3"] as? String,
+            customData4: json["customData4"] as? String,
+            customData5: json["customData5"] as? String,
+            customData6: json["customData6"] as? String,
+            customData7: json["customData7"] as? String,
+            customData8: json["customData8"] as? String,
+            customData9: json["customData9"] as? String,
+            customData10: json["customData10"] as? String,
+            customData11: json["customData11"] as? String,
+            customData12: json["customData12"] as? String,
+            customData13: json["customData13"] as? String,
+            customData14: json["customData14"] as? String,
+            customData15: json["customData15"] as? String,
+            customData16: json["customData16"] as? String,
+            customData17: json["customData17"] as? String,
+            customData18: json["customData18"] as? String,
+            customData19: json["customData19"] as? String,
+            customData20: json["customData20"] as? String,
+            customData21: json["customData21"] as? String,
+            customData22: json["customData22"] as? String,
+            customData23: json["customData23"] as? String,
+            customData24: json["customData24"] as? String,
+            customData25: json["customData25"] as? String,
+            customData26: json["customData26"] as? String,
+            customData27: json["customData27"] as? String,
+            customData28: json["customData28"] as? String,
+            customData29: json["customData29"] as? String,
+            customData30: json["customData30"] as? String,
+            experimentName: json["experimentName"] as? String
+        )
     }
 
     /**
@@ -716,13 +771,62 @@ extension RCTConvert {
             return nil
         }
         var json: [String: Any?] = [:]
-        for n in 1..<30 {
-            if let customDataN = analyticsCustomData.value(forKey: "customData\(n)") {
-                json["customData\(n)"] = customDataN
-            }
-        }
+        json["customData1"] = analyticsCustomData.customData1
+        json["customData2"] = analyticsCustomData.customData2
+        json["customData3"] = analyticsCustomData.customData3
+        json["customData4"] = analyticsCustomData.customData4
+        json["customData5"] = analyticsCustomData.customData5
+        json["customData6"] = analyticsCustomData.customData6
+        json["customData7"] = analyticsCustomData.customData7
+        json["customData8"] = analyticsCustomData.customData8
+        json["customData9"] = analyticsCustomData.customData9
+        json["customData10"] = analyticsCustomData.customData10
+        json["customData11"] = analyticsCustomData.customData11
+        json["customData12"] = analyticsCustomData.customData12
+        json["customData13"] = analyticsCustomData.customData13
+        json["customData14"] = analyticsCustomData.customData14
+        json["customData15"] = analyticsCustomData.customData15
+        json["customData16"] = analyticsCustomData.customData16
+        json["customData17"] = analyticsCustomData.customData17
+        json["customData18"] = analyticsCustomData.customData18
+        json["customData19"] = analyticsCustomData.customData19
+        json["customData20"] = analyticsCustomData.customData20
+        json["customData21"] = analyticsCustomData.customData21
+        json["customData22"] = analyticsCustomData.customData22
+        json["customData23"] = analyticsCustomData.customData23
+        json["customData24"] = analyticsCustomData.customData24
+        json["customData25"] = analyticsCustomData.customData25
+        json["customData26"] = analyticsCustomData.customData26
+        json["customData27"] = analyticsCustomData.customData27
+        json["customData28"] = analyticsCustomData.customData28
+        json["customData29"] = analyticsCustomData.customData29
+        json["customData30"] = analyticsCustomData.customData30
+        json["experimentName"] = analyticsCustomData.experimentName
         return json
     }
+
+    /**
+     Utility method to get an analytics `SourceMetadata` value from a JS object.
+     - Parameter json: JS object.
+     - Returns: The associated `SourceMetadata` value or nil.
+     */
+    static func analyticsSourceMetadata(_ json: Any?) -> SourceMetadata? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        let customData = analyticsCustomData(json)
+
+        return SourceMetadata(
+            videoId: json["videoId"] as? String,
+            title: json["title"] as? String,
+            path: json["path"] as? String,
+            isLive: json["isLive"] as? Bool,
+            cdnProvider: json["cdnProvider"] as? String,
+            customData: customData ?? CustomData()
+        )
+    }
+
     /**
      Utility method to compute a JS value from a `VideoQuality` object.
      - Parameter videoQuality `VideoQuality` object to be converted.
@@ -740,6 +844,25 @@ extension RCTConvert {
             "codec": videoQuality.codec,
             "bitrate": videoQuality.bitrate,
         ]
+    }
+
+    /**
+     Utility method to get a `UserInterfaceType` from a JS object.
+     - Parameter json: JS object
+     - Returns: The associated `UserInterfaceType` value or `nil`
+     */
+    static func userInterfaceType(_ json: Any?) -> UserInterfaceType? {
+        guard let json = json as? String else {
+            return .none
+        }
+        switch json {
+#if os(iOS)
+        case "Bitmovin": return .bitmovin
+#endif
+        case "System": return .system
+        case "Subtitle": return .subtitle
+        default: return nil
+        }
     }
 
 #if os(iOS)
