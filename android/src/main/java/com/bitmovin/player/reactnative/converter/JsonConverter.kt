@@ -156,46 +156,39 @@ class JsonConverter {
                 tweaksConfig.timeChangedInterval = json.getDouble("timeChangedInterval")
             }
             if (json.hasKey("bandwidthEstimateWeightLimit")) {
-                tweaksConfig.bandwidthEstimateWeightLimit =
-                    json.getInt("bandwidthEstimateWeightLimit")
+                tweaksConfig.bandwidthEstimateWeightLimit = json.getInt("bandwidthEstimateWeightLimit")
             }
             if (json.hasKey("devicesThatRequireSurfaceWorkaround")) {
                 val devices = json.getMap("devicesThatRequireSurfaceWorkaround")
                 val deviceNames = devices?.getArray("deviceNames")
-                    ?.toList<String>()
-                    ?.mapNotNull { it }
-                    ?.map { DeviceName(it) }
-                    ?: emptyList()
+                        ?.toList<String>()
+                        ?.mapNotNull { it }
+                        ?.map { DeviceName(it) }
+                        ?: emptyList()
                 val modelNames = devices?.getArray("modelNames")
-                    ?.toList<String>()
-                    ?.mapNotNull { it }
-                    ?.map { ModelName(it) }
-                    ?: emptyList()
+                        ?.toList<String>()
+                        ?.mapNotNull { it }
+                        ?.map { ModelName(it) }
+                        ?: emptyList()
                 tweaksConfig.devicesThatRequireSurfaceWorkaround = deviceNames + modelNames
             }
             if (json.hasKey("languagePropertyNormalization")) {
-                tweaksConfig.languagePropertyNormalization =
-                    json.getBoolean("languagePropertyNormalization")
+                tweaksConfig.languagePropertyNormalization = json.getBoolean("languagePropertyNormalization")
             }
             if (json.hasKey("localDynamicDashWindowUpdateInterval")) {
-                tweaksConfig.localDynamicDashWindowUpdateInterval =
-                    json.getDouble("localDynamicDashWindowUpdateInterval")
+                tweaksConfig.localDynamicDashWindowUpdateInterval = json.getDouble("localDynamicDashWindowUpdateInterval")
             }
             if (json.hasKey("shouldApplyTtmlRegionWorkaround")) {
-                tweaksConfig.shouldApplyTtmlRegionWorkaround =
-                    json.getBoolean("shouldApplyTtmlRegionWorkaround")
+                tweaksConfig.shouldApplyTtmlRegionWorkaround = json.getBoolean("shouldApplyTtmlRegionWorkaround")
             }
             if (json.hasKey("useDrmSessionForClearPeriods")) {
-                tweaksConfig.useDrmSessionForClearPeriods =
-                    json.getBoolean("useDrmSessionForClearPeriods")
+                tweaksConfig.useDrmSessionForClearPeriods = json.getBoolean("useDrmSessionForClearPeriods")
             }
             if (json.hasKey("useDrmSessionForClearSources")) {
-                tweaksConfig.useDrmSessionForClearSources =
-                    json.getBoolean("useDrmSessionForClearSources")
+                tweaksConfig.useDrmSessionForClearSources = json.getBoolean("useDrmSessionForClearSources")
             }
             if (json.hasKey("useFiletypeExtractorFallbackForHls")) {
-                tweaksConfig.useFiletypeExtractorFallbackForHls =
-                    json.getBoolean("useFiletypeExtractorFallbackForHls")
+                tweaksConfig.useFiletypeExtractorFallbackForHls = json.getBoolean("useFiletypeExtractorFallbackForHls")
             }
             return tweaksConfig
         }
@@ -207,9 +200,9 @@ class JsonConverter {
          */
         @JvmStatic
         fun toAdvertisingConfig(json: ReadableMap?): AdvertisingConfig? = json?.getArray("schedule")
-            ?.toList<ReadableMap>()
-            ?.mapNotNull(::toAdItem)
-            ?.let { AdvertisingConfig(it) }
+                ?.toList<ReadableMap>()
+                ?.mapNotNull(::toAdItem)
+                ?.let { AdvertisingConfig(it) }
 
         /**
          * Converts any JS object into an `AdItem` object.
@@ -219,10 +212,10 @@ class JsonConverter {
         @JvmStatic
         fun toAdItem(json: ReadableMap?): AdItem? {
             val sources = json?.getArray("sources")
-                ?.toList<ReadableMap>()
-                ?.mapNotNull(::toAdSource)
-                ?.toTypedArray()
-                ?: return null
+                    ?.toList<ReadableMap>()
+                    ?.mapNotNull(::toAdSource)
+                    ?.toTypedArray()
+                    ?: return null
             return AdItem(sources, json?.getString("position") ?: "pre")
         }
 
@@ -279,8 +272,8 @@ class JsonConverter {
             }
             if (json.hasKey("metadata")) {
                 config.metadata = json.getMap("metadata")
-                    ?.toHashMap()
-                    ?.mapValues { entry -> entry.value as String }
+                        ?.toHashMap()
+                        ?.mapValues { entry -> entry.value as String }
             }
             return config
         }
@@ -516,25 +509,25 @@ class JsonConverter {
          */
         @JvmStatic
         fun toWidevineConfig(json: ReadableMap?): WidevineConfig? = json
-            ?.getMap("widevine")
-            ?.let {
-                WidevineConfig(it.getString("licenseUrl"))
-                    .apply {
-                        if (it.hasKey("preferredSecurityLevel")) {
-                            preferredSecurityLevel = it.getString("preferredSecurityLevel")
-                        }
-                        if (it.hasKey("shouldKeepDrmSessionsAlive")) {
-                            shouldKeepDrmSessionsAlive = it.getBoolean("shouldKeepDrmSessionsAlive")
-                        }
-                        if (it.hasKey("httpHeaders")) {
-                            httpHeaders = it.getMap("httpHeaders")
-                                ?.toHashMap()
-                                ?.mapValues { entry -> entry.value as String }
-                                ?.toMutableMap()
+                ?.getMap("widevine")
+                ?.let {
+                    WidevineConfig(it.getString("licenseUrl"))
+                            .apply {
+                                if (it.hasKey("preferredSecurityLevel")) {
+                                    preferredSecurityLevel = it.getString("preferredSecurityLevel")
+                                }
+                                if (it.hasKey("shouldKeepDrmSessionsAlive")) {
+                                    shouldKeepDrmSessionsAlive = it.getBoolean("shouldKeepDrmSessionsAlive")
+                                }
+                                if (it.hasKey("httpHeaders")) {
+                                    httpHeaders = it.getMap("httpHeaders")
+                                            ?.toHashMap()
+                                            ?.mapValues { entry -> entry.value as String }
+                                            ?.toMutableMap()
 
-                        }
-                    }
-            }
+                                }
+                            }
+                }
 
         /**
          * Converts an `url` string into a `ThumbnailsTrack`.
@@ -594,22 +587,22 @@ class JsonConverter {
             val format = json.getString("format")
             if (format != null && format.isNotBlank()) {
                 return SubtitleTrack(
+                        url = url,
+                        label = label,
+                        id = identifier,
+                        isDefault = isDefault,
+                        language = json.getString("language"),
+                        isForced = isForced,
+                        mimeType = toSubtitleMimeType(format),
+                )
+            }
+            return SubtitleTrack(
                     url = url,
                     label = label,
                     id = identifier,
                     isDefault = isDefault,
                     language = json.getString("language"),
                     isForced = isForced,
-                    mimeType = toSubtitleMimeType(format),
-                )
-            }
-            return SubtitleTrack(
-                url = url,
-                label = label,
-                id = identifier,
-                isDefault = isDefault,
-                language = json.getString("language"),
-                isForced = isForced,
             )
         }
 
@@ -781,8 +774,8 @@ class JsonConverter {
             var config: BitmovinAnalyticsConfig? = null
             it.getString("key")?.let { key ->
                 config = it.getString("playerKey")
-                    ?.let { playerKey -> BitmovinAnalyticsConfig(key, playerKey) }
-                    ?: BitmovinAnalyticsConfig(key)
+                        ?.let { playerKey -> BitmovinAnalyticsConfig(key, playerKey) }
+                        ?: BitmovinAnalyticsConfig(key)
             }
             it.getString("cdnProvider")?.let { cdnProvider ->
                 config?.cdnProvider = cdnProvider
