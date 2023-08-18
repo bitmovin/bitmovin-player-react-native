@@ -446,4 +446,18 @@ class OfflineModule: RCTEventEmitter {
         }
 #endif
     }
+
+    /**
+     This method is no-op on iOS.
+     - Parameter nativeId: Target offline module Id
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc func releaseLicense(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(nil)
+    }
 }
