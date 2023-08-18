@@ -23,8 +23,7 @@ class OfflineContentManagerHolder(
     val offlineContentManager: OfflineContentManager = OfflineContentManager.getOfflineContentManager(
         source, location, identifier, this, context
     )
-    var contentOptions: OfflineContentOptions? = null
-        private set
+    private var contentOptions: OfflineContentOptions? = null
 
     fun getOptions() {
         offlineContentManager.getOptions()

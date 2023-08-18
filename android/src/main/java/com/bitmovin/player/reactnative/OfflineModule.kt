@@ -11,13 +11,12 @@ import com.facebook.react.module.annotations.ReactModule
 private const val OFFLINE_MODULE = "BitmovinOfflineModule"
 
 @ReactModule(name = OFFLINE_MODULE)
-class OfflineModule(private val context: ReactApplicationContext) :
-    ReactContextBaseJavaModule(context) {
+class OfflineModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
 
     /**
      * In-memory mapping from `nativeId`s to `OfflineManager` instances.
      */
-    private val offlineContentManagerHolders : Registry<OfflineContentManagerHolder> = mutableMapOf()
+    private val offlineContentManagerHolders: Registry<OfflineContentManagerHolder> = mutableMapOf()
 
     /**
      * JS exported module name.
@@ -67,8 +66,7 @@ class OfflineModule(private val context: ReactApplicationContext) :
                 return
             }
 
-            offlineContentManagerHolders[nativeId] =
-                OfflineContentManagerHolder(nativeId, context, identifier, sourceConfig, context.cacheDir.path)
+            offlineContentManagerHolders[nativeId] = OfflineContentManagerHolder(nativeId, context, identifier, sourceConfig, context.cacheDir.path)
         }
         promise.resolve(null)
     }
@@ -80,8 +78,7 @@ class OfflineModule(private val context: ReactApplicationContext) :
     @ReactMethod
     fun getOfflineSourceConfig(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            val offlineSourceConfig = getOfflineContentManagerHolder(nativeId)
-                ?.offlineContentManager?.offlineSourceConfig
+            val offlineSourceConfig = getOfflineContentManagerHolder(nativeId)?.offlineContentManager?.offlineSourceConfig
             promise.resolve(JsonConverter.toJson(offlineSourceConfig))
         }
     }
@@ -116,23 +113,15 @@ class OfflineModule(private val context: ReactApplicationContext) :
         safeOfflineContentManager(nativeId, promise) {
             try {
                 val minimumBitRate = request.getInt("minimumBitrate")
-                val audioOptionIds = request.getArray("audioOptionIds")
-                    ?.toList<String>()
-                    ?.filterNotNull()
-                val textOptionIds = request.getArray("textOptionIds")
-                    ?.toList<String>()
-                    ?.filterNotNull()
+                val audioOptionIds = request.getArray("audioOptionIds")?.toList<String>()?.filterNotNull()
+                val textOptionIds = request.getArray("textOptionIds")?.toList<String>()?.filterNotNull()
 
                 if (minimumBitRate < 0) {
                     promise.reject(java.lang.IllegalArgumentException("Invalid download request"))
                     return@safeOfflineContentManager
                 }
 
-                getOfflineContentManagerHolder(nativeId)?.process(
-                    OfflineDownloadRequest(
-                        minimumBitRate, audioOptionIds, textOptionIds
-                    )
-                )
+                getOfflineContentManagerHolder(nativeId)?.process(OfflineDownloadRequest(minimumBitRate, audioOptionIds, textOptionIds))
                 promise.resolve(null)
             } catch (e: Exception) {
                 promise.reject(e)
@@ -274,7 +263,6 @@ class OfflineModule(private val context: ReactApplicationContext) :
 
     private fun safeOfflineContentManager(nativeId: NativeId, promise: Promise, runBlock: (OfflineContentManagerHolder) -> Unit) {
         getOfflineContentManagerHolder(nativeId)?.let(runBlock)
-            ?: promise.reject(java.lang.IllegalArgumentException("Could not find the offline module instance"))
+                ?: promise.reject(java.lang.IllegalArgumentException("Could not find the offline module instance"))
     }
-
 }
