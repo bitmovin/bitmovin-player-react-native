@@ -53,7 +53,7 @@ export default function CustomHtmlUI({ navigation }: CustomHtmlUIProps) {
       playerUiJs:
         'https://cdn.statically.io/gh/bitmovin/bitmovin-player-ios-samples/main/CustomHtmlUi/Supporting%20Files/bitmovinplayer-ui.min.js',
       supplementalPlayerUiCss:
-        'https://storage.googleapis.com/bitmovin-player-cdn-origin/player/ui/ui-customized-sample.css',
+        'https://cdn.bitmovin.com/player/ui/ui-customized-sample.css',
     },
   });
 

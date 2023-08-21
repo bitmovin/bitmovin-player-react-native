@@ -28,7 +28,8 @@ def setup os
   pod 'RNBitmovinPlayer', :path => '../..'
 
   # Enables Flipper for iOS development only.
-  if os == :ios
+  use_flipper = ENV['NO_FLIPPER'] != '1'
+  if use_flipper && os == :ios
     # Note that if you have use_frameworks! enabled, Flipper will not work and
     # you should disable the next line.
     use_flipper!({ 'Flipper' => '0.151.0' })
@@ -46,4 +47,14 @@ end
 post_install do |installer|
   react_native_post_install(installer)
   __apply_Xcode_12_5_M1_post_install_workaround(installer)
+
+  # Backport of: https://github.com/AlexanderEggers/react-native/blob/18ac6a3743749c0b8273c64dac982c30b74928e3/packages/react-native/scripts/cocoapods/utils.rb#L124
+  installer.target_installation_results.pod_target_installation_results.each do |pod_name, target_installation_result|
+      target_installation_result.native_target.build_configurations.each do |config|
+        # unary_function and binary_function are no longer provided in C++17 and newer standard modes as part of Xcode 15. They can be re-enabled with setting _LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION
+        # Ref: https://developer.apple.com/documentation/xcode-release-notes/xcode-15-release-notes#Deprecations
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= '$(inherited) '
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << '"_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION" '
+      end
+    end
 end

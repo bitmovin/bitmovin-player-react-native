@@ -85,6 +85,16 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event
 @SuppressLint("ViewConstructor")
 class RNPlayerView(val context: ThemedReactContext) : LinearLayout(context),
     LifecycleEventListener, View.OnLayoutChangeListener, RNPictureInPictureDelegate {
+
+    init {
+        // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
+        // Since we dynamically add and remove SurfaceView under the hood this caused the player
+        // to suddenly not show the video anymore because SurfaceView was not laid out properly.
+        // Bitmovin player issue: https://github.com/bitmovin/bitmovin-player-react-native/issues/180
+        // React Native layout issue: https://github.com/facebook/react-native/issues/17968
+        getViewTreeObserver().addOnGlobalLayoutListener { requestLayout() }
+    }
+
     /**
      * Relays the provided set of events, emitted by the player, together with the associated name
      * to the `eventOutput` callback.

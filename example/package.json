@@ -16,9 +16,11 @@
     "react": "18.0.0",
     "react-native": "npm:react-native-tvos@0.69.6-2",
     "react-native-modal": "13.0.1",
+    "react-native-orientation-locker": "1.5.0",
     "react-native-safe-area-context": "4.3.1",
     "react-native-screens": "3.15.0",
-    "react-native-svg": "13.6.0"
+    "react-native-svg": "13.6.0",
+    "react-native-system-navigation-bar": "^2.6.1"
   },
   "devDependencies": {
     "react-native-svg-transformer": "1.0.0"

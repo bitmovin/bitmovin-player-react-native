@@ -25,10 +25,11 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     /**
      * Native component functions.
      */
-    enum class Commands {
-        ATTACH_PLAYER,
-        ATTACH_FULLSCREEN_BRIDGE,
-        SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID,
+    enum class Commands(val command: String) {
+        ATTACH_PLAYER("attachPlayer"),
+        ATTACH_FULLSCREEN_BRIDGE("attachFullscreenBridge"),
+        SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID("setCustomMessageHandlerBridgeId"),
+        SET_FULLSCREEN("setFullscreen");
     }
 
     /**
@@ -140,11 +141,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * to call 'functions' on them.
      * @return map between names (used in js) and command ids (used in native code).
      */
-    override fun getCommandsMap(): MutableMap<String, Int> = mutableMapOf(
-        "attachPlayer" to Commands.ATTACH_PLAYER.ordinal,
-        "attachFullscreenBridge" to Commands.ATTACH_FULLSCREEN_BRIDGE.ordinal,
-        "setCustomMessageHandlerBridgeId" to Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID.ordinal,
-    )
+    override fun getCommandsMap(): Map<String, Int> = Commands.values().associate {
+        it.command to it.ordinal
+    }
 
     /**
      * Callback triggered in response to command dispatches from the js side.
@@ -153,19 +152,23 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @param args Arguments list sent from the js side.
      */
     override fun receiveCommand(view: RNPlayerView, commandId: String?, args: ReadableArray?) {
-        super.receiveCommand(view, commandId, args)
-        commandId?.toInt()?.let {
-            when (it) {
-                Commands.ATTACH_PLAYER.ordinal -> attachPlayer(view, args?.getString(1), args?.getMap(2))
-                Commands.ATTACH_FULLSCREEN_BRIDGE.ordinal -> args?.getString(1)?.let { fullscreenBridgeId ->
-                    attachFullscreenBridge(view, fullscreenBridgeId)
+        val command = commandId?.toInt()?.toCommand() ?: throw IllegalArgumentException(
+            "The received command is not supported by the Bitmovin Player View"
+        )
+        when (command) {
+            Commands.ATTACH_PLAYER -> attachPlayer(view, args?.getString(1), args?.getMap(2))
+            Commands.ATTACH_FULLSCREEN_BRIDGE -> args?.getString(1)?.let { fullscreenBridgeId ->
+                attachFullscreenBridge(view, fullscreenBridgeId)
+            }
+            Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID -> {
+                args?.getString(1)?.let { customMessageHandlerBridgeId ->
+                    setCustomMessageHandlerBridgeId(view, customMessageHandlerBridgeId)
                 }
-                Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID.ordinal -> {
-                    args?.getString(1)?.let { customMessageHandlerBridgeId ->
-                        setCustomMessageHandlerBridgeId(view, customMessageHandlerBridgeId)
-                    }
+            }
+            Commands.SET_FULLSCREEN -> {
+                args?.getBoolean(1)?.let { isFullscreen ->
+                    setFullscreen(view, isFullscreen)
                 }
-                else -> {}
             }
         }
     }
@@ -175,6 +178,20 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             view.playerView?.setFullscreenHandler(
                 context.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId)
             )
+        }
+    }
+
+    private fun setFullscreen(view: RNPlayerView, isFullscreen: Boolean) {
+        if (view.playerView?.isFullscreen == isFullscreen) return
+
+        Handler(Looper.getMainLooper()).post {
+            with(view.playerView ?: return@post) {
+                if (isFullscreen) {
+                    enterFullscreen()
+                } else {
+                    exitFullscreen()
+                }
+            }
         }
     }
 
@@ -231,3 +248,5 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      */
     private fun getPlayerModule(): PlayerModule? = context.getModule()
 }
+
+private fun Int.toCommand(): RNPlayerViewManager.Commands? = RNPlayerViewManager.Commands.values().getOrNull(this)
