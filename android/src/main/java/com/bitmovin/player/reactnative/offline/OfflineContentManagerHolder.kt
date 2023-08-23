@@ -87,6 +87,7 @@ class OfflineContentManagerHolder(
     fun cancelDownload() {
         suspend()
         deleteAll()
+        sendEvent("onCanceled")
     }
 
     fun deleteAll() {
