@@ -13,16 +13,16 @@ import { useTVGestures } from '../hooks';
 import Button from '../components/Button';
 import { RootStackParamsList } from '../App';
 
-type CustomHtmlUIProps = NativeStackScreenProps<
+type CustomHtmlUiProps = NativeStackScreenProps<
   RootStackParamsList,
-  'CustomHtmlUI'
+  'CustomHtmlUi'
 >;
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
 }
 
-export default function CustomHtmlUI({ navigation }: CustomHtmlUIProps) {
+export default function CustomHtmlUi({ navigation }: CustomHtmlUiProps) {
   useTVGestures();
 
   const customMessageHandler = useRef(

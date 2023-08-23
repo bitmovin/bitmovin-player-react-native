@@ -46,7 +46,7 @@ function newPlayer() {
           isUiEnabled: false,
         }
       : {
-          userInterfaceType: UserInterfaceType.subtitle,
+          userInterfaceType: UserInterfaceType.Subtitle,
         };
   return new Player({
     styleConfig,

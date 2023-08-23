@@ -222,10 +222,6 @@ interface AnalyticsConfig extends NativeInstanceConfig, CustomDataConfig {
      */
     customUserId?: string;
     /**
-     * Experiment name needed for A/B testing.
-     */
-    experimentName?: string;
-    /**
      * ID of the video in the CMS system.
      */
     videoId?: string;
@@ -379,6 +375,32 @@ interface CustomDataConfig {
      * Optional free-form custom data
      */
     customData30?: string;
+    /**
+     * Experiment name needed for A/B testing.
+     */
+    experimentName?: string;
+}
+interface SourceMetadata extends CustomDataConfig {
+    /**
+     * ID of the video in the CMS system
+     */
+    videoId?: String;
+    /**
+     * Human readable title of the video asset currently playing
+     */
+    title?: String;
+    /**
+     * Breadcrumb path to show where in the app the user is
+     */
+    path?: String;
+    /**
+     * Flag to see if stream is live before stream metadata is available
+     */
+    isLive?: boolean;
+    /**
+     * CDN Provider that the video playback session is using
+     */
+    cdnProvider?: String;
 }
 
 /**
@@ -390,6 +412,10 @@ declare class AnalyticsCollector extends NativeInstance<AnalyticsConfig> {
      * Whether the native `AnalyticsCollector` object has been created.
      */
     isInitialized: boolean;
+    /**
+     * The native player id that this analytics collector is attached to.
+     */
+    playerId?: string;
     /**
      * Whether the native `AnalyticsCollector` object has been disposed.
      */
@@ -440,6 +466,13 @@ declare class AnalyticsCollector extends NativeInstance<AnalyticsConfig> {
      * @returns The current user id.
      */
     getUserId: () => Promise<string>;
+    /**
+     * Adds source metadata for the current source loaded into the player.
+     * This method should be called every time a new source is loaded into the player to ensure
+     * that the analytics data is correct.
+     * @param sourceMetadata - Source metadata to set.
+     */
+    addSourceMetadata: (sourceMetadata: SourceMetadata) => any;
 }
 
 /**
@@ -1579,7 +1612,7 @@ declare class Source extends NativeInstance<SourceConfig> {
  */
 interface StyleConfig {
     /**
-     * Sets if the UI should be enabled or not. Default value is true.
+     * Sets if the UI should be enabled or not. Default value is `true`.
      * @example
      * ```
      * const player = new Player({
@@ -1591,24 +1624,22 @@ interface StyleConfig {
      */
     isUiEnabled?: boolean;
     /**
-     * iOS/tvOS only.
-     *
-     * Set which user interface type should be used.
-     * Default value is UserInterfaceType.bitmovin on iOS and UserInterfaceType.system on tvOS.
-     * This setting only applies if StyleConfig#isUiEnabled is set to true.
+     * Sets which user interface type should be used.
+     * Default value is `UserInterfaceType.bitmovin` on `iOS` and `UserInterfaceType.system` on `tvOS`.
+     * This setting only applies if `StyleConfig.isUiEnabled` is set to true.
      * @example
      * ```
      * const player = new Player({
      *   styleConfig: {
-     *     isUiEnabled: false,
-     *     userInterfaceType: UserInterfaceType.subtitle,
+     *     userInterfaceType: UserInterfaceType.System,
      *   },
      * });
      * ```
+     * @platform iOS, tvOS
      */
     userInterfaceType?: UserInterfaceType;
     /**
-     * Set the CSS file that will be used for the UI. The default CSS file will be completely replaced by the CSS file set with this property.
+     * Sets the CSS file that will be used for the UI. The default CSS file will be completely replaced by the CSS file set with this property.
      * @example
      * ```
      * const player = new Player({
@@ -1621,7 +1652,7 @@ interface StyleConfig {
      */
     playerUiCss?: string;
     /**
-     * Set a CSS file which contains supplemental styles for the player UI. These styles will be added to the default CSS file or the CSS file set with StyleConfig#playerUiCss.
+     * Sets a CSS file which contains supplemental styles for the player UI. These styles will be added to the default CSS file or the CSS file set with `StyleConfig.playerUiCss`.
      * @example
      * ```
      * const player = new Player({
@@ -1647,8 +1678,8 @@ interface StyleConfig {
      */
     playerUiJs?: string;
     /**
-     * Determines how the video content is scaled or stretched within the parent container’s bounds.  Possible values are defined in ScalingMode.
-     * Default value is ScalingMode.fit.
+     * Determines how the video content is scaled or stretched within the parent container’s bounds. Possible values are defined in `ScalingMode`.
+     * Default value is `ScalingMode.fit`.
      * @example
      * ```
      * const player = new Player({
@@ -1659,23 +1690,6 @@ interface StyleConfig {
      * ```
      */
     scalingMode?: ScalingMode;
-}
-/**
- * Indicates which type of UI should be used.
- */
-declare enum UserInterfaceType {
-    /**
-     * Indicates that Bitmovin’s customizable UI should be used.
-     */
-    bitmovin = "bitmovin",
-    /**
-     * Indicates that the system UI should be used.
-     */
-    system = "system",
-    /**
-     * Indicates that only subtitles should be displayed along with the video content
-     */
-    subtitle = "subtitle"
 }
 /**
  * Specifies how the video content is scaled or stretched.
@@ -1693,6 +1707,24 @@ declare enum ScalingMode {
      * Specifies that the player should preserve the video’s aspect ratio and fill the container’s bounds.
      */
     Zoom = "Zoom"
+}
+/**
+ * Indicates which type of UI should be used.
+ * @platform iOS, tvOS
+ */
+declare enum UserInterfaceType {
+    /**
+     * Indicates that Bitmovin's customizable UI should be used.
+     */
+    Bitmovin = "Bitmovin",
+    /**
+     * Indicates that the system UI should be used.
+     */
+    System = "System",
+    /**
+     * Indicates that only subtitles should be displayed along with the video content.
+     */
+    Subtitle = "Subtitle"
 }
 
 /**
@@ -2543,14 +2575,29 @@ interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
      * and render audio/video inside the `PlayerView`.
      */
     player: Player;
+    /**
+     * The `FullscreenHandler` that is used by the `PlayerView` to control the fullscreen mode.
+     */
     fullscreenHandler?: FullscreenHandler;
+    /**
+     * The `CustomMessageHandler` that can be used to directly communicate with the embedded WebUi.
+     */
     customMessageHandler?: CustomMessageHandler;
+    /**
+     * Can be set to `true` to request fullscreen mode, or `false` to request exit of fullscreen mode.
+     * Should not be used to get the current fullscreen state. Use `onFullscreenEnter` and `onFullscreenExit`
+     * or the `FullscreenHandler.isFullscreenActive` property to get the current state.
+     * Using this property to change the fullscreen state, it is ensured that the embedded Player UI is also aware
+     * of potential fullscreen state changes.
+     * To use this property, a `FullscreenHandler` must be set.
+     */
+    isFullscreenRequested?: Boolean;
 }
 /**
  * Component that provides the Bitmovin Player UI and default UI handling to an attached `Player` instance.
  * This component needs a `Player` instance to work properly so make sure one is passed to it as a prop.
  */
-declare function PlayerView({ style, player, fullscreenHandler, customMessageHandler, ...props }: PlayerViewProps): JSX.Element;
+declare function PlayerView({ style, player, fullscreenHandler, customMessageHandler, isFullscreenRequested, ...props }: PlayerViewProps): JSX.Element;
 
 declare type TypefaceFamily = 'DEFAULT' | 'MONOSPACE' | 'SANS_SERIF' | 'SERIF';
 declare type TypefaceStyleWeight = 'NORMAL' | 'BOLD' | 'BOLD_ITALIC' | 'ITALIC';
@@ -2642,4 +2689,4 @@ declare function SubtitleView(props: SubtitleViewProps): JSX.Element | null;
  */
 declare function usePlayer(config?: PlayerConfig): Player;
 
-export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdvertisingConfig, AnalyticsCollector, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinNativeOfflineEventData, CdnProvider, CustomDataConfig, CustomMessageHandler, DestroyEvent, Drm, DrmConfig, DrmLicenseInformation, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, LoadingState, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineOptionEntry, OfflineOptionEntryState, OfflineSourceOptions, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TypefaceFamily, TypefaceStyleWeight, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoSizeChangedEvent, WidevineConfig, handleBitmovinNativeOfflineEvent, usePlayer };
+export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdvertisingConfig, AnalyticsCollector, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinNativeOfflineEventData, CdnProvider, CustomDataConfig, CustomMessageHandler, DestroyEvent, Drm, DrmConfig, DrmLicenseInformation, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, LoadingState, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineOptionEntry, OfflineOptionEntryState, OfflineSourceOptions, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceMetadata, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TypefaceFamily, TypefaceStyleWeight, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoSizeChangedEvent, WidevineConfig, handleBitmovinNativeOfflineEvent, usePlayer };

@@ -9,7 +9,6 @@ import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getModule
 import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
 import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
-import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
@@ -21,7 +20,8 @@ import com.facebook.react.uimanager.annotations.ReactProp
 private const val MODULE_NAME = "NativePlayerView"
 
 @ReactModule(name = MODULE_NAME)
-class RNPlayerViewManager(private val context: ReactApplicationContext) : SimpleViewManager<RNPlayerView>() {
+class RNPlayerViewManager(private val context: ReactApplicationContext) :
+    SimpleViewManager<RNPlayerView>() {
     /**
      * Native component functions.
      */
@@ -40,19 +40,12 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     private var customMessageHandlerBridgeId: NativeId? = null
 
     /**
-     * React Native PiP handler instance. It can be subclassed, then set from other native
-     * modules in case a full-custom implementation is needed. A default implementation is provided
-     * out-of-the-box.
-     */
-    var pictureInPictureHandler = RNPictureInPictureHandler(context)
-
-    /**
      * The component's native view factory. RN may call this method multiple times
      * for each component instance.
      */
     override fun createViewInstance(reactContext: ThemedReactContext) = RNPlayerView(reactContext)
 
-    @ReactProp(name = "disableAdUi" )
+    @ReactProp(name = "disableAdUi")
     fun setDisableAdUi(view: RNPlayerView, disableAdUi: Boolean?) {
         view.disableAdUi = disableAdUi
     }
@@ -195,7 +188,10 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         }
     }
 
-    private fun setCustomMessageHandlerBridgeId(view: RNPlayerView, customMessageHandlerBridgeId: NativeId) {
+    private fun setCustomMessageHandlerBridgeId(
+        view: RNPlayerView,
+        customMessageHandlerBridgeId: NativeId
+    ) {
         this.customMessageHandlerBridgeId = customMessageHandlerBridgeId
         attachCustomMessageHandlerBridge(view)
     }
@@ -216,20 +212,28 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId?, playerConfig: ReadableMap?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
-            playerConfig
-                ?.getMap("playbackConfig")
-                ?.getBooleanOrNull("isPictureInPictureEnabled")
+            val playbackConfig = playerConfig?.getMap("playbackConfig")
+
+            playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled")
                 ?.let {
-                    pictureInPictureHandler.isPictureInPictureEnabled = it
-                    view.pictureInPictureHandler = pictureInPictureHandler
+                    view.isPictureInPictureEnabled = it
                 }
+
+            playbackConfig?.getBooleanOrNull("isBackgroundPlaybackEnabled")
+                ?.let {
+                    view.isBackgroundPlaybackEnabled = it
+                }
+
             if (view.playerView != null) {
                 view.player = player
             } else {
                 // PlayerView has to be initialized with Activity context
                 val currentActivity = context.currentActivity
                 if (currentActivity == null) {
-                    Log.e(MODULE_NAME, "Cannot create a PlayerView, because no activity is attached.")
+                    Log.e(
+                        MODULE_NAME,
+                        "Cannot create a PlayerView, because no activity is attached."
+                    )
                     return@post
                 }
                 val playerView = PlayerView(currentActivity, player)
@@ -249,4 +253,5 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     private fun getPlayerModule(): PlayerModule? = context.getModule()
 }
 
-private fun Int.toCommand(): RNPlayerViewManager.Commands? = RNPlayerViewManager.Commands.values().getOrNull(this)
+private fun Int.toCommand(): RNPlayerViewManager.Commands? =
+    RNPlayerViewManager.Commands.values().getOrNull(this)
