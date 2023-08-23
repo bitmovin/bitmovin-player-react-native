@@ -279,29 +279,6 @@ class JsonConverter {
         }
 
         /**
-         * Converts any given `SourceConfig` object into its `json` representation.
-         * @param sourceConfig `SourceConfig` object to be converted.
-         * @return The `json` representation of the given `Source`.
-         */
-        @JvmStatic
-        fun toJson(sourceConfig: SourceConfig?): WritableMap? {
-            if (sourceConfig == null) {
-                return null
-            }
-            val json = Arguments.createMap()
-            json.putString("url", sourceConfig.url)
-            json.putString("type", toJson(sourceConfig.type))
-            json.putString("title", sourceConfig.title)
-            json.putString("poster", sourceConfig.posterSource)
-            json.putBoolean("isPosterPersistent", sourceConfig.isPosterPersistent)
-            json.putArray("subtitleTracks", sourceConfig.subtitleTracks.map { track ->
-                fromSubtitleTrack(track)
-            }.toReadableArray())
-            json.putNull("metadata")
-            return json
-        }
-
-        /**
          * Converts an arbitrary `json` to `SourceType`.
          * @param json JS string representing the `SourceType`.
          * @return The generated `SourceType` if successful or `SourceType.Dash` otherwise.
@@ -313,20 +290,6 @@ class JsonConverter {
             "smooth" -> SourceType.Smooth
             "progressive" -> SourceType.Progressive
             else -> SourceType.Dash
-        }
-
-        /**
-         * Converts an arbitrary `SourceType` to it's json representation.
-         * @param sourceType The `SourceType` to convert.
-         * @return The `json` representation of the given `SourceType`.
-         */
-        @JvmStatic
-        fun toJson(sourceType: SourceType?): String? = when (sourceType) {
-            SourceType.Dash -> "dash"
-            SourceType.Hls -> "hls"
-            SourceType.Smooth -> "smooth"
-            SourceType.Progressive -> "progressive"
-            else -> null
         }
 
         /**

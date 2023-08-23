@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -11,7 +11,7 @@ import {
   OfflineContentManager,
   OfflineContentOptions,
   OfflineDownloadRequest,
-  OfflineOptionEntryState,
+  OfflineState,
   PlayerView,
   SourceConfig,
   SourceType,
@@ -20,7 +20,7 @@ import {
 import { useTVGestures } from '../hooks';
 import OfflineManagementView from '../components/OfflineManagementView';
 
-const STABLE_IDENTIFIER = 'aStableOfflineId';
+const STABLE_IDENTIFIER = 'sintel-content-id';
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
@@ -34,22 +34,24 @@ const Action = ({
   text: string | number;
 }) => {
   return (
-    <TouchableOpacity style={styles.action} onPress={onPress}>
+    <TouchableOpacity
+      style={styles.action}
+      onPress={onPress}
+      disabled={onPress === undefined}
+    >
       <Text style={styles.actionText}>{text}</Text>
     </TouchableOpacity>
   );
 };
 
-const INITIAL_DOWNLOAD_REQUEST: OfflineDownloadRequest = {
+const initialDownloadRequest: OfflineDownloadRequest = {
   minimumBitrate: 800000,
-  audioOptionIds: [],
-  textOptionIds: [],
 };
 
-const SOURCE_CONFIG: SourceConfig = {
+const sourceConfig: SourceConfig = {
   url: 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
   type: SourceType.HLS,
-  title: 'Some Title',
+  title: 'Sintel',
   poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
 };
 
@@ -57,11 +59,29 @@ export default function OfflinePlayback() {
   useTVGestures();
   const [offlineContentManager, setOfflineContentManager] =
     useState<OfflineContentManager>();
-  const [entryState, setEntryState] = useState<OfflineOptionEntryState>();
+  const [downloadState, setDownloadState] = useState<OfflineState>();
   const [offlineOptions, setOfflineOptions] = useState<OfflineContentOptions>();
   const [progress, setProgress] = useState<number>(0);
   const [downloadRequest, setDownloadRequest] =
-    useState<OfflineDownloadRequest>(INITIAL_DOWNLOAD_REQUEST);
+    useState<OfflineDownloadRequest>(initialDownloadRequest);
+  const [usedStorage, setUsedStorage] = useState<number>(0);
+  const stateLabel = useMemo(() => {
+    offlineContentManager?.usedStorage().then((usedStorageInBytes) => {
+      setUsedStorage(usedStorageInBytes / 1024 / 1024);
+    });
+    switch (downloadState) {
+      case OfflineState.Downloading:
+        return `Downloading: ${progress.toFixed(2)}%`;
+      case OfflineState.Downloaded:
+        return 'Downloaded';
+      case OfflineState.NotDownloaded:
+        return 'Not Downloaded';
+      case OfflineState.Suspended:
+        return `Suspended: ${progress.toFixed(2)}%`;
+      default:
+        return 'Unknown state';
+    }
+  }, [downloadState, progress, offlineContentManager]);
 
   const onEvent = useCallback((event: any) => {
     prettyPrint(`EVENT`, event);
@@ -75,41 +95,59 @@ export default function OfflinePlayback() {
     useCallback(() => {
       const newOfflineContentManager = new OfflineContentManager({
         identifier: STABLE_IDENTIFIER,
-        sourceConfig: SOURCE_CONFIG,
+        sourceConfig: sourceConfig,
       });
 
       const removeOfflineContentManagerListener =
         newOfflineContentManager.addListener({
           onCompleted: (e) => {
             onEvent(e);
-            setEntryState(e.state);
+            setDownloadState(e.state);
             setOfflineOptions(e.options);
           },
-          onError: onEvent,
+          onError: (e) => {
+            onEvent(e);
+            setDownloadState(e.state);
+          },
           onProgress: (e) => {
             onEvent(e);
+            setDownloadState(e.state);
             setProgress(e.progress);
           },
           onDrmLicenseUpdated: onEvent,
           onOptionsAvailable: (e) => {
             onEvent(e);
-            setEntryState(e.state);
+            setDownloadState(e.state);
             setOfflineOptions(e.options);
           },
-          onResumed: onEvent,
-          onSuspended: onEvent,
+          onResumed: (e) => {
+            onEvent(e);
+            setDownloadState(e.state);
+          },
+          onSuspended: (e) => {
+            onEvent(e);
+            setDownloadState(e.state);
+          },
+          onCanceled: (e) => {
+            onEvent(e);
+            setDownloadState(e.state);
+          },
         });
 
       newOfflineContentManager
         .initialize()
         .then(() => {
           setOfflineContentManager(newOfflineContentManager);
+          newOfflineContentManager.state().then((state) => {
+            setDownloadState(state);
+          });
+          newOfflineContentManager.getOptions().catch(console.error);
         })
         .catch(console.error);
 
       return () => {
         removeOfflineContentManagerListener();
-        newOfflineContentManager.destroy?.();
+        newOfflineContentManager.destroy();
         setOfflineContentManager(undefined);
       };
     }, [onEvent])
@@ -119,52 +157,69 @@ export default function OfflinePlayback() {
     <View style={styles.container}>
       <PlayerView player={player} style={styles.player} />
       <View style={styles.actionsContainer}>
+        {downloadState === OfflineState.NotDownloaded && (
+          <Action
+            text={'Download'}
+            onPress={() => {
+              if (downloadRequest) {
+                offlineContentManager
+                  ?.download(downloadRequest)
+                  .catch(console.error);
+                setDownloadRequest(downloadRequest);
+              }
+            }}
+          />
+        )}
+        {downloadState === OfflineState.Downloaded && (
+          <Action
+            text={'Delete all'}
+            onPress={() => {
+              offlineContentManager?.deleteAll().then(() => {
+                setDownloadState(OfflineState.NotDownloaded);
+                offlineContentManager.getOptions().catch(console.error);
+              });
+            }}
+          />
+        )}
+        {(downloadState === OfflineState.Downloading ||
+          downloadState === OfflineState.Suspended) && (
+          <Action
+            text={'Cancel download'}
+            onPress={offlineContentManager?.cancelDownload}
+          />
+        )}
+        {downloadState === OfflineState.Downloading && (
+          <Action
+            text={'Suspend download'}
+            onPress={offlineContentManager?.suspend}
+          />
+        )}
+        {downloadState === OfflineState.Suspended && (
+          <Action
+            text={'Resume download'}
+            onPress={offlineContentManager?.resume}
+          />
+        )}
         <Action
-          text={'Get Options'}
-          onPress={offlineContentManager?.getOptions}
-        />
-        <Action
-          text={'Process'}
+          text={'Load Player'}
           onPress={() => {
-            if (downloadRequest) {
-              offlineContentManager
-                ?.process(downloadRequest)
-                .catch(console.error);
-              setDownloadRequest(INITIAL_DOWNLOAD_REQUEST);
+            if (
+              offlineContentManager != null &&
+              downloadState === OfflineState.Downloaded
+            ) {
+              onEvent('Loading the offline video');
+              player.loadOfflineSource(offlineContentManager);
+            } else {
+              onEvent('Loading the standard source configuration');
+              player.load(sourceConfig);
             }
           }}
         />
-        <Action
-          text={'Delete All'}
-          onPress={offlineContentManager?.deleteAll}
-        />
-        <Action text={'Suspend'} onPress={offlineContentManager?.suspend} />
-        <Action text={'Resume'} onPress={offlineContentManager?.resume} />
-        <Action
-          text={'Load Player Video'}
-          onPress={() => {
-            offlineContentManager
-              ?.getOfflineSourceConfig?.()
-              ?.then?.((sourceConfig) => {
-                onEvent({
-                  type: 'getOfflineSourceConfig',
-                  sourceConfig,
-                });
-                if (sourceConfig != null) {
-                  onEvent('Loading the offline video');
-                  player.loadOfflineSource(offlineContentManager);
-                } else {
-                  onEvent('Loading the standard source configuration');
-                  player.load(SOURCE_CONFIG);
-                }
-              });
-          }}
-        />
-        <Action text={`${entryState} - ${progress}`} />
+        <Action text={stateLabel} />
+        <Action text={`Used storage: ${usedStorage.toFixed(2)} MB`} />
       </View>
       <ScrollView style={styles.offlineOptionsContainer}>
         <OfflineManagementView
-          entryState={entryState}
           offlineOptions={offlineOptions}
           downloadRequest={downloadRequest}
           setDownloadRequest={setDownloadRequest}

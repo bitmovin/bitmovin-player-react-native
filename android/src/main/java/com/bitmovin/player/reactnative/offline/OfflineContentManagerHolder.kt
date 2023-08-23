@@ -25,6 +25,9 @@ class OfflineContentManagerHolder(
     )
     private var contentOptions: OfflineContentOptions? = null
 
+    val state: OfflineOptionEntryState
+        get() = aggregateState(contentOptions)
+
     fun getOptions() {
         offlineContentManager.getOptions()
     }
@@ -33,7 +36,7 @@ class OfflineContentManagerHolder(
      * Process the `OfflineDownloadRequest`.
      * The `OfflineContentOptions` are stored in memory in this class because they can not be constructed to pass to the process call.
      * We're copying the iOS interface for the `minimumBitrate` so that react-native will have a consistent interface.
-     *
+     * When no `minimumBitrate` is provided, the highest bitrate will be downloaded.
      */
     fun process(request: OfflineDownloadRequest) {
         if (contentOptions != null) {
@@ -41,11 +44,13 @@ class OfflineContentManagerHolder(
                 option.action = OfflineOptionEntryAction.Download
             }
 
-            contentOptions!!.videoOptions
-                .sortedBy { option -> option.bitrate }
-                .firstOrNull { option -> option.bitrate >= request.minimumBitrate }
-                ?.let(setDownloadAction)
-                ?: contentOptions!!.videoOptions.lastOrNull()
+            val sortedVideoOptions = contentOptions!!.videoOptions
+                    .sortedBy { option -> option.bitrate }
+            request.minimumBitrate?.let { minimumBitrate ->
+                sortedVideoOptions
+                        .firstOrNull { option -> option.bitrate >= minimumBitrate }
+                        ?.let(setDownloadAction)
+            } ?: sortedVideoOptions.lastOrNull()
                     ?.let(setDownloadAction)
             changeToDownloadAction(request.audioOptionIds, contentOptions!!.audioOptions)
             changeToDownloadAction(request.textOptionIds, contentOptions!!.textOptions)
@@ -109,7 +114,7 @@ class OfflineContentManagerHolder(
      * iOS does not have granular data access to the states of each entry, but instead provides a single aggregate status.
      * Adding this produces a consistent interface in the react-native layer.
      */
-    private fun aggregateState(options: OfflineContentOptions?): String {
+    private fun aggregateState(options: OfflineContentOptions?): OfflineOptionEntryState {
         val allOptions = mutableListOf<OfflineOptionEntry>()
         options?.videoOptions?.let { allOptions.addAll(it) }
         options?.audioOptions?.let { allOptions.addAll(it) }
@@ -124,7 +129,7 @@ class OfflineContentManagerHolder(
         }
 
 
-        return (state ?: OfflineOptionEntryState.NotDownloaded).name
+        return state ?: OfflineOptionEntryState.NotDownloaded
     }
 
     /**
@@ -134,7 +139,6 @@ class OfflineContentManagerHolder(
         this.contentOptions = options
         sendEvent("onCompleted", Arguments.createMap().apply {
             putMap("options", JsonConverter.toJson(options))
-            putString("state", aggregateState(options))
         })
     }
 
@@ -164,7 +168,6 @@ class OfflineContentManagerHolder(
         this.contentOptions = options
         sendEvent("onOptionsAvailable", Arguments.createMap().apply {
             putMap("options", JsonConverter.toJson(options))
-            putString("state", aggregateState(options))
         })
     }
 
@@ -198,6 +201,7 @@ class OfflineContentManagerHolder(
         e.putString("nativeId", nativeId)
         e.putString("identifier", identifier)
         e.putString("eventType", eventType)
+        e.putString("state", aggregateState(contentOptions).name)
 
         context
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)

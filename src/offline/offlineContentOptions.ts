@@ -28,9 +28,9 @@ export interface OfflineSourceOptions {
 }
 
 /**
- * Contains the states an OfflineOptionEntry can have.
+ * Contains the state an OfflineContentManager can have.
  */
-export enum OfflineOptionEntryState {
+export enum OfflineState {
   /**
    * The `OfflineOptionEntry` is downloaded and ready for offline playback.
    */
@@ -78,9 +78,9 @@ export interface OfflineContentOptions {
 }
 
 export interface OfflineDownloadRequest {
-  minimumBitrate: number;
-  audioOptionIds: string[];
-  textOptionIds: string[];
+  minimumBitrate?: number;
+  audioOptionIds?: string[];
+  textOptionIds?: string[];
 }
 
 /**

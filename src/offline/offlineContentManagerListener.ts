@@ -1,7 +1,4 @@
-import {
-  OfflineContentOptions,
-  OfflineOptionEntryState,
-} from './offlineContentOptions';
+import { OfflineContentOptions, OfflineState } from './offlineContentOptions';
 
 /**
  * Enum to hold the `eventType` on the `BitmovinNativeOfflineEventData`
@@ -31,6 +28,10 @@ export interface OfflineEvent<T extends OfflineEventType> {
    * The `OfflineEventType` that correlates to which native `OfflineContentManagerListener` method was called.
    */
   eventType: T;
+  /**
+   * The current offline download state
+   */
+  state: OfflineState;
 }
 
 /**
@@ -42,10 +43,6 @@ export interface OnCompletedEvent
    * The options that are available to download
    */
   options?: OfflineContentOptions;
-  /**
-   * The current offline download state
-   */
-  state: OfflineOptionEntryState;
 }
 
 /**
@@ -82,10 +79,6 @@ export interface OnOptionsAvailableEvent
    * The options that are available to download
    */
   options?: OfflineContentOptions;
-  /**
-   * The current offline download state
-   */
-  state: OfflineOptionEntryState;
 }
 
 /**

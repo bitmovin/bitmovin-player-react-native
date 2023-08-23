@@ -29,6 +29,12 @@ class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
         currentTrackSelection = nil
     }
 
+    func fetchAvailableTracks() {
+        offlineContentManager.fetchAvailableTracks()
+
+        sendOfflineEvent(eventType: "onOptionsAvailable")
+    }
+
     /**
      Called when an error occurs.
      */
@@ -46,8 +52,7 @@ class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
         currentTrackSelection = event.tracks
 
         sendOfflineEvent(eventType: "onOptionsAvailable", body: [
-            "options": RCTConvert.toJson(offlineTracks: event.tracks),
-            "state": RCTConvert.toJson(offlineState: offlineContentManager.offlineState)
+            "options": RCTConvert.toJson(offlineTracks: event.tracks)
         ])
     }
 
@@ -56,8 +61,7 @@ class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
      */
     func onContentDownloadFinished(_ event: ContentDownloadFinishedEvent, offlineContentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: "onCompleted", body: [
-            "options": RCTConvert.toJson(offlineTracks: currentTrackSelection),
-            "state": RCTConvert.toJson(offlineState: offlineContentManager.offlineState)
+            "options": RCTConvert.toJson(offlineTracks: currentTrackSelection)
         ])
     }
 
@@ -110,6 +114,7 @@ class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
             "nativeId": nativeId,
             "identifier": identifier,
             "eventType": eventType,
+            "state": RCTConvert.toJson(offlineState: offlineContentManager.offlineState)
         ]
 
         var eventBody = baseEvent.merging(body) { (current, _) in current }

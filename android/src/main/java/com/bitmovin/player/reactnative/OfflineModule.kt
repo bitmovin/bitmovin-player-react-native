@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.offline.DrmLicenseInformation
+import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
@@ -71,15 +72,10 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
         promise.resolve(null)
     }
 
-    /**
-     * Retrieves the current `OfflineSourceConfig`
-     * @param nativeId Target offline manager.
-     */
     @ReactMethod
-    fun getOfflineSourceConfig(nativeId: NativeId, promise: Promise) {
+    fun getState(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            val offlineSourceConfig = getOfflineContentManagerHolder(nativeId)?.offlineContentManager?.offlineSourceConfig
-            promise.resolve(JsonConverter.toJson(offlineSourceConfig))
+            promise.resolve(it.state.name)
         }
     }
 
@@ -104,7 +100,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
      * @param request `ReadableMap` that contains the `OfflineManager.OfflineOptionType`, id, and `OfflineOptionEntryAction` necessary to set the new action.
      */
     @ReactMethod
-    fun process(nativeId: NativeId, request: ReadableMap?, promise: Promise) {
+    fun download(nativeId: NativeId, request: ReadableMap?, promise: Promise) {
         if (request == null) {
             promise.reject(java.lang.IllegalArgumentException("Request may not be null"))
             return
@@ -112,14 +108,30 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
 
         safeOfflineContentManager(nativeId, promise) {
             try {
-                val minimumBitRate = request.getInt("minimumBitrate")
-                val audioOptionIds = request.getArray("audioOptionIds")?.toList<String>()?.filterNotNull()
-                val textOptionIds = request.getArray("textOptionIds")?.toList<String>()?.filterNotNull()
-
-                if (minimumBitRate < 0) {
+                when (it.state) {
+                    OfflineOptionEntryState.Downloaded -> {
+                        promise.reject(java.lang.IllegalStateException("Download already completed"))
+                        return@safeOfflineContentManager
+                    }
+                    OfflineOptionEntryState.Downloading,
+                    OfflineOptionEntryState.Failed -> {
+                        promise.reject(java.lang.IllegalStateException("Download already in progress"))
+                        return@safeOfflineContentManager
+                    }
+                    OfflineOptionEntryState.Suspended -> {
+                        promise.reject(java.lang.IllegalStateException("Download is suspended"))
+                        return@safeOfflineContentManager
+                    }
+                    else -> {}
+                }
+                val minimumBitRate = if(request.hasKey("minimumBitrate")) request.getInt("minimumBitrate") else null
+                if (minimumBitRate != null && minimumBitRate < 0) {
                     promise.reject(java.lang.IllegalArgumentException("Invalid download request"))
                     return@safeOfflineContentManager
                 }
+
+                val audioOptionIds = request.getArray("audioOptionIds")?.toList<String>()?.filterNotNull()
+                val textOptionIds = request.getArray("textOptionIds")?.toList<String>()?.filterNotNull()
 
                 getOfflineContentManagerHolder(nativeId)?.process(OfflineDownloadRequest(minimumBitRate, audioOptionIds, textOptionIds))
                 promise.resolve(null)
@@ -172,7 +184,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     @ReactMethod
     fun usedStorage(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            promise.resolve(it.offlineContentManager.usedStorage)
+            promise.resolve(it.offlineContentManager.usedStorage.toDouble())
         }
     }
 

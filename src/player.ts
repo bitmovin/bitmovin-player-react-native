@@ -197,24 +197,16 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * Loads the OfflineSourceConfig into the player.
+   * Loads the downloaded content from `OfflineContentManager` into the player.
    */
   loadOfflineSource = (
     offlineContentManager: OfflineContentManager,
     options?: OfflineSourceOptions
   ) => {
-    if (Platform.OS === 'ios') {
-      PlayerModule.loadOfflineSource(
-        this.nativeId,
-        offlineContentManager.nativeId,
-        options
-      );
-      return;
-    }
-
     PlayerModule.loadOfflineSource(
       this.nativeId,
-      offlineContentManager.nativeId
+      offlineContentManager.nativeId,
+      options
     );
   };
 

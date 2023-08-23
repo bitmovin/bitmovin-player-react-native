@@ -78,15 +78,8 @@ class OfflineModule: RCTEventEmitter {
 #endif
     }
 
-    /**
-     Resolve `nativeId`'s current `OfflineSourceConfig`.
-     - Parameter nativeId: Target offline module Id.
-     - Parameter resolver: JS promise resolver.
-     - Parameter rejecter: JS promise rejecter.
-     */
-    @objc func getOfflineSourceConfig(
+    @objc func getState(
         _ nativeId: NativeId,
-        options: Any?,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
@@ -100,12 +93,7 @@ class OfflineModule: RCTEventEmitter {
                 return
             }
 
-            let optionsDictionary = options as? [String: Any?] ?? [:]
-            let restrictedToAssetCache = optionsDictionary["restrictedToAssetCache"] as? Bool ?? true
-            let offlineSourceConfig = offlineContentManagerHolder.offlineContentManager
-                .createOfflineSourceConfig(restrictedToAssetCache: restrictedToAssetCache)
-
-            resolve(RCTConvert.toJson(sourceConfig: offlineSourceConfig))
+            resolve(RCTConvert.toJson(offlineState: offlineContentManagerHolder.offlineContentManager.offlineState))
         }
 #endif
     }
@@ -131,7 +119,7 @@ class OfflineModule: RCTEventEmitter {
                 return
             }
 
-            offlineContentManagerHolder.offlineContentManager.fetchAvailableTracks()
+            offlineContentManagerHolder.fetchAvailableTracks()
             resolve(nil)
         }
 #endif
@@ -145,7 +133,7 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func process(
+    @objc func download(
         _ nativeId: NativeId,
         request: Any?,
         resolver resolve: @escaping RCTPromiseResolveBlock,
@@ -155,18 +143,40 @@ class OfflineModule: RCTEventEmitter {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let self = self,
-                let offlineContentManagerHolder = self.offlineContentManagerHolders[nativeId],
-                let currentTrackSelection = offlineContentManagerHolder.currentTrackSelection,
-                let request = request as? [String:Any?],
-                let minimumBitrate = request["minimumBitrate"] as? NSNumber,
-                let audioOptionIds = request["audioOptionIds"] as? [String],
-                let textOptionIds = request["textOptionIds"] as? [String]
+                let offlineContentManagerHolder = self.offlineContentManagerHolders[nativeId]
             else {
+                reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
+                return
+            }
+
+            switch offlineContentManagerHolder.offlineContentManager.offlineState {
+            case .downloaded:
+                reject("BitmovinOfflineModule", "Download already completed", nil)
+                return
+            case .downloading:
+                reject("BitmovinOfflineModule", "Download already in progress", nil)
+                return
+            case .suspended:
+                reject("BitmovinOfflineModule", "Download is suspended", nil)
+                return
+            @unknown default:
+                break
+            }
+
+            guard let request = request as? [String: Any?] else {
                 reject("BitmovinOfflineModule", "Invalid download request", nil)
                 return
             }
 
-            if !audioOptionIds.isEmpty {
+            guard
+                let currentTrackSelection = offlineContentManagerHolder.currentTrackSelection
+            else {
+                reject("BitmovinOfflineModule", "Invalid download options", nil)
+                return
+            }
+
+            if let audioOptionIds = request["audioOptionIds"] as? [String],
+               !audioOptionIds.isEmpty {
                 currentTrackSelection.audioTracks.forEach {
                     if audioOptionIds.contains($0.label) {
                         $0.action = .download
@@ -176,7 +186,8 @@ class OfflineModule: RCTEventEmitter {
                 }
             }
 
-            if !textOptionIds.isEmpty {
+            if let textOptionIds = request["textOptionIds"] as? [String],
+               !textOptionIds.isEmpty {
                 currentTrackSelection.textTracks.forEach {
                     if textOptionIds.contains($0.label) {
                         $0.action = .download
@@ -187,7 +198,11 @@ class OfflineModule: RCTEventEmitter {
             }
 
             let config = DownloadConfig()
-            config.minimumBitrate = minimumBitrate
+
+            if let minimumBitrate = request["minimumBitrate"] as? NSNumber {
+                config.minimumBitrate = minimumBitrate
+            }
+
             offlineContentManagerHolder.offlineContentManager.download(tracks: currentTrackSelection, downloadConfig: config)
             resolve(nil)
         }
