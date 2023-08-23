@@ -148,333 +148,6 @@ interface AdBreak {
     scheduleTime: number;
 }
 
-interface NativeInstanceConfig {
-    /**
-     * Optionally user-defined string `id` for the native instance.
-     * Used to access a certain native instance from any point in the source code then call
-     * methods/properties on it.
-     *
-     * When left empty, a random `UUIDv4` is generated for it.
-     * @example
-     * Accessing or creating the `Player` with `nativeId` equal to `my-player`:
-     * ```
-     * const player = new Player({ nativeId: 'my-player' })
-     * player.play(); // call methods and properties...
-     * ```
-     */
-    nativeId?: string;
-}
-declare abstract class NativeInstance<Config extends NativeInstanceConfig> {
-    /**
-     * Optionally user-defined string `id` for the native instance, or UUIDv4.
-     */
-    readonly nativeId: string;
-    /**
-     * The configuration object used to initialize this instance.
-     */
-    readonly config?: Config;
-    /**
-     * Generate UUID in case the user-defined `nativeId` is empty.
-     */
-    constructor(config?: Config);
-    /**
-     * Flag indicating whether the native resources of this object have been created internally
-     * .i.e `initialize` has been called.
-     */
-    abstract isInitialized: boolean;
-    /**
-     * Create the native object/resources that will be managed by this instance.
-     */
-    abstract initialize(): void;
-    /**
-     * Flag indicating whether the native resources of this object have been disposed .i.e
-     * `destroy` has been called.
-     */
-    abstract isDestroyed: boolean;
-    /**
-     * Dispose the native object/resources created by this instance during `initialize`.
-     */
-    abstract destroy(): void;
-}
-
-/**
- * Available cdn provider options for AnalyticsConfig.
- */
-declare enum CdnProvider {
-    BITMOVIN = "bitmovin",
-    AKAMAI = "akamai",
-    FASTLY = "fastly",
-    MAXCDN = "maxcdn",
-    CLOUDFRONT = "cloudfront",
-    CHINACACHE = "chinacache",
-    BITGRAVITY = "bitgravity"
-}
-/**
- * Object used to configure a new `AnalyticsCollector` instance.
- */
-interface AnalyticsConfig extends NativeInstanceConfig, CustomDataConfig {
-    /**
-     * CDN Provide that the video playback session is using.
-     */
-    cdnProvider?: CdnProvider;
-    /**
-     * User ID of the customer.
-     */
-    customUserId?: string;
-    /**
-     * ID of the video in the CMS system.
-     */
-    videoId?: string;
-    /**
-     * Human readable title of the video asset currently playing.
-     */
-    title?: string;
-    /**
-     * Analytics key.
-     */
-    key: string;
-    /**
-     * Player key.
-     */
-    playerKey?: string;
-    /**
-     * Breadcrumb path to show where in the app the user is.
-     */
-    path?: string;
-    /**
-     * Flag to see if stream is live before stream metadata is available (default: false).
-     */
-    isLive?: boolean;
-    /**
-     * Flag to enable Ad tracking (default: false).
-     */
-    ads?: boolean;
-    /**
-     * Flag to use randomised userId not depending on device specific values (default: false).
-     */
-    randomizeUserId?: boolean;
-}
-interface CustomDataConfig {
-    /**
-     * Optional free-form custom data
-     */
-    customData1?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData2?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData3?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData4?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData5?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData6?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData7?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData8?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData9?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData10?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData11?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData12?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData13?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData14?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData15?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData16?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData17?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData18?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData19?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData20?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData21?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData22?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData23?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData24?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData25?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData26?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData27?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData28?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData29?: string;
-    /**
-     * Optional free-form custom data
-     */
-    customData30?: string;
-    /**
-     * Experiment name needed for A/B testing.
-     */
-    experimentName?: string;
-}
-interface SourceMetadata extends CustomDataConfig {
-    /**
-     * ID of the video in the CMS system
-     */
-    videoId?: String;
-    /**
-     * Human readable title of the video asset currently playing
-     */
-    title?: String;
-    /**
-     * Breadcrumb path to show where in the app the user is
-     */
-    path?: String;
-    /**
-     * Flag to see if stream is live before stream metadata is available
-     */
-    isLive?: boolean;
-    /**
-     * CDN Provider that the video playback session is using
-     */
-    cdnProvider?: String;
-}
-
-/**
- * Analytics collector that can be attached to a player object in order to collect and send
- * its analytics information.
- */
-declare class AnalyticsCollector extends NativeInstance<AnalyticsConfig> {
-    /**
-     * Whether the native `AnalyticsCollector` object has been created.
-     */
-    isInitialized: boolean;
-    /**
-     * The native player id that this analytics collector is attached to.
-     */
-    playerId?: string;
-    /**
-     * Whether the native `AnalyticsCollector` object has been disposed.
-     */
-    isDestroyed: boolean;
-    /**
-     * Initializes a native `BitmovinPlayerCollector` object.
-     */
-    initialize: () => void;
-    /**
-     * Disposes the native `BitmovinPlayerCollector` object that has been created
-     * during initialization.
-     */
-    destroy: () => void;
-    /**
-     * Attach a player instance to this analytics plugin. After this is completed, BitmovinAnalytics
-     * will start monitoring and sending analytics data based on the attached player instance.
-     *
-     * @param playerId - Native Id of the player to attach this collector instance.
-     */
-    attach: (playerId: string) => void;
-    /**
-     * Detach a player instance from this analytics plugin if there's any attached. If no player is attached,
-     * nothing happens.
-     */
-    detach: () => void;
-    /**
-     * Dynamically updates analytics custom data information. Use this method
-     * to update your custom data during runtime.
-     *
-     * @param customData - Analytics custom data config.
-     */
-    setCustomDataOnce: (customData: CustomDataConfig) => void;
-    /**
-     * Sets the internal analytics custom data state.
-     *
-     * @param customData - Analytics custom data config.
-     */
-    setCustomData: (customData: CustomDataConfig) => void;
-    /**
-     * Gets the current custom data config from the native `BitmovinPlayerCollector` instance.
-     *
-     * @returns The current custom data config.
-     */
-    getCustomData: () => Promise<CustomDataConfig>;
-    /**
-     * Gets the current user id used by the native `BitmovinPlayerCollector` instance.
-     *
-     * @returns The current user id.
-     */
-    getUserId: () => Promise<string>;
-    /**
-     * Adds source metadata for the current source loaded into the player.
-     * This method should be called every time a new source is loaded into the player to ensure
-     * that the analytics data is correct.
-     * @param sourceMetadata - Source metadata to set.
-     */
-    addSourceMetadata: (sourceMetadata: SourceMetadata) => any;
-}
-
 /**
  * An audio session category defines a set of audio behaviors.
  * Choose a category that most accurately describes the audio behavior you require.
@@ -1234,6 +907,55 @@ declare type PlayerViewEvents = {
 declare type NativePlayerViewEvents = {
     [Prop in keyof EventProps]?: (nativeEvent: NativeSyntheticEvent<EventProps[Prop]>) => void;
 };
+
+interface NativeInstanceConfig {
+    /**
+     * Optionally user-defined string `id` for the native instance.
+     * Used to access a certain native instance from any point in the source code then call
+     * methods/properties on it.
+     *
+     * When left empty, a random `UUIDv4` is generated for it.
+     * @example
+     * Accessing or creating the `Player` with `nativeId` equal to `my-player`:
+     * ```
+     * const player = new Player({ nativeId: 'my-player' })
+     * player.play(); // call methods and properties...
+     * ```
+     */
+    nativeId?: string;
+}
+declare abstract class NativeInstance<Config extends NativeInstanceConfig> {
+    /**
+     * Optionally user-defined string `id` for the native instance, or UUIDv4.
+     */
+    readonly nativeId: string;
+    /**
+     * The configuration object used to initialize this instance.
+     */
+    readonly config?: Config;
+    /**
+     * Generate UUID in case the user-defined `nativeId` is empty.
+     */
+    constructor(config?: Config);
+    /**
+     * Flag indicating whether the native resources of this object have been created internally
+     * .i.e `initialize` has been called.
+     */
+    abstract isInitialized: boolean;
+    /**
+     * Create the native object/resources that will be managed by this instance.
+     */
+    abstract initialize(): void;
+    /**
+     * Flag indicating whether the native resources of this object have been disposed .i.e
+     * `destroy` has been called.
+     */
+    abstract isDestroyed: boolean;
+    /**
+     * Dispose the native object/resources created by this instance during `initialize`.
+     */
+    abstract destroy(): void;
+}
 
 /**
  * Represents a FairPlay Streaming DRM config.
@@ -2222,10 +1944,6 @@ interface PlayerConfig extends NativeInstanceConfig {
      * Configures experimental features. A default TweaksConfig is set initially.
      */
     tweaksConfig?: TweaksConfig;
-    /**
-     * Configures analytics functionality.
-     */
-    analyticsConfig?: AnalyticsConfig;
 }
 /**
  * Configures the playback behaviour of the player.
@@ -2317,10 +2035,6 @@ declare class Player extends NativeInstance<PlayerConfig> {
      * Currently active source, or `null` if none is active.
      */
     source?: Source;
-    /**
-     * Analytics collector currently attached to this player instance.
-     */
-    analyticsCollector?: AnalyticsCollector;
     /**
      * Whether the native `Player` object has been created.
      */
@@ -2689,4 +2403,4 @@ declare function SubtitleView(props: SubtitleViewProps): JSX.Element | null;
  */
 declare function usePlayer(config?: PlayerConfig): Player;
 
-export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdvertisingConfig, AnalyticsCollector, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinNativeOfflineEventData, CdnProvider, CustomDataConfig, CustomMessageHandler, DestroyEvent, Drm, DrmConfig, DrmLicenseInformation, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, LoadingState, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineOptionEntry, OfflineOptionEntryState, OfflineSourceOptions, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceMetadata, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TypefaceFamily, TypefaceStyleWeight, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoSizeChangedEvent, WidevineConfig, handleBitmovinNativeOfflineEvent, usePlayer };
+export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdvertisingConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinNativeOfflineEventData, CustomMessageHandler, DestroyEvent, Drm, DrmConfig, DrmLicenseInformation, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, LoadingState, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineOptionEntry, OfflineOptionEntryState, OfflineSourceOptions, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TypefaceFamily, TypefaceStyleWeight, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoSizeChangedEvent, WidevineConfig, handleBitmovinNativeOfflineEvent, usePlayer };

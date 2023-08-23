@@ -7,7 +7,6 @@ import { SourceType } from 'bitmovin-player-react-native';
 import Button from './components/Button';
 import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
-import BasicAnalytics from './screens/BasicAnalytics';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
@@ -30,7 +29,6 @@ export type RootStackParamsList = {
     }[];
   };
   BasicAds: undefined;
-  BasicAnalytics: undefined;
   BasicPlayback: undefined;
   BasicDrmPlayback: undefined;
   BasicPictureInPicture: undefined;
@@ -67,10 +65,6 @@ export default function App() {
       {
         title: 'Basic playback',
         routeName: 'BasicPlayback',
-      },
-      {
-        title: 'Basic Analytics',
-        routeName: 'BasicAnalytics',
       },
       {
         title: 'Basic Drm playback',
@@ -157,11 +151,6 @@ export default function App() {
           name="BasicAds"
           component={BasicAds}
           options={{ title: 'Basic Ads' }}
-        />
-        <RootStack.Screen
-          name="BasicAnalytics"
-          component={BasicAnalytics}
-          options={{ title: 'Basic Analytics' }}
         />
         <RootStack.Screen
           name="BasicPlayback"
