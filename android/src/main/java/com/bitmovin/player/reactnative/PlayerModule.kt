@@ -1,6 +1,9 @@
 package com.bitmovin.player.reactnative
 
+import android.util.Log
+import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
+import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
@@ -43,6 +46,35 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
                 JsonConverter.toPlayerConfig(config).let {
                     players[nativeId] = Player.create(context, it)
                 }
+            }
+        }
+    }
+
+    /**
+     * Creates a new `Player` instance inside the internal players using the provided `playerConfig` and `analyticsConfig`.
+     * @param playerConfigJson `PlayerConfig` object received from JS.
+     * @param analyticsConfigJson `AnalyticsConfig` object received from JS.
+     */
+    @ReactMethod
+    fun initWithConfig(nativeId: NativeId, playerConfigJson: ReadableMap?, analyticsConfigJson: ReadableMap?) {
+        uiManager()?.addUIBlock {
+            if (players.containsKey(nativeId)) {
+                Log.d("[PlayerModule]", "Duplicate player creation for id $nativeId")
+                return@addUIBlock
+            }
+            val playerConfig = JsonConverter.toPlayerConfig(playerConfigJson)
+            val analyticsConfig = JsonConverter.toAnalyticsConfig(analyticsConfigJson)
+            val defaultMetadata = JsonConverter.toAnalyticsDefaultMetadata(analyticsConfigJson)
+
+            players[nativeId] = if (analyticsConfig == null) {
+                Player.create(context, playerConfig)
+            } else {
+                Player.create(
+                    context = context,
+                    playerConfig = playerConfig,
+                    analyticsConfig = analyticsConfig,
+                    defaultMetadata = defaultMetadata ?: DefaultMetadata(),
+                )
             }
         }
     }

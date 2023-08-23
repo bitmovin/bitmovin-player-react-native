@@ -45,11 +45,25 @@ export default function BasicAds() {
         poster:
           'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg',
       });
+      player.analyticsCollector?.setCustomData({
+        experimentName: 'setCustomData',
+        customData1: `customized data 1`,
+      });
       return () => {
         player.destroy();
       };
     }, [player])
   );
+
+  setTimeout(() => {
+    player.load({
+      url: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
+      type: SourceType.HLS,
+      title: 'Art of Motion HLS',
+      poster:
+        'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg',
+    });
+  }, 10000);
 
   return (
     <View style={styles.container}>

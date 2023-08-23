@@ -28,33 +28,13 @@ export interface AnalyticsConfig
    */
   customUserId?: string;
   /**
-   * ID of the video in the CMS system.
+   * The analytics license key
    */
-  videoId?: string;
-  /**
-   * Human readable title of the video asset currently playing.
-   */
-  title?: string;
-  /**
-   * Analytics key.
-   */
-  key: string;
-  /**
-   * Player key.
-   */
-  playerKey?: string;
-  /**
-   * Breadcrumb path to show where in the app the user is.
-   */
-  path?: string;
-  /**
-   * Flag to see if stream is live before stream metadata is available (default: false).
-   */
-  isLive?: boolean;
+  licenseKey: string;
   /**
    * Flag to enable Ad tracking (default: false).
    */
-  ads?: boolean;
+  adTrackingDisabled?: boolean;
   /**
    * Flag to use randomised userId not depending on device specific values (default: false).
    */

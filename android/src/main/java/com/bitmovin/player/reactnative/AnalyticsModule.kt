@@ -90,6 +90,7 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
      * @param nativeId Native Id of the collector instance.
      * @param json Custom data config json.
      */
+    @Deprecated("Confusing API naming", replaceWith = ReplaceWith("sendCustomDataEvent(nativeId, json)"))
     @ReactMethod
     fun setCustomDataOnce(nativeId: NativeId, json: ReadableMap?) {
         uiManager()?.addUIBlock { _ ->
@@ -98,6 +99,22 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
             }
         }
     }
+
+    /**
+     * Sends a sample with the provided custom data.
+     * Does not change the configured custom data of the collector or source.
+     * @param nativeId Native Id of the collector instance.
+     * @param json Custom data config json.
+     */
+    @ReactMethod
+    fun sendCustomDataEvent(nativeId: NativeId, json: ReadableMap?) {
+        uiManager()?.addUIBlock { _ ->
+            JsonConverter.toAnalyticsCustomData(json)?.let {
+                collectors[nativeId]?.sendCustomDataEvent(it)
+            }
+        }
+    }
+
 
     /**
      * Sets the custom data config for a `BitmovinPlayerCollector` instance.
@@ -164,6 +181,30 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
                     "[AnalyticsModule]", "Could not convert source metadata, thus they are not applied to the collector ($nativeId)"
                 )
                 else -> collector.addSourceMetadata(source,  sourceMetadata)
+            }
+        }
+    }
+
+    /**
+     * Sets the source metadata for the current active source of the player associated to `playerId`.
+     */
+    @ReactMethod
+    fun setSourceMetadata(nativeId: NativeId, playerId: NativeId?, json: ReadableMap?) {
+        uiManager()?.addUIBlock { _ ->
+            val source = playerModule()?.getPlayer(playerId)?.source
+            val collector = collectors[nativeId]
+            val sourceMetadata = JsonConverter.toAnalyticsSourceMetadata(json)
+            when {
+                source == null -> Log.d(
+                    "[AnalyticsModule]", "Could not find source for player ($playerId)"
+                )
+                collector == null -> Log.d(
+                    "[AnalyticsModule]", "Could not find analytics collector ($nativeId)"
+                )
+                sourceMetadata == null -> Log.d(
+                    "[AnalyticsModule]", "Could not convert source metadata, thus they are not applied to the collector ($nativeId)"
+                )
+                else -> collector.setSourceMetadata(source,  sourceMetadata)
             }
         }
     }

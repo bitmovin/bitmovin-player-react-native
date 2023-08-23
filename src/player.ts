@@ -164,12 +164,15 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   initialize = () => {
     if (!this.isInitialized) {
-      PlayerModule.initWithConfig(this.nativeId, this.config);
       const analyticsConfig = this.config?.analyticsConfig;
       if (analyticsConfig) {
-        this.analyticsCollector = new AnalyticsCollector(analyticsConfig);
-        this.analyticsCollector?.initialize();
-        this.analyticsCollector?.attach(this.nativeId);
+        PlayerModule.initWithConfig(
+          this.nativeId,
+          this.config,
+          analyticsConfig
+        );
+      } else {
+        PlayerModule.initWithConfig(this.nativeId, this.config);
       }
       this.isInitialized = true;
     }
