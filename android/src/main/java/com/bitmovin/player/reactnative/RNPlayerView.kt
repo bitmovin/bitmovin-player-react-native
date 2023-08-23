@@ -207,7 +207,7 @@ class RNPlayerView(val context: ThemedReactContext) : LinearLayout(context),
         viewEventRelay.eventEmitter = null
         playerEventRelay.eventEmitter = null
         currentActivity?.lifecycle?.removeObserver(this)
-        if (isPictureInPictureAvailable) {
+        if (shouldDoPictureInPicture) {
             currentActivity?.removeOnPictureInPictureModeChangedListener(pipChangedListener)
 
             val params = PictureInPictureParams.Builder()
