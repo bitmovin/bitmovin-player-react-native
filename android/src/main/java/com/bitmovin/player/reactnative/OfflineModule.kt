@@ -8,6 +8,7 @@ import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerHolder
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
+import com.facebook.react.uimanager.UIManagerModule
 
 private const val OFFLINE_MODULE = "BitmovinOfflineModule"
 
@@ -57,19 +58,24 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
      * @param config `ReadableMap` object received from JS.  Should contain a sourceConfig and location.
      */
     @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, promise: Promise) {
-        if (!offlineContentManagerHolders.containsKey(nativeId)) {
-            val identifier = config?.getString("identifier")
-            val sourceConfig = JsonConverter.toSourceConfig(config?.getMap("sourceConfig"))
+    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, drmNativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            if (!offlineContentManagerHolders.containsKey(nativeId)) {
+                val identifier = config?.getString("identifier")
+                val sourceConfig = JsonConverter.toSourceConfig(config?.getMap("sourceConfig"))
+                drmModule()?.getConfig(drmNativeId)?.let { drmConfig ->
+                    sourceConfig?.drmConfig = drmConfig
+                }
 
-            if (identifier.isNullOrEmpty() || sourceConfig == null) {
-                promise.reject(java.lang.IllegalArgumentException("Invalid configuration"))
-                return
+                if (identifier.isNullOrEmpty() || sourceConfig == null) {
+                    promise.reject(java.lang.IllegalArgumentException("Invalid configuration"))
+                    return@addUIBlock
+                }
+
+                offlineContentManagerHolders[nativeId] = OfflineContentManagerHolder(nativeId, context, identifier, sourceConfig, context.cacheDir.path)
             }
-
-            offlineContentManagerHolders[nativeId] = OfflineContentManagerHolder(nativeId, context, identifier, sourceConfig, context.cacheDir.path)
+            promise.resolve(null)
         }
-        promise.resolve(null)
     }
 
     @ReactMethod
@@ -277,4 +283,16 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
         getOfflineContentManagerHolder(nativeId)?.let(runBlock)
                 ?: promise.reject(java.lang.IllegalArgumentException("Could not find the offline module instance"))
     }
+
+    /**
+     * Helper function that returns the initialized `DrmModule` instance.
+     */
+    private fun drmModule(): DrmModule? =
+            context.getNativeModule(DrmModule::class.java)
+
+    /**
+     * Helper function that returns the initialized `UIManager` instance.
+     */
+    private fun uiManager(): UIManagerModule? =
+            context.getNativeModule(UIManagerModule::class.java)
 }

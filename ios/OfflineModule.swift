@@ -43,6 +43,7 @@ class OfflineModule: RCTEventEmitter {
     @objc func initWithConfig(
         _ nativeId: NativeId,
         config: Any?,
+        drmNativeId: NativeId?,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
@@ -52,10 +53,15 @@ class OfflineModule: RCTEventEmitter {
                 let self = self,
                 self.offlineContentManagerHolders[nativeId] == nil,
                 let config = config as? [String: Any?],
-                let identifier = config["identifier"] as? String,
-                let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"])
+                let identifier = config["identifier"] as? String
             else {
                 reject("BitmovinOfflineModule", "Could not create an offline content manager", nil)
+                return
+            }
+
+            let fairplayConfig = drmNativeId.flatMap { self.bridge[DrmModule.self]?.retrieve($0) }
+            guard let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], drmConfig: fairplayConfig) else {
+                reject("BitmovinOfflineModule", "Invalid source config", nil)
                 return
             }
 

@@ -17,11 +17,13 @@ import {
   OfflineDownloadRequest,
   OfflineState,
 } from './offlineContentOptions';
+import { Drm } from 'bitmovin-player-react-native';
 
 interface NativeOfflineModule extends NativeModule {
   initWithConfig(
     nativeId: string,
-    config: { identifier: string; sourceConfig: SourceConfig }
+    config: { identifier: string; sourceConfig: SourceConfig },
+    drmNativeId: string | undefined
   ): Promise<void>;
   getState(nativeId: string): Promise<OfflineState>;
   getOptions(nativeId: string): Promise<void>;
@@ -54,6 +56,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   eventSubscription?: EmitterSubscription = undefined;
   listeners: Set<OfflineContentManagerListener> =
     new Set<OfflineContentManagerListener>();
+  drm?: Drm;
 
   constructor(config: OfflineContentConfig) {
     super(config);
@@ -79,10 +82,19 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
         }
       );
 
-      initPromise = OfflineModule.initWithConfig(this.nativeId, {
-        identifier: this.config.identifier,
-        sourceConfig: this.config.sourceConfig,
-      });
+      if (this.config.sourceConfig.drmConfig) {
+        this.drm = new Drm(this.config.sourceConfig.drmConfig);
+        this.drm.initialize();
+      }
+
+      initPromise = OfflineModule.initWithConfig(
+        this.nativeId,
+        {
+          identifier: this.config.identifier,
+          sourceConfig: this.config.sourceConfig,
+        },
+        this.drm?.nativeId
+      );
     }
 
     this.isInitialized = true;
