@@ -866,7 +866,6 @@ extension RCTConvert {
         default: return nil
         }
     }
-}
 
 #if os(iOS)
     /**
