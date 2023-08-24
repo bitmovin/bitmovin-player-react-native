@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Offline playback support on Android and iOS
+
 ## [0.9.2] (2023-08-24)
 
 ### Changed
