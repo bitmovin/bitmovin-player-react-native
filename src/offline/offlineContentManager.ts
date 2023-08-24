@@ -121,6 +121,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
       this.isDestroyed = true;
       this.eventSubscription?.remove?.();
       this.listeners.clear();
+      this.drm?.destroy();
 
       return OfflineModule.release(this.nativeId);
     }
