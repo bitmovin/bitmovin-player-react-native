@@ -38,6 +38,7 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   RCTAppSetupPrepareApp(application);
+  // Only needed if the offline feature is used
   [BMPOfflineManager initializeOfflineManager];
 
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
@@ -62,10 +63,10 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
   return YES;
 }
 
+// Only needed if the offline feature is used
 - (void)application:(UIApplication *)application handleEventsForBackgroundURLSession:(NSString *)identifier completionHandler:(void (^)(void))completionHandler {
   [[BMPOfflineManager sharedInstance] addCompletionHandler:completionHandler forIdentifier:identifier];
 }
-
 
 /// This method controls whether the `concurrentRoot`feature of React18 is turned on or off.
 ///

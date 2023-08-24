@@ -20,8 +20,6 @@ import {
 import { useTVGestures } from '../hooks';
 import OfflineManagementView from '../components/OfflineManagementView';
 
-const STABLE_IDENTIFIER = 'sintel-content-id';
-
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
 }
@@ -48,6 +46,7 @@ const initialDownloadRequest: OfflineDownloadRequest = {
   minimumBitrate: 800000,
 };
 
+const STABLE_CONTENT_IDENTIFIER = 'sintel-content-id';
 const sourceConfig: SourceConfig = {
   url: 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
   type: SourceType.HLS,
@@ -98,7 +97,7 @@ export default function OfflinePlayback() {
       player.load(sourceConfig);
 
       const newOfflineContentManager = new OfflineContentManager({
-        identifier: STABLE_IDENTIFIER,
+        identifier: STABLE_CONTENT_IDENTIFIER,
         sourceConfig: sourceConfig,
       });
 

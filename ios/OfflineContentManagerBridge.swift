@@ -2,7 +2,7 @@
 import Foundation
 import BitmovinPlayer
 
-class OfflineContentManagerHolder: NSObject, OfflineContentManagerListener {
+class OfflineContentManagerBridge: NSObject, OfflineContentManagerListener {
     let offlineContentManager: OfflineContentManager
     let eventEmitter: RCTEventEmitter?
     let nativeId: NativeId

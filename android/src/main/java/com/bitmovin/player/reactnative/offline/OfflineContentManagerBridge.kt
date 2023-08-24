@@ -12,7 +12,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 
-class OfflineContentManagerHolder(
+class OfflineContentManagerBridge(
     private val nativeId: NativeId,
     private val context: ReactApplicationContext,
     private val identifier: String,
