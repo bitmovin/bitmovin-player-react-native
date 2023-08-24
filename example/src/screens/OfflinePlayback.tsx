@@ -165,7 +165,7 @@ export default function OfflinePlayback() {
                 offlineContentManager
                   ?.download(downloadRequest)
                   .catch(console.error);
-                setDownloadRequest(downloadRequest);
+                setDownloadRequest(initialDownloadRequest);
               }
             }}
           />
