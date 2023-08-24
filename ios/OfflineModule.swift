@@ -40,7 +40,8 @@ class OfflineModule: RCTEventEmitter {
      Creates a new `OfflineContentManager` instance inside the internal offline managers using the provided `config` object.
      - @param config `Config` object received from JS.  Should contain a sourceConfig and location.
      */
-    @objc func initWithConfig(
+    @objc(initWithConfig:config:drmNativeId:resolver:rejecter:)
+    func initWithConfig(
         _ nativeId: NativeId,
         config: Any?,
         drmNativeId: NativeId?,
@@ -84,7 +85,8 @@ class OfflineModule: RCTEventEmitter {
 #endif
     }
 
-    @objc func getState(
+    @objc(getState:resolver:rejecter:)
+    func getState(
         _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
@@ -111,7 +113,8 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func getOptions(
+    @objc(getOptions:resolver:rejecter:)
+    func getOptions(
         _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock) {
@@ -139,7 +142,8 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func download(
+    @objc(download:request:resolver:rejecter:)
+    func download(
         _ nativeId: NativeId,
         request: Any?,
         resolver resolve: @escaping RCTPromiseResolveBlock,
@@ -221,7 +225,8 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func resume(
+    @objc(resume:resolver:rejecter:)
+    func resume(
         _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock) {
@@ -247,7 +252,8 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func suspend(
+    @objc(suspend:resolver:rejecter:)
+    func suspend(
         _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
@@ -274,7 +280,8 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func cancelDownload(
+    @objc(cancelDownload:resolver:rejecter:)
+    func cancelDownload(
         _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
@@ -301,7 +308,8 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func usedStorage(
+    @objc(usedStorage:resolver:rejecter:)
+    func usedStorage(
         _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
@@ -327,7 +335,8 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func deleteAll(
+    @objc(deleteAll:resolver:rejecter:)
+    func deleteAll(
         _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
@@ -356,7 +365,8 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func downloadLicense(
+    @objc(donwloadLicense:resolver:rejecter:)
+    func downloadLicense(
         _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
@@ -385,7 +395,8 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func renewOfflineLicense(
+    @objc(renewOfflineLicense:resolver:rejecter:)
+    func renewOfflineLicense(
         _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
@@ -414,7 +425,8 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func release(
+    @objc(release:resolver:rejecter:)
+    func release(
         _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
@@ -442,7 +454,8 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func releaseLicense(
+    @objc(releaseLicense:resolver:rejecter:)
+    func releaseLicense(
         _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock

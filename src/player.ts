@@ -199,11 +199,11 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Loads the downloaded content from `OfflineContentManager` into the player.
    */
-  loadOfflineSource = (
+  loadOfflineContent = (
     offlineContentManager: OfflineContentManager,
     options?: OfflineSourceOptions
   ) => {
-    PlayerModule.loadOfflineSource(
+    PlayerModule.loadOfflineContent(
       this.nativeId,
       offlineContentManager.nativeId,
       options

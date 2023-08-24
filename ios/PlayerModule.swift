@@ -72,8 +72,8 @@ class PlayerModule: NSObject, RCTBridgeModule {
      - Parameter nativeId: Target player.
      - Parameter offlineModuleNativeId: The `nativeId` of the `OfflineModule` object.
      */
-    @objc(loadOfflineSource:offlineContentManagerHolderNativeId:options:)
-    func loadOfflineSource(_ nativeId: NativeId, offlineContentManagerHolderNativeId: NativeId, options: Any?) {
+    @objc(loadOfflineContent:offlineContentManagerHolderNativeId:options:)
+    func loadOfflineContent(_ nativeId: NativeId, offlineContentManagerHolderNativeId: NativeId, options: Any?) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard

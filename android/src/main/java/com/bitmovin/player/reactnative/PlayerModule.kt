@@ -68,7 +68,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      * @param config Source configuration options from JS.
      */
     @ReactMethod
-    fun loadOfflineSource(nativeId: NativeId, offlineContentManagerHolderNativeId: String, options: ReadableMap?) {
+    fun loadOfflineContent(nativeId: NativeId, offlineContentManagerHolderNativeId: String, options: ReadableMap?) {
         uiManager()?.addUIBlock {
             val offlineSourceConfig = offlineModule()?.getOfflineContentManagerHolder(offlineContentManagerHolderNativeId)
                 ?.offlineContentManager?.offlineSourceConfig
