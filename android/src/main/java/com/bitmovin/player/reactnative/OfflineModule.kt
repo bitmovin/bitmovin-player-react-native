@@ -1,6 +1,5 @@
 package com.bitmovin.player.reactnative
 
-import com.bitmovin.player.api.offline.DrmLicenseInformation
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.extensions.toList
@@ -245,22 +244,6 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
         safeOfflineContentManager(nativeId, promise) {
             it.renewOfflineLicense()
             promise.resolve(null)
-        }
-    }
-
-    /**
-     * Resolve `nativeId`'s current `DrmLicenseInformation`.
-     * @param nativeId Target offline manager.
-     */
-    @ReactMethod
-    fun offlineDrmLicenseInformation(nativeId: NativeId, promise: Promise) {
-        safeOfflineContentManager(nativeId, promise) {
-            try {
-                val offlineDrmLicenseInformation: DrmLicenseInformation = it.offlineContentManager.remainingOfflineLicenseDuration
-                promise.resolve(JsonConverter.toJson(offlineDrmLicenseInformation))
-            } catch (e: Exception) {
-                promise.reject(e)
-            }
         }
     }
 

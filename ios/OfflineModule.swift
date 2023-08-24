@@ -349,38 +349,6 @@ class OfflineModule: RCTEventEmitter {
     }
 
     /**
-     Resolve `nativeId`'s current `DrmLicenseInformation`.
-     - Parameter nativeId: Target offline module Id
-     - Parameter resolver: JS promise resolver.
-     - Parameter rejecter: JS promise rejecter.
-     */
-    @objc func offlineDrmLicenseInformation(
-        _ nativeId: NativeId,
-        resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock
-    ) {
-#if os(iOS)
-        bridge.uiManager.addUIBlock { [weak self] _, _ in
-            guard
-                let self = self,
-                let offlineContentManagerHolder = self.offlineContentManagerHolders[nativeId]
-            else {
-                reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
-                return
-            }
-
-            do {
-                let offlineDrmLicenseInformation = try offlineContentManagerHolder.offlineContentManager.offlineDrmLicenseInformation
-                let offlineDrmLicenseInformationJson = try RCTConvert.toJson(offlineDrmLicenseInformation: offlineDrmLicenseInformation)
-                resolve(offlineDrmLicenseInformationJson)
-            } catch let error as NSError {
-                reject("BitmovinOfflineModule", "Could not create offline drm license information", error)
-            }
-        }
-#endif
-    }
-
-    /**
      Downloads the offline license.
      When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onDrmLicenseUpdated`.
      Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onError`.

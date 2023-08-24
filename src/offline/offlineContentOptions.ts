@@ -82,17 +82,3 @@ export interface OfflineDownloadRequest {
   audioOptionIds?: string[];
   textOptionIds?: string[];
 }
-
-/**
- * Contains information about a DRM license.
- */
-export interface DrmLicenseInformation {
-  /**
-   * The remaining license duration.
-   */
-  licenseDuration: number;
-  /**
-   * The remaining playback duration.
-   */
-  playbackDuration: number;
-}

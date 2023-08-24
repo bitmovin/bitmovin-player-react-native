@@ -12,7 +12,6 @@ import {
   OfflineContentManagerListener,
 } from './offlineContentManagerListener';
 import {
-  DrmLicenseInformation,
   OfflineContentConfig,
   OfflineDownloadRequest,
   OfflineState,
@@ -33,9 +32,6 @@ interface NativeOfflineModule extends NativeModule {
   cancelDownload(nativeId: string): Promise<void>;
   usedStorage(nativeId: string): Promise<number>;
   deleteAll(nativeId: string): Promise<void>;
-  offlineDrmLicenseInformation(
-    nativeId: string
-  ): Promise<DrmLicenseInformation>;
   downloadLicense(nativeId: string): Promise<void>;
   releaseLicense(nativeId: string): Promise<void>;
   renewOfflineLicense(nativeId: string): Promise<void>;
@@ -187,16 +183,6 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    */
   deleteAll = async (): Promise<void> => {
     return OfflineModule.deleteAll(this.nativeId);
-  };
-
-  /**
-   * Resolves A `DrmLicenseInformation` object containing the remaining drm license duration and the remaining playback duration.
-   * The promise will reject if the loading of the DRM key fails.
-   * The promise will reject if the provided DRM technology is not supported.
-   * The promise will reject if the DRM licensing call to the server fails.
-   */
-  offlineDrmLicenseInformation = async (): Promise<DrmLicenseInformation> => {
-    return OfflineModule.offlineDrmLicenseInformation(this.nativeId);
   };
 
   /**

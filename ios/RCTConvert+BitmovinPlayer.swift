@@ -876,21 +876,5 @@ extension RCTConvert {
             "audioOptions": offlineTracks.audioTracks.compactMap { RCTConvert.toJson(offlineTrack: $0) }
         ]
     }
-
-    /**
-     Utility method to compute a JS value from an `DrmLicenseInformation` object.
-     - Parameter offlineDrmLicenseInformation `DrmLicenseInformation` object to be converted.
-     - Returns: The produced JS object.
-     */
-    static func toJson(offlineDrmLicenseInformation: DrmLicenseInformation?) -> [String: Any?]? {
-        guard let offlineDrmLicenseInformation = offlineDrmLicenseInformation else {
-            return nil
-        }
-
-        return [
-            "licenseDuration": offlineDrmLicenseInformation.licenseDuration,
-            "playbackDuration": offlineDrmLicenseInformation.playbackDuration
-        ]
-    }
 #endif
 }
