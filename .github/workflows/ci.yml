@@ -114,8 +114,9 @@ jobs:
 
       - name: Install pods
         run: |
+          bundle exec pod repo remove trunk
           bundle exec pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git || bundle exec pod repo update bitmovin
-          bundle exec pod install --repo-update
+          NO_FLIPPER=1 bundle exec pod install --repo-update
         working-directory: example/ios
         env:
           CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
@@ -175,6 +176,7 @@ jobs:
 
       - name: Install pods
         run: |
+          bundle exec pod repo remove trunk
           bundle exec pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git || bundle exec pod repo update bitmovin
           bundle exec pod install --repo-update
         working-directory: example/ios

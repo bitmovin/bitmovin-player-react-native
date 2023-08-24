@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.2] (2023-08-24)
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.43.1`
+
 ## [0.9.1] (2023-08-17)
 
 ### Fixed
