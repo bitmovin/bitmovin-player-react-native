@@ -18,11 +18,11 @@ export interface OfflineContentConfig extends NativeInstanceConfig {
 
 /**
  * Object used configure how the native offline managers create and get offline source configurations
- * iOS Only
  */
 export interface OfflineSourceOptions {
   /**
    * Whether or not the player should restrict playback only to audio, video and subtitle tracks which are stored offline on the device. This has to be set to true if the device has no network access.
+   * @platform iOS
    */
   restrictedToAssetCache?: boolean;
 }
@@ -77,6 +77,10 @@ export interface OfflineContentOptions {
   textOptions: OfflineOptionEntry[];
 }
 
+/**
+ * Represents the configuration to start a download.
+ * @platform Android, iOS
+ */
 export interface OfflineDownloadRequest {
   minimumBitrate?: number;
   audioOptionIds?: string[];

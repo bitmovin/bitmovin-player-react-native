@@ -129,6 +129,7 @@ export type BitmovinNativeOfflineEventData =
 
 /**
  * The listener that can be passed to the `OfflineContentManager` to receive callbacks for different events.
+ * @platform Android, iOS
  */
 export interface OfflineContentManagerListener {
   onCompleted?: (e: OnCompletedEvent) => void;

@@ -355,6 +355,7 @@ extension RCTConvert {
             "language": audioTrack.language
         ]
     }
+
     /**
      Utility method to get a `SubtitleTrack` instance from a JS object.
      - Parameter json: JS object.

@@ -45,6 +45,8 @@ const OfflineModule =
  * Provides the means to download and store sources locally that can be played back with a Player
  * without an active network connection. An OfflineContentManager instance can be created via
  * the constructor and will be idle until initialized.
+ *
+ * @platform Android, iOS
  */
 export class OfflineContentManager extends NativeInstance<OfflineContentConfig> {
   isInitialized = false;
