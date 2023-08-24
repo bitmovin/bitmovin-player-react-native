@@ -57,7 +57,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
      * @param config `ReadableMap` object received from JS.  Should contain a sourceConfig and location.
      */
     @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, drmNativeId: NativeId, promise: Promise) {
+    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, drmNativeId: NativeId?, promise: Promise) {
         uiManager()?.addUIBlock {
             if (!offlineContentManagerHolders.containsKey(nativeId)) {
                 val identifier = config?.getString("identifier")
