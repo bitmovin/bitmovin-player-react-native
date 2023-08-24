@@ -65,6 +65,8 @@ export default function OfflinePlayback() {
   const [downloadRequest, setDownloadRequest] =
     useState<OfflineDownloadRequest>(initialDownloadRequest);
   const [usedStorage, setUsedStorage] = useState<number>(0);
+  const [isLoadedSourceOffline, setIsLoadedSourceOffline] =
+    useState<boolean>(false);
   const stateLabel = useMemo(() => {
     offlineContentManager?.usedStorage().then((usedStorageInBytes) => {
       setUsedStorage(usedStorageInBytes / 1024 / 1024);
@@ -93,6 +95,8 @@ export default function OfflinePlayback() {
 
   useFocusEffect(
     useCallback(() => {
+      player.load(sourceConfig);
+
       const newOfflineContentManager = new OfflineContentManager({
         identifier: STABLE_IDENTIFIER,
         sourceConfig: sourceConfig,
@@ -150,13 +154,38 @@ export default function OfflinePlayback() {
         newOfflineContentManager.destroy();
         setOfflineContentManager(undefined);
       };
-    }, [onEvent])
+    }, [onEvent, player])
   );
 
   return (
     <View style={styles.container}>
       <PlayerView player={player} style={styles.player} />
+      <Text style={styles.loadedState}>
+        Currently loaded:{' '}
+        {isLoadedSourceOffline ? 'offline content' : 'online content'}
+      </Text>
       <View style={styles.actionsContainer}>
+        {isLoadedSourceOffline && (
+          <Action
+            text={'Load online content'}
+            onPress={() => {
+              player.load(sourceConfig);
+              setIsLoadedSourceOffline(false);
+            }}
+          />
+        )}
+        {downloadState === OfflineState.Downloaded && !isLoadedSourceOffline && (
+          <Action
+            text={'Load offline content'}
+            onPress={() => {
+              if (offlineContentManager != null) {
+                onEvent('Loading the offline video');
+                player.loadOfflineSource(offlineContentManager);
+                setIsLoadedSourceOffline(true);
+              }
+            }}
+          />
+        )}
         {downloadState === OfflineState.NotDownloaded && (
           <Action
             text={'Download'}
@@ -177,6 +206,8 @@ export default function OfflinePlayback() {
               offlineContentManager?.deleteAll().then(() => {
                 setDownloadState(OfflineState.NotDownloaded);
                 offlineContentManager.getOptions().catch(console.error);
+                player.load(sourceConfig);
+                setIsLoadedSourceOffline(false);
               });
             }}
           />
@@ -200,30 +231,19 @@ export default function OfflinePlayback() {
             onPress={offlineContentManager?.resume}
           />
         )}
-        <Action
-          text={'Load Player'}
-          onPress={() => {
-            if (
-              offlineContentManager != null &&
-              downloadState === OfflineState.Downloaded
-            ) {
-              onEvent('Loading the offline video');
-              player.loadOfflineSource(offlineContentManager);
-            } else {
-              onEvent('Loading the standard source configuration');
-              player.load(sourceConfig);
-            }
-          }}
-        />
-        <Action text={stateLabel} />
-        <Action text={`Used storage: ${usedStorage.toFixed(2)} MB`} />
+        <Action text={`State: ${stateLabel}`} />
+        {downloadState !== OfflineState.NotDownloaded && (
+          <Action text={`Used storage: ${usedStorage.toFixed(2)} MB`} />
+        )}
       </View>
       <ScrollView style={styles.offlineOptionsContainer}>
-        <OfflineManagementView
-          offlineOptions={offlineOptions}
-          downloadRequest={downloadRequest}
-          setDownloadRequest={setDownloadRequest}
-        />
+        {downloadState === OfflineState.NotDownloaded && (
+          <OfflineManagementView
+            offlineOptions={offlineOptions}
+            downloadRequest={downloadRequest}
+            setDownloadRequest={setDownloadRequest}
+          />
+        )}
       </ScrollView>
     </View>
   );
@@ -238,6 +258,7 @@ const styles = StyleSheet.create({
   },
   player: {
     flex: 1,
+    maxHeight: '30%',
   },
   actionsContainer: {
     flex: 0,
@@ -249,7 +270,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   action: {
-    minWidth: 100,
+    minWidth: 120,
     flex: 1,
     padding: 12,
     alignItems: 'center',
@@ -264,5 +285,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     alignSelf: 'stretch',
     width: '100%',
+  },
+  loadedState: {
+    flex: 0,
+    fontSize: 16,
+    backgroundColor: 'white',
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+    padding: 12,
+    textAlign: 'center',
   },
 });
