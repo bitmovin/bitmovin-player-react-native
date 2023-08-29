@@ -78,7 +78,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     @ReactMethod
     fun getState(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            promise.resolve(it.state.name)
+            promise.resolve(state.name)
         }
     }
 
@@ -90,7 +90,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     @ReactMethod
     fun getOptions(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.getOptions()
+            getOptions()
             promise.resolve(null)
         }
     }
@@ -111,7 +111,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
 
         safeOfflineContentManager(nativeId, promise) {
             try {
-                when (it.state) {
+                when (state) {
                     OfflineOptionEntryState.Downloaded -> {
                         promise.reject(IllegalStateException("Download already completed"))
                         return@safeOfflineContentManager
@@ -151,7 +151,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     @ReactMethod
     fun resume(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.resume()
+            resume()
             promise.resolve(null)
         }
     }
@@ -163,7 +163,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     @ReactMethod
     fun suspend(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.suspend()
+            suspend()
             promise.resolve(null)
         }
     }
@@ -175,7 +175,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     @ReactMethod
     fun cancelDownload(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.cancelDownload()
+            cancelDownload()
             promise.resolve(null)
         }
     }
@@ -187,7 +187,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     @ReactMethod
     fun usedStorage(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            promise.resolve(it.offlineContentManager.usedStorage.toDouble())
+            promise.resolve(offlineContentManager.usedStorage.toDouble())
         }
     }
 
@@ -198,7 +198,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     @ReactMethod
     fun deleteAll(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.deleteAll()
+            deleteAll()
             promise.resolve(null)
         }
     }
@@ -212,7 +212,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     @ReactMethod
     fun downloadLicense(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.downloadLicense()
+            downloadLicense()
             promise.resolve(null)
         }
     }
@@ -226,7 +226,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     @ReactMethod
     fun releaseLicense(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.releaseLicense()
+            releaseLicense()
             promise.resolve(null)
         }
     }
@@ -240,7 +240,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     @ReactMethod
     fun renewOfflineLicense(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.renewOfflineLicense()
+            renewOfflineLicense()
             promise.resolve(null)
         }
     }
@@ -254,13 +254,13 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     @ReactMethod
     fun release(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.release()
+            release()
             offlineContentManagerBridges.remove(nativeId)
             promise.resolve(null)
         }
     }
 
-    private fun safeOfflineContentManager(nativeId: NativeId, promise: Promise, runBlock: (OfflineContentManagerBridge) -> Unit) {
+    private fun safeOfflineContentManager(nativeId: NativeId, promise: Promise, runBlock: OfflineContentManagerBridge.() -> Unit) {
         getOfflineContentManagerBridge(nativeId)?.let(runBlock)
                 ?: promise.reject(IllegalArgumentException("Could not find the offline module instance"))
     }
