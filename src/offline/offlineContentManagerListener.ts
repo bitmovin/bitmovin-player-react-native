@@ -36,7 +36,7 @@ export interface OfflineEvent<T extends OfflineEventType> {
 }
 
 /**
- * BitmovinOfflineEvent for when the download process has completed.
+ * Emitted when the download process has completed.
  */
 export interface OnCompletedEvent
   extends OfflineEvent<OfflineEventType.onCompleted> {
@@ -47,7 +47,7 @@ export interface OnCompletedEvent
 }
 
 /**
- * BitmovinOfflineEvent for when an error has occurred.
+ * Emitted when an error has occurred.
  */
 export interface OnErrorEvent extends OfflineEvent<OfflineEventType.onError> {
   /**
@@ -61,7 +61,7 @@ export interface OnErrorEvent extends OfflineEvent<OfflineEventType.onError> {
 }
 
 /**
- * BitmovinOfflineEvent for when there is a progress change for the process call.
+ * Emitted when there is a progress change for the process call.
  */
 export interface OnProgressEvent
   extends OfflineEvent<OfflineEventType.onProgress> {
@@ -72,7 +72,7 @@ export interface OnProgressEvent
 }
 
 /**
- * BitmovinOfflineEvent for when the `OfflineContentOptions` is available after a `OfflineContentManager.getOptions` call.
+ * Emitted when the `OfflineContentOptions` is available after a `OfflineContentManager.getOptions` call.
  */
 export interface OnOptionsAvailableEvent
   extends OfflineEvent<OfflineEventType.onOptionsAvailable> {
@@ -83,32 +83,32 @@ export interface OnOptionsAvailableEvent
 }
 
 /**
- * BitmovinOfflineEvent for when the DRM license was updated.
+ * Emitted when the DRM license was updated.
  */
 export interface OnDrmLicenseUpdatedEvent
   extends OfflineEvent<OfflineEventType.onDrmLicenseUpdated> {}
 
 /**
- * BitmovinOfflineEvent for when the DRM license has expired.
+ * Emitted when the DRM license has expired.
  * (iOS only)
  */
 export interface OnDrmLicenseExpiredEvent
   extends OfflineEvent<OfflineEventType.onDrmLicenseExpired> {}
 
 /**
- * BitmovinOfflineEvent for when all active actions have been suspended.
+ * Emitted when all active actions have been suspended.
  */
 export interface OnSuspendedEvent
   extends OfflineEvent<OfflineEventType.onSuspended> {}
 
 /**
- * BitmovinOfflineEvent for when all actions have been resumed.
+ * Emitted when all actions have been resumed.
  */
 export interface OnResumedEvent
   extends OfflineEvent<OfflineEventType.onResumed> {}
 
 /**
- * BitmovinOfflineEvent for when the download of the media content was cancelled by the user and all partially downloaded content has been deleted from disk.
+ * Emitted when the download of the media content was cancelled by the user and all partially downloaded content has been deleted from disk.
  * (iOS only)
  */
 export interface OnCanceledEvent
