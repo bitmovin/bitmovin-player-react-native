@@ -32,19 +32,19 @@ export interface OfflineSourceOptions {
  */
 export enum OfflineState {
   /**
-   * The `OfflineOptionEntry` is downloaded and ready for offline playback.
+   * The offline content is downloaded and ready for offline playback.
    */
   Downloaded = 'Downloaded',
   /**
-   * The `OfflineOptionEntry` is currently downloading.
+   * The offline content is currently downloading.
    */
   Downloading = 'Downloading',
   /**
-   * The download of the `OfflineOptionEntry` is suspended, and is only partly downloaded yet.
+   * The download of the offline content is suspended, and is only partly downloaded yet.
    */
   Suspended = 'Suspended',
   /**
-   * The `OfflineOptionEntry` is not downloaded. However, some data may be still cached.
+   * The offline content is not downloaded. However, some data may be still cached.
    */
   NotDownloaded = 'NotDownloaded',
 }
