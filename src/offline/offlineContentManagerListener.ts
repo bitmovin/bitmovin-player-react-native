@@ -108,7 +108,7 @@ export interface OnResumedEvent
   extends OfflineEvent<OfflineEventType.onResumed> {}
 
 /**
- * Emitted when the download of the media content was cancelled by the user and all partially downloaded content has been deleted from disk.
+ * Emitted when the download of the media content was canceled by the user and all partially downloaded content has been deleted from disk.
  * (iOS only)
  */
 export interface OnCanceledEvent

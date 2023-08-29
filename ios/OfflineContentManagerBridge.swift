@@ -89,7 +89,7 @@ class OfflineContentManagerBridge: NSObject, OfflineContentManagerListener {
     }
 
     /**
-     Called when the download of the media content was cancelled by the user and all partially downloaded content has been deleted from disk.
+     Called when the download of the media content was canceled by the user and all partially downloaded content has been deleted from disk.
      */
     func onContentDownloadCanceled(_ event: ContentDownloadCanceledEvent, offlineContentManager: OfflineContentManager) {
         sendOfflineEvent(eventType: "onCanceled")
