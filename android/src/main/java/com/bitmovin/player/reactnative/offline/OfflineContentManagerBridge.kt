@@ -20,6 +20,17 @@ class OfflineContentManagerBridge(
     location: String
 ) : OfflineContentManagerListener {
 
+    enum class OfflineEventType(val eventName: String) {
+        ON_COMPLETED("onCompleted"),
+        ON_ERROR("onError"),
+        ON_PROGRESS("onProgress"),
+        ON_OPTIONS_AVAILABLE("onOptionsAvailable"),
+        ON_DRM_LICENSE_UPDATED("onDrmLicenseUpdated"),
+        ON_SUSPENDED("onSuspended"),
+        ON_RESUMED("onResumed"),
+        ON_CANCELED("onCanceled")
+    }
+
     val offlineContentManager: OfflineContentManager = OfflineContentManager.getOfflineContentManager(
         source, location, identifier, this, context
     )
@@ -85,7 +96,7 @@ class OfflineContentManagerBridge(
     fun cancelDownload() {
         suspend()
         deleteAll()
-        sendEvent("onCanceled")
+        sendEvent(OfflineEventType.ON_CANCELED)
     }
 
     fun deleteAll() {
@@ -136,7 +147,7 @@ class OfflineContentManagerBridge(
      */
     override fun onCompleted(source: SourceConfig?, options: OfflineContentOptions?) {
         this.contentOptions = options
-        sendEvent("onCompleted", Arguments.createMap().apply {
+        sendEvent(OfflineEventType.ON_COMPLETED, Arguments.createMap().apply {
             putMap("options", JsonConverter.toJson(options))
         })
     }
@@ -145,7 +156,7 @@ class OfflineContentManagerBridge(
      * Called when an error occurs.
      */
     override fun onError(source: SourceConfig?, event: ErrorEvent?) {
-        sendEvent("onError", Arguments.createMap().apply {
+        sendEvent(OfflineEventType.ON_ERROR, Arguments.createMap().apply {
             event?.code?.value?.let { putInt("code", it) }
             putString("message", event?.message)
         })
@@ -155,7 +166,7 @@ class OfflineContentManagerBridge(
      * Called when the progress for a process call changes.
      */
     override fun onProgress(source: SourceConfig?, progress: Float) {
-        sendEvent("onProgress", Arguments.createMap().apply {
+        sendEvent(OfflineEventType.ON_PROGRESS, Arguments.createMap().apply {
             putDouble("progress", progress.toDouble())
         })
     }
@@ -165,7 +176,7 @@ class OfflineContentManagerBridge(
      */
     override fun onOptionsAvailable(source: SourceConfig?, options: OfflineContentOptions?) {
         this.contentOptions = options
-        sendEvent("onOptionsAvailable", Arguments.createMap().apply {
+        sendEvent(OfflineEventType.ON_OPTIONS_AVAILABLE, Arguments.createMap().apply {
             putMap("options", JsonConverter.toJson(options))
         })
     }
@@ -174,32 +185,28 @@ class OfflineContentManagerBridge(
      * Called when the DRM license was updated.
      */
     override fun onDrmLicenseUpdated(source: SourceConfig?) {
-        sendEvent("onDrmLicenseUpdated")
+        sendEvent(OfflineEventType.ON_DRM_LICENSE_UPDATED)
     }
 
     /**
      * Called when all actions have been suspended.
      */
     override fun onSuspended(source: SourceConfig?) {
-        sendEvent("onSuspended")
+        sendEvent(OfflineEventType.ON_SUSPENDED)
     }
 
     /**
      * Called when all actions have been resumed.
      */
     override fun onResumed(source: SourceConfig?) {
-        sendEvent("onResumed")
+        sendEvent(OfflineEventType.ON_RESUMED)
     }
 
-    private fun sendEvent(eventType: String) {
-        sendEvent(eventType, null)
-    }
-
-    private fun sendEvent(eventType: String, event: WritableMap?) {
+    private fun sendEvent(eventType: OfflineEventType, event: WritableMap? = null) {
         val e = event ?: Arguments.createMap()
         e.putString("nativeId", nativeId)
         e.putString("identifier", identifier)
-        e.putString("eventType", eventType)
+        e.putString("eventType", eventType.eventName)
         e.putString("state", aggregateState(contentOptions).name)
 
         context

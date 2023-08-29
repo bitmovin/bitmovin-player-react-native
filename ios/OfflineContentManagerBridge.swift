@@ -3,6 +3,18 @@ import Foundation
 import BitmovinPlayer
 
 class OfflineContentManagerBridge: NSObject, OfflineContentManagerListener {
+    enum EventType: String {
+        case onCompleted = "onCompleted"
+        case onError = "onError"
+        case onProgress = "onProgress"
+        case onOptionsAvailable = "onOptionsAvailable"
+        case onDrmLicenseUpdated = "onDrmLicenseUpdated"
+        case onSuspended = "onSuspended"
+        case onResumed = "onResumed"
+        case onCanceled = "onCanceled"
+        case onDrmLicenseExpired = "onDrmLicenseExpired"
+    }
+
     let offlineContentManager: OfflineContentManager
     let eventEmitter: RCTEventEmitter?
     let nativeId: NativeId
@@ -32,14 +44,14 @@ class OfflineContentManagerBridge: NSObject, OfflineContentManagerListener {
     func fetchAvailableTracks() {
         offlineContentManager.fetchAvailableTracks()
 
-        sendOfflineEvent(eventType: "onOptionsAvailable")
+        sendOfflineEvent(eventType: .onOptionsAvailable)
     }
 
     /**
      Called when an error occurs.
      */
     func onOfflineError(_ event: OfflineErrorEvent, offlineContentManager: OfflineContentManager) {
-        sendOfflineEvent(eventType: "onError", body: [
+        sendOfflineEvent(eventType: .onError, body: [
             "code": event.code,
             "message": event.message
         ])
@@ -51,7 +63,7 @@ class OfflineContentManagerBridge: NSObject, OfflineContentManagerListener {
     func onAvailableTracksFetched(_ event: AvailableTracksFetchedEvent, offlineContentManager: OfflineContentManager) {
         currentTrackSelection = event.tracks
 
-        sendOfflineEvent(eventType: "onOptionsAvailable", body: [
+        sendOfflineEvent(eventType: .onOptionsAvailable, body: [
             "options": RCTConvert.toJson(offlineTracks: event.tracks)
         ])
     }
@@ -60,7 +72,7 @@ class OfflineContentManagerBridge: NSObject, OfflineContentManagerListener {
      Called when a process call has completed.
      */
     func onContentDownloadFinished(_ event: ContentDownloadFinishedEvent, offlineContentManager: OfflineContentManager) {
-        sendOfflineEvent(eventType: "onCompleted", body: [
+        sendOfflineEvent(eventType: .onCompleted, body: [
             "options": RCTConvert.toJson(offlineTracks: currentTrackSelection)
         ])
     }
@@ -69,7 +81,7 @@ class OfflineContentManagerBridge: NSObject, OfflineContentManagerListener {
      Called when the progress for a process call changes.
      */
     func onContentDownloadProgressChanged(_ event: ContentDownloadProgressChangedEvent, offlineContentManager: OfflineContentManager) {
-        sendOfflineEvent(eventType: "onProgress", body: [
+        sendOfflineEvent(eventType: .onProgress, body: [
             "progress": event.progress
         ])
     }
@@ -78,42 +90,42 @@ class OfflineContentManagerBridge: NSObject, OfflineContentManagerListener {
      Called when all actions have been suspended.
      */
     func onContentDownloadSuspended(_ event: ContentDownloadSuspendedEvent, offlineContentManager: OfflineContentManager) {
-        sendOfflineEvent(eventType: "onSuspended")
+        sendOfflineEvent(eventType: .onSuspended)
     }
 
     /**
      Called when all actions have been resumed.
      */
     func onContentDownloadResumed(_ event: ContentDownloadResumedEvent, offlineContentManager: OfflineContentManager) {
-        sendOfflineEvent(eventType: "onResumed")
+        sendOfflineEvent(eventType: .onResumed)
     }
 
     /**
      Called when the download of the media content was canceled by the user and all partially downloaded content has been deleted from disk.
      */
     func onContentDownloadCanceled(_ event: ContentDownloadCanceledEvent, offlineContentManager: OfflineContentManager) {
-        sendOfflineEvent(eventType: "onCanceled")
+        sendOfflineEvent(eventType: .onCanceled)
     }
 
     /**
      Called when the DRM license was renewed.
      */
     func onOfflineContentLicenseRenewed(_ event: OfflineContentLicenseRenewedEvent, offlineContentManager: OfflineContentManager) {
-        sendOfflineEvent(eventType: "onDrmLicenseUpdated")
+        sendOfflineEvent(eventType: .onDrmLicenseUpdated)
     }
 
     /**
      Called on every call to OfflineContentManager.createOfflineSourceConfig(restrictedToAssetCache:) if it is DRM protected and the offline DRM license has expired.
      */
     func onOfflineContentLicenseExpired(_ event: OfflineContentLicenseExpiredEvent, offlineContentManager: OfflineContentManager) {
-        sendOfflineEvent(eventType: "onDrmLicenseExpired")
+        sendOfflineEvent(eventType: .onDrmLicenseExpired)
     }
 
-    private func sendOfflineEvent(eventType: String, body: [String: Any?] = [:]) {
+    private func sendOfflineEvent(eventType: EventType, body: [String: Any?] = [:]) {
         var baseEvent: [String: Any?] = [
             "nativeId": nativeId,
             "identifier": identifier,
-            "eventType": eventType,
+            "eventType": eventType.rawValue,
             "state": RCTConvert.toJson(offlineState: offlineContentManager.offlineState)
         ]
 
