@@ -37,8 +37,8 @@ class OfflineModule: RCTEventEmitter {
 #endif
 
     /**
-     Creates a new `OfflineContentManager` instance inside the internal offline managers using the provided `config` object.
-     - @param config `Config` object received from JS.  Should contain a sourceConfig and location.
+     Creates a new `OfflineContentManager` instance inside the internal offline managers using the provided config object.
+     - @param config Config object received from JS. Should contain `sourceConfig` and `identifier`.
      */
     @objc(initWithConfig:config:drmNativeId:resolver:rejecter:)
     func initWithConfig(
