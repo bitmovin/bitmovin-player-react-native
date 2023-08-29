@@ -62,12 +62,10 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
             if (!offlineContentManagerBridges.containsKey(nativeId)) {
                 val identifier = config?.getString("identifier")
                 val sourceConfig = JsonConverter.toSourceConfig(config?.getMap("sourceConfig"))
-                drmModule()?.getConfig(drmNativeId)?.let { drmConfig ->
-                    sourceConfig?.drmConfig = drmConfig
-                }
+                sourceConfig?.drmConfig = drmModule()?.getConfig(drmNativeId)
 
                 if (identifier.isNullOrEmpty() || sourceConfig == null) {
-                    promise.reject(java.lang.IllegalArgumentException("Invalid configuration"))
+                    promise.reject(IllegalArgumentException("Identifier and SourceConfig may not be null"))
                     return@addUIBlock
                 }
 
@@ -107,7 +105,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     @ReactMethod
     fun download(nativeId: NativeId, request: ReadableMap?, promise: Promise) {
         if (request == null) {
-            promise.reject(java.lang.IllegalArgumentException("Request may not be null"))
+            promise.reject(IllegalArgumentException("Request may not be null"))
             return
         }
 
@@ -115,23 +113,23 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
             try {
                 when (it.state) {
                     OfflineOptionEntryState.Downloaded -> {
-                        promise.reject(java.lang.IllegalStateException("Download already completed"))
+                        promise.reject(IllegalStateException("Download already completed"))
                         return@safeOfflineContentManager
                     }
                     OfflineOptionEntryState.Downloading,
                     OfflineOptionEntryState.Failed -> {
-                        promise.reject(java.lang.IllegalStateException("Download already in progress"))
+                        promise.reject(IllegalStateException("Download already in progress"))
                         return@safeOfflineContentManager
                     }
                     OfflineOptionEntryState.Suspended -> {
-                        promise.reject(java.lang.IllegalStateException("Download is suspended"))
+                        promise.reject(IllegalStateException("Download is suspended"))
                         return@safeOfflineContentManager
                     }
                     else -> {}
                 }
                 val minimumBitRate = if(request.hasKey("minimumBitrate")) request.getInt("minimumBitrate") else null
                 if (minimumBitRate != null && minimumBitRate < 0) {
-                    promise.reject(java.lang.IllegalArgumentException("Invalid download request"))
+                    promise.reject(IllegalArgumentException("Invalid download request"))
                     return@safeOfflineContentManager
                 }
 
@@ -264,7 +262,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
 
     private fun safeOfflineContentManager(nativeId: NativeId, promise: Promise, runBlock: (OfflineContentManagerBridge) -> Unit) {
         getOfflineContentManagerBridge(nativeId)?.let(runBlock)
-                ?: promise.reject(java.lang.IllegalArgumentException("Could not find the offline module instance"))
+                ?: promise.reject(IllegalArgumentException("Could not find the offline module instance"))
     }
 
     /**

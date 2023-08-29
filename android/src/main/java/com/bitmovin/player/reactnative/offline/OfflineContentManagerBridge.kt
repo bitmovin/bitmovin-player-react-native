@@ -40,26 +40,24 @@ class OfflineContentManagerBridge(
      */
     fun process(request: OfflineDownloadRequest) {
         if (contentOptions != null) {
-            val setDownloadAction: (VideoOfflineOptionEntry) -> Unit = { option ->
-                option.action = OfflineOptionEntryAction.Download
-            }
-
             val sortedVideoOptions = contentOptions!!.videoOptions
                     .sortedBy { option -> option.bitrate }
-            request.minimumBitrate?.let { minimumBitrate ->
+            if (request.minimumBitrate == null) {
+                sortedVideoOptions.lastOrNull()
+            } else {
                 sortedVideoOptions
-                        .firstOrNull { option -> option.bitrate >= minimumBitrate }
-                        ?.let(setDownloadAction)
-            } ?: sortedVideoOptions.lastOrNull()
-                    ?.let(setDownloadAction)
-            changeToDownloadAction(request.audioOptionIds, contentOptions!!.audioOptions)
-            changeToDownloadAction(request.textOptionIds, contentOptions!!.textOptions)
+                        .firstOrNull { option -> option.bitrate >= request.minimumBitrate }
+            }?.apply {
+                action = OfflineOptionEntryAction.Download
+            }
+            appliesDownloadActions(request.audioOptionIds, contentOptions!!.audioOptions)
+            appliesDownloadActions(request.textOptionIds, contentOptions!!.textOptions)
 
             offlineContentManager.process(contentOptions!!)
         }
     }
 
-    private fun changeToDownloadAction(
+    private fun appliesDownloadActions(
         ids: List<String?>?,
         potentialOptions: List<OfflineOptionEntry>
     ) {
