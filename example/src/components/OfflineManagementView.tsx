@@ -1,7 +1,7 @@
 import {
   OfflineContentOptions,
   OfflineDownloadRequest,
-  OfflineOptionEntry,
+  OfflineContentOptionEntry,
 } from 'bitmovin-player-react-native';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import React, { Dispatch, SetStateAction } from 'react';
@@ -19,7 +19,7 @@ const OfflineOption = ({
   onPress,
 }: {
   type: string;
-  option: OfflineOptionEntry;
+  option: OfflineContentOptionEntry;
   selectedToDownload?: boolean;
   onPress: () => void;
   children?: any;

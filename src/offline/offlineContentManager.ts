@@ -11,11 +11,9 @@ import {
   handleBitmovinNativeOfflineEvent,
   OfflineContentManagerListener,
 } from './offlineContentManagerListener';
-import {
-  OfflineContentConfig,
-  OfflineDownloadRequest,
-  OfflineState,
-} from './offlineContentOptions';
+import { OfflineContentConfig } from './offlineContentConfig';
+import { OfflineDownloadRequest } from './offlineDownloadRequest';
+import { OfflineState } from './offlineState';
 import { Drm } from 'bitmovin-player-react-native';
 
 interface NativeOfflineModule extends NativeModule {
