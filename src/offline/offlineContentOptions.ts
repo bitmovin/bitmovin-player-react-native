@@ -64,7 +64,7 @@ export interface OfflineOptionEntry {
 }
 
 /**
- * Represents the information from the `OfflineContentManagerListener` that is available to download
+ * Represents the downloadable options provided via the `onOptionsAvailable` callback on `OfflineContentManagerListener`
  */
 export interface OfflineContentOptions {
   /**
