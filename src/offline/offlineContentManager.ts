@@ -187,7 +187,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
 
   /**
    * Downloads the offline license.
-   * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
+   * When finished successfully, data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
   downloadLicense = async (): Promise<void> => {
