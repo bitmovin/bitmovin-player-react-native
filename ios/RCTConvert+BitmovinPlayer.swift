@@ -280,7 +280,7 @@ extension RCTConvert {
 
     static func timelineReferencePoint(_ json: Any?) -> TimelineReferencePoint {
         guard let stringValue = json as? String else { return .auto }
-        switch stringValue as? String {
+        switch stringValue {
         case "start": return .start
         case "end": return .end
         default: return .auto
