@@ -50,13 +50,16 @@ export enum LoadingState {
  */
 export interface SourceOptions {
   /**
-   * Indicates the player's offset time in seconds.
+   * The position where the stream should be started.
+   * Number can be positive or negative depending on the used `TimelineReferencePoint`.
+   * Invalid numbers will be corrected according to the stream boundaries.
+   * For VOD this is applied at the time the stream is loaded, for LIVE when playback starts.
    */
   startOffset?: number;
   /**
    * Sets the Timeline reference point to calculate the startOffset from.
-   * Default for live: TimelineReferencePoint.END.
-   * Default for VOD: TimelineReferencePoint.START.
+   * Default for live: `TimelineReferencePoint.END`.
+   * Default for VOD: `TimelineReferencePoint.START`.
    */
   startOffsetTimelineReference?: TimelineReferencePoint;
 }
