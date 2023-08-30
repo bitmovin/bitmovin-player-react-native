@@ -6,7 +6,7 @@ extension RCTConvert {
     /**
      Utility method to instantiate a `PlayerConfig` from a JS object.
      - Parameter json: JS object
-     - Returns: The produced `Playerconfig` object
+     - Returns: The produced `PlayerConfig` object
      */
     static func playerConfig(_ json: Any?) -> PlayerConfig? {
         let playerConfig = PlayerConfig()
@@ -439,6 +439,24 @@ extension RCTConvert {
     }
 
     /**
+     Utility method to get a json dictionary value from a `ThumbnailTrack` object.
+     - Parameter thumbnailTrack: The `ThumbnailTrack` to convert to json format.
+     - Returns: The generated json dictionary.
+     */
+    static func toJson(thumbnailTrack: ThumbnailTrack?) -> [AnyHashable: Any]? {
+        guard let thumbnailTrack = thumbnailTrack else {
+            return nil
+        }
+
+        return [
+            "url": thumbnailTrack.url?.absoluteString,
+            "label": thumbnailTrack.label,
+            "isDefault": thumbnailTrack.isDefaultTrack,
+            "identifier": thumbnailTrack.identifier
+        ]
+    }
+
+    /**
      Utility method to compute a JS value from an `AdItem` object.
      - Parameter adItem: `AdItem` object to be converted.
      - Returns: The produced JS object.
@@ -572,6 +590,7 @@ extension RCTConvert {
             "minBitrate": adData.minBitrate
         ]
     }
+
     /**
      Utility method to get a `BitmovinAnalyticsConfig` value from a JS object.
      - Parameter json: JS object.
@@ -798,4 +817,65 @@ extension RCTConvert {
         default: return nil
         }
     }
+
+#if os(iOS)
+    /**
+     Utility method to compute a JS value from an `OfflineState` object.
+     - Parameter offlineState `OfflineState` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineState: OfflineState?) -> String {
+        var notDownloaded = "NotDownloaded"
+        guard let offlineState = offlineState else {
+            return notDownloaded
+        }
+
+        switch offlineState {
+        case .downloading: return "Downloading"
+        case .downloaded: return "Downloaded"
+        case .suspended: return "Suspended"
+        default: return notDownloaded
+        }
+    }
+
+    /**
+     Utility method to compute a JS value from an `OfflineTextTrack` object.
+     - Parameter offlineTrack `OfflineTextTrack` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineTrack: OfflineTextTrack) -> [String: Any?] {
+        return [
+            "id": offlineTrack.label,
+            "language": offlineTrack.language,
+        ]
+    }
+
+    /**
+     Utility method to compute a JS value from an `OfflineAudioTrack` object.
+     - Parameter offlineTrack `OfflineAudioTrack` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineTrack: OfflineAudioTrack) -> [String: Any?] {
+        return [
+            "id": offlineTrack.label,
+            "language": offlineTrack.language,
+        ]
+    }
+
+    /**
+     Utility method to compute a JS value from an `OfflineTrackSelection` object.
+     - Parameter offlineTracks `OfflineTrackSelection` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(offlineTracks: OfflineTrackSelection?) -> [String: Any?]? {
+        guard let offlineTracks = offlineTracks else {
+            return nil
+        }
+
+        return [
+            "textOptions": offlineTracks.textTracks.compactMap { RCTConvert.toJson(offlineTrack: $0) },
+            "audioOptions": offlineTracks.audioTracks.compactMap { RCTConvert.toJson(offlineTrack: $0) }
+        ]
+    }
+#endif
 }

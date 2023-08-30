@@ -7,7 +7,7 @@ body:
   attributes:
     value: |
       Thank you for helping us make our library better by providing this bug report.
-      
+
       Please note that any Issues raised in Github aren’t covered by any SLA a customer might be eligible for. Only Tickets that are raised through the dashboard are considered by Support SLAs.
 - type: checkboxes
   attributes:
@@ -81,7 +81,7 @@ body:
 - type: input
   attributes:
     label: Stream URL (Optional)
-    description: To help us reproduce the bug, you can provide us with the URL of your stream. 
+    description: To help us reproduce the bug, you can provide us with the URL of your stream.
   validations:
     required: false
 - type: textarea

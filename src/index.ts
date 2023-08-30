@@ -10,3 +10,4 @@ export * from './source';
 export * from './subtitleTrack';
 export * from './styleConfig';
 export * from './ui';
+export * from './offline';

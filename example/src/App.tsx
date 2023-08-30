@@ -19,6 +19,7 @@ import CustomHtmlUi from './screens/CustomHtmlUi';
 import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 import LandscapeFullscreenHandling from './screens/LandscapeFullscreenHandling';
 import SystemUI from './screens/SystemUi';
+import OfflinePlayback from './screens/OfflinePlayback';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -40,6 +41,7 @@ export type RootStackParamsList = {
   };
   SubtitlePlayback: undefined;
   CustomPlaybackForm: undefined;
+  OfflinePlayback: undefined;
   CustomPlayback: {
     licenseKey: string;
     streamURL: string;
@@ -95,6 +97,11 @@ export default function App() {
     stackParams.data.push({
       title: 'Custom HTML UI',
       routeName: 'CustomHtmlUi',
+    });
+
+    stackParams.data.push({
+      title: 'Offline playback',
+      routeName: 'OfflinePlayback',
     });
   }
 
@@ -171,6 +178,13 @@ export default function App() {
           component={ProgrammaticTrackSelection}
           options={{ title: 'Programmatic Track Selection' }}
         />
+        {!isTVOS && (
+          <RootStack.Screen
+            name="OfflinePlayback"
+            component={OfflinePlayback}
+            options={{ title: 'Offline Playback' }}
+          />
+        )}
         <RootStack.Screen
           name="CustomPlaybackForm"
           component={CustomPlaybackForm}

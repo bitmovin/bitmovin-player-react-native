@@ -17,6 +17,8 @@ import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
+import com.bitmovin.player.api.offline.options.OfflineContentOptions
+import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
@@ -813,11 +815,11 @@ class JsonConverter {
         @JvmStatic
         fun toAnalyticsSourceMetadata(json: ReadableMap?): SourceMetadata? = json?.let {
             val sourceMetadata = SourceMetadata(
-                    title = it.getString("title"),
-                    videoId = it.getString("videoId"),
-                    cdnProvider = it.getString("cdnProvider"),
-                    path = it.getString("path"),
-                    isLive = it.getBoolean("isLive")
+                title = it.getString("title"),
+                videoId = it.getString("videoId"),
+                cdnProvider = it.getString("cdnProvider"),
+                path = it.getString("path"),
+                isLive = it.getBoolean("isLive")
             )
 
             for (n in 1..30) {
@@ -846,6 +848,36 @@ class JsonConverter {
                 putDouble("frameRate", videoQuality.frameRate.toDouble())
                 putInt("height", videoQuality.height)
                 putInt("width", videoQuality.width)
+            }
+        }
+
+        /**
+         * Converts any `OfflineOptionEntry` into its json representation.
+         * @param offlineEntry `OfflineOptionEntry` object to be converted.
+         * @return The generated json map.
+         */
+        @JvmStatic
+        fun toJson(offlineEntry: OfflineOptionEntry): WritableMap {
+            return Arguments.createMap().apply {
+                putString("id", offlineEntry.id)
+                putString("language", offlineEntry.language)
+            }
+        }
+
+        /**
+         * Converts any `OfflineContentOptions` into its json representation.
+         * @param options `OfflineContentOptions` object to be converted.
+         * @return The generated json map.
+         */
+        @JvmStatic
+        fun toJson(options: OfflineContentOptions?): WritableMap? {
+            if (options == null) {
+                return null
+            }
+
+            return Arguments.createMap().apply {
+                putArray("audioOptions", options.audioOptions.map { toJson(it) }.toReadableArray())
+                putArray("textOptions", options.textOptions.map { toJson(it) }.toReadableArray())
             }
         }
     }

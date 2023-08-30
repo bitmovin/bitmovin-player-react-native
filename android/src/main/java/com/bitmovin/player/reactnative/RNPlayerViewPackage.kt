@@ -19,6 +19,7 @@ class RNPlayerViewPackage : ReactPackage {
      */
     override fun createNativeModules(reactContext: ReactApplicationContext): MutableList<NativeModule> {
         return mutableListOf(
+            OfflineModule(reactContext),
             UuidModule(reactContext),
             PlayerModule(reactContext),
             SourceModule(reactContext),
