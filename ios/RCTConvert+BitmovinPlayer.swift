@@ -28,6 +28,9 @@ extension RCTConvert {
         if let advertisingConfig = RCTConvert.advertisingConfig(json["advertisingConfig"]) {
             playerConfig.advertisingConfig = advertisingConfig
         }
+        if let adaptationConfig = RCTConvert.adaptationConfig(json["adaptationConfig"]) {
+            playerConfig.adaptationConfig = adaptationConfig
+        }
         return playerConfig
     }
 
@@ -878,4 +881,21 @@ extension RCTConvert {
         ]
     }
 #endif
+
+    /**
+     Utility method to instantiate a `AdaptationConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `AdaptationConfig` object
+     */
+    static func adaptationConfig(_ json: Any?) -> AdaptationConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let adaptationConfig = AdaptationConfig()
+        if let maxSelectableBitrate = json["maxSelectableBitrate"] as? NSNumber {
+            adaptationConfig.maxSelectableBitrate = maxSelectableBitrate.uintValue
+        }
+
+        return adaptationConfig
+    }
 }
