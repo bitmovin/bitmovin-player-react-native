@@ -278,6 +278,11 @@ extension RCTConvert {
         return sourceOptions
     }
 
+    /**
+     Utility method to instantiate a `TimelineReferencePoint` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `TimelineReferencePoint` value
+     */
     static func timelineReferencePoint(_ json: Any?) -> TimelineReferencePoint {
         guard let stringValue = json as? String else { return .auto }
         switch stringValue {

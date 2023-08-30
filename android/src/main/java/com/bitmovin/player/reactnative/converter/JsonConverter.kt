@@ -91,6 +91,11 @@ class JsonConverter {
             return SourceOptions(startOffset = startOffset, startOffsetTimelineReference = timelineReferencePoint)
         }
 
+        /**
+         * Converts an arbitrary `json` to `TimelineReferencePoint`.
+         * @param json JS string representing the `TimelineReferencePoint`.
+         * @return The generated `TimelineReferencePoint`.
+         */
         @JvmStatic
         private fun toTimelineReferencePoint(json: String?): TimelineReferencePoint? = when (json) {
             "start" -> TimelineReferencePoint.Start
