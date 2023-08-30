@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative.converter
 
 import com.bitmovin.analytics.BitmovinAnalyticsConfig
+import com.bitmovin.analytics.config.SourceMetadata
 import com.bitmovin.analytics.data.CustomData
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.DeviceDescription.ModelName
@@ -16,6 +17,8 @@ import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
+import com.bitmovin.player.api.offline.options.OfflineContentOptions
+import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceOptions
@@ -804,6 +807,9 @@ class JsonConverter {
                     customData.setProperty("customData${n}", customDataN)
                 }
             }
+            it.getString("experimentName")?.let { experimentName ->
+                customData.experimentName = experimentName
+            }
             customData
         }
 
@@ -820,7 +826,31 @@ class JsonConverter {
                     json.putString("customData${n}", customDataN)
                 }
             }
+            it.experimentName?.let { experimentName ->
+                json.putString("experimentName", experimentName)
+            }
             json
+        }
+
+        @JvmStatic
+        fun toAnalyticsSourceMetadata(json: ReadableMap?): SourceMetadata? = json?.let {
+            val sourceMetadata = SourceMetadata(
+                title = it.getString("title"),
+                videoId = it.getString("videoId"),
+                cdnProvider = it.getString("cdnProvider"),
+                path = it.getString("path"),
+                isLive = it.getBoolean("isLive")
+            )
+
+            for (n in 1..30) {
+                it.getString("customData${n}")?.let { customDataN ->
+                    sourceMetadata.setProperty("customData${n}", customDataN)
+                }
+            }
+            it.getString("experimentName")?.let { experimentName ->
+                sourceMetadata.experimentName = experimentName
+            }
+            sourceMetadata
         }
 
         /**
@@ -838,6 +868,36 @@ class JsonConverter {
                 putDouble("frameRate", videoQuality.frameRate.toDouble())
                 putInt("height", videoQuality.height)
                 putInt("width", videoQuality.width)
+            }
+        }
+
+        /**
+         * Converts any `OfflineOptionEntry` into its json representation.
+         * @param offlineEntry `OfflineOptionEntry` object to be converted.
+         * @return The generated json map.
+         */
+        @JvmStatic
+        fun toJson(offlineEntry: OfflineOptionEntry): WritableMap {
+            return Arguments.createMap().apply {
+                putString("id", offlineEntry.id)
+                putString("language", offlineEntry.language)
+            }
+        }
+
+        /**
+         * Converts any `OfflineContentOptions` into its json representation.
+         * @param options `OfflineContentOptions` object to be converted.
+         * @return The generated json map.
+         */
+        @JvmStatic
+        fun toJson(options: OfflineContentOptions?): WritableMap? {
+            if (options == null) {
+                return null
+            }
+
+            return Arguments.createMap().apply {
+                putArray("audioOptions", options.audioOptions.map { toJson(it) }.toReadableArray())
+                putArray("textOptions", options.textOptions.map { toJson(it) }.toReadableArray())
             }
         }
     }

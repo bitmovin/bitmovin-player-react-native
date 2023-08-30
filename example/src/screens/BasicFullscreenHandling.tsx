@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { View, Platform, StyleSheet, StatusBar } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,6 +12,7 @@ import {
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import { RootStackParamsList } from '../App';
+import SystemNavigationBar from 'react-native-system-navigation-bar';
 
 type BasicFullscreenHandlingProps = NativeStackScreenProps<
   RootStackParamsList,
@@ -35,17 +36,29 @@ class SampleFullscreenHandler implements FullscreenHandler {
   }
 
   enterFullscreen(): void {
-    this.onFullscreen(true);
-    StatusBar.setHidden(true);
     this.isFullscreenActive = true;
+    if (Platform.OS === 'android') {
+      // Hides navigation and status bar on Android
+      SystemNavigationBar.stickyImmersive(true);
+    } else {
+      // Hides status bar on iOS
+      StatusBar.setHidden(true);
+    }
     console.log('enter fullscreen');
+    this.onFullscreen(true);
   }
 
   exitFullscreen(): void {
-    this.onFullscreen(false);
-    StatusBar.setHidden(false);
     this.isFullscreenActive = false;
+    if (Platform.OS === 'android') {
+      // shows navigation and status bar on Android
+      SystemNavigationBar.stickyImmersive(false);
+    } else {
+      // shows status bar on iOS
+      StatusBar.setHidden(false);
+    }
     console.log('exit fullscreen');
+    this.onFullscreen(false);
   }
 }
 export default function BasicFullscreenHandling({
@@ -56,13 +69,14 @@ export default function BasicFullscreenHandling({
   const player = usePlayer();
 
   const [fullscreenMode, setFullscreenMode] = useState(false);
-  const fullscreenHandler = new SampleFullscreenHandler(
-    fullscreenMode,
-    (isFullscreen: boolean) => {
+  const fullscreenHandler = useRef(
+    new SampleFullscreenHandler(fullscreenMode, (isFullscreen: boolean) => {
       setFullscreenMode(isFullscreen);
-      navigation.setOptions({ headerShown: !isFullscreen });
-    }
-  );
+      navigation.setOptions({
+        headerShown: !isFullscreen, // show/hide top bar
+      });
+    })
+  ).current;
   useFocusEffect(
     useCallback(() => {
       // iOS audio session must be set to `playback` first otherwise PiP mode won't work.

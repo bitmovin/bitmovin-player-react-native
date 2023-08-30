@@ -1,3 +1,4 @@
+#import "Orientation.h"
 #import "AppDelegate.h"
 
 #import <React/RCTBridge.h>
@@ -5,6 +6,7 @@
 #import <React/RCTRootView.h>
 
 #import <React/RCTAppSetupUtils.h>
+#import <BitmovinPlayerCore/BitmovinPlayerCore-Swift.h>
 
 #if RCT_NEW_ARCH_ENABLED
 #import <React/CoreModulesPlugins.h>
@@ -29,9 +31,15 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 
 @implementation AppDelegate
 
+- (UIInterfaceOrientationMask)application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(UIWindow *)window {
+  return [Orientation getOrientation];
+}
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   RCTAppSetupPrepareApp(application);
+  // Only needed if the offline feature is used
+  [BMPOfflineManager initializeOfflineManager];
 
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
 
@@ -53,6 +61,11 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
   return YES;
+}
+
+// Only needed if the offline feature is used
+- (void)application:(UIApplication *)application handleEventsForBackgroundURLSession:(NSString *)identifier completionHandler:(void (^)(void))completionHandler {
+  [[BMPOfflineManager sharedInstance] addCompletionHandler:completionHandler forIdentifier:identifier];
 }
 
 /// This method controls whether the `concurrentRoot`feature of React18 is turned on or off.

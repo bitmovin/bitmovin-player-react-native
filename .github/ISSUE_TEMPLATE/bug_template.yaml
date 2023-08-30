@@ -7,7 +7,7 @@ body:
   attributes:
     value: |
       Thank you for helping us make our library better by providing this bug report.
-      
+
       Please note that any Issues raised in Github aren’t covered by any SLA a customer might be eligible for. Only Tickets that are raised through the dashboard are considered by Support SLAs.
 - type: checkboxes
   attributes:
@@ -56,18 +56,32 @@ body:
     required: true
 - type: textarea
   attributes:
-    label: Device / Environment
+    label: Device
     description: Please provide as much detail as possible about the device(s) on which you experience the issue.
     placeholder: |
         - Device:
-        - Operating System:
+        - Operating System and version:
         - ...
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Environment
+    description: Please provide as much detail as possible about the environment with which you experience the issue.
+    placeholder: |
+        - React version:
+        - React Native version:
+        - Node version:
+        - Gradle version:
+        - Android Gradle Plugin version:
+        - Xcode version:
+        - Minimum deployment target for iOS/tvOS:
   validations:
     required: false
 - type: input
   attributes:
     label: Stream URL (Optional)
-    description: To help us reproduce the bug, you can provide us with the URL of your stream. 
+    description: To help us reproduce the bug, you can provide us with the URL of your stream.
   validations:
     required: false
 - type: textarea
