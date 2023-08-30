@@ -5,6 +5,7 @@
 ### Added
 
 - Offline playback support on Android and iOS
+- `PlayerConfig.adaptationConfig` to allow configuring the player's adaptation behavior
 
 ## [0.9.2] (2023-08-24)
 
