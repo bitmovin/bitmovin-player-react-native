@@ -23,6 +23,7 @@ import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceOptions
 import com.bitmovin.player.api.source.SourceType
+import com.bitmovin.player.api.source.TimelineReferencePoint
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.extensions.getName
@@ -85,12 +86,16 @@ class JsonConverter {
         @JvmStatic
         fun toSourceOptions(json: ReadableMap?): SourceOptions {
             if (json == null) return SourceOptions()
-            val sourceOptions = if (json.hasKey("startOffset")) {
-                SourceOptions(startOffset = json.getDouble("startOffset"))
-            } else {
-                SourceOptions()
-            }
-            return sourceOptions
+            val startOffset = if(json.hasKey("startOffset")) json.getDouble("startOffset") else null
+            val timelineReferencePoint = toTimelineReferencePoint(json.getString("startOffsetTimelineReference"))
+            return SourceOptions(startOffset = startOffset, startOffsetTimelineReference = timelineReferencePoint)
+        }
+
+        @JvmStatic
+        private fun toTimelineReferencePoint(json: String?): TimelineReferencePoint? = when (json) {
+            "start" -> TimelineReferencePoint.Start
+            "end" -> TimelineReferencePoint.End
+            else -> null
         }
 
         /**

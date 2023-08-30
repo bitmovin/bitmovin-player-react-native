@@ -274,7 +274,17 @@ extension RCTConvert {
         if let startOffset = json["startOffset"] as? NSNumber {
             sourceOptions.startOffset = startOffset.doubleValue
         }
+        sourceOptions.startOffsetTimelineReference = RCTConvert.timelineReferencePoint(json["startOffsetTimelineReference"])
         return sourceOptions
+    }
+
+    static func timelineReferencePoint(_ json: Any?) -> TimelineReferencePoint {
+        guard let stringValue = json as? String else { return .auto }
+        switch stringValue as? String {
+        case "start": return .start
+        case "end": return .end
+        default: return .auto
+        }
     }
 
     /**

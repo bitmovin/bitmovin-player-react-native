@@ -53,6 +53,27 @@ export interface SourceOptions {
    * Indicates the player's offset time in seconds.
    */
   startOffset?: number;
+  /**
+   * Sets the Timeline reference point to calculate the startOffset from.
+   * Default for live: TimelineReferencePoint.END.
+   * Default for VOD: TimelineReferencePoint.START.
+   */
+  startOffsetTimelineReference?: TimelineReferencePoint;
+}
+
+/**
+ Timeline reference point to calculate SourceOptions.startOffset from.
+ Default for live: TimelineReferencePoint.EBD Default for VOD: TimelineReferencePoint.START.
+ */
+export enum TimelineReferencePoint {
+  /**
+   * Relative offset will be calculated from the beginning of the stream or DVR window.
+   */
+  START = 'start',
+  /**
+   * Relative offset will be calculated from the end of the stream or the live edge in case of a live stream with DVR window.
+   */
+  END = 'end',
 }
 
 /**
