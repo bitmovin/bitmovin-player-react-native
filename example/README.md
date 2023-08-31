@@ -78,6 +78,12 @@ yarn example ios # Run examples on iOS
 yarn example android # Run examples on Android
 ```
 
+Hint: You can provide a specific simulator by name when using `--simulator` flag. `xcrun simctl list devices available` provides you with a list of available devices in your environment.
+
+```sh
+yarn example ios --simulator="iPhone 14 Pro"
+```
+
 **IDE**
 
 You can also open the iOS project using Xcode by typing `xed example/ios/` on terminal, or `studio example/android/` to open the android project in Android Studio (make sure to setup its binaries first).
