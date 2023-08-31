@@ -22,7 +22,9 @@ import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
+import com.bitmovin.player.api.source.SourceOptions
 import com.bitmovin.player.api.source.SourceType
+import com.bitmovin.player.api.source.TimelineReferencePoint
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.extensions.getName
@@ -82,6 +84,31 @@ class JsonConverter {
             return playerConfig
         }
 
+        /**
+         * Converts an arbitrary `json` to `SourceOptions`.
+         * @param json JS object representing the `SourceOptions`.
+         * @return The generated `SourceOptions`.
+         */
+        @JvmStatic
+        fun toSourceOptions(json: ReadableMap?): SourceOptions {
+            if (json == null) return SourceOptions()
+            val startOffset = if(json.hasKey("startOffset")) json.getDouble("startOffset") else null
+            val timelineReferencePoint = toTimelineReferencePoint(json.getString("startOffsetTimelineReference"))
+            return SourceOptions(startOffset = startOffset, startOffsetTimelineReference = timelineReferencePoint)
+        }
+
+        /**
+         * Converts an arbitrary `json` to `TimelineReferencePoint`.
+         * @param json JS string representing the `TimelineReferencePoint`.
+         * @return The generated `TimelineReferencePoint`.
+         */
+        @JvmStatic
+        private fun toTimelineReferencePoint(json: String?): TimelineReferencePoint? = when (json) {
+            "start" -> TimelineReferencePoint.Start
+            "end" -> TimelineReferencePoint.End
+            else -> null
+        }
+        
         /**
          * Converts an arbitrary `json` to `AdaptationConfig`.
          * @param json JS object representing the `AdaptationConfig`.
@@ -293,6 +320,9 @@ class JsonConverter {
                 config.metadata = json.getMap("metadata")
                     ?.toHashMap()
                     ?.mapValues { entry -> entry.value as String }
+            }
+            if (json.hasKey("options")) {
+                config.options = toSourceOptions(json.getMap("options"))
             }
             return config
         }

@@ -46,6 +46,40 @@ export enum LoadingState {
 }
 
 /**
+ * Types of SourceOptions.
+ */
+export interface SourceOptions {
+  /**
+   * The position where the stream should be started.
+   * Number can be positive or negative depending on the used `TimelineReferencePoint`.
+   * Invalid numbers will be corrected according to the stream boundaries.
+   * For VOD this is applied at the time the stream is loaded, for LIVE when playback starts.
+   */
+  startOffset?: number;
+  /**
+   * Sets the Timeline reference point to calculate the startOffset from.
+   * Default for live: `TimelineReferencePoint.END`.
+   * Default for VOD: `TimelineReferencePoint.START`.
+   */
+  startOffsetTimelineReference?: TimelineReferencePoint;
+}
+
+/**
+ Timeline reference point to calculate SourceOptions.startOffset from.
+ Default for live: TimelineReferencePoint.EBD Default for VOD: TimelineReferencePoint.START.
+ */
+export enum TimelineReferencePoint {
+  /**
+   * Relative offset will be calculated from the beginning of the stream or DVR window.
+   */
+  START = 'start',
+  /**
+   * Relative offset will be calculated from the end of the stream or the live edge in case of a live stream with DVR window.
+   */
+  END = 'end',
+}
+
+/**
  * Represents a source configuration that be loaded into a player instance.
  */
 export interface SourceConfig extends NativeInstanceConfig {
@@ -86,6 +120,10 @@ export interface SourceConfig extends NativeInstanceConfig {
    * The optional custom metadata. Also sent to the cast receiver when loading the Source.
    */
   metadata?: Record<string, string>;
+  /**
+   * The `SourceOptions` for this configuration.
+   */
+  options?: SourceOptions;
 }
 
 /**
