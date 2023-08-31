@@ -3,7 +3,7 @@
  */
 export interface AdaptationConfig {
   /**
-   * The upper bitrate boundary in bits per second for network bandwidth consumption of the played source.
+   * The upper bitrate boundary in bits per second for approximate network bandwidth consumption of the played source.
    * Can be set to `undefined` for no limitation.
    */
   maxSelectableBitrate?: number;
