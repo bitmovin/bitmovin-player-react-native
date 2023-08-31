@@ -7,6 +7,7 @@ import { AudioTrack } from './audioTrack';
 import { SubtitleTrack } from './subtitleTrack';
 import { StyleConfig } from './styleConfig';
 import { TweaksConfig } from './tweaksConfig';
+import { OfflineContentManager, OfflineSourceOptions } from './offline';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -192,6 +193,20 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   load = (sourceConfig: SourceConfig) => {
     this.loadSource(new Source(sourceConfig));
+  };
+
+  /**
+   * Loads the downloaded content from `OfflineContentManager` into the player.
+   */
+  loadOfflineContent = (
+    offlineContentManager: OfflineContentManager,
+    options?: OfflineSourceOptions
+  ) => {
+    PlayerModule.loadOfflineContent(
+      this.nativeId,
+      offlineContentManager.nativeId,
+      options
+    );
   };
 
   /**
