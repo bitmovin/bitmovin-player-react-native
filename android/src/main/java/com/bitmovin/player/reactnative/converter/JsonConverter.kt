@@ -1,14 +1,22 @@
 package com.bitmovin.player.reactnative.converter
 
 import com.bitmovin.analytics.BitmovinAnalyticsConfig
-import com.bitmovin.analytics.config.SourceMetadata
-import com.bitmovin.analytics.data.CustomData
+import com.bitmovin.analytics.api.CustomData
+import com.bitmovin.analytics.api.SourceMetadata
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.DeviceDescription.ModelName
 import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.TweaksConfig
-import com.bitmovin.player.api.advertising.*
+import com.bitmovin.player.api.advertising.Ad
+import com.bitmovin.player.api.advertising.AdBreak
+import com.bitmovin.player.api.advertising.AdConfig
+import com.bitmovin.player.api.advertising.AdData
+import com.bitmovin.player.api.advertising.AdItem
+import com.bitmovin.player.api.advertising.AdQuartile
+import com.bitmovin.player.api.advertising.AdSource
+import com.bitmovin.player.api.advertising.AdSourceType
+import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
@@ -27,14 +35,17 @@ import com.bitmovin.player.api.source.TimelineReferencePoint
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.extensions.getName
-import com.bitmovin.player.reactnative.extensions.putInt
+import com.bitmovin.player.reactnative.extensions.getProperty
 import com.bitmovin.player.reactnative.extensions.putDouble
+import com.bitmovin.player.reactnative.extensions.putInt
+import com.bitmovin.player.reactnative.extensions.setProperty
 import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.extensions.toReadableArray
-import com.bitmovin.player.reactnative.extensions.getProperty
-import com.bitmovin.player.reactnative.extensions.setProperty
-import com.facebook.react.bridge.*
 import com.bitmovin.player.reactnative.extensions.toReadableMap
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableMap
 import java.util.UUID
 
 /**
@@ -242,7 +253,7 @@ class JsonConverter {
                 ?.mapNotNull(::toAdSource)
                 ?.toTypedArray()
                 ?: return null
-            return AdItem(sources, json?.getString("position") ?: "pre")
+            return AdItem(sources, json.getString("position") ?: "pre")
         }
 
         /**
@@ -577,7 +588,7 @@ class JsonConverter {
                 false
             }
             val format = json.getString("format")
-            if (format != null && format.isNotBlank()) {
+            if (!format.isNullOrBlank()) {
                 return SubtitleTrack(
                     url = url,
                     label = label,
@@ -810,17 +821,20 @@ class JsonConverter {
          * @return The produced `CustomData` or null.
          */
         @JvmStatic
-        fun toAnalyticsCustomData(json: ReadableMap?): CustomData? = json?.let {
-            val customData = CustomData()
-            for (n in 1..30) {
-                it.getString("customData${n}")?.let { customDataN ->
-                    customData.setProperty("customData${n}", customDataN)
+        fun toAnalyticsCustomData(json: ReadableMap?): CustomData? {
+            if (json == null) return null
+
+            return CustomData.Builder().apply {
+                for (n in 1..30) {
+                    setProperty(
+                        "customData${n}",
+                        json.getString("customData${n}") ?: continue
+                    )
                 }
-            }
-            it.getString("experimentName")?.let { experimentName ->
-                customData.experimentName = experimentName
-            }
-            customData
+                json.getString("experimentName")?.let {
+                    setExperimentName(it)
+                }
+            }.build()
         }
 
         /**
@@ -844,23 +858,15 @@ class JsonConverter {
 
         @JvmStatic
         fun toAnalyticsSourceMetadata(json: ReadableMap?): SourceMetadata? = json?.let {
-            val sourceMetadata = SourceMetadata(
+            val sourceCustomData = toAnalyticsCustomData(json) ?: CustomData()
+            SourceMetadata(
                 title = it.getString("title"),
                 videoId = it.getString("videoId"),
                 cdnProvider = it.getString("cdnProvider"),
                 path = it.getString("path"),
-                isLive = it.getBoolean("isLive")
+                isLive = it.getBoolean("isLive"),
+                customData = sourceCustomData
             )
-
-            for (n in 1..30) {
-                it.getString("customData${n}")?.let { customDataN ->
-                    sourceMetadata.setProperty("customData${n}", customDataN)
-                }
-            }
-            it.getString("experimentName")?.let { experimentName ->
-                sourceMetadata.experimentName = experimentName
-            }
-            sourceMetadata
         }
 
         /**
