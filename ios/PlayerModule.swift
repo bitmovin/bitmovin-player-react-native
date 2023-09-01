@@ -517,4 +517,17 @@ class PlayerModule: NSObject, RCTBridgeModule {
             resolve(self?.players[nativeId]?.maxTimeShift)
         }
     }
+
+    /**
+     Sets the max selectable bitrate for the player.
+     - Parameter nativeId: Target player id.
+     - Parameter maxBitrate: The desired max bitrate limit.
+     */
+    @objc(setMaxSelectableBitrate:maxSelectableBitrate:)
+    func setMaxSelectableBitrate(_ nativeId: NativeId, maxSelectableBitrate: NSNumber) {
+        let maxSelectableBitrateValue = maxSelectableBitrate.uintValue
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.maxSelectableBitrate = maxSelectableBitrateValue != -1 ? maxSelectableBitrateValue : 0
+        }
+    }
 }

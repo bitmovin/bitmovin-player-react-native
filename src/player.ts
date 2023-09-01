@@ -448,4 +448,14 @@ export class Player extends NativeInstance<PlayerConfig> {
   getMaxTimeShift = async (): Promise<number> => {
     return PlayerModule.getMaxTimeShift(this.nativeId);
   };
+
+  /**
+   * Sets the upper bitrate boundary for video qualities. All qualities with a bitrate
+   * that is higher than this threshold will not be eligible for automatic quality selection.
+   *
+   * Can be set to `undefined` for no limitation.
+   */
+  setMaxSelectableBitrate = (bitrate: number | undefined) => {
+    PlayerModule.setMaxSelectableBitrate(this.nativeId, bitrate || -1);
+  };
 }
