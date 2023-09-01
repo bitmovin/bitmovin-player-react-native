@@ -1,3 +1,4 @@
+export * from './adaptationConfig';
 export * from './advertising';
 export * from './analytics';
 export * from './audioSession';

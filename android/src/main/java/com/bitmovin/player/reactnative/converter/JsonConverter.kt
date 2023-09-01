@@ -21,6 +21,7 @@ import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.SeekPosition
+import com.bitmovin.player.api.media.AdaptationConfig
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
@@ -86,6 +87,11 @@ class JsonConverter {
                     playerConfig.advertisingConfig = it
                 }
             }
+            if (json.hasKey("adaptationConfig")) {
+                toAdaptationConfig(json.getMap("adaptationConfig"))?.let {
+                    playerConfig.adaptationConfig = it
+                }
+            }
             return playerConfig
         }
 
@@ -112,6 +118,20 @@ class JsonConverter {
             "start" -> TimelineReferencePoint.Start
             "end" -> TimelineReferencePoint.End
             else -> null
+        }
+        
+        /**
+         * Converts an arbitrary `json` to `AdaptationConfig`.
+         * @param json JS object representing the `AdaptationConfig`.
+         * @return The generated `AdaptationConfig` if successful, `null` otherwise.
+         */
+        private fun toAdaptationConfig(json: ReadableMap?): AdaptationConfig? {
+            if (json == null) return null
+            val adaptationConfig = AdaptationConfig()
+            if (json.hasKey("maxSelectableBitrate")) {
+                adaptationConfig.maxSelectableVideoBitrate = json.getInt("maxSelectableBitrate")
+            }
+            return adaptationConfig
         }
 
         /**

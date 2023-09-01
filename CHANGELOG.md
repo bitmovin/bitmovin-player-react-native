@@ -6,6 +6,7 @@
 
 - Offline playback support on Android and iOS
 - `SourceConfig.options` to enable configuring stream start position
+- `PlayerConfig.adaptationConfig` to allow configuring the player's adaptation behavior
 
 ## [0.9.2] (2023-08-24)
 

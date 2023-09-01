@@ -7,6 +7,7 @@ import { AudioTrack } from './audioTrack';
 import { SubtitleTrack } from './subtitleTrack';
 import { StyleConfig } from './styleConfig';
 import { TweaksConfig } from './tweaksConfig';
+import { AdaptationConfig } from './adaptationConfig';
 import { OfflineContentManager, OfflineSourceOptions } from './offline';
 
 const PlayerModule = NativeModules.PlayerModule;
@@ -54,6 +55,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures analytics functionality.
    */
   analyticsConfig?: AnalyticsConfig;
+  /**
+   * Configures adaptation logic.
+   */
+  adaptationConfig?: AdaptationConfig;
 }
 
 /**
