@@ -1,5 +1,6 @@
 /**
  * Object used configure how the native offline managers create and get offline source configurations
+ * @platform Android, iOS
  */
 export interface OfflineSourceOptions {
   /**
