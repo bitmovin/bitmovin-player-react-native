@@ -4,6 +4,7 @@
 
 RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config)
 RCT_EXTERN_METHOD(loadSource:(NSString *)nativeId sourceNativeId:(NSString *)sourceNativeId)
+RCT_EXTERN_METHOD(loadOfflineContent:(NSString *)nativeId offlineContentManagerBridgeId:(NSString *)offlineContentManagerBridgeId options:(nullable id)options)
 RCT_EXTERN_METHOD(unload:(NSString *)nativeId)
 RCT_EXTERN_METHOD(play:(NSString *)nativeId)
 RCT_EXTERN_METHOD(pause:(NSString *)nativeId)
@@ -82,5 +83,6 @@ RCT_EXTERN_METHOD(
     getMaxTimeShift:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(setMaxSelectableBitrate:(NSString *)nativeId maxSelectableBitrate:(nonnull NSNumber *)maxSelectableBitrate)
 
 @end

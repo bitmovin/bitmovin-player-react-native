@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative
 
-import com.bitmovin.analytics.bitmovin.player.BitmovinPlayerCollector
+import android.util.Log
+import com.bitmovin.analytics.bitmovin.player.api.IBitmovinPlayerCollector
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
@@ -13,7 +14,7 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
     /**
      * In-memory mapping from `nativeId`s to `BitmovinPlayerCollector` instances.
      */
-    private val collectors: Registry<BitmovinPlayerCollector> = mutableMapOf()
+    private val collectors: Registry<IBitmovinPlayerCollector> = mutableMapOf()
 
     /**
      * JS exported module name.
@@ -25,7 +26,7 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
      * @param nativeId `BitmovinPlayerCollector` instance ID.
      * @return The associated `BitmovinPlayerCollector` instance or `null`.
      */
-    fun getCollector(nativeId: NativeId?): BitmovinPlayerCollector? {
+    fun getCollector(nativeId: NativeId?): IBitmovinPlayerCollector? {
         if (nativeId == null) {
             return null
         }
@@ -40,7 +41,7 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
     fun initWithConfig(nativeId: NativeId, config: ReadableMap?) {
         uiManager()?.addUIBlock { _ ->
             JsonConverter.toAnalyticsConfig(config)?.let {
-                collectors[nativeId] = BitmovinPlayerCollector(it, context)
+                collectors[nativeId] = IBitmovinPlayerCollector.create(it, context)
             }
         }
     }
@@ -106,8 +107,20 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
     @ReactMethod
     fun setCustomData(nativeId: NativeId, playerId: NativeId?, json: ReadableMap?) {
         uiManager()?.addUIBlock { _ ->
-            JsonConverter.toAnalyticsCustomData(json)?.let {
-                collectors[nativeId]?.customData = it
+            val source = playerModule()?.getPlayer(playerId)?.source
+            val collector = collectors[nativeId]
+            val customData = JsonConverter.toAnalyticsCustomData(json)
+            when {
+                source == null -> Log.d(
+                    "[AnalyticsModule]", "Could not find source for player ($playerId)"
+                )
+                collector == null -> Log.d(
+                    "[AnalyticsModule]", "Could not find analytics collector ($nativeId)"
+                )
+                customData == null -> Log.d(
+                    "[AnalyticsModule]", "Could not convert custom data, thus they are not applied to the active source for the player ($playerId) with the collector ($nativeId)"
+                )
+                else -> collector.setCustomData(source,  customData)
             }
         }
     }
@@ -120,8 +133,16 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
     @ReactMethod
     fun getCustomData(nativeId: NativeId, playerId: NativeId?, promise: Promise) {
         uiManager()?.addUIBlock { _ ->
-            collectors[nativeId]?.let {
-                promise.resolve(JsonConverter.fromAnalyticsCustomData(it.customData))
+            val source = playerModule()?.getPlayer(playerId)?.source
+            val collector = collectors[nativeId]
+            when {
+                source == null -> promise.reject(
+                    "[AnalyticsModule]", "Could not find source for player ($playerId)"
+                )
+                collector == null -> promise.reject(
+                    "[AnalyticsModule]", "Could not find analytics collector ($nativeId)"
+                )
+                else -> promise.resolve(JsonConverter.fromAnalyticsCustomData(collector.getCustomData(source)))
             }
         }
     }
@@ -129,9 +150,20 @@ class AnalyticsModule(private val context: ReactApplicationContext) : ReactConte
     @ReactMethod
     fun addSourceMetadata(nativeId: NativeId, playerId: NativeId?, json: ReadableMap?) {
         uiManager()?.addUIBlock { _ ->
-            val playerSource = playerModule()?.getPlayer(playerId)?.source ?: return@addUIBlock
-            JsonConverter.toAnalyticsSourceMetadata(json)?.let { sourceMetadata ->
-                collectors[nativeId]?.addSourceMetadata(playerSource, sourceMetadata)
+            val source = playerModule()?.getPlayer(playerId)?.source
+            val collector = collectors[nativeId]
+            val sourceMetadata = JsonConverter.toAnalyticsSourceMetadata(json)
+            when {
+                source == null -> Log.d(
+                    "[AnalyticsModule]", "Could not find source for player ($playerId)"
+                )
+                collector == null -> Log.d(
+                    "[AnalyticsModule]", "Could not find analytics collector ($nativeId)"
+                )
+                sourceMetadata == null -> Log.d(
+                    "[AnalyticsModule]", "Could not convert source metadata, thus they are not applied to the collector ($nativeId)"
+                )
+                else -> collector.addSourceMetadata(source,  sourceMetadata)
             }
         }
     }

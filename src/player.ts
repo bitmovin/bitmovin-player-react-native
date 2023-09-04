@@ -7,6 +7,8 @@ import { AudioTrack } from './audioTrack';
 import { SubtitleTrack } from './subtitleTrack';
 import { StyleConfig } from './styleConfig';
 import { TweaksConfig } from './tweaksConfig';
+import { AdaptationConfig } from './adaptationConfig';
+import { OfflineContentManager, OfflineSourceOptions } from './offline';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -53,6 +55,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures analytics functionality.
    */
   analyticsConfig?: AnalyticsConfig;
+  /**
+   * Configures adaptation logic.
+   */
+  adaptationConfig?: AdaptationConfig;
 }
 
 /**
@@ -192,6 +198,20 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   load = (sourceConfig: SourceConfig) => {
     this.loadSource(new Source(sourceConfig));
+  };
+
+  /**
+   * Loads the downloaded content from `OfflineContentManager` into the player.
+   */
+  loadOfflineContent = (
+    offlineContentManager: OfflineContentManager,
+    options?: OfflineSourceOptions
+  ) => {
+    PlayerModule.loadOfflineContent(
+      this.nativeId,
+      offlineContentManager.nativeId,
+      options
+    );
   };
 
   /**
@@ -427,5 +447,15 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   getMaxTimeShift = async (): Promise<number> => {
     return PlayerModule.getMaxTimeShift(this.nativeId);
+  };
+
+  /**
+   * Sets the upper bitrate boundary for video qualities. All qualities with a bitrate
+   * that is higher than this threshold will not be eligible for automatic quality selection.
+   *
+   * Can be set to `undefined` for no limitation.
+   */
+  setMaxSelectableBitrate = (bitrate: number | null) => {
+    PlayerModule.setMaxSelectableBitrate(this.nativeId, bitrate || -1);
   };
 }

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.10.0] (2023-09-04)
+
+### Added
+
+- Offline playback support on Android and iOS
+- `SourceConfig.options` to enable configuring stream start position
+- `PlayerConfig.adaptationConfig` to allow configuring the player's adaptation behavior
+- `Player.setMaxSelectableBitrate` to allow setting the maximum selectable bitrate on the `Player`
+
 ## [0.9.2] (2023-08-24)
 
 ### Changed

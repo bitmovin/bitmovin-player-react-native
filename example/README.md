@@ -12,6 +12,7 @@ inside the [`src/screens/`](https://github.com/bitmovin/bitmovin-player-react-na
 - [Landscape Fullscreen handling](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/LandscapeFullscreenHandling.tsx) (iOS and Android only)
 - [Basic Ads](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicAds.tsx)
 - [Basic Analytics](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicAnalytics.tsx)
+- [Basic Offline Playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/OfflinePlayback.tsx) (iOS and Android only)
 
 ### Custom asset playback
 
@@ -75,6 +76,12 @@ Then run it via terminal or an IDE (Xcode/Android Studio):
 ```sh
 yarn example ios # Run examples on iOS
 yarn example android # Run examples on Android
+```
+
+Hint: You can provide a specific simulator by name when using `--simulator` flag. `xcrun simctl list devices available` provides you with a list of available devices in your environment.
+
+```sh
+yarn example ios --simulator="iPhone 14 Pro"
 ```
 
 **IDE**
