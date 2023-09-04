@@ -455,7 +455,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * Can be set to `undefined` for no limitation.
    */
-  setMaxSelectableBitrate = (bitrate: number | undefined) => {
+  setMaxSelectableBitrate = (bitrate: number | null) => {
     PlayerModule.setMaxSelectableBitrate(this.nativeId, bitrate || -1);
   };
 }
