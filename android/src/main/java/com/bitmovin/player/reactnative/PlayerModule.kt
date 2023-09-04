@@ -422,7 +422,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      * @param maxSelectableBitrate The desired max bitrate limit.
      */
     @ReactMethod
-    fun setMaxSelectableBitrate(nativeId: NativeId, maxSelectableBitrate: Int?) {
+    fun setMaxSelectableBitrate(nativeId: NativeId, maxSelectableBitrate: Int) {
         uiManager()?.addUIBlock {
             players[nativeId]?.setMaxSelectableVideoBitrate(maxSelectableBitrate.takeUnless { it == -1 } ?: Integer.MAX_VALUE)
         }
