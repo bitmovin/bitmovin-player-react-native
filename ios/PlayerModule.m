@@ -83,5 +83,6 @@ RCT_EXTERN_METHOD(
     getMaxTimeShift:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(setMaxSelectableBitrate:(NSString *)nativeId maxSelectableBitrate:(nonnull NSNumber *)maxSelectableBitrate)
 
 @end
