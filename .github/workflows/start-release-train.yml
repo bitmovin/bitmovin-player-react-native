@@ -22,6 +22,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Git User
+        run: |
+          # setup git
+          git config --global user.name "Bitmovin Release Automation"
+          git config --global user.email "support@bitmovin.com"
+
       - name: Setup node and npm registry
         uses: actions/setup-node@v3
         with:
