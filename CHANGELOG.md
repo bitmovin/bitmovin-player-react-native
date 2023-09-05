@@ -1,5 +1,7 @@
 # Changelog
 
+## [Unreleased]
+
 ## [0.10.0] (2023-09-04)
 
 ### Added
