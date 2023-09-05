@@ -1,0 +1,15 @@
+name: Finish Release Train
+on:
+  workflow_dispatch:
+env:
+  LC_ALL: en_US.UTF-8
+  LANG: en_US.UTF-8
+concurrency:
+  group: finish-release-train-${{ github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: echo "Placeholder"
