@@ -42,7 +42,7 @@ jobs:
 
       - name: Bump changelog version
         run: |
-          sed -i "s/\[Unreleased\]/\[${{ inputs.version_number }}\] - ${{ inputs.release_date }}/g" CHANGELOG.md
+          sed -i'.bak' "s/\[Unreleased\]/\[${{ inputs.version_number }}\] \(${{ inputs.release_date }}\)/g" CHANGELOG.md
 
       - name: Bump package.json version
         run: |
