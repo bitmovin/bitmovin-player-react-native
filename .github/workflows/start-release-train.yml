@@ -64,3 +64,5 @@ jobs:
           --base "main" \
           --title "Release ${{ inputs.version_number }}" \
           --body "Release ${{ inputs.version_number }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
