@@ -14,9 +14,53 @@ env:
   LC_ALL: en_US.UTF-8
   LANG: en_US.UTF-8
 jobs:
-  placeholder:
-    name: Placeholder job
-    runs-on: ubuntu-latest
+  create_release_pr:
+    name: Create release branch and bump version
+    runs-on: macos-latest
+    outputs:
+      branch_name: ${{ steps.branching.outputs.branch_name }}
     steps:
-      - name: Placeholder step
-        run: echo "Placeholder step"
+      - uses: actions/checkout@v4
+
+      - name: Setup node and npm registry
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'
+
+      - name: Set Release Branch name
+        id: branching
+        run: |
+          branch_name="release/v${{ inputs.version_number }}"
+          echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
+
+      - name: Create Release Branch
+        run: |
+          git push origin --delete ${{ steps.branching.outputs.branch_name }} || true
+          git checkout -b ${{ steps.branching.outputs.branch_name }}
+
+      - name: Bump changelog version
+        run: |
+          sed -i "s/\[Unreleased\]/\[${{ inputs.version_number }}\] - ${{ inputs.release_date }}/g" CHANGELOG.md
+
+      - name: Bump package.json version
+        run: |
+          npm version ${{ inputs.version_number }} --no-git-tag-version
+
+      - name: Update Podfile.lock
+        run: |
+          yarn bootstrap
+
+      - name: Commit changelog version bump
+        run: |
+          git add CHANGELOG.md package.json example/ios/Podfile.lock
+          git commit -m "chore: prepare release ${{ inputs.version_number }}"
+          git push origin ${{ steps.branching.outputs.branch_name }}
+
+      - name: Create PR
+        run: |
+          gh pr create \
+          --base "main" \
+          --title "Release ${{ inputs.version_number }}" \
+          --body "Release ${{ inputs.version_number }}"
