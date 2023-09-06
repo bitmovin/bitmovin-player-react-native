@@ -84,5 +84,10 @@ RCT_EXTERN_METHOD(
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(setMaxSelectableBitrate:(NSString *)nativeId maxSelectableBitrate:(nonnull NSNumber *)maxSelectableBitrate)
+RCT_EXTERN_METHOD(
+    getThumbnail:(NSString *)nativeId
+    time:(nonnull NSNumber *)time
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 
 @end

@@ -530,4 +530,22 @@ class PlayerModule: NSObject, RCTBridgeModule {
             self?.players[nativeId]?.maxSelectableBitrate = maxSelectableBitrateValue != -1 ? maxSelectableBitrateValue : 0
         }
     }
+
+    /**
+     Returns the thumbnail image for the active `Source` at a certain time.
+     - Parameter nativeId: Target player id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getThumbnail:time:resolver:rejecter:)
+    func getThumbnail(
+        _ nativeId: NativeId,
+        time: NSNumber,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(RCTConvert.toJson(thumbnail: self?.players[nativeId]?.thumbnail(forTime: time.doubleValue)))
+        }
+    }
 }

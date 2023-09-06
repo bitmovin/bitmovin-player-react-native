@@ -24,6 +24,7 @@ import com.bitmovin.player.api.event.data.SeekPosition
 import com.bitmovin.player.api.media.AdaptationConfig
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
+import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
@@ -934,6 +935,24 @@ class JsonConverter {
             return Arguments.createMap().apply {
                 putArray("audioOptions", options.audioOptions.map { toJson(it) }.toReadableArray())
                 putArray("textOptions", options.textOptions.map { toJson(it) }.toReadableArray())
+            }
+        }
+
+        @JvmStatic
+        fun fromThumbnail(thumbnail: Thumbnail?): WritableMap? {
+            if (thumbnail == null) {
+                return null
+            }
+
+            return Arguments.createMap().apply {
+                putDouble("start", thumbnail.start)
+                putDouble("end", thumbnail.end)
+                putString("text", thumbnail.text)
+                putString("url", thumbnail.uri.toString())
+                putInt("x", thumbnail.x)
+                putInt("y", thumbnail.y)
+                putInt("width", thumbnail.width)
+                putInt("height", thumbnail.height)
             }
         }
     }

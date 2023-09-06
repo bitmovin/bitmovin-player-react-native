@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Support to get thumbnail images via `Player.getThumbnail` and `Source.getThumbnail`
+
 ## [0.10.0] (2023-09-04)
 
 ### Added
