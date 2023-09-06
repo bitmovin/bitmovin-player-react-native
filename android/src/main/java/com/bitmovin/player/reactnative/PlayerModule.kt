@@ -292,6 +292,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Resolve `nativeId`'s currently selected audio track.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getAudioTrack(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromAudioTrack(players[nativeId]?.source?.selectedAudioTrack))
+        }
+    }
+
+    /**
      * Resolve `nativeId`'s player available audio tracks.
      * @param nativeId Target player Id.
      * @param promise JS promise object.

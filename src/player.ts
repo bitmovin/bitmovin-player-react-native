@@ -376,6 +376,13 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * @returns The currently selected audio track or `null`.
+   */
+  getAudioTrack = async (): Promise<AudioTrack | null> => {
+    return PlayerModule.getAudioTrack(this.nativeId);
+  };
+
+  /**
    * @returns An array containing AudioTrack objects for all available audio tracks.
    */
   getAvailableAudioTracks = async (): Promise<AudioTrack[]> => {

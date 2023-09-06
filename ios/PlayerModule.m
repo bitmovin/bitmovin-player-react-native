@@ -52,6 +52,10 @@ RCT_EXTERN_METHOD(
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
+    getAudioTrack:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
     getAvailableAudioTracks:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
