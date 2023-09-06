@@ -336,6 +336,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Resolve `nativeId`'s currently selected subtitle track.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getSubtitleTrack(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromSubtitleTrack(players[nativeId]?.source?.selectedSubtitleTrack))
+        }
+    }
+
+    /**
      * Resolve `nativeId`'s player available subtitle tracks.
      * @param nativeId Target player Id.
      * @param promise JS promise object.

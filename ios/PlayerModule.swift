@@ -417,6 +417,23 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
+     Resolve `nativeId`'s currently selected subtitle track.
+     - Parameter nativeId: Target player Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getSubtitleTrack:resolver:rejecter:)
+    func getSubtitleTrack(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(RCTConvert.subtitleTrackJson(self?.players[nativeId]?.subtitle))
+        }
+    }
+
+    /**
      Resolve `nativeId`'s player available subtitle tracks.
      - Parameter nativeId: Target player Id.
      - Parameter resolver: JS promise resolver.

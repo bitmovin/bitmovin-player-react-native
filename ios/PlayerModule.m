@@ -65,6 +65,10 @@ RCT_EXTERN_METHOD(
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
+    getSubtitleTrack:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
     getAvailableSubtitles:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)

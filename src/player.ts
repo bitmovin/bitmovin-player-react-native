@@ -397,6 +397,13 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * @returns The currently selected subtitle track or `null`.
+   */
+  getSubtitleTrack = async (): Promise<SubtitleTrack | null> => {
+    return PlayerModule.getSubtitleTrack(this.nativeId);
+  };
+
+  /**
    * @returns An array containing SubtitleTrack objects for all available subtitle tracks.
    */
   getAvailableSubtitles = async (): Promise<SubtitleTrack[]> => {
