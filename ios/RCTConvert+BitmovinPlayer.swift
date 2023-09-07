@@ -239,6 +239,9 @@ extension RCTConvert {
         if let title = json["title"] as? String {
             sourceConfig.title = title
         }
+        if let description = json["description"] as? String {
+            sourceConfig.sourceDescription = description
+        }
         if let poster = json["poster"] as? String {
             sourceConfig.posterSource = RCTConvert.nsurl(poster)
         }

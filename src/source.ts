@@ -96,6 +96,10 @@ export interface SourceConfig extends NativeInstanceConfig {
    */
   title?: string;
   /**
+   * The description of the video source.
+   */
+  description?: string;
+  /**
    * The URL to a preview image displayed until the video starts.
    */
   poster?: string;
