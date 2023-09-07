@@ -1,6 +1,10 @@
 name: Finish Release Train
 on:
-  workflow_dispatch:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
 env:
   LC_ALL: en_US.UTF-8
   LANG: en_US.UTF-8
@@ -8,8 +12,78 @@ concurrency:
   group: finish-release-train-${{ github.ref_name }}
   cancel-in-progress: true
 jobs:
-  placeholder:
+  create_pr:
+    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/v')
     runs-on: ubuntu-latest
+    outputs:
+      version_number: ${{ steps.version_number.outputs.version_number }}
     steps:
-      - name: Placeholder
-        run: echo "Placeholder"
+      - uses: actions/checkout@v4
+
+      - name: Detect version number
+        id: version_number
+        run: |
+          version_number="$(npm view bitmovin-player-react-native version)"
+          echo "Detected version number: $version_number"
+          echo "version_number=$version_number" >> $GITHUB_OUTPUT
+
+      - name: Create PR
+        run: |
+          gh pr create \
+          --base "development" \
+          --head "main" \
+          --title "Finish release ${{ steps.version_number.outputs.version_number }}" \
+          --body "Finish release ${{ steps.version_number.outputs.version_number }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  publish_release:
+    needs: [create_pr]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Git User
+        run: |
+          # setup git
+          git config --global user.name "Bitmovin Release Automation"
+          git config --global user.email "support@bitmovin.com"
+
+      - name: Add tag
+        run: |
+          git tag v${{ needs.create_pr.outputs.version_number }}
+
+      - name: Git push
+        run: |
+          git push origin v${{ needs.create_pr.outputs.version_number }}
+
+      - name: Setup node and npm registry
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build TypeScript files
+        run: yarn build
+
+      - name: Publish npm package
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Extract changelog
+        id: changelog
+        uses: ffurrer2/extract-release-notes@v1
+
+      - name: Create GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: ${{ steps.changelog.outputs.release_notes }}
