@@ -467,7 +467,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Sets the upper bitrate boundary for video qualities. All qualities with a bitrate
    * that is higher than this threshold will not be eligible for automatic quality selection.
    *
-   * Can be set to `undefined` for no limitation.
+   * Can be set to `null` for no limitation.
    */
   setMaxSelectableBitrate = (bitrate: number | null) => {
     PlayerModule.setMaxSelectableBitrate(this.nativeId, bitrate || -1);
