@@ -453,6 +453,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Returns the thumbnail image for the active `Source` at a certain time.
+     * @param nativeId Target player id.
+     * @param time Playback time for the thumbnail.
+     */
+    @ReactMethod
+    fun getThumbnail(nativeId: NativeId, time: Double, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromThumbnail(players[nativeId]?.source?.getThumbnail(time)))
+        }
+    }
+
+    /**
      * Helper function that returns the initialized `UIManager` instance.
      */
     private fun uiManager(): UIManagerModule? =

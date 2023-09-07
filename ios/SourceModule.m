@@ -26,5 +26,10 @@ RCT_EXTERN_METHOD(
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(setMetadata:(NSString *)nativeId metadata:(nullable id)metadata)
+RCT_EXTERN_METHOD(
+    getThumbnail:(NSString *)nativeId
+    time:(nonnull NSNumber *)time
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 
 @end

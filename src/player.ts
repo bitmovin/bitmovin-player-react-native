@@ -9,6 +9,7 @@ import { StyleConfig } from './styleConfig';
 import { TweaksConfig } from './tweaksConfig';
 import { AdaptationConfig } from './adaptationConfig';
 import { OfflineContentManager, OfflineSourceOptions } from './offline';
+import { Thumbnail } from './thumbnail';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -471,5 +472,17 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   setMaxSelectableBitrate = (bitrate: number | null) => {
     PlayerModule.setMaxSelectableBitrate(this.nativeId, bitrate || -1);
+  };
+
+  /**
+   * @returns a `Thumbnail` for the specified playback time for the currently active source if available.
+   * Supported thumbnail formats are:
+   * - `WebVtt` configured via `SourceConfig.thumbnailTrack`, on all supported platforms
+   * - HLS `Image Media Playlist` in the multivariant playlist, Android-only
+   * - DASH `Image Adaptation Set` as specified in DASH-IF IOP, Android-only
+   * If a `WebVtt` thumbnail track is provided, any potential in-manifest thumbnails are ignored on Android.
+   */
+  getThumbnail = async (time: number): Promise<Thumbnail | null> => {
+    return PlayerModule.getThumbnail(this.nativeId, time);
   };
 }

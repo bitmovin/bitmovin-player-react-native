@@ -2,6 +2,7 @@ import { NativeModules } from 'react-native';
 import { Drm, DrmConfig } from './drm';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { SideLoadedSubtitleTrack } from './subtitleTrack';
+import { Thumbnail } from './thumbnail';
 
 const SourceModule = NativeModules.SourceModule;
 
@@ -221,5 +222,17 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   loadingState = async (): Promise<LoadingState> => {
     return SourceModule.loadingState(this.nativeId);
+  };
+
+  /**
+   * @returns a `Thumbnail` for the specified playback time if available.
+   * Supported thumbnail formats are:
+   * - `WebVtt` configured via `SourceConfig.thumbnailTrack`, on all supported platforms
+   * - HLS `Image Media Playlist` in the multivariant playlist, Android-only
+   * - DASH `Image Adaptation Set` as specified in DASH-IF IOP, Android-only
+   * If a `WebVtt` thumbnail track is provided, any potential in-manifest thumbnails are ignored on Android.
+   */
+  getThumbnail = async (time: number): Promise<Thumbnail | null> => {
+    return SourceModule.getThumbnail(this.nativeId, time);
   };
 }

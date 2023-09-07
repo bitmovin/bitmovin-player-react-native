@@ -140,12 +140,23 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     /**
      * Set the metadata for a loaded `nativeId` source.
      * @param nativeId Source `nativeId`.
-     * @param promise: JS promise object.
      */
     @ReactMethod
     fun setMetadata(nativeId: NativeId, metadata: ReadableMap?) {
         uiManager()?.addUIBlock {
             sources[nativeId]?.config?.metadata = asStringMap(metadata)
+        }
+    }
+
+    /**
+     * Returns the thumbnail image for the `Source` at a certain time.
+     * @param nativeId Target player id.
+     * @param time Playback time for the thumbnail.
+     */
+    @ReactMethod
+    fun getThumbnail(nativeId: NativeId, time: Double, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromThumbnail(sources[nativeId]?.getThumbnail(time)))
         }
     }
 
