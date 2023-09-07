@@ -4,6 +4,7 @@
 
 ### Added
 
+- `Player.getAudioTrack` and `Player.getSubtitleTrack` APIs to get currently selected audio and subtitle tracks
 - `SourceConfig.description` property to allow setting a description for the source
 
 ## [0.10.0] (2023-09-04)

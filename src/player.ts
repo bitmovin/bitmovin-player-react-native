@@ -376,6 +376,13 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * @returns The currently selected audio track or `null`.
+   */
+  getAudioTrack = async (): Promise<AudioTrack | null> => {
+    return PlayerModule.getAudioTrack(this.nativeId);
+  };
+
+  /**
    * @returns An array containing AudioTrack objects for all available audio tracks.
    */
   getAvailableAudioTracks = async (): Promise<AudioTrack[]> => {
@@ -387,6 +394,13 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   setAudioTrack = async (trackIdentifier: string): Promise<void> => {
     return PlayerModule.setAudioTrack(this.nativeId, trackIdentifier);
+  };
+
+  /**
+   * @returns The currently selected subtitle track or `null`.
+   */
+  getSubtitleTrack = async (): Promise<SubtitleTrack | null> => {
+    return PlayerModule.getSubtitleTrack(this.nativeId);
   };
 
   /**
