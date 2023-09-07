@@ -36,6 +36,7 @@ jobs:
           --body "Finish release ${{ steps.version_number.outputs.version_number }}"
         env:
           GH_TOKEN: ${{ github.token }}
+
   publish_release:
     needs: [create_pr]
     runs-on: ubuntu-latest
