@@ -4,7 +4,7 @@
 
 ### Added
 
-- Support for `SourceConfig.description` property to allow setting a description for the source
+- `SourceConfig.description` property to allow setting a description for the source
 
 ## [0.10.0] (2023-09-04)
 
