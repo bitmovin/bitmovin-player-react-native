@@ -46,6 +46,7 @@ jobs:
 
       - name: Create Release Branch
         run: |
+          # Delete the release branch if already exists, useful in case we need to re-run this workflow
           git push origin --delete ${{ steps.branching.outputs.branch_name }} || true
           git checkout -b ${{ steps.branching.outputs.branch_name }}
 
