@@ -4,6 +4,7 @@
 
 ### Added
 
+- `Player.getAudioTrack` and `Player.getSubtitleTrack` APIs to get currently selected audio and subtitle tracks
 - `Player.getThumbnail` and `Source.getThumbnail` APIs to get thumbnail images
 
 ## [0.10.0] (2023-09-04)

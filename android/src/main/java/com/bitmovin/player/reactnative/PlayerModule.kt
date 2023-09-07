@@ -292,6 +292,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Resolve `nativeId`'s currently selected audio track.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getAudioTrack(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromAudioTrack(players[nativeId]?.source?.selectedAudioTrack))
+        }
+    }
+
+    /**
      * Resolve `nativeId`'s player available audio tracks.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
@@ -320,6 +332,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
         uiManager()?.addUIBlock {
             players[nativeId]?.source?.setAudioTrack(trackIdentifier)
             promise.resolve(null)
+        }
+    }
+
+    /**
+     * Resolve `nativeId`'s currently selected subtitle track.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getSubtitleTrack(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromSubtitleTrack(players[nativeId]?.source?.selectedSubtitleTrack))
         }
     }
 

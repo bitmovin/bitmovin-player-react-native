@@ -360,6 +360,23 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
+     Resolve `nativeId`'s currently selected audio track.
+     - Parameter nativeId: Target player Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getAudioTrack:resolver:rejecter:)
+    func getAudioTrack(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(RCTConvert.audioTrackJson(self?.players[nativeId]?.audio))
+        }
+    }
+
+    /**
      Resolve `nativeId`'s player available audio tracks.
      - Parameter nativeId: Target player Id.
      - Parameter resolver: JS promise resolver.
@@ -396,6 +413,23 @@ class PlayerModule: NSObject, RCTBridgeModule {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             self?.players[nativeId]?.setAudio(trackIdentifier: trackIdentifier)
             resolve(nil)
+        }
+    }
+
+    /**
+     Resolve `nativeId`'s currently selected subtitle track.
+     - Parameter nativeId: Target player Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getSubtitleTrack:resolver:rejecter:)
+    func getSubtitleTrack(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(RCTConvert.subtitleTrackJson(self?.players[nativeId]?.subtitle))
         }
     }
 

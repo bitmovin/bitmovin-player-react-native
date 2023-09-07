@@ -377,6 +377,13 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * @returns The currently selected audio track or `null`.
+   */
+  getAudioTrack = async (): Promise<AudioTrack | null> => {
+    return PlayerModule.getAudioTrack(this.nativeId);
+  };
+
+  /**
    * @returns An array containing AudioTrack objects for all available audio tracks.
    */
   getAvailableAudioTracks = async (): Promise<AudioTrack[]> => {
@@ -388,6 +395,13 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   setAudioTrack = async (trackIdentifier: string): Promise<void> => {
     return PlayerModule.setAudioTrack(this.nativeId, trackIdentifier);
+  };
+
+  /**
+   * @returns The currently selected subtitle track or `null`.
+   */
+  getSubtitleTrack = async (): Promise<SubtitleTrack | null> => {
+    return PlayerModule.getSubtitleTrack(this.nativeId);
   };
 
   /**
@@ -454,7 +468,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Sets the upper bitrate boundary for video qualities. All qualities with a bitrate
    * that is higher than this threshold will not be eligible for automatic quality selection.
    *
-   * Can be set to `undefined` for no limitation.
+   * Can be set to `null` for no limitation.
    */
   setMaxSelectableBitrate = (bitrate: number | null) => {
     PlayerModule.setMaxSelectableBitrate(this.nativeId, bitrate || -1);
