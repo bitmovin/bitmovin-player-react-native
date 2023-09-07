@@ -313,6 +313,7 @@ class JsonConverter {
             }
             val config = SourceConfig(url, toSourceType(type))
             config.title = json.getString("title")
+            config.description = json.getString("description")
             config.posterSource = json.getString("poster")
             if (json.hasKey("isPosterPersistent")) {
                 config.isPosterPersistent = json.getBoolean("isPosterPersistent")
