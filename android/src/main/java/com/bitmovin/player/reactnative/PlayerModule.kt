@@ -292,6 +292,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Resolve `nativeId`'s currently selected audio track.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getAudioTrack(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromAudioTrack(players[nativeId]?.source?.selectedAudioTrack))
+        }
+    }
+
+    /**
      * Resolve `nativeId`'s player available audio tracks.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
@@ -320,6 +332,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
         uiManager()?.addUIBlock {
             players[nativeId]?.source?.setAudioTrack(trackIdentifier)
             promise.resolve(null)
+        }
+    }
+
+    /**
+     * Resolve `nativeId`'s currently selected subtitle track.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getSubtitleTrack(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromSubtitleTrack(players[nativeId]?.source?.selectedSubtitleTrack))
         }
     }
 
@@ -425,6 +449,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     fun setMaxSelectableBitrate(nativeId: NativeId, maxSelectableBitrate: Int) {
         uiManager()?.addUIBlock {
             players[nativeId]?.setMaxSelectableVideoBitrate(maxSelectableBitrate.takeUnless { it == -1 } ?: Integer.MAX_VALUE)
+        }
+    }
+
+    /**
+     * Returns the thumbnail image for the active `Source` at a certain time.
+     * @param nativeId Target player id.
+     * @param time Playback time for the thumbnail.
+     */
+    @ReactMethod
+    fun getThumbnail(nativeId: NativeId, time: Double, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromThumbnail(players[nativeId]?.source?.getThumbnail(time)))
         }
     }
 

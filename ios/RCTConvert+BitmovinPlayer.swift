@@ -239,6 +239,9 @@ extension RCTConvert {
         if let title = json["title"] as? String {
             sourceConfig.title = title
         }
+        if let description = json["description"] as? String {
+            sourceConfig.sourceDescription = description
+        }
         if let poster = json["poster"] as? String {
             sourceConfig.posterSource = RCTConvert.nsurl(poster)
         }
@@ -931,5 +934,27 @@ extension RCTConvert {
         }
 
         return adaptationConfig
+    }
+
+    /**
+     Utility method to compute a JS value from an `Thumbnail` object.
+     - Parameter thumbnail `Thumbnail` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(thumbnail: Thumbnail?) -> [String: Any?]? {
+        guard let thumbnail = thumbnail else {
+            return nil
+        }
+
+        return [
+            "start": thumbnail.start,
+            "end": thumbnail.end,
+            "text": thumbnail.text,
+            "url": thumbnail.url.absoluteString,
+            "x": thumbnail.x,
+            "y": thumbnail.y,
+            "width": thumbnail.width,
+            "height": thumbnail.height,
+        ]
     }
 }

@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup node and npm registry
         uses: actions/setup-node@v3
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup node and npm registry
         uses: actions/setup-node@v3
@@ -79,7 +79,7 @@ jobs:
     runs-on: macOS-12
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup node and npm registry
         uses: actions/setup-node@v3
@@ -116,10 +116,11 @@ jobs:
         run: |
           bundle exec pod repo remove trunk
           bundle exec pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git || bundle exec pod repo update bitmovin
-          NO_FLIPPER=1 bundle exec pod install --repo-update
+          bundle exec pod install --repo-update
         working-directory: example/ios
         env:
           CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
+          NO_FLIPPER: 1
 
       - name: Save Pods cache
         if: steps.pods-cache-restore.outputs.cache-hit != 'true'
@@ -141,7 +142,7 @@ jobs:
     runs-on: macOS-12
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup node and npm registry
         uses: actions/setup-node@v3
