@@ -23,7 +23,7 @@ jobs:
       - name: Detect version number
         id: version_number
         run: |
-          version_number="$(npm view bitmovin-player-react-native version)"
+          version_number="$(jq --raw-output '.version' package.json)"
           echo "Detected version number: $version_number"
           echo "version_number=$version_number" >> $GITHUB_OUTPUT
 
