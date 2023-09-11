@@ -8,6 +8,10 @@
 - `SourceConfig.description` property to allow setting a description for the source
 - `Player.getThumbnail` and `Source.getThumbnail` APIs to get thumbnail images
 
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.43.0`
+
 ## [0.10.0] (2023-09-04)
 
 ### Added
