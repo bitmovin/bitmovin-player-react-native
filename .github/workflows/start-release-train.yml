@@ -56,7 +56,7 @@ jobs:
 
       - name: Bump package.json version
         run: |
-          npm version ${{ inputs.version_number }} --no-git-tag-version
+          yarn version --new-version ${{ inputs.version_number }} --no-git-tag-version
 
       - name: Update Podfile.lock
         run: |
