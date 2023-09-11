@@ -4,6 +4,7 @@
 
 RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config)
 RCT_EXTERN_METHOD(loadSource:(NSString *)nativeId sourceNativeId:(NSString *)sourceNativeId)
+RCT_EXTERN_METHOD(loadOfflineContent:(NSString *)nativeId offlineContentManagerBridgeId:(NSString *)offlineContentManagerBridgeId options:(nullable id)options)
 RCT_EXTERN_METHOD(unload:(NSString *)nativeId)
 RCT_EXTERN_METHOD(play:(NSString *)nativeId)
 RCT_EXTERN_METHOD(pause:(NSString *)nativeId)
@@ -51,12 +52,20 @@ RCT_EXTERN_METHOD(
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
+    getAudioTrack:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
     getAvailableAudioTracks:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
     setAudioTrack:(NSString *)nativeId
     trackIdentifier:(NSString *)trackIdentifier
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    getSubtitleTrack:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
@@ -80,6 +89,12 @@ RCT_EXTERN_METHOD(
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
     getMaxTimeShift:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(setMaxSelectableBitrate:(NSString *)nativeId maxSelectableBitrate:(nonnull NSNumber *)maxSelectableBitrate)
+RCT_EXTERN_METHOD(
+    getThumbnail:(NSString *)nativeId
+    time:(nonnull NSNumber *)time
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 

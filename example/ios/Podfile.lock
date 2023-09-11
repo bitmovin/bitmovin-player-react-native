@@ -1,12 +1,12 @@
 PODS:
-  - BitmovinAnalyticsCollector/BitmovinPlayer (3.0.0):
+  - BitmovinAnalyticsCollector/BitmovinPlayer (3.1.1):
     - BitmovinAnalyticsCollector/Core
     - BitmovinPlayerCore (~> 3.41)
-  - BitmovinAnalyticsCollector/Core (3.0.0)
-  - BitmovinPlayer (3.43.0):
+  - BitmovinAnalyticsCollector/Core (3.1.1)
+  - BitmovinPlayer (3.44.1):
     - BitmovinAnalyticsCollector/BitmovinPlayer (~> 3.0)
-    - BitmovinPlayerCore (= 3.43.0)
-  - BitmovinPlayerCore (3.43.0)
+    - BitmovinPlayerCore (= 3.44.1)
+  - BitmovinPlayerCore (3.44.1)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -339,8 +339,8 @@ PODS:
     - React-jsi (= 0.69.6-2)
     - React-logger (= 0.69.6-2)
     - React-perflogger (= 0.69.6-2)
-  - RNBitmovinPlayer (0.9.0):
-    - BitmovinPlayer (= 3.43.0)
+  - RNBitmovinPlayer (0.10.0):
+    - BitmovinPlayer (= 3.44.1)
     - GoogleAds-IMA-iOS-SDK (= 3.18.4)
     - GoogleAds-IMA-tvOS-SDK (= 4.8.2)
     - React-Core
@@ -514,9 +514,9 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  BitmovinAnalyticsCollector: 832a7b8bd35dc3d4b24d9fdbedc33c846c63d4f8
-  BitmovinPlayer: ecd413b3f0f9c39763e6471a1073d1ab04a1968f
-  BitmovinPlayerCore: 33e80b56782e1b1bd4f96066e879df18d12da92a
+  BitmovinAnalyticsCollector: 6aa2e995e325d95d1145bcad3d733d2f8c301c00
+  BitmovinPlayer: 0237ded5f8ccde045757872bc55a4c6f78d4c39b
+  BitmovinPlayerCore: fbb73591382c497e889be9e92792f4ebb86cc8fb
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 234abba95e31cc2aada0cf3b97cdb11bc5b90575
@@ -563,13 +563,13 @@ SPEC CHECKSUMS:
   React-RCTText: f72442f7436fd8624494963af4906000a5465ce6
   React-runtimeexecutor: f1383f6460ea3d66ed122b4defb0b5ba664ee441
   ReactCommon: 7857ab475239c5ba044b7ed946ba564f2e7f1626
-  RNBitmovinPlayer: e371ee7280f7f00551bf798108e54f325f9ffe9b
+  RNBitmovinPlayer: f3686a5df04654ca05b39260676daaf6f0aeee29
   RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: be4fede0339d862989f5b064f8939c7429ad92c9
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 17edad94fe5400835da9693908179afef9ec7372
+PODFILE CHECKSUM: ae31af0f37bdf647197475f3f0d4a5a3e93df60c
 
 COCOAPODS: 1.11.3

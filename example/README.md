@@ -12,12 +12,14 @@ inside the [`src/screens/`](https://github.com/bitmovin/bitmovin-player-react-na
 - [Landscape Fullscreen handling](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/LandscapeFullscreenHandling.tsx) (iOS and Android only)
 - [Basic Ads](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicAds.tsx)
 - [Basic Analytics](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicAnalytics.tsx)
+- [Basic Offline Playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/OfflinePlayback.tsx) (iOS and Android only)
+- [System UI](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/SystemUi.tsx) (iOS and tvOS only)
 
 ### Custom asset playback
 
 To play back a custom video asset, it is possible to set up a simple playback session using the [Custom playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/CustomPlayback.tsx) example. Just tap the `Custom` button at the top-right corner, fill in the form with the necessary video asset/stream information (URL, type and license key) then select `Play` to start playback in the `PlayerView` component. This example can also be useful to check how certain types of videos/streams will behave with the library.
 
-**Note** that custom playback is disabled by default on TV devices due to issues with the focus engine, but it is possible to re-enable it, if desired, by removing [this line](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDrmPlayback.tsx) from code.
+**Note** that custom playback is disabled by default on TV devices due to issues with the focus engine, but it is possible to re-enable it, if desired, by removing [this line](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/App.tsx#L130) from code.
 
 ## Getting started
 
@@ -75,6 +77,12 @@ Then run it via terminal or an IDE (Xcode/Android Studio):
 ```sh
 yarn example ios # Run examples on iOS
 yarn example android # Run examples on Android
+```
+
+Hint: You can provide a specific simulator by name when using `--simulator` flag. `xcrun simctl list devices available` provides you with a list of available devices in your environment.
+
+```sh
+yarn example ios --simulator="iPhone 14 Pro"
 ```
 
 **IDE**

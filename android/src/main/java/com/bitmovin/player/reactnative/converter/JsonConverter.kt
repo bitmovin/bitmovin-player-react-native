@@ -23,13 +23,19 @@ import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.SeekPosition
+import com.bitmovin.player.api.media.AdaptationConfig
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
+import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
+import com.bitmovin.player.api.offline.options.OfflineContentOptions
+import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
+import com.bitmovin.player.api.source.SourceOptions
 import com.bitmovin.player.api.source.SourceType
+import com.bitmovin.player.api.source.TimelineReferencePoint
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
@@ -85,7 +91,51 @@ class JsonConverter {
                     playerConfig.advertisingConfig = it
                 }
             }
+            if (json.hasKey("adaptationConfig")) {
+                toAdaptationConfig(json.getMap("adaptationConfig"))?.let {
+                    playerConfig.adaptationConfig = it
+                }
+            }
             return playerConfig
+        }
+
+        /**
+         * Converts an arbitrary `json` to `SourceOptions`.
+         * @param json JS object representing the `SourceOptions`.
+         * @return The generated `SourceOptions`.
+         */
+        @JvmStatic
+        fun toSourceOptions(json: ReadableMap?): SourceOptions {
+            if (json == null) return SourceOptions()
+            val startOffset = if(json.hasKey("startOffset")) json.getDouble("startOffset") else null
+            val timelineReferencePoint = toTimelineReferencePoint(json.getString("startOffsetTimelineReference"))
+            return SourceOptions(startOffset = startOffset, startOffsetTimelineReference = timelineReferencePoint)
+        }
+
+        /**
+         * Converts an arbitrary `json` to `TimelineReferencePoint`.
+         * @param json JS string representing the `TimelineReferencePoint`.
+         * @return The generated `TimelineReferencePoint`.
+         */
+        @JvmStatic
+        private fun toTimelineReferencePoint(json: String?): TimelineReferencePoint? = when (json) {
+            "start" -> TimelineReferencePoint.Start
+            "end" -> TimelineReferencePoint.End
+            else -> null
+        }
+        
+        /**
+         * Converts an arbitrary `json` to `AdaptationConfig`.
+         * @param json JS object representing the `AdaptationConfig`.
+         * @return The generated `AdaptationConfig` if successful, `null` otherwise.
+         */
+        private fun toAdaptationConfig(json: ReadableMap?): AdaptationConfig? {
+            if (json == null) return null
+            val adaptationConfig = AdaptationConfig()
+            if (json.hasKey("maxSelectableBitrate")) {
+                adaptationConfig.maxSelectableVideoBitrate = json.getInt("maxSelectableBitrate")
+            }
+            return adaptationConfig
         }
 
         /**
@@ -266,6 +316,7 @@ class JsonConverter {
             }
             val config = SourceConfig(url, toSourceType(type))
             config.title = json.getString("title")
+            config.description = json.getString("description")
             config.posterSource = json.getString("poster")
             if (json.hasKey("isPosterPersistent")) {
                 config.isPosterPersistent = json.getBoolean("isPosterPersistent")
@@ -285,6 +336,9 @@ class JsonConverter {
                 config.metadata = json.getMap("metadata")
                     ?.toHashMap()
                     ?.mapValues { entry -> entry.value as String }
+            }
+            if (json.hasKey("options")) {
+                config.options = toSourceOptions(json.getMap("options"))
             }
             return config
         }
@@ -853,6 +907,54 @@ class JsonConverter {
                 putDouble("frameRate", videoQuality.frameRate.toDouble())
                 putInt("height", videoQuality.height)
                 putInt("width", videoQuality.width)
+            }
+        }
+
+        /**
+         * Converts any `OfflineOptionEntry` into its json representation.
+         * @param offlineEntry `OfflineOptionEntry` object to be converted.
+         * @return The generated json map.
+         */
+        @JvmStatic
+        fun toJson(offlineEntry: OfflineOptionEntry): WritableMap {
+            return Arguments.createMap().apply {
+                putString("id", offlineEntry.id)
+                putString("language", offlineEntry.language)
+            }
+        }
+
+        /**
+         * Converts any `OfflineContentOptions` into its json representation.
+         * @param options `OfflineContentOptions` object to be converted.
+         * @return The generated json map.
+         */
+        @JvmStatic
+        fun toJson(options: OfflineContentOptions?): WritableMap? {
+            if (options == null) {
+                return null
+            }
+
+            return Arguments.createMap().apply {
+                putArray("audioOptions", options.audioOptions.map { toJson(it) }.toReadableArray())
+                putArray("textOptions", options.textOptions.map { toJson(it) }.toReadableArray())
+            }
+        }
+
+        @JvmStatic
+        fun fromThumbnail(thumbnail: Thumbnail?): WritableMap? {
+            if (thumbnail == null) {
+                return null
+            }
+
+            return Arguments.createMap().apply {
+                putDouble("start", thumbnail.start)
+                putDouble("end", thumbnail.end)
+                putString("text", thumbnail.text)
+                putString("url", thumbnail.uri.toString())
+                putInt("x", thumbnail.x)
+                putInt("y", thumbnail.y)
+                putInt("width", thumbnail.width)
+                putInt("height", thumbnail.height)
             }
         }
     }

@@ -2,6 +2,7 @@ import { NativeModules } from 'react-native';
 import { Drm, DrmConfig } from './drm';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { SideLoadedSubtitleTrack } from './subtitleTrack';
+import { Thumbnail } from './thumbnail';
 
 const SourceModule = NativeModules.SourceModule;
 
@@ -46,6 +47,40 @@ export enum LoadingState {
 }
 
 /**
+ * Types of SourceOptions.
+ */
+export interface SourceOptions {
+  /**
+   * The position where the stream should be started.
+   * Number can be positive or negative depending on the used `TimelineReferencePoint`.
+   * Invalid numbers will be corrected according to the stream boundaries.
+   * For VOD this is applied at the time the stream is loaded, for LIVE when playback starts.
+   */
+  startOffset?: number;
+  /**
+   * Sets the Timeline reference point to calculate the startOffset from.
+   * Default for live: `TimelineReferencePoint.END`.
+   * Default for VOD: `TimelineReferencePoint.START`.
+   */
+  startOffsetTimelineReference?: TimelineReferencePoint;
+}
+
+/**
+ Timeline reference point to calculate SourceOptions.startOffset from.
+ Default for live: TimelineReferencePoint.EBD Default for VOD: TimelineReferencePoint.START.
+ */
+export enum TimelineReferencePoint {
+  /**
+   * Relative offset will be calculated from the beginning of the stream or DVR window.
+   */
+  START = 'start',
+  /**
+   * Relative offset will be calculated from the end of the stream or the live edge in case of a live stream with DVR window.
+   */
+  END = 'end',
+}
+
+/**
  * Represents a source configuration that be loaded into a player instance.
  */
 export interface SourceConfig extends NativeInstanceConfig {
@@ -61,6 +96,10 @@ export interface SourceConfig extends NativeInstanceConfig {
    * The title of the video source.
    */
   title?: string;
+  /**
+   * The description of the video source.
+   */
+  description?: string;
   /**
    * The URL to a preview image displayed until the video starts.
    */
@@ -86,6 +125,10 @@ export interface SourceConfig extends NativeInstanceConfig {
    * The optional custom metadata. Also sent to the cast receiver when loading the Source.
    */
   metadata?: Record<string, string>;
+  /**
+   * The `SourceOptions` for this configuration.
+   */
+  options?: SourceOptions;
 }
 
 /**
@@ -179,5 +222,17 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   loadingState = async (): Promise<LoadingState> => {
     return SourceModule.loadingState(this.nativeId);
+  };
+
+  /**
+   * @returns a `Thumbnail` for the specified playback time if available.
+   * Supported thumbnail formats are:
+   * - `WebVtt` configured via `SourceConfig.thumbnailTrack`, on all supported platforms
+   * - HLS `Image Media Playlist` in the multivariant playlist, Android-only
+   * - DASH `Image Adaptation Set` as specified in DASH-IF IOP, Android-only
+   * If a `WebVtt` thumbnail track is provided, any potential in-manifest thumbnails are ignored on Android.
+   */
+  getThumbnail = async (time: number): Promise<Thumbnail | null> => {
+    return SourceModule.getThumbnail(this.nativeId, time);
   };
 }

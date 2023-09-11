@@ -184,4 +184,22 @@ class SourceModule: NSObject, RCTBridgeModule {
             self?.sources[nativeId]?.metadata = metadata
         }
     }
+
+    /**
+     Returns the thumbnail image for the `Source` at a certain time.
+     - Parameter nativeId: Target player id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getThumbnail:time:resolver:rejecter:)
+    func getThumbnail(
+        _ nativeId: NativeId,
+        time: NSNumber,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(RCTConvert.toJson(thumbnail: self?.sources[nativeId]?.thumbnail(forTime: time.doubleValue)))
+        }
+    }
 }

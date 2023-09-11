@@ -1,3 +1,4 @@
+export * from './adaptationConfig';
 export * from './advertising';
 export * from './analytics';
 export * from './audioSession';
@@ -10,3 +11,5 @@ export * from './source';
 export * from './subtitleTrack';
 export * from './styleConfig';
 export * from './ui';
+export * from './offline';
+export * from './thumbnail';

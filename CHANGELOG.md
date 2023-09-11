@@ -1,5 +1,38 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `Player.getAudioTrack` and `Player.getSubtitleTrack` APIs to get currently selected audio and subtitle tracks
+- `SourceConfig.description` property to allow setting a description for the source
+- `Player.getThumbnail` and `Source.getThumbnail` APIs to get thumbnail images
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.43.0`
+
+## [0.10.0] (2023-09-04)
+
+### Added
+
+- Offline playback support on Android and iOS
+- `SourceConfig.options` to enable configuring stream start position
+- `PlayerConfig.adaptationConfig` to allow configuring the player's adaptation behavior
+- `Player.setMaxSelectableBitrate` to allow setting the maximum selectable bitrate on the `Player`
+
+## [0.9.2] (2023-08-24)
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.43.1`
+
+## [0.9.1] (2023-08-17)
+
+### Fixed
+
+- Android: Player sometimes plays sound but doesn't display video nor controls.
+
 ## [0.9.0] (2023-08-11)
 
 ### Added

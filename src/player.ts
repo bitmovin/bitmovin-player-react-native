@@ -7,6 +7,9 @@ import { AudioTrack } from './audioTrack';
 import { SubtitleTrack } from './subtitleTrack';
 import { StyleConfig } from './styleConfig';
 import { TweaksConfig } from './tweaksConfig';
+import { AdaptationConfig } from './adaptationConfig';
+import { OfflineContentManager, OfflineSourceOptions } from './offline';
+import { Thumbnail } from './thumbnail';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -53,6 +56,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures analytics functionality.
    */
   analyticsConfig?: AnalyticsConfig;
+  /**
+   * Configures adaptation logic.
+   */
+  adaptationConfig?: AdaptationConfig;
 }
 
 /**
@@ -195,6 +202,20 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   load = (sourceConfig: SourceConfig) => {
     this.loadSource(new Source(sourceConfig));
+  };
+
+  /**
+   * Loads the downloaded content from `OfflineContentManager` into the player.
+   */
+  loadOfflineContent = (
+    offlineContentManager: OfflineContentManager,
+    options?: OfflineSourceOptions
+  ) => {
+    PlayerModule.loadOfflineContent(
+      this.nativeId,
+      offlineContentManager.nativeId,
+      options
+    );
   };
 
   /**
@@ -359,6 +380,13 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * @returns The currently selected audio track or `null`.
+   */
+  getAudioTrack = async (): Promise<AudioTrack | null> => {
+    return PlayerModule.getAudioTrack(this.nativeId);
+  };
+
+  /**
    * @returns An array containing AudioTrack objects for all available audio tracks.
    */
   getAvailableAudioTracks = async (): Promise<AudioTrack[]> => {
@@ -370,6 +398,13 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   setAudioTrack = async (trackIdentifier: string): Promise<void> => {
     return PlayerModule.setAudioTrack(this.nativeId, trackIdentifier);
+  };
+
+  /**
+   * @returns The currently selected subtitle track or `null`.
+   */
+  getSubtitleTrack = async (): Promise<SubtitleTrack | null> => {
+    return PlayerModule.getSubtitleTrack(this.nativeId);
   };
 
   /**
@@ -430,5 +465,27 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   getMaxTimeShift = async (): Promise<number> => {
     return PlayerModule.getMaxTimeShift(this.nativeId);
+  };
+
+  /**
+   * Sets the upper bitrate boundary for video qualities. All qualities with a bitrate
+   * that is higher than this threshold will not be eligible for automatic quality selection.
+   *
+   * Can be set to `null` for no limitation.
+   */
+  setMaxSelectableBitrate = (bitrate: number | null) => {
+    PlayerModule.setMaxSelectableBitrate(this.nativeId, bitrate || -1);
+  };
+
+  /**
+   * @returns a `Thumbnail` for the specified playback time for the currently active source if available.
+   * Supported thumbnail formats are:
+   * - `WebVtt` configured via `SourceConfig.thumbnailTrack`, on all supported platforms
+   * - HLS `Image Media Playlist` in the multivariant playlist, Android-only
+   * - DASH `Image Adaptation Set` as specified in DASH-IF IOP, Android-only
+   * If a `WebVtt` thumbnail track is provided, any potential in-manifest thumbnails are ignored on Android.
+   */
+  getThumbnail = async (time: number): Promise<Thumbnail | null> => {
+    return PlayerModule.getThumbnail(this.nativeId, time);
   };
 }

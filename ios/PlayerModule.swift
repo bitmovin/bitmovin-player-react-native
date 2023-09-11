@@ -59,7 +59,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let player = self?.players[nativeId],
-                let source = self?.getSourceModule()?.retrieve(sourceNativeId)
+                let source = self?.bridge[SourceModule.self]?.retrieve(sourceNativeId)
             else {
                 return
             }
@@ -67,9 +67,29 @@ class PlayerModule: NSObject, RCTBridgeModule {
         }
     }
 
-    /// Fetches the initialized `SourceModule` instance on RN's bridge object.
-    private func getSourceModule() -> SourceModule? {
-        bridge.module(for: SourceModule.self) as? SourceModule
+    /**
+     Loads the given offline source configuration into `nativeId`'s `Player` object.
+     - Parameter nativeId: Target player.
+     - Parameter offlineContentManagerBridgeId: The `nativeId` of the `OfflineModule` object.
+     */
+    @objc(loadOfflineContent:offlineContentManagerBridgeId:options:)
+    func loadOfflineContent(_ nativeId: NativeId, offlineContentManagerBridgeId: NativeId, options: Any?) {
+#if os(iOS)
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            guard
+                let player = self?.players[nativeId],
+                let offlineContentManagerBridge = self?.bridge[OfflineModule.self]?.retrieve(offlineContentManagerBridgeId)
+            else {
+                return
+            }
+            let optionsDictionary = options as? [String: Any?] ?? [:]
+            let restrictedToAssetCache = optionsDictionary["restrictedToAssetCache"] as? Bool ?? true
+            let offlineSourceConfig = offlineContentManagerBridge.offlineContentManager.createOfflineSourceConfig(restrictedToAssetCache: restrictedToAssetCache)
+
+            guard let offlineSourceConfig = offlineSourceConfig else { return }
+            player.load(sourceConfig: offlineSourceConfig)
+        }
+#endif
     }
 
     /**
@@ -116,7 +136,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
             self?.players[nativeId]?.seek(time: time.doubleValue)
         }
     }
-    
+
     /**
      Sets `timeShift` on `nativeId`'s player.
      - Parameter nativeId: Target player Id.
@@ -340,6 +360,23 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
+     Resolve `nativeId`'s currently selected audio track.
+     - Parameter nativeId: Target player Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getAudioTrack:resolver:rejecter:)
+    func getAudioTrack(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(RCTConvert.audioTrackJson(self?.players[nativeId]?.audio))
+        }
+    }
+
+    /**
      Resolve `nativeId`'s player available audio tracks.
      - Parameter nativeId: Target player Id.
      - Parameter resolver: JS promise resolver.
@@ -376,6 +413,23 @@ class PlayerModule: NSObject, RCTBridgeModule {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             self?.players[nativeId]?.setAudio(trackIdentifier: trackIdentifier)
             resolve(nil)
+        }
+    }
+
+    /**
+     Resolve `nativeId`'s currently selected subtitle track.
+     - Parameter nativeId: Target player Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getSubtitleTrack:resolver:rejecter:)
+    func getSubtitleTrack(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(RCTConvert.subtitleTrackJson(self?.players[nativeId]?.subtitle))
         }
     }
 
@@ -462,7 +516,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
             resolve(self?.players[nativeId]?.isAd)
         }
     }
-    
+
     /**
      The current time shift of the live stream in seconds. This value is always 0 if the active `source` is not a
      live stream or there are no sources loaded.
@@ -480,7 +534,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
             resolve(self?.players[nativeId]?.timeShift)
         }
     }
-    
+
     /**
      Returns the limit in seconds for time shift. Is either negative or 0. Is applicable for live streams only.
      - Parameter nativeId: Target player id.
@@ -495,6 +549,37 @@ class PlayerModule: NSObject, RCTBridgeModule {
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             resolve(self?.players[nativeId]?.maxTimeShift)
+        }
+    }
+
+    /**
+     Sets the max selectable bitrate for the player.
+     - Parameter nativeId: Target player id.
+     - Parameter maxBitrate: The desired max bitrate limit.
+     */
+    @objc(setMaxSelectableBitrate:maxSelectableBitrate:)
+    func setMaxSelectableBitrate(_ nativeId: NativeId, maxSelectableBitrate: NSNumber) {
+        let maxSelectableBitrateValue = maxSelectableBitrate.uintValue
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.maxSelectableBitrate = maxSelectableBitrateValue != -1 ? maxSelectableBitrateValue : 0
+        }
+    }
+
+    /**
+     Returns the thumbnail image for the active `Source` at a certain time.
+     - Parameter nativeId: Target player id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getThumbnail:time:resolver:rejecter:)
+    func getThumbnail(
+        _ nativeId: NativeId,
+        time: NSNumber,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(RCTConvert.toJson(thumbnail: self?.players[nativeId]?.thumbnail(forTime: time.doubleValue)))
         }
     }
 }
