@@ -1,6 +1,5 @@
 package com.bitmovin.player.reactnative.converter
 
-import com.bitmovin.analytics.BitmovinAnalyticsConfig
 import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
@@ -41,6 +40,7 @@ import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.getProperty
+import com.bitmovin.player.reactnative.extensions.putBoolean
 import com.bitmovin.player.reactnative.extensions.putDouble
 import com.bitmovin.player.reactnative.extensions.putInt
 import com.bitmovin.player.reactnative.extensions.setProperty
@@ -808,11 +808,6 @@ class JsonConverter {
                 it.getBooleanOrNull("randomizeUserId")?.let { randomizeUserId ->
                     setRandomizeUserId(randomizeUserId)
                 }
-                for (n in 1..30) {
-                    it.getString("customData${n}")?.let { customDataN ->
-                        setProperty("customData${n}", customDataN)
-                    }
-                }
             }.build()
         }
 
@@ -866,7 +861,7 @@ class JsonConverter {
          * @return The produced JS value or null.
          */
         @JvmStatic
-        fun fromAnalyticsCustomData(customData: CustomData?): ReadableMap? = customData?.let {
+        fun fromAnalyticsCustomData(customData: CustomData?): WritableMap? = customData?.let {
             val json = Arguments.createMap()
             for (n in 1..30) {
                 it.getProperty<String>("customData${n}")?.let { customDataN ->
@@ -890,6 +885,19 @@ class JsonConverter {
                 isLive = it.getBoolean("isLive"),
                 customData = sourceCustomData
             )
+        }
+
+        @JvmStatic
+        fun fromAnalyticsSourceMetadata(sourceMetadata: SourceMetadata?): ReadableMap? {
+            if (sourceMetadata == null) return null
+
+            return fromAnalyticsCustomData(sourceMetadata.customData)?.apply {
+                putString("title", sourceMetadata.title)
+                putString("videoId", sourceMetadata.videoId)
+                putString("cdnProvider", sourceMetadata.cdnProvider)
+                putString("path", sourceMetadata.path)
+                putBoolean("isLive", sourceMetadata.isLive)
+            }
         }
 
         /**

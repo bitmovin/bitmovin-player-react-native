@@ -3,6 +3,7 @@ import { Drm, DrmConfig } from './drm';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { SideLoadedSubtitleTrack } from './subtitleTrack';
 import { Thumbnail } from './thumbnail';
+import { SourceMetadata } from './analytics';
 
 const SourceModule = NativeModules.SourceModule;
 
@@ -129,6 +130,10 @@ export interface SourceConfig extends NativeInstanceConfig {
    * The `SourceOptions` for this configuration.
    */
   options?: SourceOptions;
+  /**
+   * The `SourceMetadata` for the `Source` to setup custom analytics tracking
+   */
+  analyticsSourceMetadata?: SourceMetadata;
 }
 
 /**
@@ -153,16 +158,24 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   initialize = () => {
     if (!this.isInitialized) {
+      const sourceMetadata = this.config?.analyticsSourceMetadata;
       if (this.config?.drmConfig) {
         this.drm = new Drm(this.config.drmConfig);
         this.drm.initialize();
-        SourceModule.initWithDrmConfig(
+      }
+      if (sourceMetadata) {
+        SourceModule.initWithAnalyticsConfig(
           this.nativeId,
-          this.drm.nativeId,
-          this.config
+          this.drm?.nativeId,
+          this.config,
+          sourceMetadata
         );
       } else {
-        SourceModule.initWithConfig(this.nativeId, this.config);
+        SourceModule.initWithConfig(
+          this.nativeId,
+          this.drm?.nativeId,
+          this.config
+        );
       }
       this.isInitialized = true;
     }

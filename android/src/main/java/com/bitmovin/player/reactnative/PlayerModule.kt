@@ -56,7 +56,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      * @param analyticsConfigJson `AnalyticsConfig` object received from JS.
      */
     @ReactMethod
-    fun initWithConfig(nativeId: NativeId, playerConfigJson: ReadableMap?, analyticsConfigJson: ReadableMap?) {
+    fun initWithAnalyticsConfig(nativeId: NativeId, playerConfigJson: ReadableMap?, analyticsConfigJson: ReadableMap?) {
         uiManager()?.addUIBlock {
             if (players.containsKey(nativeId)) {
                 Log.d("[PlayerModule]", "Duplicate player creation for id $nativeId")
@@ -64,7 +64,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
             }
             val playerConfig = JsonConverter.toPlayerConfig(playerConfigJson)
             val analyticsConfig = JsonConverter.toAnalyticsConfig(analyticsConfigJson)
-            val defaultMetadata = JsonConverter.toAnalyticsDefaultMetadata(analyticsConfigJson)
+            val defaultMetadata = JsonConverter.toAnalyticsDefaultMetadata(analyticsConfigJson?.getMap("defaultMetadata"))
 
             players[nativeId] = if (analyticsConfig == null) {
                 Player.create(context, playerConfig)
