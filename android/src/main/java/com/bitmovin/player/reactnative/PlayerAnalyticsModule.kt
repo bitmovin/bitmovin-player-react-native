@@ -6,10 +6,10 @@ import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.UIManagerModule
 
-private const val MODULE_NAME = "AnalyticsModule"
+private const val MODULE_NAME = "PlayerAnalyticsModule"
 
 @ReactModule(name = MODULE_NAME)
-class AnalyticsModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
+class PlayerAnalyticsModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
     /**
      * JS exported module name.
      */

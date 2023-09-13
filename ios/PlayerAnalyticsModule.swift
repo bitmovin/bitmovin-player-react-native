@@ -1,8 +1,8 @@
 import BitmovinPlayer
 import BitmovinCollector
 
-@objc(AnalyticsModule)
-class AnalyticsModule: NSObject, RCTBridgeModule {
+@objc(PlayerAnalyticsModule)
+class PlayerAnalyticsModule: NSObject, RCTBridgeModule {
     /// React bridge reference.
     @objc var bridge: RCTBridge!
 
@@ -13,7 +13,7 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
 
     /// JS module name.
     static func moduleName() -> String! {
-        "AnalyticsModule"
+        "PlayerAnalyticsModule"
     }
 
     /// Module requires main thread initialization.
@@ -59,7 +59,7 @@ class AnalyticsModule: NSObject, RCTBridgeModule {
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard let playerAnalytics = self?.playerModule?.retrieve(playerId)?.analytics else {
-                reject("[AnalyticsModule]", "Could not find player with ID (\(playerId))", nil)
+                reject("[PlayerAnalyticsModule]", "Could not find player with ID (\(playerId))", nil)
                 return
             }
             resolve(playerAnalytics.userId)

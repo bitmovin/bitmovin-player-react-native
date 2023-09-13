@@ -24,7 +24,7 @@ class RNPlayerViewPackage : ReactPackage {
             PlayerModule(reactContext),
             SourceModule(reactContext),
             DrmModule(reactContext),
-            AnalyticsModule(reactContext),
+            PlayerAnalyticsModule(reactContext),
             RNPlayerViewManager(reactContext),
             FullscreenHandlerModule(reactContext),
             CustomMessageHandlerModule(reactContext)
