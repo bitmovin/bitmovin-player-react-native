@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Use `jason` build of Bitmovin's native Android SDK
+
+## [Unreleased]
+
 ### Added
 
 - `Player.getAudioTrack` and `Player.getSubtitleTrack` APIs to get currently selected audio and subtitle tracks
