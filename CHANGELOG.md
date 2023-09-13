@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Use `jason` build of Bitmovin's native Android SDK
+
 ## [0.11.0] (2023-09-11)
 
 ### Added
