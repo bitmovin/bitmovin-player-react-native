@@ -54,8 +54,16 @@ export default function BasicPlayback() {
   }, []);
 
   const { width, height } = useWindowDimensions();
+  interface PlayerControlPosition {
+    yStart: number;
+    yEnd: number;
+  }
 
   let [isScrollEnabled, setScrollEnabled] = useState(true);
+  let [playerPosition, setPlayerPosition] = useState<PlayerControlPosition>({
+    yStart: 0,
+    yEnd: 0,
+  });
 
   return (
     <View style={styles.container}>
@@ -69,11 +77,9 @@ export default function BasicPlayback() {
         />
         <View
           onStartShouldSetResponderCapture={(event) => {
-            console.log(event.nativeEvent.locationY);
-            // TODO: Calculate the location of progressBar
             if (
-              event.nativeEvent.locationY > 165 &&
-              event.nativeEvent.locationY < 220
+              event.nativeEvent.locationY > playerPosition.yStart &&
+              event.nativeEvent.locationY < playerPosition.yEnd
             ) {
               setScrollEnabled(false);
             } else {
@@ -81,22 +87,36 @@ export default function BasicPlayback() {
             }
             return false;
           }}
-          style={{ width, height }}
+          style={{ width, backgroundColor: 'yellow', height: 200 }}
         >
-          <PlayerView
-            style={{ width, height: (width * 9) / 16 }}
-            player={player}
-            onPlay={onEvent}
-            onPlaying={onEvent}
-            onPaused={onEvent}
-            onReady={onReady}
-            onSourceLoaded={onEvent}
-            onSeek={onEvent}
-            onSeeked={onEvent}
-            onStallStarted={onEvent}
-            onStallEnded={onEvent}
-            onVideoPlaybackQualityChanged={onEvent}
-          />
+          <View
+            style={{ height: 'auto', width }}
+            onLayout={(event) => {
+              let layout = event.nativeEvent.layout;
+              let controlsHeight = 35;
+              let newPosition = {
+                yStart: layout.y + layout.height - controlsHeight,
+                yEnd: layout.y + layout.height,
+              };
+              setPlayerPosition(newPosition);
+              console.log('calculated position', newPosition);
+            }}
+          >
+            <PlayerView
+              style={{ width, height: (width * 9) / 16 }}
+              player={player}
+              onPlay={onEvent}
+              onPlaying={onEvent}
+              onPaused={onEvent}
+              onReady={onReady}
+              onSourceLoaded={onEvent}
+              onSeek={onEvent}
+              onSeeked={onEvent}
+              onStallStarted={onEvent}
+              onStallEnded={onEvent}
+              onVideoPlaybackQualityChanged={onEvent}
+            />
+          </View>
         </View>
         <View
           style={{ width: width, height: height, backgroundColor: 'blue' }}
