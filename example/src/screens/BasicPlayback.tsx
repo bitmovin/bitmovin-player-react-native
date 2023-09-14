@@ -1,5 +1,11 @@
-import React, { useCallback } from 'react';
-import { View, Platform, StyleSheet } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import {
+  View,
+  Platform,
+  StyleSheet,
+  ScrollView,
+  useWindowDimensions,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -47,22 +53,55 @@ export default function BasicPlayback() {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
 
+  const { width, height } = useWindowDimensions();
+
+  let [isScrollEnabled, setScrollEnabled] = useState(true);
+
   return (
     <View style={styles.container}>
-      <PlayerView
-        player={player}
-        style={styles.player}
-        onPlay={onEvent}
-        onPlaying={onEvent}
-        onPaused={onEvent}
-        onReady={onReady}
-        onSourceLoaded={onEvent}
-        onSeek={onEvent}
-        onSeeked={onEvent}
-        onStallStarted={onEvent}
-        onStallEnded={onEvent}
-        onVideoPlaybackQualityChanged={onEvent}
-      />
+      <ScrollView
+        horizontal
+        pagingEnabled={true}
+        scrollEnabled={isScrollEnabled}
+      >
+        <View
+          style={{ width: width, height: height, backgroundColor: 'red' }}
+        />
+        <View
+          onStartShouldSetResponderCapture={(event) => {
+            console.log(event.nativeEvent.locationY);
+            // TODO: Calculate the location of progressBar
+            if (
+              event.nativeEvent.locationY > 165 &&
+              event.nativeEvent.locationY < 220
+            ) {
+              setScrollEnabled(false);
+            } else {
+              setScrollEnabled(true);
+            }
+            return false;
+          }}
+          style={{ width, height }}
+        >
+          <PlayerView
+            style={{ width, height: (width * 9) / 16 }}
+            player={player}
+            onPlay={onEvent}
+            onPlaying={onEvent}
+            onPaused={onEvent}
+            onReady={onReady}
+            onSourceLoaded={onEvent}
+            onSeek={onEvent}
+            onSeeked={onEvent}
+            onStallStarted={onEvent}
+            onStallEnded={onEvent}
+            onVideoPlaybackQualityChanged={onEvent}
+          />
+        </View>
+        <View
+          style={{ width: width, height: height, backgroundColor: 'blue' }}
+        />
+      </ScrollView>
     </View>
   );
 }
