@@ -87,10 +87,10 @@ export default function BasicPlayback() {
             }
             return false;
           }}
-          style={{ width, backgroundColor: 'yellow', height: 200 }}
+          style={{ width, backgroundColor: 'yellow', height: height }}
         >
           <View
-            style={{ height: 'auto', width }}
+            style={{ height: 'auto', width: 'auto' }}
             onLayout={(event) => {
               let layout = event.nativeEvent.layout;
               let controlsHeight = 35;
