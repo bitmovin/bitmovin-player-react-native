@@ -5,7 +5,6 @@ import {
   usePlayer,
   PlayerView,
   SourceType,
-  CdnProvider,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
@@ -14,22 +13,19 @@ export default function BasicAds() {
 
   const player = usePlayer({
     analyticsConfig: {
-      key: '<ANALYTICS-KEY>', // `key` is the only required parameter.
-      playerKey: '<BITMOVIN-PLAYER-KEY>',
-      cdnProvider: CdnProvider.AKAMAI, // Check out `CdnProvider` for more options.
-      customUserId: 'Custom user ID',
-      randomizeUserId: false, // Default value is true.
-      experimentName: 'Experiment name',
-      videoId: 'MyVideoId',
-      title: 'Art of Motion',
-      isLive: false,
-      ads: false, // Can be changed to `true` in case `advertisingConfig` is also present.
-      path: '/examples/basic_analytics',
-      customData1: 'Custom data field 1',
-      customData2: 'Custom data field 2',
-      customData3: 'Custom data field 3',
-      customData4: 'Custom data field 4',
-      customData5: 'Custom data field 5',
+      licenseKey: '<ANALYTICS-KEY>', // `licenseKey` is the only required parameter.
+      randomizeUserId: false,
+      adTrackingDisabled: true,
+      defaultMetadata: {
+        cdnProvider: 'akamai',
+        customUserId: 'Custom user ID from React',
+        experimentName: 'Experiment name',
+        customData1: 'Custom data field 1',
+        customData2: 'Custom data field 2',
+        customData3: 'Custom data field 3',
+        customData4: 'Custom data field 4',
+        customData5: 'Custom data field 5',
+      },
     },
   });
 
@@ -44,6 +40,14 @@ export default function BasicAds() {
         title: 'Art of Motion',
         poster:
           'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg',
+        analyticsSourceMetadata: {
+          videoId: 'MyVideoId',
+          title: 'Art of Motion',
+          isLive: false,
+          path: '/examples/basic_analytics',
+          customData1: 'Custom data field 1 from source',
+          experimentName: 'Experiment Name Override',
+        },
       });
       return () => {
         player.destroy();

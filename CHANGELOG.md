@@ -2,9 +2,21 @@
 
 ## [Unreleased]
 
+### Added
+
+- `DefaultMetadata` for configuration of the bundled analytics collector
+- `Player.analytics` to access the `AnalyticsApi` and interact with the bundled analytics collector
+- `SourceConfig.analyticsSourceMetadata` for extended configuration of the bundled analytics collector
+
 ### Changed
 
+- `AnalyticsConfig` properties to match the bitmovin analytics v3 API
 - Use `jason` build of Bitmovin's native Android SDK
+
+### Removed
+
+- `AnalyticsCollector` in favor of the bundled analytics functionality
+- `CdnProvider`, as the property on the `AnalyticsConfig` is now a `string`
 
 ## [0.11.0] (2023-09-11)
 
