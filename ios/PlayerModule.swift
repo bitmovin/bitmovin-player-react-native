@@ -48,6 +48,31 @@ class PlayerModule: NSObject, RCTBridgeModule {
             self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
         }
     }
+    
+    /**
+     Creates a new analytics enabled `Player` instance inside the internal players using the provided `config` and `analyticsConfig` object.
+     - Parameter config: `PlayerConfig` object received from JS.
+     - Parameter analyticsConfig: `AnalyticsConfig` object received from JS.
+     */
+    @objc(initWithAnalyticsConfig:config:analyticsConfig:)
+    func initWithAnalyticsConfig(_ nativeId: NativeId, config: Any?, analyticsConfig: Any?) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            let analyticsConfigJson = analyticsConfig
+            guard
+                self?.players[nativeId] == nil,
+                let playerConfig = RCTConvert.playerConfig(config),
+                let analyticsConfig = RCTConvert.analyticsConfig(analyticsConfig)
+            else {
+                return
+            }
+            let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfigJson)
+            self?.players[nativeId] = PlayerFactory.create(
+                playerConfig: playerConfig,
+                analyticsConfig: analyticsConfig,
+                defaultMetadata: defaultMetadata ?? DefaultMetadata()
+            )
+        }
+    }
 
     /**
      Loads the given source configuration into `nativeId`'s `Player` object.

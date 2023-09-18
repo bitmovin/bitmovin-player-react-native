@@ -1,7 +1,8 @@
 package com.bitmovin.player.reactnative.converter
 
-import com.bitmovin.analytics.BitmovinAnalyticsConfig
+import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
+import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.analytics.api.SourceMetadata
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.DeviceDescription.ModelName
@@ -36,8 +37,10 @@ import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.api.source.TimelineReferencePoint
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
+import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.getProperty
+import com.bitmovin.player.reactnative.extensions.putBoolean
 import com.bitmovin.player.reactnative.extensions.putDouble
 import com.bitmovin.player.reactnative.extensions.putInt
 import com.bitmovin.player.reactnative.extensions.setProperty
@@ -795,46 +798,39 @@ class JsonConverter {
          * @return The produced `BitmovinAnalyticsConfig` or null.
          */
         @JvmStatic
-        fun toAnalyticsConfig(json: ReadableMap?): BitmovinAnalyticsConfig? = json?.let {
-            var config: BitmovinAnalyticsConfig? = null
-            it.getString("key")?.let { key ->
-                config = it.getString("playerKey")
-                    ?.let { playerKey -> BitmovinAnalyticsConfig(key, playerKey) }
-                    ?: BitmovinAnalyticsConfig(key)
-            }
-            it.getString("cdnProvider")?.let { cdnProvider ->
-                config?.cdnProvider = cdnProvider
-            }
-            it.getString("customUserId")?.let { customUserId ->
-                config?.customUserId = customUserId
-            }
-            it.getString("experimentName")?.let { experimentName ->
-                config?.experimentName = experimentName
-            }
-            it.getString("videoId")?.let { videoId ->
-                config?.videoId = videoId
-            }
-            it.getString("title")?.let { title ->
-                config?.title = title
-            }
-            it.getString("path")?.let { path ->
-                config?.path = path
-            }
-            if (it.hasKey("isLive")) {
-                config?.isLive = it.getBoolean("isLive")
-            }
-            if (it.hasKey("ads")) {
-                config?.ads = it.getBoolean("ads")
-            }
-            if (it.hasKey("randomizeUserId")) {
-                config?.randomizeUserId = it.getBoolean("randomizeUserId")
-            }
-            for (n in 1..30) {
-                it.getString("customData${n}")?.let { customDataN ->
-                    config?.setProperty("customData${n}", customDataN)
+        fun toAnalyticsConfig(json: ReadableMap?): AnalyticsConfig? = json?.let {
+            val licenseKey = it.getString("licenseKey") ?: return null
+
+            return AnalyticsConfig.Builder(licenseKey).apply {
+                it.getBooleanOrNull("adTrackingDisabled")?.let { adTrackingDisabled ->
+                    setAdTrackingDisabled(adTrackingDisabled)
                 }
-            }
-            config
+                it.getBooleanOrNull("randomizeUserId")?.let { randomizeUserId ->
+                    setRandomizeUserId(randomizeUserId)
+                }
+            }.build()
+        }
+
+        /**
+         * Converts an arbitrary json object into an analytics `DefaultMetadata`.
+         * @param json JS object representing the `CustomData`.
+         * @return The produced `CustomData` or null.
+         */
+        @JvmStatic
+        fun toAnalyticsDefaultMetadata(json: ReadableMap?): DefaultMetadata? {
+            if (json == null) return null
+
+            return DefaultMetadata.Builder().apply {
+                toAnalyticsCustomData(json)?.let {
+                    setCustomData(it)
+                }
+                json.getString("cdnProvider")?.let { cdnProvider ->
+                    setCdnProvider(cdnProvider)
+                }
+                json.getString("customUserId")?.let { customUserId ->
+                    setCustomUserId(customUserId)
+                }
+            }.build()
         }
 
         /**
@@ -865,7 +861,7 @@ class JsonConverter {
          * @return The produced JS value or null.
          */
         @JvmStatic
-        fun fromAnalyticsCustomData(customData: CustomData?): ReadableMap? = customData?.let {
+        fun fromAnalyticsCustomData(customData: CustomData?): WritableMap? = customData?.let {
             val json = Arguments.createMap()
             for (n in 1..30) {
                 it.getProperty<String>("customData${n}")?.let { customDataN ->
@@ -889,6 +885,19 @@ class JsonConverter {
                 isLive = it.getBoolean("isLive"),
                 customData = sourceCustomData
             )
+        }
+
+        @JvmStatic
+        fun fromAnalyticsSourceMetadata(sourceMetadata: SourceMetadata?): ReadableMap? {
+            if (sourceMetadata == null) return null
+
+            return fromAnalyticsCustomData(sourceMetadata.customData)?.apply {
+                putString("title", sourceMetadata.title)
+                putString("videoId", sourceMetadata.videoId)
+                putString("cdnProvider", sourceMetadata.cdnProvider)
+                putString("path", sourceMetadata.path)
+                putBoolean("isLive", sourceMetadata.isLive)
+            }
         }
 
         /**
