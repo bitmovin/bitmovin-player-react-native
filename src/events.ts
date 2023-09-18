@@ -554,3 +554,77 @@ export interface VideoPlaybackQualityChangedEvent extends Event {
    */
   oldVideoQuality: VideoQuality;
 }
+
+/**
+ * Emitted when casting to a cast-compatible device is available.
+ */
+export interface CastAvailableEvent extends Event {}
+
+/**
+ * Emitted when the playback on a cast-compatible device was paused.
+ */
+export interface CastPaused extends Event {}
+
+/**
+ * Emitted when the playback on a cast-compatible device has finished.
+ */
+export interface CastPlaybackFinished extends Event {}
+
+/**
+ * Emitted when playback on a cast-compatible device has started.
+ */
+export interface CastPlaying extends Event {}
+
+/**
+ * Emitted when the cast app is launched successfully.
+ */
+export interface CastStarted extends Event {
+  /**
+   * The name of the cast device on which the app was launched.
+   */
+  deviceName: string | null;
+}
+
+/**
+ * Emitted when casting is initiated, but the user still needs to choose which device should be used.
+ */
+export interface CastStart extends Event {}
+
+/**
+ * Emitted when casting to a cast-compatible device is stopped.
+ */
+export interface CastStopped extends Event {}
+
+/**
+ * Emitted when the time update from the currently used cast-compatible device is received.
+ */
+export interface CastTimeUpdated extends Event {}
+
+/**
+ * Contains information for the `CastWaitingForDevice` event.
+ */
+export interface CastPayload {
+  /**
+   * The current time in seconds.
+   */
+  currentTime: number;
+  /**
+   * The name of the chosen cast device.
+   */
+  deviceName: string;
+  /**
+   * The type of the payload (always "cast").
+   */
+  type: string;
+}
+
+/**
+ * Emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
+ * playback.
+ */
+export interface CastWaitingForDevice extends Event {
+  /**
+   * The [CastPayload] object for the event
+   */
+  castPayload: CastPayload;
+}
