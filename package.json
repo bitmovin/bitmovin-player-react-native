@@ -30,7 +30,7 @@
     "example": "yarn --cwd example",
     "pods": "yarn pods-install || yarn pods-update",
     "pods-install": "yarn example pod-install",
-    "pods-update": "! [[ \"$OSTYPE\" =~ ^darwin ]] && echo 'CocoaPods is only supported on darwin machines' || (cd example/ios && pod update --silent)",
+    "pods-update": "cd example/ios && pod update --silent",
     "bootstrap": "yarn && yarn example && yarn pods",
     "prepare": "husky install"
   },
