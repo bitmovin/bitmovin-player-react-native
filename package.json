@@ -29,7 +29,7 @@
     "build": "tsup ./src/index.ts --dts --target es2020 --format cjs,esm -d lib",
     "example": "yarn --cwd example",
     "pods": "yarn pods-install || yarn pods-update",
-    "pods-install": "cd example && yarn pod-install",
+    "pods-install": "yarn example pod-install",
     "pods-update": "! [[ \"$OSTYPE\" =~ ^darwin ]] && echo 'CocoaPods is only supported on darwin machines' || (cd example/ios && pod update --silent)",
     "bootstrap": "yarn && yarn example && yarn pods",
     "prepare": "husky install"
