@@ -60,10 +60,11 @@ export default function BasicPlayback() {
   }
 
   let [isScrollEnabled, setScrollEnabled] = useState(true);
-  let [playerPosition, setPlayerPosition] = useState<PlayerControlPosition>({
-    yStart: 0,
-    yEnd: 0,
-  });
+  let [playerControlPosition, setPlayerControlPosition] =
+    useState<PlayerControlPosition>({
+      yStart: 0,
+      yEnd: 0,
+    });
 
   return (
     <View style={styles.container}>
@@ -78,8 +79,8 @@ export default function BasicPlayback() {
         <View
           onStartShouldSetResponderCapture={(event) => {
             if (
-              event.nativeEvent.locationY > playerPosition.yStart &&
-              event.nativeEvent.locationY < playerPosition.yEnd
+              event.nativeEvent.locationY > playerControlPosition.yStart &&
+              event.nativeEvent.locationY < playerControlPosition.yEnd
             ) {
               setScrollEnabled(false);
             } else {
@@ -98,7 +99,7 @@ export default function BasicPlayback() {
                 yStart: layout.y + layout.height - controlsHeight,
                 yEnd: layout.y + layout.height,
               };
-              setPlayerPosition(newPosition);
+              setPlayerControlPosition(newPosition);
               console.log('calculated position', newPosition);
             }}
           >
