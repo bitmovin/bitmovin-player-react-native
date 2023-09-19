@@ -43,6 +43,8 @@ export const BitmovinCastManager = {
    * This method needs to be called before `Player` creation to enable casting features.
    * If no options are provided, the default options will be used.
    *
+   * IMPORTANT: This should only be called when the Google Cast SDK is available in the application.
+   *
    * @param options The options to be used for initializing `BitmovinCastManager`
    * @returns A promise that resolves when the `BitmovinCastManager` was initialized successfully
    */
