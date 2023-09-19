@@ -4,6 +4,7 @@ import android.util.Log
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.analytics.create
+import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
@@ -493,6 +494,48 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     fun getThumbnail(nativeId: NativeId, time: Double, promise: Promise) {
         uiManager()?.addUIBlock {
             promise.resolve(JsonConverter.fromThumbnail(players[nativeId]?.source?.getThumbnail(time)))
+        }
+    }
+
+    /**
+     * Initiates casting the current video to a cast-compatible remote device. The user has to choose to which device it
+     * should be sent.
+     */
+    @ReactMethod
+    fun castVideo(nativeId: NativeId) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.castVideo()
+        }
+    }
+
+    /**
+     * Stops casting the current video. Has no effect if [isCasting] is false.
+     */
+    @ReactMethod
+    fun castStop(nativeId: NativeId) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.castStop()
+        }
+    }
+
+    /**
+     * Whether casting to a cast-compatible remote device is available. [PlayerEvent.CastAvailable] signals when
+     * casting becomes available.
+     */
+    @ReactMethod
+    fun isCastAvailable(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.isCastAvailable)
+        }
+    }
+
+    /**
+     * Whether video is currently being casted to a remote device and not played locally.
+     */
+    @ReactMethod
+    fun isCasting(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.isCasting)
         }
     }
 
