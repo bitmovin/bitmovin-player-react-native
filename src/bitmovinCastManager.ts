@@ -9,12 +9,12 @@ const BitmovinCastManagerModule = NativeModules.BitmovinCastManagerModule;
 export interface BitmovinCastManagerOptions {
   /**
    * ID of receiver application.
-   * Using `nil` value will result in using the default application ID
+   * Using `null` value will result in using the default application ID
    */
   applicationId?: string | null;
   /**
    * A custom message namespace to be used for communication between sender and receiver.
-   * Using `nil` value will result in using the default message namespace
+   * Using `null` value will result in using the default message namespace
    */
   messageNamespace?: string | null;
 }
