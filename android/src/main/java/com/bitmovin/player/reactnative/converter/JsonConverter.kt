@@ -399,39 +399,54 @@ class JsonConverter {
             val json = Arguments.createMap()
             json.putString("name", event.getName())
             json.putDouble("timestamp", event.timestamp.toDouble())
-            if (event is SourceEvent.Load) {
-                json.putMap("source", fromSource(event.source))
-            }
-            if (event is SourceEvent.Loaded) {
-                json.putMap("source", fromSource(event.source))
-            }
-            if (event is SourceEvent.Error) {
-                json.putInt("code", event.code.value)
-                json.putString("message", event.message)
-            }
-            if (event is SourceEvent.Warning) {
-                json.putInt("code", event.code.value)
-                json.putString("message", event.message)
-            }
-            if (event is SourceEvent.AudioTrackAdded) {
-                json.putMap("audioTrack", fromAudioTrack(event.audioTrack))
-            }
-            if (event is SourceEvent.AudioTrackChanged) {
-                json.putMap("oldAudioTrack", fromAudioTrack(event.oldAudioTrack))
-                json.putMap("newAudioTrack", fromAudioTrack(event.newAudioTrack))
-            }
-            if (event is SourceEvent.AudioTrackRemoved) {
-                json.putMap("audioTrack", fromAudioTrack(event.audioTrack))
-            }
-            if (event is SourceEvent.SubtitleTrackAdded) {
-                json.putMap("subtitleTrack", fromSubtitleTrack(event.subtitleTrack))
-            }
-            if (event is SourceEvent.SubtitleTrackRemoved) {
-                json.putMap("subtitleTrack", fromSubtitleTrack(event.subtitleTrack))
-            }
-            if (event is SourceEvent.SubtitleTrackChanged) {
-                json.putMap("oldSubtitleTrack", fromSubtitleTrack(event.oldSubtitleTrack))
-                json.putMap("newSubtitleTrack", fromSubtitleTrack(event.newSubtitleTrack))
+            when (event) {
+                is SourceEvent.Load -> {
+                    json.putMap("source", fromSource(event.source))
+                }
+
+                is SourceEvent.Loaded -> {
+                    json.putMap("source", fromSource(event.source))
+                }
+
+                is SourceEvent.Error -> {
+                    json.putInt("code", event.code.value)
+                    json.putString("message", event.message)
+                }
+
+                is SourceEvent.Warning -> {
+                    json.putInt("code", event.code.value)
+                    json.putString("message", event.message)
+                }
+
+                is SourceEvent.AudioTrackAdded -> {
+                    json.putMap("audioTrack", fromAudioTrack(event.audioTrack))
+                }
+
+                is SourceEvent.AudioTrackChanged -> {
+                    json.putMap("oldAudioTrack", fromAudioTrack(event.oldAudioTrack))
+                    json.putMap("newAudioTrack", fromAudioTrack(event.newAudioTrack))
+                }
+
+                is SourceEvent.AudioTrackRemoved -> {
+                    json.putMap("audioTrack", fromAudioTrack(event.audioTrack))
+                }
+
+                is SourceEvent.SubtitleTrackAdded -> {
+                    json.putMap("subtitleTrack", fromSubtitleTrack(event.subtitleTrack))
+                }
+
+                is SourceEvent.SubtitleTrackRemoved -> {
+                    json.putMap("subtitleTrack", fromSubtitleTrack(event.subtitleTrack))
+                }
+
+                is SourceEvent.SubtitleTrackChanged -> {
+                    json.putMap("oldSubtitleTrack", fromSubtitleTrack(event.oldSubtitleTrack))
+                    json.putMap("newSubtitleTrack", fromSubtitleTrack(event.newSubtitleTrack))
+                }
+
+                else -> {
+                    // Event is not supported yet or does not have any additional data
+                }
             }
             return json
         }
@@ -446,86 +461,112 @@ class JsonConverter {
             val json = Arguments.createMap()
             json.putString("name", event.getName())
             json.putDouble("timestamp", event.timestamp.toDouble())
-            if (event is PlayerEvent.Error) {
-                json.putInt("code", event.code.value)
-                json.putString("message", event.message)
-            }
-            if (event is PlayerEvent.Warning) {
-                json.putInt("code", event.code.value)
-                json.putString("message", event.message)
-            }
-            if (event is PlayerEvent.Play) {
-                json.putDouble("time", event.time)
-            }
-            if (event is PlayerEvent.Playing) {
-                json.putDouble("time", event.time)
-            }
-            if (event is PlayerEvent.Paused) {
-                json.putDouble("time", event.time)
-            }
-            if (event is PlayerEvent.TimeChanged) {
-                json.putDouble("currentTime", event.time)
-            }
-            if (event is PlayerEvent.Seek) {
-                json.putMap("from", fromSeekPosition(event.from))
-                json.putMap("to", fromSeekPosition(event.to))
-            }
-            if (event is PlayerEvent.TimeShift) {
-                json.putDouble("position", event.position)
-                json.putDouble("targetPosition", event.target)
-            }
-            if (event is PlayerEvent.PictureInPictureAvailabilityChanged) {
-                json.putBoolean("isPictureInPictureAvailable", event.isPictureInPictureAvailable)
-            }
-            if (event is PlayerEvent.AdBreakFinished) {
-                json.putMap("adBreak", fromAdBreak(event.adBreak))
-            }
-            if (event is PlayerEvent.AdBreakStarted) {
-                json.putMap("adBreak", fromAdBreak(event.adBreak))
-            }
-            if (event is PlayerEvent.AdClicked) {
-                json.putString("clickThroughUrl", event.clickThroughUrl)
-            }
-            if (event is PlayerEvent.AdError) {
-                json.putInt("code", event.code)
-                json.putString("message", event.message)
-                json.putMap("adConfig", fromAdConfig(event.adConfig))
-                json.putMap("adItem", fromAdItem(event.adItem))
-            }
-            if (event is PlayerEvent.AdFinished) {
-                json.putMap("ad", fromAd(event.ad))
-            }
-            if (event is PlayerEvent.AdManifestLoad) {
-                json.putMap("adBreak", fromAdBreak(event.adBreak))
-                json.putMap("adConfig", fromAdConfig(event.adConfig))
-            }
-            if (event is PlayerEvent.AdManifestLoaded) {
-                json.putMap("adBreak", fromAdBreak(event.adBreak))
-                json.putMap("adConfig", fromAdConfig(event.adConfig))
-                json.putDouble("downloadTime", event.downloadTime.toDouble())
-            }
-            if (event is PlayerEvent.AdQuartile) {
-                json.putString("quartile", fromAdQuartile(event.quartile))
-            }
-            if (event is PlayerEvent.AdScheduled) {
-                json.putInt("numberOfAds", event.numberOfAds)
-            }
-            if (event is PlayerEvent.AdSkipped) {
-                json.putMap("ad", fromAd(event.ad))
-            }
-            if (event is PlayerEvent.AdStarted) {
-                json.putMap("ad", fromAd(event.ad))
-                json.putString("clickThroughUrl", event.clickThroughUrl)
-                json.putString("clientType", fromAdSourceType(event.clientType))
-                json.putDouble("duration", event.duration)
-                json.putInt("indexInQueue", event.indexInQueue)
-                json.putString("position", event.position)
-                json.putDouble("skipOffset", event.skipOffset)
-                json.putDouble("timeOffset", event.timeOffset)
-            }
-            if (event is PlayerEvent.VideoPlaybackQualityChanged) {
-                json.putMap("newVideoQuality", fromVideoQuality(event.newVideoQuality))
-                json.putMap("oldVideoQuality", fromVideoQuality(event.oldVideoQuality))
+            when (event) {
+                is PlayerEvent.Error -> {
+                    json.putInt("code", event.code.value)
+                    json.putString("message", event.message)
+                }
+
+                is PlayerEvent.Warning -> {
+                    json.putInt("code", event.code.value)
+                    json.putString("message", event.message)
+                }
+
+                is PlayerEvent.Play -> {
+                    json.putDouble("time", event.time)
+                }
+
+                is PlayerEvent.Playing -> {
+                    json.putDouble("time", event.time)
+                }
+
+                is PlayerEvent.Paused -> {
+                    json.putDouble("time", event.time)
+                }
+
+                is PlayerEvent.TimeChanged -> {
+                    json.putDouble("currentTime", event.time)
+                }
+
+                is PlayerEvent.Seek -> {
+                    json.putMap("from", fromSeekPosition(event.from))
+                    json.putMap("to", fromSeekPosition(event.to))
+                }
+
+                is PlayerEvent.TimeShift -> {
+                    json.putDouble("position", event.position)
+                    json.putDouble("targetPosition", event.target)
+                }
+
+                is PlayerEvent.PictureInPictureAvailabilityChanged -> {
+                    json.putBoolean("isPictureInPictureAvailable", event.isPictureInPictureAvailable)
+                }
+
+                is PlayerEvent.AdBreakFinished -> {
+                    json.putMap("adBreak", fromAdBreak(event.adBreak))
+                }
+
+                is PlayerEvent.AdBreakStarted -> {
+                    json.putMap("adBreak", fromAdBreak(event.adBreak))
+                }
+
+                is PlayerEvent.AdClicked -> {
+                    json.putString("clickThroughUrl", event.clickThroughUrl)
+                }
+
+                is PlayerEvent.AdError -> {
+                    json.putInt("code", event.code)
+                    json.putString("message", event.message)
+                    json.putMap("adConfig", fromAdConfig(event.adConfig))
+                    json.putMap("adItem", fromAdItem(event.adItem))
+                }
+
+                is PlayerEvent.AdFinished -> {
+                    json.putMap("ad", fromAd(event.ad))
+                }
+
+                is PlayerEvent.AdManifestLoad -> {
+                    json.putMap("adBreak", fromAdBreak(event.adBreak))
+                    json.putMap("adConfig", fromAdConfig(event.adConfig))
+                }
+
+                is PlayerEvent.AdManifestLoaded -> {
+                    json.putMap("adBreak", fromAdBreak(event.adBreak))
+                    json.putMap("adConfig", fromAdConfig(event.adConfig))
+                    json.putDouble("downloadTime", event.downloadTime.toDouble())
+                }
+
+                is PlayerEvent.AdQuartile -> {
+                    json.putString("quartile", fromAdQuartile(event.quartile))
+                }
+
+                is PlayerEvent.AdScheduled -> {
+                    json.putInt("numberOfAds", event.numberOfAds)
+                }
+
+                is PlayerEvent.AdSkipped -> {
+                    json.putMap("ad", fromAd(event.ad))
+                }
+
+                is PlayerEvent.AdStarted -> {
+                    json.putMap("ad", fromAd(event.ad))
+                    json.putString("clickThroughUrl", event.clickThroughUrl)
+                    json.putString("clientType", fromAdSourceType(event.clientType))
+                    json.putDouble("duration", event.duration)
+                    json.putInt("indexInQueue", event.indexInQueue)
+                    json.putString("position", event.position)
+                    json.putDouble("skipOffset", event.skipOffset)
+                    json.putDouble("timeOffset", event.timeOffset)
+                }
+
+                is PlayerEvent.VideoPlaybackQualityChanged -> {
+                    json.putMap("newVideoQuality", fromVideoQuality(event.newVideoQuality))
+                    json.putMap("oldVideoQuality", fromVideoQuality(event.oldVideoQuality))
+                }
+
+                else -> {
+                    // Event is not supported yet or does not have any additional data
+                }
             }
             return json
         }
