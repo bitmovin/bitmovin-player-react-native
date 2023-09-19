@@ -11,6 +11,15 @@ import {
   AdScheduledEvent,
   AdSkippedEvent,
   AdStartedEvent,
+  CastAvailableEvent,
+  CastPausedEvent,
+  CastPlaybackFinishedEvent,
+  CastPlayingEvent,
+  CastStartedEvent,
+  CastStartEvent,
+  CastStoppedEvent,
+  CastTimeUpdatedEvent,
+  CastWaitingForDeviceEvent,
   DestroyEvent,
   Event,
   FullscreenEnabledEvent,
@@ -69,6 +78,15 @@ interface EventProps {
   onAdScheduled: AdScheduledEvent;
   onAdSkipped: AdSkippedEvent;
   onAdStarted: AdStartedEvent;
+  onCastAvailable: CastAvailableEvent;
+  onCastPaused: CastPausedEvent;
+  onCastPlaybackFinished: CastPlaybackFinishedEvent;
+  onCastPlaying: CastPlayingEvent;
+  onCastStarted: CastStartedEvent;
+  onCastStart: CastStartEvent;
+  onCastStopped: CastStoppedEvent;
+  onCastTimeUpdated: CastTimeUpdatedEvent;
+  onCastWaitingForDevice: CastWaitingForDeviceEvent;
   onDestroy: DestroyEvent;
   onEvent: Event;
   onFullscreenEnabled: FullscreenEnabledEvent;
