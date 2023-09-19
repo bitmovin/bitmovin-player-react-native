@@ -617,7 +617,7 @@ export interface CastPayload {
   /**
    * The name of the chosen cast device.
    */
-  deviceName: string;
+  deviceName: string | null;
   /**
    * The type of the payload (always "cast").
    */
