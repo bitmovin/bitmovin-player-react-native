@@ -18,6 +18,7 @@ import com.bitmovin.player.api.advertising.AdQuartile
 import com.bitmovin.player.api.advertising.AdSource
 import com.bitmovin.player.api.advertising.AdSourceType
 import com.bitmovin.player.api.advertising.AdvertisingConfig
+import com.bitmovin.player.api.casting.RemoteControlConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
@@ -39,6 +40,7 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
+import com.bitmovin.player.reactnative.extensions.getOrDefault
 import com.bitmovin.player.reactnative.extensions.getProperty
 import com.bitmovin.player.reactnative.extensions.putBoolean
 import com.bitmovin.player.reactnative.extensions.putDouble
@@ -96,7 +98,65 @@ class JsonConverter {
                     playerConfig.adaptationConfig = it
                 }
             }
+            if (json.hasKey("remoteControlConfig")) {
+                toRemoteControlConfig(json.getMap("remoteControlConfig"))?.let {
+                    playerConfig.remoteControlConfig = it
+                }
+            }
             return playerConfig
+        }
+
+        /**
+         * Converts an arbitrary [ReadableMap] to a [RemoteControlConfig].
+         *
+         * @param json JS object representing the [RemoteControlConfig].
+         * @return The generated [RemoteControlConfig].
+         */
+        private fun toRemoteControlConfig(json: ReadableMap?): RemoteControlConfig? {
+            if (json == null) return null
+            val defaultRemoteControlConfig = RemoteControlConfig()
+
+            val receiverStylesheetUrl = json.getOrDefault(
+                "receiverStylesheetUrl",
+                defaultRemoteControlConfig.receiverStylesheetUrl
+            )
+
+            var customReceiverConfig = defaultRemoteControlConfig.customReceiverConfig
+            if (json.hasKey("customReceiverConfig")) {
+                customReceiverConfig = json.getMap("customReceiverConfig")
+                    ?.toHashMap()
+                    ?.mapValues { entry -> entry.value as? String? } ?: emptyMap()
+            }
+
+            val isCastEnabled = json.getOrDefault(
+                "isCastEnabled",
+                defaultRemoteControlConfig.isCastEnabled
+            )
+
+            val sendManifestRequestsWithCredentials = json.getOrDefault(
+                "sendManifestRequestsWithCredentials",
+                defaultRemoteControlConfig.sendManifestRequestsWithCredentials
+            )
+
+            val sendSegmentRequestsWithCredentials = json.getOrDefault(
+                "sendSegmentRequestsWithCredentials",
+                defaultRemoteControlConfig.sendSegmentRequestsWithCredentials
+            )
+
+            val sendDrmLicenseRequestsWithCredentials = json.getOrDefault(
+                "sendDrmLicenseRequestsWithCredentials",
+                defaultRemoteControlConfig.sendDrmLicenseRequestsWithCredentials
+            )
+
+
+            return RemoteControlConfig(
+                receiverStylesheetUrl = receiverStylesheetUrl,
+                customReceiverConfig = customReceiverConfig,
+                isCastEnabled = isCastEnabled,
+                sendManifestRequestsWithCredentials = sendManifestRequestsWithCredentials,
+                sendSegmentRequestsWithCredentials = sendSegmentRequestsWithCredentials,
+                sendDrmLicenseRequestsWithCredentials = sendDrmLicenseRequestsWithCredentials,
+            )
         }
 
         /**
