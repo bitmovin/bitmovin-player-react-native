@@ -68,17 +68,4 @@ export const BitmovinCastManager = {
     }
     return BitmovinCastManagerModule.sendMessage(message, messageNamespace);
   },
-
-  /**
-   * Sends the given metadata wrapped in a metadata message object to the cast receiver on the configured message namespace.
-   * The provided metadata must be JSON serializable.
-   * @param metadata The metadata to be sent
-   * @returns A promise that resolves when the metadata was sent successfully
-   */
-  sendMetadata: (metadata: Record<string, any>) => {
-    if (Platform.OS === 'ios' && Platform.isTV) {
-      return Promise.resolve();
-    }
-    return BitmovinCastManagerModule.sendMetadata(metadata);
-  },
 };
