@@ -42,8 +42,13 @@ class SourceModule: NSObject, RCTBridgeModule {
     @objc(initWithAnalyticsConfig:drmNativeId:config:analyticsSourceMetadata:)
     func initWithAnalyticsConfig(_ nativeId: NativeId, drmNativeId: NativeId?, config: Any?, analyticsSourceMetadata: Any?) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            let fairplayConfig = drmNativeId != nil ? self?.getDrmModule()?.retrieve(drmNativeId!) : nil
-            
+            let fairplayConfig: FairplayConfig?
+            if let drmNativeId = drmNativeId {
+                fairplayConfig = self?.getDrmModule()?.retrieve(drmNativeId)
+            } else {
+                fairplayConfig = nil
+            }
+
             guard
                 self?.sources[nativeId] == nil,
                 let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: fairplayConfig),
@@ -64,9 +69,15 @@ class SourceModule: NSObject, RCTBridgeModule {
     @objc(initWithConfig:drmNativeId:config:)
     func initWithConfig(_ nativeId: NativeId, drmNativeId: NativeId?, config: Any?) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
+            let fairplayConfig: FairplayConfig?
+            if let drmNativeId = drmNativeId {
+                fairplayConfig = self?.getDrmModule()?.retrieve(drmNativeId)
+            } else {
+                fairplayConfig = nil
+            }
+
             guard
                 self?.sources[nativeId] == nil,
-                let fairplayConfig = drmNativeId != nil ? self?.getDrmModule()?.retrieve(drmNativeId!) : nil,
                 let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: fairplayConfig)
             else {
                 return
