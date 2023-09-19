@@ -11,6 +11,7 @@ import { AdaptationConfig } from './adaptationConfig';
 import { OfflineContentManager, OfflineSourceOptions } from './offline';
 import { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/player';
+import { RemoteControlConfig } from './remoteControlConfig';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -61,6 +62,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures adaptation logic.
    */
   adaptationConfig?: AdaptationConfig;
+  /**
+   * Configures remote playback functionality.
+   */
+  remoteControlConfig?: RemoteControlConfig;
 }
 
 /**
@@ -490,5 +495,43 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   getThumbnail = async (time: number): Promise<Thumbnail | null> => {
     return PlayerModule.getThumbnail(this.nativeId, time);
+  };
+
+  /**
+   * Whether casting to a cast-compatible remote device is available. `CastAvailableEvent` signals when
+   * casting becomes available.
+   *
+   * @platform iOS, Android
+   */
+  isCastAvailable = async (): Promise<boolean> => {
+    return PlayerModule.isCastAvailable();
+  };
+
+  /**
+   * Whether video is currently being casted to a remote device and not played locally.
+   *
+   * @platform iOS, Android
+   */
+  isCasting = async (): Promise<boolean> => {
+    return PlayerModule.isCasting(this.nativeId);
+  };
+
+  /**
+   * Initiates casting the current video to a cast-compatible remote device. The user has to choose to which device it
+   * should be sent.
+   *
+   * @platform iOS, Android
+   */
+  castVideo = () => {
+    PlayerModule.castVideo(this.nativeId);
+  };
+
+  /**
+   * Stops casting the current video. Has no effect if `isCasting` is false.
+   *
+   * @platform iOS, Android
+   */
+  castStop = () => {
+    PlayerModule.castStop(this.nativeId);
   };
 }
