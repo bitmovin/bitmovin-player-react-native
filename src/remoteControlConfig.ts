@@ -16,7 +16,7 @@ export interface RemoteControlConfig {
    * Whether casting is enabled.
    * Default value is `true`.
    *
-   * Has no effect if the BitmovinCastManager is not initialized in the app's context.
+   * Has no effect if the `BitmovinCastManager` is not initialized before the `Player` is created with this configuration.
    */
   isCastEnabled?: boolean;
   /**
