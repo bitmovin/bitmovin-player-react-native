@@ -954,6 +954,11 @@ extension RCTConvert {
         return remoteControlConfig
     }
 
+    /**
+     Utility method to instantiate a `BitmovinCastManagerOptions` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `BitmovinCastManagerOptions` object
+     */
     static func castManagerOptions(_ json: Any?) -> BitmovinCastManagerOptions? {
         guard let json = json as? [String: Any?] else {
             return nil
