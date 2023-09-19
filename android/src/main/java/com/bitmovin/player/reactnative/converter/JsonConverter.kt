@@ -442,7 +442,7 @@ class JsonConverter {
                 }
 
                 else -> {
-                    // Event is not supported yet
+                    // Event is not supported yet or does not have any additional data
                 }
             }
             return json
@@ -562,7 +562,7 @@ class JsonConverter {
                 }
 
                 else -> {
-                    // Event is not supported yet
+                    // Event is not supported yet or does not have any additional data
                 }
             }
             return json
