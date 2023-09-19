@@ -565,26 +565,26 @@ export interface CastAvailableEvent extends Event {}
  *
  * On Android `PausedEvent` is also emitted while casting.
  */
-export interface CastPaused extends Event {}
+export interface CastPausedEvent extends Event {}
 
 /**
  * Emitted when the playback on a cast-compatible device has finished.
  *
  * On Android `PlaybackFinishedEvent` is also emitted while casting.
  */
-export interface CastPlaybackFinished extends Event {}
+export interface CastPlaybackFinishedEvent extends Event {}
 
 /**
  * Emitted when playback on a cast-compatible device has started.
  *
  * On Android `PlayingEvent` is also emitted while casting.
  */
-export interface CastPlaying extends Event {}
+export interface CastPlayingEvent extends Event {}
 
 /**
  * Emitted when the cast app is launched successfully.
  */
-export interface CastStarted extends Event {
+export interface CastStartedEvent extends Event {
   /**
    * The name of the cast device on which the app was launched.
    */
@@ -594,20 +594,20 @@ export interface CastStarted extends Event {
 /**
  * Emitted when casting is initiated, but the user still needs to choose which device should be used.
  */
-export interface CastStart extends Event {}
+export interface CastStartEvent extends Event {}
 
 /**
  * Emitted when casting to a cast-compatible device is stopped.
  */
-export interface CastStopped extends Event {}
+export interface CastStoppedEvent extends Event {}
 
 /**
  * Emitted when the time update from the currently used cast-compatible device is received.
  */
-export interface CastTimeUpdated extends Event {}
+export interface CastTimeUpdatedEvent extends Event {}
 
 /**
- * Contains information for the `CastWaitingForDevice` event.
+ * Contains information for the `CastWaitingForDeviceEvent`.
  */
 export interface CastPayload {
   /**
@@ -628,7 +628,7 @@ export interface CastPayload {
  * Emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
  * playback.
  */
-export interface CastWaitingForDevice extends Event {
+export interface CastWaitingForDeviceEvent extends Event {
   /**
    * The [CastPayload] object for the event
    */
