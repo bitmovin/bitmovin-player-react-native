@@ -31,6 +31,9 @@ extension RCTConvert {
         if let adaptationConfig = RCTConvert.adaptationConfig(json["adaptationConfig"]) {
             playerConfig.adaptationConfig = adaptationConfig
         }
+        if let remoteControlConfig = RCTConvert.remoteControlConfig(json["remoteControlConfig"]) {
+            playerConfig.remoteControlConfig = remoteControlConfig
+        }
         return playerConfig
     }
 
@@ -918,5 +921,36 @@ extension RCTConvert {
             "width": thumbnail.width,
             "height": thumbnail.height,
         ]
+    }
+
+    /**
+     Utility method to instantiate a `RemoteControlConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `RemoteControlConfig` object
+     */
+    static func remoteControlConfig(_ json: Any?) -> RemoteControlConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let remoteControlConfig = RemoteControlConfig()
+        if let receiverStylesheetUrl = RCTConvert.nsurl(json["receiverStylesheetUrl"]) {
+            remoteControlConfig.receiverStylesheetUrl = receiverStylesheetUrl
+        }
+        if let customReceiverConfig = json["customReceiverConfig"] as? [String: String] {
+            remoteControlConfig.customReceiverConfig = customReceiverConfig
+        }
+        if let isCastEnabled = json["isCastEnabled"] as? Bool {
+            remoteControlConfig.isCastEnabled = isCastEnabled
+        }
+        if let sendManifestRequestsWithCredentials = json["sendManifestRequestsWithCredentials"] as? Bool {
+            remoteControlConfig.sendManifestRequestsWithCredentials = sendManifestRequestsWithCredentials
+        }
+        if let sendSegmentRequestsWithCredentials = json["sendSegmentRequestsWithCredentials"] as? Bool {
+            remoteControlConfig.sendSegmentRequestsWithCredentials = sendSegmentRequestsWithCredentials
+        }
+        if let sendDrmLicenseRequestsWithCredentials = json["sendDrmLicenseRequestsWithCredentials"] as? Bool {
+            remoteControlConfig.sendDrmLicenseRequestsWithCredentials = sendDrmLicenseRequestsWithCredentials
+        }
+        return remoteControlConfig
     }
 }
