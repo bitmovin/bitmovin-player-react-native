@@ -500,6 +500,8 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Whether casting to a cast-compatible remote device is available. `CastAvailableEvent` signals when
    * casting becomes available.
+   *
+   * @platform iOS, Android
    */
   isCastAvailable = async (): Promise<boolean> => {
     return PlayerModule.isCastAvailable();
@@ -507,6 +509,8 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Whether video is currently being casted to a remote device and not played locally.
+   *
+   * @platform iOS, Android
    */
   isCasting = async (): Promise<boolean> => {
     return PlayerModule.isCasting(this.nativeId);
@@ -515,6 +519,8 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Initiates casting the current video to a cast-compatible remote device. The user has to choose to which device it
    * should be sent.
+   *
+   * @platform iOS, Android
    */
   castVideo = () => {
     PlayerModule.castVideo(this.nativeId);
@@ -522,6 +528,8 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Stops casting the current video. Has no effect if [isCasting] is false.
+   *
+   * @platform iOS, Android
    */
   castStop = () => {
     PlayerModule.castStop(this.nativeId);
