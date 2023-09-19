@@ -7,6 +7,7 @@
 - `DefaultMetadata` for configuration of the bundled analytics collector
 - `Player.analytics` to access the `AnalyticsApi` and interact with the bundled analytics collector
 - `SourceConfig.analyticsSourceMetadata` for extended configuration of the bundled analytics collector
+- Google Cast SDK support for Android and iOS
 
 ### Changed
 
