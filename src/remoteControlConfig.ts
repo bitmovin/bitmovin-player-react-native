@@ -11,7 +11,7 @@ export interface RemoteControlConfig {
    * A Map containing custom configuration values that are sent to the remote control receiver.
    * Default value is an empty map.
    */
-  customReceiverConfig?: Record<string, string | null>;
+  customReceiverConfig?: Record<string, string>;
   /**
    * Whether casting is enabled.
    * Default value is `true`.
