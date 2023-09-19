@@ -21,6 +21,7 @@ import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
+import com.bitmovin.player.api.event.data.CastPayload
 import com.bitmovin.player.api.event.data.SeekPosition
 import com.bitmovin.player.api.media.AdaptationConfig
 import com.bitmovin.player.api.media.audio.AudioTrack
@@ -564,6 +565,14 @@ class JsonConverter {
                     json.putMap("oldVideoQuality", fromVideoQuality(event.oldVideoQuality))
                 }
 
+                is PlayerEvent.CastWaitingForDevice -> {
+                    json.putMap("castPayload", fromCastPayload(event.castPayload))
+                }
+
+                is PlayerEvent.CastStarted -> {
+                    json.putString("deviceName", event.deviceName)
+                }
+
                 else -> {
                     // Event is not supported yet or does not have any additional data
                 }
@@ -1007,4 +1016,13 @@ class JsonConverter {
             }
         }
     }
+}
+
+/**
+ * Converts a [CastPayload] object into its JS representation.
+ */
+private fun fromCastPayload(castPayload: CastPayload) = Arguments.createMap().apply {
+    putDouble("currentTime", castPayload.currentTime)
+    putString("deviceName", castPayload.deviceName)
+    putString("type", castPayload.type)
 }
