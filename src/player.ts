@@ -527,7 +527,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * Stops casting the current video. Has no effect if [isCasting] is false.
+   * Stops casting the current video. Has no effect if `isCasting` is false.
    *
    * @platform iOS, Android
    */
