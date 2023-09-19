@@ -562,16 +562,22 @@ export interface CastAvailableEvent extends Event {}
 
 /**
  * Emitted when the playback on a cast-compatible device was paused.
+ *
+ * On Android `PausedEvent` is also emitted while casting.
  */
 export interface CastPaused extends Event {}
 
 /**
  * Emitted when the playback on a cast-compatible device has finished.
+ *
+ * On Android `PlaybackFinishedEvent` is also emitted while casting.
  */
 export interface CastPlaybackFinished extends Event {}
 
 /**
  * Emitted when playback on a cast-compatible device has started.
+ *
+ * On Android `PlayingEvent` is also emitted while casting.
  */
 export interface CastPlaying extends Event {}
 
