@@ -919,4 +919,15 @@ extension RCTConvert {
             "height": thumbnail.height,
         ]
     }
+
+    static func castManagerOptions(_ json: Any?) -> BitmovinCastManagerOptions? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        let options = BitmovinCastManagerOptions()
+        options.applicationId = json["applicationId"] as? String
+        options.messageNamespace = json["messageNamespace"] as? String
+        return options
+    }
 }
