@@ -13,3 +13,4 @@ export * from './styleConfig';
 export * from './ui';
 export * from './offline';
 export * from './thumbnail';
+export * from './remoteControlConfig';
