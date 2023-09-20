@@ -969,4 +969,17 @@ extension RCTConvert {
         options.messageNamespace = json["messageNamespace"] as? String
         return options
     }
+
+    /**
+     Utility method to compute a JS value from an `CastPayload` object.
+     - Parameter castPayload `CastPayload` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(castPayload: CastPayload) -> [String: Any?] {
+        return [
+            "currentTime": castPayload.currentTime,
+            "deviceName": castPayload.deviceName,
+            "type": castPayload.type,
+        ]
+    }
 }

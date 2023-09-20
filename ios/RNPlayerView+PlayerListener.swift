@@ -168,4 +168,40 @@ extension RNPlayerView: PlayerListener {
     func onVideoPlaybackQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
         onVideoPlaybackQualityChanged?(event.toJSON())
     }
+
+    func onCastAvailable(_ event: CastAvailableEvent, player: Player) {
+        onCastAvailable?(event.toJSON())
+    }
+
+    func onCastPaused(_ event: CastPausedEvent, player: Player) {
+        onCastPaused?(event.toJSON())
+    }
+
+    func onCastPlaybackFinished(_ event: CastPlaybackFinishedEvent, player: Player) {
+        onCastPlaybackFinished?(event.toJSON())
+    }
+
+    func onCastPlaying(_ event: CastPlayingEvent, player: Player) {
+        onCastPlaying?(event.toJSON())
+    }
+
+    func onCastStarted(_ event: CastStartedEvent, player: Player) {
+        onCastStarted?(event.toJSON())
+    }
+
+    func onCastStart(_ event: CastStartEvent, player: Player) {
+        onCastStart?(event.toJSON())
+    }
+
+    func onCastStopped(_ event: CastStoppedEvent, player: Player) {
+        onCastStopped?(event.toJSON())
+    }
+
+    func onCastTimeUpdated(_ event: CastTimeUpdatedEvent, player: Player) {
+        onCastTimeUpdated?(event.toJSON())
+    }
+
+    func onCastWaitingForDevice(_ event: CastWaitingForDeviceEvent, player: Player) {
+        onCastWaitingForDevice?(event.toJSON())
+    }
 }

@@ -340,3 +340,23 @@ extension VideoDownloadQualityChangedEvent {
         ]
     }
 }
+
+extension CastStartedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "deviceName": deviceName
+        ]
+    }
+}
+
+extension CastWaitingForDeviceEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "castPayload": RCTConvert.toJson(castPayload: castPayload)
+        ]
+    }
+}
