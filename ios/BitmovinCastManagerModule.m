@@ -6,7 +6,7 @@ RCT_EXTERN_METHOD(
     isInitialized:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-    initializeCasting:(nullable id)config
+    initializeCastManager:(nullable id)config
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(sendMessage:(NSString *)message messageNamespace:(nullable NSString *)messageNamespace)

@@ -23,8 +23,8 @@ class BitmovinCastManagerModule: NSObject, RCTBridgeModule {
     /**
      Initializes the BitmovinCastManager with the given options or with no options when none given.
      */
-    @objc(initializeCasting:resolver:rejecter:)
-    func initializeCasting(
+    @objc(initializeCastManager:resolver:rejecter:)
+    func initializeCastManager(
         _ config: Any?,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
