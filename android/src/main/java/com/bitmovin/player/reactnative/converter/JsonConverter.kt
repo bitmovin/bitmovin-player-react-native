@@ -126,7 +126,7 @@ class JsonConverter {
             if (json.hasKey("customReceiverConfig")) {
                 customReceiverConfig = json.getMap("customReceiverConfig")
                     ?.toHashMap()
-                    ?.mapValues { entry -> entry.value as? String? } ?: emptyMap()
+                    ?.mapValues { entry -> entry.value as String } ?: emptyMap()
             }
 
             val isCastEnabled = json.getOrDefault(
