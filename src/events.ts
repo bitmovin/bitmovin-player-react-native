@@ -630,7 +630,7 @@ export interface CastPayload {
  */
 export interface CastWaitingForDeviceEvent extends Event {
   /**
-   * The [CastPayload] object for the event
+   * The `CastPayload` object for the event
    */
   castPayload: CastPayload;
 }
