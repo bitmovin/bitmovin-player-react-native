@@ -17,7 +17,11 @@ function prettyPrint(header: string, obj: any) {
 export default function SubtitlePlayback() {
   useTVGestures();
 
-  const player = usePlayer();
+  const player = usePlayer({
+    remoteControlConfig: {
+      isCastEnabled: false,
+    },
+  });
 
   useFocusEffect(
     useCallback(() => {
