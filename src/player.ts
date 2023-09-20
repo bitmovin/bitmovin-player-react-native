@@ -504,7 +504,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, Android
    */
   isCastAvailable = async (): Promise<boolean> => {
-    return PlayerModule.isCastAvailable();
+    return PlayerModule.isCastAvailable(this.nativeId);
   };
 
   /**
