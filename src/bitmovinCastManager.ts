@@ -54,7 +54,7 @@ export const BitmovinCastManager = {
     if (Platform.OS === 'ios' && Platform.isTV) {
       return Promise.resolve();
     }
-    return BitmovinCastManagerModule.initializeCasting(options);
+    return BitmovinCastManagerModule.initializeCastManager(options);
   },
 
   /**
