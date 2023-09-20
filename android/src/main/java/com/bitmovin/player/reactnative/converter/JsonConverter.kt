@@ -126,7 +126,6 @@ class JsonConverter {
             if (json.hasKey("customReceiverConfig")) {
                 customReceiverConfig = json.getMap("customReceiverConfig")
                     ?.toHashMap()
-                    ?.filterValues { entry -> entry is String  }
                     ?.mapValues { entry -> entry.value as String } ?: emptyMap()
             }
 
