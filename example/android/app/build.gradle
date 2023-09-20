@@ -269,6 +269,8 @@ dependencies {
     }
     implementation project(':bitmovin-player-react-native')
 
+    implementation("com.google.android.gms:play-services-cast-framework:21.3.0")
+
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
         debugImplementation files(hermesPath + "hermes-debug.aar")
