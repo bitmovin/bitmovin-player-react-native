@@ -58,6 +58,20 @@ export const BitmovinCastManager = {
   },
 
   /**
+   * Must be called in every Android Activity to update the context to the current one.
+   * Make sure to call this method on every Android Activity switch.
+   *
+   * @returns A promise that resolves when the context was updated successfully
+   * @platform Android
+   */
+  updateContext: async (): Promise<void> => {
+    if (Platform.OS === 'ios') {
+      return Promise.resolve();
+    }
+    return BitmovinCastManagerModule.updateContext();
+  },
+
+  /**
    * Sends the given message to the cast receiver.
    *
    * @param message The message to be sent
