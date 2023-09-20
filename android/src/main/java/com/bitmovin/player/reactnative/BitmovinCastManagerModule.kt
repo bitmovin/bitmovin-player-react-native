@@ -22,7 +22,9 @@ class BitmovinCastManagerModule(
      * Returns whether the [BitmovinCastManager] is initialized.
      */
     @ReactMethod
-    fun isInitialized() = BitmovinCastManager.isInitialized()
+    fun isInitialized(promise: Promise) = uiManager?.addUIBlock {
+        promise.resolve(BitmovinCastManager.isInitialized())
+    }
 
     /**
      * Initializes the [BitmovinCastManager] with the given options.
