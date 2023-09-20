@@ -269,7 +269,7 @@ extension RCTConvert {
         }
         return sourceConfig
     }
-    
+
     /**
      Utility method to instantiate a `SourceOptions` from a JS object.
      - Parameter json: JS object
@@ -648,7 +648,7 @@ extension RCTConvert {
         }
         let randomizeUserId = json["randomizeUserId"] as? Bool
         let adTrackingDisabled = json["adTrackingDisabled"] as? Bool
-   
+
         let config = AnalyticsConfig(
             licenseKey: key,
             randomizeUserId: randomizeUserId ?? false,
@@ -656,7 +656,7 @@ extension RCTConvert {
         )
         return config
     }
-    
+
     static func analyticsDefaultMetadataFromAnalyticsConfig(_ json: Any?) -> DefaultMetadata? {
         guard
             let analyticsConfigJson = json as? [String: Any?],
@@ -667,7 +667,7 @@ extension RCTConvert {
         let cdnProvider = json["cdnProvider"] as? String
         let customUserId = json["customUserId"] as? String
         let customData = analyticsCustomData(json)
-        
+
         return DefaultMetadata(
             cdnProvider: cdnProvider,
             customUserId: customUserId,
@@ -952,5 +952,21 @@ extension RCTConvert {
             remoteControlConfig.sendDrmLicenseRequestsWithCredentials = sendDrmLicenseRequestsWithCredentials
         }
         return remoteControlConfig
+    }
+
+    /**
+     Utility method to instantiate a `BitmovinCastManagerOptions` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `BitmovinCastManagerOptions` object
+     */
+    static func castManagerOptions(_ json: Any?) -> BitmovinCastManagerOptions? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        let options = BitmovinCastManagerOptions()
+        options.applicationId = json["applicationId"] as? String
+        options.messageNamespace = json["messageNamespace"] as? String
+        return options
     }
 }
