@@ -39,6 +39,7 @@ import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.api.source.TimelineReferencePoint
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
+import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.getOrDefault
@@ -184,7 +185,7 @@ class JsonConverter {
             "end" -> TimelineReferencePoint.End
             else -> null
         }
-        
+
         /**
          * Converts an arbitrary `json` to `AdaptationConfig`.
          * @param json JS object representing the `AdaptationConfig`.
@@ -638,6 +639,19 @@ class JsonConverter {
                 }
             }
             return json
+        }
+
+        /**
+         * Converts an arbitrary `json` into [BitmovinCastManagerOptions].
+         * @param json JS object representing the [BitmovinCastManagerOptions].
+         * @return The generated [BitmovinCastManagerOptions] if successful, `null` otherwise.
+         */
+        fun toCastOptions(json: ReadableMap?): BitmovinCastManagerOptions? {
+            if (json == null) return null
+            return BitmovinCastManagerOptions(
+                json.getOrDefault("applicationId", null),
+                json.getOrDefault("messageNamespace", null)
+            )
         }
 
         /**
