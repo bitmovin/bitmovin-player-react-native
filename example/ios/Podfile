@@ -38,6 +38,7 @@ end
 
 target 'BitmovinPlayerReactNativeExample' do
   setup :ios
+  pod 'google-cast-sdk', '4.8.0'
 end
 
 target 'BitmovinPlayerReactNativeExample-tvOS' do

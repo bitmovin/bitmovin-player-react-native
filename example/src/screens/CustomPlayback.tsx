@@ -16,6 +16,9 @@ const CustomPlayback: React.FC<CustomPlaybackProps> = ({ route }) => {
 
   const player = usePlayer({
     licenseKey: route.params?.licenseKey,
+    remoteControlConfig: {
+      isCastEnabled: false,
+    },
   });
 
   useFocusEffect(

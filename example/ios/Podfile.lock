@@ -80,10 +80,16 @@ PODS:
     - FlipperKit/FlipperKitNetworkPlugin
   - fmt (7.1.3)
   - glog (0.3.5)
+  - google-cast-sdk (4.8.0):
+    - google-cast-sdk/Core (= 4.8.0)
+    - Protobuf (~> 3.13)
+  - google-cast-sdk/Core (4.8.0):
+    - Protobuf (~> 3.13)
   - GoogleAds-IMA-iOS-SDK (3.18.4)
   - GoogleAds-IMA-tvOS-SDK (4.8.2)
   - libevent (2.1.12.1)
   - OpenSSL-Universal (1.1.1100)
+  - Protobuf (3.24.3)
   - RCT-Folly (2021.06.28.00-v2):
     - boost
     - DoubleConversion
@@ -382,6 +388,7 @@ DEPENDENCIES:
   - FlipperKit/SKIOSNetworkPlugin (= 0.151.0)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - google-cast-sdk (= 4.8.0)
   - OpenSSL-Universal (= 1.1.1100)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
@@ -433,9 +440,11 @@ SPEC REPOS:
     - Flipper-Glog
     - Flipper-RSocket
     - FlipperKit
+    - google-cast-sdk
     - GoogleAds-IMA-iOS-SDK
     - GoogleAds-IMA-tvOS-SDK
     - OpenSSL-Universal
+    - Protobuf
     - SocketRocket
     - YogaKit
 
@@ -533,10 +542,12 @@ SPEC CHECKSUMS:
   FlipperKit: feec58b1283d3560c703adc670c45ecf400c48d9
   fmt: 135c0c55547979f715b56dfa54037ececa96d07a
   glog: bac6d5aa2990176cc22d0432fb3e28805d580aeb
+  google-cast-sdk: afeb1aac0744b1bc4f70bc3db8468e33fabbff38
   GoogleAds-IMA-iOS-SDK: b01284e3bf3d64ba948de6692ffda531452c3713
   GoogleAds-IMA-tvOS-SDK: 2dda9d3b34c43003222d3417315fecec22b698a1
   libevent: a6d75fcd7be07cbc5070300ea8dbc8d55dfab88e
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
+  Protobuf: 970f7ee93a3a08e3cf64859b8efd95ee32b4f87f
   RCT-Folly: 6955e7728b76277c5df5a5aba37ee1ff1dd99976
   RCTRequired: 4a18f06da2ea5eb7e1b7334643f988ef76159c9e
   RCTTypeSafety: 3006f0658ff73d9e81a5fde4dbf9e9260a679ab0
@@ -570,6 +581,6 @@ SPEC CHECKSUMS:
   Yoga: be4fede0339d862989f5b064f8939c7429ad92c9
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: ae31af0f37bdf647197475f3f0d4a5a3e93df60c
+PODFILE CHECKSUM: c212c97d06bc742b7a8cc429dd03ec4c059fe021
 
 COCOAPODS: 1.12.1

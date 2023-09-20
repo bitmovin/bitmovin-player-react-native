@@ -22,6 +22,9 @@ export default function SystemUI() {
     styleConfig: {
       userInterfaceType: UserInterfaceType.System,
     },
+    remoteControlConfig: {
+      isCastEnabled: false,
+    },
   });
 
   useFocusEffect(

@@ -88,7 +88,11 @@ export default function OfflinePlayback() {
     prettyPrint(`EVENT`, event);
   }, []);
 
-  const player = usePlayer();
+  const player = usePlayer({
+    remoteControlConfig: {
+      isCastEnabled: false,
+    },
+  });
 
   useFocusEffect(useCallback(() => () => player.destroy(), [player]));
 
