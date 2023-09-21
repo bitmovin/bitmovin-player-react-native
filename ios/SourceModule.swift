@@ -36,11 +36,9 @@ class SourceModule: NSObject, RCTBridgeModule {
     }
 
     func nativeId(where predicate: (Source) -> Bool) -> NativeId? {
-        sources
-            .first { key, value in
-                predicate(value)
-            }?
-            .key
+        sources.first { _, value in
+            predicate(value)
+        }?.key
     }
 
     func retrieveCastSourceConfig(_ nativeId: NativeId) -> SourceConfig? {
