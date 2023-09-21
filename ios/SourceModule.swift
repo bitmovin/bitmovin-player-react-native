@@ -77,8 +77,7 @@ class SourceModule: NSObject, RCTBridgeModule {
             else {
                 return
             }
-            let source = SourceFactory.create(from: sourceConfig, sourceMetadata: sourceMetadata)
-            self?.sources[nativeId] = source
+            self?.sources[nativeId] = SourceFactory.create(from: sourceConfig, sourceMetadata: sourceMetadata)
             if let remoteConfig = RCTConvert.sourceRemotePlaybackConfig(sourceRemotePlaybackConfig){
                 self?.castSourceConfigs[nativeId] = remoteConfig.castSourceConfig
             }
@@ -112,8 +111,7 @@ class SourceModule: NSObject, RCTBridgeModule {
             else {
                 return
             }
-            let source = SourceFactory.create(from: sourceConfig)
-            self?.sources[nativeId] = source
+            self?.sources[nativeId] = SourceFactory.create(from: sourceConfig)
             if let remoteConfig = RCTConvert.sourceRemotePlaybackConfig(sourceRemotePlaybackConfig) {
                 self?.castSourceConfigs[nativeId] = remoteConfig.castSourceConfig
             }
