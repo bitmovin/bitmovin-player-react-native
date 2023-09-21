@@ -35,12 +35,14 @@ class SourceModule: NSObject, RCTBridgeModule {
         sources[nativeId]
     }
 
+    // Finds `NativeId` based on predicate ran on `Source` instances
     func nativeId(where predicate: (Source) -> Bool) -> NativeId? {
         sources.first { _, value in
             predicate(value)
         }?.key
     }
 
+    // Fetches cast-specific `SourceConfig` by `NativeId` if exists
     func retrieveCastSourceConfig(_ nativeId: NativeId) -> SourceConfig? {
         castSourceConfigs[nativeId]
     }
