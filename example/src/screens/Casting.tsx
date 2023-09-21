@@ -17,6 +17,11 @@ function prettyPrint(header: string, obj: any) {
 export default function Casting() {
   BitmovinCastManager.initialize();
 
+  if (Platform.OS === 'android') {
+    // Must be called in every activity on Android
+    BitmovinCastManager.updateContext();
+  }
+
   const player = usePlayer();
 
   useFocusEffect(

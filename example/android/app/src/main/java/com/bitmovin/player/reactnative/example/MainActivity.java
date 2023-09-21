@@ -5,11 +5,19 @@ import androidx.annotation.Nullable;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactRootView;
+import com.google.android.gms.cast.framework.CastContext;
 
 public class MainActivity extends ReactActivity {
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(null);
+    try {
+      // Load Google Cast context eagerly in order to ensure that
+      // the cast state is updated correctly.
+      CastContext.getSharedInstance(this, Runnable::run);
+    } catch (Exception e) {
+      // cast framework not supported
+    }
   }
 
   /**
