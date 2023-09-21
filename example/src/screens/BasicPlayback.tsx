@@ -54,27 +54,28 @@ const MeasurePlayerSeekbar: React.FC<
 
 interface ScrollViewControllerProps {
   seekbarCoordinates: SeekbarCoordinates;
-  onScrollViewEnabledOrDisabled: (enabled: boolean) => void;
+  onScrollViewEnableOrDisable: (enable: boolean) => void;
 }
 
 /**
  * View that receives touch events and calculates if they are happening where the seekbar is laid out.
  * Based on that it can change the `scrollView.isScrollable` prop via the `onScrollViewEnabledOrDisabled` callback.
- * It is important that this view stretches through the whole touchable screen area, so that the scrollView is enabled
- * again if touches happen outside the player view.
+ * This view should be stretched through the whole area where the ScrollView should be scrollable,
+ * so that the scrollView is enabled again if touches happen outside the player view.
  */
 const ScrollViewController: React.FC<
   PropsWithChildren<ScrollViewControllerProps>
-> = ({ children, seekbarCoordinates, onScrollViewEnabledOrDisabled }) => (
+> = ({ children, seekbarCoordinates, onScrollViewEnableOrDisable }) => (
   <View
     onStartShouldSetResponderCapture={(event) => {
       let locationY = event.nativeEvent.locationY;
       let enableScrollView =
         locationY < seekbarCoordinates.yStart ||
         locationY > seekbarCoordinates.yEnd;
-      onScrollViewEnabledOrDisabled(enableScrollView);
+      onScrollViewEnableOrDisable(enableScrollView);
 
-      // Return false to propagate touch event to the children.
+      // Always return false to propagate touch event to the children,
+      // otherwise the player UI doesn't receive touch events.
       return false;
     }}
   >
@@ -139,7 +140,7 @@ export default function BasicPlayback() {
         <ScrollViewController
           key="sampleScreen2"
           seekbarCoordinates={seekbarCoordinates}
-          onScrollViewEnabledOrDisabled={setScrollViewEnabled}
+          onScrollViewEnableOrDisable={setScrollViewEnabled}
         >
           <View style={{ width, backgroundColor: 'yellow', height: height }}>
             <MeasurePlayerSeekbar onMeasured={setSeekbarCoordinates}>
