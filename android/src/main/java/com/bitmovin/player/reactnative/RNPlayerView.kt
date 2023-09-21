@@ -62,6 +62,18 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
     PlayerEvent.AdSkipped::class to "adSkipped",
     PlayerEvent.AdStarted::class to "adStarted",
     PlayerEvent.VideoPlaybackQualityChanged::class to "videoPlaybackQualityChanged",
+    PlayerEvent.CastStart::class to "castStart",
+    @Suppress("DEPRECATION")
+    PlayerEvent.CastPlaybackFinished::class to "castPlaybackFinished",
+    @Suppress("DEPRECATION")
+    PlayerEvent.CastPaused::class to "castPaused",
+    @Suppress("DEPRECATION")
+    PlayerEvent.CastPlaying::class to "castPlaying",
+    PlayerEvent.CastStarted::class to "castStarted",
+    PlayerEvent.CastAvailable::class to "castAvailable",
+    PlayerEvent.CastStopped::class to "castStopped",
+    PlayerEvent.CastWaitingForDevice::class to "castWaitingForDevice",
+    PlayerEvent.CastTimeUpdated::class to "castTimeUpdated",
 )
 
 private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event>, String>(
