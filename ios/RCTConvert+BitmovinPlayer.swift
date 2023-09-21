@@ -1016,17 +1016,12 @@ extension RCTConvert {
     }
 
     static func sourceRemotePlaybackConfig(_ json: Any?) -> SourceRemotePlaybackConfig? {
-        guard let json = json as? [String: Any?] else {
+        guard let json = json as? [String: Any?],
+              let castSourceConfigJson = json["castSourceConfig"] as? [String: Any?],
+              let castSourceConfig = RCTConvert.sourceConfig(json["castSourceConfig"]) else {
             return nil
         }
-
-        let castSourceConfig = RCTConvert.sourceConfig(json["castSourceConfig"])
-        if let castSourceConfigJson = json["castSourceConfig"] as? [String: Any?],
-           let drmConfig = RCTConvert.drmConfig(castSourceConfigJson["drmConfig"]) {
-            castSourceConfig?.drmConfig = drmConfig
-        }
-        return SourceRemotePlaybackConfig(
-            castSourceConfig: castSourceConfig
-        )
+        castSourceConfig.drmConfig = RCTConvert.drmConfig(castSourceConfigJson["drmConfig"])
+        return SourceRemotePlaybackConfig(castSourceConfig: castSourceConfig)
     }
 }
