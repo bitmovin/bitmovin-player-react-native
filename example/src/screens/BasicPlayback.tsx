@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { PropsWithChildren, useCallback, useState } from 'react';
 import {
   View,
   Platform,
@@ -18,6 +18,69 @@ import { useTVGestures } from '../hooks';
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
 }
+
+/**
+ * Calculated Y-coordinates where the seekbar is located on the screen
+ */
+interface SeekbarCoordinates {
+  yStart: number;
+  yEnd: number;
+}
+
+interface MeasurePlayerSeekbarProps {
+  onMeasured: (seekbarCoordinates: SeekbarCoordinates) => void;
+}
+
+/**
+ * View that wraps around the PlayerView, measures it and calculates the position of the seekbar on the screen.
+ */
+const MeasurePlayerSeekbar: React.FC<
+  PropsWithChildren<MeasurePlayerSeekbarProps>
+> = ({ children, onMeasured }) => (
+  <View
+    onLayout={(event) => {
+      let layout = event.nativeEvent.layout;
+      let seekbarHeight = 40;
+      let seekbarPosition = {
+        yStart: layout.y + layout.height - seekbarHeight,
+        yEnd: layout.y + layout.height,
+      };
+      onMeasured(seekbarPosition);
+    }}
+  >
+    {children}
+  </View>
+);
+
+interface ScrollViewControllerProps {
+  seekbarCoordinates: SeekbarCoordinates;
+  onScrollViewEnabledOrDisabled: (enabled: boolean) => void;
+}
+
+/**
+ * View that receives touch events and calculates if they are happening where the seekbar is laid out.
+ * Based on that it can change the `scrollView.isScrollable` prop via the `onScrollViewEnabledOrDisabled` prop.
+ * It is important that this view stretches through the whole touchable screen area, so that the scrollView is enabled
+ * again if touches happen outside the player view.
+ */
+const ScrollViewController: React.FC<
+  PropsWithChildren<ScrollViewControllerProps>
+> = ({ children, seekbarCoordinates, onScrollViewEnabledOrDisabled }) => (
+  <View
+    onStartShouldSetResponderCapture={(event) => {
+      let locationY = event.nativeEvent.locationY;
+      let enableScrollView =
+        locationY < seekbarCoordinates.yStart ||
+        locationY > seekbarCoordinates.yEnd;
+      onScrollViewEnabledOrDisabled(enableScrollView);
+
+      // Return false to propagate touch event to the children.
+      return false;
+    }}
+  >
+    {children}
+  </View>
+);
 
 export default function BasicPlayback() {
   useTVGestures();
@@ -54,14 +117,10 @@ export default function BasicPlayback() {
   }, []);
 
   const { width, height } = useWindowDimensions();
-  interface PlayerControlPosition {
-    yStart: number;
-    yEnd: number;
-  }
 
-  let [isScrollEnabled, setScrollEnabled] = useState(true);
-  let [playerControlPosition, setPlayerControlPosition] =
-    useState<PlayerControlPosition>({
+  let [isScrollViewEnabled, setScrollViewEnabled] = useState(true);
+  let [seekbarCoordinates, setSeekbarCoordinates] =
+    useState<SeekbarCoordinates>({
       yStart: 0,
       yEnd: 0,
     });
@@ -71,55 +130,38 @@ export default function BasicPlayback() {
       <ScrollView
         horizontal
         pagingEnabled={true}
-        scrollEnabled={isScrollEnabled}
+        scrollEnabled={isScrollViewEnabled}
       >
         <View
+          key="sampleScreen1"
           style={{ width: width, height: height, backgroundColor: 'red' }}
         />
-        <View
-          onStartShouldSetResponderCapture={(event) => {
-            if (
-              event.nativeEvent.locationY > playerControlPosition.yStart &&
-              event.nativeEvent.locationY < playerControlPosition.yEnd
-            ) {
-              setScrollEnabled(false);
-            } else {
-              setScrollEnabled(true);
-            }
-            return false;
-          }}
-          style={{ width, backgroundColor: 'yellow', height: height }}
+        <ScrollViewController
+          key="sampleScreen2"
+          seekbarCoordinates={seekbarCoordinates}
+          onScrollViewEnabledOrDisabled={setScrollViewEnabled}
         >
-          <View
-            style={{ height: 'auto', width: 'auto' }}
-            onLayout={(event) => {
-              let layout = event.nativeEvent.layout;
-              let controlsHeight = 35;
-              let newPosition = {
-                yStart: layout.y + layout.height - controlsHeight,
-                yEnd: layout.y + layout.height,
-              };
-              setPlayerControlPosition(newPosition);
-              console.log('calculated position', newPosition);
-            }}
-          >
-            <PlayerView
-              style={{ width, height: (width * 9) / 16 }}
-              player={player}
-              onPlay={onEvent}
-              onPlaying={onEvent}
-              onPaused={onEvent}
-              onReady={onReady}
-              onSourceLoaded={onEvent}
-              onSeek={onEvent}
-              onSeeked={onEvent}
-              onStallStarted={onEvent}
-              onStallEnded={onEvent}
-              onVideoPlaybackQualityChanged={onEvent}
-            />
+          <View style={{ width, backgroundColor: 'yellow', height: height }}>
+            <MeasurePlayerSeekbar onMeasured={setSeekbarCoordinates}>
+              <PlayerView
+                style={{ width, height: (width * 9) / 16 }}
+                player={player}
+                onPlay={onEvent}
+                onPlaying={onEvent}
+                onPaused={onEvent}
+                onReady={onReady}
+                onSourceLoaded={onEvent}
+                onSeek={onEvent}
+                onSeeked={onEvent}
+                onStallStarted={onEvent}
+                onStallEnded={onEvent}
+                onVideoPlaybackQualityChanged={onEvent}
+              />
+            </MeasurePlayerSeekbar>
           </View>
-        </View>
+        </ScrollViewController>
         <View
+          key="sampleScreen3"
           style={{ width: width, height: height, backgroundColor: 'blue' }}
         />
       </ScrollView>
