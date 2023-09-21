@@ -45,21 +45,12 @@ class PlayerModule: NSObject, RCTBridgeModule {
             else {
                 return
             }
-            let player = PlayerFactory.create(playerConfig: playerConfig)
-            self?.players[nativeId] = player
 
-            playerConfig.remoteControlConfig.prepareSource = { [weak self] type, sourceConfig in
-                guard let sourceModule = self?.bridge[SourceModule.self],
-                      let sourceNativeId = sourceModule.nativeId(where: { $0.sourceConfig === sourceConfig }),
-                      let castSourceConfig = sourceModule.retrieveCastSourceConfig(sourceNativeId) else {
-                    return nil
-                }
-
-                return castSourceConfig
-            }
+            self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
+            self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
         }
     }
-    
+
     /**
      Creates a new analytics enabled `Player` instance inside the internal players using the provided `config` and `analyticsConfig` object.
      - Parameter config: `PlayerConfig` object received from JS.
@@ -77,23 +68,13 @@ class PlayerModule: NSObject, RCTBridgeModule {
                 return
             }
 
+            self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
             let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfigJson)
-            let player = PlayerFactory.create(
+            self?.players[nativeId] = PlayerFactory.create(
                 playerConfig: playerConfig,
                 analyticsConfig: analyticsConfig,
                 defaultMetadata: defaultMetadata ?? DefaultMetadata()
             )
-            self?.players[nativeId] = player
-
-            playerConfig.remoteControlConfig.prepareSource = { [weak self] type, sourceConfig in
-                guard let sourceModule = self?.bridge[SourceModule.self],
-                      let sourceNativeId = sourceModule.nativeId(where: { $0.sourceConfig === sourceConfig }),
-                      let castSourceConfig = sourceModule.retrieveCastSourceConfig(sourceNativeId) else {
-                    return nil
-                }
-
-                return castSourceConfig
-            }
         }
     }
 
@@ -683,6 +664,18 @@ class PlayerModule: NSObject, RCTBridgeModule {
     func castStop(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             self?.players[nativeId]?.castStop()
+        }
+    }
+
+    private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {
+        remoteControlConfig.prepareSource = { [weak self] type, sourceConfig in
+            guard let sourceModule = self?.bridge[SourceModule.self],
+                  let sourceNativeId = sourceModule.nativeId(where: { $0.sourceConfig === sourceConfig }),
+                  let castSourceConfig = sourceModule.retrieveCastSourceConfig(sourceNativeId) else {
+                return nil
+            }
+
+            return castSourceConfig
         }
     }
 }
