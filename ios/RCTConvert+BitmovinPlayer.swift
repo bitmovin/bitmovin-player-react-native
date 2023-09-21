@@ -983,6 +983,11 @@ extension RCTConvert {
         ]
     }
 
+    /**
+     Utility method to instantiate a `SourceRemotePlaybackConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `SourceRemotePlaybackConfig` object
+     */
     static func sourceRemotePlaybackConfig(_ json: Any?) -> SourceRemotePlaybackConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
