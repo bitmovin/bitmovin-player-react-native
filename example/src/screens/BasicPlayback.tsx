@@ -59,7 +59,7 @@ interface ScrollViewControllerProps {
 
 /**
  * View that receives touch events and calculates if they are happening where the seekbar is laid out.
- * Based on that it can change the `scrollView.isScrollable` prop via the `onScrollViewEnabledOrDisabled` prop.
+ * Based on that it can change the `scrollView.isScrollable` prop via the `onScrollViewEnabledOrDisabled` callback.
  * It is important that this view stretches through the whole touchable screen area, so that the scrollView is enabled
  * again if touches happen outside the player view.
  */
