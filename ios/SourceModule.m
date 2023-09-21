@@ -2,8 +2,15 @@
 
 @interface RCT_EXTERN_REMAP_MODULE(SourceModule, SourceModule, NSObject)
 
-RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId drmNativeId:(NSString *)drmNativeId config:(nullable id)config)
-RCT_EXTERN_METHOD(initWithAnalyticsConfig:(NSString *)nativeId drmNativeId:(NSString *)drmNativeId config:(nullable id)config analyticsSourceMetadata:(nullable id)analyticsSourceMetadata)
+RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId
+                  drmNativeId:(NSString *)drmNativeId
+                  config:(nullable id)config
+                  sourceRemotePlaybackConfig:(id)remotePlayback)
+RCT_EXTERN_METHOD(initWithAnalyticsConfig:(NSString *)nativeId
+                  drmNativeId:(NSString *)drmNativeId
+                  config:(nullable id)config
+                  sourceRemotePlaybackConfig:(id)remotePlayback
+                  analyticsSourceMetadata:(nullable id)analyticsSourceMetadata)
 RCT_EXTERN_METHOD(destroy:(NSString *)nativeId)
 RCT_EXTERN_METHOD(
     isAttachedToPlayer:(NSString *)nativeId

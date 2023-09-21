@@ -53,6 +53,7 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
         nativeId: NativeId,
         drmNativeId: NativeId?,
         config: ReadableMap?,
+        remotePlaybackJson: ReadableMap?,
         analyticsSourceMetadata: ReadableMap?
     ) {
         uiManager()?.addUIBlock {
@@ -75,6 +76,7 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
         nativeId: NativeId,
         drmNativeId: NativeId?,
         config: ReadableMap?,
+        remotePlaybackJson: ReadableMap?
     ) {
         uiManager()?.addUIBlock {
             initializeSource(nativeId, drmNativeId, config) { sourceConfig ->

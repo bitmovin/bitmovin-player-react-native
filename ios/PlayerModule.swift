@@ -45,7 +45,18 @@ class PlayerModule: NSObject, RCTBridgeModule {
             else {
                 return
             }
-            self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
+            let player = PlayerFactory.create(playerConfig: playerConfig)
+            self?.players[nativeId] = player
+
+            playerConfig.remoteControlConfig.prepareSource = { [weak self] type, sourceConfig in
+                guard let sourceModule = self?.bridge[SourceModule.self],
+                      let sourceNativeId = sourceModule.nativeId(where: { $0.sourceConfig === sourceConfig }),
+                      let castSourceConfig = sourceModule.retrieveCastSourceConfig(sourceNativeId) else {
+                    return nil
+                }
+
+                return castSourceConfig
+            }
         }
     }
     
@@ -65,12 +76,24 @@ class PlayerModule: NSObject, RCTBridgeModule {
             else {
                 return
             }
+
             let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfigJson)
-            self?.players[nativeId] = PlayerFactory.create(
+            let player = PlayerFactory.create(
                 playerConfig: playerConfig,
                 analyticsConfig: analyticsConfig,
                 defaultMetadata: defaultMetadata ?? DefaultMetadata()
             )
+            self?.players[nativeId] = player
+
+            playerConfig.remoteControlConfig.prepareSource = { [weak self] type, sourceConfig in
+                guard let sourceModule = self?.bridge[SourceModule.self],
+                      let sourceNativeId = sourceModule.nativeId(where: { $0.sourceConfig === sourceConfig }),
+                      let castSourceConfig = sourceModule.retrieveCastSourceConfig(sourceNativeId) else {
+                    return nil
+                }
+
+                return castSourceConfig
+            }
         }
     }
 

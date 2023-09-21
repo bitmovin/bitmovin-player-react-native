@@ -982,4 +982,14 @@ extension RCTConvert {
             "type": castPayload.type,
         ]
     }
+
+    static func sourceRemotePlaybackConfig(_ json: Any?) -> SourceRemotePlaybackConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        return SourceRemotePlaybackConfig(
+            castSourceConfig: RCTConvert.sourceConfig(json["castSourceConfig"])
+        )
+    }
 }
