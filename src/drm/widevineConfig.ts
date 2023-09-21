@@ -10,7 +10,7 @@ export interface WidevineConfig {
   /**
    * A map containing the HTTP request headers, or null.
    */
-  httpHeaders: Record<string, string>;
+  httpHeaders?: Record<string, string>;
   /**
    * A block to prepare the data which is sent as the body of the POST license request.
    * As many DRM providers expect different, vendor-specific messages, this can be done using
@@ -45,5 +45,5 @@ export interface WidevineConfig {
    * as the same DRM scheme information.
    * Default: `false`
    */
-  shouldKeepDrmSessionsAlive: boolean;
+  shouldKeepDrmSessionsAlive?: boolean;
 }
