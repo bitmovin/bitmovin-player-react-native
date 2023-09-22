@@ -169,6 +169,7 @@ extension RNPlayerView: PlayerListener {
         onVideoPlaybackQualityChanged?(event.toJSON())
     }
 
+#if os(iOS)
     func onCastAvailable(_ event: CastAvailableEvent, player: Player) {
         onCastAvailable?(event.toJSON())
     }
@@ -200,8 +201,8 @@ extension RNPlayerView: PlayerListener {
     func onCastTimeUpdated(_ event: CastTimeUpdatedEvent, player: Player) {
         onCastTimeUpdated?(event.toJSON())
     }
-
     func onCastWaitingForDevice(_ event: CastWaitingForDeviceEvent, player: Player) {
         onCastWaitingForDevice?(event.toJSON())
     }
+#endif
 }

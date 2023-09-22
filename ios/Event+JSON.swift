@@ -351,6 +351,7 @@ extension CastStartedEvent {
     }
 }
 
+#if os(iOS)
 extension CastWaitingForDeviceEvent {
     func toJSON() -> [AnyHashable: Any] {
         [
@@ -360,3 +361,4 @@ extension CastWaitingForDeviceEvent {
         ]
     }
 }
+#endif

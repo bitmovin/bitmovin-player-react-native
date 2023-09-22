@@ -45,8 +45,9 @@ class PlayerModule: NSObject, RCTBridgeModule {
             else {
                 return
             }
-
+#if os(iOS)
             self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
+#endif
             self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
         }
     }
@@ -67,8 +68,9 @@ class PlayerModule: NSObject, RCTBridgeModule {
             else {
                 return
             }
-
+#if os(iOS)
             self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
+#endif
             let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfigJson)
             self?.players[nativeId] = PlayerFactory.create(
                 playerConfig: playerConfig,

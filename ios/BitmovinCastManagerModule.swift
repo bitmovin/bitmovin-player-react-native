@@ -29,6 +29,7 @@ class BitmovinCastManagerModule: NSObject, RCTBridgeModule {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
+#if os(iOS)
         bridge.uiManager.addUIBlock { _, _ in
             if let config = config {
                 guard let options = RCTConvert.castManagerOptions(config) else {
@@ -42,6 +43,7 @@ class BitmovinCastManagerModule: NSObject, RCTBridgeModule {
                 resolve(nil)
             }
         }
+#endif
     }
 
     /**
@@ -55,7 +57,11 @@ class BitmovinCastManagerModule: NSObject, RCTBridgeModule {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { _, _ in
+#if os(iOS)
             resolve(BitmovinCastManager.isInitialized())
+#else
+            resolve(false)
+#endif
         }
     }
 
@@ -68,8 +74,10 @@ class BitmovinCastManagerModule: NSObject, RCTBridgeModule {
         _ message: String,
         messageNamespace: String?
     ) {
+#if os(iOS)
         bridge.uiManager.addUIBlock { _, _ in
             BitmovinCastManager.sharedInstance().sendMessage(message, withNamespace: messageNamespace)
         }
+#endif
     }
 }

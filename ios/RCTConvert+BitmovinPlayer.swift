@@ -31,9 +31,11 @@ extension RCTConvert {
         if let adaptationConfig = RCTConvert.adaptationConfig(json["adaptationConfig"]) {
             playerConfig.adaptationConfig = adaptationConfig
         }
+#if os(iOS)
         if let remoteControlConfig = RCTConvert.remoteControlConfig(json["remoteControlConfig"]) {
             playerConfig.remoteControlConfig = remoteControlConfig
         }
+#endif
         return playerConfig
     }
 
@@ -983,6 +985,7 @@ extension RCTConvert {
         return remoteControlConfig
     }
 
+#if os(iOS)
     /**
      Utility method to instantiate a `BitmovinCastManagerOptions` from a JS object.
      - Parameter json: JS object
@@ -1029,4 +1032,5 @@ extension RCTConvert {
             )
         )
     }
+#endif
 }
