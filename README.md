@@ -1,6 +1,6 @@
 # Bitmovin Player React Native
 
-Official React Native bindings for Bitmovin's mobile Player SDKs.
+This is an open-source project created to enable customers to integrate the Bitmovin mobile Player SDKs into React Native projects. It has been created to provide customers with a starting point, which can be built upon through active collaboration and contributions. We look forward to seeing this library expand and grow.
 
 [![Build](https://github.com/bitmovin/bitmovin-player-react-native/actions/workflows/ci.yml/badge.svg)](https://github.com/bitmovin/bitmovin-player-react-native/actions/workflows/ci.yml)
 ![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20tvOS%20%7C%20Android%20%7C%20Android%20TV-lightgrey.svg)
@@ -12,14 +12,12 @@ Official React Native bindings for Bitmovin's mobile Player SDKs.
 
 > As the library is under active development, this means certain features from our native SDKs are not yet exposed through these React Native bindings.
 
-- [Bitmovin Player React Native](#bitmovin-player-react-native)
-  - [Platform Support](#platform-support)
-  - [Feature Support](#feature-support)
-  - [Documentation](#documentation)
-    - [Getting Started](#getting-started-guide)
-    - [Feature Guides](#feature-guides)
-    - [Sample Application](#sample-application)
-  - [Contributing](#contributing)
+## Maintenance and Updates
+As an open source project, this library is not part of a regular maintenance or update schedule and is updated on an adhoc basis when contributions are made.
+
+## Contributions to this project
+
+We are pleased to accept any and all changes, updates and fixes from the community wishing to use and expand this project. Bitmovin will review any pull requests made. We do our best to provide timely feedback, but please note that no SLAs apply. New releases are tagged and published on our discretion. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details on how to contribute.
 
 ## Platform Support
 
@@ -37,6 +35,11 @@ Please note that browsers and other browser-like environments such as webOS and 
 
 Please refer to the [Features](https://developer.bitmovin.com/playback/docs/react-native-introduction#features) section of our documentation for an up-to-date list of supported Player features.
 
+## Raising a Feature Suggestion
+As an open-source project, we are pleased to accept any and all changes, updates and fixes from the community wishing to use and expand this project. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details on how to contribute.
+If you see something missing that might be useful but dont want to contribute, please feel free to share your idea with us by visiting the [Bitmovin community](https://community.bitmovin.com/t/how-to-submit-a-feature-request-to-us/1463) and submitting your ideas as a feature insight.
+  
+
 ## Documentation
 
 ### Getting Started Guide
@@ -51,6 +54,12 @@ Check out our [React Native Guides](https://developer.bitmovin.com/playback/docs
 
 In the [/example/](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) folder you can find a sample application showcasing many of the features of the Player React Native SDK.
 
-## Contributing
+## Reporting player bugs
+If you come across a bug related to the player SDK or the react native wrapper, please raise this through your support ticketing system accessible through your [Bitmovin Dashboard](https://dashboard.bitmovin.com/).
 
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+## Need more help?
+Should you need help updating this project and can't contribute for any reason, please raise your request to your Bitmovin account team to discuss your request. We can assist in a number of ways, from providing you professional services help to putting you in touch with preferred system integrators who can work with you to achieve your goals.
+
+## Support and SLA Disclaimer
+As an open-source project and not a core product offering, any request, issue or query related to this project is excluded from any SLA and Support terms that a customer might have with either Bitmovin or another third-party service provider or Company contributing to this project. Any and all updates are purely at the contributor's discretion.
+
