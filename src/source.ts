@@ -137,7 +137,7 @@ export interface SourceConfig extends NativeInstanceConfig {
 }
 
 /**
- * The remote playback config for a source.
+ * The remote control config for a source.
  * @platform iOS
  */
 export interface SourceRemoteControlConfig {
@@ -160,7 +160,7 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   drm?: Drm;
   /**
-   * The remote playback config for this source.
+   * The remote control config for this source.
    * This is only supported on iOS.
    *
    * @platform iOS

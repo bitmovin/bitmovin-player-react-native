@@ -53,6 +53,7 @@ class SourceModule: NSObject, RCTBridgeModule {
      - Parameter drmNativeId: ID of the DRM config object to use.
      - Parameter config: `SourceConfig` object received from JS.
      - Parameter analyticsSourceMetadata: `SourceMetadata` object received from JS.
+     - Parameter sourceRemoteControlConfig: `SourceRemoteControlConfig` object received from JS.
      */
     @objc(initWithAnalyticsConfig:drmNativeId:config:sourceRemoteControlConfig:analyticsSourceMetadata:)
     func initWithAnalyticsConfig(
@@ -89,6 +90,7 @@ class SourceModule: NSObject, RCTBridgeModule {
      - Parameter nativeId: ID to be associated with the `Source` instance.
      - Parameter drmNativeId: ID of the DRM config object to use.
      - Parameter config: `SourceConfig` object received from JS.
+     - Parameter sourceRemoteControlConfig: `SourceRemoteControlConfig` object received from JS.
      */
     @objc(initWithConfig:drmNativeId:config:sourceRemoteControlConfig:)
     func initWithConfig(
