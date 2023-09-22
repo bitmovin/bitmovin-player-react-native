@@ -140,7 +140,7 @@ export interface SourceConfig extends NativeInstanceConfig {
  * The remote playback config for a source.
  * @platform iOS
  */
-export interface SourceRemotePlaybackConfig {
+export interface SourceRemoteControlConfig {
   /**
    * The `SourceConfig` for casting.
    * Enables to play different content when casting.
@@ -165,7 +165,7 @@ export class Source extends NativeInstance<SourceConfig> {
    *
    * @platform iOS
    */
-  remotePlayback: SourceRemotePlaybackConfig | null = null;
+  remotePlayback: SourceRemoteControlConfig | null = null;
   /**
    * Whether the native `Source` object has been created.
    */
