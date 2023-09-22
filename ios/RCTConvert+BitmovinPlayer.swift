@@ -31,6 +31,11 @@ extension RCTConvert {
         if let adaptationConfig = RCTConvert.adaptationConfig(json["adaptationConfig"]) {
             playerConfig.adaptationConfig = adaptationConfig
         }
+#if os(iOS)
+        if let remoteControlConfig = RCTConvert.remoteControlConfig(json["remoteControlConfig"]) {
+            playerConfig.remoteControlConfig = remoteControlConfig
+        }
+#endif
         return playerConfig
     }
 
@@ -225,7 +230,7 @@ extension RCTConvert {
      - Parameter json: JS object
      - Returns: The produced `SourceConfig` object
      */
-    static func sourceConfig(_ json: Any?, drmConfig: FairplayConfig? = nil) -> SourceConfig? {
+    static func sourceConfig(_ json: Any?, drmConfig: DrmConfig? = nil) -> SourceConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
         }
@@ -266,7 +271,7 @@ extension RCTConvert {
         }
         return sourceConfig
     }
-    
+
     /**
      Utility method to instantiate a `SourceOptions` from a JS object.
      - Parameter json: JS object
@@ -333,30 +338,59 @@ extension RCTConvert {
     }
 
     /**
+     Utility method to get a `DrmConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The generated `DrmConfig` object
+     */
+    static func drmConfig(_ json: Any?) -> (fairplay: FairplayConfig?, widevine: WidevineConfig?) {
+        guard let json = json as? [String: Any?] else {
+            return (nil, nil)
+        }
+        return (
+            fairplay: RCTConvert.fairplayConfig(json["fairplay"]),
+            widevine: RCTConvert.widevineConfig(json["widevine"])
+        )
+    }
+
+    /**
      Utility method to get a `FairplayConfig` from a JS object.
      - Parameter json: JS object
      - Returns: The generated `FairplayConfig` object
      */
     static func fairplayConfig(_ json: Any?) -> FairplayConfig? {
-        guard
-            let json = json as? [String: Any?],
-            let fairplayJson = json["fairplay"] as? [String: Any?],
-            let licenseURL = fairplayJson["licenseUrl"] as? String,
-            let certificateURL = fairplayJson["certificateUrl"] as? String
-        else {
+        guard let json = json as? [String: Any?],
+            let licenseURL = json["licenseUrl"] as? String,
+            let certificateURL = json["certificateUrl"] as? String else {
             return nil
         }
         let fairplayConfig = FairplayConfig(
             license: URL(string: licenseURL),
             certificateURL: URL(string: certificateURL)!
         )
-        if let licenseRequestHeaders = fairplayJson["licenseRequestHeaders"] as? [String: String] {
+        if let licenseRequestHeaders = json["licenseRequestHeaders"] as? [String: String] {
             fairplayConfig.licenseRequestHeaders = licenseRequestHeaders
         }
-        if let certificateRequestHeaders = fairplayJson["certificateRequestHeaders"] as? [String: String] {
+        if let certificateRequestHeaders = json["certificateRequestHeaders"] as? [String: String] {
             fairplayConfig.certificateRequestHeaders = certificateRequestHeaders
         }
         return fairplayConfig
+    }
+
+    /**
+     Utility method to get a `WidevineConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The generated `WidevineConfig` object
+     */
+    static func widevineConfig(_ json: Any?) -> WidevineConfig? {
+        guard let json = json as? [String: Any?],
+            let licenseURL = json["licenseUrl"] as? String else {
+            return nil
+        }
+        let widevineConfig = WidevineConfig(license: URL(string: licenseURL))
+        if let licenseRequestHeaders = json["httpHeaders"] as? [String: String] {
+            widevineConfig.licenseRequestHeaders = licenseRequestHeaders
+        }
+        return widevineConfig
     }
 
     /**
@@ -645,7 +679,7 @@ extension RCTConvert {
         }
         let randomizeUserId = json["randomizeUserId"] as? Bool
         let adTrackingDisabled = json["adTrackingDisabled"] as? Bool
-   
+
         let config = AnalyticsConfig(
             licenseKey: key,
             randomizeUserId: randomizeUserId ?? false,
@@ -653,7 +687,7 @@ extension RCTConvert {
         )
         return config
     }
-    
+
     static func analyticsDefaultMetadataFromAnalyticsConfig(_ json: Any?) -> DefaultMetadata? {
         guard
             let analyticsConfigJson = json as? [String: Any?],
@@ -664,7 +698,7 @@ extension RCTConvert {
         let cdnProvider = json["cdnProvider"] as? String
         let customUserId = json["customUserId"] as? String
         let customData = analyticsCustomData(json)
-        
+
         return DefaultMetadata(
             cdnProvider: cdnProvider,
             customUserId: customUserId,
@@ -919,4 +953,84 @@ extension RCTConvert {
             "height": thumbnail.height,
         ]
     }
+
+    /**
+     Utility method to instantiate a `RemoteControlConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `RemoteControlConfig` object
+     */
+    static func remoteControlConfig(_ json: Any?) -> RemoteControlConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let remoteControlConfig = RemoteControlConfig()
+        if let receiverStylesheetUrl = RCTConvert.nsurl(json["receiverStylesheetUrl"]) {
+            remoteControlConfig.receiverStylesheetUrl = receiverStylesheetUrl
+        }
+        if let customReceiverConfig = json["customReceiverConfig"] as? [String: String] {
+            remoteControlConfig.customReceiverConfig = customReceiverConfig
+        }
+        if let isCastEnabled = json["isCastEnabled"] as? Bool {
+            remoteControlConfig.isCastEnabled = isCastEnabled
+        }
+        if let sendManifestRequestsWithCredentials = json["sendManifestRequestsWithCredentials"] as? Bool {
+            remoteControlConfig.sendManifestRequestsWithCredentials = sendManifestRequestsWithCredentials
+        }
+        if let sendSegmentRequestsWithCredentials = json["sendSegmentRequestsWithCredentials"] as? Bool {
+            remoteControlConfig.sendSegmentRequestsWithCredentials = sendSegmentRequestsWithCredentials
+        }
+        if let sendDrmLicenseRequestsWithCredentials = json["sendDrmLicenseRequestsWithCredentials"] as? Bool {
+            remoteControlConfig.sendDrmLicenseRequestsWithCredentials = sendDrmLicenseRequestsWithCredentials
+        }
+        return remoteControlConfig
+    }
+
+#if os(iOS)
+    /**
+     Utility method to instantiate a `BitmovinCastManagerOptions` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `BitmovinCastManagerOptions` object
+     */
+    static func castManagerOptions(_ json: Any?) -> BitmovinCastManagerOptions? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        let options = BitmovinCastManagerOptions()
+        options.applicationId = json["applicationId"] as? String
+        options.messageNamespace = json["messageNamespace"] as? String
+        return options
+    }
+
+    /**
+     Utility method to compute a JS value from an `CastPayload` object.
+     - Parameter castPayload `CastPayload` object to be converted.
+     - Returns: The produced JS object.
+     */
+    static func toJson(castPayload: CastPayload) -> [String: Any?] {
+        return [
+            "currentTime": castPayload.currentTime,
+            "deviceName": castPayload.deviceName,
+            "type": castPayload.type,
+        ]
+    }
+
+    /**
+     Utility method to instantiate a `SourceRemoteControlConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `SourceRemoteControlConfig` object
+     */
+    static func sourceRemoteControlConfig(_ json: Any?) -> SourceRemoteControlConfig? {
+        guard let json = json as? [String: Any?],
+              let castSourceConfigJson = json["castSourceConfig"] as? [String: Any?] else {
+            return nil
+        }
+        return SourceRemoteControlConfig(
+            castSourceConfig: RCTConvert.sourceConfig(
+                json["castSourceConfig"],
+                drmConfig: RCTConvert.drmConfig(castSourceConfigJson["drmConfig"]).widevine
+            )
+        )
+    }
+#endif
 }

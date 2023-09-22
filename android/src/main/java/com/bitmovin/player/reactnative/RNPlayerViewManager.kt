@@ -113,6 +113,15 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "fullscreenDisabled" to "onFullscreenDisabled",
         "fullscreenEnter" to "onFullscreenEnter",
         "fullscreenExit" to "onFullscreenExit",
+        "castStart" to "onCastStart",
+        "castPlaybackFinished" to "onCastPlaybackFinished",
+        "castPaused" to "onCastPaused",
+        "castPlaying" to "onCastPlaying",
+        "castStarted" to "onCastStarted",
+        "castAvailable" to "onCastAvailable",
+        "castStopped" to "onCastStopped",
+        "castWaitingForDevice" to "onCastWaitingForDevice",
+        "castTimeUpdated" to "onCastTimeUpdated",
     )
 
     /**

@@ -8,6 +8,9 @@ class SourceModule: NSObject, RCTBridgeModule {
     /// In-memory mapping from `nativeId`s to `Source` instances.
     private var sources: Registry<Source> = [:]
 
+    /// In-memory mapping from `nativeId`s to `SourceConfig` instances for casting.
+    private var castSourceConfigs: Registry<SourceConfig> = [:]
+
     /// JS module name.
     static func moduleName() -> String! {
         "SourceModule"
@@ -32,31 +35,55 @@ class SourceModule: NSObject, RCTBridgeModule {
         sources[nativeId]
     }
 
+    // Finds `NativeId` based on predicate ran on `Source` instances
+    func nativeId(where predicate: (Source) -> Bool) -> NativeId? {
+        sources.first { _, value in
+            predicate(value)
+        }?.key
+    }
+
+    // Fetches cast-specific `SourceConfig` by `NativeId` if exists
+    func retrieveCastSourceConfig(_ nativeId: NativeId) -> SourceConfig? {
+        castSourceConfigs[nativeId]
+    }
+
     /**
      Creates a new `Source` instance inside the internal sources using the provided `config` and `analyticsSourceMetadata` object and an optionally initialized DRM configuration ID.
      - Parameter nativeId: ID to be associated with the `Source` instance.
      - Parameter drmNativeId: ID of the DRM config object to use.
      - Parameter config: `SourceConfig` object received from JS.
      - Parameter analyticsSourceMetadata: `SourceMetadata` object received from JS.
+     - Parameter sourceRemoteControlConfig: `SourceRemoteControlConfig` object received from JS.
      */
-    @objc(initWithAnalyticsConfig:drmNativeId:config:analyticsSourceMetadata:)
-    func initWithAnalyticsConfig(_ nativeId: NativeId, drmNativeId: NativeId?, config: Any?, analyticsSourceMetadata: Any?) {
+    @objc(initWithAnalyticsConfig:drmNativeId:config:sourceRemoteControlConfig:analyticsSourceMetadata:)
+    func initWithAnalyticsConfig(
+        _ nativeId: NativeId,
+        drmNativeId: NativeId?,
+        config: Any?,
+        sourceRemoteControlConfig: Any?,
+        analyticsSourceMetadata: Any?
+    ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            let fairplayConfig: FairplayConfig?
+            let drmConfig: DrmConfig?
             if let drmNativeId = drmNativeId {
-                fairplayConfig = self?.getDrmModule()?.retrieve(drmNativeId)
+                drmConfig = self?.getDrmModule()?.retrieve(drmNativeId)
             } else {
-                fairplayConfig = nil
+                drmConfig = nil
             }
 
             guard
                 self?.sources[nativeId] == nil,
-                let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: fairplayConfig),
+                let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig),
                 let sourceMetadata = RCTConvert.analyticsSourceMetadata(analyticsSourceMetadata)
             else {
                 return
             }
             self?.sources[nativeId] = SourceFactory.create(from: sourceConfig, sourceMetadata: sourceMetadata)
+#if os(iOS)
+            if let remoteConfig = RCTConvert.sourceRemoteControlConfig(sourceRemoteControlConfig){
+                self?.castSourceConfigs[nativeId] = remoteConfig.castSourceConfig
+            }
+#endif
         }
     }
 
@@ -65,24 +92,35 @@ class SourceModule: NSObject, RCTBridgeModule {
      - Parameter nativeId: ID to be associated with the `Source` instance.
      - Parameter drmNativeId: ID of the DRM config object to use.
      - Parameter config: `SourceConfig` object received from JS.
+     - Parameter sourceRemoteControlConfig: `SourceRemoteControlConfig` object received from JS.
      */
-    @objc(initWithConfig:drmNativeId:config:)
-    func initWithConfig(_ nativeId: NativeId, drmNativeId: NativeId?, config: Any?) {
+    @objc(initWithConfig:drmNativeId:config:sourceRemoteControlConfig:)
+    func initWithConfig(
+        _ nativeId: NativeId,
+        drmNativeId: NativeId?,
+        config: Any?,
+        sourceRemoteControlConfig: Any?
+    ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            let fairplayConfig: FairplayConfig?
+            let drmConfig: DrmConfig?
             if let drmNativeId = drmNativeId {
-                fairplayConfig = self?.getDrmModule()?.retrieve(drmNativeId)
+                drmConfig = self?.getDrmModule()?.retrieve(drmNativeId)
             } else {
-                fairplayConfig = nil
+                drmConfig = nil
             }
 
             guard
                 self?.sources[nativeId] == nil,
-                let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: fairplayConfig)
+                let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig)
             else {
                 return
             }
             self?.sources[nativeId] = SourceFactory.create(from: sourceConfig)
+#if os(iOS)
+            if let remoteConfig = RCTConvert.sourceRemoteControlConfig(sourceRemoteControlConfig) {
+                self?.castSourceConfigs[nativeId] = remoteConfig.castSourceConfig
+            }
+#endif
         }
     }
 
@@ -98,6 +136,7 @@ class SourceModule: NSObject, RCTBridgeModule {
     @objc(destroy:)
     func destroy(_ nativeId: NativeId) {
         sources.removeValue(forKey: nativeId)
+        castSourceConfigs.removeValue(forKey: nativeId)
     }
 
     /**
@@ -218,4 +257,8 @@ class SourceModule: NSObject, RCTBridgeModule {
             resolve(RCTConvert.toJson(thumbnail: self?.sources[nativeId]?.thumbnail(forTime: time.doubleValue)))
         }
     }
+}
+
+internal struct SourceRemoteControlConfig {
+    let castSourceConfig: SourceConfig?
 }

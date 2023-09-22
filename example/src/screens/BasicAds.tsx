@@ -54,10 +54,14 @@ const advertisingConfig = {
   ],
 };
 
+const remoteControlConfig = {
+  isCastEnabled: false,
+};
+
 export default function BasicAds() {
   useTVGestures();
 
-  const player = usePlayer({ advertisingConfig });
+  const player = usePlayer({ advertisingConfig, remoteControlConfig });
 
   useFocusEffect(
     useCallback(() => {

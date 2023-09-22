@@ -111,7 +111,11 @@ const source: SourceConfig = {
 export default function BasicDrmPlayback() {
   useTVGestures();
 
-  const player = usePlayer();
+  const player = usePlayer({
+    remoteControlConfig: {
+      isCastEnabled: false,
+    },
+  });
 
   useFocusEffect(
     useCallback(() => {

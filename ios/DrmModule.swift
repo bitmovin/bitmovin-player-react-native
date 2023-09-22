@@ -42,7 +42,7 @@ class DrmModule: NSObject, RCTBridgeModule {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 self?.drmConfigs[nativeId] == nil,
-                let fairplayConfig = RCTConvert.fairplayConfig(config)
+                let fairplayConfig = RCTConvert.drmConfig(config).fairplay
             else {
                 return
             }

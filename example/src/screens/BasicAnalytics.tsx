@@ -27,6 +27,9 @@ export default function BasicAds() {
         customData5: 'Custom data field 5',
       },
     },
+    remoteControlConfig: {
+      isCastEnabled: false,
+    },
   });
 
   useFocusEffect(

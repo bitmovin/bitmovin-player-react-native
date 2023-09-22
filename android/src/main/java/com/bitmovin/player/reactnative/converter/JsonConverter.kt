@@ -18,9 +18,11 @@ import com.bitmovin.player.api.advertising.AdQuartile
 import com.bitmovin.player.api.advertising.AdSource
 import com.bitmovin.player.api.advertising.AdSourceType
 import com.bitmovin.player.api.advertising.AdvertisingConfig
+import com.bitmovin.player.api.casting.RemoteControlConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
+import com.bitmovin.player.api.event.data.CastPayload
 import com.bitmovin.player.api.event.data.SeekPosition
 import com.bitmovin.player.api.media.AdaptationConfig
 import com.bitmovin.player.api.media.audio.AudioTrack
@@ -37,8 +39,10 @@ import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.api.source.TimelineReferencePoint
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
+import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
+import com.bitmovin.player.reactnative.extensions.getOrDefault
 import com.bitmovin.player.reactnative.extensions.getProperty
 import com.bitmovin.player.reactnative.extensions.putBoolean
 import com.bitmovin.player.reactnative.extensions.putDouble
@@ -96,7 +100,65 @@ class JsonConverter {
                     playerConfig.adaptationConfig = it
                 }
             }
+            if (json.hasKey("remoteControlConfig")) {
+                toRemoteControlConfig(json.getMap("remoteControlConfig"))?.let {
+                    playerConfig.remoteControlConfig = it
+                }
+            }
             return playerConfig
+        }
+
+        /**
+         * Converts an arbitrary [ReadableMap] to a [RemoteControlConfig].
+         *
+         * @param json JS object representing the [RemoteControlConfig].
+         * @return The generated [RemoteControlConfig].
+         */
+        private fun toRemoteControlConfig(json: ReadableMap?): RemoteControlConfig? {
+            if (json == null) return null
+            val defaultRemoteControlConfig = RemoteControlConfig()
+
+            val receiverStylesheetUrl = json.getOrDefault(
+                "receiverStylesheetUrl",
+                defaultRemoteControlConfig.receiverStylesheetUrl
+            )
+
+            var customReceiverConfig = defaultRemoteControlConfig.customReceiverConfig
+            if (json.hasKey("customReceiverConfig")) {
+                customReceiverConfig = json.getMap("customReceiverConfig")
+                    ?.toHashMap()
+                    ?.mapValues { entry -> entry.value as String } ?: emptyMap()
+            }
+
+            val isCastEnabled = json.getOrDefault(
+                "isCastEnabled",
+                defaultRemoteControlConfig.isCastEnabled
+            )
+
+            val sendManifestRequestsWithCredentials = json.getOrDefault(
+                "sendManifestRequestsWithCredentials",
+                defaultRemoteControlConfig.sendManifestRequestsWithCredentials
+            )
+
+            val sendSegmentRequestsWithCredentials = json.getOrDefault(
+                "sendSegmentRequestsWithCredentials",
+                defaultRemoteControlConfig.sendSegmentRequestsWithCredentials
+            )
+
+            val sendDrmLicenseRequestsWithCredentials = json.getOrDefault(
+                "sendDrmLicenseRequestsWithCredentials",
+                defaultRemoteControlConfig.sendDrmLicenseRequestsWithCredentials
+            )
+
+
+            return RemoteControlConfig(
+                receiverStylesheetUrl = receiverStylesheetUrl,
+                customReceiverConfig = customReceiverConfig,
+                isCastEnabled = isCastEnabled,
+                sendManifestRequestsWithCredentials = sendManifestRequestsWithCredentials,
+                sendSegmentRequestsWithCredentials = sendSegmentRequestsWithCredentials,
+                sendDrmLicenseRequestsWithCredentials = sendDrmLicenseRequestsWithCredentials,
+            )
         }
 
         /**
@@ -123,7 +185,7 @@ class JsonConverter {
             "end" -> TimelineReferencePoint.End
             else -> null
         }
-        
+
         /**
          * Converts an arbitrary `json` to `AdaptationConfig`.
          * @param json JS object representing the `AdaptationConfig`.
@@ -564,11 +626,32 @@ class JsonConverter {
                     json.putMap("oldVideoQuality", fromVideoQuality(event.oldVideoQuality))
                 }
 
+                is PlayerEvent.CastWaitingForDevice -> {
+                    json.putMap("castPayload", fromCastPayload(event.castPayload))
+                }
+
+                is PlayerEvent.CastStarted -> {
+                    json.putString("deviceName", event.deviceName)
+                }
+
                 else -> {
                     // Event is not supported yet or does not have any additional data
                 }
             }
             return json
+        }
+
+        /**
+         * Converts an arbitrary `json` into [BitmovinCastManagerOptions].
+         * @param json JS object representing the [BitmovinCastManagerOptions].
+         * @return The generated [BitmovinCastManagerOptions] if successful, `null` otherwise.
+         */
+        fun toCastOptions(json: ReadableMap?): BitmovinCastManagerOptions? {
+            if (json == null) return null
+            return BitmovinCastManagerOptions(
+                json.getOrDefault("applicationId", null),
+                json.getOrDefault("messageNamespace", null)
+            )
         }
 
         /**
@@ -1007,4 +1090,13 @@ class JsonConverter {
             }
         }
     }
+}
+
+/**
+ * Converts a [CastPayload] object into its JS representation.
+ */
+private fun fromCastPayload(castPayload: CastPayload) = Arguments.createMap().apply {
+    putDouble("currentTime", castPayload.currentTime)
+    putString("deviceName", castPayload.deviceName)
+    putString("type", castPayload.type)
 }

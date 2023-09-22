@@ -45,10 +45,13 @@ class PlayerModule: NSObject, RCTBridgeModule {
             else {
                 return
             }
+#if os(iOS)
+            self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
+#endif
             self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
         }
     }
-    
+
     /**
      Creates a new analytics enabled `Player` instance inside the internal players using the provided `config` and `analyticsConfig` object.
      - Parameter config: `PlayerConfig` object received from JS.
@@ -65,6 +68,9 @@ class PlayerModule: NSObject, RCTBridgeModule {
             else {
                 return
             }
+#if os(iOS)
+            self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
+#endif
             let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfigJson)
             self?.players[nativeId] = PlayerFactory.create(
                 playerConfig: playerConfig,
@@ -605,6 +611,73 @@ class PlayerModule: NSObject, RCTBridgeModule {
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             resolve(RCTConvert.toJson(thumbnail: self?.players[nativeId]?.thumbnail(forTime: time.doubleValue)))
+        }
+    }
+
+    /**
+     Returns `true` if casting to another device (such as a ChromeCast) is available, otherwise false.
+     - Parameter nativeId: Target player id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(isCastAvailable:resolver:rejecter:)
+    func isCastAvailable(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(self?.players[nativeId]?.isCastAvailable)
+        }
+    }
+
+    /**
+     Returns `true` if the video is currently casted to a device and not played locally, or `false` if the video is played locally.
+     - Parameter nativeId: Target player id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(isCasting:resolver:rejecter:)
+    func isCasting(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(self?.players[nativeId]?.isCasting)
+        }
+    }
+
+    /**
+     Initiates casting the current video to a cast-compatible device. The user has to choose to which device it should be sent.
+     */
+    @objc(castVideo:)
+    func castVideo(_ nativeId: NativeId) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.castVideo()
+        }
+    }
+
+    /**
+     Stops casting the current video if it is casting at the moment (i.e. `isCasting` returns `true`).
+     Has no effect if `isCasting` returns `false`.
+     */
+    @objc(castStop:)
+    func castStop(_ nativeId: NativeId) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.castStop()
+        }
+    }
+
+    private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {
+        remoteControlConfig.prepareSource = { [weak self] type, sourceConfig in
+            guard let sourceModule = self?.bridge[SourceModule.self],
+                  let sourceNativeId = sourceModule.nativeId(where: { $0.sourceConfig === sourceConfig }),
+                  let castSourceConfig = sourceModule.retrieveCastSourceConfig(sourceNativeId) else {
+                return nil
+            }
+
+            return castSourceConfig
         }
     }
 }
