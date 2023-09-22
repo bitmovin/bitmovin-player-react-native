@@ -228,7 +228,7 @@ extension RCTConvert {
      - Parameter json: JS object
      - Returns: The produced `SourceConfig` object
      */
-    static func sourceConfig(_ json: Any?, drmConfig: FairplayConfig? = nil) -> SourceConfig? {
+    static func sourceConfig(_ json: Any?, drmConfig: DrmConfig? = nil) -> SourceConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
         }
@@ -336,30 +336,59 @@ extension RCTConvert {
     }
 
     /**
+     Utility method to get a `DrmConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The generated `DrmConfig` object
+     */
+    static func drmConfig(_ json: Any?) -> (fairplay: FairplayConfig?, widevine: WidevineConfig?) {
+        guard let json = json as? [String: Any?] else {
+            return (nil, nil)
+        }
+        return (
+            fairplay: RCTConvert.fairplayConfig(json["fairplay"]),
+            widevine: RCTConvert.widevineConfig(json["widevine"])
+        )
+    }
+
+    /**
      Utility method to get a `FairplayConfig` from a JS object.
      - Parameter json: JS object
      - Returns: The generated `FairplayConfig` object
      */
     static func fairplayConfig(_ json: Any?) -> FairplayConfig? {
-        guard
-            let json = json as? [String: Any?],
-            let fairplayJson = json["fairplay"] as? [String: Any?],
-            let licenseURL = fairplayJson["licenseUrl"] as? String,
-            let certificateURL = fairplayJson["certificateUrl"] as? String
-        else {
+        guard let json = json as? [String: Any?],
+            let licenseURL = json["licenseUrl"] as? String,
+            let certificateURL = json["certificateUrl"] as? String else {
             return nil
         }
         let fairplayConfig = FairplayConfig(
             license: URL(string: licenseURL),
             certificateURL: URL(string: certificateURL)!
         )
-        if let licenseRequestHeaders = fairplayJson["licenseRequestHeaders"] as? [String: String] {
+        if let licenseRequestHeaders = json["licenseRequestHeaders"] as? [String: String] {
             fairplayConfig.licenseRequestHeaders = licenseRequestHeaders
         }
-        if let certificateRequestHeaders = fairplayJson["certificateRequestHeaders"] as? [String: String] {
+        if let certificateRequestHeaders = json["certificateRequestHeaders"] as? [String: String] {
             fairplayConfig.certificateRequestHeaders = certificateRequestHeaders
         }
         return fairplayConfig
+    }
+
+    /**
+     Utility method to get a `WidevineConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The generated `WidevineConfig` object
+     */
+    static func widevineConfig(_ json: Any?) -> WidevineConfig? {
+        guard let json = json as? [String: Any?],
+            let licenseURL = json["licenseUrl"] as? String else {
+            return nil
+        }
+        let widevineConfig = WidevineConfig(license: URL(string: licenseURL))
+        if let licenseRequestHeaders = json["httpHeaders"] as? [String: String] {
+            widevineConfig.licenseRequestHeaders = licenseRequestHeaders
+        }
+        return widevineConfig
     }
 
     /**
@@ -989,12 +1018,15 @@ extension RCTConvert {
      - Returns: The produced `SourceRemoteControlConfig` object
      */
     static func sourceRemoteControlConfig(_ json: Any?) -> SourceRemoteControlConfig? {
-        guard let json = json as? [String: Any?] else {
+        guard let json = json as? [String: Any?],
+              let castSourceConfigJson = json["castSourceConfig"] as? [String: Any?] else {
             return nil
         }
-
         return SourceRemoteControlConfig(
-            castSourceConfig: RCTConvert.sourceConfig(json["castSourceConfig"])
+            castSourceConfig: RCTConvert.sourceConfig(
+                json["castSourceConfig"],
+                drmConfig: RCTConvert.drmConfig(castSourceConfigJson["drmConfig"]).widevine
+            )
         )
     }
 }

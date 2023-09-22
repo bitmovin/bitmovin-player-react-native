@@ -64,16 +64,16 @@ class SourceModule: NSObject, RCTBridgeModule {
         analyticsSourceMetadata: Any?
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            let fairplayConfig: FairplayConfig?
+            let drmConfig: DrmConfig?
             if let drmNativeId = drmNativeId {
-                fairplayConfig = self?.getDrmModule()?.retrieve(drmNativeId)
+                drmConfig = self?.getDrmModule()?.retrieve(drmNativeId)
             } else {
-                fairplayConfig = nil
+                drmConfig = nil
             }
 
             guard
                 self?.sources[nativeId] == nil,
-                let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: fairplayConfig),
+                let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig),
                 let sourceMetadata = RCTConvert.analyticsSourceMetadata(analyticsSourceMetadata)
             else {
                 return
@@ -100,16 +100,16 @@ class SourceModule: NSObject, RCTBridgeModule {
         sourceRemoteControlConfig: Any?
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            let fairplayConfig: FairplayConfig?
+            let drmConfig: DrmConfig?
             if let drmNativeId = drmNativeId {
-                fairplayConfig = self?.getDrmModule()?.retrieve(drmNativeId)
+                drmConfig = self?.getDrmModule()?.retrieve(drmNativeId)
             } else {
-                fairplayConfig = nil
+                drmConfig = nil
             }
 
             guard
                 self?.sources[nativeId] == nil,
-                let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: fairplayConfig)
+                let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig)
             else {
                 return
             }
