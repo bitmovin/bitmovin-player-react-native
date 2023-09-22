@@ -59,7 +59,7 @@ class SourceModule: NSObject, RCTBridgeModule {
         _ nativeId: NativeId,
         drmNativeId: NativeId?,
         config: Any?,
-        sourceRemoteControlConfig: Any,
+        sourceRemoteControlConfig: Any?,
         analyticsSourceMetadata: Any?
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
@@ -95,7 +95,7 @@ class SourceModule: NSObject, RCTBridgeModule {
         _ nativeId: NativeId,
         drmNativeId: NativeId?,
         config: Any?,
-        sourceRemoteControlConfig: Any
+        sourceRemoteControlConfig: Any?
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             let fairplayConfig: FairplayConfig?
