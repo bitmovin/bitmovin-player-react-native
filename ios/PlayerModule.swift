@@ -45,10 +45,12 @@ class PlayerModule: NSObject, RCTBridgeModule {
             else {
                 return
             }
+
+            self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
             self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
         }
     }
-    
+
     /**
      Creates a new analytics enabled `Player` instance inside the internal players using the provided `config` and `analyticsConfig` object.
      - Parameter config: `PlayerConfig` object received from JS.
@@ -65,6 +67,8 @@ class PlayerModule: NSObject, RCTBridgeModule {
             else {
                 return
             }
+
+            self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
             let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfigJson)
             self?.players[nativeId] = PlayerFactory.create(
                 playerConfig: playerConfig,
@@ -660,6 +664,18 @@ class PlayerModule: NSObject, RCTBridgeModule {
     func castStop(_ nativeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             self?.players[nativeId]?.castStop()
+        }
+    }
+
+    private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {
+        remoteControlConfig.prepareSource = { [weak self] type, sourceConfig in
+            guard let sourceModule = self?.bridge[SourceModule.self],
+                  let sourceNativeId = sourceModule.nativeId(where: { $0.sourceConfig === sourceConfig }),
+                  let castSourceConfig = sourceModule.retrieveCastSourceConfig(sourceNativeId) else {
+                return nil
+            }
+
+            return castSourceConfig
         }
     }
 }

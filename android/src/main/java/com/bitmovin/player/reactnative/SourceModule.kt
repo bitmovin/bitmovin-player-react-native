@@ -46,6 +46,7 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
      * @param nativeId ID to be associated with the `Source` instance.
      * @param drmNativeId ID of the DRM config to use.
      * @param config `SourceConfig` object received from JS.
+     * @param sourceRemoteControlConfig `SourceRemoteControlConfig` object received from JS. Not supported on Android.
      * @param analyticsSourceMetadata `SourceMetadata` object received from JS.
      */
     @ReactMethod
@@ -53,6 +54,7 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
         nativeId: NativeId,
         drmNativeId: NativeId?,
         config: ReadableMap?,
+        sourceRemoteControlConfig: ReadableMap?,
         analyticsSourceMetadata: ReadableMap?
     ) {
         uiManager()?.addUIBlock {
@@ -69,12 +71,14 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
      * @param nativeId ID to be associated with the `Source` instance.
      * @param drmNativeId ID of the DRM config to use.
      * @param config `SourceConfig` object received from JS.
+     * @param sourceRemoteControlConfig `SourceRemoteControlConfig` object received from JS. Not supported on Android.
      */
     @ReactMethod
     fun initWithConfig(
         nativeId: NativeId,
         drmNativeId: NativeId?,
         config: ReadableMap?,
+        sourceRemoteControlConfig: ReadableMap?
     ) {
         uiManager()?.addUIBlock {
             initializeSource(nativeId, drmNativeId, config) { sourceConfig ->

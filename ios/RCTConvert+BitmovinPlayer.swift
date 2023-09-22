@@ -982,4 +982,19 @@ extension RCTConvert {
             "type": castPayload.type,
         ]
     }
+
+    /**
+     Utility method to instantiate a `SourceRemoteControlConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `SourceRemoteControlConfig` object
+     */
+    static func sourceRemoteControlConfig(_ json: Any?) -> SourceRemoteControlConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        return SourceRemoteControlConfig(
+            castSourceConfig: RCTConvert.sourceConfig(json["castSourceConfig"])
+        )
+    }
 }

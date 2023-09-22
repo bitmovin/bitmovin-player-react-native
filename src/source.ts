@@ -137,6 +137,21 @@ export interface SourceConfig extends NativeInstanceConfig {
 }
 
 /**
+ * The remote control config for a source.
+ * @platform iOS
+ */
+export interface SourceRemoteControlConfig {
+  /**
+   * The `SourceConfig` for casting.
+   * Enables to play different content when casting.
+   * This can be useful when the remote playback device supports different streaming formats,
+   * DRM systems, etc. than the local device.
+   * If not set, the local source config will be used for casting.
+   */
+  castSourceConfig?: SourceConfig | null;
+}
+
+/**
  * Represents audio and video content that can be loaded into a player.
  */
 export class Source extends NativeInstance<SourceConfig> {
@@ -144,6 +159,13 @@ export class Source extends NativeInstance<SourceConfig> {
    * The native DRM config reference of this source.
    */
   drm?: Drm;
+  /**
+   * The remote control config for this source.
+   * This is only supported on iOS.
+   *
+   * @platform iOS
+   */
+  remoteControl: SourceRemoteControlConfig | null = null;
   /**
    * Whether the native `Source` object has been created.
    */
@@ -168,13 +190,15 @@ export class Source extends NativeInstance<SourceConfig> {
           this.nativeId,
           this.drm?.nativeId,
           this.config,
+          this.remoteControl,
           sourceMetadata
         );
       } else {
         SourceModule.initWithConfig(
           this.nativeId,
           this.drm?.nativeId,
-          this.config
+          this.config,
+          this.remoteControl
         );
       }
       this.isInitialized = true;
