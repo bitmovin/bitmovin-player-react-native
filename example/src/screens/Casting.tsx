@@ -41,7 +41,7 @@ export default function Casting() {
       });
 
       // Configure playing DASH source on Chromecast, even when casting from iOS.
-      source.remotePlayback = {
+      source.remoteControl = {
         castSourceConfig: {
           url: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
           type: SourceType.DASH,
