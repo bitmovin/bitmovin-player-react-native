@@ -165,7 +165,7 @@ export class Source extends NativeInstance<SourceConfig> {
    *
    * @platform iOS
    */
-  remotePlayback: SourceRemoteControlConfig | null = null;
+  remoteControl: SourceRemoteControlConfig | null = null;
   /**
    * Whether the native `Source` object has been created.
    */
@@ -190,7 +190,7 @@ export class Source extends NativeInstance<SourceConfig> {
           this.nativeId,
           this.drm?.nativeId,
           this.config,
-          this.remotePlayback,
+          this.remoteControl,
           sourceMetadata
         );
       } else {
@@ -198,7 +198,7 @@ export class Source extends NativeInstance<SourceConfig> {
           this.nativeId,
           this.drm?.nativeId,
           this.config,
-          this.remotePlayback
+          this.remoteControl
         );
       }
       this.isInitialized = true;
