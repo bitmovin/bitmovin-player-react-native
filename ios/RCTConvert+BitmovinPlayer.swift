@@ -340,17 +340,14 @@ extension RCTConvert {
      - Parameter json: JS object
      - Returns: The generated `DrmConfig` object
      */
-    static func drmConfig(_ json: Any?) -> DrmConfig? {
+    static func drmConfig(_ json: Any?) -> (fairplay: FairplayConfig?, widevine: WidevineConfig?) {
         guard let json = json as? [String: Any?] else {
-            return nil
+            return (nil, nil)
         }
-        if  let fairplayConfig = RCTConvert.fairplayConfig(json["fairplay"]) {
-            return fairplayConfig
-        }
-        if let widevineConfig = RCTConvert.widevineConfig(json["widevine"]) {
-            return widevineConfig
-        }
-        return nil
+        return (
+            fairplay: RCTConvert.fairplayConfig(json["fairplay"]),
+            widevine: RCTConvert.widevineConfig(json["widevine"])
+        )
     }
 
     /**
@@ -1022,11 +1019,14 @@ extension RCTConvert {
      */
     static func sourceRemoteControlConfig(_ json: Any?) -> SourceRemoteControlConfig? {
         guard let json = json as? [String: Any?],
-              let castSourceConfigJson = json["castSourceConfig"] as? [String: Any?],
-              let castSourceConfig = RCTConvert.sourceConfig(json["castSourceConfig"]) else {
+              let castSourceConfigJson = json["castSourceConfig"] as? [String: Any?] else {
             return nil
         }
-        castSourceConfig.drmConfig = RCTConvert.drmConfig(castSourceConfigJson["drmConfig"])
-        return SourceRemoteControlConfig(castSourceConfig: castSourceConfig)
+        return SourceRemoteControlConfig(
+            castSourceConfig: RCTConvert.sourceConfig(
+                json["castSourceConfig"],
+                drmConfig: RCTConvert.drmConfig(castSourceConfigJson["drmConfig"]).widevine
+            )
+        )
     }
 }

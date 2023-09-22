@@ -6,7 +6,7 @@ class DrmModule: NSObject, RCTBridgeModule {
     @objc var bridge: RCTBridge!
 
     /// In-memory mapping from `nativeId`s to `FairplayConfig` instances.
-    private var drmConfigs: Registry<DrmConfig> = [:]
+    private var drmConfigs: Registry<FairplayConfig> = [:]
 
     /// JS module name.
     static func moduleName() -> String! {
@@ -28,7 +28,7 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter nativeId: ID to associate with the `FairplayConfig` instance.
      - Returns: The associated `FairplayConfig` instance or `nil`.
      */
-    @objc func retrieve(_ nativeId: NativeId) -> DrmConfig? {
+    @objc func retrieve(_ nativeId: NativeId) -> FairplayConfig? {
         drmConfigs[nativeId]
     }
 
@@ -42,11 +42,11 @@ class DrmModule: NSObject, RCTBridgeModule {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 self?.drmConfigs[nativeId] == nil,
-                let drmConfig = RCTConvert.drmConfig(config)
+                let fairplayConfig = RCTConvert.drmConfig(config).fairplay
             else {
                 return
             }
-            self?.drmConfigs[nativeId] = drmConfig
+            self?.drmConfigs[nativeId] = fairplayConfig
             self?.initConfigBlocks(nativeId, config)
         }
     }
@@ -181,12 +181,12 @@ class DrmModule: NSObject, RCTBridgeModule {
      */
     private func initConfigBlocks(_ nativeId: NativeId, _ config: Any?) {
         if let json = config as? [String: Any], let fairplayJson = json["fairplay"] as? [String: Any] {
-            initFairplayPrepareCertificate(nativeId, fairplayJson: fairplayJson)
-            initFairplayPrepareMessage(nativeId, fairplayJson: fairplayJson)
-            initFairplayPrepareSyncMessage(nativeId, fairplayJson: fairplayJson)
-            initFairplayPrepareLicense(nativeId, fairplayJson: fairplayJson)
-            initFairplayPrepareLicenseServerUrl(nativeId, fairplayJson: fairplayJson)
-            initFairplayPrepareContentId(nativeId, fairplayJson: fairplayJson)
+            initPrepareCertificate(nativeId, fairplayJson: fairplayJson)
+            initPrepareMessage(nativeId, fairplayJson: fairplayJson)
+            initPrepareSyncMessage(nativeId, fairplayJson: fairplayJson)
+            initPrepareLicense(nativeId, fairplayJson: fairplayJson)
+            initPrepareLicenseServerUrl(nativeId, fairplayJson: fairplayJson)
+            initPrepareContentId(nativeId, fairplayJson: fairplayJson)
         }
     }
     
@@ -196,8 +196,8 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initFairplayPrepareCertificate(_ nativeId: NativeId, fairplayJson: [String: Any]) {
-        guard let fairplayConfig = drmConfigs[nativeId] as? FairplayConfig else {
+    private func initPrepareCertificate(_ nativeId: NativeId, fairplayJson: [String: Any]) {
+        guard let fairplayConfig = drmConfigs[nativeId] else {
             return
         }
         if fairplayJson["prepareCertificate"] != nil {
@@ -213,8 +213,8 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initFairplayPrepareMessage(_ nativeId: NativeId, fairplayJson: [String: Any]) {
-        guard let fairplayConfig = drmConfigs[nativeId] as? FairplayConfig else {
+    private func initPrepareMessage(_ nativeId: NativeId, fairplayJson: [String: Any]) {
+        guard let fairplayConfig = drmConfigs[nativeId] else {
             return
         }
         if fairplayJson["prepareMessage"] != nil {
@@ -230,8 +230,8 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initFairplayPrepareSyncMessage(_ nativeId: NativeId, fairplayJson: [String: Any]) {
-        guard let fairplayConfig = drmConfigs[nativeId] as? FairplayConfig else {
+    private func initPrepareSyncMessage(_ nativeId: NativeId, fairplayJson: [String: Any]) {
+        guard let fairplayConfig = drmConfigs[nativeId] else {
             return
         }
         if fairplayJson["prepareSyncMessage"] != nil {
@@ -247,8 +247,8 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initFairplayPrepareLicense(_ nativeId: NativeId, fairplayJson: [String: Any]) {
-        guard let fairplayConfig = drmConfigs[nativeId] as? FairplayConfig else {
+    private func initPrepareLicense(_ nativeId: NativeId, fairplayJson: [String: Any]) {
+        guard let fairplayConfig = drmConfigs[nativeId] else {
             return
         }
         if fairplayJson["prepareLicense"] != nil {
@@ -264,8 +264,8 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initFairplayPrepareLicenseServerUrl(_ nativeId: NativeId, fairplayJson: [String: Any]) {
-        guard let fairplayConfig = drmConfigs[nativeId] as? FairplayConfig else {
+    private func initPrepareLicenseServerUrl(_ nativeId: NativeId, fairplayJson: [String: Any]) {
+        guard let fairplayConfig = drmConfigs[nativeId] else {
             return
         }
         if fairplayJson["prepareLicenseServerUrl"] != nil {
@@ -281,8 +281,8 @@ class DrmModule: NSObject, RCTBridgeModule {
      - Parameter nativeId - Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
      */
-    private func initFairplayPrepareContentId(_ nativeId: NativeId, fairplayJson: [String: Any]) {
-        guard let fairplayConfig = drmConfigs[nativeId] as? FairplayConfig else {
+    private func initPrepareContentId(_ nativeId: NativeId, fairplayJson: [String: Any]) {
+        guard let fairplayConfig = drmConfigs[nativeId] else {
             return
         }
         if fairplayJson["prepareContentId"] != nil {
