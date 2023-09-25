@@ -51,7 +51,7 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
-    implementation 'com.bitmovin.player:player:3.43.0+jason'
+    implementation 'com.bitmovin.player:player:3.44.0+jason'
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+' // From node_modules
 }
