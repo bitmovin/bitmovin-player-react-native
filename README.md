@@ -36,7 +36,7 @@ Please note that browsers and other browser-like environments such as webOS and 
 Please refer to the [Features](https://developer.bitmovin.com/playback/docs/react-native-introduction#features) section of our documentation for an up-to-date list of supported Player features.
 
 ## Raising a Feature Suggestion
-As an open-source project, we are pleased to accept any and all changes, updates and fixes from the community wishing to use and expand this project. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details on how to contribute.
+As an open-source project, we are pleased to accept changes, updates and fixes from the community wishing to use and expand this project. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details on how to contribute.
 If you see something missing that might be useful but dont want to contribute, please feel free to share your idea with us by visiting the [Bitmovin community](https://community.bitmovin.com/t/how-to-submit-a-feature-request-to-us/1463) and submitting your ideas as a feature insight.
   
 
