@@ -17,3 +17,11 @@ fun WritableMap.putDouble(key: String, d: Double?) {
         putDouble(key, d)
     }
 }
+
+fun WritableMap.putBoolean(key: String, b: Boolean?) {
+    if (b == null) {
+        putNull(key)
+    } else {
+        putBoolean(key, b)
+    }
+}

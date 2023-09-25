@@ -3,6 +3,7 @@
 @interface RCT_EXTERN_REMAP_MODULE(PlayerModule, PlayerModule, NSObject)
 
 RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config)
+RCT_EXTERN_METHOD(initWithAnalyticsConfig:(NSString *)nativeId config:(nullable id)config analyticsConfig:(nullable id)analyticsConfig)
 RCT_EXTERN_METHOD(loadSource:(NSString *)nativeId sourceNativeId:(NSString *)sourceNativeId)
 RCT_EXTERN_METHOD(loadOfflineContent:(NSString *)nativeId offlineContentManagerBridgeId:(NSString *)offlineContentManagerBridgeId options:(nullable id)options)
 RCT_EXTERN_METHOD(unload:(NSString *)nativeId)
@@ -97,5 +98,15 @@ RCT_EXTERN_METHOD(
     time:(nonnull NSNumber *)time
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    isCastAvailable:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    isCasting:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(castVideo:(NSString *)nativeId)
+RCT_EXTERN_METHOD(castStop:(NSString *)nativeId)
 
 @end

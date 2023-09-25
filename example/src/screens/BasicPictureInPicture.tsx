@@ -22,6 +22,9 @@ export default function BasicPictureInPicture() {
       // Enable picture in picture UI option on player controls.
       isPictureInPictureEnabled: true,
     },
+    remoteControlConfig: {
+      isCastEnabled: false,
+    },
   });
 
   useFocusEffect(

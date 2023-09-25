@@ -20,6 +20,7 @@ import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 import LandscapeFullscreenHandling from './screens/LandscapeFullscreenHandling';
 import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
+import Casting from './screens/Casting';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -53,6 +54,7 @@ export type RootStackParamsList = {
   CustomHtmlUi: {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
   };
+  Casting: undefined;
 };
 
 const RootStack = createNativeStackNavigator();
@@ -113,6 +115,10 @@ export default function App() {
     stackParams.data.push({
       title: 'Landscape Fullscreen handling',
       routeName: 'LandscapeFullscreenHandling',
+    });
+    stackParams.data.push({
+      title: 'Casting',
+      routeName: 'Casting',
     });
   }
 
@@ -226,6 +232,13 @@ export default function App() {
             name="SystemUI"
             component={SystemUI}
             options={{ title: 'System UI' }}
+          />
+        )}
+        {!Platform.isTV && (
+          <RootStack.Screen
+            name="Casting"
+            component={Casting}
+            options={{ title: 'Casting' }}
           />
         )}
       </RootStack.Navigator>

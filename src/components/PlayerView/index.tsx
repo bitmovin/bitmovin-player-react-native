@@ -185,6 +185,15 @@ export function PlayerView({
       onAdScheduled={proxy(props.onAdScheduled)}
       onAdSkipped={proxy(props.onAdSkipped)}
       onAdStarted={proxy(props.onAdStarted)}
+      onCastAvailable={proxy(props.onCastAvailable)}
+      onCastPaused={proxy(props.onCastPaused)}
+      onCastPlaybackFinished={proxy(props.onCastPlaybackFinished)}
+      onCastPlaying={proxy(props.onCastPlaying)}
+      onCastStarted={proxy(props.onCastStarted)}
+      onCastStart={proxy(props.onCastStart)}
+      onCastStopped={proxy(props.onCastStopped)}
+      onCastTimeUpdated={proxy(props.onCastTimeUpdated)}
+      onCastWaitingForDevice={proxy(props.onCastWaitingForDevice)}
       onDestroy={proxy(props.onDestroy)}
       onEvent={proxy(props.onEvent)}
       onFullscreenEnabled={proxy(props.onFullscreenEnabled)}

@@ -1,66 +1,77 @@
-import { NativeInstanceConfig } from '../nativeInstance';
-
 /**
- * Available cdn provider options for AnalyticsConfig.
+ * Object used to configure the build-in analytics collector.
  */
-export enum CdnProvider {
-  BITMOVIN = 'bitmovin',
-  AKAMAI = 'akamai',
-  FASTLY = 'fastly',
-  MAXCDN = 'maxcdn',
-  CLOUDFRONT = 'cloudfront',
-  CHINACACHE = 'chinacache',
-  BITGRAVITY = 'bitgravity',
-}
-
-/**
- * Object used to configure a new `AnalyticsCollector` instance.
- */
-export interface AnalyticsConfig
-  extends NativeInstanceConfig,
-    CustomDataConfig {
+export interface AnalyticsConfig {
   /**
-   * CDN Provide that the video playback session is using.
+   * The analytics license key
    */
-  cdnProvider?: CdnProvider;
-  /**
-   * User ID of the customer.
-   */
-  customUserId?: string;
-  /**
-   * ID of the video in the CMS system.
-   */
-  videoId?: string;
-  /**
-   * Human readable title of the video asset currently playing.
-   */
-  title?: string;
-  /**
-   * Analytics key.
-   */
-  key: string;
-  /**
-   * Player key.
-   */
-  playerKey?: string;
-  /**
-   * Breadcrumb path to show where in the app the user is.
-   */
-  path?: string;
-  /**
-   * Flag to see if stream is live before stream metadata is available (default: false).
-   */
-  isLive?: boolean;
+  licenseKey: string;
   /**
    * Flag to enable Ad tracking (default: false).
    */
-  ads?: boolean;
+  adTrackingDisabled?: boolean;
   /**
    * Flag to use randomised userId not depending on device specific values (default: false).
    */
   randomizeUserId?: boolean;
+  /**
+   * Default metadata to be sent with events.
+   * Fields of the `SourceMetadata` are prioritized over the default metadata.
+   */
+  defaultMetadata?: DefaultMetadata;
 }
 
+/**
+ * DefaultMetadata that can be used to enrich the analytics data.
+ * DefaultMetadata is not bound to a specific source and can be used to set fields for the lifecycle of the collector.
+ * If fields are specified in `SourceMetadata` and `DefaultMetadata`, `SourceMetadata` takes precedence.
+ */
+export interface DefaultMetadata extends CustomDataConfig {
+  /**
+   * CDN Provide that the video playback session is using.
+   */
+  cdnProvider?: string;
+  /**
+   * User ID of the customer.
+   */
+  customUserId?: string;
+}
+
+/**
+ * `SourceMetadata` that can be used to enrich the analytics data.
+ */
+export interface SourceMetadata extends CustomDataConfig {
+  /**
+   * ID of the video in the CMS system
+   */
+  videoId?: String;
+
+  /**
+   * Human readable title of the video asset currently playing
+   */
+  title?: String;
+
+  /**
+   * Breadcrumb path to show where in the app the user is
+   */
+  path?: String;
+
+  /**
+   * Flag to see if stream is live before stream metadata is available
+   */
+  isLive?: boolean;
+
+  /**
+   * CDN Provider that the video playback session is using
+   */
+  cdnProvider?: String;
+}
+
+/**
+ * Free-form data that can be used to enrich the analytics data
+ * If customData is specified in `SourceMetadata` and `DefaultMetadata`
+ * data is merged on a field basis with `SourceMetadata` taking precedence.
+ */
 export interface CustomDataConfig {
   /**
    * Optional free-form custom data
@@ -216,31 +227,4 @@ export interface CustomDataConfig {
    * Experiment name needed for A/B testing.
    */
   experimentName?: string;
-}
-
-export interface SourceMetadata extends CustomDataConfig {
-  /**
-   * ID of the video in the CMS system
-   */
-  videoId?: String;
-
-  /**
-   * Human readable title of the video asset currently playing
-   */
-  title?: String;
-
-  /**
-   * Breadcrumb path to show where in the app the user is
-   */
-  path?: String;
-
-  /**
-   * Flag to see if stream is live before stream metadata is available
-   */
-  isLive?: boolean;
-
-  /**
-   * CDN Provider that the video playback session is using
-   */
-  cdnProvider?: String;
 }

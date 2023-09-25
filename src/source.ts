@@ -3,6 +3,7 @@ import { Drm, DrmConfig } from './drm';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { SideLoadedSubtitleTrack } from './subtitleTrack';
 import { Thumbnail } from './thumbnail';
+import { SourceMetadata } from './analytics';
 
 const SourceModule = NativeModules.SourceModule;
 
@@ -129,6 +130,25 @@ export interface SourceConfig extends NativeInstanceConfig {
    * The `SourceOptions` for this configuration.
    */
   options?: SourceOptions;
+  /**
+   * The `SourceMetadata` for the `Source` to setup custom analytics tracking
+   */
+  analyticsSourceMetadata?: SourceMetadata;
+}
+
+/**
+ * The remote control config for a source.
+ * @platform iOS
+ */
+export interface SourceRemoteControlConfig {
+  /**
+   * The `SourceConfig` for casting.
+   * Enables to play different content when casting.
+   * This can be useful when the remote playback device supports different streaming formats,
+   * DRM systems, etc. than the local device.
+   * If not set, the local source config will be used for casting.
+   */
+  castSourceConfig?: SourceConfig | null;
 }
 
 /**
@@ -139,6 +159,13 @@ export class Source extends NativeInstance<SourceConfig> {
    * The native DRM config reference of this source.
    */
   drm?: Drm;
+  /**
+   * The remote control config for this source.
+   * This is only supported on iOS.
+   *
+   * @platform iOS
+   */
+  remoteControl: SourceRemoteControlConfig | null = null;
   /**
    * Whether the native `Source` object has been created.
    */
@@ -153,16 +180,26 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   initialize = () => {
     if (!this.isInitialized) {
+      const sourceMetadata = this.config?.analyticsSourceMetadata;
       if (this.config?.drmConfig) {
         this.drm = new Drm(this.config.drmConfig);
         this.drm.initialize();
-        SourceModule.initWithDrmConfig(
+      }
+      if (sourceMetadata) {
+        SourceModule.initWithAnalyticsConfig(
           this.nativeId,
-          this.drm.nativeId,
-          this.config
+          this.drm?.nativeId,
+          this.config,
+          this.remoteControl,
+          sourceMetadata
         );
       } else {
-        SourceModule.initWithConfig(this.nativeId, this.config);
+        SourceModule.initWithConfig(
+          this.nativeId,
+          this.drm?.nativeId,
+          this.config,
+          this.remoteControl
+        );
       }
       this.isInitialized = true;
     }

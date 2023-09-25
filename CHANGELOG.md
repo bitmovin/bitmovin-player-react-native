@@ -4,9 +4,32 @@
 
 ### Added
 
+- `DefaultMetadata` for configuration of the bundled analytics collector
+- `Player.analytics` to access the `AnalyticsApi` and interact with the bundled analytics collector
+- `SourceConfig.analyticsSourceMetadata` for extended configuration of the bundled analytics collector
+- Google Cast SDK support for Android and iOS
+
+### Changed
+
+- `AnalyticsConfig` properties to match the bitmovin analytics v3 API
+- Use `jason` build of Bitmovin's native Android SDK
+
+### Removed
+
+- `AnalyticsCollector` in favor of the bundled analytics functionality
+- `CdnProvider`, as the property on the `AnalyticsConfig` is now a `string`
+
+## [0.11.0] (2023-09-11)
+
+### Added
+
 - `Player.getAudioTrack` and `Player.getSubtitleTrack` APIs to get currently selected audio and subtitle tracks
 - `SourceConfig.description` property to allow setting a description for the source
 - `Player.getThumbnail` and `Source.getThumbnail` APIs to get thumbnail images
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.43.0`
 
 ## [0.10.0] (2023-09-04)
 
