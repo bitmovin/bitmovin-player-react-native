@@ -55,6 +55,9 @@ export default function CustomHtmlUi({ navigation }: CustomHtmlUiProps) {
       supplementalPlayerUiCss:
         'https://cdn.bitmovin.com/player/ui/ui-customized-sample.css',
     },
+    remoteControlConfig: {
+      isCastEnabled: false,
+    },
   });
 
   useFocusEffect(

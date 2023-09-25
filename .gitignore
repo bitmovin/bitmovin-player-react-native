@@ -45,7 +45,6 @@ android.iml
 # Cocoapods
 #
 example/ios/Pods/
-example/vendor/bundle/
 
 # node.js
 #

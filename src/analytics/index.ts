@@ -1,2 +1,2 @@
 export * from './config';
-export * from './collector';
+export * from './player';

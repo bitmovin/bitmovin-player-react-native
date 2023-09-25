@@ -1,6 +1,6 @@
 import { NativeModules, Platform } from 'react-native';
 import { AdItem, AdvertisingConfig } from './advertising';
-import { AnalyticsCollector, AnalyticsConfig } from './analytics';
+import { AnalyticsConfig } from './analytics';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { AudioTrack } from './audioTrack';
@@ -10,6 +10,8 @@ import { TweaksConfig } from './tweaksConfig';
 import { AdaptationConfig } from './adaptationConfig';
 import { OfflineContentManager, OfflineSourceOptions } from './offline';
 import { Thumbnail } from './thumbnail';
+import { AnalyticsApi } from './analytics/player';
+import { RemoteControlConfig } from './remoteControlConfig';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -60,6 +62,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures adaptation logic.
    */
   adaptationConfig?: AdaptationConfig;
+  /**
+   * Configures remote playback functionality.
+   */
+  remoteControlConfig?: RemoteControlConfig;
 }
 
 /**
@@ -154,10 +160,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   source?: Source;
   /**
-   * Analytics collector currently attached to this player instance.
-   */
-  analyticsCollector?: AnalyticsCollector;
-  /**
    * Whether the native `Player` object has been created.
    */
   isInitialized = false;
@@ -165,18 +167,28 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Whether the native `Player` object has been disposed.
    */
   isDestroyed = false;
+  /**
+   * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.
+   *
+   * `undefined` if the player was created without analytics support.
+   */
+  analytics?: AnalyticsApi = undefined;
 
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
   initialize = () => {
     if (!this.isInitialized) {
-      PlayerModule.initWithConfig(this.nativeId, this.config);
       const analyticsConfig = this.config?.analyticsConfig;
       if (analyticsConfig) {
-        this.analyticsCollector = new AnalyticsCollector(analyticsConfig);
-        this.analyticsCollector?.initialize();
-        this.analyticsCollector?.attach(this.nativeId);
+        PlayerModule.initWithAnalyticsConfig(
+          this.nativeId,
+          this.config,
+          analyticsConfig
+        );
+        this.analytics = new AnalyticsApi(this.nativeId);
+      } else {
+        PlayerModule.initWithConfig(this.nativeId, this.config);
       }
       this.isInitialized = true;
     }
@@ -189,7 +201,6 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (!this.isDestroyed) {
       PlayerModule.destroy(this.nativeId);
       this.source?.destroy();
-      this.analyticsCollector?.destroy();
       this.isDestroyed = true;
     }
   };
@@ -484,5 +495,43 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   getThumbnail = async (time: number): Promise<Thumbnail | null> => {
     return PlayerModule.getThumbnail(this.nativeId, time);
+  };
+
+  /**
+   * Whether casting to a cast-compatible remote device is available. `CastAvailableEvent` signals when
+   * casting becomes available.
+   *
+   * @platform iOS, Android
+   */
+  isCastAvailable = async (): Promise<boolean> => {
+    return PlayerModule.isCastAvailable(this.nativeId);
+  };
+
+  /**
+   * Whether video is currently being casted to a remote device and not played locally.
+   *
+   * @platform iOS, Android
+   */
+  isCasting = async (): Promise<boolean> => {
+    return PlayerModule.isCasting(this.nativeId);
+  };
+
+  /**
+   * Initiates casting the current video to a cast-compatible remote device. The user has to choose to which device it
+   * should be sent.
+   *
+   * @platform iOS, Android
+   */
+  castVideo = () => {
+    PlayerModule.castVideo(this.nativeId);
+  };
+
+  /**
+   * Stops casting the current video. Has no effect if `isCasting` is false.
+   *
+   * @platform iOS, Android
+   */
+  castStop = () => {
+    PlayerModule.castStop(this.nativeId);
   };
 }

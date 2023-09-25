@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.12.0] (2023-09-25)
+
+### Added
+
+- `DefaultMetadata` for configuration of the bundled analytics collector
+- `Player.analytics` to access the `AnalyticsApi` and interact with the bundled analytics collector
+- `SourceConfig.analyticsSourceMetadata` for extended configuration of the bundled analytics collector
+- Google Cast SDK support for Android and iOS
+
+### Changed
+
+- `AnalyticsConfig` properties to match the bitmovin analytics v3 API
+- Use `jason` build of Bitmovin's native Android SDK
+- Update Bitmovin's native Android SDK version to `3.44.0`
+
+### Removed
+
+- `AnalyticsCollector` in favor of the bundled analytics functionality
+- `CdnProvider`, as the property on the `AnalyticsConfig` is now a `string`
+
 ## [0.11.0] (2023-09-11)
 
 ### Added

@@ -53,7 +53,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
     implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.29.0'
     implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
-    implementation 'com.bitmovin.player:player:3.43.0'
+    implementation 'com.bitmovin.player:player:3.44.0+jason'
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+' // From node_modules
 }

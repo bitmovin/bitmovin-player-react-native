@@ -74,6 +74,9 @@ export default function LandscapeFullscreenHandling({
     playbackConfig: {
       isAutoplayEnabled: true,
     },
+    remoteControlConfig: {
+      isCastEnabled: false,
+    },
   });
 
   const [fullscreenMode, setFullscreenMode] = useState(true);

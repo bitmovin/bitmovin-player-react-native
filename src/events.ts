@@ -554,3 +554,83 @@ export interface VideoPlaybackQualityChangedEvent extends Event {
    */
   oldVideoQuality: VideoQuality;
 }
+
+/**
+ * Emitted when casting to a cast-compatible device is available.
+ */
+export interface CastAvailableEvent extends Event {}
+
+/**
+ * Emitted when the playback on a cast-compatible device was paused.
+ *
+ * On Android `PausedEvent` is also emitted while casting.
+ */
+export interface CastPausedEvent extends Event {}
+
+/**
+ * Emitted when the playback on a cast-compatible device has finished.
+ *
+ * On Android `PlaybackFinishedEvent` is also emitted while casting.
+ */
+export interface CastPlaybackFinishedEvent extends Event {}
+
+/**
+ * Emitted when playback on a cast-compatible device has started.
+ *
+ * On Android `PlayingEvent` is also emitted while casting.
+ */
+export interface CastPlayingEvent extends Event {}
+
+/**
+ * Emitted when the cast app is launched successfully.
+ */
+export interface CastStartedEvent extends Event {
+  /**
+   * The name of the cast device on which the app was launched.
+   */
+  deviceName: string | null;
+}
+
+/**
+ * Emitted when casting is initiated, but the user still needs to choose which device should be used.
+ */
+export interface CastStartEvent extends Event {}
+
+/**
+ * Emitted when casting to a cast-compatible device is stopped.
+ */
+export interface CastStoppedEvent extends Event {}
+
+/**
+ * Emitted when the time update from the currently used cast-compatible device is received.
+ */
+export interface CastTimeUpdatedEvent extends Event {}
+
+/**
+ * Contains information for the `CastWaitingForDeviceEvent`.
+ */
+export interface CastPayload {
+  /**
+   * The current time in seconds.
+   */
+  currentTime: number;
+  /**
+   * The name of the chosen cast device.
+   */
+  deviceName: string | null;
+  /**
+   * The type of the payload (always "cast").
+   */
+  type: string;
+}
+
+/**
+ * Emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
+ * playback.
+ */
+export interface CastWaitingForDeviceEvent extends Event {
+  /**
+   * The `CastPayload` object for the event
+   */
+  castPayload: CastPayload;
+}

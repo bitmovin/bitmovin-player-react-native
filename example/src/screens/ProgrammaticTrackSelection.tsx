@@ -32,7 +32,11 @@ const Separator = () => <View style={styles.separator} />;
 export default function ProgrammaticTrackSelection() {
   useTVGestures();
 
-  const player = usePlayer();
+  const player = usePlayer({
+    remoteControlConfig: {
+      isCastEnabled: false,
+    },
+  });
   const [tracks, setTracks] = useState<TrackDisplay[]>([]);
 
   useFocusEffect(

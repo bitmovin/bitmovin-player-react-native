@@ -3,10 +3,10 @@ PODS:
     - BitmovinAnalyticsCollector/Core
     - BitmovinPlayerCore (~> 3.41)
   - BitmovinAnalyticsCollector/Core (3.1.1)
-  - BitmovinPlayer (3.44.1):
+  - BitmovinPlayer (3.44.2):
     - BitmovinAnalyticsCollector/BitmovinPlayer (~> 3.0)
-    - BitmovinPlayerCore (= 3.44.1)
-  - BitmovinPlayerCore (3.44.1)
+    - BitmovinPlayerCore (= 3.44.2)
+  - BitmovinPlayerCore (3.44.2)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -80,10 +80,16 @@ PODS:
     - FlipperKit/FlipperKitNetworkPlugin
   - fmt (7.1.3)
   - glog (0.3.5)
+  - google-cast-sdk (4.8.0):
+    - google-cast-sdk/Core (= 4.8.0)
+    - Protobuf (~> 3.13)
+  - google-cast-sdk/Core (4.8.0):
+    - Protobuf (~> 3.13)
   - GoogleAds-IMA-iOS-SDK (3.18.4)
   - GoogleAds-IMA-tvOS-SDK (4.8.2)
   - libevent (2.1.12.1)
   - OpenSSL-Universal (1.1.1100)
+  - Protobuf (3.24.3)
   - RCT-Folly (2021.06.28.00-v2):
     - boost
     - DoubleConversion
@@ -339,8 +345,8 @@ PODS:
     - React-jsi (= 0.69.6-2)
     - React-logger (= 0.69.6-2)
     - React-perflogger (= 0.69.6-2)
-  - RNBitmovinPlayer (0.11.0):
-    - BitmovinPlayer (= 3.44.1)
+  - RNBitmovinPlayer (0.12.0):
+    - BitmovinPlayer (= 3.44.2)
     - GoogleAds-IMA-iOS-SDK (= 3.18.4)
     - GoogleAds-IMA-tvOS-SDK (= 4.8.2)
     - React-Core
@@ -382,6 +388,7 @@ DEPENDENCIES:
   - FlipperKit/SKIOSNetworkPlugin (= 0.151.0)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - google-cast-sdk (= 4.8.0)
   - OpenSSL-Universal (= 1.1.1100)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
@@ -433,9 +440,11 @@ SPEC REPOS:
     - Flipper-Glog
     - Flipper-RSocket
     - FlipperKit
+    - google-cast-sdk
     - GoogleAds-IMA-iOS-SDK
     - GoogleAds-IMA-tvOS-SDK
     - OpenSSL-Universal
+    - Protobuf
     - SocketRocket
     - YogaKit
 
@@ -515,8 +524,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   BitmovinAnalyticsCollector: 6aa2e995e325d95d1145bcad3d733d2f8c301c00
-  BitmovinPlayer: 0237ded5f8ccde045757872bc55a4c6f78d4c39b
-  BitmovinPlayerCore: fbb73591382c497e889be9e92792f4ebb86cc8fb
+  BitmovinPlayer: e2809771a4f07cc51bb571889d005835b007c2b9
+  BitmovinPlayerCore: 1e216be104179368396c1d401f1a664a91ddc093
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 234abba95e31cc2aada0cf3b97cdb11bc5b90575
@@ -533,10 +542,12 @@ SPEC CHECKSUMS:
   FlipperKit: feec58b1283d3560c703adc670c45ecf400c48d9
   fmt: 135c0c55547979f715b56dfa54037ececa96d07a
   glog: bac6d5aa2990176cc22d0432fb3e28805d580aeb
+  google-cast-sdk: afeb1aac0744b1bc4f70bc3db8468e33fabbff38
   GoogleAds-IMA-iOS-SDK: b01284e3bf3d64ba948de6692ffda531452c3713
   GoogleAds-IMA-tvOS-SDK: 2dda9d3b34c43003222d3417315fecec22b698a1
   libevent: a6d75fcd7be07cbc5070300ea8dbc8d55dfab88e
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
+  Protobuf: 970f7ee93a3a08e3cf64859b8efd95ee32b4f87f
   RCT-Folly: 6955e7728b76277c5df5a5aba37ee1ff1dd99976
   RCTRequired: 4a18f06da2ea5eb7e1b7334643f988ef76159c9e
   RCTTypeSafety: 3006f0658ff73d9e81a5fde4dbf9e9260a679ab0
@@ -563,13 +574,13 @@ SPEC CHECKSUMS:
   React-RCTText: f72442f7436fd8624494963af4906000a5465ce6
   React-runtimeexecutor: f1383f6460ea3d66ed122b4defb0b5ba664ee441
   ReactCommon: 7857ab475239c5ba044b7ed946ba564f2e7f1626
-  RNBitmovinPlayer: 76f82e9fbd31dfcb396085e2d1f853b255a313cd
+  RNBitmovinPlayer: 07918abac1e5de8b4ae2550f64b9ff541ce0d5a0
   RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: be4fede0339d862989f5b064f8939c7429ad92c9
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: ae31af0f37bdf647197475f3f0d4a5a3e93df60c
+PODFILE CHECKSUM: c212c97d06bc742b7a8cc429dd03ec4c059fe021
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.12.1

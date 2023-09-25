@@ -85,5 +85,6 @@ jobs:
       - name: Create GitHub release
         uses: ncipollo/release-action@v1
         with:
+          tag: v${{ needs.create_pr.outputs.version_number }}
           token: ${{ secrets.GITHUB_TOKEN }}
           body: ${{ steps.changelog.outputs.release_notes }}
