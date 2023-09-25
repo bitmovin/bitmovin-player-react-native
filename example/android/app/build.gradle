@@ -255,6 +255,10 @@ dependencies {
     // Only needed if the offline feature is used
     implementation "androidx.localbroadcastmanager:localbroadcastmanager:1.1.0"
 
+    // Only needed if advertising feature is used
+    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.31.0'
+    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
+
     // only needed if the casting feature is used
     implementation("com.google.android.gms:play-services-cast-framework:21.3.0")
     implementation("androidx.mediarouter:mediarouter:1.3.1")
