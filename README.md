@@ -10,7 +10,7 @@ This is an open-source project created to enable customers to integrate the Bitm
 [![npm dm](https://img.shields.io/npm/dm/bitmovin-player-react-native.svg)](https://www.npmjs.com/package/bitmovin-player-react-native)
 [![npm dt](https://img.shields.io/npm/dt/bitmovin-player-react-native.svg)](https://www.npmjs.com/package/bitmovin-player-react-native)
 
-> As the library is under active development, this means certain features from our native SDKs are not yet exposed through these React Native bindings.
+> As the library is under active development, this means certain features from our mobile Player SDKs are not yet exposed through these React Native bindings.
 
 ## Maintenance and Updates
 As an open source project, this library is not part of a regular maintenance or update schedule and is updated on an adhoc basis when contributions are made.
