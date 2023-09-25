@@ -11,7 +11,7 @@
 
 ### Changed
 
-- `AnalyticsConfig` properties to match the bitmovin analytics v3 API
+- `AnalyticsConfig` properties to match the Bitmovin analytics v3 API
 - Use `jason` build of Bitmovin's native Android SDK
 - Update Bitmovin's native Android SDK version to `3.44.0`
 
