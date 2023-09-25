@@ -58,5 +58,5 @@ If you come across a bug related to the Player React Native SDK, please raise th
 As an open-source project and not a core product offering, any request, issue or query related to this project is excluded from any SLA and Support terms that a customer might have with either Bitmovin or another third-party service provider or Company contributing to this project. Any and all updates are purely at the contributor's discretion.
 
 ## Need more help?
-Should you need help updating this project and can't contribute for any reason, please raise your request to your Bitmovin account team to discuss your request. We can assist in a number of ways, from providing you professional services help to putting you in touch with preferred system integrators who can work with you to achieve your goals.
+Should you need further help, please raise your request to your Bitmovin account team. We can assist in a number of ways, from providing you professional services help to putting you in touch with preferred system integrators who can work with you to achieve your goals.
 
