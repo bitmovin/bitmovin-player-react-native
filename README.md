@@ -51,8 +51,8 @@ We are pleased to accept changes, updates and fixes from the community wishing t
 As an open-source project, we are pleased to accept changes, updates and fixes from the community wishing to use and expand this project. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details on how to contribute.
 If you see something missing that might be useful but don't want to contribute, please feel free to [submit a feature request](https://community.bitmovin.com/t/how-to-submit-a-feature-request-to-us/1463) through the Bitmovin Community.
   
-## Reporting player bugs
-If you come across a bug related to the Player React Native SDK, please raise this through your support ticketing system accessible through your [Bitmovin Dashboard](https://dashboard.bitmovin.com/support/tickets).
+## Reporting a bug
+If you come across a bug related to the Player React Native SDK, please raise this through the support ticketing system accessible in your [Bitmovin Dashboard](https://dashboard.bitmovin.com/support/tickets).
 
 ## Support and SLA Disclaimer
 As an open-source project and not a core product offering, any request, issue or query related to this project is excluded from any SLA and Support terms that a customer might have with either Bitmovin or another third-party service provider or Company contributing to this project. Any and all updates are purely at the contributor's discretion.
