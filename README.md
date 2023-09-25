@@ -55,7 +55,7 @@ Check out our [React Native Guides](https://developer.bitmovin.com/playback/docs
 In the [/example/](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) folder you can find a sample application showcasing many of the features of the Player React Native SDK.
 
 ## Reporting player bugs
-If you come across a bug related to the player SDK or the react native wrapper, please raise this through your support ticketing system accessible through your [Bitmovin Dashboard](https://dashboard.bitmovin.com/).
+If you come across a bug related to the Player React Native SDK, please raise this through your support ticketing system accessible through your [Bitmovin Dashboard](https://dashboard.bitmovin.com/support/tickets).
 
 ## Need more help?
 Should you need help updating this project and can't contribute for any reason, please raise your request to your Bitmovin account team to discuss your request. We can assist in a number of ways, from providing you professional services help to putting you in touch with preferred system integrators who can work with you to achieve your goals.
