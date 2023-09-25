@@ -49,7 +49,7 @@ We are pleased to accept changes, updates and fixes from the community wishing t
 
 ## Raising a Feature Suggestion
 As an open-source project, we are pleased to accept changes, updates and fixes from the community wishing to use and expand this project. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details on how to contribute.
-If you see something missing that might be useful but dont want to contribute, please feel free to share your idea with us by visiting the [Bitmovin community](https://community.bitmovin.com/t/how-to-submit-a-feature-request-to-us/1463) and submitting your ideas as a feature insight.
+If you see something missing that might be useful but don't want to contribute, please feel free to [submit a feature request](https://community.bitmovin.com/t/how-to-submit-a-feature-request-to-us/1463) through the Bitmovin Community.
   
 ## Reporting player bugs
 If you come across a bug related to the Player React Native SDK, please raise this through your support ticketing system accessible through your [Bitmovin Dashboard](https://dashboard.bitmovin.com/support/tickets).
