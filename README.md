@@ -43,7 +43,7 @@ In the [/example/](https://github.com/bitmovin/bitmovin-player-react-native/tree
 ## Maintenance and Updates
 As an open source project, this library is not part of a regular maintenance or update schedule and is updated on an adhoc basis when contributions are made.
 
-## Contributions to this project
+## Contributing to this project
 
 We are pleased to accept changes, updates and fixes from the community wishing to use and expand this project. Bitmovin will review any Pull Requests made. We do our best to provide timely feedback, but please note that no SLAs apply. New releases are tagged and published on our discretion. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details on how to contribute.
 
