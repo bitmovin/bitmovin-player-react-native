@@ -17,7 +17,7 @@ As an open source project, this library is not part of a regular maintenance or 
 
 ## Contributions to this project
 
-We are pleased to accept any and all changes, updates and fixes from the community wishing to use and expand this project. Bitmovin will review any pull requests made. We do our best to provide timely feedback, but please note that no SLAs apply. New releases are tagged and published on our discretion. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details on how to contribute.
+We are pleased to accept changes, updates and fixes from the community wishing to use and expand this project. Bitmovin will review any Pull Requests made. We do our best to provide timely feedback, but please note that no SLAs apply. New releases are tagged and published on our discretion. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details on how to contribute.
 
 ## Platform Support
 
