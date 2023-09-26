@@ -5,7 +5,7 @@ import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { AudioTrack } from './audioTrack';
 import { SubtitleTrack } from './subtitleTrack';
-import { StyleConfig } from './styleConfig';
+import { ScalingMode, StyleConfig } from './styleConfig';
 import { TweaksConfig } from './tweaksConfig';
 import { AdaptationConfig } from './adaptationConfig';
 import { OfflineContentManager, OfflineSourceOptions } from './offline';
@@ -427,6 +427,13 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   setSubtitleTrack = async (trackIdentifier?: string): Promise<void> => {
     return PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier);
+  };
+
+  /**
+   * Sets the scaling Mode.
+   */
+  setScalingMode = async (scalingMode: ScalingMode): Promise<void> => {
+    return PlayerModule.setScalingMode(this.nativeId, scalingMode);
   };
 
   /**

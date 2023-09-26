@@ -3,6 +3,7 @@ package com.bitmovin.player.reactnative
 import android.util.Log
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
+import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.reactnative.converter.JsonConverter
@@ -410,6 +411,28 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
             players[nativeId]?.source?.setSubtitleTrack(trackIdentifier)
             promise.resolve(null)
         }
+    }
+
+    /**
+     * Set `nativeId`'s player.
+     * @param nativeId Target player Id.
+     * @param scaling Mode to change scale.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun setScalingMode(nativeId: NativeId, scalingMode: String, promise: Promise) {
+      uiManager()?.addUIBlock {
+        if (scalingMode == "Zoom") {
+          players[nativeId]?.config?.styleConfig?.scalingMode = ScalingMode.Zoom
+        }
+        if (scalingMode == "Fit") {
+          players[nativeId]?.config?.styleConfig?.scalingMode = ScalingMode.Fit
+        }
+        if (scalingMode == "Stretch") {
+          players[nativeId]?.config?.styleConfig?.scalingMode = ScalingMode.Stretch
+        }
+        promise.resolve(null)
+      }
     }
 
     /**
