@@ -48,9 +48,8 @@ As an open source project, this library is not part of a regular maintenance or 
 We are pleased to accept changes, updates and fixes from the community wishing to use and expand this project. Bitmovin will review any Pull Requests made. We do our best to provide timely feedback, but please note that no SLAs apply. New releases are tagged and published on our discretion. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details on how to contribute.
 
 ## Raising a Feature Suggestion
-As an open-source project, we are pleased to accept changes, updates and fixes from the community wishing to use and expand this project. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details on how to contribute.
-If you see something missing that might be useful but don't want to contribute, please feel free to [submit a feature request](https://community.bitmovin.com/t/how-to-submit-a-feature-request-to-us/1463) through the Bitmovin Community.
-  
+If you see something missing that might be useful but are unable to contribute the feature yourself, please feel free to [submit a feature request](https://community.bitmovin.com/t/how-to-submit-a-feature-request-to-us/1463) through the Bitmovin Community. Feature suggestions will be considered by Bitmovin’s Product team for future roadmap plans.
+
 ## Reporting a bug
 If you come across a bug related to the Player React Native SDK, please raise this through the support ticketing system accessible in your [Bitmovin Dashboard](https://dashboard.bitmovin.com/support/tickets).
 
