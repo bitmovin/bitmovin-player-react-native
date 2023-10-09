@@ -1,0 +1,10 @@
+name: Generate documentation
+on:
+  workflow_dispatch:
+
+jobs:
+  placeholder:
+    name: Placeholder job
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello, world!"
