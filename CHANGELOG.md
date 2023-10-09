@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- API Reference now can be found [here](https://cdn.bitmovin.com/player/reactnative/0/docs/index.html)
+
 ## [0.12.0] (2023-09-25)
 
 ### Added
