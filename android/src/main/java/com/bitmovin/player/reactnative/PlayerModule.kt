@@ -65,7 +65,9 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
             }
             val playerConfig = JsonConverter.toPlayerConfig(playerConfigJson)
             val analyticsConfig = JsonConverter.toAnalyticsConfig(analyticsConfigJson)
-            val defaultMetadata = JsonConverter.toAnalyticsDefaultMetadata(analyticsConfigJson?.getMap("defaultMetadata"))
+            val defaultMetadata = JsonConverter.toAnalyticsDefaultMetadata(
+                analyticsConfigJson?.getMap("defaultMetadata"),
+            )
 
             players[nativeId] = if (analyticsConfig == null) {
                 Player.create(context, playerConfig)
@@ -481,7 +483,9 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     @ReactMethod
     fun setMaxSelectableBitrate(nativeId: NativeId, maxSelectableBitrate: Int) {
         uiManager()?.addUIBlock {
-            players[nativeId]?.setMaxSelectableVideoBitrate(maxSelectableBitrate.takeUnless { it == -1 } ?: Integer.MAX_VALUE)
+            players[nativeId]?.setMaxSelectableVideoBitrate(
+                maxSelectableBitrate.takeUnless { it == -1 } ?: Integer.MAX_VALUE,
+            )
         }
     }
 

@@ -35,7 +35,7 @@ class BitmovinCastManagerModule(
         uiManager?.addUIBlock {
             BitmovinCastManager.initialize(
                 castOptions?.applicationId,
-                castOptions?.messageNamespace
+                castOptions?.messageNamespace,
             )
             promise.resolve(null)
         }
