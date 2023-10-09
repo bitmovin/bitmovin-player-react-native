@@ -2,7 +2,7 @@ name: Generate documentation
 on:
   workflow_call:
     secrets:
-      PLAYER_CI_GH_TOKEN:
+      GH_TOKEN:
         description: GitHub token to access player-ci repo for CI scripts
         required: true
       GCS_ACCOUNT:
@@ -37,8 +37,11 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
           cache: 'yarn'
 
-      - name: Install node_modules
+      - name: Install dependencies
         run: yarn install --frozen-lockfile
+
+      - name: Install dependencies (example/)
+        run: yarn example install --frozen-lockfile
 
       - name: Detect version using jq
         run: |
@@ -52,7 +55,7 @@ jobs:
           curl -sS -H "Authorization: token ${GH_TOKEN}" -L https://raw.githubusercontent.com/bitmovin-engineering/player-ci/master/install.sh | bash
 
       - name: Upload to CDN
-        run: node ./ci_scripts/src/uploadToGcs.js reactnative ./docs/generated
+        run: node ./ci_scripts/src/uploadToGcs.js reactnative ../../docs/generated
 
       - name: Purge CDN cache
         run: node ./ci_scripts/src/purgeCloudflarePath.js 'reactnative'

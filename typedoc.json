@@ -7,5 +7,6 @@
   "excludeInternal": true,
   "excludeExternals": true,
   "includeVersion": true,
-  "entryPoints": ["./src"]
+  "entryPoints": ["./src"],
+  "exclude": ["./example/**/*"]
 }
