@@ -90,7 +90,7 @@ To fix formatting errors, run the following inside `android` folder:
 ./gradlew ktlintFormat
 ```
 
-You can add a lint check pre-commit hooks by running inside `android` folder:
+You can add a lint check pre-commit hook by running inside `android` folder:
 
 ```sh
 ./gradlew addKtlintCheckGitPreCommitHook
