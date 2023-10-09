@@ -11,14 +11,6 @@ Before creating a pull request, please
 - Make sure all guidelines are followed
 - Make sure your branch is free of merge conflicts
 
-## TypeScript Code Style
-
-- Follow the `eslint` rules (`yarn lint`). They are inforced automatically via a pre-commit git hook.
-- Always add return values to functions (even if `void`)
-- No unused imports
-- Public functions should be documented with a description that explains _what_ it does
-- Every code block that does not obviously explain itself should be commented with an explanation of _why_ and _what_ it does
-
 ## Development workflow
 
 To get started with the project, run `yarn bootstrap` in the root directory to install the required dependencies for each package and cocoapods dependencies for the example app:
@@ -49,6 +41,27 @@ To build and run the example app on iOS:
 yarn example ios
 ```
 
+To edit the Swift/Objective-C files, open `example/ios/BitmovinPlayerReactNativeExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > RNBitmovinPlayer`.
+
+To edit the Kotlin files, open `example/android` in Android Studio and find the source files at `bitmovin-player-react-native` under `Android`.
+
+## TypeScript Code Style
+
+- Follow the `eslint` rules (`yarn lint`). They are inforced automatically via a pre-commit git hook.
+- Always add return values to functions (even if `void`)
+- No unused imports
+- Public functions should be documented with a description that explains _what_ it does
+- Every code block that does not obviously explain itself should be commented with an explanation of _why_ and _what_ it does
+
+## Linting
+
+### Typescript
+
+[ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [TypeScript](https://www.typescriptlang.org/)
+
+We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint](https://eslint.org/) with [Prettier](https://prettier.io/) for linting and formatting the code, and [Jest](https://jestjs.io/) for testing.
+
+Our pre-commit hooks verify that the linter and tests pass when committing.
 Make sure your code passes TypeScript and ESLint. Run the following to verify:
 
 ```sh
@@ -62,17 +75,42 @@ To fix formatting errors, run the following:
 yarn lint --fix
 ```
 
+### Kotlin
+
+For Kotlin code [ktlint](https://pinterest.github.io/ktlint/) is used with [ktlint gradle plugin](https://github.com/jlleitschuh/ktlint-gradle).
+Run the following inside `android` folder to verify code format:
+
+```sh
+./gradlew ktlintCheck
+```
+
+To fix formatting errors, run the following inside `android` folder:
+
+```sh
+./gradlew ktlintFormat
+```
+
+You can add a lint check pre-commit hooks by running inside `android` folder:
+
+```sh
+./gradlew addKtlintCheckGitPreCommitHook
+```
+
+and for automatic pre-commit formatting:
+
+```sh
+./gradlew addKtlintFormatGitPreCommitHook
+```
+
+## Testing
+
 Remember to add tests for your change if possible. Run the unit tests by:
 
 ```sh
 yarn test
 ```
 
-To edit the Swift/Objective-C files, open `example/ios/BitmovinPlayerReactNativeExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > RNBitmovinPlayer`.
-
-To edit the Kotlin files, open `example/android` in Android Studio and find the source files at `bitmovin-player-react-native` under `Android`.
-
-### Commit message convention
+## Commit message convention
 
 We follow the [conventional commits specification](https://www.conventionalcommits.org/en) for our commit messages:
 
@@ -85,15 +123,7 @@ We follow the [conventional commits specification](https://www.conventionalcommi
 
 Our pre-commit hooks verify that your commit message matches this format when committing.
 
-### Linting and tests
-
-[ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [TypeScript](https://www.typescriptlang.org/)
-
-We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint](https://eslint.org/) with [Prettier](https://prettier.io/) for linting and formatting the code, and [Jest](https://jestjs.io/) for testing.
-
-Our pre-commit hooks verify that the linter and tests pass when committing.
-
-### Scripts
+## Scripts
 
 The `package.json` file contains various scripts for common tasks:
 
