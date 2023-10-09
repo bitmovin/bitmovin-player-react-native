@@ -1,0 +1,11 @@
+{
+  "name": "Bitmovin Player React Native SDK",
+  "out": "./docs/generated",
+  "tsconfig": "./tsconfig.json",
+  "excludeProtected": true,
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "includeVersion": true,
+  "entryPoints": ["./src"]
+}
