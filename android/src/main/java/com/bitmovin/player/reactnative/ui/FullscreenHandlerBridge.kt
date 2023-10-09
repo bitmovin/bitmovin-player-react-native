@@ -7,7 +7,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 
 class FullscreenHandlerBridge(
     val context: ReactApplicationContext,
-    private val nativeId: NativeId
+    private val nativeId: NativeId,
 ) : FullscreenHandler {
     override var isFullscreen = false
 

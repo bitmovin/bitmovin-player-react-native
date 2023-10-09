@@ -15,6 +15,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  code-style-android:
+    name: Code style Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+
+      - name: Set up Gradle cache
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/development' }}
+
+      - name: Check code style
+        run: ./gradlew ktlintCheck
+        working-directory: android
+
   test-build-typescript:
     name: Build Typescript
     runs-on: ubuntu-latest

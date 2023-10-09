@@ -28,7 +28,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         ATTACH_PLAYER("attachPlayer"),
         ATTACH_FULLSCREEN_BRIDGE("attachFullscreenBridge"),
         SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID("setCustomMessageHandlerBridgeId"),
-        SET_FULLSCREEN("setFullscreen");
+        SET_FULLSCREEN("setFullscreen"),
     }
 
     /**
@@ -132,7 +132,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     override fun getExportedCustomBubblingEventTypeConstants(): MutableMap<String, Any> =
         bubblingEventsMapping.entries.associate {
             it.key to mapOf(
-                "phasedRegistrationNames" to mapOf("bubbled" to it.value)
+                "phasedRegistrationNames" to mapOf("bubbled" to it.value),
             )
         }.toMutableMap()
 
@@ -154,7 +154,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      */
     override fun receiveCommand(view: RNPlayerView, commandId: String?, args: ReadableArray?) {
         val command = commandId?.toInt()?.toCommand() ?: throw IllegalArgumentException(
-            "The received command is not supported by the Bitmovin Player View"
+            "The received command is not supported by the Bitmovin Player View",
         )
         when (command) {
             Commands.ATTACH_PLAYER -> attachPlayer(view, args?.getString(1), args?.getMap(2))
@@ -177,7 +177,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     private fun attachFullscreenBridge(view: RNPlayerView, fullscreenBridgeId: NativeId) {
         Handler(Looper.getMainLooper()).post {
             view.playerView?.setFullscreenHandler(
-                context.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId)
+                context.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId),
             )
         }
     }
@@ -205,7 +205,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         view.playerView?.setCustomMessageHandler(
             context.getModule<CustomMessageHandlerModule>()
                 ?.getInstance(customMessageHandlerBridgeId)
-                ?.customMessageHandler
+                ?.customMessageHandler,
         )
     }
 
@@ -236,7 +236,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 val playerView = PlayerView(currentActivity, player)
                 playerView.layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
-                    LayoutParams.MATCH_PARENT
+                    LayoutParams.MATCH_PARENT,
                 )
                 view.addPlayerView(playerView)
                 attachCustomMessageHandlerBridge(view)

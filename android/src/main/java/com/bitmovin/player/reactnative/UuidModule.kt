@@ -3,7 +3,7 @@ package com.bitmovin.player.reactnative
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import java.util.*
+import java.util.UUID
 
 private const val MODULE_NAME = "UuidModule"
 

@@ -20,14 +20,17 @@ interface RNPictureInPictureDelegate {
      * Called whenever the handler's `isInPictureInPictureMode` changes to `true`.
      */
     fun onExitPictureInPicture()
+
     /**
      * Called whenever the handler's `isInPictureInPictureMode` changes to `false`.
      */
     fun onEnterPictureInPicture()
+
     /**
      * Called whenever the activity's PiP mode state changes with the new resources configuration.
      */
     fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration?)
+
     /**
      * Called whenever the handler needs to compute a new `sourceRectHint` for PiP params.
      * The passed rect reference is expected to be fulfilled with the PlayerView's global visible
@@ -41,7 +44,7 @@ interface RNPictureInPictureDelegate {
  * React Native's application context to manage the application's PiP state. Can be subclassed in
  * order to provide custom PiP capabilities.
  */
-open class RNPictureInPictureHandler(val context: ReactApplicationContext): PictureInPictureHandler {
+open class RNPictureInPictureHandler(val context: ReactApplicationContext) : PictureInPictureHandler {
     /**
      * PiP delegate object that contains the view logic to be performed on each PiP state change.
      */
@@ -61,8 +64,8 @@ open class RNPictureInPictureHandler(val context: ReactApplicationContext): Pict
      * Whether the current Android version supports PiP mode.
      */
     private val isPictureInPictureSupported: Boolean
-        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-            && context.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+            context.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
 
     /**
      * Whether the picture in picture feature is available and enabled.
@@ -185,7 +188,8 @@ open class RNPictureInPictureHandler(val context: ReactApplicationContext): Pict
             it.setPictureInPictureParams(
                 PictureInPictureParams.Builder()
                     .setSourceRectHint(sourceRectHint)
-                    .build())
+                    .build(),
+            )
         }
     }
 }
