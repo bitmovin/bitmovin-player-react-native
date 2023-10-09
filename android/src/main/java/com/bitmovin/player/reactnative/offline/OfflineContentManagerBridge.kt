@@ -63,8 +63,7 @@ class OfflineContentManagerBridge(
             if (request.minimumBitrate == null) {
                 sortedVideoOptions.lastOrNull()
             } else {
-                sortedVideoOptions
-                    .firstOrNull { option -> option.bitrate >= request.minimumBitrate }
+                sortedVideoOptions.firstOrNull { option -> option.bitrate >= request.minimumBitrate }
             }?.apply {
                 action = OfflineOptionEntryAction.Download
             }
