@@ -92,8 +92,11 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event
  * exposes player events as bubbling events.
  */
 @SuppressLint("ViewConstructor")
-class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context),
-    LifecycleEventListener, View.OnLayoutChangeListener, RNPictureInPictureDelegate {
+class RNPlayerView(val context: ReactApplicationContext) :
+    LinearLayout(context),
+    LifecycleEventListener,
+    View.OnLayoutChangeListener,
+    RNPictureInPictureDelegate {
 
     init {
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
@@ -109,6 +112,7 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
      * to the `eventOutput` callback.
      */
     private val playerEventRelay = EventRelay<Player, Event>(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING, ::emitEvent)
+
     /**
      * Relays the provided set of events, emitted by the player view, together with the associated name
      * to the `eventOutput` callback.
@@ -273,7 +277,7 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
         post {
             measure(
                 MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+                MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
             )
             layout(left, top, right, bottom)
         }

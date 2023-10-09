@@ -120,7 +120,7 @@ class JsonConverter {
 
             val receiverStylesheetUrl = json.getOrDefault(
                 "receiverStylesheetUrl",
-                defaultRemoteControlConfig.receiverStylesheetUrl
+                defaultRemoteControlConfig.receiverStylesheetUrl,
             )
 
             var customReceiverConfig = defaultRemoteControlConfig.customReceiverConfig
@@ -132,24 +132,23 @@ class JsonConverter {
 
             val isCastEnabled = json.getOrDefault(
                 "isCastEnabled",
-                defaultRemoteControlConfig.isCastEnabled
+                defaultRemoteControlConfig.isCastEnabled,
             )
 
             val sendManifestRequestsWithCredentials = json.getOrDefault(
                 "sendManifestRequestsWithCredentials",
-                defaultRemoteControlConfig.sendManifestRequestsWithCredentials
+                defaultRemoteControlConfig.sendManifestRequestsWithCredentials,
             )
 
             val sendSegmentRequestsWithCredentials = json.getOrDefault(
                 "sendSegmentRequestsWithCredentials",
-                defaultRemoteControlConfig.sendSegmentRequestsWithCredentials
+                defaultRemoteControlConfig.sendSegmentRequestsWithCredentials,
             )
 
             val sendDrmLicenseRequestsWithCredentials = json.getOrDefault(
                 "sendDrmLicenseRequestsWithCredentials",
-                defaultRemoteControlConfig.sendDrmLicenseRequestsWithCredentials
+                defaultRemoteControlConfig.sendDrmLicenseRequestsWithCredentials,
             )
-
 
             return RemoteControlConfig(
                 receiverStylesheetUrl = receiverStylesheetUrl,
@@ -169,7 +168,7 @@ class JsonConverter {
         @JvmStatic
         fun toSourceOptions(json: ReadableMap?): SourceOptions {
             if (json == null) return SourceOptions()
-            val startOffset = if(json.hasKey("startOffset")) json.getDouble("startOffset") else null
+            val startOffset = if (json.hasKey("startOffset")) json.getDouble("startOffset") else null
             val timelineReferencePoint = toTimelineReferencePoint(json.getString("startOffsetTimelineReference"))
             return SourceOptions(startOffset = startOffset, startOffsetTimelineReference = timelineReferencePoint)
         }
@@ -299,7 +298,9 @@ class JsonConverter {
                 tweaksConfig.languagePropertyNormalization = json.getBoolean("languagePropertyNormalization")
             }
             if (json.hasKey("localDynamicDashWindowUpdateInterval")) {
-                tweaksConfig.localDynamicDashWindowUpdateInterval = json.getDouble("localDynamicDashWindowUpdateInterval")
+                tweaksConfig.localDynamicDashWindowUpdateInterval = json.getDouble(
+                    "localDynamicDashWindowUpdateInterval",
+                )
             }
             if (json.hasKey("shouldApplyTtmlRegionWorkaround")) {
                 tweaksConfig.shouldApplyTtmlRegionWorkaround = json.getBoolean("shouldApplyTtmlRegionWorkaround")
@@ -650,7 +651,7 @@ class JsonConverter {
             if (json == null) return null
             return BitmovinCastManagerOptions(
                 json.getOrDefault("applicationId", null),
-                json.getOrDefault("messageNamespace", null)
+                json.getOrDefault("messageNamespace", null),
             )
         }
 
@@ -676,7 +677,6 @@ class JsonConverter {
                                 ?.toHashMap()
                                 ?.mapValues { entry -> entry.value as String }
                                 ?.toMutableMap()
-
                         }
                     }
             }
@@ -691,7 +691,7 @@ class JsonConverter {
             if (url == null) {
                 return null
             }
-            return ThumbnailTrack(url);
+            return ThumbnailTrack(url)
         }
 
         /**
@@ -768,7 +768,7 @@ class JsonConverter {
             if (format == null) {
                 return null
             }
-            return "text/${format}"
+            return "text/$format"
         }
 
         /**
@@ -969,8 +969,8 @@ class JsonConverter {
             return CustomData.Builder().apply {
                 for (n in 1..30) {
                     setProperty(
-                        "customData${n}",
-                        json.getString("customData${n}") ?: continue
+                        "customData$n",
+                        json.getString("customData$n") ?: continue,
                     )
                 }
                 json.getString("experimentName")?.let {
@@ -988,8 +988,8 @@ class JsonConverter {
         fun fromAnalyticsCustomData(customData: CustomData?): WritableMap? = customData?.let {
             val json = Arguments.createMap()
             for (n in 1..30) {
-                it.getProperty<String>("customData${n}")?.let { customDataN ->
-                    json.putString("customData${n}", customDataN)
+                it.getProperty<String>("customData$n")?.let { customDataN ->
+                    json.putString("customData$n", customDataN)
                 }
             }
             it.experimentName?.let { experimentName ->
@@ -1007,7 +1007,7 @@ class JsonConverter {
                 cdnProvider = it.getString("cdnProvider"),
                 path = it.getString("path"),
                 isLive = it.getBoolean("isLive"),
-                customData = sourceCustomData
+                customData = sourceCustomData,
             )
         }
 

@@ -63,9 +63,9 @@ class CustomMessageHandlerModule(private val context: ReactApplicationContext) :
         args.pushString(message)
         args.pushString(data)
         context.catalystInstance.callFunction(
-                "CustomMessageBridge-${nativeId}",
-                "receivedSynchronousMessage",
-                args as NativeArray
+            "CustomMessageBridge-$nativeId",
+            "receivedSynchronousMessage",
+            args as NativeArray,
         )
         lock.withLock {
             customMessageHandlerResultChangedCondition.await()
@@ -78,9 +78,9 @@ class CustomMessageHandlerModule(private val context: ReactApplicationContext) :
         args.pushString(message)
         args.pushString(data)
         context.catalystInstance.callFunction(
-                "CustomMessageBridge-${nativeId}",
-                "receivedAsynchronousMessage",
-                args as NativeArray
+            "CustomMessageBridge-$nativeId",
+            "receivedAsynchronousMessage",
+            args as NativeArray,
         )
     }
 }
