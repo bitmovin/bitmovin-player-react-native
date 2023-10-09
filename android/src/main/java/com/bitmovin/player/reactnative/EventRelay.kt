@@ -21,7 +21,7 @@ class EventRelay<E : EventEmitter<T>, T : Event>(
     /**
      * Is called for every relayed event together with its associated name.
      */
-    private val eventOutput: (String, Event) -> Unit
+    private val eventOutput: (String, Event) -> Unit,
 ) {
     private val eventListeners = forwardingEventClassesAndNameMapping.map {
         Subscription(it.key) { event -> eventOutput(it.value, event) }
