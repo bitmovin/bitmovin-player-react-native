@@ -66,7 +66,7 @@ export class CustomMessageHandler {
   }
 
   /**
-   * Gets called when a asynchronous message was received from the Bitmovin Web UI.
+   * Gets called when an asynchronous message was received from the Bitmovin Web UI.
    *
    * @param message Identifier of the message.
    * @param data Optional data of the message as string (can be a serialized object).
