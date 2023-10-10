@@ -83,6 +83,8 @@ function dispatch(command: string, node: NodeHandle, ...args: any[]) {
 /**
  * Component that provides the Bitmovin Player UI and default UI handling to an attached `Player` instance.
  * This component needs a `Player` instance to work properly so make sure one is passed to it as a prop.
+ *
+ * @param options configuration options
  */
 export function PlayerView({
   style,

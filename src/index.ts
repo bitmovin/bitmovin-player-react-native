@@ -15,3 +15,6 @@ export * from './offline';
 export * from './thumbnail';
 export * from './remoteControlConfig';
 export * from './bitmovinCastManager';
+export * from './audioTrack';
+export * from './media';
+export * from './tweaksConfig';
