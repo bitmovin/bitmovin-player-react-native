@@ -158,7 +158,7 @@ export class Source extends NativeInstance<SourceConfig> {
   /**
    * The native DRM config reference of this source.
    */
-  drm?: Drm;
+  private drm?: Drm;
   /**
    * The remote control config for this source.
    * This is only supported on iOS.

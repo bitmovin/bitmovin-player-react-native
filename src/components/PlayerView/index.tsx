@@ -16,11 +16,23 @@ import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
 
 /**
- * Base `PlayerView` component props. Used to stablish common
+ * Base `PlayerView` component props. Used to establish common
  * props between `NativePlayerView` and `PlayerView`.
  * @see NativePlayerView
  */
 export interface BasePlayerViewProps {
+  /**
+   * The `FullscreenHandler` that is used by the `PlayerView` to control the fullscreen mode.
+   */
+  fullscreenHandler?: FullscreenHandler;
+
+  /**
+   * The `CustomMessageHandler` that can be used to directly communicate with the embedded WebUi.
+   */
+  customMessageHandler?: CustomMessageHandler;
+  /**
+   * Style of the `PlayerView`.
+   */
   style?: ViewStyle;
 }
 
@@ -34,16 +46,6 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
    * and render audio/video inside the `PlayerView`.
    */
   player: Player;
-
-  /**
-   * The `FullscreenHandler` that is used by the `PlayerView` to control the fullscreen mode.
-   */
-  fullscreenHandler?: FullscreenHandler;
-
-  /**
-   * The `CustomMessageHandler` that can be used to directly communicate with the embedded WebUi.
-   */
-  customMessageHandler?: CustomMessageHandler;
 
   /**
    * Can be set to `true` to request fullscreen mode, or `false` to request exit of fullscreen mode.

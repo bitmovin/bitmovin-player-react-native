@@ -42,6 +42,7 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
   // noinspection JSUnusedGlobalSymbols
   /**
    * Called by native code, when the UI sends a synchronous message.
+   * @internal
    */
   receivedSynchronousMessage(message: string, data: string | undefined): void {
     const result = this.customMessageHandler?.receivedSynchronousMessage(
@@ -57,6 +58,7 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
   // noinspection JSUnusedGlobalSymbols
   /**
    * Called by native code, when the UI sends an asynchronous message.
+   * @internal
    */
   receivedAsynchronousMessage(message: string, data: string | undefined): void {
     this.customMessageHandler?.receivedAsynchronousMessage(message, data);

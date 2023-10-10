@@ -49,12 +49,12 @@ export interface ErrorEvent extends Event {
 export interface PlayerActiveEvent extends Event {}
 
 /**
- * Emitted when a player error happens.
+ * Emitted when a player error occurred.
  */
 export interface PlayerErrorEvent extends ErrorEvent {}
 
 /**
- * Emitted when a player warning happens.
+ * Emitted when a player warning occurred.
  */
 export interface PlayerWarningEvent extends ErrorEvent {}
 
@@ -142,24 +142,32 @@ export interface EventSource {
 }
 
 /**
+ * Represents seeking position.
+ */
+export interface SeekPosition {
+  /**
+   * The relevant `Source`.
+   */
+  source: EventSource;
+  /**
+   * The position within the `source` in seconds.
+   */
+  time: number;
+}
+
+/**
  * Emitted when the player is about to seek to a new position.
  * Only applies to VoD streams.
  */
 export interface SeekEvent extends Event {
   /**
-   * Removed source metadata.
+   * Origin source metadata.
    */
-  from: {
-    time: number;
-    source: EventSource;
-  };
+  from: SeekPosition;
   /**
-   * Added source metadata.
+   * Target source metadata.
    */
-  to: {
-    time: number;
-    source: EventSource;
-  };
+  to: SeekPosition;
 }
 
 /**
@@ -242,12 +250,12 @@ export interface SourceUnloadedEvent extends Event {
 }
 
 /**
- * Emitted when a source error happens.
+ * Emitted when a source error occurred.
  */
 export interface SourceErrorEvent extends ErrorEvent {}
 
 /**
- * Emitted when a source warning happens.
+ * Emitted when a source warning occurred.
  */
 export interface SourceWarningEvent extends ErrorEvent {}
 
