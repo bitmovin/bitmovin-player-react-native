@@ -27,7 +27,7 @@ export interface BasePlayerViewProps {
   fullscreenHandler?: FullscreenHandler;
 
   /**
-   * The `CustomMessageHandler` that can be used to directly communicate with the embedded WebUi.
+   * The `CustomMessageHandler` that can be used to directly communicate with the embedded Bitmovin Web UI.
    */
   customMessageHandler?: CustomMessageHandler;
   /**
