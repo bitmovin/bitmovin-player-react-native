@@ -171,7 +171,7 @@ interface EventProps {
    */
   onDestroy: DestroyEvent;
   /**
-   * Called for each occurring player event.
+   * All events emitted by the player.
    */
   onEvent: Event;
   /**
