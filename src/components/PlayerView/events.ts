@@ -291,12 +291,12 @@ interface EventProps {
   onSourceError: SourceErrorEvent;
   /**
    * Event emitted when a new source loading has started.
-   * It doesn't mean that the loading of the new manifest has finished.
    */
   onSourceLoad: SourceLoadEvent;
   /**
    * Event emitted when a new source is loaded.
-   * It doesn't mean that the loading of the new manifest has finished.
+   * This does not mean that the source is immediately ready for playback.
+   * `ReadyEvent` indicates the player is ready for immediate playback.
    */
   onSourceLoaded: SourceLoadedEvent;
   /**
