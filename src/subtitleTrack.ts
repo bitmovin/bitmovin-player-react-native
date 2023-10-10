@@ -59,6 +59,10 @@ export interface SideLoadedSubtitleTrack {
    */
   label: string;
   /**
+   * The IETF BCP 47 language tag associated with this track, e.g. `pt`, `en`, `es` etc.
+   */
+  language: string;
+  /**
    * The unique identifier for this track. If no value is provided, a random UUIDv4 will be generated for it.
    */
   identifier?: string;
@@ -78,8 +82,4 @@ export interface SideLoadedSubtitleTrack {
    * Default is `false`.
    */
   isForced?: boolean;
-  /**
-   * The IETF BCP 47 language tag associated with this track, e.g. `pt`, `en`, `es` etc.
-   */
-  language: string;
 }
