@@ -142,7 +142,7 @@ export interface EventSource {
 }
 
 /**
- * Represents seeking position.
+ * Represents a seeking position.
  */
 export interface SeekPosition {
   /**
