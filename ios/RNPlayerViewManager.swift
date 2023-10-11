@@ -36,11 +36,10 @@ class RNPlayerViewManager: RCTViewManager {
                player.config.styleConfig.userInterfaceType == .bitmovin {
                 let bitmovinUserInterfaceConfig = player.config.styleConfig.userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
                 player.config.styleConfig.userInterfaceConfig = bitmovinUserInterfaceConfig
-                
                 bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
             }
 #endif
-            
+
             if let playerView = view.playerView {
                 playerView.player = player
             } else {
