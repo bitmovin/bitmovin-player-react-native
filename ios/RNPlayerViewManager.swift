@@ -22,7 +22,9 @@ class RNPlayerViewManager: RCTViewManager {
      - Parameter playerId: `Player` instance id inside `PlayerModule`'s registry.
      */
     @objc func attachPlayer(_ viewId: NSNumber, playerId: NativeId, playerConfig: NSDictionary?) {
-        bridge.uiManager.addUIBlock { [weak self] _, views in
+        bridge.uiManager.addUIBlock {
+            [weak self] _,
+            views in
             guard
                 let self,
                 let view = views?[viewId] as? RNPlayerView,
@@ -36,15 +38,23 @@ class RNPlayerViewManager: RCTViewManager {
                player.config.styleConfig.userInterfaceType == .bitmovin {
                 let bitmovinUserInterfaceConfig = player.config.styleConfig.userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
                 player.config.styleConfig.userInterfaceConfig = bitmovinUserInterfaceConfig
-
+                
                 bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
             }
 #endif
-
+            
             if let playerView = view.playerView {
                 playerView.player = player
             } else {
-                view.playerView = PlayerView(player: player, frame: view.bounds)
+                let playerViewConfig = PlayerViewConfig()
+                if let pictureInPictureConfig = RCTConvert.pictureInPictureConfig(view.pictureInPictureConfig) {
+                    playerViewConfig.pictureInPictureConfig = pictureInPictureConfig
+                }
+                view.playerView = PlayerView(
+                    player: player,
+                    frame: view.bounds,
+                    playerViewConfig: playerViewConfig
+                )
             }
             player.add(listener: view)
             view.playerView?.add(listener: view)

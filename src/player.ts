@@ -141,6 +141,7 @@ export interface PlaybackConfig {
    *   },
    * });
    * ```
+   * @deprecated Use {@link PictureInPIctureConfig} instead.
    */
   isPictureInPictureEnabled?: boolean;
 }

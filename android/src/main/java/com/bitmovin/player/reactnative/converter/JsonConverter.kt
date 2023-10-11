@@ -40,6 +40,7 @@ import com.bitmovin.player.api.source.TimelineReferencePoint
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
+import com.bitmovin.player.reactnative.RNPlayerView
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.getOrDefault
@@ -1088,6 +1089,13 @@ class JsonConverter {
                 putInt("width", thumbnail.width)
                 putInt("height", thumbnail.height)
             }
+        }
+
+        @JvmStatic
+        fun toPictureInPictureConfig(json: ReadableMap?): RNPlayerView.PictureInPictureConfig? = json?.let {
+            RNPlayerView.PictureInPictureConfig(
+                isEnabled = it.getBoolean("isEnabled"),
+            )
         }
     }
 }
