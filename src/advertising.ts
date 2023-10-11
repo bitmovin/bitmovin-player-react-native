@@ -25,7 +25,7 @@ export enum AdSourceType {
    */
   IMA = 'ima',
   /**
-   * Unknown advertising source type.
+   * Unknown ad source type.
    */
   UNKNOWN = 'unknown',
   /**
