@@ -40,7 +40,6 @@ import com.bitmovin.player.api.source.TimelineReferencePoint
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
-import com.bitmovin.player.reactnative.RNPlayerView
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.getOrDefault
@@ -52,6 +51,7 @@ import com.bitmovin.player.reactnative.extensions.setProperty
 import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.extensions.toReadableArray
 import com.bitmovin.player.reactnative.extensions.toReadableMap
+import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
@@ -1092,8 +1092,8 @@ class JsonConverter {
         }
 
         @JvmStatic
-        fun toPictureInPictureConfig(json: ReadableMap?): RNPlayerView.PictureInPictureConfig? = json?.let {
-            RNPlayerView.PictureInPictureConfig(
+        fun toPictureInPictureConfig(json: ReadableMap?): RNPictureInPictureHandler.PictureInPictureConfig? = json?.let {
+            RNPictureInPictureHandler.PictureInPictureConfig(
                 isEnabled = it.getBoolean("isEnabled"),
             )
         }

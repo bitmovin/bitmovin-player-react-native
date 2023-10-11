@@ -46,6 +46,11 @@ interface RNPictureInPictureDelegate {
  */
 open class RNPictureInPictureHandler(val context: ReactApplicationContext) : PictureInPictureHandler {
     /**
+     * Configuration type for picture in picture behaviors.
+     */
+    data class PictureInPictureConfig(val isEnabled: Boolean)
+
+    /**
      * PiP delegate object that contains the view logic to be performed on each PiP state change.
      */
     private var delegate: RNPictureInPictureDelegate? = null
