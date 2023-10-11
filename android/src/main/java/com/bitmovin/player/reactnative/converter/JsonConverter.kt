@@ -1092,11 +1092,12 @@ class JsonConverter {
         }
 
         @JvmStatic
-        fun toPictureInPictureConfig(json: ReadableMap?): RNPictureInPictureHandler.PictureInPictureConfig? = json?.let {
-            RNPictureInPictureHandler.PictureInPictureConfig(
-                isEnabled = it.getBoolean("isEnabled"),
-            )
-        }
+        fun toPictureInPictureConfig(json: ReadableMap?): RNPictureInPictureHandler.PictureInPictureConfig? =
+            json?.let {
+                RNPictureInPictureHandler.PictureInPictureConfig(
+                    isEnabled = it.getBoolean("isEnabled"),
+                )
+            }
     }
 }
 

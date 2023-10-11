@@ -10,7 +10,6 @@ import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getModule
 import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
 import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
-import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
