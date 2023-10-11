@@ -290,8 +290,8 @@ class RNPlayerView(val context: ReactApplicationContext) :
 
     /**
      * Emits a bubbling event with payload to js.
-     * @param event Native event name.
-     * @param json Optional js object to be sent as payload.
+     * @param name Native event name.
+     * @param event Optional js object to be sent as payload.
      */
     private inline fun <reified E : Event> emitEvent(name: String, event: E) {
         val payload = if (event is PlayerEvent) {
