@@ -8,8 +8,8 @@ import NativeInstance from '../nativeInstance';
 import { SourceConfig } from '../source';
 import {
   BitmovinNativeOfflineEventData,
-  handleBitmovinNativeOfflineEvent,
   OfflineContentManagerListener,
+  OfflineEventType,
 } from './offlineContentManagerListener';
 import { OfflineContentConfig } from './offlineContentConfig';
 import { OfflineDownloadRequest } from './offlineDownloadRequest';
@@ -38,6 +38,35 @@ interface NativeOfflineModule extends NativeModule {
 
 const OfflineModule =
   NativeModules.BitmovinOfflineModule as NativeOfflineModule;
+
+const handleBitmovinNativeOfflineEvent = (
+  data: BitmovinNativeOfflineEventData,
+  listeners: Set<OfflineContentManagerListener>
+) => {
+  listeners.forEach((listener) => {
+    if (!listener) return;
+
+    if (data.eventType === OfflineEventType.onCompleted) {
+      listener.onCompleted?.(data);
+    } else if (data.eventType === OfflineEventType.onError) {
+      listener.onError?.(data);
+    } else if (data.eventType === OfflineEventType.onProgress) {
+      listener.onProgress?.(data);
+    } else if (data.eventType === OfflineEventType.onOptionsAvailable) {
+      listener.onOptionsAvailable?.(data);
+    } else if (data.eventType === OfflineEventType.onDrmLicenseUpdated) {
+      listener.onDrmLicenseUpdated?.(data);
+    } else if (data.eventType === OfflineEventType.onDrmLicenseExpired) {
+      listener.onDrmLicenseExpired?.(data);
+    } else if (data.eventType === OfflineEventType.onSuspended) {
+      listener.onSuspended?.(data);
+    } else if (data.eventType === OfflineEventType.onResumed) {
+      listener.onResumed?.(data);
+    } else if (data.eventType === OfflineEventType.onCanceled) {
+      listener.onCanceled?.(data);
+    }
+  });
+};
 
 /**
  * Provides the means to download and store sources locally that can be played back with a Player

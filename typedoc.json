@@ -8,5 +8,6 @@
   "excludeExternals": true,
   "includeVersion": true,
   "entryPoints": ["./src"],
-  "exclude": ["./example/**/*"]
+  "exclude": ["./example/**/*"],
+  "treatWarningsAsErrors": true
 }
