@@ -41,13 +41,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     private var customMessageHandlerBridgeId: NativeId? = null
 
     /**
-     * React Native PiP handler instance. It can be subclassed, then set from other native
-     * modules in case a full-custom implementation is needed. A default implementation is provided
-     * out-of-the-box.
-     */
-    private var pictureInPictureHandler = RNPictureInPictureHandler(context)
-
-    /**
      * The component's native view factory. RN may call this method multiple times
      * for each component instance.
      */
@@ -233,6 +226,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 )
 
             isPictureInPictureEnabled.let {
+                val pictureInPictureHandler = view.pictureInPictureHandler ?: RNPictureInPictureHandler(context)
                 pictureInPictureHandler.isPictureInPictureEnabled = it
                 view.pictureInPictureHandler = pictureInPictureHandler
             }
