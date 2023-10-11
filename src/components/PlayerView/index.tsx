@@ -14,18 +14,7 @@ import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandler, CustomMessageHandler } from '../../ui';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
-
-/**
- * Provides options to configure Picture in Picture playback.
- */
-export interface PictureInPictureConfig {
-  /**
-   * Whether Picture in Picture feature is enabled or not.
-   *
-   * Default is `false`.
-   */
-  isEnabled?: boolean;
-}
+import { PictureInPictureConfig } from './pictureInPictureConfig';
 
 /**
  * Base `PlayerView` component props. Used to stablish common
