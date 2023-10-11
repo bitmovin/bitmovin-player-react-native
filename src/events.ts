@@ -157,7 +157,8 @@ export interface SeekPosition {
 
 /**
  * Emitted when the player is about to seek to a new position.
- * Only applies to VoD streams.
+ * This event only applies to VoD streams.
+ * When looking for an equivalent for live streams, the {@link TimeShiftEvent} is relevant.
  */
 export interface SeekEvent extends Event {
   /**
@@ -172,13 +173,15 @@ export interface SeekEvent extends Event {
 
 /**
  * Emitted when seeking has finished and data to continue playback is available.
- * Only applies to VoD streams.
+ * This event only applies to VoD streams.
+ * When looking for an equivalent for live streams, the {@link TimeShiftedEvent} is relevant.
  */
 export interface SeekedEvent extends Event {}
 
 /**
  * Emitted when the player starts time shifting.
- * Only applies to live streams.
+ * This event only applies to live streams.
+ * When looking for an equivalent for VoD streams, the {@link SeekEvent} is relevant.
  */
 export interface TimeShiftEvent extends Event {
   /**
@@ -193,7 +196,8 @@ export interface TimeShiftEvent extends Event {
 
 /**
  * Emitted when time shifting has finished and data is available to continue playback.
- * Only applies to live streams.
+ * This event only applies to live streams.
+ * When looking for an equivalent for VoD streams, the {@link SeekedEvent} is relevant.
  */
 export interface TimeShiftedEvent extends Event {}
 
