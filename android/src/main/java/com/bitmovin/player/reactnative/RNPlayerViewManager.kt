@@ -224,12 +224,15 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId?, playerConfig: ReadableMap?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
-            val isPictureInPictureEnabled = playerConfig
-                ?.getMap("playbackConfig")
-                ?.getBooleanOrNull("isPictureInPictureEnabled")
-                ?: view.pictureInPictureConfig?.isEnabled
+            val isPictureInPictureEnabled = (view.pictureInPictureConfig?.isEnabled ?: false)
+                .or(
+                    playerConfig
+                        ?.getMap("playbackConfig")
+                        ?.getBooleanOrNull("isPictureInPictureEnabled")
+                        ?: false,
+                )
 
-            isPictureInPictureEnabled?.let {
+            isPictureInPictureEnabled.let {
                 pictureInPictureHandler.isPictureInPictureEnabled = it
                 view.pictureInPictureHandler = pictureInPictureHandler
             }
