@@ -6,7 +6,7 @@
  */
 export interface TweaksConfig {
   /**
-   * The frequency in seconds onTimeChanged is called with TimeChangedEvents.
+   * The frequency in seconds `onTimeChanged` is called with `TimeChangedEvent`s.
    *
    * Default value in iOS is `1.0`.
    * Default value in Android is `0.2`.
@@ -17,10 +17,10 @@ export interface TweaksConfig {
   /**
    * If enabled, HLS playlists will be parsed and additional features and events are enabled. This includes:
    *
-   * - MetadataEvents carrying segment-specific metadata for custom HLS tags, like #EXT-X-SCTE35
-   * - MetadataParsedEvents carrying segment-specific metadata for custom HLS tags, like #EXT-X-SCTE35
-   * - DrmDataParsedEvents when a #EXT-X-KEY is found
-   * - Player.availableVideoQualities includes additional information
+   * - MetadataEvents carrying segment-specific metadata for custom HLS tags, like `#EXT-X-SCTE35`
+   * - MetadataParsedEvents carrying segment-specific metadata for custom HLS tags, like `#EXT-X-SCTE35`
+   * - DrmDataParsedEvents when a `#EXT-X-KEY` is found
+   * - `Player.availableVideoQualities` includes additional information
    * - Automatic retries when HLS playlist requests failed with non-2xx HTTP status code
    *
    * Default is false.
@@ -33,7 +33,7 @@ export interface TweaksConfig {
    * This enables additional features and events, like:
    *
    * - DownloadFinishedEvents for playlist downloads.
-   * - SourceWarningEvents when no #EXT-X-PLAYLIST-TYPE is found If set to false, enabling
+   * - SourceWarningEvents when no `#EXT-X-PLAYLIST-TYPE` is found If set to false, enabling
    * nativeHlsParsingEnabled won’t have any effect.
    *
    * Default is true.
@@ -43,7 +43,7 @@ export interface TweaksConfig {
   isCustomHlsLoadingEnabled?: boolean;
   /**
    * The threshold which will be applied when seeking to the end in seconds. This value will be used
-   * to calculate the maximum seekable time when calling player.seek(time:) or player.playlist.seek(source:time:),
+   * to calculate the maximum seekable time when calling `player.seek(time:)` or `player.playlist.seek(source:time:)`,
    * so the maximum value will be duration - seekToEndThreshold.
    *
    * This is useful if the duration of the segments does not match the duration specified in the
@@ -56,7 +56,7 @@ export interface TweaksConfig {
    */
   seekToEndThreshold?: number;
   /**
-   * Specifies the player behaviour when Player.play is called. Default is 'relaxed'.
+   * Specifies the player behaviour when `Player.play` is called. Default is 'relaxed'.
    *
    * - 'relaxed': Starts playback when enough media data is buffered and continuous playback without stalling can be ensured. If insufficient media data is buffered for playback to start, the player will act as if the buffer became empty during playback.
    * - 'aggressive': When the buffer is not empty, this setting will cause the player to start playback of available media immediately. If insufficient media data is buffered for playback to start, the player will act as if the buffer became empty during playback.

@@ -29,6 +29,7 @@ export interface DrmConfig extends NativeInstanceConfig {
 
 /**
  * Represents a native DRM configuration object.
+ * @internal
  */
 export class Drm extends NativeInstance<DrmConfig> {
   /**

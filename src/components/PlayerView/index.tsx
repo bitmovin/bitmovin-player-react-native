@@ -17,11 +17,23 @@ import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge'
 import { PictureInPictureConfig } from './pictureInPictureConfig';
 
 /**
- * Base `PlayerView` component props. Used to stablish common
+ * Base `PlayerView` component props. Used to establish common
  * props between `NativePlayerView` and `PlayerView`.
  * @see NativePlayerView
  */
 export interface BasePlayerViewProps {
+  /**
+   * The `FullscreenHandler` that is used by the `PlayerView` to control the fullscreen mode.
+   */
+  fullscreenHandler?: FullscreenHandler;
+
+  /**
+   * The `CustomMessageHandler` that can be used to directly communicate with the embedded Bitmovin Web UI.
+   */
+  customMessageHandler?: CustomMessageHandler;
+  /**
+   * Style of the `PlayerView`.
+   */
   style?: ViewStyle;
 
   /**
@@ -40,16 +52,6 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
    * and render audio/video inside the `PlayerView`.
    */
   player: Player;
-
-  /**
-   * The `FullscreenHandler` that is used by the `PlayerView` to control the fullscreen mode.
-   */
-  fullscreenHandler?: FullscreenHandler;
-
-  /**
-   * The `CustomMessageHandler` that can be used to directly communicate with the embedded WebUi.
-   */
-  customMessageHandler?: CustomMessageHandler;
 
   /**
    * Can be set to `true` to request fullscreen mode, or `false` to request exit of fullscreen mode.
@@ -89,6 +91,8 @@ function dispatch(command: string, node: NodeHandle, ...args: any[]) {
 /**
  * Component that provides the Bitmovin Player UI and default UI handling to an attached `Player` instance.
  * This component needs a `Player` instance to work properly so make sure one is passed to it as a prop.
+ *
+ * @param options configuration options
  */
 export function PlayerView({
   style,
