@@ -2,10 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+
+- `PictureInPictureConfig` to `PlayerView` to allow configuring the Picture in Picture behavior
+
 ### Changed
 
 - Update IMA SDK dependency on Android to `3.31.0`
 - Update Bitmovin's native Android SDK version to `3.47.0`
+
+### Deprecated
+
+- `PlaybackConfig.isPictureInPictureEnabled` in favor of `PictureInPictureConfig.isEnabled`
 
 ## [0.12.0] (2023-09-25)
 
