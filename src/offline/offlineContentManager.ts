@@ -78,10 +78,10 @@ const handleBitmovinNativeOfflineEvent = (
 export class OfflineContentManager extends NativeInstance<OfflineContentConfig> {
   isInitialized = false;
   isDestroyed = false;
-  eventSubscription?: EmitterSubscription = undefined;
-  listeners: Set<OfflineContentManagerListener> =
+  private eventSubscription?: EmitterSubscription = undefined;
+  private listeners: Set<OfflineContentManagerListener> =
     new Set<OfflineContentManagerListener>();
-  drm?: Drm;
+  private drm?: Drm;
 
   constructor(config: OfflineContentConfig) {
     super(config);

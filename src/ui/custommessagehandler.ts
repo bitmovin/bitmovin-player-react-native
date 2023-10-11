@@ -51,6 +51,13 @@ export class CustomMessageHandler {
     this.onReceivedAsynchronousMessage = onReceivedAsynchronousMessage;
   }
 
+  /**
+   * Gets called when a synchronous message was received from the Bitmovin Web UI.
+   *
+   * @param message Identifier of the message.
+   * @param data Optional data of the message as string (can be a serialized object).
+   * @returns Optional return value as string which will be propagates back to the JS counterpart.
+   */
   receivedSynchronousMessage(
     message: string,
     data: string | undefined
@@ -58,6 +65,12 @@ export class CustomMessageHandler {
     return this.onReceivedSynchronousMessage(message, data);
   }
 
+  /**
+   * Gets called when an asynchronous message was received from the Bitmovin Web UI.
+   *
+   * @param message Identifier of the message.
+   * @param data Optional data of the message as string (can be a serialized object).
+   */
   receivedAsynchronousMessage(message: string, data: string | undefined): void {
     this.onReceivedAsynchronousMessage(message, data);
   }
