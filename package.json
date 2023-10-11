@@ -33,7 +33,7 @@
     "pods-update": "cd example/ios && pod update --silent",
     "bootstrap": "yarn && yarn example && yarn pods",
     "prepare": "husky install",
-    "docs": "typedoc --options ./typedoc.json"
+    "docs": "typedoc"
   },
   "keywords": [
     "react-native",

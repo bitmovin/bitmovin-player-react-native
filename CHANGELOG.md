@@ -6,6 +6,12 @@
 
 - API Reference now can be found [here](https://cdn.bitmovin.com/player/reactnative/0/docs/index.html)
 
+### Changed
+
+- Update IMA SDK dependency on Android to `3.31.0`
+- Update Bitmovin's native Android SDK version to `3.47.0`
+
+
 ## [0.12.0] (2023-09-25)
 
 ### Added
