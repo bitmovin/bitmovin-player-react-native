@@ -145,6 +145,11 @@ class RNPlayerView(val context: ReactApplicationContext) :
     var pictureInPictureHandler: RNPictureInPictureHandler? = null
 
     /**
+     * Configuration for picture in picture behaviors.
+     */
+    var pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig? = null
+
+    /**
      * Whether this view should pause video playback when activity's onPause is called.
      * By default, `shouldPausePlaybackOnActivityPause` is set to false when entering PiP mode.
      */
@@ -285,8 +290,8 @@ class RNPlayerView(val context: ReactApplicationContext) :
 
     /**
      * Emits a bubbling event with payload to js.
-     * @param event Native event name.
-     * @param json Optional js object to be sent as payload.
+     * @param name Native event name.
+     * @param event Optional js object to be sent as payload.
      */
     private inline fun <reified E : Event> emitEvent(name: String, event: E) {
         val payload = if (event is PlayerEvent) {

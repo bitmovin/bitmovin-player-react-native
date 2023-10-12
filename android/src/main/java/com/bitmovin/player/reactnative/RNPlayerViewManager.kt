@@ -5,6 +5,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getModule
 import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
@@ -16,6 +17,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.uimanager.annotations.ReactProp
 
 private const val MODULE_NAME = "NativePlayerView"
 
@@ -37,13 +39,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     override fun getName() = MODULE_NAME
 
     private var customMessageHandlerBridgeId: NativeId? = null
-
-    /**
-     * React Native PiP handler instance. It can be subclassed, then set from other native
-     * modules in case a full-custom implementation is needed. A default implementation is provided
-     * out-of-the-box.
-     */
-    var pictureInPictureHandler = RNPictureInPictureHandler(context)
 
     /**
      * The component's native view factory. RN may call this method multiple times
@@ -174,6 +169,11 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         }
     }
 
+    @ReactProp(name = "pictureInPictureConfig")
+    fun setPictureInPictureConfig(view: RNPlayerView, pictureInPictureConfig: ReadableMap?) {
+        view.pictureInPictureConfig = JsonConverter.toPictureInPictureConfig(pictureInPictureConfig)
+    }
+
     private fun attachFullscreenBridge(view: RNPlayerView, fullscreenBridgeId: NativeId) {
         Handler(Looper.getMainLooper()).post {
             view.playerView?.setFullscreenHandler(
@@ -217,13 +217,12 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId?, playerConfig: ReadableMap?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
-            playerConfig
-                ?.getMap("playbackConfig")
-                ?.getBooleanOrNull("isPictureInPictureEnabled")
-                ?.let {
-                    pictureInPictureHandler.isPictureInPictureEnabled = it
-                    view.pictureInPictureHandler = pictureInPictureHandler
-                }
+            val playbackConfig = playerConfig?.getMap("playbackConfig")
+            val isPictureInPictureEnabled = view.pictureInPictureConfig?.isEnabled == true ||
+                playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
+            val pictureInPictureHandler = view.pictureInPictureHandler ?: RNPictureInPictureHandler(context)
+            view.pictureInPictureHandler = pictureInPictureHandler
+            view.pictureInPictureHandler?.isPictureInPictureEnabled = isPictureInPictureEnabled
             if (view.playerView != null) {
                 view.player = player
             } else {

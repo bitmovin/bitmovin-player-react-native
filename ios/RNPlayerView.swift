@@ -62,6 +62,7 @@ class RNPlayerView: UIView {
     @objc var onCastStopped: RCTBubblingEventBlock?
     @objc var onCastTimeUpdated: RCTBubblingEventBlock?
     @objc var onCastWaitingForDevice: RCTBubblingEventBlock?
+    @objc var pictureInPictureConfig: [String: Any]?
 
     /// The `PlayerView` subview.
     var playerView: PlayerView? {

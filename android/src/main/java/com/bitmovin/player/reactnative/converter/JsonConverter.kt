@@ -51,6 +51,7 @@ import com.bitmovin.player.reactnative.extensions.setProperty
 import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.extensions.toReadableArray
 import com.bitmovin.player.reactnative.extensions.toReadableMap
+import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
@@ -1089,6 +1090,14 @@ class JsonConverter {
                 putInt("height", thumbnail.height)
             }
         }
+
+        @JvmStatic
+        fun toPictureInPictureConfig(json: ReadableMap?): RNPictureInPictureHandler.PictureInPictureConfig? =
+            json?.let {
+                RNPictureInPictureHandler.PictureInPictureConfig(
+                    isEnabled = it.getBoolean("isEnabled"),
+                )
+            }
     }
 }
 
