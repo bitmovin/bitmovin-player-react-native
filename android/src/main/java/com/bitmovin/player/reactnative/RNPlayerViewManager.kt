@@ -205,16 +205,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
 
     private fun setScalingMode(view: RNPlayerView, scalingMode: String) {
         Handler(Looper.getMainLooper()).post {
-            when (scalingMode) {
-                "Zoom" -> {
-                    view.playerView?.scalingMode = ScalingMode.Zoom
-                }
-                "Stretch" -> {
-                    view.playerView?.scalingMode = ScalingMode.Stretch
-                }
-                else -> {
-                    view.playerView?.scalingMode = ScalingMode.Fit
-                }
+            view.playerView?.scalingMode = ScalingMode.valueOf(scalingMode)
             }
         }
     }
