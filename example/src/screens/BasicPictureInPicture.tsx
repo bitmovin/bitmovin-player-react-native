@@ -17,11 +17,12 @@ function prettyPrint(header: string, obj: any) {
 export default function BasicPictureInPicture() {
   useTVGestures();
 
+  const pictureInPictureConfig = {
+    // Enable picture in picture UI option on player controls.
+    isEnabled: true,
+  };
+
   const player = usePlayer({
-    playbackConfig: {
-      // Enable picture in picture UI option on player controls.
-      isPictureInPictureEnabled: true,
-    },
     remoteControlConfig: {
       isCastEnabled: false,
     },
@@ -68,6 +69,7 @@ export default function BasicPictureInPicture() {
       <PlayerView
         player={player}
         style={styles.player}
+        pictureInPictureConfig={pictureInPictureConfig}
         onPictureInPictureAvailabilityChanged={onEvent}
         onPictureInPictureEnter={onEvent}
         onPictureInPictureEntered={onEvent}

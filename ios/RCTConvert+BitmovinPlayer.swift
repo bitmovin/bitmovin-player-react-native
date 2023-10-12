@@ -1033,4 +1033,21 @@ extension RCTConvert {
         )
     }
 #endif
+
+    /**
+     Utility method to instantiate a `PictureInPictureConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `PictureInPictureConfig` object
+     */
+    static func pictureInPictureConfig(_ json: Any?) -> PictureInPictureConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        let pictureInPictureConfig = PictureInPictureConfig()
+        if let isEnabled = json["isEnabled"] as? Bool {
+            pictureInPictureConfig.isEnabled = isEnabled
+        }
+        return pictureInPictureConfig
+    }
 }

@@ -1,0 +1,8 @@
+[*.{kt,kts}]
+ktlint_code_style=android_studio
+max_line_length=120
+# Allow wildcard imports for react native bridge, since IntelliJ does this automatically when performing
+# imports optimization.
+ij_kotlin_packages_to_use_import_on_demand = com.facebook.react.bridge.*
+ij_kotlin_allow_trailing_comma=true
+ij_kotlin_allow_trailing_comma_on_call_site=true

@@ -2,8 +2,17 @@
  * Quartiles that can be reached during an ad playback.
  */
 export enum AdQuartile {
+  /**
+   * Fist ad quartile.
+   */
   FIRST = 'first',
+  /**
+   * Mid ad quartile.
+   */
   MID_POINT = 'mid_point',
+  /**
+   * Third ad quartile.
+   */
   THIRD = 'third',
 }
 
@@ -11,8 +20,17 @@ export enum AdQuartile {
  * The possible types an `AdSource` can be.
  */
 export enum AdSourceType {
+  /**
+   * Google Interactive Media Ads.
+   */
   IMA = 'ima',
+  /**
+   * Unknown ad source type.
+   */
   UNKNOWN = 'unknown',
+  /**
+   * Progressive ad type.
+   */
   PROGRESSIVE = 'progressive',
 }
 

@@ -92,8 +92,11 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event
  * exposes player events as bubbling events.
  */
 @SuppressLint("ViewConstructor")
-class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context),
-    LifecycleEventListener, View.OnLayoutChangeListener, RNPictureInPictureDelegate {
+class RNPlayerView(val context: ReactApplicationContext) :
+    LinearLayout(context),
+    LifecycleEventListener,
+    View.OnLayoutChangeListener,
+    RNPictureInPictureDelegate {
 
     init {
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
@@ -109,6 +112,7 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
      * to the `eventOutput` callback.
      */
     private val playerEventRelay = EventRelay<Player, Event>(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING, ::emitEvent)
+
     /**
      * Relays the provided set of events, emitted by the player view, together with the associated name
      * to the `eventOutput` callback.
@@ -139,6 +143,11 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
      * Object that handles PiP mode changes in React Native.
      */
     var pictureInPictureHandler: RNPictureInPictureHandler? = null
+
+    /**
+     * Configuration for picture in picture behaviors.
+     */
+    var pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig? = null
 
     /**
      * Whether this view should pause video playback when activity's onPause is called.
@@ -273,7 +282,7 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
         post {
             measure(
                 MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+                MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
             )
             layout(left, top, right, bottom)
         }
@@ -281,8 +290,8 @@ class RNPlayerView(val context: ReactApplicationContext) : LinearLayout(context)
 
     /**
      * Emits a bubbling event with payload to js.
-     * @param event Native event name.
-     * @param json Optional js object to be sent as payload.
+     * @param name Native event name.
+     * @param event Optional js object to be sent as payload.
      */
     private inline fun <reified E : Event> emitEvent(name: String, event: E) {
         val payload = if (event is PlayerEvent) {

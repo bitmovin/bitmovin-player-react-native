@@ -5,12 +5,15 @@ on:
       - closed
     branches:
       - main
+
 env:
   LC_ALL: en_US.UTF-8
   LANG: en_US.UTF-8
+
 concurrency:
   group: finish-release-train-${{ github.ref_name }}
   cancel-in-progress: true
+
 jobs:
   create_pr:
     if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/v')
@@ -88,3 +91,13 @@ jobs:
           tag: v${{ needs.create_pr.outputs.version_number }}
           token: ${{ secrets.GITHUB_TOKEN }}
           body: ${{ steps.changelog.outputs.release_notes }}
+
+  publish_documentation:
+    needs: [publish_release]
+    name: Generate API Documentation
+    uses: ./.github/workflows/generate-documentation.yml
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      GCS_ACCOUNT: ${{ secrets.GCS_ACCOUNT }}
+      CF_TOKEN: ${{ secrets.CF_TOKEN }}
+      CF_ZONEID: ${{ secrets.CF_ZONEID }}

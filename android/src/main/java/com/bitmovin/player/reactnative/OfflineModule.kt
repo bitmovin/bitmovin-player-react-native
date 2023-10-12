@@ -3,8 +3,8 @@ package com.bitmovin.player.reactnative
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.extensions.toList
-import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
+import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.UIManagerModule
@@ -69,7 +69,13 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
                     return@addUIBlock
                 }
 
-                offlineContentManagerBridges[nativeId] = OfflineContentManagerBridge(nativeId, context, identifier, sourceConfig, context.cacheDir.path)
+                offlineContentManagerBridges[nativeId] = OfflineContentManagerBridge(
+                    nativeId,
+                    context,
+                    identifier,
+                    sourceConfig,
+                    context.cacheDir.path,
+                )
             }
             promise.resolve(null)
         }
@@ -117,7 +123,8 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
                         return@safeOfflineContentManager
                     }
                     OfflineOptionEntryState.Downloading,
-                    OfflineOptionEntryState.Failed -> {
+                    OfflineOptionEntryState.Failed,
+                    -> {
                         promise.reject(IllegalStateException("Download already in progress"))
                         return@safeOfflineContentManager
                     }
@@ -127,7 +134,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
                     }
                     else -> {}
                 }
-                val minimumBitRate = if(request.hasKey("minimumBitrate")) request.getInt("minimumBitrate") else null
+                val minimumBitRate = if (request.hasKey("minimumBitrate")) request.getInt("minimumBitrate") else null
                 if (minimumBitRate != null && minimumBitRate < 0) {
                     promise.reject(IllegalArgumentException("Invalid download request"))
                     return@safeOfflineContentManager
@@ -136,7 +143,9 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
                 val audioOptionIds = request.getArray("audioOptionIds")?.toList<String>()?.filterNotNull()
                 val textOptionIds = request.getArray("textOptionIds")?.toList<String>()?.filterNotNull()
 
-                getOfflineContentManagerBridge(nativeId)?.process(OfflineDownloadRequest(minimumBitRate, audioOptionIds, textOptionIds))
+                getOfflineContentManagerBridge(nativeId)?.process(
+                    OfflineDownloadRequest(minimumBitRate, audioOptionIds, textOptionIds),
+                )
                 promise.resolve(null)
             } catch (e: Exception) {
                 promise.reject(e)
@@ -260,20 +269,22 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
         }
     }
 
-    private fun safeOfflineContentManager(nativeId: NativeId, promise: Promise, runBlock: OfflineContentManagerBridge.() -> Unit) {
+    private fun safeOfflineContentManager(
+        nativeId: NativeId,
+        promise: Promise,
+        runBlock: OfflineContentManagerBridge.() -> Unit,
+    ) {
         getOfflineContentManagerBridge(nativeId)?.let(runBlock)
-                ?: promise.reject(IllegalArgumentException("Could not find the offline module instance"))
+            ?: promise.reject(IllegalArgumentException("Could not find the offline module instance"))
     }
 
     /**
      * Helper function that returns the initialized `DrmModule` instance.
      */
-    private fun drmModule(): DrmModule? =
-            context.getNativeModule(DrmModule::class.java)
+    private fun drmModule(): DrmModule? = context.getNativeModule(DrmModule::class.java)
 
     /**
      * Helper function that returns the initialized `UIManager` instance.
      */
-    private fun uiManager(): UIManagerModule? =
-            context.getNativeModule(UIManagerModule::class.java)
+    private fun uiManager(): UIManagerModule? = context.getNativeModule(UIManagerModule::class.java)
 }

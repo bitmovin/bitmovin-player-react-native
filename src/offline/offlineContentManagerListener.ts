@@ -146,42 +146,58 @@ export type BitmovinNativeOfflineEventData =
  * @platform Android, iOS
  */
 export interface OfflineContentManagerListener {
+  /**
+   * Emitted when the download process has completed.
+   *
+   * @param e The `OnCompletedEvent` that was emitted
+   */
   onCompleted?: (e: OnCompletedEvent) => void;
+  /**
+   * Emitted when an error has occurred.
+   *
+   * @param e The `OnErrorEvent` that was emitted
+   */
   onError?: (e: OnErrorEvent) => void;
+  /**
+   * Emitted when there is a progress change for the process call.
+   *
+   * @param e The `OnProgressEvent` that was emitted
+   */
   onProgress?: (e: OnProgressEvent) => void;
+  /**
+   * Emitted when the `OfflineContentOptions` is available after a `OfflineContentManager.getOptions` call.
+   *
+   * @param e The `OnOptionsAvailableEvent` that was emitted
+   */
   onOptionsAvailable?: (e: OnOptionsAvailableEvent) => void;
+  /**
+   * Emitted when the DRM license was updated.
+   *
+   * @param e The `OnDrmLicenseUpdatedEvent` that was emitted
+   */
   onDrmLicenseUpdated?: (e: OnDrmLicenseUpdatedEvent) => void;
+  /**
+   * Emitted when the DRM license has expired.
+   *
+   * @param e The `OnDrmLicenseExpiredEvent` that was emitted
+   */
   onDrmLicenseExpired?: (e: OnDrmLicenseExpiredEvent) => void;
+  /**
+   * Emitted when all active actions have been suspended.
+   *
+   * @param e The `OnSuspendedEvent` that was emitted
+   */
   onSuspended?: (e: OnSuspendedEvent) => void;
+  /**
+   * Emitted when all actions have been resumed.
+   *
+   * @param e The `OnResumedEvent` that was emitted
+   */
   onResumed?: (e: OnResumedEvent) => void;
+  /**
+   * Emitted when the download of the media content was canceled by the user and all partially downloaded content has been deleted from disk.
+   *
+   * @param e The `OnCanceledEvent` that was emitted
+   */
   onCanceled?: (e: OnCanceledEvent) => void;
 }
-
-export const handleBitmovinNativeOfflineEvent = (
-  data: BitmovinNativeOfflineEventData,
-  listeners: Set<OfflineContentManagerListener>
-) => {
-  listeners.forEach((listener) => {
-    if (!listener) return;
-
-    if (data.eventType === OfflineEventType.onCompleted) {
-      listener.onCompleted?.(data);
-    } else if (data.eventType === OfflineEventType.onError) {
-      listener.onError?.(data);
-    } else if (data.eventType === OfflineEventType.onProgress) {
-      listener.onProgress?.(data);
-    } else if (data.eventType === OfflineEventType.onOptionsAvailable) {
-      listener.onOptionsAvailable?.(data);
-    } else if (data.eventType === OfflineEventType.onDrmLicenseUpdated) {
-      listener.onDrmLicenseUpdated?.(data);
-    } else if (data.eventType === OfflineEventType.onDrmLicenseExpired) {
-      listener.onDrmLicenseExpired?.(data);
-    } else if (data.eventType === OfflineEventType.onSuspended) {
-      listener.onSuspended?.(data);
-    } else if (data.eventType === OfflineEventType.onResumed) {
-      listener.onResumed?.(data);
-    } else if (data.eventType === OfflineEventType.onCanceled) {
-      listener.onCanceled?.(data);
-    }
-  });
-};

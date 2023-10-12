@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.ui.ScalingMode
+import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getModule
 import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
@@ -17,6 +18,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.uimanager.annotations.ReactProp
 
 private const val MODULE_NAME = "NativePlayerView"
 
@@ -39,13 +41,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     override fun getName() = MODULE_NAME
 
     private var customMessageHandlerBridgeId: NativeId? = null
-
-    /**
-     * React Native PiP handler instance. It can be subclassed, then set from other native
-     * modules in case a full-custom implementation is needed. A default implementation is provided
-     * out-of-the-box.
-     */
-    var pictureInPictureHandler = RNPictureInPictureHandler(context)
 
     /**
      * The component's native view factory. RN may call this method multiple times
@@ -134,7 +129,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     override fun getExportedCustomBubblingEventTypeConstants(): MutableMap<String, Any> =
         bubblingEventsMapping.entries.associate {
             it.key to mapOf(
-                "phasedRegistrationNames" to mapOf("bubbled" to it.value)
+                "phasedRegistrationNames" to mapOf("bubbled" to it.value),
             )
         }.toMutableMap()
 
@@ -156,7 +151,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      */
     override fun receiveCommand(view: RNPlayerView, commandId: String?, args: ReadableArray?) {
         val command = commandId?.toInt()?.toCommand() ?: throw IllegalArgumentException(
-            "The received command is not supported by the Bitmovin Player View"
+            "The received command is not supported by the Bitmovin Player View",
         )
         when (command) {
             Commands.ATTACH_PLAYER -> attachPlayer(view, args?.getString(1), args?.getMap(2))
@@ -181,10 +176,15 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         }
     }
 
+    @ReactProp(name = "pictureInPictureConfig")
+    fun setPictureInPictureConfig(view: RNPlayerView, pictureInPictureConfig: ReadableMap?) {
+        view.pictureInPictureConfig = JsonConverter.toPictureInPictureConfig(pictureInPictureConfig)
+    }
+
     private fun attachFullscreenBridge(view: RNPlayerView, fullscreenBridgeId: NativeId) {
         Handler(Looper.getMainLooper()).post {
             view.playerView?.setFullscreenHandler(
-                context.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId)
+                context.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId),
             )
         }
     }
@@ -228,7 +228,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         view.playerView?.setCustomMessageHandler(
             context.getModule<CustomMessageHandlerModule>()
                 ?.getInstance(customMessageHandlerBridgeId)
-                ?.customMessageHandler
+                ?.customMessageHandler,
         )
     }
 
@@ -240,13 +240,12 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId?, playerConfig: ReadableMap?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
-            playerConfig
-                ?.getMap("playbackConfig")
-                ?.getBooleanOrNull("isPictureInPictureEnabled")
-                ?.let {
-                    pictureInPictureHandler.isPictureInPictureEnabled = it
-                    view.pictureInPictureHandler = pictureInPictureHandler
-                }
+            val playbackConfig = playerConfig?.getMap("playbackConfig")
+            val isPictureInPictureEnabled = view.pictureInPictureConfig?.isEnabled == true ||
+                playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
+            val pictureInPictureHandler = view.pictureInPictureHandler ?: RNPictureInPictureHandler(context)
+            view.pictureInPictureHandler = pictureInPictureHandler
+            view.pictureInPictureHandler?.isPictureInPictureEnabled = isPictureInPictureEnabled
             if (view.playerView != null) {
                 view.player = player
             } else {
@@ -259,7 +258,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 val playerView = PlayerView(currentActivity, player)
                 playerView.layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
-                    LayoutParams.MATCH_PARENT
+                    LayoutParams.MATCH_PARENT,
                 )
                 view.addPlayerView(playerView)
                 attachCustomMessageHandlerBridge(view)

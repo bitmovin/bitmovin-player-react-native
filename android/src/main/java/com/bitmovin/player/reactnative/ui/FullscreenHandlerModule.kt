@@ -32,9 +32,9 @@ class FullscreenHandlerModule(private val context: ReactApplicationContext) : Re
 
     fun requestEnterFullscreen(nativeId: NativeId) {
         context.catalystInstance.callFunction(
-            "FullscreenBridge-${nativeId}",
+            "FullscreenBridge-$nativeId",
             "enterFullscreen",
-            Arguments.createArray() as NativeArray
+            Arguments.createArray() as NativeArray,
         )
         lock.withLock {
             fullscreenChangedCondition.await()
@@ -43,9 +43,9 @@ class FullscreenHandlerModule(private val context: ReactApplicationContext) : Re
 
     fun requestExitFullscreen(nativeId: NativeId) {
         context.catalystInstance.callFunction(
-            "FullscreenBridge-${nativeId}",
+            "FullscreenBridge-$nativeId",
             "exitFullscreen",
-            Arguments.createArray() as NativeArray
+            Arguments.createArray() as NativeArray,
         )
         lock.withLock {
             fullscreenChangedCondition.await()

@@ -3,7 +3,10 @@ package com.bitmovin.player.reactnative.offline
 import com.bitmovin.player.api.deficiency.ErrorEvent
 import com.bitmovin.player.api.offline.OfflineContentManager
 import com.bitmovin.player.api.offline.OfflineContentManagerListener
-import com.bitmovin.player.api.offline.options.*
+import com.bitmovin.player.api.offline.options.OfflineContentOptions
+import com.bitmovin.player.api.offline.options.OfflineOptionEntry
+import com.bitmovin.player.api.offline.options.OfflineOptionEntryAction
+import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.reactnative.NativeId
 import com.bitmovin.player.reactnative.converter.JsonConverter
@@ -17,7 +20,7 @@ class OfflineContentManagerBridge(
     private val context: ReactApplicationContext,
     private val identifier: String,
     source: SourceConfig,
-    location: String
+    location: String,
 ) : OfflineContentManagerListener {
 
     enum class OfflineEventType(val eventName: String) {
@@ -28,11 +31,15 @@ class OfflineContentManagerBridge(
         ON_DRM_LICENSE_UPDATED("onDrmLicenseUpdated"),
         ON_SUSPENDED("onSuspended"),
         ON_RESUMED("onResumed"),
-        ON_CANCELED("onCanceled")
+        ON_CANCELED("onCanceled"),
     }
 
     val offlineContentManager: OfflineContentManager = OfflineContentManager.getOfflineContentManager(
-        source, location, identifier, this, context
+        source,
+        location,
+        identifier,
+        this,
+        context,
     )
     private var contentOptions: OfflineContentOptions? = null
 
@@ -52,12 +59,11 @@ class OfflineContentManagerBridge(
     fun process(request: OfflineDownloadRequest) {
         if (contentOptions != null) {
             val sortedVideoOptions = contentOptions!!.videoOptions
-                    .sortedBy { option -> option.bitrate }
+                .sortedBy { option -> option.bitrate }
             if (request.minimumBitrate == null) {
                 sortedVideoOptions.lastOrNull()
             } else {
-                sortedVideoOptions
-                        .firstOrNull { option -> option.bitrate >= request.minimumBitrate }
+                sortedVideoOptions.firstOrNull { option -> option.bitrate >= request.minimumBitrate }
             }?.apply {
                 action = OfflineOptionEntryAction.Download
             }
@@ -70,7 +76,7 @@ class OfflineContentManagerBridge(
 
     private fun appliesDownloadActions(
         ids: List<String?>?,
-        potentialOptions: List<OfflineOptionEntry>
+        potentialOptions: List<OfflineOptionEntry>,
     ) {
         if (ids.isNullOrEmpty()) {
             return
@@ -138,7 +144,6 @@ class OfflineContentManagerBridge(
             state = OfflineOptionEntryState.Downloaded
         }
 
-
         return state ?: OfflineOptionEntryState.NotDownloaded
     }
 
@@ -147,28 +152,37 @@ class OfflineContentManagerBridge(
      */
     override fun onCompleted(source: SourceConfig?, options: OfflineContentOptions?) {
         this.contentOptions = options
-        sendEvent(OfflineEventType.ON_COMPLETED, Arguments.createMap().apply {
-            putMap("options", JsonConverter.toJson(options))
-        })
+        sendEvent(
+            OfflineEventType.ON_COMPLETED,
+            Arguments.createMap().apply {
+                putMap("options", JsonConverter.toJson(options))
+            },
+        )
     }
 
     /**
      * Called when an error occurs.
      */
     override fun onError(source: SourceConfig?, event: ErrorEvent?) {
-        sendEvent(OfflineEventType.ON_ERROR, Arguments.createMap().apply {
-            event?.code?.value?.let { putInt("code", it) }
-            putString("message", event?.message)
-        })
+        sendEvent(
+            OfflineEventType.ON_ERROR,
+            Arguments.createMap().apply {
+                event?.code?.value?.let { putInt("code", it) }
+                putString("message", event?.message)
+            },
+        )
     }
 
     /**
      * Called when the progress for a process call changes.
      */
     override fun onProgress(source: SourceConfig?, progress: Float) {
-        sendEvent(OfflineEventType.ON_PROGRESS, Arguments.createMap().apply {
-            putDouble("progress", progress.toDouble())
-        })
+        sendEvent(
+            OfflineEventType.ON_PROGRESS,
+            Arguments.createMap().apply {
+                putDouble("progress", progress.toDouble())
+            },
+        )
     }
 
     /**
@@ -176,9 +190,12 @@ class OfflineContentManagerBridge(
      */
     override fun onOptionsAvailable(source: SourceConfig?, options: OfflineContentOptions?) {
         this.contentOptions = options
-        sendEvent(OfflineEventType.ON_OPTIONS_AVAILABLE, Arguments.createMap().apply {
-            putMap("options", JsonConverter.toJson(options))
-        })
+        sendEvent(
+            OfflineEventType.ON_OPTIONS_AVAILABLE,
+            Arguments.createMap().apply {
+                putMap("options", JsonConverter.toJson(options))
+            },
+        )
     }
 
     /**
