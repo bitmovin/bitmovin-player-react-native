@@ -32,7 +32,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         ATTACH_FULLSCREEN_BRIDGE("attachFullscreenBridge"),
         SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID("setCustomMessageHandlerBridgeId"),
         SET_FULLSCREEN("setFullscreen"),
-        SET_SCALING_MODE("setScalingMode");
+        SET_SCALING_MODE("setScalingMode"),
     }
 
     /**
