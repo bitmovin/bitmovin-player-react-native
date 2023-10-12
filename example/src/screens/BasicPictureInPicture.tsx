@@ -21,6 +21,7 @@ export default function BasicPictureInPicture() {
   const pictureInPictureConfig: PictureInPictureConfig = {
     // Enable picture in picture UI option on player controls.
     isEnabled: true,
+    shouldEnterOnBackground: true,
   };
 
   const player = usePlayer({
