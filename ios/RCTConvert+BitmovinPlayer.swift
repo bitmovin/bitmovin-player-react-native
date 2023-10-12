@@ -1049,7 +1049,9 @@ extension RCTConvert {
             pictureInPictureConfig.isEnabled = isEnabled
         }
         if let shouldEnterOnBackground = json["shouldEnterOnBackground"] as? Bool {
-            pictureInPictureConfig.shouldEnterOnBackground = shouldEnterOnBackground
+            if #available(iOS 14.2, *) {
+                pictureInPictureConfig.shouldEnterOnBackground = shouldEnterOnBackground
+            }
         }
         return pictureInPictureConfig
     }
