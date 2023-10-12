@@ -1048,6 +1048,9 @@ extension RCTConvert {
         if let isEnabled = json["isEnabled"] as? Bool {
             pictureInPictureConfig.isEnabled = isEnabled
         }
+        if let shouldEnterOnBackground = json["shouldEnterOnBackground"] as? Bool {
+            pictureInPictureConfig.shouldEnterOnBackground = shouldEnterOnBackground
+        }
         return pictureInPictureConfig
     }
 }

@@ -48,7 +48,7 @@ open class RNPictureInPictureHandler(val context: ReactApplicationContext) : Pic
     /**
      * Configuration type for picture in picture behaviors.
      */
-    data class PictureInPictureConfig(val isEnabled: Boolean)
+    data class PictureInPictureConfig(val isEnabled: Boolean, val shouldEnterOnBackground: Boolean)
 
     /**
      * PiP delegate object that contains the view logic to be performed on each PiP state change.

@@ -1096,6 +1096,7 @@ class JsonConverter {
             json?.let {
                 RNPictureInPictureHandler.PictureInPictureConfig(
                     isEnabled = it.getBoolean("isEnabled"),
+                    shouldEnterOnBackground = it.getBoolean("shouldEnterOnBackground"),
                 )
             }
     }
