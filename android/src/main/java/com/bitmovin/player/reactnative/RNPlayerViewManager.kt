@@ -10,6 +10,7 @@ import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getModule
 import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
 import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
+import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
@@ -219,6 +220,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             val playbackConfig = playerConfig?.getMap("playbackConfig")
             val isPictureInPictureEnabled = view.pictureInPictureConfig?.isEnabled == true ||
                 playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
+            val pictureInPictureHandler = view.pictureInPictureHandler ?: RNPictureInPictureHandler(context)
+            view.pictureInPictureHandler = pictureInPictureHandler
             view.pictureInPictureHandler?.isPictureInPictureEnabled = isPictureInPictureEnabled
             if (view.playerView != null) {
                 view.player = player
