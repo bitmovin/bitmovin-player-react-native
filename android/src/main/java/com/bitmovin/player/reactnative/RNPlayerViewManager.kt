@@ -5,6 +5,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getModule
 import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
@@ -28,7 +29,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         ATTACH_PLAYER("attachPlayer"),
         ATTACH_FULLSCREEN_BRIDGE("attachFullscreenBridge"),
         SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID("setCustomMessageHandlerBridgeId"),
-        SET_FULLSCREEN("setFullscreen");
+        SET_FULLSCREEN("setFullscreen"),
+        SET_SCALING_MODE("setScalingMode");
     }
 
     /**
@@ -171,6 +173,11 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     setFullscreen(view, isFullscreen)
                 }
             }
+            Commands.SET_SCALING_MODE -> {
+                args?.getString(1)?.let { scalingMode ->
+                    setScalingMode(view, scalingMode)
+                }
+            }
         }
     }
 
@@ -191,6 +198,22 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     enterFullscreen()
                 } else {
                     exitFullscreen()
+                }
+            }
+        }
+    }
+
+    private fun setScalingMode(view: RNPlayerView, scalingMode: String) {
+        Handler(Looper.getMainLooper()).post {
+            when (scalingMode) {
+                "Zoom" -> {
+                    view.playerView?.scalingMode = ScalingMode.Zoom
+                }
+                "Stretch" -> {
+                    view.playerView?.scalingMode = ScalingMode.Stretch
+                }
+                else -> {
+                    view.playerView?.scalingMode = ScalingMode.Fit
                 }
             }
         }

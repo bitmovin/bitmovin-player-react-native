@@ -14,6 +14,7 @@ import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandler, CustomMessageHandler } from '../../ui';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
+import { ScalingMode } from '../../styleConfig';
 
 /**
  * Base `PlayerView` component props. Used to stablish common
@@ -54,6 +55,10 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
    * To use this property, a `FullscreenHandler` must be set.
    */
   isFullscreenRequested?: Boolean;
+  /**
+   * The `Scaling Mode` that is used by the `PlayerView` to control the scaling mode.
+   */
+  scalingMode?: ScalingMode;
 }
 
 /**
@@ -90,6 +95,7 @@ export function PlayerView({
   fullscreenHandler,
   customMessageHandler,
   isFullscreenRequested = false,
+  scalingMode = ScalingMode.Fit,
   ...props
 }: PlayerViewProps) {
   // Workaround React Native UIManager commands not sent until UI refresh
@@ -168,6 +174,13 @@ export function PlayerView({
       dispatch('setFullscreen', node, isFullscreenRequested);
     }
   }, [isFullscreenRequested, nativeView]);
+
+  useEffect(() => {
+    const node = findNodeHandle(nativeView.current);
+    if (node) {
+      dispatch('setScalingMode', node, scalingMode);
+    }
+  }, [scalingMode, nativeView]);
   return (
     <NativePlayerView
       ref={nativeView}

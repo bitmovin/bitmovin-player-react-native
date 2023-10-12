@@ -66,5 +66,6 @@ RCT_EXTERN_METHOD(attachPlayer:(nonnull NSNumber *)viewId playerId:(NSString *)p
 RCT_EXTERN_METHOD(attachFullscreenBridge:(nonnull NSNumber *)viewId fullscreenBridgeId:(NSString *)fullscreenBridgeId)
 RCT_EXTERN_METHOD(setCustomMessageHandlerBridgeId:(nonnull NSNumber *)viewId customMessageHandlerBridgeId:(NSString *)fullscreenBridgeId)
 RCT_EXTERN_METHOD(setFullscreen:(nonnull NSNumber *)viewId isFullscreen:(BOOL)isFullscreen)
+RCT_EXTERN_METHOD(setScalingMode:(nonnull NSNumber *)viewId scalingMode:(NSString *)scalingMode)
 
 @end

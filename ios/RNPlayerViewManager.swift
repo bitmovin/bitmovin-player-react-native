@@ -93,6 +93,27 @@ class RNPlayerViewManager: RCTViewManager {
          }
      }
 
+     @objc func setScalingMode(_ viewId: NSNumber, scalingMode: String) {
+         bridge.uiManager.addUIBlock { [weak self] _, views in
+             guard
+                 let self,
+                 let view = views?[viewId] as? RNPlayerView
+             else {
+                 return
+             }
+             guard let playerView = view.playerView else {
+                 return
+             }
+             if scalingMode == "Zoom" {
+                 playerView.scalingMode = ScalingMode.zoom
+             } else if scalingMode == "Stretch" {
+                 playerView.scalingMode = ScalingMode.stretch
+             } else {
+                 playerView.scalingMode = ScalingMode.fit
+             }
+         }
+     }
+
     /// Fetches the initialized `PlayerModule` instance on RN's bridge object.
     private func getPlayerModule() -> PlayerModule? {
         bridge.module(for: PlayerModule.self) as? PlayerModule
