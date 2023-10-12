@@ -7,6 +7,7 @@ import {
   PlayerView,
   SourceType,
   AudioSession,
+  PictureInPictureConfig,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
@@ -17,7 +18,7 @@ function prettyPrint(header: string, obj: any) {
 export default function BasicPictureInPicture() {
   useTVGestures();
 
-  const pictureInPictureConfig = {
+  const pictureInPictureConfig: PictureInPictureConfig = {
     // Enable picture in picture UI option on player controls.
     isEnabled: true,
   };
