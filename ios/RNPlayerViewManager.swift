@@ -40,8 +40,10 @@ class RNPlayerViewManager: RCTViewManager {
             }
 #endif
 
+            var previousPictureInPictureAvailableValue = false
             if let playerView = view.playerView {
                 playerView.player = player
+                previousPictureInPictureAvailableValue = playerView.isPictureInPictureAvailable
             } else {
                 let playerViewConfig = PlayerViewConfig()
                 if let pictureInPictureConfig = RCTConvert.pictureInPictureConfig(view.pictureInPictureConfig) {
@@ -55,6 +57,8 @@ class RNPlayerViewManager: RCTViewManager {
             }
             player.add(listener: view)
             view.playerView?.add(listener: view)
+
+            maybeEmitPictureInPictureAvailabilityEvent(for: view, previousState: previousPictureInPictureAvailableValue)
         }
     }
 
@@ -109,4 +113,18 @@ class RNPlayerViewManager: RCTViewManager {
     private func getFullscreenHandlerModule() -> FullscreenHandlerModule? {
         bridge.module(for: FullscreenHandlerModule.self) as? FullscreenHandlerModule
     }
+
+    private func maybeEmitPictureInPictureAvailabilityEvent(for view: RNPlayerView, previousState: Bool) {
+        guard let playerView = view.playerView,
+              playerView.isPictureInPictureAvailable != previousState else {
+            return
+        }
+        let event: [AnyHashable: Any] = [
+            "isPictureInPictureAvailable": playerView.isPictureInPictureAvailable,
+            "name": "onPictureInPictureAvailabilityChanged",
+            "timestamp": Date().timeIntervalSince1970
+        ]
+        view.onPictureInPictureAvailabilityChanged?(event)
+    }
+
 }

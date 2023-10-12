@@ -6,6 +6,7 @@
 
 - API Reference now can be found [here](https://cdn.bitmovin.com/player/reactnative/0/docs/index.html)
 - `PictureInPictureConfig` to `PlayerView` to allow configuring the Picture in Picture behavior
+- `onPictureInPictureAvailabilityChanged` event is now emitted on iOS and tvOS in addition to Android
 
 ### Changed
 
@@ -15,7 +16,6 @@
 ### Deprecated
 
 - `PlaybackConfig.isPictureInPictureEnabled` in favor of `PictureInPictureConfig.isEnabled`
-
 
 ## [0.12.0] (2023-09-25)
 
