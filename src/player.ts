@@ -141,7 +141,7 @@ export interface PlaybackConfig {
    *   },
    * });
    * ```
-   * @deprecated Use {@link PictureInPIctureConfig.isEnabled} instead.
+   * @deprecated Use {@link PictureInPictureConfig.isEnabled} instead.
    */
   isPictureInPictureEnabled?: boolean;
 }
