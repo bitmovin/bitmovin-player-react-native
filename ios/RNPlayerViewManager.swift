@@ -40,7 +40,7 @@ class RNPlayerViewManager: RCTViewManager {
             }
 #endif
 
-            var previousPictureInPictureAvailableValue = false
+            let previousPictureInPictureAvailableValue: Bool
             if let playerView = view.playerView {
                 playerView.player = player
                 previousPictureInPictureAvailableValue = playerView.isPictureInPictureAvailable
@@ -54,6 +54,7 @@ class RNPlayerViewManager: RCTViewManager {
                     frame: view.bounds,
                     playerViewConfig: playerViewConfig
                 )
+                previousPictureInPictureAvailableValue = false
             }
             player.add(listener: view)
             view.playerView?.add(listener: view)
