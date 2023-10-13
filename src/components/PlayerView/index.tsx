@@ -106,7 +106,7 @@ export function PlayerView({
   fullscreenHandler,
   customMessageHandler,
   isFullscreenRequested = false,
-  scalingMode = ScalingMode.Fit,
+  scalingMode,
   pictureInPictureConfig,
   ...props
 }: PlayerViewProps) {
