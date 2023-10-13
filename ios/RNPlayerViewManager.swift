@@ -127,5 +127,4 @@ class RNPlayerViewManager: RCTViewManager {
         ]
         view.onPictureInPictureAvailabilityChanged?(event)
     }
-
 }
