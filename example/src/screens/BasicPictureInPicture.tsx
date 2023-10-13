@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -10,6 +10,7 @@ import {
   PictureInPictureConfig,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
@@ -67,7 +68,7 @@ export default function BasicPictureInPicture() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.container}>
       <PlayerView
         player={player}
         style={styles.player}
@@ -78,7 +79,7 @@ export default function BasicPictureInPicture() {
         onPictureInPictureExit={onEvent}
         onPictureInPictureExited={onEvent}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -87,9 +88,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'black',
+    backgroundColor: 'white',
+    padding: 10,
   },
   player: {
     flex: 1,
+    backgroundColor: 'black',
   },
 });
