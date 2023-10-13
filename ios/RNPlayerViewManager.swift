@@ -105,6 +105,28 @@ class RNPlayerViewManager: RCTViewManager {
         }
     }
 
+    @objc func setPictureInPicture(_ viewId: NSNumber, enterPictureInPicture: Bool) {
+        bridge.uiManager.addUIBlock { [weak self] _, views in
+            guard
+                let self,
+                let view = views?[viewId] as? RNPlayerView
+            else {
+                return
+            }
+            guard let playerView = view.playerView else {
+                return
+            }
+            guard playerView.isPictureInPicture != enterPictureInPicture else {
+                return
+            }
+            if enterPictureInPicture {
+                playerView.enterPictureInPicture()
+            } else {
+                playerView.exitPictureInPicture()
+            }
+        }
+    }
+
     /// Fetches the initialized `PlayerModule` instance on RN's bridge object.
     private func getPlayerModule() -> PlayerModule? {
         bridge.module(for: PlayerModule.self) as? PlayerModule

@@ -62,6 +62,8 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
    * To use this property, a `FullscreenHandler` must be set.
    */
   isFullscreenRequested?: Boolean;
+
+  isPictureInPictureRequested?: Boolean;
 }
 
 /**
@@ -100,6 +102,7 @@ export function PlayerView({
   fullscreenHandler,
   customMessageHandler,
   isFullscreenRequested = false,
+  isPictureInPictureRequested = false,
   pictureInPictureConfig,
   ...props
 }: PlayerViewProps) {
@@ -179,6 +182,14 @@ export function PlayerView({
       dispatch('setFullscreen', node, isFullscreenRequested);
     }
   }, [isFullscreenRequested, nativeView]);
+
+  useEffect(() => {
+    const node = findNodeHandle(nativeView.current);
+    if (node) {
+      dispatch('setPictureInPicture', node, isPictureInPictureRequested);
+    }
+  }, [isPictureInPictureRequested, nativeView]);
+
   return (
     <NativePlayerView
       ref={nativeView}

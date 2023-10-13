@@ -31,6 +31,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         ATTACH_FULLSCREEN_BRIDGE("attachFullscreenBridge"),
         SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID("setCustomMessageHandlerBridgeId"),
         SET_FULLSCREEN("setFullscreen"),
+        SET_PICTURE_IN_PICTURE("setPictureInPicture"),
     }
 
     /**
@@ -166,6 +167,11 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     setFullscreen(view, isFullscreen)
                 }
             }
+            Commands.SET_PICTURE_IN_PICTURE -> {
+                args?.getBoolean(1)?.let { isPictureInPicture ->
+                    setPictureInPicture(view, isPictureInPicture)
+                }
+            }
         }
     }
 
@@ -191,6 +197,20 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     enterFullscreen()
                 } else {
                     exitFullscreen()
+                }
+            }
+        }
+    }
+
+    private fun setPictureInPicture(view: RNPlayerView, isPictureInPicture: Boolean) {
+        if (view.pictureInPictureHandler?.isPictureInPicture == isPictureInPicture) return
+
+        Handler(Looper.getMainLooper()).post {
+            with(view.pictureInPictureHandler ?: return@post) {
+                if (isPictureInPicture) {
+                    enterPictureInPicture()
+                } else {
+                    exitPictureInPicture()
                 }
             }
         }
