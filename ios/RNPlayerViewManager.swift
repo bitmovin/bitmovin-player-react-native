@@ -83,27 +83,27 @@ class RNPlayerViewManager: RCTViewManager {
         self.customMessageHandlerBridgeId = customMessageHandlerBridgeId
     }
 
-     @objc func setFullscreen(_ viewId: NSNumber, isFullscreen: Bool) {
-         bridge.uiManager.addUIBlock { [weak self] _, views in
-             guard
-                 let self,
-                 let view = views?[viewId] as? RNPlayerView
-             else {
-                 return
-             }
-             guard let playerView = view.playerView else {
-                 return
-             }
-             guard playerView.isFullscreen != isFullscreen else {
-                 return
-             }
-             if isFullscreen {
-                 playerView.enterFullscreen()
-             } else {
-                 playerView.exitFullscreen()
-             }
-         }
-     }
+    @objc func setFullscreen(_ viewId: NSNumber, isFullscreen: Bool) {
+        bridge.uiManager.addUIBlock { [weak self] _, views in
+            guard
+                let self,
+                let view = views?[viewId] as? RNPlayerView
+            else {
+                return
+            }
+            guard let playerView = view.playerView else {
+                return
+            }
+            guard playerView.isFullscreen != isFullscreen else {
+                return
+            }
+            if isFullscreen {
+                playerView.enterFullscreen()
+            } else {
+                playerView.exitFullscreen()
+            }
+        }
+    }
 
     /// Fetches the initialized `PlayerModule` instance on RN's bridge object.
     private func getPlayerModule() -> PlayerModule? {
