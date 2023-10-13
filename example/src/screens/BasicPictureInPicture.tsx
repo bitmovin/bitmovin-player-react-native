@@ -22,6 +22,7 @@ export default function BasicPictureInPicture() {
   const pictureInPictureConfig: PictureInPictureConfig = {
     // Enable picture in picture UI option on player controls.
     isEnabled: true,
+    // Enable entering picture in picture mode when transitioning the application to the background
     shouldEnterOnBackground: true,
   };
 
