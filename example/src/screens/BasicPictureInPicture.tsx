@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Button, Platform, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -8,16 +8,31 @@ import {
   SourceType,
   AudioSession,
   PictureInPictureConfig,
+  PictureInPictureExitedEvent,
+  PictureInPictureEnteredEvent,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamsList } from '../App';
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
 }
 
-export default function BasicPictureInPicture() {
+type BasicPictureInPictureNavigationProps = NativeStackScreenProps<
+  RootStackParamsList,
+  'BasicPictureInPicture'
+>;
+
+export default function BasicPictureInPicture({
+  navigation,
+}: BasicPictureInPictureNavigationProps) {
   useTVGestures();
+
+  const [isPictureInPictureRequested, setIsPictureInPictureRequested] =
+    useState(false);
+  const [isInPictureInPicture, setIsInPictureInPicture] = useState(false);
 
   const pictureInPictureConfig: PictureInPictureConfig = {
     // Enable picture in picture UI option on player controls.
@@ -64,20 +79,49 @@ export default function BasicPictureInPicture() {
     }, [player])
   );
 
+  useEffect(() => {
+    navigation.setOptions({
+      // eslint-disable-next-line react/no-unstable-nested-components
+      headerRight: () => (
+        <Button
+          title={isInPictureInPicture ? 'Exit PiP' : 'Enter PiP'}
+          onPress={() => setIsPictureInPictureRequested((prev) => !prev)}
+        />
+      ),
+    });
+  }, [navigation, isInPictureInPicture]);
+
   const onEvent = useCallback((event: Event) => {
     prettyPrint(`[${event.name}]`, event);
   }, []);
+
+  const onPictureInPictureEnterEvent = useCallback(
+    (event: PictureInPictureEnteredEvent) => {
+      prettyPrint(`[${event.name}]`, event);
+      setIsInPictureInPicture(true);
+    },
+    []
+  );
+
+  const onPictureInPictureExitEvent = useCallback(
+    (event: PictureInPictureExitedEvent) => {
+      prettyPrint(`[${event.name}]`, event);
+      setIsInPictureInPicture(false);
+    },
+    []
+  );
 
   return (
     <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.container}>
       <PlayerView
         player={player}
         style={styles.player}
+        isPictureInPictureRequested={isPictureInPictureRequested}
         pictureInPictureConfig={pictureInPictureConfig}
         onPictureInPictureAvailabilityChanged={onEvent}
-        onPictureInPictureEnter={onEvent}
+        onPictureInPictureEnter={onPictureInPictureEnterEvent}
         onPictureInPictureEntered={onEvent}
-        onPictureInPictureExit={onEvent}
+        onPictureInPictureExit={onPictureInPictureExitEvent}
         onPictureInPictureExited={onEvent}
       />
     </SafeAreaView>
