@@ -64,7 +64,8 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
    */
   isFullscreenRequested?: Boolean;
   /**
-   * The `Scaling Mode` that is used by the `PlayerView` to control the scaling mode.
+   * A value defining how the video is displayed within the parent container's bounds.
+   * Possible values are defined in `ScalingMode`.
    */
   scalingMode?: ScalingMode;
 }
