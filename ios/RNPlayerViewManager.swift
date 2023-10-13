@@ -40,8 +40,10 @@ class RNPlayerViewManager: RCTViewManager {
             }
 #endif
 
+            let previousPictureInPictureAvailableValue: Bool
             if let playerView = view.playerView {
                 playerView.player = player
+                previousPictureInPictureAvailableValue = playerView.isPictureInPictureAvailable
             } else {
                 let playerViewConfig = PlayerViewConfig()
                 if let pictureInPictureConfig = RCTConvert.pictureInPictureConfig(view.pictureInPictureConfig) {
@@ -52,9 +54,12 @@ class RNPlayerViewManager: RCTViewManager {
                     frame: view.bounds,
                     playerViewConfig: playerViewConfig
                 )
+                previousPictureInPictureAvailableValue = false
             }
             player.add(listener: view)
             view.playerView?.add(listener: view)
+
+            self.maybeEmitPictureInPictureAvailabilityEvent(for: view, previousState: previousPictureInPictureAvailableValue)
         }
     }
 
@@ -78,27 +83,27 @@ class RNPlayerViewManager: RCTViewManager {
         self.customMessageHandlerBridgeId = customMessageHandlerBridgeId
     }
 
-     @objc func setFullscreen(_ viewId: NSNumber, isFullscreen: Bool) {
-         bridge.uiManager.addUIBlock { [weak self] _, views in
-             guard
-                 let self,
-                 let view = views?[viewId] as? RNPlayerView
-             else {
-                 return
-             }
-             guard let playerView = view.playerView else {
-                 return
-             }
-             guard playerView.isFullscreen != isFullscreen else {
-                 return
-             }
-             if isFullscreen {
-                 playerView.enterFullscreen()
-             } else {
-                 playerView.exitFullscreen()
-             }
-         }
-     }
+    @objc func setFullscreen(_ viewId: NSNumber, isFullscreen: Bool) {
+        bridge.uiManager.addUIBlock { [weak self] _, views in
+            guard
+                let self,
+                let view = views?[viewId] as? RNPlayerView
+            else {
+                return
+            }
+            guard let playerView = view.playerView else {
+                return
+            }
+            guard playerView.isFullscreen != isFullscreen else {
+                return
+            }
+            if isFullscreen {
+                playerView.enterFullscreen()
+            } else {
+                playerView.exitFullscreen()
+            }
+        }
+    }
 
     /// Fetches the initialized `PlayerModule` instance on RN's bridge object.
     private func getPlayerModule() -> PlayerModule? {
@@ -108,5 +113,18 @@ class RNPlayerViewManager: RCTViewManager {
     /// Fetches the initialized `FullscreenHandlerModule` instance on RN's bridge object.
     private func getFullscreenHandlerModule() -> FullscreenHandlerModule? {
         bridge.module(for: FullscreenHandlerModule.self) as? FullscreenHandlerModule
+    }
+
+    private func maybeEmitPictureInPictureAvailabilityEvent(for view: RNPlayerView, previousState: Bool) {
+        guard let playerView = view.playerView,
+              playerView.isPictureInPictureAvailable != previousState else {
+            return
+        }
+        let event: [AnyHashable: Any] = [
+            "isPictureInPictureAvailable": playerView.isPictureInPictureAvailable,
+            "name": "onPictureInPictureAvailabilityChanged",
+            "timestamp": Date().timeIntervalSince1970
+        ]
+        view.onPictureInPictureAvailabilityChanged?(event)
     }
 }

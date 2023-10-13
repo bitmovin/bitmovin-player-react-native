@@ -208,7 +208,6 @@ interface EventProps {
   onPaused: PausedEvent;
   /**
    * Event mitted when the availability of the Picture in Picture mode changed.
-   * @platform Android
    */
   onPictureInPictureAvailabilityChanged: PictureInPictureAvailabilityChangedEvent;
   /**

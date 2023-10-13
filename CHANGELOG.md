@@ -7,6 +7,7 @@
 - API Reference now can be found [here](https://cdn.bitmovin.com/player/reactnative/0/docs/index.html)
 - `PictureInPictureConfig` to `PlayerView` to allow configuring the Picture in Picture behavior
 - `PictureInPictureConfig.shouldEnterOnBackground` to start PiP automatically when the app transitions to background
+- `onPictureInPictureAvailabilityChanged` event is now emitted on iOS and tvOS in addition to Android
 
 ### Changed
 
