@@ -58,7 +58,7 @@ class RNPlayerViewManager: RCTViewManager {
             player.add(listener: view)
             view.playerView?.add(listener: view)
 
-            maybeEmitPictureInPictureAvailabilityEvent(for: view, previousState: previousPictureInPictureAvailableValue)
+            self.maybeEmitPictureInPictureAvailabilityEvent(for: view, previousState: previousPictureInPictureAvailableValue)
         }
     }
 
