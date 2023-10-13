@@ -111,12 +111,15 @@ class RNPlayerViewManager: RCTViewManager {
              guard let playerView = view.playerView else {
                  return
              }
-             if scalingMode == "Zoom" {
-                 playerView.scalingMode = ScalingMode.zoom
-             } else if scalingMode == "Stretch" {
-                 playerView.scalingMode = ScalingMode.stretch
-             } else {
-                 playerView.scalingMode = ScalingMode.fit
+             switch scalingMode {
+             case "Zoom":
+                 playerView.scalingMode = .zoom
+             case "Stretch":
+                 playerView.scalingMode = .stretch
+             case "Fit":
+                 playerView.scalingMode = .fit
+             default:
+                 break
              }
          }
      }
