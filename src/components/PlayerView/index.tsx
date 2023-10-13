@@ -63,6 +63,10 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
    */
   isFullscreenRequested?: Boolean;
 
+  /**
+   * Can be set to `true` to request Picture in Picture mode, or `false` to request exit of Picture in Picture mode.
+   * Should not be used to get the current Picture in Picture state. Use `onPictureInPictureEnter` and `onPictureInPictureExit.
+   */
   isPictureInPictureRequested?: Boolean;
 }
 
