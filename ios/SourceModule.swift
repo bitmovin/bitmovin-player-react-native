@@ -1,9 +1,9 @@
 import BitmovinPlayer
 
 @objc(SourceModule)
-class SourceModule: NSObject, RCTBridgeModule {
-    /// React bridge reference.
-    @objc var bridge: RCTBridge!
+public class SourceModule: NSObject, RCTBridgeModule {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    @objc public var bridge: RCTBridge!
 
     /// In-memory mapping from `nativeId`s to `Source` instances.
     private var sources: Registry<Source> = [:]
@@ -11,18 +11,17 @@ class SourceModule: NSObject, RCTBridgeModule {
     /// In-memory mapping from `nativeId`s to `SourceConfig` instances for casting.
     private var castSourceConfigs: Registry<SourceConfig> = [:]
 
-    /// JS module name.
-    static func moduleName() -> String! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public static func moduleName() -> String! {
         "SourceModule"
     }
 
-    /// Module requires main thread initialization.
-    static func requiresMainQueueSetup() -> Bool {
+    public static func requiresMainQueueSetup() -> Bool {
         true
     }
 
-    /// Use `UIManager.addBlock` to enqueue module methods on UI thread.
-    var methodQueue: DispatchQueue! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
 
@@ -31,7 +30,8 @@ class SourceModule: NSObject, RCTBridgeModule {
      - Parameter nativeId: `Source` instance ID.
      - Returns: The associated `Source` instance or `nil`.
      */
-    @objc func retrieve(_ nativeId: NativeId) -> Source? {
+    @objc
+    func retrieve(_ nativeId: NativeId) -> Source? {
         sources[nativeId]
     }
 
@@ -48,7 +48,8 @@ class SourceModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Creates a new `Source` instance inside the internal sources using the provided `config` and `analyticsSourceMetadata` object and an optionally initialized DRM configuration ID.
+     Creates a new `Source` instance inside the internal sources using the provided `config`
+     and `analyticsSourceMetadata` object and an optionally initialized DRM configuration ID.
      - Parameter nativeId: ID to be associated with the `Source` instance.
      - Parameter drmNativeId: ID of the DRM config object to use.
      - Parameter config: `SourceConfig` object received from JS.
@@ -65,7 +66,7 @@ class SourceModule: NSObject, RCTBridgeModule {
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             let drmConfig: DrmConfig?
-            if let drmNativeId = drmNativeId {
+            if let drmNativeId {
                 drmConfig = self?.getDrmModule()?.retrieve(drmNativeId)
             } else {
                 drmConfig = nil
@@ -80,7 +81,7 @@ class SourceModule: NSObject, RCTBridgeModule {
             }
             self?.sources[nativeId] = SourceFactory.create(from: sourceConfig, sourceMetadata: sourceMetadata)
 #if os(iOS)
-            if let remoteConfig = RCTConvert.sourceRemoteControlConfig(sourceRemoteControlConfig){
+            if let remoteConfig = RCTConvert.sourceRemoteControlConfig(sourceRemoteControlConfig) {
                 self?.castSourceConfigs[nativeId] = remoteConfig.castSourceConfig
             }
 #endif
@@ -88,7 +89,8 @@ class SourceModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Creates a new `Source` instance inside the internal sources using the provided `config` object and an initialized DRM configuration ID.
+     Creates a new `Source` instance inside the internal sources using
+     the provided `config` object and an initialized DRM configuration ID.
      - Parameter nativeId: ID to be associated with the `Source` instance.
      - Parameter drmNativeId: ID of the DRM config object to use.
      - Parameter config: `SourceConfig` object received from JS.
@@ -103,7 +105,7 @@ class SourceModule: NSObject, RCTBridgeModule {
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             let drmConfig: DrmConfig?
-            if let drmNativeId = drmNativeId {
+            if let drmNativeId {
                 drmConfig = self?.getDrmModule()?.retrieve(drmNativeId)
             } else {
                 drmConfig = nil

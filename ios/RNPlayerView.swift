@@ -1,7 +1,7 @@
 import BitmovinPlayer
 
 @objc(RNPlayerView)
-class RNPlayerView: UIView {
+public class RNPlayerView: UIView {
     /// React component events. Directly mapped to props in `NativePlayerView`.
     @objc var onEvent: RCTBubblingEventBlock?
     @objc var onPlayerActive: RCTBubblingEventBlock?
@@ -74,7 +74,7 @@ class RNPlayerView: UIView {
             ]
         }
         didSet {
-            if let playerView = playerView {
+            if let playerView {
                 addSubview(playerView)
             }
         }

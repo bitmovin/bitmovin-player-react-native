@@ -2,15 +2,15 @@ import BitmovinPlayer
 import Foundation
 
 @objc(RNPlayerViewManager)
-class RNPlayerViewManager: RCTViewManager {
+public class RNPlayerViewManager: RCTViewManager {
     /// Initialize module on main thread.
-    override static func requiresMainQueueSetup() -> Bool {
+    override public static func requiresMainQueueSetup() -> Bool {
         true
     }
 
     /// `UIView` factory function. It gets called for each `<NativePlayerView />` component
     /// from React.
-    override func view() -> UIView! {
+    override public func view() -> UIView! { // swiftlint:disable:this implicitly_unwrapped_optional
         RNPlayerView()
     }
 
@@ -21,7 +21,8 @@ class RNPlayerViewManager: RCTViewManager {
      - Parameter viewId: `RNPlayerView` id inside `UIManager`'s registry.
      - Parameter playerId: `Player` instance id inside `PlayerModule`'s registry.
      */
-    @objc func attachPlayer(_ viewId: NSNumber, playerId: NativeId, playerConfig: NSDictionary?) {
+    @objc
+    func attachPlayer(_ viewId: NSNumber, playerId: NativeId, playerConfig: NSDictionary?) {
         bridge.uiManager.addUIBlock { [weak self] _, views in
             guard
                 let self,
@@ -32,9 +33,13 @@ class RNPlayerViewManager: RCTViewManager {
             }
 #if os(iOS)
             if let customMessageHandlerBridgeId = self.customMessageHandlerBridgeId,
-               let customMessageHandlerBridge = self.bridge[CustomMessageHandlerModule.self]?.retrieve(customMessageHandlerBridgeId),
+               let customMessageHandlerBridge = self.bridge[CustomMessageHandlerModule.self]?
+                .retrieve(customMessageHandlerBridgeId),
                player.config.styleConfig.userInterfaceType == .bitmovin {
-                let bitmovinUserInterfaceConfig = player.config.styleConfig.userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
+                let bitmovinUserInterfaceConfig = player
+                    .config
+                    .styleConfig
+                    .userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
                 player.config.styleConfig.userInterfaceConfig = bitmovinUserInterfaceConfig
                 bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
             }
@@ -59,11 +64,15 @@ class RNPlayerViewManager: RCTViewManager {
             player.add(listener: view)
             view.playerView?.add(listener: view)
 
-            self.maybeEmitPictureInPictureAvailabilityEvent(for: view, previousState: previousPictureInPictureAvailableValue)
+            self.maybeEmitPictureInPictureAvailabilityEvent(
+                for: view,
+                previousState: previousPictureInPictureAvailableValue
+            )
         }
     }
 
-    @objc func attachFullscreenBridge(_ viewId: NSNumber, fullscreenBridgeId: NativeId) {
+    @objc
+    func attachFullscreenBridge(_ viewId: NSNumber, fullscreenBridgeId: NativeId) {
         bridge.uiManager.addUIBlock { [weak self] _, views in
             guard
                 let view = views?[viewId] as? RNPlayerView,
@@ -79,11 +88,13 @@ class RNPlayerViewManager: RCTViewManager {
         }
     }
 
-    @objc func setCustomMessageHandlerBridgeId(_ viewId: NSNumber, customMessageHandlerBridgeId: NativeId) {
+    @objc
+    func setCustomMessageHandlerBridgeId(_ viewId: NSNumber, customMessageHandlerBridgeId: NativeId) {
         self.customMessageHandlerBridgeId = customMessageHandlerBridgeId
     }
 
-    @objc func setFullscreen(_ viewId: NSNumber, isFullscreen: Bool) {
+    @objc
+    func setFullscreen(_ viewId: NSNumber, isFullscreen: Bool) {
         bridge.uiManager.addUIBlock { [weak self] _, views in
             guard
                 let self,

@@ -1,28 +1,26 @@
-import BitmovinPlayer
 import BitmovinCollector
+import BitmovinPlayer
 
 @objc(PlayerAnalyticsModule)
-class PlayerAnalyticsModule: NSObject, RCTBridgeModule {
-    /// React bridge reference.
-    @objc var bridge: RCTBridge!
+public class PlayerAnalyticsModule: NSObject, RCTBridgeModule {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    @objc public var bridge: RCTBridge!
 
-    /// PlayerModule instance fetched from the bridge's registry
     @objc var playerModule: PlayerModule? {
         bridge.module(for: PlayerModule.self) as? PlayerModule
     }
 
-    /// JS module name.
-    static func moduleName() -> String! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public static func moduleName() -> String! {
         "PlayerAnalyticsModule"
     }
 
-    /// Module requires main thread initialization.
-    static func requiresMainQueueSetup() -> Bool {
+    public static func requiresMainQueueSetup() -> Bool {
         true
     }
 
-    /// Use `UIManager.addBlock` to enqueue module methods on UI thread.
-    var methodQueue: DispatchQueue! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
 

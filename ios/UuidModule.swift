@@ -2,14 +2,14 @@
  Native module for easy and fast unique ID generation on JS side. Used to generate native instance IDs.
  */
 @objc(UuidModule)
-class UuidModule: NSObject, RCTBridgeModule {
+public class UuidModule: NSObject, RCTBridgeModule {
     /// Initialize this module on main thread.
-    static func requiresMainQueueSetup() -> Bool {
+    public static func requiresMainQueueSetup() -> Bool {
         true
     }
 
-    /// Exported JS module name.
-    static func moduleName() -> String! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public static func moduleName() -> String! {
         "UuidModule"
     }
 
@@ -17,7 +17,8 @@ class UuidModule: NSObject, RCTBridgeModule {
      Synchronously generate a random UUIDv4.
      - Returns: Random UUID RFC 4122 version 4.
      */
-    @objc func generate() -> String {
+    @objc
+    public func generate() -> String {
         UUID().uuidString
     }
 }
