@@ -85,7 +85,9 @@ export default function BasicPictureInPicture({
       headerRight: () => (
         <Button
           title={isInPictureInPicture ? 'Exit PiP' : 'Enter PiP'}
-          onPress={() => setIsPictureInPictureRequested((prev) => !prev)}
+          onPress={() =>
+            setIsPictureInPictureRequested(() => !isInPictureInPicture)
+          }
         />
       ),
     });
@@ -99,6 +101,7 @@ export default function BasicPictureInPicture({
     (event: PictureInPictureEnteredEvent) => {
       prettyPrint(`[${event.name}]`, event);
       setIsInPictureInPicture(true);
+      setIsPictureInPictureRequested(true);
     },
     []
   );
@@ -107,6 +110,7 @@ export default function BasicPictureInPicture({
     (event: PictureInPictureExitedEvent) => {
       prettyPrint(`[${event.name}]`, event);
       setIsInPictureInPicture(false);
+      setIsPictureInPictureRequested(false);
     },
     []
   );
