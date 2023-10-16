@@ -12,6 +12,7 @@ import { OfflineContentManager, OfflineSourceOptions } from './offline';
 import { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/player';
 import { RemoteControlConfig } from './remoteControlConfig';
+import { BufferConfig } from './bufferConfig';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -66,6 +67,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures remote playback functionality.
    */
   remoteControlConfig?: RemoteControlConfig;
+  /**
+   * Configures buffer settings. A default {@link BufferConfig} is set initially
+   */
+  bufferConfig?: BufferConfig;
 }
 
 /**
