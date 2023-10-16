@@ -87,11 +87,8 @@ class RNPlayerViewManager: RCTViewManager {
         bridge.uiManager.addUIBlock { [weak self] _, views in
             guard
                 let self,
-                let view = views?[viewId] as? RNPlayerView
-            else {
-                return
-            }
-            guard let playerView = view.playerView else {
+                let view = views?[viewId] as? RNPlayerView,
+                let playerView = view.playerView else {
                 return
             }
             guard playerView.isFullscreen != isFullscreen else {
@@ -109,11 +106,8 @@ class RNPlayerViewManager: RCTViewManager {
         bridge.uiManager.addUIBlock { [weak self] _, views in
             guard
                 let self,
-                let view = views?[viewId] as? RNPlayerView
-            else {
-                return
-            }
-            guard let playerView = view.playerView else {
+                let view = views?[viewId] as? RNPlayerView,
+                let playerView = view.playerView else {
                 return
             }
             guard playerView.isPictureInPicture != enterPictureInPicture else {
