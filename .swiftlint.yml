@@ -1,3 +1,7 @@
+excluded:
+  # folders that are excluded from linting, external dependencies or generated files
+  - ${PWD}/example/ios/Pods
+
 disabled_rules:
   - todo
   - trailing_comma
