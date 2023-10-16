@@ -47,4 +47,22 @@ export interface BufferConfig {
    * Configures various settings for the audio and video buffer.
    */
   audioAndVideo?: BufferMediaTypeConfig;
+  /**
+   * Amount of seconds the player buffers before playback starts again after a stall. This value is
+   * restricted to the maximum value of the buffer minus 0.5 seconds.
+   *
+   * Default is `5` seconds.
+   *
+   * @platform Android
+   */
+  restartThreshold?: number;
+  /**
+   * Amount of seconds the player buffers before playback starts. This value is restricted to the
+   * maximum value of the buffer minus 0.5 seconds.
+   *
+   * Default is `2.5` seconds.
+   *
+   * @platform Android
+   */
+  startupThreshold?: number;
 }
