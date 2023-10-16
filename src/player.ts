@@ -40,19 +40,19 @@ export interface PlayerConfig extends NativeInstanceConfig {
    */
   licenseKey?: string;
   /**
-   * Configures playback behaviour. A default PlaybackConfig is set initially.
+   * Configures playback behaviour. A default {@link PlaybackConfig} is set initially.
    */
   playbackConfig?: PlaybackConfig;
   /**
-   * Configures the visual presentation and behaviour of the player UI. A default StyleConfig is set initially.
+   * Configures the visual presentation and behaviour of the player UI. A default {@link StyleConfig} is set initially.
    */
   styleConfig?: StyleConfig;
   /**
-   * Configures advertising functionality. A default AdvertisingConfig is set initially.
+   * Configures advertising functionality. A default {@link AdvertisingConfig} is set initially.
    */
   advertisingConfig?: AdvertisingConfig;
   /**
-   * Configures experimental features. A default TweaksConfig is set initially.
+   * Configures experimental features. A default {@link TweaksConfig} is set initially.
    */
   tweaksConfig?: TweaksConfig;
   /**
