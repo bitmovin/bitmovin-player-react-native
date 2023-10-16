@@ -206,9 +206,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             val pictureInPictureHandler = view.pictureInPictureHandler ?: return@post
             if (pictureInPictureHandler.isPictureInPicture == isPictureInPictureRequested) return@post
             if (isPictureInPictureRequested) {
-                pictureInPictureHandler.enterPictureInPicture()
+                view.playerView?.enterPictureInPicture()
             } else {
-                pictureInPictureHandler.exitPictureInPicture()
+                view.playerView?.exitPictureInPicture()
             }
         }
     }
