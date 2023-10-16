@@ -8,7 +8,7 @@
 - `PictureInPictureConfig` to `PlayerView` to allow configuring the Picture in Picture behavior
 - `PictureInPictureConfig.shouldEnterOnBackground` to start PiP automatically when the app transitions to background
 - `onPictureInPictureAvailabilityChanged` event is now emitted on iOS and tvOS in addition to Android
-- Support for programmatic Picture in Picture request (`PlayerView.isPictureInPictureRequested`)
+- `PlayerView.isPictureInPictureRequested` to programatically create a Picture in Picture request
 
 ### Changed
 
