@@ -47,7 +47,7 @@ To edit the Kotlin files, open `example/android` in Android Studio and find the 
 
 ## TypeScript Code Style
 
-- Follow the `eslint` rules (`yarn lint`). They are inforced automatically via a pre-commit git hook.
+- Follow the `eslint` rules (`yarn lint`). They are enforced automatically via a pre-commit git hook.
 - Always add return values to functions (even if `void`)
 - No unused imports
 - Public functions should be documented with a description that explains _what_ it does
@@ -61,7 +61,7 @@ To edit the Kotlin files, open `example/android` in Android Studio and find the 
 
 We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint](https://eslint.org/) with [Prettier](https://prettier.io/) for linting and formatting the code, and [Jest](https://jestjs.io/) for testing.
 
-Our pre-commit hooks verify that the linter and tests pass when committing.
+Our pre-commit hooks verify that the linter will pass when committing.
 Make sure your code passes TypeScript and ESLint. Run the following to verify:
 
 ```sh
@@ -100,6 +100,24 @@ and for automatic pre-commit formatting:
 
 ```sh
 ./gradlew addKtlintFormatGitPreCommitHook
+```
+
+### Swift
+
+For Swift code [SwiftLint](https://github.com/realm/SwiftLint) is used.
+To install SwiftLint, run `brew bundle install` in the root directory.
+Our pre-commit hooks verify that the linter will pass when committing.
+
+To verify Swift code, run the following:
+
+```sh
+swiftlint
+```
+
+To fix auto-fixable SwiftLint violations, run the following:
+
+```sh
+swiftlint lint --autocorrect
 ```
 
 ## Testing
