@@ -31,7 +31,8 @@
     "pods": "yarn pods-install || yarn pods-update",
     "pods-install": "yarn example pod-install",
     "pods-update": "cd example/ios && pod update --silent",
-    "bootstrap": "yarn && yarn example && yarn pods",
+    "bootstrap": "yarn && yarn example && yarn pods && yarn brew",
+    "brew": "[ \"$(uname)\" = \"Darwin\" ] && brew bundle install",
     "prepare": "husky install",
     "docs": "typedoc"
   },

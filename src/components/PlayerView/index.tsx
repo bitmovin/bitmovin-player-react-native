@@ -14,6 +14,7 @@ import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandler, CustomMessageHandler } from '../../ui';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
+import { ScalingMode } from '../../styleConfig';
 import { PictureInPictureConfig } from './pictureInPictureConfig';
 
 /**
@@ -62,6 +63,11 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
    * To use this property, a `FullscreenHandler` must be set.
    */
   isFullscreenRequested?: Boolean;
+  /**
+   * A value defining how the video is displayed within the parent container's bounds.
+   * Possible values are defined in `ScalingMode`.
+   */
+  scalingMode?: ScalingMode;
 }
 
 /**
@@ -100,6 +106,7 @@ export function PlayerView({
   fullscreenHandler,
   customMessageHandler,
   isFullscreenRequested = false,
+  scalingMode,
   pictureInPictureConfig,
   ...props
 }: PlayerViewProps) {
@@ -179,6 +186,13 @@ export function PlayerView({
       dispatch('setFullscreen', node, isFullscreenRequested);
     }
   }, [isFullscreenRequested, nativeView]);
+
+  useEffect(() => {
+    const node = findNodeHandle(nativeView.current);
+    if (node) {
+      dispatch('setScalingMode', node, scalingMode);
+    }
+  }, [scalingMode, nativeView]);
   return (
     <NativePlayerView
       ref={nativeView}
