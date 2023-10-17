@@ -65,4 +65,35 @@ post_install do |installer|
       config.build_settings["EXCLUDED_ARCHS[sdk=appletvsimulator*]"] = "i386"
     end
   end
+
+  fix_deployment_target(installer)
+end
+
+def fix_deployment_target(installer)
+  return if !installer
+  project = installer.pods_project
+  project_deployment_target_iOS = project.build_configurations.first.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+  project_deployment_target_tvOS = project.build_configurations.first.build_settings['TVOS_DEPLOYMENT_TARGET']
+
+  puts "Make sure all pods deployment target is iOS #{project_deployment_target_iOS.green}"
+  project.targets.each do |target|
+    puts "  #{target.name}".blue
+    target.build_configurations.each do |config|
+      old_target_iOS = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+      unless old_target_iOS.nil?
+        new_target_iOS = project_deployment_target_iOS
+        next if old_target_iOS.to_f >= new_target_iOS.to_f
+        puts "    iOS - #{config.name}: #{old_target_iOS.yellow} -> #{new_target_iOS.green}"
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = new_target_iOS
+      end
+
+      old_target_tvOS = config.build_settings['TVOS_DEPLOYMENT_TARGET']
+      unless old_target_tvOS.nil?
+        new_target_tvOS = project_deployment_target_tvOS
+        next if old_target_tvOS.to_f >= new_target_tvOS.to_f
+        puts "    tvOS - #{config.name}: #{old_target_tvOS.yellow} -> #{new_target_tvOS.green}"
+        config.build_settings['TVOS_DEPLOYMENT_TARGET'] = new_target_tvOS
+      end
+    end
+  end
 end
