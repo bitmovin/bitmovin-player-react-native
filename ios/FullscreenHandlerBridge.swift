@@ -1,6 +1,6 @@
 import BitmovinPlayer
 
-class FullscreenHandlerBridge: NSObject, FullscreenHandler {
+internal class FullscreenHandlerBridge: NSObject, FullscreenHandler {
     var isFullscreen = false
 
     private let nativeId: NativeId

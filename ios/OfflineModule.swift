@@ -1,25 +1,24 @@
-
-import Foundation
 import BitmovinPlayer
+import Foundation
 
 @objc(OfflineModule)
-class OfflineModule: RCTEventEmitter {
-    /// JS module name.
-    override static func moduleName() -> String! {
+public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_body_length
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    override public static func moduleName() -> String! {
         "BitmovinOfflineModule"
     }
 
-    /// Module requires main thread initialization.
-    override static func requiresMainQueueSetup() -> Bool {
+    override public static func requiresMainQueueSetup() -> Bool {
         true
     }
 
-    override func supportedEvents() -> [String]! {
-        return ["BitmovinOfflineEvent"]
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    override public func supportedEvents() -> [String]! {
+        ["BitmovinOfflineEvent"]
     }
 
-    /// Since most `OfflineModule` operations are UI related and need to be executed on the main thread, they are scheduled with `UIManager.addBlock`.
-    override var methodQueue: DispatchQueue! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    override public var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
 
@@ -37,8 +36,9 @@ class OfflineModule: RCTEventEmitter {
 #endif
 
     /**
-     Creates a new `OfflineContentManager` instance inside the internal offline managers using the provided config object.
-     - @param config Config object received from JS. Should contain `sourceConfig` and `identifier`.
+     Creates a new `OfflineContentManager` instance inside the internal offline managers using
+     the provided config object.
+     - Parameter config: Config object received from JS. Should contain `sourceConfig` and `identifier`.
      */
     @objc(initWithConfig:config:drmNativeId:resolver:rejecter:)
     func initWithConfig(
@@ -51,7 +51,7 @@ class OfflineModule: RCTEventEmitter {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
+                let self,
                 self.offlineContentManagerBridges[nativeId] == nil,
                 let config = config as? [String: Any?],
                 let identifier = config["identifier"] as? String
@@ -94,7 +94,7 @@ class OfflineModule: RCTEventEmitter {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
+                let self,
                 let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
@@ -108,7 +108,8 @@ class OfflineModule: RCTEventEmitter {
 
     /**
      Starts the `OfflineContentManager`'s asynchronous process of fetching the `OfflineContentOptions`.
-     When the options are loaded a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onOptionsAvailable`.
+     When the options are loaded a device event will be fired where the event type is `BitmovinOfflineEvent`
+     and the data has an event type of `onOptionsAvailable`.
      - Parameter nativeId: Target offline module Id.
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
@@ -117,11 +118,12 @@ class OfflineModule: RCTEventEmitter {
     func getOptions(
         _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock) {
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
+                let self,
                 let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
@@ -138,12 +140,13 @@ class OfflineModule: RCTEventEmitter {
      Enqueues downloads according to the `OfflineDownloadRequest`.
      * The promise will reject in the event of null or invalid request parameters.
      - Parameter nativeId: Target offline module Id
-     - Parameter request: The download request js object containing the requested bitrate and track option ids to download.
+     - Parameter request: The download request js object containing the requested bitrate
+     and track option ids to download.
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
     @objc(download:request:resolver:rejecter:)
-    func download(
+    func download( // swiftlint:disable:this cyclomatic_complexity function_body_length
         _ nativeId: NativeId,
         request: Any?,
         resolver resolve: @escaping RCTPromiseResolveBlock,
@@ -152,7 +155,7 @@ class OfflineModule: RCTEventEmitter {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
+                let self,
                 let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
@@ -213,7 +216,10 @@ class OfflineModule: RCTEventEmitter {
                 config.minimumBitrate = minimumBitrate
             }
 
-            offlineContentManagerBridge.offlineContentManager.download(tracks: currentTrackSelection, downloadConfig: config)
+            offlineContentManagerBridge.offlineContentManager.download(
+                tracks: currentTrackSelection,
+                downloadConfig: config
+            )
             resolve(nil)
         }
 #endif
@@ -229,11 +235,12 @@ class OfflineModule: RCTEventEmitter {
     func resume(
         _ nativeId: NativeId,
         resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock) {
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
+                let self,
                 let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
@@ -261,7 +268,7 @@ class OfflineModule: RCTEventEmitter {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
+                let self,
                 let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
@@ -289,7 +296,7 @@ class OfflineModule: RCTEventEmitter {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
+                let self,
                 let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
@@ -317,7 +324,7 @@ class OfflineModule: RCTEventEmitter {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
+                let self,
                 let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
@@ -344,7 +351,7 @@ class OfflineModule: RCTEventEmitter {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
+                let self,
                 let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
@@ -359,8 +366,10 @@ class OfflineModule: RCTEventEmitter {
 
     /**
      Downloads the offline license.
-     When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onDrmLicenseUpdated`.
-     Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onError`.
+     When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent`
+     and the data has an event type of `onDrmLicenseUpdated`.
+     Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent`
+     and the data has an event type of `onError`.
      - Parameter nativeId: Target offline module Id
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
@@ -374,7 +383,7 @@ class OfflineModule: RCTEventEmitter {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
+                let self,
                 let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
@@ -389,8 +398,10 @@ class OfflineModule: RCTEventEmitter {
 
     /**
      Renews the already downloaded DRM license.
-     When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onDrmLicenseUpdated`.
-     Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onError`.
+     When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent`
+     and the data has an event type of `onDrmLicenseUpdated`.
+     Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent`
+     and the data has an event type of `onError`.
      - Parameter nativeId: Target offline module Id
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
@@ -404,7 +415,7 @@ class OfflineModule: RCTEventEmitter {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
+                let self,
                 let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
@@ -434,7 +445,7 @@ class OfflineModule: RCTEventEmitter {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
+                let self,
                 let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
