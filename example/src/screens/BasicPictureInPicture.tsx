@@ -8,8 +8,8 @@ import {
   SourceType,
   AudioSession,
   PictureInPictureConfig,
-  PictureInPictureExitedEvent,
-  PictureInPictureEnteredEvent,
+  PictureInPictureEnterEvent,
+  PictureInPictureExitEvent,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -98,16 +98,15 @@ export default function BasicPictureInPicture({
   }, []);
 
   const onPictureInPictureEnterEvent = useCallback(
-    (event: PictureInPictureEnteredEvent) => {
+    (event: PictureInPictureEnterEvent) => {
       prettyPrint(`[${event.name}]`, event);
       setIsInPictureInPicture(true);
-      setIsPictureInPictureRequested(true);
     },
     []
   );
 
   const onPictureInPictureExitEvent = useCallback(
-    (event: PictureInPictureExitedEvent) => {
+    (event: PictureInPictureExitEvent) => {
       prettyPrint(`[${event.name}]`, event);
       setIsInPictureInPicture(false);
       setIsPictureInPictureRequested(false);
