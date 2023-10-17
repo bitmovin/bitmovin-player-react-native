@@ -18,6 +18,8 @@ import com.bitmovin.player.api.advertising.AdQuartile
 import com.bitmovin.player.api.advertising.AdSource
 import com.bitmovin.player.api.advertising.AdSourceType
 import com.bitmovin.player.api.advertising.AdvertisingConfig
+import com.bitmovin.player.api.buffer.BufferConfig
+import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
 import com.bitmovin.player.api.casting.RemoteControlConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
@@ -106,7 +108,54 @@ class JsonConverter {
                     playerConfig.remoteControlConfig = it
                 }
             }
+            if (json.hasKey("bufferConfig")) {
+                toBufferConfig(json.getMap("bufferConfig"))?.let {
+                    playerConfig.bufferConfig = it
+                }
+            }
             return playerConfig
+        }
+
+        /**
+         * Converts any JS object into a `BufferMediaTypeConfig` object.
+         * @param json JS object representing the `BufferMediaTypeConfig`.
+         * @return The generated `BufferMediaTypeConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toBufferMediaTypeConfig(json: ReadableMap?): BufferMediaTypeConfig? {
+            if (json == null) {
+                return null
+            }
+            val bufferMediaTypeConfig = BufferMediaTypeConfig()
+            if (json.hasKey("forwardDuration")) {
+                bufferMediaTypeConfig.forwardDuration = json.getDouble("forwardDuration")
+            }
+            return bufferMediaTypeConfig
+        }
+
+        /**
+         * Converts any JS object into a `BufferConfig` object.
+         * @param json JS object representing the `BufferConfig`.
+         * @return The generated `BufferConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toBufferConfig(json: ReadableMap?): BufferConfig? {
+            if (json == null) {
+                return null
+            }
+            val bufferConfig = BufferConfig()
+            if (json.hasKey("audioAndVideo")) {
+                toBufferMediaTypeConfig(json.getMap("audioAndVideo"))?.let {
+                    bufferConfig.audioAndVideo = it
+                }
+            }
+            if (json.hasKey("restartThreshold")) {
+                bufferConfig.restartThreshold = json.getDouble("restartThreshold")
+            }
+            if (json.hasKey("startupThreshold")) {
+                bufferConfig.startupThreshold = json.getDouble("startupThreshold")
+            }
+            return bufferConfig
         }
 
         /**

@@ -33,6 +33,9 @@ extension RCTConvert {
         if let adaptationConfig = RCTConvert.adaptationConfig(json["adaptationConfig"]) {
             playerConfig.adaptationConfig = adaptationConfig
         }
+        if let bufferConfig = RCTConvert.bufferConfig(json["bufferConfig"]) {
+            playerConfig.bufferConfig = bufferConfig
+        }
 #if os(iOS)
         if let remoteControlConfig = RCTConvert.remoteControlConfig(json["remoteControlConfig"]) {
             playerConfig.remoteControlConfig = remoteControlConfig
@@ -154,6 +157,38 @@ extension RCTConvert {
             }
         }
         return tweaksConfig
+    }
+
+    /**
+     Utility method to instantiate a `BufferMediaTypeConfig` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `BufferMediaTypeConfig` object.
+     */
+    static func bufferMediaTypeConfig(_ json: Any?) -> BufferMediaTypeConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let bufferMediaTypeConfig = BufferMediaTypeConfig()
+        if let forwardDuration = json["forwardDuration"] as? NSNumber {
+            bufferMediaTypeConfig.forwardDuration = forwardDuration.doubleValue
+        }
+        return bufferMediaTypeConfig
+    }
+
+    /**
+     Utility method to instantiate a `BufferConfig` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `BufferConfig` object.
+     */
+    static func bufferConfig(_ json: Any?) -> BufferConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let bufferConfig = BufferConfig()
+        if let bufferMediaTypeConfig = bufferMediaTypeConfig(json["audioAndVideo"]) {
+            bufferConfig.audioAndVideo = bufferMediaTypeConfig
+        }
+        return bufferConfig
     }
 
     /**
