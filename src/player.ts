@@ -68,7 +68,7 @@ export interface PlayerConfig extends NativeInstanceConfig {
    */
   remoteControlConfig?: RemoteControlConfig;
   /**
-   * Configures buffer settings. A default {@link BufferConfig} is set initially
+   * Configures buffer settings. A default {@link BufferConfig} is set initially.
    */
   bufferConfig?: BufferConfig;
 }
