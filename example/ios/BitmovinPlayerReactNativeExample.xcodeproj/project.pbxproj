@@ -154,6 +154,7 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "BitmovinPlayerReactNativeExample" */;
 			buildPhases = (
 				5E3559E12AFFB82ED8822C46 /* [CP] Check Pods Manifest.lock */,
+				A8979BB02ADD2D9500821960 /* SwiftLint */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
@@ -175,6 +176,7 @@
 			buildConfigurationList = 4CE3830228BFD10E002DDF82 /* Build configuration list for PBXNativeTarget "BitmovinPlayerReactNativeExample-tvOS" */;
 			buildPhases = (
 				3D81CB9D0E05C6D400C2E01A /* [CP] Check Pods Manifest.lock */,
+				A8979BB12ADD2DB500821960 /* SwiftLint */,
 				4CE382EA28BFD10C002DDF82 /* Sources */,
 				4CE382EB28BFD10C002DDF82 /* Frameworks */,
 				4CE382EC28BFD10C002DDF82 /* Resources */,
@@ -435,6 +437,46 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BitmovinPlayerReactNativeExample/Pods-BitmovinPlayerReactNativeExample-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		A8979BB02ADD2D9500821960 /* SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = SwiftLint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\n(\n  cd ../../\n  if which swiftlint > /dev/null; then\n    swiftlint\n  else\n    echo \"warning: SwiftLint not installed, run \\`brew bundle install\\` in project root to install\"\n  fi\n)\n";
+			showEnvVarsInLog = 0;
+		};
+		A8979BB12ADD2DB500821960 /* SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = SwiftLint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\n(\n  cd ../../\n  if which swiftlint > /dev/null; then\n    swiftlint\n  else\n    echo \"warning: SwiftLint not installed, run \\`brew bundle install\\` in project root to install\"\n  fi\n)\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

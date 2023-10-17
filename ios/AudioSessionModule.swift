@@ -1,19 +1,18 @@
 import AVFAudio
 
 @objc(AudioSessionModule)
-class AudioSessionModule: NSObject, RCTBridgeModule {
-    // Run this module methods on main thread.
-    var methodQueue: DispatchQueue! {
+public class AudioSessionModule: NSObject, RCTBridgeModule {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public var methodQueue: DispatchQueue! {
         DispatchQueue.main
     }
 
-    /// JS module name.
-    static func moduleName() -> String! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public static func moduleName() -> String! {
         "AudioSessionModule"
     }
 
-    // Requires module initialization.
-    static func requiresMainQueueSetup() -> Bool {
+    public static func requiresMainQueueSetup() -> Bool {
         true
     }
 
@@ -23,7 +22,8 @@ class AudioSessionModule: NSObject, RCTBridgeModule {
      - Parameter resolver: JS promise resolver block.
      - Parameter rejecter: JS promise rejecter block.
      */
-    @objc func setCategory(
+    @objc
+    func setCategory(
         _ category: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
@@ -45,7 +45,7 @@ class AudioSessionModule: NSObject, RCTBridgeModule {
      Parse any category string to an `AVAudioSession.Category` type.
      */
     private func parseCategory(_ category: String) -> AVAudioSession.Category? {
-        switch (category) {
+        switch category {
         case "ambient":
             return .ambient
         case "multiRoute":
