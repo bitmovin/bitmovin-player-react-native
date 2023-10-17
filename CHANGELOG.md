@@ -8,7 +8,7 @@
 - `PictureInPictureConfig` to `PlayerView` to allow configuring the Picture in Picture behavior
 - `PictureInPictureConfig.shouldEnterOnBackground` to start PiP automatically when the app transitions to background
 - `onPictureInPictureAvailabilityChanged` event is now emitted on iOS and tvOS in addition to Android
-- `MediaType`, `BufferType`, `BufferLevel`, `BufferMediaTypeConfig`, `BufferConfig` to have types and interfaces necessary for incoming `BufferAPI`
+- `BufferConfig` to control player buffer depth
 
 ### Changed
 
