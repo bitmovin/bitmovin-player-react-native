@@ -13,7 +13,7 @@ import { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/player';
 import { RemoteControlConfig } from './remoteControlConfig';
 import { BufferConfig } from './bufferConfig';
-import { BufferApi } from './bufferapi';
+import { BufferApi } from './bufferApi';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -183,7 +183,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * The {@link BufferApi} for interactions regarding the buffer.
    */
-  buffer?: BufferApi; // TODO: default value?
+  buffer?: BufferApi; // TODO: default value? optional??
 
   /**
    * Allocates the native {@link Player} instance and its resources natively.
