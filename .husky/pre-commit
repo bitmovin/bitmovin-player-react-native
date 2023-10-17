@@ -7,4 +7,6 @@ fi
 
 yarn lint-staged
 
-swiftlint lint --strict
+if [ "$(uname)" == "Darwin" ]; then
+    swiftlint lint --strict
+fi
