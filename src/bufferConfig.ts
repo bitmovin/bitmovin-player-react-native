@@ -29,12 +29,12 @@ export interface BufferLevel {
  */
 export interface BufferMediaTypeConfig {
   /**
-   * The amount of data in seconds the player tries to buffer in advance. If set to 0, the player will
-   * choose an appropriate forward buffer duration suitable for most use-cases.
+   * The amount of data in seconds the player tries to buffer in advance.
    *
-   * Default value is `0`.
+   * iOS only: If set to `0`, the player will choose an appropriate forward buffer duration suitable
+   * for most use-cases.
    *
-   * TODO: update docs here
+   * Default value is `0` on iOS, `50` on Android
    */
   forwardDuration?: number;
 }
