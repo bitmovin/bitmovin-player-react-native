@@ -179,6 +179,9 @@ jobs:
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
 
+      - name: Install dependencies
+        run: brew bundle install
+
       - name: Restore Pods cache
         id: pods-cache-restore
         uses: actions/cache/restore@v3
@@ -237,6 +240,9 @@ jobs:
 
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
+
+      - name: Install dependencies
+        run: brew bundle install
 
       - name: Restore Pods cache
         id: pods-cache-restore
