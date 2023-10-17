@@ -14,6 +14,7 @@ import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandler, CustomMessageHandler } from '../../ui';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
+import { ScalingMode } from '../../styleConfig';
 import { PictureInPictureConfig } from './pictureInPictureConfig';
 
 /**
@@ -64,6 +65,12 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
   isFullscreenRequested?: Boolean;
 
   /**
+   * A value defining how the video is displayed within the parent container's bounds.
+   * Possible values are defined in `ScalingMode`.
+   */
+  scalingMode?: ScalingMode;
+
+  /**
    * Can be set to `true` to request Picture in Picture mode, or `false` to request exit of Picture in Picture mode.
    * Should not be used to get the current Picture in Picture state. Use `onPictureInPictureEnter` and `onPictureInPictureExit.
    */
@@ -106,6 +113,7 @@ export function PlayerView({
   fullscreenHandler,
   customMessageHandler,
   isFullscreenRequested = false,
+  scalingMode,
   isPictureInPictureRequested = false,
   pictureInPictureConfig,
   ...props
@@ -186,6 +194,13 @@ export function PlayerView({
       dispatch('setFullscreen', node, isFullscreenRequested);
     }
   }, [isFullscreenRequested, nativeView]);
+
+  useEffect(() => {
+    const node = findNodeHandle(nativeView.current);
+    if (node) {
+      dispatch('setScalingMode', node, scalingMode);
+    }
+  }, [scalingMode, nativeView]);
 
   useEffect(() => {
     const node = findNodeHandle(nativeView.current);
