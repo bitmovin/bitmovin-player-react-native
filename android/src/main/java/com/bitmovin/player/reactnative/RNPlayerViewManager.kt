@@ -190,25 +190,24 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
 
     private fun setFullscreen(view: RNPlayerView, isFullscreenRequested: Boolean) {
         Handler(Looper.getMainLooper()).post {
-            val pictureInPictureHandler = view.pictureInPictureHandler ?: return@post
-            if (view.playerView == null) return@post
-            if (view.playerView?.isFullscreen == isFullscreenRequested) return@post
+            val playerView = view.playerView ?: return@post
+            if (playerView.isFullscreen == isFullscreenRequested) return@post
             if (isFullscreenRequested) {
-                view.playerView?.enterFullscreen()
+                playerView.enterFullscreen()
             } else {
-                view.playerView?.exitFullscreen()
+                playerView.exitFullscreen()
             }
         }
     }
 
     private fun setPictureInPicture(view: RNPlayerView, isPictureInPictureRequested: Boolean) {
         Handler(Looper.getMainLooper()).post {
-            val pictureInPictureHandler = view.pictureInPictureHandler ?: return@post
-            if (pictureInPictureHandler.isPictureInPicture == isPictureInPictureRequested) return@post
+            val playerView = view.playerView ?: return@post
+            if (playerView.isPictureInPicture == isPictureInPictureRequested) return@post
             if (isPictureInPictureRequested) {
-                view.playerView?.enterPictureInPicture()
+                playerView.enterPictureInPicture()
             } else {
-                view.playerView?.exitPictureInPicture()
+                playerView.exitPictureInPicture()
             }
         }
     }
