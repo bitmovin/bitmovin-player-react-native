@@ -9,7 +9,7 @@ export interface PlayerViewConfig {
    * Default is {@link WebUiConfig}.
    *
    * Limitations:
-   * Configuring the `uiConfig` only has effect if the {@link StyleConfig.userInterfaceType} is set to {@link UserInterfaceType.Bitmovin|Bitmovin}.
+   * Configuring the `uiConfig` only has effect if the {@link StyleConfig.userInterfaceType} is set to {@link UserInterfaceType.Bitmovin}.
    */
   uiConfig: UiConfig;
 }
