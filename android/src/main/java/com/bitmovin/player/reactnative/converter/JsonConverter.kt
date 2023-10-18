@@ -1161,14 +1161,20 @@ class JsonConverter {
             return Arguments.createMap().apply {
                 putDouble("level", bufferLevel.level)
                 putDouble("targetLevel", bufferLevel.targetLevel)
-                putInt("media", when(bufferLevel.media) {
-                    MediaType.Audio -> 0
-                    MediaType.Video -> 1
-                })
-                putInt("type", when(bufferLevel.type) {
-                    BufferType.ForwardDuration -> 0
-                    BufferType.BackwardDuration -> 1
-                })
+                putInt(
+                    "media",
+                    when (bufferLevel.media) {
+                        MediaType.Audio -> 0
+                        MediaType.Video -> 1
+                    },
+                )
+                putInt(
+                    "type",
+                    when (bufferLevel.type) {
+                        BufferType.ForwardDuration -> 0
+                        BufferType.BackwardDuration -> 1
+                    },
+                )
             }
         }
 
