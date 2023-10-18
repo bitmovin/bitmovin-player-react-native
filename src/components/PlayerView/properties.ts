@@ -5,22 +5,22 @@ import { ScalingMode } from '../../styleConfig';
 import { PictureInPictureConfig } from './pictureInPictureConfig';
 import { ViewStyle } from 'react-native';
 /**
- * Base `PlayerView` component props. Used to establish common
- * props between `NativePlayerView` and `PlayerView`.
- * @see NativePlayerView
+ * Base `PlayerView` component props.
+ * Used to establish common props between {@link NativePlayerView} and {@link PlayerView}.
  */
 export interface BasePlayerViewProps {
   /**
-   * The `FullscreenHandler` that is used by the `PlayerView` to control the fullscreen mode.
+   * The {@link FullscreenHandler} that is used by the `PlayerView` to control the fullscreen mode.
    */
   fullscreenHandler?: FullscreenHandler;
 
   /**
-   * The `CustomMessageHandler` that can be used to directly communicate with the embedded Bitmovin Web UI.
+   * The {@link CustomMessageHandler} that can be used to directly communicate with the embedded Bitmovin Web UI.
    */
   customMessageHandler?: CustomMessageHandler;
+
   /**
-   * Style of the `PlayerView`.
+   * Style of the {@link PlayerView}.
    */
   style?: ViewStyle;
 
