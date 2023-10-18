@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
    LastUpgradeVersion = "1500"
-   version = "1.3">
+   version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "BitmovinPlayerReactNativeExample.app"
-               BlueprintName = "BitmovinPlayerReactNativeExample"
+               BlueprintIdentifier = "4CE382ED28BFD10C002DDF82"
+               BuildableName = "RN Player Example TV.app"
+               BlueprintName = "BitmovinPlayerReactNativeExample-tvOS"
                ReferencedContainer = "container:BitmovinPlayerReactNativeExample.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -26,18 +26,8 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "BitmovinPlayerReactNativeExample.app"
-            BlueprintName = "BitmovinPlayerReactNativeExample"
-            ReferencedContainer = "container:BitmovinPlayerReactNativeExample.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
-      <Testables>
-      </Testables>
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      shouldAutocreateTestPlan = "YES">
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -53,9 +43,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "BitmovinPlayerReactNativeExample.app"
-            BlueprintName = "BitmovinPlayerReactNativeExample"
+            BlueprintIdentifier = "4CE382ED28BFD10C002DDF82"
+            BuildableName = "RN Player Example TV.app"
+            BlueprintName = "BitmovinPlayerReactNativeExample-tvOS"
             ReferencedContainer = "container:BitmovinPlayerReactNativeExample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -70,9 +60,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "BitmovinPlayerReactNativeExample.app"
-            BlueprintName = "BitmovinPlayerReactNativeExample"
+            BlueprintIdentifier = "4CE382ED28BFD10C002DDF82"
+            BuildableName = "RN Player Example TV.app"
+            BlueprintName = "BitmovinPlayerReactNativeExample-tvOS"
             ReferencedContainer = "container:BitmovinPlayerReactNativeExample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
