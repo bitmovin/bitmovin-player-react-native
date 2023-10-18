@@ -1,9 +1,10 @@
 import { NativeModules } from 'react-native';
-import { Drm, DrmConfig } from './drm';
+import { Drm } from './drm';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { SideLoadedSubtitleTrack } from './subtitleTrack';
 import { Thumbnail } from './thumbnail';
 import { SourceMetadata } from './analytics';
+import { DrmConfig } from './drm/drmConfig';
 
 const SourceModule = NativeModules.SourceModule;
 
