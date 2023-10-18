@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.ui.ScalingMode
+import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getModule
@@ -187,6 +188,11 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         view.pictureInPictureConfig = JsonConverter.toPictureInPictureConfig(pictureInPictureConfig)
     }
 
+    @ReactProp(name = "config")
+    fun setConfig(view: RNPlayerView, config: ReadableMap?) {
+            view.config = if (config != null) JsonConverter.toPlayerViewConfig(config) else null
+    }
+
     private fun attachFullscreenBridge(view: RNPlayerView, fullscreenBridgeId: NativeId) {
         Handler(Looper.getMainLooper()).post {
             view.playerView?.setFullscreenHandler(
@@ -261,7 +267,11 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     Log.e(MODULE_NAME, "Cannot create a PlayerView, because no activity is attached.")
                     return@post
                 }
-                val playerView = PlayerView(currentActivity, player)
+                val playerView = PlayerView(
+                    currentActivity,
+                    player,
+                    view.config ?: PlayerViewConfig(),
+                )
                 playerView.layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
                     LayoutParams.MATCH_PARENT,
