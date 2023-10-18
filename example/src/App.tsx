@@ -1,10 +1,9 @@
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SourceType } from 'bitmovin-player-react-native';
-import Button from './components/Button';
 import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
 import BasicAnalytics from './screens/BasicAnalytics';
@@ -33,7 +32,9 @@ export type RootStackParamsList = {
   BasicAnalytics: undefined;
   BasicPlayback: undefined;
   BasicDrmPlayback: undefined;
-  BasicPictureInPicture: undefined;
+  BasicPictureInPicture: {
+    navigation: NativeStackNavigationProp<RootStackParamsList>;
+  };
   BasicFullscreenHandling: {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
   };
@@ -204,7 +205,11 @@ export default function App() {
         <RootStack.Screen
           name="BasicPictureInPicture"
           component={BasicPictureInPicture}
-          options={{ title: 'Basic Picture in Picture' }}
+          options={{
+            title: 'Basic Picture in Picture',
+            // eslint-disable-next-line react/no-unstable-nested-components
+            headerRight: () => <Button title="Enter PiP" />,
+          }}
         />
         {!isTVOS && (
           <RootStack.Screen

@@ -63,7 +63,7 @@ open class RNPictureInPictureHandler(val context: ReactApplicationContext) : Pic
     /**
      * Whether this view is currently in PiP mode.
      */
-    var isInPictureInPictureMode = false
+    private var isInPictureInPictureMode = false
 
     /**
      * Whether the current Android version supports PiP mode.

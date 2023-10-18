@@ -33,6 +33,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID("setCustomMessageHandlerBridgeId"),
         SET_FULLSCREEN("setFullscreen"),
         SET_SCALING_MODE("setScalingMode"),
+        SET_PICTURE_IN_PICTURE("setPictureInPicture"),
     }
 
     /**
@@ -173,6 +174,11 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     setScalingMode(view, scalingMode)
                 }
             }
+            Commands.SET_PICTURE_IN_PICTURE -> {
+                args?.getBoolean(1)?.let { isPictureInPicture ->
+                    setPictureInPicture(view, isPictureInPicture)
+                }
+            }
         }
     }
 
@@ -189,16 +195,26 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         }
     }
 
-    private fun setFullscreen(view: RNPlayerView, isFullscreen: Boolean) {
-        if (view.playerView?.isFullscreen == isFullscreen) return
-
+    private fun setFullscreen(view: RNPlayerView, isFullscreenRequested: Boolean) {
         Handler(Looper.getMainLooper()).post {
-            with(view.playerView ?: return@post) {
-                if (isFullscreen) {
-                    enterFullscreen()
-                } else {
-                    exitFullscreen()
-                }
+            val playerView = view.playerView ?: return@post
+            if (playerView.isFullscreen == isFullscreenRequested) return@post
+            if (isFullscreenRequested) {
+                playerView.enterFullscreen()
+            } else {
+                playerView.exitFullscreen()
+            }
+        }
+    }
+
+    private fun setPictureInPicture(view: RNPlayerView, isPictureInPictureRequested: Boolean) {
+        Handler(Looper.getMainLooper()).post {
+            val playerView = view.playerView ?: return@post
+            if (playerView.isPictureInPicture == isPictureInPictureRequested) return@post
+            if (isPictureInPictureRequested) {
+                playerView.enterPictureInPicture()
+            } else {
+                playerView.exitPictureInPicture()
             }
         }
     }
