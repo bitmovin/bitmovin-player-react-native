@@ -39,13 +39,13 @@ public class RNPlayerViewManager: RCTViewManager {
                     .userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
                 player.config.styleConfig.userInterfaceConfig = bitmovinUserInterfaceConfig
                 if let config = RCTConvert.playerViewConfig(view.config) {
-                    bitmovinUserInterfaceConfig.playbackSpeedSelectionEnabled =
-                    config.uiConfig.playbackSpeedSelectionEnabled
+                    bitmovinUserInterfaceConfig
+                        .playbackSpeedSelectionEnabled = config.uiConfig.playbackSpeedSelectionEnabled
                 }
 
                 if let customMessageHandlerBridgeId = self.customMessageHandlerBridgeId,
-                   let customMessageHandlerBridge =
-                   self.bridge[CustomMessageHandlerModule.self]?.retrieve(customMessageHandlerBridgeId) {
+                   let customMessageHandlerBridge = self.bridge[CustomMessageHandlerModule.self]?
+                    .retrieve(customMessageHandlerBridgeId) {
                     bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
                 }
             }
