@@ -4,12 +4,12 @@
 export interface PlayerViewConfig {
   /**
    * Configures the visual presentation and behaviour of the Bitmovin Player UI.
-   * A `WebUiConfig` can be used to configure the default Bitmovin Player Web UI.
+   * A {@link WebUiConfig} can be used to configure the default Bitmovin Player Web UI.
    *
-   * Default is `WebUiConfig`.
+   * Default is {@link WebUiConfig}.
    *
    * Limitations:
-   * Configuring the `uiConfig` only has effect if the `StyleConfig.userInterfaceType` is set to `Bitmovin`.
+   * Configuring the `uiConfig` only has effect if the {@link StyleConfig.userInterfaceType} is set to {@link UserInterfaceType.Bitmovin|Bitmovin}.
    */
   uiConfig: UiConfig;
 }
