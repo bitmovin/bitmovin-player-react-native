@@ -59,11 +59,11 @@ export interface BufferLevel {
  */
 export interface BufferLevels {
   /**
-   * {@link BufferLevel} for {@link MediaType.Audio}.
+   * {@link BufferLevel} for {@link MediaType.AUDIO}.
    */
   audio: BufferLevel;
   /**
-   * {@link BufferLevel} for {@link MediaType.Video}.
+   * {@link BufferLevel} for {@link MediaType.VIDEO}.
    */
   video: BufferLevel;
 }
