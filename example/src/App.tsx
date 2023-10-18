@@ -3,8 +3,6 @@ import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { SourceType } from 'bitmovin-player-react-native';
-import Button from './components/Button';
 import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
 import BasicAnalytics from './screens/BasicAnalytics';
@@ -12,8 +10,6 @@ import BasicPlayback from './screens/BasicPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
 import ProgrammaticTrackSelection from './screens/ProgrammaticTrackSelection';
-import CustomPlaybackForm from './screens/CustomPlaybackForm';
-import CustomPlayback from './screens/CustomPlayback';
 import BasicPictureInPicture from './screens/BasicPictureInPicture';
 import CustomHtmlUi from './screens/CustomHtmlUi';
 import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
@@ -41,16 +37,7 @@ export type RootStackParamsList = {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
   };
   SubtitlePlayback: undefined;
-  CustomPlaybackForm: undefined;
   OfflinePlayback: undefined;
-  CustomPlayback: {
-    licenseKey: string;
-    streamURL: string;
-    streamType: {
-      label: string;
-      value: SourceType;
-    };
-  };
   CustomHtmlUi: {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
   };
@@ -140,17 +127,8 @@ export default function App() {
         <RootStack.Screen
           name="ExamplesList"
           component={ExamplesList}
-          options={({ navigation }) => ({
+          options={() => ({
             title: 'Examples',
-            // eslint-disable-next-line react/no-unstable-nested-components
-            headerRight: () => (
-              <Button
-                title="Custom"
-                onPress={() => {
-                  navigation.navigate('CustomPlaybackForm');
-                }}
-              />
-            ),
           })}
           initialParams={stackParams}
         />
@@ -191,16 +169,6 @@ export default function App() {
             options={{ title: 'Offline Playback' }}
           />
         )}
-        <RootStack.Screen
-          name="CustomPlaybackForm"
-          component={CustomPlaybackForm}
-          options={{ title: 'Custom playback' }}
-        />
-        <RootStack.Screen
-          name="CustomPlayback"
-          component={CustomPlayback}
-          options={{ title: 'Custom playback' }}
-        />
         <RootStack.Screen
           name="BasicPictureInPicture"
           component={BasicPictureInPicture}
