@@ -16,6 +16,7 @@ import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
 import { ScalingMode } from '../../styleConfig';
 import { PictureInPictureConfig } from './pictureInPictureConfig';
+import { PlayerViewConfig } from './playerViewConfig';
 
 /**
  * Base `PlayerView` component props. Used to establish common
@@ -41,6 +42,12 @@ export interface BasePlayerViewProps {
    * Provides options to configure Picture in Picture playback.
    */
   pictureInPictureConfig?: PictureInPictureConfig;
+
+  /**
+   * Configures the visual presentation and behaviour of the `PlayerView`.
+   * The value must not be altered after setting it initially.
+   */
+  config?: PlayerViewConfig;
 }
 
 /**
@@ -110,6 +117,7 @@ function dispatch(command: string, node: NodeHandle, ...args: any[]) {
 export function PlayerView({
   style,
   player,
+  config,
   fullscreenHandler,
   customMessageHandler,
   isFullscreenRequested = false,
@@ -216,6 +224,7 @@ export function PlayerView({
       fullscreenBridge={fullscreenBridge.current}
       customMessageHandlerBridge={customMessageHandlerBridge.current}
       pictureInPictureConfig={pictureInPictureConfig}
+      config={config}
       onAdBreakFinished={proxy(props.onAdBreakFinished)}
       onAdBreakStarted={proxy(props.onAdBreakStarted)}
       onAdClicked={proxy(props.onAdClicked)}
