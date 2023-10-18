@@ -13,10 +13,12 @@ export interface PlayerViewConfig {
    */
   uiConfig: UiConfig;
 }
+
 /**
  * Configures the visual presentation and behaviour of the Bitmovin Player UI.
  */
 export interface UiConfig {}
+
 /**
  * Configures the visual presentation and behaviour of the Bitmovin Web UI.
  */
