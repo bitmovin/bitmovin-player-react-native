@@ -29,6 +29,7 @@ class RNPlayerViewPackage : ReactPackage {
             FullscreenHandlerModule(reactContext),
             CustomMessageHandlerModule(reactContext),
             BitmovinCastManagerModule(reactContext),
+            BufferModule(reactContext),
         )
     }
 

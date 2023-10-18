@@ -19,7 +19,9 @@ import com.bitmovin.player.api.advertising.AdSource
 import com.bitmovin.player.api.advertising.AdSourceType
 import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.buffer.BufferConfig
+import com.bitmovin.player.api.buffer.BufferLevel
 import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
+import com.bitmovin.player.api.buffer.BufferType
 import com.bitmovin.player.api.casting.RemoteControlConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
@@ -27,6 +29,7 @@ import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.CastPayload
 import com.bitmovin.player.api.event.data.SeekPosition
 import com.bitmovin.player.api.media.AdaptationConfig
+import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
@@ -42,6 +45,7 @@ import com.bitmovin.player.api.source.TimelineReferencePoint
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
+import com.bitmovin.player.reactnative.BufferModule
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.getOrDefault
@@ -1147,6 +1151,45 @@ class JsonConverter {
                     isEnabled = it.getBoolean("isEnabled"),
                 )
             }
+
+        @JvmStatic
+        fun fromBufferLevel(bufferLevel: BufferLevel?): WritableMap? {
+            if (bufferLevel == null) {
+                return null
+            }
+
+            return Arguments.createMap().apply {
+                putDouble("level", bufferLevel.level)
+                putDouble("targetLevel", bufferLevel.targetLevel)
+                putInt("media", when(bufferLevel.media) {
+                    MediaType.Audio -> 0
+                    MediaType.Video -> 1
+                })
+                putInt("type", when(bufferLevel.type) {
+                    BufferType.ForwardDuration -> 0
+                    BufferType.BackwardDuration -> 1
+                })
+            }
+        }
+
+        @JvmStatic
+        fun fromRNBufferLevels(bufferLevels: BufferModule.RNBufferLevels?): WritableMap? {
+            if (bufferLevels == null) {
+                return null
+            }
+
+            return Arguments.createMap().apply {
+                putMap("audio", fromBufferLevel(bufferLevels.audio))
+                putMap("video", fromBufferLevel(bufferLevels.video))
+            }
+        }
+
+        @JvmStatic
+        fun toBufferType(json: Int?): BufferType = when (json) {
+            0 -> BufferType.ForwardDuration
+            1 -> BufferType.BackwardDuration
+            else -> BufferType.ForwardDuration
+        }
     }
 }
 
