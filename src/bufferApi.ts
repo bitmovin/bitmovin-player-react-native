@@ -83,8 +83,8 @@ export class BufferApi {
   }
 
   /**
-   * Returns the {@link BufferLevel} for the chosen {@link BufferType|buffer type} and {@link MediaType|media type} of the active Source.
-   * @param type The type of buffer to return the level for.
+   * Gets the {@link BufferLevel|buffer level} from the Player
+   * @param type The {@link BufferType|type of buffer} to return the level for.
    * @returns a {@link BufferLevels} that contains {@link BufferLevel} values for audio and video.
    */
   getLevel = async (type: BufferType): Promise<BufferLevels> => {
