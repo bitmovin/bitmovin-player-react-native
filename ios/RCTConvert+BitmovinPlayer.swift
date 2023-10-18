@@ -1120,4 +1120,38 @@ extension RCTConvert {
 #endif
         return pictureInPictureConfig
     }
+
+    /**
+     Utility method to instantiate a `UiConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `UiConfig` object
+     */
+    static func playerViewConfig(_ json: Any?) -> RNPlayerViewConfig? {
+        guard let json = json as? [String: Any?],
+              let uiConfigJson = json["uiConfig"] as? [String: Any?] else {
+            return nil
+        }
+
+        return RNPlayerViewConfig(
+            uiConfig: UiConfig(
+            playbackSpeedSelectionEnabled: uiConfigJson["playbackSpeedSelectionEnabled"] as? Bool ?? true
+            )
+        )
+    }
+}
+/**
+ * React native specific PlayerViewConfig.
+ */
+internal struct RNPlayerViewConfig {
+    /**
+           * The react native specific ui configuration.
+     */
+    let uiConfig: UiConfig
+}
+
+/**
+ * React native specific UiConfig.
+ */
+internal struct UiConfig {
+    let playbackSpeedSelectionEnabled: Bool
 }
