@@ -1,11 +1,21 @@
+import { NativeModules } from 'react-native';
+
+const BufferModule = NativeModules.BufferModule;
+
 /**
  * Represents different types of media.
  */
 export enum MediaType {
   /**
-   * Combined audio and video media type.
+   * Audio media type.
+   * @platform Android
    */
-  MEDIATYPE_AUDIO_AND_VIDEO = 0, //TODO: Android has 2 enum values: Audio, Video
+  AUDIO = 0,
+  /**
+   * Video media type.
+   * @platform Android
+   */
+  VIDEO = 1,
 }
 
 /**
@@ -45,21 +55,49 @@ export interface BufferLevel {
 }
 
 /**
- * Provides the means to configure buffer settings and to query the current buffer state.
- * Accessible through Player.buffer.
+ * Collection of {@link BufferLevel} objects
  */
-export interface BufferApi {
+export interface BufferLevels {
+  /**
+   * {@link BufferLevel} for {@link MediaType.Audio}.
+   */
+  audio: BufferLevel;
+  /**
+   * {@link BufferLevel} for {@link MediaType.Video}.
+   */
+  video: BufferLevel;
+}
+
+/**
+ * Provides the means to configure buffer settings and to query the current buffer state.
+ * Accessible through {@link Player.buffer}.
+ */
+export class BufferApi {
+  /**
+   * The native player id that this analytics api is attached to.
+   */
+  readonly nativeId: string;
+
+  constructor(playerId: string) {
+    this.nativeId = playerId;
+  }
+
   /**
    * Returns the {@link BufferLevel} for the chosen {@link BufferType|buffer type} and {@link MediaType|media type} of the active Source.
    * @param type The type of buffer to return the level for.
-   * @param media TODO: android only
-   * @returns a {@link BufferLevel} where {@link BufferLevel.level} and {@link BufferLevel.targetLevel} is `0.0` if there is no active playback session.
+   * @returns a {@link BufferLevels} that contains {@link BufferLevel} values for audio and video.
    */
-  getLevel: (type: BufferType, media: MediaType) => BufferLevel;
+  getLevel = async (type: BufferType): Promise<BufferLevels> => {
+    return BufferModule.getLevel(this.nativeId, type);
+  };
+
   /**
-   * Sets the target buffer level for the chosen buffer type across all {@link MediaType|MediaTypes}.
-   * @param type TODO: android only
+   * Sets the target buffer level for the chosen buffer {@link BufferType|type} across all {@link MediaType}s.
+   *
+   * @param type The type of the buffer to set the target level for. On iOS only {@link BufferType.FORWARD_DURATION} is supported.
    * @param value The value to set.
    */
-  setTargetLevel: (type: BufferType, value: number) => void;
+  setTargetLevel = async (type: BufferType, value: number): Promise<void> => {
+    return BufferModule.setTargetLevel(this.nativeId, type, value);
+  };
 }

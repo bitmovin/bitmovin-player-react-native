@@ -183,7 +183,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * The {@link BufferApi} for interactions regarding the buffer.
    */
-  buffer?: BufferApi; // TODO: default value? optional??
+  buffer: BufferApi = new BufferApi(this.nativeId);
 
   /**
    * Allocates the native {@link Player} instance and its resources natively.
