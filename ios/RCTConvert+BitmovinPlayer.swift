@@ -1144,7 +1144,7 @@ extension RCTConvert {
  */
 internal struct RNPlayerViewConfig {
     /**
-           * The react native specific ui configuration.
+     * The react native specific ui configuration.
      */
     let uiConfig: UiConfig
 }
