@@ -1134,7 +1134,7 @@ extension RCTConvert {
 
         return RNPlayerViewConfig(
             uiConfig: UiConfig(
-            playbackSpeedSelectionEnabled: uiConfigJson["playbackSpeedSelectionEnabled"] as? Bool ?? true
+                playbackSpeedSelectionEnabled: uiConfigJson["playbackSpeedSelectionEnabled"] as? Bool ?? true
             )
         )
     }
