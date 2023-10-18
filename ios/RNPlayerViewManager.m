@@ -69,5 +69,6 @@ RCT_EXTERN_METHOD(attachFullscreenBridge:(nonnull NSNumber *)viewId fullscreenBr
 RCT_EXTERN_METHOD(setCustomMessageHandlerBridgeId:(nonnull NSNumber *)viewId customMessageHandlerBridgeId:(NSString *)fullscreenBridgeId)
 RCT_EXTERN_METHOD(setFullscreen:(nonnull NSNumber *)viewId isFullscreen:(BOOL)isFullscreen)
 RCT_EXTERN_METHOD(setScalingMode:(nonnull NSNumber *)viewId scalingMode:(NSString *)scalingMode)
+RCT_EXTERN_METHOD(setPictureInPicture:(nonnull NSNumber *)viewId enterPictureInPicture:(BOOL)enterPictureInPicture)
 
 @end

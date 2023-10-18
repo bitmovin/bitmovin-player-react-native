@@ -9,6 +9,7 @@
 - `PictureInPictureConfig.shouldEnterOnBackground` to start PiP automatically when the app transitions to background
 - `onPictureInPictureAvailabilityChanged` event is now emitted on iOS and tvOS in addition to Android
 - `BufferConfig` to control player buffer depth
+- `PlayerView.isPictureInPictureRequested` to programatically create a Picture in Picture request
 
 ### Changed
 

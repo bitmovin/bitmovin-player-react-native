@@ -63,11 +63,18 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
    * To use this property, a `FullscreenHandler` must be set.
    */
   isFullscreenRequested?: Boolean;
+
   /**
    * A value defining how the video is displayed within the parent container's bounds.
    * Possible values are defined in `ScalingMode`.
    */
   scalingMode?: ScalingMode;
+
+  /**
+   * Can be set to `true` to request Picture in Picture mode, or `false` to request exit of Picture in Picture mode.
+   * Should not be used to get the current Picture in Picture state. Use `onPictureInPictureEnter` and `onPictureInPictureExit.
+   */
+  isPictureInPictureRequested?: Boolean;
 }
 
 /**
@@ -107,6 +114,7 @@ export function PlayerView({
   customMessageHandler,
   isFullscreenRequested = false,
   scalingMode,
+  isPictureInPictureRequested = false,
   pictureInPictureConfig,
   ...props
 }: PlayerViewProps) {
@@ -193,6 +201,14 @@ export function PlayerView({
       dispatch('setScalingMode', node, scalingMode);
     }
   }, [scalingMode, nativeView]);
+
+  useEffect(() => {
+    const node = findNodeHandle(nativeView.current);
+    if (node) {
+      dispatch('setPictureInPicture', node, isPictureInPictureRequested);
+    }
+  }, [isPictureInPictureRequested, nativeView]);
+
   return (
     <NativePlayerView
       ref={nativeView}

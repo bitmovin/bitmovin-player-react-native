@@ -98,11 +98,8 @@ public class RNPlayerViewManager: RCTViewManager {
         bridge.uiManager.addUIBlock { [weak self] _, views in
             guard
                 let self,
-                let view = views?[viewId] as? RNPlayerView
-            else {
-                return
-            }
-            guard let playerView = view.playerView else {
+                let view = views?[viewId] as? RNPlayerView,
+                let playerView = view.playerView else {
                 return
             }
             guard playerView.isFullscreen != isFullscreen else {
@@ -112,6 +109,26 @@ public class RNPlayerViewManager: RCTViewManager {
                 playerView.enterFullscreen()
             } else {
                 playerView.exitFullscreen()
+            }
+        }
+    }
+
+    @objc
+    func setPictureInPicture(_ viewId: NSNumber, enterPictureInPicture: Bool) {
+        bridge.uiManager.addUIBlock { [weak self] _, views in
+            guard
+                let self,
+                let view = views?[viewId] as? RNPlayerView,
+                let playerView = view.playerView else {
+                return
+            }
+            guard playerView.isPictureInPicture != enterPictureInPicture else {
+                return
+            }
+            if enterPictureInPicture {
+                playerView.enterPictureInPicture()
+            } else {
+                playerView.exitPictureInPicture()
             }
         }
     }

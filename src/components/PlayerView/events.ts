@@ -216,6 +216,8 @@ interface EventProps {
   onPictureInPictureEnter: PictureInPictureEnterEvent;
   /**
    * Event emitted when the player entered Picture in Picture mode.
+   *
+   * @platform iOS
    */
   onPictureInPictureEntered: PictureInPictureEnteredEvent;
   /**
@@ -224,6 +226,8 @@ interface EventProps {
   onPictureInPictureExit: PictureInPictureExitEvent;
   /**
    * Event emitted when the player exited Picture in Picture mode.
+   *
+   * @platform iOS
    */
   onPictureInPictureExited: PictureInPictureExitedEvent;
   /**
