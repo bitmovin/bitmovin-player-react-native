@@ -70,9 +70,9 @@ import java.util.UUID
 class JsonConverter {
     companion object {
         /**
-         * Converts an arbitrary `json` to [PlayerConfig].
-         * @param json JS object representing the [PlayerConfig].
-         * @return The generated [PlayerConfig] if successful, `null` otherwise.
+         * Converts an arbitrary `json` to `PlayerConfig`.
+         * @param json JS object representing the `PlayerConfig`.
+         * @return The generated `PlayerConfig` if successful, `null` otherwise.
          */
         @JvmStatic
         fun toPlayerConfig(json: ReadableMap?): PlayerConfig {
@@ -121,9 +121,9 @@ class JsonConverter {
         }
 
         /**
-         * Converts any JS object into a [BufferMediaTypeConfig] object.
-         * @param json JS object representing the [BufferMediaTypeConfig].
-         * @return The generated [BufferMediaTypeConfig] if successful, `null` otherwise.
+         * Converts any JS object into a `BufferMediaTypeConfig` object.
+         * @param json JS object representing the `BufferMediaTypeConfig`.
+         * @return The generated `BufferMediaTypeConfig` if successful, `null` otherwise.
          */
         @JvmStatic
         fun toBufferMediaTypeConfig(json: ReadableMap?): BufferMediaTypeConfig? {
@@ -138,9 +138,9 @@ class JsonConverter {
         }
 
         /**
-         * Converts any JS object into a [BufferConfig] object.
-         * @param json JS object representing the [BufferConfig].
-         * @return The generated [BufferConfig] if successful, `null` otherwise.
+         * Converts any JS object into a `BufferConfig` object.
+         * @param json JS object representing the `BufferConfig`.
+         * @return The generated `BufferConfig` if successful, `null` otherwise.
          */
         @JvmStatic
         fun toBufferConfig(json: ReadableMap?): BufferConfig? {
@@ -215,9 +215,9 @@ class JsonConverter {
         }
 
         /**
-         * Converts an arbitrary `json` to [SourceOptions].
-         * @param json JS object representing the [SourceOptions].
-         * @return The generated [SourceOptions].
+         * Converts an arbitrary `json` to `SourceOptions`.
+         * @param json JS object representing the `SourceOptions`.
+         * @return The generated `SourceOptions`.
          */
         @JvmStatic
         fun toSourceOptions(json: ReadableMap?): SourceOptions {
@@ -1199,7 +1199,7 @@ class JsonConverter {
          * @return The [BufferType] corresponding to [value].
          */
         @JvmStatic
-        fun toBufferType(value: Int?): BufferType = when (value) {
+        fun toBufferType(json: Int?): BufferType = when (json) {
             0 -> BufferType.ForwardDuration
             1 -> BufferType.BackwardDuration
             else -> BufferType.ForwardDuration
