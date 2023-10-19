@@ -167,15 +167,15 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   source?: Source;
   /**
-   * Whether the native {@link Player} object has been created.
+   * Whether the native `Player` object has been created.
    */
   isInitialized = false;
   /**
-   * Whether the native {@link Player} object has been disposed.
+   * Whether the native `Player` object has been disposed.
    */
   isDestroyed = false;
   /**
-   * The {@link AnalyticsApi} for interactions regarding the {@link Player}'s analytics.
+   * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.
    *
    * `undefined` if the player was created without analytics support.
    */
@@ -186,7 +186,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   buffer: BufferApi = new BufferApi(this.nativeId);
 
   /**
-   * Allocates the native {@link Player} instance and its resources natively.
+   * Allocates the native `Player` instance and its resources natively.
    */
   initialize = () => {
     if (!this.isInitialized) {
@@ -206,7 +206,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * Destroys the native {@link Player} and releases all of its allocated resources.
+   * Destroys the native `Player` and releases all of its allocated resources.
    */
   destroy = () => {
     if (!this.isDestroyed) {
