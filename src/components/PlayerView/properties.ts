@@ -4,6 +4,8 @@ import { FullscreenHandler, CustomMessageHandler } from '../../ui';
 import { ScalingMode } from '../../styleConfig';
 import { PictureInPictureConfig } from './pictureInPictureConfig';
 import { ViewStyle } from 'react-native';
+import { PlayerViewConfig } from './playerViewConfig';
+
 /**
  * Base `PlayerView` component props.
  * Used to establish common props between {@link NativePlayerView} and {@link PlayerView}.
@@ -28,6 +30,12 @@ export interface BasePlayerViewProps {
    * Provides options to configure Picture in Picture playback.
    */
   pictureInPictureConfig?: PictureInPictureConfig;
+
+  /**
+   * Configures the visual presentation and behaviour of the {@link PlayerView}.
+   * The value must not be altered after setting it initially.
+   */
+  config?: PlayerViewConfig;
 }
 
 /**

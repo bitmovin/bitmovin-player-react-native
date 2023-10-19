@@ -39,8 +39,10 @@ import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceOptions
 import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.api.source.TimelineReferencePoint
+import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
+import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
@@ -1147,6 +1149,17 @@ class JsonConverter {
                     isEnabled = it.getBoolean("isEnabled"),
                 )
             }
+
+        /**
+         * Converts the [json] to a `RNUiConfig` object.
+         */
+        fun toPlayerViewConfig(json: ReadableMap) = PlayerViewConfig(
+            uiConfig = UiConfig.WebUi(
+                playbackSpeedSelectionEnabled = json.getMap("uiConfig")
+                    ?.getBooleanOrNull("playbackSpeedSelectionEnabled")
+                    ?: true,
+            ),
+        )
     }
 }
 

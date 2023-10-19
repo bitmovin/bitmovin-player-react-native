@@ -45,6 +45,7 @@ function dispatch(command: string, node: NodeHandle, ...args: any[]) {
 export function PlayerView({
   style,
   player,
+  config,
   fullscreenHandler,
   customMessageHandler,
   isFullscreenRequested = false,
@@ -151,6 +152,7 @@ export function PlayerView({
       fullscreenBridge={fullscreenBridge.current}
       customMessageHandlerBridge={customMessageHandlerBridge.current}
       pictureInPictureConfig={pictureInPictureConfig}
+      config={config}
       onAdBreakFinished={proxy(props.onAdBreakFinished)}
       onAdBreakStarted={proxy(props.onAdBreakStarted)}
       onAdClicked={proxy(props.onAdClicked)}

@@ -11,6 +11,7 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
+import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
@@ -148,6 +149,11 @@ class RNPlayerView(val context: ReactApplicationContext) :
      * Configuration for picture in picture behaviors.
      */
     var pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig? = null
+
+    /**
+     * Configures the visual presentation and behaviour of the [playerView].
+     */
+    var config: PlayerViewConfig? = null
 
     /**
      * Whether this view should pause video playback when activity's onPause is called.
