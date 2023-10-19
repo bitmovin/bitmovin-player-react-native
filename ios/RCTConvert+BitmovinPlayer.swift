@@ -1168,7 +1168,7 @@ extension RCTConvert {
      - Returns: The generated json dictionary.
      */
     static func toJson(bufferLevel: BufferLevel?, mediaType: Int) -> [String: Any]? {
-        guard let bufferLevel = bufferLevel else {
+        guard let bufferLevel else {
             return nil
         }
 
@@ -1194,7 +1194,7 @@ extension RCTConvert {
      - Returns: The generated json dictionary.
      */
     static func toJson(bufferLevels: BufferModule.RNBufferLevels?) -> [String: Any]? {
-        guard let bufferLevels = bufferLevels else {
+        guard let bufferLevels else {
             return nil
         }
 

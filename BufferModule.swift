@@ -1,37 +1,37 @@
 import BitmovinPlayer
 
 @objc(BufferModule)
-class BufferModule: NSObject, RCTBridgeModule {
+public class BufferModule: NSObject, RCTBridgeModule {
     /**
      * Collection of `BufferLevel` objects
      * - Parameter audio: `BufferLevel` for `MediaType.Audio`.
      * - Parameter video: `BufferLevel` for `MediaType.Video`.
      */
-    struct RNBufferLevels {
+    internal struct RNBufferLevels {
         let audio: BufferLevel
         let video: BufferLevel
     }
 
-    /// React bridge reference.
-    @objc var bridge: RCTBridge!
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    @objc public var bridge: RCTBridge!
 
     /// PlayerModule instance fetched from the bridge's registry
     @objc var playerModule: PlayerModule? {
         bridge.module(for: PlayerModule.self) as? PlayerModule
     }
 
-    /// JS module name.
-    static func moduleName() -> String! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public static func moduleName() -> String! {
         "BufferModule"
     }
 
     /// Module requires main thread initialization.
-    static func requiresMainQueueSetup() -> Bool {
+    public static func requiresMainQueueSetup() -> Bool {
         true
     }
 
-    /// Use `UIManager.addBlock` to enqueue module methods on UI thread.
-    var methodQueue: DispatchQueue! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
 
