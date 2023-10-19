@@ -72,7 +72,8 @@ public class BufferModule: NSObject, RCTBridgeModule {
      - Parameter value: The value to set.
      */
     @objc(setTargetLevel:type:value:)
-    func setTargetLevel(_ playerId: NativeId, type: NSNumber, value: TimeInterval) {
+    func setTargetLevel(_ playerId: NativeId, type: NSNumber, value: NSNumber) {
+        let targetLevel = value.doubleValue
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let bufferApi = self?.playerModule?.retrieve(playerId)?.buffer,
@@ -82,7 +83,7 @@ public class BufferModule: NSObject, RCTBridgeModule {
                 return
             }
 
-            bufferApi.setTargetLevel(value)
+            bufferApi.setTargetLevel(targetLevel)
         }
     }
 }
