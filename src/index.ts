@@ -19,4 +19,6 @@ export * from './audioTrack';
 export * from './media';
 export * from './tweaksConfig';
 export * from './bufferConfig';
+export * from './playbackConfig';
+export * from './playerConfig';
 export * from './bufferApi';

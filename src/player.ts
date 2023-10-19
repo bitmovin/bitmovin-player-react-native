@@ -1,156 +1,16 @@
 import { NativeModules, Platform } from 'react-native';
-import { AdItem, AdvertisingConfig } from './advertising';
-import { AnalyticsConfig } from './analytics';
-import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
+import NativeInstance from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { AudioTrack } from './audioTrack';
 import { SubtitleTrack } from './subtitleTrack';
-import { StyleConfig } from './styleConfig';
-import { TweaksConfig } from './tweaksConfig';
-import { AdaptationConfig } from './adaptationConfig';
 import { OfflineContentManager, OfflineSourceOptions } from './offline';
 import { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/player';
-import { RemoteControlConfig } from './remoteControlConfig';
-import { BufferConfig } from './bufferConfig';
+import { PlayerConfig } from './playerConfig';
+import { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
 
 const PlayerModule = NativeModules.PlayerModule;
-
-/**
- * Object used to configure a new `Player` instance.
- */
-export interface PlayerConfig extends NativeInstanceConfig {
-  /**
-   * Bitmovin license key that can be found in the Bitmovin portal.
-   * If a license key is set here, it will be used instead of the license key found in the `Info.plist` and `AndroidManifest.xml`.
-   * @example
-   * Configuring the player license key from source code:
-   * ```
-   * const player = new Player({
-   *   licenseKey: '\<LICENSE-KEY-CODE\>',
-   * });
-   * ```
-   * @example
-   * `licenseKey` can be safely omitted from source code if it has
-   * been configured in Info.plist/AndroidManifest.xml.
-   * ```
-   * const player = new Player(); // omit `licenseKey`
-   * player.play(); // call methods and properties...
-   * ```
-   */
-  licenseKey?: string;
-  /**
-   * Configures playback behaviour. A default {@link PlaybackConfig} is set initially.
-   */
-  playbackConfig?: PlaybackConfig;
-  /**
-   * Configures the visual presentation and behaviour of the player UI. A default {@link StyleConfig} is set initially.
-   */
-  styleConfig?: StyleConfig;
-  /**
-   * Configures advertising functionality. A default {@link AdvertisingConfig} is set initially.
-   */
-  advertisingConfig?: AdvertisingConfig;
-  /**
-   * Configures experimental features. A default {@link TweaksConfig} is set initially.
-   */
-  tweaksConfig?: TweaksConfig;
-  /**
-   * Configures analytics functionality.
-   */
-  analyticsConfig?: AnalyticsConfig;
-  /**
-   * Configures adaptation logic.
-   */
-  adaptationConfig?: AdaptationConfig;
-  /**
-   * Configures remote playback functionality.
-   */
-  remoteControlConfig?: RemoteControlConfig;
-  /**
-   * Configures buffer settings. A default {@link BufferConfig} is set initially.
-   */
-  bufferConfig?: BufferConfig;
-}
-
-/**
- * Configures the playback behaviour of the player.
- */
-export interface PlaybackConfig {
-  /**
-   * Whether the player starts playing automatically after loading a source or not. Default is `false`.
-   * @example
-   * ```
-   * const player = new Player({
-   *   playbackConfig: {
-   *     isAutoplayEnabled: true,
-   *   },
-   * });
-   * ```
-   */
-  isAutoplayEnabled?: boolean;
-  /**
-   * Whether the sound is muted on startup or not. Default value is `false`.
-   * @example
-   * ```
-   * const player = new Player({
-   *   playbackConfig: {
-   *     isMuted: true,
-   *   },
-   * });
-   * ```
-   */
-  isMuted?: boolean;
-  /**
-   * Whether time shift / DVR for live streams is enabled or not. Default is `true`.
-   *  @example
-   * ```
-   * const player = new Player({
-   *   playbackConfig: {
-   *     isTimeShiftEnabled: false,
-   *   },
-   * });
-   * ```
-   */
-  isTimeShiftEnabled?: boolean;
-  /**
-   * Whether background playback is enabled or not.
-   * Default is `false`.
-   *
-   * When set to `true`, playback is not automatically paused
-   * anymore when the app moves to the background.
-   * When set to `true`, also make sure to properly configure your app to allow
-   * background playback.
-   *
-   * On tvOS, background playback is only supported for audio-only content.
-   *
-   * Default is `false`.
-   *
-   *  @example
-   * ```
-   * const player = new Player({
-   *   {
-   *     isBackgroundPlaybackEnabled: true,
-   *   }
-   * })
-   * ```
-   */
-  isBackgroundPlaybackEnabled?: boolean;
-  /**
-   * Whether the Picture in Picture mode option is enabled or not. Default is `false`.
-   *  @example
-   * ```
-   * const player = new Player({
-   *   playbackConfig: {
-   *     isPictureInPictureEnabled: true,
-   *   },
-   * });
-   * ```
-   * @deprecated Use {@link PictureInPictureConfig.isEnabled} instead.
-   */
-  isPictureInPictureEnabled?: boolean;
-}
 
 /**
  * Loads, controls and renders audio and video content represented through `Source`s. A player
