@@ -98,11 +98,11 @@ class RNPlayerView(val context: ReactApplicationContext) :
     LifecycleEventListener,
     View.OnLayoutChangeListener,
     RNPictureInPictureDelegate {
-
     data class RNPlayerViewConfig(
         val playerViewConfig: PlayerViewConfig?,
         val pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig?,
     )
+
     init {
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
         // Since we dynamically add and remove SurfaceView under the hood this caused the player

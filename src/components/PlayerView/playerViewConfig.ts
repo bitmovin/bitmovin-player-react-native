@@ -13,7 +13,7 @@ export interface PlayerViewConfig {
    * Limitations:
    * Configuring the `uiConfig` only has an effect if the {@link StyleConfig.userInterfaceType} is set to {@link UserInterfaceType.Bitmovin}.
    */
-  uiConfig: UiConfig;
+  uiConfig?: UiConfig;
 
   /**
    * Provides options to configure Picture in Picture playback.
