@@ -12,6 +12,7 @@
 - `PlayerView.isPictureInPictureRequested` to programatically create a Picture in Picture request
 - `PlayerView.scalingMode` to allow changing the video scaling mode
 - `PlayerViewConfig` with a `UiConfig` to the `PlayerView` to enable configuration of the visual presentation and behaviour
+- `Player.buffer` namespace to control buffer preferences and to query the current buffer state.
 
 ### Changed
 
