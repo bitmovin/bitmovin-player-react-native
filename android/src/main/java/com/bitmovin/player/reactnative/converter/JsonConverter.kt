@@ -1195,7 +1195,8 @@ class JsonConverter {
          *
          * Currently `0` is mapped to [BufferType.ForwardDuration], and `1` to [BufferType.BackwardDuration].
          * Other values fall back to [BufferType.ForwardDuration]
-         * @param value The integer value to seek a [BufferType] for.
+         * @param value Integer value representing the [BufferType].
+         * @return The [BufferType] corresponding to [value].
          */
         @JvmStatic
         fun toBufferType(value: Int?): BufferType = when (value) {

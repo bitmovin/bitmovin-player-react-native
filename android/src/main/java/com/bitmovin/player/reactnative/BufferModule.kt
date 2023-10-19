@@ -54,7 +54,9 @@ class BufferModule(private val context: ReactApplicationContext) : ReactContextB
     @ReactMethod
     fun setTargetLevel(nativeId: NativeId, type: Int, value: Double) {
         uiManager()?.addUIBlock { _ ->
-            playerModule()?.getPlayer(nativeId)?.buffer?.setTargetLevel(JsonConverter.toBufferType(type), value)
+            val player = playerModule()?.getPlayer(nativeId) ?: return@addUIBlock
+            val bufferType = JsonConverter.toBufferType(type)
+            player.buffer.setTargetLevel(bufferType, value)
         }
     }
 
