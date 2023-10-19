@@ -1091,4 +1091,69 @@ extension RCTConvert {
 #endif
         return pictureInPictureConfig
     }
+
+    /**
+     * Utility method to instantiate a `BufferType` from an Integer.
+     * Currently `0` is mapped to `BufferType.forwardDuration`, and `1` to `BufferType.backwardDuration`.
+     * Other values fall back to `BufferType.forwardDuration`
+     * - Parameter value: Integer value representing the `BufferType`.
+     * - Returns: The `BufferType` corresponding to `value`.
+     */
+    static func bufferType(_ value: NSNumber?) -> BufferType? {
+        guard let value = value as? Int else {
+            return nil
+        }
+
+        switch value {
+        case 0:
+            return .forwardDuration
+        case 1:
+            return .backwardDuration
+        default:
+            return .forwardDuration
+        }
+    }
+
+    /**
+     Utility method to get a json dictionary value from a `BufferLevel` object.
+     - Parameter bufferLevel: The `BufferLevel` to convert to json format.
+     - Parameter mediaType: The `MediaType` value to pass through.
+     - Returns: The generated json dictionary.
+     */
+    static func toJson(bufferLevel: BufferLevel?, mediaType: Int) -> [String: Any]? {
+        guard let bufferLevel = bufferLevel else {
+            return nil
+        }
+
+        let type: Int
+        switch bufferLevel.type {
+        case .forwardDuration:
+            type = 0
+        case .backwardDuration:
+            type = 1
+        }
+
+        return [
+            "level": bufferLevel.level,
+            "targetLevel": bufferLevel.targetLevel,
+            "media": mediaType,
+            "type": type
+        ]
+    }
+
+    /**
+     Utility method to get a json dictionary value from a `BufferModule.RNBufferLevels` object.
+     - Parameter bufferLevels: The `BufferModule.RNBufferLevels` to convert to json format.
+     - Returns: The generated json dictionary.
+     */
+    static func toJson(bufferLevels: BufferModule.RNBufferLevels?) -> [String: Any]? {
+        guard let bufferLevels = bufferLevels else {
+            return nil
+        }
+
+        return [
+            "audio": toJson(bufferLevel: bufferLevels.audio, mediaType: 0),
+            "video": toJson(bufferLevel: bufferLevels.video, mediaType: 1),
+        ]
+    }
 }
