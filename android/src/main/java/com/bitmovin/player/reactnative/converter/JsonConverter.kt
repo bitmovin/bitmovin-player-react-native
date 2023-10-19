@@ -1199,7 +1199,7 @@ class JsonConverter {
          * @return The [BufferType] corresponding to [value].
          */
         @JvmStatic
-        fun toBufferType(json: Int?): BufferType = when (json) {
+        fun toBufferType(value: Int?): BufferType = when (value) {
             0 -> BufferType.ForwardDuration
             1 -> BufferType.BackwardDuration
             else -> BufferType.ForwardDuration
