@@ -99,6 +99,10 @@ class RNPlayerView(val context: ReactApplicationContext) :
     View.OnLayoutChangeListener,
     RNPictureInPictureDelegate {
 
+    data class RNPlayerViewConfig(
+        val playerViewConfig: PlayerViewConfig?,
+        val pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig?,
+    )
     init {
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
         // Since we dynamically add and remove SurfaceView under the hood this caused the player
@@ -146,14 +150,9 @@ class RNPlayerView(val context: ReactApplicationContext) :
     var pictureInPictureHandler: RNPictureInPictureHandler? = null
 
     /**
-     * Configuration for picture in picture behaviors.
-     */
-    var pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig? = null
-
-    /**
      * Configures the visual presentation and behaviour of the [playerView].
      */
-    var config: PlayerViewConfig? = null
+    var config: RNPlayerViewConfig? = null
 
     /**
      * Whether this view should pause video playback when activity's onPause is called.

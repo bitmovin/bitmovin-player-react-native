@@ -31,6 +31,7 @@ public class RNPlayerViewManager: RCTViewManager {
             else {
                 return
             }
+            let playerViewConfig = RCTConvert.rnPlayerViewConfig(view.config)
 #if os(iOS)
             if player.config.styleConfig.userInterfaceType == .bitmovin {
                 let bitmovinUserInterfaceConfig = player
@@ -38,9 +39,9 @@ public class RNPlayerViewManager: RCTViewManager {
                     .styleConfig
                     .userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
                 player.config.styleConfig.userInterfaceConfig = bitmovinUserInterfaceConfig
-                if let config = RCTConvert.playerViewConfig(view.config) {
+                if let uiConfig = playerViewConfig?.uiConfig {
                     bitmovinUserInterfaceConfig
-                        .playbackSpeedSelectionEnabled = config.uiConfig.playbackSpeedSelectionEnabled
+                        .playbackSpeedSelectionEnabled = uiConfig.playbackSpeedSelectionEnabled
                 }
 
                 if let customMessageHandlerBridgeId = self.customMessageHandlerBridgeId,
@@ -56,14 +57,10 @@ public class RNPlayerViewManager: RCTViewManager {
                 playerView.player = player
                 previousPictureInPictureAvailableValue = playerView.isPictureInPictureAvailable
             } else {
-                let playerViewConfig = PlayerViewConfig()
-                if let pictureInPictureConfig = RCTConvert.pictureInPictureConfig(view.pictureInPictureConfig) {
-                    playerViewConfig.pictureInPictureConfig = pictureInPictureConfig
-                }
                 view.playerView = PlayerView(
                     player: player,
                     frame: view.bounds,
-                    playerViewConfig: playerViewConfig
+                    playerViewConfig: playerViewConfig?.playerViewConfig ?? PlayerViewConfig()
                 )
                 previousPictureInPictureAvailableValue = false
             }

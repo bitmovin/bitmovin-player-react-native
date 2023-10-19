@@ -1,3 +1,5 @@
+import { PictureInPictureConfig } from './pictureInPictureConfig';
+
 /**
  * Configures the visual presentation and behaviour of the `PlayerView`.
  */
@@ -12,6 +14,11 @@ export interface PlayerViewConfig {
    * Configuring the `uiConfig` only has an effect if the {@link StyleConfig.userInterfaceType} is set to {@link UserInterfaceType.Bitmovin}.
    */
   uiConfig: UiConfig;
+
+  /**
+   * Provides options to configure Picture in Picture playback.
+   */
+  pictureInPictureConfig?: PictureInPictureConfig;
 }
 
 /**

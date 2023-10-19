@@ -15,7 +15,6 @@ import { FullscreenHandler, CustomMessageHandler } from '../../ui';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
 import { ScalingMode } from '../../styleConfig';
-import { PictureInPictureConfig } from './pictureInPictureConfig';
 import { PlayerViewConfig } from './playerViewConfig';
 
 /**
@@ -37,11 +36,6 @@ export interface BasePlayerViewProps {
    * Style of the `PlayerView`.
    */
   style?: ViewStyle;
-
-  /**
-   * Provides options to configure Picture in Picture playback.
-   */
-  pictureInPictureConfig?: PictureInPictureConfig;
 
   /**
    * Configures the visual presentation and behaviour of the `PlayerView`.
@@ -123,7 +117,6 @@ export function PlayerView({
   isFullscreenRequested = false,
   scalingMode,
   isPictureInPictureRequested = false,
-  pictureInPictureConfig,
   ...props
 }: PlayerViewProps) {
   // Workaround React Native UIManager commands not sent until UI refresh
@@ -223,7 +216,6 @@ export function PlayerView({
       style={nativeViewStyle}
       fullscreenBridge={fullscreenBridge.current}
       customMessageHandlerBridge={customMessageHandlerBridge.current}
-      pictureInPictureConfig={pictureInPictureConfig}
       config={config}
       onAdBreakFinished={proxy(props.onAdBreakFinished)}
       onAdBreakStarted={proxy(props.onAdBreakStarted)}

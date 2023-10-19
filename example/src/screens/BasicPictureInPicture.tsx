@@ -7,9 +7,9 @@ import {
   PlayerView,
   SourceType,
   AudioSession,
-  PictureInPictureConfig,
   PictureInPictureEnterEvent,
   PictureInPictureExitEvent,
+  PlayerViewConfig,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,11 +34,13 @@ export default function BasicPictureInPicture({
     useState(false);
   const [isInPictureInPicture, setIsInPictureInPicture] = useState(false);
 
-  const pictureInPictureConfig: PictureInPictureConfig = {
-    // Enable picture in picture UI option on player controls.
-    isEnabled: true,
-    // Enable entering picture in picture mode when transitioning the application to the background
-    shouldEnterOnBackground: true,
+  const config: PlayerViewConfig = {
+    pictureInPictureConfig: {
+      // Enable picture in picture UI option on player controls.
+      isEnabled: true,
+      // Enable entering picture in picture mode when transitioning the application to the background
+      shouldEnterOnBackground: true,
+    },
   };
 
   const player = usePlayer({
@@ -115,12 +117,20 @@ export default function BasicPictureInPicture({
   );
 
   return (
-    <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.container}>
+    <SafeAreaView
+      edges={['bottom', 'left', 'right']}
+      style={
+        // On Android, we need to remove the padding from the container when in PiP mode.
+        Platform.OS === 'android' && isInPictureInPicture
+          ? [styles.container, { padding: 0 }]
+          : styles.container
+      }
+    >
       <PlayerView
         player={player}
         style={styles.player}
         isPictureInPictureRequested={isPictureInPictureRequested}
-        pictureInPictureConfig={pictureInPictureConfig}
+        config={config}
         onPictureInPictureAvailabilityChanged={onEvent}
         onPictureInPictureEnter={onPictureInPictureEnterEvent}
         onPictureInPictureEntered={onEvent}
