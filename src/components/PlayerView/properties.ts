@@ -8,11 +8,11 @@ import { PlayerViewConfig } from './playerViewConfig';
 
 /**
  * Base `PlayerView` component props.
- * Used to establish common props between {@link NativePlayerView} and {@link PlayerView}.
+ * Used to establish common props between `NativePlayerView` and {@link PlayerView}.
  */
 export interface BasePlayerViewProps {
   /**
-   * The {@link FullscreenHandler} that is used by the `PlayerView` to control the fullscreen mode.
+   * The {@link FullscreenHandler} that is used by the {@link PlayerView} to control the fullscreen mode.
    */
   fullscreenHandler?: FullscreenHandler;
 
@@ -39,35 +39,34 @@ export interface BasePlayerViewProps {
 }
 
 /**
- * `PlayerView` component props.
- * @see PlayerView
+ * {@link PlayerView} component props.
  */
 export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
   /**
-   * `Player` instance (generally returned from `usePlayer` hook) that will control
-   * and render audio/video inside the `PlayerView`.
+   * {@link Player} instance (generally returned from {@link usePlayer} hook) that will control
+   * and render audio/video inside the {@link PlayerView}.
    */
   player: Player;
 
   /**
    * Can be set to `true` to request fullscreen mode, or `false` to request exit of fullscreen mode.
-   * Should not be used to get the current fullscreen state. Use `onFullscreenEnter` and `onFullscreenExit`
-   * or the `FullscreenHandler.isFullscreenActive` property to get the current state.
+   * Should not be used to get the current fullscreen state. Use {@link PlayerViewEvents.onFullscreenEnter} and {@link PlayerViewEvents.onFullscreenExit}
+   * or the {@link FullscreenHandler.isFullscreenActive} property to get the current state.
    * Using this property to change the fullscreen state, it is ensured that the embedded Player UI is also aware
    * of potential fullscreen state changes.
-   * To use this property, a `FullscreenHandler` must be set.
+   * To use this property, a {@link FullscreenHandler} must be set.
    */
   isFullscreenRequested?: Boolean;
 
   /**
    * A value defining how the video is displayed within the parent container's bounds.
-   * Possible values are defined in `ScalingMode`.
+   * Possible values are defined in {@link ScalingMode}.
    */
   scalingMode?: ScalingMode;
 
   /**
    * Can be set to `true` to request Picture in Picture mode, or `false` to request exit of Picture in Picture mode.
-   * Should not be used to get the current Picture in Picture state. Use `onPictureInPictureEnter` and `onPictureInPictureExit.
+   * Should not be used to get the current Picture in Picture state. Use {@link PlayerViewEvents.onPictureInPictureEnter} and {@link PlayerViewEvents.onPictureInPictureExit}.
    */
   isPictureInPictureRequested?: Boolean;
 }
