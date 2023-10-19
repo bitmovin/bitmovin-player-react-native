@@ -5,6 +5,8 @@ import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.api.ui.PlayerViewConfig
+import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getModule
@@ -31,6 +33,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         ATTACH_FULLSCREEN_BRIDGE("attachFullscreenBridge"),
         SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID("setCustomMessageHandlerBridgeId"),
         SET_FULLSCREEN("setFullscreen"),
+        SET_SCALING_MODE("setScalingMode"),
+        SET_PICTURE_IN_PICTURE("setPictureInPicture"),
     }
 
     /**
@@ -166,12 +170,27 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     setFullscreen(view, isFullscreen)
                 }
             }
+            Commands.SET_SCALING_MODE -> {
+                args?.getString(1)?.let { scalingMode ->
+                    setScalingMode(view, scalingMode)
+                }
+            }
+            Commands.SET_PICTURE_IN_PICTURE -> {
+                args?.getBoolean(1)?.let { isPictureInPicture ->
+                    setPictureInPicture(view, isPictureInPicture)
+                }
+            }
         }
     }
 
     @ReactProp(name = "pictureInPictureConfig")
     fun setPictureInPictureConfig(view: RNPlayerView, pictureInPictureConfig: ReadableMap?) {
         view.pictureInPictureConfig = JsonConverter.toPictureInPictureConfig(pictureInPictureConfig)
+    }
+
+    @ReactProp(name = "config")
+    fun setConfig(view: RNPlayerView, config: ReadableMap?) {
+        view.config = if (config != null) JsonConverter.toPlayerViewConfig(config) else null
     }
 
     private fun attachFullscreenBridge(view: RNPlayerView, fullscreenBridgeId: NativeId) {
@@ -182,17 +201,33 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         }
     }
 
-    private fun setFullscreen(view: RNPlayerView, isFullscreen: Boolean) {
-        if (view.playerView?.isFullscreen == isFullscreen) return
-
+    private fun setFullscreen(view: RNPlayerView, isFullscreenRequested: Boolean) {
         Handler(Looper.getMainLooper()).post {
-            with(view.playerView ?: return@post) {
-                if (isFullscreen) {
-                    enterFullscreen()
-                } else {
-                    exitFullscreen()
-                }
+            val playerView = view.playerView ?: return@post
+            if (playerView.isFullscreen == isFullscreenRequested) return@post
+            if (isFullscreenRequested) {
+                playerView.enterFullscreen()
+            } else {
+                playerView.exitFullscreen()
             }
+        }
+    }
+
+    private fun setPictureInPicture(view: RNPlayerView, isPictureInPictureRequested: Boolean) {
+        Handler(Looper.getMainLooper()).post {
+            val playerView = view.playerView ?: return@post
+            if (playerView.isPictureInPicture == isPictureInPictureRequested) return@post
+            if (isPictureInPictureRequested) {
+                playerView.enterPictureInPicture()
+            } else {
+                playerView.exitPictureInPicture()
+            }
+        }
+    }
+
+    private fun setScalingMode(view: RNPlayerView, scalingMode: String) {
+        Handler(Looper.getMainLooper()).post {
+            view.playerView?.scalingMode = ScalingMode.valueOf(scalingMode)
         }
     }
 
@@ -232,7 +267,11 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     Log.e(MODULE_NAME, "Cannot create a PlayerView, because no activity is attached.")
                     return@post
                 }
-                val playerView = PlayerView(currentActivity, player)
+                val playerView = PlayerView(
+                    currentActivity,
+                    player,
+                    view.config ?: PlayerViewConfig(),
+                )
                 playerView.layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
                     LayoutParams.MATCH_PARENT,

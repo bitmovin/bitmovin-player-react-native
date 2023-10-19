@@ -15,6 +15,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  code-style-typescript:
+    name: Code style Typescript
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup node and npm registry
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'
+
+      - name: Install node_modules
+        run: yarn install --frozen-lockfile
+
+      - name: Lint Typescript
+        run: yarn lint
+
   code-style-android:
     name: Code style Android
     runs-on: ubuntu-latest
@@ -36,6 +56,23 @@ jobs:
       - name: Check code style
         run: ./gradlew ktlintCheck
         working-directory: android
+
+  code-style-ios:
+    name: Code style iOS
+    runs-on: macOS-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '14.1'
+
+      - name: Install dependencies
+        run: brew bundle install
+
+      - name: Check code style
+        run: swiftlint --strict
 
   test-build-typescript:
     name: Build Typescript
@@ -142,6 +179,9 @@ jobs:
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
 
+      - name: Install dependencies
+        run: brew bundle install
+
       - name: Restore Pods cache
         id: pods-cache-restore
         uses: actions/cache/restore@v3
@@ -200,6 +240,9 @@ jobs:
 
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
+
+      - name: Install dependencies
+        run: brew bundle install
 
       - name: Restore Pods cache
         id: pods-cache-restore

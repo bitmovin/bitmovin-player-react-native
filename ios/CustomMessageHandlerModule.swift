@@ -1,22 +1,21 @@
 import BitmovinPlayer
 
 @objc(CustomMessageHandlerModule)
-class CustomMessageHandlerModule: NSObject, RCTBridgeModule {
-    /// React bridge reference.
-    @objc var bridge: RCTBridge!
+public class CustomMessageHandlerModule: NSObject, RCTBridgeModule {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    @objc public var bridge: RCTBridge!
 
-    /// JS module name.
-    static func moduleName() -> String! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public static func moduleName() -> String! {
         "CustomMessageHandlerModule"
     }
 
-    /// Module requires main thread initialization.
-    static func requiresMainQueueSetup() -> Bool {
+    public static func requiresMainQueueSetup() -> Bool {
         true
     }
 
-    /// Use `UIManager.addBlock` to enqueue module methods on UI thread.
-    var methodQueue: DispatchQueue! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
 
@@ -31,7 +30,8 @@ class CustomMessageHandlerModule: NSObject, RCTBridgeModule {
      - Parameter nativeId: `CustomMessageHandlerBridge` instance ID.
      - Returns: The associated `CustomMessageHandlerBridge` instance or `nil`.
      */
-    @objc func retrieve(_ nativeId: NativeId) -> CustomMessageHandlerBridge? {
+    @objc
+    func retrieve(_ nativeId: NativeId) -> CustomMessageHandlerBridge? {
         customMessageHandlers[nativeId]
     }
 
@@ -68,7 +68,11 @@ class CustomMessageHandlerModule: NSObject, RCTBridgeModule {
         withData data: String?
     ) -> String? {
         customMessageHandlerDispatchGroup.enter()
-        bridge.enqueueJSCall("CustomMessageBridge-\(nativeId)", method: "receivedSynchronousMessage", args: [message, data]) {}
+        bridge.enqueueJSCall(
+            "CustomMessageBridge-\(nativeId)",
+            method: "receivedSynchronousMessage",
+            args: [message, data]
+        ) {}
         customMessageHandlerDispatchGroup.wait()
         return customMessageHandlers[nativeId]?.popSynchronousResult()
     }
@@ -78,6 +82,10 @@ class CustomMessageHandlerModule: NSObject, RCTBridgeModule {
         message: String,
         withData data: String?
     ) {
-        bridge.enqueueJSCall("CustomMessageBridge-\(nativeId)", method: "receivedAsynchronousMessage", args: [message, data]) {}
+        bridge.enqueueJSCall(
+            "CustomMessageBridge-\(nativeId)",
+            method: "receivedAsynchronousMessage",
+            args: [message, data]
+        ) {}
     }
 }

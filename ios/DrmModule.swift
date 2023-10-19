@@ -1,34 +1,34 @@
 import BitmovinPlayer
 
 @objc(DrmModule)
-class DrmModule: NSObject, RCTBridgeModule {
-    /// React bridge reference.
-    @objc var bridge: RCTBridge!
+public class DrmModule: NSObject, RCTBridgeModule {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    @objc public var bridge: RCTBridge!
 
     /// In-memory mapping from `nativeId`s to `FairplayConfig` instances.
     private var drmConfigs: Registry<FairplayConfig> = [:]
 
-    /// JS module name.
-    static func moduleName() -> String! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public static func moduleName() -> String! {
         "DrmModule"
     }
 
-    /// Module requires main thread initialization.
-    static func requiresMainQueueSetup() -> Bool {
+    public static func requiresMainQueueSetup() -> Bool {
         true
     }
-    
-    /// Use `UIManager.addBlock` to enqueue module methods on UI thread.
-    var methodQueue: DispatchQueue! {
+
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
-    
+
     /**
      Creates a new `FairplayConfig` instance inside the internal drmConfigs using the provided `config` object.
      - Parameter nativeId: ID to associate with the `FairplayConfig` instance.
      - Returns: The associated `FairplayConfig` instance or `nil`.
      */
-    @objc func retrieve(_ nativeId: NativeId) -> FairplayConfig? {
+    @objc
+    func retrieve(_ nativeId: NativeId) -> FairplayConfig? {
         drmConfigs[nativeId]
     }
 
@@ -52,7 +52,8 @@ class DrmModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Removes the `FairplayConfig` instance associated with `nativeId` from `drmConfigs` and all data produced during preparation hooks.
+     Removes the `FairplayConfig` instance associated with `nativeId` from `drmConfigs`
+     and all data produced during preparation hooks.
      - Parameter nativeId Instance to be disposed.
      */
     @objc(destroy:)
@@ -78,7 +79,8 @@ class DrmModule: NSObject, RCTBridgeModule {
     var preparedSyncMessages: Registry<String> = [:]
     /// Mapping between an object's `nativeId` and the value that'll be returned by its `prepareLicense` callback.
     var preparedLicenses: Registry<String> = [:]
-    /// Mapping between an object's `nativeId` and the value that'll be returned by its `prepareLicenseServerUrl` callback.
+    /// Mapping between an object's `nativeId` and the value that'll be returned
+    /// by its `prepareLicenseServerUrl` callback.
     var preparedLicenseServerUrls: Registry<String> = [:]
     /// Mapping between an object's `nativeId` and the value that'll be returned by its `prepareContentId` callback.
     var preparedContentIds: Registry<String> = [:]
@@ -86,11 +88,14 @@ class DrmModule: NSObject, RCTBridgeModule {
     /**
      Function called from JS to store the computed `prepareCertificate` return value for `nativeId`.
 
-     Note this function is **synchronous** and **blocks** the JS thread. It's important that it stays this way, otherwise we wouldn't be able to return
+     Note this function is **synchronous** and **blocks** the JS thread.
+     It's important that it stays this way, otherwise we wouldn't be able to return
      the computed JS message from inside the `fairplayConfig.prepareCertificate` Swift closure.
      
-     Also, since RN has some limitations regarding the definition of sync JS methods from Swift, it's necessary to add a return type and a return
-     value (even if it's a void method like in this case) or a crash happens. So the type `Any?` and return value `nil` were used here (it could be any value).
+     Also, since RN has some limitations regarding the definition of sync JS methods from Swift,
+     it's necessary to add a return type and a return
+     value (even if it's a void method like in this case) or a crash happens.
+     So the type `Any?` and return value `nil` were used here (it could be any value).
      */
     @objc(setPreparedCertificate:certificate:)
     func setPreparedCertificate(_ nativeId: NativeId, certificate: String) -> Any? {
@@ -101,11 +106,14 @@ class DrmModule: NSObject, RCTBridgeModule {
     /**
      Function called from JS to store the computed `prepareMessage` return value for `nativeId`.
 
-     Note this function is **synchronous** and **blocks** the JS thread. It's important that it stays this way, otherwise we wouldn't be able to return
+     Note this function is **synchronous** and **blocks** the JS thread.
+     It's important that it stays this way, otherwise we wouldn't be able to return
      the computed JS message from inside the `fairplayConfig.prepareMessage` Swift closure.
      
-     Also, since RN has some limitations regarding the definition of sync JS methods from Swift, it's necessary to add a return type and a return
-     value (even if it's a void method like in this case) or a crash happens. So the type `Any?` and return value `nil` were used here (it could be any value).
+     Also, since RN has some limitations regarding the definition of sync JS methods from Swift,
+     it's necessary to add a return type and a return
+     value (even if it's a void method like in this case) or a crash happens.
+     So the type `Any?` and return value `nil` were used here (it could be any value).
      */
     @objc(setPreparedMessage:message:)
     func setPreparedMessage(_ nativeId: NativeId, message: String) -> Any? {
@@ -116,26 +124,32 @@ class DrmModule: NSObject, RCTBridgeModule {
     /**
      Function called from JS to store the computed `prepareSyncMessage` return value for `nativeId`.
 
-     Note this function is **synchronous** and **blocks** the JS thread. It's important that it stays this way, otherwise we wouldn't be able to return
+     Note this function is **synchronous** and **blocks** the JS thread.
+     It's important that it stays this way, otherwise we wouldn't be able to return
      the computed JS message from inside the `fairplayConfig.prepareSyncMessage` Swift closure.
      
-     Also, since RN has some limitations regarding the definition of sync JS methods from Swift, it's necessary to add a return type and a return
-     value (even if it's a void method like in this case) or a crash happens. So the type `Any?` and return value `nil` were used here (it could be any value).
+     Also, since RN has some limitations regarding the definition of sync JS methods from Swift,
+     it's necessary to add a return type and a return
+     value (even if it's a void method like in this case) or a crash happens.
+     So the type `Any?` and return value `nil` were used here (it could be any value).
      */
     @objc(setPreparedSyncMessage:syncMessage:)
     func setPreparedSyncMessage(_ nativeId: NativeId, syncMessage: String) -> Any? {
         preparedSyncMessages[nativeId] = syncMessage
         return nil
     }
-    
+
     /**
      Function called from JS to store the computed `prepareLicense` return value for `nativeId`.
 
-     Note this function is **synchronous** and **blocks** the JS thread. It's important that it stays this way, otherwise we wouldn't be able to return
+     Note this function is **synchronous** and **blocks** the JS thread.
+     It's important that it stays this way, otherwise we wouldn't be able to return
      the computed JS message from inside the `fairplayConfig.prepareLicense` Swift closure.
      
-     Also, since RN has some limitations regarding the definition of sync JS methods from Swift, it's necessary to add a return type and a return value
-     (even if it's a void method like in this case) or a crash happens. So the type `Any?` and return value `nil` were used here (it could be any value).
+     Also, since RN has some limitations regarding the definition of sync JS methods from Swift,
+     it's necessary to add a return type and a return value
+     (even if it's a void method like in this case) or a crash happens.
+     So the type `Any?` and return value `nil` were used here (it could be any value).
      */
     @objc(setPreparedLicense:license:)
     func setPreparedLicense(_ nativeId: NativeId, license: String) -> Any? {
@@ -146,11 +160,14 @@ class DrmModule: NSObject, RCTBridgeModule {
     /**
      Function called from JS to store the computed `prepareLicenseServerUrl` return value for `nativeId`.
 
-     Note this function is **synchronous** and **blocks** the JS thread. It's important that it stays this way, otherwise we wouldn't be able to return
+     Note this function is **synchronous** and **blocks** the JS thread.
+     It's important that it stays this way, otherwise we wouldn't be able to return
      the computed JS message from inside the `fairplayConfig.prepareLicenseServerUrl` Swift closure.
      
-     Also, since RN has some limitations regarding the definition of sync JS methods from Swift, it's necessary to add a return type and a return value
-     (even if it's a void method like in this case) or a crash happens. So the type `Any?` and return value `nil` were used here (it could be any value).
+     Also, since RN has some limitations regarding the definition of sync JS methods from Swift,
+     it's necessary to add a return type and a return value
+     (even if it's a void method like in this case) or a crash happens.
+     So the type `Any?` and return value `nil` were used here (it could be any value).
      */
     @objc(setPreparedLicenseServerUrl:url:)
     func setPreparedLicenseServerUrl(_ nativeId: NativeId, url: String) -> Any? {
@@ -161,11 +178,14 @@ class DrmModule: NSObject, RCTBridgeModule {
     /**
      Function called from JS to store the computed `prepareContentId` return value for `nativeId`.
 
-     Note this function is **synchronous** and **blocks** the JS thread. It's important that it stays this way, otherwise we wouldn't be able to return
+     Note this function is **synchronous** and **blocks** the JS thread.
+     It's important that it stays this way, otherwise we wouldn't be able to return
      the computed JS message from inside the `fairplayConfig.prepareContentId` Swift closure.
      
-     Also, since RN has some limitations regarding the definition of sync JS methods from Swift, it's necessary to add a return type and a return value
-     (even if it's a void method like in this case) or a crash happens. So the type `Any?` and return value `nil` were used here (it could be any value).
+     Also, since RN has some limitations regarding the definition of sync JS methods from Swift,
+     it's necessary to add a return type and a return value
+     (even if it's a void method like in this case) or a crash happens.
+     So the type `Any?` and return value `nil` were used here (it could be any value).
      */
     @objc(setPreparedContentId:contentId:)
     func setPreparedContentId(_ nativeId: NativeId, contentId: String) -> Any? {
@@ -174,7 +194,8 @@ class DrmModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Initialize all configuration blocks in `FairplayConfig` applying the designated JS functions according to it's JS instance config.
+     Initialize all configuration blocks in `FairplayConfig` applying the designated
+     JS functions according to it's JS instance config.
 
      - Parameter nativeId: Instance nativeId.
      - Parameter config: FairPlay config object sent from JS.
@@ -189,7 +210,7 @@ class DrmModule: NSObject, RCTBridgeModule {
             initPrepareContentId(nativeId, fairplayJson: fairplayJson)
         }
     }
-    
+
     /**
      Initialize the `prepareCertificate` block in the `FairplayConfig` associated with `nativeId`.
 
@@ -274,7 +295,7 @@ class DrmModule: NSObject, RCTBridgeModule {
             }
         }
     }
-    
+
     /**
      Initialize the `prepareContentId` block in the `FairplayConfig` associated with `nativeId`.
 

@@ -1,25 +1,25 @@
+// swiftlint:disable file_length
 import BitmovinPlayer
 
 @objc(PlayerModule)
-class PlayerModule: NSObject, RCTBridgeModule {
-    /// React bridge reference.
-    @objc var bridge: RCTBridge!
+public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this type_body_length
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    @objc public var bridge: RCTBridge!
 
     /// In-memory mapping from `nativeId`s to `Player` instances.
     private var players: Registry<Player> = [:]
 
-    /// JS module name.
-    static func moduleName() -> String! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public static func moduleName() -> String! {
         "PlayerModule"
     }
 
-    /// Module requires main thread initialization.
-    static func requiresMainQueueSetup() -> Bool {
+    public static func requiresMainQueueSetup() -> Bool {
         true
     }
 
-    /// Since most `PlayerModule` operations are UI related and need to be executed on the main thread, they are scheduled with `UIManager.addBlock`.
-    var methodQueue: DispatchQueue! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
 
@@ -28,7 +28,8 @@ class PlayerModule: NSObject, RCTBridgeModule {
      - Parameter nativeId: `Player` instance ID.
      - Returns: The associated `Player` instance or `nil`.
      */
-    @objc func retrieve(_ nativeId: NativeId) -> Player? {
+    @objc
+    func retrieve(_ nativeId: NativeId) -> Player? {
         players[nativeId]
     }
 
@@ -53,7 +54,8 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Creates a new analytics enabled `Player` instance inside the internal players using the provided `config` and `analyticsConfig` object.
+     Creates a new analytics enabled `Player` instance inside the internal players using the provided `config`
+     and `analyticsConfig` object.
      - Parameter config: `PlayerConfig` object received from JS.
      - Parameter analyticsConfig: `AnalyticsConfig` object received from JS.
      */
@@ -107,17 +109,18 @@ class PlayerModule: NSObject, RCTBridgeModule {
     func loadOfflineContent(_ nativeId: NativeId, offlineContentManagerBridgeId: NativeId, options: Any?) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            guard
-                let player = self?.players[nativeId],
-                let offlineContentManagerBridge = self?.bridge[OfflineModule.self]?.retrieve(offlineContentManagerBridgeId)
-            else {
+            guard let player = self?.players[nativeId],
+                  let offlineContentManagerBridge = self?.bridge[OfflineModule.self]?
+                .retrieve(offlineContentManagerBridgeId) else {
                 return
             }
             let optionsDictionary = options as? [String: Any?] ?? [:]
             let restrictedToAssetCache = optionsDictionary["restrictedToAssetCache"] as? Bool ?? true
-            let offlineSourceConfig = offlineContentManagerBridge.offlineContentManager.createOfflineSourceConfig(restrictedToAssetCache: restrictedToAssetCache)
+            let offlineSourceConfig = offlineContentManagerBridge
+                .offlineContentManager
+                .createOfflineSourceConfig(restrictedToAssetCache: restrictedToAssetCache)
 
-            guard let offlineSourceConfig = offlineSourceConfig else { return }
+            guard let offlineSourceConfig else { return }
             player.load(sourceConfig: offlineSourceConfig)
         }
 #endif
@@ -262,7 +265,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             let player = self?.players[nativeId]
-            if let mode = mode {
+            if let mode {
                 resolve(player?.currentTime(RCTConvert.timeMode(mode)))
             } else {
                 resolve(player?.currentTime)
@@ -592,7 +595,8 @@ class PlayerModule: NSObject, RCTBridgeModule {
     func setMaxSelectableBitrate(_ nativeId: NativeId, maxSelectableBitrate: NSNumber) {
         let maxSelectableBitrateValue = maxSelectableBitrate.uintValue
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            self?.players[nativeId]?.maxSelectableBitrate = maxSelectableBitrateValue != -1 ? maxSelectableBitrateValue : 0
+            let maxSelectableBitrate = maxSelectableBitrateValue != -1 ? maxSelectableBitrateValue : 0
+            self?.players[nativeId]?.maxSelectableBitrate = maxSelectableBitrate
         }
     }
 
@@ -632,7 +636,8 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Returns `true` if the video is currently casted to a device and not played locally, or `false` if the video is played locally.
+     Returns `true` if the video is currently casted to a device and not played locally,
+     or `false` if the video is played locally.
      - Parameter nativeId: Target player id.
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
@@ -649,7 +654,8 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     /**
-     Initiates casting the current video to a cast-compatible device. The user has to choose to which device it should be sent.
+     Initiates casting the current video to a cast-compatible device.
+     The user has to choose to which device it should be sent.
      */
     @objc(castVideo:)
     func castVideo(_ nativeId: NativeId) {
@@ -670,7 +676,7 @@ class PlayerModule: NSObject, RCTBridgeModule {
     }
 
     private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {
-        remoteControlConfig.prepareSource = { [weak self] type, sourceConfig in
+        remoteControlConfig.prepareSource = { [weak self] _, sourceConfig in
             guard let sourceModule = self?.bridge[SourceModule.self],
                   let sourceNativeId = sourceModule.nativeId(where: { $0.sourceConfig === sourceConfig }),
                   let castSourceConfig = sourceModule.retrieveCastSourceConfig(sourceNativeId) else {
