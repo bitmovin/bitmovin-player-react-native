@@ -8,12 +8,10 @@ const BufferModule = NativeModules.BufferModule;
 export enum MediaType {
   /**
    * Audio media type.
-   * @platform Android
    */
   AUDIO = 0,
   /**
    * Video media type.
-   * @platform Android
    */
   VIDEO = 1,
 }
@@ -92,7 +90,7 @@ export class BufferApi {
   };
 
   /**
-   * Sets the target buffer level for the chosen buffer {@link BufferType|type} across all {@link MediaType}s.
+   * Sets the target buffer level for the chosen buffer {@link BufferType|type} across all {@link MediaType|Mediatypes}.
    *
    * @param type The type of the buffer to set the target level for. On iOS only {@link BufferType.FORWARD_DURATION} is supported.
    * @param value The value to set.
