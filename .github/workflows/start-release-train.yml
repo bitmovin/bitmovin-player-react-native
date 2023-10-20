@@ -58,9 +58,34 @@ jobs:
         run: |
           yarn version --new-version ${{ inputs.version_number }} --no-git-tag-version
 
-      - name: Update Podfile.lock
+      - name: Restore Pods cache
+        id: pods-cache-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            .cocoapods-cache
+            example/ios/Pods
+          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
+          restore-keys: pods-
+
+      - name: Install pods to update Podfile.lock
         run: |
-          yarn bootstrap
+          pod repo remove trunk
+          pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git || pod repo update bitmovin
+          pod install --repo-update
+        working-directory: example/ios
+        env:
+          CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
+          NO_FLIPPER: 1
+
+      - name: Save Pods cache
+        if: steps.pods-cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            .cocoapods-cache
+            example/ios/Pods
+          key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
 
       - name: Commit changelog version bump
         run: |
