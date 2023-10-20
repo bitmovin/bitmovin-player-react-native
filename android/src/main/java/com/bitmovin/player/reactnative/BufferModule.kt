@@ -60,9 +60,4 @@ class BufferModule(private val context: ReactApplicationContext) : ReactContextB
     private fun playerModule(): PlayerModule? = context.getNativeModule(PlayerModule::class.java)
 }
 
-/**
- * Collection of [BufferLevel] objects
- * @param audio [BufferLevel] for [MediaType.Audio].
- * @param video [BufferLevel] for [MediaType.Video].
- */
 data class RNBufferLevels(val audio: BufferLevel, val video: BufferLevel)
