@@ -1,22 +1,21 @@
 import BitmovinPlayer
 
 @objc(BitmovinCastManagerModule)
-class BitmovinCastManagerModule: NSObject, RCTBridgeModule {
-    /// React bridge reference.
-    @objc var bridge: RCTBridge!
+public class BitmovinCastManagerModule: NSObject, RCTBridgeModule {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    @objc public var bridge: RCTBridge!
 
-    /// JS module name.
-    static func moduleName() -> String! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public static func moduleName() -> String! {
         "BitmovinCastManagerModule"
     }
 
-    /// Module requires main thread initialization.
-    static func requiresMainQueueSetup() -> Bool {
+    public static func requiresMainQueueSetup() -> Bool {
         true
     }
 
-    /// Since most `BitmovinCastManagerModule` operations are UI related and need to be executed on the main thread, they are scheduled with `UIManager.addBlock`.
-    var methodQueue: DispatchQueue! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
 
@@ -31,7 +30,7 @@ class BitmovinCastManagerModule: NSObject, RCTBridgeModule {
     ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { _, _ in
-            if let config = config {
+            if let config {
                 guard let options = RCTConvert.castManagerOptions(config) else {
                     reject("BitmovinCastManagerModule", "Could not deserialize BitmovinCastManagerOptions", nil)
                     return

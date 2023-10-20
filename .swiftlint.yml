@@ -1,0 +1,165 @@
+excluded:
+  # folders that are excluded from linting, external dependencies or generated files
+  - ${PWD}/example/ios/Pods
+
+disabled_rules:
+  - todo
+  - trailing_comma
+  - inclusive_language
+
+opt_in_rules:
+  # performance
+  - contains_over_filter_count
+  - contains_over_filter_is_empty
+  - contains_over_first_not_nil
+  - contains_over_range_nil_comparison
+  - empty_collection_literal
+  - empty_count
+  - empty_string
+  - first_where
+  - flatmap_over_map_reduce
+  - last_where
+  - reduce_into
+  - sorted_first_last
+
+  # idiomatic
+  - explicit_init
+  - fallthrough
+  - force_unwrapping
+  - function_default_parameter_at_end
+  - implicitly_unwrapped_optional
+  - redundant_nil_coalescing
+  - convenience_type
+  - extension_access_modifier
+  - fatal_error_message
+  - file_name
+  - file_name_no_space
+  - legacy_multiple
+  - legacy_random
+  - pattern_matching_keywords
+  - redundant_type_annotation
+  - toggle_bool
+  - unavailable_function
+  - xct_specific_matcher
+  - return_value_from_void_function
+  - shorthand_optional_binding
+  - explicit_top_level_acl
+
+  #lint
+  - overridden_super_call
+  - empty_xctest_method
+  - identical_operands
+  - lower_acl_than_parent
+  - override_in_extension
+  - quick_discouraged_call
+  - quick_discouraged_focused_test
+  - yoda_condition
+  - private_subject
+  - weak_delegate
+
+  #style
+  - attributes
+  - closure_end_indentation
+  - closure_spacing
+  - collection_alignment
+  - implicit_return
+  # - indentation_width # causing a lot of false positives, see: https://github.com/realm/SwiftLint/issues/3046
+  - literal_expression_end_indentation
+  - modifier_order
+  - multiline_arguments
+  - multiline_arguments_brackets
+  - multiline_literal_brackets
+  - multiline_function_chains
+  - multiline_parameters
+  - multiline_parameters_brackets
+  - number_separator
+  - operator_usage_whitespace
+  - optional_enum_case_matching
+  - single_test_class
+  - sorted_imports
+  - switch_case_on_newline
+  - trailing_closure
+  - unneeded_parentheses_in_closure_argument
+  - vertical_parameter_alignment_on_call
+  - vertical_whitespace_closing_braces
+  - vertical_whitespace_opening_braces
+  - prefer_self_in_static_references
+  - comma_inheritance
+  - self_binding
+
+deployment_target:
+  iOS_deployment_target: 13.99
+  tvOS_deployment_target: 13.99
+type_name:
+  allowed_symbols: '_'
+  min_length:
+    warning: 4
+  max_length:
+    warning: 40
+    error: 50
+  excluded:
+    - Ads
+    - Xml
+    - Url
+identifier_name:
+  allowed_symbols: '_'
+  min_length:
+    error: 3
+  excluded:
+    - Ads
+    - Ad
+    - ad
+    - id
+    - to
+    - on
+compiler_protocol_init:
+  severity: error
+line_length:
+  ignores_urls: true
+file_length:
+  warning: 500
+custom_rules:
+  nimble_discourage_be:
+    included: ".*Tests/.*\\.swift"
+    name: 'Discouraged be()'
+    regex: '\W(be)\('
+    capture_group: 1
+    message: 'Prefer beIdentical() or equal() over be() when using Nimble to make expectations explicit'
+    severity: error
+  nimble_discourage_count_0:
+    included: ".*Tests/.*\\.swift"
+    name: 'Discouraged .count with equal(0)'
+    regex: '\.count\)(\\n|\s)*\.(to|toNot|toEventually|toEventuallyNot|toNotEventually)\((\\n|\s)*equal\(0\)(\\n|\s)*\)'
+    message: 'Prefer beEmpty() over direct access to .count with equal(0)'
+    severity: error
+  nimble_discourage_havecount_0:
+    included: ".*Tests/.*\\.swift"
+    name: 'Discouraged haveCount(0)'
+    regex: '\.(to|toNot|toEventually|toEventuallyNot|toNotEventually)\((\\n|\s)*haveCount\(0\)(\\n|\s)*\)'
+    message: 'Prefer beEmpty() over using haveCount(0)'
+    severity: error
+  nimble_discourage_count_equal:
+    included: ".*Tests/.*\\.swift"
+    name: 'Discouraged .count with equal()'
+    regex: '\.count\)(\\n|\s)*\.(to|toNot|toEventually|toEventuallyNot|toNotEventually)\((\\n|\s)*equal\([^0]'
+    message: 'Prefer haveCount() over direct access to .count with equal()'
+    severity: error
+  nimble_discourage_truthy_falsy:
+    included: ".*Tests/.*\\.swift"
+    name: 'Discouraged beTruthy()/beFalsy()'
+    regex: '(beTruthy|beFalsy)\(\)'
+    capture_group: 1
+    message: 'Prefer beTrue()/beFalse() usage over beTruthy()/beFalsy()'
+    severity: error
+  non_breaking_whitespaces:
+    included: '.*'
+    name: 'Non-breaking whitespaces'
+    regex: '\x{00A0}'
+    message: 'Non-breaking space (U+00A0) used instead of regular space'
+    severity: error
+  final_tests:
+    included: ".*Tests/.*\\.swift"
+    name: 'Final test cases'
+    regex: '^class .*: (QuickSpec|XCTestCase|QuickPlayerTest) \{'
+    message: 'Make test classes final to make them run faster'
+    severity: error

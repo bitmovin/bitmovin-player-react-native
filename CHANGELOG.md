@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.13.0] (2023-10-20)
+
+### Added
+
+- API Reference now can be found [here](https://cdn.bitmovin.com/player/reactnative/0/docs/index.html)
+- `PlayerViewConfig` with a `UiConfig` to the `PlayerView` to enable configuration of the visual presentation and behaviour
+- `PictureInPictureConfig` to `PlayerViewConfig` to allow configuring the Picture in Picture behavior
+- `PictureInPictureConfig.isEnabled` to enable configing if Picture in Picture is enabled
+- `PictureInPictureConfig.shouldEnterOnBackground` to start Picture in Picture automatically when the app transitions to background
+- `onPictureInPictureAvailabilityChanged` event is now emitted on iOS and tvOS in addition to Android
+- `BufferConfig` to configure player buffer depth
+- `PlayerView.isPictureInPictureRequested` to programatically create a Picture in Picture request
+- `PlayerView.scalingMode` to allow changing the video scaling mode
+
+### Changed
+
+- Update IMA SDK dependency on Android to `3.31.0`
+- Update Bitmovin's native Android SDK version to `3.47.0`
+
+### Deprecated
+
+- `PlaybackConfig.isPictureInPictureEnabled` in favor of `PictureInPictureConfig.isEnabled`
+
 ## [0.12.0] (2023-09-25)
 
 ### Added

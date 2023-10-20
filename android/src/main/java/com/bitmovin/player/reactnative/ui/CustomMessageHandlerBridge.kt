@@ -8,19 +8,21 @@ import com.facebook.react.bridge.ReactApplicationContext
 
 class CustomMessageHandlerBridge(
     val context: ReactApplicationContext,
-    private val nativeId: NativeId
+    private val nativeId: NativeId,
 ) {
-    val customMessageHandler = CustomMessageHandler(object: Any() {
-        @JavascriptInterface
-        fun sendSynchronous(name: String, data: String?): String? = context
+    val customMessageHandler = CustomMessageHandler(
+        object : Any() {
+            @JavascriptInterface
+            fun sendSynchronous(name: String, data: String?): String? = context
                 .getModule<CustomMessageHandlerModule>()
                 ?.receivedSynchronousMessage(nativeId, name, data)
 
-        @JavascriptInterface
-        fun sendAsynchronous(name: String, data: String?) = context
+            @JavascriptInterface
+            fun sendAsynchronous(name: String, data: String?) = context
                 .getModule<CustomMessageHandlerModule>()
                 ?.receivedAsynchronousMessage(nativeId, name, data)
-    })
+        },
+    )
 
     private var currentSynchronousResult: String? = null
 

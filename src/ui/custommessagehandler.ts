@@ -1,5 +1,22 @@
 import { CustomMessageSender } from './custommessagesender';
 
+export interface CustomMessageHandlerProps {
+  /**
+   * A function that will be called when the Player UI sends a synchronous message to the integration.
+   */
+  onReceivedSynchronousMessage: (
+    message: string,
+    data: string | undefined
+  ) => string | undefined;
+  /**
+   * A function that will be called when the Player UI sends an asynchronous message to the integration.
+   */
+  onReceivedAsynchronousMessage: (
+    message: string,
+    data: string | undefined
+  ) => void;
+}
+
 /**
  * Android and iOS only.
  * For Android it requires Player SDK version 3.39.0 or higher.
@@ -16,6 +33,7 @@ export class CustomMessageHandler {
     data: string | undefined
   ) => void;
 
+  /** @internal */
   customMessageSender?: CustomMessageSender;
 
   /**
@@ -23,26 +41,23 @@ export class CustomMessageHandler {
    *
    * Creates a new `CustomMessageHandler` instance to handle two-way communication between the integation and the Player UI.
    *
-   * @param onReceivedSynchronousMessage - A function that will be called when the Player UI sends a synchronous message to the integration.
-   * @param onReceivedAsynchronousMessage - A function that will be called when the Player UI sends an asynchronous message to the integration.
+   * @param options - Configuration options for the `CustomMessageHandler` instance.
    */
   constructor({
     onReceivedSynchronousMessage,
     onReceivedAsynchronousMessage,
-  }: {
-    onReceivedSynchronousMessage: (
-      message: string,
-      data: string | undefined
-    ) => string | undefined;
-    onReceivedAsynchronousMessage: (
-      message: string,
-      data: string | undefined
-    ) => void;
-  }) {
+  }: CustomMessageHandlerProps) {
     this.onReceivedSynchronousMessage = onReceivedSynchronousMessage;
     this.onReceivedAsynchronousMessage = onReceivedAsynchronousMessage;
   }
 
+  /**
+   * Gets called when a synchronous message was received from the Bitmovin Web UI.
+   *
+   * @param message Identifier of the message.
+   * @param data Optional data of the message as string (can be a serialized object).
+   * @returns Optional return value as string which will be propagates back to the JS counterpart.
+   */
   receivedSynchronousMessage(
     message: string,
     data: string | undefined
@@ -50,6 +65,12 @@ export class CustomMessageHandler {
     return this.onReceivedSynchronousMessage(message, data);
   }
 
+  /**
+   * Gets called when an asynchronous message was received from the Bitmovin Web UI.
+   *
+   * @param message Identifier of the message.
+   * @param data Optional data of the message as string (can be a serialized object).
+   */
   receivedAsynchronousMessage(message: string, data: string | undefined): void {
     this.onReceivedAsynchronousMessage(message, data);
   }

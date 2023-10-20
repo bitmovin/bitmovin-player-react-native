@@ -1,0 +1,65 @@
+name: Generate documentation
+on:
+  workflow_call:
+    secrets:
+      GH_TOKEN:
+        description: GitHub token to access player-ci repo for CI scripts
+        required: true
+      GCS_ACCOUNT:
+        description: Google Cloud Storage account for uploading API docs
+        required: true
+      CF_TOKEN:
+        description: CloudFlare token for API docs cache purging
+        required: true
+      CF_ZONEID:
+        description: CloudFlare zone ID for API docs cache purging
+        required: true
+
+  workflow_dispatch:
+
+env:
+  LC_ALL: en_US.UTF-8
+  LANG: en_US.UTF-8
+
+jobs:
+  generate-documentation:
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      GC_SACCOUNT: ${{ secrets.GCS_ACCOUNT }}
+      CF_TOKEN: ${{ secrets.CF_TOKEN }}
+      CF_ZONEID: ${{ secrets.CF_ZONEID }}
+
+    name: Generate documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node and npm registry
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install dependencies (example/)
+        run: yarn example install --frozen-lockfile
+
+      - name: Detect version using jq
+        run: |
+          echo "PCI_BRANCH=$(jq -r '.version' package.json)" >> $GITHUB_ENV
+
+      - name: Generate documentation
+        run: yarn docs
+
+      - name: Install CI scripts
+        run: |
+          curl -sS -H "Authorization: token ${GH_TOKEN}" -L https://raw.githubusercontent.com/bitmovin-engineering/player-ci/master/install.sh | bash
+
+      - name: Upload to CDN
+        run: node ./ci_scripts/src/uploadToGcs.js reactnative ../../docs/generated
+
+      - name: Purge CDN cache
+        run: node ./ci_scripts/src/purgeCloudflarePath.js 'reactnative'

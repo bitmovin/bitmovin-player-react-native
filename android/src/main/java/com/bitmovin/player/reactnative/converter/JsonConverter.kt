@@ -18,6 +18,8 @@ import com.bitmovin.player.api.advertising.AdQuartile
 import com.bitmovin.player.api.advertising.AdSource
 import com.bitmovin.player.api.advertising.AdSourceType
 import com.bitmovin.player.api.advertising.AdvertisingConfig
+import com.bitmovin.player.api.buffer.BufferConfig
+import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
 import com.bitmovin.player.api.casting.RemoteControlConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
@@ -37,9 +39,12 @@ import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceOptions
 import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.api.source.TimelineReferencePoint
+import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
+import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
+import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.getOrDefault
@@ -51,6 +56,7 @@ import com.bitmovin.player.reactnative.extensions.setProperty
 import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.extensions.toReadableArray
 import com.bitmovin.player.reactnative.extensions.toReadableMap
+import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
@@ -105,7 +111,54 @@ class JsonConverter {
                     playerConfig.remoteControlConfig = it
                 }
             }
+            if (json.hasKey("bufferConfig")) {
+                toBufferConfig(json.getMap("bufferConfig"))?.let {
+                    playerConfig.bufferConfig = it
+                }
+            }
             return playerConfig
+        }
+
+        /**
+         * Converts any JS object into a `BufferMediaTypeConfig` object.
+         * @param json JS object representing the `BufferMediaTypeConfig`.
+         * @return The generated `BufferMediaTypeConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toBufferMediaTypeConfig(json: ReadableMap?): BufferMediaTypeConfig? {
+            if (json == null) {
+                return null
+            }
+            val bufferMediaTypeConfig = BufferMediaTypeConfig()
+            if (json.hasKey("forwardDuration")) {
+                bufferMediaTypeConfig.forwardDuration = json.getDouble("forwardDuration")
+            }
+            return bufferMediaTypeConfig
+        }
+
+        /**
+         * Converts any JS object into a `BufferConfig` object.
+         * @param json JS object representing the `BufferConfig`.
+         * @return The generated `BufferConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toBufferConfig(json: ReadableMap?): BufferConfig? {
+            if (json == null) {
+                return null
+            }
+            val bufferConfig = BufferConfig()
+            if (json.hasKey("audioAndVideo")) {
+                toBufferMediaTypeConfig(json.getMap("audioAndVideo"))?.let {
+                    bufferConfig.audioAndVideo = it
+                }
+            }
+            if (json.hasKey("restartThreshold")) {
+                bufferConfig.restartThreshold = json.getDouble("restartThreshold")
+            }
+            if (json.hasKey("startupThreshold")) {
+                bufferConfig.startupThreshold = json.getDouble("startupThreshold")
+            }
+            return bufferConfig
         }
 
         /**
@@ -120,7 +173,7 @@ class JsonConverter {
 
             val receiverStylesheetUrl = json.getOrDefault(
                 "receiverStylesheetUrl",
-                defaultRemoteControlConfig.receiverStylesheetUrl
+                defaultRemoteControlConfig.receiverStylesheetUrl,
             )
 
             var customReceiverConfig = defaultRemoteControlConfig.customReceiverConfig
@@ -132,24 +185,23 @@ class JsonConverter {
 
             val isCastEnabled = json.getOrDefault(
                 "isCastEnabled",
-                defaultRemoteControlConfig.isCastEnabled
+                defaultRemoteControlConfig.isCastEnabled,
             )
 
             val sendManifestRequestsWithCredentials = json.getOrDefault(
                 "sendManifestRequestsWithCredentials",
-                defaultRemoteControlConfig.sendManifestRequestsWithCredentials
+                defaultRemoteControlConfig.sendManifestRequestsWithCredentials,
             )
 
             val sendSegmentRequestsWithCredentials = json.getOrDefault(
                 "sendSegmentRequestsWithCredentials",
-                defaultRemoteControlConfig.sendSegmentRequestsWithCredentials
+                defaultRemoteControlConfig.sendSegmentRequestsWithCredentials,
             )
 
             val sendDrmLicenseRequestsWithCredentials = json.getOrDefault(
                 "sendDrmLicenseRequestsWithCredentials",
-                defaultRemoteControlConfig.sendDrmLicenseRequestsWithCredentials
+                defaultRemoteControlConfig.sendDrmLicenseRequestsWithCredentials,
             )
-
 
             return RemoteControlConfig(
                 receiverStylesheetUrl = receiverStylesheetUrl,
@@ -169,7 +221,7 @@ class JsonConverter {
         @JvmStatic
         fun toSourceOptions(json: ReadableMap?): SourceOptions {
             if (json == null) return SourceOptions()
-            val startOffset = if(json.hasKey("startOffset")) json.getDouble("startOffset") else null
+            val startOffset = if (json.hasKey("startOffset")) json.getDouble("startOffset") else null
             val timelineReferencePoint = toTimelineReferencePoint(json.getString("startOffsetTimelineReference"))
             return SourceOptions(startOffset = startOffset, startOffsetTimelineReference = timelineReferencePoint)
         }
@@ -299,7 +351,9 @@ class JsonConverter {
                 tweaksConfig.languagePropertyNormalization = json.getBoolean("languagePropertyNormalization")
             }
             if (json.hasKey("localDynamicDashWindowUpdateInterval")) {
-                tweaksConfig.localDynamicDashWindowUpdateInterval = json.getDouble("localDynamicDashWindowUpdateInterval")
+                tweaksConfig.localDynamicDashWindowUpdateInterval = json.getDouble(
+                    "localDynamicDashWindowUpdateInterval",
+                )
             }
             if (json.hasKey("shouldApplyTtmlRegionWorkaround")) {
                 tweaksConfig.shouldApplyTtmlRegionWorkaround = json.getBoolean("shouldApplyTtmlRegionWorkaround")
@@ -650,7 +704,7 @@ class JsonConverter {
             if (json == null) return null
             return BitmovinCastManagerOptions(
                 json.getOrDefault("applicationId", null),
-                json.getOrDefault("messageNamespace", null)
+                json.getOrDefault("messageNamespace", null),
             )
         }
 
@@ -676,7 +730,6 @@ class JsonConverter {
                                 ?.toHashMap()
                                 ?.mapValues { entry -> entry.value as String }
                                 ?.toMutableMap()
-
                         }
                     }
             }
@@ -691,7 +744,7 @@ class JsonConverter {
             if (url == null) {
                 return null
             }
-            return ThumbnailTrack(url);
+            return ThumbnailTrack(url)
         }
 
         /**
@@ -768,7 +821,7 @@ class JsonConverter {
             if (format == null) {
                 return null
             }
-            return "text/${format}"
+            return "text/$format"
         }
 
         /**
@@ -969,8 +1022,8 @@ class JsonConverter {
             return CustomData.Builder().apply {
                 for (n in 1..30) {
                     setProperty(
-                        "customData${n}",
-                        json.getString("customData${n}") ?: continue
+                        "customData$n",
+                        json.getString("customData$n") ?: continue,
                     )
                 }
                 json.getString("experimentName")?.let {
@@ -988,8 +1041,8 @@ class JsonConverter {
         fun fromAnalyticsCustomData(customData: CustomData?): WritableMap? = customData?.let {
             val json = Arguments.createMap()
             for (n in 1..30) {
-                it.getProperty<String>("customData${n}")?.let { customDataN ->
-                    json.putString("customData${n}", customDataN)
+                it.getProperty<String>("customData$n")?.let { customDataN ->
+                    json.putString("customData$n", customDataN)
                 }
             }
             it.experimentName?.let { experimentName ->
@@ -1007,7 +1060,7 @@ class JsonConverter {
                 cdnProvider = it.getString("cdnProvider"),
                 path = it.getString("path"),
                 isLive = it.getBoolean("isLive"),
-                customData = sourceCustomData
+                customData = sourceCustomData,
             )
         }
 
@@ -1089,6 +1142,33 @@ class JsonConverter {
                 putInt("height", thumbnail.height)
             }
         }
+
+        @JvmStatic
+        fun toPictureInPictureConfig(json: ReadableMap?): RNPictureInPictureHandler.PictureInPictureConfig? =
+            json?.let {
+                RNPictureInPictureHandler.PictureInPictureConfig(
+                    isEnabled = it.getBoolean("isEnabled"),
+                )
+            }
+
+        /**
+         * Converts the [json] to a `RNUiConfig` object.
+         */
+        fun toPlayerViewConfig(json: ReadableMap) = PlayerViewConfig(
+            uiConfig = UiConfig.WebUi(
+                playbackSpeedSelectionEnabled = json.getMap("uiConfig")
+                    ?.getBooleanOrNull("playbackSpeedSelectionEnabled")
+                    ?: true,
+            ),
+        )
+
+        /**
+         * Converts the [json] to a `RNPlayerViewConfig` object.
+         */
+        fun toRNPlayerViewConfigWrapper(json: ReadableMap) = RNPlayerViewConfigWrapper(
+            playerViewConfig = toPlayerViewConfig(json),
+            pictureInPictureConfig = toPictureInPictureConfig(json.getMap("pictureInPictureConfig")),
+        )
     }
 }
 

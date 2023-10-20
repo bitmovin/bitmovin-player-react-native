@@ -22,7 +22,7 @@ function cancelTVGestures() {
  * player controls, specially the system's default. Therefore, this hook disables
  * such behavior for TVs.
  *
- * @platform ios
+ * @platform iOS
  * @see https://github.com/react-native-tvos/react-native-tvos/pull/366
  */
 export function useTVGestures() {

@@ -5,6 +5,9 @@ import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.api.ui.PlayerViewConfig
+import com.bitmovin.player.api.ui.ScalingMode
+import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getModule
 import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
@@ -16,6 +19,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.uimanager.annotations.ReactProp
 
 private const val MODULE_NAME = "NativePlayerView"
 
@@ -28,7 +32,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         ATTACH_PLAYER("attachPlayer"),
         ATTACH_FULLSCREEN_BRIDGE("attachFullscreenBridge"),
         SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID("setCustomMessageHandlerBridgeId"),
-        SET_FULLSCREEN("setFullscreen");
+        SET_FULLSCREEN("setFullscreen"),
+        SET_SCALING_MODE("setScalingMode"),
+        SET_PICTURE_IN_PICTURE("setPictureInPicture"),
     }
 
     /**
@@ -37,13 +43,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     override fun getName() = MODULE_NAME
 
     private var customMessageHandlerBridgeId: NativeId? = null
-
-    /**
-     * React Native PiP handler instance. It can be subclassed, then set from other native
-     * modules in case a full-custom implementation is needed. A default implementation is provided
-     * out-of-the-box.
-     */
-    var pictureInPictureHandler = RNPictureInPictureHandler(context)
 
     /**
      * The component's native view factory. RN may call this method multiple times
@@ -132,7 +131,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     override fun getExportedCustomBubblingEventTypeConstants(): MutableMap<String, Any> =
         bubblingEventsMapping.entries.associate {
             it.key to mapOf(
-                "phasedRegistrationNames" to mapOf("bubbled" to it.value)
+                "phasedRegistrationNames" to mapOf("bubbled" to it.value),
             )
         }.toMutableMap()
 
@@ -154,7 +153,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      */
     override fun receiveCommand(view: RNPlayerView, commandId: String?, args: ReadableArray?) {
         val command = commandId?.toInt()?.toCommand() ?: throw IllegalArgumentException(
-            "The received command is not supported by the Bitmovin Player View"
+            "The received command is not supported by the Bitmovin Player View",
         )
         when (command) {
             Commands.ATTACH_PLAYER -> attachPlayer(view, args?.getString(1), args?.getMap(2))
@@ -171,28 +170,59 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     setFullscreen(view, isFullscreen)
                 }
             }
+            Commands.SET_SCALING_MODE -> {
+                args?.getString(1)?.let { scalingMode ->
+                    setScalingMode(view, scalingMode)
+                }
+            }
+            Commands.SET_PICTURE_IN_PICTURE -> {
+                args?.getBoolean(1)?.let { isPictureInPicture ->
+                    setPictureInPicture(view, isPictureInPicture)
+                }
+            }
         }
+    }
+
+    @ReactProp(name = "config")
+    fun setConfig(view: RNPlayerView, config: ReadableMap?) {
+        view.config = if (config != null) JsonConverter.toRNPlayerViewConfigWrapper(config) else null
     }
 
     private fun attachFullscreenBridge(view: RNPlayerView, fullscreenBridgeId: NativeId) {
         Handler(Looper.getMainLooper()).post {
             view.playerView?.setFullscreenHandler(
-                context.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId)
+                context.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId),
             )
         }
     }
 
-    private fun setFullscreen(view: RNPlayerView, isFullscreen: Boolean) {
-        if (view.playerView?.isFullscreen == isFullscreen) return
-
+    private fun setFullscreen(view: RNPlayerView, isFullscreenRequested: Boolean) {
         Handler(Looper.getMainLooper()).post {
-            with(view.playerView ?: return@post) {
-                if (isFullscreen) {
-                    enterFullscreen()
-                } else {
-                    exitFullscreen()
-                }
+            val playerView = view.playerView ?: return@post
+            if (playerView.isFullscreen == isFullscreenRequested) return@post
+            if (isFullscreenRequested) {
+                playerView.enterFullscreen()
+            } else {
+                playerView.exitFullscreen()
             }
+        }
+    }
+
+    private fun setPictureInPicture(view: RNPlayerView, isPictureInPictureRequested: Boolean) {
+        Handler(Looper.getMainLooper()).post {
+            val playerView = view.playerView ?: return@post
+            if (playerView.isPictureInPicture == isPictureInPictureRequested) return@post
+            if (isPictureInPictureRequested) {
+                playerView.enterPictureInPicture()
+            } else {
+                playerView.exitPictureInPicture()
+            }
+        }
+    }
+
+    private fun setScalingMode(view: RNPlayerView, scalingMode: String) {
+        Handler(Looper.getMainLooper()).post {
+            view.playerView?.scalingMode = ScalingMode.valueOf(scalingMode)
         }
     }
 
@@ -205,7 +235,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         view.playerView?.setCustomMessageHandler(
             context.getModule<CustomMessageHandlerModule>()
                 ?.getInstance(customMessageHandlerBridgeId)
-                ?.customMessageHandler
+                ?.customMessageHandler,
         )
     }
 
@@ -217,13 +247,12 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId?, playerConfig: ReadableMap?) {
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
-            playerConfig
-                ?.getMap("playbackConfig")
-                ?.getBooleanOrNull("isPictureInPictureEnabled")
-                ?.let {
-                    pictureInPictureHandler.isPictureInPictureEnabled = it
-                    view.pictureInPictureHandler = pictureInPictureHandler
-                }
+            val playbackConfig = playerConfig?.getMap("playbackConfig")
+            val isPictureInPictureEnabled = view.config?.pictureInPictureConfig?.isEnabled == true ||
+                playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
+            val pictureInPictureHandler = view.pictureInPictureHandler ?: RNPictureInPictureHandler(context)
+            view.pictureInPictureHandler = pictureInPictureHandler
+            view.pictureInPictureHandler?.isPictureInPictureEnabled = isPictureInPictureEnabled
             if (view.playerView != null) {
                 view.player = player
             } else {
@@ -233,10 +262,14 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     Log.e(MODULE_NAME, "Cannot create a PlayerView, because no activity is attached.")
                     return@post
                 }
-                val playerView = PlayerView(currentActivity, player)
+                val playerView = PlayerView(
+                    currentActivity,
+                    player,
+                    view.config?.playerViewConfig ?: PlayerViewConfig(),
+                )
                 playerView.layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
-                    LayoutParams.MATCH_PARENT
+                    LayoutParams.MATCH_PARENT,
                 )
                 view.addPlayerView(playerView)
                 attachCustomMessageHandlerBridge(view)

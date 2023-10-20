@@ -2,59 +2,15 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import {
   Platform,
   UIManager,
-  ViewStyle,
   StyleSheet,
   findNodeHandle,
   NodeHandle,
 } from 'react-native';
-import { PlayerViewEvents } from './events';
 import { NativePlayerView } from './native';
-import { Player } from '../../player';
 import { useProxy } from '../../hooks/useProxy';
-import { FullscreenHandler, CustomMessageHandler } from '../../ui';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
-
-/**
- * Base `PlayerView` component props. Used to stablish common
- * props between `NativePlayerView` and `PlayerView`.
- * @see NativePlayerView
- */
-export interface BasePlayerViewProps {
-  style?: ViewStyle;
-}
-
-/**
- * `PlayerView` component props.
- * @see PlayerView
- */
-export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
-  /**
-   * `Player` instance (generally returned from `usePlayer` hook) that will control
-   * and render audio/video inside the `PlayerView`.
-   */
-  player: Player;
-
-  /**
-   * The `FullscreenHandler` that is used by the `PlayerView` to control the fullscreen mode.
-   */
-  fullscreenHandler?: FullscreenHandler;
-
-  /**
-   * The `CustomMessageHandler` that can be used to directly communicate with the embedded WebUi.
-   */
-  customMessageHandler?: CustomMessageHandler;
-
-  /**
-   * Can be set to `true` to request fullscreen mode, or `false` to request exit of fullscreen mode.
-   * Should not be used to get the current fullscreen state. Use `onFullscreenEnter` and `onFullscreenExit`
-   * or the `FullscreenHandler.isFullscreenActive` property to get the current state.
-   * Using this property to change the fullscreen state, it is ensured that the embedded Player UI is also aware
-   * of potential fullscreen state changes.
-   * To use this property, a `FullscreenHandler` must be set.
-   */
-  isFullscreenRequested?: Boolean;
-}
+import { PlayerViewProps } from './properties';
 
 /**
  * Base style that initializes the native view frame when no width/height prop has been set.
@@ -83,13 +39,18 @@ function dispatch(command: string, node: NodeHandle, ...args: any[]) {
 /**
  * Component that provides the Bitmovin Player UI and default UI handling to an attached `Player` instance.
  * This component needs a `Player` instance to work properly so make sure one is passed to it as a prop.
+ *
+ * @param options configuration options
  */
 export function PlayerView({
   style,
   player,
+  config,
   fullscreenHandler,
   customMessageHandler,
   isFullscreenRequested = false,
+  scalingMode,
+  isPictureInPictureRequested = false,
   ...props
 }: PlayerViewProps) {
   // Workaround React Native UIManager commands not sent until UI refresh
@@ -168,12 +129,28 @@ export function PlayerView({
       dispatch('setFullscreen', node, isFullscreenRequested);
     }
   }, [isFullscreenRequested, nativeView]);
+
+  useEffect(() => {
+    const node = findNodeHandle(nativeView.current);
+    if (node) {
+      dispatch('setScalingMode', node, scalingMode);
+    }
+  }, [scalingMode, nativeView]);
+
+  useEffect(() => {
+    const node = findNodeHandle(nativeView.current);
+    if (node) {
+      dispatch('setPictureInPicture', node, isPictureInPictureRequested);
+    }
+  }, [isPictureInPictureRequested, nativeView]);
+
   return (
     <NativePlayerView
       ref={nativeView}
       style={nativeViewStyle}
       fullscreenBridge={fullscreenBridge.current}
       customMessageHandlerBridge={customMessageHandlerBridge.current}
+      config={config}
       onAdBreakFinished={proxy(props.onAdBreakFinished)}
       onAdBreakStarted={proxy(props.onAdBreakStarted)}
       onAdClicked={proxy(props.onAdClicked)}

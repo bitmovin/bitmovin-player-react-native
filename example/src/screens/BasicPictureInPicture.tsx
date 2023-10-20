@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { View, Platform, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Button, Platform, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -7,21 +7,43 @@ import {
   PlayerView,
   SourceType,
   AudioSession,
+  PictureInPictureEnterEvent,
+  PictureInPictureExitEvent,
+  PlayerViewConfig,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamsList } from '../App';
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
 }
 
-export default function BasicPictureInPicture() {
+type BasicPictureInPictureNavigationProps = NativeStackScreenProps<
+  RootStackParamsList,
+  'BasicPictureInPicture'
+>;
+
+export default function BasicPictureInPicture({
+  navigation,
+}: BasicPictureInPictureNavigationProps) {
   useTVGestures();
 
-  const player = usePlayer({
-    playbackConfig: {
+  const [isPictureInPictureRequested, setIsPictureInPictureRequested] =
+    useState(false);
+  const [isInPictureInPicture, setIsInPictureInPicture] = useState(false);
+
+  const config: PlayerViewConfig = {
+    pictureInPictureConfig: {
       // Enable picture in picture UI option on player controls.
-      isPictureInPictureEnabled: true,
+      isEnabled: true,
+      // Enable entering picture in picture mode when transitioning the application to the background
+      shouldEnterOnBackground: true,
     },
+  };
+
+  const player = usePlayer({
     remoteControlConfig: {
       isCastEnabled: false,
     },
@@ -59,22 +81,63 @@ export default function BasicPictureInPicture() {
     }, [player])
   );
 
+  useEffect(() => {
+    navigation.setOptions({
+      // eslint-disable-next-line react/no-unstable-nested-components
+      headerRight: () => (
+        <Button
+          title={isInPictureInPicture ? 'Exit PiP' : 'Enter PiP'}
+          onPress={() =>
+            setIsPictureInPictureRequested(() => !isInPictureInPicture)
+          }
+        />
+      ),
+    });
+  }, [navigation, isInPictureInPicture]);
+
   const onEvent = useCallback((event: Event) => {
     prettyPrint(`[${event.name}]`, event);
   }, []);
 
+  const onPictureInPictureEnterEvent = useCallback(
+    (event: PictureInPictureEnterEvent) => {
+      prettyPrint(`[${event.name}]`, event);
+      setIsInPictureInPicture(true);
+    },
+    []
+  );
+
+  const onPictureInPictureExitEvent = useCallback(
+    (event: PictureInPictureExitEvent) => {
+      prettyPrint(`[${event.name}]`, event);
+      setIsInPictureInPicture(false);
+      setIsPictureInPictureRequested(false);
+    },
+    []
+  );
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView
+      edges={['bottom', 'left', 'right']}
+      style={
+        // On Android, we need to remove the padding from the container when in PiP mode.
+        Platform.OS === 'android' && isInPictureInPicture
+          ? [styles.container, { padding: 0 }]
+          : styles.container
+      }
+    >
       <PlayerView
         player={player}
         style={styles.player}
+        isPictureInPictureRequested={isPictureInPictureRequested}
+        config={config}
         onPictureInPictureAvailabilityChanged={onEvent}
-        onPictureInPictureEnter={onEvent}
+        onPictureInPictureEnter={onPictureInPictureEnterEvent}
         onPictureInPictureEntered={onEvent}
-        onPictureInPictureExit={onEvent}
+        onPictureInPictureExit={onPictureInPictureExitEvent}
         onPictureInPictureExited={onEvent}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -83,9 +146,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'black',
+    backgroundColor: 'white',
+    padding: 10,
   },
   player: {
     flex: 1,
+    backgroundColor: 'black',
   },
 });

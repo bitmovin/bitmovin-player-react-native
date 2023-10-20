@@ -55,12 +55,12 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
         drmNativeId: NativeId?,
         config: ReadableMap?,
         sourceRemoteControlConfig: ReadableMap?,
-        analyticsSourceMetadata: ReadableMap?
+        analyticsSourceMetadata: ReadableMap?,
     ) {
         uiManager()?.addUIBlock {
             val sourceMetadata = JsonConverter.toAnalyticsSourceMetadata(analyticsSourceMetadata) ?: SourceMetadata()
             initializeSource(nativeId, drmNativeId, config) { sourceConfig ->
-                    Source.create(sourceConfig, sourceMetadata)
+                Source.create(sourceConfig, sourceMetadata)
             }
         }
     }
@@ -78,7 +78,7 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
         nativeId: NativeId,
         drmNativeId: NativeId?,
         config: ReadableMap?,
-        sourceRemoteControlConfig: ReadableMap?
+        sourceRemoteControlConfig: ReadableMap?,
     ) {
         uiManager()?.addUIBlock {
             initializeSource(nativeId, drmNativeId, config) { sourceConfig ->
@@ -91,7 +91,7 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
         nativeId: NativeId,
         drmNativeId: NativeId?,
         config: ReadableMap?,
-        action: (SourceConfig) -> Source
+        action: (SourceConfig) -> Source,
     ) {
         val drmConfig = drmNativeId?.let { drmModule()?.getConfig(it) }
         if (!sources.containsKey(nativeId)) {
@@ -217,12 +217,10 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     /**
      * Helper function that returns the initialized `UIManager` instance.
      */
-    private fun uiManager(): UIManagerModule? =
-        context.getNativeModule(UIManagerModule::class.java)
+    private fun uiManager(): UIManagerModule? = context.getNativeModule(UIManagerModule::class.java)
 
     /**
      * Helper function that returns the initialized `DrmModule` instance.
      */
-    private fun drmModule(): DrmModule? =
-        context.getNativeModule(DrmModule::class.java)
+    private fun drmModule(): DrmModule? = context.getNativeModule(DrmModule::class.java)
 }

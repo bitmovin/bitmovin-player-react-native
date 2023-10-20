@@ -8,7 +8,7 @@ import {
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
-export default function BasicAds() {
+export default function BasicAnalytics() {
   useTVGestures();
 
   const player = usePlayer({

@@ -1,6 +1,8 @@
-import Foundation
-import BitmovinPlayer
+// swiftlint:disable file_length
+
 import BitmovinCollector
+import BitmovinPlayer
+import Foundation
 
 extension RCTConvert {
     /**
@@ -30,6 +32,9 @@ extension RCTConvert {
         }
         if let adaptationConfig = RCTConvert.adaptationConfig(json["adaptationConfig"]) {
             playerConfig.adaptationConfig = adaptationConfig
+        }
+        if let bufferConfig = RCTConvert.bufferConfig(json["bufferConfig"]) {
+            playerConfig.bufferConfig = bufferConfig
         }
 #if os(iOS)
         if let remoteControlConfig = RCTConvert.remoteControlConfig(json["remoteControlConfig"]) {
@@ -72,7 +77,7 @@ extension RCTConvert {
      - Parameter json: JS object.
      - Returns: The produced `StyleConfig` object.
      */
-    static func styleConfig(_ json: Any?) -> StyleConfig? {
+    static func styleConfig(_ json: Any?) -> StyleConfig? { // swiftlint:disable:this cyclomatic_complexity
         guard let json = json as? [String: Any?] else {
             return nil
         }
@@ -104,7 +109,6 @@ extension RCTConvert {
                 styleConfig.scalingMode = .zoom
             default:
                 styleConfig.scalingMode = .fit
-                break
             }
         }
         return styleConfig
@@ -115,7 +119,7 @@ extension RCTConvert {
      - Parameter json: JS object.
      - Returns: The produced `TweaksConfig` object.
      */
-    static func tweaksConfig(_ json: Any?) -> TweaksConfig? {
+    static func tweaksConfig(_ json: Any?) -> TweaksConfig? { // swiftlint:disable:this cyclomatic_complexity
         guard let json = json as? [String: Any?] else {
             return nil
         }
@@ -153,6 +157,38 @@ extension RCTConvert {
             }
         }
         return tweaksConfig
+    }
+
+    /**
+     Utility method to instantiate a `BufferMediaTypeConfig` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `BufferMediaTypeConfig` object.
+     */
+    static func bufferMediaTypeConfig(_ json: Any?) -> BufferMediaTypeConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let bufferMediaTypeConfig = BufferMediaTypeConfig()
+        if let forwardDuration = json["forwardDuration"] as? NSNumber {
+            bufferMediaTypeConfig.forwardDuration = forwardDuration.doubleValue
+        }
+        return bufferMediaTypeConfig
+    }
+
+    /**
+     Utility method to instantiate a `BufferConfig` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `BufferConfig` object.
+     */
+    static func bufferConfig(_ json: Any?) -> BufferConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let bufferConfig = BufferConfig()
+        if let bufferMediaTypeConfig = bufferMediaTypeConfig(json["audioAndVideo"]) {
+            bufferConfig.audioAndVideo = bufferMediaTypeConfig
+        }
+        return bufferConfig
     }
 
     /**
@@ -230,7 +266,7 @@ extension RCTConvert {
      - Parameter json: JS object
      - Returns: The produced `SourceConfig` object
      */
-    static func sourceConfig(_ json: Any?, drmConfig: DrmConfig? = nil) -> SourceConfig? {
+    static func sourceConfig(_ json: Any?, drmConfig: DrmConfig? = nil) -> SourceConfig? { // swiftlint:disable:this cyclomatic_complexity line_length
         guard let json = json as? [String: Any?] else {
             return nil
         }
@@ -238,7 +274,7 @@ extension RCTConvert {
             url: RCTConvert.nsurl(json["url"]),
             type: RCTConvert.sourceType(json["type"])
         )
-        if let drmConfig = drmConfig {
+        if let drmConfig {
             sourceConfig.drmConfig = drmConfig
         }
         if let title = json["title"] as? String {
@@ -285,7 +321,8 @@ extension RCTConvert {
         if let startOffset = json["startOffset"] as? NSNumber {
             sourceOptions.startOffset = startOffset.doubleValue
         }
-        sourceOptions.startOffsetTimelineReference = RCTConvert.timelineReferencePoint(json["startOffsetTimelineReference"])
+        sourceOptions.startOffsetTimelineReference = RCTConvert
+            .timelineReferencePoint(json["startOffsetTimelineReference"])
         return sourceOptions
     }
 
@@ -297,9 +334,12 @@ extension RCTConvert {
     static func timelineReferencePoint(_ json: Any?) -> TimelineReferencePoint {
         guard let stringValue = json as? String else { return .auto }
         switch stringValue {
-        case "start": return .start
-        case "end": return .end
-        default: return .auto
+        case "start":
+            return .start
+        case "end":
+            return .end
+        default:
+            return .auto
         }
     }
 
@@ -313,11 +353,16 @@ extension RCTConvert {
             return .none
         }
         switch json {
-        case "none": return .none
-        case "hls": return .hls
-        case "dash": return .dash
-        case "progressive": return .progressive
-        default: return .none
+        case "none":
+            return .none
+        case "hls":
+            return .hls
+        case "dash":
+            return .dash
+        case "progressive":
+            return .progressive
+        default:
+            return .none
         }
     }
 
@@ -331,9 +376,12 @@ extension RCTConvert {
             return .absoluteTime
         }
         switch json {
-        case "absolute": return .absoluteTime
-        case "relative": return .relativeTime
-        default: return .absoluteTime
+        case "absolute":
+            return .absoluteTime
+        case "relative":
+            return .relativeTime
+        default:
+            return .absoluteTime
         }
     }
 
@@ -359,13 +407,14 @@ extension RCTConvert {
      */
     static func fairplayConfig(_ json: Any?) -> FairplayConfig? {
         guard let json = json as? [String: Any?],
-            let licenseURL = json["licenseUrl"] as? String,
-            let certificateURL = json["certificateUrl"] as? String else {
+              let licenseURLString = json["licenseUrl"] as? String,
+              let certificateURLString = json["certificateUrl"] as? String,
+              let certificateURL = URL(string: certificateURLString) else {
             return nil
         }
         let fairplayConfig = FairplayConfig(
-            license: URL(string: licenseURL),
-            certificateURL: URL(string: certificateURL)!
+            license: URL(string: licenseURLString),
+            certificateURL: certificateURL
         )
         if let licenseRequestHeaders = json["licenseRequestHeaders"] as? [String: String] {
             fairplayConfig.licenseRequestHeaders = licenseRequestHeaders
@@ -418,7 +467,7 @@ extension RCTConvert {
      - Returns: The generated json dictionary.
      */
     static func audioTrackJson(_ audioTrack: AudioTrack?) -> [AnyHashable: Any]? {
-        guard let audioTrack = audioTrack else {
+        guard let audioTrack else {
             return nil
         }
         return [
@@ -479,10 +528,14 @@ extension RCTConvert {
             return nil
         }
         switch json {
-        case "cea": return .cea
-        case "vtt": return .webVtt
-        case "ttml": return .ttml
-        default: return nil
+        case "cea":
+            return .cea
+        case "vtt":
+            return .webVtt
+        case "ttml":
+            return .ttml
+        default:
+            return nil
         }
     }
 
@@ -492,7 +545,7 @@ extension RCTConvert {
      - Returns: The generated json dictionary.
      */
     static func subtitleTrackJson(_ subtitleTrack: SubtitleTrack?) -> [AnyHashable: Any]? {
-        guard let subtitleTrack = subtitleTrack else {
+        guard let subtitleTrack else {
             return nil
         }
         return [
@@ -504,9 +557,12 @@ extension RCTConvert {
             "isForced": subtitleTrack.isForced,
             "format": {
                 switch subtitleTrack.format {
-                case .cea: return "cea"
-                case .webVtt: return "vtt"
-                case .ttml: return "ttml"
+                case .cea:
+                    return "cea"
+                case .webVtt:
+                    return "vtt"
+                case .ttml:
+                    return "ttml"
                 }
             }(),
         ]
@@ -518,7 +574,7 @@ extension RCTConvert {
      - Returns: The generated json dictionary.
      */
     static func toJson(thumbnailTrack: ThumbnailTrack?) -> [AnyHashable: Any]? {
-        guard let thumbnailTrack = thumbnailTrack else {
+        guard let thumbnailTrack else {
             return nil
         }
 
@@ -536,7 +592,7 @@ extension RCTConvert {
      - Returns: The produced JS object.
      */
     static func toJson(adItem: AdItem?) -> [String: Any?]? {
-        guard let adItem = adItem else {
+        guard let adItem else {
             return nil
         }
         return [
@@ -551,7 +607,7 @@ extension RCTConvert {
      - Returns: The produced JS object.
      */
     static func toJson(adSource: AdSource?) -> [String: Any?]? {
-        guard let adSource = adSource else {
+        guard let adSource else {
             return nil
         }
         return [
@@ -566,7 +622,7 @@ extension RCTConvert {
      - Returns: The produced JS object.
      */
     static func toJson(adSourceType: AdSourceType?) -> String? {
-        guard let adSourceType = adSourceType else {
+        guard let adSourceType else {
             return nil
         }
         switch adSourceType {
@@ -587,7 +643,7 @@ extension RCTConvert {
      - Returns: The produced JS object.
      */
     static func toJson(adConfig: AdConfig?) -> [String: Any?]? {
-        guard let adConfig = adConfig else {
+        guard let adConfig else {
             return nil
         }
         return ["replaceContentDuration": adConfig.replaceContentDuration]
@@ -599,7 +655,7 @@ extension RCTConvert {
      - Returns: The produced JS string.
      */
     static func toJson(adQuartile: AdQuartile?) -> String? {
-        guard let adQuartile = adQuartile else {
+        guard let adQuartile else {
             return nil
         }
         switch adQuartile {
@@ -618,7 +674,7 @@ extension RCTConvert {
      - Returns: The produced JS object.
      */
     static func toJson(adBreak: AdBreak?) -> [String: Any?]? {
-        guard let adBreak = adBreak else {
+        guard let adBreak else {
             return nil
         }
         return [
@@ -634,7 +690,7 @@ extension RCTConvert {
      - Returns: The produced JS object.
      */
     static func toJson(ad: Ad?) -> [String: Any?]? {
-        guard let ad = ad else {
+        guard let ad else {
             return nil
         }
         return [
@@ -654,7 +710,7 @@ extension RCTConvert {
      - Returns: The produced JS object.
      */
     static func toJson(adData: AdData?) -> [String: Any?]? {
-        guard let adData = adData else {
+        guard let adData else {
             return nil
         }
         return [
@@ -756,7 +812,7 @@ extension RCTConvert {
      - Returns: The JS value representing the given object.
      */
     static func toJson(analyticsCustomData: CustomData?) -> [String: Any?]? {
-        guard let analyticsCustomData = analyticsCustomData else {
+        guard let analyticsCustomData else {
             return nil
         }
         var json: [String: Any?] = [:]
@@ -822,7 +878,7 @@ extension RCTConvert {
      - Returns: The produced JS object.
      */
     static func toJson(videoQuality: VideoQuality?) -> [String: Any?]? {
-        guard let videoQuality = videoQuality else {
+        guard let videoQuality else {
             return nil
         }
         return [
@@ -846,11 +902,15 @@ extension RCTConvert {
         }
         switch json {
 #if os(iOS)
-        case "Bitmovin": return .bitmovin
+        case "Bitmovin":
+            return .bitmovin
 #endif
-        case "System": return .system
-        case "Subtitle": return .subtitle
-        default: return nil
+        case "System":
+            return .system
+        case "Subtitle":
+            return .subtitle
+        default:
+            return nil
         }
     }
 
@@ -862,15 +922,19 @@ extension RCTConvert {
      */
     static func toJson(offlineState: OfflineState?) -> String {
         var notDownloaded = "NotDownloaded"
-        guard let offlineState = offlineState else {
+        guard let offlineState else {
             return notDownloaded
         }
 
         switch offlineState {
-        case .downloading: return "Downloading"
-        case .downloaded: return "Downloaded"
-        case .suspended: return "Suspended"
-        default: return notDownloaded
+        case .downloading:
+            return "Downloading"
+        case .downloaded:
+            return "Downloaded"
+        case .suspended:
+            return "Suspended"
+        default:
+            return notDownloaded
         }
     }
 
@@ -880,7 +944,7 @@ extension RCTConvert {
      - Returns: The produced JS object.
      */
     static func toJson(offlineTrack: OfflineTextTrack) -> [String: Any?] {
-        return [
+        [
             "id": offlineTrack.label,
             "language": offlineTrack.language,
         ]
@@ -892,7 +956,7 @@ extension RCTConvert {
      - Returns: The produced JS object.
      */
     static func toJson(offlineTrack: OfflineAudioTrack) -> [String: Any?] {
-        return [
+        [
             "id": offlineTrack.label,
             "language": offlineTrack.language,
         ]
@@ -904,7 +968,7 @@ extension RCTConvert {
      - Returns: The produced JS object.
      */
     static func toJson(offlineTracks: OfflineTrackSelection?) -> [String: Any?]? {
-        guard let offlineTracks = offlineTracks else {
+        guard let offlineTracks else {
             return nil
         }
 
@@ -938,7 +1002,7 @@ extension RCTConvert {
      - Returns: The produced JS object.
      */
     static func toJson(thumbnail: Thumbnail?) -> [String: Any?]? {
-        guard let thumbnail = thumbnail else {
+        guard let thumbnail else {
             return nil
         }
 
@@ -1008,7 +1072,7 @@ extension RCTConvert {
      - Returns: The produced JS object.
      */
     static func toJson(castPayload: CastPayload) -> [String: Any?] {
-        return [
+        [
             "currentTime": castPayload.currentTime,
             "deviceName": castPayload.deviceName,
             "type": castPayload.type,
@@ -1033,4 +1097,90 @@ extension RCTConvert {
         )
     }
 #endif
+
+    /**
+     Utility method to instantiate a `PictureInPictureConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `PictureInPictureConfig` object
+     */
+    static func pictureInPictureConfig(_ json: Any?) -> PictureInPictureConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        let pictureInPictureConfig = PictureInPictureConfig()
+        if let isEnabled = json["isEnabled"] as? Bool {
+            pictureInPictureConfig.isEnabled = isEnabled
+        }
+#if os(iOS)
+        if #available(iOS 14.2, *),
+           let shouldEnterOnBackground = json["shouldEnterOnBackground"] as? Bool {
+            pictureInPictureConfig.shouldEnterOnBackground = shouldEnterOnBackground
+        }
+#endif
+        return pictureInPictureConfig
+    }
+
+    /**
+     Utility method to instantiate a `RNPlayerViewConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `UiConfig` object
+     */
+    static func rnPlayerViewConfig(_ json: Any?) -> RNPlayerViewConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        return RNPlayerViewConfig(
+            uiConfig: rnUiConfig(json["uiConfig"]),
+            pictureInPictureConfig: pictureInPictureConfig(json["pictureInPictureConfig"])
+        )
+    }
+
+    /**
+     Utility method to instantiate a `RNUiConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `RNUiConfig` object
+     */
+    static func rnUiConfig(_ json: Any?) -> RNUiConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        return RNUiConfig(
+            playbackSpeedSelectionEnabled: json["playbackSpeedSelectionEnabled"] as? Bool ?? true
+        )
+    }
+}
+/**
+ * React native specific PlayerViewConfig.
+ */
+internal struct RNPlayerViewConfig {
+    /**
+     * The react native specific ui configuration.
+     */
+    let uiConfig: RNUiConfig?
+
+    /**
+     * Picture in picture config
+     */
+    let pictureInPictureConfig: PictureInPictureConfig?
+
+    /**
+     * PlayerView config considering all properties
+     */
+    var playerViewConfig: PlayerViewConfig {
+        let config = PlayerViewConfig()
+        if let pictureInPictureConfig {
+            config.pictureInPictureConfig = pictureInPictureConfig
+        }
+        return config
+    }
+}
+
+/**
+ * React native specific UiConfig.
+ */
+internal struct RNUiConfig {
+    let playbackSpeedSelectionEnabled: Bool
 }
