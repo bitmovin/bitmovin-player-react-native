@@ -60,7 +60,7 @@ jobs:
       - name: Bump changelog version
         run: |
           sed -i'.bak' "s/\[Unreleased\]/\[${{ inputs.version_number }}\] \(${{ inputs.release_date }}\)/g" CHANGELOG.md
-          head -n 50 CHANGELOG.md
+          awk 'BEGIN {count=0} /## \[/ {count++; if (count == 2) exit} {print}' CHANGELOG.md
 
       - name: Bump package.json version
         run: |
