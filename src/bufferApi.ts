@@ -72,7 +72,7 @@ export interface BufferLevels {
  */
 export class BufferApi {
   /**
-   * The native player id that this analytics api is attached to.
+   * The native player id that this buffer api is attached to.
    */
   readonly nativeId: string;
 
