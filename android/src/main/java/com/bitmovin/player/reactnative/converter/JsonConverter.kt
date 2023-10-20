@@ -44,7 +44,7 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
-import com.bitmovin.player.reactnative.RNPlayerView
+import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.getOrDefault
@@ -1162,7 +1162,10 @@ class JsonConverter {
             ),
         )
 
-        fun toRNPlayerViewConfig(json: ReadableMap) = RNPlayerView.RNPlayerViewConfig(
+        /**
+         * Converts the [json] to a `RNPlayerViewConfig` object.
+         */
+        fun toRNPlayerViewConfigWrapper(json: ReadableMap) = RNPlayerViewConfigWrapper(
             playerViewConfig = toPlayerViewConfig(json),
             pictureInPictureConfig = toPictureInPictureConfig(json.getMap("pictureInPictureConfig")),
         )

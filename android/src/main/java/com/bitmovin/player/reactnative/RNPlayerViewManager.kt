@@ -185,7 +185,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
 
     @ReactProp(name = "config")
     fun setConfig(view: RNPlayerView, config: ReadableMap?) {
-        view.config = if (config != null) JsonConverter.toRNPlayerViewConfig(config) else null
+        view.config = if (config != null) JsonConverter.toRNPlayerViewConfigWrapper(config) else null
     }
 
     private fun attachFullscreenBridge(view: RNPlayerView, fullscreenBridgeId: NativeId) {

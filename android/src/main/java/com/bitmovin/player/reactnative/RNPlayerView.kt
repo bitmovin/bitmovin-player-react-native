@@ -98,10 +98,6 @@ class RNPlayerView(val context: ReactApplicationContext) :
     LifecycleEventListener,
     View.OnLayoutChangeListener,
     RNPictureInPictureDelegate {
-    data class RNPlayerViewConfig(
-        val playerViewConfig: PlayerViewConfig?,
-        val pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig?,
-    )
 
     init {
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
@@ -152,7 +148,7 @@ class RNPlayerView(val context: ReactApplicationContext) :
     /**
      * Configures the visual presentation and behaviour of the [playerView].
      */
-    var config: RNPlayerViewConfig? = null
+    var config: RNPlayerViewConfigWrapper? = null
 
     /**
      * Whether this view should pause video playback when activity's onPause is called.
@@ -310,3 +306,12 @@ class RNPlayerView(val context: ReactApplicationContext) :
             .receiveEvent(id, name, payload)
     }
 }
+
+/**
+ * Representation of the React Native API `PlayerViewConfig` object.
+ * This is necessary as not all of its values can be directly mapped to the native `PlayerViewConfig`.
+ */
+data class RNPlayerViewConfigWrapper(
+    val playerViewConfig: PlayerViewConfig?,
+    val pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig?,
+)
