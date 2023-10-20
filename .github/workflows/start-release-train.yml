@@ -65,7 +65,6 @@ jobs:
       - name: Bump package.json version
         run: |
           yarn version --new-version ${{ inputs.version_number }} --no-git-tag-version
-          jq --raw-output '.version' package.json
 
       - name: Restore Pods cache
         id: pods-cache-restore
