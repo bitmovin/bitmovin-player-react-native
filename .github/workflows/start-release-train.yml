@@ -77,12 +77,17 @@ jobs:
           key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
           restore-keys: pods-
 
-      - name: Install pods to update Podfile.lock
+      - name: Set up CocoaPods
         run: |
           pod repo remove trunk
           pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git || pod repo update bitmovin
-          pod install --repo-update
         working-directory: example/ios
+        env:
+          CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
+
+      - name: Install pods to update Podfile.lock
+        run: |
+          yarn bootstrap
         env:
           CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
           NO_FLIPPER: 1
