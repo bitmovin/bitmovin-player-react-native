@@ -2,16 +2,6 @@ import BitmovinPlayer
 
 @objc(BufferModule)
 public class BufferModule: NSObject, RCTBridgeModule {
-    /**
-     * Collection of `BufferLevel` objects
-     * - Parameter audio: `BufferLevel` for `MediaType.Audio`.
-     * - Parameter video: `BufferLevel` for `MediaType.Video`.
-     */
-    internal struct RNBufferLevels {
-        let audio: BufferLevel
-        let video: BufferLevel
-    }
-
     // swiftlint:disable:next implicitly_unwrapped_optional
     @objc public var bridge: RCTBridge!
 

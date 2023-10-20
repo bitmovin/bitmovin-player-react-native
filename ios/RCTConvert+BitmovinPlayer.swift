@@ -1193,7 +1193,7 @@ extension RCTConvert {
      - Parameter bufferLevels: The `BufferModule.RNBufferLevels` to convert to json format.
      - Returns: The generated json dictionary.
      */
-    static func toJson(bufferLevels: BufferModule.RNBufferLevels?) -> [String: Any]? {
+    static func toJson(bufferLevels: RNBufferLevels?) -> [String: Any]? {
         guard let bufferLevels else {
             return nil
         }
@@ -1219,4 +1219,14 @@ internal struct RNPlayerViewConfig {
  */
 internal struct UiConfig {
     let playbackSpeedSelectionEnabled: Bool
+}
+
+/**
+ * Collection of `BufferLevel` objects
+ * - Parameter audio: `BufferLevel` for `MediaType.Audio`.
+ * - Parameter video: `BufferLevel` for `MediaType.Video`.
+ */
+internal struct RNBufferLevels {
+    let audio: BufferLevel
+    let video: BufferLevel
 }
