@@ -82,7 +82,7 @@ export class BufferApi {
 
   /**
    * Gets the {@link BufferLevel|buffer level} from the Player
-   * @param type The {@link BufferType|type of buffer} to return the level for.
+   * @param type The {@link BufferType} to return the level for.
    * @returns a {@link BufferLevels} that contains {@link BufferLevel} values for audio and video.
    */
   getLevel = async (type: BufferType): Promise<BufferLevels> => {
