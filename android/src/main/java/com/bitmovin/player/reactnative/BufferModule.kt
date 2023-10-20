@@ -11,9 +11,6 @@ private const val MODULE_NAME = "BufferModule"
 
 @ReactModule(name = MODULE_NAME)
 class BufferModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
-    /**
-     * JS exported module name.
-     */
     override fun getName() = MODULE_NAME
 
     /**
