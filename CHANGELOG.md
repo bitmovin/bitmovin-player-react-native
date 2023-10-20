@@ -4,7 +4,7 @@
 
 ### Added
 
-- `Player.buffer` namespace to control buffer preferences and to query the current buffer state.
+- `Player.buffer` to control buffer preferences and to query the current buffer state
 
 ## [0.13.0] (2023-10-20)
 
