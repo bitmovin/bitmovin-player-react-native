@@ -51,7 +51,6 @@ export function PlayerView({
   isFullscreenRequested = false,
   scalingMode,
   isPictureInPictureRequested = false,
-  pictureInPictureConfig,
   ...props
 }: PlayerViewProps) {
   // Workaround React Native UIManager commands not sent until UI refresh
@@ -151,7 +150,6 @@ export function PlayerView({
       style={nativeViewStyle}
       fullscreenBridge={fullscreenBridge.current}
       customMessageHandlerBridge={customMessageHandlerBridge.current}
-      pictureInPictureConfig={pictureInPictureConfig}
       config={config}
       onAdBreakFinished={proxy(props.onAdBreakFinished)}
       onAdBreakStarted={proxy(props.onAdBreakStarted)}

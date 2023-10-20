@@ -2,7 +2,6 @@ import { PlayerViewEvents } from './events';
 import { Player } from '../../player';
 import { FullscreenHandler, CustomMessageHandler } from '../../ui';
 import { ScalingMode } from '../../styleConfig';
-import { PictureInPictureConfig } from './pictureInPictureConfig';
 import { ViewStyle } from 'react-native';
 import { PlayerViewConfig } from './playerViewConfig';
 
@@ -25,11 +24,6 @@ export interface BasePlayerViewProps {
    * Style of the {@link PlayerView}.
    */
   style?: ViewStyle;
-
-  /**
-   * Provides options to configure Picture in Picture playback.
-   */
-  pictureInPictureConfig?: PictureInPictureConfig;
 
   /**
    * Configures the visual presentation and behaviour of the {@link PlayerView}.

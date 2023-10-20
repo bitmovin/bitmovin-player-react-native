@@ -1122,20 +1122,33 @@ extension RCTConvert {
     }
 
     /**
-     Utility method to instantiate a `UiConfig` from a JS object.
+     Utility method to instantiate a `RNPlayerViewConfig` from a JS object.
      - Parameter json: JS object
      - Returns: The produced `UiConfig` object
      */
-    static func playerViewConfig(_ json: Any?) -> RNPlayerViewConfig? {
-        guard let json = json as? [String: Any?],
-              let uiConfigJson = json["uiConfig"] as? [String: Any?] else {
+    static func rnPlayerViewConfig(_ json: Any?) -> RNPlayerViewConfig? {
+        guard let json = json as? [String: Any?] else {
             return nil
         }
 
         return RNPlayerViewConfig(
-            uiConfig: UiConfig(
-                playbackSpeedSelectionEnabled: uiConfigJson["playbackSpeedSelectionEnabled"] as? Bool ?? true
-            )
+            uiConfig: rnUiConfig(json["uiConfig"]),
+            pictureInPictureConfig: pictureInPictureConfig(json["pictureInPictureConfig"])
+        )
+    }
+
+    /**
+     Utility method to instantiate a `RNUiConfig` from a JS object.
+     - Parameter json: JS object
+     - Returns: The produced `RNUiConfig` object
+     */
+    static func rnUiConfig(_ json: Any?) -> RNUiConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        return RNUiConfig(
+            playbackSpeedSelectionEnabled: json["playbackSpeedSelectionEnabled"] as? Bool ?? true
         )
     }
 
@@ -1211,13 +1224,29 @@ internal struct RNPlayerViewConfig {
     /**
      * The react native specific ui configuration.
      */
-    let uiConfig: UiConfig
+    let uiConfig: RNUiConfig?
+
+    /**
+     * Picture in picture config
+     */
+    let pictureInPictureConfig: PictureInPictureConfig?
+
+    /**
+     * PlayerView config considering all properties
+     */
+    var playerViewConfig: PlayerViewConfig {
+        let config = PlayerViewConfig()
+        if let pictureInPictureConfig {
+            config.pictureInPictureConfig = pictureInPictureConfig
+        }
+        return config
+    }
 }
 
 /**
  * React native specific UiConfig.
  */
-internal struct UiConfig {
+internal struct RNUiConfig {
     let playbackSpeedSelectionEnabled: Bool
 }
 

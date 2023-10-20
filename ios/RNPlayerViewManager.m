@@ -62,7 +62,6 @@ RCT_EXPORT_VIEW_PROPERTY(onCastStopped, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onCastTimeUpdated, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onCastWaitingForDevice, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onPictureInPictureAvailabilityChanged, RCTBubblingEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(pictureInPictureConfig, NSDictionary)
 RCT_EXPORT_VIEW_PROPERTY(config, NSDictionary)
 
 RCT_EXTERN_METHOD(attachPlayer:(nonnull NSNumber *)viewId playerId:(NSString *)playerId playerConfig:(nullable NSDictionary *)playerConfig)

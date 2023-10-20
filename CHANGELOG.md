@@ -4,15 +4,21 @@
 
 ### Added
 
+- `Player.buffer` namespace to control buffer preferences and to query the current buffer state.
+
+## [0.13.0] (2023-10-20)
+
+### Added
+
 - API Reference now can be found [here](https://cdn.bitmovin.com/player/reactnative/0/docs/index.html)
-- `PictureInPictureConfig` to `PlayerView` to allow configuring the Picture in Picture behavior
-- `PictureInPictureConfig.shouldEnterOnBackground` to start PiP automatically when the app transitions to background
+- `PlayerViewConfig` with a `UiConfig` to the `PlayerView` to enable configuration of the visual presentation and behaviour
+- `PictureInPictureConfig` to `PlayerViewConfig` to allow configuring the Picture in Picture behavior
+- `PictureInPictureConfig.isEnabled` to enable configing if Picture in Picture is enabled
+- `PictureInPictureConfig.shouldEnterOnBackground` to start Picture in Picture automatically when the app transitions to background
 - `onPictureInPictureAvailabilityChanged` event is now emitted on iOS and tvOS in addition to Android
 - `BufferConfig` to configure player buffer depth
 - `PlayerView.isPictureInPictureRequested` to programatically create a Picture in Picture request
 - `PlayerView.scalingMode` to allow changing the video scaling mode
-- `PlayerViewConfig` with a `UiConfig` to the `PlayerView` to enable configuration of the visual presentation and behaviour
-- `Player.buffer` namespace to control buffer preferences and to query the current buffer state.
 
 ### Changed
 
