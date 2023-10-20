@@ -47,7 +47,7 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
-import com.bitmovin.player.reactnative.BufferModule
+import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
@@ -61,10 +61,7 @@ import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.extensions.toReadableArray
 import com.bitmovin.player.reactnative.extensions.toReadableMap
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.*
 import java.util.UUID
 
 /**
@@ -1201,7 +1198,7 @@ class JsonConverter {
         }
 
         @JvmStatic
-        fun fromRNBufferLevels(bufferLevels: BufferModule.RNBufferLevels?): WritableMap? {
+        fun fromRNBufferLevels(bufferLevels: RNBufferLevels?): WritableMap? {
             if (bufferLevels == null) {
                 return null
             }
