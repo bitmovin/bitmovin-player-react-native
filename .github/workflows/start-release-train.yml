@@ -48,6 +48,7 @@ jobs:
         run: |
           branch_name="release/v${{ inputs.version_number }}"
           echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
+          echo "$branch_name"
 
       - name: Create Release Branch
         if: ${{ !inputs.dry_run }}
