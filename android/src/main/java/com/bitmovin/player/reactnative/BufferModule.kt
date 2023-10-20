@@ -55,8 +55,7 @@ class BufferModule(private val context: ReactApplicationContext) : ReactContextB
     /**
      * Helper function that gets the instantiated `UIManagerModule` from modules registry.
      */
-    private fun uiManager(): UIManagerModule? =
-        context.getNativeModule(UIManagerModule::class.java)
+    private fun uiManager(): UIManagerModule? = context.getNativeModule(UIManagerModule::class.java)
 
     /**
      * Helper function that gets the instantiated `PlayerModule` from modules registry.
