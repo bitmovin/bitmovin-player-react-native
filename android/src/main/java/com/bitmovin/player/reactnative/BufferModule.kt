@@ -12,13 +12,6 @@ private const val MODULE_NAME = "BufferModule"
 @ReactModule(name = MODULE_NAME)
 class BufferModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
     /**
-     * Collection of [BufferLevel] objects
-     * @param audio [BufferLevel] for [MediaType.Audio].
-     * @param video [BufferLevel] for [MediaType.Video].
-     */
-    data class RNBufferLevels(val audio: BufferLevel, val video: BufferLevel)
-
-    /**
      * JS exported module name.
      */
     override fun getName() = MODULE_NAME
@@ -70,4 +63,11 @@ class BufferModule(private val context: ReactApplicationContext) : ReactContextB
      */
     private fun playerModule(): PlayerModule? =
         context.getNativeModule(PlayerModule::class.java)
+
+    /**
+     * Collection of [BufferLevel] objects
+     * @param audio [BufferLevel] for [MediaType.Audio].
+     * @param video [BufferLevel] for [MediaType.Video].
+     */
+    data class RNBufferLevels(val audio: BufferLevel, val video: BufferLevel)
 }
