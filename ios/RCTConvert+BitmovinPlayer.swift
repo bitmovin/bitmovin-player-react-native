@@ -1246,7 +1246,8 @@ internal struct RNUiConfig {
 }
 
 /**
- * Collection of `BufferLevel` objects
+ * Representation of the React Native API `BufferLevels` object.
+ * This is necessary as we need a unified representation of the different APIs from both Android and iOS.
  * - Parameter audio: `BufferLevel` for `MediaType.Audio`.
  * - Parameter video: `BufferLevel` for `MediaType.Video`.
  */
