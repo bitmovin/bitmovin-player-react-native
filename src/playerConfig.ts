@@ -7,6 +7,7 @@ import { RemoteControlConfig } from './remoteControlConfig';
 import { BufferConfig } from './bufferConfig';
 import { NativeInstanceConfig } from './nativeInstance';
 import { PlaybackConfig } from './playbackConfig';
+import { LiveConfig } from './liveConfig';
 
 /**
  * Object used to configure a new `Player` instance.
@@ -63,4 +64,8 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures buffer settings. A default {@link BufferConfig} is set initially.
    */
   bufferConfig?: BufferConfig;
+  /**
+   * Configures behaviour when playing live content. A default {@link LiveConfig} is set initially.
+   */
+  liveConfig?: LiveConfig;
 }

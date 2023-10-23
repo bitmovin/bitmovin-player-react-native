@@ -21,3 +21,4 @@ export * from './tweaksConfig';
 export * from './bufferConfig';
 export * from './playbackConfig';
 export * from './playerConfig';
+export * from './liveConfig';
