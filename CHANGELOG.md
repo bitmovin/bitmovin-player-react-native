@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `LiveConfig.minTimeshiftBufferDepth` to control the minimum buffer depth of a stream needed to enable time shifting.
+
 ## [0.13.0] (2023-10-20)
 
 ### Added
