@@ -1171,13 +1171,18 @@ class JsonConverter {
             pictureInPictureConfig = toPictureInPictureConfig(json.getMap("pictureInPictureConfig")),
         )
 
+        /**
+         * Converts any [MediaType] value into its json representation.
+         * @param mediaType [MediaType] value.
+         * @return The produced JS string.
+         */
         @JvmStatic
-        fun fromBufferLevel(bufferLevel: BufferLevel?): WritableMap? {
-            if (bufferLevel == null) {
-                return null
-            }
+        fun fromMediaType(mediaType: MediaType?): String? = when (mediaType) {
+            MediaType.Audio -> "audio"
+            MediaType.Video -> "video"
+            else -> null
+        }
 
-            return Arguments.createMap().apply {
         /**
          * Converts any [BufferType] value into its json representation.
          * @param bufferType [BufferType] value.
@@ -1190,21 +1195,22 @@ class JsonConverter {
             else -> null
         }
 
+        @JvmStatic
+        fun fromBufferLevel(bufferLevel: BufferLevel?): WritableMap? {
+            if (bufferLevel == null) {
+                return null;
+            }
+
+            return Arguments.createMap().apply {
                 putDouble("level", bufferLevel.level)
                 putDouble("targetLevel", bufferLevel.targetLevel)
-                putInt(
+                putString(
                     "media",
-                    when (bufferLevel.media) {
-                        MediaType.Audio -> 0
-                        MediaType.Video -> 1
-                    },
+                    fromMediaType(bufferLevel.media),
                 )
-                putInt(
+                putString(
                     "type",
-                    when (bufferLevel.type) {
-                        BufferType.ForwardDuration -> 0
-                        BufferType.BackwardDuration -> 1
-                    },
+                    fromBufferType(bufferLevel.type),
                 )
             }
         }

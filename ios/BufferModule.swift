@@ -35,7 +35,7 @@ public class BufferModule: NSObject, RCTBridgeModule {
     @objc(getLevel:type:resolver:rejecter:)
     func getLevel(
         _ playerId: NativeId,
-        type: NSNumber,
+        type: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
@@ -62,7 +62,7 @@ public class BufferModule: NSObject, RCTBridgeModule {
      - Parameter value: The value to set.
      */
     @objc(setTargetLevel:type:value:)
-    func setTargetLevel(_ playerId: NativeId, type: NSNumber, value: NSNumber) {
+    func setTargetLevel(_ playerId: NativeId, type: String, value: NSNumber) {
         let targetLevel = value.doubleValue
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard

@@ -9,11 +9,11 @@ export enum MediaType {
   /**
    * Audio media type.
    */
-  AUDIO = 0,
+  AUDIO = 'audio',
   /**
    * Video media type.
    */
-  VIDEO = 1,
+  VIDEO = 'video',
 }
 
 /**

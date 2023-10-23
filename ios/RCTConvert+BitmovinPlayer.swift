@@ -1178,13 +1178,6 @@ extension RCTConvert {
      * - Parameter bufferType: `BufferType` value.
      * - Returns: The produced JS string.
      */
-    static func toJson(bufferLevel: BufferLevel?, mediaType: Int) -> [String: Any]? {
-        guard let bufferLevel else {
-            return nil
-        }
-
-        let type: Int
-        switch bufferLevel.type {
     static func toJson(bufferType: BufferType) -> String? {
         switch bufferType {
         case .forwardDuration:
@@ -1196,11 +1189,22 @@ extension RCTConvert {
         }
     }
 
+    /**
+     Utility method to get a json dictionary value from a `BufferLevel` object.
+     - Parameter bufferLevel: The `BufferLevel` to convert to json format.
+     - Parameter mediaType: The `MediaType` value to pass through.
+     - Returns: The generated json dictionary.
+     */
+    static func toJson(bufferLevel: BufferLevel?, mediaType: String) -> [String: Any]? {
+        guard let bufferLevel else {
+            return nil
+        }
+
         return [
             "level": bufferLevel.level,
             "targetLevel": bufferLevel.targetLevel,
             "media": mediaType,
-            "type": type
+            "type": toJson(bufferType: bufferLevel.type)
         ]
     }
 
@@ -1215,8 +1219,8 @@ extension RCTConvert {
         }
 
         return [
-            "audio": toJson(bufferLevel: bufferLevels.audio, mediaType: 0),
-            "video": toJson(bufferLevel: bufferLevels.video, mediaType: 1),
+            "audio": toJson(bufferLevel: bufferLevels.audio, mediaType: "audio"),
+            "video": toJson(bufferLevel: bufferLevels.video, mediaType: "video"),
         ]
     }
 }
