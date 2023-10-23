@@ -28,7 +28,7 @@ class BufferModule(private val context: ReactApplicationContext) : ReactContextB
                 player.buffer.getLevel(bufferType, MediaType.Audio),
                 player.buffer.getLevel(bufferType, MediaType.Video),
             )
-            JsonConverter.fromRNBufferLevels(bufferLevels)?.let {
+            JsonConverter.fromRNBufferLevels(bufferLevels).let {
                 promise.resolve(it)
             }
         }
