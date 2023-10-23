@@ -1172,7 +1172,7 @@ extension RCTConvert {
     /**
      * Converts any `BufferType` value into its json representation.
      * - Parameter bufferType: `BufferType` value.
-     * - Returns: The produced JS string.
+     * - Returns: The produced JS string, or `nil` if not recognized.
      */
     static func toJson(bufferType: BufferType) -> String? {
         switch bufferType {
