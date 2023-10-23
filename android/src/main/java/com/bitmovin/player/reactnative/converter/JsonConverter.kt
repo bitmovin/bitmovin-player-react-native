@@ -1174,7 +1174,7 @@ class JsonConverter {
         /**
          * Converts any [MediaType] value into its json representation.
          * @param mediaType [MediaType] value.
-         * @return The produced JS string.
+         * @return The produced JS string, or `null` if not recognized.
          */
         @JvmStatic
         fun fromMediaType(mediaType: MediaType?): String? = when (mediaType) {
@@ -1186,7 +1186,7 @@ class JsonConverter {
         /**
          * Converts any [BufferType] value into its json representation.
          * @param bufferType [BufferType] value.
-         * @return The produced JS string.
+         * @return The produced JS string, or `null` if not recognized.
          */
         @JvmStatic
         fun fromBufferType(bufferType: BufferType?): String? = when (bufferType) {
@@ -1196,12 +1196,8 @@ class JsonConverter {
         }
 
         @JvmStatic
-        fun fromBufferLevel(bufferLevel: BufferLevel?): WritableMap? {
-            if (bufferLevel == null) {
-                return null;
-            }
-
-            return Arguments.createMap().apply {
+        fun fromBufferLevel(bufferLevel: BufferLevel): WritableMap =
+            Arguments.createMap().apply {
                 putDouble("level", bufferLevel.level)
                 putDouble("targetLevel", bufferLevel.targetLevel)
                 putString(
@@ -1213,19 +1209,13 @@ class JsonConverter {
                     fromBufferType(bufferLevel.type),
                 )
             }
-        }
 
         @JvmStatic
-        fun fromRNBufferLevels(bufferLevels: RNBufferLevels?): WritableMap? {
-            if (bufferLevels == null) {
-                return null
-            }
-
-            return Arguments.createMap().apply {
+        fun fromRNBufferLevels(bufferLevels: RNBufferLevels): WritableMap =
+            Arguments.createMap().apply {
                 putMap("audio", fromBufferLevel(bufferLevels.audio))
                 putMap("video", fromBufferLevel(bufferLevels.video))
             }
-        }
 
         /**
          * Maps a JS string into the corresponding [BufferType] value.
