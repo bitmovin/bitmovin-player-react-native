@@ -1158,11 +1158,7 @@ extension RCTConvert {
      * - Parameter json: JS string representing the `BufferType`.
      * - Returns: The `BufferType` corresponding to `json`
      */
-    static func bufferType(_ json: String?) -> BufferType? {
-        guard let json = json as? String else {
-            return nil
-        }
-
+    static func bufferType(_ json: String) -> BufferType {
         switch json {
         case "forwardDuration":
             return .forwardDuration
@@ -1195,11 +1191,7 @@ extension RCTConvert {
      - Parameter mediaType: The `MediaType` value to pass through.
      - Returns: The generated json dictionary.
      */
-    static func toJson(bufferLevel: BufferLevel?, mediaType: String) -> [String: Any]? {
-        guard let bufferLevel else {
-            return nil
-        }
-
+    static func toJson(bufferLevel: BufferLevel, mediaType: String) -> [String: Any] {
         return [
             "level": bufferLevel.level,
             "targetLevel": bufferLevel.targetLevel,
@@ -1213,11 +1205,7 @@ extension RCTConvert {
      - Parameter bufferLevels: The `BufferModule.RNBufferLevels` to convert to json format.
      - Returns: The generated json dictionary.
      */
-    static func toJson(bufferLevels: RNBufferLevels?) -> [String: Any]? {
-        guard let bufferLevels else {
-            return nil
-        }
-
+    static func toJson(bufferLevels: RNBufferLevels) -> [String: Any] {
         return [
             "audio": toJson(bufferLevel: bufferLevels.audio, mediaType: "audio"),
             "video": toJson(bufferLevel: bufferLevels.video, mediaType: "video"),

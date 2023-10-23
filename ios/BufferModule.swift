@@ -44,11 +44,7 @@ public class BufferModule: NSObject, RCTBridgeModule {
                 reject("[BufferModule]", "Could not find player with ID (\(playerId))", nil)
                 return
             }
-            guard let bufferType = RCTConvert.bufferType(type) else {
-                reject("[BufferModule]", "Invalid buffer type", nil)
-                return
-            }
-
+            let bufferType = RCTConvert.bufferType(type)
             let level = bufferApi.getLevel(bufferType)
             let bufferLevels = RNBufferLevels(audio: level, video: level)
             resolve(RCTConvert.toJson(bufferLevels: bufferLevels))
@@ -65,10 +61,10 @@ public class BufferModule: NSObject, RCTBridgeModule {
     func setTargetLevel(_ playerId: NativeId, type: String, value: NSNumber) {
         let targetLevel = value.doubleValue
         bridge.uiManager.addUIBlock { [weak self] _, _ in
+            let bufferType = RCTConvert.bufferType(type)
             guard
-                let bufferApi = self?.playerModule?.retrieve(playerId)?.buffer,
-                let bufferType = RCTConvert.bufferType(type),
-                bufferType == .forwardDuration
+                bufferType == .forwardDuration,
+                let bufferApi = self?.playerModule?.retrieve(playerId)?.buffer
             else {
                 return
             }
