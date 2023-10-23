@@ -1192,7 +1192,7 @@ extension RCTConvert {
      - Returns: The generated json dictionary.
      */
     static func toJson(bufferLevel: BufferLevel, mediaType: String) -> [String: Any] {
-        return [
+        [
             "level": bufferLevel.level,
             "targetLevel": bufferLevel.targetLevel,
             "media": mediaType,
@@ -1206,7 +1206,7 @@ extension RCTConvert {
      - Returns: The generated json dictionary.
      */
     static func toJson(bufferLevels: RNBufferLevels) -> [String: Any] {
-        return [
+        [
             "audio": toJson(bufferLevel: bufferLevels.audio, mediaType: "audio"),
             "video": toJson(bufferLevel: bufferLevels.video, mediaType: "video"),
         ]
