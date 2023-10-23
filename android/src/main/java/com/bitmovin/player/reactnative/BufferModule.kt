@@ -60,4 +60,8 @@ class BufferModule(private val context: ReactApplicationContext) : ReactContextB
     private fun playerModule(): PlayerModule? = context.getNativeModule(PlayerModule::class.java)
 }
 
+/**
+ * Representation of the React Native API `BufferLevels` object.
+ * This is necessary as we need a unified representation of the different APIs from both Android and iOS.
+ */
 data class RNBufferLevels(val audio: BufferLevel, val video: BufferLevel)
