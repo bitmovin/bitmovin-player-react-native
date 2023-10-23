@@ -1153,21 +1153,20 @@ extension RCTConvert {
     }
 
     /**
-     * Utility method to instantiate a `BufferType` from an Integer.
-     * Currently `0` is mapped to `BufferType.forwardDuration`, and `1` to `BufferType.backwardDuration`.
-     * Other values fall back to `BufferType.forwardDuration`
-     * - Parameter value: Integer value representing the `BufferType`.
-     * - Returns: The `BufferType` corresponding to `value`.
+     * Maps a JS string into the corresponding `BufferType` value.
+     * If the string is not recognized, it returns `BufferType.forwardDuration`.
+     * - Parameter json: JS string representing the `BufferType`.
+     * - Returns: The `BufferType` corresponding to `json`
      */
-    static func bufferType(_ value: NSNumber?) -> BufferType? {
-        guard let value = value as? Int else {
+    static func bufferType(_ json: String?) -> BufferType? {
+        guard let json = json as? String else {
             return nil
         }
 
-        switch value {
-        case 0:
+        switch json {
+        case "forwardDuration":
             return .forwardDuration
-        case 1:
+        case "backwardDuration":
             return .backwardDuration
         default:
             return .forwardDuration
@@ -1175,10 +1174,9 @@ extension RCTConvert {
     }
 
     /**
-     Utility method to get a json dictionary value from a `BufferLevel` object.
-     - Parameter bufferLevel: The `BufferLevel` to convert to json format.
-     - Parameter mediaType: The `MediaType` value to pass through.
-     - Returns: The generated json dictionary.
+     * Converts any `BufferType` value into its json representation.
+     * - Parameter bufferType: `BufferType` value.
+     * - Returns: The produced JS string.
      */
     static func toJson(bufferLevel: BufferLevel?, mediaType: Int) -> [String: Any]? {
         guard let bufferLevel else {
@@ -1187,11 +1185,16 @@ extension RCTConvert {
 
         let type: Int
         switch bufferLevel.type {
+    static func toJson(bufferType: BufferType) -> String? {
+        switch bufferType {
         case .forwardDuration:
-            type = 0
+            return "forwardDuration"
         case .backwardDuration:
-            type = 1
+            return "backwardDuration"
+        default:
+            return nil
         }
+    }
 
         return [
             "level": bufferLevel.level,

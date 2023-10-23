@@ -1178,6 +1178,18 @@ class JsonConverter {
             }
 
             return Arguments.createMap().apply {
+        /**
+         * Converts any [BufferType] value into its json representation.
+         * @param bufferType [BufferType] value.
+         * @return The produced JS string.
+         */
+        @JvmStatic
+        fun fromBufferType(bufferType: BufferType?): String? = when (bufferType) {
+            BufferType.ForwardDuration -> "forwardDuration"
+            BufferType.BackwardDuration -> "backwardDuration"
+            else -> null
+        }
+
                 putDouble("level", bufferLevel.level)
                 putDouble("targetLevel", bufferLevel.targetLevel)
                 putInt(
@@ -1210,17 +1222,15 @@ class JsonConverter {
         }
 
         /**
-         * Maps an integer value into the corresponding [BufferType] value.
-         *
-         * Currently `0` is mapped to [BufferType.ForwardDuration], and `1` to [BufferType.BackwardDuration].
-         * Other values fall back to [BufferType.ForwardDuration]
-         * @param value Integer value representing the [BufferType].
-         * @return The [BufferType] corresponding to [value].
+         * Maps a JS string into the corresponding [BufferType] value.
+         * If the string is not recognized, it returns [BufferType.ForwardDuration].
+         * @param json JS string representing the [BufferType].
+         * @return The [BufferType] corresponding to [json].
          */
         @JvmStatic
-        fun toBufferType(value: Int?): BufferType = when (value) {
-            0 -> BufferType.ForwardDuration
-            1 -> BufferType.BackwardDuration
+        fun toBufferType(json: String?): BufferType = when (json) {
+            "forwardDuration" -> BufferType.ForwardDuration
+            "backwardDuration" -> BufferType.BackwardDuration
             else -> BufferType.ForwardDuration
         }
     }

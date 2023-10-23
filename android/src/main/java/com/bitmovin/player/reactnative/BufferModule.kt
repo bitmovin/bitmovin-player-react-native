@@ -14,13 +14,13 @@ class BufferModule(private val context: ReactApplicationContext) : ReactContextB
     override fun getName() = MODULE_NAME
 
     /**
-     * Gets the [buffer level][BufferLevel] from the Player
+     * Gets the [BufferLevel] from the Player
      * @param nativeId Target player id.
      * @param type The [type of buffer][JsonConverter.toBufferType] to return the level for.
      * @param promise JS promise object.
      */
     @ReactMethod
-    fun getLevel(nativeId: NativeId, type: Int, promise: Promise) {
+    fun getLevel(nativeId: NativeId, type: String, promise: Promise) {
         uiManager()?.addUIBlock { _ ->
             val player = playerModule()?.getPlayer(nativeId) ?: return@addUIBlock
             val bufferType = JsonConverter.toBufferType(type)
@@ -37,11 +37,11 @@ class BufferModule(private val context: ReactApplicationContext) : ReactContextB
     /**
      * Sets the target buffer level for the chosen buffer type across all media types.
      * @param nativeId Target player id.
-     * @param type The type of the buffer to set the target level for.
+     * @param type The [type of buffer][JsonConverter.toBufferType] to set the target level for.
      * @param value The value to set.
      */
     @ReactMethod
-    fun setTargetLevel(nativeId: NativeId, type: Int, value: Double) {
+    fun setTargetLevel(nativeId: NativeId, type: String, value: Double) {
         uiManager()?.addUIBlock { _ ->
             val player = playerModule()?.getPlayer(nativeId) ?: return@addUIBlock
             val bufferType = JsonConverter.toBufferType(type)
