@@ -1174,13 +1174,12 @@ class JsonConverter {
         /**
          * Converts any [MediaType] value into its json representation.
          * @param mediaType [MediaType] value.
-         * @return The produced JS string, or `null` if not recognized.
+         * @return The produced JS string.
          */
         @JvmStatic
-        fun fromMediaType(mediaType: MediaType?): String? = when (mediaType) {
+        fun fromMediaType(mediaType: MediaType): String = when (mediaType) {
             MediaType.Audio -> "audio"
             MediaType.Video -> "video"
-            else -> null
         }
 
         /**
