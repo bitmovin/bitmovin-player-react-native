@@ -1218,7 +1218,6 @@ class JsonConverter {
 
         /**
          * Maps a JS string into the corresponding [BufferType] value.
-         * If the string is not recognized, it returns [BufferType.ForwardDuration].
          * @param json JS string representing the [BufferType].
          * @return The [BufferType] corresponding to [json], or `null` if the conversion fails.
          */
@@ -1231,7 +1230,6 @@ class JsonConverter {
 
         /**
          * Maps a JS string into the corresponding [MediaType] value.
-         * If the string is not recognized, it returns [MediaType.Audio].
          * @param json JS string representing the [MediaType].
          * @return The [MediaType] corresponding to [json], or `null` if the conversion fails.
          */
