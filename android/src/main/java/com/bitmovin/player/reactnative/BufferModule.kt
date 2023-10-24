@@ -24,6 +24,10 @@ class BufferModule(private val context: ReactApplicationContext) : ReactContextB
         uiManager()?.addUIBlock { _ ->
             val player = playerModule()?.getPlayer(nativeId) ?: return@addUIBlock
             val bufferType = JsonConverter.toBufferType(type)
+            if (bufferType == null) {
+                promise.reject("Error: ", "Invalid buffer type")
+                return@addUIBlock
+            }
             val bufferLevels = RNBufferLevels(
                 player.buffer.getLevel(bufferType, MediaType.Audio),
                 player.buffer.getLevel(bufferType, MediaType.Video),
@@ -44,7 +48,7 @@ class BufferModule(private val context: ReactApplicationContext) : ReactContextB
     fun setTargetLevel(nativeId: NativeId, type: String, value: Double) {
         uiManager()?.addUIBlock { _ ->
             val player = playerModule()?.getPlayer(nativeId) ?: return@addUIBlock
-            val bufferType = JsonConverter.toBufferType(type)
+            val bufferType = JsonConverter.toBufferType(type) ?: return@addUIBlock
             player.buffer.setTargetLevel(bufferType, value)
         }
     }

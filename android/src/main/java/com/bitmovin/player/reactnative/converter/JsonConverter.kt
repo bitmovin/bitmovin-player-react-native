@@ -1220,26 +1220,26 @@ class JsonConverter {
          * Maps a JS string into the corresponding [BufferType] value.
          * If the string is not recognized, it returns [BufferType.ForwardDuration].
          * @param json JS string representing the [BufferType].
-         * @return The [BufferType] corresponding to [json].
+         * @return The [BufferType] corresponding to [json], or `null` if the conversion fails.
          */
         @JvmStatic
-        fun toBufferType(json: String?): BufferType = when (json) {
+        fun toBufferType(json: String?): BufferType? = when (json) {
             "forwardDuration" -> BufferType.ForwardDuration
             "backwardDuration" -> BufferType.BackwardDuration
-            else -> BufferType.ForwardDuration
+            else -> null
         }
 
         /**
          * Maps a JS string into the corresponding [MediaType] value.
          * If the string is not recognized, it returns [MediaType.Audio].
          * @param json JS string representing the [MediaType].
-         * @return The [MediaType] corresponding to [json].
+         * @return The [MediaType] corresponding to [json], or `null` if the conversion fails.
          */
         @JvmStatic
-        fun toMediaType(json: String?): MediaType = when (json) {
+        fun toMediaType(json: String?): MediaType? = when (json) {
             "audio" -> MediaType.Audio
             "video" -> MediaType.Video
-            else -> MediaType.Audio
+            else -> null
         }
     }
 }
