@@ -646,3 +646,82 @@ export interface CastWaitingForDeviceEvent extends Event {
    */
   castPayload: CastPayload;
 }
+
+/**
+ * Available HTTP request types.
+ */
+export enum HttpRequestType {
+  /**
+   * @platform Android
+   */
+  ManifestDash = 'manifest/dash',
+  ManifestHlsMaster = 'manifest/hls/master',
+  ManifestHlsVariant = 'manifest/hls/variant',
+  /**
+   * @platform Android
+   */
+  ManifestSmooth = 'manifest/smooth',
+  /**
+   * @platform Android
+   */
+  MediaProgressive = 'media/progressive',
+  /**
+   * @platform Android
+   */
+  MediaAudio = 'media/audio',
+  /**
+   * @platform Android
+   */
+  MediaVideo = 'media/video',
+  MediaSubtitles = 'media/subtitles',
+  MediaThumbnails = 'media/thumbnails',
+  /**
+   * @platform iOS
+   */
+  DrmLicenseFairplay = 'drm/license/fairplay',
+  /**
+   * @platform iOS
+   */
+  DrmCertificateFairplay = 'drm/certificate/fairplay',
+  /**
+   * @platform Android
+   */
+  DrmLicenseWidevine = 'drm/license/widevine',
+  KeyHlsAes = 'key/hls/aes',
+  Unknown = 'unknown',
+}
+
+/**
+ * Emitted when a download was finished.
+ */
+export interface DownloadFinishedEvent extends Event {
+  /**
+   * The time needed to finish the request, in seconds.
+   */
+  downloadTime: number;
+  /**
+   * Which type of request this was.
+   */
+  requestType: HttpRequestType;
+  /**
+   * The HTTP status code of the request.
+   * If opening the connection failed, a value of `0` is returned.
+   */
+  httpStatus: number;
+  /**
+   * If the download was successful.
+   */
+  isSuccess: boolean;
+  /**
+   * The last redirect location, or `null` if no redirect happened.
+   */
+  lastRedirectLocation?: String;
+  /**
+   * The size of the downloaded data, in bytes.
+   */
+  size: number;
+  /**
+   * The URL of the request.
+   */
+  url: String;
+}
