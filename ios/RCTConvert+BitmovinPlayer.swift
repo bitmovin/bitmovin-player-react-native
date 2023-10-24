@@ -1154,18 +1154,17 @@ extension RCTConvert {
 
     /**
      * Maps a JS string into the corresponding `BufferType` value.
-     * If the string is not recognized, it returns `BufferType.forwardDuration`.
      * - Parameter json: JS string representing the `BufferType`.
-     * - Returns: The `BufferType` corresponding to `json`
+     * - Returns: The `BufferType` corresponding to `json`, or `nil` if the conversion fails.
      */
-    static func bufferType(_ json: String) -> BufferType {
+    static func bufferType(_ json: String) -> BufferType? {
         switch json {
         case "forwardDuration":
             return .forwardDuration
         case "backwardDuration":
             return .backwardDuration
         default:
-            return .forwardDuration
+            return nil
         }
     }
 

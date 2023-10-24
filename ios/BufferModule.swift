@@ -44,7 +44,10 @@ public class BufferModule: NSObject, RCTBridgeModule {
                 reject("[BufferModule]", "Could not find player with ID (\(playerId))", nil)
                 return
             }
-            let bufferType = RCTConvert.bufferType(type)
+            guard let bufferType = RCTConvert.bufferType(type) else {
+                reject("[BufferModule]", "Invalid buffer type: (\(type))", nil)
+                return
+            }
             let level = bufferApi.getLevel(bufferType)
             let bufferLevels = RNBufferLevels(audio: level, video: level)
             resolve(RCTConvert.toJson(bufferLevels: bufferLevels))
