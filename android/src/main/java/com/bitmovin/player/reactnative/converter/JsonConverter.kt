@@ -32,6 +32,7 @@ import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
+import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.Source
@@ -558,6 +559,18 @@ class JsonConverter {
                 is SourceEvent.SubtitleTrackChanged -> {
                     json.putMap("oldSubtitleTrack", fromSubtitleTrack(event.oldSubtitleTrack))
                     json.putMap("newSubtitleTrack", fromSubtitleTrack(event.newSubtitleTrack))
+                }
+
+                is SourceEvent.DownloadFinished -> {
+                    json.putDouble("downloadTime", event.downloadTime)
+                    json.putString("requestType", event.downloadType.toString())
+                    json.putInt("httpStatus", event.httpStatus)
+                    json.putBoolean("isSuccess", event.isSuccess)
+                    event.lastRedirectLocation?.let {
+                        json.putString("lastRedirectLocation", it)
+                    }
+                    json.putDouble("size", event.size.toDouble())
+                    json.putString("url", event.url)
                 }
 
                 else -> {
