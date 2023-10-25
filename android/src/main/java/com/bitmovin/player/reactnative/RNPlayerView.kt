@@ -51,6 +51,7 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
     SourceEvent.AudioTrackAdded::class to "audioAdded",
     SourceEvent.AudioTrackChanged::class to "audioChanged",
     SourceEvent.AudioTrackRemoved::class to "audioRemoved",
+    SourceEvent.DownloadFinished::class to "downloadFinished",
     PlayerEvent.AdBreakFinished::class to "adBreakFinished",
     PlayerEvent.AdBreakStarted::class to "adBreakStarted",
     PlayerEvent.AdClicked::class to "adClicked",
