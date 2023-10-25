@@ -32,7 +32,6 @@ import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
-import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.Source

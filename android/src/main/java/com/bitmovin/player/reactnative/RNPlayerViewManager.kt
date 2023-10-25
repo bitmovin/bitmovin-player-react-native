@@ -5,7 +5,6 @@ import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
-import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.reactnative.converter.JsonConverter
