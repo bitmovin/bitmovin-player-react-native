@@ -364,16 +364,19 @@ extension CastWaitingForDeviceEvent {
 
 extension DownloadFinishedEvent {
     func toJSON() -> [AnyHashable: Any] {
-         [
+        var json: [AnyHashable: Any] = [
             "name": name,
             "timestamp": timestamp,
             "downloadTime": downloadTime,
             "requestType": requestType.rawValue,
             "httpStatus": httpStatus,
-            "lastRedirectLocation": lastRedirectLocation?.absoluteString,
             "isSuccess": successful,
             "size": size,
             "url": url.absoluteString
-         ]
+        ]
+        if let lastRedirectLocation {
+            json["lastRedirectLocation"] = lastRedirectLocation.absoluteString
+        }
+        return json
     }
 }
