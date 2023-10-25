@@ -4,6 +4,7 @@
 
 ### Added
 
+- `LiveConfig.minTimeshiftBufferDepth` to control the minimum buffer depth of a stream needed to enable time shifting.
 - `Player.buffer` to control buffer preferences and to query the current buffer state
 
 ## [0.13.0] (2023-10-20)
@@ -13,11 +14,11 @@
 - API Reference now can be found [here](https://cdn.bitmovin.com/player/reactnative/0/docs/index.html)
 - `PlayerViewConfig` with a `UiConfig` to the `PlayerView` to enable configuration of the visual presentation and behaviour
 - `PictureInPictureConfig` to `PlayerViewConfig` to allow configuring the Picture in Picture behavior
-- `PictureInPictureConfig.isEnabled` to enable configing if Picture in Picture is enabled
+- `PictureInPictureConfig.isEnabled` to enable configuring if Picture in Picture is enabled
 - `PictureInPictureConfig.shouldEnterOnBackground` to start Picture in Picture automatically when the app transitions to background
 - `onPictureInPictureAvailabilityChanged` event is now emitted on iOS and tvOS in addition to Android
 - `BufferConfig` to configure player buffer depth
-- `PlayerView.isPictureInPictureRequested` to programatically create a Picture in Picture request
+- `PlayerView.isPictureInPictureRequested` to programmatically create a Picture in Picture request
 - `PlayerView.scalingMode` to allow changing the video scaling mode
 
 ### Changed

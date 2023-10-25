@@ -36,6 +36,9 @@ extension RCTConvert {
         if let bufferConfig = RCTConvert.bufferConfig(json["bufferConfig"]) {
             playerConfig.bufferConfig = bufferConfig
         }
+        if let liveConfig = RCTConvert.liveConfig(json["liveConfig"]) {
+            playerConfig.liveConfig = liveConfig
+        }
 #if os(iOS)
         if let remoteControlConfig = RCTConvert.remoteControlConfig(json["remoteControlConfig"]) {
             playerConfig.remoteControlConfig = remoteControlConfig
@@ -189,6 +192,22 @@ extension RCTConvert {
             bufferConfig.audioAndVideo = bufferMediaTypeConfig
         }
         return bufferConfig
+    }
+
+    /**
+     Utility method to instantiate a `LiveConfig` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `LiveConfig` object, or `nil` if `json` is not valid.
+     */
+    static func liveConfig(_ json: Any?) -> LiveConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let liveConfig = LiveConfig()
+        if let minTimeshiftBufferDepth = json["minTimeshiftBufferDepth"] as? NSNumber {
+            liveConfig.minTimeshiftBufferDepth = minTimeshiftBufferDepth.doubleValue
+        }
+        return liveConfig
     }
 
     /**
