@@ -26,6 +26,7 @@ import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.CastPayload
 import com.bitmovin.player.api.event.data.SeekPosition
+import com.bitmovin.player.api.live.LiveConfig
 import com.bitmovin.player.api.media.AdaptationConfig
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
@@ -114,6 +115,11 @@ class JsonConverter {
             if (json.hasKey("bufferConfig")) {
                 toBufferConfig(json.getMap("bufferConfig"))?.let {
                     playerConfig.bufferConfig = it
+                }
+            }
+            if (json.hasKey("liveConfig")) {
+                toLiveConfig(json.getMap("liveConfig"))?.let {
+                    playerConfig.liveConfig = it
                 }
             }
             return playerConfig
@@ -1169,6 +1175,23 @@ class JsonConverter {
             playerViewConfig = toPlayerViewConfig(json),
             pictureInPictureConfig = toPictureInPictureConfig(json.getMap("pictureInPictureConfig")),
         )
+
+        /**
+         * Converts any JS object into a [LiveConfig] object.
+         * @param json JS object representing the [LiveConfig].
+         * @return The generated [LiveConfig] if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toLiveConfig(json: ReadableMap?): LiveConfig? {
+            if (json == null) {
+                return null
+            }
+            val liveConfig = LiveConfig()
+            if (json.hasKey("minTimeshiftBufferDepth")) {
+                liveConfig.minTimeShiftBufferDepth = json.getDouble("minTimeshiftBufferDepth")
+            }
+            return liveConfig
+        }
     }
 }
 
