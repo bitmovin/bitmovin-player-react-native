@@ -19,7 +19,9 @@ import com.bitmovin.player.api.advertising.AdSource
 import com.bitmovin.player.api.advertising.AdSourceType
 import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.buffer.BufferConfig
+import com.bitmovin.player.api.buffer.BufferLevel
 import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
+import com.bitmovin.player.api.buffer.BufferType
 import com.bitmovin.player.api.casting.RemoteControlConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
@@ -28,6 +30,7 @@ import com.bitmovin.player.api.event.data.CastPayload
 import com.bitmovin.player.api.event.data.SeekPosition
 import com.bitmovin.player.api.live.LiveConfig
 import com.bitmovin.player.api.media.AdaptationConfig
+import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
@@ -45,6 +48,7 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
+import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
@@ -58,10 +62,7 @@ import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.extensions.toReadableArray
 import com.bitmovin.player.reactnative.extensions.toReadableMap
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.*
 import java.util.UUID
 
 /**
@@ -1191,6 +1192,74 @@ class JsonConverter {
                 liveConfig.minTimeShiftBufferDepth = json.getDouble("minTimeshiftBufferDepth")
             }
             return liveConfig
+        }
+
+        /**
+         * Converts any [MediaType] value into its json representation.
+         * @param mediaType [MediaType] value.
+         * @return The produced JS string.
+         */
+        @JvmStatic
+        fun fromMediaType(mediaType: MediaType): String = when (mediaType) {
+            MediaType.Audio -> "audio"
+            MediaType.Video -> "video"
+        }
+
+        /**
+         * Converts any [BufferType] value into its json representation.
+         * @param bufferType [BufferType] value.
+         * @return The produced JS string.
+         */
+        @JvmStatic
+        fun fromBufferType(bufferType: BufferType): String = when (bufferType) {
+            BufferType.ForwardDuration -> "forwardDuration"
+            BufferType.BackwardDuration -> "backwardDuration"
+        }
+
+        @JvmStatic
+        fun fromBufferLevel(bufferLevel: BufferLevel): WritableMap =
+            Arguments.createMap().apply {
+                putDouble("level", bufferLevel.level)
+                putDouble("targetLevel", bufferLevel.targetLevel)
+                putString(
+                    "media",
+                    fromMediaType(bufferLevel.media),
+                )
+                putString(
+                    "type",
+                    fromBufferType(bufferLevel.type),
+                )
+            }
+
+        @JvmStatic
+        fun fromRNBufferLevels(bufferLevels: RNBufferLevels): WritableMap =
+            Arguments.createMap().apply {
+                putMap("audio", fromBufferLevel(bufferLevels.audio))
+                putMap("video", fromBufferLevel(bufferLevels.video))
+            }
+
+        /**
+         * Maps a JS string into the corresponding [BufferType] value.
+         * @param json JS string representing the [BufferType].
+         * @return The [BufferType] corresponding to [json], or `null` if the conversion fails.
+         */
+        @JvmStatic
+        fun toBufferType(json: String?): BufferType? = when (json) {
+            "forwardDuration" -> BufferType.ForwardDuration
+            "backwardDuration" -> BufferType.BackwardDuration
+            else -> null
+        }
+
+        /**
+         * Maps a JS string into the corresponding [MediaType] value.
+         * @param json JS string representing the [MediaType].
+         * @return The [MediaType] corresponding to [json], or `null` if the conversion fails.
+         */
+        @JvmStatic
+        fun toMediaType(json: String?): MediaType? = when (json) {
+            "audio" -> MediaType.Audio
+            "video" -> MediaType.Video
+            else -> null
         }
     }
 }
