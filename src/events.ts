@@ -704,6 +704,11 @@ export interface DownloadFinishedEvent extends Event {
    */
   requestType: HttpRequestType;
   /**
+   * Which type of request this was, as string.
+   * @platform iOS
+   */
+  downloadType: String;
+  /**
    * The HTTP status code of the request.
    * If opening the connection failed, a value of `0` is returned.
    */
