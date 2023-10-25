@@ -370,10 +370,10 @@ extension DownloadFinishedEvent {
             "downloadTime": downloadTime,
             "requestType": requestType.rawValue,
             "httpStatus": httpStatus,
-            "lastRedirectLocation": lastRedirectLocation,
+            "lastRedirectLocation": lastRedirectLocation?.absoluteString,
             "isSuccess": successful,
             "size": size,
-            "url": url
+            "url": url.absoluteString
          ]
     }
 }
