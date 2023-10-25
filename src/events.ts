@@ -651,41 +651,17 @@ export interface CastWaitingForDeviceEvent extends Event {
  * Available HTTP request types.
  */
 export enum HttpRequestType {
-  /**
-   * @platform Android
-   */
   ManifestDash = 'manifest/dash',
   ManifestHlsMaster = 'manifest/hls/master',
   ManifestHlsVariant = 'manifest/hls/variant',
-  /**
-   * @platform Android
-   */
   ManifestSmooth = 'manifest/smooth',
-  /**
-   * @platform Android
-   */
   MediaProgressive = 'media/progressive',
-  /**
-   * @platform Android
-   */
   MediaAudio = 'media/audio',
-  /**
-   * @platform Android
-   */
   MediaVideo = 'media/video',
   MediaSubtitles = 'media/subtitles',
   MediaThumbnails = 'media/thumbnails',
-  /**
-   * @platform iOS
-   */
   DrmLicenseFairplay = 'drm/license/fairplay',
-  /**
-   * @platform iOS
-   */
   DrmCertificateFairplay = 'drm/certificate/fairplay',
-  /**
-   * @platform Android
-   */
   DrmLicenseWidevine = 'drm/license/widevine',
   KeyHlsAes = 'key/hls/aes',
   Unknown = 'unknown',
@@ -703,11 +679,6 @@ export interface DownloadFinishedEvent extends Event {
    * Which type of request this was.
    */
   requestType: HttpRequestType;
-  /**
-   * Which type of request this was, as string.
-   * @platform iOS
-   */
-  downloadType: String;
   /**
    * The HTTP status code of the request.
    * If opening the connection failed, a value of `0` is returned.
