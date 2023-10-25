@@ -60,6 +60,7 @@ import {
   TimeChangedEvent,
   UnmutedEvent,
   VideoPlaybackQualityChangedEvent,
+  DownloadFinishedEvent,
 } from '../../events';
 
 /**
@@ -346,6 +347,10 @@ interface EventProps {
    * Emitted when the current video playback quality has changed.
    */
   onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
+  /**
+   * Emitted when a download was finished.
+   */
+  onDownloadFinished: DownloadFinishedEvent;
 }
 
 /**
