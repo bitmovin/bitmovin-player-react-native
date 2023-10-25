@@ -361,3 +361,25 @@ extension CastWaitingForDeviceEvent {
     }
 }
 #endif
+
+extension DownloadFinishedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        var json: [AnyHashable: Any] = [
+            "name": name,
+            "timestamp": timestamp,
+            "downloadTime": downloadTime,
+            "requestType": requestType,
+            "downloadType": requestType.rawValue,
+            "httpStatus": httpStatus,
+            "isSuccess": successful,
+            "size": size,
+            "url": url
+        ]
+
+        if let lastRedirectLocation {
+            json["lastRedirectLocation"] = lastRedirectLocation
+        }
+
+        return json
+    }
+}
