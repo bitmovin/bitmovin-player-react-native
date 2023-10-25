@@ -1,5 +1,3 @@
-import { MakeRequired } from './utils';
-
 /**
  * Supported subtitle/caption file formats.
  */
@@ -10,7 +8,7 @@ export enum SubtitleFormat {
 }
 
 /**
- * Represents a custom subtitle track source that can be added to `SourceConfig.subtitleTracks`.
+ * Describes a subtitle track.
  */
 export interface SubtitleTrack {
   /**
@@ -48,13 +46,12 @@ export interface SubtitleTrack {
 }
 
 /**
- * Helper type that represents an entry in `SourceConfig.subtitleTracks` list.
+ * A subtitle track that can be added to `SourceConfig.subtitleTracks`.
  *
- * Since `SubtitleTrack` has all of its properties as optionals for total compatibility with
- * values that may be sent from native code, this type serves as a reinforcer of what properties
- * should be required during the registration of an external subtitle track from JS.
  */
-export type SideLoadedSubtitleTrack = MakeRequired<
-  SubtitleTrack,
-  'url' | 'label' | 'language' | 'format'
->;
+export interface SideLoadedSubtitleTrack extends SubtitleTrack {
+  url: string;
+  label: string;
+  language: string;
+  format: SubtitleFormat;
+}

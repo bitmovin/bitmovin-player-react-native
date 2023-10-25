@@ -1,10 +1,9 @@
-import {
-  OfflineContentOptions,
-  OfflineOptionEntryState,
-} from './offlineContentOptions';
+import { OfflineContentOptions } from './offlineContentOptions';
+import { OfflineState } from './offlineState';
 
 /**
  * Enum to hold the `eventType` on the `BitmovinNativeOfflineEventData`
+ * @platform Android, iOS
  */
 export enum OfflineEventType {
   onCompleted = 'onCompleted',
@@ -18,6 +17,10 @@ export enum OfflineEventType {
   onCanceled = 'onCanceled',
 }
 
+/**
+ * The base interface for all offline events.
+ * @platform Android, iOS
+ */
 export interface OfflineEvent<T extends OfflineEventType> {
   /**
    * The native id associated with the `OfflineContentManager` emitting this event
@@ -31,10 +34,15 @@ export interface OfflineEvent<T extends OfflineEventType> {
    * The `OfflineEventType` that correlates to which native `OfflineContentManagerListener` method was called.
    */
   eventType: T;
+  /**
+   * The current offline download state
+   */
+  state: OfflineState;
 }
 
 /**
- * BitmovinOfflineEvent for when the download process has completed.
+ * Emitted when the download process has completed.
+ * @platform Android, iOS
  */
 export interface OnCompletedEvent
   extends OfflineEvent<OfflineEventType.onCompleted> {
@@ -42,14 +50,11 @@ export interface OnCompletedEvent
    * The options that are available to download
    */
   options?: OfflineContentOptions;
-  /**
-   * The current offline download state
-   */
-  state: OfflineOptionEntryState;
 }
 
 /**
- * BitmovinOfflineEvent for when an error has occurred.
+ * Emitted when an error has occurred.
+ * @platform Android, iOS
  */
 export interface OnErrorEvent extends OfflineEvent<OfflineEventType.onError> {
   /**
@@ -63,7 +68,8 @@ export interface OnErrorEvent extends OfflineEvent<OfflineEventType.onError> {
 }
 
 /**
- * BitmovinOfflineEvent for when there is a progress change for the process call.
+ * Emitted when there is a progress change for the process call.
+ * @platform Android, iOS
  */
 export interface OnProgressEvent
   extends OfflineEvent<OfflineEventType.onProgress> {
@@ -74,7 +80,8 @@ export interface OnProgressEvent
 }
 
 /**
- * BitmovinOfflineEvent for when the `OfflineContentOptions` is available after a `OfflineContentManager.getOptions` call.
+ * Emitted when the `OfflineContentOptions` is available after a `OfflineContentManager.getOptions` call.
+ * @platform Android, iOS
  */
 export interface OnOptionsAvailableEvent
   extends OfflineEvent<OfflineEventType.onOptionsAvailable> {
@@ -82,46 +89,46 @@ export interface OnOptionsAvailableEvent
    * The options that are available to download
    */
   options?: OfflineContentOptions;
-  /**
-   * The current offline download state
-   */
-  state: OfflineOptionEntryState;
 }
 
 /**
- * BitmovinOfflineEvent for when the DRM license was updated.
+ * Emitted when the DRM license was updated.
+ * @platform Android, iOS
  */
 export interface OnDrmLicenseUpdatedEvent
   extends OfflineEvent<OfflineEventType.onDrmLicenseUpdated> {}
 
 /**
- * BitmovinOfflineEvent for when the DRM license has expired.
- * (iOS only)
+ * Emitted when the DRM license has expired.
+ * @platform iOS
  */
 export interface OnDrmLicenseExpiredEvent
   extends OfflineEvent<OfflineEventType.onDrmLicenseExpired> {}
 
 /**
- * BitmovinOfflineEvent for when all active actions have been suspended.
+ * Emitted when all active actions have been suspended.
+ * @platform Android, iOS
  */
 export interface OnSuspendedEvent
   extends OfflineEvent<OfflineEventType.onSuspended> {}
 
 /**
- * BitmovinOfflineEvent for when all actions have been resumed.
+ * Emitted when all actions have been resumed.
+ * @platform Android, iOS
  */
 export interface OnResumedEvent
   extends OfflineEvent<OfflineEventType.onResumed> {}
 
 /**
- * BitmovinOfflineEvent for when the download of the media content was cancelled by the user and all partially downloaded content has been deleted from disk.
- * (iOS only)
+ * Emitted when the download of the media content was canceled by the user and all partially downloaded content has been deleted from disk.
+ * @platform Android, iOS
  */
 export interface OnCanceledEvent
   extends OfflineEvent<OfflineEventType.onCanceled> {}
 
 /**
  * The type aggregation for all possible native offline events received from the `DeviceEventEmitter`
+ * @platform Android, iOS
  */
 export type BitmovinNativeOfflineEventData =
   | OnCompletedEvent
@@ -136,44 +143,61 @@ export type BitmovinNativeOfflineEventData =
 
 /**
  * The listener that can be passed to the `OfflineContentManager` to receive callbacks for different events.
+ * @platform Android, iOS
  */
 export interface OfflineContentManagerListener {
+  /**
+   * Emitted when the download process has completed.
+   *
+   * @param e The `OnCompletedEvent` that was emitted
+   */
   onCompleted?: (e: OnCompletedEvent) => void;
+  /**
+   * Emitted when an error has occurred.
+   *
+   * @param e The `OnErrorEvent` that was emitted
+   */
   onError?: (e: OnErrorEvent) => void;
+  /**
+   * Emitted when there is a progress change for the process call.
+   *
+   * @param e The `OnProgressEvent` that was emitted
+   */
   onProgress?: (e: OnProgressEvent) => void;
+  /**
+   * Emitted when the `OfflineContentOptions` is available after a `OfflineContentManager.getOptions` call.
+   *
+   * @param e The `OnOptionsAvailableEvent` that was emitted
+   */
   onOptionsAvailable?: (e: OnOptionsAvailableEvent) => void;
+  /**
+   * Emitted when the DRM license was updated.
+   *
+   * @param e The `OnDrmLicenseUpdatedEvent` that was emitted
+   */
   onDrmLicenseUpdated?: (e: OnDrmLicenseUpdatedEvent) => void;
+  /**
+   * Emitted when the DRM license has expired.
+   *
+   * @param e The `OnDrmLicenseExpiredEvent` that was emitted
+   */
   onDrmLicenseExpired?: (e: OnDrmLicenseExpiredEvent) => void;
+  /**
+   * Emitted when all active actions have been suspended.
+   *
+   * @param e The `OnSuspendedEvent` that was emitted
+   */
   onSuspended?: (e: OnSuspendedEvent) => void;
+  /**
+   * Emitted when all actions have been resumed.
+   *
+   * @param e The `OnResumedEvent` that was emitted
+   */
   onResumed?: (e: OnResumedEvent) => void;
+  /**
+   * Emitted when the download of the media content was canceled by the user and all partially downloaded content has been deleted from disk.
+   *
+   * @param e The `OnCanceledEvent` that was emitted
+   */
   onCanceled?: (e: OnCanceledEvent) => void;
 }
-
-export const handleBitmovinNativeOfflineEvent = (
-  data: BitmovinNativeOfflineEventData,
-  listeners: Set<OfflineContentManagerListener>
-) => {
-  listeners.forEach((listener) => {
-    if (!listener) return;
-
-    if (data.eventType === OfflineEventType.onCompleted) {
-      listener.onCompleted?.(data);
-    } else if (data.eventType === OfflineEventType.onError) {
-      listener.onError?.(data);
-    } else if (data.eventType === OfflineEventType.onProgress) {
-      listener.onProgress?.(data);
-    } else if (data.eventType === OfflineEventType.onOptionsAvailable) {
-      listener.onOptionsAvailable?.(data);
-    } else if (data.eventType === OfflineEventType.onDrmLicenseUpdated) {
-      listener.onDrmLicenseUpdated?.(data);
-    } else if (data.eventType === OfflineEventType.onDrmLicenseExpired) {
-      listener.onDrmLicenseExpired?.(data);
-    } else if (data.eventType === OfflineEventType.onSuspended) {
-      listener.onSuspended?.(data);
-    } else if (data.eventType === OfflineEventType.onResumed) {
-      listener.onResumed?.(data);
-    } else if (data.eventType === OfflineEventType.onCanceled) {
-      listener.onCanceled?.(data);
-    }
-  });
-};

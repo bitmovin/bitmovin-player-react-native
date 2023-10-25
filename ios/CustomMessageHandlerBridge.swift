@@ -1,6 +1,6 @@
 import BitmovinPlayer
 
-class CustomMessageHandlerBridge: NSObject {
+internal class CustomMessageHandlerBridge: NSObject {
 #if os(iOS)
     private(set) lazy var customMessageHandler: CustomMessageHandler = {
         let customMessageHandler = CustomMessageHandler()
@@ -21,11 +21,19 @@ class CustomMessageHandlerBridge: NSObject {
     }
 
     func receivedSynchronousMessage(_ message: String, withData data: String?) -> String? {
-        bridge[CustomMessageHandlerModule.self]?.receivedSynchronousMessage(nativeId: nativeId, message: message, withData: data)
+        bridge[CustomMessageHandlerModule.self]?.receivedSynchronousMessage(
+            nativeId: nativeId,
+            message: message,
+            withData: data
+        )
     }
 
     func receivedAsynchronousMessage(_ message: String, withData data: String?) {
-        bridge[CustomMessageHandlerModule.self]?.receivedAsynchronousMessage(nativeId: nativeId, message: message, withData: data)
+        bridge[CustomMessageHandlerModule.self]?.receivedAsynchronousMessage(
+            nativeId: nativeId,
+            message: message,
+            withData: data
+        )
     }
 
     func sendMessage(_ message: String, withData data: String?) {

@@ -1,6 +1,10 @@
 package com.bitmovin.player.reactnative
 
+import android.util.Log
+import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
+import com.bitmovin.player.api.analytics.create
+import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
@@ -51,9 +55,40 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Creates a new `Player` instance inside the internal players using the provided `playerConfig` and `analyticsConfig`.
+     * @param playerConfigJson `PlayerConfig` object received from JS.
+     * @param analyticsConfigJson `AnalyticsConfig` object received from JS.
+     */
+    @ReactMethod
+    fun initWithAnalyticsConfig(nativeId: NativeId, playerConfigJson: ReadableMap?, analyticsConfigJson: ReadableMap?) {
+        uiManager()?.addUIBlock {
+            if (players.containsKey(nativeId)) {
+                Log.d("[PlayerModule]", "Duplicate player creation for id $nativeId")
+                return@addUIBlock
+            }
+            val playerConfig = JsonConverter.toPlayerConfig(playerConfigJson)
+            val analyticsConfig = JsonConverter.toAnalyticsConfig(analyticsConfigJson)
+            val defaultMetadata = JsonConverter.toAnalyticsDefaultMetadata(
+                analyticsConfigJson?.getMap("defaultMetadata"),
+            )
+
+            players[nativeId] = if (analyticsConfig == null) {
+                Player.create(context, playerConfig)
+            } else {
+                Player.create(
+                    context = context,
+                    playerConfig = playerConfig,
+                    analyticsConfig = analyticsConfig,
+                    defaultMetadata = defaultMetadata ?: DefaultMetadata(),
+                )
+            }
+        }
+    }
+
+    /**
      * Load the source of the given `nativeId` with `config` options from JS.
      * @param nativeId Target player.
-     * @param config Source configuration options from JS.
+     * @param sourceNativeId Target source.
      */
     @ReactMethod
     fun loadSource(nativeId: NativeId, sourceNativeId: String) {
@@ -67,13 +102,13 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     /**
      * Load the `offlineSourceConfig` for the player with `nativeId` and offline source module with `offlineModuleNativeId`.
      * @param nativeId Target player.
-     * @param nativeId Target offline module.
-     * @param config Source configuration options from JS.
+     * @param offlineContentManagerBridgeId Target offline module.
+     * @param options Source configuration options from JS.
      */
     @ReactMethod
-    fun loadOfflineSource(nativeId: NativeId, offlineContentManagerHolderNativeId: String) {
+    fun loadOfflineContent(nativeId: NativeId, offlineContentManagerBridgeId: String, options: ReadableMap?) {
         uiManager()?.addUIBlock {
-            val offlineSourceConfig = offlineModule()?.getOfflineContentManagerHolder(offlineContentManagerHolderNativeId)
+            val offlineSourceConfig = offlineModule()?.getOfflineContentManagerBridge(offlineContentManagerBridgeId)
                 ?.offlineContentManager?.offlineSourceConfig
 
             if (offlineSourceConfig != null) {
@@ -326,6 +361,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Resolve `nativeId`'s currently selected audio track.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getAudioTrack(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromAudioTrack(players[nativeId]?.source?.selectedAudioTrack))
+        }
+    }
+
+    /**
      * Resolve `nativeId`'s player available audio tracks.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
@@ -354,6 +401,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
         uiManager()?.addUIBlock {
             players[nativeId]?.source?.setAudioTrack(trackIdentifier)
             promise.resolve(null)
+        }
+    }
+
+    /**
+     * Resolve `nativeId`'s currently selected subtitle track.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getSubtitleTrack(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromSubtitleTrack(players[nativeId]?.source?.selectedSubtitleTrack))
         }
     }
 
@@ -448,6 +507,74 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     fun getMaxTimeShift(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
             promise.resolve(players[nativeId]?.maxTimeShift)
+        }
+    }
+
+    /**
+     * Sets the max selectable bitrate for the player.
+     * @param nativeId Target player id.
+     * @param maxSelectableBitrate The desired max bitrate limit.
+     */
+    @ReactMethod
+    fun setMaxSelectableBitrate(nativeId: NativeId, maxSelectableBitrate: Int) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.setMaxSelectableVideoBitrate(
+                maxSelectableBitrate.takeUnless { it == -1 } ?: Integer.MAX_VALUE,
+            )
+        }
+    }
+
+    /**
+     * Returns the thumbnail image for the active `Source` at a certain time.
+     * @param nativeId Target player id.
+     * @param time Playback time for the thumbnail.
+     */
+    @ReactMethod
+    fun getThumbnail(nativeId: NativeId, time: Double, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromThumbnail(players[nativeId]?.source?.getThumbnail(time)))
+        }
+    }
+
+    /**
+     * Initiates casting the current video to a cast-compatible remote device. The user has to choose to which device it
+     * should be sent.
+     */
+    @ReactMethod
+    fun castVideo(nativeId: NativeId) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.castVideo()
+        }
+    }
+
+    /**
+     * Stops casting the current video. Has no effect if [isCasting] is false.
+     */
+    @ReactMethod
+    fun castStop(nativeId: NativeId) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.castStop()
+        }
+    }
+
+    /**
+     * Whether casting to a cast-compatible remote device is available. [PlayerEvent.CastAvailable] signals when
+     * casting becomes available.
+     */
+    @ReactMethod
+    fun isCastAvailable(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.isCastAvailable)
+        }
+    }
+
+    /**
+     * Whether video is currently being casted to a remote device and not played locally.
+     */
+    @ReactMethod
+    fun isCasting(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.isCasting)
         }
     }
 

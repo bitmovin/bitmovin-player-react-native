@@ -1,22 +1,21 @@
 import BitmovinPlayer
 
 @objc(FullscreenHandlerModule)
-class FullscreenHandlerModule: NSObject, RCTBridgeModule {
-    /// React bridge reference.
-    @objc var bridge: RCTBridge!
+public class FullscreenHandlerModule: NSObject, RCTBridgeModule {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    @objc public var bridge: RCTBridge!
 
-    /// JS module name.
-    static func moduleName() -> String! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public static func moduleName() -> String! {
         "FullscreenHandlerModule"
     }
 
-    /// Module requires main thread initialization.
-    static func requiresMainQueueSetup() -> Bool {
+    public static func requiresMainQueueSetup() -> Bool {
         true
     }
 
-    /// Use `UIManager.addBlock` to enqueue module methods on UI thread.
-    var methodQueue: DispatchQueue! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
 
@@ -31,7 +30,8 @@ class FullscreenHandlerModule: NSObject, RCTBridgeModule {
      - Parameter nativeId: `FullscreenHandlerBridge` instance ID.
      - Returns: The associated `FullscreenHandlerBridge` instance or `nil`.
      */
-    @objc func retrieve(_ nativeId: NativeId) -> FullscreenHandlerBridge? {
+    @objc
+    func retrieve(_ nativeId: NativeId) -> FullscreenHandlerBridge? {
         fullscreenHandlers[nativeId]
     }
 

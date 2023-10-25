@@ -8,7 +8,7 @@ extension Source {
             "loadingState": loadingState,
             "isAttachedToPlayer": isAttachedToPlayer
         ]
-        if let metadata = metadata {
+        if let metadata {
             json["metadata"] = metadata
         }
         return json
@@ -69,14 +69,14 @@ extension NSError {
 extension DeficiencyData {
     func toJSON() -> [AnyHashable: Any] {
         var json: [AnyHashable: Any] = ["code": code, "message": message]
-        if let underlyingError = underlyingError {
+        if let underlyingError {
             json["underlyingError"] = underlyingError.toJSON()
         }
         return json
     }
 }
 
-protocol ErrorEventType: Event {
+private protocol ErrorEventType: Event {
     associatedtype Code
     var code: Code { get }
     var data: DeficiencyData? { get }
@@ -91,7 +91,7 @@ extension ErrorEventType {
             "code": code,
             "message": message
         ]
-        if let data = data {
+        if let data {
             json["data"] = data.toJSON()
         }
         return json
@@ -114,7 +114,7 @@ extension SourceWarningEvent: ErrorEventType {
     typealias Code = SourceWarning.Code
 }
 
-protocol SourceEventType: Event {
+private protocol SourceEventType: Event {
     var source: Source { get }
 }
 
@@ -128,7 +128,7 @@ extension SourceLoadEvent: SourceEventType {}
 extension SourceLoadedEvent: SourceEventType {}
 extension SourceUnloadedEvent: SourceEventType {}
 
-protocol TimedEventType: Event {
+private protocol TimedEventType: Event {
     var time: TimeInterval { get }
 }
 
@@ -174,7 +174,6 @@ extension AudioChangedEvent {
         ]
     }
 }
-
 
 extension SubtitleAddedEvent {
     func toJSON() -> [AnyHashable: Any] {
@@ -359,3 +358,25 @@ extension VideoDownloadQualityChangedEvent {
         ]
     }
 }
+
+extension CastStartedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "deviceName": deviceName
+        ]
+    }
+}
+
+#if os(iOS)
+extension CastWaitingForDeviceEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "castPayload": RCTConvert.toJson(castPayload: castPayload)
+        ]
+    }
+}
+#endif

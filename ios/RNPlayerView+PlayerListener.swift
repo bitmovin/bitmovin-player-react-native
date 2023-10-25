@@ -1,180 +1,180 @@
 import BitmovinPlayer
 
 extension RNPlayerView: PlayerListener {
-    func onEvent(_ event: Event, player: Player) {
+    public func onEvent(_ event: Event, player: Player) {
         onEvent?(event.toJSON())
     }
 
-    func onPlayerActive(_ event: PlayerActiveEvent, player: Player) {
+    public func onPlayerActive(_ event: PlayerActiveEvent, player: Player) {
         onPlayerActive?(event.toJSON())
     }
 
-    func onPlayerError(_ event: PlayerErrorEvent, player: Player) {
+    public func onPlayerError(_ event: PlayerErrorEvent, player: Player) {
         onPlayerError?(event.toJSON())
     }
 
-    func onPlayerWarning(_ event: PlayerWarningEvent, player: Player) {
+    public func onPlayerWarning(_ event: PlayerWarningEvent, player: Player) {
         onPlayerWarning?(event.toJSON())
     }
 
-    func onDestroy(_ event: DestroyEvent, player: Player) {
+    public func onDestroy(_ event: DestroyEvent, player: Player) {
         onDestroy?(event.toJSON())
     }
 
-    func onMuted(_ event: MutedEvent, player: Player) {
+    public func onMuted(_ event: MutedEvent, player: Player) {
         onMuted?(event.toJSON())
     }
 
-    func onUnmuted(_ event: UnmutedEvent, player: Player) {
+    public func onUnmuted(_ event: UnmutedEvent, player: Player) {
         onUnmuted?(event.toJSON())
     }
 
-    func onReady(_ event: ReadyEvent, player: Player) {
+    public func onReady(_ event: ReadyEvent, player: Player) {
         onReady?(event.toJSON())
     }
 
-    func onPaused(_ event: PausedEvent, player: Player) {
+    public func onPaused(_ event: PausedEvent, player: Player) {
         onPaused?(event.toJSON())
     }
 
-    func onPlay(_ event: PlayEvent, player: Player) {
+    public func onPlay(_ event: PlayEvent, player: Player) {
         onPlay?(event.toJSON())
     }
 
-    func onPlaying(_ event: PlayingEvent, player: Player) {
+    public func onPlaying(_ event: PlayingEvent, player: Player) {
         onPlaying?(event.toJSON())
     }
 
-    func onPlaybackFinished(_ event: PlaybackFinishedEvent, player: Player) {
+    public func onPlaybackFinished(_ event: PlaybackFinishedEvent, player: Player) {
         onPlaybackFinished?(event.toJSON())
     }
 
-    func onSeek(_ event: SeekEvent, player: Player) {
+    public func onSeek(_ event: SeekEvent, player: Player) {
         onSeek?(event.toJSON())
     }
 
-    func onSeeked(_ event: SeekedEvent, player: Player) {
+    public func onSeeked(_ event: SeekedEvent, player: Player) {
         onSeeked?(event.toJSON())
     }
 
-    func onTimeShift(_ event: TimeShiftEvent, player: Player) {
+    public func onTimeShift(_ event: TimeShiftEvent, player: Player) {
         onTimeShift?(event.toJSON())
     }
 
-    func onTimeShifted(_ event: TimeShiftedEvent, player: Player) {
+    public func onTimeShifted(_ event: TimeShiftedEvent, player: Player) {
         onTimeShifted?(event.toJSON())
     }
 
-    func onStallStarted(_ event: StallStartedEvent, player: Player) {
+    public func onStallStarted(_ event: StallStartedEvent, player: Player) {
         onStallStarted?(event.toJSON())
     }
 
-    func onStallEnded(_ event: StallEndedEvent, player: Player) {
+    public func onStallEnded(_ event: StallEndedEvent, player: Player) {
         onStallEnded?(event.toJSON())
     }
 
-    func onTimeChanged(_ event: TimeChangedEvent, player: Player) {
+    public func onTimeChanged(_ event: TimeChangedEvent, player: Player) {
         onTimeChanged?(event.toJSON())
     }
 
-    func onSourceLoad(_ event: SourceLoadEvent, player: Player) {
+    public func onSourceLoad(_ event: SourceLoadEvent, player: Player) {
         onSourceLoad?(event.toJSON())
     }
 
-    func onSourceLoaded(_ event: SourceLoadedEvent, player: Player) {
+    public func onSourceLoaded(_ event: SourceLoadedEvent, player: Player) {
         onSourceLoaded?(event.toJSON())
     }
 
-    func onSourceUnloaded(_ event: SourceUnloadedEvent, player: Player) {
+    public func onSourceUnloaded(_ event: SourceUnloadedEvent, player: Player) {
         onSourceUnloaded?(event.toJSON())
     }
 
-    func onSourceError(_ event: SourceErrorEvent, player: Player) {
+    public func onSourceError(_ event: SourceErrorEvent, player: Player) {
         onSourceError?(event.toJSON())
     }
 
-    func onSourceWarning(_ event: SourceWarningEvent, player: Player) {
+    public func onSourceWarning(_ event: SourceWarningEvent, player: Player) {
         onSourceWarning?(event.toJSON())
     }
 
-    func onAudioAdded(_ event: AudioAddedEvent, player: Player) {
+    public func onAudioAdded(_ event: AudioAddedEvent, player: Player) {
         onAudioAdded?(event.toJSON())
     }
 
-    func onAudioRemoved(_ event: AudioRemovedEvent, player: Player) {
+    public func onAudioRemoved(_ event: AudioRemovedEvent, player: Player) {
         onAudioRemoved?(event.toJSON())
     }
 
-    func onAudioChanged(_ event: AudioChangedEvent, player: Player) {
+    public func onAudioChanged(_ event: AudioChangedEvent, player: Player) {
         onAudioChanged?(event.toJSON())
     }
 
-    func onSubtitleAdded(_ event: SubtitleAddedEvent, player: Player) {
+    public func onSubtitleAdded(_ event: SubtitleAddedEvent, player: Player) {
         onSubtitleAdded?(event.toJSON())
     }
 
-    func onSubtitleRemoved(_ event: SubtitleRemovedEvent, player: Player) {
+    public func onSubtitleRemoved(_ event: SubtitleRemovedEvent, player: Player) {
         onSubtitleRemoved?(event.toJSON())
     }
 
-    func onSubtitleChanged(_ event: SubtitleChangedEvent, player: Player) {
+    public func onSubtitleChanged(_ event: SubtitleChangedEvent, player: Player) {
         onSubtitleChanged?(event.toJSON())
     }
 
-    func onVideoSizeChanged(_ event: VideoSizeChangedEvent, player: Player) {
+    public func onVideoSizeChanged(_ event: VideoSizeChangedEvent, player: Player) {
         onVideoSizeChanged?(event.toJSON())
     }
 
-    func onDurationChanged(_ event: DurationChangedEvent, player: Player) {
+    public func onDurationChanged(_ event: DurationChangedEvent, player: Player) {
         onDurationChanged?(event.toJSON())
     }
 
-    func onAdBreakFinished(_ event: AdBreakFinishedEvent, player: Player) {
+    public func onAdBreakFinished(_ event: AdBreakFinishedEvent, player: Player) {
         onAdBreakFinished?(event.toJSON())
     }
 
-    func onAdBreakStarted(_ event: AdBreakStartedEvent, player: Player) {
+    public func onAdBreakStarted(_ event: AdBreakStartedEvent, player: Player) {
         onAdBreakStarted?(event.toJSON())
     }
 
-    func onAdClicked(_ event: AdClickedEvent, player: Player) {
+    public func onAdClicked(_ event: AdClickedEvent, player: Player) {
         onAdClicked?(event.toJSON())
     }
 
-    func onAdError(_ event: AdErrorEvent, player: Player) {
+    public func onAdError(_ event: AdErrorEvent, player: Player) {
         onAdError?(event.toJSON())
     }
 
-    func onAdFinished(_ event: AdFinishedEvent, player: Player) {
+    public func onAdFinished(_ event: AdFinishedEvent, player: Player) {
         onAdFinished?(event.toJSON())
     }
 
-    func onAdManifestLoad(_ event: AdManifestLoadEvent, player: Player) {
+    public func onAdManifestLoad(_ event: AdManifestLoadEvent, player: Player) {
         onAdManifestLoad?(event.toJSON())
     }
 
-    func onAdManifestLoaded(_ event: AdManifestLoadedEvent, player: Player) {
+    public func onAdManifestLoaded(_ event: AdManifestLoadedEvent, player: Player) {
         onAdManifestLoaded?(event.toJSON())
     }
 
-    func onAdQuartile(_ event: AdQuartileEvent, player: Player) {
+    public func onAdQuartile(_ event: AdQuartileEvent, player: Player) {
         onAdQuartile?(event.toJSON())
     }
 
-    func onAdScheduled(_ event: AdScheduledEvent, player: Player) {
+    public func onAdScheduled(_ event: AdScheduledEvent, player: Player) {
         onAdScheduled?(event.toJSON())
     }
 
-    func onAdSkipped(_ event: AdSkippedEvent, player: Player) {
+    public func onAdSkipped(_ event: AdSkippedEvent, player: Player) {
         onAdSkipped?(event.toJSON())
     }
 
-    func onAdStarted(_ event: AdStartedEvent, player: Player) {
+    public func onAdStarted(_ event: AdStartedEvent, player: Player) {
         onAdStarted?(event.toJSON())
 
-        if (disableAdUi) {
-            self.traverseHierarchy { responder, level in
-                if(responder.description.range(of: "IMAWKWebView")) != nil {
+        if disableAdUi {
+            self.traverseHierarchy { responder, _ in
+                if responder.description.contains("IMAWKWebView") {
                     let uiView = responder as? UIView
                     uiView?.isHidden = true
                 }
@@ -182,13 +182,57 @@ extension RNPlayerView: PlayerListener {
         }
     }
 
-    func onVideoPlaybackQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
+    public func onVideoPlaybackQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
         onVideoPlaybackQualityChanged?(event.toJSON())
     }
 
+#if os(iOS)
+    public func onCastAvailable(_ event: CastAvailableEvent, player: Player) {
+        onCastAvailable?(event.toJSON())
+    }
+
+    public func onCastPaused(_ event: CastPausedEvent, player: Player) {
+        onCastPaused?(event.toJSON())
+    }
+
+    public func onCastPlaybackFinished(_ event: CastPlaybackFinishedEvent, player: Player) {
+        onCastPlaybackFinished?(event.toJSON())
+    }
+
+    public func onCastPlaying(_ event: CastPlayingEvent, player: Player) {
+        onCastPlaying?(event.toJSON())
+    }
+
+    public func onCastStarted(_ event: CastStartedEvent, player: Player) {
+        onCastStarted?(event.toJSON())
+    }
+
+    public func onCastStart(_ event: CastStartEvent, player: Player) {
+        onCastStart?(event.toJSON())
+    }
+
+    public func onCastStopped(_ event: CastStoppedEvent, player: Player) {
+        onCastStopped?(event.toJSON())
+    }
+
+    public func onCastTimeUpdated(_ event: CastTimeUpdatedEvent, player: Player) {
+        onCastTimeUpdated?(event.toJSON())
+    }
+    public func onCastWaitingForDevice(_ event: CastWaitingForDeviceEvent, player: Player) {
+        onCastWaitingForDevice?(event.toJSON())
+    }
+#endif
+
     /// Traverse a UIresponder's view hierarchy in the same way as the Debug View Hierarchy tool in Xcode.
     ///
-    /// `traverseHierarchy` uses Depth First Search (DFS) to traverse the view hierarchy starting in the window. This way the method can traverse all sub-hierarchies in a correct order.
+    ///
+    /// - parameters:
+    ///     - visitor: The closure executed for every view object in the hierarchy
+    ///     - responder: The view object, `UIView`, `UIViewController`, or `UIWindow` instance.
+    ///     - level: The depth level in the view hierarchy.
+    ///
+    /// `traverseHierarchy` uses Depth First Search (DFS) to traverse the view hierarchy starting in the window.
+    ///     This way the method can traverse all sub-hierarchies in a correct order.
     ///
     /// - parameters:
     ///     - visitor: The closure executed for every view object in the hierarchy
@@ -203,20 +247,21 @@ extension RNPlayerView: PlayerListener {
 
             // Push objects to visit on the stack depending on the current object's type.
             switch current.responder {
-                case let view as UIView:
-                    // For `UIView` object push subviews on the stack following next rules:
-                    //      - Exclude hidden subviews;
-                    //      - If the subview is the root view in the view controller - take the view controller instead.
-                    stack.append(contentsOf: view.subviews.reversed().compactMap {
-                        $0.isHidden ? nil : (responder: $0.next as? UIViewController ?? $0, level: current.level + 1)
-                    })
+            case let view as UIView:
+                // For `UIView` object push subviews on the stack following next rules:
+                //      - Exclude hidden subviews;
+                //      - If the subview is the root view in the view controller - take the view controller instead.
+                stack.append(contentsOf: view.subviews.reversed().compactMap {
+                    $0.isHidden ? nil : (responder: $0.next as? UIViewController ?? $0, level: current.level + 1)
+                })
 
-                case let viewController as UIViewController:
-                    // For `UIViewController` object push it's view. Here the view is guaranteed to be loaded and in the window.
-                    stack.append((responder: viewController.view, level: current.level + 1))
+            case let viewController as UIViewController:
+                // For `UIViewController` object push it's view.
+                // Here the view is guaranteed to be loaded and in the window.
+                stack.append((responder: viewController.view, level: current.level + 1))
 
-                default:
-                    break
+            default:
+                break
             }
 
             // Visit the current object

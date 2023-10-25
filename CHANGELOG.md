@@ -1,5 +1,69 @@
 # Changelog
 
+## [0.13.0] (2023-10-20)
+
+### Added
+
+- API Reference now can be found [here](https://cdn.bitmovin.com/player/reactnative/0/docs/index.html)
+- `PlayerViewConfig` with a `UiConfig` to the `PlayerView` to enable configuration of the visual presentation and behaviour
+- `PictureInPictureConfig` to `PlayerViewConfig` to allow configuring the Picture in Picture behavior
+- `PictureInPictureConfig.isEnabled` to enable configuring if Picture in Picture is enabled
+- `PictureInPictureConfig.shouldEnterOnBackground` to start Picture in Picture automatically when the app transitions to background
+- `onPictureInPictureAvailabilityChanged` event is now emitted on iOS and tvOS in addition to Android
+- `BufferConfig` to configure player buffer depth
+- `PlayerView.isPictureInPictureRequested` to programmatically create a Picture in Picture request
+- `PlayerView.scalingMode` to allow changing the video scaling mode
+
+### Changed
+
+- Update IMA SDK dependency on Android to `3.31.0`
+- Update Bitmovin's native Android SDK version to `3.47.0`
+
+### Deprecated
+
+- `PlaybackConfig.isPictureInPictureEnabled` in favor of `PictureInPictureConfig.isEnabled`
+
+## [0.12.0] (2023-09-25)
+
+### Added
+
+- `DefaultMetadata` for configuration of the bundled analytics collector
+- `Player.analytics` to access the `AnalyticsApi` and interact with the bundled analytics collector
+- `SourceConfig.analyticsSourceMetadata` for extended configuration of the bundled analytics collector
+- Google Cast SDK support for Android and iOS
+
+### Changed
+
+- `AnalyticsConfig` properties to match the Bitmovin analytics v3 API
+- Use `jason` build of Bitmovin's native Android SDK
+- Update Bitmovin's native Android SDK version to `3.44.0`
+
+### Removed
+
+- `AnalyticsCollector` in favor of the bundled analytics functionality
+- `CdnProvider`, as the property on the `AnalyticsConfig` is now a `string`
+
+## [0.11.0] (2023-09-11)
+
+### Added
+
+- `Player.getAudioTrack` and `Player.getSubtitleTrack` APIs to get currently selected audio and subtitle tracks
+- `SourceConfig.description` property to allow setting a description for the source
+- `Player.getThumbnail` and `Source.getThumbnail` APIs to get thumbnail images
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.43.0`
+
+## [0.10.0] (2023-09-04)
+
+### Added
+
+- Offline playback support on Android and iOS
+- `SourceConfig.options` to enable configuring stream start position
+- `PlayerConfig.adaptationConfig` to allow configuring the player's adaptation behavior
+- `Player.setMaxSelectableBitrate` to allow setting the maximum selectable bitrate on the `Player`
+
 ## [0.9.2] (2023-08-24)
 
 ### Changed

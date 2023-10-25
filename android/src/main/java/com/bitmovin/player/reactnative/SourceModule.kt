@@ -1,8 +1,16 @@
 package com.bitmovin.player.reactnative
 
+import android.util.Log
+import com.bitmovin.analytics.api.SourceMetadata
+import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.source.Source
+import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.reactnative.converter.JsonConverter
-import com.facebook.react.bridge.*
+import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.UIManagerModule
 
@@ -33,17 +41,26 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
-     * Creates a new `Source` instance inside the internal sources using the provided `config` object.
+     * Creates a new `Source` instance inside the internal sources using the provided
+     * `config` and `analyticsSourceMetadata` object as well as an initialized DRM configuration ID.
      * @param nativeId ID to be associated with the `Source` instance.
+     * @param drmNativeId ID of the DRM config to use.
      * @param config `SourceConfig` object received from JS.
+     * @param sourceRemoteControlConfig `SourceRemoteControlConfig` object received from JS. Not supported on Android.
+     * @param analyticsSourceMetadata `SourceMetadata` object received from JS.
      */
     @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap?) {
+    fun initWithAnalyticsConfig(
+        nativeId: NativeId,
+        drmNativeId: NativeId?,
+        config: ReadableMap?,
+        sourceRemoteControlConfig: ReadableMap?,
+        analyticsSourceMetadata: ReadableMap?,
+    ) {
         uiManager()?.addUIBlock {
-            if (!sources.containsKey(nativeId)) {
-                JsonConverter.toSourceConfig(config)?.let {
-                    sources[nativeId] = Source.create(it)
-                }
+            val sourceMetadata = JsonConverter.toAnalyticsSourceMetadata(analyticsSourceMetadata) ?: SourceMetadata()
+            initializeSource(nativeId, drmNativeId, config) { sourceConfig ->
+                Source.create(sourceConfig, sourceMetadata)
             }
         }
     }
@@ -54,16 +71,39 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
      * @param nativeId ID to be associated with the `Source` instance.
      * @param drmNativeId ID of the DRM config to use.
      * @param config `SourceConfig` object received from JS.
+     * @param sourceRemoteControlConfig `SourceRemoteControlConfig` object received from JS. Not supported on Android.
      */
     @ReactMethod
-    fun initWithDrmConfig(nativeId: NativeId, drmNativeId: NativeId, config: ReadableMap?) {
+    fun initWithConfig(
+        nativeId: NativeId,
+        drmNativeId: NativeId?,
+        config: ReadableMap?,
+        sourceRemoteControlConfig: ReadableMap?,
+    ) {
         uiManager()?.addUIBlock {
-            val drmConfig = drmModule()?.getConfig(drmNativeId)
-            if (!sources.containsKey(nativeId) && drmConfig != null) {
-                JsonConverter.toSourceConfig(config)?.let {
-                    it.drmConfig = drmConfig
-                    sources[nativeId] = Source.create(it)
+            initializeSource(nativeId, drmNativeId, config) { sourceConfig ->
+                Source.create(sourceConfig)
+            }
+        }
+    }
+
+    private fun initializeSource(
+        nativeId: NativeId,
+        drmNativeId: NativeId?,
+        config: ReadableMap?,
+        action: (SourceConfig) -> Source,
+    ) {
+        val drmConfig = drmNativeId?.let { drmModule()?.getConfig(it) }
+        if (!sources.containsKey(nativeId)) {
+            val sourceConfig = JsonConverter.toSourceConfig(config)?.apply {
+                if (drmConfig != null) {
+                    this.drmConfig = drmConfig
                 }
+            }
+            if (sourceConfig == null) {
+                Log.d("[SourceModule]", "Could not parse SourceConfig")
+            } else {
+                sources[nativeId] = action(sourceConfig)
             }
         }
     }
@@ -140,12 +180,23 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     /**
      * Set the metadata for a loaded `nativeId` source.
      * @param nativeId Source `nativeId`.
-     * @param promise: JS promise object.
      */
     @ReactMethod
     fun setMetadata(nativeId: NativeId, metadata: ReadableMap?) {
         uiManager()?.addUIBlock {
             sources[nativeId]?.config?.metadata = asStringMap(metadata)
+        }
+    }
+
+    /**
+     * Returns the thumbnail image for the `Source` at a certain time.
+     * @param nativeId Target player id.
+     * @param time Playback time for the thumbnail.
+     */
+    @ReactMethod
+    fun getThumbnail(nativeId: NativeId, time: Double, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromThumbnail(sources[nativeId]?.getThumbnail(time)))
         }
     }
 
@@ -166,12 +217,10 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     /**
      * Helper function that returns the initialized `UIManager` instance.
      */
-    private fun uiManager(): UIManagerModule? =
-        context.getNativeModule(UIManagerModule::class.java)
+    private fun uiManager(): UIManagerModule? = context.getNativeModule(UIManagerModule::class.java)
 
     /**
      * Helper function that returns the initialized `DrmModule` instance.
      */
-    private fun drmModule(): DrmModule? =
-        context.getNativeModule(DrmModule::class.java)
+    private fun drmModule(): DrmModule? = context.getNativeModule(DrmModule::class.java)
 }

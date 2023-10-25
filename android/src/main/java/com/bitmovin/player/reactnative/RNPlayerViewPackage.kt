@@ -24,11 +24,12 @@ class RNPlayerViewPackage : ReactPackage {
             PlayerModule(reactContext),
             SourceModule(reactContext),
             DrmModule(reactContext),
-            AnalyticsModule(reactContext),
+            PlayerAnalyticsModule(reactContext),
             RNPlayerViewManager(reactContext),
             FullscreenHandlerModule(reactContext),
             CustomMessageHandlerModule(reactContext),
-            RNSubtitleViewManager(reactContext)
+            BitmovinCastManagerModule(reactContext),
+            RNSubtitleViewManager(reactContext),
         )
     }
 
@@ -37,7 +38,9 @@ class RNPlayerViewPackage : ReactPackage {
      * native component instances with `<NativePlayerView {...} />` on the js
      * side.
      */
-    override fun createViewManagers(reactContext: ReactApplicationContext): MutableList<ViewManager<out View, out ReactShadowNode<*>>> {
+    override fun createViewManagers(
+        reactContext: ReactApplicationContext,
+    ): MutableList<ViewManager<out View, out ReactShadowNode<*>>> {
         return mutableListOf(
             RNPlayerViewManager(reactContext),
             RNSubtitleViewManager(reactContext)

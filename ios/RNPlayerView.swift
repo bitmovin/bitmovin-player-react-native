@@ -1,8 +1,8 @@
 import BitmovinPlayer
 
 @objc(RNPlayerView)
-class RNPlayerView: UIView {
-    @objc var disableAdUi: Bool = false
+public class RNPlayerView: UIView {
+    @objc var disableAdUi = false
     /// React component events. Directly mapped to props in `NativePlayerView`.
     @objc var onEvent: RCTBubblingEventBlock?
     @objc var onPlayerActive: RCTBubblingEventBlock?
@@ -56,6 +56,17 @@ class RNPlayerView: UIView {
     @objc var onFullscreenDisabled: RCTBubblingEventBlock?
     @objc var onFullscreenEnter: RCTBubblingEventBlock?
     @objc var onFullscreenExit: RCTBubblingEventBlock?
+    @objc var onCastAvailable: RCTBubblingEventBlock?
+    @objc var onCastPaused: RCTBubblingEventBlock?
+    @objc var onCastPlaybackFinished: RCTBubblingEventBlock?
+    @objc var onCastPlaying: RCTBubblingEventBlock?
+    @objc var onCastStarted: RCTBubblingEventBlock?
+    @objc var onCastStart: RCTBubblingEventBlock?
+    @objc var onCastStopped: RCTBubblingEventBlock?
+    @objc var onCastTimeUpdated: RCTBubblingEventBlock?
+    @objc var onCastWaitingForDevice: RCTBubblingEventBlock?
+    @objc var onPictureInPictureAvailabilityChanged: RCTBubblingEventBlock?
+    @objc var config: [String: Any]?
 
     /// The `PlayerView` subview.
     var playerView: PlayerView? {
@@ -66,7 +77,7 @@ class RNPlayerView: UIView {
             ]
         }
         didSet {
-            if let playerView = playerView {
+            if let playerView {
                 addSubview(playerView)
             }
         }

@@ -1,138 +1,15 @@
 import { NativeModules, Platform } from 'react-native';
-import { AdItem, AdvertisingConfig } from './advertising';
-import { AnalyticsCollector, AnalyticsConfig } from './analytics';
-import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
+import NativeInstance from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { AudioTrack } from './audioTrack';
 import { SubtitleTrack } from './subtitleTrack';
-import { StyleConfig } from './styleConfig';
-import { TweaksConfig } from './tweaksConfig';
-import { OfflineContentManager } from './offline/offlineContentManager';
-import { OfflineSourceOptions } from './offline/offlineContentOptions';
+import { OfflineContentManager, OfflineSourceOptions } from './offline';
+import { Thumbnail } from './thumbnail';
+import { AnalyticsApi } from './analytics/player';
+import { PlayerConfig } from './playerConfig';
+import { AdItem } from './advertising';
 
 const PlayerModule = NativeModules.PlayerModule;
-
-/**
- * Object used to configure a new `Player` instance.
- */
-export interface PlayerConfig extends NativeInstanceConfig {
-  /**
-   * Bitmovin license key that can be found in the Bitmovin portal.
-   * If a license key is set here, it will be used instead of the license key found in the `Info.plist` and `AndroidManifest.xml`.
-   * @example
-   * Configuring the player license key from source code:
-   * ```
-   * const player = new Player({
-   *   licenseKey: '\<LICENSE-KEY-CODE\>',
-   * });
-   * ```
-   * @example
-   * `licenseKey` can be safely omitted from source code if it has
-   * been configured in Info.plist/AndroidManifest.xml.
-   * ```
-   * const player = new Player(); // omit `licenseKey`
-   * player.play(); // call methods and properties...
-   * ```
-   */
-  licenseKey?: string;
-  /**
-   * Configures playback behaviour. A default PlaybackConfig is set initially.
-   */
-  playbackConfig?: PlaybackConfig;
-  /**
-   * Configures the visual presentation and behaviour of the player UI. A default StyleConfig is set initially.
-   */
-  styleConfig?: StyleConfig;
-  /**
-   * Configures advertising functionality. A default AdvertisingConfig is set initially.
-   */
-  advertisingConfig?: AdvertisingConfig;
-  /**
-   * Configures experimental features. A default TweaksConfig is set initially.
-   */
-  tweaksConfig?: TweaksConfig;
-  /**
-   * Configures analytics functionality.
-   */
-  analyticsConfig?: AnalyticsConfig;
-}
-
-/**
- * Configures the playback behaviour of the player.
- */
-export interface PlaybackConfig {
-  /**
-   * Whether the player starts playing automatically after loading a source or not. Default is `false`.
-   * @example
-   * ```
-   * const player = new Player({
-   *   playbackConfig: {
-   *     isAutoplayEnabled: true,
-   *   },
-   * });
-   * ```
-   */
-  isAutoplayEnabled?: boolean;
-  /**
-   * Whether the sound is muted on startup or not. Default value is `false`.
-   * @example
-   * ```
-   * const player = new Player({
-   *   playbackConfig: {
-   *     isMuted: true,
-   *   },
-   * });
-   * ```
-   */
-  isMuted?: boolean;
-  /**
-   * Whether time shift / DVR for live streams is enabled or not. Default is `true`.
-   *  @example
-   * ```
-   * const player = new Player({
-   *   playbackConfig: {
-   *     isTimeShiftEnabled: false,
-   *   },
-   * });
-   * ```
-   */
-  isTimeShiftEnabled?: boolean;
-  /**
-   * Whether background playback is enabled or not.
-   * Default is `false`.
-   *
-   * When set to `true`, playback is not automatically paused
-   * anymore when the app moves to the background.
-   * When set to `true`, also make sure to properly configure your app to allow
-   * background playback.
-   *
-   * On tvOS, background playback is only supported for audio-only content.
-   *
-   * Default is `false`.
-   *
-   *  @example
-   * ```
-   * const player = new Player({
-   *   {
-   *     isBackgroundPlaybackEnabled: true,
-   *   }
-   * })
-   * ```
-   */
-  isBackgroundPlaybackEnabled?: boolean;
-  /**
-   * Whether the Picture in Picture mode option is enabled or not. Default is `false`.
-   *  @example
-   * ```
-   * const player = new Player({
-   *   playbackConfig: {
-   *     isPictureInPictureEnabled: true,
-   *   },
-   * });
-   * ```
-   */
-  isPictureInPictureEnabled?: boolean;
-}
 
 /**
  * Loads, controls and renders audio and video content represented through `Source`s. A player
@@ -149,10 +26,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   source?: Source;
   /**
-   * Analytics collector currently attached to this player instance.
-   */
-  analyticsCollector?: AnalyticsCollector;
-  /**
    * Whether the native `Player` object has been created.
    */
   isInitialized = false;
@@ -160,18 +33,28 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Whether the native `Player` object has been disposed.
    */
   isDestroyed = false;
+  /**
+   * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.
+   *
+   * `undefined` if the player was created without analytics support.
+   */
+  analytics?: AnalyticsApi = undefined;
 
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
   initialize = () => {
     if (!this.isInitialized) {
-      PlayerModule.initWithConfig(this.nativeId, this.config);
       const analyticsConfig = this.config?.analyticsConfig;
       if (analyticsConfig) {
-        this.analyticsCollector = new AnalyticsCollector(analyticsConfig);
-        this.analyticsCollector?.initialize();
-        this.analyticsCollector?.attach(this.nativeId);
+        PlayerModule.initWithAnalyticsConfig(
+          this.nativeId,
+          this.config,
+          analyticsConfig
+        );
+        this.analytics = new AnalyticsApi(this.nativeId);
+      } else {
+        PlayerModule.initWithConfig(this.nativeId, this.config);
       }
       this.isInitialized = true;
     }
@@ -184,7 +67,6 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (!this.isDestroyed) {
       PlayerModule.destroy(this.nativeId);
       this.source?.destroy();
-      this.analyticsCollector?.destroy();
       this.isDestroyed = true;
     }
   };
@@ -197,24 +79,16 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * Loads the OfflineSourceConfig into the player.
+   * Loads the downloaded content from `OfflineContentManager` into the player.
    */
-  loadOfflineSource = (
+  loadOfflineContent = (
     offlineContentManager: OfflineContentManager,
     options?: OfflineSourceOptions
   ) => {
-    if (Platform.OS === 'ios') {
-      PlayerModule.loadOfflineSource(
-        this.nativeId,
-        offlineContentManager.nativeId,
-        options
-      );
-      return;
-    }
-
-    PlayerModule.loadOfflineSource(
+    PlayerModule.loadOfflineContent(
       this.nativeId,
-      offlineContentManager.nativeId
+      offlineContentManager.nativeId,
+      options
     );
   };
 
@@ -397,6 +271,13 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * @returns The currently selected audio track or `null`.
+   */
+  getAudioTrack = async (): Promise<AudioTrack | null> => {
+    return PlayerModule.getAudioTrack(this.nativeId);
+  };
+
+  /**
    * @returns An array containing AudioTrack objects for all available audio tracks.
    */
   getAvailableAudioTracks = async (): Promise<AudioTrack[]> => {
@@ -408,6 +289,13 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   setAudioTrack = async (trackIdentifier: string): Promise<void> => {
     return PlayerModule.setAudioTrack(this.nativeId, trackIdentifier);
+  };
+
+  /**
+   * @returns The currently selected subtitle track or `null`.
+   */
+  getSubtitleTrack = async (): Promise<SubtitleTrack | null> => {
+    return PlayerModule.getSubtitleTrack(this.nativeId);
   };
 
   /**
@@ -468,6 +356,66 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   getMaxTimeShift = async (): Promise<number> => {
     return PlayerModule.getMaxTimeShift(this.nativeId);
+  };
+
+  /**
+   * Sets the upper bitrate boundary for video qualities. All qualities with a bitrate
+   * that is higher than this threshold will not be eligible for automatic quality selection.
+   *
+   * Can be set to `null` for no limitation.
+   */
+  setMaxSelectableBitrate = (bitrate: number | null) => {
+    PlayerModule.setMaxSelectableBitrate(this.nativeId, bitrate || -1);
+  };
+
+  /**
+   * @returns a `Thumbnail` for the specified playback time for the currently active source if available.
+   * Supported thumbnail formats are:
+   * - `WebVtt` configured via `SourceConfig.thumbnailTrack`, on all supported platforms
+   * - HLS `Image Media Playlist` in the multivariant playlist, Android-only
+   * - DASH `Image Adaptation Set` as specified in DASH-IF IOP, Android-only
+   * If a `WebVtt` thumbnail track is provided, any potential in-manifest thumbnails are ignored on Android.
+   */
+  getThumbnail = async (time: number): Promise<Thumbnail | null> => {
+    return PlayerModule.getThumbnail(this.nativeId, time);
+  };
+
+  /**
+   * Whether casting to a cast-compatible remote device is available. `CastAvailableEvent` signals when
+   * casting becomes available.
+   *
+   * @platform iOS, Android
+   */
+  isCastAvailable = async (): Promise<boolean> => {
+    return PlayerModule.isCastAvailable(this.nativeId);
+  };
+
+  /**
+   * Whether video is currently being casted to a remote device and not played locally.
+   *
+   * @platform iOS, Android
+   */
+  isCasting = async (): Promise<boolean> => {
+    return PlayerModule.isCasting(this.nativeId);
+  };
+
+  /**
+   * Initiates casting the current video to a cast-compatible remote device. The user has to choose to which device it
+   * should be sent.
+   *
+   * @platform iOS, Android
+   */
+  castVideo = () => {
+    PlayerModule.castVideo(this.nativeId);
+  };
+
+  /**
+   * Stops casting the current video. Has no effect if `isCasting` is false.
+   *
+   * @platform iOS, Android
+   */
+  castStop = () => {
+    PlayerModule.castStop(this.nativeId);
   };
 
   static disposeAll = async (): Promise<null> => {

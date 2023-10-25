@@ -23,6 +23,7 @@
     "react-native-system-navigation-bar": "^2.6.1"
   },
   "devDependencies": {
+    "pod-install": "^0.1.39",
     "react-native-svg-transformer": "1.0.0"
   }
 }

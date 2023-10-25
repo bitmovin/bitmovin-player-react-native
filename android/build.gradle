@@ -2,19 +2,25 @@ buildscript {
     ext {
         kotlinVersion = '1.7.21'
         androidToolsVersion = '7.4.2'
+        ktlintVersion = '11.6.0'
     }
     repositories {
         google()
         mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
         classpath "com.android.tools.build:gradle:$androidToolsVersion"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "org.jlleitschuh.gradle:ktlint-gradle:$ktlintVersion"
     }
 }
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'org.jlleitschuh.gradle.ktlint'
 
 repositories {
     mavenLocal()
@@ -51,10 +57,9 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
-    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.29.0'
+    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.31.0'
     implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
-    implementation 'com.bitmovin.analytics:collector-bitmovin-player:2.12.1'
-    implementation 'com.bitmovin.player:player:3.40.0'
+    implementation 'com.bitmovin.player:player:3.48.0+jason'
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+' // From node_modules
 }

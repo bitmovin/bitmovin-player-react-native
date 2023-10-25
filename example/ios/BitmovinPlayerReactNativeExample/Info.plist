@@ -57,5 +57,18 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_googlecast._tcp</string>
+		<string>_FFE417E5._googlecast._tcp</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>${PRODUCT_NAME} uses the local network to discover Cast-enabled devices on your WiFi network.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Chromecast requires access to microphone</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Chromecast requires this</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Chromecast requires access to Bluetooth</string>
 </dict>
 </plist>

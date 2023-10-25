@@ -2,8 +2,15 @@
 
 @interface RCT_EXTERN_REMAP_MODULE(SourceModule, SourceModule, NSObject)
 
-RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config)
-RCT_EXTERN_METHOD(initWithDrmConfig:(NSString *)nativeId drmNativeId:(NSString *)drmNativeId config:(nullable id)config)
+RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId
+    drmNativeId:(NSString *)drmNativeId
+    config:(nullable id)config
+    sourceRemoteControlConfig:(id)remotePlayback)
+RCT_EXTERN_METHOD(initWithAnalyticsConfig:(NSString *)nativeId
+    drmNativeId:(NSString *)drmNativeId
+    config:(nullable id)config
+    sourceRemoteControlConfig:(id)remotePlayback
+    analyticsSourceMetadata:(nullable id)analyticsSourceMetadata)
 RCT_EXTERN_METHOD(destroy:(NSString *)nativeId)
 RCT_EXTERN_METHOD(
     isAttachedToPlayer:(NSString *)nativeId
@@ -26,5 +33,10 @@ RCT_EXTERN_METHOD(
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(setMetadata:(NSString *)nativeId metadata:(nullable id)metadata)
+RCT_EXTERN_METHOD(
+    getThumbnail:(NSString *)nativeId
+    time:(nonnull NSNumber *)time
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 
 @end

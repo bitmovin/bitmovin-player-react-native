@@ -1,64 +1,83 @@
-import Foundation
+// swiftlint:disable file_length
 import BitmovinPlayer
+import Foundation
 
 @objc(OfflineModule)
-class OfflineModule: RCTEventEmitter {
-
-    /// JS module name.
-    override static func moduleName() -> String! {
+public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_body_length
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    override public static func moduleName() -> String! {
         "BitmovinOfflineModule"
     }
 
-    /// Module requires main thread initialization.
-    override static func requiresMainQueueSetup() -> Bool {
+    override public static func requiresMainQueueSetup() -> Bool {
         true
     }
 
-    override func supportedEvents() -> [String]! {
-        return ["BitmovinOfflineEvent"]
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    override public func supportedEvents() -> [String]! {
+        ["BitmovinOfflineEvent"]
     }
 
-    /// Since most `OfflineModule` operations are UI related and need to be executed on the main thread, they are scheduled with `UIManager.addBlock`.
-    override var methodQueue: DispatchQueue! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    override public var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
 
 #if os(iOS)
-    private static var offlineContentManagerHolders: Registry<OfflineContentManagerHolder> = [:]
+    private static var offlineContentManagerBridges: Registry<OfflineContentManagerBridge> = [:]
 
     /**
      Retrieves the `OfflineContentManager` instance associated with `nativeId` from the internal offline managers.
      - Parameter nativeId `OfflineContentManager` instance ID.
      - Returns: The associated `OfflineContentManager` instance or `nil`.
      */
-    func retrieve(_ nativeId: NativeId) -> OfflineContentManagerHolder? {
-        OfflineModule.offlineContentManagerHolders[nativeId]
+    func retrieve(_ nativeId: NativeId) -> OfflineContentManagerBridge? {
+        Self.offlineContentManagerBridges[nativeId]
     }
 #endif
 
     /**
-     Creates a new `OfflineContentManager` instance inside the internal offline managers using the provided `config` object.
-     - @param config `Config` object received from JS.  Should contain a sourceConfig and location.
+     Creates a new `OfflineContentManager` instance inside the internal offline managers using
+     the provided config object.
+     - Parameter config: Config object received from JS. Should contain `sourceConfig` and `identifier`.
      */
-    @objc func initWithConfig(_ nativeId: NativeId, config: Any?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(initWithConfig:config:drmNativeId:resolver:rejecter:)
+    func initWithConfig(
+        _ nativeId: NativeId,
+        config: Any?,
+        drmNativeId: NativeId?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
-                OfflineModule.offlineContentManagerHolders[nativeId] == nil,
+                let self,
+                Self.offlineContentManagerBridges[nativeId] == nil,
                 let config = config as? [String: Any?],
-                let identifier = config["identifier"] as? String,
-                let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"])
+                let identifier = config["identifier"] as? String
             else {
                 reject("BitmovinOfflineModule", "Could not create an offline content manager", nil)
                 return
             }
 
-            do {
-                let offlineContentManager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
-                let offlineContentManagerHolder = OfflineContentManagerHolder(forManager: offlineContentManager, eventEmitter: self, nativeId: nativeId, identifier: identifier)
+            let fairplayConfig = drmNativeId.flatMap { self.bridge[DrmModule.self]?.retrieve($0) }
+            guard let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], drmConfig: fairplayConfig) else {
+                reject("BitmovinOfflineModule", "Invalid source config", nil)
+                return
+            }
 
-                OfflineModule.offlineContentManagerHolders[nativeId] = offlineContentManagerHolder
+            do {
+                let offlineContentManager = try OfflineManager.sharedInstance()
+                    .offlineContentManager(for: sourceConfig, id: identifier)
+                let offlineContentManagerBridge = OfflineContentManagerBridge(
+                    forManager: offlineContentManager,
+                    eventEmitter: self,
+                    nativeId: nativeId,
+                    identifier: identifier
+                )
+
+                Self.offlineContentManagerBridges[nativeId] = offlineContentManagerBridge
                 resolve(nil)
             } catch let error as NSError {
                 reject("BitmovinOfflineModule", "Could not create an offline content manager", error)
@@ -67,50 +86,52 @@ class OfflineModule: RCTEventEmitter {
 #endif
     }
 
-    /**
-     Resolve `nativeId`'s current `OfflineSourceConfig`.
-     - Parameter nativeId: Target offline module Id.
-     - Parameter resolver: JS promise resolver.
-     - Parameter rejecter: JS promise rejecter.
-     */
-    @objc func getOfflineSourceConfig(_ nativeId: NativeId, options: Any?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(getState:resolver:rejecter:)
+    func getState(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
-                let offlineContentManagerHolder = OfflineModule.offlineContentManagerHolders[nativeId]
+                let self,
+                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
             }
 
-            let restrictedToAssetCache = (options as? [String: Any?])?["restrictedToAssetCache"] as? Bool ?? true
-            let offlineSourceConfig = offlineContentManagerHolder.offlineContentManager.createOfflineSourceConfig(restrictedToAssetCache: restrictedToAssetCache)
-
-            resolve(RCTConvert.toJson(sourceConfig: offlineSourceConfig))
+            resolve(RCTConvert.toJson(offlineState: offlineContentManagerBridge.offlineContentManager.offlineState))
         }
 #endif
     }
 
     /**
      Starts the `OfflineContentManager`'s asynchronous process of fetching the `OfflineContentOptions`.
-     When the options are loaded a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onOptionsAvailable`.
+     When the options are loaded a device event will be fired where the event type is `BitmovinOfflineEvent`
+     and the data has an event type of `onOptionsAvailable`.
      - Parameter nativeId: Target offline module Id.
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func getOptions(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(getOptions:resolver:rejecter:)
+    func getOptions(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
-                let offlineContentManagerHolder = OfflineModule.offlineContentManagerHolders[nativeId]
+                let self,
+                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
             }
 
-            offlineContentManagerHolder.offlineContentManager.fetchAvailableTracks()
+            offlineContentManagerBridge.fetchAvailableTracks()
             resolve(nil)
         }
 #endif
@@ -120,29 +141,58 @@ class OfflineModule: RCTEventEmitter {
      Enqueues downloads according to the `OfflineDownloadRequest`.
      * The promise will reject in the event of null or invalid request parameters.
      - Parameter nativeId: Target offline module Id
-     - Parameter request: The download request js object containing the requested bit rate and track option ids to download.
+     - Parameter request: The download request js object containing the requested bitrate
+     and track option ids to download.
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func process(_ nativeId: NativeId, request: Any?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(download:request:resolver:rejecter:)
+    func download( // swiftlint:disable:this cyclomatic_complexity function_body_length
+        _ nativeId: NativeId,
+        request: Any?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
-                let offlineContentManagerHolder = OfflineModule.offlineContentManagerHolders[nativeId],
-                let currentTrackSelection = offlineContentManagerHolder.currentTrackSelection,
-                let request = request as? [String:Any?],
-                let minimumBitrate = request["minimumBitrate"] as? NSNumber,
-                let audioOptionIds = request["audioOptionIds"] as? [String],
-                let textOptionIds = request["textOptionIds"] as? [String]
+                let self,
+                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
             else {
+                reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
+                return
+            }
+
+            switch offlineContentManagerBridge.offlineContentManager.offlineState {
+            case .downloaded:
+                reject("BitmovinOfflineModule", "Download already completed", nil)
+                return
+            case .downloading:
+                reject("BitmovinOfflineModule", "Download already in progress", nil)
+                return
+            case .suspended:
+                reject("BitmovinOfflineModule", "Download is suspended", nil)
+                return
+            @unknown default:
+                break
+            }
+
+            guard let request = request as? [String: Any?] else {
                 reject("BitmovinOfflineModule", "Invalid download request", nil)
                 return
             }
 
-            if (!audioOptionIds.isEmpty) {
+            guard
+                let currentTrackSelection = offlineContentManagerBridge.currentTrackSelection
+            else {
+                reject("BitmovinOfflineModule", "Invalid download options", nil)
+                return
+            }
+
+            if let audioOptionIds = request["audioOptionIds"] as? [String],
+               !audioOptionIds.isEmpty {
                 currentTrackSelection.audioTracks.forEach {
-                    if (audioOptionIds.contains($0.label)) {
+                    if audioOptionIds.contains($0.label) {
                         $0.action = .download
                     } else {
                         $0.action = .none
@@ -150,9 +200,10 @@ class OfflineModule: RCTEventEmitter {
                 }
             }
 
-            if (!textOptionIds.isEmpty) {
+            if let textOptionIds = request["textOptionIds"] as? [String],
+               !textOptionIds.isEmpty {
                 currentTrackSelection.textTracks.forEach {
-                    if (textOptionIds.contains($0.label)) {
+                    if textOptionIds.contains($0.label) {
                         $0.action = .download
                     } else {
                         $0.action = .none
@@ -161,8 +212,15 @@ class OfflineModule: RCTEventEmitter {
             }
 
             let config = DownloadConfig()
-            config.minimumBitrate = minimumBitrate
-            offlineContentManagerHolder.offlineContentManager.download(tracks: currentTrackSelection, downloadConfig: config)
+
+            if let minimumBitrate = request["minimumBitrate"] as? NSNumber {
+                config.minimumBitrate = minimumBitrate
+            }
+
+            offlineContentManagerBridge.offlineContentManager.download(
+                tracks: currentTrackSelection,
+                downloadConfig: config
+            )
             resolve(nil)
         }
 #endif
@@ -174,18 +232,23 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func resume(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(resume:resolver:rejecter:)
+    func resume(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
-                let offlineContentManagerHolder = OfflineModule.offlineContentManagerHolders[nativeId]
+                let self,
+                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
             }
 
-            offlineContentManagerHolder.offlineContentManager.resumeDownload()
+            offlineContentManagerBridge.offlineContentManager.resumeDownload()
             resolve(nil)
         }
 #endif
@@ -197,18 +260,23 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func suspend(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(suspend:resolver:rejecter:)
+    func suspend(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
-                let offlineContentManagerHolder = OfflineModule.offlineContentManagerHolders[nativeId]
+                let self,
+                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
             }
 
-            offlineContentManagerHolder.offlineContentManager.suspendDownload()
+            offlineContentManagerBridge.offlineContentManager.suspendDownload()
             resolve(nil)
         }
 #endif
@@ -220,41 +288,51 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func cancelDownload(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(cancelDownload:resolver:rejecter:)
+    func cancelDownload(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
-                let offlineContentManagerHolder = OfflineModule.offlineContentManagerHolders[nativeId]
+                let self,
+                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
             }
 
-            offlineContentManagerHolder.offlineContentManager.cancelDownload()
+            offlineContentManagerBridge.offlineContentManager.cancelDownload()
             resolve(nil)
         }
 #endif
     }
 
     /**
-      Resolve `nativeId`'s current `usedStorage`.
+     Resolve `nativeId`'s current `usedStorage`.
      - Parameter nativeId: Target offline module Id
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func usedStorage(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(usedStorage:resolver:rejecter:)
+    func usedStorage(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
-                let offlineContentManagerHolder = OfflineModule.offlineContentManagerHolders[nativeId]
+                let self,
+                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
             }
 
-            resolve(offlineContentManagerHolder.offlineContentManager.usedStorage)
+            resolve(offlineContentManagerBridge.offlineContentManager.usedStorage)
         }
 #endif
     }
@@ -265,71 +343,55 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func deleteAll(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(deleteAll:resolver:rejecter:)
+    func deleteAll(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
-                let offlineContentManagerHolder = OfflineModule.offlineContentManagerHolders[nativeId]
+                let self,
+                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
             }
 
-            offlineContentManagerHolder.offlineContentManager.deleteOfflineData()
+            offlineContentManagerBridge.offlineContentManager.deleteOfflineData()
             resolve(nil)
         }
 #endif
     }
 
     /**
-     Resolve `nativeId`'s current `DrmLicenseInformation`.
-     - Parameter nativeId: Target offline module Id
-     - Parameter resolver: JS promise resolver.
-     - Parameter rejecter: JS promise rejecter.
-     */
-    @objc func offlineDrmLicenseInformation(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-#if os(iOS)
-        bridge.uiManager.addUIBlock { [weak self] _, _ in
-            guard
-                let self = self,
-                let offlineContentManagerHolder = OfflineModule.offlineContentManagerHolders[nativeId]
-            else {
-                reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
-                return
-            }
-
-            do {
-                let offlineDrmLicenseInformation = try offlineContentManagerHolder.offlineContentManager.offlineDrmLicenseInformation
-                let offlineDrmLicenseInformationJson = try RCTConvert.toJson(offlineDrmLicenseInformation: offlineDrmLicenseInformation)
-                resolve(offlineDrmLicenseInformationJson)
-            } catch let error as NSError {
-                reject("BitmovinOfflineModule", "Could not create offline drm license information", error)
-            }
-        }
-#endif
-    }
-
-    /**
      Downloads the offline license.
-     When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onDrmLicenseUpdated`.
-     Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onError`.
+     When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent`
+     and the data has an event type of `onDrmLicenseUpdated`.
+     Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent`
+     and the data has an event type of `onError`.
      - Parameter nativeId: Target offline module Id
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func downloadLicense(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(donwloadLicense:resolver:rejecter:)
+    func downloadLicense(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
-                let offlineContentManagerHolder = OfflineModule.offlineContentManagerHolders[nativeId]
+                let self,
+                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
             }
 
-            offlineContentManagerHolder.offlineContentManager.syncOfflineDrmLicenseInformation()
+            offlineContentManagerBridge.offlineContentManager.syncOfflineDrmLicenseInformation()
             resolve(nil)
         }
 #endif
@@ -337,24 +399,31 @@ class OfflineModule: RCTEventEmitter {
 
     /**
      Renews the already downloaded DRM license.
-     When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onDrmLicenseUpdated`.
-     Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onError`.
+     When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent`
+     and the data has an event type of `onDrmLicenseUpdated`.
+     Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent`
+     and the data has an event type of `onError`.
      - Parameter nativeId: Target offline module Id
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func renewOfflineLicense(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(renewOfflineLicense:resolver:rejecter:)
+    func renewOfflineLicense(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
-                let offlineContentManagerHolder = OfflineModule.offlineContentManagerHolders[nativeId]
+                let self,
+                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
             }
 
-            offlineContentManagerHolder.offlineContentManager.renewOfflineLicense()
+            offlineContentManagerBridge.offlineContentManager.renewOfflineLicense()
             resolve(nil)
         }
 #endif
@@ -368,26 +437,33 @@ class OfflineModule: RCTEventEmitter {
      - Parameter resolver: JS promise resolver.
      - Parameter rejecter: JS promise rejecter.
      */
-    @objc func release(_ nativeId: NativeId, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(release:resolver:rejecter:)
+    func release(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
 #if os(iOS)
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self,
-                let offlineContentManagerHolder = OfflineModule.offlineContentManagerHolders[nativeId]
+                let self,
+                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
             }
 
-            self.releaseOfflineContentManagerHolder(nativeId: nativeId, offlineContentManagerHolder: offlineContentManagerHolder)
+            self.releaseOfflineContentManagerBridge(
+                nativeId: nativeId,
+                offlineContentManagerBridge: offlineContentManagerBridge
+            )
             resolve(nil)
         }
 #endif
     }
-    
-    
+
     /**
-     Call `.release()` on all registered offline content manager holders.
+     Call `.release()` on all registered offline content manager bridges.
      */
     @objc(disposeAll:rejecter:)
     func disposeAll(
@@ -396,27 +472,48 @@ class OfflineModule: RCTEventEmitter {
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
-                let self = self
+                let self
             else {
                 resolve(nil)
                 return
             }
-            
-            for key in OfflineModule.offlineContentManagerHolders.keys {
+
+            for key in Self.offlineContentManagerBridges.keys {
                 guard
                     let nativeId = key as? NativeId,
-                    let offlineContentManagerHolder = OfflineModule.offlineContentManagerHolders[nativeId]
+                    let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
                 else {
                     continue
                 }
-                self.releaseOfflineContentManagerHolder(nativeId: nativeId, offlineContentManagerHolder: offlineContentManagerHolder)
+                self.releaseOfflineContentManagerBridge(
+                    nativeId: nativeId,
+                    offlineContentManagerBridge: offlineContentManagerBridge
+                )
             }
         }
         resolve(nil)
     }
-    
-    func releaseOfflineContentManagerHolder(nativeId: NativeId, offlineContentManagerHolder: OfflineContentManagerHolder) {
-        offlineContentManagerHolder.release()
-        OfflineModule.offlineContentManagerHolders[nativeId] = nil
+
+    func releaseOfflineContentManagerBridge(
+        nativeId: NativeId,
+        offlineContentManagerBridge: OfflineContentManagerBridge
+    ) {
+        offlineContentManagerBridge.release()
+        Self.offlineContentManagerBridges[nativeId] = nil
+    }
+
+    /**
+     This method is no-op on iOS.
+     - Parameter nativeId: Target offline module Id
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(releaseLicense:resolver:rejecter:)
+    func releaseLicense(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(nil)
     }
 }

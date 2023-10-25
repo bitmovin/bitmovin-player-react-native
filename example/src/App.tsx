@@ -1,10 +1,9 @@
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SourceType } from 'bitmovin-player-react-native';
-import Button from './components/Button';
 import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
 import BasicAnalytics from './screens/BasicAnalytics';
@@ -19,8 +18,9 @@ import CustomHtmlUi from './screens/CustomHtmlUi';
 import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 import LandscapeFullscreenHandling from './screens/LandscapeFullscreenHandling';
 import SystemUI from './screens/SystemUi';
-import CustomSubtitleOnlyUI from './screens/CustomSubtitleOnlyUI';
 import OfflinePlayback from './screens/OfflinePlayback';
+import Casting from './screens/Casting';
+import CustomSubtitleOnlyUI from './screens/CustomSubtitleOnlyUI';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -33,7 +33,9 @@ export type RootStackParamsList = {
   BasicAnalytics: undefined;
   BasicPlayback: undefined;
   BasicDrmPlayback: undefined;
-  BasicPictureInPicture: undefined;
+  BasicPictureInPicture: {
+    navigation: NativeStackNavigationProp<RootStackParamsList>;
+  };
   BasicFullscreenHandling: {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
   };
@@ -54,6 +56,7 @@ export type RootStackParamsList = {
   CustomHtmlUi: {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
   };
+  Casting: undefined;
   CustomSubtitleOnlyUI: undefined;
 };
 
@@ -104,6 +107,11 @@ export default function App() {
       title: 'Custom HTML UI',
       routeName: 'CustomHtmlUi',
     });
+
+    stackParams.data.push({
+      title: 'Offline playback',
+      routeName: 'OfflinePlayback',
+    });
   }
 
   if (!Platform.isTV) {
@@ -116,8 +124,8 @@ export default function App() {
       routeName: 'LandscapeFullscreenHandling',
     });
     stackParams.data.push({
-      title: 'Offline playback',
-      routeName: 'OfflinePlayback',
+      title: 'Casting',
+      routeName: 'Casting',
     });
   }
 
@@ -183,6 +191,13 @@ export default function App() {
           component={ProgrammaticTrackSelection}
           options={{ title: 'Programmatic Track Selection' }}
         />
+        {!isTVOS && (
+          <RootStack.Screen
+            name="OfflinePlayback"
+            component={OfflinePlayback}
+            options={{ title: 'Offline Playback' }}
+          />
+        )}
         <RootStack.Screen
           name="CustomPlaybackForm"
           component={CustomPlaybackForm}
@@ -196,7 +211,11 @@ export default function App() {
         <RootStack.Screen
           name="BasicPictureInPicture"
           component={BasicPictureInPicture}
-          options={{ title: 'Basic Picture in Picture' }}
+          options={{
+            title: 'Basic Picture in Picture',
+            // eslint-disable-next-line react/no-unstable-nested-components
+            headerRight: () => <Button title="Enter PiP" />,
+          }}
         />
         <RootStack.Screen
           name="CustomSubtitleOnlyUI"
@@ -233,9 +252,9 @@ export default function App() {
         )}
         {!Platform.isTV && (
           <RootStack.Screen
-            name="OfflinePlayback"
-            component={OfflinePlayback}
-            options={{ title: 'Offline Playback' }}
+            name="Casting"
+            component={Casting}
+            options={{ title: 'Casting' }}
           />
         )}
       </RootStack.Navigator>

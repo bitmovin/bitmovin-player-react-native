@@ -3,8 +3,9 @@
 @interface RCT_EXTERN_REMAP_MODULE(PlayerModule, PlayerModule, NSObject)
 
 RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config)
+RCT_EXTERN_METHOD(initWithAnalyticsConfig:(NSString *)nativeId config:(nullable id)config analyticsConfig:(nullable id)analyticsConfig)
 RCT_EXTERN_METHOD(loadSource:(NSString *)nativeId sourceNativeId:(NSString *)sourceNativeId)
-RCT_EXTERN_METHOD(loadOfflineSource:(NSString *)nativeId offlineContentManagerHolderNativeId:(NSString *)offlineContentManagerHolderNativeId options:(nullable id)options)
+RCT_EXTERN_METHOD(loadOfflineContent:(NSString *)nativeId offlineContentManagerBridgeId:(NSString *)offlineContentManagerBridgeId options:(nullable id)options)
 RCT_EXTERN_METHOD(unload:(NSString *)nativeId)
 RCT_EXTERN_METHOD(play:(NSString *)nativeId)
 RCT_EXTERN_METHOD(pause:(NSString *)nativeId)
@@ -57,12 +58,20 @@ RCT_EXTERN_METHOD(
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
+    getAudioTrack:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
     getAvailableAudioTracks:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
     setAudioTrack:(NSString *)nativeId
     trackIdentifier:(NSString *)trackIdentifier
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    getSubtitleTrack:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
@@ -91,6 +100,22 @@ RCT_EXTERN_METHOD(
     getMaxTimeShift:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(setMaxSelectableBitrate:(NSString *)nativeId maxSelectableBitrate:(nonnull NSNumber *)maxSelectableBitrate)
+RCT_EXTERN_METHOD(
+    getThumbnail:(NSString *)nativeId
+    time:(nonnull NSNumber *)time
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    isCastAvailable:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    isCasting:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(castVideo:(NSString *)nativeId)
+RCT_EXTERN_METHOD(castStop:(NSString *)nativeId)
 
 RCT_EXTERN_METHOD(disposeAll:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 @end

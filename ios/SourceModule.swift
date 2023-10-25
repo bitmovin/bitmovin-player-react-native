@@ -1,25 +1,27 @@
 import BitmovinPlayer
 
 @objc(SourceModule)
-class SourceModule: NSObject, RCTBridgeModule {
-    /// React bridge reference.
-    @objc var bridge: RCTBridge!
+public class SourceModule: NSObject, RCTBridgeModule {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    @objc public var bridge: RCTBridge!
 
     /// In-memory mapping from `nativeId`s to `Source` instances.
     private var sources: Registry<Source> = [:]
 
-    /// JS module name.
-    static func moduleName() -> String! {
+    /// In-memory mapping from `nativeId`s to `SourceConfig` instances for casting.
+    private var castSourceConfigs: Registry<SourceConfig> = [:]
+
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public static func moduleName() -> String! {
         "SourceModule"
     }
 
-    /// Module requires main thread initialization.
-    static func requiresMainQueueSetup() -> Bool {
+    public static func requiresMainQueueSetup() -> Bool {
         true
     }
 
-    /// Use `UIManager.addBlock` to enqueue module methods on UI thread.
-    var methodQueue: DispatchQueue! {
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    public var methodQueue: DispatchQueue! {
         bridge.uiManager.methodQueue
     }
 
@@ -28,45 +30,99 @@ class SourceModule: NSObject, RCTBridgeModule {
      - Parameter nativeId: `Source` instance ID.
      - Returns: The associated `Source` instance or `nil`.
      */
-    @objc func retrieve(_ nativeId: NativeId) -> Source? {
+    @objc
+    func retrieve(_ nativeId: NativeId) -> Source? {
         sources[nativeId]
     }
 
+    // Finds `NativeId` based on predicate ran on `Source` instances
+    func nativeId(where predicate: (Source) -> Bool) -> NativeId? {
+        sources.first { _, value in
+            predicate(value)
+        }?.key
+    }
+
+    // Fetches cast-specific `SourceConfig` by `NativeId` if exists
+    func retrieveCastSourceConfig(_ nativeId: NativeId) -> SourceConfig? {
+        castSourceConfigs[nativeId]
+    }
+
     /**
-     Creates a new `Source` instance inside the internal sources using the provided `config` object.
+     Creates a new `Source` instance inside the internal sources using the provided `config`
+     and `analyticsSourceMetadata` object and an optionally initialized DRM configuration ID.
      - Parameter nativeId: ID to be associated with the `Source` instance.
+     - Parameter drmNativeId: ID of the DRM config object to use.
      - Parameter config: `SourceConfig` object received from JS.
+     - Parameter analyticsSourceMetadata: `SourceMetadata` object received from JS.
+     - Parameter sourceRemoteControlConfig: `SourceRemoteControlConfig` object received from JS.
      */
-    @objc(initWithConfig:config:)
-    func initWithConfig(_ nativeId: NativeId, config: Any?) {
+    @objc(initWithAnalyticsConfig:drmNativeId:config:sourceRemoteControlConfig:analyticsSourceMetadata:)
+    func initWithAnalyticsConfig(
+        _ nativeId: NativeId,
+        drmNativeId: NativeId?,
+        config: Any?,
+        sourceRemoteControlConfig: Any?,
+        analyticsSourceMetadata: Any?
+    ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
+            let drmConfig: DrmConfig?
+            if let drmNativeId {
+                drmConfig = self?.getDrmModule()?.retrieve(drmNativeId)
+            } else {
+                drmConfig = nil
+            }
+
             guard
                 self?.sources[nativeId] == nil,
-                let sourceConfig = RCTConvert.sourceConfig(config)
+                let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig),
+                let sourceMetadata = RCTConvert.analyticsSourceMetadata(analyticsSourceMetadata)
             else {
                 return
             }
-            self?.sources[nativeId] = SourceFactory.create(from: sourceConfig)
+            self?.sources[nativeId] = SourceFactory.create(from: sourceConfig, sourceMetadata: sourceMetadata)
+#if os(iOS)
+            if let remoteConfig = RCTConvert.sourceRemoteControlConfig(sourceRemoteControlConfig) {
+                self?.castSourceConfigs[nativeId] = remoteConfig.castSourceConfig
+            }
+#endif
         }
     }
 
     /**
-     Creates a new `Source` instance inside the internal sources using the provided `config` object and an initialized DRM configuration ID.
+     Creates a new `Source` instance inside the internal sources using
+     the provided `config` object and an initialized DRM configuration ID.
      - Parameter nativeId: ID to be associated with the `Source` instance.
      - Parameter drmNativeId: ID of the DRM config object to use.
      - Parameter config: `SourceConfig` object received from JS.
+     - Parameter sourceRemoteControlConfig: `SourceRemoteControlConfig` object received from JS.
      */
-    @objc(initWithDrmConfig:drmNativeId:config:)
-    func initWithDrmConfig(_ nativeId: NativeId, drmNativeId: NativeId, config: Any?) {
+    @objc(initWithConfig:drmNativeId:config:sourceRemoteControlConfig:)
+    func initWithConfig(
+        _ nativeId: NativeId,
+        drmNativeId: NativeId?,
+        config: Any?,
+        sourceRemoteControlConfig: Any?
+    ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
+            let drmConfig: DrmConfig?
+            if let drmNativeId {
+                drmConfig = self?.getDrmModule()?.retrieve(drmNativeId)
+            } else {
+                drmConfig = nil
+            }
+
             guard
                 self?.sources[nativeId] == nil,
-                let fairplayConfig = self?.getDrmModule()?.retrieve(drmNativeId),
-                let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: fairplayConfig)
+                let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig)
             else {
                 return
             }
             self?.sources[nativeId] = SourceFactory.create(from: sourceConfig)
+#if os(iOS)
+            if let remoteConfig = RCTConvert.sourceRemoteControlConfig(sourceRemoteControlConfig) {
+                self?.castSourceConfigs[nativeId] = remoteConfig.castSourceConfig
+            }
+#endif
         }
     }
 
@@ -82,6 +138,7 @@ class SourceModule: NSObject, RCTBridgeModule {
     @objc(destroy:)
     func destroy(_ nativeId: NativeId) {
         sources.removeValue(forKey: nativeId)
+        castSourceConfigs.removeValue(forKey: nativeId)
     }
 
     /**
@@ -184,4 +241,26 @@ class SourceModule: NSObject, RCTBridgeModule {
             self?.sources[nativeId]?.metadata = metadata
         }
     }
+
+    /**
+     Returns the thumbnail image for the `Source` at a certain time.
+     - Parameter nativeId: Target player id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getThumbnail:time:resolver:rejecter:)
+    func getThumbnail(
+        _ nativeId: NativeId,
+        time: NSNumber,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(RCTConvert.toJson(thumbnail: self?.sources[nativeId]?.thumbnail(forTime: time.doubleValue)))
+        }
+    }
+}
+
+internal struct SourceRemoteControlConfig {
+    let castSourceConfig: SourceConfig?
 }

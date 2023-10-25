@@ -1,19 +1,48 @@
-import { NativeSyntheticEvent, EmitterSubscription, ViewStyle, StyleProp } from 'react-native';
+import { NativeSyntheticEvent, ViewStyle, StyleProp } from 'react-native';
+
+/**
+ * Configures the adaptation logic.
+ */
+interface AdaptationConfig {
+    /**
+     * The upper bitrate boundary in bits per second for approximate network bandwidth consumption of the played source.
+     * Can be set to `undefined` for no limitation.
+     */
+    maxSelectableBitrate?: number;
+}
 
 /**
  * Quartiles that can be reached during an ad playback.
  */
 declare enum AdQuartile {
+    /**
+     * Fist ad quartile.
+     */
     FIRST = "first",
+    /**
+     * Mid ad quartile.
+     */
     MID_POINT = "mid_point",
+    /**
+     * Third ad quartile.
+     */
     THIRD = "third"
 }
 /**
  * The possible types an `AdSource` can be.
  */
 declare enum AdSourceType {
+    /**
+     * Google Interactive Media Ads.
+     */
     IMA = "ima",
+    /**
+     * Unknown ad source type.
+     */
     UNKNOWN = "unknown",
+    /**
+     * Progressive ad type.
+     */
     PROGRESSIVE = "progressive"
 }
 /**
@@ -148,112 +177,73 @@ interface AdBreak {
     scheduleTime: number;
 }
 
-interface NativeInstanceConfig {
-    /**
-     * Optionally user-defined string `id` for the native instance.
-     * Used to access a certain native instance from any point in the source code then call
-     * methods/properties on it.
-     *
-     * When left empty, a random `UUIDv4` is generated for it.
-     * @example
-     * Accessing or creating the `Player` with `nativeId` equal to `my-player`:
-     * ```
-     * const player = new Player({ nativeId: 'my-player' })
-     * player.play(); // call methods and properties...
-     * ```
-     */
-    nativeId?: string;
-}
-declare abstract class NativeInstance<Config extends NativeInstanceConfig> {
-    /**
-     * Optionally user-defined string `id` for the native instance, or UUIDv4.
-     */
-    readonly nativeId: string;
-    /**
-     * The configuration object used to initialize this instance.
-     */
-    readonly config?: Config;
-    /**
-     * Generate UUID in case the user-defined `nativeId` is empty.
-     */
-    constructor(config?: Config);
-    /**
-     * Flag indicating whether the native resources of this object have been created internally
-     * .i.e `initialize` has been called.
-     */
-    abstract isInitialized: boolean;
-    /**
-     * Create the native object/resources that will be managed by this instance.
-     */
-    abstract initialize(): void;
-    /**
-     * Flag indicating whether the native resources of this object have been disposed .i.e
-     * `destroy` has been called.
-     */
-    abstract isDestroyed: boolean;
-    /**
-     * Dispose the native object/resources created by this instance during `initialize`.
-     */
-    abstract destroy(): void;
-}
-
 /**
- * Available cdn provider options for AnalyticsConfig.
+ * Object used to configure the build-in analytics collector.
  */
-declare enum CdnProvider {
-    BITMOVIN = "bitmovin",
-    AKAMAI = "akamai",
-    FASTLY = "fastly",
-    MAXCDN = "maxcdn",
-    CLOUDFRONT = "cloudfront",
-    CHINACACHE = "chinacache",
-    BITGRAVITY = "bitgravity"
-}
-/**
- * Object used to configure a new `AnalyticsCollector` instance.
- */
-interface AnalyticsConfig extends NativeInstanceConfig, CustomDataConfig {
+interface AnalyticsConfig {
     /**
-     * CDN Provide that the video playback session is using.
+     * The analytics license key
      */
-    cdnProvider?: CdnProvider;
-    /**
-     * User ID of the customer.
-     */
-    customUserId?: string;
-    /**
-     * ID of the video in the CMS system.
-     */
-    videoId?: string;
-    /**
-     * Human readable title of the video asset currently playing.
-     */
-    title?: string;
-    /**
-     * Analytics key.
-     */
-    key: string;
-    /**
-     * Player key.
-     */
-    playerKey?: string;
-    /**
-     * Breadcrumb path to show where in the app the user is.
-     */
-    path?: string;
-    /**
-     * Flag to see if stream is live before stream metadata is available (default: false).
-     */
-    isLive?: boolean;
+    licenseKey: string;
     /**
      * Flag to enable Ad tracking (default: false).
      */
-    ads?: boolean;
+    adTrackingDisabled?: boolean;
     /**
      * Flag to use randomised userId not depending on device specific values (default: false).
      */
     randomizeUserId?: boolean;
+    /**
+     * Default metadata to be sent with events.
+     * Fields of the `SourceMetadata` are prioritized over the default metadata.
+     */
+    defaultMetadata?: DefaultMetadata;
 }
+/**
+ * DefaultMetadata that can be used to enrich the analytics data.
+ * DefaultMetadata is not bound to a specific source and can be used to set fields for the lifecycle of the collector.
+ * If fields are specified in `SourceMetadata` and `DefaultMetadata`, `SourceMetadata` takes precedence.
+ */
+interface DefaultMetadata extends CustomDataConfig {
+    /**
+     * CDN Provide that the video playback session is using.
+     */
+    cdnProvider?: string;
+    /**
+     * User ID of the customer.
+     */
+    customUserId?: string;
+}
+/**
+ * `SourceMetadata` that can be used to enrich the analytics data.
+ */
+interface SourceMetadata extends CustomDataConfig {
+    /**
+     * ID of the video in the CMS system
+     */
+    videoId?: String;
+    /**
+     * Human readable title of the video asset currently playing
+     */
+    title?: String;
+    /**
+     * Breadcrumb path to show where in the app the user is
+     */
+    path?: String;
+    /**
+     * Flag to see if stream is live before stream metadata is available
+     */
+    isLive?: boolean;
+    /**
+     * CDN Provider that the video playback session is using
+     */
+    cdnProvider?: String;
+}
+/**
+ * Free-form data that can be used to enrich the analytics data
+ * If customData is specified in `SourceMetadata` and `DefaultMetadata`
+ * data is merged on a field basis with `SourceMetadata` taking precedence.
+ */
 interface CustomDataConfig {
     /**
      * Optional free-form custom data
@@ -380,99 +370,28 @@ interface CustomDataConfig {
      */
     experimentName?: string;
 }
-interface SourceMetadata extends CustomDataConfig {
-    /**
-     * ID of the video in the CMS system
-     */
-    videoId?: String;
-    /**
-     * Human readable title of the video asset currently playing
-     */
-    title?: String;
-    /**
-     * Breadcrumb path to show where in the app the user is
-     */
-    path?: String;
-    /**
-     * Flag to see if stream is live before stream metadata is available
-     */
-    isLive?: boolean;
-    /**
-     * CDN Provider that the video playback session is using
-     */
-    cdnProvider?: String;
-}
 
 /**
- * Analytics collector that can be attached to a player object in order to collect and send
- * its analytics information.
+ * Provides the means to control the analytics collected by a `Player`.
+ * Use the `Player.analytics` property to access a `Player`'s `AnalyticsApi`.
  */
-declare class AnalyticsCollector extends NativeInstance<AnalyticsConfig> {
+declare class AnalyticsApi {
     /**
-     * Whether the native `AnalyticsCollector` object has been created.
+     * The native player id that this analytics api is attached to.
      */
-    isInitialized: boolean;
+    playerId: string;
+    constructor(playerId: string);
     /**
-     * The native player id that this analytics collector is attached to.
+     * Sends a sample with the provided custom data.
+     * Does not change the configured custom data of the collector or source.
      */
-    playerId?: string;
+    sendCustomDataEvent: (customData: CustomDataConfig) => void;
     /**
-     * Whether the native `AnalyticsCollector` object has been disposed.
-     */
-    isDestroyed: boolean;
-    /**
-     * Initializes a native `BitmovinPlayerCollector` object.
-     */
-    initialize: () => void;
-    /**
-     * Disposes the native `BitmovinPlayerCollector` object that has been created
-     * during initialization.
-     */
-    destroy: () => void;
-    /**
-     * Attach a player instance to this analytics plugin. After this is completed, BitmovinAnalytics
-     * will start monitoring and sending analytics data based on the attached player instance.
-     *
-     * @param playerId - Native Id of the player to attach this collector instance.
-     */
-    attach: (playerId: string) => void;
-    /**
-     * Detach a player instance from this analytics plugin if there's any attached. If no player is attached,
-     * nothing happens.
-     */
-    detach: () => void;
-    /**
-     * Dynamically updates analytics custom data information. Use this method
-     * to update your custom data during runtime.
-     *
-     * @param customData - Analytics custom data config.
-     */
-    setCustomDataOnce: (customData: CustomDataConfig) => void;
-    /**
-     * Sets the internal analytics custom data state.
-     *
-     * @param customData - Analytics custom data config.
-     */
-    setCustomData: (customData: CustomDataConfig) => void;
-    /**
-     * Gets the current custom data config from the native `BitmovinPlayerCollector` instance.
-     *
-     * @returns The current custom data config.
-     */
-    getCustomData: () => Promise<CustomDataConfig>;
-    /**
-     * Gets the current user id used by the native `BitmovinPlayerCollector` instance.
+     * Gets the current user id used by the bundled analytics instance.
      *
      * @returns The current user id.
      */
     getUserId: () => Promise<string>;
-    /**
-     * Adds source metadata for the current source loaded into the player.
-     * This method should be called every time a new source is loaded into the player to ensure
-     * that the analytics data is correct.
-     * @param sourceMetadata - Source metadata to set.
-     */
-    addSourceMetadata: (sourceMetadata: SourceMetadata) => any;
 }
 
 /**
@@ -535,21 +454,6 @@ interface AudioTrack {
 }
 
 /**
- * Utility type that maps the specified optional props from the target `Type` to be
- * required props. Note all the other props stay unaffected.
- *
- * @example
- * type MyType = {
- *   a?: string;
- *   b?: number;
- *   c?: boolean;
- * };
- *
- * type MyRequiredType = MakeRequired<MyType, 'a' | 'c'> // => { a: string; b?: number; c: boolean; }
- */
-declare type MakeRequired<Type, Key extends keyof Type> = Omit<Type, Key> & Required<Pick<Type, Key>>;
-
-/**
  * Supported subtitle/caption file formats.
  */
 declare enum SubtitleFormat {
@@ -558,7 +462,7 @@ declare enum SubtitleFormat {
     VTT = "vtt"
 }
 /**
- * Represents a custom subtitle track source that can be added to `SourceConfig.subtitleTracks`.
+ * Describes a subtitle track.
  */
 interface SubtitleTrack {
     /**
@@ -595,13 +499,15 @@ interface SubtitleTrack {
     language?: string;
 }
 /**
- * Helper type that represents an entry in `SourceConfig.subtitleTracks` list.
+ * A subtitle track that can be added to `SourceConfig.subtitleTracks`.
  *
- * Since `SubtitleTrack` has all of its properties as optionals for total compatibility with
- * values that may be sent from native code, this type serves as a reinforcer of what properties
- * should be required during the registration of an external subtitle track from JS.
  */
-declare type SideLoadedSubtitleTrack = MakeRequired<SubtitleTrack, 'url' | 'label' | 'language' | 'format'>;
+interface SideLoadedSubtitleTrack extends SubtitleTrack {
+    url: string;
+    label: string;
+    language: string;
+    format: SubtitleFormat;
+}
 
 /**
  * Quality definition of a video representation.
@@ -674,12 +580,12 @@ interface ErrorEvent extends Event {
 interface PlayerActiveEvent extends Event {
 }
 /**
- * Emitted when a player error happens.
+ * Emitted when a player error occurred.
  */
 interface PlayerErrorEvent extends ErrorEvent {
 }
 /**
- * Emitted when a player warning happens.
+ * Emitted when a player warning occurred.
  */
 interface PlayerWarningEvent extends ErrorEvent {
 }
@@ -763,34 +669,44 @@ interface EventSource {
     metadata?: Record<string, any>;
 }
 /**
+ * Represents a seeking position.
+ */
+interface SeekPosition {
+    /**
+     * The relevant `Source`.
+     */
+    source: EventSource;
+    /**
+     * The position within the `source` in seconds.
+     */
+    time: number;
+}
+/**
  * Emitted when the player is about to seek to a new position.
- * Only applies to VoD streams.
+ * This event only applies to VoD streams.
+ * When looking for an equivalent for live streams, the {@link TimeShiftEvent} is relevant.
  */
 interface SeekEvent extends Event {
     /**
-     * Removed source metadata.
+     * Origin source metadata.
      */
-    from: {
-        time: number;
-        source: EventSource;
-    };
+    from: SeekPosition;
     /**
-     * Added source metadata.
+     * Target source metadata.
      */
-    to: {
-        time: number;
-        source: EventSource;
-    };
+    to: SeekPosition;
 }
 /**
  * Emitted when seeking has finished and data to continue playback is available.
- * Only applies to VoD streams.
+ * This event only applies to VoD streams.
+ * When looking for an equivalent for live streams, the {@link TimeShiftedEvent} is relevant.
  */
 interface SeekedEvent extends Event {
 }
 /**
  * Emitted when the player starts time shifting.
- * Only applies to live streams.
+ * This event only applies to live streams.
+ * When looking for an equivalent for VoD streams, the {@link SeekEvent} is relevant.
  */
 interface TimeShiftEvent extends Event {
     /**
@@ -804,7 +720,8 @@ interface TimeShiftEvent extends Event {
 }
 /**
  * Emitted when time shifting has finished and data is available to continue playback.
- * Only applies to live streams.
+ * This event only applies to live streams.
+ * When looking for an equivalent for VoD streams, the {@link SeekedEvent} is relevant.
  */
 interface TimeShiftedEvent extends Event {
 }
@@ -829,7 +746,6 @@ interface TimeChangedEvent extends Event {
 }
 /**
  * Emitted when a new source loading has started.
- * It doesn't mean that the loading of the new manifest has finished.
  */
 interface SourceLoadEvent extends Event {
     /**
@@ -839,7 +755,8 @@ interface SourceLoadEvent extends Event {
 }
 /**
  * Emitted when a new source is loaded.
- * It doesn't mean that the loading of the new manifest has finished.
+ * This does not mean that the source is immediately ready for playback.
+ * `ReadyEvent` indicates the player is ready for immediate playback.
  */
 interface SourceLoadedEvent extends Event {
     /**
@@ -857,12 +774,12 @@ interface SourceUnloadedEvent extends Event {
     source: EventSource;
 }
 /**
- * Emitted when a source error happens.
+ * Emitted when a source error occurred.
  */
 interface SourceErrorEvent extends ErrorEvent {
 }
 /**
- * Emitted when a source warning happens.
+ * Emitted when a source warning occurred.
  */
 interface SourceWarningEvent extends ErrorEvent {
 }
@@ -1159,65 +1076,370 @@ interface VideoPlaybackQualityChangedEvent extends Event {
      */
     oldVideoQuality: VideoQuality;
 }
+/**
+ * Emitted when casting to a cast-compatible device is available.
+ */
+interface CastAvailableEvent extends Event {
+}
+/**
+ * Emitted when the playback on a cast-compatible device was paused.
+ *
+ * On Android `PausedEvent` is also emitted while casting.
+ */
+interface CastPausedEvent extends Event {
+}
+/**
+ * Emitted when the playback on a cast-compatible device has finished.
+ *
+ * On Android `PlaybackFinishedEvent` is also emitted while casting.
+ */
+interface CastPlaybackFinishedEvent extends Event {
+}
+/**
+ * Emitted when playback on a cast-compatible device has started.
+ *
+ * On Android `PlayingEvent` is also emitted while casting.
+ */
+interface CastPlayingEvent extends Event {
+}
+/**
+ * Emitted when the cast app is launched successfully.
+ */
+interface CastStartedEvent extends Event {
+    /**
+     * The name of the cast device on which the app was launched.
+     */
+    deviceName: string | null;
+}
+/**
+ * Emitted when casting is initiated, but the user still needs to choose which device should be used.
+ */
+interface CastStartEvent extends Event {
+}
+/**
+ * Emitted when casting to a cast-compatible device is stopped.
+ */
+interface CastStoppedEvent extends Event {
+}
+/**
+ * Emitted when the time update from the currently used cast-compatible device is received.
+ */
+interface CastTimeUpdatedEvent extends Event {
+}
+/**
+ * Contains information for the `CastWaitingForDeviceEvent`.
+ */
+interface CastPayload {
+    /**
+     * The current time in seconds.
+     */
+    currentTime: number;
+    /**
+     * The name of the chosen cast device.
+     */
+    deviceName: string | null;
+    /**
+     * The type of the payload (always "cast").
+     */
+    type: string;
+}
+/**
+ * Emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
+ * playback.
+ */
+interface CastWaitingForDeviceEvent extends Event {
+    /**
+     * The `CastPayload` object for the event
+     */
+    castPayload: CastPayload;
+}
 
 /**
  * Type that defines all event props supported by `PlayerView` and `NativePlayerView`.
  * Used to generate the specific events interface for each component.
  */
 interface EventProps {
+    /**
+     * Event emitted when an ad break has finished.
+     */
     onAdBreakFinished: AdBreakFinishedEvent;
+    /**
+     * Event emitted when an ad break has started.
+     */
     onAdBreakStarted: AdBreakStartedEvent;
+    /**
+     * Event emitted when an ad has been clicked.
+     */
     onAdClicked: AdClickedEvent;
+    /**
+     * Event emitted when an ad error has occurred.
+     */
     onAdError: AdErrorEvent;
+    /**
+     * Event emitted when an ad has finished.
+     */
     onAdFinished: AdFinishedEvent;
+    /**
+     * Event emitted when an ad manifest starts loading.
+     */
     onAdManifestLoad: AdManifestLoadEvent;
+    /**
+     * Event emitted when an ad manifest has been loaded.
+     */
     onAdManifestLoaded: AdManifestLoadedEvent;
+    /**
+     * Event emitted when an ad quartile has been reached.
+     */
     onAdQuartile: AdQuartileEvent;
+    /**
+     * Event emitted when an ad has been scheduled.
+     */
     onAdScheduled: AdScheduledEvent;
+    /**
+     * Event emitted when an ad has been skipped.
+     */
     onAdSkipped: AdSkippedEvent;
+    /**
+     * Event emitted when an ad has started.
+     */
     onAdStarted: AdStartedEvent;
+    /**
+     * Event emitted when casting to a cast-compatible device is available.
+     *
+     * @platform iOS, Android
+     */
+    onCastAvailable: CastAvailableEvent;
+    /**
+     * Event emitted when the playback on a cast-compatible device was paused.
+     *
+     * @platform iOS, Android
+     */
+    onCastPaused: CastPausedEvent;
+    /**
+     * Event emitted when the playback on a cast-compatible device has finished.
+     *
+     * @platform iOS, Android
+     */
+    onCastPlaybackFinished: CastPlaybackFinishedEvent;
+    /**
+     * Event emitted when playback on a cast-compatible device has started.
+     *
+     * @platform iOS, Android
+     */
+    onCastPlaying: CastPlayingEvent;
+    /**
+     * Event emitted when the cast app is launched successfully.
+     *
+     * @platform iOS, Android
+     */
+    onCastStarted: CastStartedEvent;
+    /**
+     * Event emitted when casting is initiated, but the user still needs to choose which device should be used.
+     *
+     * @platform iOS, Android
+     */
+    onCastStart: CastStartEvent;
+    /**
+     * Event emitted when casting to a cast-compatible device is stopped.
+     *
+     * @platform iOS, Android
+     */
+    onCastStopped: CastStoppedEvent;
+    /**
+     * Event emitted when the time update from the currently used cast-compatible device is received.
+     *
+     * @platform iOS, Android
+     */
+    onCastTimeUpdated: CastTimeUpdatedEvent;
+    /**
+     * Event emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
+     * playback.
+     *
+     * @platform iOS, Android
+     */
+    onCastWaitingForDevice: CastWaitingForDeviceEvent;
+    /**
+     * Event emitted when the player is destroyed.
+     */
     onDestroy: DestroyEvent;
+    /**
+     * All events emitted by the player.
+     */
     onEvent: Event;
+    /**
+     * Event emitted when fullscreen mode has been enabled.
+     *
+     * @platform iOS, Android
+     */
     onFullscreenEnabled: FullscreenEnabledEvent;
+    /**
+     * Event emitted when fullscreen mode has been disabled.
+     *
+     * @platform iOS, Android
+     */
     onFullscreenDisabled: FullscreenDisabledEvent;
+    /**
+     * Event emitted when fullscreen mode has been entered.
+     *
+     * @platform iOS, Android
+     */
     onFullscreenEnter: FullscreenEnterEvent;
+    /**
+     * Event emitted when fullscreen mode has been exited.
+     *
+     * @platform iOS, Android
+     */
     onFullscreenExit: FullscreenExitEvent;
+    /**
+     * Event emitted when the player has been muted.
+     */
     onMuted: MutedEvent;
+    /**
+     * Event emitted when the player has been paused.
+     */
     onPaused: PausedEvent;
+    /**
+     * Event mitted when the availability of the Picture in Picture mode changed.
+     */
     onPictureInPictureAvailabilityChanged: PictureInPictureAvailabilityChangedEvent;
+    /**
+     * Event emitted when the player enters Picture in Picture mode.
+     */
     onPictureInPictureEnter: PictureInPictureEnterEvent;
+    /**
+     * Event emitted when the player entered Picture in Picture mode.
+     *
+     * @platform iOS
+     */
     onPictureInPictureEntered: PictureInPictureEnteredEvent;
+    /**
+     * Event emitted when the player exits Picture in Picture mode.
+     */
     onPictureInPictureExit: PictureInPictureExitEvent;
+    /**
+     * Event emitted when the player exited Picture in Picture mode.
+     *
+     * @platform iOS
+     */
     onPictureInPictureExited: PictureInPictureExitedEvent;
+    /**
+     * Event emitted when the player received an intention to start/resume playback.
+     */
     onPlay: PlayEvent;
+    /**
+     * Event emitted when the playback of the current media has finished.
+     */
     onPlaybackFinished: PlaybackFinishedEvent;
+    /**
+     * Event emitted when a source is loaded into the player.
+     * Seeking and time shifting are allowed as soon as this event is seen.
+     */
     onPlayerActive: PlayerActiveEvent;
+    /**
+     * Event Emitted when a player error occurred.
+     */
     onPlayerError: PlayerErrorEvent;
+    /**
+     * Event emitted when a player warning occurred.
+     */
     onPlayerWarning: PlayerWarningEvent;
+    /**
+     * Emitted when playback has started.
+     */
     onPlaying: PlayingEvent;
+    /**
+     * Emitted when the player is ready for immediate playback, because initial audio/video
+     * has been downloaded.
+     */
     onReady: ReadyEvent;
+    /**
+     * Event emitted when the player is about to seek to a new position.
+     * Only applies to VoD streams.
+     */
     onSeek: SeekEvent;
+    /**
+     * Event emitted when seeking has finished and data to continue playback is available.
+     * Only applies to VoD streams.
+     */
     onSeeked: SeekedEvent;
+    /**
+     * Event mitted when the player starts time shifting.
+     * Only applies to live streams.
+     */
     onTimeShift: TimeShiftEvent;
+    /**
+     * Event emitted when time shifting has finished and data is available to continue playback.
+     * Only applies to live streams.
+     */
     onTimeShifted: TimeShiftedEvent;
+    /**
+     * Event emitted when the player begins to stall and to buffer due to an empty buffer.
+     */
     onStallStarted: StallStartedEvent;
+    /**
+     * Event emitted when the player ends stalling, due to enough data in the buffer.
+     */
     onStallEnded: StallEndedEvent;
+    /**
+     * Event emitted when a source error occurred.
+     */
     onSourceError: SourceErrorEvent;
+    /**
+     * Event emitted when a new source loading has started.
+     */
     onSourceLoad: SourceLoadEvent;
+    /**
+     * Event emitted when a new source is loaded.
+     * This does not mean that the source is immediately ready for playback.
+     * `ReadyEvent` indicates the player is ready for immediate playback.
+     */
     onSourceLoaded: SourceLoadedEvent;
+    /**
+     * Event emitted when the current source has been unloaded.
+     */
     onSourceUnloaded: SourceUnloadedEvent;
+    /**
+     * Event emitted when a source warning occurred.
+     */
     onSourceWarning: SourceWarningEvent;
+    /**
+     * Event emitted when a new audio track is added to the player.
+     */
     onAudioAdded: AudioAddedEvent;
+    /**
+     * Event emitted when the player's selected audio track has changed.
+     */
     onAudioChanged: AudioChangedEvent;
+    /**
+     * Event emitted when an audio track is removed from the player.
+     */
     onAudioRemoved: AudioRemovedEvent;
+    /**
+     * Event emitted when a new subtitle track is added to the player.
+     */
     onSubtitleAdded: SubtitleAddedEvent;
+    /**
+     * Event emitted when the player's selected subtitle track has changed.
+     */
     onSubtitleChanged: SubtitleChangedEvent;
+    /**
+     * Event emitted when a subtitle track is removed from the player.
+     */
     onSubtitleRemoved: SubtitleRemovedEvent;
+    /**
+     * Event emitted when the current playback time has changed.
+     */
     onTimeChanged: TimeChangedEvent;
+    /**
+     * Emitted when the player is unmuted.
+     */
     onUnmuted: UnmutedEvent;
+    /**
+     * Emitted when the current video playback quality has changed.
+     */
+    onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
     onVideoSizeChanged: VideoSizeChangedEvent;
     onDurationChanged: DurationChangedEvent;
-    onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
 }
 /**
  * Event props for `PlayerView`.
@@ -1234,6 +1456,55 @@ declare type PlayerViewEvents = {
 declare type NativePlayerViewEvents = {
     [Prop in keyof EventProps]?: (nativeEvent: NativeSyntheticEvent<EventProps[Prop]>) => void;
 };
+
+interface NativeInstanceConfig {
+    /**
+     * Optionally user-defined string `id` for the native instance.
+     * Used to access a certain native instance from any point in the source code then call
+     * methods/properties on it.
+     *
+     * When left empty, a random `UUIDv4` is generated for it.
+     * @example
+     * Accessing or creating the `Player` with `nativeId` equal to `my-player`:
+     * ```
+     * const player = new Player({ nativeId: 'my-player' })
+     * player.play(); // call methods and properties...
+     * ```
+     */
+    nativeId?: string;
+}
+declare abstract class NativeInstance<Config extends NativeInstanceConfig> {
+    /**
+     * Optionally user-defined string `id` for the native instance, or UUIDv4.
+     */
+    readonly nativeId: string;
+    /**
+     * The configuration object used to initialize this instance.
+     */
+    readonly config?: Config;
+    /**
+     * Generate UUID in case the user-defined `nativeId` is empty.
+     */
+    constructor(config?: Config);
+    /**
+     * Flag indicating whether the native resources of this object have been created internally
+     * .i.e `initialize` has been called.
+     */
+    abstract isInitialized: boolean;
+    /**
+     * Create the native object/resources that will be managed by this instance.
+     */
+    abstract initialize(): void;
+    /**
+     * Flag indicating whether the native resources of this object have been disposed .i.e
+     * `destroy` has been called.
+     */
+    abstract isDestroyed: boolean;
+    /**
+     * Dispose the native object/resources created by this instance during `initialize`.
+     */
+    abstract destroy(): void;
+}
 
 /**
  * Represents a FairPlay Streaming DRM config.
@@ -1328,7 +1599,7 @@ interface FairplayConfig {
 
 /**
  * Represents a Widevine Streaming DRM config.
- * Android only.
+ * @platform Android, iOS (only for casting).
  */
 interface WidevineConfig {
     /**
@@ -1338,7 +1609,7 @@ interface WidevineConfig {
     /**
      * A map containing the HTTP request headers, or null.
      */
-    httpHeaders: Record<string, string>;
+    httpHeaders?: Record<string, string>;
     /**
      * A block to prepare the data which is sent as the body of the POST license request.
      * As many DRM providers expect different, vendor-specific messages, this can be done using
@@ -1346,6 +1617,8 @@ interface WidevineConfig {
      *
      * Note that both the passed `message` data and this block return value should be a Base64 string.
      * So use whatever solution suits you best to handle Base64 in React Native.
+     *
+     * @platform Android
      *
      * @param message - Base64 encoded message data.
      * @returns The processed Base64 encoded message.
@@ -1359,12 +1632,16 @@ interface WidevineConfig {
      * Note that both the passed `license` data and this block return value should be a Base64 string.
      * So use whatever solution suits you best to handle Base64 in React Native.
      *
+     * @platform Android
+     *
      * @param license - Base64 encoded license data.
      * @returns The processed Base64 encoded license.
      */
     prepareLicense?: (license: string) => string;
     /**
      * Set widevine's preferred security level.
+     *
+     * @platform Android
      */
     preferredSecurityLevel?: string;
     /**
@@ -1372,8 +1649,10 @@ interface WidevineConfig {
      * This allows DRM sessions to be reused over several different source items with the same DRM configuration as well
      * as the same DRM scheme information.
      * Default: `false`
+     *
+     * @platform Android
      */
-    shouldKeepDrmSessionsAlive: boolean;
+    shouldKeepDrmSessionsAlive?: boolean;
 }
 
 /**
@@ -1381,16 +1660,21 @@ interface WidevineConfig {
  */
 interface DrmConfig extends NativeInstanceConfig {
     /**
-     * FairPlay specific configuration. Only applicable for iOS.
+     * FairPlay specific configuration.
+     *
+     * @platform iOS
      */
     fairplay?: FairplayConfig;
     /**
-     * Widevine specific configuration. Only applicable for Android.
+     * Widevine specific configuration.
+     *
+     * @platform Android, iOS (only for casting).
      */
     widevine?: WidevineConfig;
 }
 /**
  * Represents a native DRM configuration object.
+ * @internal
  */
 declare class Drm extends NativeInstance<DrmConfig> {
     /**
@@ -1475,6 +1759,44 @@ declare class Drm extends NativeInstance<DrmConfig> {
 }
 
 /**
+ * Represents a VTT thumbnail.
+ */
+interface Thumbnail {
+    /**
+     * The start time of the thumbnail.
+     */
+    start: number;
+    /**
+     * The end time of the thumbnail.
+     */
+    end: number;
+    /**
+     * The raw cue data.
+     */
+    text: string;
+    /**
+     * The URL of the spritesheet
+     */
+    url: string;
+    /**
+     * The horizontal offset of the thumbnail in its spritesheet
+     */
+    x: number;
+    /**
+     * The vertical offset of the thumbnail in its spritesheet
+     */
+    y: number;
+    /**
+     * The width of the thumbnail
+     */
+    width: number;
+    /**
+     * The height of the thumbnail
+     */
+    height: number;
+}
+
+/**
  * Types of media that can be handled by the player.
  */
 declare enum SourceType {
@@ -1513,6 +1835,38 @@ declare enum LoadingState {
     LOADED = 2
 }
 /**
+ * Types of SourceOptions.
+ */
+interface SourceOptions {
+    /**
+     * The position where the stream should be started.
+     * Number can be positive or negative depending on the used `TimelineReferencePoint`.
+     * Invalid numbers will be corrected according to the stream boundaries.
+     * For VOD this is applied at the time the stream is loaded, for LIVE when playback starts.
+     */
+    startOffset?: number;
+    /**
+     * Sets the Timeline reference point to calculate the startOffset from.
+     * Default for live: `TimelineReferencePoint.END`.
+     * Default for VOD: `TimelineReferencePoint.START`.
+     */
+    startOffsetTimelineReference?: TimelineReferencePoint;
+}
+/**
+ Timeline reference point to calculate SourceOptions.startOffset from.
+ Default for live: TimelineReferencePoint.EBD Default for VOD: TimelineReferencePoint.START.
+ */
+declare enum TimelineReferencePoint {
+    /**
+     * Relative offset will be calculated from the beginning of the stream or DVR window.
+     */
+    START = "start",
+    /**
+     * Relative offset will be calculated from the end of the stream or the live edge in case of a live stream with DVR window.
+     */
+    END = "end"
+}
+/**
  * Represents a source configuration that be loaded into a player instance.
  */
 interface SourceConfig extends NativeInstanceConfig {
@@ -1528,6 +1882,10 @@ interface SourceConfig extends NativeInstanceConfig {
      * The title of the video source.
      */
     title?: string;
+    /**
+     * The description of the video source.
+     */
+    description?: string;
     /**
      * The URL to a preview image displayed until the video starts.
      */
@@ -1553,6 +1911,28 @@ interface SourceConfig extends NativeInstanceConfig {
      * The optional custom metadata. Also sent to the cast receiver when loading the Source.
      */
     metadata?: Record<string, string>;
+    /**
+     * The `SourceOptions` for this configuration.
+     */
+    options?: SourceOptions;
+    /**
+     * The `SourceMetadata` for the `Source` to setup custom analytics tracking
+     */
+    analyticsSourceMetadata?: SourceMetadata;
+}
+/**
+ * The remote control config for a source.
+ * @platform iOS
+ */
+interface SourceRemoteControlConfig {
+    /**
+     * The `SourceConfig` for casting.
+     * Enables to play different content when casting.
+     * This can be useful when the remote playback device supports different streaming formats,
+     * DRM systems, etc. than the local device.
+     * If not set, the local source config will be used for casting.
+     */
+    castSourceConfig?: SourceConfig | null;
 }
 /**
  * Represents audio and video content that can be loaded into a player.
@@ -1561,7 +1941,14 @@ declare class Source extends NativeInstance<SourceConfig> {
     /**
      * The native DRM config reference of this source.
      */
-    drm?: Drm;
+    private drm?;
+    /**
+     * The remote control config for this source.
+     * This is only supported on iOS.
+     *
+     * @platform iOS
+     */
+    remoteControl: SourceRemoteControlConfig | null;
     /**
      * Whether the native `Source` object has been created.
      */
@@ -1605,6 +1992,378 @@ declare class Source extends NativeInstance<SourceConfig> {
      * The current `LoadingState` of the source.
      */
     loadingState: () => Promise<LoadingState>;
+    /**
+     * @returns a `Thumbnail` for the specified playback time if available.
+     * Supported thumbnail formats are:
+     * - `WebVtt` configured via `SourceConfig.thumbnailTrack`, on all supported platforms
+     * - HLS `Image Media Playlist` in the multivariant playlist, Android-only
+     * - DASH `Image Adaptation Set` as specified in DASH-IF IOP, Android-only
+     * If a `WebVtt` thumbnail track is provided, any potential in-manifest thumbnails are ignored on Android.
+     */
+    getThumbnail: (time: number) => Promise<Thumbnail | null>;
+}
+
+/**
+ * Contains the state an OfflineContentManager can have.
+ * @platform Android, iOS
+ */
+declare enum OfflineState {
+    /**
+     * The offline content is downloaded and ready for offline playback.
+     */
+    Downloaded = "Downloaded",
+    /**
+     * The offline content is currently downloading.
+     */
+    Downloading = "Downloading",
+    /**
+     * The download of the offline content is suspended, and is only partly downloaded yet.
+     */
+    Suspended = "Suspended",
+    /**
+     * The offline content is not downloaded. However, some data may be still cached.
+     */
+    NotDownloaded = "NotDownloaded"
+}
+
+/**
+ * Represents the configuration to start a download.
+ * @platform Android, iOS
+ */
+interface OfflineDownloadRequest {
+    /**
+     * Minimum video bitrate to download. The nearest higher available bitrate will be selected.
+     */
+    minimumBitrate?: number;
+    /**
+     * Audio tracks with IDs to download.
+     */
+    audioOptionIds?: string[];
+    /**
+     * Text tracks with IDs to download.
+     */
+    textOptionIds?: string[];
+}
+
+/**
+ * Object used to configure a new `OfflineContentManager` instance.
+ * @platform Android, iOS
+ */
+interface OfflineContentConfig extends NativeInstanceConfig {
+    /**
+     * An identifier for this source that is unique within the location and must never change.
+     * The root folder will contain a folder based on this id.
+     */
+    identifier: string;
+    /**
+     * The `SourceConfig` used to download the offline resources.
+     */
+    sourceConfig: SourceConfig;
+}
+
+/**
+ * Object used configure how the native offline managers create and get offline source configurations
+ * @platform Android, iOS
+ */
+interface OfflineSourceOptions {
+    /**
+     * Whether or not the player should restrict playback only to audio, video and subtitle tracks which are stored offline on the device. This has to be set to true if the device has no network access.
+     * @platform iOS
+     */
+    restrictedToAssetCache?: boolean;
+}
+
+/**
+ * Superclass of entries which can be selected to download for offline playback
+ * @platform Android, iOS
+ */
+interface OfflineContentOptionEntry {
+    /**
+     * The ID of the option.
+     */
+    id: string;
+    /**
+     * The language of the option.
+     */
+    language?: string;
+}
+/**
+ * Represents the downloadable options provided via the `onOptionsAvailable` callback on `OfflineContentManagerListener`
+ * @platform Android, iOS
+ */
+interface OfflineContentOptions {
+    /**
+     * Represents the audio options available for download
+     */
+    audioOptions: OfflineContentOptionEntry[];
+    /**
+     * Represents the text options available for download
+     */
+    textOptions: OfflineContentOptionEntry[];
+}
+
+/**
+ * Enum to hold the `eventType` on the `BitmovinNativeOfflineEventData`
+ * @platform Android, iOS
+ */
+declare enum OfflineEventType {
+    onCompleted = "onCompleted",
+    onError = "onError",
+    onProgress = "onProgress",
+    onOptionsAvailable = "onOptionsAvailable",
+    onDrmLicenseUpdated = "onDrmLicenseUpdated",
+    onDrmLicenseExpired = "onDrmLicenseExpired",
+    onSuspended = "onSuspended",
+    onResumed = "onResumed",
+    onCanceled = "onCanceled"
+}
+/**
+ * The base interface for all offline events.
+ * @platform Android, iOS
+ */
+interface OfflineEvent<T extends OfflineEventType> {
+    /**
+     * The native id associated with the `OfflineContentManager` emitting this event
+     */
+    nativeId: string;
+    /**
+     * The supplied id representing the source associated with the `OfflineContentManager` emitting this event.
+     */
+    identifier: string;
+    /**
+     * The `OfflineEventType` that correlates to which native `OfflineContentManagerListener` method was called.
+     */
+    eventType: T;
+    /**
+     * The current offline download state
+     */
+    state: OfflineState;
+}
+/**
+ * Emitted when the download process has completed.
+ * @platform Android, iOS
+ */
+interface OnCompletedEvent extends OfflineEvent<OfflineEventType.onCompleted> {
+    /**
+     * The options that are available to download
+     */
+    options?: OfflineContentOptions;
+}
+/**
+ * Emitted when an error has occurred.
+ * @platform Android, iOS
+ */
+interface OnErrorEvent extends OfflineEvent<OfflineEventType.onError> {
+    /**
+     * The error code of the process error
+     */
+    code?: number;
+    /**
+     * The error message of the process error
+     */
+    message?: string;
+}
+/**
+ * Emitted when there is a progress change for the process call.
+ * @platform Android, iOS
+ */
+interface OnProgressEvent extends OfflineEvent<OfflineEventType.onProgress> {
+    /**
+     * The progress for the current process
+     */
+    progress: number;
+}
+/**
+ * Emitted when the `OfflineContentOptions` is available after a `OfflineContentManager.getOptions` call.
+ * @platform Android, iOS
+ */
+interface OnOptionsAvailableEvent extends OfflineEvent<OfflineEventType.onOptionsAvailable> {
+    /**
+     * The options that are available to download
+     */
+    options?: OfflineContentOptions;
+}
+/**
+ * Emitted when the DRM license was updated.
+ * @platform Android, iOS
+ */
+interface OnDrmLicenseUpdatedEvent extends OfflineEvent<OfflineEventType.onDrmLicenseUpdated> {
+}
+/**
+ * Emitted when the DRM license has expired.
+ * @platform iOS
+ */
+interface OnDrmLicenseExpiredEvent extends OfflineEvent<OfflineEventType.onDrmLicenseExpired> {
+}
+/**
+ * Emitted when all active actions have been suspended.
+ * @platform Android, iOS
+ */
+interface OnSuspendedEvent extends OfflineEvent<OfflineEventType.onSuspended> {
+}
+/**
+ * Emitted when all actions have been resumed.
+ * @platform Android, iOS
+ */
+interface OnResumedEvent extends OfflineEvent<OfflineEventType.onResumed> {
+}
+/**
+ * Emitted when the download of the media content was canceled by the user and all partially downloaded content has been deleted from disk.
+ * @platform Android, iOS
+ */
+interface OnCanceledEvent extends OfflineEvent<OfflineEventType.onCanceled> {
+}
+/**
+ * The type aggregation for all possible native offline events received from the `DeviceEventEmitter`
+ * @platform Android, iOS
+ */
+declare type BitmovinNativeOfflineEventData = OnCompletedEvent | OnOptionsAvailableEvent | OnProgressEvent | OnErrorEvent | OnDrmLicenseUpdatedEvent | OnDrmLicenseExpiredEvent | OnSuspendedEvent | OnResumedEvent | OnCanceledEvent;
+/**
+ * The listener that can be passed to the `OfflineContentManager` to receive callbacks for different events.
+ * @platform Android, iOS
+ */
+interface OfflineContentManagerListener {
+    /**
+     * Emitted when the download process has completed.
+     *
+     * @param e The `OnCompletedEvent` that was emitted
+     */
+    onCompleted?: (e: OnCompletedEvent) => void;
+    /**
+     * Emitted when an error has occurred.
+     *
+     * @param e The `OnErrorEvent` that was emitted
+     */
+    onError?: (e: OnErrorEvent) => void;
+    /**
+     * Emitted when there is a progress change for the process call.
+     *
+     * @param e The `OnProgressEvent` that was emitted
+     */
+    onProgress?: (e: OnProgressEvent) => void;
+    /**
+     * Emitted when the `OfflineContentOptions` is available after a `OfflineContentManager.getOptions` call.
+     *
+     * @param e The `OnOptionsAvailableEvent` that was emitted
+     */
+    onOptionsAvailable?: (e: OnOptionsAvailableEvent) => void;
+    /**
+     * Emitted when the DRM license was updated.
+     *
+     * @param e The `OnDrmLicenseUpdatedEvent` that was emitted
+     */
+    onDrmLicenseUpdated?: (e: OnDrmLicenseUpdatedEvent) => void;
+    /**
+     * Emitted when the DRM license has expired.
+     *
+     * @param e The `OnDrmLicenseExpiredEvent` that was emitted
+     */
+    onDrmLicenseExpired?: (e: OnDrmLicenseExpiredEvent) => void;
+    /**
+     * Emitted when all active actions have been suspended.
+     *
+     * @param e The `OnSuspendedEvent` that was emitted
+     */
+    onSuspended?: (e: OnSuspendedEvent) => void;
+    /**
+     * Emitted when all actions have been resumed.
+     *
+     * @param e The `OnResumedEvent` that was emitted
+     */
+    onResumed?: (e: OnResumedEvent) => void;
+    /**
+     * Emitted when the download of the media content was canceled by the user and all partially downloaded content has been deleted from disk.
+     *
+     * @param e The `OnCanceledEvent` that was emitted
+     */
+    onCanceled?: (e: OnCanceledEvent) => void;
+}
+
+/**
+ * Provides the means to download and store sources locally that can be played back with a Player
+ * without an active network connection. An OfflineContentManager instance can be created via
+ * the constructor and will be idle until initialized.
+ *
+ * @platform Android, iOS
+ */
+declare class OfflineContentManager extends NativeInstance<OfflineContentConfig> {
+    isInitialized: boolean;
+    isDestroyed: boolean;
+    private eventSubscription?;
+    private listeners;
+    private drm?;
+    constructor(config: OfflineContentConfig);
+    /**
+     * Allocates the native `OfflineManager` instance and its resources natively.
+     * Registers the `DeviceEventEmitter` listener to receive data from the native `OfflineContentManagerListener` callbacks
+     */
+    initialize: () => Promise<void>;
+    /**
+     * Adds a listener to the receive data from the native `OfflineContentManagerListener` callbacks
+     * Returns a function that removes this listener from the `OfflineContentManager` that registered it.
+     */
+    addListener: (listener: OfflineContentManagerListener) => (() => void);
+    /**
+     * Destroys the native `OfflineManager` and releases all of its allocated resources.
+     */
+    destroy: () => Promise<void>;
+    /**
+     * Gets the current state of the `OfflineContentManager`
+     */
+    state: () => Promise<OfflineState>;
+    /**
+     * Loads the current `OfflineContentOptions`.
+     * When the options are loaded the data will be passed to the `OfflineContentManagerListener.onOptionsAvailable`.
+     */
+    getOptions: () => Promise<void>;
+    /**
+     * Enqueues downloads according to the `OfflineDownloadRequest`.
+     * The promise will reject in the event of null or invalid request parameters.
+     * The promise will reject when calling this method when download has already started or is completed.
+     * The promise will resolve when the download has been queued. The download will is not finished when the promise resolves.
+     */
+    download: (request: OfflineDownloadRequest) => Promise<void>;
+    /**
+     * Resumes all suspended actions.
+     */
+    resume: () => Promise<void>;
+    /**
+     * Suspends all active actions.
+     */
+    suspend: () => Promise<void>;
+    /**
+     * Cancels and deletes the active download.
+     */
+    cancelDownload: () => Promise<void>;
+    /**
+     * Resolves how many bytes of storage are used by the offline content.
+     */
+    usedStorage: () => Promise<number>;
+    /**
+     * Deletes everything related to the related content ID.
+     */
+    deleteAll: () => Promise<void>;
+    /**
+     * Downloads the offline license.
+     * When finished successfully, data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
+     * Errors are transmitted to the `OfflineContentManagerListener.onError`.
+     */
+    downloadLicense: () => Promise<void>;
+    /**
+     * Releases the currently held offline license.
+     * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
+     * Errors are transmitted to the `OfflineContentManagerListener.onError`.
+     *
+     * @platform Android
+     */
+    releaseLicense: () => Promise<void>;
+    /**
+     * Renews the already downloaded DRM license.
+     * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
+     * Errors are transmitted to the `OfflineContentManagerListener.onError`.
+     */
+    renewOfflineLicense: () => Promise<void>;
+    static disposeAll: () => Promise<void>;
 }
 
 /**
@@ -1735,7 +2494,7 @@ declare enum UserInterfaceType {
  */
 interface TweaksConfig {
     /**
-     * The frequency in seconds onTimeChanged is called with TimeChangedEvents.
+     * The frequency in seconds `onTimeChanged` is called with `TimeChangedEvent`s.
      *
      * Default value in iOS is `1.0`.
      * Default value in Android is `0.2`.
@@ -1746,10 +2505,10 @@ interface TweaksConfig {
     /**
      * If enabled, HLS playlists will be parsed and additional features and events are enabled. This includes:
      *
-     * - MetadataEvents carrying segment-specific metadata for custom HLS tags, like #EXT-X-SCTE35
-     * - MetadataParsedEvents carrying segment-specific metadata for custom HLS tags, like #EXT-X-SCTE35
-     * - DrmDataParsedEvents when a #EXT-X-KEY is found
-     * - Player.availableVideoQualities includes additional information
+     * - MetadataEvents carrying segment-specific metadata for custom HLS tags, like `#EXT-X-SCTE35`
+     * - MetadataParsedEvents carrying segment-specific metadata for custom HLS tags, like `#EXT-X-SCTE35`
+     * - DrmDataParsedEvents when a `#EXT-X-KEY` is found
+     * - `Player.availableVideoQualities` includes additional information
      * - Automatic retries when HLS playlist requests failed with non-2xx HTTP status code
      *
      * Default is false.
@@ -1762,7 +2521,7 @@ interface TweaksConfig {
      * This enables additional features and events, like:
      *
      * - DownloadFinishedEvents for playlist downloads.
-     * - SourceWarningEvents when no #EXT-X-PLAYLIST-TYPE is found If set to false, enabling
+     * - SourceWarningEvents when no `#EXT-X-PLAYLIST-TYPE` is found If set to false, enabling
      * nativeHlsParsingEnabled won’t have any effect.
      *
      * Default is true.
@@ -1772,7 +2531,7 @@ interface TweaksConfig {
     isCustomHlsLoadingEnabled?: boolean;
     /**
      * The threshold which will be applied when seeking to the end in seconds. This value will be used
-     * to calculate the maximum seekable time when calling player.seek(time:) or player.playlist.seek(source:time:),
+     * to calculate the maximum seekable time when calling `player.seek(time:)` or `player.playlist.seek(source:time:)`,
      * so the maximum value will be duration - seekToEndThreshold.
      *
      * This is useful if the duration of the segments does not match the duration specified in the
@@ -1785,7 +2544,7 @@ interface TweaksConfig {
      */
     seekToEndThreshold?: number;
     /**
-     * Specifies the player behaviour when Player.play is called. Default is 'relaxed'.
+     * Specifies the player behaviour when `Player.play` is called. Default is 'relaxed'.
      *
      * - 'relaxed': Starts playback when enough media data is buffered and continuous playback without stalling can be ensured. If insufficient media data is buffered for playback to start, the player will act as if the buffer became empty during playback.
      * - 'aggressive': When the buffer is not empty, this setting will cause the player to start playback of available media immediately. If insufficient media data is buffered for playback to start, the player will act as if the buffer became empty during playback.
@@ -1882,351 +2641,85 @@ interface TweaksConfig {
 }
 
 /**
- * Object used to configure a new `OfflineContentManager` instance.
+ * Configures remote playback behavior.
  */
-interface OfflineContentConfig extends NativeInstanceConfig {
+interface RemoteControlConfig {
     /**
-     * An identifier for this source that is unique within the location and must never change.
-     * The root folder will contain a folder based on this id.
+     * A URL to a CSS file the receiver app loads to style the receiver app.
+     * Default value is `null`, indicating that the default CSS of the receiver app will be used.
      */
-    identifier: string;
+    receiverStylesheetUrl?: string | null;
     /**
-     * The `SourceConfig` used to download the offline resources.
+     * A Map containing custom configuration values that are sent to the remote control receiver.
+     * Default value is an empty map.
      */
-    sourceConfig: SourceConfig;
-}
-/**
- * Object used configure how the native offline managers create and get offline source configurations
- * iOS Only
- */
-interface OfflineSourceOptions {
+    customReceiverConfig?: Record<string, string>;
     /**
-     * Whether or not the player should restrict playback only to audio, video and subtitle tracks which are stored offline on the device. This has to be set to true if the device has no network access.
+     * Whether casting is enabled.
+     * Default value is `true`.
+     *
+     * Has no effect if the `BitmovinCastManager` is not initialized before the `Player` is created with this configuration.
      */
-    restrictedToAssetCache?: boolean;
-}
-/**
- * Contains the states an OfflineOptionEntry can have.
- */
-declare enum OfflineOptionEntryState {
+    isCastEnabled?: boolean;
     /**
-     * The `OfflineOptionEntry` is downloaded and ready for offline playback.
+     * Indicates whether cookies and credentials will be sent along manifest requests on the cast receiver
+     * Default value is `false`.
      */
-    Downloaded = "Downloaded",
+    sendManifestRequestsWithCredentials?: boolean;
     /**
-     * The `OfflineOptionEntry` is currently downloading.
+     * Indicates whether cookies and credentials will be sent along segment requests on the cast receiver
+     * Default value is `false`.
      */
-    Downloading = "Downloading",
+    sendSegmentRequestsWithCredentials?: boolean;
     /**
-     * The download of the `OfflineOptionEntry` is suspended, and is only partly downloaded yet.
+     * Indicates whether cookies and credentials will be sent along DRM licence requests on the cast receiver
+     * Default value is `false`.
      */
-    Suspended = "Suspended",
-    /**
-     * The `OfflineOptionEntry` is not downloaded. However, some data may be still cached.
-     */
-    NotDownloaded = "NotDownloaded"
-}
-/**
- * Superclass of entries which can be selected to download for offline playback
- */
-interface OfflineOptionEntry {
-    /**
-     * The ID of the option.
-     */
-    id: string;
-    /**
-     * The language of the option.
-     */
-    language?: string;
-}
-/**
- * Represents the information from the `OfflineContentManagerListener` that is available to download
- */
-interface OfflineContentOptions {
-    /**
-     * Represents the audio options available for download
-     */
-    audioOptions: OfflineOptionEntry[];
-    /**
-     * Represents the text options available for download
-     */
-    textOptions: OfflineOptionEntry[];
-}
-interface OfflineDownloadRequest {
-    minimumBitrate: number;
-    audioOptionIds: string[];
-    textOptionIds: string[];
-}
-/**
- * Contains information about a DRM license.
- */
-interface DrmLicenseInformation {
-    /**
-     * The remaining license duration.
-     */
-    licenseDuration: number;
-    /**
-     * The remaining playback duration.
-     */
-    playbackDuration: number;
+    sendDrmLicenseRequestsWithCredentials?: boolean;
 }
 
 /**
- * Enum to hold the `eventType` on the `BitmovinNativeOfflineEventData`
+ * Configures buffer target levels for different MediaTypes.
  */
-declare enum OfflineEventType {
-    onCompleted = "onCompleted",
-    onError = "onError",
-    onProgress = "onProgress",
-    onOptionsAvailable = "onOptionsAvailable",
-    onDrmLicenseUpdated = "onDrmLicenseUpdated",
-    onDrmLicenseExpired = "onDrmLicenseExpired",
-    onSuspended = "onSuspended",
-    onResumed = "onResumed",
-    onCanceled = "onCanceled"
-}
-interface OfflineEvent<T extends OfflineEventType> {
+interface BufferMediaTypeConfig {
     /**
-     * The native id associated with the `OfflineContentManager` emitting this event
+     * The amount of data in seconds the player tries to buffer in advance.
+     *
+     * iOS only: If set to `0`, the player will choose an appropriate forward buffer duration suitable
+     * for most use-cases.
+     *
+     * Default value is `0` on iOS, `50` on Android
      */
-    nativeId: string;
-    /**
-     * The supplied id representing the source associated with the `OfflineContentManager` emitting this event.
-     */
-    identifier: string;
-    /**
-     * The `OfflineEventType` that correlates to which native `OfflineContentManagerListener` method was called.
-     */
-    eventType: T;
+    forwardDuration?: number;
 }
 /**
- * BitmovinOfflineEvent for when the download process has completed.
+ * Player buffer config object to configure buffering behavior.
  */
-interface OnCompletedEvent extends OfflineEvent<OfflineEventType.onCompleted> {
+interface BufferConfig {
     /**
-     * The options that are available to download
+     * Configures various settings for the audio and video buffer.
      */
-    options?: OfflineContentOptions;
+    audioAndVideo?: BufferMediaTypeConfig;
     /**
-     * The current offline download state
+     * Amount of seconds the player buffers before playback starts again after a stall. This value is
+     * restricted to the maximum value of the buffer minus 0.5 seconds.
+     *
+     * Default is `5` seconds.
+     *
+     * @platform Android
      */
-    state: OfflineOptionEntryState;
-}
-/**
- * BitmovinOfflineEvent for when an error has occurred.
- */
-interface OnErrorEvent extends OfflineEvent<OfflineEventType.onError> {
+    restartThreshold?: number;
     /**
-     * The error code of the process error
+     * Amount of seconds the player buffers before playback starts. This value is restricted to the
+     * maximum value of the buffer minus 0.5 seconds.
+     *
+     * Default is `2.5` seconds.
+     *
+     * @platform Android
      */
-    code?: number;
-    /**
-     * The error message of the process error
-     */
-    message?: string;
-}
-/**
- * BitmovinOfflineEvent for when there is a progress change for the process call.
- */
-interface OnProgressEvent extends OfflineEvent<OfflineEventType.onProgress> {
-    /**
-     * The progress for the current process
-     */
-    progress: number;
-}
-/**
- * BitmovinOfflineEvent for when the `OfflineContentOptions` is available after a `OfflineContentManager.getOptions` call.
- */
-interface OnOptionsAvailableEvent extends OfflineEvent<OfflineEventType.onOptionsAvailable> {
-    /**
-     * The options that are available to download
-     */
-    options?: OfflineContentOptions;
-    /**
-     * The current offline download state
-     */
-    state: OfflineOptionEntryState;
-}
-/**
- * BitmovinOfflineEvent for when the DRM license was updated.
- */
-interface OnDrmLicenseUpdatedEvent extends OfflineEvent<OfflineEventType.onDrmLicenseUpdated> {
-}
-/**
- * BitmovinOfflineEvent for when the DRM license has expired.
- * (iOS only)
- */
-interface OnDrmLicenseExpiredEvent extends OfflineEvent<OfflineEventType.onDrmLicenseExpired> {
-}
-/**
- * BitmovinOfflineEvent for when all active actions have been suspended.
- */
-interface OnSuspendedEvent extends OfflineEvent<OfflineEventType.onSuspended> {
-}
-/**
- * BitmovinOfflineEvent for when all actions have been resumed.
- */
-interface OnResumedEvent extends OfflineEvent<OfflineEventType.onResumed> {
-}
-/**
- * BitmovinOfflineEvent for when the download of the media content was cancelled by the user and all partially downloaded content has been deleted from disk.
- * (iOS only)
- */
-interface OnCanceledEvent extends OfflineEvent<OfflineEventType.onCanceled> {
-}
-/**
- * The type aggregation for all possible native offline events received from the `DeviceEventEmitter`
- */
-declare type BitmovinNativeOfflineEventData = OnCompletedEvent | OnOptionsAvailableEvent | OnProgressEvent | OnErrorEvent | OnDrmLicenseUpdatedEvent | OnDrmLicenseExpiredEvent | OnSuspendedEvent | OnResumedEvent | OnCanceledEvent;
-/**
- * The listener that can be passed to the `OfflineContentManager` to receive callbacks for different events.
- */
-interface OfflineContentManagerListener {
-    onCompleted?: (e: OnCompletedEvent) => void;
-    onError?: (e: OnErrorEvent) => void;
-    onProgress?: (e: OnProgressEvent) => void;
-    onOptionsAvailable?: (e: OnOptionsAvailableEvent) => void;
-    onDrmLicenseUpdated?: (e: OnDrmLicenseUpdatedEvent) => void;
-    onDrmLicenseExpired?: (e: OnDrmLicenseExpiredEvent) => void;
-    onSuspended?: (e: OnSuspendedEvent) => void;
-    onResumed?: (e: OnResumedEvent) => void;
-    onCanceled?: (e: OnCanceledEvent) => void;
-}
-declare const handleBitmovinNativeOfflineEvent: (data: BitmovinNativeOfflineEventData, listeners: Set<OfflineContentManagerListener>) => void;
-
-/**
- * Provides the means to download and store sources locally that can be played back with a Player
- * without an active network connection.  An OfflineContentManager instance can be created via
- * the constructor and will be idle until initialized.
- */
-declare class OfflineContentManager extends NativeInstance<OfflineContentConfig> {
-    isInitialized: boolean;
-    isDestroyed: boolean;
-    eventSubscription?: EmitterSubscription;
-    listeners: Set<OfflineContentManagerListener>;
-    constructor(config: OfflineContentConfig);
-    /**
-     * Allocates the native `OfflineManager` instance and its resources natively.
-     * Registers the `DeviceEventEmitter` listener to receive data from the native `OfflineContentManagerListener` callbacks
-     */
-    initialize: () => Promise<void>;
-    /**
-     * Adds a listener to the receive data from the native `OfflineContentManagerListener` callbacks
-     * Returns a function that removes this listener from the `OfflineContentManager` that registered it.
-     */
-    addListener: (listener: OfflineContentManagerListener) => (() => void);
-    /**
-     * Destroys the native `OfflineManager` and releases all of its allocated resources.
-     */
-    destroy: () => Promise<void>;
-    /**
-     * Gets the current offline source config of the `OfflineContentManager`
-     */
-    getOfflineSourceConfig: (options?: OfflineSourceOptions) => Promise<SourceConfig>;
-    /**
-     * Loads the current `OfflineContentOptions`.
-     * When the options are loaded the data will be passed to the `OfflineContentManagerListener.onOptionsAvailable`.
-     */
-    getOptions: () => Promise<void>;
-    /**
-     * Enqueues downloads according to the `OfflineDownloadRequest`.
-     * The promise will reject in the event of null or invalid request parameters.
-     * The promise will reject when selecting an `OfflineOptionEntry` to download that is not compatible with the current state.
-     * The promise will resolve when the download has been queued.  The download will is not finished when the promise resolves.
-     */
-    process: (request: OfflineDownloadRequest) => Promise<void>;
-    /**
-     * Resumes all suspended actions.
-     */
-    resume: () => Promise<void>;
-    /**
-     * Suspends all active actions.
-     */
-    suspend: () => Promise<void>;
-    /**
-     * Cancels and deletes the active download.
-     */
-    cancelDownload: () => Promise<void>;
-    /**
-     * Resolves how many bytes of storage are used by the offline content.
-     */
-    usedStorage: () => Promise<number>;
-    /**
-     * Deletes everything related to the related content ID.
-     */
-    deleteAll: () => Promise<void>;
-    /**
-     * Resolves A `DrmLicenseInformation` object containing the remaining drm license duration and the remaining playback duration.
-     * The promise will reject if the loading of the DRM key fails.
-     * The promise will reject if the provided DRM technology is not supported.
-     * The promise will reject if the DRM licensing call to the server fails.
-     */
-    offlineDrmLicenseInformation: () => Promise<DrmLicenseInformation>;
-    /**
-     * Downloads the offline license.
-     * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
-     * Errors are transmitted to the `OfflineContentManagerListener.onError`.
-     */
-    downloadLicense: () => Promise<void>;
-    /**
-     * Releases the currently held offline license.
-     * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
-     * Errors are transmitted to the `OfflineContentManagerListener.onError`.
-     */
-    releaseLicense: () => Promise<void>;
-    /**
-     * Renews the already downloaded DRM license.
-     * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
-     * Errors are transmitted to the `OfflineContentManagerListener.onError`.
-     */
-    renewOfflineLicense: () => Promise<void>;
-    static disposeAll: () => Promise<void>;
+    startupThreshold?: number;
 }
 
-/**
- * Object used to configure a new `Player` instance.
- */
-interface PlayerConfig extends NativeInstanceConfig {
-    /**
-     * Bitmovin license key that can be found in the Bitmovin portal.
-     * If a license key is set here, it will be used instead of the license key found in the `Info.plist` and `AndroidManifest.xml`.
-     * @example
-     * Configuring the player license key from source code:
-     * ```
-     * const player = new Player({
-     *   licenseKey: '\<LICENSE-KEY-CODE\>',
-     * });
-     * ```
-     * @example
-     * `licenseKey` can be safely omitted from source code if it has
-     * been configured in Info.plist/AndroidManifest.xml.
-     * ```
-     * const player = new Player(); // omit `licenseKey`
-     * player.play(); // call methods and properties...
-     * ```
-     */
-    licenseKey?: string;
-    /**
-     * Configures playback behaviour. A default PlaybackConfig is set initially.
-     */
-    playbackConfig?: PlaybackConfig;
-    /**
-     * Configures the visual presentation and behaviour of the player UI. A default StyleConfig is set initially.
-     */
-    styleConfig?: StyleConfig;
-    /**
-     * Configures advertising functionality. A default AdvertisingConfig is set initially.
-     */
-    advertisingConfig?: AdvertisingConfig;
-    /**
-     * Configures experimental features. A default TweaksConfig is set initially.
-     */
-    tweaksConfig?: TweaksConfig;
-    /**
-     * Configures analytics functionality.
-     */
-    analyticsConfig?: AnalyticsConfig;
-}
 /**
  * Configures the playback behaviour of the player.
  */
@@ -2300,9 +2793,68 @@ interface PlaybackConfig {
      *   },
      * });
      * ```
+     * @deprecated Use {@link PictureInPictureConfig.isEnabled} instead.
      */
     isPictureInPictureEnabled?: boolean;
 }
+
+/**
+ * Object used to configure a new `Player` instance.
+ */
+interface PlayerConfig extends NativeInstanceConfig {
+    /**
+     * Bitmovin license key that can be found in the Bitmovin portal.
+     * If a license key is set here, it will be used instead of the license key found in the `Info.plist` and `AndroidManifest.xml`.
+     * @example
+     * Configuring the player license key from source code:
+     * ```
+     * const player = new Player({
+     *   licenseKey: '\<LICENSE-KEY-CODE\>',
+     * });
+     * ```
+     * @example
+     * `licenseKey` can be safely omitted from source code if it has
+     * been configured in Info.plist/AndroidManifest.xml.
+     * ```
+     * const player = new Player(); // omit `licenseKey`
+     * player.play(); // call methods and properties...
+     * ```
+     */
+    licenseKey?: string;
+    /**
+     * Configures playback behaviour. A default {@link PlaybackConfig} is set initially.
+     */
+    playbackConfig?: PlaybackConfig;
+    /**
+     * Configures the visual presentation and behaviour of the player UI. A default {@link StyleConfig} is set initially.
+     */
+    styleConfig?: StyleConfig;
+    /**
+     * Configures advertising functionality. A default {@link AdvertisingConfig} is set initially.
+     */
+    advertisingConfig?: AdvertisingConfig;
+    /**
+     * Configures experimental features. A default {@link TweaksConfig} is set initially.
+     */
+    tweaksConfig?: TweaksConfig;
+    /**
+     * Configures analytics functionality.
+     */
+    analyticsConfig?: AnalyticsConfig;
+    /**
+     * Configures adaptation logic.
+     */
+    adaptationConfig?: AdaptationConfig;
+    /**
+     * Configures remote playback functionality.
+     */
+    remoteControlConfig?: RemoteControlConfig;
+    /**
+     * Configures buffer settings. A default {@link BufferConfig} is set initially.
+     */
+    bufferConfig?: BufferConfig;
+}
+
 /**
  * Loads, controls and renders audio and video content represented through `Source`s. A player
  * instance can be created via the `usePlayer` hook and will idle until one or more `Source`s are
@@ -2318,10 +2870,6 @@ declare class Player extends NativeInstance<PlayerConfig> {
      */
     source?: Source;
     /**
-     * Analytics collector currently attached to this player instance.
-     */
-    analyticsCollector?: AnalyticsCollector;
-    /**
      * Whether the native `Player` object has been created.
      */
     isInitialized: boolean;
@@ -2329,6 +2877,12 @@ declare class Player extends NativeInstance<PlayerConfig> {
      * Whether the native `Player` object has been disposed.
      */
     isDestroyed: boolean;
+    /**
+     * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.
+     *
+     * `undefined` if the player was created without analytics support.
+     */
+    analytics?: AnalyticsApi;
     /**
      * Allocates the native `Player` instance and its resources natively.
      */
@@ -2342,9 +2896,9 @@ declare class Player extends NativeInstance<PlayerConfig> {
      */
     load: (sourceConfig: SourceConfig) => void;
     /**
-     * Loads the OfflineSourceConfig into the player.
+     * Loads the downloaded content from `OfflineContentManager` into the player.
      */
-    loadOfflineSource: (offlineContentManager: OfflineContentManager, options?: OfflineSourceOptions) => void;
+    loadOfflineContent: (offlineContentManager: OfflineContentManager, options?: OfflineSourceOptions) => void;
     /**
      * Loads the given `Source` into the player.
      */
@@ -2450,6 +3004,10 @@ declare class Player extends NativeInstance<PlayerConfig> {
      */
     isAirPlayAvailable: () => Promise<boolean>;
     /**
+     * @returns The currently selected audio track or `null`.
+     */
+    getAudioTrack: () => Promise<AudioTrack | null>;
+    /**
      * @returns An array containing AudioTrack objects for all available audio tracks.
      */
     getAvailableAudioTracks: () => Promise<AudioTrack[]>;
@@ -2457,6 +3015,10 @@ declare class Player extends NativeInstance<PlayerConfig> {
      * Sets the audio track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableAudioTracks.
      */
     setAudioTrack: (trackIdentifier: string) => Promise<void>;
+    /**
+     * @returns The currently selected subtitle track or `null`.
+     */
+    getSubtitleTrack: () => Promise<SubtitleTrack | null>;
     /**
      * @returns An array containing SubtitleTrack objects for all available subtitle tracks.
      */
@@ -2496,6 +3058,48 @@ declare class Player extends NativeInstance<PlayerConfig> {
      * `source` is not a live stream or no sources are loaded.
      */
     getMaxTimeShift: () => Promise<number>;
+    /**
+     * Sets the upper bitrate boundary for video qualities. All qualities with a bitrate
+     * that is higher than this threshold will not be eligible for automatic quality selection.
+     *
+     * Can be set to `null` for no limitation.
+     */
+    setMaxSelectableBitrate: (bitrate: number | null) => void;
+    /**
+     * @returns a `Thumbnail` for the specified playback time for the currently active source if available.
+     * Supported thumbnail formats are:
+     * - `WebVtt` configured via `SourceConfig.thumbnailTrack`, on all supported platforms
+     * - HLS `Image Media Playlist` in the multivariant playlist, Android-only
+     * - DASH `Image Adaptation Set` as specified in DASH-IF IOP, Android-only
+     * If a `WebVtt` thumbnail track is provided, any potential in-manifest thumbnails are ignored on Android.
+     */
+    getThumbnail: (time: number) => Promise<Thumbnail | null>;
+    /**
+     * Whether casting to a cast-compatible remote device is available. `CastAvailableEvent` signals when
+     * casting becomes available.
+     *
+     * @platform iOS, Android
+     */
+    isCastAvailable: () => Promise<boolean>;
+    /**
+     * Whether video is currently being casted to a remote device and not played locally.
+     *
+     * @platform iOS, Android
+     */
+    isCasting: () => Promise<boolean>;
+    /**
+     * Initiates casting the current video to a cast-compatible remote device. The user has to choose to which device it
+     * should be sent.
+     *
+     * @platform iOS, Android
+     */
+    castVideo: () => void;
+    /**
+     * Stops casting the current video. Has no effect if `isCasting` is false.
+     *
+     * @platform iOS, Android
+     */
+    castStop: () => void;
     static disposeAll: () => Promise<null>;
 }
 
@@ -2517,10 +3121,21 @@ interface FullscreenHandler {
     exitFullscreen(): void;
 }
 
+/** @internal */
 interface CustomMessageSender {
     sendMessage(message: string, data: string | undefined): void;
 }
 
+interface CustomMessageHandlerProps {
+    /**
+     * A function that will be called when the Player UI sends a synchronous message to the integration.
+     */
+    onReceivedSynchronousMessage: (message: string, data: string | undefined) => string | undefined;
+    /**
+     * A function that will be called when the Player UI sends an asynchronous message to the integration.
+     */
+    onReceivedAsynchronousMessage: (message: string, data: string | undefined) => void;
+}
 /**
  * Android and iOS only.
  * For Android it requires Player SDK version 3.39.0 or higher.
@@ -2530,20 +3145,30 @@ interface CustomMessageSender {
 declare class CustomMessageHandler {
     private readonly onReceivedSynchronousMessage;
     private readonly onReceivedAsynchronousMessage;
+    /** @internal */
     customMessageSender?: CustomMessageSender;
     /**
      * Android and iOS only.
      *
      * Creates a new `CustomMessageHandler` instance to handle two-way communication between the integation and the Player UI.
      *
-     * @param onReceivedSynchronousMessage - A function that will be called when the Player UI sends a synchronous message to the integration.
-     * @param onReceivedAsynchronousMessage - A function that will be called when the Player UI sends an asynchronous message to the integration.
+     * @param options - Configuration options for the `CustomMessageHandler` instance.
      */
-    constructor({ onReceivedSynchronousMessage, onReceivedAsynchronousMessage, }: {
-        onReceivedSynchronousMessage: (message: string, data: string | undefined) => string | undefined;
-        onReceivedAsynchronousMessage: (message: string, data: string | undefined) => void;
-    });
+    constructor({ onReceivedSynchronousMessage, onReceivedAsynchronousMessage, }: CustomMessageHandlerProps);
+    /**
+     * Gets called when a synchronous message was received from the Bitmovin Web UI.
+     *
+     * @param message Identifier of the message.
+     * @param data Optional data of the message as string (can be a serialized object).
+     * @returns Optional return value as string which will be propagates back to the JS counterpart.
+     */
     receivedSynchronousMessage(message: string, data: string | undefined): string | undefined;
+    /**
+     * Gets called when an asynchronous message was received from the Bitmovin Web UI.
+     *
+     * @param message Identifier of the message.
+     * @param data Optional data of the message as string (can be a serialized object).
+     */
     receivedAsynchronousMessage(message: string, data: string | undefined): void;
     /**
      * Android and iOS only.
@@ -2557,47 +3182,123 @@ declare class CustomMessageHandler {
 }
 
 /**
- * Base `PlayerView` component props. Used to stablish common
- * props between `NativePlayerView` and `PlayerView`.
- * @see NativePlayerView
+ * Provides options to configure Picture in Picture playback.
  */
-interface BasePlayerViewProps {
-    style?: ViewStyle;
-    disableAdUi?: boolean;
+interface PictureInPictureConfig {
+    /**
+     * Whether Picture in Picture feature is enabled or not.
+     *
+     * Default is `false`.
+     */
+    isEnabled?: boolean;
+    /**
+     * Defines whether Picture in Picture should start automatically when the app transitions to background.
+     *
+     * Does not have any affect when Picture in Picture is disabled.
+     *
+     * Default is `false`.
+     *
+     * @platform iOS 14.2 and above
+     */
+    shouldEnterOnBackground?: boolean;
+}
+
+/**
+ * Configures the visual presentation and behaviour of the `PlayerView`.
+ */
+interface PlayerViewConfig {
+    /**
+     * Configures the visual presentation and behaviour of the Bitmovin Player UI.
+     * A {@link WebUiConfig} can be used to configure the default Bitmovin Player Web UI.
+     *
+     * Default is {@link WebUiConfig}.
+     *
+     * Limitations:
+     * Configuring the `uiConfig` only has an effect if the {@link StyleConfig.userInterfaceType} is set to {@link UserInterfaceType.Bitmovin}.
+     */
+    uiConfig?: UiConfig;
+    /**
+     * Provides options to configure Picture in Picture playback.
+     */
+    pictureInPictureConfig?: PictureInPictureConfig;
 }
 /**
- * `PlayerView` component props.
- * @see PlayerView
+ * Configures the visual presentation and behaviour of the Bitmovin Player UI.
  */
-interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
+interface UiConfig {
+}
+/**
+ * Configures the visual presentation and behaviour of the Bitmovin Web UI.
+ */
+interface WebUiConfig extends UiConfig {
     /**
-     * `Player` instance (generally returned from `usePlayer` hook) that will control
-     * and render audio/video inside the `PlayerView`.
+     * Whether the Bitmovin Web UI will show playback speed selection options in the settings menu.
+     * Default is `true`.
      */
-    player: Player;
+    playbackSpeedSelectionEnabled?: boolean;
+}
+
+/**
+ * Base `PlayerView` component props.
+ * Used to establish common props between `NativePlayerView` and {@link PlayerView}.
+ */
+interface BasePlayerViewProps {
     /**
-     * The `FullscreenHandler` that is used by the `PlayerView` to control the fullscreen mode.
+     * The {@link FullscreenHandler} that is used by the {@link PlayerView} to control the fullscreen mode.
      */
     fullscreenHandler?: FullscreenHandler;
     /**
-     * The `CustomMessageHandler` that can be used to directly communicate with the embedded WebUi.
+     * The {@link CustomMessageHandler} that can be used to directly communicate with the embedded Bitmovin Web UI.
      */
     customMessageHandler?: CustomMessageHandler;
     /**
+     * Style of the {@link PlayerView}.
+     */
+    style?: ViewStyle;
+    /**
+     * Configures the visual presentation and behaviour of the {@link PlayerView}.
+     * The value must not be altered after setting it initially.
+     */
+    config?: PlayerViewConfig;
+    disableAdUi?: boolean;
+}
+/**
+ * {@link PlayerView} component props.
+ */
+interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
+    /**
+     * {@link Player} instance (generally returned from {@link usePlayer} hook) that will control
+     * and render audio/video inside the {@link PlayerView}.
+     */
+    player: Player;
+    /**
      * Can be set to `true` to request fullscreen mode, or `false` to request exit of fullscreen mode.
-     * Should not be used to get the current fullscreen state. Use `onFullscreenEnter` and `onFullscreenExit`
-     * or the `FullscreenHandler.isFullscreenActive` property to get the current state.
+     * Should not be used to get the current fullscreen state. Use {@link PlayerViewEvents.onFullscreenEnter} and {@link PlayerViewEvents.onFullscreenExit}
+     * or the {@link FullscreenHandler.isFullscreenActive} property to get the current state.
      * Using this property to change the fullscreen state, it is ensured that the embedded Player UI is also aware
      * of potential fullscreen state changes.
-     * To use this property, a `FullscreenHandler` must be set.
+     * To use this property, a {@link FullscreenHandler} must be set.
      */
     isFullscreenRequested?: Boolean;
+    /**
+     * A value defining how the video is displayed within the parent container's bounds.
+     * Possible values are defined in {@link ScalingMode}.
+     */
+    scalingMode?: ScalingMode;
+    /**
+     * Can be set to `true` to request Picture in Picture mode, or `false` to request exit of Picture in Picture mode.
+     * Should not be used to get the current Picture in Picture state. Use {@link PlayerViewEvents.onPictureInPictureEnter} and {@link PlayerViewEvents.onPictureInPictureExit}.
+     */
+    isPictureInPictureRequested?: Boolean;
 }
+
 /**
  * Component that provides the Bitmovin Player UI and default UI handling to an attached `Player` instance.
  * This component needs a `Player` instance to work properly so make sure one is passed to it as a prop.
+ *
+ * @param options configuration options
  */
-declare function PlayerView({ style, player, fullscreenHandler, customMessageHandler, isFullscreenRequested, ...props }: PlayerViewProps): JSX.Element;
+declare function PlayerView({ style, player, config, fullscreenHandler, customMessageHandler, isFullscreenRequested, scalingMode, isPictureInPictureRequested, ...props }: PlayerViewProps): JSX.Element;
 
 declare type TypefaceFamily = 'DEFAULT' | 'MONOSPACE' | 'SANS_SERIF' | 'SERIF';
 declare type TypefaceStyleWeight = 'NORMAL' | 'BOLD' | 'BOLD_ITALIC' | 'ITALIC';
@@ -2689,4 +3390,62 @@ declare function SubtitleView(props: SubtitleViewProps): JSX.Element | null;
  */
 declare function usePlayer(config?: PlayerConfig): Player;
 
-export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdvertisingConfig, AnalyticsCollector, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinNativeOfflineEventData, CdnProvider, CustomDataConfig, CustomMessageHandler, DestroyEvent, Drm, DrmConfig, DrmLicenseInformation, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, LoadingState, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineOptionEntry, OfflineOptionEntryState, OfflineSourceOptions, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, ScalingMode, SeekEvent, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceMetadata, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TypefaceFamily, TypefaceStyleWeight, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoSizeChangedEvent, WidevineConfig, handleBitmovinNativeOfflineEvent, usePlayer };
+/**
+ * The options to be used for initializing `BitmovinCastManager`
+ * @platform Android, iOS
+ */
+interface BitmovinCastManagerOptions {
+    /**
+     * ID of receiver application.
+     * Using `null` value will result in using the default application ID
+     */
+    applicationId?: string | null;
+    /**
+     * A custom message namespace to be used for communication between sender and receiver.
+     * Using `null` value will result in using the default message namespace
+     */
+    messageNamespace?: string | null;
+}
+/**
+ * Singleton providing access to GoogleCast related features.
+ * The `BitmovinCastManager` needs to be initialized by calling `BitmovinCastManager.initialize`
+ * before `Player` creation to enable casting features.
+ *
+ * @platform Android, iOS
+ */
+declare const BitmovinCastManager: {
+    /**
+     * Returns whether the `BitmovinCastManager` is initialized.
+     * @returns A promise that resolves with a boolean indicating whether the `BitmovinCastManager` is initialized
+     */
+    isInitialized: () => Promise<boolean>;
+    /**
+     * Initialize `BitmovinCastManager` based on the provided `BitmovinCastManagerOptions`.
+     * This method needs to be called before `Player` creation to enable casting features.
+     * If no options are provided, the default options will be used.
+     *
+     * IMPORTANT: This should only be called when the Google Cast SDK is available in the application.
+     *
+     * @param options The options to be used for initializing `BitmovinCastManager`
+     * @returns A promise that resolves when the `BitmovinCastManager` was initialized successfully
+     */
+    initialize: (options?: BitmovinCastManagerOptions | null) => Promise<void>;
+    /**
+     * Must be called in every Android Activity to update the context to the current one.
+     * Make sure to call this method on every Android Activity switch.
+     *
+     * @returns A promise that resolves when the context was updated successfully
+     * @platform Android
+     */
+    updateContext: () => Promise<void>;
+    /**
+     * Sends the given message to the cast receiver.
+     *
+     * @param message The message to be sent
+     * @param messageNamespace The message namespace to be used, in case of null the default message namespace will be used
+     * @returns A promise that resolves when the message was sent successfully
+     */
+    sendMessage: (message: String, messageNamespace?: String | null) => any;
+};
+
+export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdaptationConfig, AdvertisingConfig, AnalyticsApi, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinCastManager, BitmovinCastManagerOptions, BitmovinNativeOfflineEventData, BufferConfig, BufferMediaTypeConfig, CastAvailableEvent, CastPausedEvent, CastPayload, CastPlaybackFinishedEvent, CastPlayingEvent, CastStartEvent, CastStartedEvent, CastStoppedEvent, CastTimeUpdatedEvent, CastWaitingForDeviceEvent, CustomDataConfig, CustomMessageHandler, CustomMessageHandlerProps, DefaultMetadata, DestroyEvent, Drm, DrmConfig, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, LoadingState, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptionEntry, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineSourceOptions, OfflineState, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureConfig, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewConfig, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, RemoteControlConfig, ScalingMode, SeekEvent, SeekPosition, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceMetadata, SourceOptions, SourceRemoteControlConfig, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, Thumbnail, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TimelineReferencePoint, TweaksConfig, TypefaceFamily, TypefaceStyleWeight, UiConfig, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoQuality, VideoSizeChangedEvent, WebUiConfig, WidevineConfig, usePlayer };

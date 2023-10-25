@@ -1,28 +1,21 @@
 package com.bitmovin.player.reactnative
 
 import android.annotation.SuppressLint
-import android.app.PictureInPictureParams
-import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Rect
-import android.os.Build
-import android.util.Log
-import android.util.Rational
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.PictureInPictureModeChangedInfo
-import androidx.core.util.Consumer
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
+import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.reactnative.converter.JsonConverter
-import com.bitmovin.player.ui.DefaultPictureInPictureHandler
+import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
+import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
@@ -72,6 +65,18 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
     PlayerEvent.AdStarted::class to "adStarted",
     PlayerEvent.VideoPlaybackQualityChanged::class to "videoPlaybackQualityChanged",
     PlayerEvent.VideoSizeChanged::class to "videoSizeChanged",
+    PlayerEvent.CastStart::class to "castStart",
+    @Suppress("DEPRECATION")
+    PlayerEvent.CastPlaybackFinished::class to "castPlaybackFinished",
+    @Suppress("DEPRECATION")
+    PlayerEvent.CastPaused::class to "castPaused",
+    @Suppress("DEPRECATION")
+    PlayerEvent.CastPlaying::class to "castPlaying",
+    PlayerEvent.CastStarted::class to "castStarted",
+    PlayerEvent.CastAvailable::class to "castAvailable",
+    PlayerEvent.CastStopped::class to "castStopped",
+    PlayerEvent.CastWaitingForDevice::class to "castWaitingForDevice",
+    PlayerEvent.CastTimeUpdated::class to "castTimeUpdated",
 )
 
 private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event>, String>(
@@ -90,8 +95,11 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event
  * exposes player events as bubbling events.
  */
 @SuppressLint("ViewConstructor")
-class RNPlayerView(val context: ThemedReactContext) : LinearLayout(context),
-    DefaultLifecycleObserver {
+class RNPlayerView(val context: ThemedReactContext) :
+    LinearLayout(context),
+    DefaultLifecycleObserver,
+    View.OnLayoutChangeListener,
+    RNPictureInPictureDelegate {
 
     init {
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
@@ -106,15 +114,13 @@ class RNPlayerView(val context: ThemedReactContext) : LinearLayout(context),
      * Relays the provided set of events, emitted by the player, together with the associated name
      * to the `eventOutput` callback.
      */
-    private val playerEventRelay =
-        EventRelay<Player, Event>(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING, ::emitEvent)
+    private val playerEventRelay = EventRelay<Player, Event>(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING, ::emitEvent)
 
     /**
      * Relays the provided set of events, emitted by the player view, together with the associated name
      * to the `eventOutput` callback.
      */
-    private val viewEventRelay =
-        EventRelay<PlayerView, Event>(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI, ::emitEvent)
+    private val viewEventRelay = EventRelay<PlayerView, Event>(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI, ::emitEvent)
 
     /**
      * Current React activity computed property.
@@ -145,40 +151,23 @@ class RNPlayerView(val context: ThemedReactContext) : LinearLayout(context),
         set(value) {
             playerView?.player = value
             playerEventRelay.eventEmitter = value
-
-            if (shouldDoPictureInPicture) {
-                playerView?.setPictureInPictureHandler(
-                    DefaultPictureInPictureHandler(currentActivity, value)
-                )
-            }
         }
 
     /**
-     * Whether the view should enable picture in picture.
+     * Object that handles PiP mode changes in React Native.
      */
-    var isPictureInPictureEnabled = false
+    var pictureInPictureHandler: RNPictureInPictureHandler? = null
 
     /**
-     * Whether the current Android version supports PiP mode.
+     * Configures the visual presentation and behaviour of the [playerView].
      */
-    private val isPictureInPictureAvailable: Boolean
-        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-                && context.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+    var config: RNPlayerViewConfigWrapper? = null
 
     /**
-     * Handy property accessor for if PiP is available and enabled
+     * Whether this view should pause video playback when activity's onPause is called.
+     * By default, `shouldPausePlaybackOnActivityPause` is set to false when entering PiP mode.
      */
-    private val shouldDoPictureInPicture: Boolean
-        get() = isPictureInPictureAvailable && isPictureInPictureEnabled
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private var pipChangedListener: Consumer<PictureInPictureModeChangedInfo> =
-        Consumer<PictureInPictureModeChangedInfo> {
-            playerView?.onPictureInPictureModeChanged(
-                it.isInPictureInPictureMode,
-                it.newConfig
-            )
-        }
+    private var shouldPausePlaybackOnActivityPause = true
 
     /**
      * Handy property accessor for disabling the ad ui
@@ -194,10 +183,7 @@ class RNPlayerView(val context: ThemedReactContext) : LinearLayout(context),
      * Register this view as an activity lifecycle listener on initialization.
      */
     init {
-        currentActivity?.lifecycle?.addObserver(this)
-        if (shouldDoPictureInPicture) {
-            currentActivity?.addOnPictureInPictureModeChangedListener(pipChangedListener)
-        }
+        context.addLifecycleEventListener(this)
     }
 
     /**
@@ -207,15 +193,7 @@ class RNPlayerView(val context: ThemedReactContext) : LinearLayout(context),
         viewEventRelay.eventEmitter = null
         playerEventRelay.eventEmitter = null
         currentActivity?.lifecycle?.removeObserver(this)
-        if (shouldDoPictureInPicture) {
-            currentActivity?.removeOnPictureInPictureModeChangedListener(pipChangedListener)
-
-            val params = PictureInPictureParams.Builder()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                params.setAutoEnterEnabled(false)
-            }
-            currentActivity?.setPictureInPictureParams(params.build())
-        }
+        playerView?.removeOnLayoutChangeListener(this)
     }
 
     override fun onStart(owner: LifecycleOwner) {
@@ -255,29 +233,70 @@ class RNPlayerView(val context: ThemedReactContext) : LinearLayout(context),
             (playerView.parent as ViewGroup?)?.removeView(playerView)
             addView(playerView)
         }
-
-        if (shouldDoPictureInPicture) {
-            playerView.setPictureInPictureHandler(
-                DefaultPictureInPictureHandler(currentActivity, playerView.player)
-            )
-
-            currentActivity?.let {
-                val sourceRectHint = Rect()
-                val ratio = Rational(16, 9)
-                val params = PictureInPictureParams.Builder()
-                    .setAspectRatio(ratio)
-                    .setSourceRectHint(sourceRectHint)
-                when {
-                    // See also: https://developer.android.com/develop/ui/views/picture-in-picture#smoother-exit
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
-                        params.setAutoEnterEnabled(true).setSeamlessResizeEnabled(true)
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
-                        params.setExpandedAspectRatio(ratio)
-                }
-                it.setPictureInPictureParams(params.build())
-            }
+        pictureInPictureHandler?.let {
+            it.setDelegate(this)
+            playerView.setPictureInPictureHandler(it)
+            playerView.addOnLayoutChangeListener(this)
         }
+    }
 
+    /**
+     * Called whenever this view's activity configuration changes.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        pictureInPictureHandler?.onConfigurationChanged(newConfig)
+    }
+
+    /**
+     * Called when the player has just entered PiP mode.
+     */
+    override fun onEnterPictureInPicture() {
+        // Playback shouldn't be paused when entering PiP mode.
+        shouldPausePlaybackOnActivityPause = false
+    }
+
+    /**
+     * Called when the player has just exited PiP mode.
+     */
+    override fun onExitPictureInPicture() {
+        // Explicitly call `exitPictureInPicture()` on PlayerView when exiting PiP state, otherwise
+        // the `PictureInPictureExit` event won't get dispatched.
+        playerView?.exitPictureInPicture()
+    }
+
+    /**
+     * Called when the player's PiP mode changes with a new configuration object.
+     */
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration?) {
+        playerView?.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+    }
+
+    /**
+     * Called whenever the PiP handler needs to compute the PlayerView's global visible rect.
+     */
+    override fun setSourceRectHint(sourceRectHint: Rect) {
+        playerView?.getGlobalVisibleRect(sourceRectHint)
+    }
+
+    /**
+     * Called whenever PlayerView's layout changes.
+     */
+    override fun onLayoutChange(
+        view: View?,
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int,
+        oldLeft: Int,
+        oldTop: Int,
+        oldRight: Int,
+        oldBottom: Int,
+    ) {
+        if (left != oldLeft || right != oldRight || top != oldTop || bottom != oldBottom) {
+            // Update source rect hint whenever the player's layout change
+            pictureInPictureHandler?.updateSourceRectHint()
+        }
     }
 
     /**
@@ -290,7 +309,7 @@ class RNPlayerView(val context: ThemedReactContext) : LinearLayout(context),
         post {
             measure(
                 MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+                MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
             )
             layout(left, top, right, bottom)
         }
@@ -298,8 +317,8 @@ class RNPlayerView(val context: ThemedReactContext) : LinearLayout(context),
 
     /**
      * Emits a bubbling event with payload to js.
-     * @param event Native event name.
-     * @param json Optional js object to be sent as payload.
+     * @param name Native event name.
+     * @param event Optional js object to be sent as payload.
      */
     private inline fun <reified E : Event> emitEvent(name: String, event: E) {
         if (disableAdUi == true && event is PlayerEvent.AdStarted) {
@@ -337,6 +356,15 @@ class RNPlayerView(val context: ThemedReactContext) : LinearLayout(context),
             .receiveEvent(id, name, payload)
     }
 }
+
+/**
+ * Representation of the React Native API `PlayerViewConfig` object.
+ * This is necessary as not all of its values can be directly mapped to the native `PlayerViewConfig`.
+ */
+data class RNPlayerViewConfigWrapper(
+    val playerViewConfig: PlayerViewConfig?,
+    val pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig?,
+)
 
 class LayoutTraverser private constructor(private val processor: Processor) {
     interface Processor {

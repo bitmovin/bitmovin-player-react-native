@@ -130,7 +130,7 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
                 nativeId,
                 "onPrepareMessage",
                 preparedMessages,
-                preparedMessagesCondition
+                preparedMessagesCondition,
             )
             widevineConfig.prepareMessageCallback = PrepareMessageCallback {
                 prepareMessage(it)
@@ -151,7 +151,7 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
                 nativeId,
                 "onPrepareLicense",
                 preparedLicenses,
-                preparedLicensesCondition
+                preparedLicensesCondition,
             )
             widevineConfig.prepareLicenseCallback = PrepareLicenseCallback {
                 prepareLicense(it)
@@ -170,11 +170,11 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
         nativeId: NativeId,
         method: String,
         registry: Registry<String>,
-        registryCondition: Condition
+        registryCondition: Condition,
     ): PrepareCallback = {
         val args = Arguments.createArray()
         args.pushString(Base64.encodeToString(it, Base64.NO_WRAP))
-        context.catalystInstance.callFunction("DRM-${nativeId}", method, args as NativeArray)
+        context.catalystInstance.callFunction("DRM-$nativeId", method, args as NativeArray)
         lock.withLock {
             registryCondition.await()
             val result = registry[nativeId]

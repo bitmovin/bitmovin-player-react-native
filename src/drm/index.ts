@@ -14,17 +14,22 @@ const DrmModule = NativeModules.DrmModule;
  */
 export interface DrmConfig extends NativeInstanceConfig {
   /**
-   * FairPlay specific configuration. Only applicable for iOS.
+   * FairPlay specific configuration.
+   *
+   * @platform iOS
    */
   fairplay?: FairplayConfig;
   /**
-   * Widevine specific configuration. Only applicable for Android.
+   * Widevine specific configuration.
+   *
+   * @platform Android, iOS (only for casting).
    */
   widevine?: WidevineConfig;
 }
 
 /**
  * Represents a native DRM configuration object.
+ * @internal
  */
 export class Drm extends NativeInstance<DrmConfig> {
   /**

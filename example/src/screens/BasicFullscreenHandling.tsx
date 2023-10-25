@@ -66,7 +66,11 @@ export default function BasicFullscreenHandling({
 }: BasicFullscreenHandlingProps) {
   useTVGestures();
 
-  const player = usePlayer();
+  const player = usePlayer({
+    remoteControlConfig: {
+      isCastEnabled: false,
+    },
+  });
 
   const [fullscreenMode, setFullscreenMode] = useState(false);
   const fullscreenHandler = useRef(

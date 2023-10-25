@@ -49,12 +49,12 @@ export interface ErrorEvent extends Event {
 export interface PlayerActiveEvent extends Event {}
 
 /**
- * Emitted when a player error happens.
+ * Emitted when a player error occurred.
  */
 export interface PlayerErrorEvent extends ErrorEvent {}
 
 /**
- * Emitted when a player warning happens.
+ * Emitted when a player warning occurred.
  */
 export interface PlayerWarningEvent extends ErrorEvent {}
 
@@ -142,35 +142,46 @@ export interface EventSource {
 }
 
 /**
+ * Represents a seeking position.
+ */
+export interface SeekPosition {
+  /**
+   * The relevant `Source`.
+   */
+  source: EventSource;
+  /**
+   * The position within the `source` in seconds.
+   */
+  time: number;
+}
+
+/**
  * Emitted when the player is about to seek to a new position.
- * Only applies to VoD streams.
+ * This event only applies to VoD streams.
+ * When looking for an equivalent for live streams, the {@link TimeShiftEvent} is relevant.
  */
 export interface SeekEvent extends Event {
   /**
-   * Removed source metadata.
+   * Origin source metadata.
    */
-  from: {
-    time: number;
-    source: EventSource;
-  };
+  from: SeekPosition;
   /**
-   * Added source metadata.
+   * Target source metadata.
    */
-  to: {
-    time: number;
-    source: EventSource;
-  };
+  to: SeekPosition;
 }
 
 /**
  * Emitted when seeking has finished and data to continue playback is available.
- * Only applies to VoD streams.
+ * This event only applies to VoD streams.
+ * When looking for an equivalent for live streams, the {@link TimeShiftedEvent} is relevant.
  */
 export interface SeekedEvent extends Event {}
 
 /**
  * Emitted when the player starts time shifting.
- * Only applies to live streams.
+ * This event only applies to live streams.
+ * When looking for an equivalent for VoD streams, the {@link SeekEvent} is relevant.
  */
 export interface TimeShiftEvent extends Event {
   /**
@@ -185,7 +196,8 @@ export interface TimeShiftEvent extends Event {
 
 /**
  * Emitted when time shifting has finished and data is available to continue playback.
- * Only applies to live streams.
+ * This event only applies to live streams.
+ * When looking for an equivalent for VoD streams, the {@link SeekedEvent} is relevant.
  */
 export interface TimeShiftedEvent extends Event {}
 
@@ -211,7 +223,6 @@ export interface TimeChangedEvent extends Event {
 
 /**
  * Emitted when a new source loading has started.
- * It doesn't mean that the loading of the new manifest has finished.
  */
 export interface SourceLoadEvent extends Event {
   /**
@@ -222,7 +233,8 @@ export interface SourceLoadEvent extends Event {
 
 /**
  * Emitted when a new source is loaded.
- * It doesn't mean that the loading of the new manifest has finished.
+ * This does not mean that the source is immediately ready for playback.
+ * `ReadyEvent` indicates the player is ready for immediate playback.
  */
 export interface SourceLoadedEvent extends Event {
   /**
@@ -242,12 +254,12 @@ export interface SourceUnloadedEvent extends Event {
 }
 
 /**
- * Emitted when a source error happens.
+ * Emitted when a source error occurred.
  */
 export interface SourceErrorEvent extends ErrorEvent {}
 
 /**
- * Emitted when a source warning happens.
+ * Emitted when a source warning occurred.
  */
 export interface SourceWarningEvent extends ErrorEvent {}
 
@@ -563,4 +575,84 @@ export interface VideoPlaybackQualityChangedEvent extends Event {
    * The previous quality
    */
   oldVideoQuality: VideoQuality;
+}
+
+/**
+ * Emitted when casting to a cast-compatible device is available.
+ */
+export interface CastAvailableEvent extends Event {}
+
+/**
+ * Emitted when the playback on a cast-compatible device was paused.
+ *
+ * On Android `PausedEvent` is also emitted while casting.
+ */
+export interface CastPausedEvent extends Event {}
+
+/**
+ * Emitted when the playback on a cast-compatible device has finished.
+ *
+ * On Android `PlaybackFinishedEvent` is also emitted while casting.
+ */
+export interface CastPlaybackFinishedEvent extends Event {}
+
+/**
+ * Emitted when playback on a cast-compatible device has started.
+ *
+ * On Android `PlayingEvent` is also emitted while casting.
+ */
+export interface CastPlayingEvent extends Event {}
+
+/**
+ * Emitted when the cast app is launched successfully.
+ */
+export interface CastStartedEvent extends Event {
+  /**
+   * The name of the cast device on which the app was launched.
+   */
+  deviceName: string | null;
+}
+
+/**
+ * Emitted when casting is initiated, but the user still needs to choose which device should be used.
+ */
+export interface CastStartEvent extends Event {}
+
+/**
+ * Emitted when casting to a cast-compatible device is stopped.
+ */
+export interface CastStoppedEvent extends Event {}
+
+/**
+ * Emitted when the time update from the currently used cast-compatible device is received.
+ */
+export interface CastTimeUpdatedEvent extends Event {}
+
+/**
+ * Contains information for the `CastWaitingForDeviceEvent`.
+ */
+export interface CastPayload {
+  /**
+   * The current time in seconds.
+   */
+  currentTime: number;
+  /**
+   * The name of the chosen cast device.
+   */
+  deviceName: string | null;
+  /**
+   * The type of the payload (always "cast").
+   */
+  type: string;
+}
+
+/**
+ * Emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
+ * playback.
+ */
+export interface CastWaitingForDeviceEvent extends Event {
+  /**
+   * The `CastPayload` object for the event
+   */
+  castPayload: CastPayload;
 }

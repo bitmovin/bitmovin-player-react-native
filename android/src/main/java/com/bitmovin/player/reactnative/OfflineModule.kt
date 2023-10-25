@@ -1,24 +1,24 @@
 package com.bitmovin.player.reactnative
 
-import com.bitmovin.player.api.offline.DrmLicenseInformation
+import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.extensions.toList
+import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
-import com.bitmovin.player.reactnative.offline.OfflineContentManagerHolder
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
+import com.facebook.react.uimanager.UIManagerModule
 
 private const val OFFLINE_MODULE = "BitmovinOfflineModule"
 
 @ReactModule(name = OFFLINE_MODULE)
-class OfflineModule(private val context: ReactApplicationContext) :
-    ReactContextBaseJavaModule(context) {
+class OfflineModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
 
     companion object {
         /**
          * In-memory mapping from `nativeId`s to `OfflineManager` instances.
          */
-        private val offlineContentManagerHolders : Registry<OfflineContentManagerHolder> = mutableMapOf()
+        private val offlineContentManagerBridges: Registry<OfflineContentManagerBridge> = mutableMapOf()
     }
 
     /**
@@ -31,11 +31,11 @@ class OfflineModule(private val context: ReactApplicationContext) :
      * @param nativeId `OfflineManager` instance ID.
      * @return The associated `OfflineManager` instance or `null`.
      */
-    fun getOfflineContentManagerHolder(nativeId: NativeId?): OfflineContentManagerHolder? {
+    fun getOfflineContentManagerBridge(nativeId: NativeId?): OfflineContentManagerBridge? {
         if (nativeId == null) {
             return null
         }
-        return offlineContentManagerHolders[nativeId]
+        return offlineContentManagerBridges[nativeId]
     }
 
     /**
@@ -59,32 +59,34 @@ class OfflineModule(private val context: ReactApplicationContext) :
      * @param config `ReadableMap` object received from JS.  Should contain a sourceConfig and location.
      */
     @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, promise: Promise) {
-        if (!offlineContentManagerHolders.containsKey(nativeId)) {
-            val identifier = config?.getString("identifier")
-            val sourceConfig = JsonConverter.toSourceConfig(config?.getMap("sourceConfig"))
+    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, drmNativeId: NativeId?, promise: Promise) {
+        uiManager()?.addUIBlock {
+            if (!offlineContentManagerBridges.containsKey(nativeId)) {
+                val identifier = config?.getString("identifier")
+                val sourceConfig = JsonConverter.toSourceConfig(config?.getMap("sourceConfig"))
+                sourceConfig?.drmConfig = drmModule()?.getConfig(drmNativeId)
 
-            if (identifier.isNullOrEmpty() || sourceConfig == null) {
-                promise.reject(java.lang.IllegalArgumentException("Invalid configuration"))
-                return
+                if (identifier.isNullOrEmpty() || sourceConfig == null) {
+                    promise.reject(IllegalArgumentException("Identifier and SourceConfig may not be null"))
+                    return@addUIBlock
+                }
+
+                offlineContentManagerBridges[nativeId] = OfflineContentManagerBridge(
+                    nativeId,
+                    context,
+                    identifier,
+                    sourceConfig,
+                    context.cacheDir.path,
+                )
             }
-
-            offlineContentManagerHolders[nativeId] =
-                OfflineContentManagerHolder(nativeId, context, identifier, sourceConfig, context.cacheDir.path)
+            promise.resolve(null)
         }
-        promise.resolve(null)
     }
 
-    /**
-     * Retrieves the current `OfflineSourceConfig`
-     * @param nativeId Target offline manager.
-     */
     @ReactMethod
-    fun getOfflineSourceConfig(nativeId: NativeId, promise: Promise) {
+    fun getState(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            val offlineSourceConfig = getOfflineContentManagerHolder(nativeId)
-                ?.offlineContentManager?.offlineSourceConfig
-            promise.resolve(JsonConverter.toJson(offlineSourceConfig))
+            promise.resolve(state.name)
         }
     }
 
@@ -96,7 +98,7 @@ class OfflineModule(private val context: ReactApplicationContext) :
     @ReactMethod
     fun getOptions(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.getOptions()
+            getOptions()
             promise.resolve(null)
         }
     }
@@ -109,31 +111,42 @@ class OfflineModule(private val context: ReactApplicationContext) :
      * @param request `ReadableMap` that contains the `OfflineManager.OfflineOptionType`, id, and `OfflineOptionEntryAction` necessary to set the new action.
      */
     @ReactMethod
-    fun process(nativeId: NativeId, request: ReadableMap?, promise: Promise) {
+    fun download(nativeId: NativeId, request: ReadableMap?, promise: Promise) {
         if (request == null) {
-            promise.reject(java.lang.IllegalArgumentException("Request may not be null"))
+            promise.reject(IllegalArgumentException("Request may not be null"))
             return
         }
 
         safeOfflineContentManager(nativeId, promise) {
             try {
-                val minimumBitRate = request.getInt("minimumBitrate")
-                val audioOptionIds = request.getArray("audioOptionIds")
-                    ?.toList<String>()
-                    ?.filterNotNull()
-                val textOptionIds = request.getArray("textOptionIds")
-                    ?.toList<String>()
-                    ?.filterNotNull()
-
-                if (minimumBitRate < 0) {
-                    promise.reject(java.lang.IllegalArgumentException("Invalid download request"))
+                when (state) {
+                    OfflineOptionEntryState.Downloaded -> {
+                        promise.reject(IllegalStateException("Download already completed"))
+                        return@safeOfflineContentManager
+                    }
+                    OfflineOptionEntryState.Downloading,
+                    OfflineOptionEntryState.Failed,
+                    -> {
+                        promise.reject(IllegalStateException("Download already in progress"))
+                        return@safeOfflineContentManager
+                    }
+                    OfflineOptionEntryState.Suspended -> {
+                        promise.reject(IllegalStateException("Download is suspended"))
+                        return@safeOfflineContentManager
+                    }
+                    else -> {}
+                }
+                val minimumBitRate = if (request.hasKey("minimumBitrate")) request.getInt("minimumBitrate") else null
+                if (minimumBitRate != null && minimumBitRate < 0) {
+                    promise.reject(IllegalArgumentException("Invalid download request"))
                     return@safeOfflineContentManager
                 }
 
-                getOfflineContentManagerHolder(nativeId)?.process(
-                    OfflineDownloadRequest(
-                        minimumBitRate, audioOptionIds, textOptionIds
-                    )
+                val audioOptionIds = request.getArray("audioOptionIds")?.toList<String>()?.filterNotNull()
+                val textOptionIds = request.getArray("textOptionIds")?.toList<String>()?.filterNotNull()
+
+                getOfflineContentManagerBridge(nativeId)?.process(
+                    OfflineDownloadRequest(minimumBitRate, audioOptionIds, textOptionIds),
                 )
                 promise.resolve(null)
             } catch (e: Exception) {
@@ -149,7 +162,7 @@ class OfflineModule(private val context: ReactApplicationContext) :
     @ReactMethod
     fun resume(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.resume()
+            resume()
             promise.resolve(null)
         }
     }
@@ -161,7 +174,7 @@ class OfflineModule(private val context: ReactApplicationContext) :
     @ReactMethod
     fun suspend(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.suspend()
+            suspend()
             promise.resolve(null)
         }
     }
@@ -173,7 +186,7 @@ class OfflineModule(private val context: ReactApplicationContext) :
     @ReactMethod
     fun cancelDownload(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.cancelDownload()
+            cancelDownload()
             promise.resolve(null)
         }
     }
@@ -185,7 +198,7 @@ class OfflineModule(private val context: ReactApplicationContext) :
     @ReactMethod
     fun usedStorage(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            promise.resolve(it.offlineContentManager.usedStorage)
+            promise.resolve(offlineContentManager.usedStorage.toDouble())
         }
     }
 
@@ -196,7 +209,7 @@ class OfflineModule(private val context: ReactApplicationContext) :
     @ReactMethod
     fun deleteAll(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.deleteAll()
+            deleteAll()
             promise.resolve(null)
         }
     }
@@ -210,7 +223,7 @@ class OfflineModule(private val context: ReactApplicationContext) :
     @ReactMethod
     fun downloadLicense(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.downloadLicense()
+            downloadLicense()
             promise.resolve(null)
         }
     }
@@ -224,7 +237,7 @@ class OfflineModule(private val context: ReactApplicationContext) :
     @ReactMethod
     fun releaseLicense(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.releaseLicense()
+            releaseLicense()
             promise.resolve(null)
         }
     }
@@ -238,24 +251,8 @@ class OfflineModule(private val context: ReactApplicationContext) :
     @ReactMethod
     fun renewOfflineLicense(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            it.renewOfflineLicense()
+            renewOfflineLicense()
             promise.resolve(null)
-        }
-    }
-
-    /**
-     * Resolve `nativeId`'s current `DrmLicenseInformation`.
-     * @param nativeId Target offline manager.
-     */
-    @ReactMethod
-    fun offlineDrmLicenseInformation(nativeId: NativeId, promise: Promise) {
-        safeOfflineContentManager(nativeId, promise) {
-            try {
-                val offlineDrmLicenseInformation: DrmLicenseInformation = it.offlineContentManager.remainingOfflineLicenseDuration
-                promise.resolve(JsonConverter.toJson(offlineDrmLicenseInformation))
-            } catch (e: Exception) {
-                promise.reject(e)
-            }
         }
     }
 
@@ -279,22 +276,35 @@ class OfflineModule(private val context: ReactApplicationContext) :
      */
     @ReactMethod
     fun disposeAll(promise: Promise) {
-        offlineContentManagerHolders.keys.forEach { nativeId ->
-            getOfflineContentManagerHolder(nativeId)?.let { offlineContentManagerHolder ->
-                releaseOfflineContentManager(nativeId, offlineContentManagerHolder)
+        offlineContentManagerBridges.keys.forEach { nativeId ->
+            getOfflineContentManagerBridge(nativeId)?.let { offlineContentManagerBridge ->
+                releaseOfflineContentManager(nativeId, offlineContentManagerBridges)
             }
         }
         promise.resolve(null)
     }
 
-    private fun releaseOfflineContentManager(nativeId: NativeId, offlineContentManagerHolder: OfflineContentManagerHolder) {
-        offlineContentManagerHolder.release()
-        offlineContentManagerHolders.remove(nativeId)
+    private fun releaseOfflineContentManager(nativeId: NativeId, offlineContentManagerBridge: OfflineContentManagerBridge) {
+        offlineContentManagerBridge.release()
+        offlineContentManagerBridges.remove(nativeId)
     }
 
-    private fun safeOfflineContentManager(nativeId: NativeId, promise: Promise, runBlock: (OfflineContentManagerHolder) -> Unit) {
-        getOfflineContentManagerHolder(nativeId)?.let(runBlock)
-            ?: promise.reject(java.lang.IllegalArgumentException("Could not find the offline module instance"))
+    private fun safeOfflineContentManager(
+        nativeId: NativeId,
+        promise: Promise,
+        runBlock: OfflineContentManagerBridge.() -> Unit,
+    ) {
+        getOfflineContentManagerBridge(nativeId)?.let(runBlock)
+            ?: promise.reject(IllegalArgumentException("Could not find the offline module instance"))
     }
 
+    /**
+     * Helper function that returns the initialized `DrmModule` instance.
+     */
+    private fun drmModule(): DrmModule? = context.getNativeModule(DrmModule::class.java)
+
+    /**
+     * Helper function that returns the initialized `UIManager` instance.
+     */
+    private fun uiManager(): UIManagerModule? = context.getNativeModule(UIManagerModule::class.java)
 }

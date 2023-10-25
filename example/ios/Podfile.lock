@@ -1,12 +1,12 @@
 PODS:
-  - BitmovinAnalyticsCollector/BitmovinPlayer (3.1.0):
+  - BitmovinAnalyticsCollector/BitmovinPlayer (3.1.2):
     - BitmovinAnalyticsCollector/Core
     - BitmovinPlayerCore (~> 3.41)
-  - BitmovinAnalyticsCollector/Core (3.1.0)
-  - BitmovinPlayer (3.43.1):
+  - BitmovinAnalyticsCollector/Core (3.1.2)
+  - BitmovinPlayer (3.46.0):
     - BitmovinAnalyticsCollector/BitmovinPlayer (~> 3.0)
-    - BitmovinPlayerCore (= 3.43.1)
-  - BitmovinPlayerCore (3.43.1)
+    - BitmovinPlayerCore (= 3.46.0)
+  - BitmovinPlayerCore (3.46.0)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -80,10 +80,16 @@ PODS:
     - FlipperKit/FlipperKitNetworkPlugin
   - fmt (7.1.3)
   - glog (0.3.5)
+  - google-cast-sdk (4.8.0):
+    - google-cast-sdk/Core (= 4.8.0)
+    - Protobuf (~> 3.13)
+  - google-cast-sdk/Core (4.8.0):
+    - Protobuf (~> 3.13)
   - GoogleAds-IMA-iOS-SDK (3.18.4)
   - GoogleAds-IMA-tvOS-SDK (4.8.2)
   - libevent (2.1.12.1)
   - OpenSSL-Universal (1.1.1100)
+  - Protobuf (3.24.3)
   - RCT-Folly (2021.06.28.00-v2):
     - boost
     - DoubleConversion
@@ -339,8 +345,8 @@ PODS:
     - React-jsi (= 0.69.6-2)
     - React-logger (= 0.69.6-2)
     - React-perflogger (= 0.69.6-2)
-  - RNBitmovinPlayer (0.9.2):
-    - BitmovinPlayer (= 3.43.1)
+  - RNBitmovinPlayer (0.13.0):
+    - BitmovinPlayer (= 3.46.0)
     - GoogleAds-IMA-iOS-SDK (= 3.18.4)
     - GoogleAds-IMA-tvOS-SDK (= 4.8.2)
     - React-Core
@@ -384,6 +390,7 @@ DEPENDENCIES:
   - FlipperKit/SKIOSNetworkPlugin (= 0.151.0)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - google-cast-sdk (= 4.8.0)
   - OpenSSL-Universal (= 1.1.1100)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
@@ -436,9 +443,11 @@ SPEC REPOS:
     - Flipper-Glog
     - Flipper-RSocket
     - FlipperKit
+    - google-cast-sdk
     - GoogleAds-IMA-iOS-SDK
     - GoogleAds-IMA-tvOS-SDK
     - OpenSSL-Universal
+    - Protobuf
     - SocketRocket
     - YogaKit
 
@@ -519,9 +528,9 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  BitmovinAnalyticsCollector: 74b41c9e0d40462d34ba6b8cf4526984258e28f5
-  BitmovinPlayer: 79867336da577646867c388652735607c1875d66
-  BitmovinPlayerCore: 611d04ca350a5c5bc138e228009e5b8c33085e3d
+  BitmovinAnalyticsCollector: 11769c5503a08c8e3495f2e2bdca8f72db6b973f
+  BitmovinPlayer: 26198f02f8da5f3aa1e1d1758d7fee380a00b2f7
+  BitmovinPlayerCore: 1d7175aec4c7b22bdbfcef70c1eaa75c79958847
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 234abba95e31cc2aada0cf3b97cdb11bc5b90575
@@ -538,10 +547,12 @@ SPEC CHECKSUMS:
   FlipperKit: feec58b1283d3560c703adc670c45ecf400c48d9
   fmt: 135c0c55547979f715b56dfa54037ececa96d07a
   glog: bac6d5aa2990176cc22d0432fb3e28805d580aeb
+  google-cast-sdk: afeb1aac0744b1bc4f70bc3db8468e33fabbff38
   GoogleAds-IMA-iOS-SDK: b01284e3bf3d64ba948de6692ffda531452c3713
   GoogleAds-IMA-tvOS-SDK: 2dda9d3b34c43003222d3417315fecec22b698a1
   libevent: a6d75fcd7be07cbc5070300ea8dbc8d55dfab88e
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
+  Protobuf: 970f7ee93a3a08e3cf64859b8efd95ee32b4f87f
   RCT-Folly: 6955e7728b76277c5df5a5aba37ee1ff1dd99976
   RCTRequired: 4a18f06da2ea5eb7e1b7334643f988ef76159c9e
   RCTTypeSafety: 3006f0658ff73d9e81a5fde4dbf9e9260a679ab0
@@ -568,7 +579,7 @@ SPEC CHECKSUMS:
   React-RCTText: f72442f7436fd8624494963af4906000a5465ce6
   React-runtimeexecutor: f1383f6460ea3d66ed122b4defb0b5ba664ee441
   ReactCommon: 7857ab475239c5ba044b7ed946ba564f2e7f1626
-  RNBitmovinPlayer: 56148b97636c6f1a872c2147d004de045f44b6f8
+  RNBitmovinPlayer: a03b77a65abed4a53dfe017a1edb61626d423f23
   RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   RNSVG: 3a79c0c4992213e4f06c08e62730c5e7b9e4dc17
@@ -576,6 +587,6 @@ SPEC CHECKSUMS:
   Yoga: be4fede0339d862989f5b064f8939c7429ad92c9
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: ae31af0f37bdf647197475f3f0d4a5a3e93df60c
+PODFILE CHECKSUM: 253d54be44299ecb3c274fb9bf8415c9c99cd6c6
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.12.1

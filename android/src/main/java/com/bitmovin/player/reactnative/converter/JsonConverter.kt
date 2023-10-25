@@ -1,40 +1,67 @@
 package com.bitmovin.player.reactnative.converter
 
 import android.graphics.Typeface
-import com.bitmovin.analytics.BitmovinAnalyticsConfig
-import com.bitmovin.analytics.config.SourceMetadata
-import com.bitmovin.analytics.data.CustomData
+import com.bitmovin.analytics.api.AnalyticsConfig
+import com.bitmovin.analytics.api.CustomData
+import com.bitmovin.analytics.api.DefaultMetadata
+import com.bitmovin.analytics.api.SourceMetadata
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.DeviceDescription.ModelName
 import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.TweaksConfig
-import com.bitmovin.player.api.advertising.*
+import com.bitmovin.player.api.advertising.Ad
+import com.bitmovin.player.api.advertising.AdBreak
+import com.bitmovin.player.api.advertising.AdConfig
+import com.bitmovin.player.api.advertising.AdData
+import com.bitmovin.player.api.advertising.AdItem
+import com.bitmovin.player.api.advertising.AdQuartile
+import com.bitmovin.player.api.advertising.AdSource
+import com.bitmovin.player.api.advertising.AdSourceType
+import com.bitmovin.player.api.advertising.AdvertisingConfig
+import com.bitmovin.player.api.buffer.BufferConfig
+import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
+import com.bitmovin.player.api.casting.RemoteControlConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
+import com.bitmovin.player.api.event.data.CastPayload
 import com.bitmovin.player.api.event.data.SeekPosition
+import com.bitmovin.player.api.media.AdaptationConfig
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
+import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
-import com.bitmovin.player.api.offline.DrmLicenseInformation
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
+import com.bitmovin.player.api.source.SourceOptions
 import com.bitmovin.player.api.source.SourceType
+import com.bitmovin.player.api.source.TimelineReferencePoint
+import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
+import com.bitmovin.player.api.ui.UiConfig
+import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
+import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
+import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
-import com.bitmovin.player.reactnative.extensions.putInt
+import com.bitmovin.player.reactnative.extensions.getOrDefault
+import com.bitmovin.player.reactnative.extensions.getProperty
+import com.bitmovin.player.reactnative.extensions.putBoolean
 import com.bitmovin.player.reactnative.extensions.putDouble
+import com.bitmovin.player.reactnative.extensions.putInt
+import com.bitmovin.player.reactnative.extensions.setProperty
 import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.extensions.toReadableArray
-import com.bitmovin.player.reactnative.extensions.getProperty
-import com.bitmovin.player.reactnative.extensions.setProperty
 import com.bitmovin.player.reactnative.extensions.toReadableMap
-import com.facebook.react.bridge.*
+import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableMap
 import java.util.UUID
 
 /**
@@ -75,7 +102,155 @@ class JsonConverter {
                     playerConfig.advertisingConfig = it
                 }
             }
+            if (json.hasKey("adaptationConfig")) {
+                toAdaptationConfig(json.getMap("adaptationConfig"))?.let {
+                    playerConfig.adaptationConfig = it
+                }
+            }
+            if (json.hasKey("remoteControlConfig")) {
+                toRemoteControlConfig(json.getMap("remoteControlConfig"))?.let {
+                    playerConfig.remoteControlConfig = it
+                }
+            }
+            if (json.hasKey("bufferConfig")) {
+                toBufferConfig(json.getMap("bufferConfig"))?.let {
+                    playerConfig.bufferConfig = it
+                }
+            }
             return playerConfig
+        }
+
+        /**
+         * Converts any JS object into a `BufferMediaTypeConfig` object.
+         * @param json JS object representing the `BufferMediaTypeConfig`.
+         * @return The generated `BufferMediaTypeConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toBufferMediaTypeConfig(json: ReadableMap?): BufferMediaTypeConfig? {
+            if (json == null) {
+                return null
+            }
+            val bufferMediaTypeConfig = BufferMediaTypeConfig()
+            if (json.hasKey("forwardDuration")) {
+                bufferMediaTypeConfig.forwardDuration = json.getDouble("forwardDuration")
+            }
+            return bufferMediaTypeConfig
+        }
+
+        /**
+         * Converts any JS object into a `BufferConfig` object.
+         * @param json JS object representing the `BufferConfig`.
+         * @return The generated `BufferConfig` if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toBufferConfig(json: ReadableMap?): BufferConfig? {
+            if (json == null) {
+                return null
+            }
+            val bufferConfig = BufferConfig()
+            if (json.hasKey("audioAndVideo")) {
+                toBufferMediaTypeConfig(json.getMap("audioAndVideo"))?.let {
+                    bufferConfig.audioAndVideo = it
+                }
+            }
+            if (json.hasKey("restartThreshold")) {
+                bufferConfig.restartThreshold = json.getDouble("restartThreshold")
+            }
+            if (json.hasKey("startupThreshold")) {
+                bufferConfig.startupThreshold = json.getDouble("startupThreshold")
+            }
+            return bufferConfig
+        }
+
+        /**
+         * Converts an arbitrary [ReadableMap] to a [RemoteControlConfig].
+         *
+         * @param json JS object representing the [RemoteControlConfig].
+         * @return The generated [RemoteControlConfig].
+         */
+        private fun toRemoteControlConfig(json: ReadableMap?): RemoteControlConfig? {
+            if (json == null) return null
+            val defaultRemoteControlConfig = RemoteControlConfig()
+
+            val receiverStylesheetUrl = json.getOrDefault(
+                "receiverStylesheetUrl",
+                defaultRemoteControlConfig.receiverStylesheetUrl,
+            )
+
+            var customReceiverConfig = defaultRemoteControlConfig.customReceiverConfig
+            if (json.hasKey("customReceiverConfig")) {
+                customReceiverConfig = json.getMap("customReceiverConfig")
+                    ?.toHashMap()
+                    ?.mapValues { entry -> entry.value as String } ?: emptyMap()
+            }
+
+            val isCastEnabled = json.getOrDefault(
+                "isCastEnabled",
+                defaultRemoteControlConfig.isCastEnabled,
+            )
+
+            val sendManifestRequestsWithCredentials = json.getOrDefault(
+                "sendManifestRequestsWithCredentials",
+                defaultRemoteControlConfig.sendManifestRequestsWithCredentials,
+            )
+
+            val sendSegmentRequestsWithCredentials = json.getOrDefault(
+                "sendSegmentRequestsWithCredentials",
+                defaultRemoteControlConfig.sendSegmentRequestsWithCredentials,
+            )
+
+            val sendDrmLicenseRequestsWithCredentials = json.getOrDefault(
+                "sendDrmLicenseRequestsWithCredentials",
+                defaultRemoteControlConfig.sendDrmLicenseRequestsWithCredentials,
+            )
+
+            return RemoteControlConfig(
+                receiverStylesheetUrl = receiverStylesheetUrl,
+                customReceiverConfig = customReceiverConfig,
+                isCastEnabled = isCastEnabled,
+                sendManifestRequestsWithCredentials = sendManifestRequestsWithCredentials,
+                sendSegmentRequestsWithCredentials = sendSegmentRequestsWithCredentials,
+                sendDrmLicenseRequestsWithCredentials = sendDrmLicenseRequestsWithCredentials,
+            )
+        }
+
+        /**
+         * Converts an arbitrary `json` to `SourceOptions`.
+         * @param json JS object representing the `SourceOptions`.
+         * @return The generated `SourceOptions`.
+         */
+        @JvmStatic
+        fun toSourceOptions(json: ReadableMap?): SourceOptions {
+            if (json == null) return SourceOptions()
+            val startOffset = if (json.hasKey("startOffset")) json.getDouble("startOffset") else null
+            val timelineReferencePoint = toTimelineReferencePoint(json.getString("startOffsetTimelineReference"))
+            return SourceOptions(startOffset = startOffset, startOffsetTimelineReference = timelineReferencePoint)
+        }
+
+        /**
+         * Converts an arbitrary `json` to `TimelineReferencePoint`.
+         * @param json JS string representing the `TimelineReferencePoint`.
+         * @return The generated `TimelineReferencePoint`.
+         */
+        @JvmStatic
+        private fun toTimelineReferencePoint(json: String?): TimelineReferencePoint? = when (json) {
+            "start" -> TimelineReferencePoint.Start
+            "end" -> TimelineReferencePoint.End
+            else -> null
+        }
+
+        /**
+         * Converts an arbitrary `json` to `AdaptationConfig`.
+         * @param json JS object representing the `AdaptationConfig`.
+         * @return The generated `AdaptationConfig` if successful, `null` otherwise.
+         */
+        private fun toAdaptationConfig(json: ReadableMap?): AdaptationConfig? {
+            if (json == null) return null
+            val adaptationConfig = AdaptationConfig()
+            if (json.hasKey("maxSelectableBitrate")) {
+                adaptationConfig.maxSelectableVideoBitrate = json.getInt("maxSelectableBitrate")
+            }
+            return adaptationConfig
         }
 
         /**
@@ -157,8 +332,7 @@ class JsonConverter {
                 tweaksConfig.timeChangedInterval = json.getDouble("timeChangedInterval")
             }
             if (json.hasKey("bandwidthEstimateWeightLimit")) {
-                tweaksConfig.bandwidthEstimateWeightLimit =
-                    json.getInt("bandwidthEstimateWeightLimit")
+                tweaksConfig.bandwidthEstimateWeightLimit = json.getInt("bandwidthEstimateWeightLimit")
             }
             if (json.hasKey("devicesThatRequireSurfaceWorkaround")) {
                 val devices = json.getMap("devicesThatRequireSurfaceWorkaround")
@@ -175,28 +349,24 @@ class JsonConverter {
                 tweaksConfig.devicesThatRequireSurfaceWorkaround = deviceNames + modelNames
             }
             if (json.hasKey("languagePropertyNormalization")) {
-                tweaksConfig.languagePropertyNormalization =
-                    json.getBoolean("languagePropertyNormalization")
+                tweaksConfig.languagePropertyNormalization = json.getBoolean("languagePropertyNormalization")
             }
             if (json.hasKey("localDynamicDashWindowUpdateInterval")) {
-                tweaksConfig.localDynamicDashWindowUpdateInterval =
-                    json.getDouble("localDynamicDashWindowUpdateInterval")
+                tweaksConfig.localDynamicDashWindowUpdateInterval = json.getDouble(
+                    "localDynamicDashWindowUpdateInterval",
+                )
             }
             if (json.hasKey("shouldApplyTtmlRegionWorkaround")) {
-                tweaksConfig.shouldApplyTtmlRegionWorkaround =
-                    json.getBoolean("shouldApplyTtmlRegionWorkaround")
+                tweaksConfig.shouldApplyTtmlRegionWorkaround = json.getBoolean("shouldApplyTtmlRegionWorkaround")
             }
             if (json.hasKey("useDrmSessionForClearPeriods")) {
-                tweaksConfig.useDrmSessionForClearPeriods =
-                    json.getBoolean("useDrmSessionForClearPeriods")
+                tweaksConfig.useDrmSessionForClearPeriods = json.getBoolean("useDrmSessionForClearPeriods")
             }
             if (json.hasKey("useDrmSessionForClearSources")) {
-                tweaksConfig.useDrmSessionForClearSources =
-                    json.getBoolean("useDrmSessionForClearSources")
+                tweaksConfig.useDrmSessionForClearSources = json.getBoolean("useDrmSessionForClearSources")
             }
             if (json.hasKey("useFiletypeExtractorFallbackForHls")) {
-                tweaksConfig.useFiletypeExtractorFallbackForHls =
-                    json.getBoolean("useFiletypeExtractorFallbackForHls")
+                tweaksConfig.useFiletypeExtractorFallbackForHls = json.getBoolean("useFiletypeExtractorFallbackForHls")
             }
             return tweaksConfig
         }
@@ -224,7 +394,7 @@ class JsonConverter {
                 ?.mapNotNull(::toAdSource)
                 ?.toTypedArray()
                 ?: return null
-            return AdItem(sources, json?.getString("position") ?: "pre")
+            return AdItem(sources, json.getString("position") ?: "pre")
         }
 
         /**
@@ -263,6 +433,7 @@ class JsonConverter {
             }
             val config = SourceConfig(url, toSourceType(type))
             config.title = json.getString("title")
+            config.description = json.getString("description")
             config.posterSource = json.getString("poster")
             if (json.hasKey("isPosterPersistent")) {
                 config.isPosterPersistent = json.getBoolean("isPosterPersistent")
@@ -283,30 +454,10 @@ class JsonConverter {
                     ?.toHashMap()
                     ?.mapValues { entry -> entry.value as String }
             }
-            return config
-        }
-
-        /**
-         * Converts any given `SourceConfig` object into its `json` representation.
-         * @param sourceConfig `SourceConfig` object to be converted.
-         * @return The `json` representation of the given `Source`.
-         */
-        @JvmStatic
-        fun toJson(sourceConfig: SourceConfig?): WritableMap? {
-            if (sourceConfig == null) {
-                return null
+            if (json.hasKey("options")) {
+                config.options = toSourceOptions(json.getMap("options"))
             }
-            val json = Arguments.createMap()
-            json.putString("url", sourceConfig.url)
-            json.putString("type", toJson(sourceConfig.type))
-            json.putString("title", sourceConfig.title)
-            json.putString("poster", sourceConfig.posterSource)
-            json.putBoolean("isPosterPersistent", sourceConfig.isPosterPersistent)
-            json.putArray("subtitleTracks", sourceConfig.subtitleTracks.map { track ->
-                fromSubtitleTrack(track)
-            }.toReadableArray())
-            json.putNull("metadata")
-            return json
+            return config
         }
 
         /**
@@ -321,20 +472,6 @@ class JsonConverter {
             "smooth" -> SourceType.Smooth
             "progressive" -> SourceType.Progressive
             else -> SourceType.Dash
-        }
-
-        /**
-         * Converts an arbitrary `SourceType` to it's json representation.
-         * @param sourceType The `SourceType` to convert.
-         * @return The `json` representation of the given `SourceType`.
-         */
-        @JvmStatic
-        fun toJson(sourceType: SourceType?): String? = when (sourceType) {
-            SourceType.Dash -> "dash"
-            SourceType.Hls -> "hls"
-            SourceType.Smooth -> "smooth"
-            SourceType.Progressive -> "progressive"
-            else -> "dash"
         }
 
         /**
@@ -379,39 +516,54 @@ class JsonConverter {
             val json = Arguments.createMap()
             json.putString("name", event.getName())
             json.putDouble("timestamp", event.timestamp.toDouble())
-            if (event is SourceEvent.Load) {
-                json.putMap("source", fromSource(event.source))
-            }
-            if (event is SourceEvent.Loaded) {
-                json.putMap("source", fromSource(event.source))
-            }
-            if (event is SourceEvent.Error) {
-                json.putInt("code", event.code.value)
-                json.putString("message", event.message)
-            }
-            if (event is SourceEvent.Warning) {
-                json.putInt("code", event.code.value)
-                json.putString("message", event.message)
-            }
-            if (event is SourceEvent.AudioTrackAdded) {
-                json.putMap("audioTrack", fromAudioTrack(event.audioTrack))
-            }
-            if (event is SourceEvent.AudioTrackChanged) {
-                json.putMap("oldAudioTrack", fromAudioTrack(event.oldAudioTrack))
-                json.putMap("newAudioTrack", fromAudioTrack(event.newAudioTrack))
-            }
-            if (event is SourceEvent.AudioTrackRemoved) {
-                json.putMap("audioTrack", fromAudioTrack(event.audioTrack))
-            }
-            if (event is SourceEvent.SubtitleTrackAdded) {
-                json.putMap("subtitleTrack", fromSubtitleTrack(event.subtitleTrack))
-            }
-            if (event is SourceEvent.SubtitleTrackRemoved) {
-                json.putMap("subtitleTrack", fromSubtitleTrack(event.subtitleTrack))
-            }
-            if (event is SourceEvent.SubtitleTrackChanged) {
-                json.putMap("oldSubtitleTrack", fromSubtitleTrack(event.oldSubtitleTrack))
-                json.putMap("newSubtitleTrack", fromSubtitleTrack(event.newSubtitleTrack))
+            when (event) {
+                is SourceEvent.Load -> {
+                    json.putMap("source", fromSource(event.source))
+                }
+
+                is SourceEvent.Loaded -> {
+                    json.putMap("source", fromSource(event.source))
+                }
+
+                is SourceEvent.Error -> {
+                    json.putInt("code", event.code.value)
+                    json.putString("message", event.message)
+                }
+
+                is SourceEvent.Warning -> {
+                    json.putInt("code", event.code.value)
+                    json.putString("message", event.message)
+                }
+
+                is SourceEvent.AudioTrackAdded -> {
+                    json.putMap("audioTrack", fromAudioTrack(event.audioTrack))
+                }
+
+                is SourceEvent.AudioTrackChanged -> {
+                    json.putMap("oldAudioTrack", fromAudioTrack(event.oldAudioTrack))
+                    json.putMap("newAudioTrack", fromAudioTrack(event.newAudioTrack))
+                }
+
+                is SourceEvent.AudioTrackRemoved -> {
+                    json.putMap("audioTrack", fromAudioTrack(event.audioTrack))
+                }
+
+                is SourceEvent.SubtitleTrackAdded -> {
+                    json.putMap("subtitleTrack", fromSubtitleTrack(event.subtitleTrack))
+                }
+
+                is SourceEvent.SubtitleTrackRemoved -> {
+                    json.putMap("subtitleTrack", fromSubtitleTrack(event.subtitleTrack))
+                }
+
+                is SourceEvent.SubtitleTrackChanged -> {
+                    json.putMap("oldSubtitleTrack", fromSubtitleTrack(event.oldSubtitleTrack))
+                    json.putMap("newSubtitleTrack", fromSubtitleTrack(event.newSubtitleTrack))
+                }
+
+                else -> {
+                    // Event is not supported yet or does not have any additional data
+                }
             }
             if (event is SourceEvent.DurationChanged) {
                 json.putDouble("duration", event.to)
@@ -429,88 +581,135 @@ class JsonConverter {
             val json = Arguments.createMap()
             json.putString("name", event.getName())
             json.putDouble("timestamp", event.timestamp.toDouble())
-            if (event is PlayerEvent.Error) {
-                json.putInt("code", event.code.value)
-                json.putString("message", event.message)
-            }
-            if (event is PlayerEvent.Warning) {
-                json.putInt("code", event.code.value)
-                json.putString("message", event.message)
-            }
-            if (event is PlayerEvent.Play) {
-                json.putDouble("time", event.time)
-            }
-            if (event is PlayerEvent.Playing) {
-                json.putDouble("time", event.time)
-            }
-            if (event is PlayerEvent.Paused) {
-                json.putDouble("time", event.time)
-            }
-            if (event is PlayerEvent.TimeChanged) {
-                json.putDouble("currentTime", event.time)
-            }
-            if (event is PlayerEvent.Seek) {
-                json.putMap("from", fromSeekPosition(event.from))
-                json.putMap("to", fromSeekPosition(event.to))
-            }
-            if (event is PlayerEvent.TimeShift) {
-                json.putDouble("position", event.position)
-                json.putDouble("targetPosition", event.target)
-            }
-            if (event is PlayerEvent.PictureInPictureAvailabilityChanged) {
-                json.putBoolean("isPictureInPictureAvailable", event.isPictureInPictureAvailable)
-            }
-            if (event is PlayerEvent.AdBreakFinished) {
-                json.putMap("adBreak", fromAdBreak(event.adBreak))
-            }
-            if (event is PlayerEvent.AdBreakStarted) {
-                json.putMap("adBreak", fromAdBreak(event.adBreak))
-            }
-            if (event is PlayerEvent.AdClicked) {
-                json.putString("clickThroughUrl", event.clickThroughUrl)
-            }
-            if (event is PlayerEvent.AdError) {
-                json.putInt("code", event.code)
-                json.putString("message", event.message)
-                json.putMap("adConfig", fromAdConfig(event.adConfig))
-                json.putMap("adItem", fromAdItem(event.adItem))
-            }
-            if (event is PlayerEvent.AdFinished) {
-                json.putMap("ad", fromAd(event.ad))
-            }
-            if (event is PlayerEvent.AdManifestLoad) {
-                json.putMap("adBreak", fromAdBreak(event.adBreak))
-                json.putMap("adConfig", fromAdConfig(event.adConfig))
-            }
-            if (event is PlayerEvent.AdManifestLoaded) {
-                json.putMap("adBreak", fromAdBreak(event.adBreak))
-                json.putMap("adConfig", fromAdConfig(event.adConfig))
-                json.putDouble("downloadTime", event.downloadTime.toDouble())
-            }
-            if (event is PlayerEvent.AdQuartile) {
-                json.putString("quartile", fromAdQuartile(event.quartile))
-            }
-            if (event is PlayerEvent.AdScheduled) {
-                json.putInt("numberOfAds", event.numberOfAds)
-            }
-            if (event is PlayerEvent.AdSkipped) {
-                json.putMap("ad", fromAd(event.ad))
-            }
-            if (event is PlayerEvent.AdStarted) {
-                json.putMap("ad", fromAd(event.ad))
-                json.putString("clickThroughUrl", event.clickThroughUrl)
-                json.putString("clientType", fromAdSourceType(event.clientType))
-                json.putDouble("duration", event.duration)
-                json.putInt("indexInQueue", event.indexInQueue)
-                json.putString("position", event.position)
-                json.putDouble("skipOffset", event.skipOffset)
-                json.putDouble("timeOffset", event.timeOffset)
-            }
-            if (event is PlayerEvent.VideoPlaybackQualityChanged) {
-                json.putMap("newVideoQuality", fromVideoQuality(event.newVideoQuality))
-                json.putMap("oldVideoQuality", fromVideoQuality(event.oldVideoQuality))
+            when (event) {
+                is PlayerEvent.Error -> {
+                    json.putInt("code", event.code.value)
+                    json.putString("message", event.message)
+                }
+
+                is PlayerEvent.Warning -> {
+                    json.putInt("code", event.code.value)
+                    json.putString("message", event.message)
+                }
+
+                is PlayerEvent.Play -> {
+                    json.putDouble("time", event.time)
+                }
+
+                is PlayerEvent.Playing -> {
+                    json.putDouble("time", event.time)
+                }
+
+                is PlayerEvent.Paused -> {
+                    json.putDouble("time", event.time)
+                }
+
+                is PlayerEvent.TimeChanged -> {
+                    json.putDouble("currentTime", event.time)
+                }
+
+                is PlayerEvent.Seek -> {
+                    json.putMap("from", fromSeekPosition(event.from))
+                    json.putMap("to", fromSeekPosition(event.to))
+                }
+
+                is PlayerEvent.TimeShift -> {
+                    json.putDouble("position", event.position)
+                    json.putDouble("targetPosition", event.target)
+                }
+
+                is PlayerEvent.PictureInPictureAvailabilityChanged -> {
+                    json.putBoolean("isPictureInPictureAvailable", event.isPictureInPictureAvailable)
+                }
+
+                is PlayerEvent.AdBreakFinished -> {
+                    json.putMap("adBreak", fromAdBreak(event.adBreak))
+                }
+
+                is PlayerEvent.AdBreakStarted -> {
+                    json.putMap("adBreak", fromAdBreak(event.adBreak))
+                }
+
+                is PlayerEvent.AdClicked -> {
+                    json.putString("clickThroughUrl", event.clickThroughUrl)
+                }
+
+                is PlayerEvent.AdError -> {
+                    json.putInt("code", event.code)
+                    json.putString("message", event.message)
+                    json.putMap("adConfig", fromAdConfig(event.adConfig))
+                    json.putMap("adItem", fromAdItem(event.adItem))
+                }
+
+                is PlayerEvent.AdFinished -> {
+                    json.putMap("ad", fromAd(event.ad))
+                }
+
+                is PlayerEvent.AdManifestLoad -> {
+                    json.putMap("adBreak", fromAdBreak(event.adBreak))
+                    json.putMap("adConfig", fromAdConfig(event.adConfig))
+                }
+
+                is PlayerEvent.AdManifestLoaded -> {
+                    json.putMap("adBreak", fromAdBreak(event.adBreak))
+                    json.putMap("adConfig", fromAdConfig(event.adConfig))
+                    json.putDouble("downloadTime", event.downloadTime.toDouble())
+                }
+
+                is PlayerEvent.AdQuartile -> {
+                    json.putString("quartile", fromAdQuartile(event.quartile))
+                }
+
+                is PlayerEvent.AdScheduled -> {
+                    json.putInt("numberOfAds", event.numberOfAds)
+                }
+
+                is PlayerEvent.AdSkipped -> {
+                    json.putMap("ad", fromAd(event.ad))
+                }
+
+                is PlayerEvent.AdStarted -> {
+                    json.putMap("ad", fromAd(event.ad))
+                    json.putString("clickThroughUrl", event.clickThroughUrl)
+                    json.putString("clientType", fromAdSourceType(event.clientType))
+                    json.putDouble("duration", event.duration)
+                    json.putInt("indexInQueue", event.indexInQueue)
+                    json.putString("position", event.position)
+                    json.putDouble("skipOffset", event.skipOffset)
+                    json.putDouble("timeOffset", event.timeOffset)
+                }
+
+                is PlayerEvent.VideoPlaybackQualityChanged -> {
+                    json.putMap("newVideoQuality", fromVideoQuality(event.newVideoQuality))
+                    json.putMap("oldVideoQuality", fromVideoQuality(event.oldVideoQuality))
+                }
+
+                is PlayerEvent.CastWaitingForDevice -> {
+                    json.putMap("castPayload", fromCastPayload(event.castPayload))
+                }
+
+                is PlayerEvent.CastStarted -> {
+                    json.putString("deviceName", event.deviceName)
+                }
+
+                else -> {
+                    // Event is not supported yet or does not have any additional data
+                }
             }
             return json
+        }
+
+        /**
+         * Converts an arbitrary `json` into [BitmovinCastManagerOptions].
+         * @param json JS object representing the [BitmovinCastManagerOptions].
+         * @return The generated [BitmovinCastManagerOptions] if successful, `null` otherwise.
+         */
+        fun toCastOptions(json: ReadableMap?): BitmovinCastManagerOptions? {
+            if (json == null) return null
+            return BitmovinCastManagerOptions(
+                json.getOrDefault("applicationId", null),
+                json.getOrDefault("messageNamespace", null),
+            )
         }
 
         /**
@@ -535,7 +734,6 @@ class JsonConverter {
                                 ?.toHashMap()
                                 ?.mapValues { entry -> entry.value as String }
                                 ?.toMutableMap()
-
                         }
                     }
             }
@@ -550,7 +748,7 @@ class JsonConverter {
             if (url == null) {
                 return null
             }
-            return ThumbnailTrack(url);
+            return ThumbnailTrack(url)
         }
 
         /**
@@ -596,7 +794,7 @@ class JsonConverter {
                 false
             }
             val format = json.getString("format")
-            if (format != null && format.isNotBlank()) {
+            if (!format.isNullOrBlank()) {
                 return SubtitleTrack(
                     url = url,
                     label = label,
@@ -627,7 +825,7 @@ class JsonConverter {
             if (format == null) {
                 return null
             }
-            return "text/${format}"
+            return "text/$format"
         }
 
         /**
@@ -781,46 +979,39 @@ class JsonConverter {
          * @return The produced `BitmovinAnalyticsConfig` or null.
          */
         @JvmStatic
-        fun toAnalyticsConfig(json: ReadableMap?): BitmovinAnalyticsConfig? = json?.let {
-            var config: BitmovinAnalyticsConfig? = null
-            it.getString("key")?.let { key ->
-                config = it.getString("playerKey")
-                    ?.let { playerKey -> BitmovinAnalyticsConfig(key, playerKey) }
-                    ?: BitmovinAnalyticsConfig(key)
-            }
-            it.getString("cdnProvider")?.let { cdnProvider ->
-                config?.cdnProvider = cdnProvider
-            }
-            it.getString("customUserId")?.let { customUserId ->
-                config?.customUserId = customUserId
-            }
-            it.getString("experimentName")?.let { experimentName ->
-                config?.experimentName = experimentName
-            }
-            it.getString("videoId")?.let { videoId ->
-                config?.videoId = videoId
-            }
-            it.getString("title")?.let { title ->
-                config?.title = title
-            }
-            it.getString("path")?.let { path ->
-                config?.path = path
-            }
-            if (it.hasKey("isLive")) {
-                config?.isLive = it.getBoolean("isLive")
-            }
-            if (it.hasKey("ads")) {
-                config?.ads = it.getBoolean("ads")
-            }
-            if (it.hasKey("randomizeUserId")) {
-                config?.randomizeUserId = it.getBoolean("randomizeUserId")
-            }
-            for (n in 1..30) {
-                it.getString("customData${n}")?.let { customDataN ->
-                    config?.setProperty("customData${n}", customDataN)
+        fun toAnalyticsConfig(json: ReadableMap?): AnalyticsConfig? = json?.let {
+            val licenseKey = it.getString("licenseKey") ?: return null
+
+            return AnalyticsConfig.Builder(licenseKey).apply {
+                it.getBooleanOrNull("adTrackingDisabled")?.let { adTrackingDisabled ->
+                    setAdTrackingDisabled(adTrackingDisabled)
                 }
-            }
-            config
+                it.getBooleanOrNull("randomizeUserId")?.let { randomizeUserId ->
+                    setRandomizeUserId(randomizeUserId)
+                }
+            }.build()
+        }
+
+        /**
+         * Converts an arbitrary json object into an analytics `DefaultMetadata`.
+         * @param json JS object representing the `CustomData`.
+         * @return The produced `CustomData` or null.
+         */
+        @JvmStatic
+        fun toAnalyticsDefaultMetadata(json: ReadableMap?): DefaultMetadata? {
+            if (json == null) return null
+
+            return DefaultMetadata.Builder().apply {
+                toAnalyticsCustomData(json)?.let {
+                    setCustomData(it)
+                }
+                json.getString("cdnProvider")?.let { cdnProvider ->
+                    setCdnProvider(cdnProvider)
+                }
+                json.getString("customUserId")?.let { customUserId ->
+                    setCustomUserId(customUserId)
+                }
+            }.build()
         }
 
         /**
@@ -829,17 +1020,20 @@ class JsonConverter {
          * @return The produced `CustomData` or null.
          */
         @JvmStatic
-        fun toAnalyticsCustomData(json: ReadableMap?): CustomData? = json?.let {
-            val customData = CustomData()
-            for (n in 1..30) {
-                it.getString("customData${n}")?.let { customDataN ->
-                    customData.setProperty("customData${n}", customDataN)
+        fun toAnalyticsCustomData(json: ReadableMap?): CustomData? {
+            if (json == null) return null
+
+            return CustomData.Builder().apply {
+                for (n in 1..30) {
+                    setProperty(
+                        "customData$n",
+                        json.getString("customData$n") ?: continue,
+                    )
                 }
-            }
-            it.getString("experimentName")?.let { experimentName ->
-                customData.experimentName = experimentName
-            }
-            customData
+                json.getString("experimentName")?.let {
+                    setExperimentName(it)
+                }
+            }.build()
         }
 
         /**
@@ -848,11 +1042,11 @@ class JsonConverter {
          * @return The produced JS value or null.
          */
         @JvmStatic
-        fun fromAnalyticsCustomData(customData: CustomData?): ReadableMap? = customData?.let {
+        fun fromAnalyticsCustomData(customData: CustomData?): WritableMap? = customData?.let {
             val json = Arguments.createMap()
             for (n in 1..30) {
-                it.getProperty<String>("customData${n}")?.let { customDataN ->
-                    json.putString("customData${n}", customDataN)
+                it.getProperty<String>("customData$n")?.let { customDataN ->
+                    json.putString("customData$n", customDataN)
                 }
             }
             it.experimentName?.let { experimentName ->
@@ -863,23 +1057,28 @@ class JsonConverter {
 
         @JvmStatic
         fun toAnalyticsSourceMetadata(json: ReadableMap?): SourceMetadata? = json?.let {
-            val sourceMetadata = SourceMetadata(
-                    title = it.getString("title"),
-                    videoId = it.getString("videoId"),
-                    cdnProvider = it.getString("cdnProvider"),
-                    path = it.getString("path"),
-                    isLive = it.getBoolean("isLive")
+            val sourceCustomData = toAnalyticsCustomData(json) ?: CustomData()
+            SourceMetadata(
+                title = it.getString("title"),
+                videoId = it.getString("videoId"),
+                cdnProvider = it.getString("cdnProvider"),
+                path = it.getString("path"),
+                isLive = it.getBoolean("isLive"),
+                customData = sourceCustomData,
             )
+        }
 
-            for (n in 1..30) {
-                it.getString("customData${n}")?.let { customDataN ->
-                    sourceMetadata.setProperty("customData${n}", customDataN)
-                }
+        @JvmStatic
+        fun fromAnalyticsSourceMetadata(sourceMetadata: SourceMetadata?): ReadableMap? {
+            if (sourceMetadata == null) return null
+
+            return fromAnalyticsCustomData(sourceMetadata.customData)?.apply {
+                putString("title", sourceMetadata.title)
+                putString("videoId", sourceMetadata.videoId)
+                putString("cdnProvider", sourceMetadata.cdnProvider)
+                putString("path", sourceMetadata.path)
+                putBoolean("isLive", sourceMetadata.isLive)
             }
-            it.getString("experimentName")?.let { experimentName ->
-                sourceMetadata.experimentName = experimentName
-            }
-            sourceMetadata
         }
 
         /**
@@ -994,22 +1193,58 @@ class JsonConverter {
             }
         }
 
-        /**
-         * Converts any `DrmLicenseInformation` into its json representation.
-         * @param drmLicenseInformation `DrmLicenseInformation` object to be converted.
-         * @return The generated json map.
-         */
         @JvmStatic
-        fun toJson(drmLicenseInformation: DrmLicenseInformation?): WritableMap? {
-            if (drmLicenseInformation == null) {
+        fun fromThumbnail(thumbnail: Thumbnail?): WritableMap? {
+            if (thumbnail == null) {
                 return null
             }
 
             return Arguments.createMap().apply {
-                putInt("licenseDuration", drmLicenseInformation.licenseDuration.toInt())
-                putInt("playbackDuration", drmLicenseInformation.playbackDuration.toInt())
+                putDouble("start", thumbnail.start)
+                putDouble("end", thumbnail.end)
+                putString("text", thumbnail.text)
+                putString("url", thumbnail.uri.toString())
+                putInt("x", thumbnail.x)
+                putInt("y", thumbnail.y)
+                putInt("width", thumbnail.width)
+                putInt("height", thumbnail.height)
             }
         }
 
+        @JvmStatic
+        fun toPictureInPictureConfig(json: ReadableMap?): RNPictureInPictureHandler.PictureInPictureConfig? =
+            json?.let {
+                RNPictureInPictureHandler.PictureInPictureConfig(
+                    isEnabled = it.getBoolean("isEnabled"),
+                )
+            }
+
+        /**
+         * Converts the [json] to a `RNUiConfig` object.
+         */
+        fun toPlayerViewConfig(json: ReadableMap) = PlayerViewConfig(
+            uiConfig = UiConfig.WebUi(
+                playbackSpeedSelectionEnabled = json.getMap("uiConfig")
+                    ?.getBooleanOrNull("playbackSpeedSelectionEnabled")
+                    ?: true,
+            ),
+        )
+
+        /**
+         * Converts the [json] to a `RNPlayerViewConfig` object.
+         */
+        fun toRNPlayerViewConfigWrapper(json: ReadableMap) = RNPlayerViewConfigWrapper(
+            playerViewConfig = toPlayerViewConfig(json),
+            pictureInPictureConfig = toPictureInPictureConfig(json.getMap("pictureInPictureConfig")),
+        )
     }
+}
+
+/**
+ * Converts a [CastPayload] object into its JS representation.
+ */
+private fun fromCastPayload(castPayload: CastPayload) = Arguments.createMap().apply {
+    putDouble("currentTime", castPayload.currentTime)
+    putString("deviceName", castPayload.deviceName)
+    putString("type", castPayload.type)
 }
