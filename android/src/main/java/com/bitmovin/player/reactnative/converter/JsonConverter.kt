@@ -1208,13 +1208,12 @@ class JsonConverter {
         /**
          * Converts any [BufferType] value into its json representation.
          * @param bufferType [BufferType] value.
-         * @return The produced JS string, or `null` if not recognized.
+         * @return The produced JS string.
          */
         @JvmStatic
-        fun fromBufferType(bufferType: BufferType?): String? = when (bufferType) {
+        fun fromBufferType(bufferType: BufferType): String = when (bufferType) {
             BufferType.ForwardDuration -> "forwardDuration"
             BufferType.BackwardDuration -> "backwardDuration"
-            else -> null
         }
 
         @JvmStatic
