@@ -3,15 +3,15 @@ package com.bitmovin.player.reactnative
 import android.graphics.Color
 import android.graphics.Typeface
 import android.util.TypedValue
+import android.view.accessibility.CaptioningManager
+import com.bitmovin.player.CaptionStyle
 import com.bitmovin.player.SubtitleView
 import com.bitmovin.player.reactnative.converter.JsonConverter
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
-import com.google.android.exoplayer2.ui.CaptionStyleCompat
 
 private const val MODULE_NAME = "BitmovinSubtitleView"
 
@@ -109,30 +109,28 @@ class RNSubtitleViewManager(private val context: ReactApplicationContext) :
     @ReactProp(name = "captionStyle")
     fun setCaptionStyle(view: SubtitleView, captionStyle: ReadableMap?) {
         if (captionStyle != null) {
-            view.setStyle(
-                CaptionStyleCompat(
+            view.setStyle(CaptionStyle(
                     color(captionStyle, "foregroundColor", -1),
                     color(captionStyle, "backgroundColor", android.R.color.black),
                     color(captionStyle, "windowColor", 0),
                     edgeType(captionStyle),
                     color(captionStyle, "edgeColor", -1),
                     typeFace(captionStyle)
-                )
-            )
+            ))
         }
     }
 
     private fun edgeType(captionStyle: ReadableMap): Int {
         if (!captionStyle.hasKey("edgeType")) {
-            return CaptionStyleCompat.EDGE_TYPE_NONE
+            return CaptioningManager.CaptionStyle.EDGE_TYPE_NONE
         }
 
         return when (captionStyle.getString("edgeType")) {
-            "EDGE_TYPE_OUTLINE" -> CaptionStyleCompat.EDGE_TYPE_OUTLINE
-            "EDGE_TYPE_DROP_SHADOW" -> CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW
-            "EDGE_TYPE_RAISED" -> CaptionStyleCompat.EDGE_TYPE_RAISED
-            "EDGE_TYPE_DEPRESSED" -> CaptionStyleCompat.EDGE_TYPE_DEPRESSED
-            else -> CaptionStyleCompat.EDGE_TYPE_NONE
+            "EDGE_TYPE_OUTLINE" -> CaptioningManager.CaptionStyle.EDGE_TYPE_OUTLINE
+            "EDGE_TYPE_DROP_SHADOW" -> CaptioningManager.CaptionStyle.EDGE_TYPE_DROP_SHADOW
+            "EDGE_TYPE_RAISED" -> CaptioningManager.CaptionStyle.EDGE_TYPE_RAISED
+            "EDGE_TYPE_DEPRESSED" -> CaptioningManager.CaptionStyle.EDGE_TYPE_DEPRESSED
+            else -> CaptioningManager.CaptionStyle.EDGE_TYPE_NONE
         }
     }
 

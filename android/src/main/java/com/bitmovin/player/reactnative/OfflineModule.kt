@@ -265,7 +265,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     @ReactMethod
     fun release(nativeId: NativeId, promise: Promise) {
         safeOfflineContentManager(nativeId, promise) {
-            releaseOfflineContentManager(nativeId, it)
+            releaseOfflineContentManager(nativeId, this)
             promise.resolve(null)
         }
     }
@@ -278,7 +278,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
     fun disposeAll(promise: Promise) {
         offlineContentManagerBridges.keys.forEach { nativeId ->
             getOfflineContentManagerBridge(nativeId)?.let { offlineContentManagerBridge ->
-                releaseOfflineContentManager(nativeId, offlineContentManagerBridges)
+                releaseOfflineContentManager(nativeId, offlineContentManagerBridge)
             }
         }
         promise.resolve(null)

@@ -3,9 +3,13 @@ package com.bitmovin.player.reactnative
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.graphics.Rect
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
@@ -15,7 +19,6 @@ import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
-import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
@@ -183,7 +186,7 @@ class RNPlayerView(val context: ThemedReactContext) :
      * Register this view as an activity lifecycle listener on initialization.
      */
     init {
-        context.addLifecycleEventListener(this)
+        currentActivity?.lifecycle?.addObserver(this)
     }
 
     /**
