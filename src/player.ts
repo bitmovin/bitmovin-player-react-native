@@ -8,6 +8,7 @@ import { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/player';
 import { PlayerConfig } from './playerConfig';
 import { AdItem } from './advertising';
+import { BufferApi } from './bufferApi';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -39,6 +40,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    * `undefined` if the player was created without analytics support.
    */
   analytics?: AnalyticsApi = undefined;
+  /**
+   * The {@link BufferApi} for interactions regarding the buffer.
+   */
+  buffer: BufferApi = new BufferApi(this.nativeId);
 
   /**
    * Allocates the native `Player` instance and its resources natively.

@@ -26,10 +26,11 @@ class RNPlayerViewPackage : ReactPackage {
             DrmModule(reactContext),
             PlayerAnalyticsModule(reactContext),
             RNPlayerViewManager(reactContext),
+            RNSubtitleViewManager(reactContext),
             FullscreenHandlerModule(reactContext),
             CustomMessageHandlerModule(reactContext),
             BitmovinCastManagerModule(reactContext),
-            RNSubtitleViewManager(reactContext),
+            BufferModule(reactContext),
         )
     }
 
