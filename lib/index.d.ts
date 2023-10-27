@@ -2685,10 +2685,10 @@ interface BufferMediaTypeConfig {
     /**
      * The amount of data in seconds the player tries to buffer in advance.
      *
-     * iOS only: If set to `0`, the player will choose an appropriate forward buffer duration suitable
+     * iOS and tvOS, only: If set to `0`, the player will choose an appropriate forward buffer duration suitable
      * for most use-cases.
      *
-     * Default value is `0` on iOS, `50` on Android
+     * Default value is `0` on iOS and tvOS, `50` on Android
      */
     forwardDuration?: number;
 }
@@ -2799,6 +2799,19 @@ interface PlaybackConfig {
 }
 
 /**
+ * Contains config values regarding the behaviour when playing live streams.
+ */
+interface LiveConfig {
+    /**
+     * The minimum buffer depth of a stream needed to enable time shifting.
+     * When the internal value for the maximal possible timeshift is lower than this value,
+     * timeshifting should be disabled. That means `Player.maxTimeShift` returns `0` in that case.
+     * This value should always be non-positive value, default value is `-40`.
+     */
+    minTimeshiftBufferDepth?: number;
+}
+
+/**
  * Object used to configure a new `Player` instance.
  */
 interface PlayerConfig extends NativeInstanceConfig {
@@ -2853,6 +2866,95 @@ interface PlayerConfig extends NativeInstanceConfig {
      * Configures buffer settings. A default {@link BufferConfig} is set initially.
      */
     bufferConfig?: BufferConfig;
+    /**
+     * Configures behaviour when playing live content. A default {@link LiveConfig} is set initially.
+     */
+    liveConfig?: LiveConfig;
+}
+
+/**
+ * Represents different types of media.
+ */
+declare enum MediaType {
+    /**
+     * Audio media type.
+     */
+    AUDIO = "audio",
+    /**
+     * Video media type.
+     */
+    VIDEO = "video"
+}
+/**
+ * Represents different types of buffered data.
+ */
+declare enum BufferType {
+    /**
+     * Represents the buffered data starting at the current playback time.
+     */
+    FORWARD_DURATION = "forwardDuration",
+    /**
+     * Represents the buffered data up until the current playback time.
+     */
+    BACKWARD_DURATION = "backwardDuration"
+}
+/**
+ * Holds different information about the buffer levels.
+ */
+interface BufferLevel {
+    /**
+     * The amount of currently buffered data, e.g. audio or video buffer level.
+     */
+    level?: number;
+    /**
+     * The target buffer level the player tries to maintain.
+     */
+    targetLevel?: number;
+    /**
+     * The media type the buffer data applies to.
+     */
+    media?: MediaType;
+    /**
+     * The buffer type the buffer data applies to.
+     */
+    type?: BufferType;
+}
+/**
+ * Collection of {@link BufferLevel} objects
+ */
+interface BufferLevels {
+    /**
+     * {@link BufferLevel} for {@link MediaType.AUDIO}.
+     */
+    audio: BufferLevel;
+    /**
+     * {@link BufferLevel} for {@link MediaType.VIDEO}.
+     */
+    video: BufferLevel;
+}
+/**
+ * Provides the means to configure buffer settings and to query the current buffer state.
+ * Accessible through {@link Player.buffer}.
+ */
+declare class BufferApi {
+    /**
+     * The native player id that this buffer api is attached to.
+     */
+    readonly nativeId: string;
+    constructor(playerId: string);
+    /**
+     * Gets the {@link BufferLevel|buffer level} from the Player
+     * @param type The {@link BufferType} to return the level for.
+     * @returns a {@link BufferLevels} that contains {@link BufferLevel} values for audio and video.
+     */
+    getLevel: (type: BufferType) => Promise<BufferLevels>;
+    /**
+     * Sets the target buffer level for the chosen buffer {@link BufferType} across all {@link MediaType} options.
+     *
+     * @param type The {@link BufferType} to set the target level for. On iOS and tvOS, only {@link BufferType.FORWARD_DURATION} is supported.
+     * @param value The value to set. On iOS and tvOS when passing `0`, the player will choose an appropriate forward buffer duration suitable for most use-cases. On Android setting to `0` will have no effect.
+     */
+    setTargetLevel: (type: BufferType, value: number) => Promise<void>;
 }
 
 /**
@@ -2883,6 +2985,10 @@ declare class Player extends NativeInstance<PlayerConfig> {
      * `undefined` if the player was created without analytics support.
      */
     analytics?: AnalyticsApi;
+    /**
+     * The {@link BufferApi} for interactions regarding the buffer.
+     */
+    buffer: BufferApi;
     /**
      * Allocates the native `Player` instance and its resources natively.
      */
@@ -3448,4 +3554,4 @@ declare const BitmovinCastManager: {
     sendMessage: (message: String, messageNamespace?: String | null) => any;
 };
 
-export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdaptationConfig, AdvertisingConfig, AnalyticsApi, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinCastManager, BitmovinCastManagerOptions, BitmovinNativeOfflineEventData, BufferConfig, BufferMediaTypeConfig, CastAvailableEvent, CastPausedEvent, CastPayload, CastPlaybackFinishedEvent, CastPlayingEvent, CastStartEvent, CastStartedEvent, CastStoppedEvent, CastTimeUpdatedEvent, CastWaitingForDeviceEvent, CustomDataConfig, CustomMessageHandler, CustomMessageHandlerProps, DefaultMetadata, DestroyEvent, Drm, DrmConfig, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, LoadingState, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptionEntry, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineSourceOptions, OfflineState, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureConfig, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewConfig, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, RemoteControlConfig, ScalingMode, SeekEvent, SeekPosition, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceMetadata, SourceOptions, SourceRemoteControlConfig, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, Thumbnail, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TimelineReferencePoint, TweaksConfig, TypefaceFamily, TypefaceStyleWeight, UiConfig, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoQuality, VideoSizeChangedEvent, WebUiConfig, WidevineConfig, usePlayer };
+export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdaptationConfig, AdvertisingConfig, AnalyticsApi, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinCastManager, BitmovinCastManagerOptions, BitmovinNativeOfflineEventData, BufferApi, BufferConfig, BufferLevel, BufferLevels, BufferMediaTypeConfig, BufferType, CastAvailableEvent, CastPausedEvent, CastPayload, CastPlaybackFinishedEvent, CastPlayingEvent, CastStartEvent, CastStartedEvent, CastStoppedEvent, CastTimeUpdatedEvent, CastWaitingForDeviceEvent, CustomDataConfig, CustomMessageHandler, CustomMessageHandlerProps, DefaultMetadata, DestroyEvent, Drm, DrmConfig, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, LiveConfig, LoadingState, MediaType, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptionEntry, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineSourceOptions, OfflineState, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureConfig, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewConfig, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, RemoteControlConfig, ScalingMode, SeekEvent, SeekPosition, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceMetadata, SourceOptions, SourceRemoteControlConfig, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, Thumbnail, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TimelineReferencePoint, TweaksConfig, TypefaceFamily, TypefaceStyleWeight, UiConfig, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoQuality, VideoSizeChangedEvent, WebUiConfig, WidevineConfig, usePlayer };

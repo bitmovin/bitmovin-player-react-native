@@ -76,7 +76,7 @@ extension DeficiencyData {
     }
 }
 
-private protocol ErrorEventType: Event {
+public protocol ErrorEventType: Event {
     associatedtype Code
     var code: Code { get }
     var data: DeficiencyData? { get }
@@ -114,7 +114,7 @@ extension SourceWarningEvent: ErrorEventType {
     typealias Code = SourceWarning.Code
 }
 
-private protocol SourceEventType: Event {
+public protocol SourceEventType: Event {
     var source: Source { get }
 }
 
@@ -128,7 +128,7 @@ extension SourceLoadEvent: SourceEventType {}
 extension SourceLoadedEvent: SourceEventType {}
 extension SourceUnloadedEvent: SourceEventType {}
 
-private protocol TimedEventType: Event {
+public protocol TimedEventType: Event {
     var time: TimeInterval { get }
 }
 
