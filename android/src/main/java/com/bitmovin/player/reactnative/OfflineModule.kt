@@ -124,16 +124,19 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
                         promise.reject(IllegalStateException("Download already completed"))
                         return@safeOfflineContentManager
                     }
+
                     OfflineOptionEntryState.Downloading,
                     OfflineOptionEntryState.Failed,
                     -> {
                         promise.reject(IllegalStateException("Download already in progress"))
                         return@safeOfflineContentManager
                     }
+
                     OfflineOptionEntryState.Suspended -> {
                         promise.reject(IllegalStateException("Download is suspended"))
                         return@safeOfflineContentManager
                     }
+
                     else -> {}
                 }
                 val minimumBitRate = if (request.hasKey("minimumBitrate")) request.getInt("minimumBitrate") else null
@@ -284,7 +287,10 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
         promise.resolve(null)
     }
 
-    private fun releaseOfflineContentManager(nativeId: NativeId, offlineContentManagerBridge: OfflineContentManagerBridge) {
+    private fun releaseOfflineContentManager(
+        nativeId: NativeId,
+        offlineContentManagerBridge: OfflineContentManagerBridge,
+    ) {
         offlineContentManagerBridge.release()
         offlineContentManagerBridges.remove(nativeId)
     }

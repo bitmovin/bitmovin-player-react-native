@@ -99,7 +99,6 @@ class RNSubtitleViewManager(private val context: ReactApplicationContext) :
             if (size > 0) {
                 view.setFixedTextSize(unit, size.toFloat())
             }
-
         }
     }
 
@@ -109,14 +108,16 @@ class RNSubtitleViewManager(private val context: ReactApplicationContext) :
     @ReactProp(name = "captionStyle")
     fun setCaptionStyle(view: SubtitleView, captionStyle: ReadableMap?) {
         if (captionStyle != null) {
-            view.setStyle(CaptionStyle(
+            view.setStyle(
+                CaptionStyle(
                     color(captionStyle, "foregroundColor", -1),
                     color(captionStyle, "backgroundColor", android.R.color.black),
                     color(captionStyle, "windowColor", 0),
                     edgeType(captionStyle),
                     color(captionStyle, "edgeColor", -1),
-                    typeFace(captionStyle)
-            ))
+                    typeFace(captionStyle),
+                ),
+            )
         }
     }
 
@@ -135,7 +136,7 @@ class RNSubtitleViewManager(private val context: ReactApplicationContext) :
     }
 
     private fun color(captionStyle: ReadableMap, colorKey: String, defaultColor: Int): Int {
-        if(!captionStyle.hasKey(colorKey)) {
+        if (!captionStyle.hasKey(colorKey)) {
             return defaultColor
         }
 
@@ -184,5 +185,4 @@ class RNSubtitleViewManager(private val context: ReactApplicationContext) :
             else -> TypedValue.COMPLEX_UNIT_SP
         }
     }
-
 }

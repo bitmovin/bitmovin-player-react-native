@@ -44,7 +44,7 @@ class RNPlayerViewPackage : ReactPackage {
     ): MutableList<ViewManager<out View, out ReactShadowNode<*>>> {
         return mutableListOf(
             RNPlayerViewManager(reactContext),
-            RNSubtitleViewManager(reactContext)
+            RNSubtitleViewManager(reactContext),
         )
     }
 }

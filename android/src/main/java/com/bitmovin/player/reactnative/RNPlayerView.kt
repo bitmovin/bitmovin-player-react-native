@@ -328,21 +328,23 @@ class RNPlayerView(val context: ThemedReactContext) :
             try {
                 // HACK, IMA does not provide any public API for removing their Ad controls interface, this hunts down the controls and removes them
                 // this should continue to work as long as IMA wraps their controls in a WebView
-                LayoutTraverser.build(object : LayoutTraverser.Processor {
-                    override fun process(view: View?) {
-                        try {
-                            if (view.toString().contains("android.webkit.WebView")) {
-                                view?.visibility = View.GONE
+                LayoutTraverser.build(
+                    object : LayoutTraverser.Processor {
+                        override fun process(view: View?) {
+                            try {
+                                if (view.toString().contains("android.webkit.WebView")) {
+                                    view?.visibility = View.GONE
+                                }
+                            } catch (e: Exception) {
+                                Log.e(
+                                    "AngelMobile",
+                                    "class=RNPlayerView action=ErrorHidingAdsWebView",
+                                    e,
+                                )
                             }
-                        } catch (e: Exception) {
-                            Log.e(
-                                "AngelMobile",
-                                "class=RNPlayerView action=ErrorHidingAdsWebView",
-                                e
-                            )
                         }
-                    }
-                }).traverse(this)
+                    },
+                ).traverse(this)
             } catch (e: Exception) {
                 Log.e("AngelMobile", "class=RNPlayerView action=ErrorTraversingForAdViews", e)
             }

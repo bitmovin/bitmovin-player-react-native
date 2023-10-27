@@ -1120,12 +1120,12 @@ class JsonConverter {
             if (json.hasKey("family") && json.hasKey("style")) {
                 return Typeface.create(
                     toTypefaceFamily(json.getString("family")),
-                    toTypefaceStyleWeight(json.getString("style"))
+                    toTypefaceStyleWeight(json.getString("style")),
                 )
             } else if (json.hasKey("familyName") && json.hasKey("style")) {
                 return Typeface.create(
                     json.getString("familyName"),
-                    toTypefaceStyleWeight(json.getString("style"))
+                    toTypefaceStyleWeight(json.getString("style")),
                 )
             }
 
