@@ -99,19 +99,19 @@ extension ErrorEventType {
 }
 
 extension PlayerErrorEvent: ErrorEventType {
-    typealias Code = PlayerError.Code
+    public typealias Code = PlayerError.Code
 }
 
 extension PlayerWarningEvent: ErrorEventType {
-    typealias Code = PlayerWarning.Code
+    public typealias Code = PlayerWarning.Code
 }
 
 extension SourceErrorEvent: ErrorEventType {
-    typealias Code = SourceError.Code
+    public typealias Code = SourceError.Code
 }
 
 extension SourceWarningEvent: ErrorEventType {
-    typealias Code = SourceWarning.Code
+    public typealias Code = SourceWarning.Code
 }
 
 public protocol SourceEventType: Event {
