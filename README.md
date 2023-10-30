@@ -14,7 +14,7 @@ This is an open-source project created to enable customers to integrate the Bitm
 
 This library requires at least React Native 0.64+ and React 17+ to work properly. The **officially supported** platforms are:
 
-- **iOS/tvOS:** 14.0+
+- **iOS/iPadOS/tvOS:** 14.0+
 - **Android:** 5.0+
 - **Android TV:** 7+
 - **Fire TV:** Fire OS 6.0+ ([compatible](https://developer.bitmovin.com/playback/docs/supported-platforms-devices-player#support-levels) with Fire OS 5.0)
