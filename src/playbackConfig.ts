@@ -39,6 +39,8 @@ export interface PlaybackConfig {
    */
   isTimeShiftEnabled?: boolean;
   /**
+   * iOS only.
+   *
    * Whether background playback is enabled or not.
    * Default is `false`.
    *
