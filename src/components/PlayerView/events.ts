@@ -172,6 +172,10 @@ interface EventProps {
    */
   onDestroy: DestroyEvent;
   /**
+   * Emitted when a download was finished.
+   */
+  onDownloadFinished: DownloadFinishedEvent;
+  /**
    * All events emitted by the player.
    */
   onEvent: Event;
@@ -347,10 +351,6 @@ interface EventProps {
    * Emitted when the current video playback quality has changed.
    */
   onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
-  /**
-   * Emitted when a download was finished.
-   */
-  onDownloadFinished: DownloadFinishedEvent;
 }
 
 /**
