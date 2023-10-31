@@ -39,8 +39,6 @@ export interface PlaybackConfig {
    */
   isTimeShiftEnabled?: boolean;
   /**
-   * @platform iOS, tvOS
-   *
    * Whether background playback is enabled or not.
    * Default is `false`.
    *
@@ -61,6 +59,7 @@ export interface PlaybackConfig {
    *   }
    * })
    * ```
+   * @platform iOS, tvOS
    */
   isBackgroundPlaybackEnabled?: boolean;
   /**
