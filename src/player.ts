@@ -39,6 +39,18 @@ export class Player extends NativeInstance<PlayerConfig> {
    * `undefined` if the player was created without analytics support.
    */
   analytics?: AnalyticsApi = undefined;
+  /**
+   * Get/set the playback speed of the player. Fast forward, slow motion and reverse playback are supported.
+   * @note
+   * - Slow motion is used by values between `0` and `1`.
+   * - Fast forward by values greater than `2`.
+   * - Slow reverse is used by values between `0` and `-1`, and fast reverse is used by values less than `-1`, both are ***iOS-only***.
+   * @note
+   * Negative values are ignored during Casting.
+   * @note
+   * During reverse playback the playback will continue until the beginning of the active source is reached. When reaching the beginning of the source, playback will be paused and the playback speed will be reset to its default value of `1`. No {@link PlaybackFinishedEvent} will be emitted in this case.
+   */
+  playbackSpeed: number = 1;
 
   /**
    * Allocates the native `Player` instance and its resources natively.
@@ -399,5 +411,15 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   castStop = () => {
     PlayerModule.castStop(this.nativeId);
+  };
+
+  /**
+   * Checks the possibility to play the media at specified playback speed.
+   * @param playbackSpeed The playback speed to check.
+   * @returns `true` if it's possible to play the media at the specified playback speed, otherwise `false`. //TODO: it is right? Promise, needed ??
+   * @platform iOS, tvOS
+   */
+  canPlayAtPlaybackSpeed = async (playbackSpeed: number): Promise<boolean> => {
+    return PlayerModule.canPlayAtPlaybackSpeed(this.nativeId, playbackSpeed);
   };
 }

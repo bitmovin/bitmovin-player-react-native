@@ -646,3 +646,9 @@ export interface CastWaitingForDeviceEvent extends Event {
    */
   castPayload: CastPayload;
 }
+
+/**
+ * Emitted when when the player transitions from one playback speed to another.
+ * // TODO: iOS-only?
+ */
+export interface PlaybackSpeedChanged extends Event {}
