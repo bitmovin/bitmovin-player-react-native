@@ -44,7 +44,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @note
    * - Slow motion is used by values between `0` and `1`.
    * - Fast forward by values greater than `2`.
-   * - Slow reverse is used by values between `0` and `-1`, and fast reverse is used by values less than `-1`, both are ***iOS-only***.
+   * - Slow reverse is used by values between `0` and `-1`, and fast reverse is used by values less than `-1`, both are iOS-only. //TODO: tvOS too?
    * @note
    * Negative values are ignored during Casting.
    * @note
