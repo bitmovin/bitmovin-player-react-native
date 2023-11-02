@@ -93,6 +93,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "subtitleAdded" to "onSubtitleAdded",
         "subtitleChanged" to "onSubtitleChanged",
         "subtitleRemoved" to "onSubtitleRemoved",
+        "downloadFinished" to "onDownloadFinished",
         "pictureInPictureAvailabilityChanged" to "onPictureInPictureAvailabilityChanged",
         "pictureInPictureEnter" to "onPictureInPictureEnter",
         "pictureInPictureExit" to "onPictureInPictureExit",

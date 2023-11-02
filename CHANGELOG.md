@@ -6,6 +6,7 @@
 
 - `LiveConfig.minTimeshiftBufferDepth` to control the minimum buffer depth of a stream needed to enable time shifting.
 - `Player.buffer` to control buffer preferences and to query the current buffer state
+- `DownloadFinishedEvent` to signal when the download of specific content has finished
 
 ## [0.13.0] (2023-10-20)
 

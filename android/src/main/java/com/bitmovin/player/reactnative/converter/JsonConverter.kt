@@ -567,6 +567,18 @@ class JsonConverter {
                     json.putMap("newSubtitleTrack", fromSubtitleTrack(event.newSubtitleTrack))
                 }
 
+                is SourceEvent.DownloadFinished -> {
+                    json.putDouble("downloadTime", event.downloadTime)
+                    json.putString("requestType", event.downloadType.toString())
+                    json.putInt("httpStatus", event.httpStatus)
+                    json.putBoolean("isSuccess", event.isSuccess)
+                    event.lastRedirectLocation?.let {
+                        json.putString("lastRedirectLocation", it)
+                    }
+                    json.putDouble("size", event.size.toDouble())
+                    json.putString("url", event.url)
+                }
+
                 else -> {
                     // Event is not supported yet or does not have any additional data
                 }

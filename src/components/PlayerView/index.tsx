@@ -213,6 +213,7 @@ export function PlayerView({
       onTimeChanged={proxy(props.onTimeChanged)}
       onUnmuted={proxy(props.onUnmuted)}
       onVideoPlaybackQualityChanged={proxy(props.onVideoPlaybackQualityChanged)}
+      onDownloadFinished={proxy(props.onDownloadFinished)}
     />
   );
 }
