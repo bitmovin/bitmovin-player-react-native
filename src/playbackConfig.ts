@@ -59,6 +59,7 @@ export interface PlaybackConfig {
    *   }
    * })
    * ```
+   * @platform iOS, tvOS
    */
   isBackgroundPlaybackEnabled?: boolean;
   /**

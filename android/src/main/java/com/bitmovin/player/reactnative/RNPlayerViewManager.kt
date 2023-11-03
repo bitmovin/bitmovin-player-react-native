@@ -93,6 +93,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "subtitleAdded" to "onSubtitleAdded",
         "subtitleChanged" to "onSubtitleChanged",
         "subtitleRemoved" to "onSubtitleRemoved",
+        "downloadFinished" to "onDownloadFinished",
         "pictureInPictureAvailabilityChanged" to "onPictureInPictureAvailabilityChanged",
         "pictureInPictureEnter" to "onPictureInPictureEnter",
         "pictureInPictureExit" to "onPictureInPictureExit",
@@ -183,14 +184,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         }
     }
 
-    @ReactProp(name = "pictureInPictureConfig")
-    fun setPictureInPictureConfig(view: RNPlayerView, pictureInPictureConfig: ReadableMap?) {
-        view.pictureInPictureConfig = JsonConverter.toPictureInPictureConfig(pictureInPictureConfig)
-    }
-
     @ReactProp(name = "config")
     fun setConfig(view: RNPlayerView, config: ReadableMap?) {
-        view.config = if (config != null) JsonConverter.toPlayerViewConfig(config) else null
+        view.config = if (config != null) JsonConverter.toRNPlayerViewConfigWrapper(config) else null
     }
 
     private fun attachFullscreenBridge(view: RNPlayerView, fullscreenBridgeId: NativeId) {
@@ -253,7 +249,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         Handler(Looper.getMainLooper()).post {
             val player = getPlayerModule()?.getPlayer(playerId)
             val playbackConfig = playerConfig?.getMap("playbackConfig")
-            val isPictureInPictureEnabled = view.pictureInPictureConfig?.isEnabled == true ||
+            val isPictureInPictureEnabled = view.config?.pictureInPictureConfig?.isEnabled == true ||
                 playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
             val pictureInPictureHandler = view.pictureInPictureHandler ?: RNPictureInPictureHandler(context)
             view.pictureInPictureHandler = pictureInPictureHandler
@@ -270,7 +266,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 val playerView = PlayerView(
                     currentActivity,
                     player,
-                    view.config ?: PlayerViewConfig(),
+                    view.config?.playerViewConfig ?: PlayerViewConfig(),
                 )
                 playerView.layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,

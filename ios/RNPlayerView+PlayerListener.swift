@@ -121,6 +121,10 @@ extension RNPlayerView: PlayerListener {
         onSubtitleChanged?(event.toJSON())
     }
 
+    public func onDownloadFinished(_ event: DownloadFinishedEvent, player: Player) {
+        onDownloadFinished?(event.toJSON())
+    }
+
     public func onAdBreakFinished(_ event: AdBreakFinishedEvent, player: Player) {
         onAdBreakFinished?(event.toJSON())
     }

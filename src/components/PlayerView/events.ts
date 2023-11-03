@@ -60,6 +60,7 @@ import {
   TimeChangedEvent,
   UnmutedEvent,
   VideoPlaybackQualityChangedEvent,
+  DownloadFinishedEvent,
 } from '../../events';
 
 /**
@@ -170,6 +171,10 @@ interface EventProps {
    * Event emitted when the player is destroyed.
    */
   onDestroy: DestroyEvent;
+  /**
+   * Emitted when a download was finished.
+   */
+  onDownloadFinished: DownloadFinishedEvent;
   /**
    * All events emitted by the player.
    */

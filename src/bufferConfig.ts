@@ -5,10 +5,10 @@ export interface BufferMediaTypeConfig {
   /**
    * The amount of data in seconds the player tries to buffer in advance.
    *
-   * iOS only: If set to `0`, the player will choose an appropriate forward buffer duration suitable
+   * iOS and tvOS, only: If set to `0`, the player will choose an appropriate forward buffer duration suitable
    * for most use-cases.
    *
-   * Default value is `0` on iOS, `50` on Android
+   * Default value is `0` on iOS and tvOS, `50` on Android
    */
   forwardDuration?: number;
 }

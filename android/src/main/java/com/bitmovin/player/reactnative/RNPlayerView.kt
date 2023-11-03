@@ -51,6 +51,7 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
     SourceEvent.AudioTrackAdded::class to "audioAdded",
     SourceEvent.AudioTrackChanged::class to "audioChanged",
     SourceEvent.AudioTrackRemoved::class to "audioRemoved",
+    SourceEvent.DownloadFinished::class to "downloadFinished",
     PlayerEvent.AdBreakFinished::class to "adBreakFinished",
     PlayerEvent.AdBreakStarted::class to "adBreakStarted",
     PlayerEvent.AdClicked::class to "adClicked",
@@ -146,14 +147,9 @@ class RNPlayerView(val context: ReactApplicationContext) :
     var pictureInPictureHandler: RNPictureInPictureHandler? = null
 
     /**
-     * Configuration for picture in picture behaviors.
-     */
-    var pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig? = null
-
-    /**
      * Configures the visual presentation and behaviour of the [playerView].
      */
-    var config: PlayerViewConfig? = null
+    var config: RNPlayerViewConfigWrapper? = null
 
     /**
      * Whether this view should pause video playback when activity's onPause is called.
@@ -311,3 +307,12 @@ class RNPlayerView(val context: ReactApplicationContext) :
             .receiveEvent(id, name, payload)
     }
 }
+
+/**
+ * Representation of the React Native API `PlayerViewConfig` object.
+ * This is necessary as not all of its values can be directly mapped to the native `PlayerViewConfig`.
+ */
+data class RNPlayerViewConfigWrapper(
+    val playerViewConfig: PlayerViewConfig?,
+    val pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig?,
+)
