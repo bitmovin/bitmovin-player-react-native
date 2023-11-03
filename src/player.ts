@@ -44,7 +44,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    * The {@link BufferApi} for interactions regarding the buffer.
    */
   buffer: BufferApi = new BufferApi(this.nativeId);
-
   /**
    * Get/set the playback speed of the player. Fast forward, slow motion and reverse playback are supported.
    * @note
