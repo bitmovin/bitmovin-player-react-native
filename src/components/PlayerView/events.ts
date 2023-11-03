@@ -245,7 +245,7 @@ interface EventProps {
    */
   onPlaybackFinished: PlaybackFinishedEvent;
   /**
-   * Emitted when when the player transitions from one playback speed to another.
+   * Emitted when the player transitions from one playback speed to another.
    * @platform iOS, tvOS
    */
   onPlaybackSpeedChanged: PlaybackSpeedChangedEvent;
