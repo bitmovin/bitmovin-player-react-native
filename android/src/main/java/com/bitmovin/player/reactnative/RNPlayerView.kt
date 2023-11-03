@@ -3,9 +3,12 @@ package com.bitmovin.player.reactnative
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.graphics.Rect
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
@@ -15,9 +18,8 @@ import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
-import com.facebook.react.bridge.LifecycleEventListener
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContext
+import com.facebook.react.ReactActivity
+import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.events.RCTEventEmitter
 import kotlin.reflect.KClass
 
@@ -94,11 +96,30 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event
  * exposes player events as bubbling events.
  */
 @SuppressLint("ViewConstructor")
-class RNPlayerView(val context: ReactApplicationContext) :
-    LinearLayout(context),
-    LifecycleEventListener,
-    View.OnLayoutChangeListener,
-    RNPictureInPictureDelegate {
+class RNPlayerView(
+    private val context: ReactApplicationContext,
+) : LinearLayout(context), View.OnLayoutChangeListener, RNPictureInPictureDelegate {
+    private val activityLifecycle = (context.currentActivity as ReactActivity).lifecycle
+
+    private val activityLifecycleObserver = object : DefaultLifecycleObserver {
+        override fun onStart(owner: LifecycleOwner) {
+            playerView?.onStart()
+        }
+
+        override fun onResume(owner: LifecycleOwner) {
+            playerView?.onResume()
+        }
+
+        override fun onPause(owner: LifecycleOwner) {
+            playerView?.onPause()
+        }
+
+        override fun onStop(owner: LifecycleOwner) {
+            playerView?.onStop()
+        }
+
+        override fun onDestroy(owner: LifecycleOwner) = dispose()
+    }
 
     init {
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
@@ -107,6 +128,8 @@ class RNPlayerView(val context: ReactApplicationContext) :
         // Bitmovin player issue: https://github.com/bitmovin/bitmovin-player-react-native/issues/180
         // React Native layout issue: https://github.com/facebook/react-native/issues/17968
         getViewTreeObserver().addOnGlobalLayoutListener { requestLayout() }
+
+        activityLifecycle.addObserver(activityLifecycleObserver)
     }
 
     /**
@@ -152,50 +175,14 @@ class RNPlayerView(val context: ReactApplicationContext) :
     var config: RNPlayerViewConfigWrapper? = null
 
     /**
-     * Whether this view should pause video playback when activity's onPause is called.
-     * By default, `shouldPausePlaybackOnActivityPause` is set to false when entering PiP mode.
-     */
-    private var shouldPausePlaybackOnActivityPause = true
-
-    /**
-     * Register this view as an activity lifecycle listener on initialization.
-     */
-    init {
-        context.addLifecycleEventListener(this)
-    }
-
-    /**
      * Cleans up the resources and listeners produced by this view.
      */
     fun dispose() {
         viewEventRelay.eventEmitter = null
         playerEventRelay.eventEmitter = null
-        context.removeLifecycleEventListener(this)
         playerView?.removeOnLayoutChangeListener(this)
-    }
-
-    /**
-     * Activity's onResume
-     */
-    override fun onHostResume() {
-        playerView?.onResume()
-    }
-
-    /**
-     * Activity's onPause
-     */
-    override fun onHostPause() {
-        if (shouldPausePlaybackOnActivityPause) {
-            playerView?.onPause()
-        }
-        shouldPausePlaybackOnActivityPause = true
-    }
-
-    /**
-     * Activity's onDestroy
-     */
-    override fun onHostDestroy() {
         playerView?.onDestroy()
+        activityLifecycle.removeObserver(activityLifecycleObserver)
     }
 
     /**
@@ -227,8 +214,7 @@ class RNPlayerView(val context: ReactApplicationContext) :
      * Called when the player has just entered PiP mode.
      */
     override fun onEnterPictureInPicture() {
-        // Playback shouldn't be paused when entering PiP mode.
-        shouldPausePlaybackOnActivityPause = false
+        // Nothing to do
     }
 
     /**
