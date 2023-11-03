@@ -8,6 +8,10 @@
 - `Player.buffer` to control buffer preferences and to query the current buffer state
 - `DownloadFinishedEvent` to signal when the download of specific content has finished
 
+### Fixed
+
+- Android: Playback doesn't pause when app goes to background
+
 ## [0.13.0] (2023-10-20)
 
 ### Added
