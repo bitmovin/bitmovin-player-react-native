@@ -3,7 +3,6 @@ package com.bitmovin.player.reactnative
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.graphics.Rect
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
