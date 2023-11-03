@@ -422,7 +422,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Checks the possibility to play the media at specified playback speed.
    * @param playbackSpeed The playback speed to check.
-   * @returns `true` if it's possible to play the media at the specified playback speed, otherwise `false`. //TODO: it is right? Promise, needed ??
+   * @returns `true` if it's possible to play the media at the specified playback speed, otherwise `false`.
    * @platform iOS, tvOS
    */
   canPlayAtPlaybackSpeed = async (playbackSpeed: number): Promise<boolean> => {

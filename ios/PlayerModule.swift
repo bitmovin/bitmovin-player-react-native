@@ -688,14 +688,12 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
     }
 
     /**
-     Checks the possibility to play the media at specified playback speed.
+     Resolve `nativeId`'s possibility to play the media at specified playback speed.
      - Parameters:
        - nativeId: Target player Id.
        - playbackSpeed: The playback speed to check.
        - resolver: JS promise resolver.
        - rejecter: JS promise rejecter.
-     - Returns: `true` if it's possible to play the media at the specified playback speed, otherwise `false`.
-     // TODO: Actually returns a Promise
      */
     @objc(canPlayAtPlaybackSpeed:atPlaybackSpeed:resolver:rejecter:)
     func canPlayAtPlaybackSpeed(
