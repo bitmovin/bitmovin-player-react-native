@@ -98,7 +98,8 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event
 class RNPlayerView(
     private val context: ReactApplicationContext,
 ) : LinearLayout(context), View.OnLayoutChangeListener, RNPictureInPictureDelegate {
-    private val activityLifecycle = (context.currentActivity as ReactActivity).lifecycle
+    private val activityLifecycle = (context.currentActivity as? ReactActivity)?.lifecycle
+        ?: error("Trying to create an instance of ${this::class.simpleName} while not attached to a ReactActivity")
 
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
         override fun onStart(owner: LifecycleOwner) {
