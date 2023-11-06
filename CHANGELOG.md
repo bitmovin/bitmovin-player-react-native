@@ -11,6 +11,7 @@
 ### Fixed
 
 - Android: Playback doesn't pause when app goes to background
+- Android: `PlayerView.onDestroy` not being called when the view is detached from the view hierarchy
 
 ## [0.13.0] (2023-10-20)
 
