@@ -405,4 +405,18 @@ export class Player extends NativeInstance<PlayerConfig> {
   castStop = () => {
     PlayerModule.castStop(this.nativeId);
   };
+
+  /**
+   * @returns The currently selected video quality.
+   */
+  getVideoQuality = async (): Promise<number> => {
+    return PlayerModule.getVideoQuality(this.nativeId);
+  };
+
+  /**
+   * @returns An array containing all available video qualities the player can adapt between.
+   */
+  getAvailableVideoQualities = async (): Promise<number> => {
+    return PlayerModule.getAvailableVideoQualities(this.nativeId);
+  };
 }
