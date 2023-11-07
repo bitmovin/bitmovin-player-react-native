@@ -551,7 +551,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     @ReactMethod
     fun getVideoQuality(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(players[nativeId]?.source?.selectedVideoQuality)
+            promise.resolve(JsonConverter.fromVideoQuality(players[nativeId]?.source?.selectedVideoQuality))
         }
     }
 
@@ -563,7 +563,13 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     @ReactMethod
     fun getAvailableVideoQualities(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(players[nativeId]?.source?.availableVideoQualities)
+            val videoQualities = Arguments.createArray()
+            players[nativeId]?.source?.availableVideoQualities?.let { qualities ->
+                qualities.forEach {
+                    videoQualities.pushMap(JsonConverter.fromVideoQuality(it))
+                }
+            }
+            promise.resolve(videoQualities)
         }
     }
 

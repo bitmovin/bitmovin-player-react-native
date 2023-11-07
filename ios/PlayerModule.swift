@@ -700,7 +700,7 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.players[nativeId]?.videoQuality)
+            resolve(RCTConvert.toJson(videoQuality: self?.players[nativeId]?.videoQuality))
         }
     }
 
@@ -717,7 +717,10 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            resolve(self?.players[nativeId]?.availableVideoQualities)
+            let videoQualitiesJson = self?.players[nativeId]?.availableVideoQualities.map {
+                RCTConvert.toJson(videoQuality: $0)
+            }
+            resolve(videoQualitiesJson ?? [])
         }
     }
 }
