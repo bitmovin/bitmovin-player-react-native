@@ -44,18 +44,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    * The {@link BufferApi} for interactions regarding the buffer.
    */
   buffer: BufferApi = new BufferApi(this.nativeId);
-  /**
-   * Get/set the playback speed of the player. Fast forward, slow motion and reverse playback are supported.
-   * @note
-   * - Slow motion is used by values between `0` and `1`.
-   * - Fast forward by values greater than `2`.
-   * - Slow reverse is used by values between `0` and `-1`, and fast reverse is used by values less than `-1`. iOS and tvOS only.
-   * @note
-   * Negative values are ignored during Casting.
-   * @note
-   * During reverse playback the playback will continue until the beginning of the active source is reached. When reaching the beginning of the source, playback will be paused and the playback speed will be reset to its default value of `1`. No {@link PlaybackFinishedEvent} will be emitted in this case.
-   */
-  playbackSpeed: number = 1;
 
   /**
    * Allocates the native `Player` instance and its resources natively.
@@ -416,6 +404,33 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   castStop = () => {
     PlayerModule.castStop(this.nativeId);
+  };
+
+  /**
+   * Sets the playback speed of the player. Fast forward, slow motion and reverse playback are supported.
+   * @note
+   * - Slow motion is used by values between `0` and `1`.
+   * - Fast forward by values greater than `2`.
+   * - Slow reverse is used by values between `0` and `-1`, and fast reverse is used by values less than `-1`. iOS and tvOS only.
+   * @note
+   * Negative values are ignored during Casting.
+   * @note
+   * During reverse playback the playback will continue until the beginning of the active source is
+   * reached. When reaching the beginning of the source, playback will be paused and the playback
+   * speed will be reset to its default value of `1`. No {@link PlaybackFinishedEvent} will be
+   * emitted in this case.
+   *
+   * @param playbackSpeed - The playback speed level to set.
+   */
+  setPlaybackSpeed = (playbackSpeed = 1) => {
+    PlayerModule.setPlaybackSpeed(this.nativeId, playbackSpeed);
+  };
+
+  /**
+   * @returns The player's current playback speed.
+   */
+  getPlaybackSpeed = async (): Promise<number> => {
+    return PlayerModule.getPlaybackSpeed(this.nativeId);
   };
 
   /**
