@@ -554,6 +554,20 @@ export interface AdManifestLoadedEvent extends Event {
 }
 
 /**
+ * Emitted when current video download quality has changed.
+ */
+export interface VideoDownloadQualityChangedEvent extends Event {
+  /**
+   * The new quality
+   */
+  newVideoQuality: VideoQuality;
+  /**
+   * The previous quality
+   */
+  oldVideoQuality: VideoQuality;
+}
+
+/**
  * Emitted when the current video playback quality has changed.
  */
 export interface VideoPlaybackQualityChangedEvent extends Event {
