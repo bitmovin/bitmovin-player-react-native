@@ -544,6 +544,30 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Resolve `nativeId`'s current video quality.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getVideoQuality(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.source?.selectedVideoQuality)
+        }
+    }
+
+    /**
+     * Resolve `nativeId`'s current available video qualities.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getAvailableVideoQualities(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.source?.availableVideoQualities)
+        }
+    }
+
+    /**
      * Helper function that returns the initialized `UIManager` instance.
      */
     private fun uiManager(): UIManagerModule? =
