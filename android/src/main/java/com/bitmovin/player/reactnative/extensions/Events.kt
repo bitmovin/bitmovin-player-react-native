@@ -24,5 +24,6 @@ fun SourceEvent.getName(): String = when (this) {
     is SourceEvent.SubtitleTrackChanged -> "onSubtitleChanged"
     is SourceEvent.SubtitleTrackRemoved -> "onSubtitleRemoved"
     is SourceEvent.DownloadFinished -> "onDownloadFinished"
+    is SourceEvent.VideoDownloadQualityChanged -> "onVideoDownloadQualityChanged"
     else -> "onSource${this.javaClass.simpleName}"
 }
