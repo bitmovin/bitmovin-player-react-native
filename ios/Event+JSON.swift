@@ -340,6 +340,17 @@ extension VideoDownloadQualityChangedEvent {
     }
 }
 
+extension VideoPlaybackQualityChangedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "newVideoQuality": RCTConvert.toJson(videoQuality: videoQualityNew),
+            "oldVideoQuality": RCTConvert.toJson(videoQuality: videoQualityOld),
+            "name": name,
+            "timestamp": timestamp
+        ]
+    }
+}
+
 extension CastStartedEvent {
     func toJSON() -> [AnyHashable: Any] {
         [

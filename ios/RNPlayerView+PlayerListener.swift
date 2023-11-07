@@ -169,7 +169,7 @@ extension RNPlayerView: PlayerListener {
         onAdStarted?(event.toJSON())
     }
 
-    public func onVideoPlaybackQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
+    public func onVideoPlaybackQualityChanged(_ event: VideoPlaybackQualityChangedEvent, player: Player) {
         onVideoPlaybackQualityChanged?(event.toJSON())
     }
 
