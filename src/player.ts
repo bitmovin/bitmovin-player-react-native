@@ -439,7 +439,15 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @returns `true` if it's possible to play the media at the specified playback speed, otherwise `false`.
    * @platform iOS, tvOS
    */
-  canPlayAtPlaybackSpeed = async (playbackSpeed: number): Promise<boolean> => {
+  canPlayAtPlaybackSpeed = async (
+    playbackSpeed: number
+  ): Promise<boolean | undefined> => {
+    if (Platform.OS === 'android') {
+      console.warn(
+        `[Player ${this.nativeId}] Method canPlayAtPlaybackSpeed is not available for Android. Only iOS and tvOS devices.`
+      );
+      return undefined;
+    }
     return PlayerModule.canPlayAtPlaybackSpeed(this.nativeId, playbackSpeed);
   };
 }
