@@ -742,7 +742,7 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
     }
 
     /**
-     Call `.setPlaybackSpeed(playbackSpeed:)` on `nativeId`'s player.
+     Sets playback speed for the player.
      - Parameter nativeId: Target player Id.
      - Parameter playbackSpeed: Float representing the playback speed level.
      */
