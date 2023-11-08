@@ -9,6 +9,7 @@ import { AnalyticsApi } from './analytics/player';
 import { PlayerConfig } from './playerConfig';
 import { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
+import { VideoQuality } from './media';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -404,5 +405,21 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   castStop = () => {
     PlayerModule.castStop(this.nativeId);
+  };
+
+  /**
+   * Returns the currently selected video quality.
+   * @returns The currently selected video quality.
+   */
+  getVideoQuality = async (): Promise<VideoQuality> => {
+    return PlayerModule.getVideoQuality(this.nativeId);
+  };
+
+  /**
+   * Returns an array containing all available video qualities the player can adapt between.
+   * @returns An array containing all available video qualities the player can adapt between.
+   */
+  getAvailableVideoQualities = async (): Promise<VideoQuality[]> => {
+    return PlayerModule.getAvailableVideoQualities(this.nativeId);
   };
 }
