@@ -427,6 +427,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * @see {@link setPlaybackSpeed} for details on which values playback speed can assume.
    * @returns The player's current playback speed.
    */
   getPlaybackSpeed = async (): Promise<number> => {
