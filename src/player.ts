@@ -436,7 +436,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Checks the possibility to play the media at specified playback speed.
    * @param playbackSpeed The playback speed to check.
-   * @returns `true` if it's possible to play the media at the specified playback speed, otherwise `false`.
+   * @returns `true` if it's possible to play the media at the specified playback speed, otherwise `false`. On Android it always returns `undefined`.
    * @platform iOS, tvOS
    */
   canPlayAtPlaybackSpeed = async (
