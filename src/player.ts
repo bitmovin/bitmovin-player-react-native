@@ -9,7 +9,7 @@ import { AnalyticsApi } from './analytics/player';
 import { PlayerConfig } from './playerConfig';
 import { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
-import { VideoQuality } from 'lib';
+import { VideoQuality } from './media';
 
 const PlayerModule = NativeModules.PlayerModule;
 
