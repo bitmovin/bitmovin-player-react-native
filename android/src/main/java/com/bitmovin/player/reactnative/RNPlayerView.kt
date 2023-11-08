@@ -324,6 +324,6 @@ data class RNPlayerViewConfigWrapper(
 )
 
 
-enum class UserInterfaceType{
+enum class UserInterfaceType {
     Bitmovin, Subtitle
 }

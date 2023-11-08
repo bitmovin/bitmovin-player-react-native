@@ -103,7 +103,6 @@ export enum ScalingMode {
 
 /**
  * Indicates which type of UI should be used.
- * @platform iOS, tvOS
  */
 export enum UserInterfaceType {
   /**
@@ -112,6 +111,7 @@ export enum UserInterfaceType {
   Bitmovin = 'Bitmovin',
   /**
    * Indicates that the system UI should be used.
+   * @platform iOS, tvOS
    */
   System = 'System',
   /**
