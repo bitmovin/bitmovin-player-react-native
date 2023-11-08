@@ -556,7 +556,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
-     * Call `.setPlaybackSpeed(playbackSpeed:)` on `nativeId`'s player.
+     * Sets playback speed for the player.
      * @param nativeId Target player Id.
      * @param playbackSpeed Float representing the playback speed level.
      */
