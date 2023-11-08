@@ -22,7 +22,6 @@ public class RNPlayerView: UIView {
     @objc var onStallStarted: RCTBubblingEventBlock?
     @objc var onStallEnded: RCTBubblingEventBlock?
     @objc var onTimeChanged: RCTBubblingEventBlock?
-    @objc var onPlaybackSpeedChanged: RCTBubblingEventBlock?
     @objc var onSourceLoad: RCTBubblingEventBlock?
     @objc var onSourceLoaded: RCTBubblingEventBlock?
     @objc var onSourceUnloaded: RCTBubblingEventBlock?
@@ -65,6 +64,7 @@ public class RNPlayerView: UIView {
     @objc var onCastTimeUpdated: RCTBubblingEventBlock?
     @objc var onCastWaitingForDevice: RCTBubblingEventBlock?
     @objc var onPictureInPictureAvailabilityChanged: RCTBubblingEventBlock?
+    @objc var onPlaybackSpeedChanged: RCTBubblingEventBlock?
     @objc var config: [String: Any]?
 
     /// The `PlayerView` subview.
