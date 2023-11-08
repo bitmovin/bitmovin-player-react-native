@@ -408,6 +408,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * Returns the currently selected video quality.
    * @returns The currently selected video quality.
    */
   getVideoQuality = async (): Promise<VideoQuality> => {
@@ -415,6 +416,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * Returns an array containing all available video qualities the player can adapt between.
    * @returns An array containing all available video qualities the player can adapt between.
    */
   getAvailableVideoQualities = async (): Promise<VideoQuality[]> => {
