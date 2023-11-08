@@ -254,7 +254,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             val player = getPlayerModule()?.getPlayer(playerId)
             val playbackConfig = playerConfig?.getMap("playbackConfig")
             val isPictureInPictureEnabled = view.config?.pictureInPictureConfig?.isEnabled == true ||
-                    playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
+                playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
             val pictureInPictureHandler = view.pictureInPictureHandler ?: RNPictureInPictureHandler(context)
             view.pictureInPictureHandler = pictureInPictureHandler
             view.pictureInPictureHandler?.isPictureInPictureEnabled = isPictureInPictureEnabled
@@ -273,9 +273,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 val nativePlayerViewConfig = rnPlayerConfigWrapper?.playerViewConfig ?: PlayerViewConfig()
 
                 val playerView: PlayerView
-                if (nativePlayerViewConfig.uiConfig == UiConfig.Disabled
-                    || (rnPlayerConfigWrapper?.userInterfaceType
-                        ?: UserInterfaceType.Bitmovin) == UserInterfaceType.Bitmovin
+                if (nativePlayerViewConfig.uiConfig == UiConfig.Disabled ||
+                    (rnPlayerConfigWrapper?.userInterfaceType ?: UserInterfaceType.Bitmovin) ==
+                    UserInterfaceType.Bitmovin
                 ) {
                     playerView = PlayerView(currentActivity, player, nativePlayerViewConfig)
                 } else {

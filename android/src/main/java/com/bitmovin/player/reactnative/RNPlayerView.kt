@@ -212,11 +212,12 @@ class RNPlayerView(val context: ReactApplicationContext) :
             playerView.setPictureInPictureHandler(it)
             playerView.addOnLayoutChangeListener(this)
         }
+    }
 
     /**
      * Make sure this is called after [addPlayerView], otherwise the subtitleView will be overdrawn by the player!
      */
-    fun addSubtitleView(subtitleView: SubtitleView){
+    fun addSubtitleView(subtitleView: SubtitleView) {
         addView(subtitleView)
     }
 
@@ -322,7 +323,6 @@ data class RNPlayerViewConfigWrapper(
     val pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig?,
     val userInterfaceType: UserInterfaceType,
 )
-
 
 enum class UserInterfaceType {
     Bitmovin, Subtitle
