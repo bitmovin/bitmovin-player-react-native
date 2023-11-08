@@ -422,7 +422,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * @param playbackSpeed - The playback speed level to set.
    */
-  setPlaybackSpeed = (playbackSpeed = 1) => {
+  setPlaybackSpeed = (playbackSpeed: number) => {
     PlayerModule.setPlaybackSpeed(this.nativeId, playbackSpeed);
   };
 
