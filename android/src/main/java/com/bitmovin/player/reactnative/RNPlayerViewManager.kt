@@ -7,7 +7,7 @@ import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
-import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.bitmovin.player.reactnative.converter.toRNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getModule
 import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
@@ -187,7 +187,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
 
     @ReactProp(name = "config")
     fun setConfig(view: RNPlayerView, config: ReadableMap?) {
-        view.config = if (config != null) JsonConverter.toRNPlayerViewConfigWrapper(config) else null
+        view.config = config?.toRNPlayerViewConfigWrapper()
     }
 
     private fun attachFullscreenBridge(view: RNPlayerView, fullscreenBridgeId: NativeId) {

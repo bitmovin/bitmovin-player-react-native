@@ -1,7 +1,7 @@
 package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.casting.BitmovinCastManager
-import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.bitmovin.player.reactnative.converter.toCastOptions
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -31,7 +31,7 @@ class BitmovinCastManagerModule(
      */
     @ReactMethod
     fun initializeCastManager(options: ReadableMap?, promise: Promise) {
-        val castOptions = JsonConverter.toCastOptions(options)
+        val castOptions = options?.toCastOptions()
         uiManager?.addUIBlock {
             BitmovinCastManager.initialize(
                 castOptions?.applicationId,

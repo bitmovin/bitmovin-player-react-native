@@ -3,9 +3,16 @@ package com.bitmovin.player.reactnative
 import android.util.Log
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
+import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.event.PlayerEvent
-import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.bitmovin.player.reactnative.converter.fromSource
+import com.bitmovin.player.reactnative.converter.fromVideoQuality
+import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.converter.toAdItem
+import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
+import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
+import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.UIManagerModule
@@ -44,7 +51,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     fun initWithConfig(nativeId: NativeId, config: ReadableMap?) {
         uiManager()?.addUIBlock {
             if (!players.containsKey(nativeId)) {
-                JsonConverter.toPlayerConfig(config).let {
+                config?.toPlayerConfig()?.let {
                     players[nativeId] = Player.create(context, it)
                 }
             }
@@ -63,11 +70,9 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
                 Log.d("[PlayerModule]", "Duplicate player creation for id $nativeId")
                 return@addUIBlock
             }
-            val playerConfig = JsonConverter.toPlayerConfig(playerConfigJson)
-            val analyticsConfig = JsonConverter.toAnalyticsConfig(analyticsConfigJson)
-            val defaultMetadata = JsonConverter.toAnalyticsDefaultMetadata(
-                analyticsConfigJson?.getMap("defaultMetadata"),
-            )
+            val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()
+            val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
+            val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
 
             players[nativeId] = if (analyticsConfig == null) {
                 Player.create(context, playerConfig)
@@ -239,7 +244,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     @ReactMethod
     fun source(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(JsonConverter.fromSource(players[nativeId]?.source))
+            promise.resolve(players[nativeId]?.source?.fromSource())
         }
     }
 
@@ -334,7 +339,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     @ReactMethod
     fun getAudioTrack(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(JsonConverter.fromAudioTrack(players[nativeId]?.source?.selectedAudioTrack))
+            promise.resolve(players[nativeId]?.source?.selectedAudioTrack?.toJson())
         }
     }
 
@@ -349,7 +354,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
             val audioTracks = Arguments.createArray()
             players[nativeId]?.source?.availableAudioTracks?.let { tracks ->
                 tracks.forEach {
-                    audioTracks.pushMap(JsonConverter.fromAudioTrack(it))
+                    audioTracks.pushMap(it.toJson())
                 }
             }
             promise.resolve(audioTracks)
@@ -378,7 +383,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     @ReactMethod
     fun getSubtitleTrack(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(JsonConverter.fromSubtitleTrack(players[nativeId]?.source?.selectedSubtitleTrack))
+            promise.resolve(players[nativeId]?.source?.selectedSubtitleTrack?.toJson())
         }
     }
 
@@ -393,7 +398,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
             val subtitleTracks = Arguments.createArray()
             players[nativeId]?.source?.availableSubtitleTracks?.let { tracks ->
                 tracks.forEach {
-                    subtitleTracks.pushMap(JsonConverter.fromSubtitleTrack(it))
+                    subtitleTracks.pushMap(it.toJson())
                 }
             }
             promise.resolve(subtitleTracks)
@@ -421,7 +426,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      */
     @ReactMethod
     fun scheduleAd(nativeId: NativeId, adItemJson: ReadableMap?) {
-        JsonConverter.toAdItem(adItemJson)?.let { adItem ->
+        adItemJson?.toAdItem()?.let { adItem ->
             uiManager()?.addUIBlock {
                 players[nativeId]?.scheduleAd(adItem)
             }
@@ -497,7 +502,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     @ReactMethod
     fun getThumbnail(nativeId: NativeId, time: Double, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(JsonConverter.fromThumbnail(players[nativeId]?.source?.getThumbnail(time)))
+            promise.resolve(players[nativeId]?.source?.getThumbnail(time)?.toJson())
         }
     }
 
@@ -551,7 +556,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     @ReactMethod
     fun getVideoQuality(nativeId: NativeId, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(JsonConverter.fromVideoQuality(players[nativeId]?.source?.selectedVideoQuality))
+            promise.resolve(players[nativeId]?.source?.selectedVideoQuality?.fromVideoQuality())
         }
     }
 
@@ -566,7 +571,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
             val videoQualities = Arguments.createArray()
             players[nativeId]?.source?.availableVideoQualities?.let { qualities ->
                 qualities.forEach {
-                    videoQualities.pushMap(JsonConverter.fromVideoQuality(it))
+                    videoQualities.pushMap(it.fromVideoQuality())
                 }
             }
             promise.resolve(videoQualities)

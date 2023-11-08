@@ -9,7 +9,7 @@ import com.bitmovin.player.api.offline.options.OfflineOptionEntryAction
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.reactnative.NativeId
-import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.bitmovin.player.reactnative.converter.toJson
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
@@ -155,7 +155,7 @@ class OfflineContentManagerBridge(
         sendEvent(
             OfflineEventType.ON_COMPLETED,
             Arguments.createMap().apply {
-                putMap("options", JsonConverter.toJson(options))
+                putMap("options", options?.toJson())
             },
         )
     }
@@ -193,7 +193,7 @@ class OfflineContentManagerBridge(
         sendEvent(
             OfflineEventType.ON_OPTIONS_AVAILABLE,
             Arguments.createMap().apply {
-                putMap("options", JsonConverter.toJson(options))
+                putMap("options", options?.toJson())
             },
         )
     }

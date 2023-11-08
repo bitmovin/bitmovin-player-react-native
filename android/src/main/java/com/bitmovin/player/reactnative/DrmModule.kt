@@ -4,7 +4,7 @@ import android.util.Base64
 import com.bitmovin.player.api.drm.PrepareLicenseCallback
 import com.bitmovin.player.api.drm.PrepareMessageCallback
 import com.bitmovin.player.api.drm.WidevineConfig
-import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.bitmovin.player.reactnative.converter.toWidevineConfig
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.UIManagerModule
@@ -76,8 +76,8 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
     @ReactMethod
     fun initWithConfig(nativeId: NativeId, config: ReadableMap?) {
         uiManager()?.addUIBlock {
-            if (!drmConfigs.containsKey(nativeId) && config != null) {
-                JsonConverter.toWidevineConfig(config)?.let {
+            if (!drmConfigs.containsKey(nativeId)) {
+                config?.toWidevineConfig()?.let {
                     drmConfigs[nativeId] = it
                     initPrepareMessage(nativeId, config)
                     initPrepareLicense(nativeId, config)

@@ -1,7 +1,7 @@
 package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.analytics.AnalyticsApi.Companion.analytics
-import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.UIManagerModule
@@ -24,7 +24,7 @@ class PlayerAnalyticsModule(private val context: ReactApplicationContext) : Reac
     @ReactMethod
     fun sendCustomDataEvent(nativeId: NativeId, json: ReadableMap?) {
         uiManager()?.addUIBlock { _ ->
-            JsonConverter.toAnalyticsCustomData(json)?.let {
+            json?.toAnalyticsCustomData()?.let {
                 playerModule()?.getPlayer(nativeId)?.analytics?.sendCustomDataEvent(it)
             }
         }

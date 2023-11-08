@@ -5,7 +5,9 @@ import com.bitmovin.analytics.api.SourceMetadata
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
-import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
+import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.converter.toSourceConfig
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -58,7 +60,7 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
         analyticsSourceMetadata: ReadableMap?,
     ) {
         uiManager()?.addUIBlock {
-            val sourceMetadata = JsonConverter.toAnalyticsSourceMetadata(analyticsSourceMetadata) ?: SourceMetadata()
+            val sourceMetadata = analyticsSourceMetadata?.toAnalyticsSourceMetadata() ?: SourceMetadata()
             initializeSource(nativeId, drmNativeId, config) { sourceConfig ->
                 Source.create(sourceConfig, sourceMetadata)
             }
@@ -95,7 +97,7 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     ) {
         val drmConfig = drmNativeId?.let { drmModule()?.getConfig(it) }
         if (!sources.containsKey(nativeId)) {
-            val sourceConfig = JsonConverter.toSourceConfig(config)?.apply {
+            val sourceConfig = config?.toSourceConfig()?.apply {
                 if (drmConfig != null) {
                     this.drmConfig = drmConfig
                 }
@@ -196,7 +198,7 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     @ReactMethod
     fun getThumbnail(nativeId: NativeId, time: Double, promise: Promise) {
         uiManager()?.addUIBlock {
-            promise.resolve(JsonConverter.fromThumbnail(sources[nativeId]?.getThumbnail(time)))
+            promise.resolve(sources[nativeId]?.getThumbnail(time)?.toJson())
         }
     }
 

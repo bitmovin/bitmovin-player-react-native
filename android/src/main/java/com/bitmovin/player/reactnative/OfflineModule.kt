@@ -1,7 +1,7 @@
 package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
-import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.bitmovin.player.reactnative.converter.toSourceConfig
 import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
@@ -61,7 +61,7 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
         uiManager()?.addUIBlock {
             if (!offlineContentManagerBridges.containsKey(nativeId)) {
                 val identifier = config?.getString("identifier")
-                val sourceConfig = JsonConverter.toSourceConfig(config?.getMap("sourceConfig"))
+                val sourceConfig = config?.getMap("sourceConfig")?.toSourceConfig()
                 sourceConfig?.drmConfig = drmModule()?.getConfig(drmNativeId)
 
                 if (identifier.isNullOrEmpty() || sourceConfig == null) {
