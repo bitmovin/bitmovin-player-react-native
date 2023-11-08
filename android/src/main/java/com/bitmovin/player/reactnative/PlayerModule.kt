@@ -574,6 +574,30 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Resolve `nativeId`'s current playback speed.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getPlaybackSpeed(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.playbackSpeed)
+        }
+    }
+
+    /**
+     * Sets playback speed for the player.
+     * @param nativeId Target player Id.
+     * @param playbackSpeed Float representing the playback speed level.
+     */
+    @ReactMethod
+    fun setPlaybackSpeed(nativeId: NativeId, playbackSpeed: Float) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.playbackSpeed = playbackSpeed
+        }
+    }
+
+    /**
      * Helper function that returns the initialized `UIManager` instance.
      */
     private fun uiManager(): UIManagerModule? =

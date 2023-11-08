@@ -715,3 +715,18 @@ export interface DownloadFinishedEvent extends Event {
    */
   url: String;
 }
+
+/**
+ * Emitted when the player transitions from one playback speed to another.
+ * @platform iOS, tvOS
+ */
+export interface PlaybackSpeedChangedEvent extends Event {
+  /**
+   * The playback speed before the change happened.
+   */
+  from: number;
+  /**
+   * The playback speed after the change happened.
+   */
+  to: number;
+}

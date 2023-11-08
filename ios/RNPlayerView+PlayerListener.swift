@@ -77,6 +77,10 @@ extension RNPlayerView: PlayerListener {
         onTimeChanged?(event.toJSON())
     }
 
+    public func onPlaybackSpeedChanged(_ event: PlaybackSpeedChangedEvent, player: Player) {
+        onPlaybackSpeedChanged?(event.toJSON())
+    }
+
     public func onSourceLoad(_ event: SourceLoadEvent, player: Player) {
         onSourceLoad?(event.toJSON())
     }

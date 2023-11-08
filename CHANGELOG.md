@@ -8,6 +8,7 @@
 - `Player.buffer` to control buffer preferences and to query the current buffer state
 - `DownloadFinishedEvent` to signal when the download of specific content has finished
 - `Player.videoQuality`, `Player.availableVideoQualities`, and `VideoDownloadQualityChangedEvent` to query current video qualities and listen to related changes
+- `Player.playbackSpeed`, `Player.canPlayAtPlaybackSpeed`, `PlaybackSpeedChangedEvent` to query, control, and listen to changes to the speed of the playback
 
 ### Fixed
 

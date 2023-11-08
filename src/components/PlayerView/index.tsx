@@ -188,6 +188,7 @@ export function PlayerView({
       onPictureInPictureExited={proxy(props.onPictureInPictureExited)}
       onPlay={proxy(props.onPlay)}
       onPlaybackFinished={proxy(props.onPlaybackFinished)}
+      onPlaybackSpeedChanged={proxy(props.onPlaybackSpeedChanged)}
       onPlayerActive={proxy(props.onPlayerActive)}
       onPlayerError={proxy(props.onPlayerError)}
       onPlayerWarning={proxy(props.onPlayerWarning)}
