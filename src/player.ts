@@ -420,7 +420,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * speed will be reset to its default value of `1`. No {@link PlaybackFinishedEvent} will be
    * emitted in this case.
    *
-   * @param playbackSpeed - The playback speed level to set.
+   * @param playbackSpeed - The playback speed to set.
    */
   setPlaybackSpeed = (playbackSpeed: number) => {
     PlayerModule.setPlaybackSpeed(this.nativeId, playbackSpeed);
