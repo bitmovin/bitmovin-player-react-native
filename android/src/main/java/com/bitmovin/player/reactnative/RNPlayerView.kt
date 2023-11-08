@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.SubtitleView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
@@ -15,9 +16,7 @@ import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
-import com.facebook.react.bridge.LifecycleEventListener
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContext
+import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.events.RCTEventEmitter
 import kotlin.reflect.KClass
 
@@ -206,13 +205,19 @@ class RNPlayerView(val context: ReactApplicationContext) :
         this.playerView = playerView
         if (playerView.parent != this) {
             (playerView.parent as ViewGroup?)?.removeView(playerView)
-            addView(playerView)
+            addView(playerView, 0)
         }
         pictureInPictureHandler?.let {
             it.setDelegate(this)
             playerView.setPictureInPictureHandler(it)
             playerView.addOnLayoutChangeListener(this)
         }
+
+    /**
+     * Make sure this is called after [addPlayerView], otherwise the subtitleView will be overdrawn by the player!
+     */
+    fun addSubtitleView(subtitleView: SubtitleView){
+        addView(subtitleView)
     }
 
     /**
@@ -315,4 +320,10 @@ class RNPlayerView(val context: ReactApplicationContext) :
 data class RNPlayerViewConfigWrapper(
     val playerViewConfig: PlayerViewConfig?,
     val pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig?,
+    val userInterfaceType: UserInterfaceType,
 )
+
+
+enum class UserInterfaceType{
+    Bitmovin, Subtitle
+}

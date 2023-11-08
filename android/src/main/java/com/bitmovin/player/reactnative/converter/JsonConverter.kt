@@ -50,6 +50,7 @@ import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
 import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
+import com.bitmovin.player.reactnative.UserInterfaceType
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.getOrDefault
@@ -1185,12 +1186,20 @@ class JsonConverter {
             },
         )
 
+        private fun toUserInterfaceType(json: ReadableMap): UserInterfaceType =
+            when (json.getMap("styleConfig")?.getString("userInterfaceType")) {
+                "Subtitle" -> UserInterfaceType.Subtitle
+                "Bitmovin" -> UserInterfaceType.Bitmovin
+                else -> UserInterfaceType.Bitmovin
+            }
+
         /**
          * Converts the [json] to a `RNPlayerViewConfig` object.
          */
         fun toRNPlayerViewConfigWrapper(json: ReadableMap) = RNPlayerViewConfigWrapper(
             playerViewConfig = toPlayerViewConfig(json),
             pictureInPictureConfig = toPictureInPictureConfig(json.getMap("pictureInPictureConfig")),
+            userInterfaceType = toUserInterfaceType(json),
         )
 
         /**
