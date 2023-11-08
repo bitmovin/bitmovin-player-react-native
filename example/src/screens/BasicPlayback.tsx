@@ -47,33 +47,8 @@ export default function BasicPlayback() {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
 
-  const onEvent = useCallback(
-    async (event: Event) => {
-      const videoQuality = await player.getVideoQuality();
-      const availableVideoQualities = await player.getAvailableVideoQualities();
-      console.log('### VideoQuality: ' + JSON.stringify(videoQuality));
-      console.log(
-        '### AvailableVideoQualities: ' +
-          JSON.stringify(availableVideoQualities)
-      );
-      const pre =
-        event.name === 'onVideoDownloadChangedEvent' ||
-        event.name === 'onVideoPlaybackChangedEvent'
-          ? '### '
-          : '';
-
-      prettyPrint(`${pre}EVENT [${event.name}]`, event);
-    },
-    [player]
-  );
-
-  const onAddedEvent = useCallback(async (event: Event) => {
-    prettyPrint(`### EVENT [${event.name}]`, event);
-  }, []);
-
-  const onFixedEvent = useCallback(async (event: Event) => {
-    if (Platform.OS === 'android') return;
-    prettyPrint(`### EVENT [${event.name}]`, event);
+  const onEvent = useCallback((event: Event) => {
+    prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
 
   return (
@@ -81,10 +56,16 @@ export default function BasicPlayback() {
       <PlayerView
         player={player}
         style={styles.player}
-        onReady={onReady}
         onPlay={onEvent}
-        onVideoDownloadQualityChanged={onAddedEvent}
-        onVideoPlaybackQualityChanged={onFixedEvent}
+        onPlaying={onEvent}
+        onPaused={onEvent}
+        onReady={onReady}
+        onSourceLoaded={onEvent}
+        onSeek={onEvent}
+        onSeeked={onEvent}
+        onStallStarted={onEvent}
+        onStallEnded={onEvent}
+        onVideoPlaybackQualityChanged={onEvent}
       />
     </View>
   );
