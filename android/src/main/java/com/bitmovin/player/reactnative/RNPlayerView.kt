@@ -5,7 +5,7 @@ import android.content.res.Configuration
 import android.graphics.Rect
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
+import android.widget.FrameLayout
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.SubtitleView
 import com.bitmovin.player.api.Player
@@ -94,7 +94,7 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event
  */
 @SuppressLint("ViewConstructor")
 class RNPlayerView(val context: ReactApplicationContext) :
-    LinearLayout(context),
+    FrameLayout(context),
     LifecycleEventListener,
     View.OnLayoutChangeListener,
     RNPictureInPictureDelegate {
