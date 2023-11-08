@@ -413,7 +413,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * - Fast forward by values greater than `2`.
    * - Slow reverse is used by values between `0` and `-1`, and fast reverse is used by values less than `-1`. iOS and tvOS only.
    * @note
-   * Negative values are ignored during Casting.
+   * Negative values are ignored during Casting and on Android.
    * @note
    * During reverse playback the playback will continue until the beginning of the active source is
    * reached. When reaching the beginning of the source, playback will be paused and the playback
