@@ -109,6 +109,14 @@ RCT_EXTERN_METHOD(
 RCT_EXTERN_METHOD(castVideo:(NSString *)nativeId)
 RCT_EXTERN_METHOD(castStop:(NSString *)nativeId)
 RCT_EXTERN_METHOD(
+    getVideoQuality:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    getAvailableVideoQualities:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
     getPlaybackSpeed:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)

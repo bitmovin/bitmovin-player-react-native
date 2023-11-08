@@ -61,6 +61,7 @@ import {
   UnmutedEvent,
   VideoPlaybackQualityChangedEvent,
   DownloadFinishedEvent,
+  VideoDownloadQualityChangedEvent,
   PlaybackSpeedChangedEvent,
 } from '../../events';
 
@@ -353,6 +354,10 @@ interface EventProps {
    * Emitted when the player is unmuted.
    */
   onUnmuted: UnmutedEvent;
+  /**
+   * Emitted when current video download quality has changed.
+   */
+  onVideoDownloadQualityChanged: VideoDownloadQualityChangedEvent;
   /**
    * Emitted when the current video playback quality has changed.
    */

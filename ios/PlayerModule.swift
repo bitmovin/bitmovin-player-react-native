@@ -688,6 +688,43 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
     }
 
     /**
+     Resolve `nativeId`'s current video quality.
+     - Parameter nativeId: Target player Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getVideoQuality:resolver:rejecter:)
+    func getVideoQuality(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(RCTConvert.toJson(videoQuality: self?.players[nativeId]?.videoQuality))
+        }
+    }
+
+    /**
+     Resolve `nativeId`'s current available video qualities.
+     - Parameter nativeId: Target player Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getAvailableVideoQualities:resolver:rejecter:)
+    func getAvailableVideoQualities(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            let videoQualitiesJson = self?.players[nativeId]?.availableVideoQualities.map {
+                RCTConvert.toJson(videoQuality: $0)
+            }
+            resolve(videoQualitiesJson ?? [])
+        }
+    }
+
+    /**
      Resolve `nativeId`'s current playback speed.
      - Parameter nativeId: Target player Id.
      - Parameter resolver: JS promise resolver.
