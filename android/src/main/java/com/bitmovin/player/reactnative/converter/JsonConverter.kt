@@ -580,6 +580,11 @@ class JsonConverter {
                     json.putString("url", event.url)
                 }
 
+                is SourceEvent.VideoDownloadQualityChanged -> {
+                    json.putMap("newVideoQuality", fromVideoQuality(event.newVideoQuality))
+                    json.putMap("oldVideoQuality", fromVideoQuality(event.oldVideoQuality))
+                }
+
                 else -> {
                     // Event is not supported yet or does not have any additional data
                 }

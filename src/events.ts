@@ -554,6 +554,20 @@ export interface AdManifestLoadedEvent extends Event {
 }
 
 /**
+ * Emitted when current video download quality has changed.
+ */
+export interface VideoDownloadQualityChangedEvent extends Event {
+  /**
+   * The new quality
+   */
+  newVideoQuality: VideoQuality;
+  /**
+   * The previous quality
+   */
+  oldVideoQuality: VideoQuality;
+}
+
+/**
  * Emitted when the current video playback quality has changed.
  */
 export interface VideoPlaybackQualityChangedEvent extends Event {
@@ -700,4 +714,19 @@ export interface DownloadFinishedEvent extends Event {
    * The URL of the request.
    */
   url: String;
+}
+
+/**
+ * Emitted when the player transitions from one playback speed to another.
+ * @platform iOS, tvOS
+ */
+export interface PlaybackSpeedChangedEvent extends Event {
+  /**
+   * The playback speed before the change happened.
+   */
+  from: number;
+  /**
+   * The playback speed after the change happened.
+   */
+  to: number;
 }

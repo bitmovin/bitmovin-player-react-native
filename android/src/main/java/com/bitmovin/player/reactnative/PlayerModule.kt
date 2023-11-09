@@ -544,6 +544,60 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     }
 
     /**
+     * Resolve `nativeId`'s current video quality.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getVideoQuality(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(JsonConverter.fromVideoQuality(players[nativeId]?.source?.selectedVideoQuality))
+        }
+    }
+
+    /**
+     * Resolve `nativeId`'s current available video qualities.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getAvailableVideoQualities(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            val videoQualities = Arguments.createArray()
+            players[nativeId]?.source?.availableVideoQualities?.let { qualities ->
+                qualities.forEach {
+                    videoQualities.pushMap(JsonConverter.fromVideoQuality(it))
+                }
+            }
+            promise.resolve(videoQualities)
+        }
+    }
+
+    /**
+     * Resolve `nativeId`'s current playback speed.
+     * @param nativeId Target player Id.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun getPlaybackSpeed(nativeId: NativeId, promise: Promise) {
+        uiManager()?.addUIBlock {
+            promise.resolve(players[nativeId]?.playbackSpeed)
+        }
+    }
+
+    /**
+     * Sets playback speed for the player.
+     * @param nativeId Target player Id.
+     * @param playbackSpeed Float representing the playback speed level.
+     */
+    @ReactMethod
+    fun setPlaybackSpeed(nativeId: NativeId, playbackSpeed: Float) {
+        uiManager()?.addUIBlock {
+            players[nativeId]?.playbackSpeed = playbackSpeed
+        }
+    }
+
+    /**
      * Helper function that returns the initialized `UIManager` instance.
      */
     private fun uiManager(): UIManagerModule? =

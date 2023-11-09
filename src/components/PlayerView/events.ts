@@ -61,6 +61,8 @@ import {
   UnmutedEvent,
   VideoPlaybackQualityChangedEvent,
   DownloadFinishedEvent,
+  VideoDownloadQualityChangedEvent,
+  PlaybackSpeedChangedEvent,
 } from '../../events';
 
 /**
@@ -244,6 +246,11 @@ interface EventProps {
    */
   onPlaybackFinished: PlaybackFinishedEvent;
   /**
+   * Emitted when the player transitions from one playback speed to another.
+   * @platform iOS, tvOS
+   */
+  onPlaybackSpeedChanged: PlaybackSpeedChangedEvent;
+  /**
    * Event emitted when a source is loaded into the player.
    * Seeking and time shifting are allowed as soon as this event is seen.
    */
@@ -347,6 +354,10 @@ interface EventProps {
    * Emitted when the player is unmuted.
    */
   onUnmuted: UnmutedEvent;
+  /**
+   * Emitted when current video download quality has changed.
+   */
+  onVideoDownloadQualityChanged: VideoDownloadQualityChangedEvent;
   /**
    * Emitted when the current video playback quality has changed.
    */
