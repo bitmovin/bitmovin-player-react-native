@@ -146,15 +146,20 @@ class RNPlayerView(
      */
     private val viewEventRelay = EventRelay<PlayerView, Event>(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI, ::emitEvent)
 
-    /**
-     * Associated bitmovin's `PlayerView`.
-     */
-    var playerView: PlayerView? = null
+    private var _playerView: PlayerView? = null
         set(value) {
             field = value
             viewEventRelay.eventEmitter = field
             playerEventRelay.eventEmitter = field?.player
         }
+
+    /**
+     * Associated bitmovin's `PlayerView`.
+     */
+    val playerView: PlayerView?
+        get() = _playerView
+
+    private var subtitleView: SubtitleView? = null
 
     /**
      * Handy property accessor for `playerView`'s player instance.
@@ -191,8 +196,11 @@ class RNPlayerView(
      * Set the given `playerView` as child and start bubbling events.
      * @param playerView Shared player view instance.
      */
-    fun addPlayerView(playerView: PlayerView) {
-        this.playerView = playerView
+    fun setPlayerView(playerView: PlayerView) {
+        this.playerView?.let { currentPlayerView ->
+            (currentPlayerView.parent as? ViewGroup)?.removeView(currentPlayerView)
+        }
+        this._playerView = playerView
         if (playerView.parent != this) {
             (playerView.parent as ViewGroup?)?.removeView(playerView)
             addView(playerView, 0)
@@ -204,7 +212,14 @@ class RNPlayerView(
         }
     }
 
-    fun addSubtitleView(subtitleView: SubtitleView) {
+    /**
+     * Set the given `subtitleView` as a child
+     */
+    fun setSubtitleView(subtitleView: SubtitleView) {
+        this.subtitleView?.let { currentSubtitleView ->
+            (currentSubtitleView.parent as? ViewGroup)?.removeView(currentSubtitleView)
+        }
+        this.subtitleView = subtitleView
         addView(subtitleView)
     }
 

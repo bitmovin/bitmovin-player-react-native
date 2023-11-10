@@ -284,14 +284,14 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     playerView = PlayerView(currentActivity, player, overwrittenConfig)
                     val subtitleView = SubtitleView(currentActivity)
                     subtitleView.setPlayer(player)
-                    view.addSubtitleView(subtitleView)
+                    view.setSubtitleView(subtitleView)
                 }
 
                 playerView.layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
                     LayoutParams.MATCH_PARENT,
                 )
-                view.addPlayerView(playerView)
+                view.setPlayerView(playerView)
                 attachCustomMessageHandlerBridge(view)
             }
         }
