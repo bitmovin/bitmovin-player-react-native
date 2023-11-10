@@ -552,7 +552,7 @@ fun ReadableMap.toSubtitleTrack(): SubtitleTrack? {
 /**
  * Converts any subtitle format name in its mime type representation.
  */
-private fun String.toSubtitleMimeType(): String = "text/${this}"
+private fun String.toSubtitleMimeType(): String = "text/$this"
 
 /**
  * Converts any `SubtitleTrack` into its json representation.
@@ -669,7 +669,7 @@ fun ReadableMap.toAnalyticsDefaultMetadata(): DefaultMetadata = DefaultMetadata.
  */
 fun ReadableMap.toAnalyticsCustomData(): CustomData = CustomData.Builder().apply {
     for (n in 1..30) {
-        this[n] = getString("customData${n}")
+        this[n] = getString("customData$n")
     }
     getString("experimentName")?.let {
         setExperimentName(it)
@@ -681,7 +681,7 @@ fun ReadableMap.toAnalyticsCustomData(): CustomData = CustomData.Builder().apply
  */
 fun CustomData.toJson(): WritableMap = Arguments.createMap().also { json ->
     for (n in 1..30) {
-        json.putStringIfNotNull("customData${n}", this[n])
+        json.putStringIfNotNull("customData$n", this[n])
     }
     json.putStringIfNotNull("experimentName", experimentName)
 }
@@ -790,16 +790,16 @@ fun BufferType.toJson(): String = when (this) {
 }
 
 fun BufferLevel.toJson(): WritableMap = Arguments.createMap().apply {
-        putDouble("level", level)
-        putDouble("targetLevel", targetLevel)
-        putString("media", media.toJson())
-        putString("type", type.toJson())
-    }
+    putDouble("level", level)
+    putDouble("targetLevel", targetLevel)
+    putString("media", media.toJson())
+    putString("type", type.toJson())
+}
 
 fun RNBufferLevels.toJson(): WritableMap = Arguments.createMap().apply {
-        putMap("audio", audio.toJson())
-        putMap("video", video.toJson())
-    }
+    putMap("audio", audio.toJson())
+    putMap("video", video.toJson())
+}
 
 /**
  * Maps a JS string into the corresponding [BufferType] value.

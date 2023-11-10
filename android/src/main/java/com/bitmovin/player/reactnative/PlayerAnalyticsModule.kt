@@ -4,7 +4,6 @@ import com.bitmovin.player.api.analytics.AnalyticsApi.Companion.analytics
 import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.uimanager.UIManagerModule
 
 private const val MODULE_NAME = "PlayerAnalyticsModule"
 

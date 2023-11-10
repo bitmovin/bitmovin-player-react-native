@@ -2,7 +2,7 @@ package com.bitmovin.player.reactnative.extensions
 
 import com.bitmovin.analytics.api.CustomData
 
-operator fun CustomData.get(index: Int) : String? = when (index) {
+operator fun CustomData.get(index: Int): String? = when (index) {
     1 -> customData1
     2 -> customData2
     3 -> customData3

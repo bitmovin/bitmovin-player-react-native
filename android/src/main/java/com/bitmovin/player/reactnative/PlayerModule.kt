@@ -14,7 +14,6 @@ import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.uimanager.UIManagerModule
 
 private const val MODULE_NAME = "PlayerModule"
 
@@ -67,7 +66,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         nativeId: NativeId,
         playerConfigJson: ReadableMap?,
         analyticsConfigJson: ReadableMap?,
-        promise: Promise
+        promise: Promise,
     ) {
         addUIBlock(promise) {
             if (players.containsKey(nativeId)) {
@@ -113,7 +112,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         nativeId: NativeId,
         offlineContentManagerBridgeId: String,
         options: ReadableMap?,
-        promise: Promise
+        promise: Promise,
     ) {
         addUIBlock(promise) {
             val offlineSourceConfig = offlineModule().getOfflineContentManagerBridge(offlineContentManagerBridgeId)

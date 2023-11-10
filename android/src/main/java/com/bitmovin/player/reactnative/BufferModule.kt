@@ -6,7 +6,6 @@ import com.bitmovin.player.reactnative.converter.toBufferType
 import com.bitmovin.player.reactnative.converter.toJson
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.uimanager.UIManagerModule
 
 private const val MODULE_NAME = "BufferModule"
 

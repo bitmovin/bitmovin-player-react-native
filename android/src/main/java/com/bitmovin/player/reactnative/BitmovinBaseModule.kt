@@ -3,9 +3,11 @@ package com.bitmovin.player.reactnative
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.UIManagerModule
 
-abstract class BitmovinBaseModule(protected val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
+abstract class BitmovinBaseModule(
+    protected val context: ReactApplicationContext,
+) : ReactContextBaseJavaModule(context) {
     /** Run [block] in [UIManagerModule.addUIBlock], forwarding the result to the [promise]. */
-    protected inline fun <T> addUIBlock(promise: Promise, crossinline block: ()->T) {
+    protected inline fun <T> addUIBlock(promise: Promise, crossinline block: () -> T) {
         val uiManager = runAndRejectOnException(promise) { uiManager() } ?: return
         uiManager.addUIBlock {
             runAndRejectOnException(promise) {
@@ -40,10 +42,9 @@ abstract class BitmovinBaseModule(protected val context: ReactApplicationContext
 }
 
 /** Run [block], forwarding the return value. If it throws, sets [Promise.reject] and return null. */
-inline fun <T> runAndRejectOnException(promise: Promise, crossinline block: ()->T) : T? = try {
+inline fun <T> runAndRejectOnException(promise: Promise, crossinline block: () -> T): T? = try {
     block()
 } catch (e: Exception) {
     promise.reject(e)
     null
 }
-
