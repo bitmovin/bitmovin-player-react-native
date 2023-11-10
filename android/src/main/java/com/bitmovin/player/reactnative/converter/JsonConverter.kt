@@ -274,7 +274,7 @@ fun String.toSourceType(): SourceType? = when (this) {
 /**
  * Converts any given `Source` object into its `json` representation.
  */
-fun Source.fromSource(): WritableMap = Arguments.createMap().apply {
+fun Source.toJson(): WritableMap = Arguments.createMap().apply {
     putDouble("duration", duration)
     putBoolean("isActive", isActive)
     putBoolean("isAttachedToPlayer", isAttachedToPlayer)
@@ -285,25 +285,25 @@ fun Source.fromSource(): WritableMap = Arguments.createMap().apply {
 /**
  * Converts any given `SeekPosition` object into its `json` representation.
  */
-fun SeekPosition.fromSeekPosition(): WritableMap = Arguments.createMap().apply {
+fun SeekPosition.toJson(): WritableMap = Arguments.createMap().apply {
     putDouble("time", time)
-    putMap("source", source.fromSource())
+    putMap("source", source.toJson())
 }
 
 /**
  * Converts any given `SourceEvent` object into its `json` representation.
  */
-fun SourceEvent.fromSourceEvent(): WritableMap {
+fun SourceEvent.toJson(): WritableMap {
     val json = Arguments.createMap()
     json.putString("name", getName())
     json.putDouble("timestamp", timestamp.toDouble())
     when (this) {
         is SourceEvent.Load -> {
-            json.putMap("source", source.fromSource())
+            json.putMap("source", source.toJson())
         }
 
         is SourceEvent.Loaded -> {
-            json.putMap("source", source.fromSource())
+            json.putMap("source", source.toJson())
         }
 
         is SourceEvent.Error -> {
@@ -355,8 +355,8 @@ fun SourceEvent.fromSourceEvent(): WritableMap {
         }
 
         is SourceEvent.VideoDownloadQualityChanged -> {
-            json.putMap("newVideoQuality", newVideoQuality?.fromVideoQuality())
-            json.putMap("oldVideoQuality", oldVideoQuality?.fromVideoQuality())
+            json.putMap("newVideoQuality", newVideoQuality?.toJson())
+            json.putMap("oldVideoQuality", oldVideoQuality?.toJson())
         }
 
         else -> {
@@ -369,7 +369,7 @@ fun SourceEvent.fromSourceEvent(): WritableMap {
 /**
  * Converts any given `PlayerEvent` object into its `json` representation.
  */
-fun PlayerEvent.fromPlayerEvent(): WritableMap {
+fun PlayerEvent.toJson(): WritableMap {
     val json = Arguments.createMap()
     json.putString("name", getName())
     json.putDouble("timestamp", timestamp.toDouble())
@@ -401,8 +401,8 @@ fun PlayerEvent.fromPlayerEvent(): WritableMap {
         }
 
         is PlayerEvent.Seek -> {
-            json.putMap("from", from.fromSeekPosition())
-            json.putMap("to", to.fromSeekPosition())
+            json.putMap("from", from.toJson())
+            json.putMap("to", to.toJson())
         }
 
         is PlayerEvent.TimeShift -> {
@@ -472,12 +472,12 @@ fun PlayerEvent.fromPlayerEvent(): WritableMap {
         }
 
         is PlayerEvent.VideoPlaybackQualityChanged -> {
-            json.putMap("newVideoQuality", newVideoQuality?.fromVideoQuality())
-            json.putMap("oldVideoQuality", oldVideoQuality?.fromVideoQuality())
+            json.putMap("newVideoQuality", newVideoQuality?.toJson())
+            json.putMap("oldVideoQuality", oldVideoQuality?.toJson())
         }
 
         is PlayerEvent.CastWaitingForDevice -> {
-            json.putMap("castPayload", fromCastPayload(castPayload))
+            json.putMap("castPayload", castPayload.toJson())
         }
 
         is PlayerEvent.CastStarted -> {
@@ -706,7 +706,7 @@ fun SourceMetadata.toJson(): ReadableMap = customData.toJson().also {
 /**
  * Converts any `VideoQuality` value into its json representation.
  */
-fun VideoQuality.fromVideoQuality(): WritableMap = Arguments.createMap().apply {
+fun VideoQuality.toJson(): WritableMap = Arguments.createMap().apply {
     putString("id", id)
     putString("label", label)
     putInt("bitrate", bitrate)
@@ -822,10 +822,10 @@ fun String.toMediaType(): MediaType? = when (this) {
 /**
  * Converts a [CastPayload] object into its JS representation.
  */
-private fun fromCastPayload(castPayload: CastPayload) = Arguments.createMap().apply {
-    putDouble("currentTime", castPayload.currentTime)
-    putString("deviceName", castPayload.deviceName)
-    putString("type", castPayload.type)
+private fun CastPayload.toJson(): WritableMap = Arguments.createMap().apply {
+    putDouble("currentTime", currentTime)
+    putString("deviceName", deviceName)
+    putString("type", type)
 }
 
 private fun WritableMap.putStringIfNotNull(name: String, value: String?) {
