@@ -322,6 +322,9 @@ class RNPlayerView(
 data class RNPlayerViewConfigWrapper(
     val playerViewConfig: PlayerViewConfig?,
     val pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig?,
+)
+
+data class RNStyleConfigWrapper(
     val userInterfaceType: UserInterfaceType,
 )
 

@@ -269,13 +269,13 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     return@post
                 }
                 val rnPlayerConfigWrapper = view.config
-                    ?: playerConfig
-                        ?.let { JsonConverter.toRNPlayerViewConfigWrapper(it) }
+                    ?: playerConfig?.let { JsonConverter.toRNPlayerViewConfigWrapper(it) }
+                val rnStyleConfigWrapper = playerConfig?.let { JsonConverter.toRNStyleConfigWrapper(it) }
                 val nativePlayerViewConfig = rnPlayerConfigWrapper?.playerViewConfig ?: PlayerViewConfig()
 
                 val playerView: PlayerView
                 if (nativePlayerViewConfig.uiConfig == UiConfig.Disabled ||
-                    (rnPlayerConfigWrapper?.userInterfaceType ?: UserInterfaceType.Bitmovin) ==
+                    (rnStyleConfigWrapper?.userInterfaceType ?: UserInterfaceType.Bitmovin) ==
                     UserInterfaceType.Bitmovin
                 ) {
                     playerView = PlayerView(currentActivity, player, nativePlayerViewConfig)
