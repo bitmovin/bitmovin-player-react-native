@@ -248,7 +248,11 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      */
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId?, playerConfig: ReadableMap?) {
         Handler(Looper.getMainLooper()).post {
-            val player = getPlayerModule()?.getPlayer(playerId)
+            val player = playerId?.let { getPlayerModule()?.getPlayerOrNull(it) }
+            if (player == null) {
+                Log.e(MODULE_NAME, "Cannot create a PlayerView, invalid playerId was passed.")
+                return@post
+            }
             val playbackConfig = playerConfig?.getMap("playbackConfig")
             val isPictureInPictureEnabled = view.config?.pictureInPictureConfig?.isEnabled == true ||
                 playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true

@@ -22,7 +22,7 @@ class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     @ReactMethod
     fun getLevel(nativeId: NativeId, type: String, promise: Promise) {
         addUIBlock(promise) {
-            val player = playerModule().getPlayer(nativeId) ?: return@addUIBlock
+            val player = playerModule().getPlayer(nativeId)
             val bufferType = type.toBufferType()
             if (bufferType == null) {
                 promise.reject("Error: ", "Invalid buffer type")
@@ -45,7 +45,7 @@ class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     @ReactMethod
     fun setTargetLevel(nativeId: NativeId, type: String, value: Double, promise: Promise) {
         addUIBlock(promise) {
-            val player = playerModule().getPlayer(nativeId) ?: return@addUIBlock
+            val player = playerModule().getPlayer(nativeId)
             val bufferType = type.toBufferType() ?: return@addUIBlock
             player.buffer.setTargetLevel(bufferType, value)
         }

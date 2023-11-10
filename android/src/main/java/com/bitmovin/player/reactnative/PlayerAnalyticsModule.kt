@@ -21,11 +21,9 @@ class PlayerAnalyticsModule(context: ReactApplicationContext) : BitmovinBaseModu
      * @param json Custom data config json.
      */
     @ReactMethod
-    fun sendCustomDataEvent(nativeId: NativeId, json: ReadableMap?, promise: Promise) {
+    fun sendCustomDataEvent(nativeId: NativeId, json: ReadableMap, promise: Promise) {
         addUIBlock(promise) {
-            json?.toAnalyticsCustomData()?.let {
-                playerModule().getPlayer(nativeId)?.analytics?.sendCustomDataEvent(it)
-            }
+            playerModule().getPlayer(nativeId).analytics?.sendCustomDataEvent(json.toAnalyticsCustomData())
         }
     }
 
@@ -37,9 +35,7 @@ class PlayerAnalyticsModule(context: ReactApplicationContext) : BitmovinBaseModu
     @ReactMethod
     fun getUserId(playerId: NativeId, promise: Promise) {
         addUIBlock(promise) {
-            playerModule().getPlayer(playerId)?.analytics?.let {
-                promise.resolve(it.userId)
-            }
+            playerModule().getPlayer(playerId).analytics?.userId
         }
     }
 }
