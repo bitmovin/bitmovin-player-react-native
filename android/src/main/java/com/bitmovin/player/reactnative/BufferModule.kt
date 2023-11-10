@@ -11,7 +11,7 @@ import com.facebook.react.uimanager.UIManagerModule
 private const val MODULE_NAME = "BufferModule"
 
 @ReactModule(name = MODULE_NAME)
-class BufferModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
+class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
     override fun getName() = MODULE_NAME
 
     /**
@@ -22,8 +22,8 @@ class BufferModule(private val context: ReactApplicationContext) : ReactContextB
      */
     @ReactMethod
     fun getLevel(nativeId: NativeId, type: String, promise: Promise) {
-        uiManager()?.addUIBlock { _ ->
-            val player = playerModule()?.getPlayer(nativeId) ?: return@addUIBlock
+        addUIBlock(promise) {
+            val player = playerModule().getPlayer(nativeId) ?: return@addUIBlock
             val bufferType = type.toBufferType()
             if (bufferType == null) {
                 promise.reject("Error: ", "Invalid buffer type")
@@ -44,23 +44,13 @@ class BufferModule(private val context: ReactApplicationContext) : ReactContextB
      * @param value The value to set.
      */
     @ReactMethod
-    fun setTargetLevel(nativeId: NativeId, type: String, value: Double) {
-        uiManager()?.addUIBlock { _ ->
-            val player = playerModule()?.getPlayer(nativeId) ?: return@addUIBlock
+    fun setTargetLevel(nativeId: NativeId, type: String, value: Double, promise: Promise) {
+        addUIBlock(promise) {
+            val player = playerModule().getPlayer(nativeId) ?: return@addUIBlock
             val bufferType = type.toBufferType() ?: return@addUIBlock
             player.buffer.setTargetLevel(bufferType, value)
         }
     }
-
-    /**
-     * Helper function that gets the instantiated `UIManagerModule` from modules registry.
-     */
-    private fun uiManager(): UIManagerModule? = context.getNativeModule(UIManagerModule::class.java)
-
-    /**
-     * Helper function that gets the instantiated `PlayerModule` from modules registry.
-     */
-    private fun playerModule(): PlayerModule? = context.getNativeModule(PlayerModule::class.java)
 }
 
 /**

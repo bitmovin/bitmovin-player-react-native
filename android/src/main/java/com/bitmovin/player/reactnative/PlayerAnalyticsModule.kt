@@ -9,7 +9,7 @@ import com.facebook.react.uimanager.UIManagerModule
 private const val MODULE_NAME = "PlayerAnalyticsModule"
 
 @ReactModule(name = MODULE_NAME)
-class PlayerAnalyticsModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
+class PlayerAnalyticsModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
     /**
      * JS exported module name.
      */
@@ -22,10 +22,10 @@ class PlayerAnalyticsModule(private val context: ReactApplicationContext) : Reac
      * @param json Custom data config json.
      */
     @ReactMethod
-    fun sendCustomDataEvent(nativeId: NativeId, json: ReadableMap?) {
-        uiManager()?.addUIBlock { _ ->
+    fun sendCustomDataEvent(nativeId: NativeId, json: ReadableMap?, promise: Promise) {
+        addUIBlock(promise) {
             json?.toAnalyticsCustomData()?.let {
-                playerModule()?.getPlayer(nativeId)?.analytics?.sendCustomDataEvent(it)
+                playerModule().getPlayer(nativeId)?.analytics?.sendCustomDataEvent(it)
             }
         }
     }
@@ -37,22 +37,10 @@ class PlayerAnalyticsModule(private val context: ReactApplicationContext) : Reac
      */
     @ReactMethod
     fun getUserId(playerId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock { _ ->
-            playerModule()?.getPlayer(playerId)?.analytics?.let {
+        addUIBlock(promise) {
+            playerModule().getPlayer(playerId)?.analytics?.let {
                 promise.resolve(it.userId)
             }
         }
     }
-
-    /**
-     * Helper function that gets the instantiated `UIManagerModule` from modules registry.
-     */
-    private fun uiManager(): UIManagerModule? =
-        context.getNativeModule(UIManagerModule::class.java)
-
-    /**
-     * Helper function that gets the instantiated `PlayerModule` from modules registry.
-     */
-    private fun playerModule(): PlayerModule? =
-        context.getNativeModule(PlayerModule::class.java)
 }

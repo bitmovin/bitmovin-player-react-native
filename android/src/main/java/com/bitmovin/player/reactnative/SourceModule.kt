@@ -31,16 +31,10 @@ class SourceModule(private val context: ReactApplicationContext) : ReactContextB
     override fun getName() = MODULE_NAME
 
     /**
-     * Fetches the `Source` instance associated with `nativeId` from internal sources.
-     * @param nativeId `Source` instance ID.
-     * @return The associated `Source` instance or `null`.
+     * Fetches the [Source] instance associated with [nativeId] from internal sources or throws.
      */
-    fun getSource(nativeId: NativeId?): Source? {
-        if (nativeId == null) {
-            return null
-        }
-        return sources[nativeId]
-    }
+    fun getSource(nativeId: NativeId): Source = sources[nativeId]
+        ?: throw IllegalArgumentException("No source matching provided id")
 
     /**
      * Creates a new `Source` instance inside the internal sources using the provided

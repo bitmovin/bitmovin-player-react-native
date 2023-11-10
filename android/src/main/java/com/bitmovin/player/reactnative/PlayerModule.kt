@@ -19,7 +19,7 @@ import com.facebook.react.uimanager.UIManagerModule
 private const val MODULE_NAME = "PlayerModule"
 
 @ReactModule(name = MODULE_NAME)
-class PlayerModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
+class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
     /**
      * In-memory mapping from `nativeId`s to `Player` instances.
      */
@@ -57,31 +57,18 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
         }
     }
 
-    /** Run [block], forwarding the return value. If it throws, sets [Promise.reject] and return null. */
-    private inline fun <T> runAndRejectOnException(promise: Promise, crossinline block: ()->T) : T? = try {
-        block()
-    } catch (e: Exception) {
-        promise.reject(e)
-        null
-    }
-
-    /** Run [block] in [UIManagerModule.addUIBlock], forwarding the result to the [promise]. */
-    private inline fun <T> addUIBlock(promise: Promise, crossinline block: ()->T) {
-        val uiManager = runAndRejectOnException(promise) { uiManager() } ?: return
-        uiManager.addUIBlock {
-            runAndRejectOnException(promise) {
-                promise.resolve(block())
-            }
-       }
-    }
-
     /**
      * Creates a new `Player` instance inside the internal players using the provided `playerConfig` and `analyticsConfig`.
      * @param playerConfigJson `PlayerConfig` object received from JS.
      * @param analyticsConfigJson `AnalyticsConfig` object received from JS.
      */
     @ReactMethod
-    fun initWithAnalyticsConfig(nativeId: NativeId, playerConfigJson: ReadableMap?, analyticsConfigJson: ReadableMap?, promise: Promise) {
+    fun initWithAnalyticsConfig(
+        nativeId: NativeId,
+        playerConfigJson: ReadableMap?,
+        analyticsConfigJson: ReadableMap?,
+        promise: Promise
+    ) {
         addUIBlock(promise) {
             if (players.containsKey(nativeId)) {
                 throw IllegalArgumentException("Duplicate player creation for id $nativeId")
@@ -111,9 +98,7 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     @ReactMethod
     fun loadSource(nativeId: NativeId, sourceNativeId: String, promise: Promise) {
         addUIBlock(promise) {
-            sourceModule()?.getSource(sourceNativeId)?.let {
-                players[nativeId]?.load(it)
-            }
+            players[nativeId]?.load(sourceModule().getSource(sourceNativeId))
         }
     }
 
@@ -124,7 +109,12 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      * @param options Source configuration options from JS.
      */
     @ReactMethod
-    fun loadOfflineContent(nativeId: NativeId, offlineContentManagerBridgeId: String, options: ReadableMap?, promise: Promise) {
+    fun loadOfflineContent(
+        nativeId: NativeId,
+        offlineContentManagerBridgeId: String,
+        options: ReadableMap?,
+        promise: Promise
+    ) {
         addUIBlock(promise) {
             val offlineSourceConfig = offlineModule().getOfflineContentManagerBridge(offlineContentManagerBridgeId)
                 ?.offlineContentManager?.offlineSourceConfig
@@ -593,22 +583,4 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
             promise.resolve(videoQualities)
         }
     }
-
-    /**
-     * Helper function that returns the initialized `UIManager` instance.
-     */
-    private fun uiManager(): UIManagerModule =
-        context.getNativeModule(UIManagerModule::class.java) ?: throw IllegalStateException("UIManager not found")
-
-    /**
-     * Helper function that returns the initialized `SourceModule` instance.
-     */
-    private fun sourceModule(): SourceModule =
-        context.getNativeModule(SourceModule::class.java) ?: throw IllegalStateException("SourceModule not found")
-
-    /**
-     * Helper function that returns the initialized `OfflineModule` instance.
-     */
-    private fun offlineModule(): OfflineModule =
-        context.getNativeModule(OfflineModule::class.java) ?: throw IllegalStateException("OfflineModule not found")
 }
