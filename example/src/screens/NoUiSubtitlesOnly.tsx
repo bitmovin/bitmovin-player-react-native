@@ -58,10 +58,6 @@ export default function NoUiSubtitlesOnly() {
     }, [player])
   );
 
-  const onReady = useCallback((event: Event) => {
-    prettyPrint(`EVENT [${event.name}]`, event);
-  }, []);
-
   const onEvent = useCallback((event: Event) => {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
@@ -84,7 +80,7 @@ export default function NoUiSubtitlesOnly() {
         onPlay={onEvent}
         onPlaying={onEvent}
         onPaused={onEvent}
-        onReady={onReady}
+        onReady={onEvent}
         onSourceLoaded={onEvent}
         onSeek={onEvent}
         onSeeked={onEvent}
