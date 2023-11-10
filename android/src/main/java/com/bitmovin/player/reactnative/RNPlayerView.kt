@@ -204,9 +204,6 @@ class RNPlayerView(
         }
     }
 
-    /**
-     * Make sure this is called after [addPlayerView], otherwise the subtitleView will be overdrawn by the player!
-     */
     fun addSubtitleView(subtitleView: SubtitleView) {
         addView(subtitleView)
     }
