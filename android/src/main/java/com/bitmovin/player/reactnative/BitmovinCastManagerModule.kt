@@ -2,6 +2,7 @@ package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.casting.BitmovinCastManager
 import com.bitmovin.player.reactnative.converter.toCastOptions
+import com.bitmovin.player.reactnative.extensions.uiManagerModule
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -63,8 +64,7 @@ class BitmovinCastManagerModule(
         }
     }
 
-    private val uiManager: UIManagerModule?
-        get() = context.getNativeModule(UIManagerModule::class.java)
+    private val uiManager: UIManagerModule? get() = context.uiManagerModule
 }
 
 /**

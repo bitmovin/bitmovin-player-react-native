@@ -2,12 +2,13 @@ package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.reactnative.converter.toSourceConfig
+import com.bitmovin.player.reactnative.extensions.drmModule
 import com.bitmovin.player.reactnative.extensions.toList
+import com.bitmovin.player.reactnative.extensions.uiManagerModule
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.uimanager.UIManagerModule
 
 private const val OFFLINE_MODULE = "BitmovinOfflineModule"
 
@@ -58,11 +59,11 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
      */
     @ReactMethod
     fun initWithConfig(nativeId: NativeId, config: ReadableMap?, drmNativeId: NativeId?, promise: Promise) {
-        uiManager()?.addUIBlock {
+        context.uiManagerModule?.addUIBlock {
             if (!offlineContentManagerBridges.containsKey(nativeId)) {
                 val identifier = config?.getString("identifier")
                 val sourceConfig = config?.getMap("sourceConfig")?.toSourceConfig()
-                sourceConfig?.drmConfig = drmModule()?.getConfig(drmNativeId)
+                sourceConfig?.drmConfig = context.drmModule?.getConfig(drmNativeId)
 
                 if (identifier.isNullOrEmpty() || sourceConfig == null) {
                     promise.reject(IllegalArgumentException("Identifier and SourceConfig may not be null"))
@@ -277,14 +278,4 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
         getOfflineContentManagerBridge(nativeId)?.let(runBlock)
             ?: promise.reject(IllegalArgumentException("Could not find the offline module instance"))
     }
-
-    /**
-     * Helper function that returns the initialized `DrmModule` instance.
-     */
-    private fun drmModule(): DrmModule? = context.getNativeModule(DrmModule::class.java)
-
-    /**
-     * Helper function that returns the initialized `UIManager` instance.
-     */
-    private fun uiManager(): UIManagerModule? = context.getNativeModule(UIManagerModule::class.java)
 }

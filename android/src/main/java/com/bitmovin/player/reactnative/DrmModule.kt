@@ -5,9 +5,9 @@ import com.bitmovin.player.api.drm.PrepareLicenseCallback
 import com.bitmovin.player.api.drm.PrepareMessageCallback
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.reactnative.converter.toWidevineConfig
+import com.bitmovin.player.reactnative.extensions.uiManagerModule
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.uimanager.UIManagerModule
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -75,7 +75,7 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
      */
     @ReactMethod
     fun initWithConfig(nativeId: NativeId, config: ReadableMap?) {
-        uiManager()?.addUIBlock {
+        context.uiManagerModule?.addUIBlock {
             if (!drmConfigs.containsKey(nativeId)) {
                 config?.toWidevineConfig()?.let {
                     drmConfigs[nativeId] = it
@@ -181,10 +181,4 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
             Base64.decode(result, Base64.NO_WRAP)
         }
     }
-
-    /**
-     * Helper function that returns the initialized `UIManager` instance.
-     */
-    private fun uiManager(): UIManagerModule? =
-        context.getNativeModule(UIManagerModule::class.java)
 }

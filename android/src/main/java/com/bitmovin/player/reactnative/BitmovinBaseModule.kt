@@ -1,5 +1,9 @@
 package com.bitmovin.player.reactnative
 
+import com.bitmovin.player.reactnative.extensions.offlineModule
+import com.bitmovin.player.reactnative.extensions.playerModule
+import com.bitmovin.player.reactnative.extensions.sourceModule
+import com.bitmovin.player.reactnative.extensions.uiManagerModule
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.UIManagerModule
 
@@ -17,28 +21,28 @@ abstract class BitmovinBaseModule(
     }
 
     /**
+     * Helper function that gets the instantiated [PlayerModule] from modules registry.
+     */
+    protected fun playerModule(): PlayerModule =
+        context.playerModule ?: throw IllegalArgumentException("PlayerModule not found")
+
+    /**
      * Helper function that returns the initialized [UIManagerModule] instance or throw.
      */
     protected fun uiManager(): UIManagerModule =
-        context.getNativeModule(UIManagerModule::class.java) ?: throw IllegalStateException("UIManager not found")
+        context.uiManagerModule ?: throw IllegalStateException("UIManager not found")
 
     /**
      * Helper function that returns the initialized [SourceModule] instance or throw.
      */
     protected fun sourceModule(): SourceModule =
-        context.getNativeModule(SourceModule::class.java) ?: throw IllegalStateException("SourceModule not found")
+        context.sourceModule ?: throw IllegalStateException("SourceModule not found")
 
     /**
      * Helper function that returns the initialized [OfflineModule] instance or throw.
      */
     protected fun offlineModule(): OfflineModule =
-        context.getNativeModule(OfflineModule::class.java) ?: throw IllegalStateException("OfflineModule not found")
-
-    /**
-     * Helper function that gets the instantiated [PlayerModule] from modules registry.
-     */
-    protected fun playerModule(): PlayerModule =
-        context.getNativeModule(PlayerModule::class.java) ?: throw IllegalArgumentException("PlayerModule not found")
+        context.offlineModule ?: throw IllegalStateException("OfflineModule not found")
 }
 
 /** Run [block], forwarding the return value. If it throws, sets [Promise.reject] and return null. */
