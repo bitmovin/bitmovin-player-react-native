@@ -20,7 +20,6 @@ import LandscapeFullscreenHandling from './screens/LandscapeFullscreenHandling';
 import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
-import NoUiSubtitlesOnly from './screens/NoUiSubtitlesOnly';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -32,7 +31,6 @@ export type RootStackParamsList = {
   BasicAds: undefined;
   BasicAnalytics: undefined;
   BasicPlayback: undefined;
-  NoUiSubtitlesOnly: undefined;
   BasicDrmPlayback: undefined;
   BasicPictureInPicture: {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
@@ -124,11 +122,6 @@ export default function App() {
       routeName: 'Casting',
     });
   }
-
-  stackParams.data.push({
-    title: 'NoUI - Subtitles Only',
-    routeName: 'NoUiSubtitlesOnly',
-  });
 
   if (Platform.OS === 'ios' && !Platform.isTV) {
     stackParams.data.push({
@@ -253,13 +246,6 @@ export default function App() {
             options={{ title: 'Casting' }}
           />
         )}
-        {
-          <RootStack.Screen
-            name="NoUiSubtitlesOnly"
-            component={NoUiSubtitlesOnly}
-            options={{ title: 'No UI - Subtitles Only' }}
-          />
-        }
       </RootStack.Navigator>
     </NavigationContainer>
   );
