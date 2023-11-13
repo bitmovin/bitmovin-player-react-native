@@ -23,8 +23,8 @@ class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     @ReactMethod
     fun getLevel(nativeId: NativeId, type: String, promise: Promise) {
         promise.resolveOnUIThread {
-            val player = playerModule.getPlayer(nativeId)
-            val bufferType = type.toBufferType() ?: throw IllegalArgumentException(INVALID_BUFFER_TYPE)
+            val player = getPlayer(nativeId)
+            val bufferType = type.toBufferTypeOrThrow()
             RNBufferLevels(
                 audio = player.buffer.getLevel(bufferType, MediaType.Audio),
                 video = player.buffer.getLevel(bufferType, MediaType.Video),
@@ -41,7 +41,7 @@ class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     @ReactMethod
     fun setTargetLevel(nativeId: NativeId, type: String, value: Double, promise: Promise) {
         promise.resolveOnUIThread {
-            playerModule.getPlayer(nativeId).buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
+            getPlayer(nativeId).buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
         }
     }
 

@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative
 
+import com.bitmovin.player.api.Player
 import com.bitmovin.player.reactnative.extensions.offlineModule
 import com.bitmovin.player.reactnative.extensions.playerModule
 import com.bitmovin.player.reactnative.extensions.sourceModule
@@ -31,6 +32,9 @@ abstract class BitmovinBaseModule(
 
     protected val PromiseRejectOnExceptionBlock.offlineModule: OfflineModule get() = context.offlineModule
         ?: throw IllegalStateException("OfflineModule not found")
+
+    fun PromiseRejectOnExceptionBlock.getPlayer(nativeId: NativeId): Player = playerModule.getPlayerOrNull(nativeId)
+        ?: throw IllegalArgumentException("Invalid PlayerId")
 }
 
 /** Run [block], forwarding the return value. If it throws, sets [Promise.reject] and return null. */

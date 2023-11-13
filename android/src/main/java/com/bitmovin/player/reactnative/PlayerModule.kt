@@ -29,12 +29,6 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     override fun getName() = MODULE_NAME
 
     /**
-     * Fetches the `Player` instance associated with `nativeId` from the internal players, or throw if there are none.
-     */
-    fun getPlayer(nativeId: NativeId): Player = getPlayerOrNull(nativeId)
-        ?: throw IllegalArgumentException("Invalid PlayerId")
-
-    /**
      * Fetches the `Player` instance associated with `nativeId` from the internal players.
      */
     fun getPlayerOrNull(nativeId: NativeId): Player? = players[nativeId]
