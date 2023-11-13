@@ -260,10 +260,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             view.pictureInPictureHandler = pictureInPictureHandler
             view.pictureInPictureHandler?.isPictureInPictureEnabled = isPictureInPictureEnabled
 
-            val rnPlayerConfigWrapper = view.config
-                ?: playerConfig?.let { JsonConverter.toRNPlayerViewConfigWrapper(it) }
-            val rnStyleConfigWrapper = playerConfig?.let { JsonConverter.toRNStyleConfigWrapper(it) }
-            val nativePlayerViewConfig = rnPlayerConfigWrapper?.playerViewConfig ?: PlayerViewConfig()
+            val rnStyleConfigWrapper = playerConfig?.let { JsonConverter.toRNStyleConfigWrapperFromPlayerConfig(it) }
+            val configuredPlayerViewConfig = view.config?.playerViewConfig ?: PlayerViewConfig()
 
             if (view.playerView != null) {
                 view.player = player
@@ -274,16 +272,14 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     Log.e(MODULE_NAME, "Cannot create a PlayerView, because no activity is attached.")
                     return@post
                 }
-
-                val playerView: PlayerView = if (nativePlayerViewConfig.uiConfig == UiConfig.Disabled ||
-                    (rnStyleConfigWrapper?.userInterfaceType ?: UserInterfaceType.Bitmovin) ==
-                    UserInterfaceType.Bitmovin
-                ) {
-                    PlayerView(currentActivity, player, nativePlayerViewConfig)
+                val userInterfaceType = rnStyleConfigWrapper?.userInterfaceType ?: UserInterfaceType.Bitmovin
+                val playerViewConfig: PlayerViewConfig = if (userInterfaceType != UserInterfaceType.Bitmovin) {
+                    configuredPlayerViewConfig.copy(uiConfig = UiConfig.Disabled)
                 } else {
-                    val overwrittenConfig = nativePlayerViewConfig.copy(uiConfig = UiConfig.Disabled)
-                    PlayerView(currentActivity, player, overwrittenConfig)
+                    configuredPlayerViewConfig
                 }
+
+                val playerView = PlayerView(currentActivity, player, playerViewConfig)
 
                 playerView.layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
@@ -293,7 +289,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 attachCustomMessageHandlerBridge(view)
             }
 
-            if (nativePlayerViewConfig.uiConfig != UiConfig.Disabled &&
+            if (player?.config?.styleConfig?.isUiEnabled != false  &&
                 rnStyleConfigWrapper?.userInterfaceType == UserInterfaceType.Subtitle
             ) {
                 context.currentActivity?.let { activity ->

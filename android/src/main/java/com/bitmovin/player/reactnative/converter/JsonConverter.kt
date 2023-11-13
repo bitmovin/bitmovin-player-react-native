@@ -1192,7 +1192,7 @@ class JsonConverter {
             },
         )
 
-        private fun toUserInterfaceType(json: ReadableMap): UserInterfaceType =
+        private fun toUserInterfaceTypeFromPlayerConfig(json: ReadableMap): UserInterfaceType =
             when (json.getMap("styleConfig")?.getString("userInterfaceType")) {
                 "Subtitle" -> UserInterfaceType.Subtitle
                 "Bitmovin" -> UserInterfaceType.Bitmovin
@@ -1207,8 +1207,8 @@ class JsonConverter {
             pictureInPictureConfig = toPictureInPictureConfig(json.getMap("pictureInPictureConfig")),
         )
 
-        fun toRNStyleConfigWrapper(json: ReadableMap) = RNStyleConfigWrapper(
-            userInterfaceType = toUserInterfaceType(json),
+        fun toRNStyleConfigWrapperFromPlayerConfig(json: ReadableMap) = RNStyleConfigWrapper(
+            userInterfaceType = toUserInterfaceTypeFromPlayerConfig(json),
         )
 
         /**
