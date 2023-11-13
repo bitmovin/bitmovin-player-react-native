@@ -15,6 +15,7 @@ import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.ui.PlayerViewConfig
+import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
@@ -325,6 +326,7 @@ data class RNPlayerViewConfigWrapper(
 )
 
 data class RNStyleConfigWrapper(
+    val styleConfig: StyleConfig?,
     val userInterfaceType: UserInterfaceType,
 )
 

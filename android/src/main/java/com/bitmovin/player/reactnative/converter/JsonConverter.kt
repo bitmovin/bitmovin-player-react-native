@@ -1208,6 +1208,7 @@ class JsonConverter {
         )
 
         fun toRNStyleConfigWrapperFromPlayerConfig(json: ReadableMap) = RNStyleConfigWrapper(
+            styleConfig = toStyleConfig(json),
             userInterfaceType = toUserInterfaceTypeFromPlayerConfig(json),
         )
 
