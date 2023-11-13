@@ -5,17 +5,17 @@ import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.SubtitleView
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
+import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getModule
 import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
 import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
@@ -162,21 +162,25 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             Commands.ATTACH_FULLSCREEN_BRIDGE -> args?.getString(1)?.let { fullscreenBridgeId ->
                 attachFullscreenBridge(view, fullscreenBridgeId)
             }
+
             Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID -> {
                 args?.getString(1)?.let { customMessageHandlerBridgeId ->
                     setCustomMessageHandlerBridgeId(view, customMessageHandlerBridgeId)
                 }
             }
+
             Commands.SET_FULLSCREEN -> {
                 args?.getBoolean(1)?.let { isFullscreen ->
                     setFullscreen(view, isFullscreen)
                 }
             }
+
             Commands.SET_SCALING_MODE -> {
                 args?.getString(1)?.let { scalingMode ->
                     setScalingMode(view, scalingMode)
                 }
             }
+
             Commands.SET_PICTURE_IN_PICTURE -> {
                 args?.getBoolean(1)?.let { isPictureInPicture ->
                     setPictureInPicture(view, isPictureInPicture)
@@ -255,6 +259,10 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             val pictureInPictureHandler = view.pictureInPictureHandler ?: RNPictureInPictureHandler(context)
             view.pictureInPictureHandler = pictureInPictureHandler
             view.pictureInPictureHandler?.isPictureInPictureEnabled = isPictureInPictureEnabled
+
+            val rnStyleConfigWrapper = playerConfig?.let { JsonConverter.toRNStyleConfigWrapperFromPlayerConfig(it) }
+            val configuredPlayerViewConfig = view.config?.playerViewConfig ?: PlayerViewConfig()
+
             if (view.playerView != null) {
                 view.player = player
             } else {
@@ -264,17 +272,31 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     Log.e(MODULE_NAME, "Cannot create a PlayerView, because no activity is attached.")
                     return@post
                 }
-                val playerView = PlayerView(
-                    currentActivity,
-                    player,
-                    view.config?.playerViewConfig ?: PlayerViewConfig(),
-                )
+                val userInterfaceType = rnStyleConfigWrapper?.userInterfaceType ?: UserInterfaceType.Bitmovin
+                val playerViewConfig: PlayerViewConfig = if (userInterfaceType != UserInterfaceType.Bitmovin) {
+                    configuredPlayerViewConfig.copy(uiConfig = UiConfig.Disabled)
+                } else {
+                    configuredPlayerViewConfig
+                }
+
+                val playerView = PlayerView(currentActivity, player, playerViewConfig)
+
                 playerView.layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
                     LayoutParams.MATCH_PARENT,
                 )
-                view.addPlayerView(playerView)
+                view.setPlayerView(playerView)
                 attachCustomMessageHandlerBridge(view)
+            }
+
+            if (rnStyleConfigWrapper?.styleConfig?.isUiEnabled != false &&
+                rnStyleConfigWrapper?.userInterfaceType == UserInterfaceType.Subtitle
+            ) {
+                context.currentActivity?.let { activity ->
+                    val subtitleView = SubtitleView(activity)
+                    subtitleView.setPlayer(player)
+                    view.setSubtitleView(subtitleView)
+                }
             }
         }
     }

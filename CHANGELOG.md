@@ -9,6 +9,7 @@
 - `DownloadFinishedEvent` to signal when the download of specific content has finished
 - `Player.videoQuality`, `Player.availableVideoQualities`, and `VideoDownloadQualityChangedEvent` to query current video qualities and listen to related changes
 - `Player.playbackSpeed`, `Player.canPlayAtPlaybackSpeed`, `PlaybackSpeedChangedEvent` to query, control, and listen to changes to the speed of the playback
+- Support for `UserInterfaceType.Subtitle` on Android
 
 ### Fixed
 
