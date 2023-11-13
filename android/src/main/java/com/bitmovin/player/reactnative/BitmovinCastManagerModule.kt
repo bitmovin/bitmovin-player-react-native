@@ -2,69 +2,55 @@ package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.casting.BitmovinCastManager
 import com.bitmovin.player.reactnative.converter.toCastOptions
-import com.bitmovin.player.reactnative.extensions.uiManagerModule
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.uimanager.UIManagerModule
 
 private const val MODULE_NAME = "BitmovinCastManagerModule"
 
 @ReactModule(name = MODULE_NAME)
-class BitmovinCastManagerModule(
-    private val context: ReactApplicationContext,
-) : ReactContextBaseJavaModule(context) {
+class BitmovinCastManagerModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
     override fun getName() = MODULE_NAME
 
     /**
      * Returns whether the [BitmovinCastManager] is initialized.
      */
     @ReactMethod
-    fun isInitialized(promise: Promise) = uiManager?.addUIBlock {
-        promise.resolve(BitmovinCastManager.isInitialized())
+    fun isInitialized(promise: Promise) = promise.resolveOnUIThread {
+        BitmovinCastManager.isInitialized()
     }
 
     /**
      * Initializes the [BitmovinCastManager] with the given options.
      */
     @ReactMethod
-    fun initializeCastManager(options: ReadableMap?, promise: Promise) {
+    fun initializeCastManager(options: ReadableMap?, promise: Promise) = promise.resolveOnUIThread {
         val castOptions = options?.toCastOptions()
-        uiManager?.addUIBlock {
-            BitmovinCastManager.initialize(
-                castOptions?.applicationId,
-                castOptions?.messageNamespace,
-            )
-            promise.resolve(null)
-        }
+        BitmovinCastManager.initialize(
+            castOptions?.applicationId,
+            castOptions?.messageNamespace,
+        )
     }
 
     /**
      * Sends a message to the receiver.
      */
     @ReactMethod
-    fun sendMessage(message: String, messageNamespace: String?, promise: Promise) {
-        uiManager?.addUIBlock {
-            BitmovinCastManager.getInstance().sendMessage(message, messageNamespace)
-            promise.resolve(null)
-        }
+    fun sendMessage(message: String, messageNamespace: String?, promise: Promise) = promise.resolveOnUIThread {
+        BitmovinCastManager.getInstance().sendMessage(message, messageNamespace)
+        promise.resolve(null)
     }
 
     /**
      * Updates the context of the [BitmovinCastManager] to the current activity.
      */
     @ReactMethod
-    fun updateContext(promise: Promise) {
-        uiManager?.addUIBlock {
-            BitmovinCastManager.getInstance().updateContext(currentActivity)
-            promise.resolve(null)
-        }
+    fun updateContext(promise: Promise) = promise.resolveOnUIThread {
+        BitmovinCastManager.getInstance().updateContext(currentActivity)
+        promise.resolve(null)
     }
-
-    private val uiManager: UIManagerModule? get() = context.uiManagerModule
 }
 
 /**
