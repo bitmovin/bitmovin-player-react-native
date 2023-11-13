@@ -1181,15 +1181,11 @@ class JsonConverter {
          * Converts the [json] to a `RNUiConfig` object.
          */
         fun toPlayerViewConfig(json: ReadableMap) = PlayerViewConfig(
-            uiConfig = if (json.getMap("styleConfig")?.getBooleanOrNull("isUiEnabled") == false) {
-                UiConfig.Disabled
-            } else {
-                UiConfig.WebUi(
-                    playbackSpeedSelectionEnabled = json.getMap("uiConfig")
-                        ?.getBooleanOrNull("playbackSpeedSelectionEnabled")
-                        ?: true,
-                )
-            },
+            uiConfig = UiConfig.WebUi(
+                playbackSpeedSelectionEnabled = json.getMap("uiConfig")
+                    ?.getBooleanOrNull("playbackSpeedSelectionEnabled")
+                    ?: true,
+            ),
         )
 
         private fun toUserInterfaceTypeFromPlayerConfig(json: ReadableMap): UserInterfaceType =
