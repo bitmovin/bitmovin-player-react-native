@@ -289,7 +289,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 attachCustomMessageHandlerBridge(view)
             }
 
-            if (rnStyleConfigWrapper?.styleConfig?.isUiEnabled != false  &&
+            if (rnStyleConfigWrapper?.styleConfig?.isUiEnabled != false &&
                 rnStyleConfigWrapper?.userInterfaceType == UserInterfaceType.Subtitle
             ) {
                 context.currentActivity?.let { activity ->
