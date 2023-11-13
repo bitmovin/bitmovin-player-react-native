@@ -45,8 +45,7 @@ class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         }
     }
 
-    private fun String.toBufferTypeOrThrow() = toBufferType()
-        ?: throw IllegalArgumentException("Invalid buffer type")
+    private fun String.toBufferTypeOrThrow() = toBufferType() ?: throw IllegalArgumentException(INVALID_BUFFER_TYPE)
 }
 
 /**
