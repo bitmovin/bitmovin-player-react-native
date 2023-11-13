@@ -2,18 +2,17 @@ package com.bitmovin.player.reactnative.extensions
 
 import com.facebook.react.bridge.*
 
-inline fun <reified T> Map<String, T>.toReadableMap(): ReadableMap = Arguments.createMap().apply {
+inline fun <T> Map<String, T>.toReadableMap(
+    put: WritableMap.(String, T) -> Unit,
+): ReadableMap = Arguments.createMap().apply {
     forEach {
-        when (T::class) {
-            Boolean::class -> putBoolean(it.key, it.value as Boolean)
-            String::class -> putString(it.key, it.value as String)
-            Double::class -> putDouble(it.key, it.value as Double)
-            Int::class -> putInt(it.key, it.value as Int)
-            ReadableArray::class -> putArray(it.key, it.value as ReadableArray)
-            ReadableMap::class -> putMap(it.key, it.value as ReadableMap)
-            WritableArray::class -> putArray(it.key, it.value as ReadableArray)
-            WritableMap::class -> putMap(it.key, it.value as ReadableMap)
-            else -> putNull(it.key)
-        }
+        put(it.key, it.value)
     }
 }
+
+fun Map<String, Boolean>.toReadableMap(): ReadableMap = toReadableMap(WritableMap::putBoolean)
+fun Map<String, String>.toReadableMap(): ReadableMap = toReadableMap(WritableMap::putString)
+fun Map<String, Double>.toReadableMap(): ReadableMap = toReadableMap(WritableMap::putDouble)
+fun Map<String, Int>.toReadableMap(): ReadableMap = toReadableMap(WritableMap::putInt)
+fun Map<String, ReadableArray>.toReadableMap(): ReadableMap = toReadableMap(WritableMap::putArray)
+fun Map<String, ReadableMap>.toReadableMap(): ReadableMap = toReadableMap(WritableMap::putMap)

@@ -7,10 +7,6 @@ fun ReadableMap.getBooleanOrNull(
     key: String,
 ): Boolean? = takeIf { hasKey(key) }?.getBoolean(key)
 
-fun ReadableMap.getDoubleOrNull(
-    key: String,
-): Double? = takeIf { hasKey(key) }?.getDouble(key)
-
 inline fun <T> ReadableMap.withDouble(
     key: String,
     block: (Double) -> T,
@@ -41,20 +37,7 @@ inline fun <T> ReadableMap.withArray(
     block: (ReadableArray) -> T,
 ): T? = getArray(key)?.let(block)
 
-/**
- * Reads the [Boolean] value from the given [ReadableMap] if the [key] is present.
- * Returns the [default] value otherwise.
- */
-fun ReadableMap.getOrDefault(
+inline fun <T> ReadableMap.withStringArray(
     key: String,
-    default: Boolean,
-) = if (hasKey(key)) getBoolean(key) else default
-
-/**
- * Reads the [String] value from the given [ReadableMap] if the [key] is present.
- * Returns the [default] value otherwise.
- */
-fun ReadableMap.getOrDefault(
-    key: String,
-    default: String?,
-) = if (hasKey(key)) getString(key) else default
+    block: (List<String?>) -> T,
+): T? = getArray(key)?.toStringList()?.let(block)

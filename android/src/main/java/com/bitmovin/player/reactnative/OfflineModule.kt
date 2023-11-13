@@ -3,7 +3,7 @@ package com.bitmovin.player.reactnative
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.reactnative.converter.toSourceConfig
 import com.bitmovin.player.reactnative.extensions.drmModule
-import com.bitmovin.player.reactnative.extensions.toList
+import com.bitmovin.player.reactnative.extensions.toStringList
 import com.bitmovin.player.reactnative.extensions.uiManagerModule
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
@@ -141,8 +141,8 @@ class OfflineModule(private val context: ReactApplicationContext) : ReactContext
                     return@safeOfflineContentManager
                 }
 
-                val audioOptionIds = request.getArray("audioOptionIds")?.toList<String>()?.filterNotNull()
-                val textOptionIds = request.getArray("textOptionIds")?.toList<String>()?.filterNotNull()
+                val audioOptionIds = request.getArray("audioOptionIds")?.toStringList()?.filterNotNull()
+                val textOptionIds = request.getArray("textOptionIds")?.toStringList()?.filterNotNull()
 
                 getOfflineContentManagerBridge(nativeId)?.process(
                     OfflineDownloadRequest(minimumBitRate, audioOptionIds, textOptionIds),

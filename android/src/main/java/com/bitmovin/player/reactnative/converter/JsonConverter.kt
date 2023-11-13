@@ -51,14 +51,12 @@ import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.extensions.get
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
-import com.bitmovin.player.reactnative.extensions.getDoubleOrNull
 import com.bitmovin.player.reactnative.extensions.getName
-import com.bitmovin.player.reactnative.extensions.getOrDefault
 import com.bitmovin.player.reactnative.extensions.putBoolean
 import com.bitmovin.player.reactnative.extensions.putDouble
 import com.bitmovin.player.reactnative.extensions.putInt
 import com.bitmovin.player.reactnative.extensions.set
-import com.bitmovin.player.reactnative.extensions.toList
+import com.bitmovin.player.reactnative.extensions.toMapList
 import com.bitmovin.player.reactnative.extensions.toReadableArray
 import com.bitmovin.player.reactnative.extensions.toReadableMap
 import com.bitmovin.player.reactnative.extensions.withArray
@@ -67,6 +65,7 @@ import com.bitmovin.player.reactnative.extensions.withDouble
 import com.bitmovin.player.reactnative.extensions.withInt
 import com.bitmovin.player.reactnative.extensions.withMap
 import com.bitmovin.player.reactnative.extensions.withString
+import com.bitmovin.player.reactnative.extensions.withStringArray
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler.PictureInPictureConfig
 import com.facebook.react.bridge.*
 import java.util.UUID
@@ -117,7 +116,7 @@ private fun ReadableMap.toRemoteControlConfig(): RemoteControlConfig = RemoteCon
  * Converts an arbitrary `json` to `SourceOptions`.
  */
 fun ReadableMap.toSourceOptions(): SourceOptions = SourceOptions(
-    startOffset = getDoubleOrNull("startOffset"),
+    startOffset = getDouble("startOffset"),
     startOffsetTimelineReference = getString("startOffsetTimelineReference")?.toTimelineReferencePoint(),
 )
 
@@ -164,11 +163,11 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     withDouble("timeChangedInterval") { timeChangedInterval = it }
     withInt("bandwidthEstimateWeightLimit") { bandwidthEstimateWeightLimit = it }
     withMap("devicesThatRequireSurfaceWorkaround") { devices ->
-        val deviceNames = devices.withArray("deviceNames") {
-            it.toList<String>().filterNotNull().map(::DeviceName)
+        val deviceNames = devices.withStringArray("deviceNames") {
+            it.filterNotNull().map(::DeviceName)
         } ?: emptyList()
-        val modelNames = devices.withArray("modelNames") {
-            it.toList<String>().filterNotNull().map(::DeviceName)
+        val modelNames = devices.withStringArray("modelNames") {
+            it.filterNotNull().map(::DeviceName)
         } ?: emptyList()
         devicesThatRequireSurfaceWorkaround = deviceNames + modelNames
     }
@@ -183,19 +182,21 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
 /**
  * Converts any JS object into an `AdvertisingConfig` object.
  */
-fun ReadableMap.toAdvertisingConfig(): AdvertisingConfig? = getArray("schedule")
-    ?.toList<ReadableMap>()
-    ?.mapNotNull { it?.toAdItem() }
-    ?.let { AdvertisingConfig(it) }
+fun ReadableMap.toAdvertisingConfig(): AdvertisingConfig? {
+    return AdvertisingConfig(
+        getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: return null,
+    )
+}
 
 /**
  * Converts any JS object into an `AdItem` object.
  */
-fun ReadableMap.toAdItem(): AdItem? = getArray("sources")
-    ?.toList<ReadableMap>()
-    ?.mapNotNull { it?.toAdSource() }
-    ?.toTypedArray()
-    ?.let { AdItem(it, getString("position") ?: "pre") }
+fun ReadableMap.toAdItem(): AdItem? {
+    return AdItem(
+        sources = getArray("sources") ?.toMapList()?.mapNotNull { it?.toAdSource() }?.toTypedArray() ?: return null,
+        position = getString("position") ?: "pre",
+    )
+}
 
 /**
  * Converts any JS object into an `AdSource` object.
@@ -479,8 +480,8 @@ fun PlayerEvent.toJson(): WritableMap {
  * Converts an arbitrary `json` into [BitmovinCastManagerOptions].
  */
 fun ReadableMap.toCastOptions(): BitmovinCastManagerOptions = BitmovinCastManagerOptions(
-    applicationId = getOrDefault("applicationId", null),
-    messageNamespace = getOrDefault("messageNamespace", null),
+    applicationId = getString("applicationId"),
+    messageNamespace = getString("messageNamespace"),
 )
 
 /**

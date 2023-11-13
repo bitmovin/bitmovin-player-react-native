@@ -47,7 +47,7 @@ abstract class BitmovinBaseModule(
 }
 
 /** Run [block], forwarding the return value. If it throws, sets [Promise.reject] and return null. */
-inline fun <T> Promise.runAndRejectOnException(crossinline block: PromiseRejectOnExceptionBlock.() -> T): T? = try {
+inline fun <T> Promise.runAndRejectOnException(block: PromiseRejectOnExceptionBlock.() -> T): T? = try {
     PromiseRejectOnExceptionBlock.block()
 } catch (e: Exception) {
     reject(e)
