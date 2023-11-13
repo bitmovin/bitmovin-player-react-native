@@ -10,12 +10,12 @@ import com.facebook.react.uimanager.UIManagerModule
 abstract class BitmovinBaseModule(
     protected val context: ReactApplicationContext,
 ) : ReactContextBaseJavaModule(context) {
-    /** Run [block] in [UIManagerModule.addUIBlock], forwarding the result to the [promise]. */
-    protected inline fun <T> addUIBlock(promise: Promise, crossinline block: () -> T) {
-        val uiManager = runAndRejectOnException(promise) { uiManager() } ?: return
+    /** [resolve] the [Promise] by running [block] in the UI thread with [UIManagerModule.addUIBlock].  */
+    protected inline fun <T> Promise.resolveOnUIThread(crossinline block: () -> T) {
+        val uiManager = runAndRejectOnException(this) { uiManager() } ?: return
         uiManager.addUIBlock {
-            runAndRejectOnException(promise) {
-                promise.resolve(block())
+            runAndRejectOnException(this) {
+                resolve(block())
             }
         }
     }

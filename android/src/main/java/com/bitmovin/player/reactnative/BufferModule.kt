@@ -21,13 +21,9 @@ class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getLevel(nativeId: NativeId, type: String, promise: Promise) {
-        addUIBlock(promise) {
+        promise.resolveOnUIThread {
             val player = playerModule().getPlayer(nativeId)
-            val bufferType = type.toBufferType()
-            if (bufferType == null) {
-                promise.reject("Error: ", "Invalid buffer type")
-                return@addUIBlock
-            }
+            val bufferType = type.toBufferTypeOrThrow()
             val bufferLevels = RNBufferLevels(
                 player.buffer.getLevel(bufferType, MediaType.Audio),
                 player.buffer.getLevel(bufferType, MediaType.Video),
@@ -35,6 +31,9 @@ class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
             promise.resolve(bufferLevels.toJson())
         }
     }
+
+    private fun String.toBufferTypeOrThrow() = toBufferType()
+        ?: throw IllegalArgumentException("Invalid buffer type")
 
     /**
      * Sets the target buffer level for the chosen buffer type across all media types.
@@ -44,9 +43,9 @@ class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun setTargetLevel(nativeId: NativeId, type: String, value: Double, promise: Promise) {
-        addUIBlock(promise) {
+        promise.resolveOnUIThread {
             val player = playerModule().getPlayer(nativeId)
-            val bufferType = type.toBufferType() ?: return@addUIBlock
+            val bufferType = type.toBufferTypeOrThrow()
             player.buffer.setTargetLevel(bufferType, value)
         }
     }
