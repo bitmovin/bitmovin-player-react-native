@@ -5,15 +5,17 @@ import android.content.res.Configuration
 import android.graphics.Rect
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
+import android.widget.FrameLayout
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.SubtitleView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.ui.PlayerViewConfig
+import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.converter.JsonConverter
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
@@ -98,7 +100,7 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event
 @SuppressLint("ViewConstructor")
 class RNPlayerView(
     private val context: ReactApplicationContext,
-) : LinearLayout(context), View.OnLayoutChangeListener, RNPictureInPictureDelegate {
+) : FrameLayout(context), View.OnLayoutChangeListener, RNPictureInPictureDelegate {
     private val activityLifecycle = (context.currentActivity as? ReactActivity)?.lifecycle
         ?: error("Trying to create an instance of ${this::class.simpleName} while not attached to a ReactActivity")
 
@@ -145,15 +147,20 @@ class RNPlayerView(
      */
     private val viewEventRelay = EventRelay<PlayerView, Event>(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI, ::emitEvent)
 
-    /**
-     * Associated bitmovin's `PlayerView`.
-     */
-    var playerView: PlayerView? = null
+    private var _playerView: PlayerView? = null
         set(value) {
             field = value
             viewEventRelay.eventEmitter = field
             playerEventRelay.eventEmitter = field?.player
         }
+
+    /**
+     * Associated Bitmovin's `PlayerView`.
+     */
+    val playerView: PlayerView?
+        get() = _playerView
+
+    private var subtitleView: SubtitleView? = null
 
     /**
      * Handy property accessor for `playerView`'s player instance.
@@ -190,17 +197,31 @@ class RNPlayerView(
      * Set the given `playerView` as child and start bubbling events.
      * @param playerView Shared player view instance.
      */
-    fun addPlayerView(playerView: PlayerView) {
-        this.playerView = playerView
+    fun setPlayerView(playerView: PlayerView) {
+        this.playerView?.let { currentPlayerView ->
+            (currentPlayerView.parent as? ViewGroup)?.removeView(currentPlayerView)
+        }
+        this._playerView = playerView
         if (playerView.parent != this) {
             (playerView.parent as ViewGroup?)?.removeView(playerView)
-            addView(playerView)
+            addView(playerView, 0)
         }
         pictureInPictureHandler?.let {
             it.setDelegate(this)
             playerView.setPictureInPictureHandler(it)
             playerView.addOnLayoutChangeListener(this)
         }
+    }
+
+    /**
+     * Set the given `subtitleView` as a child
+     */
+    fun setSubtitleView(subtitleView: SubtitleView) {
+        this.subtitleView?.let { currentSubtitleView ->
+            (currentSubtitleView.parent as? ViewGroup)?.removeView(currentSubtitleView)
+        }
+        this.subtitleView = subtitleView
+        addView(subtitleView)
     }
 
     /**
@@ -303,3 +324,12 @@ data class RNPlayerViewConfigWrapper(
     val playerViewConfig: PlayerViewConfig?,
     val pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig?,
 )
+
+data class RNStyleConfigWrapper(
+    val styleConfig: StyleConfig?,
+    val userInterfaceType: UserInterfaceType,
+)
+
+enum class UserInterfaceType {
+    Bitmovin, Subtitle
+}
