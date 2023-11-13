@@ -155,7 +155,7 @@ class RNPlayerView(
         }
 
     /**
-     * Associated bitmovin's `PlayerView`.
+     * Associated Bitmovin's `PlayerView`.
      */
     val playerView: PlayerView?
         get() = _playerView
