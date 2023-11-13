@@ -73,9 +73,9 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.bitmovinplayerreactnativeexample"
+    namespace "com.bitmovin.player.reactnative.example"
     defaultConfig {
-        applicationId "com.bitmovinplayerreactnativeexample"
+        applicationId "com.bitmovin.player.reactnative.example"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -101,6 +101,9 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+    buildFeatures {
+        buildConfig true
+    }
 }
 
 dependencies {
@@ -118,6 +121,11 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    //implementation project(':bitmovin-player-react-native')
+    // add implementation to a project in the root folder
+
+
 
     // Only needed if the offline feature is used
     implementation "androidx.localbroadcastmanager:localbroadcastmanager:1.1.0"

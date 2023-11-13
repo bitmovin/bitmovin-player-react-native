@@ -2,26 +2,17 @@ package com.bitmovin.player.reactnative.example.newarchitecture;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
-import com.facebook.react.PackageList;
-import com.facebook.react.ReactInstanceManager;
-import com.facebook.react.ReactNativeHost;
-import com.facebook.react.ReactPackage;
-import com.facebook.react.ReactPackageTurboModuleManagerDelegate;
-import com.facebook.react.bridge.JSIModulePackage;
-import com.facebook.react.bridge.JSIModuleProvider;
-import com.facebook.react.bridge.JSIModuleSpec;
-import com.facebook.react.bridge.JSIModuleType;
-import com.facebook.react.bridge.JavaScriptContextHolder;
-import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.UIManager;
+import com.bitmovin.player.reactnative.example.BuildConfig;
+import com.bitmovin.player.reactnative.example.newarchitecture.components.MainComponentsRegistry;
+import com.bitmovin.player.reactnative.example.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
+import com.facebook.react.*;
+import com.facebook.react.bridge.*;
 import com.facebook.react.fabric.ComponentFactory;
 import com.facebook.react.fabric.CoreComponentsRegistry;
 import com.facebook.react.fabric.EmptyReactNativeConfig;
 import com.facebook.react.fabric.FabricJSIModuleProvider;
 import com.facebook.react.uimanager.ViewManagerRegistry;
-import com.bitmovin.player.reactnative.example.BuildConfig;
-import com.bitmovin.player.reactnative.example.newarchitecture.components.MainComponentsRegistry;
-import com.bitmovin.player.reactnative.example.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
+
 import java.util.ArrayList;
 import java.util.List;
 
