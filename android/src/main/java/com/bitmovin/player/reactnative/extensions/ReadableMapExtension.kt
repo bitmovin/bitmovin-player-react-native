@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative.extensions
 
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 
 fun ReadableMap.getBooleanOrNull(
@@ -34,6 +35,11 @@ inline fun <T> ReadableMap.withString(
     key: String,
     block: (String) -> T,
 ): T? = getString(key)?.let(block)
+
+inline fun <T> ReadableMap.withArray(
+    key: String,
+    block: (ReadableArray) -> T,
+): T? = getArray(key)?.let(block)
 
 /**
  * Reads the [Boolean] value from the given [ReadableMap] if the [key] is present.

@@ -5,7 +5,6 @@ import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.analytics.api.SourceMetadata
 import com.bitmovin.player.api.DeviceDescription.DeviceName
-import com.bitmovin.player.api.DeviceDescription.ModelName
 import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.TweaksConfig
@@ -62,6 +61,7 @@ import com.bitmovin.player.reactnative.extensions.set
 import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.extensions.toReadableArray
 import com.bitmovin.player.reactnative.extensions.toReadableMap
+import com.bitmovin.player.reactnative.extensions.withArray
 import com.bitmovin.player.reactnative.extensions.withBoolean
 import com.bitmovin.player.reactnative.extensions.withDouble
 import com.bitmovin.player.reactnative.extensions.withInt
@@ -106,10 +106,7 @@ fun ReadableMap.toBufferConfig(): BufferConfig = BufferConfig().apply {
  */
 private fun ReadableMap.toRemoteControlConfig(): RemoteControlConfig = RemoteControlConfig().apply {
     withString("receiverStylesheetUrl") { receiverStylesheetUrl = it }
-    getMap("customReceiverConfig")
-        ?.toHashMap()
-        ?.mapValues { entry -> entry.value as String }
-        ?.let { customReceiverConfig = it }
+    withMap("customReceiverConfig") { customReceiverConfig = it.castValues() }
     withBoolean("isCastEnabled") { isCastEnabled = it }
     withBoolean("sendManifestRequestsWithCredentials") { sendManifestRequestsWithCredentials = it }
     withBoolean("sendSegmentRequestsWithCredentials") { sendSegmentRequestsWithCredentials = it }
@@ -166,17 +163,13 @@ fun ReadableMap.toStyleConfig(): StyleConfig = StyleConfig().apply {
 fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     withDouble("timeChangedInterval") { timeChangedInterval = it }
     withInt("bandwidthEstimateWeightLimit") { bandwidthEstimateWeightLimit = it }
-    getMap("devicesThatRequireSurfaceWorkaround")?.let { devices ->
-        val deviceNames = devices.getArray("deviceNames")
-            ?.toList<String>()
-            ?.filterNotNull()
-            ?.map { DeviceName(it) }
-            ?: emptyList()
-        val modelNames = devices.getArray("modelNames")
-            ?.toList<String>()
-            ?.filterNotNull()
-            ?.map { ModelName(it) }
-            ?: emptyList()
+    withMap("devicesThatRequireSurfaceWorkaround") { devices ->
+        val deviceNames = devices.withArray("deviceNames") {
+            it.toList<String>().filterNotNull().map(::DeviceName)
+        } ?: emptyList()
+        val modelNames = devices.withArray("modelNames") {
+            it.toList<String>().filterNotNull().map(::DeviceName)
+        } ?: emptyList()
         devicesThatRequireSurfaceWorkaround = deviceNames + modelNames
     }
     withBoolean("languagePropertyNormalization") { languagePropertyNormalization = it }
@@ -234,29 +227,20 @@ fun ReadableMap.toSourceConfig(): SourceConfig? {
         return null
     }
     return SourceConfig(url, type).apply {
-        title = getString("title")
-        description = getString("description")
-        posterSource = getString("poster")
-        if (hasKey("isPosterPersistent")) {
-            isPosterPersistent = getBoolean("isPosterPersistent")
-        }
-        if (hasKey("subtitleTracks")) {
-            val subtitleTracks = getArray("subtitleTracks") as ReadableArray
+        withString("title") { title = it }
+        withString("description") { description = it }
+        withString("poster") { posterSource = it }
+        withBoolean("isPosterPersistent") { isPosterPersistent = it }
+        withArray("subtitleTracks") { subtitleTracks ->
             for (i in 0 until subtitleTracks.size()) {
                 subtitleTracks.getMap(i).toSubtitleTrack()?.let {
                     addSubtitleTrack(it)
                 }
             }
         }
-        if (hasKey("thumbnailTrack")) {
-            thumbnailTrack = getString("thumbnailTrack")?.toThumbnailTrack()
-        }
-        if (hasKey("metadata")) {
-            metadata = getMap("metadata")
-                ?.toHashMap()
-                ?.mapValues { entry -> entry.value as String }
-        }
-        getMap("options")?.let { options = it.toSourceOptions() }
+        withString("thumbnailTrack") { thumbnailTrack = it.toThumbnailTrack() }
+        withMap("metadata") { metadata = it.castValues() }
+        withMap("options") { options = it.toSourceOptions() }
     }
 }
 
@@ -504,12 +488,9 @@ fun ReadableMap.toCastOptions(): BitmovinCastManagerOptions = BitmovinCastManage
  */
 fun ReadableMap.toWidevineConfig(): WidevineConfig? = getMap("widevine")?.run {
     WidevineConfig(getString("licenseUrl")).apply {
-        preferredSecurityLevel = getOrDefault("preferredSecurityLevel", null)
-        getBooleanOrNull("shouldKeepDrmSessionsAlive")?.let { shouldKeepDrmSessionsAlive = it }
-        httpHeaders = getMap("httpHeaders")
-            ?.toHashMap()
-            ?.mapValues { entry -> entry.value as String }
-            ?.toMutableMap()
+        withString("preferredSecurityLevel") { preferredSecurityLevel = it }
+        withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
+        withMap("httpHeaders") { httpHeaders = it.castValues<String>().toMutableMap() }
     }
 }
 
@@ -828,6 +809,6 @@ private fun CastPayload.toJson(): WritableMap = Arguments.createMap().apply {
     putString("type", type)
 }
 
-private fun WritableMap.putStringIfNotNull(name: String, value: String?) {
-    value?.let { putString(name, value) }
-}
+private fun WritableMap.putStringIfNotNull(name: String, value: String?) = value?.let { putString(name, value) }
+
+private inline fun <reified T> ReadableMap.castValues(): Map<String, T> = toHashMap().mapValues { it.value as T }
