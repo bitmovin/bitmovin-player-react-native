@@ -8,6 +8,7 @@ import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 
 private const val MODULE_NAME = "BufferModule"
+private const val INVALID_BUFFER_TYPE = "Invalid buffer type"
 
 @ReactModule(name = MODULE_NAME)
 class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
@@ -23,17 +24,13 @@ class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     fun getLevel(nativeId: NativeId, type: String, promise: Promise) {
         promise.resolveOnUIThread {
             val player = playerModule.getPlayer(nativeId)
-            val bufferType = type.toBufferTypeOrThrow()
-            val bufferLevels = RNBufferLevels(
-                player.buffer.getLevel(bufferType, MediaType.Audio),
-                player.buffer.getLevel(bufferType, MediaType.Video),
-            )
-            promise.resolve(bufferLevels.toJson())
+            val bufferType = type.toBufferType() ?: throw IllegalArgumentException(INVALID_BUFFER_TYPE)
+            RNBufferLevels(
+                audio = player.buffer.getLevel(bufferType, MediaType.Audio),
+                video = player.buffer.getLevel(bufferType, MediaType.Video),
+            ).toJson()
         }
     }
-
-    private fun String.toBufferTypeOrThrow() = toBufferType()
-        ?: throw IllegalArgumentException("Invalid buffer type")
 
     /**
      * Sets the target buffer level for the chosen buffer type across all media types.
@@ -44,11 +41,12 @@ class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     @ReactMethod
     fun setTargetLevel(nativeId: NativeId, type: String, value: Double, promise: Promise) {
         promise.resolveOnUIThread {
-            val player = playerModule.getPlayer(nativeId)
-            val bufferType = type.toBufferTypeOrThrow()
-            player.buffer.setTargetLevel(bufferType, value)
+            playerModule.getPlayer(nativeId).buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
         }
     }
+
+    private fun String.toBufferTypeOrThrow() = toBufferType()
+        ?: throw IllegalArgumentException("Invalid buffer type")
 }
 
 /**
