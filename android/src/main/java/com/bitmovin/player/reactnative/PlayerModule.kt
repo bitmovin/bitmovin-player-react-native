@@ -95,7 +95,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     @ReactMethod
     fun loadSource(nativeId: NativeId, sourceNativeId: String, promise: Promise) {
         promise.resolveOnUIThread {
-            getPlayer(nativeId).load(sourceModule().getSource(sourceNativeId))
+            getPlayer(nativeId).load(sourceModule.getSource(sourceNativeId))
         }
     }
 
@@ -113,7 +113,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         promise: Promise,
     ) {
         promise.resolveOnUIThread {
-            offlineModule()
+            offlineModule
                 .getOfflineContentManagerBridge(offlineContentManagerBridgeId)
                 ?.offlineContentManager
                 ?.offlineSourceConfig
