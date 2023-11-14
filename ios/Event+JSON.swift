@@ -391,3 +391,14 @@ extension DownloadFinishedEvent {
         return json
     }
 }
+
+extension PlaybackSpeedChangedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "from": from,
+            "to": to,
+        ]
+    }
+}

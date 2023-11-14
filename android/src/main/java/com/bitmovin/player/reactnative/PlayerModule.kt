@@ -19,7 +19,7 @@ private const val MODULE_NAME = "PlayerModule"
 @ReactModule(name = MODULE_NAME)
 class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
     /**
-     * In-memory mapping from `nativeId`s to `Player` instances.
+     * In-memory mapping from [nativeId]s to `Player` instances.
      */
     private val players: Registry<Player> = mutableMapOf()
 
@@ -29,7 +29,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     override fun getName() = MODULE_NAME
 
     /**
-     * Fetches the `Player` instance associated with `nativeId` from the internal players.
+     * Fetches the `Player` instance associated with [nativeId] from the internal players.
      */
     fun getPlayerOrNull(nativeId: NativeId): Player? = players[nativeId]
 
@@ -82,7 +82,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Load the source of the given `nativeId` with `config` options from JS.
+     * Load the source of the given [nativeId] with `config` options from JS.
      * @param nativeId Target player.
      * @param sourceNativeId Target source.
      */
@@ -94,7 +94,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Load the `offlineSourceConfig` for the player with `nativeId` and offline source module with `offlineModuleNativeId`.
+     * Load the `offlineSourceConfig` for the player with [nativeId] and offline source module with `offlineModuleNativeId`.
      * @param nativeId Target player.
      * @param offlineContentManagerBridgeId Target offline module.
      * @param options Source configuration options from JS.
@@ -116,7 +116,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Call `.unload()` on `nativeId`'s player.
+     * Call `.unload()` on [nativeId]'s player.
      * @param nativeId Target player Id.
      */
     @ReactMethod
@@ -127,7 +127,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Call `.play()` on `nativeId`'s player.
+     * Call `.play()` on [nativeId]'s player.
      * @param nativeId Target player Id.
      */
     @ReactMethod
@@ -138,7 +138,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Call `.pause()` on `nativeId`'s player.
+     * Call `.pause()` on [nativeId]'s player.
      * @param nativeId Target player Id.
      */
     @ReactMethod
@@ -149,7 +149,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Call `.seek(time:)` on `nativeId`'s player.
+     * Call `.seek(time:)` on [nativeId]'s player.
      * @param nativeId Target player Id.
      * @param time Seek time in seconds.
      */
@@ -161,7 +161,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Call `.timeShift(offset:)` on `nativeId`'s player.
+     * Call `.timeShift(offset:)` on [nativeId]'s player.
      * @param nativeId Target player Id.
      * @param offset Offset time in seconds.
      */
@@ -173,7 +173,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Call `.mute()` on `nativeId`'s player.
+     * Call `.mute()` on [nativeId]'s player.
      * @param nativeId Target player Id.
      */
     @ReactMethod
@@ -184,7 +184,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Call `.unmute()` on `nativeId`'s player.
+     * Call `.unmute()` on [nativeId]'s player.
      * @param nativeId Target player Id.
      */
     @ReactMethod
@@ -195,7 +195,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Call `.destroy()` on `nativeId`'s player.
+     * Call `.destroy()` on [nativeId]'s player.
      * @param nativeId Target player Id.
      */
     @ReactMethod
@@ -207,7 +207,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Call `.setVolume(volume:)` on `nativeId`'s player.
+     * Call `.setVolume(volume:)` on [nativeId]'s player.
      * @param nativeId Target player Id.
      * @param volume Volume level integer between 0 to 100.
      */
@@ -219,7 +219,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Resolve `nativeId`'s current volume.
+     * Resolve [nativeId]'s current volume.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
@@ -231,7 +231,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Resolve the source of `nativeId`'s player.
+     * Resolve the source of [nativeId]'s player.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
@@ -243,7 +243,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Resolve `nativeId`'s current playback time.
+     * Resolve [nativeId]'s current playback time.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
@@ -261,7 +261,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Resolve `nativeId`'s current source duration.
+     * Resolve [nativeId]'s current source duration.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
@@ -273,7 +273,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Resolve `nativeId`'s current muted state.
+     * Resolve [nativeId]'s current muted state.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
@@ -285,7 +285,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Resolve `nativeId`'s current playing state.
+     * Resolve [nativeId]'s current playing state.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
@@ -297,7 +297,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Resolve `nativeId`'s current paused state.
+     * Resolve [nativeId]'s current paused state.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
@@ -309,7 +309,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Resolve `nativeId`'s current live state.
+     * Resolve [nativeId]'s current live state.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
@@ -321,7 +321,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Resolve `nativeId`'s currently selected audio track.
+     * Resolve [nativeId]'s currently selected audio track.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
@@ -333,7 +333,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Resolve `nativeId`'s player available audio tracks.
+     * Resolve [nativeId]'s player available audio tracks.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
@@ -345,7 +345,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Set `nativeId`'s player audio track.
+     * Set [nativeId]'s player audio track.
      * @param nativeId Target player Id.
      * @param trackIdentifier The audio track identifier.
      * @param promise JS promise object.
@@ -358,7 +358,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Resolve `nativeId`'s currently selected subtitle track.
+     * Resolve [nativeId]'s currently selected subtitle track.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
@@ -370,7 +370,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Resolve `nativeId`'s player available subtitle tracks.
+     * Resolve [nativeId]'s player available subtitle tracks.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
@@ -382,7 +382,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Set `nativeId`'s player subtitle track.
+     * Set [nativeId]'s player subtitle track.
      * @param nativeId Target player Id.
      * @param trackIdentifier The subtitle track identifier.
      * @param promise JS promise object.
@@ -395,7 +395,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Schedules an `AdItem` in the `nativeId`'s associated player.
+     * Schedules an `AdItem` in the [nativeId]'s associated player.
      * @param nativeId Target player id.
      * @param adItemJson Json representation of the `AdItem` to be scheduled.
      */
@@ -407,7 +407,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Skips the current ad in `nativeId`'s associated player.
+     * Skips the current ad in [nativeId]'s associated player.
      * Has no effect if the current ad is not skippable or if no ad is being played back.
      * @param nativeId Target player id.
      */
@@ -522,9 +522,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Resolve `nativeId`'s current video quality.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
+     * Resolve [nativeId]'s current video quality.
      */
     @ReactMethod
     fun getVideoQuality(nativeId: NativeId, promise: Promise) {
@@ -534,14 +532,32 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
-     * Resolve `nativeId`'s current available video qualities.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
+     * Resolve [nativeId]'s current available video qualities.
      */
     @ReactMethod
     fun getAvailableVideoQualities(nativeId: NativeId, promise: Promise) {
         promise.resolveOnUIThread {
             getPlayer(nativeId).source?.availableVideoQualities?.mapToReactArray { it.toJson() }
+        }
+    }
+
+    /**
+     * Resolve [nativeId]'s current playback speed.
+     */
+    @ReactMethod
+    fun getPlaybackSpeed(nativeId: NativeId, promise: Promise) {
+        promise.resolveOnUIThread {
+            promise.resolve(players[nativeId]?.playbackSpeed)
+        }
+    }
+
+    /**
+     * Sets playback speed for the player.
+     */
+    @ReactMethod
+    fun setPlaybackSpeed(nativeId: NativeId, playbackSpeed: Float, promise: Promise) {
+        promise.resolveOnUIThread {
+            players[nativeId]?.playbackSpeed = playbackSpeed
         }
     }
 }

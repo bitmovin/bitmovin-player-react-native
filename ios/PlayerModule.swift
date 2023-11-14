@@ -723,4 +723,53 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
             resolve(videoQualitiesJson ?? [])
         }
     }
+
+    /**
+     Resolve `nativeId`'s current playback speed.
+     - Parameter nativeId: Target player Id.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(getPlaybackSpeed:resolver:rejecter:)
+    func getPlaybackSpeed(
+        _ nativeId: NativeId,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(self?.players[nativeId]?.playbackSpeed)
+        }
+    }
+
+    /**
+     Sets playback speed for the player.
+     - Parameter nativeId: Target player Id.
+     - Parameter playbackSpeed: Float representing the playback speed level.
+     */
+    @objc(setPlaybackSpeed:playbackSpeed:)
+    func setPlaybackSpeed(_ nativeId: NativeId, playbackSpeed: NSNumber) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            self?.players[nativeId]?.playbackSpeed = playbackSpeed.floatValue
+        }
+    }
+
+    /**
+     Resolve `nativeId`'s possibility to play the media at specified playback speed.
+     - Parameters:
+       - nativeId: Target player Id.
+       - playbackSpeed: The playback speed to check.
+       - resolver: JS promise resolver.
+       - rejecter: JS promise rejecter.
+     */
+    @objc(canPlayAtPlaybackSpeed:atPlaybackSpeed:resolver:rejecter:)
+    func canPlayAtPlaybackSpeed(
+        _ nativeId: NativeId,
+        atPlaybackSpeed playbackSpeed: NSNumber,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            resolve(self?.players[nativeId]?.canPlay(atPlaybackSpeed: playbackSpeed.floatValue))
+        }
+    }
 }

@@ -49,6 +49,8 @@ import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
 import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
+import com.bitmovin.player.reactnative.RNStyleConfigWrapper
+import com.bitmovin.player.reactnative.UserInterfaceType
 import com.bitmovin.player.reactnative.extensions.get
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
@@ -741,6 +743,13 @@ fun toPlayerViewConfig(json: ReadableMap) = PlayerViewConfig(
     ),
 )
 
+private fun ReadableMap.toUserInterfaceTypeFromPlayerConfig(): UserInterfaceType? =
+    when (getMap("styleConfig")?.getString("userInterfaceType")) {
+        "Subtitle" -> UserInterfaceType.Subtitle
+        "Bitmovin" -> UserInterfaceType.Bitmovin
+        else -> null
+    }
+
 /**
  * Converts the [this@toRNPlayerViewConfigWrapper] to a `RNPlayerViewConfig` object.
  */
@@ -748,6 +757,13 @@ fun ReadableMap.toRNPlayerViewConfigWrapper() = RNPlayerViewConfigWrapper(
     playerViewConfig = toPlayerViewConfig(this),
     pictureInPictureConfig = getMap("pictureInPictureConfig")?.toPictureInPictureConfig(),
 )
+
+fun ReadableMap.toRNStyleConfigWrapperFromPlayerConfig(): RNStyleConfigWrapper? {
+    return RNStyleConfigWrapper(
+        styleConfig = toStyleConfig(),
+        userInterfaceType = toUserInterfaceTypeFromPlayerConfig() ?: return null,
+    )
+}
 
 /**
  * Converts any JS object into a [LiveConfig] object.
