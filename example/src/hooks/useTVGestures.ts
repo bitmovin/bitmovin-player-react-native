@@ -1,4 +1,4 @@
-import 'react-native/tvos-types.d';
+//import 'react-native/tvos-types.d'; TODO: this is not working since updating RN version. Probably iOS linking issue
 import { useEffect } from 'react';
 import { TVEventControl, Platform } from 'react-native';
 

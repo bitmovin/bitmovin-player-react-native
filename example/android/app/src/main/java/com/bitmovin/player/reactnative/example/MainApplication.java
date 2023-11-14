@@ -1,21 +1,15 @@
 package com.bitmovin.player.reactnative.example;
 
 import android.app.Application;
-import android.content.Context;
-import com.bitmovin.player.reactnative.example.BuildConfig;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
-import com.facebook.react.ReactInstanceManager;
-import com.facebook.react.config.ReactFeatureFlags;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactNativeHost;
 import com.facebook.soloader.SoLoader;
-import com.bitmovin.player.reactnative.example.newarchitecture.MainApplicationReactNativeHost;
-import java.lang.reflect.InvocationTargetException;
+
 import java.util.List;
-import com.bitmovin.player.reactnative.RNPlayerViewPackage;
 
 public class MainApplication extends Application implements ReactApplication {
 
@@ -30,9 +24,6 @@ public class MainApplication extends Application implements ReactApplication {
                 protected List<ReactPackage> getPackages() {
                     @SuppressWarnings("UnnecessaryLocalVariable")
                     List<ReactPackage> packages = new PackageList(this).getPackages();
-                    packages.add(new RNPlayerViewPackage());
-                    // Packages that cannot be autolinked yet can be added manually here, for example:
-                    // packages.add(new MyReactNativePackage());
                     return packages;
                 }
 
