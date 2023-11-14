@@ -1,7 +1,6 @@
 package com.bitmovin.player.reactnative.extensions
 
-import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.*
 
 fun ReadableMap.getBooleanOrNull(
     key: String,
@@ -46,4 +45,6 @@ inline fun <T, R> ReadableMap.mapValue(
     key: String,
     get: ReadableMap.(String) -> T?,
     block: (T) -> R,
-) = takeIf{ hasKey(key) }?.get(key)?.let(block)
+) = takeIf { hasKey(key) }?.get(key)?.let(block)
+
+inline fun <reified T> ReadableMap.toMap(): Map<String, T> = toHashMap().mapValues { it.value as T }

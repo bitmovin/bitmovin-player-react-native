@@ -2,7 +2,8 @@ package com.bitmovin.player.reactnative.extensions
 
 import com.facebook.react.bridge.*
 
-inline fun <T> Map<String, T>.toReadableMap(
+/** Convert a [Map] to [ReadableMap], adding each [T] value using [put]. */
+private inline fun <T> Map<String, T>.toReadableMap(
     put: WritableMap.(String, T) -> Unit,
 ): ReadableMap = Arguments.createMap().apply {
     forEach {

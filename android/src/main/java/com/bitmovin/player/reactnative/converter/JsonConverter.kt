@@ -56,6 +56,7 @@ import com.bitmovin.player.reactnative.extensions.putBoolean
 import com.bitmovin.player.reactnative.extensions.putDouble
 import com.bitmovin.player.reactnative.extensions.putInt
 import com.bitmovin.player.reactnative.extensions.set
+import com.bitmovin.player.reactnative.extensions.toMap
 import com.bitmovin.player.reactnative.extensions.toMapList
 import com.bitmovin.player.reactnative.extensions.toReadableArray
 import com.bitmovin.player.reactnative.extensions.toReadableMap
@@ -105,7 +106,7 @@ fun ReadableMap.toBufferConfig(): BufferConfig = BufferConfig().apply {
  */
 private fun ReadableMap.toRemoteControlConfig(): RemoteControlConfig = RemoteControlConfig().apply {
     withString("receiverStylesheetUrl") { receiverStylesheetUrl = it }
-    withMap("customReceiverConfig") { customReceiverConfig = it.castValues() }
+    withMap("customReceiverConfig") { customReceiverConfig = it.toMap() }
     withBoolean("isCastEnabled") { isCastEnabled = it }
     withBoolean("sendManifestRequestsWithCredentials") { sendManifestRequestsWithCredentials = it }
     withBoolean("sendSegmentRequestsWithCredentials") { sendSegmentRequestsWithCredentials = it }
@@ -240,7 +241,7 @@ fun ReadableMap.toSourceConfig(): SourceConfig? {
             }
         }
         withString("thumbnailTrack") { thumbnailTrack = it.toThumbnailTrack() }
-        withMap("metadata") { metadata = it.castValues() }
+        withMap("metadata") { metadata = it.toMap() }
         withMap("options") { options = it.toSourceOptions() }
     }
 }
@@ -491,7 +492,7 @@ fun ReadableMap.toWidevineConfig(): WidevineConfig? = getMap("widevine")?.run {
     WidevineConfig(getString("licenseUrl")).apply {
         withString("preferredSecurityLevel") { preferredSecurityLevel = it }
         withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
-        withMap("httpHeaders") { httpHeaders = it.castValues<String>().toMutableMap() }
+        withMap("httpHeaders") { httpHeaders = it.toMap<String>().toMutableMap() }
     }
 }
 
@@ -811,5 +812,3 @@ private fun CastPayload.toJson(): WritableMap = Arguments.createMap().apply {
 }
 
 private fun WritableMap.putStringIfNotNull(name: String, value: String?) = value?.let { putString(name, value) }
-
-private inline fun <reified T> ReadableMap.castValues(): Map<String, T> = toHashMap().mapValues { it.value as T }
