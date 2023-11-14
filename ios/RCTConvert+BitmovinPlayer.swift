@@ -36,6 +36,9 @@ extension RCTConvert {
         if let bufferConfig = RCTConvert.bufferConfig(json["bufferConfig"]) {
             playerConfig.bufferConfig = bufferConfig
         }
+        if let liveConfig = RCTConvert.liveConfig(json["liveConfig"]) {
+            playerConfig.liveConfig = liveConfig
+        }
 #if os(iOS)
         if let remoteControlConfig = RCTConvert.remoteControlConfig(json["remoteControlConfig"]) {
             playerConfig.remoteControlConfig = remoteControlConfig
@@ -189,6 +192,22 @@ extension RCTConvert {
             bufferConfig.audioAndVideo = bufferMediaTypeConfig
         }
         return bufferConfig
+    }
+
+    /**
+     Utility method to instantiate a `LiveConfig` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `LiveConfig` object, or `nil` if `json` is not valid.
+     */
+    static func liveConfig(_ json: Any?) -> LiveConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        let liveConfig = LiveConfig()
+        if let minTimeshiftBufferDepth = json["minTimeshiftBufferDepth"] as? NSNumber {
+            liveConfig.minTimeshiftBufferDepth = minTimeshiftBufferDepth.doubleValue
+        }
+        return liveConfig
     }
 
     /**
@@ -1151,6 +1170,63 @@ extension RCTConvert {
             playbackSpeedSelectionEnabled: json["playbackSpeedSelectionEnabled"] as? Bool ?? true
         )
     }
+
+    /**
+     * Maps a JS string into the corresponding `BufferType` value.
+     * - Parameter json: JS string representing the `BufferType`.
+     * - Returns: The `BufferType` corresponding to `json`, or `nil` if the conversion fails.
+     */
+    static func bufferType(_ json: String) -> BufferType? {
+        switch json {
+        case "forwardDuration":
+            return .forwardDuration
+        case "backwardDuration":
+            return .backwardDuration
+        default:
+            return nil
+        }
+    }
+
+    /**
+     * Converts any `BufferType` value into its json representation.
+     * - Parameter bufferType: `BufferType` value.
+     * - Returns: The produced JS string.
+     */
+    static func toJson(bufferType: BufferType) -> String {
+        switch bufferType {
+        case .forwardDuration:
+            return "forwardDuration"
+        case .backwardDuration:
+            return "backwardDuration"
+        }
+    }
+
+    /**
+     Utility method to get a json dictionary value from a `BufferLevel` object.
+     - Parameter bufferLevel: The `BufferLevel` to convert to json format.
+     - Parameter mediaType: The `MediaType` value to pass through.
+     - Returns: The generated json dictionary.
+     */
+    static func toJson(bufferLevel: BufferLevel, mediaType: String) -> [String: Any] {
+        [
+            "level": bufferLevel.level,
+            "targetLevel": bufferLevel.targetLevel,
+            "media": mediaType,
+            "type": toJson(bufferType: bufferLevel.type)
+        ]
+    }
+
+    /**
+     Utility method to get a json dictionary value from a `BufferModule.RNBufferLevels` object.
+     - Parameter bufferLevels: The `BufferModule.RNBufferLevels` to convert to json format.
+     - Returns: The generated json dictionary.
+     */
+    static func toJson(bufferLevels: RNBufferLevels) -> [String: Any] {
+        [
+            "audio": toJson(bufferLevel: bufferLevels.audio, mediaType: "audio"),
+            "video": toJson(bufferLevel: bufferLevels.video, mediaType: "video"),
+        ]
+    }
 }
 /**
  * React native specific PlayerViewConfig.
@@ -1183,4 +1259,15 @@ internal struct RNPlayerViewConfig {
  */
 internal struct RNUiConfig {
     let playbackSpeedSelectionEnabled: Bool
+}
+
+/**
+ * Representation of the React Native API `BufferLevels` object.
+ * This is necessary as we need a unified representation of the different APIs from both Android and iOS.
+ * - Parameter audio: `BufferLevel` for `MediaType.Audio`.
+ * - Parameter video: `BufferLevel` for `MediaType.Video`.
+ */
+internal struct RNBufferLevels {
+    let audio: BufferLevel
+    let video: BufferLevel
 }

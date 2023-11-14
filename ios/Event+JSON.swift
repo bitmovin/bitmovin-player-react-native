@@ -340,6 +340,17 @@ extension VideoDownloadQualityChangedEvent {
     }
 }
 
+extension VideoPlaybackQualityChangedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "newVideoQuality": RCTConvert.toJson(videoQuality: videoQualityNew),
+            "oldVideoQuality": RCTConvert.toJson(videoQuality: videoQualityOld),
+            "name": name,
+            "timestamp": timestamp
+        ]
+    }
+}
+
 extension CastStartedEvent {
     func toJSON() -> [AnyHashable: Any] {
         [
@@ -361,3 +372,33 @@ extension CastWaitingForDeviceEvent {
     }
 }
 #endif
+
+extension DownloadFinishedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        var json: [AnyHashable: Any] = [
+            "name": name,
+            "timestamp": timestamp,
+            "downloadTime": downloadTime,
+            "requestType": requestType.rawValue,
+            "httpStatus": httpStatus,
+            "isSuccess": successful,
+            "size": size,
+            "url": url.absoluteString
+        ]
+        if let lastRedirectLocation {
+            json["lastRedirectLocation"] = lastRedirectLocation.absoluteString
+        }
+        return json
+    }
+}
+
+extension PlaybackSpeedChangedEvent {
+    func toJSON() -> [AnyHashable: Any] {
+        [
+            "name": name,
+            "timestamp": timestamp,
+            "from": from,
+            "to": to,
+        ]
+    }
+}

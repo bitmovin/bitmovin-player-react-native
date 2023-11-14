@@ -19,14 +19,18 @@ import com.bitmovin.player.api.advertising.AdSource
 import com.bitmovin.player.api.advertising.AdSourceType
 import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.buffer.BufferConfig
+import com.bitmovin.player.api.buffer.BufferLevel
 import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
+import com.bitmovin.player.api.buffer.BufferType
 import com.bitmovin.player.api.casting.RemoteControlConfig
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.CastPayload
 import com.bitmovin.player.api.event.data.SeekPosition
+import com.bitmovin.player.api.live.LiveConfig
 import com.bitmovin.player.api.media.AdaptationConfig
+import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
@@ -44,7 +48,10 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
+import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
+import com.bitmovin.player.reactnative.RNStyleConfigWrapper
+import com.bitmovin.player.reactnative.UserInterfaceType
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.getOrDefault
@@ -57,10 +64,7 @@ import com.bitmovin.player.reactnative.extensions.toList
 import com.bitmovin.player.reactnative.extensions.toReadableArray
 import com.bitmovin.player.reactnative.extensions.toReadableMap
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.*
 import java.util.UUID
 
 /**
@@ -114,6 +118,11 @@ class JsonConverter {
             if (json.hasKey("bufferConfig")) {
                 toBufferConfig(json.getMap("bufferConfig"))?.let {
                     playerConfig.bufferConfig = it
+                }
+            }
+            if (json.hasKey("liveConfig")) {
+                toLiveConfig(json.getMap("liveConfig"))?.let {
+                    playerConfig.liveConfig = it
                 }
             }
             return playerConfig
@@ -558,6 +567,23 @@ class JsonConverter {
                 is SourceEvent.SubtitleTrackChanged -> {
                     json.putMap("oldSubtitleTrack", fromSubtitleTrack(event.oldSubtitleTrack))
                     json.putMap("newSubtitleTrack", fromSubtitleTrack(event.newSubtitleTrack))
+                }
+
+                is SourceEvent.DownloadFinished -> {
+                    json.putDouble("downloadTime", event.downloadTime)
+                    json.putString("requestType", event.downloadType.toString())
+                    json.putInt("httpStatus", event.httpStatus)
+                    json.putBoolean("isSuccess", event.isSuccess)
+                    event.lastRedirectLocation?.let {
+                        json.putString("lastRedirectLocation", it)
+                    }
+                    json.putDouble("size", event.size.toDouble())
+                    json.putString("url", event.url)
+                }
+
+                is SourceEvent.VideoDownloadQualityChanged -> {
+                    json.putMap("newVideoQuality", fromVideoQuality(event.newVideoQuality))
+                    json.putMap("oldVideoQuality", fromVideoQuality(event.oldVideoQuality))
                 }
 
                 else -> {
@@ -1162,6 +1188,13 @@ class JsonConverter {
             ),
         )
 
+        private fun toUserInterfaceTypeFromPlayerConfig(json: ReadableMap): UserInterfaceType =
+            when (json.getMap("styleConfig")?.getString("userInterfaceType")) {
+                "Subtitle" -> UserInterfaceType.Subtitle
+                "Bitmovin" -> UserInterfaceType.Bitmovin
+                else -> UserInterfaceType.Bitmovin
+            }
+
         /**
          * Converts the [json] to a `RNPlayerViewConfig` object.
          */
@@ -1169,6 +1202,96 @@ class JsonConverter {
             playerViewConfig = toPlayerViewConfig(json),
             pictureInPictureConfig = toPictureInPictureConfig(json.getMap("pictureInPictureConfig")),
         )
+
+        fun toRNStyleConfigWrapperFromPlayerConfig(json: ReadableMap) = RNStyleConfigWrapper(
+            styleConfig = toStyleConfig(json),
+            userInterfaceType = toUserInterfaceTypeFromPlayerConfig(json),
+        )
+
+        /**
+         * Converts any JS object into a [LiveConfig] object.
+         * @param json JS object representing the [LiveConfig].
+         * @return The generated [LiveConfig] if successful, `null` otherwise.
+         */
+        @JvmStatic
+        fun toLiveConfig(json: ReadableMap?): LiveConfig? {
+            if (json == null) {
+                return null
+            }
+            val liveConfig = LiveConfig()
+            if (json.hasKey("minTimeshiftBufferDepth")) {
+                liveConfig.minTimeShiftBufferDepth = json.getDouble("minTimeshiftBufferDepth")
+            }
+            return liveConfig
+        }
+
+        /**
+         * Converts any [MediaType] value into its json representation.
+         * @param mediaType [MediaType] value.
+         * @return The produced JS string.
+         */
+        @JvmStatic
+        fun fromMediaType(mediaType: MediaType): String = when (mediaType) {
+            MediaType.Audio -> "audio"
+            MediaType.Video -> "video"
+        }
+
+        /**
+         * Converts any [BufferType] value into its json representation.
+         * @param bufferType [BufferType] value.
+         * @return The produced JS string.
+         */
+        @JvmStatic
+        fun fromBufferType(bufferType: BufferType): String = when (bufferType) {
+            BufferType.ForwardDuration -> "forwardDuration"
+            BufferType.BackwardDuration -> "backwardDuration"
+        }
+
+        @JvmStatic
+        fun fromBufferLevel(bufferLevel: BufferLevel): WritableMap =
+            Arguments.createMap().apply {
+                putDouble("level", bufferLevel.level)
+                putDouble("targetLevel", bufferLevel.targetLevel)
+                putString(
+                    "media",
+                    fromMediaType(bufferLevel.media),
+                )
+                putString(
+                    "type",
+                    fromBufferType(bufferLevel.type),
+                )
+            }
+
+        @JvmStatic
+        fun fromRNBufferLevels(bufferLevels: RNBufferLevels): WritableMap =
+            Arguments.createMap().apply {
+                putMap("audio", fromBufferLevel(bufferLevels.audio))
+                putMap("video", fromBufferLevel(bufferLevels.video))
+            }
+
+        /**
+         * Maps a JS string into the corresponding [BufferType] value.
+         * @param json JS string representing the [BufferType].
+         * @return The [BufferType] corresponding to [json], or `null` if the conversion fails.
+         */
+        @JvmStatic
+        fun toBufferType(json: String?): BufferType? = when (json) {
+            "forwardDuration" -> BufferType.ForwardDuration
+            "backwardDuration" -> BufferType.BackwardDuration
+            else -> null
+        }
+
+        /**
+         * Maps a JS string into the corresponding [MediaType] value.
+         * @param json JS string representing the [MediaType].
+         * @return The [MediaType] corresponding to [json], or `null` if the conversion fails.
+         */
+        @JvmStatic
+        fun toMediaType(json: String?): MediaType? = when (json) {
+            "audio" -> MediaType.Audio
+            "video" -> MediaType.Video
+            else -> null
+        }
     }
 }
 
