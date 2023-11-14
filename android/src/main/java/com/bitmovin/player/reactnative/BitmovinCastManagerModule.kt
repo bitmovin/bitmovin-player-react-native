@@ -40,7 +40,6 @@ class BitmovinCastManagerModule(context: ReactApplicationContext) : BitmovinBase
     @ReactMethod
     fun sendMessage(message: String, messageNamespace: String?, promise: Promise) = promise.resolveOnUIThread {
         BitmovinCastManager.getInstance().sendMessage(message, messageNamespace)
-        promise.resolve(null)
     }
 
     /**
@@ -49,7 +48,6 @@ class BitmovinCastManagerModule(context: ReactApplicationContext) : BitmovinBase
     @ReactMethod
     fun updateContext(promise: Promise) = promise.resolveOnUIThread {
         BitmovinCastManager.getInstance().updateContext(currentActivity)
-        promise.resolve(null)
     }
 }
 
