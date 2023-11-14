@@ -49,7 +49,7 @@ def supportsNamespace() {
 
 android {
     if (supportsNamespace()) {
-        namespace "com.bitmovinplayerreactnative"
+        namespace "com.bitmovin.player.reactnative"
     }
 
     compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")

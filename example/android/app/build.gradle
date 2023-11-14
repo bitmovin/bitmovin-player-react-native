@@ -122,11 +122,6 @@ dependencies {
         implementation jscFlavor
     }
 
-    //implementation project(':bitmovin-player-react-native')
-    // add implementation to a project in the root folder
-
-
-
     // Only needed if the offline feature is used
     implementation "androidx.localbroadcastmanager:localbroadcastmanager:1.1.0"
 
