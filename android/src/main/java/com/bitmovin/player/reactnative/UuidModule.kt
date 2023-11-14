@@ -7,7 +7,7 @@ import java.util.UUID
 
 private const val MODULE_NAME = "UuidModule"
 
-class UuidModule(context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
+class UuidModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
     /**
      * Exported JS module name.
      */
