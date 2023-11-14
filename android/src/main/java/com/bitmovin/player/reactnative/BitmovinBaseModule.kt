@@ -25,7 +25,8 @@ abstract class BitmovinBaseModule(
         val uiManager = runAndRejectOnException { uiManager } ?: return
         uiManager.addUIBlock {
             runAndRejectOnException {
-                resolve(block())
+                // Promise only support built-in types. Functions that return [Unit] must resolve to `null`.
+                resolve(block().takeUnless { it is Unit })
             }
         }
     }
