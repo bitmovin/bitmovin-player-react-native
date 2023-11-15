@@ -1,10 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [0.14.0] (2023-11-14)
 
 ### Added
 
-- `LiveConfig.minTimeshiftBufferDepth` to control the minimum buffer depth of a stream needed to enable time shifting.
+- `LiveConfig.minTimeshiftBufferDepth` to control the minimum buffer depth of a stream needed to enable time shifting
 - `Player.buffer` to control buffer preferences and to query the current buffer state
 - `DownloadFinishedEvent` to signal when the download of specific content has finished
 - `Player.videoQuality`, `Player.availableVideoQualities`, and `VideoDownloadQualityChangedEvent` to query current video qualities and listen to related changes
