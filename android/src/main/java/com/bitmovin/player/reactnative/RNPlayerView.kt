@@ -186,10 +186,15 @@ class RNPlayerView(
      * Cleans up the resources and listeners produced by this view.
      */
     fun dispose() {
-        viewEventRelay.eventEmitter = null
-        playerEventRelay.eventEmitter = null
-        playerView?.removeOnLayoutChangeListener(this)
-        playerView?.onDestroy()
+        _playerView?.run {
+            removeOnLayoutChangeListener(this@RNPlayerView)
+            // The `RNPlayerView` should not take care of the player lifecycle.
+            // As a different component is creating the player instance, the other component
+            // is responsible for destroying the player in the end.
+            player = null
+            onDestroy()
+        }
+        _playerView = null
         activityLifecycle.removeObserver(activityLifecycleObserver)
     }
 
