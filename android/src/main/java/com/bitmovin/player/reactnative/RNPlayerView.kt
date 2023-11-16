@@ -149,6 +149,7 @@ class RNPlayerView(
 
     private var _playerView: PlayerView? = null
         set(value) {
+            field?.removeOnLayoutChangeListener(this)
             field = value
             viewEventRelay.eventEmitter = field
             playerEventRelay.eventEmitter = field?.player
@@ -157,8 +158,7 @@ class RNPlayerView(
     /**
      * Associated Bitmovin's `PlayerView`.
      */
-    val playerView: PlayerView?
-        get() = _playerView
+    val playerView: PlayerView? get() = _playerView
 
     private var subtitleView: SubtitleView? = null
 
@@ -186,11 +186,15 @@ class RNPlayerView(
      * Cleans up the resources and listeners produced by this view.
      */
     fun dispose() {
-        viewEventRelay.eventEmitter = null
-        playerEventRelay.eventEmitter = null
-        playerView?.removeOnLayoutChangeListener(this)
-        playerView?.onDestroy()
         activityLifecycle.removeObserver(activityLifecycleObserver)
+
+        val playerView = _playerView ?: return
+        _playerView = null
+        // The `RNPlayerView` should not take care of the player lifecycle.
+        // As a different component is creating the player instance, the other component
+        // is responsible for destroying the player in the end.
+        playerView.player = null
+        playerView.onDestroy()
     }
 
     /**
