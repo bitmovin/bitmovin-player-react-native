@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Android: `PlayerView` destroys attached `Player` instance on destroy. `Player` life cycle must be handled on the creation side
+- Android: `PlayerView` destroys attached `Player` instance on destroy. `Player` lifecycle must be handled on the creation side
 
 ## [0.14.0] (2023-11-14)
 
