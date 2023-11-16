@@ -488,7 +488,7 @@ PODS:
     - GoogleAds-IMA-iOS-SDK (= 3.18.4)
     - GoogleAds-IMA-tvOS-SDK (= 4.8.2)
     - React-Core
-  - RNCPicker (2.4.2):
+  - RNCPicker (2.5.1):
     - React-Core
   - RNScreens (3.15.0):
     - React-Core
@@ -745,7 +745,7 @@ SPEC CHECKSUMS:
   React-utils: c1cf85c0cd58c11dfb95104a78c608e95d03eb9e
   ReactCommon: 1dabb8f37c44d8c7370238bd8f504cbad0cfd941
   RNBitmovinPlayer: e2436bccf53ed596ece178e6553ea7268d792163
-  RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
+  RNCPicker: 529d564911e93598cc399b56cc0769ce3675f8c8
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: f67f5769ce78049c5fe798bc735f04535c7bc1ac
@@ -753,4 +753,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 72e333b84551f3cbf0fe463cce703cb47a7372a6
 
-COCOAPODS: 1.13.0
+COCOAPODS: 1.14.2
