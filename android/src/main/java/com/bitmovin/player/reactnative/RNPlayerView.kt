@@ -149,6 +149,7 @@ class RNPlayerView(
 
     private var _playerView: PlayerView? = null
         set(value) {
+            field?.removeOnLayoutChangeListener(this)
             field = value
             viewEventRelay.eventEmitter = field
             playerEventRelay.eventEmitter = field?.player
@@ -193,7 +194,6 @@ class RNPlayerView(
         // As a different component is creating the player instance, the other component
         // is responsible for destroying the player in the end.
         playerView.player = null
-        playerView.removeOnLayoutChangeListener(this)
         playerView.onDestroy()
     }
 
