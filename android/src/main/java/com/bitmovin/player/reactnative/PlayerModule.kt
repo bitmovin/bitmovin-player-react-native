@@ -108,7 +108,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     ) {
         promise.resolveOnUIThread {
             offlineModule
-                .getOfflineContentManagerBridge(offlineContentManagerBridgeId)
+                .getOfflineContentManagerBridgeOrNull(offlineContentManagerBridgeId)
                 ?.offlineContentManager
                 ?.offlineSourceConfig
                 ?.let { getPlayer(nativeId).load(it) }
@@ -547,7 +547,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     @ReactMethod
     fun getPlaybackSpeed(nativeId: NativeId, promise: Promise) {
         promise.resolveOnUIThread {
-            promise.resolve(players[nativeId]?.playbackSpeed)
+            getPlayer(nativeId).playbackSpeed
         }
     }
 
@@ -557,7 +557,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     @ReactMethod
     fun setPlaybackSpeed(nativeId: NativeId, playbackSpeed: Float, promise: Promise) {
         promise.resolveOnUIThread {
-            players[nativeId]?.playbackSpeed = playbackSpeed
+            getPlayer(nativeId).playbackSpeed = playbackSpeed
         }
     }
 }
