@@ -4,7 +4,16 @@ import com.facebook.react.bridge.*
 
 fun ReadableMap.getBooleanOrNull(
     key: String,
-): Boolean? = takeIf { hasKey(key) }?.getBoolean(key)
+): Boolean? = getValueOrNull(key, ReadableMap::getBoolean)
+
+fun ReadableMap.getIntOrNull(
+    key: String,
+): Int? = getValueOrNull(key, ReadableMap::getInt)
+
+inline fun <T> ReadableMap.getValueOrNull(
+    key: String,
+    get: ReadableMap.(String) -> T?,
+) = takeIf { hasKey(key) }?.get(key)
 
 inline fun <T> ReadableMap.withDouble(
     key: String,
@@ -39,12 +48,14 @@ inline fun <T> ReadableMap.withArray(
 inline fun <T> ReadableMap.withStringArray(
     key: String,
     block: (List<String?>) -> T,
-): T? = mapValue(key, { getArray(it)?.toStringList() }, block)
+): T? = mapValue(key, ReadableMap::getStringArray, block)
+
+fun ReadableMap.getStringArray(it: String) = getArray(it)?.toStringList()
 
 inline fun <T, R> ReadableMap.mapValue(
     key: String,
     get: ReadableMap.(String) -> T?,
     block: (T) -> R,
-) = takeIf { hasKey(key) }?.get(key)?.let(block)
+) = getValueOrNull(key, get)?.let(block)
 
 inline fun <reified T> ReadableMap.toMap(): Map<String, T> = toHashMap().mapValues { it.value as T }

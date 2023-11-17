@@ -60,5 +60,12 @@ inline fun <T> Promise.runAndRejectOnException(block: RejectPromiseOnExceptionBl
     null
 }
 
+/** Resolve the [Promise] with the value returned by [block]. If it throws, sets [Promise.reject]. */
+inline fun <T> Promise.resolveOnCurrentThread(block: RejectPromiseOnExceptionBlock.() -> T): Unit = try {
+    resolve(RejectPromiseOnExceptionBlock.block())
+} catch (e: Exception) {
+    reject(e)
+}
+
 /** Receiver of code that can safely throw when resolving a [Promise]. */
 object RejectPromiseOnExceptionBlock
