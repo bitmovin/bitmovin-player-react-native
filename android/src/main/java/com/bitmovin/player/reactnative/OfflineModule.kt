@@ -169,7 +169,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
     @ReactMethod
     fun usedStorage(nativeId: NativeId, promise: Promise) {
         promise.resolveWithBridge(nativeId) {
-            promise.resolve(offlineContentManager.usedStorage.toDouble())
+            offlineContentManager.usedStorage.toDouble()
         }
     }
 
