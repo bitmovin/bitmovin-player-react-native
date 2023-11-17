@@ -5,9 +5,9 @@ import com.bitmovin.player.api.drm.PrepareLicenseCallback
 import com.bitmovin.player.api.drm.PrepareMessageCallback
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.reactnative.converter.toWidevineConfig
-import com.bitmovin.player.reactnative.extensions.uiManagerModule
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
+import java.security.InvalidParameterException
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -20,7 +20,7 @@ typealias PrepareCallback = (ByteArray) -> ByteArray
 private const val MODULE_NAME = "DrmModule"
 
 @ReactModule(name = MODULE_NAME)
-class DrmModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
+class DrmModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
     /**
      * In-memory mapping from `nativeId`s to `WidevineConfig` instances.
      */
@@ -74,15 +74,15 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
      * @param config `DrmConfig` object received from JS.
      */
     @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap?) {
-        context.uiManagerModule?.addUIBlock {
-            if (!drmConfigs.containsKey(nativeId)) {
-                config?.toWidevineConfig()?.let {
-                    drmConfigs[nativeId] = it
-                    initPrepareMessage(nativeId, config)
-                    initPrepareLicense(nativeId, config)
-                }
+    fun initWithConfig(nativeId: NativeId, config: ReadableMap, promise: Promise) {
+        promise.resolveOnUIThread {
+            if (drmConfigs.containsKey(nativeId)) {
+                throw InvalidParameterException("NativeId already exists $nativeId")
             }
+            val widevineConfig = config.toWidevineConfig() ?: throw InvalidParameterException("Invalid widevine config")
+            widevineConfig.prepareMessageCallback = buildPrepareMessageCallback(nativeId, config)
+            widevineConfig.prepareLicenseCallback = buildPrepareLicense(nativeId, config)
+            drmConfigs[nativeId] = widevineConfig
         }
     }
 
@@ -118,24 +118,21 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
     }
 
     /**
-     * Initialize the `prepareMessage` block in the `WidevineConfig` associated with `nativeId`.
-     * @param nativeId Instance ID.
+     * Initialize the `prepareMessage` block in the [widevineConfig]
+     * @param widevineConfig Instance ID.
      * @param config `DrmConfig` config object sent from JS.
      */
-    private fun initPrepareMessage(nativeId: NativeId, config: ReadableMap) {
-        val widevineConfig = drmConfigs[nativeId]
-        val widevineJson = config.getMap("widevine")
-        if (widevineConfig != null && widevineJson != null && widevineJson.hasKey("prepareMessage")) {
-            val prepareMessage = createPrepareCallback(
-                nativeId,
-                "onPrepareMessage",
-                preparedMessages,
-                preparedMessagesCondition,
-            )
-            widevineConfig.prepareMessageCallback = PrepareMessageCallback {
-                prepareMessage(it)
-            }
+    private fun buildPrepareMessageCallback(nativeId: NativeId, config: ReadableMap): PrepareMessageCallback? {
+        if (config.getMap("widevine")?.hasKey("prepareMessage") != true) {
+            return null
         }
+        val prepareMessageCallback = createPrepareCallback(
+            nativeId,
+            "onPrepareMessage",
+            preparedMessages,
+            preparedMessagesCondition,
+        )
+        return PrepareMessageCallback(prepareMessageCallback)
     }
 
     /**
@@ -143,20 +140,17 @@ class DrmModule(private val context: ReactApplicationContext) : ReactContextBase
      * @param nativeId Instance ID.
      * @param config `DrmConfig` config object sent from JS.
      */
-    private fun initPrepareLicense(nativeId: NativeId, config: ReadableMap) {
-        val widevineConfig = drmConfigs[nativeId]
-        val widevineJson = config.getMap("widevine")
-        if (widevineConfig != null && widevineJson != null && widevineJson.hasKey("prepareLicense")) {
-            val prepareLicense = createPrepareCallback(
-                nativeId,
-                "onPrepareLicense",
-                preparedLicenses,
-                preparedLicensesCondition,
-            )
-            widevineConfig.prepareLicenseCallback = PrepareLicenseCallback {
-                prepareLicense(it)
-            }
+    private fun buildPrepareLicense(nativeId: NativeId, config: ReadableMap): PrepareLicenseCallback? {
+        if (config.getMap("widevine")?.hasKey("prepareLicense") != true) {
+            return null
         }
+        val prepareLicense = createPrepareCallback(
+            nativeId,
+            "onPrepareLicense",
+            preparedLicenses,
+            preparedLicensesCondition,
+        )
+        return PrepareLicenseCallback(prepareLicense)
     }
 
     /**
