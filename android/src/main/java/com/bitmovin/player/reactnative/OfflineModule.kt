@@ -237,9 +237,9 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
         }
     }
 
-    private fun Promise.resolveWithBridge(
+    private fun <T>Promise.resolveWithBridge(
         nativeId: NativeId,
-        runBlock: OfflineContentManagerBridge.() -> Unit,
+        runBlock: OfflineContentManagerBridge.() -> T,
     ) {
         resolveOnCurrentThread {
             getOfflineContentManagerBridge(nativeId).runBlock()
