@@ -26,9 +26,8 @@ abstract class BitmovinBaseModule(
     protected inline fun <T> Promise.resolveOnUIThread(crossinline block: RejectPromiseOnExceptionBlock.() -> T) {
         val uiManager = runAndRejectOnException { uiManager } ?: return
         uiManager.addUIBlock {
-            runAndRejectOnException {
-                // Promise only support built-in types. Functions that return [Unit] must resolve to `null`.
-                resolve(block().takeUnless { it is Unit })
+            resolveOnCurrentThread {
+                resolve(block())
             }
         }
     }
@@ -62,7 +61,8 @@ inline fun <T> Promise.runAndRejectOnException(block: RejectPromiseOnExceptionBl
 
 /** Resolve the [Promise] with the value returned by [block]. If it throws, sets [Promise.reject]. */
 inline fun <T> Promise.resolveOnCurrentThread(block: RejectPromiseOnExceptionBlock.() -> T): Unit = try {
-    resolve(RejectPromiseOnExceptionBlock.block())
+    // Promise only support built-in types. Functions that return [Unit] must resolve to `null`.
+    resolve(RejectPromiseOnExceptionBlock.block().takeUnless { it is Unit })
 } catch (e: Exception) {
     reject(e)
 }
