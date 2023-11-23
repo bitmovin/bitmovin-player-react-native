@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- iOS: `onEvent` on iOS has partial payload information
+
 ## [0.14.1] (2023-11-16)
 
 ### Fixed
