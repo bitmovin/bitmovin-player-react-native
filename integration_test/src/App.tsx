@@ -17,17 +17,19 @@ To execute tests, run one of the following commands:
       <Text style={styles.headerText}>
         To execute tests, run one of the following commands:{'\n'}
       </Text>
-      <Text style={styles.instructionsText}>
+      <Text style={styles.instructions}>
         - Run on iOS:{'\n'}
         <Text style={styles.code}>yarn integration-test playertest:ios</Text>
       </Text>
       <Text style={styles.spacer}>{'\n'}</Text>
-      <Text style={styles.instructionsText}>
+      <Text style={styles.instructions}>
         - Run on Android:{'\n'}
         <Text style={styles.code}>
           yarn integration-test playertest:android
         </Text>
       </Text>
+      <Text style={styles.spacer}>{'\n'}</Text>
+      <Text style={styles.note}>Note: See console for copy-ready commands</Text>
     </SafeAreaView>
   );
 }
@@ -43,7 +45,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: Colors.darker,
   },
-  instructionsText: {
+  instructions: {
     fontSize: 24,
     color: Colors.darker,
   },
@@ -51,6 +53,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: 'gray',
     fontStyle: 'italic',
+  },
+  note: {
+    fontSize: 14,
+    color: 'gray',
   },
   spacer: {
     height: 10,
