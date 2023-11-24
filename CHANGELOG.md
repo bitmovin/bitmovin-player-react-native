@@ -5,6 +5,7 @@
 ### Fixed
 
 - Android: `PlayerView` destroys attached `Player` instance on destroy. `Player` lifecycle must be handled on the creation side
+- tvOS: Picture in Picture sample screen has unwanted padding
 
 ## [0.14.0] (2023-11-14)
 
