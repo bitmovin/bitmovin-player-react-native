@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Android: `onEvent` callback not being called on `PlayerView`
+- iOS: `onEvent` on iOS has incomplete payload information
+
 ## [0.14.1] (2023-11-16)
 
 ### Fixed

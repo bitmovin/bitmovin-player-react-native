@@ -25,7 +25,6 @@ import com.facebook.react.uimanager.events.RCTEventEmitter
 import kotlin.reflect.KClass
 
 private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
-    PlayerEvent::class to "event",
     PlayerEvent.Error::class to "playerError",
     PlayerEvent.Warning::class to "playerWarning",
     PlayerEvent.Destroy::class to "destroy",
@@ -139,7 +138,10 @@ class RNPlayerView(
      * Relays the provided set of events, emitted by the player, together with the associated name
      * to the `eventOutput` callback.
      */
-    private val playerEventRelay = EventRelay<Player, Event>(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING, ::emitEvent)
+    private val playerEventRelay = EventRelay<Player, Event>(
+        EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING,
+        ::emitEventFromPlayer,
+    )
 
     /**
      * Relays the provided set of events, emitted by the player view, together with the associated name
@@ -317,6 +319,17 @@ class RNPlayerView(
         reactContext
             .getJSModule(RCTEventEmitter::class.java)
             .receiveEvent(id, name, payload)
+    }
+
+    /**
+     * Emits a bubbling event from the player with payload to js
+     * and emits it for "event" to support `onEvent` prop.
+     * @param name Native event name.
+     * @param event Optional js object to be sent as payload.
+     */
+    private inline fun <reified E : Event> emitEventFromPlayer(name: String, event: E) {
+        emitEvent(name, event)
+        emitEvent("event", event)
     }
 }
 
