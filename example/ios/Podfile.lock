@@ -1,12 +1,12 @@
 PODS:
-  - BitmovinAnalyticsCollector/BitmovinPlayer (3.2.0):
+  - BitmovinAnalyticsCollector/BitmovinPlayer (3.3.0):
     - BitmovinAnalyticsCollector/Core
     - BitmovinPlayerCore (~> 3.48)
-  - BitmovinAnalyticsCollector/Core (3.2.0)
-  - BitmovinPlayer (3.48.0):
+  - BitmovinAnalyticsCollector/Core (3.3.0)
+  - BitmovinPlayer (3.49.0):
     - BitmovinAnalyticsCollector/BitmovinPlayer (~> 3.0)
-    - BitmovinPlayerCore (= 3.48.0)
-  - BitmovinPlayerCore (3.48.0)
+    - BitmovinPlayerCore (= 3.49.0)
+  - BitmovinPlayerCore (3.49.0)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -90,7 +90,7 @@ PODS:
   - hermes-engine/Pre-built (0.72.6-1)
   - libevent (2.1.12.1)
   - OpenSSL-Universal (1.1.1100)
-  - Protobuf (3.25.0)
+  - Protobuf (3.25.1)
   - RCT-Folly (2021.07.22.00):
     - boost
     - DoubleConversion
@@ -484,7 +484,7 @@ PODS:
     - React-logger (= 0.72.6-1)
     - React-perflogger (= 0.72.6-1)
   - RNBitmovinPlayer (0.14.1):
-    - BitmovinPlayer (= 3.48.0)
+    - BitmovinPlayer (= 3.49.0)
     - GoogleAds-IMA-iOS-SDK (= 3.18.4)
     - GoogleAds-IMA-tvOS-SDK (= 4.8.2)
     - React-Core
@@ -686,9 +686,9 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  BitmovinAnalyticsCollector: 338f5d24bdba80deaceb136ef9ee5f4b8d3a5eae
-  BitmovinPlayer: 4403bd2187b2e31106b25971fa98c9c4929d46d4
-  BitmovinPlayerCore: 054684e1a1cc262721c70c5cf3884f1e32b65e0c
+  BitmovinAnalyticsCollector: b3bf447e609a87d41e51a7c029cb16a3bcb3404c
+  BitmovinPlayer: 920ee8a7df47dc09a038a44a36b24b0c31427ad8
+  BitmovinPlayerCore: 0040c6c171079ae1a1342baab182c7956deaf6d8
   boost: 0ed1b9a58a27b2f7885dc9f279bc3b341f44512b
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 234abba95e31cc2aada0cf3b97cdb11bc5b90575
@@ -710,7 +710,7 @@ SPEC CHECKSUMS:
   hermes-engine: d059bb1faf95faf499a6b02570c23aa13d4dc87b
   libevent: a6d75fcd7be07cbc5070300ea8dbc8d55dfab88e
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  Protobuf: 6a4183ec1d51649eb2be7b86ccc286e5c539219c
+  Protobuf: d94761c33f1239c0a43a0817ca1a5f7f7c900241
   RCT-Folly: 136e9161a833a162fe3e8b647098759aae227036
   RCTRequired: e039a13eb7e10e6f677cc157120d2fb6b72a0f62
   RCTTypeSafety: 2e99324407b6d5f9d17eaa6655e9e6512fe018c2
@@ -744,13 +744,13 @@ SPEC CHECKSUMS:
   React-runtimescheduler: acd6b708338a975a9bb4c594eac0f018f5c15fa3
   React-utils: c1cf85c0cd58c11dfb95104a78c608e95d03eb9e
   ReactCommon: 1dabb8f37c44d8c7370238bd8f504cbad0cfd941
-  RNBitmovinPlayer: e2436bccf53ed596ece178e6553ea7268d792163
+  RNBitmovinPlayer: 29822e8853cfc97c179ab24cda7902ecf6f3f1e0
   RNCPicker: 529d564911e93598cc399b56cc0769ce3675f8c8
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: f67f5769ce78049c5fe798bc735f04535c7bc1ac
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: a6db41d878ef96e622fb76a6bb9b946aa2e41bf9
+PODFILE CHECKSUM: 72e333b84551f3cbf0fe463cce703cb47a7372a6
 
 COCOAPODS: 1.14.2

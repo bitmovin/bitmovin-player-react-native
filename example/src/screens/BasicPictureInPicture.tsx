@@ -118,7 +118,7 @@ export default function BasicPictureInPicture({
 
   return (
     <SafeAreaView
-      edges={['bottom', 'left', 'right']}
+      edges={Platform.isTV ? [] : ['bottom', 'left', 'right']}
       style={
         // On Android, we need to remove the padding from the container when in PiP mode.
         Platform.OS === 'android' && isInPictureInPicture
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'white',
-    padding: 10,
+    padding: Platform.isTV ? 0 : 10,
   },
   player: {
     flex: 1,
