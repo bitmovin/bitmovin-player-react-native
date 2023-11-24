@@ -19,3 +19,11 @@ buildscript {
         classpath("com.facebook.react:react-native-gradle-plugin")
     }
 }
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://artifacts.bitmovin.com/artifactory/public-releases' }
+    }
+}
