@@ -2,7 +2,8 @@ import BitmovinPlayer
 
 extension RNPlayerView: PlayerListener {
     public func onEvent(_ event: Event, player: Player) {
-        onEvent?(event.toJSON())
+        guard let jsonConvertibleEvent = event as? JsonConvertible else { return }
+        onEvent?(jsonConvertibleEvent.toJSON())
     }
 
     public func onPlayerActive(_ event: PlayerActiveEvent, player: Player) {

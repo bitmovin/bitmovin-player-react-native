@@ -158,7 +158,7 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
             "state": RCTConvert.toJson(offlineState: offlineContentManager.offlineState)
         ]
 
-        var eventBody = baseEvent.merging(body) { current, _ in current }
+        let eventBody = baseEvent.merging(body) { current, _ in current }
 
         do {
             try eventEmitter?.sendEvent(withName: "BitmovinOfflineEvent", body: eventBody)
