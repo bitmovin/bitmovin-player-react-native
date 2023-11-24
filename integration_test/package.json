@@ -1,0 +1,32 @@
+{
+  "name": "integration_test",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "lint": "eslint .",
+    "start": "react-native start",
+    "pods": "yarn pods-install || yarn pods-update",
+    "pods-install": "yarn pod-install",
+    "pods-update": "pod update --silent"
+  },
+  "dependencies": {
+    "react": "18.2.0",
+    "react-native": "npm:react-native-tvos@0.72.6-1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@babel/preset-env": "^7.20.0",
+    "@babel/runtime": "^7.20.0",
+    "@tsconfig/react-native": "^3.0.0",
+    "@types/react": "^18.0.24",
+    "@react-native/metro-config": "^0.72.11",
+    "metro-react-native-babel-preset": "0.76.8",
+    "pod-install": "^0.1.39",
+    "typescript": "4.8.4"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

@@ -8,6 +8,6 @@
   "excludeExternals": true,
   "includeVersion": true,
   "entryPoints": ["./src"],
-  "exclude": ["./example/**/*"],
+  "exclude": ["./example/**/*", "./integration_test/**/*"],
   "treatWarningsAsErrors": true
 }
