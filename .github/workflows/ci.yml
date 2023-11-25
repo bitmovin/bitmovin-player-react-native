@@ -94,6 +94,9 @@ jobs:
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
 
+      - name: Install node_modules (integration_test/)
+        run: yarn install --frozen-lockfile --cwd integration_test
+
       - name: Compile TypeScript
         run: yarn typescript
 
@@ -116,6 +119,9 @@ jobs:
 
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
+
+      - name: Install node_modules (integration_test/)
+        run: yarn install --frozen-lockfile --cwd integration_test
 
       - name: Build docs
         run: yarn docs
@@ -145,6 +151,9 @@ jobs:
 
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
+
+      - name: Install node_modules (integration_test/)
+        run: yarn install --frozen-lockfile --cwd integration_test
 
       - name: Set up Gradle cache
         uses: gradle/gradle-build-action@v2
