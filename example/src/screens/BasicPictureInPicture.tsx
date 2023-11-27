@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Platform, StyleSheet } from 'react-native';
+import { Button, Platform, StyleSheet, View, ViewProps } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -116,9 +116,9 @@ export default function BasicPictureInPicture({
     []
   );
 
+  const ContainerView = Platform.isTV ? View : SafeAreaContainer;
   return (
-    <SafeAreaView
-      edges={['bottom', 'left', 'right']}
+    <ContainerView
       style={
         // On Android, we need to remove the padding from the container when in PiP mode.
         Platform.OS === 'android' && isInPictureInPicture
@@ -137,8 +137,12 @@ export default function BasicPictureInPicture({
         onPictureInPictureExit={onPictureInPictureExitEvent}
         onPictureInPictureExited={onEvent}
       />
-    </SafeAreaView>
+    </ContainerView>
   );
+}
+
+function SafeAreaContainer(props: ViewProps): JSX.Element {
+  return <SafeAreaView edges={['bottom', 'left', 'right']} {...props} />;
 }
 
 const styles = StyleSheet.create({
@@ -147,7 +151,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'white',
-    padding: 10,
+    padding: Platform.isTV ? 0 : 10,
   },
   player: {
     flex: 1,
