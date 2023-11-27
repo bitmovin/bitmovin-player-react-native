@@ -1,12 +1,12 @@
 PODS:
-  - BitmovinAnalyticsCollector/BitmovinPlayer (3.1.2):
+  - BitmovinAnalyticsCollector/BitmovinPlayer (3.3.0):
     - BitmovinAnalyticsCollector/Core
-    - BitmovinPlayerCore (~> 3.41)
-  - BitmovinAnalyticsCollector/Core (3.1.2)
-  - BitmovinPlayer (3.48.0):
+    - BitmovinPlayerCore (~> 3.48)
+  - BitmovinAnalyticsCollector/Core (3.3.0)
+  - BitmovinPlayer (3.49.0):
     - BitmovinAnalyticsCollector/BitmovinPlayer (~> 3.0)
-    - BitmovinPlayerCore (= 3.48.0)
-  - BitmovinPlayerCore (3.48.0)
+    - BitmovinPlayerCore (= 3.49.0)
+  - BitmovinPlayerCore (3.49.0)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -345,8 +345,8 @@ PODS:
     - React-jsi (= 0.69.6-2)
     - React-logger (= 0.69.6-2)
     - React-perflogger (= 0.69.6-2)
-  - RNBitmovinPlayer (0.14.1):
-    - BitmovinPlayer (= 3.48.0)
+  - RNBitmovinPlayer (0.14.2):
+    - BitmovinPlayer (= 3.49.0)
     - GoogleAds-IMA-iOS-SDK (= 3.18.4)
     - GoogleAds-IMA-tvOS-SDK (= 4.8.2)
     - React-Core
@@ -523,9 +523,9 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  BitmovinAnalyticsCollector: 11769c5503a08c8e3495f2e2bdca8f72db6b973f
-  BitmovinPlayer: 4403bd2187b2e31106b25971fa98c9c4929d46d4
-  BitmovinPlayerCore: 054684e1a1cc262721c70c5cf3884f1e32b65e0c
+  BitmovinAnalyticsCollector: b3bf447e609a87d41e51a7c029cb16a3bcb3404c
+  BitmovinPlayer: 920ee8a7df47dc09a038a44a36b24b0c31427ad8
+  BitmovinPlayerCore: 0040c6c171079ae1a1342baab182c7956deaf6d8
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 234abba95e31cc2aada0cf3b97cdb11bc5b90575
@@ -574,7 +574,7 @@ SPEC CHECKSUMS:
   React-RCTText: f72442f7436fd8624494963af4906000a5465ce6
   React-runtimeexecutor: f1383f6460ea3d66ed122b4defb0b5ba664ee441
   ReactCommon: 7857ab475239c5ba044b7ed946ba564f2e7f1626
-  RNBitmovinPlayer: e2436bccf53ed596ece178e6553ea7268d792163
+  RNBitmovinPlayer: 020d9bcad225ddee065212cbba660673e456f391
   RNCPicker: 0250e95ad170569a96f5b0555cdd5e65b9084dca
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
