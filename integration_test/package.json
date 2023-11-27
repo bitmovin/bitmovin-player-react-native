@@ -6,8 +6,8 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "playertest:android": "yarn cavy run-android",
-    "playertest:ios": "yarn cavy run-ios",
+    "test:android": "yarn cavy run-android",
+    "test:ios": "yarn cavy run-ios",
     "pods": "yarn pods-install || yarn pods-update",
     "pods-install": "yarn pod-install",
     "pods-update": "pod update --silent"

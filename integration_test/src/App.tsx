@@ -7,10 +7,10 @@ function App(): JSX.Element {
   console.info(`
 To execute tests, run one of the following commands:
 - Run on iOS:
-  yarn integration-test playertest:ios
+  yarn integration-test test:ios
 
 - Run on Android:
-  yarn integration-test playertest:android
+  yarn integration-test test:android
   `);
   return (
     <SafeAreaView style={styles.container}>
@@ -19,14 +19,12 @@ To execute tests, run one of the following commands:
       </Text>
       <Text style={styles.instructions}>
         - Run on iOS:{'\n'}
-        <Text style={styles.code}>yarn integration-test playertest:ios</Text>
+        <Text style={styles.code}>yarn integration-test test:ios</Text>
       </Text>
       <Text style={styles.spacer}>{'\n'}</Text>
       <Text style={styles.instructions}>
         - Run on Android:{'\n'}
-        <Text style={styles.code}>
-          yarn integration-test playertest:android
-        </Text>
+        <Text style={styles.code}>yarn integration-test test:android</Text>
       </Text>
       <Text style={styles.spacer}>{'\n'}</Text>
       <Text style={styles.note}>Note: See console for copy-ready commands</Text>
