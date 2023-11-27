@@ -6,6 +6,7 @@
 
 - Android: `onEvent` callback not being called on `PlayerView`
 - iOS: `onEvent` on iOS has incomplete payload information
+- tvOS: Picture in Picture sample screen has unwanted padding
 
 ## [0.14.1] (2023-11-16)
 
