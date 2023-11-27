@@ -6,6 +6,7 @@
 
 - Android: `onEvent` callback not being called on `PlayerView`
 - iOS: `onEvent` on iOS has incomplete payload information
+- iOS: hide home indicator when entering fullscreen mode in the example application
 
 ## [0.14.1] (2023-11-16)
 
