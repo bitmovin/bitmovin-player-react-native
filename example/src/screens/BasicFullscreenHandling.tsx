@@ -78,6 +78,7 @@ export default function BasicFullscreenHandling({
       setFullscreenMode(isFullscreen);
       navigation.setOptions({
         headerShown: !isFullscreen, // show/hide top bar
+        autoHideHomeIndicator: isFullscreen, // show/hide home indicator on iOS
       });
     })
   ).current;
