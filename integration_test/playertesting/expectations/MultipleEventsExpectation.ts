@@ -150,13 +150,13 @@ export class AnyEventExpectation extends MultipleEventsExpectation {
 }
 
 export function EventSequence(
-  singleExpectationConvertibles: SingleEventExpectation[] | EventType[]
+  ...singleExpectationConvertibles: SingleEventExpectation[] | EventType[]
 ): EventSequenceExpectation {
   return new EventSequenceExpectation(singleExpectationConvertibles);
 }
 
 export function EventBag(
-  singleExpectationConvertibles: SingleEventExpectation[] | EventType[]
+  ...singleExpectationConvertibles: SingleEventExpectation[] | EventType[]
 ): EventBagExpectation {
   return new EventBagExpectation(singleExpectationConvertibles);
 }
@@ -169,7 +169,7 @@ export function RepeatedEvent(
 }
 
 export function AnyEvent(
-  singleExpectationConvertibles: SingleEventExpectation[] | EventType[]
+  ...singleExpectationConvertibles: SingleEventExpectation[] | EventType[]
 ): AnyEventExpectation {
   return new AnyEventExpectation(singleExpectationConvertibles);
 }
