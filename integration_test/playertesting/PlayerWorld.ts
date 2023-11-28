@@ -224,7 +224,7 @@ export default class PlayerWorld {
       actualExpectation = expectationsConvertible;
     } else {
       actualExpectation = EventSequence(
-        Array.from(expectationsConvertible as EventType[]).map((eventType) =>
+        ...Array.from(expectationsConvertible as EventType[]).map((eventType) =>
           PlainEvent(eventType)
         )
       );
