@@ -147,7 +147,7 @@ The `package.json` file contains various scripts for common tasks:
 
 - `yarn bootstrap`: setup the whole project by installing all dependencies and pods.
 - `yarn bootstrap:example`: setup example project by installing all dependencies and pods.
-- `yarn bootstrap:integration-test`: setup example project by installing all dependencies and pods.
+- `yarn bootstrap:integration-test`: setup integration tests project by installing all dependencies and pods.
 - `yarn build`: compile TypeScript files into `lib/` with ESBuild.
 - `yarn typescript`: type-check files with TypeScript.
 - `yarn lint`: lint files with ESLint.
