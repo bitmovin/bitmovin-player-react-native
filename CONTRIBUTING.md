@@ -149,14 +149,17 @@ For example:
 
 ```ts
 export default (spec: TestScope) => {
-  spec.describe('player', () => {
-    spec.it('loads source and plays for 5 seconds', async () => {
+  spec.describe('playing a source', () => {
+    spec.it('emits TimeChanged events', async () => {
       await startPlayerTest({}, async () => {
         await loadSourceConfig({
           url: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
           type: SourceType.HLS,
-        }); // load source config into player
-        await playFor(5); // play for 5 seconds
+        });
+        await callPlayerAndExpectEvents((player) => {
+          player.play();
+        }, EventSequence(EventType.Play, EventType.Playing));
+        await expectEvents(RepeatedEvent(EventType.TimeChanged, 5));
       });
     });
   });
