@@ -149,7 +149,27 @@ export class AnyEventExpectation extends MultipleEventsExpectation {
   }
 }
 
-export class S extends EventSequenceExpectation {}
-export class B extends EventBagExpectation {}
-export class R extends RepeatedEventExpectation {}
-export class A extends AnyEventExpectation {}
+export function EventSequence(
+  singleExpectationConvertibles: SingleEventExpectation[] | EventType[]
+): EventSequenceExpectation {
+  return new EventSequenceExpectation(singleExpectationConvertibles);
+}
+
+export function EventBag(
+  singleExpectationConvertibles: SingleEventExpectation[] | EventType[]
+): EventBagExpectation {
+  return new EventBagExpectation(singleExpectationConvertibles);
+}
+
+export function RepeatedEvent(
+  singleExpectationConvertible: SingleEventExpectation | EventType,
+  count: number
+): EventSequenceExpectation {
+  return new RepeatedEventExpectation(singleExpectationConvertible, count);
+}
+
+export function AnyEvent(
+  singleExpectationConvertibles: SingleEventExpectation[] | EventType[]
+): AnyEventExpectation {
+  return new AnyEventExpectation(singleExpectationConvertibles);
+}

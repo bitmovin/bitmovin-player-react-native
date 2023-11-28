@@ -10,12 +10,12 @@ import { Event } from 'bitmovin-player-react-native';
 import { EventType } from './EventType';
 import {
   SingleEventExpectation,
-  P,
-  F,
+  PlainEvent,
+  FilteredEvent,
 } from './expectations/SingleEventExpectation';
 import {
   MultipleEventsExpectation,
-  S,
+  EventSequence,
 } from './expectations/MultipleEventsExpectation';
 
 export default class PlayerWorld {
@@ -151,7 +151,7 @@ export default class PlayerWorld {
       (player) => {
         player.play();
       },
-      new F<TimeChangedEvent>(
+      FilteredEvent<TimeChangedEvent>(
         EventType.TimeChanged,
         (event) => event.currentTime >= time
       ),
@@ -187,7 +187,7 @@ export default class PlayerWorld {
     if (expectationConvertible instanceof SingleEventExpectation) {
       actualExpectation = expectationConvertible;
     } else {
-      actualExpectation = new P(expectationConvertible as EventType);
+      actualExpectation = PlainEvent(expectationConvertible as EventType);
     }
     let resolve: (event: T) => void = () => {};
     let reject: (error: Error) => void = () => {};
@@ -223,9 +223,9 @@ export default class PlayerWorld {
     if (expectationsConvertible instanceof MultipleEventsExpectation) {
       actualExpectation = expectationsConvertible;
     } else {
-      actualExpectation = new S(
-        Array.from(expectationsConvertible as EventType[]).map(
-          (eventType) => new P(eventType)
+      actualExpectation = EventSequence(
+        Array.from(expectationsConvertible as EventType[]).map((eventType) =>
+          PlainEvent(eventType)
         )
       );
     }

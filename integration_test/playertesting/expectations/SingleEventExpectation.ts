@@ -66,5 +66,13 @@ export class FilteredEventExpectation<
   }
 }
 
-export class P extends PlainEventExpectation {}
-export class F<E extends Event> extends FilteredEventExpectation<E> {}
+export function PlainEvent(eventType: EventType): PlainEventExpectation {
+  return new PlainEventExpectation(eventType);
+}
+
+export function FilteredEvent<E extends Event>(
+  eventType: EventType,
+  filter: (event: E) => boolean
+): FilteredEventExpectation<E> {
+  return new FilteredEventExpectation(eventType, filter);
+}
