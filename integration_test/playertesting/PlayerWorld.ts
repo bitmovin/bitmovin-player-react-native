@@ -5,7 +5,7 @@ import {
   SourceConfig,
   TimeChangedEvent,
 } from 'bitmovin-player-react-native';
-import { UUID } from './helpers/UUID';
+import uuid from 'react-native-uuid';
 import { Event } from 'bitmovin-player-react-native';
 import { EventType } from './EventType';
 import {
@@ -66,7 +66,7 @@ export default class PlayerWorld {
     }
 
     const player = new Player({
-      nativeId: `player-${UUID()}`,
+      nativeId: `player-${uuid.v4()}`,
       ...config,
     });
     player.initialize();
@@ -265,7 +265,7 @@ export default class PlayerWorld {
   private addEventListener = <T extends Event>(
     listener: (event: T) => void
   ): (() => void) => {
-    const key = UUID();
+    const key = uuid.v4() as string;
     this.eventListeners[key] = async (event) => listener(event as T);
     return () => {
       delete this.eventListeners[key];
