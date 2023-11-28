@@ -84,7 +84,10 @@ export default function LandscapeFullscreenHandling({
     new SampleFullscreenHandler(fullscreenMode, (isFullscreen: boolean) => {
       console.log('on fullscreen change');
       setFullscreenMode(isFullscreen);
-      navigation.setOptions({ headerShown: !isFullscreen });
+      navigation.setOptions({
+        headerShown: !isFullscreen, // show/hide top bar
+        autoHideHomeIndicator: isFullscreen, // show/hide home indicator on iOS
+      });
     })
   ).current;
   useFocusEffect(
