@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.14.2] (2023-11-27)
 
 ### Added
 
@@ -12,6 +12,8 @@
 
 - Android: `onEvent` callback not being called on `PlayerView`
 - iOS: `onEvent` on iOS has incomplete payload information
+- tvOS: Picture in Picture sample screen has unwanted padding
+- iOS: hide home indicator when entering fullscreen mode in the example application
 
 ## [0.14.1] (2023-11-16)
 
