@@ -182,7 +182,7 @@ The `package.json` file contains various scripts for common tasks:
 
 - `yarn bootstrap`: setup the whole project by installing all dependencies and pods.
 - `yarn bootstrap:example`: setup example project by installing all dependencies and pods.
-- `yarn bootstrap:integration-test`: setup example project by installing all dependencies and pods.
+- `yarn bootstrap:integration-test`: setup integration tests project by installing all dependencies and pods.
 - `yarn build`: compile TypeScript files into `lib/` with ESBuild.
 - `yarn typescript`: type-check files with TypeScript.
 - `yarn lint`: lint files with ESLint.
@@ -192,7 +192,7 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn example start`: start the Metro server for the example app.
 - `yarn example android`: run the example app on Android.
 - `yarn example pods`: install pods only.
-- `yarn integration-test start`: start the Metro server for the example app.
+- `yarn integration-test start`: start the Metro server for the integration tests.
 - `yarn integration-test test:android`: run the player tests on Android.
 - `yarn integration-test test:ios`: run the player tests on iOS.
 - `yarn integration-test pods`: install pods only.
