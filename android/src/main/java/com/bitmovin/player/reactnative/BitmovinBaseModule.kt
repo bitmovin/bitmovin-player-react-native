@@ -24,10 +24,12 @@ abstract class BitmovinBaseModule(
     protected val context: ReactApplicationContext,
 ) : ReactContextBaseJavaModule(context) {
     /** [resolve] the [TPromise] by running [block] in the UI thread with [UIManagerModule.addUIBlock].  */
-    protected inline fun <T, R : T> TPromise<T>.resolveOnUiThread(crossinline block: RejectPromiseOnExceptionBlock.() -> R) {
+    protected inline fun <T, R : T> TPromise<T>.resolveOnUiThread(
+        crossinline block: RejectPromiseOnExceptionBlock.() -> R,
+    ) {
         val uiManager = runAndRejectOnException { uiManager } ?: return
         uiManager.addUIBlock {
-            resolveOnCurrentThread{ block() }
+            resolveOnCurrentThread { block() }
         }
     }
 
@@ -48,12 +50,12 @@ abstract class BitmovinBaseModule(
 
     fun RejectPromiseOnExceptionBlock.getPlayer(
         nativeId: NativeId,
-        playerModule: PlayerModule = this.playerModule
+        playerModule: PlayerModule = this.playerModule,
     ): Player = playerModule.getPlayerOrNull(nativeId) ?: throw IllegalArgumentException("Invalid PlayerId")
 
     fun RejectPromiseOnExceptionBlock.getSource(
         nativeId: NativeId,
-        sourceModule: SourceModule = this.sourceModule
+        sourceModule: SourceModule = this.sourceModule,
     ): Source = sourceModule.getSourceOrNull(nativeId) ?: throw IllegalArgumentException("Invalid SourceId")
 }
 
@@ -66,7 +68,9 @@ inline fun <T, R> TPromise<T>.runAndRejectOnException(block: RejectPromiseOnExce
 }
 
 /** Resolve the [Promise] with the value returned by [block]. If it throws, sets [Promise.reject]. */
-inline fun <T> TPromise<T>.resolveOnCurrentThread(crossinline block: RejectPromiseOnExceptionBlock.() -> T): Unit = try {
+inline fun <T> TPromise<T>.resolveOnCurrentThread(
+    crossinline block: RejectPromiseOnExceptionBlock.() -> T,
+): Unit = try {
     resolve(RejectPromiseOnExceptionBlock.block())
 } catch (e: Exception) {
     reject(e)
