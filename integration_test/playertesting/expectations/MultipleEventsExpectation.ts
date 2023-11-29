@@ -164,7 +164,7 @@ export function EventBag(
 export function RepeatedEvent(
   singleExpectationConvertible: SingleEventExpectation | EventType,
   count: number
-): EventSequenceExpectation {
+): RepeatedEventExpectation {
   return new RepeatedEventExpectation(singleExpectationConvertible, count);
 }
 
