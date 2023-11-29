@@ -53,8 +53,7 @@ export const callPlayer = async <T>(
 };
 
 /**
- * Calls the given function with the player instance and expects the given event to occur.
- * @param fn The function to call.
+ * Expects the given event to occur.
  * @param expectationConvertible The event to expect.
  * @param timeoutSeconds The number of seconds to wait for the event to occur.
  * @returns A promise that resolves when the function is finished.
@@ -79,8 +78,7 @@ export const expectEvent = async <T extends Event>(
 };
 
 /**
- * Calls the given function with the player instance and expects the given events to occur.
- * @param fn The function to call.
+ * Expects the given events to occur.
  * @param expectationsConvertible The events to expect.
  * @param timeoutSeconds The number of seconds to wait for the events to occur.
  * @returns A promise that resolves when the function is finished.
@@ -111,7 +109,9 @@ export const expectEvents = async (
 };
 
 /**
- * Calls the given function with the player instance and expects the given event to occur.
+ * Starts listening for the specified `SingleEventExpectation` before executing the passed `fn` function.
+ * This is the race-condition-safe version of calling `callPlayer` and `expectEvent` after that.
+ * Useful when events are directly tied to calls in the `fn` function block and therefore synchronously emitted.
  * @param fn The function to call.
  * @param expectationConvertible The event to expect.
  * @param timeoutSeconds The number of seconds to wait for the event to occur.
@@ -139,7 +139,9 @@ export const callPlayerAndExpectEvent = async <E extends Event, P>(
 };
 
 /**
- * Calls the given function with the player instance and expects the given events to occur.
+ * Starts listening for the specified `MultipleEventExpectation` before executing the passed `fn` function.
+ * This is the race-condition-safe version of calling `callPlayer` and `expectEvents` after that.
+ * Useful when events are directly tied to calls in the `fn` function block and therefore synchronously emitted.
  * @param fn The function to call.
  * @param expectationsConvertible The events to expect.
  * @param timeoutSeconds The number of seconds to wait for the events to occur.
