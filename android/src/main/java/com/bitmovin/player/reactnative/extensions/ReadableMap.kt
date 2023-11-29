@@ -11,9 +11,5 @@ private inline fun <T> Map<String, T>.toReadableMap(
     }
 }
 
-fun Map<String, Boolean>.toReadableMap(): ReadableMap = toReadableMap(WritableMap::putBoolean)
+@JvmName("toReadableStringMap")
 fun Map<String, String>.toReadableMap(): ReadableMap = toReadableMap(WritableMap::putString)
-fun Map<String, Double>.toReadableMap(): ReadableMap = toReadableMap(WritableMap::putDouble)
-fun Map<String, Int>.toReadableMap(): ReadableMap = toReadableMap(WritableMap::putInt)
-fun Map<String, ReadableArray>.toReadableMap(): ReadableMap = toReadableMap(WritableMap::putArray)
-fun Map<String, ReadableMap>.toReadableMap(): ReadableMap = toReadableMap(WritableMap::putMap)

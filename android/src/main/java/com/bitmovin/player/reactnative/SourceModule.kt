@@ -6,6 +6,7 @@ import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toSourceConfig
 import com.bitmovin.player.reactnative.extensions.toMap
+import com.bitmovin.player.reactnative.extensions.toReadableMap
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
@@ -28,10 +29,9 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     override fun getName() = MODULE_NAME
 
     /**
-     * Fetches the [Source] instance associated with [nativeId] from internal sources or throws.
+     * Fetches the [Source] instance associated with [nativeId] from internal sources or null.
      */
-    fun getSource(nativeId: NativeId): Source = sources[nativeId]
-        ?: throw IllegalArgumentException("No source matching provided id")
+    fun getSourceOrNull(nativeId: NativeId): Source? = sources[nativeId]
 
     /**
      * Creates a new `Source` instance inside the internal sources using the provided
@@ -75,7 +75,7 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         config: ReadableMap?,
         analyticsSourceMetadata: ReadableMap?,
         promise: Promise,
-    ) = promise.resolveOnUIThread {
+    ) = promise.unit.resolveOnUiThread {
         val drmConfig = drmNativeId?.let { drmModule.getConfig(it) }
         val sourceConfig = config?.toSourceConfig() ?: throw InvalidParameterException("Invalid SourceConfig")
         val sourceMetadata = analyticsSourceMetadata?.toAnalyticsSourceMetadata()
@@ -95,8 +95,10 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      * @param nativeId `Source` to be disposed.
      */
     @ReactMethod
-    fun destroy(nativeId: NativeId) {
-        sources.remove(nativeId)
+    fun destroy(nativeId: NativeId, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithSource(nativeId) {
+            sources.remove(nativeId)
+        }
     }
 
     /**
@@ -106,8 +108,8 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun isAttachedToPlayer(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getSource(nativeId).isAttachedToPlayer
+        promise.bool.resolveOnUiThreadWithSource(nativeId) {
+            isAttachedToPlayer
         }
     }
 
@@ -118,8 +120,8 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun isActive(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getSource(nativeId).isActive
+        promise.bool.resolveOnUiThreadWithSource(nativeId) {
+            isActive
         }
     }
 
@@ -128,8 +130,8 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun duration(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getSource(nativeId).duration
+        promise.double.resolveOnUiThreadWithSource(nativeId) {
+            duration
         }
     }
 
@@ -138,8 +140,8 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun loadingState(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getSource(nativeId).loadingState.ordinal
+        promise.int.resolveOnUiThreadWithSource(nativeId) {
+            loadingState.ordinal
         }
     }
 
@@ -148,8 +150,8 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getMetadata(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getSource(nativeId).config.metadata
+        promise.map.nullable.resolveOnUiThreadWithSource(nativeId) {
+            config.metadata?.toReadableMap()
         }
     }
 
@@ -158,8 +160,8 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun setMetadata(nativeId: NativeId, metadata: ReadableMap?, promise: Promise) {
-        promise.resolveOnUIThread {
-            getSource(nativeId).config.metadata = metadata?.toMap()
+        promise.unit.resolveOnUiThreadWithSource(nativeId) {
+            config.metadata = metadata?.toMap()
         }
     }
 
@@ -170,8 +172,13 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getThumbnail(nativeId: NativeId, time: Double, promise: Promise) {
-        promise.resolveOnUIThread {
-            getSource(nativeId).getThumbnail(time)?.toJson()
+        promise.map.nullable.resolveOnUiThreadWithSource(nativeId) {
+            getThumbnail(time)?.toJson()
         }
     }
+
+    private inline fun <T> TPromise<T>.resolveOnUiThreadWithSource(
+        nativeId: NativeId,
+        crossinline block: Source.() -> T,
+    ) = resolveOnUiThread { getSource(nativeId, this@SourceModule).block() }
 }

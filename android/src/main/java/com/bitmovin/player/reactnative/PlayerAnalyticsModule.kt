@@ -22,7 +22,7 @@ class PlayerAnalyticsModule(context: ReactApplicationContext) : BitmovinBaseModu
      */
     @ReactMethod
     fun sendCustomDataEvent(nativeId: NativeId, json: ReadableMap, promise: Promise) {
-        promise.resolveOnUIThread {
+        promise.unit.resolveOnUiThread {
             getPlayer(nativeId).analytics?.sendCustomDataEvent(json.toAnalyticsCustomData())
         }
     }
@@ -34,7 +34,7 @@ class PlayerAnalyticsModule(context: ReactApplicationContext) : BitmovinBaseModu
      */
     @ReactMethod
     fun getUserId(playerId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
+        promise.string.nullable.resolveOnUiThread {
             getPlayer(playerId).analytics?.userId
         }
     }

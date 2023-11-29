@@ -18,7 +18,7 @@ class BitmovinCastManagerModule(context: ReactApplicationContext) : BitmovinBase
      * Returns whether the [BitmovinCastManager] is initialized.
      */
     @ReactMethod
-    fun isInitialized(promise: Promise) = promise.resolveOnUIThread {
+    fun isInitialized(promise: Promise) = promise.unit.resolveOnUiThread {
         BitmovinCastManager.isInitialized()
     }
 
@@ -26,7 +26,7 @@ class BitmovinCastManagerModule(context: ReactApplicationContext) : BitmovinBase
      * Initializes the [BitmovinCastManager] with the given options.
      */
     @ReactMethod
-    fun initializeCastManager(options: ReadableMap?, promise: Promise) = promise.resolveOnUIThread {
+    fun initializeCastManager(options: ReadableMap?, promise: Promise) = promise.unit.resolveOnUiThread {
         val castOptions = options?.toCastOptions()
         BitmovinCastManager.initialize(
             castOptions?.applicationId,
@@ -38,7 +38,7 @@ class BitmovinCastManagerModule(context: ReactApplicationContext) : BitmovinBase
      * Sends a message to the receiver.
      */
     @ReactMethod
-    fun sendMessage(message: String, messageNamespace: String?, promise: Promise) = promise.resolveOnUIThread {
+    fun sendMessage(message: String, messageNamespace: String?, promise: Promise) = promise.unit.resolveOnUiThread {
         BitmovinCastManager.getInstance().sendMessage(message, messageNamespace)
     }
 
@@ -46,7 +46,7 @@ class BitmovinCastManagerModule(context: ReactApplicationContext) : BitmovinBase
      * Updates the context of the [BitmovinCastManager] to the current activity.
      */
     @ReactMethod
-    fun updateContext(promise: Promise) = promise.resolveOnUIThread {
+    fun updateContext(promise: Promise) = promise.unit.resolveOnUiThread {
         BitmovinCastManager.getInstance().updateContext(currentActivity)
     }
 }

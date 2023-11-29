@@ -22,7 +22,7 @@ class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getLevel(nativeId: NativeId, type: String, promise: Promise) {
-        promise.resolveOnUIThread {
+        promise.map.resolveOnUiThread {
             val player = getPlayer(nativeId)
             val bufferType = type.toBufferTypeOrThrow()
             RNBufferLevels(
@@ -40,7 +40,7 @@ class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun setTargetLevel(nativeId: NativeId, type: String, value: Double, promise: Promise) {
-        promise.resolveOnUIThread {
+        promise.unit.resolveOnUiThread {
             getPlayer(nativeId).buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
         }
     }

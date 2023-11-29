@@ -39,7 +39,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun initWithConfig(nativeId: NativeId, config: ReadableMap?, promise: Promise) {
-        promise.resolveOnUIThread {
+        promise.unit.resolveOnUiThread {
             if (!players.containsKey(nativeId)) {
                 config?.toPlayerConfig()?.let {
                     players[nativeId] = Player.create(context, it)
@@ -60,7 +60,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         analyticsConfigJson: ReadableMap?,
         promise: Promise,
     ) {
-        promise.resolveOnUIThread {
+        promise.unit.resolveOnUiThread {
             if (players.containsKey(nativeId)) {
                 throw IllegalArgumentException("Duplicate player creation for id $nativeId")
             }
@@ -88,8 +88,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun loadSource(nativeId: NativeId, sourceNativeId: String, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).load(sourceModule.getSource(sourceNativeId))
+        promise.unit.resolveOnUiThread {
+            getPlayer(nativeId).load(getSource(sourceNativeId))
         }
     }
 
@@ -106,7 +106,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         options: ReadableMap?,
         promise: Promise,
     ) {
-        promise.resolveOnUIThread {
+        promise.unit.resolveOnUiThread {
             offlineModule
                 .getOfflineContentManagerBridgeOrNull(offlineContentManagerBridgeId)
                 ?.offlineContentManager
@@ -121,8 +121,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun unload(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).unload()
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            unload()
         }
     }
 
@@ -132,8 +132,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun play(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).play()
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            play()
         }
     }
 
@@ -143,8 +143,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun pause(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).pause()
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            pause()
         }
     }
 
@@ -155,8 +155,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun seek(nativeId: NativeId, time: Double, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).seek(time)
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            seek(time)
         }
     }
 
@@ -167,8 +167,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun timeShift(nativeId: NativeId, offset: Double, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).timeShift(offset)
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            timeShift(offset)
         }
     }
 
@@ -178,8 +178,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun mute(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).mute()
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            mute()
         }
     }
 
@@ -189,8 +189,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun unmute(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).unmute()
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            unmute()
         }
     }
 
@@ -200,8 +200,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun destroy(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).destroy()
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            destroy()
             players.remove(nativeId)
         }
     }
@@ -213,8 +213,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun setVolume(nativeId: NativeId, volume: Int, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).volume = volume
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            this.volume = volume
         }
     }
 
@@ -225,8 +225,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getVolume(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).volume
+        promise.int.resolveOnUiThreadWithPlayer(nativeId) {
+            volume
         }
     }
 
@@ -237,8 +237,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun source(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).source?.toJson()
+        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.toJson()
         }
     }
 
@@ -249,14 +249,12 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun currentTime(nativeId: NativeId, mode: String?, promise: Promise) {
-        promise.resolveOnUIThread {
-            val player = getPlayer(nativeId)
-            val timeOffset: Double = when (mode) {
-                "relative" -> player.playbackTimeOffsetToRelativeTime
-                "absolute" -> player.playbackTimeOffsetToAbsoluteTime
+        promise.double.resolveOnUiThreadWithPlayer(nativeId) {
+            currentTime + when (mode) {
+                "relative" -> playbackTimeOffsetToRelativeTime
+                "absolute" -> playbackTimeOffsetToAbsoluteTime
                 else -> throw InvalidParameterException("Unknown mode $mode")
             }
-            player.currentTime + timeOffset
         }
     }
 
@@ -267,8 +265,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun duration(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).duration
+        promise.double.resolveOnUiThreadWithPlayer(nativeId) {
+            duration
         }
     }
 
@@ -279,8 +277,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun isMuted(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).isMuted
+        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
+            isMuted
         }
     }
 
@@ -291,8 +289,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun isPlaying(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).isPlaying
+        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
+            isPlaying
         }
     }
 
@@ -303,8 +301,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun isPaused(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).isPaused
+        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
+            isPaused
         }
     }
 
@@ -315,8 +313,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun isLive(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).isLive
+        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
+            isLive
         }
     }
 
@@ -327,8 +325,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getAudioTrack(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).source?.selectedAudioTrack?.toJson()
+        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.selectedAudioTrack?.toJson()
         }
     }
 
@@ -339,8 +337,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getAvailableAudioTracks(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).source?.availableAudioTracks?.mapToReactArray { it.toJson() }
+        promise.array.nullable.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.availableAudioTracks?.mapToReactArray { it.toJson() }
         }
     }
 
@@ -352,8 +350,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun setAudioTrack(nativeId: NativeId, trackIdentifier: String, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).source?.setAudioTrack(trackIdentifier)
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.setAudioTrack(trackIdentifier)
         }
     }
 
@@ -364,8 +362,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getSubtitleTrack(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).source?.selectedSubtitleTrack?.toJson()
+        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.selectedSubtitleTrack?.toJson()
         }
     }
 
@@ -376,8 +374,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getAvailableSubtitles(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).source?.availableSubtitleTracks?.mapToReactArray { it.toJson() }
+        promise.array.nullable.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.availableSubtitleTracks?.mapToReactArray { it.toJson() }
         }
     }
 
@@ -389,8 +387,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun setSubtitleTrack(nativeId: NativeId, trackIdentifier: String?, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).source?.setSubtitleTrack(trackIdentifier)
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.setSubtitleTrack(trackIdentifier)
         }
     }
 
@@ -401,8 +399,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun scheduleAd(nativeId: NativeId, adItemJson: ReadableMap, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).scheduleAd(adItemJson.toAdItem() ?: throw IllegalArgumentException("invalid adItem"))
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            scheduleAd(adItemJson.toAdItem() ?: throw IllegalArgumentException("invalid adItem"))
         }
     }
 
@@ -413,8 +411,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun skipAd(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).skipAd()
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            skipAd()
         }
     }
 
@@ -424,8 +422,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun isAd(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).isAd
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            isAd
         }
     }
 
@@ -436,8 +434,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getTimeShift(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).timeShift
+        promise.double.resolveOnUiThreadWithPlayer(nativeId) {
+            timeShift
         }
     }
 
@@ -448,8 +446,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getMaxTimeShift(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).maxTimeShift
+        promise.double.resolveOnUiThreadWithPlayer(nativeId) {
+            maxTimeShift
         }
     }
 
@@ -460,8 +458,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun setMaxSelectableBitrate(nativeId: NativeId, maxSelectableBitrate: Int, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).setMaxSelectableVideoBitrate(
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            setMaxSelectableVideoBitrate(
                 maxSelectableBitrate.takeUnless { it == -1 } ?: Integer.MAX_VALUE,
             )
         }
@@ -474,8 +472,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getThumbnail(nativeId: NativeId, time: Double, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).source?.getThumbnail(time)?.toJson()
+        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.getThumbnail(time)?.toJson()
         }
     }
 
@@ -485,8 +483,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun castVideo(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).castVideo()
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            castVideo()
         }
     }
 
@@ -495,8 +493,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun castStop(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).castStop()
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            castStop()
         }
     }
 
@@ -506,8 +504,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun isCastAvailable(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).isCastAvailable
+        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
+            isCastAvailable
         }
     }
 
@@ -516,8 +514,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun isCasting(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).isCasting
+        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
+            isCasting
         }
     }
 
@@ -526,8 +524,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getVideoQuality(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).source?.selectedVideoQuality?.toJson()
+        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.selectedVideoQuality?.toJson()
         }
     }
 
@@ -536,8 +534,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getAvailableVideoQualities(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).source?.availableVideoQualities?.mapToReactArray { it.toJson() }
+        promise.array.nullable.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.availableVideoQualities?.mapToReactArray { it.toJson() }
         }
     }
 
@@ -546,8 +544,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getPlaybackSpeed(nativeId: NativeId, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).playbackSpeed
+        promise.float.resolveOnUiThreadWithPlayer(nativeId) {
+            playbackSpeed
         }
     }
 
@@ -556,10 +554,15 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun setPlaybackSpeed(nativeId: NativeId, playbackSpeed: Float, promise: Promise) {
-        promise.resolveOnUIThread {
-            getPlayer(nativeId).playbackSpeed = playbackSpeed
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            this.playbackSpeed = playbackSpeed
         }
     }
+
+    private inline fun <T> TPromise<T>.resolveOnUiThreadWithPlayer(
+        nativeId: NativeId,
+        crossinline block: Player.() -> T,
+    ) = resolveOnUiThread { getPlayer(nativeId, this@PlayerModule).block() }
 }
 
 private inline fun <T> List<T>.mapToReactArray(

@@ -75,7 +75,7 @@ class DrmModule(context: ReactApplicationContext) : BitmovinBaseModule(context) 
      */
     @ReactMethod
     fun initWithConfig(nativeId: NativeId, config: ReadableMap, promise: Promise) {
-        promise.resolveOnUIThread {
+        promise.unit.resolveOnUiThread {
             if (drmConfigs.containsKey(nativeId)) {
                 throw InvalidParameterException("NativeId already exists $nativeId")
             }

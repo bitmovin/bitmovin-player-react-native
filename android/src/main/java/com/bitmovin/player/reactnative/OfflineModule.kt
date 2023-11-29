@@ -60,7 +60,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
      */
     @ReactMethod
     fun initWithConfig(nativeId: NativeId, config: ReadableMap?, drmNativeId: NativeId?, promise: Promise) {
-        promise.resolveOnUIThread {
+        promise.unit.resolveOnUiThread {
             if (offlineContentManagerBridges.containsKey(nativeId)) {
                 throw InvalidParameterException("content manager bridge id already exists: $nativeId")
             }
@@ -84,7 +84,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
 
     @ReactMethod
     fun getState(nativeId: NativeId, promise: Promise) {
-        promise.resolveWithBridge(nativeId) {
+        promise.string.resolveWithBridge(nativeId) {
             state.name
         }
     }
@@ -96,7 +96,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
      */
     @ReactMethod
     fun getOptions(nativeId: NativeId, promise: Promise) {
-        promise.resolveWithBridge(nativeId) {
+        promise.unit.resolveWithBridge(nativeId) {
             getOptions()
         }
     }
@@ -110,7 +110,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
      */
     @ReactMethod
     fun download(nativeId: NativeId, request: ReadableMap, promise: Promise) {
-        promise.resolveWithBridge(nativeId) {
+        promise.unit.resolveWithBridge(nativeId) {
             when (state) {
                 OfflineOptionEntryState.Downloaded -> throw IllegalStateException("Download already completed")
                 OfflineOptionEntryState.Downloading, OfflineOptionEntryState.Failed -> throw IllegalStateException(
@@ -135,7 +135,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
      */
     @ReactMethod
     fun resume(nativeId: NativeId, promise: Promise) {
-        promise.resolveWithBridge(nativeId) {
+        promise.unit.resolveWithBridge(nativeId) {
             resume()
         }
     }
@@ -146,7 +146,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
      */
     @ReactMethod
     fun suspend(nativeId: NativeId, promise: Promise) {
-        promise.resolveWithBridge(nativeId) {
+        promise.unit.resolveWithBridge(nativeId) {
             suspend()
         }
     }
@@ -157,7 +157,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
      */
     @ReactMethod
     fun cancelDownload(nativeId: NativeId, promise: Promise) {
-        promise.resolveWithBridge(nativeId) {
+        promise.unit.resolveWithBridge(nativeId) {
             cancelDownload()
         }
     }
@@ -168,7 +168,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
      */
     @ReactMethod
     fun usedStorage(nativeId: NativeId, promise: Promise) {
-        promise.resolveWithBridge(nativeId) {
+        promise.double.resolveWithBridge(nativeId) {
             offlineContentManager.usedStorage.toDouble()
         }
     }
@@ -179,7 +179,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
      */
     @ReactMethod
     fun deleteAll(nativeId: NativeId, promise: Promise) {
-        promise.resolveWithBridge(nativeId) {
+        promise.unit.resolveWithBridge(nativeId) {
             deleteAll()
         }
     }
@@ -192,7 +192,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
      */
     @ReactMethod
     fun downloadLicense(nativeId: NativeId, promise: Promise) {
-        promise.resolveWithBridge(nativeId) {
+        promise.unit.resolveWithBridge(nativeId) {
             downloadLicense()
         }
     }
@@ -205,7 +205,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
      */
     @ReactMethod
     fun releaseLicense(nativeId: NativeId, promise: Promise) {
-        promise.resolveWithBridge(nativeId) {
+        promise.unit.resolveWithBridge(nativeId) {
             releaseLicense()
         }
     }
@@ -218,7 +218,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
      */
     @ReactMethod
     fun renewOfflineLicense(nativeId: NativeId, promise: Promise) {
-        promise.resolveWithBridge(nativeId) {
+        promise.unit.resolveWithBridge(nativeId) {
             renewOfflineLicense()
         }
     }
@@ -231,18 +231,18 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
      */
     @ReactMethod
     fun release(nativeId: NativeId, promise: Promise) {
-        promise.resolveWithBridge(nativeId) {
+        promise.unit.resolveWithBridge(nativeId) {
             release()
             offlineContentManagerBridges.remove(nativeId)
         }
     }
 
-    private fun <T>Promise.resolveWithBridge(
+    private inline fun <T> TPromise<T>.resolveWithBridge(
         nativeId: NativeId,
-        runBlock: OfflineContentManagerBridge.() -> T,
+        crossinline block: OfflineContentManagerBridge.() -> T,
     ) {
         resolveOnCurrentThread {
-            getOfflineContentManagerBridge(nativeId).runBlock()
+            getOfflineContentManagerBridge(nativeId).block()
         }
     }
 }
