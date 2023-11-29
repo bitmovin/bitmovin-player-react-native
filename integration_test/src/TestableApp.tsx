@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Tester, TestHookStore } from 'cavy';
 import Specs from '../tests';
-import PlayerWorld from '../playertesting/PlayerWorld';
+import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 import TestablePlayer from './TestablePlayer';
 
 const testHookStore = new TestHookStore();
 
 function TestableApp(): JSX.Element {
-  const playerWorld = useState(new PlayerWorld())[0];
+  const playerTestWorld = useState(new PlayerTestWorld())[0];
   useEffect(() => {
-    PlayerWorld.shared = playerWorld;
+    PlayerTestWorld.shared = playerTestWorld;
     return () => {
-      PlayerWorld.shared = undefined;
+      PlayerTestWorld.shared = undefined;
     };
-  }, [playerWorld]);
+  }, [playerTestWorld]);
   return (
     <Tester
       specs={Specs}
@@ -21,7 +21,7 @@ function TestableApp(): JSX.Element {
       startDelay={1000}
       waitTime={3000}
     >
-      <TestablePlayer playerWorld={playerWorld} />
+      <TestablePlayer playerTestWorld={playerTestWorld} />
     </Tester>
   );
 }

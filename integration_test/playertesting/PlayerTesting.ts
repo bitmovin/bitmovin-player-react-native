@@ -7,7 +7,7 @@ import {
   TimeChangedEvent,
 } from 'bitmovin-player-react-native';
 import { EventType } from './EventType';
-import PlayerWorld from './PlayerWorld';
+import PlayerTestWorld from './PlayerTestWorld';
 import {
   SingleEventExpectation,
   MultipleEventsExpectation,
@@ -17,20 +17,20 @@ export const startPlayerTest = async (
   config: PlayerConfig,
   fn: () => Promise<void>
 ): Promise<void> => {
-  return await PlayerWorld.shared.startPlayerTest(config, fn);
+  return await PlayerTestWorld.shared.startPlayerTest(config, fn);
 };
 
 export const callPlayer = async <T>(
   fn: (player: Player) => Promise<T>
 ): Promise<T> => {
-  return await PlayerWorld.shared.callPlayer(fn);
+  return await PlayerTestWorld.shared.callPlayer(fn);
 };
 
 export const expectEvent = async <T extends Event>(
   expectationConvertible: SingleEventExpectation | EventType,
   timeoutSeconds: number = 10
 ): Promise<T> => {
-  return await PlayerWorld.shared.expectEvent(
+  return await PlayerTestWorld.shared.expectEvent(
     expectationConvertible,
     timeoutSeconds
   );
@@ -40,7 +40,7 @@ export const expectEvents = async (
   expectationsConvertible: MultipleEventsExpectation | EventType[],
   timeoutSeconds: number = 10
 ): Promise<Event[]> => {
-  return await PlayerWorld.shared.expectEvents(
+  return await PlayerTestWorld.shared.expectEvents(
     expectationsConvertible,
     timeoutSeconds
   );
@@ -51,7 +51,7 @@ export const callPlayerAndExpectEvent = async <E extends Event, P>(
   expectationConvertible: SingleEventExpectation | EventType,
   timeoutSeconds: number = 10
 ): Promise<E> => {
-  return await PlayerWorld.shared.callPlayerAndExpectEvent(
+  return await PlayerTestWorld.shared.callPlayerAndExpectEvent(
     fn,
     expectationConvertible,
     timeoutSeconds
@@ -63,7 +63,7 @@ export const callPlayerAndExpectEvents = async (
   expectationsConvertible: MultipleEventsExpectation | EventType[],
   timeoutSeconds: number = 10
 ): Promise<Event[]> => {
-  return await PlayerWorld.shared.callPlayerAndExpectEvents(
+  return await PlayerTestWorld.shared.callPlayerAndExpectEvents(
     fn,
     expectationsConvertible,
     timeoutSeconds
@@ -74,7 +74,7 @@ export const loadSourceConfig = async (
   sourceConfig: SourceConfig,
   timeoutSeconds: number = 10
 ): Promise<ReadyEvent> => {
-  return await PlayerWorld.shared.loadSourceConfig(
+  return await PlayerTestWorld.shared.loadSourceConfig(
     sourceConfig,
     timeoutSeconds
   );
@@ -84,12 +84,12 @@ export const playFor = async (
   time: number,
   timeoutSeconds: number = 10
 ): Promise<TimeChangedEvent> => {
-  return await PlayerWorld.shared.playFor(time, timeoutSeconds);
+  return await PlayerTestWorld.shared.playFor(time, timeoutSeconds);
 };
 
 export const playUntil = async (
   time: number,
   timeoutSeconds: number = 10
 ): Promise<TimeChangedEvent> => {
-  return await PlayerWorld.shared.playUntil(time, timeoutSeconds);
+  return await PlayerTestWorld.shared.playUntil(time, timeoutSeconds);
 };
