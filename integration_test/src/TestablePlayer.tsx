@@ -2,37 +2,37 @@ import React, { useState } from 'react';
 import { useCavy, wrap } from 'cavy';
 import { SafeAreaView, StyleSheet, Text } from 'react-native';
 import { PlayerView } from 'bitmovin-player-react-native';
-import PlayerWorld from '../playertesting/PlayerWorld';
+import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 interface TestablePlayerProps {
-  playerWorld: PlayerWorld;
+  playerTestWorld: PlayerTestWorld;
 }
 
 export default function TestablePlayer({
-  playerWorld,
+  playerTestWorld,
 }: TestablePlayerProps): JSX.Element {
   const generateTestHook = useCavy();
   const [renderCount, setRenderCount] = useState(0);
-  playerWorld.onReRender = () => setRenderCount((count) => count + 1);
+  playerTestWorld.onReRender = () => setRenderCount((count) => count + 1);
 
   const TestablePlayerView = wrap(PlayerView);
   return (
     <SafeAreaView style={styles.container}>
-      {(playerWorld.player && (
+      {(playerTestWorld.player && (
         <>
           <Text style={styles.text}>Tests are running...🧪</Text>
           <TestablePlayerView
             key={renderCount}
             ref={generateTestHook('PlayerView')}
-            player={playerWorld.player}
+            player={playerTestWorld.player}
             style={styles.player}
-            onEvent={playerWorld.onEvent}
+            onEvent={playerTestWorld.onEvent}
           />
         </>
       )) || (
         <Text style={styles.text}>
-          {playerWorld.isFinished
+          {playerTestWorld.isFinished
             ? 'Tests have finished!'
             : 'Waiting for tests to start...'}
         </Text>

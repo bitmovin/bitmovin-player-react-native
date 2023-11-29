@@ -18,22 +18,22 @@ import {
   EventSequence,
 } from './expectations/MultipleEventsExpectation';
 
-export default class PlayerWorld {
+export default class PlayerTestWorld {
   static defaultLicenseKey: string | undefined;
-  private static shared_: PlayerWorld | undefined;
+  private static shared_: PlayerTestWorld | undefined;
   private player_: Player | undefined;
   private isFinished_: boolean = false;
   private eventListeners: { [key: string]: (event: Event) => void } = {};
 
-  static get shared(): PlayerWorld {
-    if (PlayerWorld.shared_ === undefined) {
-      throw new Error('PlayerWorld.shared not initialized');
+  static get shared(): PlayerTestWorld {
+    if (PlayerTestWorld.shared_ === undefined) {
+      throw new Error('PlayerTestWorld.shared not initialized');
     }
-    return PlayerWorld.shared_;
+    return PlayerTestWorld.shared_;
   }
 
-  static set shared(playerWorld: PlayerWorld | undefined) {
-    PlayerWorld.shared_ = playerWorld;
+  static set shared(playerTestWorld: PlayerTestWorld | undefined) {
+    PlayerTestWorld.shared_ = playerTestWorld;
   }
 
   get player(): Player | undefined {
@@ -62,7 +62,7 @@ export default class PlayerWorld {
     fn: () => Promise<void>
   ): Promise<void> => {
     if (config.licenseKey === undefined) {
-      config.licenseKey = PlayerWorld.defaultLicenseKey;
+      config.licenseKey = PlayerTestWorld.defaultLicenseKey;
     }
 
     const player = new Player({
