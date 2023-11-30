@@ -28,4 +28,6 @@ Hint: You can provide a specific iOS simulator by name when using `--simulator` 
 yarn example ios --simulator="iPhone 14 Pro"
 ```
 
+To set the license key to be used for the tests, you can set the key `"licenseKey"` in `integration_test/app.json`.
+
 Note: The tests are currently only supported on iOS simulators and Android emulators. Running them on real devices is not supported at the moment.
