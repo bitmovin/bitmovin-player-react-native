@@ -1,3 +1,4 @@
-import ExampleSpec from './exampleSpec';
+import PlaybackTest from './playbackTest';
+import LoadingTest from './loadingTest';
 
-export default [ExampleSpec];
+export default [PlaybackTest, LoadingTest];
