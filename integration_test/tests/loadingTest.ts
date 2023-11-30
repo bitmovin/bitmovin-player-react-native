@@ -57,5 +57,5 @@ export default (spec: TestScope) => {
   }
 
   loadingSourceTests(Sources.artOfMotionHls, 'VOD');
-  loadingSourceTests(Sources.akamaiLiveTest, 'live');
+  loadingSourceTests(Sources.akamaiTestLiveHls, 'live');
 };
