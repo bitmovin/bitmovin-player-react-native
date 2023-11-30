@@ -5,7 +5,7 @@ extension Source {
         var json: [AnyHashable: Any] = [
             "duration": duration,
             "isActive": isActive,
-            "loadingState": loadingState,
+            "loadingState": loadingState.rawValue,
             "isAttachedToPlayer": isAttachedToPlayer
         ]
         if let metadata {
