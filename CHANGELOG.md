@@ -8,6 +8,7 @@
 - iOS: `onEvent` on iOS has incomplete payload information
 - tvOS: Picture in Picture sample screen has unwanted padding
 - iOS: hide home indicator when entering fullscreen mode in the example application
+- iOS: invalid `loadingState` value in `SeekEvent`, `SourceLoadEvent`, `SourceLoadedEvent` and in `SourceUnloadedEvent`
 
 ## [0.14.1] (2023-11-16)
 
