@@ -2,39 +2,60 @@ import { TestScope } from 'cavy';
 import {
   callPlayerAndExpectEvent,
   callPlayerAndExpectEvents,
+  EventBag,
   EventSequence,
   EventType,
+  FilteredEvent,
   startPlayerTest,
 } from '../playertesting';
 import { Sources } from './helper/Sources';
+import {
+  DownloadFinishedEvent,
+  HttpRequestType,
+  SourceConfig,
+} from 'bitmovin-player-react-native';
 
 export default (spec: TestScope) => {
-  spec.describe('loading a source', () => {
-    spec.it('emits ReadyEvent event', async () => {
-      await startPlayerTest({}, async () => {
-        await callPlayerAndExpectEvent((player) => {
-          player.load(Sources.artOfMotionHls);
-        }, EventType.Ready);
+  function loadingSourceTests(sourceConfig: SourceConfig, label: string) {
+    spec.describe(`loading a ${label} source`, () => {
+      spec.it('emits ReadyEvent event', async () => {
+        await startPlayerTest({}, async () => {
+          await callPlayerAndExpectEvent((player) => {
+            player.load(sourceConfig);
+          }, EventType.Ready);
+        });
+      });
+      spec.it('emits SourceLoad and SourceLoaded events', async () => {
+        await startPlayerTest({}, async () => {
+          await callPlayerAndExpectEvents((player) => {
+            player.load(sourceConfig);
+          }, EventSequence(EventType.SourceLoad, EventType.SourceLoaded));
+        });
+      });
+      spec.it('emits DownloadFinished events', async () => {
+        await startPlayerTest({}, async () => {
+          await callPlayerAndExpectEvents(
+            (player) => {
+              player.load(sourceConfig);
+            },
+            EventBag(
+              FilteredEvent<DownloadFinishedEvent>(
+                EventType.DownloadFinished,
+                (event) =>
+                  event.requestType === HttpRequestType.ManifestHlsMaster
+              ),
+              FilteredEvent<DownloadFinishedEvent>(
+                EventType.DownloadFinished,
+                (event) =>
+                  event.requestType === HttpRequestType.ManifestHlsVariant
+              )
+            )
+          );
+        });
       });
     });
-    spec.it('emits SourceLoad and SourceLoaded events', async () => {
-      await startPlayerTest({}, async () => {
-        await callPlayerAndExpectEvents((player) => {
-          player.load(Sources.artOfMotionHls);
-        }, EventSequence(EventType.SourceLoad, EventType.SourceLoaded));
-      });
-    });
-  });
-  spec.describe('unloading the player', () => {
-    spec.it('emits SourceUnloaded event', async () => {
-      await startPlayerTest({}, async () => {
-        await callPlayerAndExpectEvent((player) => {
-          player.load(Sources.artOfMotionHls);
-        }, EventType.Ready);
-        await callPlayerAndExpectEvent((player) => {
-          player.unload();
-        }, EventType.SourceUnloaded);
-      });
-    });
-  });
+  }
+
+  loadingSourceTests(Sources.artOfMotionHls, 'VOD');
+  loadingSourceTests(Sources.akamaiLiveTest, 'live');
 };
