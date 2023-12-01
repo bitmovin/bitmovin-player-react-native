@@ -13,6 +13,7 @@ import com.bitmovin.player.reactnative.converter.toRNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.converter.toRNStyleConfigWrapperFromPlayerConfig
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getModule
+import com.bitmovin.player.reactnative.extensions.playerModule
 import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
 import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
@@ -21,6 +22,7 @@ import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
+import java.security.InvalidParameterException
 
 private const val MODULE_NAME = "NativePlayerView"
 
@@ -155,38 +157,18 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @param args Arguments list sent from the js side.
      */
     override fun receiveCommand(view: RNPlayerView, commandId: String?, args: ReadableArray?) {
+        fun Int.toCommand(): Commands? = Commands.values().getOrNull(this)
         val command = commandId?.toInt()?.toCommand() ?: throw IllegalArgumentException(
             "The received command is not supported by the Bitmovin Player View",
         )
+        fun <T> T?.require(): T = this ?: throw InvalidParameterException("Missing parameter")
         when (command) {
-            Commands.ATTACH_PLAYER -> attachPlayer(view, args?.getString(1), args?.getMap(2))
-            Commands.ATTACH_FULLSCREEN_BRIDGE -> args?.getString(1)?.let { fullscreenBridgeId ->
-                attachFullscreenBridge(view, fullscreenBridgeId)
-            }
-
-            Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID -> {
-                args?.getString(1)?.let { customMessageHandlerBridgeId ->
-                    setCustomMessageHandlerBridgeId(view, customMessageHandlerBridgeId)
-                }
-            }
-
-            Commands.SET_FULLSCREEN -> {
-                args?.getBoolean(1)?.let { isFullscreen ->
-                    setFullscreen(view, isFullscreen)
-                }
-            }
-
-            Commands.SET_SCALING_MODE -> {
-                args?.getString(1)?.let { scalingMode ->
-                    setScalingMode(view, scalingMode)
-                }
-            }
-
-            Commands.SET_PICTURE_IN_PICTURE -> {
-                args?.getBoolean(1)?.let { isPictureInPicture ->
-                    setPictureInPicture(view, isPictureInPicture)
-                }
-            }
+            Commands.ATTACH_PLAYER -> attachPlayer(view, args?.getString(1).require(), args?.getMap(2))
+            Commands.ATTACH_FULLSCREEN_BRIDGE -> attachFullscreenBridge(view, args?.getString(1).require())
+            Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID -> setCustomMessageHandlerBridgeId(view, args?.getString(1).require())
+            Commands.SET_FULLSCREEN -> setFullscreen(view, args?.getBoolean(1).require())
+            Commands.SET_SCALING_MODE -> setScalingMode(view, args?.getString(1).require())
+            Commands.SET_PICTURE_IN_PICTURE -> setPictureInPicture(view, args?.getBoolean(1).require())
         }
     }
 
@@ -216,9 +198,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     }
 
     private fun setPictureInPicture(view: RNPlayerView, isPictureInPictureRequested: Boolean) {
-        Handler(Looper.getMainLooper()).post {
-            val playerView = view.playerView ?: return@post
-            if (playerView.isPictureInPicture == isPictureInPictureRequested) return@post
+        runInMainLooperAndLogException {
+            val playerView = view.playerView ?: throw IllegalStateException("The player view is not yet created")
+            if (playerView.isPictureInPicture != isPictureInPictureRequested) return@runInMainLooperAndLogException
             if (isPictureInPictureRequested) {
                 playerView.enterPictureInPicture()
             } else {
@@ -251,13 +233,10 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @param view Target `RNPlayerView`.
      * @param playerId `Player` instance id inside `PlayerModule`'s registry.
      */
-    private fun attachPlayer(view: RNPlayerView, playerId: NativeId?, playerConfig: ReadableMap?) {
-        Handler(Looper.getMainLooper()).post {
-            val player = playerId?.let { getPlayerModule()?.getPlayerOrNull(it) }
-            if (player == null) {
-                Log.e(MODULE_NAME, "Cannot create a PlayerView, invalid playerId was passed.")
-                return@post
-            }
+    private fun attachPlayer(view: RNPlayerView, playerId: NativeId, playerConfig: ReadableMap?) {
+        runInMainLooperAndLogException {
+            val player = playerId.let { context.playerModule?.getPlayerOrNull(it) }
+                ?: throw InvalidParameterException("Cannot create a PlayerView, invalid playerId was passed.")
             val playbackConfig = playerConfig?.getMap("playbackConfig")
             val isPictureInPictureEnabled = view.config?.pictureInPictureConfig?.isEnabled == true ||
                 playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
@@ -273,10 +252,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             } else {
                 // PlayerView has to be initialized with Activity context
                 val currentActivity = context.currentActivity
-                if (currentActivity == null) {
-                    Log.e(MODULE_NAME, "Cannot create a PlayerView, because no activity is attached.")
-                    return@post
-                }
+                    ?: throw IllegalStateException("Cannot create a PlayerView, because no activity is attached.")
                 val userInterfaceType = rnStyleConfigWrapper?.userInterfaceType ?: UserInterfaceType.Bitmovin
                 val playerViewConfig: PlayerViewConfig = if (userInterfaceType != UserInterfaceType.Bitmovin) {
                     configuredPlayerViewConfig.copy(uiConfig = UiConfig.Disabled)
@@ -306,10 +282,14 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         }
     }
 
-    /**
-     * Helper function that gets the instantiated `PlayerModule` from modules registry.
-     */
-    private fun getPlayerModule(): PlayerModule? = context.getModule()
+    private inline fun runInMainLooperAndLogException(crossinline block: () -> Unit) {
+        Handler(Looper.getMainLooper()).post {
+            try {
+                block()
+            } catch (e: Exception) {
+                Log.e(MODULE_NAME, "Error while command", e)
+            }
+        }
+    }
 }
 
-private fun Int.toCommand(): RNPlayerViewManager.Commands? = RNPlayerViewManager.Commands.values().getOrNull(this)
