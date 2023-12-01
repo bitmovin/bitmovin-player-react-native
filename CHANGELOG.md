@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Changed
+
+- React Native version to `0.72.6`
+
 ## [0.14.2] (2023-11-27)
 
 ### Fixed
