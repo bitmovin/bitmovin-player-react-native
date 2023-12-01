@@ -23,7 +23,10 @@ import com.facebook.react.uimanager.UIManagerModule
 abstract class BitmovinBaseModule(
     protected val context: ReactApplicationContext,
 ) : ReactContextBaseJavaModule(context) {
-    /** [resolve] the [TPromise] by running [block] in the UI thread with [UIManagerModule.addUIBlock].  */
+    /**
+     * Runs [block] on the UI thread with [UIManagerModule.addUIBlock] and [TPromise.resolve] [this] with
+     * its return value. If [block] throws, [Promise.reject] [this] with the [Throwable].
+     */
     protected inline fun <T, R : T> TPromise<T>.resolveOnUiThread(
         crossinline block: RejectPromiseOnExceptionBlock.() -> R,
     ) {
@@ -59,7 +62,7 @@ abstract class BitmovinBaseModule(
     ): Source = sourceModule.getSourceOrNull(nativeId) ?: throw IllegalArgumentException("Invalid SourceId")
 }
 
-/** Run [block], forwarding the return value. If it throws, sets [Promise.reject] and return null. */
+/** Run [block], returning it's return value. If [block] throws, [Promise.reject] [this] and return null. */
 inline fun <T, R> TPromise<T>.runAndRejectOnException(block: RejectPromiseOnExceptionBlock.() -> R): R? = try {
     RejectPromiseOnExceptionBlock.block()
 } catch (e: Exception) {
@@ -67,7 +70,10 @@ inline fun <T, R> TPromise<T>.runAndRejectOnException(block: RejectPromiseOnExce
     null
 }
 
-/** Resolve the [Promise] with the value returned by [block]. If it throws, sets [Promise.reject]. */
+/**
+ * [TPromise.resolve] [this] with [block] return value.
+ * If [block] throws, [Promise.reject] [this] with the [Throwable].
+ */
 inline fun <T> TPromise<T>.resolveOnCurrentThread(
     crossinline block: RejectPromiseOnExceptionBlock.() -> T,
 ): Unit = try {
