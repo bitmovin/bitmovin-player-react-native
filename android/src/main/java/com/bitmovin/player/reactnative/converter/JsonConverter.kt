@@ -225,11 +225,8 @@ private fun String.toAdSourceType(): AdSourceType? = when (this) {
  * Converts an arbitrary `json` to `SourceConfig`.
  */
 fun ReadableMap.toSourceConfig(): SourceConfig? {
-    val url = getString("url")
-    val type = getString("type")?.toSourceType()
-    if (url == null || type == null) {
-        return null
-    }
+    val url = getString("url") ?: return null
+    val type = getString("type")?.toSourceType() ?: return null
     return SourceConfig(url, type).apply {
         withString("title") { title = it }
         withString("description") { description = it }
@@ -518,14 +515,9 @@ fun AudioTrack.toJson(): WritableMap = Arguments.createMap().apply {
  * Converts an arbitrary `json` into a `SubtitleTrack`.
  */
 fun ReadableMap.toSubtitleTrack(): SubtitleTrack? {
-    val url = this.getString("url")
-    val label = this.getString("label")
-    if (url == null || label == null) {
-        return null
-    }
     return SubtitleTrack(
-        url = url,
-        label = label,
+        url = getString("url") ?: return null,
+        label = getString("label") ?: return null,
         id = getString("identifier") ?: UUID.randomUUID().toString(),
         isDefault = getBoolean("isDefault"),
         language = getString("language"),
