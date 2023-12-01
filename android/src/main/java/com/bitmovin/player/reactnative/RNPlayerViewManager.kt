@@ -165,7 +165,10 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         when (command) {
             Commands.ATTACH_PLAYER -> attachPlayer(view, args?.getString(1).require(), args?.getMap(2))
             Commands.ATTACH_FULLSCREEN_BRIDGE -> attachFullscreenBridge(view, args?.getString(1).require())
-            Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID -> setCustomMessageHandlerBridgeId(view, args?.getString(1).require())
+            Commands.SET_CUSTOM_MESSAGE_HANDLER_BRIDGE_ID -> setCustomMessageHandlerBridgeId(
+                view,
+                args?.getString(1).require(),
+            )
             Commands.SET_FULLSCREEN -> setFullscreen(view, args?.getBoolean(1).require())
             Commands.SET_SCALING_MODE -> setScalingMode(view, args?.getString(1).require())
             Commands.SET_PICTURE_IN_PICTURE -> setPictureInPicture(view, args?.getBoolean(1).require())
@@ -292,4 +295,3 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         }
     }
 }
-
