@@ -53,14 +53,15 @@ import com.bitmovin.player.reactnative.RNStyleConfigWrapper
 import com.bitmovin.player.reactnative.UserInterfaceType
 import com.bitmovin.player.reactnative.extensions.get
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
+import com.bitmovin.player.reactnative.extensions.getDoubleOrNull
 import com.bitmovin.player.reactnative.extensions.getName
+import com.bitmovin.player.reactnative.extensions.mapToReactArray
 import com.bitmovin.player.reactnative.extensions.putBoolean
 import com.bitmovin.player.reactnative.extensions.putDouble
 import com.bitmovin.player.reactnative.extensions.putInt
 import com.bitmovin.player.reactnative.extensions.set
 import com.bitmovin.player.reactnative.extensions.toMap
 import com.bitmovin.player.reactnative.extensions.toMapList
-import com.bitmovin.player.reactnative.extensions.toReadableArray
 import com.bitmovin.player.reactnative.extensions.toReadableMap
 import com.bitmovin.player.reactnative.extensions.withArray
 import com.bitmovin.player.reactnative.extensions.withBoolean
@@ -119,7 +120,7 @@ private fun ReadableMap.toRemoteControlConfig(): RemoteControlConfig = RemoteCon
  * Converts an arbitrary `json` to `SourceOptions`.
  */
 fun ReadableMap.toSourceOptions(): SourceOptions = SourceOptions(
-    startOffset = getDouble("startOffset"),
+    startOffset = getDoubleOrNull("startOffset"),
     startOffsetTimelineReference = getString("startOffsetTimelineReference")?.toTimelineReferencePoint(),
 )
 
@@ -519,9 +520,9 @@ fun ReadableMap.toSubtitleTrack(): SubtitleTrack? {
         url = getString("url") ?: return null,
         label = getString("label") ?: return null,
         id = getString("identifier") ?: UUID.randomUUID().toString(),
-        isDefault = getBoolean("isDefault"),
+        isDefault = getBooleanOrNull("isDefault") ?: false,
         language = getString("language"),
-        isForced = getBoolean("isForced"),
+        isForced = getBooleanOrNull("isForced") ?: false,
         mimeType = getString("format")?.takeIf { it.isNotEmpty() }?.toSubtitleMimeType(),
     )
 }
@@ -553,7 +554,7 @@ private fun String.textMimeTypeToJson(): String = split("/").last()
  * Converts any `AdBreak` object into its json representation.
  */
 fun AdBreak.toJson(): WritableMap = Arguments.createMap().apply {
-    putArray("ads", ads.map { it.toJson() }.toReadableArray())
+    putArray("ads", ads.mapToReactArray { it.toJson() })
     putString("id", id)
     putDouble("scheduleTime", scheduleTime)
 }
@@ -593,7 +594,7 @@ fun AdConfig.toJson(): WritableMap = Arguments.createMap().apply {
  */
 fun AdItem.toJson(): WritableMap = Arguments.createMap().apply {
     putString("position", position)
-    putArray("sources", sources.map { it.toJson() }.toReadableArray())
+    putArray("sources", sources.toList().mapToReactArray { it.toJson() })
 }
 
 /**
@@ -668,7 +669,7 @@ fun ReadableMap.toAnalyticsSourceMetadata(): SourceMetadata = SourceMetadata(
     videoId = getString("videoId"),
     cdnProvider = getString("cdnProvider"),
     path = getString("path"),
-    isLive = getBoolean("isLive"),
+    isLive = getBooleanOrNull("isLive"),
     customData = toAnalyticsCustomData(),
 )
 
@@ -705,8 +706,8 @@ fun OfflineOptionEntry.toJson(): WritableMap = Arguments.createMap().apply {
  * Converts any `OfflineContentOptions` into its json representation.
  */
 fun OfflineContentOptions.toJson(): WritableMap = Arguments.createMap().apply {
-    putArray("audioOptions", audioOptions.map { it.toJson() }.toReadableArray())
-    putArray("textOptions", textOptions.map { it.toJson() }.toReadableArray())
+    putArray("audioOptions", audioOptions.mapToReactArray { it.toJson() })
+    putArray("textOptions", textOptions.mapToReactArray { it.toJson() })
 }
 
 fun Thumbnail.toJson(): WritableMap = Arguments.createMap().apply {
@@ -721,7 +722,7 @@ fun Thumbnail.toJson(): WritableMap = Arguments.createMap().apply {
 }
 
 fun ReadableMap.toPictureInPictureConfig(): PictureInPictureConfig = PictureInPictureConfig(
-    isEnabled = getBoolean("isEnabled"),
+    isEnabled = getBooleanOrNull("isEnabled") ?: false,
 )
 
 /**

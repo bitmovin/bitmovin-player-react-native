@@ -564,7 +564,3 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         crossinline block: Player.() -> T,
     ) = resolveOnUiThread { getPlayer(nativeId, this@PlayerModule).block() }
 }
-
-private inline fun <T> List<T>.mapToReactArray(
-    transform: (T) -> WritableMap,
-): WritableArray = Arguments.fromList(map(transform))

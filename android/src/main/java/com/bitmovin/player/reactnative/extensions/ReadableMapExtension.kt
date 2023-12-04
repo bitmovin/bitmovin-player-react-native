@@ -2,13 +2,9 @@ package com.bitmovin.player.reactnative.extensions
 
 import com.facebook.react.bridge.*
 
-fun ReadableMap.getBooleanOrNull(
-    key: String,
-): Boolean? = getValueOrNull(key, ReadableMap::getBoolean)
-
-fun ReadableMap.getIntOrNull(
-    key: String,
-): Int? = getValueOrNull(key, ReadableMap::getInt)
+fun ReadableMap.getBooleanOrNull(key: String): Boolean? = getValueOrNull(key, ReadableMap::getBoolean)
+fun ReadableMap.getIntOrNull(key: String): Int? = getValueOrNull(key, ReadableMap::getInt)
+fun ReadableMap.getDoubleOrNull(key: String): Double? = getValueOrNull(key, ReadableMap::getDouble)
 
 inline fun <T> ReadableMap.getValueOrNull(
     key: String,
@@ -50,7 +46,7 @@ inline fun <T> ReadableMap.withStringArray(
     block: (List<String?>) -> T,
 ): T? = mapValue(key, ReadableMap::getStringArray, block)
 
-fun ReadableMap.getStringArray(it: String) = getArray(it)?.toStringList()
+fun ReadableMap.getStringArray(it: String) : List<String?>? = getArray(it)?.toStringList()
 
 inline fun <T, R> ReadableMap.mapValue(
     key: String,

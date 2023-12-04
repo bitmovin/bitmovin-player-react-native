@@ -13,4 +13,8 @@ fun ReadableArray.toIntList() = toList { it.asInt() }
 fun ReadableArray.toListOfArrays() = toList { it.asArray() }
 fun ReadableArray.toMapList() = toList { it.asMap() }
 
-inline fun <reified T> List<T>.toReadableArray(): ReadableArray = Arguments.fromList(this)
+inline fun <T> List<T>.mapToReactArray(
+    transform: (T) -> WritableMap,
+): WritableArray = Arguments.createArray().also {
+    forEach { element -> it.pushMap(transform(element)) }
+}
