@@ -10,6 +10,7 @@ import { NativePlayerView } from './native';
 import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
+import { ScalingMode } from '../../styleConfig';
 import { PlayerViewProps } from './properties';
 
 /**
@@ -49,7 +50,7 @@ export function PlayerView({
   fullscreenHandler,
   customMessageHandler,
   isFullscreenRequested = false,
-  scalingMode,
+  scalingMode = ScalingMode.Fit,
   isPictureInPictureRequested = false,
   ...props
 }: PlayerViewProps) {

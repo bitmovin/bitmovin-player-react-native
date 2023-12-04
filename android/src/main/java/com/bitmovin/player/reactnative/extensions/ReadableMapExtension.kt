@@ -46,7 +46,7 @@ inline fun <T> ReadableMap.withStringArray(
     block: (List<String?>) -> T,
 ): T? = mapValue(key, ReadableMap::getStringArray, block)
 
-fun ReadableMap.getStringArray(it: String) : List<String?>? = getArray(it)?.toStringList()
+fun ReadableMap.getStringArray(it: String): List<String?>? = getArray(it)?.toStringList()
 
 inline fun <T, R> ReadableMap.mapValue(
     key: String,

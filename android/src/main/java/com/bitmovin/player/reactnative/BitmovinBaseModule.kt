@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative
 
+import android.util.Log
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.extensions.drmModule
@@ -9,6 +10,8 @@ import com.bitmovin.player.reactnative.extensions.sourceModule
 import com.bitmovin.player.reactnative.extensions.uiManagerModule
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.UIManagerModule
+
+private const val MODULE_NAME = "BitmovinBaseModule"
 
 /**
  * Base for Bitmovin React modules.
@@ -54,12 +57,12 @@ abstract class BitmovinBaseModule(
     fun RejectPromiseOnExceptionBlock.getPlayer(
         nativeId: NativeId,
         playerModule: PlayerModule = this.playerModule,
-    ): Player = playerModule.getPlayerOrNull(nativeId) ?: throw IllegalArgumentException("Invalid PlayerId")
+    ): Player = playerModule.getPlayerOrNull(nativeId) ?: throw IllegalArgumentException("Invalid PlayerId $nativeId")
 
     fun RejectPromiseOnExceptionBlock.getSource(
         nativeId: NativeId,
         sourceModule: SourceModule = this.sourceModule,
-    ): Source = sourceModule.getSourceOrNull(nativeId) ?: throw IllegalArgumentException("Invalid SourceId")
+    ): Source = sourceModule.getSourceOrNull(nativeId) ?: throw IllegalArgumentException("Invalid SourceId $nativeId")
 }
 
 /** Run [block], returning it's return value. If [block] throws, [Promise.reject] [this] and return null. */
@@ -76,11 +79,7 @@ inline fun <T, R> TPromise<T>.runAndRejectOnException(block: RejectPromiseOnExce
  */
 inline fun <T> TPromise<T>.resolveOnCurrentThread(
     crossinline block: RejectPromiseOnExceptionBlock.() -> T,
-): Unit = try {
-    resolve(RejectPromiseOnExceptionBlock.block())
-} catch (e: Exception) {
-    reject(e)
-}
+): Unit = runAndRejectOnException { this@resolveOnCurrentThread.resolve(block()) } ?: Unit
 
 /** Receiver of code that can safely throw when resolving a [Promise]. */
 object RejectPromiseOnExceptionBlock
@@ -90,7 +89,10 @@ object RejectPromiseOnExceptionBlock
 value class TPromise<T>(val promise: Promise) {
     // Promise only support built-in types. Functions that return [Unit] must resolve to `null`.
     fun resolve(value: T): Unit = promise.resolve(value.takeUnless { it is Unit })
-    fun reject(throwable: Throwable) = promise.reject(throwable)
+    fun reject(throwable: Throwable) {
+        Log.e(MODULE_NAME, "Failed to execute Bitmovin method", throwable)
+        promise.reject(throwable)
+    }
 }
 
 inline val Promise.int get() = TPromise<Int>(this)

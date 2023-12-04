@@ -10,6 +10,7 @@ import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
+import com.bitmovin.player.reactnative.extensions.mapToReactArray
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import java.security.InvalidParameterException
@@ -39,13 +40,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun initWithConfig(nativeId: NativeId, config: ReadableMap?, promise: Promise) {
-        promise.unit.resolveOnUiThread {
-            if (!players.containsKey(nativeId)) {
-                config?.toPlayerConfig()?.let {
-                    players[nativeId] = Player.create(context, it)
-                }
-            }
-        }
+        init(nativeId, config, analyticsConfigJson = null, promise)
     }
 
     /**
@@ -55,6 +50,13 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun initWithAnalyticsConfig(
+        nativeId: NativeId,
+        playerConfigJson: ReadableMap?,
+        analyticsConfigJson: ReadableMap,
+        promise: Promise,
+    ) = init(nativeId, playerConfigJson, analyticsConfigJson, promise)
+
+    private fun init(
         nativeId: NativeId,
         playerConfigJson: ReadableMap?,
         analyticsConfigJson: ReadableMap?,
@@ -89,7 +91,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     @ReactMethod
     fun loadSource(nativeId: NativeId, sourceNativeId: String, promise: Promise) {
         promise.unit.resolveOnUiThread {
-            getPlayer(nativeId).load(getSource(sourceNativeId))
+            getPlayer(nativeId, this@PlayerModule).load(getSource(sourceNativeId))
         }
     }
 
