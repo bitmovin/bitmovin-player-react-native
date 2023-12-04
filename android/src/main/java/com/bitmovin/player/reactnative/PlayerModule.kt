@@ -337,8 +337,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getAvailableAudioTracks(nativeId: NativeId, promise: Promise) {
-        promise.array.nullable.resolveOnUiThreadWithPlayer(nativeId) {
-            source?.availableAudioTracks?.mapToReactArray { it.toJson() }
+        promise.array.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.availableAudioTracks?.mapToReactArray { it.toJson() } ?: Arguments.createArray()
         }
     }
 
@@ -374,8 +374,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getAvailableSubtitles(nativeId: NativeId, promise: Promise) {
-        promise.array.nullable.resolveOnUiThreadWithPlayer(nativeId) {
-            source?.availableSubtitleTracks?.mapToReactArray { it.toJson() }
+        promise.array.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.availableSubtitleTracks?.mapToReactArray { it.toJson() } ?: Arguments.createArray()
         }
     }
 
@@ -534,8 +534,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun getAvailableVideoQualities(nativeId: NativeId, promise: Promise) {
-        promise.array.nullable.resolveOnUiThreadWithPlayer(nativeId) {
-            source?.availableVideoQualities?.mapToReactArray { it.toJson() }
+        promise.array.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.availableVideoQualities?.mapToReactArray { it.toJson() } ?: Arguments.createArray()
         }
     }
 
