@@ -327,7 +327,7 @@ data class RNPlayerViewConfigWrapper(
 
 data class RNStyleConfigWrapper(
     val styleConfig: StyleConfig?,
-    val userInterfaceType: UserInterfaceType,
+    val userInterfaceType: UserInterfaceType?,
 )
 
 enum class UserInterfaceType {

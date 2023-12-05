@@ -2,16 +2,12 @@ package com.bitmovin.player.reactnative.extensions
 
 import com.facebook.react.bridge.*
 
-inline fun <T> ReadableArray.toList(convert: (Dynamic) -> T): List<T?> = (0 until size()).map { i ->
-    convert(getDynamic(i))
+inline fun <T> ReadableArray.toList(getter: ReadableArray.(Int) -> T): List<T> = (0 until size()).map { i ->
+    getter(i)
 }
 
-fun ReadableArray.toBooleanList() = toList { it.asBoolean() }
-fun ReadableArray.toStringList() = toList { it.asString() }
-fun ReadableArray.toDoubleList() = toList { it.asDouble() }
-fun ReadableArray.toIntList() = toList { it.asInt() }
-fun ReadableArray.toListOfArrays() = toList { it.asArray() }
-fun ReadableArray.toMapList() = toList { it.asMap() }
+fun ReadableArray.toStringList() = toList(ReadableArray::getString)
+fun ReadableArray.toMapList() = toList(ReadableArray::getMap)
 
 inline fun <T> List<T>.mapToReactArray(
     transform: (T) -> WritableMap,

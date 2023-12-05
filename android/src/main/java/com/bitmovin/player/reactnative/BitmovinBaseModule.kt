@@ -22,7 +22,6 @@ private const val MODULE_NAME = "BitmovinBaseModule"
  * In general, code should not throw while resolving a [Promise]. Instead, [Promise.reject] should be used.
  * This doesn't match Kotlin's error style, which uses exception. The helper methods in this class, provide such
  * convenience, they can only be called in a context that will catch any Exception and reject the [Promise].
- *
  */
 abstract class BitmovinBaseModule(
     protected val context: ReactApplicationContext,

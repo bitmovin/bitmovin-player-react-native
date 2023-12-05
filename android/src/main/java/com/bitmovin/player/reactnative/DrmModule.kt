@@ -79,10 +79,10 @@ class DrmModule(context: ReactApplicationContext) : BitmovinBaseModule(context) 
             if (drmConfigs.containsKey(nativeId)) {
                 throw InvalidParameterException("NativeId already exists $nativeId")
             }
-            val widevineConfig = config.toWidevineConfig() ?: throw InvalidParameterException("Invalid widevine config")
-            widevineConfig.prepareMessageCallback = buildPrepareMessageCallback(nativeId, config)
-            widevineConfig.prepareLicenseCallback = buildPrepareLicense(nativeId, config)
-            drmConfigs[nativeId] = widevineConfig
+            drmConfigs[nativeId] = config.toWidevineConfig().apply {
+                prepareMessageCallback = buildPrepareMessageCallback(nativeId, config)
+                prepareLicenseCallback = buildPrepareLicense(nativeId, config)
+            }
         }
     }
 
