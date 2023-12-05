@@ -90,8 +90,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun loadSource(nativeId: NativeId, sourceNativeId: String, promise: Promise) {
-        promise.unit.resolveOnUiThread {
-            getPlayer(nativeId, this@PlayerModule).load(getSource(sourceNativeId))
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            load(getSource(sourceNativeId))
         }
     }
 
@@ -108,12 +108,10 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         options: ReadableMap?,
         promise: Promise,
     ) {
-        promise.unit.resolveOnUiThread {
-            offlineModule
-                .getOfflineContentManagerBridgeOrNull(offlineContentManagerBridgeId)
-                ?.offlineContentManager
-                ?.offlineSourceConfig
-                ?.let { getPlayer(nativeId).load(it) }
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            val offlineContentManagerBridge = getOfflineContentManagerBridge(offlineContentManagerBridgeId)
+            val offlineSourceConfig = offlineContentManagerBridge.offlineContentManager.offlineSourceConfig
+            load(offlineSourceConfig ?: throw IllegalStateException("Offline source has no config"))
         }
     }
 

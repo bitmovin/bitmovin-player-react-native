@@ -8,6 +8,7 @@ import com.bitmovin.player.reactnative.extensions.offlineModule
 import com.bitmovin.player.reactnative.extensions.playerModule
 import com.bitmovin.player.reactnative.extensions.sourceModule
 import com.bitmovin.player.reactnative.extensions.uiManagerModule
+import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.UIManagerModule
 
@@ -30,68 +31,79 @@ abstract class BitmovinBaseModule(
      * Runs [block] on the UI thread with [UIManagerModule.addUIBlock] and [TPromise.resolve] [this] with
      * its return value. If [block] throws, [Promise.reject] [this] with the [Throwable].
      */
-    protected inline fun <T, R : T> TPromise<T>.resolveOnUiThread(
-        crossinline block: RejectPromiseOnExceptionBlock.() -> R,
-    ) {
+    protected inline fun <T, R : T> TPromise<T>.resolveOnUiThread(crossinline block: () -> R) {
         val uiManager = runAndRejectOnException { uiManager } ?: return
         uiManager.addUIBlock {
             resolveOnCurrentThread { block() }
         }
     }
 
-    protected val RejectPromiseOnExceptionBlock.playerModule: PlayerModule get() = context.playerModule
+    protected val playerModule: PlayerModule get() = context.playerModule
         ?: throw IllegalArgumentException("PlayerModule not found")
 
-    protected val RejectPromiseOnExceptionBlock.uiManager: UIManagerModule get() = context.uiManagerModule
+    protected val uiManager: UIManagerModule get() = context.uiManagerModule
         ?: throw IllegalStateException("UIManager not found")
 
-    protected val RejectPromiseOnExceptionBlock.sourceModule: SourceModule get() = context.sourceModule
+    protected val sourceModule: SourceModule get() = context.sourceModule
         ?: throw IllegalStateException("SourceModule not found")
 
-    protected val RejectPromiseOnExceptionBlock.offlineModule: OfflineModule get() = context.offlineModule
+    protected val offlineModule: OfflineModule get() = context.offlineModule
         ?: throw IllegalStateException("OfflineModule not found")
 
-    protected val RejectPromiseOnExceptionBlock.drmModule: DrmModule get() = context.drmModule
+    protected val drmModule: DrmModule get() = context.drmModule
         ?: throw IllegalStateException("DrmModule not found")
 
-    fun RejectPromiseOnExceptionBlock.getPlayer(
+    fun getPlayer(
         nativeId: NativeId,
         playerModule: PlayerModule = this.playerModule,
     ): Player = playerModule.getPlayerOrNull(nativeId) ?: throw IllegalArgumentException("Invalid PlayerId $nativeId")
 
-    fun RejectPromiseOnExceptionBlock.getSource(
+    fun getSource(
         nativeId: NativeId,
         sourceModule: SourceModule = this.sourceModule,
     ): Source = sourceModule.getSourceOrNull(nativeId) ?: throw IllegalArgumentException("Invalid SourceId $nativeId")
+
+    fun getOfflineContentManagerBridge(
+        nativeId: NativeId,
+        offlineModule: OfflineModule = this.offlineModule,
+    ): OfflineContentManagerBridge = offlineModule.getOfflineContentManagerBridgeOrNull(nativeId)
+        ?: throw IllegalArgumentException("Invalid offline content manager bridge id: $nativeId")
 }
-
-/** Run [block], returning it's return value. If [block] throws, [Promise.reject] [this] and return null. */
-inline fun <T, R> TPromise<T>.runAndRejectOnException(block: RejectPromiseOnExceptionBlock.() -> R): R? = try {
-    RejectPromiseOnExceptionBlock.block()
-} catch (e: Exception) {
-    reject(e)
-    null
-}
-
-/**
- * [TPromise.resolve] [this] with [block] return value.
- * If [block] throws, [Promise.reject] [this] with the [Throwable].
- */
-inline fun <T> TPromise<T>.resolveOnCurrentThread(
-    crossinline block: RejectPromiseOnExceptionBlock.() -> T,
-): Unit = runAndRejectOnException { this@resolveOnCurrentThread.resolve(block()) } ?: Unit
-
-/** Receiver of code that can safely throw when resolving a [Promise]. */
-object RejectPromiseOnExceptionBlock
 
 /** Compile time wrapper for Promises to type check the resolved type [T]. */
 @JvmInline
 value class TPromise<T>(val promise: Promise) {
+    /**
+     * Resolve the promise with [value], see [Promise.resolve].
+     *
+     * Prefer [resolveOnCurrentThread] to automatically reject promise if an Exception is thrown.
+     */
     // Promise only support built-in types. Functions that return [Unit] must resolve to `null`.
     fun resolve(value: T): Unit = promise.resolve(value.takeUnless { it is Unit })
+
+    /**
+     * Reject the promise due to [throwable], see [Promise.reject].
+     * Prefer [resolveOnCurrentThread] or [runAndRejectOnException] instead for automatic catching.
+     */
     fun reject(throwable: Throwable) {
         Log.e(MODULE_NAME, "Failed to execute Bitmovin method", throwable)
         promise.reject(throwable)
+    }
+
+    /**
+     * [TPromise.resolve] with [block] return value.
+     * If [block] throws, [Promise.reject] with the [Throwable].
+     */
+    inline fun resolveOnCurrentThread(
+        crossinline block: () -> T,
+    ): Unit = runAndRejectOnException { resolve(block()) } ?: Unit
+
+    /** Run [block], returning it's return value. If [block] throws, [Promise.reject] and return null. */
+    inline fun <R> runAndRejectOnException(block: () -> R): R? = try {
+        block()
+    } catch (e: Exception) {
+        reject(e)
+        null
     }
 }
 
