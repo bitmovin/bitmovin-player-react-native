@@ -20,7 +20,7 @@ private const val MODULE_NAME = "PlayerModule"
 @ReactModule(name = MODULE_NAME)
 class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
     /**
-     * In-memory mapping from [nativeId]s to `Player` instances.
+     * In-memory mapping from [NativeId]s to [Player] instances.
      */
     private val players: Registry<Player> = mutableMapOf()
 
