@@ -10,7 +10,6 @@ import { NativePlayerView } from './native';
 import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
-import { ScalingMode } from '../../styleConfig';
 import { PlayerViewProps } from './properties';
 
 /**
@@ -50,7 +49,7 @@ export function PlayerView({
   fullscreenHandler,
   customMessageHandler,
   isFullscreenRequested = false,
-  scalingMode = ScalingMode.Fit,
+  scalingMode,
   isPictureInPictureRequested = false,
   ...props
 }: PlayerViewProps) {
@@ -133,7 +132,7 @@ export function PlayerView({
 
   useEffect(() => {
     const node = findNodeHandle(nativeView.current);
-    if (node) {
+    if (node && scalingMode) {
       dispatch('setScalingMode', node, scalingMode);
     }
   }, [scalingMode, nativeView]);
