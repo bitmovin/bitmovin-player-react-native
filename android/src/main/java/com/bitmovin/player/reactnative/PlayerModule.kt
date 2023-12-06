@@ -61,25 +61,23 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         playerConfigJson: ReadableMap?,
         analyticsConfigJson: ReadableMap?,
         promise: Promise,
-    ) {
-        promise.unit.resolveOnUiThread {
-            if (players.containsKey(nativeId)) {
-                throw IllegalArgumentException("Duplicate player creation for id $nativeId")
-            }
-            val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()
-            val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
-            val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
+    ) = promise.unit.resolveOnUiThread {
+        if (players.containsKey(nativeId)) {
+            throw IllegalArgumentException("Duplicate player creation for id $nativeId")
+        }
+        val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()
+        val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
+        val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
 
-            players[nativeId] = if (analyticsConfig == null) {
-                Player.create(context, playerConfig)
-            } else {
-                Player.create(
-                    context = context,
-                    playerConfig = playerConfig,
-                    analyticsConfig = analyticsConfig,
-                    defaultMetadata = defaultMetadata ?: DefaultMetadata(),
-                )
-            }
+        players[nativeId] = if (analyticsConfig == null) {
+            Player.create(context, playerConfig)
+        } else {
+            Player.create(
+                context = context,
+                playerConfig = playerConfig,
+                analyticsConfig = analyticsConfig,
+                defaultMetadata = defaultMetadata ?: DefaultMetadata(),
+            )
         }
     }
 
