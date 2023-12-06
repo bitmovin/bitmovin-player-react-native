@@ -11,10 +11,10 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.converter.toRNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.converter.toRNStyleConfigWrapperFromPlayerConfig
+import com.bitmovin.player.reactnative.extensions.customMessageHandlerModule
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getModule
 import com.bitmovin.player.reactnative.extensions.playerModule
-import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
 import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.*
@@ -201,9 +201,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     }
 
     private fun setPictureInPicture(view: RNPlayerView, isPictureInPictureRequested: Boolean) {
-        runInMainLooperAndLogException {
+        runOnMainLooperAndLogException {
             val playerView = view.playerView ?: throw IllegalStateException("The player view is not yet created")
-            if (playerView.isPictureInPicture != isPictureInPictureRequested) return@runInMainLooperAndLogException
+            if (playerView.isPictureInPicture != isPictureInPictureRequested) return@runOnMainLooperAndLogException
             if (isPictureInPictureRequested) {
                 playerView.enterPictureInPicture()
             } else {
@@ -213,7 +213,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     }
 
     private fun setScalingMode(view: RNPlayerView, scalingMode: String) {
-        Handler(Looper.getMainLooper()).post {
+        runOnMainLooperAndLogException {
             view.playerView?.scalingMode = ScalingMode.valueOf(scalingMode)
         }
     }
@@ -225,7 +225,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
 
     private fun attachCustomMessageHandlerBridge(view: RNPlayerView) {
         view.playerView?.setCustomMessageHandler(
-            context.getModule<CustomMessageHandlerModule>()
+            context.customMessageHandlerModule
                 ?.getInstance(customMessageHandlerBridgeId)
                 ?.customMessageHandler,
         )
@@ -237,7 +237,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @param playerId `Player` instance id inside `PlayerModule`'s registry.
      */
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId, playerConfig: ReadableMap?) {
-        runInMainLooperAndLogException {
+        runOnMainLooperAndLogException {
             val player = playerId.let { context.playerModule?.getPlayerOrNull(it) }
                 ?: throw InvalidParameterException("Cannot create a PlayerView, invalid playerId was passed.")
             val playbackConfig = playerConfig?.getMap("playbackConfig")
@@ -285,7 +285,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         }
     }
 
-    private inline fun runInMainLooperAndLogException(crossinline block: () -> Unit) {
+    private inline fun runOnMainLooperAndLogException(crossinline block: () -> Unit) {
         Handler(Looper.getMainLooper()).post {
             try {
                 block()

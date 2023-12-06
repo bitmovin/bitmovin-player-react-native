@@ -4,6 +4,7 @@ import com.bitmovin.player.reactnative.DrmModule
 import com.bitmovin.player.reactnative.OfflineModule
 import com.bitmovin.player.reactnative.PlayerModule
 import com.bitmovin.player.reactnative.SourceModule
+import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.UIManagerModule
 
@@ -16,3 +17,4 @@ val ReactApplicationContext.sourceModule get() = getModule<SourceModule>()
 val ReactApplicationContext.offlineModule get() = getModule<OfflineModule>()
 val ReactApplicationContext.uiManagerModule get() = getModule<UIManagerModule>()
 val ReactApplicationContext.drmModule get() = getModule<DrmModule>()
+val ReactApplicationContext.customMessageHandlerModule get() = getModule<CustomMessageHandlerModule>()
