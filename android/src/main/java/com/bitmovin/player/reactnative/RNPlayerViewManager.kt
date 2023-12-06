@@ -290,7 +290,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             try {
                 block()
             } catch (e: Exception) {
-                Log.e(MODULE_NAME, "Error while command", e)
+                Log.e(MODULE_NAME, "Error while executing command", e)
             }
         }
     }
