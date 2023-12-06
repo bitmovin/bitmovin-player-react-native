@@ -48,9 +48,9 @@ export function PlayerView({
   config,
   fullscreenHandler,
   customMessageHandler,
-  isFullscreenRequested = false,
+  isFullscreenRequested,
   scalingMode,
-  isPictureInPictureRequested = false,
+  isPictureInPictureRequested,
   ...props
 }: PlayerViewProps) {
   // Workaround React Native UIManager commands not sent until UI refresh
@@ -125,7 +125,7 @@ export function PlayerView({
 
   useEffect(() => {
     const node = findNodeHandle(nativeView.current);
-    if (node) {
+    if (node && isFullscreenRequested) {
       dispatch('setFullscreen', node, isFullscreenRequested);
     }
   }, [isFullscreenRequested, nativeView]);
@@ -139,7 +139,7 @@ export function PlayerView({
 
   useEffect(() => {
     const node = findNodeHandle(nativeView.current);
-    if (node) {
+    if (node && isPictureInPictureRequested) {
       dispatch('setPictureInPicture', node, isPictureInPictureRequested);
     }
   }, [isPictureInPictureRequested, nativeView]);
