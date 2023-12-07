@@ -64,6 +64,7 @@ post_install do |installer|
   )
   __apply_Xcode_12_5_M1_post_install_workaround(installer)
   fix_deployment_target(installer)
+  fix_simulator_run(installer)
 end
 
 def fix_deployment_target(installer)
@@ -87,6 +88,15 @@ def fix_deployment_target(installer)
         next if old_target_tvOS.to_f >= new_target_tvOS.to_f
         config.build_settings['TVOS_DEPLOYMENT_TARGET'] = new_target_tvOS
       end
+    end
+  end
+end
+
+def fix_simulator_run(installer)
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
+      config.build_settings["EXCLUDED_ARCHS[sdk=appletvsimulator*]"] = "i386"
     end
   end
 end
