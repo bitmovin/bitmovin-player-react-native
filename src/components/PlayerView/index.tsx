@@ -125,21 +125,21 @@ export function PlayerView({
 
   useEffect(() => {
     const node = findNodeHandle(nativeView.current);
-    if (node && isFullscreenRequested) {
+    if (node && isFullscreenRequested != undefined) {
       dispatch('setFullscreen', node, isFullscreenRequested);
     }
   }, [isFullscreenRequested, nativeView]);
 
   useEffect(() => {
     const node = findNodeHandle(nativeView.current);
-    if (node && scalingMode) {
+    if (node && scalingMode != undefined) {
       dispatch('setScalingMode', node, scalingMode);
     }
   }, [scalingMode, nativeView]);
 
   useEffect(() => {
     const node = findNodeHandle(nativeView.current);
-    if (node && isPictureInPictureRequested) {
+    if (node && isPictureInPictureRequested != undefined) {
       dispatch('setPictureInPicture', node, isPictureInPictureRequested);
     }
   }, [isPictureInPictureRequested, nativeView]);
