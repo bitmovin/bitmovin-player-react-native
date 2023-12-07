@@ -75,7 +75,6 @@ abstract class BitmovinBaseModule(
 value class TPromise<T>(val promise: Promise) {
     /**
      * Resolve the promise with [value], see [Promise.resolve].
-     *
      * Prefer [resolveOnCurrentThread] to automatically reject promise if an Exception is thrown.
      */
     // Promise only support built-in types. Functions that return [Unit] must resolve to `null`.
@@ -83,7 +82,7 @@ value class TPromise<T>(val promise: Promise) {
 
     /**
      * Reject the promise due to [throwable], see [Promise.reject].
-     * Prefer [resolveOnCurrentThread] or [runAndRejectOnException] instead for automatic catching.
+     * Prefer [resolveOnCurrentThread] or [runAndRejectOnException] instead for automatic rejecting.
      */
     fun reject(throwable: Throwable) {
         Log.e(MODULE_NAME, "Failed to execute Bitmovin method", throwable)
