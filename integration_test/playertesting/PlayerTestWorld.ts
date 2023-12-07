@@ -24,6 +24,7 @@ export default class PlayerTestWorld {
   private player_: Player | undefined;
   private isFinished_: boolean = false;
   private eventListeners: { [key: string]: (event: Event) => void } = {};
+  private isPlayerInitialized: boolean = false;
 
   static get shared(): PlayerTestWorld {
     if (PlayerTestWorld.shared_ === undefined) {
@@ -42,6 +43,7 @@ export default class PlayerTestWorld {
 
   private set player(player: Player | undefined) {
     this.player_ = player;
+    this.isPlayerInitialized = false;
     this.reRender();
   }
 
@@ -72,10 +74,6 @@ export default class PlayerTestWorld {
     player.initialize();
     this.player = player;
 
-    // Trick to wait for the player to be initialized
-    // otherwise initial events might be missed
-    await player.isPlaying();
-
     await fn().finally(() => {
       player.destroy();
       this.isFinished_ = true;
@@ -85,7 +83,7 @@ export default class PlayerTestWorld {
   };
 
   callPlayer = async <T>(fn: (player: Player) => Promise<T>): Promise<T> => {
-    return await fn(this.ensurePlayer());
+    return await fn(await this.ensurePlayer());
   };
 
   expectEvent = async <T extends Event>(
@@ -110,7 +108,7 @@ export default class PlayerTestWorld {
     return await this.expectEventCalling<E>(
       expectationConvertible,
       timeoutSeconds,
-      () => fn(this.ensurePlayer())
+      async () => fn(await this.ensurePlayer())
     );
   };
 
@@ -122,7 +120,7 @@ export default class PlayerTestWorld {
     return await this.expectEventsCalling(
       expectationsConvertible,
       timeoutSeconds,
-      () => fn(this.ensurePlayer())
+      async () => fn(await this.ensurePlayer())
     );
   };
 
@@ -143,7 +141,8 @@ export default class PlayerTestWorld {
     time: number,
     timeoutSeconds: number
   ): Promise<TimeChangedEvent> => {
-    const currentTime = await this.ensurePlayer().getCurrentTime();
+    const player = await this.ensurePlayer();
+    const currentTime = await player.getCurrentTime();
     const targetTime = currentTime + time;
     return await this.playUntil(targetTime, timeoutSeconds);
   };
@@ -164,13 +163,14 @@ export default class PlayerTestWorld {
     );
   };
 
-  private ensurePlayer = (): Player => {
+  private ensurePlayer = async (): Promise<Player> => {
     if (this.player !== undefined) {
       if (this.player.isDestroyed) {
         throw new Error(
           'Player was destroyed. Did you forget to call "startPlayerTest" again?'
         );
       }
+      await this.ensurePlayerInitialized();
       return this.player;
     }
     throw new Error("It seems you forgot to call 'startPlayerTest' first.");
@@ -186,7 +186,7 @@ export default class PlayerTestWorld {
   private expectEventCalling = async <T extends Event>(
     expectationConvertible: SingleEventExpectation | EventType,
     timeoutSeconds: number,
-    afterListenerAttached: () => void = () => {}
+    afterListenerAttached: () => Promise<void> = async () => Promise.resolve()
   ): Promise<T> => {
     let actualExpectation: SingleEventExpectation;
     if (expectationConvertible instanceof SingleEventExpectation) {
@@ -211,7 +211,7 @@ export default class PlayerTestWorld {
         reject(new Error(`Expectation was not met: ${actualExpectation}`));
       }
     }, timeoutSeconds * 1000);
-    afterListenerAttached();
+    await afterListenerAttached();
     return future.then((event) => {
       clearTimeout(timeoutHandle);
       removeListener();
@@ -222,7 +222,7 @@ export default class PlayerTestWorld {
   private expectEventsCalling = async (
     expectationsConvertible: MultipleEventsExpectation | EventType[],
     timeoutSeconds: number,
-    afterListenerAttached: () => void = () => {}
+    afterListenerAttached: () => Promise<void> = async () => Promise.resolve()
   ): Promise<Event[]> => {
     let actualExpectation: MultipleEventsExpectation;
     if (expectationsConvertible instanceof MultipleEventsExpectation) {
@@ -259,7 +259,7 @@ export default class PlayerTestWorld {
         reject(new Error(`Expectation was not met: ${actualExpectation}`));
       }
     }, timeoutSeconds * 1000);
-    afterListenerAttached();
+    await afterListenerAttached();
     return future.then((events) => {
       clearTimeout(timeoutHandle);
       removeListener();
@@ -275,5 +275,14 @@ export default class PlayerTestWorld {
     return () => {
       delete this.eventListeners[key];
     };
+  };
+
+  private ensurePlayerInitialized = async (): Promise<void> => {
+    if (this.isPlayerInitialized === false) {
+      // Trick to make sure the player is initialized,
+      // otherwise method calls might have no effect.
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      this.isPlayerInitialized = true;
+    }
   };
 }
