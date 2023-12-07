@@ -182,7 +182,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
 
     private fun attachFullscreenBridge(view: RNPlayerView, fullscreenBridgeId: NativeId) {
         handler.postAndLogException {
-            view.playerView?.setFullscreenHandler(
+            view.getPlayerViewOrThrow().setFullscreenHandler(
                 context.fullscreenHandlerModule.getInstance(fullscreenBridgeId),
             )
         }
@@ -190,44 +190,42 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
 
     private fun setFullscreen(view: RNPlayerView, isFullscreenRequested: Boolean) {
         handler.postAndLogException {
-            val playerView = view.playerView ?: throw IllegalStateException("The player view is not yet created")
-            if (playerView.isFullscreen == isFullscreenRequested) return@postAndLogException
-            if (isFullscreenRequested) {
-                playerView.enterFullscreen()
-            } else {
-                playerView.exitFullscreen()
+            with(view.getPlayerViewOrThrow()) {
+                when {
+                    isFullscreen == isFullscreenRequested -> Unit // No changes
+                    isFullscreenRequested -> enterFullscreen()
+                    !isFullscreenRequested -> exitFullscreen()
+                }
             }
         }
     }
 
     private fun setPictureInPicture(view: RNPlayerView, isPictureInPictureRequested: Boolean) {
         handler.postAndLogException {
-            val playerView = view.playerView ?: throw IllegalStateException("The player view is not yet created")
-            if (playerView.isPictureInPicture == isPictureInPictureRequested) return@postAndLogException
-            if (isPictureInPictureRequested) {
-                playerView.enterPictureInPicture()
-            } else {
-                playerView.exitPictureInPicture()
+            with(view.getPlayerViewOrThrow()) {
+                when {
+                    isPictureInPicture == isPictureInPictureRequested -> Unit // No changes
+                    isPictureInPictureRequested -> enterPictureInPicture()
+                    !isPictureInPictureRequested -> exitPictureInPicture()
+                }
             }
         }
     }
 
     private fun setScalingMode(view: RNPlayerView, scalingMode: String) {
         handler.postAndLogException {
-            view.playerView?.scalingMode = ScalingMode.valueOf(scalingMode)
+            view.getPlayerViewOrThrow().scalingMode = ScalingMode.valueOf(scalingMode)
         }
     }
 
     private fun setCustomMessageHandlerBridgeId(view: RNPlayerView, customMessageHandlerBridgeId: NativeId) {
         this.customMessageHandlerBridgeId = customMessageHandlerBridgeId
-        attachCustomMessageHandlerBridge(view)
+        attachCustomMessageHandlerBridge(view, customMessageHandlerBridgeId)
     }
 
-    private fun attachCustomMessageHandlerBridge(view: RNPlayerView) {
-        view.playerView?.setCustomMessageHandler(
-            context.customMessageHandlerModule
-                .getInstance(customMessageHandlerBridgeId)
-                ?.customMessageHandler,
+    private fun attachCustomMessageHandlerBridge(view: RNPlayerView, customMessageHandlerBridgeId: NativeId) {
+        view.getPlayerViewOrThrow().setCustomMessageHandler(
+            context.customMessageHandlerModule.getInstance(customMessageHandlerBridgeId).customMessageHandler,
         )
     }
 
@@ -269,7 +267,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     LayoutParams.MATCH_PARENT,
                 )
                 view.setPlayerView(playerView)
-                attachCustomMessageHandlerBridge(view)
+                customMessageHandlerBridgeId?.let { attachCustomMessageHandlerBridge(view, it) }
             }
 
             if (rnStyleConfigWrapper?.styleConfig?.isUiEnabled != false &&
@@ -292,4 +290,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             Log.e(MODULE_NAME, "Error while executing command", e)
         }
     }
+
+    private fun RNPlayerView.getPlayerViewOrThrow() = playerView
+        ?: throw IllegalStateException("The player view is not yet created")
 }
