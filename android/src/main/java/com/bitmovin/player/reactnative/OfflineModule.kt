@@ -29,9 +29,10 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
     /**
      * Fetches the `OfflineManager` instance associated with `nativeId` from the internal offline managers.
      */
-    fun getOfflineContentManagerBridgeOrNull(
+    fun getOfflineContentManagerBridge(
         nativeId: NativeId,
-    ): OfflineContentManagerBridge? = offlineContentManagerBridges[nativeId]
+    ): OfflineContentManagerBridge = offlineContentManagerBridges[nativeId]
+        ?: throw IllegalArgumentException("Invalid offline content manager bridge id: $nativeId")
 
     /**
      * Callback when a new NativeEventEmitter is created from the Typescript layer.
@@ -65,7 +66,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
             val sourceConfig = config.getMap("sourceConfig")?.toSourceConfig()
                 ?: throw IllegalArgumentException("Invalid source config")
 
-            sourceConfig.drmConfig = context.drmModule?.getConfig(drmNativeId)
+            sourceConfig.drmConfig = context.drmModule.getConfig(drmNativeId)
 
             offlineContentManagerBridges[nativeId] = OfflineContentManagerBridge(
                 nativeId,
@@ -235,9 +236,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
     private inline fun <T> TPromise<T>.resolveWithBridge(
         nativeId: NativeId,
         crossinline block: OfflineContentManagerBridge.() -> T,
-    ) {
-        resolveOnCurrentThread {
-            getOfflineContentManagerBridge(nativeId, this@OfflineModule).block()
-        }
+    ) = resolveOnCurrentThread {
+        getOfflineContentManagerBridge(nativeId).block()
     }
 }

@@ -2,7 +2,7 @@ package com.bitmovin.player.reactnative.ui
 
 import android.webkit.JavascriptInterface
 import com.bitmovin.player.reactnative.NativeId
-import com.bitmovin.player.reactnative.extensions.getModule
+import com.bitmovin.player.reactnative.extensions.customMessageHandlerModule
 import com.bitmovin.player.ui.CustomMessageHandler
 import com.facebook.react.bridge.ReactApplicationContext
 
@@ -14,13 +14,13 @@ class CustomMessageHandlerBridge(
         object : Any() {
             @JavascriptInterface
             fun sendSynchronous(name: String, data: String?): String? = context
-                .getModule<CustomMessageHandlerModule>()
-                ?.receivedSynchronousMessage(nativeId, name, data)
+                .customMessageHandlerModule
+                .receivedSynchronousMessage(nativeId, name, data)
 
             @JavascriptInterface
             fun sendAsynchronous(name: String, data: String?) = context
-                .getModule<CustomMessageHandlerModule>()
-                ?.receivedAsynchronousMessage(nativeId, name, data)
+                .customMessageHandlerModule
+                .receivedAsynchronousMessage(nativeId, name, data)
         },
     )
 

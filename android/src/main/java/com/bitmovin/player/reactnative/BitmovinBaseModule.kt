@@ -1,14 +1,7 @@
 package com.bitmovin.player.reactnative
 
 import android.util.Log
-import com.bitmovin.player.api.Player
-import com.bitmovin.player.api.source.Source
-import com.bitmovin.player.reactnative.extensions.drmModule
-import com.bitmovin.player.reactnative.extensions.offlineModule
-import com.bitmovin.player.reactnative.extensions.playerModule
-import com.bitmovin.player.reactnative.extensions.sourceModule
 import com.bitmovin.player.reactnative.extensions.uiManagerModule
-import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.UIManagerModule
 
@@ -32,42 +25,11 @@ abstract class BitmovinBaseModule(
      * its return value. If [block] throws, [Promise.reject] [this] with the [Throwable].
      */
     protected inline fun <T, R : T> TPromise<T>.resolveOnUiThread(crossinline block: () -> R) {
-        val uiManager = runAndRejectOnException { uiManager } ?: return
+        val uiManager = runAndRejectOnException { context.uiManagerModule } ?: return
         uiManager.addUIBlock {
             resolveOnCurrentThread { block() }
         }
     }
-
-    protected val playerModule: PlayerModule get() = context.playerModule
-        ?: throw IllegalArgumentException("PlayerModule not found")
-
-    protected val uiManager: UIManagerModule get() = context.uiManagerModule
-        ?: throw IllegalStateException("UIManager not found")
-
-    protected val sourceModule: SourceModule get() = context.sourceModule
-        ?: throw IllegalStateException("SourceModule not found")
-
-    protected val offlineModule: OfflineModule get() = context.offlineModule
-        ?: throw IllegalStateException("OfflineModule not found")
-
-    protected val drmModule: DrmModule get() = context.drmModule
-        ?: throw IllegalStateException("DrmModule not found")
-
-    fun getPlayer(
-        nativeId: NativeId,
-        playerModule: PlayerModule = this.playerModule,
-    ): Player = playerModule.getPlayerOrNull(nativeId) ?: throw IllegalArgumentException("Invalid PlayerId $nativeId")
-
-    fun getSource(
-        nativeId: NativeId,
-        sourceModule: SourceModule = this.sourceModule,
-    ): Source = sourceModule.getSourceOrNull(nativeId) ?: throw IllegalArgumentException("Invalid SourceId $nativeId")
-
-    fun getOfflineContentManagerBridge(
-        nativeId: NativeId,
-        offlineModule: OfflineModule = this.offlineModule,
-    ): OfflineContentManagerBridge = offlineModule.getOfflineContentManagerBridgeOrNull(nativeId)
-        ?: throw IllegalArgumentException("Invalid offline content manager bridge id: $nativeId")
 }
 
 /** Compile time wrapper for Promises to type check the resolved type [T]. */

@@ -4,6 +4,7 @@ import com.bitmovin.player.api.buffer.BufferLevel
 import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.reactnative.converter.toBufferType
 import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.extensions.playerModule
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 
@@ -23,7 +24,7 @@ class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     @ReactMethod
     fun getLevel(nativeId: NativeId, type: String, promise: Promise) {
         promise.map.resolveOnUiThread {
-            val player = getPlayer(nativeId)
+            val player = context.playerModule.getPlayer(nativeId)
             val bufferType = type.toBufferTypeOrThrow()
             RNBufferLevels(
                 audio = player.buffer.getLevel(bufferType, MediaType.Audio),
@@ -41,7 +42,7 @@ class BufferModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     @ReactMethod
     fun setTargetLevel(nativeId: NativeId, type: String, value: Double, promise: Promise) {
         promise.unit.resolveOnUiThread {
-            getPlayer(nativeId).buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
+            context.playerModule.getPlayer(nativeId).buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
         }
     }
 

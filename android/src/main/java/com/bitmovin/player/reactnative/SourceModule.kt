@@ -5,6 +5,7 @@ import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toSourceConfig
+import com.bitmovin.player.reactnative.extensions.drmModule
 import com.bitmovin.player.reactnative.extensions.toMap
 import com.bitmovin.player.reactnative.extensions.toReadableMap
 import com.facebook.react.bridge.Promise
@@ -29,9 +30,10 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     override fun getName() = MODULE_NAME
 
     /**
-     * Fetches the [Source] instance associated with [nativeId] from internal sources or null.
+     * Fetches the [Source] instance associated with [nativeId] from internal sources or throw.
      */
-    fun getSourceOrNull(nativeId: NativeId): Source? = sources[nativeId]
+    fun getSource(nativeId: NativeId): Source = sources[nativeId]
+        ?: throw IllegalArgumentException("Invalid SourceId $nativeId")
 
     /**
      * Creates a new `Source` instance inside the internal sources using the provided
@@ -76,7 +78,7 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         analyticsSourceMetadata: ReadableMap?,
         promise: Promise,
     ) = promise.unit.resolveOnUiThread {
-        val drmConfig = drmNativeId?.let { drmModule.getConfig(it) }
+        val drmConfig = context.drmModule.getConfig(drmNativeId)
         val sourceConfig = config?.toSourceConfig() ?: throw InvalidParameterException("Invalid SourceConfig")
         val sourceMetadata = analyticsSourceMetadata?.toAnalyticsSourceMetadata()
         if (sources.containsKey(nativeId)) {
@@ -180,5 +182,5 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     private inline fun <T> TPromise<T>.resolveOnUiThreadWithSource(
         nativeId: NativeId,
         crossinline block: Source.() -> T,
-    ) = resolveOnUiThread { getSource(nativeId, this@SourceModule).block() }
+    ) = resolveOnUiThread { getSource(nativeId).block() }
 }

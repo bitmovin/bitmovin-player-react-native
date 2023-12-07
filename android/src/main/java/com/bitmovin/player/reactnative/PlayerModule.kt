@@ -11,6 +11,8 @@ import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.mapToReactArray
+import com.bitmovin.player.reactnative.extensions.offlineModule
+import com.bitmovin.player.reactnative.extensions.sourceModule
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import java.security.InvalidParameterException
@@ -32,7 +34,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     /**
      * Fetches the `Player` instance associated with [nativeId] from the internal players.
      */
-    fun getPlayerOrNull(nativeId: NativeId): Player? = players[nativeId]
+    fun getPlayer(nativeId: NativeId): Player = players[nativeId]
+        ?: throw InvalidParameterException("Invalid player id: $nativeId")
 
     /**
      * Creates a new `Player` instance inside the internal players using the provided `config` object.
@@ -91,7 +94,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     @ReactMethod
     fun loadSource(nativeId: NativeId, sourceNativeId: String, promise: Promise) {
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            load(getSource(sourceNativeId))
+            load(context.sourceModule.getSource(sourceNativeId))
         }
     }
 
@@ -109,7 +112,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         promise: Promise,
     ) {
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            val offlineContentManagerBridge = getOfflineContentManagerBridge(offlineContentManagerBridgeId)
+            val offlineContentManagerBridge =
+                context.offlineModule.getOfflineContentManagerBridge(offlineContentManagerBridgeId)
             val offlineSourceConfig = offlineContentManagerBridge.offlineContentManager.offlineSourceConfig
             load(offlineSourceConfig ?: throw IllegalStateException("Offline source has no config"))
         }
@@ -562,5 +566,5 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     private inline fun <T> TPromise<T>.resolveOnUiThreadWithPlayer(
         nativeId: NativeId,
         crossinline block: Player.() -> T,
-    ) = resolveOnUiThread { getPlayer(nativeId, this@PlayerModule).block() }
+    ) = resolveOnUiThread { getPlayer(nativeId).block() }
 }

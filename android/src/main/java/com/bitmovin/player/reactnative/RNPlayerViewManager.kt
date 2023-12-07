@@ -11,11 +11,10 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.converter.toRNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.converter.toRNStyleConfigWrapperFromPlayerConfig
+import com.bitmovin.player.reactnative.extensions.customMessageHandlerModule
+import com.bitmovin.player.reactnative.extensions.fullscreenHandlerModule
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
-import com.bitmovin.player.reactnative.extensions.getModule
 import com.bitmovin.player.reactnative.extensions.playerModule
-import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
-import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
@@ -46,6 +45,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     override fun getName() = MODULE_NAME
 
     private var customMessageHandlerBridgeId: NativeId? = null
+    private val handler = Handler(Looper.getMainLooper())
 
     /**
      * The component's native view factory. RN may call this method multiple times
@@ -181,17 +181,17 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     }
 
     private fun attachFullscreenBridge(view: RNPlayerView, fullscreenBridgeId: NativeId) {
-        Handler(Looper.getMainLooper()).post {
+        handler.postAndLogException {
             view.playerView?.setFullscreenHandler(
-                context.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId),
+                context.fullscreenHandlerModule.getInstance(fullscreenBridgeId),
             )
         }
     }
 
     private fun setFullscreen(view: RNPlayerView, isFullscreenRequested: Boolean) {
-        Handler(Looper.getMainLooper()).post {
-            val playerView = view.playerView ?: return@post
-            if (playerView.isFullscreen == isFullscreenRequested) return@post
+        handler.postAndLogException {
+            val playerView = view.playerView ?: throw IllegalStateException("The player view is not yet created")
+            if (playerView.isFullscreen == isFullscreenRequested) return@postAndLogException
             if (isFullscreenRequested) {
                 playerView.enterFullscreen()
             } else {
@@ -201,9 +201,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     }
 
     private fun setPictureInPicture(view: RNPlayerView, isPictureInPictureRequested: Boolean) {
-        runInMainLooperAndLogException {
+        handler.postAndLogException {
             val playerView = view.playerView ?: throw IllegalStateException("The player view is not yet created")
-            if (playerView.isPictureInPicture != isPictureInPictureRequested) return@runInMainLooperAndLogException
+            if (playerView.isPictureInPicture == isPictureInPictureRequested) return@postAndLogException
             if (isPictureInPictureRequested) {
                 playerView.enterPictureInPicture()
             } else {
@@ -213,7 +213,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
     }
 
     private fun setScalingMode(view: RNPlayerView, scalingMode: String) {
-        Handler(Looper.getMainLooper()).post {
+        handler.postAndLogException {
             view.playerView?.scalingMode = ScalingMode.valueOf(scalingMode)
         }
     }
@@ -225,8 +225,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
 
     private fun attachCustomMessageHandlerBridge(view: RNPlayerView) {
         view.playerView?.setCustomMessageHandler(
-            context.getModule<CustomMessageHandlerModule>()
-                ?.getInstance(customMessageHandlerBridgeId)
+            context.customMessageHandlerModule
+                .getInstance(customMessageHandlerBridgeId)
                 ?.customMessageHandler,
         )
     }
@@ -237,9 +237,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      * @param playerId `Player` instance id inside `PlayerModule`'s registry.
      */
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId, playerConfig: ReadableMap?) {
-        runInMainLooperAndLogException {
-            val player = playerId.let { context.playerModule?.getPlayerOrNull(it) }
-                ?: throw InvalidParameterException("Cannot create a PlayerView, invalid playerId was passed.")
+        handler.postAndLogException {
+            val player = context.playerModule.getPlayer(playerId)
             val playbackConfig = playerConfig?.getMap("playbackConfig")
             val isPictureInPictureEnabled = view.config?.pictureInPictureConfig?.isEnabled == true ||
                 playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
@@ -285,13 +284,12 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         }
     }
 
-    private inline fun runInMainLooperAndLogException(crossinline block: () -> Unit) {
-        Handler(Looper.getMainLooper()).post {
-            try {
-                block()
-            } catch (e: Exception) {
-                Log.e(MODULE_NAME, "Error while command", e)
-            }
+    /** Post and log any exceptions instead of crashing the app. */
+    private inline fun Handler.postAndLogException(crossinline block: () -> Unit) = post {
+        try {
+            block()
+        } catch (e: Exception) {
+            Log.e(MODULE_NAME, "Error while executing command", e)
         }
     }
 }
