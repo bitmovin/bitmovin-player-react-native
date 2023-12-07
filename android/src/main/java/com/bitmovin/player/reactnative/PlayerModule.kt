@@ -1,21 +1,26 @@
 package com.bitmovin.player.reactnative
 
-import android.util.Log
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
+import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.event.PlayerEvent
-import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.bitmovin.player.reactnative.converter.toAdItem
+import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
+import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
+import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.converter.toPlayerConfig
+import com.bitmovin.player.reactnative.extensions.mapToReactArray
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.uimanager.UIManagerModule
+import java.security.InvalidParameterException
 
 private const val MODULE_NAME = "PlayerModule"
 
 @ReactModule(name = MODULE_NAME)
-class PlayerModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
+class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
     /**
-     * In-memory mapping from `nativeId`s to `Player` instances.
+     * In-memory mapping from [NativeId]s to [Player] instances.
      */
     private val players: Registry<Player> = mutableMapOf()
 
@@ -25,30 +30,17 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
     override fun getName() = MODULE_NAME
 
     /**
-     * Fetches the `Player` instance associated with `nativeId` from the internal players.
-     * @param nativeId `Player` instance ID.
-     * @return The associated `Player` instance or `null`.
+     * Fetches the `Player` instance associated with [nativeId] from the internal players.
      */
-    fun getPlayer(nativeId: NativeId?): Player? {
-        if (nativeId == null) {
-            return null
-        }
-        return players[nativeId]
-    }
+    fun getPlayerOrNull(nativeId: NativeId): Player? = players[nativeId]
 
     /**
      * Creates a new `Player` instance inside the internal players using the provided `config` object.
      * @param config `PlayerConfig` object received from JS.
      */
     @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap?) {
-        uiManager()?.addUIBlock {
-            if (!players.containsKey(nativeId)) {
-                JsonConverter.toPlayerConfig(config).let {
-                    players[nativeId] = Player.create(context, it)
-                }
-            }
-        }
+    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, promise: Promise) {
+        init(nativeId, config, analyticsConfigJson = null, promise)
     }
 
     /**
@@ -57,386 +49,370 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      * @param analyticsConfigJson `AnalyticsConfig` object received from JS.
      */
     @ReactMethod
-    fun initWithAnalyticsConfig(nativeId: NativeId, playerConfigJson: ReadableMap?, analyticsConfigJson: ReadableMap?) {
-        uiManager()?.addUIBlock {
-            if (players.containsKey(nativeId)) {
-                Log.d("[PlayerModule]", "Duplicate player creation for id $nativeId")
-                return@addUIBlock
-            }
-            val playerConfig = JsonConverter.toPlayerConfig(playerConfigJson)
-            val analyticsConfig = JsonConverter.toAnalyticsConfig(analyticsConfigJson)
-            val defaultMetadata = JsonConverter.toAnalyticsDefaultMetadata(
-                analyticsConfigJson?.getMap("defaultMetadata"),
-            )
+    fun initWithAnalyticsConfig(
+        nativeId: NativeId,
+        playerConfigJson: ReadableMap?,
+        analyticsConfigJson: ReadableMap,
+        promise: Promise,
+    ) = init(nativeId, playerConfigJson, analyticsConfigJson, promise)
 
-            players[nativeId] = if (analyticsConfig == null) {
-                Player.create(context, playerConfig)
-            } else {
-                Player.create(
-                    context = context,
-                    playerConfig = playerConfig,
-                    analyticsConfig = analyticsConfig,
-                    defaultMetadata = defaultMetadata ?: DefaultMetadata(),
-                )
-            }
+    private fun init(
+        nativeId: NativeId,
+        playerConfigJson: ReadableMap?,
+        analyticsConfigJson: ReadableMap?,
+        promise: Promise,
+    ) = promise.unit.resolveOnUiThread {
+        if (players.containsKey(nativeId)) {
+            throw IllegalArgumentException("Duplicate player creation for id $nativeId")
+        }
+        val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()
+        val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
+        val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
+
+        players[nativeId] = if (analyticsConfig == null) {
+            Player.create(context, playerConfig)
+        } else {
+            Player.create(
+                context = context,
+                playerConfig = playerConfig,
+                analyticsConfig = analyticsConfig,
+                defaultMetadata = defaultMetadata ?: DefaultMetadata(),
+            )
         }
     }
 
     /**
-     * Load the source of the given `nativeId` with `config` options from JS.
+     * Load the source of the given [nativeId] with `config` options from JS.
      * @param nativeId Target player.
      * @param sourceNativeId Target source.
      */
     @ReactMethod
-    fun loadSource(nativeId: NativeId, sourceNativeId: String) {
-        uiManager()?.addUIBlock {
-            sourceModule()?.getSource(sourceNativeId)?.let {
-                players[nativeId]?.load(it)
-            }
+    fun loadSource(nativeId: NativeId, sourceNativeId: String, promise: Promise) {
+        promise.unit.resolveOnUiThread {
+            getPlayer(nativeId, this@PlayerModule).load(getSource(sourceNativeId))
         }
     }
 
     /**
-     * Load the `offlineSourceConfig` for the player with `nativeId` and offline source module with `offlineModuleNativeId`.
+     * Load the `offlineSourceConfig` for the player with [nativeId] and offline source module with `offlineModuleNativeId`.
      * @param nativeId Target player.
      * @param offlineContentManagerBridgeId Target offline module.
      * @param options Source configuration options from JS.
      */
     @ReactMethod
-    fun loadOfflineContent(nativeId: NativeId, offlineContentManagerBridgeId: String, options: ReadableMap?) {
-        uiManager()?.addUIBlock {
-            val offlineSourceConfig = offlineModule()?.getOfflineContentManagerBridge(offlineContentManagerBridgeId)
-                ?.offlineContentManager?.offlineSourceConfig
-
-            if (offlineSourceConfig != null) {
-                players[nativeId]?.load(offlineSourceConfig)
-            }
+    fun loadOfflineContent(
+        nativeId: NativeId,
+        offlineContentManagerBridgeId: String,
+        options: ReadableMap?,
+        promise: Promise,
+    ) {
+        promise.unit.resolveOnUiThread {
+            offlineModule
+                .getOfflineContentManagerBridgeOrNull(offlineContentManagerBridgeId)
+                ?.offlineContentManager
+                ?.offlineSourceConfig
+                ?.let { getPlayer(nativeId).load(it) }
         }
     }
 
     /**
-     * Call `.unload()` on `nativeId`'s player.
+     * Call `.unload()` on [nativeId]'s player.
      * @param nativeId Target player Id.
      */
     @ReactMethod
-    fun unload(nativeId: NativeId) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.unload()
+    fun unload(nativeId: NativeId, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            unload()
         }
     }
 
     /**
-     * Call `.play()` on `nativeId`'s player.
+     * Call `.play()` on [nativeId]'s player.
      * @param nativeId Target player Id.
      */
     @ReactMethod
-    fun play(nativeId: NativeId) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.play()
+    fun play(nativeId: NativeId, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            play()
         }
     }
 
     /**
-     * Call `.pause()` on `nativeId`'s player.
+     * Call `.pause()` on [nativeId]'s player.
      * @param nativeId Target player Id.
      */
     @ReactMethod
-    fun pause(nativeId: NativeId) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.pause()
+    fun pause(nativeId: NativeId, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            pause()
         }
     }
 
     /**
-     * Call `.seek(time:)` on `nativeId`'s player.
+     * Call `.seek(time:)` on [nativeId]'s player.
      * @param nativeId Target player Id.
      * @param time Seek time in seconds.
      */
     @ReactMethod
-    fun seek(nativeId: NativeId, time: Double) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.seek(time)
+    fun seek(nativeId: NativeId, time: Double, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            seek(time)
         }
     }
 
     /**
-     * Call `.timeShift(offset:)` on `nativeId`'s player.
+     * Call `.timeShift(offset:)` on [nativeId]'s player.
      * @param nativeId Target player Id.
      * @param offset Offset time in seconds.
      */
     @ReactMethod
-    fun timeShift(nativeId: NativeId, offset: Double) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.timeShift(offset)
+    fun timeShift(nativeId: NativeId, offset: Double, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            timeShift(offset)
         }
     }
 
     /**
-     * Call `.mute()` on `nativeId`'s player.
+     * Call `.mute()` on [nativeId]'s player.
      * @param nativeId Target player Id.
      */
     @ReactMethod
-    fun mute(nativeId: NativeId) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.mute()
+    fun mute(nativeId: NativeId, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            mute()
         }
     }
 
     /**
-     * Call `.unmute()` on `nativeId`'s player.
+     * Call `.unmute()` on [nativeId]'s player.
      * @param nativeId Target player Id.
      */
     @ReactMethod
-    fun unmute(nativeId: NativeId) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.unmute()
+    fun unmute(nativeId: NativeId, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            unmute()
         }
     }
 
     /**
-     * Call `.destroy()` on `nativeId`'s player.
+     * Call `.destroy()` on [nativeId]'s player.
      * @param nativeId Target player Id.
      */
     @ReactMethod
-    fun destroy(nativeId: NativeId) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.let {
-                it.destroy()
-                players.remove(nativeId)
-            }
+    fun destroy(nativeId: NativeId, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            destroy()
+            players.remove(nativeId)
         }
     }
 
     /**
-     * Call `.setVolume(volume:)` on `nativeId`'s player.
+     * Call `.setVolume(volume:)` on [nativeId]'s player.
      * @param nativeId Target player Id.
      * @param volume Volume level integer between 0 to 100.
      */
     @ReactMethod
-    fun setVolume(nativeId: NativeId, volume: Int) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.volume = volume
+    fun setVolume(nativeId: NativeId, volume: Int, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            this.volume = volume
         }
     }
 
     /**
-     * Resolve `nativeId`'s current volume.
+     * Resolve [nativeId]'s current volume.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
     fun getVolume(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(players[nativeId]?.volume)
+        promise.int.resolveOnUiThreadWithPlayer(nativeId) {
+            volume
         }
     }
 
     /**
-     * Resolve the source of `nativeId`'s player.
+     * Resolve the source of [nativeId]'s player.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
     fun source(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(JsonConverter.fromSource(players[nativeId]?.source))
+        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.toJson()
         }
     }
 
     /**
-     * Resolve `nativeId`'s current playback time.
+     * Resolve [nativeId]'s current playback time.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
     fun currentTime(nativeId: NativeId, mode: String?, promise: Promise) {
-        uiManager()?.addUIBlock {
-            var timeOffset: Double = 0.0
-            if (mode != null) {
-                timeOffset = if (mode == "relative") {
-                    players[nativeId]?.playbackTimeOffsetToRelativeTime ?: 0.0
-                } else {
-                    players[nativeId]?.playbackTimeOffsetToAbsoluteTime ?: 0.0
-                }
-            }
-            val currentTime = players[nativeId]?.currentTime
-            if (currentTime != null) {
-                promise.resolve(currentTime + timeOffset)
+        promise.double.resolveOnUiThreadWithPlayer(nativeId) {
+            currentTime + when (mode) {
+                "relative" -> playbackTimeOffsetToRelativeTime
+                "absolute" -> playbackTimeOffsetToAbsoluteTime
+                else -> throw InvalidParameterException("Unknown mode $mode")
             }
         }
     }
 
     /**
-     * Resolve `nativeId`'s current source duration.
+     * Resolve [nativeId]'s current source duration.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
     fun duration(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(players[nativeId]?.duration)
+        promise.double.resolveOnUiThreadWithPlayer(nativeId) {
+            duration
         }
     }
 
     /**
-     * Resolve `nativeId`'s current muted state.
+     * Resolve [nativeId]'s current muted state.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
     fun isMuted(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(players[nativeId]?.isMuted)
+        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
+            isMuted
         }
     }
 
     /**
-     * Resolve `nativeId`'s current playing state.
+     * Resolve [nativeId]'s current playing state.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
     fun isPlaying(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(players[nativeId]?.isPlaying)
+        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
+            isPlaying
         }
     }
 
     /**
-     * Resolve `nativeId`'s current paused state.
+     * Resolve [nativeId]'s current paused state.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
     fun isPaused(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(players[nativeId]?.isPaused)
+        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
+            isPaused
         }
     }
 
     /**
-     * Resolve `nativeId`'s current live state.
+     * Resolve [nativeId]'s current live state.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
     fun isLive(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(players[nativeId]?.isLive)
+        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
+            isLive
         }
     }
 
     /**
-     * Resolve `nativeId`'s currently selected audio track.
+     * Resolve [nativeId]'s currently selected audio track.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
     fun getAudioTrack(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(JsonConverter.fromAudioTrack(players[nativeId]?.source?.selectedAudioTrack))
+        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.selectedAudioTrack?.toJson()
         }
     }
 
     /**
-     * Resolve `nativeId`'s player available audio tracks.
+     * Resolve [nativeId]'s player available audio tracks.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
     fun getAvailableAudioTracks(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            val audioTracks = Arguments.createArray()
-            players[nativeId]?.source?.availableAudioTracks?.let { tracks ->
-                tracks.forEach {
-                    audioTracks.pushMap(JsonConverter.fromAudioTrack(it))
-                }
-            }
-            promise.resolve(audioTracks)
+        promise.array.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.availableAudioTracks?.mapToReactArray { it.toJson() } ?: Arguments.createArray()
         }
     }
 
     /**
-     * Set `nativeId`'s player audio track.
+     * Set [nativeId]'s player audio track.
      * @param nativeId Target player Id.
      * @param trackIdentifier The audio track identifier.
      * @param promise JS promise object.
      */
     @ReactMethod
     fun setAudioTrack(nativeId: NativeId, trackIdentifier: String, promise: Promise) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.source?.setAudioTrack(trackIdentifier)
-            promise.resolve(null)
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.setAudioTrack(trackIdentifier)
         }
     }
 
     /**
-     * Resolve `nativeId`'s currently selected subtitle track.
+     * Resolve [nativeId]'s currently selected subtitle track.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
     fun getSubtitleTrack(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(JsonConverter.fromSubtitleTrack(players[nativeId]?.source?.selectedSubtitleTrack))
+        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.selectedSubtitleTrack?.toJson()
         }
     }
 
     /**
-     * Resolve `nativeId`'s player available subtitle tracks.
+     * Resolve [nativeId]'s player available subtitle tracks.
      * @param nativeId Target player Id.
      * @param promise JS promise object.
      */
     @ReactMethod
     fun getAvailableSubtitles(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            val subtitleTracks = Arguments.createArray()
-            players[nativeId]?.source?.availableSubtitleTracks?.let { tracks ->
-                tracks.forEach {
-                    subtitleTracks.pushMap(JsonConverter.fromSubtitleTrack(it))
-                }
-            }
-            promise.resolve(subtitleTracks)
+        promise.array.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.availableSubtitleTracks?.mapToReactArray { it.toJson() } ?: Arguments.createArray()
         }
     }
 
     /**
-     * Set `nativeId`'s player subtitle track.
+     * Set [nativeId]'s player subtitle track.
      * @param nativeId Target player Id.
      * @param trackIdentifier The subtitle track identifier.
      * @param promise JS promise object.
      */
     @ReactMethod
     fun setSubtitleTrack(nativeId: NativeId, trackIdentifier: String?, promise: Promise) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.source?.setSubtitleTrack(trackIdentifier)
-            promise.resolve(null)
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.setSubtitleTrack(trackIdentifier)
         }
     }
 
     /**
-     * Schedules an `AdItem` in the `nativeId`'s associated player.
+     * Schedules an `AdItem` in the [nativeId]'s associated player.
      * @param nativeId Target player id.
      * @param adItemJson Json representation of the `AdItem` to be scheduled.
      */
     @ReactMethod
-    fun scheduleAd(nativeId: NativeId, adItemJson: ReadableMap?) {
-        JsonConverter.toAdItem(adItemJson)?.let { adItem ->
-            uiManager()?.addUIBlock {
-                players[nativeId]?.scheduleAd(adItem)
-            }
+    fun scheduleAd(nativeId: NativeId, adItemJson: ReadableMap, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            scheduleAd(adItemJson.toAdItem() ?: throw IllegalArgumentException("invalid adItem"))
         }
     }
 
     /**
-     * Skips the current ad in `nativeId`'s associated player.
+     * Skips the current ad in [nativeId]'s associated player.
      * Has no effect if the current ad is not skippable or if no ad is being played back.
      * @param nativeId Target player id.
      */
     @ReactMethod
-    fun skipAd(nativeId: NativeId) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.skipAd()
+    fun skipAd(nativeId: NativeId, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            skipAd()
         }
     }
 
@@ -446,8 +422,8 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      */
     @ReactMethod
     fun isAd(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(players[nativeId]?.isAd)
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            isAd
         }
     }
 
@@ -458,8 +434,8 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      */
     @ReactMethod
     fun getTimeShift(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(players[nativeId]?.timeShift)
+        promise.double.resolveOnUiThreadWithPlayer(nativeId) {
+            timeShift
         }
     }
 
@@ -470,8 +446,8 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      */
     @ReactMethod
     fun getMaxTimeShift(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(players[nativeId]?.maxTimeShift)
+        promise.double.resolveOnUiThreadWithPlayer(nativeId) {
+            maxTimeShift
         }
     }
 
@@ -481,9 +457,9 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      * @param maxSelectableBitrate The desired max bitrate limit.
      */
     @ReactMethod
-    fun setMaxSelectableBitrate(nativeId: NativeId, maxSelectableBitrate: Int) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.setMaxSelectableVideoBitrate(
+    fun setMaxSelectableBitrate(nativeId: NativeId, maxSelectableBitrate: Int, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            setMaxSelectableVideoBitrate(
                 maxSelectableBitrate.takeUnless { it == -1 } ?: Integer.MAX_VALUE,
             )
         }
@@ -496,8 +472,8 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      */
     @ReactMethod
     fun getThumbnail(nativeId: NativeId, time: Double, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(JsonConverter.fromThumbnail(players[nativeId]?.source?.getThumbnail(time)))
+        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.getThumbnail(time)?.toJson()
         }
     }
 
@@ -506,9 +482,9 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      * should be sent.
      */
     @ReactMethod
-    fun castVideo(nativeId: NativeId) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.castVideo()
+    fun castVideo(nativeId: NativeId, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            castVideo()
         }
     }
 
@@ -516,9 +492,9 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      * Stops casting the current video. Has no effect if [isCasting] is false.
      */
     @ReactMethod
-    fun castStop(nativeId: NativeId) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.castStop()
+    fun castStop(nativeId: NativeId, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            castStop()
         }
     }
 
@@ -528,8 +504,8 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      */
     @ReactMethod
     fun isCastAvailable(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(players[nativeId]?.isCastAvailable)
+        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
+            isCastAvailable
         }
     }
 
@@ -538,80 +514,53 @@ class PlayerModule(private val context: ReactApplicationContext) : ReactContextB
      */
     @ReactMethod
     fun isCasting(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(players[nativeId]?.isCasting)
+        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
+            isCasting
         }
     }
 
     /**
-     * Resolve `nativeId`'s current video quality.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
+     * Resolve [nativeId]'s current video quality.
      */
     @ReactMethod
     fun getVideoQuality(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(JsonConverter.fromVideoQuality(players[nativeId]?.source?.selectedVideoQuality))
+        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.selectedVideoQuality?.toJson()
         }
     }
 
     /**
-     * Resolve `nativeId`'s current available video qualities.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
+     * Resolve [nativeId]'s current available video qualities.
      */
     @ReactMethod
     fun getAvailableVideoQualities(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            val videoQualities = Arguments.createArray()
-            players[nativeId]?.source?.availableVideoQualities?.let { qualities ->
-                qualities.forEach {
-                    videoQualities.pushMap(JsonConverter.fromVideoQuality(it))
-                }
-            }
-            promise.resolve(videoQualities)
+        promise.array.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.availableVideoQualities?.mapToReactArray { it.toJson() } ?: Arguments.createArray()
         }
     }
 
     /**
-     * Resolve `nativeId`'s current playback speed.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
+     * Resolve [nativeId]'s current playback speed.
      */
     @ReactMethod
     fun getPlaybackSpeed(nativeId: NativeId, promise: Promise) {
-        uiManager()?.addUIBlock {
-            promise.resolve(players[nativeId]?.playbackSpeed)
+        promise.float.resolveOnUiThreadWithPlayer(nativeId) {
+            playbackSpeed
         }
     }
 
     /**
      * Sets playback speed for the player.
-     * @param nativeId Target player Id.
-     * @param playbackSpeed Float representing the playback speed level.
      */
     @ReactMethod
-    fun setPlaybackSpeed(nativeId: NativeId, playbackSpeed: Float) {
-        uiManager()?.addUIBlock {
-            players[nativeId]?.playbackSpeed = playbackSpeed
+    fun setPlaybackSpeed(nativeId: NativeId, playbackSpeed: Float, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            this.playbackSpeed = playbackSpeed
         }
     }
 
-    /**
-     * Helper function that returns the initialized `UIManager` instance.
-     */
-    private fun uiManager(): UIManagerModule? =
-        context.getNativeModule(UIManagerModule::class.java)
-
-    /**
-     * Helper function that returns the initialized `SourceModule` instance.
-     */
-    private fun sourceModule(): SourceModule? =
-        context.getNativeModule(SourceModule::class.java)
-
-    /**
-     * Helper function that returns the initialized `OfflineModule` instance.
-     */
-    private fun offlineModule(): OfflineModule? =
-        context.getNativeModule(OfflineModule::class.java)
+    private inline fun <T> TPromise<T>.resolveOnUiThreadWithPlayer(
+        nativeId: NativeId,
+        crossinline block: Player.() -> T,
+    ) = resolveOnUiThread { getPlayer(nativeId, this@PlayerModule).block() }
 }
