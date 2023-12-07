@@ -8,6 +8,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.module.annotations.ReactModule
+import java.security.InvalidParameterException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -32,7 +33,8 @@ class CustomMessageHandlerModule(private val context: ReactApplicationContext) :
      */
     private val customMessageHandlerResultChangedCondition = lock.newCondition()
 
-    fun getInstance(nativeId: NativeId?): CustomMessageHandlerBridge? = customMessageHandler[nativeId]
+    fun getInstance(nativeId: NativeId): CustomMessageHandlerBridge = customMessageHandler[nativeId]
+        ?: throw InvalidParameterException("Invalid customMessageHandler nativeId: $nativeId")
 
     @ReactMethod(isBlockingSynchronousMethod = true)
     fun onReceivedSynchronousMessageResult(nativeId: NativeId, result: String?) {

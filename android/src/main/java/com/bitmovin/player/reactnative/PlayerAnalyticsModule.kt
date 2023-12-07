@@ -3,6 +3,7 @@ package com.bitmovin.player.reactnative
 import com.bitmovin.player.api.analytics.AnalyticsApi
 import com.bitmovin.player.api.analytics.AnalyticsApi.Companion.analytics
 import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
+import com.bitmovin.player.reactnative.extensions.playerModule
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 
@@ -44,7 +45,7 @@ class PlayerAnalyticsModule(context: ReactApplicationContext) : BitmovinBaseModu
         playerId: NativeId,
         crossinline block: AnalyticsApi.() -> T,
     ) = resolveOnUiThread {
-        val analytics = getPlayer(playerId).analytics
+        val analytics = context.playerModule.getPlayer(playerId).analytics
             ?: throw IllegalStateException("Analytics is disabled for player $playerId")
         analytics.block()
     }
