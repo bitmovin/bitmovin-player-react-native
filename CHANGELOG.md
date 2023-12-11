@@ -5,6 +5,7 @@
 ### Changed
 
 - React Native version to `0.72.6`
+- React Native peer dependency version to `0.65.0+`
 
 ## [0.14.2] (2023-11-27)
 

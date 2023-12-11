@@ -89,7 +89,7 @@
   },
   "peerDependencies": {
     "react": ">=17",
-    "react-native": ">=0.64"
+    "react-native": ">=0.65"
   },
   "commitlint": {
     "extends": [
