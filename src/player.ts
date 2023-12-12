@@ -8,6 +8,8 @@ import { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/player';
 import { PlayerConfig } from './playerConfig';
 import { AdItem } from './advertising';
+import { BufferApi } from './bufferApi';
+import { VideoQuality } from './media';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -39,6 +41,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    * `undefined` if the player was created without analytics support.
    */
   analytics?: AnalyticsApi = undefined;
+  /**
+   * The {@link BufferApi} for interactions regarding the buffer.
+   */
+  buffer: BufferApi = new BufferApi(this.nativeId);
 
   /**
    * Allocates the native `Player` instance and its resources natively.
@@ -399,5 +405,67 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   castStop = () => {
     PlayerModule.castStop(this.nativeId);
+  };
+
+  /**
+   * Returns the currently selected video quality.
+   * @returns The currently selected video quality.
+   */
+  getVideoQuality = async (): Promise<VideoQuality> => {
+    return PlayerModule.getVideoQuality(this.nativeId);
+  };
+
+  /**
+   * Returns an array containing all available video qualities the player can adapt between.
+   * @returns An array containing all available video qualities the player can adapt between.
+   */
+  getAvailableVideoQualities = async (): Promise<VideoQuality[]> => {
+    return PlayerModule.getAvailableVideoQualities(this.nativeId);
+  };
+
+  /**
+   * Sets the playback speed of the player. Fast forward, slow motion and reverse playback are supported.
+   * @note
+   * - Slow motion is indicated by values between `0` and `1`.
+   * - Fast forward by values greater than `1`.
+   * - Slow reverse is used by values between `0` and `-1`, and fast reverse is used by values less than `-1`. iOS and tvOS only.
+   * @note
+   * Negative values are ignored during Casting and on Android.
+   * @note
+   * During reverse playback the playback will continue until the beginning of the active source is
+   * reached. When reaching the beginning of the source, playback will be paused and the playback
+   * speed will be reset to its default value of `1`. No {@link PlaybackFinishedEvent} will be
+   * emitted in this case.
+   *
+   * @param playbackSpeed - The playback speed to set.
+   */
+  setPlaybackSpeed = (playbackSpeed: number) => {
+    PlayerModule.setPlaybackSpeed(this.nativeId, playbackSpeed);
+  };
+
+  /**
+   * @see {@link setPlaybackSpeed} for details on which values playback speed can assume.
+   * @returns The player's current playback speed.
+   */
+  getPlaybackSpeed = async (): Promise<number> => {
+    return PlayerModule.getPlaybackSpeed(this.nativeId);
+  };
+
+  /**
+   * Checks the possibility to play the media at specified playback speed.
+   * @param playbackSpeed The playback speed to check.
+   * @returns `true` if it's possible to play the media at the specified playback speed, otherwise `false`. On Android it always returns `undefined`.
+   * @platform iOS, tvOS
+   */
+  canPlayAtPlaybackSpeed = async (
+    playbackSpeed: number
+  ): Promise<boolean | undefined> => {
+    if (Platform.OS === 'android') {
+      console.warn(
+        `[Player ${this.nativeId}] Method canPlayAtPlaybackSpeed is not available for Android. Only iOS and tvOS devices.`
+      );
+      return undefined;
+    }
+    return PlayerModule.canPlayAtPlaybackSpeed(this.nativeId, playbackSpeed);
   };
 }

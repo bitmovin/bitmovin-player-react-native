@@ -9,6 +9,7 @@ import {
 import { SubtitleTrack } from './subtitleTrack';
 import { VideoQuality } from './media';
 import { AudioTrack } from './audioTrack';
+import { LoadingState } from './source';
 
 /**
  * Base event type for all events.
@@ -139,6 +140,10 @@ export interface EventSource {
    * Metadata for this event's source.
    */
   metadata?: Record<string, any>;
+  /**
+   * The current `LoadingState` of the source.
+   */
+  loadingState: LoadingState;
 }
 
 /**
@@ -554,6 +559,20 @@ export interface AdManifestLoadedEvent extends Event {
 }
 
 /**
+ * Emitted when current video download quality has changed.
+ */
+export interface VideoDownloadQualityChangedEvent extends Event {
+  /**
+   * The new quality
+   */
+  newVideoQuality: VideoQuality;
+  /**
+   * The previous quality
+   */
+  oldVideoQuality: VideoQuality;
+}
+
+/**
  * Emitted when the current video playback quality has changed.
  */
 export interface VideoPlaybackQualityChangedEvent extends Event {
@@ -645,4 +664,74 @@ export interface CastWaitingForDeviceEvent extends Event {
    * The `CastPayload` object for the event
    */
   castPayload: CastPayload;
+}
+
+/**
+ * Available HTTP request types.
+ */
+export enum HttpRequestType {
+  ManifestDash = 'manifest/dash',
+  ManifestHlsMaster = 'manifest/hls/master',
+  ManifestHlsVariant = 'manifest/hls/variant',
+  ManifestSmooth = 'manifest/smooth',
+  MediaProgressive = 'media/progressive',
+  MediaAudio = 'media/audio',
+  MediaVideo = 'media/video',
+  MediaSubtitles = 'media/subtitles',
+  MediaThumbnails = 'media/thumbnails',
+  DrmLicenseFairplay = 'drm/license/fairplay',
+  DrmCertificateFairplay = 'drm/certificate/fairplay',
+  DrmLicenseWidevine = 'drm/license/widevine',
+  KeyHlsAes = 'key/hls/aes',
+  Unknown = 'unknown',
+}
+
+/**
+ * Emitted when a download was finished.
+ */
+export interface DownloadFinishedEvent extends Event {
+  /**
+   * The time needed to finish the request, in seconds.
+   */
+  downloadTime: number;
+  /**
+   * Which type of request this was.
+   */
+  requestType: HttpRequestType;
+  /**
+   * The HTTP status code of the request.
+   * If opening the connection failed, a value of `0` is returned.
+   */
+  httpStatus: number;
+  /**
+   * If the download was successful.
+   */
+  isSuccess: boolean;
+  /**
+   * The last redirect location, or `null` if no redirect happened.
+   */
+  lastRedirectLocation?: String;
+  /**
+   * The size of the downloaded data, in bytes.
+   */
+  size: number;
+  /**
+   * The URL of the request.
+   */
+  url: String;
+}
+
+/**
+ * Emitted when the player transitions from one playback speed to another.
+ * @platform iOS, tvOS
+ */
+export interface PlaybackSpeedChangedEvent extends Event {
+  /**
+   * The playback speed before the change happened.
+   */
+  from: number;
+  /**
+   * The playback speed after the change happened.
+   */
+  to: number;
 }

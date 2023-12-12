@@ -2,7 +2,8 @@ import BitmovinPlayer
 
 extension RNPlayerView: PlayerListener {
     public func onEvent(_ event: Event, player: Player) {
-        onEvent?(event.toJSON())
+        guard let jsonConvertibleEvent = event as? JsonConvertible else { return }
+        onEvent?(jsonConvertibleEvent.toJSON())
     }
 
     public func onPlayerActive(_ event: PlayerActiveEvent, player: Player) {
@@ -77,6 +78,10 @@ extension RNPlayerView: PlayerListener {
         onTimeChanged?(event.toJSON())
     }
 
+    public func onPlaybackSpeedChanged(_ event: PlaybackSpeedChangedEvent, player: Player) {
+        onPlaybackSpeedChanged?(event.toJSON())
+    }
+
     public func onSourceLoad(_ event: SourceLoadEvent, player: Player) {
         onSourceLoad?(event.toJSON())
     }
@@ -119,6 +124,10 @@ extension RNPlayerView: PlayerListener {
 
     public func onSubtitleChanged(_ event: SubtitleChangedEvent, player: Player) {
         onSubtitleChanged?(event.toJSON())
+    }
+
+    public func onDownloadFinished(_ event: DownloadFinishedEvent, player: Player) {
+        onDownloadFinished?(event.toJSON())
     }
 
     public func onAdBreakFinished(_ event: AdBreakFinishedEvent, player: Player) {
@@ -165,7 +174,11 @@ extension RNPlayerView: PlayerListener {
         onAdStarted?(event.toJSON())
     }
 
-    public func onVideoPlaybackQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
+    public func onVideoDownloadQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
+        onVideoDownloadQualityChanged?(event.toJSON())
+     }
+
+    public func onVideoPlaybackQualityChanged(_ event: VideoPlaybackQualityChangedEvent, player: Player) {
         onVideoPlaybackQualityChanged?(event.toJSON())
     }
 
