@@ -72,10 +72,15 @@ export default class PlayerTestWorld {
     player.initialize();
     this.player = player;
 
+    // Trick to wait for the player to be initialized
+    // otherwise initial events might be missed
+    await player.isPlaying();
+
     await fn().finally(() => {
       player.destroy();
       this.isFinished_ = true;
       this.player = undefined;
+      this.eventListeners = {};
     });
   };
 

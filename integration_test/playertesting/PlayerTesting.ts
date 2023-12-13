@@ -126,8 +126,8 @@ export const expectEvents = async (
  * @see {@link Player}
  * @see {@link EventType}
  */
-export const callPlayerAndExpectEvent = async <E extends Event, P>(
-  fn: (player: Player) => Promise<P>,
+export const callPlayerAndExpectEvent = async <E extends Event>(
+  fn: (player: Player) => void,
   expectationConvertible: SingleEventExpectation | EventType,
   timeoutSeconds: number = 10
 ): Promise<E> => {

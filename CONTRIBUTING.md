@@ -129,6 +129,8 @@ yarn integration-test test:android
 yarn integration-test test:ios
 ```
 
+To set the license key to be used for the tests, you can set the key `"licenseKey"` in `integration_test/app.json`.
+
 See available API for testing [here](/integration_test/playertesting/PlayerTesting.ts).
 
 ### Adding new tests
