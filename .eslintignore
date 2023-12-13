@@ -3,3 +3,6 @@ node_modules/
 example/node_modules/
 example/ios/
 example/ios/Pods/
+integration_test/node_modules/
+integration_test/ios/
+integration_test/ios/Pods/
