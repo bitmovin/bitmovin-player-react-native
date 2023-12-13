@@ -10,4 +10,9 @@ export const Sources = {
     url: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
     type: SourceType.DASH,
   } as SourceConfig,
+
+  akamaiTestLiveHls: {
+    url: 'https://cph-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
+    type: SourceType.HLS,
+  } as SourceConfig,
 };
