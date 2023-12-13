@@ -30,7 +30,7 @@
   "scripts": {
     "test": "jest",
     "typescript": "tsc --noEmit",
-    "lint": "eslint \"**/*.{ts,tsx}\"",
+    "lint": "eslint --max-warnings=0 -- \"**/*.{ts,tsx}\"",
     "format": "prettier --write .",
     "build": "tsup ./src/index.ts --dts --target es2020 --format cjs,esm -d lib",
     "example": "yarn --cwd example",
@@ -90,7 +90,7 @@
   },
   "peerDependencies": {
     "react": ">=17",
-    "react-native": ">=0.64"
+    "react-native": ">=0.65"
   },
   "commitlint": {
     "extends": [
