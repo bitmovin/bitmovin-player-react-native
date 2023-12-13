@@ -1,4 +1,5 @@
 {
   "name": "IntegrationTest",
-  "displayName": "IntegrationTest"
+  "displayName": "IntegrationTest",
+  "licenseKey": "ENTER_LICENSE_KEY"
 }

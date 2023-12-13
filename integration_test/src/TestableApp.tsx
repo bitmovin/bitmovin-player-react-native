@@ -1,32 +1,29 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Tester, TestHookStore } from 'cavy';
 import Specs from '../tests';
-import { StyleSheet, Text, View } from 'react-native';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
+import PlayerTestWorld from '../playertesting/PlayerTestWorld';
+import TestablePlayer from './TestablePlayer';
 
 const testHookStore = new TestHookStore();
 
 function TestableApp(): JSX.Element {
+  const playerTestWorld = useState(new PlayerTestWorld())[0];
+  useEffect(() => {
+    PlayerTestWorld.shared = playerTestWorld;
+    return () => {
+      PlayerTestWorld.shared = undefined;
+    };
+  }, [playerTestWorld]);
   return (
-    <Tester specs={Specs} store={testHookStore}>
-      <View style={styles.container}>
-        <Text style={styles.text}>Tests will come here</Text>
-      </View>
+    <Tester
+      specs={Specs}
+      store={testHookStore}
+      startDelay={1000}
+      waitTime={3000}
+    >
+      <TestablePlayer playerTestWorld={playerTestWorld} />
     </Tester>
   );
 }
 
 export default TestableApp;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10,
-  },
-  text: {
-    fontSize: 24,
-    color: Colors.darker,
-  },
-});

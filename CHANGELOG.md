@@ -9,6 +9,12 @@
 
 ## [0.14.2] (2023-11-27)
 
+### Added
+
+- Player (E2E) tests for Android and iOS can now executed via `yarn integration-test test:android` and `yarn integration-test test:ios` respectively
+
+## [Unreleased]
+
 ### Fixed
 
 - Android: `onEvent` callback not being called on `PlayerView`

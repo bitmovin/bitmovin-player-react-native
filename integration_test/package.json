@@ -6,8 +6,8 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "playertest:android": "yarn cavy run-android",
-    "playertest:ios": "yarn cavy run-ios",
+    "test:android": "yarn cavy run-android",
+    "test:ios": "yarn cavy run-ios",
     "pods": "yarn pods-install || yarn pods-update",
     "pods-install": "yarn pod-install",
     "pods-update": "pod update --silent"
@@ -22,11 +22,12 @@
     "@babel/preset-env": "^7.20.0",
     "@babel/runtime": "^7.20.0",
     "@react-native/metro-config": "^0.72.11",
+    "@types/cavy": "^3.2.7",
     "babel-plugin-module-resolver": "^5.0.0",
+    "cavy-cli": "^3.0.0",
     "metro-react-native-babel-preset": "0.76.8",
     "pod-install": "^0.1.39",
-    "@types/cavy": "^3.2.7",
-    "cavy-cli": "^3.0.0"
+    "react-native-uuid": "^2.0.1"
   },
   "engines": {
     "node": ">=16"

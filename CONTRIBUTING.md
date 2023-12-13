@@ -41,7 +41,7 @@ To build and run the example app on iOS:
 yarn example ios
 ```
 
-To edit the Swift/Objective-C files, open `example/ios/BitmovinPlayerReactNativeExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > RNBitmovinPlayer`.
+To edit the Swift/Objective-C files, open `example/ios/BitmovinPlayerReactNativeExample.xcworkspace` in Xcode and find the source files at `Pods > Development Pods > RNBitmovinPlayer`.
 
 To edit the Kotlin files, open `example/android` in Android Studio and find the source files at `bitmovin-player-react-native` under `Android`.
 
@@ -122,10 +122,48 @@ swiftlint lint --autocorrect
 
 ## Testing
 
-Remember to add tests for your change if possible. Run the unit tests by:
+Remember to add tests for your change if possible. Run the player tests by:
 
 ```sh
-yarn test
+yarn integration-test test:android
+yarn integration-test test:ios
+```
+
+See available API for testing [here](/integration_test/playertesting/PlayerTesting.ts).
+
+A Player Test has the following structure always:
+
+```ts
+export default (spec: TestScope) => {
+  spec.describe('SCENARIO TO TEST', () => {
+    spec.it('EXPECTATION', async () => {
+      await startPlayerTest({}, async () => {
+        // TEST CODE
+      });
+    });
+  });
+};
+```
+
+For example:
+
+```ts
+export default (spec: TestScope) => {
+  spec.describe('playing a source', () => {
+    spec.it('emits TimeChanged events', async () => {
+      await startPlayerTest({}, async () => {
+        await loadSourceConfig({
+          url: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
+          type: SourceType.HLS,
+        });
+        await callPlayerAndExpectEvents((player) => {
+          player.play();
+        }, EventSequence(EventType.Play, EventType.Playing));
+        await expectEvents(RepeatedEvent(EventType.TimeChanged, 5));
+      });
+    });
+  });
+};
 ```
 
 ## Commit message convention
