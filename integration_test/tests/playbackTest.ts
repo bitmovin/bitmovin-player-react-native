@@ -13,19 +13,18 @@ import {
 import { Sources } from './helper/Sources';
 
 export default (spec: TestScope) => {
-  spec.describe('calling player API when a source is loaded', () => {
-    spec.it(
-      'emits a Play and Playing events after calling play API',
-      async () => {
-        await startPlayerTest({}, async () => {
-          await loadSourceConfig(Sources.artOfMotionHls);
-          await callPlayerAndExpectEvents((player) => {
-            player.play();
-          }, EventSequence(EventType.Play, EventType.Playing));
-        });
-      }
-    );
-    spec.it('emits a Paused event after calling pause API', async () => {
+  spec.describe('calling play when a source is loaded', () => {
+    spec.it('emits a Play and Playing events', async () => {
+      await startPlayerTest({}, async () => {
+        await loadSourceConfig(Sources.artOfMotionHls);
+        await callPlayerAndExpectEvents((player) => {
+          player.play();
+        }, EventSequence(EventType.Play, EventType.Playing));
+      });
+    });
+  });
+  spec.describe('calling pause when a source is loaded', () => {
+    spec.it('emits a Paused event', async () => {
       await startPlayerTest({}, async () => {
         await loadSourceConfig(Sources.artOfMotionHls);
         await playFor(1);

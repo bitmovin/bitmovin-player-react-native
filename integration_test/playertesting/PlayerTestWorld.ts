@@ -278,7 +278,7 @@ export default class PlayerTestWorld {
   };
 
   private ensurePlayerInitialized = async (): Promise<void> => {
-    if (this.isPlayerInitialized === false) {
+    if (!this.isPlayerInitialized) {
       // Trick to make sure the player is initialized,
       // otherwise method calls might have no effect.
       await new Promise((resolve) => setTimeout(resolve, 150));

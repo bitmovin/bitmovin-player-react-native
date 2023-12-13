@@ -6,7 +6,6 @@ import {
   usePlayer,
   PlayerView,
   SourceType,
-  AudioSession,
   PictureInPictureEnterEvent,
   PictureInPictureExitEvent,
   PlayerViewConfig,
@@ -51,19 +50,6 @@ export default function BasicPictureInPicture({
 
   useFocusEffect(
     useCallback(() => {
-      // iOS audio session must be set to `playback` first otherwise PiP mode won't work.
-      //
-      // Usually it's desireable to set the audio's category only once during your app's main component
-      // initialization. This way you can guarantee that your app's audio category is properly
-      // configured throughout the whole lifecycle of the application.
-      AudioSession.setCategory('playback').catch((error) => {
-        // Handle any native errors that might occur while setting the audio's category.
-        console.log(
-          "[BasicPictureInPicture] Failed to set app's audio category to `playback`:\n",
-          error
-        );
-      });
-
       // Load desired source configuration
       player.load({
         url:
