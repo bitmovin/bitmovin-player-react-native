@@ -192,7 +192,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * @param mode - The time mode to specify: an absolute UNIX timestamp ('absolute') or relative time ('relative').
    */
-  getCurrentTime = async (mode?: 'relative' | 'absolute'): Promise<number> => {
+  getCurrentTime = async (
+    mode: 'relative' | 'absolute' = 'absolute'
+  ): Promise<number> => {
     return PlayerModule.currentTime(this.nativeId, mode);
   };
 
