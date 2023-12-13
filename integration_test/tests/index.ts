@@ -1,5 +1,6 @@
-import PlaybackTest from './playbackTest';
+import AdvertisingTest from './advertisingTest';
 import LoadingTest from './loadingTest';
+import PlaybackTest from './playbackTest';
 import UnloadingTest from './unloadingTest';
 
-export default [PlaybackTest, LoadingTest, UnloadingTest];
+export default [AdvertisingTest, LoadingTest, PlaybackTest, UnloadingTest];
