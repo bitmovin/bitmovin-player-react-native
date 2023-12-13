@@ -131,6 +131,13 @@ yarn integration-test test:ios
 
 See available API for testing [here](/integration_test/playertesting/PlayerTesting.ts).
 
+### Adding new tests
+
+To add new tests:
+
+1. create a new file in the `specs/` folder.
+1. import the new file to the `specs/index.ts` file and add it to the default exported array.
+
 A Player Test has the following structure always:
 
 ```ts
