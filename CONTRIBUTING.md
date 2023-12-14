@@ -205,7 +205,7 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn example android`: run the example app on Android.
 - `yarn example pods`: install pods only.
 - `yarn integration-test start`: start the Metro server for the integration tests.
-- `yarn integration-test test:android`: run the player tests on Android.
-- `yarn integration-test test:ios`: run the player tests on iOS.
+- `yarn integration-test test:android`: run the player tests on Android emulator.
+- `yarn integration-test test:ios`: run the player tests on iOS simulator.
 - `yarn integration-test pods`: install pods only.
 - `yarn example ios`: run the example app on iOS.

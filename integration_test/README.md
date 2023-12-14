@@ -24,4 +24,4 @@ yarn integration-test test:android # Run tests on Android emulator
 
 To set the license key to be used for the tests, you can set the key `"licenseKey"` in `integration_test/app.json`.
 
-Note: The tests are currently only supported on iOS simulators and Android emulators. Running them on real devices is not supported at the moment.
+Note: The tests are currently only supported on iOS simulators and Android emulators. Running them on real devices is not supported at the moment because the testing framework has hard-coded `localhost` as the server address.
