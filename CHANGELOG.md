@@ -12,7 +12,7 @@
 
 ### Added
 
-- Player (E2E) tests for Android and iOS can now executed via `yarn integration-test test:android` and `yarn integration-test test:ios` respectively
+- Player (E2E) tests for Android and iOS can now be executed via `yarn integration-test test:android` and `yarn integration-test test:ios` respectively
 
 ## [Unreleased]
 
