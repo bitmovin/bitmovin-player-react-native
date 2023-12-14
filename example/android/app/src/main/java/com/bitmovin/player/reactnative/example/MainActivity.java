@@ -8,6 +8,8 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactActivityDelegate;
 import com.google.android.gms.cast.framework.CastContext;
 
+import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+
 public class MainActivity extends ReactActivity {
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -19,6 +21,11 @@ public class MainActivity extends ReactActivity {
     } catch (Exception e) {
       // cast framework not supported
     }
+
+    // Prevent going into ambient mode on Android TV devices / screen timeout on mobile devices during playback.
+    // If your app uses multiple activities make sure to add this flag to the activity that hosts the player.
+    // Reference: https://developer.android.com/training/scheduling/wakelock#screen
+    getWindow().addFlags(FLAG_KEEP_SCREEN_ON);
   }
 
   /**
