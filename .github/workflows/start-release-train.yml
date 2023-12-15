@@ -79,7 +79,6 @@ jobs:
 
       - name: Set up CocoaPods
         run: |
-          pod repo remove trunk
           pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git || pod repo update bitmovin
         working-directory: example/ios
         env:
