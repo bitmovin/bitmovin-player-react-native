@@ -73,6 +73,7 @@ jobs:
           path: |
             .cocoapods-cache
             example/ios/Pods
+            integration_test/ios/Pods
           key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
           restore-keys: pods-
 
@@ -98,6 +99,7 @@ jobs:
           path: |
             .cocoapods-cache
             example/ios/Pods
+            integration_test/ios/Pods
           key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
 
       - name: Commit changelog version bump
