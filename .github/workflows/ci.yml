@@ -202,7 +202,7 @@ jobs:
             .cocoapods-cache
             example/ios/Pods
             integration_test/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
+          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
           restore-keys: pods-
 
       - name: Install pods
@@ -264,7 +264,7 @@ jobs:
             .cocoapods-cache
             example/ios/Pods
             integration_test/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
+          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
           restore-keys: pods-
 
       - name: Install pods

@@ -49,14 +49,33 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
           cache: 'yarn'
 
+      - name: Restore Pods cache
+        id: pods-cache-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            .cocoapods-cache
+            example/ios/Pods
+            integration_test/ios/Pods
+          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
+          restore-keys: pods-
+
       - name: Bump iOS player SDK version
         if: ${{ inputs.sdk_name == 'ios' }}
         run: |
           sed -i '' 's/s.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' RNBitmovinPlayer.podspec
-          yarn install --frozen-lockfile --cwd example
-          cd example/ios
           pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git
-          pod update BitmovinPlayer
+          yard bootstrap
+
+      - name: Save Pods cache
+        if: steps.pods-cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            .cocoapods-cache
+            example/ios/Pods
+            integration_test/ios/Pods
+          key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
 
       - name: Bump Android player SDK version
         if: ${{ inputs.sdk_name == 'android' }}
