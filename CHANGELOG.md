@@ -1,6 +1,20 @@
 # Changelog
 
+## [unreleased]
+
+### Changed
+
+- React Native version to `0.72.6`
+- React Native peer dependency version to `0.65.0+`
+- Update Bitmovin's native Android SDK version to `3.53.0`
+
 ## [0.14.2] (2023-11-27)
+
+### Added
+
+- Player (E2E) tests for Android and iOS can now be executed via `yarn integration-test test:android` and `yarn integration-test test:ios` respectively
+
+## [Unreleased]
 
 ### Fixed
 

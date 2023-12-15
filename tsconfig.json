@@ -24,5 +24,5 @@
     "strict": true,
     "target": "esnext"
   },
-  "exclude": ["example/ios/Pods"]
+  "exclude": ["example/ios/Pods", "integration_test/ios/Pods"]
 }

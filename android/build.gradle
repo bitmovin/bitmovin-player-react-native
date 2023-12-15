@@ -1,9 +1,9 @@
 buildscript {
-    ext {
-        kotlinVersion = '1.7.21'
-        androidToolsVersion = '7.4.2'
-        ktlintVersion = '11.6.0'
-    }
+    // Buildscript is evaluated before everything else so we can't use getExtOrDefault
+    def kotlin_version = rootProject.ext.has("kotlinVersion") ? rootProject.ext.get("kotlinVersion") : project.properties["BitmovinPlayerReactNative_kotlinVersion"]
+    def ktlint_version = rootProject.ext.has("ktlintVersion") ? rootProject.ext.get("ktlintVersion") : project.properties["BitmovinPlayerReactNative_ktlintVersion"]
+    def android_tools_version = rootProject.ext.has("androidToolsVersion") ? rootProject.ext.get("androidToolsVersion") : project.properties["BitmovinPlayerReactNative_androidToolsVersion"]
+
     repositories {
         google()
         mavenCentral()
@@ -12,54 +12,96 @@ buildscript {
         }
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:$androidToolsVersion"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath "org.jlleitschuh.gradle:ktlint-gradle:$ktlintVersion"
+        classpath "com.android.tools.build:gradle:$android_tools_version"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jlleitschuh.gradle:ktlint-gradle:$ktlint_version"
     }
+}
+
+def isNewArchitectureEnabled() {
+    return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
 }
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'org.jlleitschuh.gradle.ktlint'
 
-repositories {
-    mavenLocal()
-    maven {
-        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-        url "$rootDir/../node_modules/react-native/android"
-    }
-    google()
-    mavenCentral()
-    maven { url 'https://artifacts.bitmovin.com/artifactory/public-releases' }
+if (isNewArchitectureEnabled()) {
+    apply plugin: "com.facebook.react"
+}
+
+def getExtOrDefault(name) {
+    return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["BitmovinPlayerReactNative_" + name]
+}
+
+def getExtOrIntegerDefault(name) {
+    return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["BitmovinPlayerReactNative_" + name]).toInteger()
+}
+
+def supportsNamespace() {
+    def parsed = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')
+    def major = parsed[0].toInteger()
+    def minor = parsed[1].toInteger()
+
+    // Namespace support was added in 7.3.0
+    return (major == 7 && minor >= 3) || major >= 8
 }
 
 android {
-    compileSdk 33
-    defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 33
-        versionCode 1
-        versionName '1.0'
+    if (supportsNamespace()) {
+        namespace "com.bitmovin.player.reactnative"
+
+        sourceSets {
+            main {
+                manifest.srcFile "src/main/AndroidManifestNew.xml"
+            }
+        }
     }
+
+    compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
+
+    defaultConfig {
+        minSdkVersion getExtOrIntegerDefault("minSdkVersion")
+        targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
+
+    }
+
     buildTypes {
         release {
             minifyEnabled false
         }
     }
+
     lintOptions {
-        disable 'GradleCompatible'
+        disable "GradleCompatible"
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    buildFeatures {
+        buildConfig true
+    }
 }
 
+repositories {
+    google()
+    mavenCentral()
+}
+
+def kotlin_version = getExtOrDefault("kotlinVersion")
+
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
-    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.31.0'
-    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
-    implementation 'com.bitmovin.player:player:3.51.0+jason'
+    // For < 0.71, this will be from the local maven repo
+    // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+' // From node_modules
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    // Bitmovin
+    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.31.0'
+    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
+    implementation 'com.bitmovin.player:player:3.53.0+jason'
 }
