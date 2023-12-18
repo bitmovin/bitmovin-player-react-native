@@ -167,6 +167,10 @@ jobs:
         run: ./gradlew assembleDebug --build-cache
         working-directory: example/android
 
+      - name: Build Android integration test host app
+        run: ./gradlew assembleDebug --build-cache
+        working-directory: integration_test/android
+
   test-build-ios:
     name: Build iOS
     runs-on: macOS-12
@@ -191,6 +195,9 @@ jobs:
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
 
+      - name: Install node_modules (integration_test/)
+        run: yarn install --frozen-lockfile --cwd integration_test
+
       - name: Install dependencies
         run: brew bundle install
 
@@ -201,15 +208,14 @@ jobs:
           path: |
             .cocoapods-cache
             example/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
+            integration_test/ios/Pods
+          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
           restore-keys: pods-
 
       - name: Install pods
         run: |
-          pod repo remove trunk
           pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git || pod repo update bitmovin
-          pod install --repo-update
-        working-directory: example/ios
+          yarn pods
         env:
           CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
 
@@ -220,11 +226,18 @@ jobs:
           path: |
             .cocoapods-cache
             example/ios/Pods
+            integration_test/ios/Pods
           key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
 
       - name: Build iOS example
         run: set -o pipefail && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
         working-directory: example/ios
+        env:
+          NSUnbufferedIO: YES
+
+      - name: Build iOS integration test host app
+        run: set -o pipefail && xcodebuild -workspace IntegrationTest.xcworkspace -scheme IntegrationTest -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
+        working-directory: integration_test/ios
         env:
           NSUnbufferedIO: YES
 
@@ -262,15 +275,14 @@ jobs:
           path: |
             .cocoapods-cache
             example/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
+            integration_test/ios/Pods
+          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
           restore-keys: pods-
 
       - name: Install pods
         run: |
-          pod repo remove trunk
           pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git || pod repo update bitmovin
-          pod install --repo-update
-        working-directory: example/ios
+          yarn example pods
         env:
           CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
 
@@ -281,6 +293,7 @@ jobs:
           path: |
             .cocoapods-cache
             example/ios/Pods
+            integration_test/ios/Pods
           key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
 
       - name: Build tvOS example
