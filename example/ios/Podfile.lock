@@ -483,7 +483,7 @@ PODS:
     - React-jsi (= 0.72.6-1)
     - React-logger (= 0.72.6-1)
     - React-perflogger (= 0.72.6-1)
-  - RNBitmovinPlayer (0.14.2):
+  - RNBitmovinPlayer (0.15.0):
     - BitmovinPlayer (= 3.51.0)
     - GoogleAds-IMA-iOS-SDK (= 3.18.4)
     - GoogleAds-IMA-tvOS-SDK (= 4.8.2)
@@ -744,7 +744,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: acd6b708338a975a9bb4c594eac0f018f5c15fa3
   React-utils: c1cf85c0cd58c11dfb95104a78c608e95d03eb9e
   ReactCommon: 1dabb8f37c44d8c7370238bd8f504cbad0cfd941
-  RNBitmovinPlayer: 2e73cdc0a6ac963a3ebeb13901fb8bd31abeccc0
+  RNBitmovinPlayer: c3ac230f627668dc6374f4138178137acaa64e00
   RNCPicker: 529d564911e93598cc399b56cc0769ce3675f8c8
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
@@ -753,4 +753,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 72e333b84551f3cbf0fe463cce703cb47a7372a6
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.14.2
