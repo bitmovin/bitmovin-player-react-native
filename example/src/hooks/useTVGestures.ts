@@ -1,4 +1,3 @@
-import 'react-native/tvos-types.d';
 import { useEffect } from 'react';
 import { TVEventControl, Platform } from 'react-native';
 

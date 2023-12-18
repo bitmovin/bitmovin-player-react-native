@@ -16,7 +16,7 @@ import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.StyleConfig
-import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.ReactActivity
@@ -310,10 +310,10 @@ class RNPlayerView(
      * @param event Optional js object to be sent as payload.
      */
     private inline fun <reified E : Event> emitEvent(name: String, event: E) {
-        val payload = if (event is PlayerEvent) {
-            JsonConverter.fromPlayerEvent(event)
-        } else {
-            JsonConverter.fromSourceEvent(event as SourceEvent)
+        val payload = when (event) {
+            is PlayerEvent -> event.toJson()
+            is SourceEvent -> event.toJson()
+            else -> throw IllegalArgumentException()
         }
         val reactContext = context as ReactContext
         reactContext

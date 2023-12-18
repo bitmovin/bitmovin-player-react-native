@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { SourceType } from 'bitmovin-player-react-native';
+import { AudioSession, SourceType } from 'bitmovin-player-react-native';
 import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
 import BasicAnalytics from './screens/BasicAnalytics';
@@ -63,6 +63,20 @@ const RootStack = createNativeStackNavigator();
 const isTVOS = Platform.OS === 'ios' && Platform.isTV;
 
 export default function App() {
+  useEffect(() => {
+    // iOS audio session category must be set to `playback` first, otherwise playback
+    // will have no audio when the device is silenced.
+    // This is also required to make Picture in Picture work on iOS.
+    //
+    // Usually it's desireable to set the audio's category only once during your app's main component
+    // initialization. This way you can guarantee that your app's audio category is properly
+    // configured throughout the whole lifecycle of the application.
+    AudioSession.setCategory('playback').catch((error) => {
+      // Handle any native errors that might occur while setting the audio's category.
+      console.log("Failed to set app's audio category to `playback`:\n", error);
+    });
+  });
+
   const stackParams = {
     data: [
       {

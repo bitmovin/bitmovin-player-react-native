@@ -1,6 +1,21 @@
 # Changelog
 
+## [unreleased]
+
+### Changed
+
+- React Native version to `0.72.6`
+- React Native peer dependency version to `0.65.0+`
+- Update Bitmovin's native Android SDK version to `3.54.0`
+- Android: Kotlin version to `1.8.20`
+
 ## [0.14.2] (2023-11-27)
+
+### Added
+
+- Player (E2E) tests for Android and iOS can now be executed via `yarn integration-test test:android` and `yarn integration-test test:ios` respectively
+
+## [0.15.0] (2023-12-18)
 
 ### Fixed
 
@@ -8,6 +23,7 @@
 - iOS: `onEvent` on iOS has incomplete payload information
 - tvOS: Picture in Picture sample screen has unwanted padding
 - iOS: hide home indicator when entering fullscreen mode in the example application
+- iOS: invalid `loadingState` value in `SeekEvent`, `SourceLoadEvent`, `SourceLoadedEvent` and in `SourceUnloadedEvent`
 
 ## [0.14.1] (2023-11-16)
 

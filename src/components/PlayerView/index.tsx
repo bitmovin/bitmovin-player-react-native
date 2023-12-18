@@ -132,7 +132,7 @@ export function PlayerView({
 
   useEffect(() => {
     const node = findNodeHandle(nativeView.current);
-    if (node) {
+    if (node && scalingMode) {
       dispatch('setScalingMode', node, scalingMode);
     }
   }, [scalingMode, nativeView]);

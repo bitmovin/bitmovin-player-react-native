@@ -1,6 +1,6 @@
 {
   "name": "bitmovin-player-react-native",
-  "version": "0.14.2",
+  "version": "0.15.0",
   "description": "Official React Native bindings for Bitmovin's mobile Player SDKs.",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
@@ -14,25 +14,32 @@
     "android",
     "ios",
     "cpp",
-    "RNBitmovinPlayer.podspec",
+    "*.podspec",
     "!android/build",
     "!ios/build",
+    "!android/build",
+    "!android/gradle",
+    "!android/gradlew",
+    "!android/gradlew.bat",
+    "!android/local.properties",
     "!**/__tests__",
     "!**/__fixtures__",
-    "!**/__mocks__"
+    "!**/__mocks__",
+    "!**/.*"
   ],
   "scripts": {
     "test": "jest",
     "typescript": "tsc --noEmit",
-    "lint": "eslint \"**/*.{ts,tsx}\"",
+    "lint": "eslint --max-warnings=0 -- \"**/*.{ts,tsx}\"",
     "format": "prettier --write .",
     "build": "tsup ./src/index.ts --dts --target es2020 --format cjs,esm -d lib",
     "example": "yarn --cwd example",
-    "pods": "yarn pods-install || yarn pods-update",
-    "pods-install": "yarn example pod-install",
-    "pods-update": "cd example/ios && pod update --silent",
-    "bootstrap": "yarn && yarn example && yarn pods && yarn brew",
-    "brew": "[ \"$(uname)\" = \"Darwin\" ] && brew bundle install",
+    "integration-test": "yarn --cwd integration_test",
+    "pods": "yarn example pods && yarn integration-test pods",
+    "bootstrap": "yarn bootstrap:example && yarn bootstrap:integration-test",
+    "bootstrap:example": "yarn && yarn example && yarn example pods && yarn brew",
+    "bootstrap:integration-test": "yarn && yarn integration-test && yarn integration-test pods && yarn brew",
+    "brew": "[ \"$(uname)\" = \"Darwin\" ] && brew bundle install --no-lock",
     "prepare": "husky install",
     "docs": "typedoc"
   },
@@ -54,32 +61,36 @@
     "@babel/runtime": "7.22.10",
     "@commitlint/config-conventional": "17.7.0",
     "@react-native-community/eslint-config": "3.1.0",
-    "@types/jest": "26.0.24",
+    "@types/jest": "^28.1.2",
     "@types/lodash.omit": "4.5.0",
-    "@types/react": "18.0.15",
-    "@types/react-native": "0.69.7",
+    "@types/react": "~17.0.21",
+    "@types/react-native": "0.70.0",
     "babel-plugin-module-resolver": "5.0.0",
     "commitlint": "17.7.1",
     "eslint": "8.24.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
     "husky": "8.0.1",
-    "jest": "26.6.3",
+    "jest": "^28.1.1",
     "lint-staged": "13.0.3",
     "metro-config": "0.72.3",
     "metro-react-native-babel-preset": "0.72.3",
     "prettier": "2.7.1",
-    "react-native": "0.69.7",
+    "react": "18.2.0",
+    "react-native": "0.72.6",
     "tsup": "7.2.0",
     "typedoc": "^0.25.2",
     "typescript": "4.8.4"
+  },
+  "resolutions": {
+    "@types/react": "17.0.21"
   },
   "dependencies": {
     "lodash.omit": "4.5.0"
   },
   "peerDependencies": {
     "react": ">=17",
-    "react-native": ">=0.64"
+    "react-native": ">=0.65"
   },
   "commitlint": {
     "extends": [

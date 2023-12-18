@@ -9,6 +9,7 @@ import {
 import { SubtitleTrack } from './subtitleTrack';
 import { VideoQuality } from './media';
 import { AudioTrack } from './audioTrack';
+import { LoadingState } from './source';
 
 /**
  * Base event type for all events.
@@ -139,6 +140,10 @@ export interface EventSource {
    * Metadata for this event's source.
    */
   metadata?: Record<string, any>;
+  /**
+   * The current `LoadingState` of the source.
+   */
+  loadingState: LoadingState;
 }
 
 /**

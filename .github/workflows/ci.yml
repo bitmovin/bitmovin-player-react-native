@@ -3,16 +3,19 @@ name: CI
 on:
   pull_request:
     paths-ignore:
-      - '*.md'
+      - '**.md'
 
   push:
     branches: [development]
     paths-ignore:
-      - '*.md'
+      - '**.md'
 
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+
+env:
+  NO_FLIPPER: 1
 
 jobs:
   code-style-typescript:
@@ -94,6 +97,9 @@ jobs:
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
 
+      - name: Install node_modules (integration_test/)
+        run: yarn install --frozen-lockfile --cwd integration_test
+
       - name: Compile TypeScript
         run: yarn typescript
 
@@ -116,6 +122,9 @@ jobs:
 
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
+
+      - name: Install node_modules (integration_test/)
+        run: yarn install --frozen-lockfile --cwd integration_test
 
       - name: Build docs
         run: yarn docs
@@ -145,6 +154,9 @@ jobs:
 
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example
+
+      - name: Install node_modules (integration_test/)
+        run: yarn install --frozen-lockfile --cwd integration_test
 
       - name: Set up Gradle cache
         uses: gradle/gradle-build-action@v2
@@ -200,7 +212,6 @@ jobs:
         working-directory: example/ios
         env:
           CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
-          NO_FLIPPER: 1
 
       - name: Save Pods cache
         if: steps.pods-cache-restore.outputs.cache-hit != 'true'
