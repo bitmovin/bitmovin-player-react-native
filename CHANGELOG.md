@@ -1,6 +1,10 @@
 # Changelog
 
-## [unreleased]
+## [0.15.0] (2023-12-18)
+
+### Added
+
+- Player (E2E) tests for Android and iOS can now be executed via `yarn integration-test test:android` and `yarn integration-test test:ios` respectively
 
 ### Changed
 
@@ -10,12 +14,6 @@
 - Android: Kotlin version to `1.8.20`
 
 ## [0.14.2] (2023-11-27)
-
-### Added
-
-- Player (E2E) tests for Android and iOS can now be executed via `yarn integration-test test:android` and `yarn integration-test test:ios` respectively
-
-## [0.15.0] (2023-12-18)
 
 ### Fixed
 
