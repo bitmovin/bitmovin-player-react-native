@@ -45,6 +45,14 @@ To edit the Swift/Objective-C files, open `example/ios/BitmovinPlayerReactNative
 
 To edit the Kotlin files, open `example/android` in Android Studio and find the source files at `bitmovin-player-react-native` under `Android`.
 
+## For iOS/tvOS on-device development
+
+To build the example project for an iOS or tvOS device, you need to create a file at `example/ios/Developer.xcconfig`. In this file, add your development team like this:
+
+```yml
+DEVELOPMENT_TEAM = YOUR_TEAM_ID
+```
+
 ## TypeScript Code Style
 
 - Follow the `eslint` rules (`yarn lint`). They are enforced automatically via a pre-commit git hook.
