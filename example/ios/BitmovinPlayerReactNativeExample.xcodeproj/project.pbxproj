@@ -127,20 +127,11 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
-		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Libraries;
-			sourceTree = "<group>";
-		};
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
 				13B07FAE1A68108700A75B9A /* BitmovinPlayerReactNativeExample */,
 				4CE382EF28BFD10C002DDF82 /* BitmovinPlayerReactNativeExample-tvOS */,
-				832341AE1AAA6A7D00B99B32 /* Libraries */,
-				A8DB693E2B31B52C00BAD718 /* Supporting Files */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				6B9684456A2045ADE5A6E47E /* Pods */,
@@ -157,13 +148,6 @@
 				4CE382EE28BFD10C002DDF82 /* RN Player Example TV.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		A8DB693E2B31B52C00BAD718 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
