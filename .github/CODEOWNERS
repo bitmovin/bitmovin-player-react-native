@@ -1,0 +1,4 @@
+ios/ @player-ios
+example/ios/ @player-ios
+android/ @player-android
+example/android/ @player-android
