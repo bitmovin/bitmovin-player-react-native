@@ -1,65 +1,41 @@
-name: CI
+name: CI (iOS & tvOS)
 
 on:
   pull_request:
-    paths-ignore:
-      - '**.md'
+    paths:
+      - '.github/workflows/ci-ios-tvos.yml'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'ios/**'
+      - 'RNBitmovinPlayer.podspec'
+      - '.swiftlint.yml'
+      - 'Brewfile.lock.json'
+      - 'example/ios/**'
+      - 'example/package.json'
+      - 'example/yarn.lock'
 
   push:
     branches: [development]
-    paths-ignore:
-      - '**.md'
+    paths:
+      - '.github/workflows/ci-ios-tvos.yml'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'ios/**'
+      - 'RNBitmovinPlayer.podspec'
+      - '.swiftlint.yml'
+      - 'Brewfile.lock.json'
+      - 'example/ios/**'
+      - 'example/package.json'
+      - 'example/yarn.lock'
 
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
+  group: ci-ios-tvos-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
   NO_FLIPPER: 1
 
 jobs:
-  code-style-typescript:
-    name: Code style Typescript
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup node and npm registry
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-          registry-url: 'https://registry.npmjs.org/'
-          cache: 'yarn'
-
-      - name: Install node_modules
-        run: yarn install --frozen-lockfile
-
-      - name: Lint Typescript
-        run: yarn lint
-
-  code-style-android:
-    name: Code style Android
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '11'
-
-      - name: Set up Gradle cache
-        uses: gradle/gradle-build-action@v2
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/development' }}
-
-      - name: Check code style
-        run: ./gradlew ktlintCheck
-        working-directory: android
-
   code-style-ios:
     name: Code style iOS
     runs-on: macOS-latest
@@ -69,107 +45,13 @@ jobs:
 
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '14.1'
+          xcode-version: '14.2'
 
       - name: Install dependencies
         run: brew bundle install
 
       - name: Check code style
         run: swiftlint --strict
-
-  test-build-typescript:
-    name: Build Typescript
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup node and npm registry
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-          registry-url: 'https://registry.npmjs.org/'
-          cache: 'yarn'
-
-      - name: Install node_modules
-        run: yarn install --frozen-lockfile
-
-      - name: Install node_modules (example/)
-        run: yarn install --frozen-lockfile --cwd example
-
-      - name: Install node_modules (integration_test/)
-        run: yarn install --frozen-lockfile --cwd integration_test
-
-      - name: Compile TypeScript
-        run: yarn typescript
-
-  test-build-docs:
-    name: Build API docs
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup node and npm registry
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-          registry-url: 'https://registry.npmjs.org/'
-          cache: 'yarn'
-
-      - name: Install node_modules
-        run: yarn install --frozen-lockfile
-
-      - name: Install node_modules (example/)
-        run: yarn install --frozen-lockfile --cwd example
-
-      - name: Install node_modules (integration_test/)
-        run: yarn install --frozen-lockfile --cwd integration_test
-
-      - name: Build docs
-        run: yarn docs
-
-  test-build-android:
-    name: Build Android
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup node and npm registry
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-          registry-url: 'https://registry.npmjs.org/'
-          cache: 'yarn'
-
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '11'
-
-      - name: Install node_modules
-        run: yarn install --frozen-lockfile
-
-      - name: Install node_modules (example/)
-        run: yarn install --frozen-lockfile --cwd example
-
-      - name: Install node_modules (integration_test/)
-        run: yarn install --frozen-lockfile --cwd integration_test
-
-      - name: Set up Gradle cache
-        uses: gradle/gradle-build-action@v2
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/development' }}
-
-      - name: Build Android example
-        run: ./gradlew assembleDebug --build-cache
-        working-directory: example/android
-
-      - name: Build Android integration test host app
-        run: ./gradlew assembleDebug --build-cache
-        working-directory: integration_test/android
 
   test-build-ios:
     name: Build iOS
@@ -187,7 +69,7 @@ jobs:
 
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '14.1'
+          xcode-version: '14.2'
 
       - name: Install node_modules
         run: yarn install --frozen-lockfile
@@ -257,7 +139,7 @@ jobs:
 
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '14.1'
+          xcode-version: '14.2'
 
       - name: Install node_modules
         run: yarn install --frozen-lockfile
