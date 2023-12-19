@@ -1,0 +1,118 @@
+name: CI (TypeScript)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/ci-typescript.yml'
+      - '**.ts'
+      - '**.tsx'
+      - '**.js'
+      - '**.json'
+      - '**package.json'
+      - '.eslint*'
+      - '*prettier*'
+      - '**babel.config.js'
+      - 'tsconfig.json'
+      - 'typedoc.json'
+      - '**yarn.lock'
+      - '**react-native.config.js'
+      - '**metro.config.js'
+      - '!*/android/**'
+      - '!*/ios/**'
+
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/ci-typescript.yml'
+      - '**.ts'
+      - '**.tsx'
+      - '**.js'
+      - '**.json'
+      - '**package.json'
+      - '.eslint*'
+      - '*prettier*'
+      - '**babel.config.js'
+      - 'tsconfig.json'
+      - 'typedoc.json'
+      - '**yarn.lock'
+      - '**react-native.config.js'
+      - '**metro.config.js'
+      - '!*/android/**'
+      - '!*/ios/**'
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code-style-typescript:
+    name: Code style Typescript
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup node and npm registry
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'
+
+      - name: Install node_modules
+        run: yarn install --frozen-lockfile
+
+      - name: Lint Typescript
+        run: yarn lint
+
+  test-build-typescript:
+    name: Build Typescript
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup node and npm registry
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'
+
+      - name: Install node_modules
+        run: yarn install --frozen-lockfile
+
+      - name: Install node_modules (example/)
+        run: yarn install --frozen-lockfile --cwd example
+
+      - name: Install node_modules (integration_test/)
+        run: yarn install --frozen-lockfile --cwd integration_test
+
+      - name: Compile TypeScript
+        run: yarn typescript
+
+  test-build-docs:
+    name: Build API docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup node and npm registry
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'
+
+      - name: Install node_modules
+        run: yarn install --frozen-lockfile
+
+      - name: Install node_modules (example/)
+        run: yarn install --frozen-lockfile --cwd example
+
+      - name: Install node_modules (integration_test/)
+        run: yarn install --frozen-lockfile --cwd integration_test
+
+      - name: Build docs
+        run: yarn docs
