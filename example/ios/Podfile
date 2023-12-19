@@ -73,6 +73,7 @@ post_install do |installer|
   disable_resource_bundle_signing(installer)
 end
 
+# Workaround for running on simulator on Apple Silicon from the command-line
 def fix_simulator_run(installer)
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
@@ -82,6 +83,7 @@ def fix_simulator_run(installer)
   end
 end
 
+# Align deployment target of all targets in the Pods project with the main project
 def fix_deployment_target(installer)
   return if !installer
   project = installer.pods_project
@@ -107,6 +109,7 @@ def fix_deployment_target(installer)
   end
 end
 
+# Workaround against required code-signing for resource bundle targets
 def disable_resource_bundle_signing(installer)
   installer.pods_project.targets.each do |target|
     target_is_resource_bundle = target.respond_to?(:product_type) && target.product_type == 'com.apple.product-type.bundle'
