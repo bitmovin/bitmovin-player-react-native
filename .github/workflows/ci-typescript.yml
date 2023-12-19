@@ -46,7 +46,7 @@ concurrency:
 
 jobs:
   code-style-typescript:
-    name: Code style Typescript
+    name: Code style
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -66,7 +66,7 @@ jobs:
         run: yarn lint
 
   test-build-typescript:
-    name: Build Typescript
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
