@@ -70,6 +70,7 @@ post_install do |installer|
   __apply_Xcode_12_5_M1_post_install_workaround(installer)
   fix_simulator_run(installer)
   fix_deployment_target(installer)
+  disable_resource_bundle_signing(installer)
 end
 
 def fix_simulator_run(installer)
@@ -101,6 +102,17 @@ def fix_deployment_target(installer)
         new_target_tvOS = project_deployment_target_tvOS
         next if old_target_tvOS.to_f >= new_target_tvOS.to_f
         config.build_settings['TVOS_DEPLOYMENT_TARGET'] = new_target_tvOS
+      end
+    end
+  end
+end
+
+def disable_resource_bundle_signing(installer)
+  installer.pods_project.targets.each do |target|
+    target_is_resource_bundle = target.respond_to?(:product_type) && target.product_type == 'com.apple.product-type.bundle'
+    target.build_configurations.each do |config|
+      if target_is_resource_bundle
+        config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
       end
     end
   end

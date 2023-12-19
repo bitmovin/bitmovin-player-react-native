@@ -67,3 +67,6 @@ lib/
 
 # generated API documentation
 docs/generated
+
+# developer specific configuration file
+example/ios/Developer.xcconfig
