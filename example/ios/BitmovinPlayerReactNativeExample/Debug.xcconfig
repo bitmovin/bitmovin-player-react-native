@@ -1,0 +1,2 @@
+#include? "Pods/Target Support Files/Pods-BitmovinPlayerReactNativeExample/Pods-BitmovinPlayerReactNativeExample.debug.xcconfig"
+#include? "Developer.xcconfig"
