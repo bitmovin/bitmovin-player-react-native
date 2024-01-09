@@ -4,6 +4,7 @@
   "description": "Example app showcasing bitmovin's RN player SDK",
   "version": "0.0.1",
   "scripts": {
+    "postinstall": "patch-package",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
