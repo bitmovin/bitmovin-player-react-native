@@ -65,7 +65,7 @@ jobs:
         run: |
           sed -i '' 's/s.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' RNBitmovinPlayer.podspec
           pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git
-          yard bootstrap
+          yarn bootstrap
 
       - name: Save Pods cache
         if: steps.pods-cache-restore.outputs.cache-hit != 'true'
