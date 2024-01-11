@@ -37,10 +37,11 @@
     "integration-test": "yarn --cwd integration_test",
     "pods": "yarn example pods && yarn integration-test pods",
     "bootstrap": "yarn bootstrap:example && yarn bootstrap:integration-test",
-    "bootstrap:example": "yarn && yarn example && yarn example pods && yarn brew",
-    "bootstrap:integration-test": "yarn && yarn integration-test && yarn integration-test pods && yarn brew",
+    "bootstrap:example": "yarn && patch-package && yarn example && yarn example pods && yarn brew",
+    "bootstrap:integration-test": "yarn && patch-package && yarn integration-test && yarn integration-test pods && yarn brew",
     "brew": "[ \"$(uname)\" = \"Darwin\" ] && brew bundle install --no-lock",
     "prepare": "husky install",
+    "postinstall": "patch-package",
     "docs": "typedoc"
   },
   "keywords": [
@@ -75,6 +76,8 @@
     "lint-staged": "13.0.3",
     "metro-config": "0.72.3",
     "metro-react-native-babel-preset": "0.72.3",
+    "patch-package": "^8.0.0",
+    "postinstall-postinstall": "^2.1.0",
     "prettier": "2.7.1",
     "react": "18.2.0",
     "react-native": "0.72.6",
