@@ -4,6 +4,7 @@
   "description": "Example app showcasing bitmovin's RN player SDK",
   "version": "0.0.1",
   "scripts": {
+    "postinstall": "patch-package",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
@@ -31,6 +32,7 @@
     "@react-native/metro-config": "^0.72.11",
     "babel-plugin-module-resolver": "^5.0.0",
     "metro-react-native-babel-preset": "0.76.8",
+    "patch-package": "^8.0.0",
     "pod-install": "^0.1.0"
   },
   "engines": {

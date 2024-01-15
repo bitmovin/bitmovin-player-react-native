@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0]
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.56.0`
+- Android: Kotlin version to `1.9.21`
+
 ## [0.15.0] (2023-12-18)
 
 ### Added

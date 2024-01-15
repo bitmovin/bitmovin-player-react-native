@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "postinstall": "patch-package",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
@@ -30,6 +31,7 @@
     "babel-plugin-module-resolver": "^5.0.0",
     "cavy-cli": "^3.0.0",
     "metro-react-native-babel-preset": "0.76.8",
+    "patch-package": "^8.0.0",
     "pod-install": "^0.1.39",
     "react-native-uuid": "^2.0.1"
   },

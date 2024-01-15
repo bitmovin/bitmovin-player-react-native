@@ -35,6 +35,10 @@ Our API reference can be found [here](https://cdn.bitmovin.com/player/reactnativ
 
 Our [Getting Started Guide](https://developer.bitmovin.com/playback/docs/getting-started-react-native) walks you through setting up and configuring the Bitmovin Player in React Native projects.
 
+### Low-Code Wizard
+
+Use the [Low-Code Wizard](https://dashboard.bitmovin.com/player/getting-started) in your Dashboard to quickly get started with the Player, with just a few lines of code.
+
 ### Feature Guides
 
 Check out our [React Native Guides](https://developer.bitmovin.com/playback/docs/guides-react-native) for more information on how to set up Player features such as Advertising, DRM-protected playback, Subtitles and more.

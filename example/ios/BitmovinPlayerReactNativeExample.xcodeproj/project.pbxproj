@@ -17,6 +17,10 @@
 		4CE3830528BFD270002DDF82 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4CE3830428BFD270002DDF82 /* AppDelegate.mm */; };
 		5915995436EFADAE00A71930 /* libPods-BitmovinPlayerReactNativeExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 06D60B6FD8A3297CA32930A9 /* libPods-BitmovinPlayerReactNativeExample.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		A8DB69432B31B5DB00BAD718 /* Debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A8DB69412B31B5DB00BAD718 /* Debug.xcconfig */; };
+		A8DB69442B31B5DB00BAD718 /* Release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A8DB69422B31B5DB00BAD718 /* Release.xcconfig */; };
+		A8DB69472B31B61400BAD718 /* Debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A8DB69452B31B61400BAD718 /* Debug.xcconfig */; };
+		A8DB69482B31B61400BAD718 /* Release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A8DB69462B31B61400BAD718 /* Release.xcconfig */; };
 		B3861322686908F1A14AEDFF /* libPods-BitmovinPlayerReactNativeExample-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B0574780FC6EB7D0D35EDF5 /* libPods-BitmovinPlayerReactNativeExample-tvOS.a */; };
 /* End PBXBuildFile section */
 
@@ -40,6 +44,10 @@
 		7B0574780FC6EB7D0D35EDF5 /* libPods-BitmovinPlayerReactNativeExample-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BitmovinPlayerReactNativeExample-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7D2D062A80C63508C52FD003 /* Pods-BitmovinPlayerReactNativeExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitmovinPlayerReactNativeExample.debug.xcconfig"; path = "Target Support Files/Pods-BitmovinPlayerReactNativeExample/Pods-BitmovinPlayerReactNativeExample.debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = BitmovinPlayerReactNativeExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		A8DB69412B31B5DB00BAD718 /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = BitmovinPlayerReactNativeExample/Debug.xcconfig; sourceTree = "<group>"; };
+		A8DB69422B31B5DB00BAD718 /* Release.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = BitmovinPlayerReactNativeExample/Release.xcconfig; sourceTree = "<group>"; };
+		A8DB69452B31B61400BAD718 /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		A8DB69462B31B61400BAD718 /* Release.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		BDAFF5A7A0416D4C35F3B620 /* Pods-BitmovinPlayerReactNativeExample-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitmovinPlayerReactNativeExample-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-BitmovinPlayerReactNativeExample-tvOS/Pods-BitmovinPlayerReactNativeExample-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		CAA1356D0B7800248D07E196 /* Pods-BitmovinPlayerReactNativeExample-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitmovinPlayerReactNativeExample-tvOS.release.xcconfig"; path = "Target Support Files/Pods-BitmovinPlayerReactNativeExample-tvOS/Pods-BitmovinPlayerReactNativeExample-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -76,6 +84,8 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
+				A8DB69412B31B5DB00BAD718 /* Debug.xcconfig */,
+				A8DB69422B31B5DB00BAD718 /* Release.xcconfig */,
 			);
 			name = BitmovinPlayerReactNativeExample;
 			sourceTree = "<group>";
@@ -100,6 +110,8 @@
 				4CE382FE28BFD10E002DDF82 /* main.m */,
 				4CE3830328BFD1E2002DDF82 /* AppDelegate.h */,
 				4CE3830428BFD270002DDF82 /* AppDelegate.mm */,
+				A8DB69452B31B61400BAD718 /* Debug.xcconfig */,
+				A8DB69462B31B61400BAD718 /* Release.xcconfig */,
 			);
 			path = "BitmovinPlayerReactNativeExample-tvOS";
 			sourceTree = "<group>";
@@ -115,18 +127,10 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
-		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Libraries;
-			sourceTree = "<group>";
-		};
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
 				13B07FAE1A68108700A75B9A /* BitmovinPlayerReactNativeExample */,
-				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				4CE382EF28BFD10C002DDF82 /* BitmovinPlayerReactNativeExample-tvOS */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
@@ -239,8 +243,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A8DB69442B31B5DB00BAD718 /* Release.xcconfig in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				A8DB69432B31B5DB00BAD718 /* Debug.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -248,8 +254,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A8DB69482B31B61400BAD718 /* Release.xcconfig in Resources */,
 				4CE382FD28BFD10E002DDF82 /* LaunchScreen.storyboard in Resources */,
 				4CE382FA28BFD10E002DDF82 /* Assets.xcassets in Resources */,
+				A8DB69472B31B61400BAD718 /* Debug.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -564,7 +572,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7D2D062A80C63508C52FD003 /* Pods-BitmovinPlayerReactNativeExample.debug.xcconfig */;
+			baseConfigurationReference = A8DB69412B31B5DB00BAD718 /* Debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
@@ -572,7 +580,6 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = BitmovinPlayerReactNativeExample/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
@@ -593,7 +600,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4451A76D9ED45CF044433360 /* Pods-BitmovinPlayerReactNativeExample.release.xcconfig */;
+			baseConfigurationReference = A8DB69422B31B5DB00BAD718 /* Release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
@@ -601,7 +608,6 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = BitmovinPlayerReactNativeExample/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -620,7 +626,7 @@
 		};
 		4CE3830028BFD10E002DDF82 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BDAFF5A7A0416D4C35F3B620 /* Pods-BitmovinPlayerReactNativeExample-tvOS.debug.xcconfig */;
+			baseConfigurationReference = A8DB69452B31B61400BAD718 /* Debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -633,7 +639,6 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "BitmovinPlayerReactNativeExample-tvOS/Info.plist";
@@ -658,7 +663,7 @@
 		};
 		4CE3830128BFD10E002DDF82 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = CAA1356D0B7800248D07E196 /* Pods-BitmovinPlayerReactNativeExample-tvOS.release.xcconfig */;
+			baseConfigurationReference = A8DB69462B31B61400BAD718 /* Release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -672,7 +677,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "BitmovinPlayerReactNativeExample-tvOS/Info.plist";

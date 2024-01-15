@@ -1,0 +1,2 @@
+#include? "Pods/Target Support Files/Pods-BitmovinPlayerReactNativeExample-tvOS/Pods-BitmovinPlayerReactNativeExample-tvOS.release.xcconfig"
+#include? "Developer.xcconfig"

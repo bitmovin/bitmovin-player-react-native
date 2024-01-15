@@ -67,6 +67,7 @@ post_install do |installer|
   fix_simulator_run(installer)
 end
 
+# Align deployment target of all targets in the Pods project with the main project
 def fix_deployment_target(installer)
   return if !installer
   project = installer.pods_project
@@ -92,6 +93,7 @@ def fix_deployment_target(installer)
   end
 end
 
+# Workaround for running on simulator on Apple Silicon from the command-line
 def fix_simulator_run(installer)
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
