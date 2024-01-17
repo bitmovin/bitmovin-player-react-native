@@ -22,6 +22,8 @@ jobs:
       version_number: ${{ steps.version_number.outputs.version_number }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
 
       - name: Setup Git User
         run: |
