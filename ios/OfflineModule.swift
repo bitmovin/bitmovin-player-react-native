@@ -1,4 +1,3 @@
-// swiftlint:disable file_length
 import BitmovinPlayer
 import Foundation
 
@@ -24,7 +23,7 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
     }
 
 #if os(iOS)
-    private static var offlineContentManagerBridges: Registry<OfflineContentManagerBridge> = [:]
+    private var offlineContentManagerBridges: Registry<OfflineContentManagerBridge> = [:]
 
     /**
      Retrieves the `OfflineContentManager` instance associated with `nativeId` from the internal offline managers.
@@ -32,7 +31,7 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
      - Returns: The associated `OfflineContentManager` instance or `nil`.
      */
     func retrieve(_ nativeId: NativeId) -> OfflineContentManagerBridge? {
-        Self.offlineContentManagerBridges[nativeId]
+        offlineContentManagerBridges[nativeId]
     }
 #endif
 
@@ -53,7 +52,7 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let self,
-                Self.offlineContentManagerBridges[nativeId] == nil,
+                self.offlineContentManagerBridges[nativeId] == nil,
                 let config = config as? [String: Any?],
                 let identifier = config["identifier"] as? String
             else {
@@ -77,7 +76,7 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
                     identifier: identifier
                 )
 
-                Self.offlineContentManagerBridges[nativeId] = offlineContentManagerBridge
+                self.offlineContentManagerBridges[nativeId] = offlineContentManagerBridge
                 resolve(nil)
             } catch let error as NSError {
                 reject("BitmovinOfflineModule", "Could not create an offline content manager", error)
@@ -96,7 +95,7 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let self,
-                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
+                let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
@@ -125,7 +124,7 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let self,
-                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
+                let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
@@ -157,7 +156,7 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let self,
-                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
+                let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
@@ -242,7 +241,7 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let self,
-                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
+                let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
@@ -270,7 +269,7 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let self,
-                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
+                let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
@@ -298,7 +297,7 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let self,
-                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
+                let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
@@ -326,7 +325,7 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let self,
-                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
+                let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
@@ -353,7 +352,7 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let self,
-                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
+                let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
@@ -385,7 +384,7 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let self,
-                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
+                let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
@@ -417,7 +416,7 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let self,
-                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
+                let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
@@ -447,59 +446,17 @@ public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_bod
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 let self,
-                let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
+                let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId]
             else {
                 reject("BitmovinOfflineModule", "Could not find the offline module instance", nil)
                 return
             }
 
-            self.releaseOfflineContentManagerBridge(
-                nativeId: nativeId,
-                offlineContentManagerBridge: offlineContentManagerBridge
-            )
+            offlineContentManagerBridge.release()
+            self.offlineContentManagerBridges[nativeId] = nil
             resolve(nil)
         }
 #endif
-    }
-
-    /**
-     Call `.release()` on all registered offline content manager bridges.
-     */
-    @objc(disposeAll:rejecter:)
-    func disposeAll(
-        _ resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock
-    ) {
-        bridge.uiManager.addUIBlock { [weak self] _, _ in
-            guard
-                let self
-            else {
-                resolve(nil)
-                return
-            }
-
-            for key in Self.offlineContentManagerBridges.keys {
-                guard
-                    let nativeId = key as? NativeId,
-                    let offlineContentManagerBridge = Self.offlineContentManagerBridges[nativeId]
-                else {
-                    continue
-                }
-                self.releaseOfflineContentManagerBridge(
-                    nativeId: nativeId,
-                    offlineContentManagerBridge: offlineContentManagerBridge
-                )
-            }
-        }
-        resolve(nil)
-    }
-
-    func releaseOfflineContentManagerBridge(
-        nativeId: NativeId,
-        offlineContentManagerBridge: OfflineContentManagerBridge
-    ) {
-        offlineContentManagerBridge.release()
-        Self.offlineContentManagerBridges[nativeId] = nil
     }
 
     /**

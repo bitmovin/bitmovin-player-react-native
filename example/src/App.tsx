@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { SourceType } from 'bitmovin-player-react-native';
+import { AudioSession, SourceType } from 'bitmovin-player-react-native';
 import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
 import BasicAnalytics from './screens/BasicAnalytics';
@@ -20,7 +20,6 @@ import LandscapeFullscreenHandling from './screens/LandscapeFullscreenHandling';
 import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
-import CustomSubtitleOnlyUI from './screens/CustomSubtitleOnlyUI';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -57,7 +56,6 @@ export type RootStackParamsList = {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
   };
   Casting: undefined;
-  CustomSubtitleOnlyUI: undefined;
 };
 
 const RootStack = createNativeStackNavigator();
@@ -65,6 +63,20 @@ const RootStack = createNativeStackNavigator();
 const isTVOS = Platform.OS === 'ios' && Platform.isTV;
 
 export default function App() {
+  useEffect(() => {
+    // iOS audio session category must be set to `playback` first, otherwise playback
+    // will have no audio when the device is silenced.
+    // This is also required to make Picture in Picture work on iOS.
+    //
+    // Usually it's desireable to set the audio's category only once during your app's main component
+    // initialization. This way you can guarantee that your app's audio category is properly
+    // configured throughout the whole lifecycle of the application.
+    AudioSession.setCategory('playback').catch((error) => {
+      // Handle any native errors that might occur while setting the audio's category.
+      console.log("Failed to set app's audio category to `playback`:\n", error);
+    });
+  });
+
   const stackParams = {
     data: [
       {
@@ -94,10 +106,6 @@ export default function App() {
       {
         title: 'Programmatic Track Selection',
         routeName: 'ProgrammaticTrackSelection',
-      },
-      {
-        title: 'Custom Subtitle Only UI',
-        routeName: 'CustomSubtitleOnlyUI',
       },
     ],
   };
@@ -216,11 +224,6 @@ export default function App() {
             // eslint-disable-next-line react/no-unstable-nested-components
             headerRight: () => <Button title="Enter PiP" />,
           }}
-        />
-        <RootStack.Screen
-          name="CustomSubtitleOnlyUI"
-          component={CustomSubtitleOnlyUI}
-          options={{ title: 'Custom Subtitle Only UI' }}
         />
         {!isTVOS && (
           <RootStack.Screen

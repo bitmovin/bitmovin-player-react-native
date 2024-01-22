@@ -9,11 +9,11 @@ import com.bitmovin.player.api.offline.options.OfflineOptionEntryAction
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.reactnative.NativeId
-import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.bitmovin.player.reactnative.converter.toJson
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 
 class OfflineContentManagerBridge(
     private val nativeId: NativeId,
@@ -155,7 +155,7 @@ class OfflineContentManagerBridge(
         sendEvent(
             OfflineEventType.ON_COMPLETED,
             Arguments.createMap().apply {
-                putMap("options", JsonConverter.toJson(options))
+                putMap("options", options?.toJson())
             },
         )
     }
@@ -193,7 +193,7 @@ class OfflineContentManagerBridge(
         sendEvent(
             OfflineEventType.ON_OPTIONS_AVAILABLE,
             Arguments.createMap().apply {
-                putMap("options", JsonConverter.toJson(options))
+                putMap("options", options?.toJson())
             },
         )
     }
@@ -219,15 +219,14 @@ class OfflineContentManagerBridge(
         sendEvent(OfflineEventType.ON_RESUMED)
     }
 
-    private fun sendEvent(eventType: OfflineEventType, event: WritableMap? = null) {
-        val e = event ?: Arguments.createMap()
-        e.putString("nativeId", nativeId)
-        e.putString("identifier", identifier)
-        e.putString("eventType", eventType.eventName)
-        e.putString("state", aggregateState(contentOptions).name)
-
-        context
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-            .emit("BitmovinOfflineEvent", e)
+    private fun sendEvent(eventType: OfflineEventType, event: WritableMap = Arguments.createMap()) {
+        event.putString("nativeId", nativeId)
+        event.putString("identifier", identifier)
+        event.putString("eventType", eventType.eventName)
+        event.putString("state", aggregateState(contentOptions).name)
+        context.rtcDeviceEventEmitter.emit("BitmovinOfflineEvent", event)
     }
 }
+
+val ReactApplicationContext.rtcDeviceEventEmitter: RCTDeviceEventEmitter
+    get() = getJSModule(RCTDeviceEventEmitter::class.java)

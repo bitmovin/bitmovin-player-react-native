@@ -41,9 +41,17 @@ To build and run the example app on iOS:
 yarn example ios
 ```
 
-To edit the Swift/Objective-C files, open `example/ios/BitmovinPlayerReactNativeExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > RNBitmovinPlayer`.
+To edit the Swift/Objective-C files, open `example/ios/BitmovinPlayerReactNativeExample.xcworkspace` in Xcode and find the source files at `Pods > Development Pods > RNBitmovinPlayer`.
 
 To edit the Kotlin files, open `example/android` in Android Studio and find the source files at `bitmovin-player-react-native` under `Android`.
+
+## For iOS/tvOS on-device development
+
+To build the example project for an iOS or tvOS device, you need to create a file at `example/ios/Developer.xcconfig`. In this file, add your development team like this:
+
+```yml
+DEVELOPMENT_TEAM = YOUR_TEAM_ID
+```
 
 ## TypeScript Code Style
 
@@ -122,10 +130,57 @@ swiftlint lint --autocorrect
 
 ## Testing
 
-Remember to add tests for your change if possible. Run the unit tests by:
+Remember to add tests for your change if possible. Run the player tests by:
 
 ```sh
-yarn test
+yarn integration-test test:android
+yarn integration-test test:ios
+```
+
+To set the license key to be used for the tests, you can set the key `"licenseKey"` in `integration_test/app.json`.
+
+See available API for testing [here](/integration_test/playertesting/PlayerTesting.ts).
+
+### Adding new tests
+
+To add new tests:
+
+1. create a new file in the `specs/` folder.
+1. import the new file to the `specs/index.ts` file and add it to the default exported array.
+
+A Player Test has the following structure always:
+
+```ts
+export default (spec: TestScope) => {
+  spec.describe('SCENARIO TO TEST', () => {
+    spec.it('EXPECTATION', async () => {
+      await startPlayerTest({}, async () => {
+        // TEST CODE
+      });
+    });
+  });
+};
+```
+
+For example:
+
+```ts
+export default (spec: TestScope) => {
+  spec.describe('playing a source', () => {
+    spec.it('emits TimeChanged events', async () => {
+      await startPlayerTest({}, async () => {
+        await loadSourceConfig({
+          url: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
+          type: SourceType.HLS,
+        });
+        await callPlayerAndExpectEvents((player) => {
+          player.play();
+        }, EventSequence(EventType.Play, EventType.Playing));
+        await expectEvents(RepeatedEvent(EventType.TimeChanged, 5));
+      });
+    });
+  });
+};
 ```
 
 ## Commit message convention
@@ -145,12 +200,20 @@ Our pre-commit hooks verify that your commit message matches this format when co
 
 The `package.json` file contains various scripts for common tasks:
 
-- `yarn bootstrap`: setup project by installing all dependencies and pods.
-- `yarn pods`: install pods only.
+- `yarn bootstrap`: setup the whole project by installing all dependencies and pods.
+- `yarn bootstrap:example`: setup example project by installing all dependencies and pods.
+- `yarn bootstrap:integration-test`: setup integration tests project by installing all dependencies and pods.
 - `yarn build`: compile TypeScript files into `lib/` with ESBuild.
 - `yarn typescript`: type-check files with TypeScript.
 - `yarn lint`: lint files with ESLint.
-- `yarn test`: run unit tests with Jest.
+- `yarn format`: format files with Prettier.
+- `yarn docs`: generate documentation with TypeDoc.
+- `yarn brew`: install all dependencies for iOS development with Homebrew.
 - `yarn example start`: start the Metro server for the example app.
 - `yarn example android`: run the example app on Android.
+- `yarn example pods`: install pods only.
+- `yarn integration-test start`: start the Metro server for the integration tests.
+- `yarn integration-test test:android`: run the player tests on Android emulator.
+- `yarn integration-test test:ios`: run the player tests on iOS simulator.
+- `yarn integration-test pods`: install pods only.
 - `yarn example ios`: run the example app on iOS.

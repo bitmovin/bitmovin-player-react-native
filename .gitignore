@@ -44,7 +44,7 @@ android.iml
 
 # Cocoapods
 #
-example/ios/Pods/
+*/ios/Pods/
 
 # node.js
 #
@@ -67,3 +67,6 @@ lib/
 
 # generated API documentation
 docs/generated
+
+# developer specific configuration file
+example/ios/Developer.xcconfig

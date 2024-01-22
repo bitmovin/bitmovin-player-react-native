@@ -1,12 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Platform, StyleSheet } from 'react-native';
+import { Button, Platform, StyleSheet, View, ViewProps } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
   usePlayer,
   PlayerView,
   SourceType,
-  AudioSession,
   PictureInPictureEnterEvent,
   PictureInPictureExitEvent,
   PlayerViewConfig,
@@ -51,19 +50,6 @@ export default function BasicPictureInPicture({
 
   useFocusEffect(
     useCallback(() => {
-      // iOS audio session must be set to `playback` first otherwise PiP mode won't work.
-      //
-      // Usually it's desireable to set the audio's category only once during your app's main component
-      // initialization. This way you can guarantee that your app's audio category is properly
-      // configured throughout the whole lifecycle of the application.
-      AudioSession.setCategory('playback').catch((error) => {
-        // Handle any native errors that might occur while setting the audio's category.
-        console.log(
-          "[BasicPictureInPicture] Failed to set app's audio category to `playback`:\n",
-          error
-        );
-      });
-
       // Load desired source configuration
       player.load({
         url:
@@ -116,9 +102,9 @@ export default function BasicPictureInPicture({
     []
   );
 
+  const ContainerView = Platform.isTV ? View : SafeAreaContainer;
   return (
-    <SafeAreaView
-      edges={['bottom', 'left', 'right']}
+    <ContainerView
       style={
         // On Android, we need to remove the padding from the container when in PiP mode.
         Platform.OS === 'android' && isInPictureInPicture
@@ -137,8 +123,12 @@ export default function BasicPictureInPicture({
         onPictureInPictureExit={onPictureInPictureExitEvent}
         onPictureInPictureExited={onEvent}
       />
-    </SafeAreaView>
+    </ContainerView>
   );
+}
+
+function SafeAreaContainer(props: ViewProps): JSX.Element {
+  return <SafeAreaView edges={['bottom', 'left', 'right']} {...props} />;
 }
 
 const styles = StyleSheet.create({
@@ -147,7 +137,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'white',
-    padding: 10,
+    padding: Platform.isTV ? 0 : 10,
   },
   player: {
     flex: 1,

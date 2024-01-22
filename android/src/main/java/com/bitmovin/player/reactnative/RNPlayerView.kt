@@ -3,29 +3,28 @@ package com.bitmovin.player.reactnative
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.graphics.Rect
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.FrameLayout
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.bitmovin.player.PlayerView
+import com.bitmovin.player.SubtitleView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.ui.PlayerViewConfig
-import com.bitmovin.player.reactnative.converter.JsonConverter
+import com.bitmovin.player.api.ui.StyleConfig
+import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
-import com.facebook.react.bridge.ReactContext
-import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.ReactActivity
+import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.events.RCTEventEmitter
 import kotlin.reflect.KClass
 
 private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
-    PlayerEvent::class to "event",
     PlayerEvent.Error::class to "playerError",
     PlayerEvent.Warning::class to "playerWarning",
     PlayerEvent.Destroy::class to "destroy",
@@ -54,7 +53,8 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
     SourceEvent.AudioTrackAdded::class to "audioAdded",
     SourceEvent.AudioTrackChanged::class to "audioChanged",
     SourceEvent.AudioTrackRemoved::class to "audioRemoved",
-    SourceEvent.DurationChanged::class to "durationChanged",
+    SourceEvent.DownloadFinished::class to "downloadFinished",
+    SourceEvent.VideoDownloadQualityChanged::class to "videoDownloadQualityChanged",
     PlayerEvent.AdBreakFinished::class to "adBreakFinished",
     PlayerEvent.AdBreakStarted::class to "adBreakStarted",
     PlayerEvent.AdClicked::class to "adClicked",
@@ -67,7 +67,6 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
     PlayerEvent.AdSkipped::class to "adSkipped",
     PlayerEvent.AdStarted::class to "adStarted",
     PlayerEvent.VideoPlaybackQualityChanged::class to "videoPlaybackQualityChanged",
-    PlayerEvent.VideoSizeChanged::class to "videoSizeChanged",
     PlayerEvent.CastStart::class to "castStart",
     @Suppress("DEPRECATION")
     PlayerEvent.CastPlaybackFinished::class to "castPlaybackFinished",
@@ -98,11 +97,31 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event
  * exposes player events as bubbling events.
  */
 @SuppressLint("ViewConstructor")
-class RNPlayerView(val context: ThemedReactContext) :
-    LinearLayout(context),
-    DefaultLifecycleObserver,
-    View.OnLayoutChangeListener,
-    RNPictureInPictureDelegate {
+class RNPlayerView(
+    private val context: ReactApplicationContext,
+) : FrameLayout(context), View.OnLayoutChangeListener, RNPictureInPictureDelegate {
+    private val activityLifecycle = (context.currentActivity as? ReactActivity)?.lifecycle
+        ?: error("Trying to create an instance of ${this::class.simpleName} while not attached to a ReactActivity")
+
+    private val activityLifecycleObserver = object : DefaultLifecycleObserver {
+        override fun onStart(owner: LifecycleOwner) {
+            playerView?.onStart()
+        }
+
+        override fun onResume(owner: LifecycleOwner) {
+            playerView?.onResume()
+        }
+
+        override fun onPause(owner: LifecycleOwner) {
+            playerView?.onPause()
+        }
+
+        override fun onStop(owner: LifecycleOwner) {
+            playerView?.onStop()
+        }
+
+        override fun onDestroy(owner: LifecycleOwner) = dispose()
+    }
 
     init {
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
@@ -111,13 +130,18 @@ class RNPlayerView(val context: ThemedReactContext) :
         // Bitmovin player issue: https://github.com/bitmovin/bitmovin-player-react-native/issues/180
         // React Native layout issue: https://github.com/facebook/react-native/issues/17968
         getViewTreeObserver().addOnGlobalLayoutListener { requestLayout() }
+
+        activityLifecycle.addObserver(activityLifecycleObserver)
     }
 
     /**
      * Relays the provided set of events, emitted by the player, together with the associated name
      * to the `eventOutput` callback.
      */
-    private val playerEventRelay = EventRelay<Player, Event>(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING, ::emitEvent)
+    private val playerEventRelay = EventRelay<Player, Event>(
+        EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING,
+        ::emitEventFromPlayer,
+    )
 
     /**
      * Relays the provided set of events, emitted by the player view, together with the associated name
@@ -125,26 +149,20 @@ class RNPlayerView(val context: ThemedReactContext) :
      */
     private val viewEventRelay = EventRelay<PlayerView, Event>(EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI, ::emitEvent)
 
-    /**
-     * Current React activity computed property.
-     */
-    private val currentActivity: AppCompatActivity?
-        get() {
-            if (context.hasCurrentActivity()) {
-                return context.currentActivity as AppCompatActivity
-            }
-            return null
-        }
-
-    /**
-     * Associated bitmovin's `PlayerView`.
-     */
-    var playerView: PlayerView? = null
+    private var _playerView: PlayerView? = null
         set(value) {
+            field?.removeOnLayoutChangeListener(this)
             field = value
             viewEventRelay.eventEmitter = field
             playerEventRelay.eventEmitter = field?.player
         }
+
+    /**
+     * Associated Bitmovin's `PlayerView`.
+     */
+    val playerView: PlayerView? get() = _playerView
+
+    private var subtitleView: SubtitleView? = null
 
     /**
      * Handy property accessor for `playerView`'s player instance.
@@ -167,75 +185,49 @@ class RNPlayerView(val context: ThemedReactContext) :
     var config: RNPlayerViewConfigWrapper? = null
 
     /**
-     * Whether this view should pause video playback when activity's onPause is called.
-     * By default, `shouldPausePlaybackOnActivityPause` is set to false when entering PiP mode.
-     */
-    private var shouldPausePlaybackOnActivityPause = true
-
-    /**
-     * Whether the view should enable background playback.
-     */
-    var isBackgroundPlaybackEnabled = false
-
-    /**
-     * Register this view as an activity lifecycle listener on initialization.
-     */
-    init {
-        currentActivity?.lifecycle?.addObserver(this)
-    }
-
-    /**
      * Cleans up the resources and listeners produced by this view.
      */
     fun dispose() {
-        viewEventRelay.eventEmitter = null
-        playerEventRelay.eventEmitter = null
-        currentActivity?.lifecycle?.removeObserver(this)
-        playerView?.removeOnLayoutChangeListener(this)
-    }
+        activityLifecycle.removeObserver(activityLifecycleObserver)
 
-    override fun onStart(owner: LifecycleOwner) {
-        playerView?.onStart()
-        super.onStart(owner)
-    }
-
-    override fun onResume(owner: LifecycleOwner) {
-        playerView?.onResume()
-        super.onResume(owner)
-    }
-
-    override fun onPause(owner: LifecycleOwner) {
-        playerView?.onPause()
-        super.onPause(owner)
-    }
-
-    override fun onStop(owner: LifecycleOwner) {
-        if (!isBackgroundPlaybackEnabled) {
-            playerView?.onStop()
-        }
-        super.onStop(owner)
-    }
-
-    override fun onDestroy(owner: LifecycleOwner) {
-        playerView?.onDestroy()
-        super.onDestroy(owner)
+        val playerView = _playerView ?: return
+        _playerView = null
+        // The `RNPlayerView` should not take care of the player lifecycle.
+        // As a different component is creating the player instance, the other component
+        // is responsible for destroying the player in the end.
+        playerView.player = null
+        playerView.onDestroy()
     }
 
     /**
      * Set the given `playerView` as child and start bubbling events.
      * @param playerView Shared player view instance.
      */
-    fun addPlayerView(playerView: PlayerView) {
-        this.playerView = playerView
+    fun setPlayerView(playerView: PlayerView) {
+        this.playerView?.let { currentPlayerView ->
+            (currentPlayerView.parent as? ViewGroup)?.removeView(currentPlayerView)
+        }
+        this._playerView = playerView
         if (playerView.parent != this) {
             (playerView.parent as ViewGroup?)?.removeView(playerView)
-            addView(playerView)
+            addView(playerView, 0)
         }
         pictureInPictureHandler?.let {
             it.setDelegate(this)
             playerView.setPictureInPictureHandler(it)
             playerView.addOnLayoutChangeListener(this)
         }
+    }
+
+    /**
+     * Set the given `subtitleView` as a child
+     */
+    fun setSubtitleView(subtitleView: SubtitleView) {
+        this.subtitleView?.let { currentSubtitleView ->
+            (currentSubtitleView.parent as? ViewGroup)?.removeView(currentSubtitleView)
+        }
+        this.subtitleView = subtitleView
+        addView(subtitleView)
     }
 
     /**
@@ -250,8 +242,7 @@ class RNPlayerView(val context: ThemedReactContext) :
      * Called when the player has just entered PiP mode.
      */
     override fun onEnterPictureInPicture() {
-        // Playback shouldn't be paused when entering PiP mode.
-        shouldPausePlaybackOnActivityPause = false
+        // Nothing to do
     }
 
     /**
@@ -319,15 +310,26 @@ class RNPlayerView(val context: ThemedReactContext) :
      * @param event Optional js object to be sent as payload.
      */
     private inline fun <reified E : Event> emitEvent(name: String, event: E) {
-        val payload = if (event is PlayerEvent) {
-            JsonConverter.fromPlayerEvent(event)
-        } else {
-            JsonConverter.fromSourceEvent(event as SourceEvent)
+        val payload = when (event) {
+            is PlayerEvent -> event.toJson()
+            is SourceEvent -> event.toJson()
+            else -> throw IllegalArgumentException()
         }
         val reactContext = context as ReactContext
         reactContext
             .getJSModule(RCTEventEmitter::class.java)
             .receiveEvent(id, name, payload)
+    }
+
+    /**
+     * Emits a bubbling event from the player with payload to js
+     * and emits it for "event" to support `onEvent` prop.
+     * @param name Native event name.
+     * @param event Optional js object to be sent as payload.
+     */
+    private inline fun <reified E : Event> emitEventFromPlayer(name: String, event: E) {
+        emitEvent(name, event)
+        emitEvent("event", event)
     }
 }
 
@@ -339,3 +341,12 @@ data class RNPlayerViewConfigWrapper(
     val playerViewConfig: PlayerViewConfig?,
     val pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig?,
 )
+
+data class RNStyleConfigWrapper(
+    val styleConfig: StyleConfig?,
+    val userInterfaceType: UserInterfaceType,
+)
+
+enum class UserInterfaceType {
+    Bitmovin, Subtitle
+}

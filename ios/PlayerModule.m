@@ -19,11 +19,6 @@ RCT_EXTERN_METHOD(
     getVolume:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
-RCT_EXTERN_METHOD(setPlaybackSpeed:(NSString *)nativeId speed:(nonnull float *)speed)
-RCT_EXTERN_METHOD(
-    getPlaybackSpeed:(NSString *)nativeId
-    resolver:(RCTPromiseResolveBlock)resolve
-    rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
     currentTime:(NSString *)nativeId
     mode:(NSString *)mode
@@ -84,10 +79,7 @@ RCT_EXTERN_METHOD(
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(scheduleAd:(NSString *)nativeId adItemJson:(nullable id)adItemJson)
-RCT_EXTERN_METHOD(
-    skipAd:(NSString *)nativeId
-    resolver:(RCTPromiseResolveBlock)resolve
-    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(skipAd:(NSString *)nativeId)
 RCT_EXTERN_METHOD(
     isAd:(NSString *)nativeId
     resolver:(RCTPromiseResolveBlock)resolve
@@ -116,6 +108,23 @@ RCT_EXTERN_METHOD(
     rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(castVideo:(NSString *)nativeId)
 RCT_EXTERN_METHOD(castStop:(NSString *)nativeId)
+RCT_EXTERN_METHOD(
+    getVideoQuality:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    getAvailableVideoQualities:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    getPlaybackSpeed:(NSString *)nativeId
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(setPlaybackSpeed:(NSString *)nativeId playbackSpeed:(nonnull NSNumber *)playbackSpeed)
+RCT_EXTERN_METHOD(
+    canPlayAtPlaybackSpeed:(NSString *)nativeId
+    atPlaybackSpeed:(nonnull NSNumber *)atPlaybackSpeed
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(disposeAll:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 @end

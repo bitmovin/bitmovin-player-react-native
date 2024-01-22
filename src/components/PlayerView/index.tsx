@@ -132,7 +132,7 @@ export function PlayerView({
 
   useEffect(() => {
     const node = findNodeHandle(nativeView.current);
-    if (node) {
+    if (node && scalingMode) {
       dispatch('setScalingMode', node, scalingMode);
     }
   }, [scalingMode, nativeView]);
@@ -188,6 +188,7 @@ export function PlayerView({
       onPictureInPictureExited={proxy(props.onPictureInPictureExited)}
       onPlay={proxy(props.onPlay)}
       onPlaybackFinished={proxy(props.onPlaybackFinished)}
+      onPlaybackSpeedChanged={proxy(props.onPlaybackSpeedChanged)}
       onPlayerActive={proxy(props.onPlayerActive)}
       onPlayerError={proxy(props.onPlayerError)}
       onPlayerWarning={proxy(props.onPlayerWarning)}
@@ -212,9 +213,9 @@ export function PlayerView({
       onSubtitleRemoved={proxy(props.onSubtitleRemoved)}
       onTimeChanged={proxy(props.onTimeChanged)}
       onUnmuted={proxy(props.onUnmuted)}
-      onVideoSizeChanged={proxy(props.onVideoSizeChanged)}
-      onDurationChanged={proxy(props.onDurationChanged)}
+      onVideoDownloadQualityChanged={proxy(props.onVideoDownloadQualityChanged)}
       onVideoPlaybackQualityChanged={proxy(props.onVideoPlaybackQualityChanged)}
+      onDownloadFinished={proxy(props.onDownloadFinished)}
     />
   );
 }

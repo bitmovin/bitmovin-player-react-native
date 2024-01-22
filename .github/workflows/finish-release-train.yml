@@ -15,13 +15,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  create_pr:
+  prepare:
     if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/v')
     runs-on: ubuntu-latest
     outputs:
       version_number: ${{ steps.version_number.outputs.version_number }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
+
+      - name: Setup Git User
+        run: |
+          # setup git
+          git config --global user.name "Bitmovin Release Automation"
+          git config --global user.email "support@bitmovin.com"
 
       - name: Detect version number
         id: version_number
@@ -30,24 +38,42 @@ jobs:
           echo "Detected version number: $version_number"
           echo "version_number=$version_number" >> $GITHUB_OUTPUT
 
+      - name: Update Changelog
+        run: |
+          sed -i "s/\[${{ steps.version_number.outputs.version_number }}\].*/\[${{ steps.version_number.outputs.version_number }}\] \($(date +'%Y-%m-%d')\)/g" CHANGELOG.md
+
+      - name: Commit changelog version bump
+        run: |
+          git add CHANGELOG.md
+          git commit -m "chore: bump changelog date to today"
+          git push origin ${{ github.ref }}
+
+  create_pr:
+    needs: [prepare]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Create PR
         run: |
           gh pr create \
           --base "development" \
           --head "main" \
-          --title "Finish release ${{ steps.version_number.outputs.version_number }}" \
-          --body "Finish release ${{ steps.version_number.outputs.version_number }}"
+          --title "Finish release ${{ needs.prepare.outputs.version_number }}" \
+          --body "Finish release ${{ needs.prepare.outputs.version_number }}"
         env:
           GH_TOKEN: ${{ github.token }}
 
   publish_release:
-    needs: [create_pr]
+    needs: [prepare, create_pr]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
 
       - name: Setup Git User
         run: |
@@ -57,11 +83,11 @@ jobs:
 
       - name: Add tag
         run: |
-          git tag v${{ needs.create_pr.outputs.version_number }}
+          git tag v${{ needs.prepare.outputs.version_number }}
 
       - name: Git push
         run: |
-          git push origin v${{ needs.create_pr.outputs.version_number }}
+          git push origin v${{ needs.prepare.outputs.version_number }}
 
       - name: Setup node and npm registry
         uses: actions/setup-node@v3
@@ -88,7 +114,7 @@ jobs:
       - name: Create GitHub release
         uses: ncipollo/release-action@v1
         with:
-          tag: v${{ needs.create_pr.outputs.version_number }}
+          tag: v${{ needs.prepare.outputs.version_number }}
           token: ${{ secrets.GITHUB_TOKEN }}
           body: ${{ steps.changelog.outputs.release_notes }}
 

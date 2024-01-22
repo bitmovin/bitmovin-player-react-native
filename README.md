@@ -12,9 +12,9 @@ This is an open-source project created to enable customers to integrate the Bitm
 
 ## Platform Support
 
-This library requires at least React Native 0.64+ and React 17+ to work properly. The **officially supported** platforms are:
+This library requires at least React Native 0.65+ and React 17+ to work properly. The **officially supported** platforms are:
 
-- **iOS/tvOS:** 14.0+
+- **iOS/iPadOS/tvOS:** 14.0+
 - **Android:** 5.0+
 - **Android TV:** 7+
 - **Fire TV:** Fire OS 6.0+ ([compatible](https://developer.bitmovin.com/playback/docs/supported-platforms-devices-player#support-levels) with Fire OS 5.0)
@@ -34,6 +34,10 @@ Our API reference can be found [here](https://cdn.bitmovin.com/player/reactnativ
 ### Getting Started Guide
 
 Our [Getting Started Guide](https://developer.bitmovin.com/playback/docs/getting-started-react-native) walks you through setting up and configuring the Bitmovin Player in React Native projects.
+
+### Low-Code Wizard
+
+Use the [Low-Code Wizard](https://dashboard.bitmovin.com/player/getting-started) in your Dashboard to quickly get started with the Player, with just a few lines of code.
 
 ### Feature Guides
 

@@ -1,11 +1,56 @@
 # Changelog
 
-## [Unreleased]
+## [0.16.0] (2024-01-17)
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.56.0`
+- Android: Kotlin version to `1.9.21`
+
+## [0.15.0] (2023-12-18)
 
 ### Added
 
-- `LiveConfig.minTimeshiftBufferDepth` to control the minimum buffer depth of a stream needed to enable time shifting.
+- Player (E2E) tests for Android and iOS can now be executed via `yarn integration-test test:android` and `yarn integration-test test:ios` respectively
+
+### Changed
+
+- React Native version to `0.72.6`
+- React Native peer dependency version to `0.65.0+`
+- Update Bitmovin's native Android SDK version to `3.54.0`
+- Android: Kotlin version to `1.8.20`
+
+## [0.14.2] (2023-11-27)
+
+### Fixed
+
+- Android: `onEvent` callback not being called on `PlayerView`
+- iOS: `onEvent` on iOS has incomplete payload information
+- tvOS: Picture in Picture sample screen has unwanted padding
+- iOS: hide home indicator when entering fullscreen mode in the example application
+- iOS: invalid `loadingState` value in `SeekEvent`, `SourceLoadEvent`, `SourceLoadedEvent` and in `SourceUnloadedEvent`
+
+## [0.14.1] (2023-11-16)
+
+### Fixed
+
+- Android: `PlayerView` destroys attached `Player` instance on destroy. `Player` lifecycle must be handled on the creation side
+
+## [0.14.0] (2023-11-14)
+
+### Added
+
+- `LiveConfig.minTimeshiftBufferDepth` to control the minimum buffer depth of a stream needed to enable time shifting
 - `Player.buffer` to control buffer preferences and to query the current buffer state
+- `DownloadFinishedEvent` to signal when the download of specific content has finished
+- `Player.videoQuality`, `Player.availableVideoQualities`, and `VideoDownloadQualityChangedEvent` to query current video qualities and listen to related changes
+- `Player.playbackSpeed`, `Player.canPlayAtPlaybackSpeed`, `PlaybackSpeedChangedEvent` to query, control, and listen to changes to the speed of the playback
+- Support for `UserInterfaceType.Subtitle` on Android
+
+### Fixed
+
+- Android: Playback doesn't pause when app goes to background
+- Android: `PlayerView.onDestroy` not being called when the view is detached from the view hierarchy
 
 ## [0.13.0] (2023-10-20)
 
