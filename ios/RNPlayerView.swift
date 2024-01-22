@@ -2,7 +2,6 @@ import BitmovinPlayer
 
 @objc(RNPlayerView)
 public class RNPlayerView: UIView {
-    @objc var disableAdUi = false
     /// React component events. Directly mapped to props in `NativePlayerView`.
     @objc var onEvent: RCTBubblingEventBlock?
     @objc var onPlayerActive: RCTBubblingEventBlock?

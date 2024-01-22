@@ -2,7 +2,6 @@
 
 @interface RCT_EXTERN_REMAP_MODULE(NativePlayerView, RNPlayerViewManager, RCTViewManager)
 
-RCT_EXPORT_VIEW_PROPERTY(disableAdUi, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(onEvent, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onPlayerActive, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onPlayerError, RCTBubblingEventBlock)

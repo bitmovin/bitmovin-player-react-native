@@ -30,8 +30,6 @@ export interface BasePlayerViewProps {
    * The value must not be altered after setting it initially.
    */
   config?: PlayerViewConfig;
-
-  disableAdUi?: boolean;
 }
 
 /**

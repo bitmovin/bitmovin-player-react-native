@@ -50,11 +50,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      */
     override fun createViewInstance(reactContext: ThemedReactContext) = RNPlayerView(reactContext)
 
-    @ReactProp(name = "disableAdUi")
-    fun setDisableAdUi(view: RNPlayerView, disableAdUi: Boolean?) {
-        view.disableAdUi = disableAdUi
-    }
-
     /**
      * Called when the component's view gets detached from the view hierarchy. Useful to perform
      * cleanups.

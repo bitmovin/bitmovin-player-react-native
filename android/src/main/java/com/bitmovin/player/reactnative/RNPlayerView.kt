@@ -173,11 +173,6 @@ class RNPlayerView(val context: ThemedReactContext) :
     private var shouldPausePlaybackOnActivityPause = true
 
     /**
-     * Handy property accessor for disabling the ad ui
-     */
-    var disableAdUi: Boolean? = false
-
-    /**
      * Whether the view should enable background playback.
      */
     var isBackgroundPlaybackEnabled = false
@@ -324,32 +319,6 @@ class RNPlayerView(val context: ThemedReactContext) :
      * @param event Optional js object to be sent as payload.
      */
     private inline fun <reified E : Event> emitEvent(name: String, event: E) {
-        if (disableAdUi == true && event is PlayerEvent.AdStarted) {
-            try {
-                // HACK, IMA does not provide any public API for removing their Ad controls interface, this hunts down the controls and removes them
-                // this should continue to work as long as IMA wraps their controls in a WebView
-                LayoutTraverser.build(
-                    object : LayoutTraverser.Processor {
-                        override fun process(view: View?) {
-                            try {
-                                if (view.toString().contains("android.webkit.WebView")) {
-                                    view?.visibility = View.GONE
-                                }
-                            } catch (e: Exception) {
-                                Log.e(
-                                    "AngelMobile",
-                                    "class=RNPlayerView action=ErrorHidingAdsWebView",
-                                    e,
-                                )
-                            }
-                        }
-                    },
-                ).traverse(this)
-            } catch (e: Exception) {
-                Log.e("AngelMobile", "class=RNPlayerView action=ErrorTraversingForAdViews", e)
-            }
-        }
-
         val payload = if (event is PlayerEvent) {
             JsonConverter.fromPlayerEvent(event)
         } else {
@@ -370,28 +339,3 @@ data class RNPlayerViewConfigWrapper(
     val playerViewConfig: PlayerViewConfig?,
     val pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig?,
 )
-
-class LayoutTraverser private constructor(private val processor: Processor) {
-    interface Processor {
-        fun process(view: View?)
-    }
-
-    fun traverse(root: ViewGroup) {
-        val childCount = root.childCount
-        for (i in 0 until childCount) {
-            val child = root.getChildAt(i)
-            if (child !== null) {
-                processor.process(child)
-                if (child is ViewGroup) {
-                    traverse(child)
-                }
-            }
-        }
-    }
-
-    companion object {
-        fun build(processor: Processor): LayoutTraverser {
-            return LayoutTraverser(processor)
-        }
-    }
-}

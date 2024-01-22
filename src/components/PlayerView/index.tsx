@@ -148,7 +148,6 @@ export function PlayerView({
     <NativePlayerView
       ref={nativeView}
       style={nativeViewStyle}
-      disableAdUi={props.disableAdUi}
       fullscreenBridge={fullscreenBridge.current}
       customMessageHandlerBridge={customMessageHandlerBridge.current}
       config={config}
