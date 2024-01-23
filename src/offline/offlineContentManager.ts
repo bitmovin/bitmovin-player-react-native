@@ -34,6 +34,7 @@ interface NativeOfflineModule extends NativeModule {
   releaseLicense(nativeId: string): Promise<void>;
   renewOfflineLicense(nativeId: string): Promise<void>;
   release(nativeId: string): Promise<void>;
+  disposeAll(): Promise<void>;
 }
 
 const OfflineModule =
@@ -241,5 +242,9 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    */
   renewOfflineLicense = async (): Promise<void> => {
     return OfflineModule.renewOfflineLicense(this.nativeId);
+  };
+
+  static disposeAll = async (): Promise<void> => {
+    return OfflineModule.disposeAll();
   };
 }

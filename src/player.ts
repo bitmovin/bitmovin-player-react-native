@@ -470,4 +470,8 @@ export class Player extends NativeInstance<PlayerConfig> {
     }
     return PlayerModule.canPlayAtPlaybackSpeed(this.nativeId, playbackSpeed);
   };
+
+  static disposeAll = async (): Promise<null> => {
+    return PlayerModule.disposeAll();
+  };
 }

@@ -16,10 +16,12 @@ private const val OFFLINE_MODULE = "BitmovinOfflineModule"
 @ReactModule(name = OFFLINE_MODULE)
 class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
 
-    /**
-     * In-memory mapping from `nativeId`s to `OfflineManager` instances.
-     */
-    private val offlineContentManagerBridges: Registry<OfflineContentManagerBridge> = mutableMapOf()
+    companion object {
+        /**
+         * In-memory mapping from `nativeId`s to `OfflineManager` instances.
+         */
+        private val offlineContentManagerBridges: Registry<OfflineContentManagerBridge> = mutableMapOf()
+    }
 
     /**
      * JS exported module name.
@@ -232,9 +234,28 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
     @ReactMethod
     fun release(nativeId: NativeId, promise: Promise) {
         promise.unit.resolveWithBridge(nativeId) {
-            release()
-            offlineContentManagerBridges.remove(nativeId)
+            releaseOfflineContentManagerBridge(nativeId, this)
         }
+    }
+
+    /**
+     * Call `.destroy()` on all registered offline managers.
+     * @param nativeId Target player Id.
+     */
+    @ReactMethod
+    fun disposeAll(promise: Promise) {
+        promise.unit.resolveOnUiThread {
+            offlineContentManagerBridges.keys.forEach { nativeId ->
+                getOfflineContentManagerBridgeOrNull(nativeId)?.let { offlineContentManagerBridge ->
+                    releaseOfflineContentManagerBridge(nativeId, offlineContentManagerBridge)
+                }
+            }
+        }
+    }
+
+    private fun releaseOfflineContentManagerBridge(nativeId: NativeId, offlineContentManagerBridge: OfflineContentManagerBridge) {
+        offlineContentManagerBridge.release()
+        offlineContentManagerBridges.remove(nativeId)
     }
 
     private inline fun <T> TPromise<T>.resolveWithBridge(

@@ -1,4 +1,5 @@
-import { NativeSyntheticEvent, ViewStyle, StyleProp } from 'react-native';
+import React from 'react';
+import { NativeSyntheticEvent, ViewStyle } from 'react-native';
 
 /**
  * Configures the adaptation logic.
@@ -542,920 +543,6 @@ interface VideoQuality {
      */
     width?: number;
 }
-
-/**
- * Base event type for all events.
- */
-interface Event {
-    /**
-     * This event name as it is on the native side.
-     */
-    name: string;
-    /**
-     * The UNIX timestamp in which this event happened.
-     */
-    timestamp: number;
-}
-/**
- * Base event type for error and warning events.
- */
-interface ErrorEvent extends Event {
-    /**
-     * Error/Warning's code number.
-     */
-    code?: number;
-    /**
-     * Error/Warning's localized message.
-     */
-    message: string;
-    /**
-     * Underlying data emitted with the Error/Warning.
-     */
-    data?: Record<string, any>;
-}
-/**
- * Emitted when a source is loaded into the player.
- * Seeking and time shifting are allowed as soon as this event is seen.
- */
-interface PlayerActiveEvent extends Event {
-}
-/**
- * Emitted when a player error occurred.
- */
-interface PlayerErrorEvent extends ErrorEvent {
-}
-/**
- * Emitted when a player warning occurred.
- */
-interface PlayerWarningEvent extends ErrorEvent {
-}
-/**
- * Emitted when the player is destroyed.
- */
-interface DestroyEvent extends Event {
-}
-/**
- * Emitted when the player is muted.
- */
-interface MutedEvent extends Event {
-}
-/**
- * Emitted when the player is unmuted.
- */
-interface UnmutedEvent extends Event {
-}
-/**
- * Emitted when the player is ready for immediate playback, because initial audio/video
- * has been downloaded.
- */
-interface ReadyEvent extends Event {
-}
-/**
- * Emitted when the player is paused.
- */
-interface PausedEvent extends Event {
-    /**
-     * The player's playback time from when this event happened.
-     */
-    time: number;
-}
-/**
- * Emitted when the player received an intention to start/resume playback.
- */
-interface PlayEvent extends Event {
-    /**
-     * The player's playback time from when this event happened.
-     */
-    time: number;
-}
-/**
- * Emitted when playback has started.
- */
-interface PlayingEvent extends Event {
-    /**
-     * The player's playback time from when this event happened.
-     */
-    time: number;
-}
-/**
- * Emitted when the playback of the current media has finished.
- */
-interface PlaybackFinishedEvent extends Event {
-}
-/**
- * Source object representation the way it appears on `Event` payloads such as `SeekEvent`, for example.
- *
- * This interface only type hints what should be the shape of a `Source` object inside an `Event`'s
- * payload during runtime so it has no direct relation with the `Source` class present in `src/source.ts`.
- *
- * Do not mistake it for a `NativeInstance` type.
- */
-interface EventSource {
-    /**
-     * Event's source duration in seconds.
-     */
-    duration: number;
-    /**
-     * Whether this event's source is currently active in a player.
-     */
-    isActive: boolean;
-    /**
-     * Whether this event's source is currently attached to a player instance.
-     */
-    isAttachedToPlayer: boolean;
-    /**
-     * Metadata for this event's source.
-     */
-    metadata?: Record<string, any>;
-}
-/**
- * Represents a seeking position.
- */
-interface SeekPosition {
-    /**
-     * The relevant `Source`.
-     */
-    source: EventSource;
-    /**
-     * The position within the `source` in seconds.
-     */
-    time: number;
-}
-/**
- * Emitted when the player is about to seek to a new position.
- * This event only applies to VoD streams.
- * When looking for an equivalent for live streams, the {@link TimeShiftEvent} is relevant.
- */
-interface SeekEvent extends Event {
-    /**
-     * Origin source metadata.
-     */
-    from: SeekPosition;
-    /**
-     * Target source metadata.
-     */
-    to: SeekPosition;
-}
-/**
- * Emitted when seeking has finished and data to continue playback is available.
- * This event only applies to VoD streams.
- * When looking for an equivalent for live streams, the {@link TimeShiftedEvent} is relevant.
- */
-interface SeekedEvent extends Event {
-}
-/**
- * Emitted when the player starts time shifting.
- * This event only applies to live streams.
- * When looking for an equivalent for VoD streams, the {@link SeekEvent} is relevant.
- */
-interface TimeShiftEvent extends Event {
-    /**
-     * The position from which we start the time shift
-     */
-    position: number;
-    /**
-     * The position to which we want to jump for the time shift
-     */
-    targetPosition: number;
-}
-/**
- * Emitted when time shifting has finished and data is available to continue playback.
- * This event only applies to live streams.
- * When looking for an equivalent for VoD streams, the {@link SeekedEvent} is relevant.
- */
-interface TimeShiftedEvent extends Event {
-}
-/**
- * Emitted when the player begins to stall and to buffer due to an empty buffer.
- */
-interface StallStartedEvent extends Event {
-}
-/**
- * Emitted when the player ends stalling, due to enough data in the buffer.
- */
-interface StallEndedEvent extends Event {
-}
-/**
- * Emitted when the current playback time has changed.
- */
-interface TimeChangedEvent extends Event {
-    /**
-     * The player's playback time from when this event happened.
-     */
-    currentTime: number;
-}
-/**
- * Emitted when a new source loading has started.
- */
-interface SourceLoadEvent extends Event {
-    /**
-     * Source that is about to load.
-     */
-    source: EventSource;
-}
-/**
- * Emitted when a new source is loaded.
- * This does not mean that the source is immediately ready for playback.
- * `ReadyEvent` indicates the player is ready for immediate playback.
- */
-interface SourceLoadedEvent extends Event {
-    /**
-     * Source that was loaded into player.
-     */
-    source: EventSource;
-}
-/**
- * Emitted when the current source has been unloaded.
- */
-interface SourceUnloadedEvent extends Event {
-    /**
-     * Source that was unloaded from player.
-     */
-    source: EventSource;
-}
-/**
- * Emitted when a source error occurred.
- */
-interface SourceErrorEvent extends ErrorEvent {
-}
-/**
- * Emitted when a source warning occurred.
- */
-interface SourceWarningEvent extends ErrorEvent {
-}
-/**
- * Emitted when a new audio track is added to the player.
- */
-interface AudioAddedEvent extends Event {
-    /**
-     * Audio track that has been added.
-     */
-    audioTrack: AudioTrack;
-}
-/**
- * Emitted when the player's selected audio track has changed.
- */
-interface AudioChangedEvent extends Event {
-    /**
-     * Audio track that was previously selected.
-     */
-    oldAudioTrack: AudioTrack;
-    /**
-     * Audio track that is selected now.
-     */
-    newAudioTrack: AudioTrack;
-}
-/**
- * Emitted when an audio track is removed from the player.
- */
-interface AudioRemovedEvent extends Event {
-    /**
-     * Audio track that has been removed.
-     */
-    audioTrack: AudioTrack;
-}
-/**
- * Emitted when a new subtitle track is added to the player.
- */
-interface SubtitleAddedEvent extends Event {
-    /**
-     * Subtitle track that has been added.
-     */
-    subtitleTrack: SubtitleTrack;
-}
-/**
- * Emitted when a subtitle track is removed from the player.
- */
-interface SubtitleRemovedEvent extends Event {
-    /**
-     * Subtitle track that has been removed.
-     */
-    subtitleTrack: SubtitleTrack;
-}
-/**
- * Emitted when the player's selected subtitle track has changed.
- */
-interface SubtitleChangedEvent extends Event {
-    /**
-     * Subtitle track that was previously selected.
-     */
-    oldSubtitleTrack: SubtitleTrack;
-    /**
-     * Subtitle track that is selected now.
-     */
-    newSubtitleTrack: SubtitleTrack;
-}
-interface VideoSizeChangedEvent extends Event {
-    height?: number;
-    width?: number;
-    aspectRatio?: number;
-}
-interface DurationChangedEvent extends Event {
-    duration: number;
-}
-/**
- * Emitted when the player enters Picture in Picture mode.
- *
- * @platform iOS, Android
- */
-interface PictureInPictureEnterEvent extends Event {
-}
-/**
- * Emitted when the player exits Picture in Picture mode.
- *
- * @platform iOS, Android
- */
-interface PictureInPictureExitEvent extends Event {
-}
-/**
- * Emitted when the player has finished entering Picture in Picture mode on iOS.
- *
- * @platform iOS
- */
-interface PictureInPictureEnteredEvent extends Event {
-}
-/**
- * Emitted when the player has finished exiting Picture in Picture mode on iOS.
- *
- * @platform iOS
- */
-interface PictureInPictureExitedEvent extends Event {
-}
-/**
- * Emitted when the fullscreen functionality has been enabled.
- *
- * @platform iOS, Android
- */
-interface FullscreenEnabledEvent extends Event {
-}
-/**
- * Emitted when the fullscreen functionality has been disabled.
- *
- * @platform iOS, Android
- */
-interface FullscreenDisabledEvent extends Event {
-}
-/**
- * Emitted when the player enters fullscreen mode.
- *
- * @platform iOS, Android
- */
-interface FullscreenEnterEvent extends Event {
-}
-/**
- * Emitted when the player exits fullscreen mode.
- *
- * @platform iOS, Android
- */
-interface FullscreenExitEvent extends Event {
-}
-/**
- * Emitted when the availability of the Picture in Picture mode changed on Android.
- *
- * @platform Android
- */
-interface PictureInPictureAvailabilityChangedEvent extends Event {
-    /**
-     * Whether Picture in Picture is available.
-     */
-    isPictureInPictureAvailable: boolean;
-}
-/**
- * Emitted when an ad break has started.
- */
-interface AdBreakStartedEvent extends Event {
-    /**
-     * The `AdBreak` that has started.
-     */
-    adBreak?: AdBreak;
-}
-/**
- * Emitted when an ad break has finished.
- */
-interface AdBreakFinishedEvent extends Event {
-    /**
-     * The `AdBreak` that has finished.
-     */
-    adBreak?: AdBreak;
-}
-/**
- * Emitted when the playback of an ad has started.
- */
-interface AdStartedEvent extends Event {
-    /**
-     * The `Ad` this event is related to.
-     */
-    ad?: Ad;
-    /**
-     * The target URL to open once the user clicks on the ad.
-     */
-    clickThroughUrl?: string;
-    /**
-     * The `AdSourceType` of the started `Ad`.
-     */
-    clientType?: AdSourceType;
-    /**
-     * The duration of the ad in seconds.
-     */
-    duration: number;
-    /**
-     * The index of the ad in the queue.
-     */
-    indexInQueue: number;
-    /**
-     * The position of the corresponding `Ad`.
-     */
-    position?: string;
-    /**
-     * The skip offset of the ad in seconds.
-     */
-    skipOffset: number;
-    /**
-     * The content time at which the `Ad` is played.
-     */
-    timeOffset: number;
-}
-/**
- * Emitted when an ad has finished playback.
- */
-interface AdFinishedEvent extends Event {
-    /**
-     * The `Ad` that finished playback.
-     */
-    ad?: Ad;
-}
-/**
- * Emitted when an error with the ad playback occurs.
- */
-interface AdErrorEvent extends ErrorEvent {
-    /**
-     * The `AdConfig` for which the ad error occurred.
-     */
-    adConfig?: AdConfig;
-    /**
-     * The `AdItem` for which the ad error occurred.
-     */
-    adItem?: AdItem;
-}
-/**
- * Emitted when an ad was clicked.
- */
-interface AdClickedEvent extends Event {
-    /**
-     * The click through url of the ad.
-     */
-    clickThroughUrl?: string;
-}
-/**
- * Emitted when an ad was skipped.
- */
-interface AdSkippedEvent extends Event {
-    /**
-     * The `Ad` that was skipped.
-     */
-    ad?: Ad;
-}
-/**
- * Emitted when the playback of an ad has progressed over a quartile boundary.
- */
-interface AdQuartileEvent extends Event {
-    /**
-     * The `AdQuartile` boundary that playback has progressed over.
-     */
-    quartile: AdQuartile;
-}
-/**
- * Emitted when an ad manifest was successfully downloaded, parsed and added into the ad break schedule.
- */
-interface AdScheduledEvent extends Event {
-    /**
-     * The total number of scheduled ads.
-     */
-    numberOfAds: number;
-}
-/**
- * Emitted when the download of an ad manifest is started.
- */
-interface AdManifestLoadEvent extends Event {
-    /**
-     * The `AdBreak` this event is related to.
-     */
-    adBreak?: AdBreak;
-    /**
-     * The `AdConfig` of the loaded ad manifest.
-     */
-    adConfig?: AdConfig;
-}
-/**
- * Emitted when an ad manifest was successfully loaded.
- */
-interface AdManifestLoadedEvent extends Event {
-    /**
-     * The `AdBreak` this event is related to.
-     */
-    adBreak?: AdBreak;
-    /**
-     * The `AdConfig` of the loaded ad manifest.
-     */
-    adConfig?: AdConfig;
-    /**
-     * How long it took for the ad tag to be downloaded in milliseconds.
-     */
-    downloadTime: number;
-}
-/**
- * Emitted when the current video playback quality has changed.
- */
-interface VideoPlaybackQualityChangedEvent extends Event {
-    /**
-     * The new quality
-     */
-    newVideoQuality: VideoQuality;
-    /**
-     * The previous quality
-     */
-    oldVideoQuality: VideoQuality;
-}
-/**
- * Emitted when casting to a cast-compatible device is available.
- */
-interface CastAvailableEvent extends Event {
-}
-/**
- * Emitted when the playback on a cast-compatible device was paused.
- *
- * On Android `PausedEvent` is also emitted while casting.
- */
-interface CastPausedEvent extends Event {
-}
-/**
- * Emitted when the playback on a cast-compatible device has finished.
- *
- * On Android `PlaybackFinishedEvent` is also emitted while casting.
- */
-interface CastPlaybackFinishedEvent extends Event {
-}
-/**
- * Emitted when playback on a cast-compatible device has started.
- *
- * On Android `PlayingEvent` is also emitted while casting.
- */
-interface CastPlayingEvent extends Event {
-}
-/**
- * Emitted when the cast app is launched successfully.
- */
-interface CastStartedEvent extends Event {
-    /**
-     * The name of the cast device on which the app was launched.
-     */
-    deviceName: string | null;
-}
-/**
- * Emitted when casting is initiated, but the user still needs to choose which device should be used.
- */
-interface CastStartEvent extends Event {
-}
-/**
- * Emitted when casting to a cast-compatible device is stopped.
- */
-interface CastStoppedEvent extends Event {
-}
-/**
- * Emitted when the time update from the currently used cast-compatible device is received.
- */
-interface CastTimeUpdatedEvent extends Event {
-}
-/**
- * Contains information for the `CastWaitingForDeviceEvent`.
- */
-interface CastPayload {
-    /**
-     * The current time in seconds.
-     */
-    currentTime: number;
-    /**
-     * The name of the chosen cast device.
-     */
-    deviceName: string | null;
-    /**
-     * The type of the payload (always "cast").
-     */
-    type: string;
-}
-/**
- * Emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
- * playback.
- */
-interface CastWaitingForDeviceEvent extends Event {
-    /**
-     * The `CastPayload` object for the event
-     */
-    castPayload: CastPayload;
-}
-
-/**
- * Type that defines all event props supported by `PlayerView` and `NativePlayerView`.
- * Used to generate the specific events interface for each component.
- */
-interface EventProps {
-    /**
-     * Event emitted when an ad break has finished.
-     */
-    onAdBreakFinished: AdBreakFinishedEvent;
-    /**
-     * Event emitted when an ad break has started.
-     */
-    onAdBreakStarted: AdBreakStartedEvent;
-    /**
-     * Event emitted when an ad has been clicked.
-     */
-    onAdClicked: AdClickedEvent;
-    /**
-     * Event emitted when an ad error has occurred.
-     */
-    onAdError: AdErrorEvent;
-    /**
-     * Event emitted when an ad has finished.
-     */
-    onAdFinished: AdFinishedEvent;
-    /**
-     * Event emitted when an ad manifest starts loading.
-     */
-    onAdManifestLoad: AdManifestLoadEvent;
-    /**
-     * Event emitted when an ad manifest has been loaded.
-     */
-    onAdManifestLoaded: AdManifestLoadedEvent;
-    /**
-     * Event emitted when an ad quartile has been reached.
-     */
-    onAdQuartile: AdQuartileEvent;
-    /**
-     * Event emitted when an ad has been scheduled.
-     */
-    onAdScheduled: AdScheduledEvent;
-    /**
-     * Event emitted when an ad has been skipped.
-     */
-    onAdSkipped: AdSkippedEvent;
-    /**
-     * Event emitted when an ad has started.
-     */
-    onAdStarted: AdStartedEvent;
-    /**
-     * Event emitted when casting to a cast-compatible device is available.
-     *
-     * @platform iOS, Android
-     */
-    onCastAvailable: CastAvailableEvent;
-    /**
-     * Event emitted when the playback on a cast-compatible device was paused.
-     *
-     * @platform iOS, Android
-     */
-    onCastPaused: CastPausedEvent;
-    /**
-     * Event emitted when the playback on a cast-compatible device has finished.
-     *
-     * @platform iOS, Android
-     */
-    onCastPlaybackFinished: CastPlaybackFinishedEvent;
-    /**
-     * Event emitted when playback on a cast-compatible device has started.
-     *
-     * @platform iOS, Android
-     */
-    onCastPlaying: CastPlayingEvent;
-    /**
-     * Event emitted when the cast app is launched successfully.
-     *
-     * @platform iOS, Android
-     */
-    onCastStarted: CastStartedEvent;
-    /**
-     * Event emitted when casting is initiated, but the user still needs to choose which device should be used.
-     *
-     * @platform iOS, Android
-     */
-    onCastStart: CastStartEvent;
-    /**
-     * Event emitted when casting to a cast-compatible device is stopped.
-     *
-     * @platform iOS, Android
-     */
-    onCastStopped: CastStoppedEvent;
-    /**
-     * Event emitted when the time update from the currently used cast-compatible device is received.
-     *
-     * @platform iOS, Android
-     */
-    onCastTimeUpdated: CastTimeUpdatedEvent;
-    /**
-     * Event emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
-     * playback.
-     *
-     * @platform iOS, Android
-     */
-    onCastWaitingForDevice: CastWaitingForDeviceEvent;
-    /**
-     * Event emitted when the player is destroyed.
-     */
-    onDestroy: DestroyEvent;
-    /**
-     * All events emitted by the player.
-     */
-    onEvent: Event;
-    /**
-     * Event emitted when fullscreen mode has been enabled.
-     *
-     * @platform iOS, Android
-     */
-    onFullscreenEnabled: FullscreenEnabledEvent;
-    /**
-     * Event emitted when fullscreen mode has been disabled.
-     *
-     * @platform iOS, Android
-     */
-    onFullscreenDisabled: FullscreenDisabledEvent;
-    /**
-     * Event emitted when fullscreen mode has been entered.
-     *
-     * @platform iOS, Android
-     */
-    onFullscreenEnter: FullscreenEnterEvent;
-    /**
-     * Event emitted when fullscreen mode has been exited.
-     *
-     * @platform iOS, Android
-     */
-    onFullscreenExit: FullscreenExitEvent;
-    /**
-     * Event emitted when the player has been muted.
-     */
-    onMuted: MutedEvent;
-    /**
-     * Event emitted when the player has been paused.
-     */
-    onPaused: PausedEvent;
-    /**
-     * Event mitted when the availability of the Picture in Picture mode changed.
-     */
-    onPictureInPictureAvailabilityChanged: PictureInPictureAvailabilityChangedEvent;
-    /**
-     * Event emitted when the player enters Picture in Picture mode.
-     */
-    onPictureInPictureEnter: PictureInPictureEnterEvent;
-    /**
-     * Event emitted when the player entered Picture in Picture mode.
-     *
-     * @platform iOS
-     */
-    onPictureInPictureEntered: PictureInPictureEnteredEvent;
-    /**
-     * Event emitted when the player exits Picture in Picture mode.
-     */
-    onPictureInPictureExit: PictureInPictureExitEvent;
-    /**
-     * Event emitted when the player exited Picture in Picture mode.
-     *
-     * @platform iOS
-     */
-    onPictureInPictureExited: PictureInPictureExitedEvent;
-    /**
-     * Event emitted when the player received an intention to start/resume playback.
-     */
-    onPlay: PlayEvent;
-    /**
-     * Event emitted when the playback of the current media has finished.
-     */
-    onPlaybackFinished: PlaybackFinishedEvent;
-    /**
-     * Event emitted when a source is loaded into the player.
-     * Seeking and time shifting are allowed as soon as this event is seen.
-     */
-    onPlayerActive: PlayerActiveEvent;
-    /**
-     * Event Emitted when a player error occurred.
-     */
-    onPlayerError: PlayerErrorEvent;
-    /**
-     * Event emitted when a player warning occurred.
-     */
-    onPlayerWarning: PlayerWarningEvent;
-    /**
-     * Emitted when playback has started.
-     */
-    onPlaying: PlayingEvent;
-    /**
-     * Emitted when the player is ready for immediate playback, because initial audio/video
-     * has been downloaded.
-     */
-    onReady: ReadyEvent;
-    /**
-     * Event emitted when the player is about to seek to a new position.
-     * Only applies to VoD streams.
-     */
-    onSeek: SeekEvent;
-    /**
-     * Event emitted when seeking has finished and data to continue playback is available.
-     * Only applies to VoD streams.
-     */
-    onSeeked: SeekedEvent;
-    /**
-     * Event mitted when the player starts time shifting.
-     * Only applies to live streams.
-     */
-    onTimeShift: TimeShiftEvent;
-    /**
-     * Event emitted when time shifting has finished and data is available to continue playback.
-     * Only applies to live streams.
-     */
-    onTimeShifted: TimeShiftedEvent;
-    /**
-     * Event emitted when the player begins to stall and to buffer due to an empty buffer.
-     */
-    onStallStarted: StallStartedEvent;
-    /**
-     * Event emitted when the player ends stalling, due to enough data in the buffer.
-     */
-    onStallEnded: StallEndedEvent;
-    /**
-     * Event emitted when a source error occurred.
-     */
-    onSourceError: SourceErrorEvent;
-    /**
-     * Event emitted when a new source loading has started.
-     */
-    onSourceLoad: SourceLoadEvent;
-    /**
-     * Event emitted when a new source is loaded.
-     * This does not mean that the source is immediately ready for playback.
-     * `ReadyEvent` indicates the player is ready for immediate playback.
-     */
-    onSourceLoaded: SourceLoadedEvent;
-    /**
-     * Event emitted when the current source has been unloaded.
-     */
-    onSourceUnloaded: SourceUnloadedEvent;
-    /**
-     * Event emitted when a source warning occurred.
-     */
-    onSourceWarning: SourceWarningEvent;
-    /**
-     * Event emitted when a new audio track is added to the player.
-     */
-    onAudioAdded: AudioAddedEvent;
-    /**
-     * Event emitted when the player's selected audio track has changed.
-     */
-    onAudioChanged: AudioChangedEvent;
-    /**
-     * Event emitted when an audio track is removed from the player.
-     */
-    onAudioRemoved: AudioRemovedEvent;
-    /**
-     * Event emitted when a new subtitle track is added to the player.
-     */
-    onSubtitleAdded: SubtitleAddedEvent;
-    /**
-     * Event emitted when the player's selected subtitle track has changed.
-     */
-    onSubtitleChanged: SubtitleChangedEvent;
-    /**
-     * Event emitted when a subtitle track is removed from the player.
-     */
-    onSubtitleRemoved: SubtitleRemovedEvent;
-    /**
-     * Event emitted when the current playback time has changed.
-     */
-    onTimeChanged: TimeChangedEvent;
-    /**
-     * Emitted when the player is unmuted.
-     */
-    onUnmuted: UnmutedEvent;
-    /**
-     * Emitted when the current video playback quality has changed.
-     */
-    onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
-    onVideoSizeChanged: VideoSizeChangedEvent;
-    onDurationChanged: DurationChangedEvent;
-}
-/**
- * Event props for `PlayerView`.
- *
- * Note the events of `PlayerView` are simply a proxy over
- * the events from `NativePlayerView` just removing RN's bubbling data.
- */
-declare type PlayerViewEvents = {
-    [Prop in keyof EventProps]?: (event: EventProps[Prop]) => void;
-};
-/**
- * Event props for `NativePlayerView`.
- */
-declare type NativePlayerViewEvents = {
-    [Prop in keyof EventProps]?: (nativeEvent: NativeSyntheticEvent<EventProps[Prop]>) => void;
-};
 
 interface NativeInstanceConfig {
     /**
@@ -2004,6 +1091,1007 @@ declare class Source extends NativeInstance<SourceConfig> {
 }
 
 /**
+ * Base event type for all events.
+ */
+interface Event {
+    /**
+     * This event name as it is on the native side.
+     */
+    name: string;
+    /**
+     * The UNIX timestamp in which this event happened.
+     */
+    timestamp: number;
+}
+/**
+ * Base event type for error and warning events.
+ */
+interface ErrorEvent extends Event {
+    /**
+     * Error/Warning's code number.
+     */
+    code?: number;
+    /**
+     * Error/Warning's localized message.
+     */
+    message: string;
+    /**
+     * Underlying data emitted with the Error/Warning.
+     */
+    data?: Record<string, any>;
+}
+/**
+ * Emitted when a source is loaded into the player.
+ * Seeking and time shifting are allowed as soon as this event is seen.
+ */
+interface PlayerActiveEvent extends Event {
+}
+/**
+ * Emitted when a player error occurred.
+ */
+interface PlayerErrorEvent extends ErrorEvent {
+}
+/**
+ * Emitted when a player warning occurred.
+ */
+interface PlayerWarningEvent extends ErrorEvent {
+}
+/**
+ * Emitted when the player is destroyed.
+ */
+interface DestroyEvent extends Event {
+}
+/**
+ * Emitted when the player is muted.
+ */
+interface MutedEvent extends Event {
+}
+/**
+ * Emitted when the player is unmuted.
+ */
+interface UnmutedEvent extends Event {
+}
+/**
+ * Emitted when the player is ready for immediate playback, because initial audio/video
+ * has been downloaded.
+ */
+interface ReadyEvent extends Event {
+}
+/**
+ * Emitted when the player is paused.
+ */
+interface PausedEvent extends Event {
+    /**
+     * The player's playback time from when this event happened.
+     */
+    time: number;
+}
+/**
+ * Emitted when the player received an intention to start/resume playback.
+ */
+interface PlayEvent extends Event {
+    /**
+     * The player's playback time from when this event happened.
+     */
+    time: number;
+}
+/**
+ * Emitted when playback has started.
+ */
+interface PlayingEvent extends Event {
+    /**
+     * The player's playback time from when this event happened.
+     */
+    time: number;
+}
+/**
+ * Emitted when the playback of the current media has finished.
+ */
+interface PlaybackFinishedEvent extends Event {
+}
+/**
+ * Source object representation the way it appears on `Event` payloads such as `SeekEvent`, for example.
+ *
+ * This interface only type hints what should be the shape of a `Source` object inside an `Event`'s
+ * payload during runtime so it has no direct relation with the `Source` class present in `src/source.ts`.
+ *
+ * Do not mistake it for a `NativeInstance` type.
+ */
+interface EventSource {
+    /**
+     * Event's source duration in seconds.
+     */
+    duration: number;
+    /**
+     * Whether this event's source is currently active in a player.
+     */
+    isActive: boolean;
+    /**
+     * Whether this event's source is currently attached to a player instance.
+     */
+    isAttachedToPlayer: boolean;
+    /**
+     * Metadata for this event's source.
+     */
+    metadata?: Record<string, any>;
+    /**
+     * The current `LoadingState` of the source.
+     */
+    loadingState: LoadingState;
+}
+/**
+ * Represents a seeking position.
+ */
+interface SeekPosition {
+    /**
+     * The relevant `Source`.
+     */
+    source: EventSource;
+    /**
+     * The position within the `source` in seconds.
+     */
+    time: number;
+}
+/**
+ * Emitted when the player is about to seek to a new position.
+ * This event only applies to VoD streams.
+ * When looking for an equivalent for live streams, the {@link TimeShiftEvent} is relevant.
+ */
+interface SeekEvent extends Event {
+    /**
+     * Origin source metadata.
+     */
+    from: SeekPosition;
+    /**
+     * Target source metadata.
+     */
+    to: SeekPosition;
+}
+/**
+ * Emitted when seeking has finished and data to continue playback is available.
+ * This event only applies to VoD streams.
+ * When looking for an equivalent for live streams, the {@link TimeShiftedEvent} is relevant.
+ */
+interface SeekedEvent extends Event {
+}
+/**
+ * Emitted when the player starts time shifting.
+ * This event only applies to live streams.
+ * When looking for an equivalent for VoD streams, the {@link SeekEvent} is relevant.
+ */
+interface TimeShiftEvent extends Event {
+    /**
+     * The position from which we start the time shift
+     */
+    position: number;
+    /**
+     * The position to which we want to jump for the time shift
+     */
+    targetPosition: number;
+}
+/**
+ * Emitted when time shifting has finished and data is available to continue playback.
+ * This event only applies to live streams.
+ * When looking for an equivalent for VoD streams, the {@link SeekedEvent} is relevant.
+ */
+interface TimeShiftedEvent extends Event {
+}
+/**
+ * Emitted when the player begins to stall and to buffer due to an empty buffer.
+ */
+interface StallStartedEvent extends Event {
+}
+/**
+ * Emitted when the player ends stalling, due to enough data in the buffer.
+ */
+interface StallEndedEvent extends Event {
+}
+/**
+ * Emitted when the current playback time has changed.
+ */
+interface TimeChangedEvent extends Event {
+    /**
+     * The player's playback time from when this event happened.
+     */
+    currentTime: number;
+}
+/**
+ * Emitted when a new source loading has started.
+ */
+interface SourceLoadEvent extends Event {
+    /**
+     * Source that is about to load.
+     */
+    source: EventSource;
+}
+/**
+ * Emitted when a new source is loaded.
+ * This does not mean that the source is immediately ready for playback.
+ * `ReadyEvent` indicates the player is ready for immediate playback.
+ */
+interface SourceLoadedEvent extends Event {
+    /**
+     * Source that was loaded into player.
+     */
+    source: EventSource;
+}
+/**
+ * Emitted when the current source has been unloaded.
+ */
+interface SourceUnloadedEvent extends Event {
+    /**
+     * Source that was unloaded from player.
+     */
+    source: EventSource;
+}
+/**
+ * Emitted when a source error occurred.
+ */
+interface SourceErrorEvent extends ErrorEvent {
+}
+/**
+ * Emitted when a source warning occurred.
+ */
+interface SourceWarningEvent extends ErrorEvent {
+}
+/**
+ * Emitted when a new audio track is added to the player.
+ */
+interface AudioAddedEvent extends Event {
+    /**
+     * Audio track that has been added.
+     */
+    audioTrack: AudioTrack;
+}
+/**
+ * Emitted when the player's selected audio track has changed.
+ */
+interface AudioChangedEvent extends Event {
+    /**
+     * Audio track that was previously selected.
+     */
+    oldAudioTrack: AudioTrack;
+    /**
+     * Audio track that is selected now.
+     */
+    newAudioTrack: AudioTrack;
+}
+/**
+ * Emitted when an audio track is removed from the player.
+ */
+interface AudioRemovedEvent extends Event {
+    /**
+     * Audio track that has been removed.
+     */
+    audioTrack: AudioTrack;
+}
+/**
+ * Emitted when a new subtitle track is added to the player.
+ */
+interface SubtitleAddedEvent extends Event {
+    /**
+     * Subtitle track that has been added.
+     */
+    subtitleTrack: SubtitleTrack;
+}
+/**
+ * Emitted when a subtitle track is removed from the player.
+ */
+interface SubtitleRemovedEvent extends Event {
+    /**
+     * Subtitle track that has been removed.
+     */
+    subtitleTrack: SubtitleTrack;
+}
+/**
+ * Emitted when the player's selected subtitle track has changed.
+ */
+interface SubtitleChangedEvent extends Event {
+    /**
+     * Subtitle track that was previously selected.
+     */
+    oldSubtitleTrack: SubtitleTrack;
+    /**
+     * Subtitle track that is selected now.
+     */
+    newSubtitleTrack: SubtitleTrack;
+}
+/**
+ * Emitted when the player enters Picture in Picture mode.
+ *
+ * @platform iOS, Android
+ */
+interface PictureInPictureEnterEvent extends Event {
+}
+/**
+ * Emitted when the player exits Picture in Picture mode.
+ *
+ * @platform iOS, Android
+ */
+interface PictureInPictureExitEvent extends Event {
+}
+/**
+ * Emitted when the player has finished entering Picture in Picture mode on iOS.
+ *
+ * @platform iOS
+ */
+interface PictureInPictureEnteredEvent extends Event {
+}
+/**
+ * Emitted when the player has finished exiting Picture in Picture mode on iOS.
+ *
+ * @platform iOS
+ */
+interface PictureInPictureExitedEvent extends Event {
+}
+/**
+ * Emitted when the fullscreen functionality has been enabled.
+ *
+ * @platform iOS, Android
+ */
+interface FullscreenEnabledEvent extends Event {
+}
+/**
+ * Emitted when the fullscreen functionality has been disabled.
+ *
+ * @platform iOS, Android
+ */
+interface FullscreenDisabledEvent extends Event {
+}
+/**
+ * Emitted when the player enters fullscreen mode.
+ *
+ * @platform iOS, Android
+ */
+interface FullscreenEnterEvent extends Event {
+}
+/**
+ * Emitted when the player exits fullscreen mode.
+ *
+ * @platform iOS, Android
+ */
+interface FullscreenExitEvent extends Event {
+}
+/**
+ * Emitted when the availability of the Picture in Picture mode changed on Android.
+ *
+ * @platform Android
+ */
+interface PictureInPictureAvailabilityChangedEvent extends Event {
+    /**
+     * Whether Picture in Picture is available.
+     */
+    isPictureInPictureAvailable: boolean;
+}
+/**
+ * Emitted when an ad break has started.
+ */
+interface AdBreakStartedEvent extends Event {
+    /**
+     * The `AdBreak` that has started.
+     */
+    adBreak?: AdBreak;
+}
+/**
+ * Emitted when an ad break has finished.
+ */
+interface AdBreakFinishedEvent extends Event {
+    /**
+     * The `AdBreak` that has finished.
+     */
+    adBreak?: AdBreak;
+}
+/**
+ * Emitted when the playback of an ad has started.
+ */
+interface AdStartedEvent extends Event {
+    /**
+     * The `Ad` this event is related to.
+     */
+    ad?: Ad;
+    /**
+     * The target URL to open once the user clicks on the ad.
+     */
+    clickThroughUrl?: string;
+    /**
+     * The `AdSourceType` of the started `Ad`.
+     */
+    clientType?: AdSourceType;
+    /**
+     * The duration of the ad in seconds.
+     */
+    duration: number;
+    /**
+     * The index of the ad in the queue.
+     */
+    indexInQueue: number;
+    /**
+     * The position of the corresponding `Ad`.
+     */
+    position?: string;
+    /**
+     * The skip offset of the ad in seconds.
+     */
+    skipOffset: number;
+    /**
+     * The content time at which the `Ad` is played.
+     */
+    timeOffset: number;
+}
+/**
+ * Emitted when an ad has finished playback.
+ */
+interface AdFinishedEvent extends Event {
+    /**
+     * The `Ad` that finished playback.
+     */
+    ad?: Ad;
+}
+/**
+ * Emitted when an error with the ad playback occurs.
+ */
+interface AdErrorEvent extends ErrorEvent {
+    /**
+     * The `AdConfig` for which the ad error occurred.
+     */
+    adConfig?: AdConfig;
+    /**
+     * The `AdItem` for which the ad error occurred.
+     */
+    adItem?: AdItem;
+}
+/**
+ * Emitted when an ad was clicked.
+ */
+interface AdClickedEvent extends Event {
+    /**
+     * The click through url of the ad.
+     */
+    clickThroughUrl?: string;
+}
+/**
+ * Emitted when an ad was skipped.
+ */
+interface AdSkippedEvent extends Event {
+    /**
+     * The `Ad` that was skipped.
+     */
+    ad?: Ad;
+}
+/**
+ * Emitted when the playback of an ad has progressed over a quartile boundary.
+ */
+interface AdQuartileEvent extends Event {
+    /**
+     * The `AdQuartile` boundary that playback has progressed over.
+     */
+    quartile: AdQuartile;
+}
+/**
+ * Emitted when an ad manifest was successfully downloaded, parsed and added into the ad break schedule.
+ */
+interface AdScheduledEvent extends Event {
+    /**
+     * The total number of scheduled ads.
+     */
+    numberOfAds: number;
+}
+/**
+ * Emitted when the download of an ad manifest is started.
+ */
+interface AdManifestLoadEvent extends Event {
+    /**
+     * The `AdBreak` this event is related to.
+     */
+    adBreak?: AdBreak;
+    /**
+     * The `AdConfig` of the loaded ad manifest.
+     */
+    adConfig?: AdConfig;
+}
+/**
+ * Emitted when an ad manifest was successfully loaded.
+ */
+interface AdManifestLoadedEvent extends Event {
+    /**
+     * The `AdBreak` this event is related to.
+     */
+    adBreak?: AdBreak;
+    /**
+     * The `AdConfig` of the loaded ad manifest.
+     */
+    adConfig?: AdConfig;
+    /**
+     * How long it took for the ad tag to be downloaded in milliseconds.
+     */
+    downloadTime: number;
+}
+/**
+ * Emitted when current video download quality has changed.
+ */
+interface VideoDownloadQualityChangedEvent extends Event {
+    /**
+     * The new quality
+     */
+    newVideoQuality: VideoQuality;
+    /**
+     * The previous quality
+     */
+    oldVideoQuality: VideoQuality;
+}
+/**
+ * Emitted when the current video playback quality has changed.
+ */
+interface VideoPlaybackQualityChangedEvent extends Event {
+    /**
+     * The new quality
+     */
+    newVideoQuality: VideoQuality;
+    /**
+     * The previous quality
+     */
+    oldVideoQuality: VideoQuality;
+}
+/**
+ * Emitted when casting to a cast-compatible device is available.
+ */
+interface CastAvailableEvent extends Event {
+}
+/**
+ * Emitted when the playback on a cast-compatible device was paused.
+ *
+ * On Android `PausedEvent` is also emitted while casting.
+ */
+interface CastPausedEvent extends Event {
+}
+/**
+ * Emitted when the playback on a cast-compatible device has finished.
+ *
+ * On Android `PlaybackFinishedEvent` is also emitted while casting.
+ */
+interface CastPlaybackFinishedEvent extends Event {
+}
+/**
+ * Emitted when playback on a cast-compatible device has started.
+ *
+ * On Android `PlayingEvent` is also emitted while casting.
+ */
+interface CastPlayingEvent extends Event {
+}
+/**
+ * Emitted when the cast app is launched successfully.
+ */
+interface CastStartedEvent extends Event {
+    /**
+     * The name of the cast device on which the app was launched.
+     */
+    deviceName: string | null;
+}
+/**
+ * Emitted when casting is initiated, but the user still needs to choose which device should be used.
+ */
+interface CastStartEvent extends Event {
+}
+/**
+ * Emitted when casting to a cast-compatible device is stopped.
+ */
+interface CastStoppedEvent extends Event {
+}
+/**
+ * Emitted when the time update from the currently used cast-compatible device is received.
+ */
+interface CastTimeUpdatedEvent extends Event {
+}
+/**
+ * Contains information for the `CastWaitingForDeviceEvent`.
+ */
+interface CastPayload {
+    /**
+     * The current time in seconds.
+     */
+    currentTime: number;
+    /**
+     * The name of the chosen cast device.
+     */
+    deviceName: string | null;
+    /**
+     * The type of the payload (always "cast").
+     */
+    type: string;
+}
+/**
+ * Emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
+ * playback.
+ */
+interface CastWaitingForDeviceEvent extends Event {
+    /**
+     * The `CastPayload` object for the event
+     */
+    castPayload: CastPayload;
+}
+/**
+ * Available HTTP request types.
+ */
+declare enum HttpRequestType {
+    ManifestDash = "manifest/dash",
+    ManifestHlsMaster = "manifest/hls/master",
+    ManifestHlsVariant = "manifest/hls/variant",
+    ManifestSmooth = "manifest/smooth",
+    MediaProgressive = "media/progressive",
+    MediaAudio = "media/audio",
+    MediaVideo = "media/video",
+    MediaSubtitles = "media/subtitles",
+    MediaThumbnails = "media/thumbnails",
+    DrmLicenseFairplay = "drm/license/fairplay",
+    DrmCertificateFairplay = "drm/certificate/fairplay",
+    DrmLicenseWidevine = "drm/license/widevine",
+    KeyHlsAes = "key/hls/aes",
+    Unknown = "unknown"
+}
+/**
+ * Emitted when a download was finished.
+ */
+interface DownloadFinishedEvent extends Event {
+    /**
+     * The time needed to finish the request, in seconds.
+     */
+    downloadTime: number;
+    /**
+     * Which type of request this was.
+     */
+    requestType: HttpRequestType;
+    /**
+     * The HTTP status code of the request.
+     * If opening the connection failed, a value of `0` is returned.
+     */
+    httpStatus: number;
+    /**
+     * If the download was successful.
+     */
+    isSuccess: boolean;
+    /**
+     * The last redirect location, or `null` if no redirect happened.
+     */
+    lastRedirectLocation?: String;
+    /**
+     * The size of the downloaded data, in bytes.
+     */
+    size: number;
+    /**
+     * The URL of the request.
+     */
+    url: String;
+}
+/**
+ * Emitted when the player transitions from one playback speed to another.
+ * @platform iOS, tvOS
+ */
+interface PlaybackSpeedChangedEvent extends Event {
+    /**
+     * The playback speed before the change happened.
+     */
+    from: number;
+    /**
+     * The playback speed after the change happened.
+     */
+    to: number;
+}
+
+/**
+ * Type that defines all event props supported by `PlayerView` and `NativePlayerView`.
+ * Used to generate the specific events interface for each component.
+ */
+interface EventProps {
+    /**
+     * Event emitted when an ad break has finished.
+     */
+    onAdBreakFinished: AdBreakFinishedEvent;
+    /**
+     * Event emitted when an ad break has started.
+     */
+    onAdBreakStarted: AdBreakStartedEvent;
+    /**
+     * Event emitted when an ad has been clicked.
+     */
+    onAdClicked: AdClickedEvent;
+    /**
+     * Event emitted when an ad error has occurred.
+     */
+    onAdError: AdErrorEvent;
+    /**
+     * Event emitted when an ad has finished.
+     */
+    onAdFinished: AdFinishedEvent;
+    /**
+     * Event emitted when an ad manifest starts loading.
+     */
+    onAdManifestLoad: AdManifestLoadEvent;
+    /**
+     * Event emitted when an ad manifest has been loaded.
+     */
+    onAdManifestLoaded: AdManifestLoadedEvent;
+    /**
+     * Event emitted when an ad quartile has been reached.
+     */
+    onAdQuartile: AdQuartileEvent;
+    /**
+     * Event emitted when an ad has been scheduled.
+     */
+    onAdScheduled: AdScheduledEvent;
+    /**
+     * Event emitted when an ad has been skipped.
+     */
+    onAdSkipped: AdSkippedEvent;
+    /**
+     * Event emitted when an ad has started.
+     */
+    onAdStarted: AdStartedEvent;
+    /**
+     * Event emitted when casting to a cast-compatible device is available.
+     *
+     * @platform iOS, Android
+     */
+    onCastAvailable: CastAvailableEvent;
+    /**
+     * Event emitted when the playback on a cast-compatible device was paused.
+     *
+     * @platform iOS, Android
+     */
+    onCastPaused: CastPausedEvent;
+    /**
+     * Event emitted when the playback on a cast-compatible device has finished.
+     *
+     * @platform iOS, Android
+     */
+    onCastPlaybackFinished: CastPlaybackFinishedEvent;
+    /**
+     * Event emitted when playback on a cast-compatible device has started.
+     *
+     * @platform iOS, Android
+     */
+    onCastPlaying: CastPlayingEvent;
+    /**
+     * Event emitted when the cast app is launched successfully.
+     *
+     * @platform iOS, Android
+     */
+    onCastStarted: CastStartedEvent;
+    /**
+     * Event emitted when casting is initiated, but the user still needs to choose which device should be used.
+     *
+     * @platform iOS, Android
+     */
+    onCastStart: CastStartEvent;
+    /**
+     * Event emitted when casting to a cast-compatible device is stopped.
+     *
+     * @platform iOS, Android
+     */
+    onCastStopped: CastStoppedEvent;
+    /**
+     * Event emitted when the time update from the currently used cast-compatible device is received.
+     *
+     * @platform iOS, Android
+     */
+    onCastTimeUpdated: CastTimeUpdatedEvent;
+    /**
+     * Event emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
+     * playback.
+     *
+     * @platform iOS, Android
+     */
+    onCastWaitingForDevice: CastWaitingForDeviceEvent;
+    /**
+     * Event emitted when the player is destroyed.
+     */
+    onDestroy: DestroyEvent;
+    /**
+     * Emitted when a download was finished.
+     */
+    onDownloadFinished: DownloadFinishedEvent;
+    /**
+     * All events emitted by the player.
+     */
+    onEvent: Event;
+    /**
+     * Event emitted when fullscreen mode has been enabled.
+     *
+     * @platform iOS, Android
+     */
+    onFullscreenEnabled: FullscreenEnabledEvent;
+    /**
+     * Event emitted when fullscreen mode has been disabled.
+     *
+     * @platform iOS, Android
+     */
+    onFullscreenDisabled: FullscreenDisabledEvent;
+    /**
+     * Event emitted when fullscreen mode has been entered.
+     *
+     * @platform iOS, Android
+     */
+    onFullscreenEnter: FullscreenEnterEvent;
+    /**
+     * Event emitted when fullscreen mode has been exited.
+     *
+     * @platform iOS, Android
+     */
+    onFullscreenExit: FullscreenExitEvent;
+    /**
+     * Event emitted when the player has been muted.
+     */
+    onMuted: MutedEvent;
+    /**
+     * Event emitted when the player has been paused.
+     */
+    onPaused: PausedEvent;
+    /**
+     * Event mitted when the availability of the Picture in Picture mode changed.
+     */
+    onPictureInPictureAvailabilityChanged: PictureInPictureAvailabilityChangedEvent;
+    /**
+     * Event emitted when the player enters Picture in Picture mode.
+     */
+    onPictureInPictureEnter: PictureInPictureEnterEvent;
+    /**
+     * Event emitted when the player entered Picture in Picture mode.
+     *
+     * @platform iOS
+     */
+    onPictureInPictureEntered: PictureInPictureEnteredEvent;
+    /**
+     * Event emitted when the player exits Picture in Picture mode.
+     */
+    onPictureInPictureExit: PictureInPictureExitEvent;
+    /**
+     * Event emitted when the player exited Picture in Picture mode.
+     *
+     * @platform iOS
+     */
+    onPictureInPictureExited: PictureInPictureExitedEvent;
+    /**
+     * Event emitted when the player received an intention to start/resume playback.
+     */
+    onPlay: PlayEvent;
+    /**
+     * Event emitted when the playback of the current media has finished.
+     */
+    onPlaybackFinished: PlaybackFinishedEvent;
+    /**
+     * Emitted when the player transitions from one playback speed to another.
+     * @platform iOS, tvOS
+     */
+    onPlaybackSpeedChanged: PlaybackSpeedChangedEvent;
+    /**
+     * Event emitted when a source is loaded into the player.
+     * Seeking and time shifting are allowed as soon as this event is seen.
+     */
+    onPlayerActive: PlayerActiveEvent;
+    /**
+     * Event Emitted when a player error occurred.
+     */
+    onPlayerError: PlayerErrorEvent;
+    /**
+     * Event emitted when a player warning occurred.
+     */
+    onPlayerWarning: PlayerWarningEvent;
+    /**
+     * Emitted when playback has started.
+     */
+    onPlaying: PlayingEvent;
+    /**
+     * Emitted when the player is ready for immediate playback, because initial audio/video
+     * has been downloaded.
+     */
+    onReady: ReadyEvent;
+    /**
+     * Event emitted when the player is about to seek to a new position.
+     * Only applies to VoD streams.
+     */
+    onSeek: SeekEvent;
+    /**
+     * Event emitted when seeking has finished and data to continue playback is available.
+     * Only applies to VoD streams.
+     */
+    onSeeked: SeekedEvent;
+    /**
+     * Event mitted when the player starts time shifting.
+     * Only applies to live streams.
+     */
+    onTimeShift: TimeShiftEvent;
+    /**
+     * Event emitted when time shifting has finished and data is available to continue playback.
+     * Only applies to live streams.
+     */
+    onTimeShifted: TimeShiftedEvent;
+    /**
+     * Event emitted when the player begins to stall and to buffer due to an empty buffer.
+     */
+    onStallStarted: StallStartedEvent;
+    /**
+     * Event emitted when the player ends stalling, due to enough data in the buffer.
+     */
+    onStallEnded: StallEndedEvent;
+    /**
+     * Event emitted when a source error occurred.
+     */
+    onSourceError: SourceErrorEvent;
+    /**
+     * Event emitted when a new source loading has started.
+     */
+    onSourceLoad: SourceLoadEvent;
+    /**
+     * Event emitted when a new source is loaded.
+     * This does not mean that the source is immediately ready for playback.
+     * `ReadyEvent` indicates the player is ready for immediate playback.
+     */
+    onSourceLoaded: SourceLoadedEvent;
+    /**
+     * Event emitted when the current source has been unloaded.
+     */
+    onSourceUnloaded: SourceUnloadedEvent;
+    /**
+     * Event emitted when a source warning occurred.
+     */
+    onSourceWarning: SourceWarningEvent;
+    /**
+     * Event emitted when a new audio track is added to the player.
+     */
+    onAudioAdded: AudioAddedEvent;
+    /**
+     * Event emitted when the player's selected audio track has changed.
+     */
+    onAudioChanged: AudioChangedEvent;
+    /**
+     * Event emitted when an audio track is removed from the player.
+     */
+    onAudioRemoved: AudioRemovedEvent;
+    /**
+     * Event emitted when a new subtitle track is added to the player.
+     */
+    onSubtitleAdded: SubtitleAddedEvent;
+    /**
+     * Event emitted when the player's selected subtitle track has changed.
+     */
+    onSubtitleChanged: SubtitleChangedEvent;
+    /**
+     * Event emitted when a subtitle track is removed from the player.
+     */
+    onSubtitleRemoved: SubtitleRemovedEvent;
+    /**
+     * Event emitted when the current playback time has changed.
+     */
+    onTimeChanged: TimeChangedEvent;
+    /**
+     * Emitted when the player is unmuted.
+     */
+    onUnmuted: UnmutedEvent;
+    /**
+     * Emitted when current video download quality has changed.
+     */
+    onVideoDownloadQualityChanged: VideoDownloadQualityChangedEvent;
+    /**
+     * Emitted when the current video playback quality has changed.
+     */
+    onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
+}
+/**
+ * Event props for `PlayerView`.
+ *
+ * Note the events of `PlayerView` are simply a proxy over
+ * the events from `NativePlayerView` just removing RN's bubbling data.
+ */
+declare type PlayerViewEvents = {
+    [Prop in keyof EventProps]?: (event: EventProps[Prop]) => void;
+};
+/**
+ * Event props for `NativePlayerView`.
+ */
+declare type NativePlayerViewEvents = {
+    [Prop in keyof EventProps]?: (nativeEvent: NativeSyntheticEvent<EventProps[Prop]>) => void;
+};
+
+/**
  * Contains the state an OfflineContentManager can have.
  * @platform Android, iOS
  */
@@ -2469,7 +2557,6 @@ declare enum ScalingMode {
 }
 /**
  * Indicates which type of UI should be used.
- * @platform iOS, tvOS
  */
 declare enum UserInterfaceType {
     /**
@@ -2478,6 +2565,7 @@ declare enum UserInterfaceType {
     Bitmovin = "Bitmovin",
     /**
      * Indicates that the system UI should be used.
+     * @platform iOS, tvOS
      */
     System = "System",
     /**
@@ -2781,6 +2869,7 @@ interface PlaybackConfig {
      *   }
      * })
      * ```
+     * @platform iOS, tvOS
      */
     isBackgroundPlaybackEnabled?: boolean;
     /**
@@ -3058,17 +3147,6 @@ declare class Player extends NativeInstance<PlayerConfig> {
      */
     getVolume: () => Promise<number>;
     /**
-     * The playback speed of the player. Slow motion can be achieved by setting the speed to values between 0 and 1,
-     * while fast forward is possible with values greater than 1. Values that are less than or equal to zero are ignored.
-     *
-     * @param speed - The playback speed of the player.
-     */
-    setPlaybackSpeed: (speed: number) => void;
-    /**
-     * @returns The player's current playback speed.
-     */
-    getPlaybackSpeed: () => Promise<number>;
-    /**
      * @returns The current playback time in seconds.
      *
      * For VoD streams the returned time ranges between 0 and the duration of the asset.
@@ -3148,7 +3226,7 @@ declare class Player extends NativeInstance<PlayerConfig> {
      *
      * @platform iOS, Android
      */
-    skipAd: () => Promise<void>;
+    skipAd: () => void;
     /**
      * @returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
      * @platform iOS, Android
@@ -3206,6 +3284,45 @@ declare class Player extends NativeInstance<PlayerConfig> {
      * @platform iOS, Android
      */
     castStop: () => void;
+    /**
+     * Returns the currently selected video quality.
+     * @returns The currently selected video quality.
+     */
+    getVideoQuality: () => Promise<VideoQuality>;
+    /**
+     * Returns an array containing all available video qualities the player can adapt between.
+     * @returns An array containing all available video qualities the player can adapt between.
+     */
+    getAvailableVideoQualities: () => Promise<VideoQuality[]>;
+    /**
+     * Sets the playback speed of the player. Fast forward, slow motion and reverse playback are supported.
+     * @note
+     * - Slow motion is indicated by values between `0` and `1`.
+     * - Fast forward by values greater than `1`.
+     * - Slow reverse is used by values between `0` and `-1`, and fast reverse is used by values less than `-1`. iOS and tvOS only.
+     * @note
+     * Negative values are ignored during Casting and on Android.
+     * @note
+     * During reverse playback the playback will continue until the beginning of the active source is
+     * reached. When reaching the beginning of the source, playback will be paused and the playback
+     * speed will be reset to its default value of `1`. No {@link PlaybackFinishedEvent} will be
+     * emitted in this case.
+     *
+     * @param playbackSpeed - The playback speed to set.
+     */
+    setPlaybackSpeed: (playbackSpeed: number) => void;
+    /**
+     * @see {@link setPlaybackSpeed} for details on which values playback speed can assume.
+     * @returns The player's current playback speed.
+     */
+    getPlaybackSpeed: () => Promise<number>;
+    /**
+     * Checks the possibility to play the media at specified playback speed.
+     * @param playbackSpeed The playback speed to check.
+     * @returns `true` if it's possible to play the media at the specified playback speed, otherwise `false`. On Android it always returns `undefined`.
+     * @platform iOS, tvOS
+     */
+    canPlayAtPlaybackSpeed: (playbackSpeed: number) => Promise<boolean | undefined>;
     static disposeAll: () => Promise<null>;
 }
 
@@ -3366,7 +3483,6 @@ interface BasePlayerViewProps {
      * The value must not be altered after setting it initially.
      */
     config?: PlayerViewConfig;
-    disableAdUi?: boolean;
 }
 /**
  * {@link PlayerView} component props.
@@ -3404,91 +3520,7 @@ interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
  *
  * @param options configuration options
  */
-declare function PlayerView({ style, player, config, fullscreenHandler, customMessageHandler, isFullscreenRequested, scalingMode, isPictureInPictureRequested, ...props }: PlayerViewProps): JSX.Element;
-
-declare type TypefaceFamily = 'DEFAULT' | 'MONOSPACE' | 'SANS_SERIF' | 'SERIF';
-declare type TypefaceStyleWeight = 'NORMAL' | 'BOLD' | 'BOLD_ITALIC' | 'ITALIC';
-/**
- * Base `SubtitleView` component props. Used to establish common
- * props between `NativeSubtitleView` and `SubtitleView`.
- * @see NativePlayerView
- */
-interface BaseSubtitleViewProps {
-    style?: StyleProp<ViewStyle>;
-    /**
-     * Sets whether font sizes embedded within the cues should be applied.
-     * Enabled by default.
-     * Only takes effect if setApplyEmbeddedStyles is set to true.
-     */
-    applyEmbeddedFontSizes?: boolean;
-    /**
-     * Sets the caption style to be equivalent to the one returned by getUserStyle, or to a default style before API level 19.
-     */
-    userDefaultStyle?: boolean;
-    /**
-     * Sets the text size to one derived from getFontScale, or to a default size before API level 19.
-     */
-    userDefaultTextSize?: boolean;
-    /**
-     * Sets whether styling embedded within the cues should be applied.
-     * Enabled by default.
-     * Overrides any setting made with setApplyEmbeddedFontSizes.
-     */
-    applyEmbeddedStyles?: boolean;
-    /**
-     * Sets the bottom padding fraction to apply when getLine is DIMEN_UNSET, as a fraction of the view's remaining height after its top and bottom padding have been subtracted.
-     */
-    bottomPaddingFraction?: number;
-    /**
-     * Set the text size to a given unit and value.
-     * `unit` defaults to `COMPLEX_UNIT_SP`
-     */
-    fixedTextSize?: {
-        size: number;
-        unit?: 'COMPLEX_UNIT_PX' | 'COMPLEX_UNIT_DIP' | 'COMPLEX_UNIT_SP' | 'COMPLEX_UNIT_PT' | 'COMPLEX_UNIT_IN' | 'COMPLEX_UNIT_MM';
-    };
-    /**
-     * Sets the text size to be a fraction of the height of this view.
-     * When `ignorePadding` is true, sets the text size to be a fraction of the views remaining height after its top and bottom padding have been subtracted.
-     */
-    fractionalTextSize?: {
-        fractionOfHeight: number;
-        ignorePadding?: boolean;
-    };
-    /**
-     * Sets the subtitles caption style.
-     */
-    captionStyle?: {
-        foregroundColor?: string;
-        backgroundColor?: string;
-        windowColor?: string;
-        edgeType?: 'EDGE_TYPE_NONE' | 'EDGE_TYPE_OUTLINE' | 'EDGE_TYPE_DROP_SHADOW' | 'EDGE_TYPE_RAISED' | 'EDGE_TYPE_DEPRESSED';
-        edgeColor?: string;
-        typeFace?: {
-            family: TypefaceFamily;
-            style: TypefaceStyleWeight;
-        } | {
-            familyName: string;
-            style: TypefaceStyleWeight;
-        };
-    };
-}
-/**
- * `SubtitleView` component props.
- * @see SubtitleView
- */
-interface SubtitleViewProps extends BaseSubtitleViewProps {
-    /**
-     * `Player` instance (generally returned from `usePlayer` hook) that will control
-     * and render audio/video inside the `PlayerView`.
-     */
-    player?: Player;
-}
-/**
- * Component that provides the Bitmovin Android SubtitleView for a `Player` instance.
- * This component needs a `Player` instance to work properly so make sure one is passed to it as a prop.
- */
-declare function SubtitleView(props: SubtitleViewProps): JSX.Element | null;
+declare function PlayerView({ style, player, config, fullscreenHandler, customMessageHandler, isFullscreenRequested, scalingMode, isPictureInPictureRequested, ...props }: PlayerViewProps): React.JSX.Element;
 
 /**
  * React hook that creates and returns a reference to a `Player` instance
@@ -3554,4 +3586,4 @@ declare const BitmovinCastManager: {
     sendMessage: (message: String, messageNamespace?: String | null) => any;
 };
 
-export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdaptationConfig, AdvertisingConfig, AnalyticsApi, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BaseSubtitleViewProps, BitmovinCastManager, BitmovinCastManagerOptions, BitmovinNativeOfflineEventData, BufferApi, BufferConfig, BufferLevel, BufferLevels, BufferMediaTypeConfig, BufferType, CastAvailableEvent, CastPausedEvent, CastPayload, CastPlaybackFinishedEvent, CastPlayingEvent, CastStartEvent, CastStartedEvent, CastStoppedEvent, CastTimeUpdatedEvent, CastWaitingForDeviceEvent, CustomDataConfig, CustomMessageHandler, CustomMessageHandlerProps, DefaultMetadata, DestroyEvent, Drm, DrmConfig, DurationChangedEvent, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, LiveConfig, LoadingState, MediaType, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptionEntry, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineSourceOptions, OfflineState, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureConfig, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewConfig, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, RemoteControlConfig, ScalingMode, SeekEvent, SeekPosition, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceMetadata, SourceOptions, SourceRemoteControlConfig, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, SubtitleView, SubtitleViewProps, Thumbnail, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TimelineReferencePoint, TweaksConfig, TypefaceFamily, TypefaceStyleWeight, UiConfig, UnmutedEvent, UserInterfaceType, VideoPlaybackQualityChangedEvent, VideoQuality, VideoSizeChangedEvent, WebUiConfig, WidevineConfig, usePlayer };
+export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdaptationConfig, AdvertisingConfig, AnalyticsApi, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BitmovinCastManager, BitmovinCastManagerOptions, BitmovinNativeOfflineEventData, BufferApi, BufferConfig, BufferLevel, BufferLevels, BufferMediaTypeConfig, BufferType, CastAvailableEvent, CastPausedEvent, CastPayload, CastPlaybackFinishedEvent, CastPlayingEvent, CastStartEvent, CastStartedEvent, CastStoppedEvent, CastTimeUpdatedEvent, CastWaitingForDeviceEvent, CustomDataConfig, CustomMessageHandler, CustomMessageHandlerProps, DefaultMetadata, DestroyEvent, DownloadFinishedEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, HttpRequestType, LiveConfig, LoadingState, MediaType, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptionEntry, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineSourceOptions, OfflineState, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureConfig, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, PlaybackSpeedChangedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewConfig, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, RemoteControlConfig, ScalingMode, SeekEvent, SeekPosition, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceMetadata, SourceOptions, SourceRemoteControlConfig, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, Thumbnail, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TimelineReferencePoint, TweaksConfig, UiConfig, UnmutedEvent, UserInterfaceType, VideoDownloadQualityChangedEvent, VideoPlaybackQualityChangedEvent, VideoQuality, WebUiConfig, WidevineConfig, usePlayer };

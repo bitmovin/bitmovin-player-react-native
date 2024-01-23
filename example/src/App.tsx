@@ -3,7 +3,12 @@ import { Platform, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AudioSession, SourceType } from 'bitmovin-player-react-native';
+import {
+  AudioSession,
+  OfflineContentManager,
+  Player,
+  SourceType,
+} from 'bitmovin-player-react-native';
 import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
 import BasicAnalytics from './screens/BasicAnalytics';
@@ -61,6 +66,9 @@ export type RootStackParamsList = {
 const RootStack = createNativeStackNavigator();
 
 const isTVOS = Platform.OS === 'ios' && Platform.isTV;
+
+Player.disposeAll();
+OfflineContentManager.disposeAll();
 
 export default function App() {
   useEffect(() => {

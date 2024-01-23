@@ -16,4 +16,6 @@ RCT_EXTERN_METHOD(downloadLicense:(NSString *)nativeId resolver:(RCTPromiseResol
 RCT_EXTERN_METHOD(renewOfflineLicense:(NSString *)nativeId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(release:(NSString *)nativeId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(releaseLicense:(NSString *)nativeId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(disposeAll:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 @end
