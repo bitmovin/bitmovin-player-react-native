@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Remove `patch-package` usage from released product
+
 ## [0.16.0] (2024-01-17)
 
 ### Changed
