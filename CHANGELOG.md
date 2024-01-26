@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Support for side-loaded SRT (SubRip) subtitles
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.55.0`
+
+### Fixed
+
+- Remove `patch-package` usage from released product
+
 ## [0.16.0] (2024-01-17)
 
 ### Changed

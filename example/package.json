@@ -9,8 +9,8 @@
     "ios": "react-native run-ios",
     "start": "react-native start",
     "pods": "yarn pods-install || yarn pods-update",
-    "pods-install": "yarn pod-install",
-    "pods-update": "pod update --silent"
+    "pods-install": "NO_FLIPPER=1 yarn pod-install",
+    "pods-update": "NO_FLIPPER=1 pod update --silent"
   },
   "dependencies": {
     "@react-native-picker/picker": "2.5.1",

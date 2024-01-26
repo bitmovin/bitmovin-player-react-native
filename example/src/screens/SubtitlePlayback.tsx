@@ -34,12 +34,19 @@ export default function SubtitlePlayback() {
         poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
         // External subtitle tracks to be added to the source.
         subtitleTracks: [
-          // Add custom english subtitles. You can select 'Custom English' in the subtitles menu.
+          // Add custom english subtitles. You can select 'Custom English (WebVTT)' in the subtitles menu.
           {
             url: 'https://bitdash-a.akamaihd.net/content/sintel/subtitles/subtitles_en.vtt',
-            label: 'Custom English',
+            label: 'Custom English (WebVTT)',
             language: 'en',
             format: SubtitleFormat.VTT,
+          },
+          // Add custom english subtitles. You can select 'Custom English (SRT)' in the subtitles menu.
+          {
+            url: 'https://bitdash-a.akamaihd.net/content/sintel/subtitles/subtitles_en.srt',
+            label: 'Custom English (SRT)',
+            language: 'en',
+            format: SubtitleFormat.SRT,
           },
         ],
       });
