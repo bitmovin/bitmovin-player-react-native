@@ -15,6 +15,9 @@ on:
         required: true
         type: string
 
+env:
+  NO_FLIPPER: 1
+
 jobs:
   update:
     name: Update SDK version
@@ -50,6 +53,7 @@ jobs:
           cache: 'yarn'
 
       - name: Restore Pods cache
+        if: ${{ inputs.sdk_name == 'ios' }}
         id: pods-cache-restore
         uses: actions/cache/restore@v3
         with:
@@ -68,7 +72,7 @@ jobs:
           yarn bootstrap
 
       - name: Save Pods cache
-        if: steps.pods-cache-restore.outputs.cache-hit != 'true'
+        if: ${{ inputs.sdk_name == 'ios' && steps.pods-cache-restore.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@v3
         with:
           path: |
