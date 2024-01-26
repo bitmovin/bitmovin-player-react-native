@@ -20,7 +20,7 @@ export enum SubtitleFormat {
   VTT = 'vtt',
   /**
    * SubRip (SRT) subtitle format.
-   * @platform iOS, tvOS, tvOS
+   * @platform Android, iOS, tvOS
    */
   SRT = 'srt',
 }
