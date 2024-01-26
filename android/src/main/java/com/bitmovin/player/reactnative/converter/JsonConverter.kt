@@ -530,7 +530,12 @@ fun ReadableMap.toSubtitleTrack(): SubtitleTrack? {
 /**
  * Converts any subtitle format name in its mime type representation.
  */
-private fun String.toSubtitleMimeType(): String = "text/$this"
+private fun String.toSubtitleMimeType(): String = when (this) {
+    "vtt" -> "text/vtt"
+    "srt" -> "application/x-subrip"
+    "ttml" -> "application/ttml+xml"
+    else -> "text/$this"
+}
 
 /**
  * Converts any `SubtitleTrack` into its json representation.

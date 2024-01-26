@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Support for side-loaded SRT (SubRip) subtitles
+
 ### Fixed
 
 - Remove `patch-package` usage from released product

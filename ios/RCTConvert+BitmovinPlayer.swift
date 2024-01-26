@@ -553,6 +553,8 @@ extension RCTConvert {
             return .webVtt
         case "ttml":
             return .ttml
+        case "srt":
+            return .srt
         default:
             return nil
         }
@@ -582,6 +584,8 @@ extension RCTConvert {
                     return "vtt"
                 case .ttml:
                     return "ttml"
+                case .srt:
+                    return "srt"
                 }
             }(),
         ]
