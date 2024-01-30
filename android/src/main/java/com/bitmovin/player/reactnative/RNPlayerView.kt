@@ -21,6 +21,7 @@ import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.*
+import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
 import kotlin.reflect.KClass
 
@@ -98,7 +99,7 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event
  */
 @SuppressLint("ViewConstructor")
 class RNPlayerView(
-    private val context: ReactApplicationContext,
+    private val context: ThemedReactContext,
 ) : FrameLayout(context), View.OnLayoutChangeListener, RNPictureInPictureDelegate {
     private val activityLifecycle = (context.currentActivity as? ReactActivity)?.lifecycle
         ?: error("Trying to create an instance of ${this::class.simpleName} while not attached to a ReactActivity")
