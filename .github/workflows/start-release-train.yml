@@ -21,7 +21,7 @@ concurrency:
 jobs:
   create_release_pr:
     name: Create release branch and bump version
-    runs-on: macos-latest
+    runs-on: macos-14
     outputs:
       branch_name: ${{ steps.branching.outputs.branch_name }}
     steps:

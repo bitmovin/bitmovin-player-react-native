@@ -38,7 +38,7 @@ env:
 jobs:
   code-style-ios:
     name: Code style iOS
-    runs-on: macOS-latest
+    runs-on: macOS-14
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,7 +55,7 @@ jobs:
 
   test-build-ios:
     name: Build iOS
-    runs-on: macOS-12
+    runs-on: macOS-14
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -125,7 +125,7 @@ jobs:
 
   test-build-tvos:
     name: Build tvOS
-    runs-on: macOS-12
+    runs-on: macOS-14
     steps:
       - name: Checkout
         uses: actions/checkout@v4
