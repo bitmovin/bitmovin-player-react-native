@@ -2,7 +2,9 @@
 
 This is an open-source project created to enable customers to integrate the Bitmovin mobile Player SDKs into React Native projects. It has been created to provide customers with a starting point, which can be built upon through active collaboration and contributions. We look forward to seeing this library expand and grow.
 
-[![Build](https://github.com/bitmovin/bitmovin-player-react-native/actions/workflows/ci.yml/badge.svg)](https://github.com/bitmovin/bitmovin-player-react-native/actions/workflows/ci.yml)
+[![CI (TypeScript)](https://github.com/bitmovin/bitmovin-player-react-native/actions/workflows/ci-typescript.yml/badge.svg)](https://github.com/bitmovin/bitmovin-player-react-native/actions/workflows/ci-typescript.yml)
+[![CI (Android)](https://github.com/bitmovin/bitmovin-player-react-native/actions/workflows/ci-android.yml/badge.svg)](https://github.com/bitmovin/bitmovin-player-react-native/actions/workflows/ci-android.yml)
+[![CI (iOS & tvOS)](https://github.com/bitmovin/bitmovin-player-react-native/actions/workflows/ci-ios-tvos.yml/badge.svg)](https://github.com/bitmovin/bitmovin-player-react-native/actions/workflows/ci-ios-tvos.yml)
 ![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20tvOS%20%7C%20Android%20%7C%20Android%20TV-lightgrey.svg)
 [![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![Bitmovin Community](https://img.shields.io/discourse/users?label=community&server=https%3A%2F%2Fcommunity.bitmovin.com)](https://community.bitmovin.com/?utm_source=github&utm_medium=bitmovin-player-react-native&utm_campaign=dev-community)
