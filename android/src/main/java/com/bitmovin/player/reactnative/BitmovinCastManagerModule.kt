@@ -49,6 +49,22 @@ class BitmovinCastManagerModule(context: ReactApplicationContext) : BitmovinBase
     fun updateContext(promise: Promise) = promise.unit.resolveOnUiThread {
         BitmovinCastManager.getInstance().updateContext(currentActivity)
     }
+
+    /**
+     * Opens the cast dialog, for selecting and starting a cast session.
+     */
+    @ReactMethod
+    fun showDialog(promise: Promise) = promise.unit.resolveOnUiThread {
+        BitmovinCastManager.getInstance().showDialog()
+    }
+
+    /**
+     * Disconnects from the current cast session.
+     */
+    @ReactMethod
+    fun disconnect(promise: Promise) = promise.unit.resolveOnUiThread {
+        BitmovinCastManager.getInstance().disconnect()
+    }
 }
 
 /**

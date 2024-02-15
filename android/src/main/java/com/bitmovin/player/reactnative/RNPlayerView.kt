@@ -190,6 +190,7 @@ class RNPlayerView(
      */
     fun dispose() {
         activityLifecycle.removeObserver(activityLifecycleObserver)
+        pictureInPictureHandler?.dispose()
 
         val playerView = _playerView ?: return
         _playerView = null
@@ -243,7 +244,7 @@ class RNPlayerView(
      * Called when the player has just entered PiP mode.
      */
     override fun onEnterPictureInPicture() {
-        // Nothing to do
+        playerView?.enterPictureInPicture()
     }
 
     /**

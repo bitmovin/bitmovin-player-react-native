@@ -84,4 +84,28 @@ export const BitmovinCastManager = {
     }
     return BitmovinCastManagerModule.sendMessage(message, messageNamespace);
   },
+
+  /**
+   * Opens the cast dialog, for selecting and starting a cast session.
+   *
+   * @returns A promise that resolves when the dialog has requested to be opened
+   */
+  showDialog: async (): Promise<void> => {
+    if (Platform.OS === 'ios' && Platform.isTV) {
+      return Promise.resolve();
+    }
+    return BitmovinCastManagerModule.showDialog();
+  },
+
+  /**
+   * Disconnects from the current cast session.
+   *
+   * @returns A promise that resolves when the call to disconnect has finished
+   */
+  disconnect: async (): Promise<void> => {
+    if (Platform.OS === 'ios' && Platform.isTV) {
+      return Promise.resolve();
+    }
+    return BitmovinCastManagerModule.disconnect();
+  },
 };

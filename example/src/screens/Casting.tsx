@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, Button } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -65,6 +65,16 @@ export default function Casting() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.buttonBar}>
+        <Button
+          title={'Show Dialog'}
+          onPress={() => BitmovinCastManager.showDialog()}
+        />
+        <Button
+          title={'Disconnect'}
+          onPress={() => BitmovinCastManager.disconnect()}
+        />
+      </View>
       <PlayerView
         player={player}
         style={styles.player}
@@ -94,6 +104,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'black',
+  },
+  buttonBar: {
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#fff',
+    padding: 8,
   },
   player: {
     flex: 1,

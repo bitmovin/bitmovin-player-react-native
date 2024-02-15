@@ -79,4 +79,40 @@ public class BitmovinCastManagerModule: NSObject, RCTBridgeModule {
         }
 #endif
     }
+
+    /**
+     Opens the cast dialog, for selecting and starting a cast session.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(showDialog:rejecter:)
+    func showDialog(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { _, _ in
+#if os(iOS)
+            BitmovinCastManager.sharedInstance().showDialog()
+#endif
+            resolve(nil)
+        }
+    }
+
+    /**
+     Disconnects from the current cast session.
+     - Parameter resolver: JS promise resolver.
+     - Parameter rejecter: JS promise rejecter.
+     */
+    @objc(disconnect:rejecter:)
+    func disconnect(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { _, _ in
+#if os(iOS)
+            BitmovinCastManager.sharedInstance().unload()
+#endif
+            resolve(nil)
+        }
+    }
 }
