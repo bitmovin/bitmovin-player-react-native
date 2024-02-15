@@ -198,7 +198,6 @@ open class RNPictureInPictureHandler(val context: ReactApplicationContext) : Pic
         }
     }
 
-
     /**
      * Disposes the PiP parameters when the PlayerView is disposed.
      */

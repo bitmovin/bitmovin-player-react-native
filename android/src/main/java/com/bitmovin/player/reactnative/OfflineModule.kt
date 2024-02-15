@@ -118,6 +118,7 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
                 OfflineOptionEntryState.Downloading, OfflineOptionEntryState.Failed -> throw IllegalStateException(
                     "Download already in progress",
                 )
+
                 OfflineOptionEntryState.Suspended -> throw IllegalStateException("Download is suspended")
                 else -> {}
             }
@@ -253,7 +254,10 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
         }
     }
 
-    private fun releaseOfflineContentManagerBridge(nativeId: NativeId, offlineContentManagerBridge: OfflineContentManagerBridge) {
+    private fun releaseOfflineContentManagerBridge(
+        nativeId: NativeId,
+        offlineContentManagerBridge: OfflineContentManagerBridge,
+    ) {
         offlineContentManagerBridge.release()
         offlineContentManagerBridges.remove(nativeId)
     }
