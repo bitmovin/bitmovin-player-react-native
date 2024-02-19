@@ -1,6 +1,6 @@
-# Example
+# Example Application
 
-This is a React Native app built to showcase the features of `bitmovin-player-react-native`. The code for all feature samples is contained
+This is a React Native application built to showcase the features of `bitmovin-player-react-native`. The code for all feature samples is contained
 inside the [`src/screens/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example/src/screens) directory:
 
 - [Basic playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicPlayback.tsx)
@@ -24,16 +24,16 @@ To play back a custom video asset, it is possible to set up a simple playback se
 
 ## Getting started
 
-To get started with the project, run `yarn bootstrap` in the lib's root directory (not `example/`). This will install dependencies for both the library and the example app (as well as native deps too):
+To get started with the project, run `yarn bootstrap` in the library's root directory (not `example/`). This will install dependencies for both the library and the example application (as well as native dependencies):
 
 ```sh
-cd bitmovin-player-react-native # Go to lib's root directory
+cd bitmovin-player-react-native # Go to library's root directory
 yarn bootstrap # Install all dependencies
 ```
 
 ## Configuring your license key
 
-Before running the app, make sure to set up your Bitmovin's license key in the native metadata file of each platform:
+Before running the application, make sure to set up your Bitmovin's license key in the native metadata file of each platform:
 
 **iOS**
 
@@ -63,15 +63,29 @@ const player = usePlayer({
 });
 ```
 
-## Running the app
+### Add the Package Name and Bundle Identifiers as an Allowed Domain
 
-First start the metro bundler by running the following command on the lib's root (always execute `yarn` from the lib's root):
+Add the following package names and bundle identifiers of the example applications ending as an allowed domain on [https://bitmovin.com/dashboard](https://bitmovin.com/dashboard), under `Player -> Licenses` and also under `Analytics -> Licenses`.
 
-```sh
-yarn example start # Starts bundler on the example folder
+#### Android example application Package Name
+
+```
+com.bitmovin.player.reactnative.example
 ```
 
-Then run it via terminal or an IDE (Xcode/Android Studio):
+#### iOS example application Bundle Identifier
+
+```
+com.bitmovin.PlayerReactNative-Example
+```
+
+#### tvOS example application Bundle Identifier
+
+```
+com.bitmovin.PlayerReactNativeExample-tvOS
+```
+
+## Running the application
 
 **Terminal**
 
@@ -89,3 +103,13 @@ yarn example ios --simulator="iPhone 14 Pro"
 **IDE**
 
 You can also open the iOS project using Xcode by typing `xed example/ios/` on terminal, or `studio example/android/` to open the android project in Android Studio (make sure to setup its binaries first).
+
+### Running the bundler only
+
+The bundler is automatically started when running `yarn example android` or `yarn example ios` or when running via the IDEs, but it can also be started separately.
+
+To start the metro bundler, run the following command on the library's root (always execute `yarn` from the library's root):
+
+```sh
+yarn example start # Starts bundler on the example folder
+```
