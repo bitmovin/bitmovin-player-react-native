@@ -1,0 +1,4 @@
+ios/ @bitmovin/player-ios
+example/ios/ @bitmovin/player-ios
+android/ @bitmovin/player-android
+example/android/ @bitmovin/player-android
