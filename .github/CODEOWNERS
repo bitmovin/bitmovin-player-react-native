@@ -1,3 +1,4 @@
+.github/ @bitmovin/player-ios @bitmovin/player-android
 ios/ @bitmovin/player-ios
 example/ios/ @bitmovin/player-ios
 android/ @bitmovin/player-android
