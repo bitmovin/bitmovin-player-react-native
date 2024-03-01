@@ -65,6 +65,8 @@ export default function SubtitlePlayback() {
       <PlayerView
         player={player}
         style={styles.player}
+        onCueEnter={onEvent}
+        onCueExit={onEvent}
         onSubtitleAdded={onEvent}
         onSubtitleChanged={onEvent}
         onSubtitleRemoved={onEvent}
