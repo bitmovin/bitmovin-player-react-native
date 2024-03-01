@@ -1,11 +1,11 @@
 import React from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
-  View,
-  Text,
   FlatList,
   StyleSheet,
+  Text,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import type { RootStackParamsList } from '../App';
 
@@ -50,7 +50,6 @@ export default ExamplesList;
 
 const styles = StyleSheet.create({
   examplesList: {
-    flex: 1,
     backgroundColor: 'white',
   },
   exampleItem: {
