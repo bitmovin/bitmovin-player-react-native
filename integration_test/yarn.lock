@@ -1650,10 +1650,10 @@
   dependencies:
     "@sinonjs/commons" "^3.0.0"
 
-"@types/cavy@^3.2.7":
-  version "3.2.8"
-  resolved "https://registry.yarnpkg.com/@types/cavy/-/cavy-3.2.8.tgz#8b3beafe0251482acd2335d3cbc0fb91c3b8da21"
-  integrity sha512-252TeL+OxYRRgIWRppVVrV5dj8sD4JyDyvgfTTdi5duvoWrqX1VpFbUealS2pPSn1ujymM3w2g4fD+u3yMvd9A==
+"@types/cavy@^3.2.9":
+  version "3.2.9"
+  resolved "https://registry.yarnpkg.com/@types/cavy/-/cavy-3.2.9.tgz#2190e19220f9b1670255019f03fdbbae75be4d2d"
+  integrity sha512-VLAicAl0Jj5F2P2sHcliP4tU/aPAwNQ4hURA72msaTnvO0jB7HiGUr34sp1OqNfr6Qd9UMluiyaeRVuWrJI95w==
   dependencies:
     "@types/react" "*"
 
@@ -1688,10 +1688,10 @@
   resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.7.10.tgz#892afc9332c4d62a5ea7e897fe48ed2085bbb08a"
   integrity sha512-mxSnDQxPqsZxmeShFH+uwQ4kO4gcJcGahjjMFeLbKE95IAZiiZyiEepGZjtXJ7hN/yfu0bu9xN2ajcU0JcxX6A==
 
-"@types/react@*", "@types/react@~17.0.21":
-  version "17.0.71"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.71.tgz#3673d446ad482b1564e44bf853b3ab5bcbc942c4"
-  integrity sha512-lfqOu9mp16nmaGRrS8deS2Taqhd5Ih0o92Te5Ws6I1py4ytHBcXLqh0YIqVsViqwVI5f+haiFM6hju814BzcmA==
+"@types/react@*", "@types/react@^18.0.0":
+  version "18.2.61"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.61.tgz#5607308495037436779939ec0348a5816c08799d"
+  integrity sha512-NURTN0qNnJa7O/k4XUkEW2yfygA+NxS0V5h1+kp9jPwhzZy95q3ADoGMP0+JypMhrZBTTgjKAUlTctde1zzeQA==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"

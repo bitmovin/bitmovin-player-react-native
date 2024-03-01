@@ -36,6 +36,7 @@ const ExamplesList: React.FC<ExamplesListProps> = ({ route, navigation }) => (
       <ExampleItem
         title={item.title}
         onPress={() => {
+          // @ts-ignore
           navigation.navigate(item.routeName);
         }}
       />

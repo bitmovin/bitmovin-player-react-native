@@ -11,7 +11,7 @@ interface TestablePlayerProps {
 
 export default function TestablePlayer({
   playerTestWorld,
-}: TestablePlayerProps): JSX.Element {
+}: TestablePlayerProps): React.JSX.Element {
   const generateTestHook = useCavy();
   const [renderCount, setRenderCount] = useState(0);
   playerTestWorld.onReRender = () => setRenderCount((count) => count + 1);

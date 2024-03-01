@@ -3,7 +3,6 @@ package com.bitmovin.player.reactnative.integrationtest;
 import android.app.Application;
 
 import com.bitmovin.player.reactnative.integrationtest.BuildConfig;
-import com.bitmovin.player.reactnative.integrationtest.ReactNativeFlipper;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
