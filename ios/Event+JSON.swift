@@ -414,6 +414,31 @@ extension PlaybackSpeedChangedEvent: JsonConvertible {
     }
 }
 
+// TODO: is timestamp taken from the super method working?
+extension CueEnterEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON {
+            [
+                "start": startTime,
+                "end": endTime,
+                "text": text //TODO: check if nil works here too (it is optional)
+            ]
+        }
+    }
+}
+
+extension CueExitEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON {
+            [
+                "start": startTime,
+                "end": endTime,
+                "text": text //TODO: check if nil works here too (it is optional)
+            ]
+        }
+    }
+}
+
 extension PlayerActiveEvent: DefaultJsonConvertibleEvent {}
 extension DestroyEvent: DefaultJsonConvertibleEvent {}
 extension MutedEvent: DefaultJsonConvertibleEvent {}
