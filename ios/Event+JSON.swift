@@ -420,7 +420,7 @@ extension CueEnterEvent: JsonConvertible {
             [
                 "start": startTime,
                 "end": endTime,
-                "text": text //TODO: check if nil works here too (it is optional)
+                "text": text
             ]
         }
     }
@@ -432,7 +432,7 @@ extension CueExitEvent: JsonConvertible {
             [
                 "start": startTime,
                 "end": endTime,
-                "text": text //TODO: check if nil works here too (it is optional)
+                "text": text
             ]
         }
     }
