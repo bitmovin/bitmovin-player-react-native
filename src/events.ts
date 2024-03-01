@@ -751,7 +751,7 @@ export interface CueEnterEvent extends Event {
   /**
    * The textual content of this subtitle.
    */
-  text?: number;
+  text?: string;
 }
 
 /**
@@ -769,5 +769,5 @@ export interface CueExitEvent extends Event {
   /**
    * The textual content of this subtitle.
    */
-  text?: String;
+  text?: string;
 }
