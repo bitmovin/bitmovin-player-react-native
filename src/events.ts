@@ -737,37 +737,37 @@ export interface PlaybackSpeedChangedEvent extends Event {
 }
 
 /**
- * Emitted when a subtitle cue transitions into the active status.
+ * Emitted when a subtitle entry transitions into the active status.
  */
 export interface CueEnterEvent extends Event {
   /**
-   * The start time of the cue in seconds.
+   * The playback time in seconds when the subtitle should be rendered.
    */
   start: number;
   /**
-   * The end time of the cue in seconds.
+   * The playback time in seconds when the subtitle should be hidden.
    */
   end: number;
   /**
-   * The text of the cue.
+   * The textual content of this subtitle.
    */
   text?: number;
 }
 
 /**
- * Emitted when a subtitle cue transitions into the inactive status.
+ * Emitted when an active subtitle entry transitions into the inactive status.
  */
 export interface CueExitEvent extends Event {
   /**
-   * The start time of the cue in seconds.
+   * The playback time in seconds when the subtitle should be rendered.
    */
   start: number;
   /**
-   * The end time of the cue in seconds.
+   * The playback time in seconds when the subtitle should be hidden.
    */
   end: number;
   /**
-   * The text of the cue.
+   * The textual content of this subtitle.
    */
   text?: String;
 }
