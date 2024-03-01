@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.61.0`
+
+### Fixed
+
+- Android: Subtitles appear out of frame
+
 ## [0.17.0] (2024-01-26)
 
 ### Added
