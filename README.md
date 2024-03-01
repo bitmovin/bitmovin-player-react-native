@@ -48,6 +48,7 @@ Check out our [React Native Guides](https://developer.bitmovin.com/playback/docs
 ### Sample Application
 
 In the [/example/](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) folder you can find a sample application showcasing many of the features of the Player React Native SDK.
+See the related [README.md](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example/README.md) for more information on how to get started with the sample application.
 
 ## Maintenance and Updates
 
