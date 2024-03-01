@@ -63,6 +63,8 @@ import {
   DownloadFinishedEvent,
   VideoDownloadQualityChangedEvent,
   PlaybackSpeedChangedEvent,
+  CueEnterEvent,
+  CueExitEvent,
 } from '../../events';
 
 /**
@@ -169,6 +171,14 @@ interface EventProps {
    * @platform iOS, Android
    */
   onCastWaitingForDevice: CastWaitingForDeviceEvent;
+  /**
+   * Event emitted when a subtitle cue transitions into the active status.
+   */
+  onCueEnter: CueEnterEvent;
+  /**
+   * Event emitted when a subtitle cue transitions into the inactive status.
+   */
+  onCueExit: CueExitEvent;
   /**
    * Event emitted when the player is destroyed.
    */
