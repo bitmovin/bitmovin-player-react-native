@@ -470,6 +470,18 @@ fun PlayerEvent.toJson(): WritableMap {
             json.putString("deviceName", deviceName)
         }
 
+        is PlayerEvent.CueEnter -> {
+            json.putDouble("start", start)
+            json.putDouble("end", end)
+            json.putString("text", text)
+        }
+
+        is PlayerEvent.CueExit -> {
+            json.putDouble("start", start)
+            json.putDouble("end", end)
+            json.putString("text", text)
+        }
+
         else -> {
             // Event is not supported yet or does not have any additional data
         }
