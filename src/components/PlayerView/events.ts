@@ -172,11 +172,11 @@ interface EventProps {
    */
   onCastWaitingForDevice: CastWaitingForDeviceEvent;
   /**
-   * Event emitted when a subtitle cue transitions into the active status.
+   * Event emitted when a subtitle entry transitions into the active status.
    */
   onCueEnter: CueEnterEvent;
   /**
-   * Event emitted when a subtitle cue transitions into the inactive status.
+   * Event emitted when an active subtitle entry transitions into the inactive status.
    */
   onCueExit: CueExitEvent;
   /**
