@@ -138,12 +138,13 @@ export default function ProgrammaticTrackSelection() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: 'stretch',
     justifyContent: 'center',
-    backgroundColor: 'black',
+    backgroundColor: 'white',
   },
   player: {
     flex: 1,
+    backgroundColor: 'black',
   },
   clearSubtitles: {
     flexGrow: 0,
@@ -153,9 +154,10 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   tracks: {
-    flex: 1,
     backgroundColor: 'white',
     alignSelf: 'stretch',
+    flexGrow: 0,
+    flexShrink: 1,
   },
   trackItem: {
     paddingHorizontal: 12,
