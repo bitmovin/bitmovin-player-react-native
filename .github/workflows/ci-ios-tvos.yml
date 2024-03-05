@@ -43,10 +43,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup build
-        uses: ./.github/actions/setup-build
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          ios-build: true
+          ios: true
 
       - name: Check code style
         run: swiftlint --strict
@@ -58,12 +58,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup build
-        uses: ./.github/actions/setup-build
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
           node: true
           subprojects: true
-          ios-build: true
+          ios: true
           restore-pods: true
 
       - name: Install pods
@@ -102,12 +102,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup build
-        uses: ./.github/actions/setup-build
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
           node: true
           subprojects: true
-          ios-build: true
+          ios: true
           restore-pods: true
 
       - name: Install pods

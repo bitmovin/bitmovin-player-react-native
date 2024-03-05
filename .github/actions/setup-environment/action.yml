@@ -1,5 +1,5 @@
-name: Setup build environment
-description: Setup the build environment
+name: Setup project environment
+description: Setup the project environment
 
 inputs:
   node:
@@ -10,7 +10,7 @@ inputs:
     description: Setup node and install root and subproject node modules (overrides `node` input)
     default: false
     required: false
-  ios-build:
+  ios:
     description: Setup xcode and install dependencies
     default: false
     required: false
@@ -63,12 +63,12 @@ runs:
       run: yarn install --frozen-lockfile --cwd integration_test
 
     - uses: maxim-lobanov/setup-xcode@v1
-      if: ${{ inputs.ios-build == 'true' }}
+      if: ${{ inputs.ios == 'true' }}
       with:
         xcode-version: '14.3'
 
     - name: Install dependencies
-      if: ${{ inputs.ios-build == 'true' }}
+      if: ${{ inputs.ios == 'true' }}
       shell: bash
       run: brew bundle install
 

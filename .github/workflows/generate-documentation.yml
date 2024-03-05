@@ -34,8 +34,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup build
-        uses: ./.github/actions/setup-build
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
           node: true
           subprojects: true

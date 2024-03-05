@@ -44,8 +44,8 @@ jobs:
           git push origin --delete ${{ steps.branching.outputs.branch_name }} || true
           git checkout -b ${{ steps.branching.outputs.branch_name }}
 
-      - name: Setup build
-        uses: ./.github/actions/setup-build
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
           node: true
           restore-pods: true

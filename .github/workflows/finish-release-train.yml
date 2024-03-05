@@ -89,8 +89,8 @@ jobs:
         run: |
           git push origin v${{ needs.prepare.outputs.version_number }}
 
-      - name: Setup build
-        uses: ./.github/actions/setup-build
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
           node: true
 
