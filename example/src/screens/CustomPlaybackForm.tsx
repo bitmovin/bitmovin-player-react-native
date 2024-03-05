@@ -88,7 +88,10 @@ const initialFormState = {
   playDisabled: true,
 };
 
-type CustomPlaybackFormProps = NativeStackScreenProps<RootStackParamsList>;
+type CustomPlaybackFormProps = NativeStackScreenProps<
+  RootStackParamsList,
+  'CustomPlaybackForm'
+>;
 
 const CustomPlaybackForm: React.FC<CustomPlaybackFormProps> = ({
   navigation,

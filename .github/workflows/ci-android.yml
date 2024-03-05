@@ -41,7 +41,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: '11'
+          java-version: '17'
 
       - name: Set up Gradle cache
         uses: gradle/gradle-build-action@v2
@@ -62,7 +62,7 @@ jobs:
       - name: Setup node and npm registry
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '20'
           registry-url: 'https://registry.npmjs.org/'
           cache: 'yarn'
 
@@ -70,7 +70,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: '11'
+          java-version: '17'
 
       - name: Install node_modules
         run: yarn install --frozen-lockfile
