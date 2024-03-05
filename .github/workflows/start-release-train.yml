@@ -33,12 +33,11 @@ jobs:
           git config --global user.name "Bitmovin Release Automation"
           git config --global user.email "support@bitmovin.com"
 
-      - name: Setup node and npm registry
-        uses: actions/setup-node@v3
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org/'
-          cache: 'yarn'
+          node: true
+          restore-pods: true
 
       - name: Set Release Branch name
         id: branching
@@ -62,17 +61,6 @@ jobs:
       - name: Bump package.json version
         run: |
           yarn version --new-version ${{ inputs.version_number }} --no-git-tag-version
-
-      - name: Restore Pods cache
-        id: pods-cache-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-            integration_test/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
-          restore-keys: pods-
 
       - name: Set up CocoaPods
         run: |
