@@ -45,7 +45,7 @@ jobs:
 
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '15.2'
+          xcode-version: '14.3'
 
       - name: Install dependencies
         run: brew bundle install
@@ -69,7 +69,7 @@ jobs:
 
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '15.2'
+          xcode-version: '14.3'
 
       - name: Install node_modules
         run: yarn install --frozen-lockfile
@@ -139,7 +139,7 @@ jobs:
 
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '15.2'
+          xcode-version: '14.3'
 
       - name: Install node_modules
         run: yarn install --frozen-lockfile
