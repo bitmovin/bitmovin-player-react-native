@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- React Native version to `0.73.4`
+
 ## [0.17.0] (2024-01-26)
 
 ### Added

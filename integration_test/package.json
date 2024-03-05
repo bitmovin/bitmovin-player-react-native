@@ -20,25 +20,25 @@
   "dependencies": {
     "cavy": "^4.0.2",
     "react": "18.2.0",
-    "react-native": "npm:react-native-tvos@0.72.6-1"
+    "react-native": "npm:react-native-tvos@0.73.4-0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "^7.20.0",
     "@babel/runtime": "^7.20.0",
-    "@react-native/metro-config": "^0.72.11",
-    "@types/cavy": "^3.2.7",
+    "@react-native/metro-config": "^0.73.5",
+    "@types/cavy": "^3.2.9",
     "babel-plugin-module-resolver": "^5.0.0",
     "cavy-cli": "^3.0.0",
-    "metro-react-native-babel-preset": "0.76.8",
+    "@react-native/babel-preset": "0.73.18",
     "patch-package": "^8.0.0",
     "pod-install": "^0.1.39",
     "react-native-uuid": "^2.0.1"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "resolutions": {
-    "@types/react": "~17.0.21"
+    "@types/react": "^18.0.0"
   }
 }
