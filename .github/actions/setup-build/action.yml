@@ -1,0 +1,85 @@
+name: Setup build environment
+description: Setup the build environment
+
+inputs:
+  node:
+    description: Setup node and install root node modules
+    default: false
+    required: false
+  subprojects:
+    description: Setup node and install root and subproject node modules (overrides `node` input)
+    default: false
+    required: false
+  ios-build:
+    description: Setup xcode and install dependencies
+    default: false
+    required: false
+  restore-pods:
+    description: Restores the Pod cache
+    default: false
+    required: false
+  java:
+    description: Setup Java and Gradle cache
+    default: false
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Java
+      if: ${{ inputs.java == 'true' }}
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Set up Gradle cache
+      if: ${{ inputs.java == 'true' }}
+      uses: gradle/gradle-build-action@v2
+      with:
+        cache-read-only: ${{ github.ref != 'refs/heads/development' }}
+
+    - name: Setup node and npm registry
+      if: ${{ inputs.node == 'true' || inputs.subprojects == 'true' }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        registry-url: 'https://registry.npmjs.org/'
+        cache: 'yarn'
+
+    - name: Install node_modules
+      if: ${{ inputs.node == 'true' || inputs.subprojects == 'true' }}
+      shell: bash
+      run: yarn install --frozen-lockfile
+
+    - name: Install node_modules (example/)
+      if: ${{ inputs.subprojects == 'true' }}
+      shell: bash
+      run: yarn install --frozen-lockfile --cwd example
+
+    - name: Install node_modules (integration_test/)
+      if: ${{ inputs.subprojects == 'true' }}
+      shell: bash
+      run: yarn install --frozen-lockfile --cwd integration_test
+
+    - uses: maxim-lobanov/setup-xcode@v1
+      if: ${{ inputs.ios-build == 'true' }}
+      with:
+        xcode-version: '14.3'
+
+    - name: Install dependencies
+      if: ${{ inputs.ios-build == 'true' }}
+      shell: bash
+      run: brew bundle install
+
+    - name: Restore Pods cache
+      if: ${{ inputs.restore-pods == 'true' }}
+      id: pods-cache-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: |
+          .cocoapods-cache
+          example/ios/Pods
+          integration_test/ios/Pods
+        key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
+        restore-keys: pods-
