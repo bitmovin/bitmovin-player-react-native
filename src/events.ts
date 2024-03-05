@@ -738,6 +738,10 @@ export interface PlaybackSpeedChangedEvent extends Event {
 
 /**
  * Emitted when a subtitle entry transitions into the active status.
+ * @note
+ * Currently only textual subtitles are supported, so it may happen that
+ * `text` is null in case of the cue being an image overlay on video
+ * frame.
  */
 export interface CueEnterEvent extends Event {
   /**
@@ -756,6 +760,10 @@ export interface CueEnterEvent extends Event {
 
 /**
  * Emitted when an active subtitle entry transitions into the inactive status.
+ * @note
+ * Currently only textual subtitles are supported, so it may happen that
+ * `text` is null in case of the cue being an image overlay on video
+ * frame.
  */
 export interface CueExitEvent extends Event {
   /**
