@@ -6,6 +6,7 @@
 
 - React Native version to `0.73.4`
 - Update Bitmovin's native Android SDK version to `3.61.0`
+- Update Bitmovin's native iOS SDK version to `3.56.3`
 
 ### Fixed
 
