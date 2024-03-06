@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `CueEnterEvent` and `CueExitEvent` to signal when a subtitle entry transitions into an active or inactive status respectively
+
 ## [0.18.0] (2024-03-06)
 
 ### Changed
