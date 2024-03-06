@@ -44,25 +44,11 @@ jobs:
           git push origin --delete ${{ steps.branching.outputs.branch_name }} || true
           git checkout -b ${{ steps.branching.outputs.branch_name }}
 
-      - name: Setup node and npm registry
-        if: ${{ inputs.sdk_name == 'ios' }}
-        uses: actions/setup-node@v3
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          node-version: '16'
-          registry-url: 'https://registry.npmjs.org/'
-          cache: 'yarn'
-
-      - name: Restore Pods cache
-        if: ${{ inputs.sdk_name == 'ios' }}
-        id: pods-cache-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-            integration_test/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
-          restore-keys: pods-
+          node: true
+          restore-pods: true
 
       - name: Bump iOS player SDK version
         if: ${{ inputs.sdk_name == 'ios' }}

@@ -42,6 +42,7 @@ export type RootStackParamsList = {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
   };
   SubtitlePlayback: undefined;
+  ProgrammaticTrackSelection: undefined;
   CustomPlaybackForm: undefined;
   OfflinePlayback: undefined;
   CustomPlayback: {
@@ -56,9 +57,10 @@ export type RootStackParamsList = {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
   };
   Casting: undefined;
+  SystemUI: undefined;
 };
 
-const RootStack = createNativeStackNavigator();
+const RootStack = createNativeStackNavigator<RootStackParamsList>();
 
 const isTVOS = Platform.OS === 'ios' && Platform.isTV;
 
@@ -81,31 +83,31 @@ export default function App() {
     data: [
       {
         title: 'Basic playback',
-        routeName: 'BasicPlayback',
+        routeName: 'BasicPlayback' as keyof RootStackParamsList,
       },
       {
         title: 'Basic Analytics',
-        routeName: 'BasicAnalytics',
+        routeName: 'BasicAnalytics' as keyof RootStackParamsList,
       },
       {
         title: 'Basic Drm playback',
-        routeName: 'BasicDrmPlayback',
+        routeName: 'BasicDrmPlayback' as keyof RootStackParamsList,
       },
       {
         title: 'Subtitle and captions',
-        routeName: 'SubtitlePlayback',
+        routeName: 'SubtitlePlayback' as keyof RootStackParamsList,
       },
       {
         title: 'Basic Picture in Picture',
-        routeName: 'BasicPictureInPicture',
+        routeName: 'BasicPictureInPicture' as keyof RootStackParamsList,
       },
       {
         title: 'Basic Ads',
-        routeName: 'BasicAds',
+        routeName: 'BasicAds' as keyof RootStackParamsList,
       },
       {
         title: 'Programmatic Track Selection',
-        routeName: 'ProgrammaticTrackSelection',
+        routeName: 'ProgrammaticTrackSelection' as keyof RootStackParamsList,
       },
     ],
   };

@@ -3,7 +3,6 @@ package com.bitmovin.player.reactnative.integrationtest;
 import android.app.Application;
 
 import com.bitmovin.player.reactnative.integrationtest.BuildConfig;
-import com.bitmovin.player.reactnative.integrationtest.ReactNativeFlipper;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
@@ -60,6 +59,5 @@ public class MainApplication extends Application implements ReactApplication {
       // If you opted-in for the New Architecture, we load the native entry point for this app.
       DefaultNewArchitectureEntryPoint.load();
     }
-    ReactNativeFlipper.initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
   }
 }
