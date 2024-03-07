@@ -171,6 +171,8 @@ export function PlayerView({
       onCastStopped={proxy(props.onCastStopped)}
       onCastTimeUpdated={proxy(props.onCastTimeUpdated)}
       onCastWaitingForDevice={proxy(props.onCastWaitingForDevice)}
+      onCueEnter={proxy(props.onCueEnter)}
+      onCueExit={proxy(props.onCueExit)}
       onDestroy={proxy(props.onDestroy)}
       onEvent={proxy(props.onEvent)}
       onFullscreenEnabled={proxy(props.onFullscreenEnabled)}

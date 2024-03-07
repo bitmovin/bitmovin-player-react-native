@@ -37,16 +37,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@v3
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          distribution: 'zulu'
-          java-version: '11'
-
-      - name: Set up Gradle cache
-        uses: gradle/gradle-build-action@v2
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/development' }}
+          java: true
 
       - name: Check code style
         run: ./gradlew ktlintCheck
@@ -59,32 +53,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup node and npm registry
-        uses: actions/setup-node@v3
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          node-version: '16'
-          registry-url: 'https://registry.npmjs.org/'
-          cache: 'yarn'
-
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '11'
-
-      - name: Install node_modules
-        run: yarn install --frozen-lockfile
-
-      - name: Install node_modules (example/)
-        run: yarn install --frozen-lockfile --cwd example
-
-      - name: Install node_modules (integration_test/)
-        run: yarn install --frozen-lockfile --cwd integration_test
-
-      - name: Set up Gradle cache
-        uses: gradle/gradle-build-action@v2
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/development' }}
+          java: true
+          node: true
+          subprojects: true
 
       - name: Build Android example
         run: ./gradlew assembleDebug --build-cache

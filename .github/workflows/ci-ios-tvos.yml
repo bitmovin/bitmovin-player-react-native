@@ -43,12 +43,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: maxim-lobanov/setup-xcode@v1
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          xcode-version: '14.3'
-
-      - name: Install dependencies
-        run: brew bundle install
+          ios: true
 
       - name: Check code style
         run: swiftlint --strict
@@ -60,39 +58,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup node and npm registry
-        uses: actions/setup-node@v3
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          node-version: '16'
-          registry-url: 'https://registry.npmjs.org/'
-          cache: 'yarn'
-
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '14.3'
-
-      - name: Install node_modules
-        run: yarn install --frozen-lockfile
-
-      - name: Install node_modules (example/)
-        run: yarn install --frozen-lockfile --cwd example
-
-      - name: Install node_modules (integration_test/)
-        run: yarn install --frozen-lockfile --cwd integration_test
-
-      - name: Install dependencies
-        run: brew bundle install
-
-      - name: Restore Pods cache
-        id: pods-cache-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-            integration_test/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
-          restore-keys: pods-
+          node: true
+          subprojects: true
+          ios: true
+          restore-pods: true
 
       - name: Install pods
         run: |
@@ -130,36 +102,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup node and npm registry
-        uses: actions/setup-node@v3
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          node-version: '16'
-          registry-url: 'https://registry.npmjs.org/'
-          cache: 'yarn'
-
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '14.3'
-
-      - name: Install node_modules
-        run: yarn install --frozen-lockfile
-
-      - name: Install node_modules (example/)
-        run: yarn install --frozen-lockfile --cwd example
-
-      - name: Install dependencies
-        run: brew bundle install
-
-      - name: Restore Pods cache
-        id: pods-cache-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-            integration_test/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
-          restore-keys: pods-
+          node: true
+          subprojects: true
+          ios: true
+          restore-pods: true
 
       - name: Install pods
         run: |

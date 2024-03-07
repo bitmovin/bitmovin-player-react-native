@@ -127,6 +127,8 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         "castStopped" to "onCastStopped",
         "castWaitingForDevice" to "onCastWaitingForDevice",
         "castTimeUpdated" to "onCastTimeUpdated",
+        "cueEnter" to "onCueEnter",
+        "cueExit" to "onCueExit",
     )
 
     /**

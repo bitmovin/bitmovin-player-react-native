@@ -182,6 +182,14 @@ extension RNPlayerView: PlayerListener {
         onVideoPlaybackQualityChanged?(event.toJSON())
     }
 
+    public func onCueEnter(_ event: CueEnterEvent, player: Player) {
+        onCueEnter?(event.toJSON())
+    }
+
+    public func onCueExit(_ event: CueExitEvent, player: Player) {
+        onCueExit?(event.toJSON())
+    }
+
 #if os(iOS)
     public func onCastAvailable(_ event: CastAvailableEvent, player: Player) {
         onCastAvailable?(event.toJSON())

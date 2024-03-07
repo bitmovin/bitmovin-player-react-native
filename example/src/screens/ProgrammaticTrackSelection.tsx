@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
   ListRenderItemInfo,
+  ViewProps,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -15,6 +16,7 @@ import {
   PlayerView,
   SourceType,
 } from 'bitmovin-player-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTVGestures } from '../hooks';
 
 function prettyPrint(header: string, obj: any) {
@@ -106,8 +108,10 @@ export default function ProgrammaticTrackSelection() {
     [player]
   );
 
+  const ContainerView = Platform.isTV ? View : SafeAreaContainer;
+
   return (
-    <View style={styles.container}>
+    <ContainerView style={styles.container}>
       <PlayerView
         player={player}
         style={styles.player}
@@ -131,19 +135,24 @@ export default function ProgrammaticTrackSelection() {
         ListFooterComponent={Separator}
         ItemSeparatorComponent={Separator}
       />
-    </View>
+    </ContainerView>
   );
+}
+
+function SafeAreaContainer(props: ViewProps): JSX.Element {
+  return <SafeAreaView edges={['bottom', 'left', 'right']} {...props} />;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: 'stretch',
     justifyContent: 'center',
-    backgroundColor: 'black',
+    backgroundColor: 'white',
   },
   player: {
     flex: 1,
+    backgroundColor: 'black',
   },
   clearSubtitles: {
     flexGrow: 0,
@@ -153,9 +162,10 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   tracks: {
-    flex: 1,
     backgroundColor: 'white',
     alignSelf: 'stretch',
+    flexGrow: 0,
+    flexShrink: 1,
   },
   trackItem: {
     paddingHorizontal: 12,

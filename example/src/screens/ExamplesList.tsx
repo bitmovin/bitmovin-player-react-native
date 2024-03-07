@@ -1,11 +1,11 @@
 import React from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
-  View,
-  Text,
   FlatList,
   StyleSheet,
+  Text,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import type { RootStackParamsList } from '../App';
 
@@ -36,6 +36,7 @@ const ExamplesList: React.FC<ExamplesListProps> = ({ route, navigation }) => (
       <ExampleItem
         title={item.title}
         onPress={() => {
+          // @ts-ignore
           navigation.navigate(item.routeName);
         }}
       />
@@ -50,7 +51,6 @@ export default ExamplesList;
 
 const styles = StyleSheet.create({
   examplesList: {
-    flex: 1,
     backgroundColor: 'white',
   },
   exampleItem: {
