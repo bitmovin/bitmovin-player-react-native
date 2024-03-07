@@ -411,7 +411,7 @@ declare class AnalyticsApi {
  * @platform iOS
  * @see https://developer.apple.com/documentation/avfaudio/avaudiosession/category
  */
-declare type AudioSessionCategory = 'ambient' | 'multiRoute' | 'playAndRecord' | 'playback' | 'record' | 'soloAmbient';
+type AudioSessionCategory = 'ambient' | 'multiRoute' | 'playAndRecord' | 'playback' | 'record' | 'soloAmbient';
 /**
  * An object that communicates to the system how you intend to use audio in your app.
  *
@@ -456,14 +456,33 @@ interface AudioTrack {
 
 /**
  * Supported subtitle/caption file formats.
+ * @platform Android, iOS, tvOS
  */
 declare enum SubtitleFormat {
+    /**
+     * Closed Captioning (CEA) subtitle format.
+     * @platform Android, iOS, tvOS
+     */
     CEA = "cea",
+    /**
+     * Timed Text Markup Language (TTML) subtitle format.
+     * @platform Android, iOS, tvOS
+     */
     TTML = "ttml",
-    VTT = "vtt"
+    /**
+     * Web Video Text Tracks Format (WebVTT) subtitle format.
+     * @platform Android, iOS, tvOS
+     */
+    VTT = "vtt",
+    /**
+     * SubRip (SRT) subtitle format.
+     * @platform Android, iOS, tvOS
+     */
+    SRT = "srt"
 }
 /**
  * Describes a subtitle track.
+ * @platform Android, iOS, tvOS
  */
 interface SubtitleTrack {
     /**
@@ -501,7 +520,6 @@ interface SubtitleTrack {
 }
 /**
  * A subtitle track that can be added to `SourceConfig.subtitleTracks`.
- *
  */
 interface SideLoadedSubtitleTrack extends SubtitleTrack {
     url: string;
@@ -1776,6 +1794,40 @@ interface PlaybackSpeedChangedEvent extends Event {
      */
     to: number;
 }
+/**
+ * Emitted when a subtitle entry transitions into the active status.
+ */
+interface CueEnterEvent extends Event {
+    /**
+     * The playback time in seconds when the subtitle should be rendered.
+     */
+    start: number;
+    /**
+     * The playback time in seconds when the subtitle should be hidden.
+     */
+    end: number;
+    /**
+     * The textual content of this subtitle.
+     */
+    text?: string;
+}
+/**
+ * Emitted when an active subtitle entry transitions into the inactive status.
+ */
+interface CueExitEvent extends Event {
+    /**
+     * The playback time in seconds when the subtitle should be rendered.
+     */
+    start: number;
+    /**
+     * The playback time in seconds when the subtitle should be hidden.
+     */
+    end: number;
+    /**
+     * The textual content of this subtitle.
+     */
+    text?: string;
+}
 
 /**
  * Type that defines all event props supported by `PlayerView` and `NativePlayerView`.
@@ -1881,6 +1933,14 @@ interface EventProps {
      * @platform iOS, Android
      */
     onCastWaitingForDevice: CastWaitingForDeviceEvent;
+    /**
+     * Event emitted when a subtitle entry transitions into the active status.
+     */
+    onCueEnter: CueEnterEvent;
+    /**
+     * Event emitted when an active subtitle entry transitions into the inactive status.
+     */
+    onCueExit: CueExitEvent;
     /**
      * Event emitted when the player is destroyed.
      */
@@ -2081,13 +2141,13 @@ interface EventProps {
  * Note the events of `PlayerView` are simply a proxy over
  * the events from `NativePlayerView` just removing RN's bubbling data.
  */
-declare type PlayerViewEvents = {
+type PlayerViewEvents = {
     [Prop in keyof EventProps]?: (event: EventProps[Prop]) => void;
 };
 /**
  * Event props for `NativePlayerView`.
  */
-declare type NativePlayerViewEvents = {
+type NativePlayerViewEvents = {
     [Prop in keyof EventProps]?: (nativeEvent: NativeSyntheticEvent<EventProps[Prop]>) => void;
 };
 
@@ -2305,7 +2365,7 @@ interface OnCanceledEvent extends OfflineEvent<OfflineEventType.onCanceled> {
  * The type aggregation for all possible native offline events received from the `DeviceEventEmitter`
  * @platform Android, iOS
  */
-declare type BitmovinNativeOfflineEventData = OnCompletedEvent | OnOptionsAvailableEvent | OnProgressEvent | OnErrorEvent | OnDrmLicenseUpdatedEvent | OnDrmLicenseExpiredEvent | OnSuspendedEvent | OnResumedEvent | OnCanceledEvent;
+type BitmovinNativeOfflineEventData = OnCompletedEvent | OnOptionsAvailableEvent | OnProgressEvent | OnErrorEvent | OnDrmLicenseUpdatedEvent | OnDrmLicenseExpiredEvent | OnSuspendedEvent | OnResumedEvent | OnCanceledEvent;
 /**
  * The listener that can be passed to the `OfflineContentManager` to receive callbacks for different events.
  * @platform Android, iOS
@@ -3584,6 +3644,18 @@ declare const BitmovinCastManager: {
      * @returns A promise that resolves when the message was sent successfully
      */
     sendMessage: (message: String, messageNamespace?: String | null) => any;
+    /**
+     * Opens the cast dialog, for selecting and starting a cast session.
+     *
+     * @returns A promise that resolves when the dialog has requested to be opened
+     */
+    showDialog: () => Promise<void>;
+    /**
+     * Disconnects from the current cast session.
+     *
+     * @returns A promise that resolves when the call to disconnect has finished
+     */
+    disconnect: () => Promise<void>;
 };
 
-export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdaptationConfig, AdvertisingConfig, AnalyticsApi, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BitmovinCastManager, BitmovinCastManagerOptions, BitmovinNativeOfflineEventData, BufferApi, BufferConfig, BufferLevel, BufferLevels, BufferMediaTypeConfig, BufferType, CastAvailableEvent, CastPausedEvent, CastPayload, CastPlaybackFinishedEvent, CastPlayingEvent, CastStartEvent, CastStartedEvent, CastStoppedEvent, CastTimeUpdatedEvent, CastWaitingForDeviceEvent, CustomDataConfig, CustomMessageHandler, CustomMessageHandlerProps, DefaultMetadata, DestroyEvent, DownloadFinishedEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, HttpRequestType, LiveConfig, LoadingState, MediaType, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptionEntry, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineSourceOptions, OfflineState, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureConfig, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, PlaybackSpeedChangedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewConfig, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, RemoteControlConfig, ScalingMode, SeekEvent, SeekPosition, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceMetadata, SourceOptions, SourceRemoteControlConfig, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, Thumbnail, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TimelineReferencePoint, TweaksConfig, UiConfig, UnmutedEvent, UserInterfaceType, VideoDownloadQualityChangedEvent, VideoPlaybackQualityChangedEvent, VideoQuality, WebUiConfig, WidevineConfig, usePlayer };
+export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdaptationConfig, AdvertisingConfig, AnalyticsApi, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BitmovinCastManager, BitmovinCastManagerOptions, BitmovinNativeOfflineEventData, BufferApi, BufferConfig, BufferLevel, BufferLevels, BufferMediaTypeConfig, BufferType, CastAvailableEvent, CastPausedEvent, CastPayload, CastPlaybackFinishedEvent, CastPlayingEvent, CastStartEvent, CastStartedEvent, CastStoppedEvent, CastTimeUpdatedEvent, CastWaitingForDeviceEvent, CueEnterEvent, CueExitEvent, CustomDataConfig, CustomMessageHandler, CustomMessageHandlerProps, DefaultMetadata, DestroyEvent, DownloadFinishedEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, HttpRequestType, LiveConfig, LoadingState, MediaType, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptionEntry, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineSourceOptions, OfflineState, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureConfig, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, PlaybackSpeedChangedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewConfig, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, RemoteControlConfig, ScalingMode, SeekEvent, SeekPosition, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceMetadata, SourceOptions, SourceRemoteControlConfig, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, Thumbnail, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TimelineReferencePoint, TweaksConfig, UiConfig, UnmutedEvent, UserInterfaceType, VideoDownloadQualityChangedEvent, VideoPlaybackQualityChangedEvent, VideoQuality, WebUiConfig, WidevineConfig, usePlayer };
