@@ -1252,11 +1252,11 @@ SPEC CHECKSUMS:
   BitmovinPlayer: 11821af4f4ecf9203a56b60dac963c88d3dd1e68
   BitmovinPlayerCore: da6a3ea21a7bea14ff6b53573aed737d6509919b
   boost: 88202336c3ba1e7a264a83c0c888784b0f360c28
-  DoubleConversion: 234abba95e31cc2aada0cf3b97cdb11bc5b90575
+  DoubleConversion: 74cb0ce4de271b23e772567504735c87134edf0a
   FBLazyVector: 33a271a7e8de0bd321e47356d8bc3b2d5fb9ddba
   FBReactNativeSpec: 55b7e93b71f300a051190f63c2afeccd839b7e9a
   fmt: 745abaaffe4da13101ae15d70dc68ec3d6a666a2
-  glog: a2ded9bf28f0cb2fce90ad21eb419299a500ff6c
+  glog: f0ddebfc00a905e9213e37801095a0a705d2e5f6
   google-cast-sdk: afeb1aac0744b1bc4f70bc3db8468e33fabbff38
   GoogleAds-IMA-iOS-SDK: b01284e3bf3d64ba948de6692ffda531452c3713
   GoogleAds-IMA-tvOS-SDK: 2dda9d3b34c43003222d3417315fecec22b698a1
