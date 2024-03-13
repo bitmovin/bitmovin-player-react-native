@@ -3486,6 +3486,13 @@ interface PictureInPictureConfig {
     shouldEnterOnBackground?: boolean;
 }
 
+interface SubtitleViewConfig {
+    paddingLeft?: number;
+    paddingTop?: number;
+    paddingRight?: number;
+    paddingBottom?: number;
+}
+
 /**
  * Configures the visual presentation and behaviour of the `PlayerView`.
  */
@@ -3504,6 +3511,7 @@ interface PlayerViewConfig {
      * Provides options to configure Picture in Picture playback.
      */
     pictureInPictureConfig?: PictureInPictureConfig;
+    subtitleViewConfig?: SubtitleViewConfig;
 }
 /**
  * Configures the visual presentation and behaviour of the Bitmovin Player UI.

@@ -54,6 +54,7 @@ import com.bitmovin.player.reactnative.UserInterfaceType
 import com.bitmovin.player.reactnative.extensions.get
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getDoubleOrNull
+import com.bitmovin.player.reactnative.extensions.getIntOrNull
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.mapToReactArray
 import com.bitmovin.player.reactnative.extensions.putBoolean
@@ -71,6 +72,7 @@ import com.bitmovin.player.reactnative.extensions.withMap
 import com.bitmovin.player.reactnative.extensions.withString
 import com.bitmovin.player.reactnative.extensions.withStringArray
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler.PictureInPictureConfig
+import com.bitmovin.player.reactnative.ui.SubtitleViewConfig
 import com.facebook.react.bridge.*
 import java.util.UUID
 
@@ -741,6 +743,13 @@ fun ReadableMap.toPictureInPictureConfig(): PictureInPictureConfig = PictureInPi
     isEnabled = getBooleanOrNull("isEnabled") ?: false,
 )
 
+fun ReadableMap.toSubtitleViewConfig(): SubtitleViewConfig = SubtitleViewConfig(
+    paddingLeft = getIntOrNull("paddingLeft")?: 0,
+    paddingTop = getIntOrNull("paddingTop")?: 0,
+    paddingRight = getIntOrNull("paddingRight")?: 0,
+    paddingBottom = getIntOrNull("paddingBottom")?: 0,
+)
+
 /**
  * Converts the [json] to a `RNUiConfig` object.
  */
@@ -765,6 +774,7 @@ private fun ReadableMap.toUserInterfaceTypeFromPlayerConfig(): UserInterfaceType
 fun ReadableMap.toRNPlayerViewConfigWrapper() = RNPlayerViewConfigWrapper(
     playerViewConfig = toPlayerViewConfig(this),
     pictureInPictureConfig = getMap("pictureInPictureConfig")?.toPictureInPictureConfig(),
+    subtitleViewConfig = getMap("subtitleViewConfig")?.toSubtitleViewConfig()
 )
 
 fun ReadableMap.toRNStyleConfigWrapperFromPlayerConfig(): RNStyleConfigWrapper? {

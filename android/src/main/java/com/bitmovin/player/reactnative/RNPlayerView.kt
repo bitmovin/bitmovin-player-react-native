@@ -19,6 +19,7 @@ import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
+import com.bitmovin.player.reactnative.ui.SubtitleViewConfig
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.ThemedReactContext
@@ -186,6 +187,10 @@ class RNPlayerView(
      * Configures the visual presentation and behaviour of the [playerView].
      */
     var config: RNPlayerViewConfigWrapper? = null
+        set(value) {
+            field = value
+            applySubtitleConfig()
+        }
 
     /**
      * Cleans up the resources and listeners produced by this view.
@@ -231,7 +236,14 @@ class RNPlayerView(
             (currentSubtitleView.parent as? ViewGroup)?.removeView(currentSubtitleView)
         }
         this.subtitleView = subtitleView
+        applySubtitleConfig()
         addView(subtitleView)
+    }
+
+    private fun applySubtitleConfig() {
+        config?.subtitleViewConfig?.let {
+            subtitleView?.setPadding(it.paddingLeft, it.paddingTop, it.paddingRight, it.paddingBottom)
+        }
     }
 
     /**
@@ -344,6 +356,7 @@ class RNPlayerView(
 data class RNPlayerViewConfigWrapper(
     val playerViewConfig: PlayerViewConfig?,
     val pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig?,
+    val subtitleViewConfig: SubtitleViewConfig?,
 )
 
 data class RNStyleConfigWrapper(

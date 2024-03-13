@@ -1,4 +1,5 @@
 import { PictureInPictureConfig } from './pictureInPictureConfig';
+import { SubtitleViewConfig } from './subtitleViewConfig';
 
 /**
  * Configures the visual presentation and behaviour of the `PlayerView`.
@@ -19,6 +20,8 @@ export interface PlayerViewConfig {
    * Provides options to configure Picture in Picture playback.
    */
   pictureInPictureConfig?: PictureInPictureConfig;
+
+  subtitleViewConfig?: SubtitleViewConfig;
 }
 
 /**
