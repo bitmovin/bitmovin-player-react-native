@@ -1,5 +1,5 @@
 import { requireNativeComponent } from 'react-native';
-import { NativePlayerViewEvents } from './events';
+import { NativePlayerViewEvents } from './nativeEvents';
 import { BasePlayerViewProps } from './properties';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
