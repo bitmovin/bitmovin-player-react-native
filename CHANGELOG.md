@@ -6,6 +6,10 @@
 
 - `CueEnterEvent` and `CueExitEvent` to signal when a subtitle entry transitions into an active or inactive status respectively
 
+### Fixed
+
+- Use `onBmp` as a prefix to registered event listeners to prevent event name conflicts with other 3rd party libraries
+
 ## [0.18.0] (2024-03-06)
 
 ### Changed
