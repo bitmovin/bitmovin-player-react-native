@@ -181,6 +181,6 @@ public class RNPlayerViewManager: RCTViewManager {
             "name": "onPictureInPictureAvailabilityChanged",
             "timestamp": Date().timeIntervalSince1970
         ]
-        view.bmpOnPictureInPictureAvailabilityChanged?(event)
+        view.onBmpPictureInPictureAvailabilityChanged?(event)
     }
 }
