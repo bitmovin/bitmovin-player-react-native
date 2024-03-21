@@ -8,7 +8,7 @@
 
 ### Fixed
 
-- Use `onBmp` as a prefix to registered event listeners to prevent event name conflicts with other 3rd party libraries
+- Fix potential event name conflicts with other 3rd party libraries
 
 ## [0.18.0] (2024-03-06)
 
