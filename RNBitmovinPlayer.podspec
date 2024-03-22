@@ -19,7 +19,7 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,mm,swift}"
 
   s.dependency "React-Core"
-  s.dependency "BitmovinPlayer", "3.56.3"
+  s.dependency "BitmovinPlayer", "3.57.2"
   s.ios.dependency "GoogleAds-IMA-iOS-SDK", "3.18.4"
   s.tvos.dependency "GoogleAds-IMA-tvOS-SDK", "4.8.2"
 end

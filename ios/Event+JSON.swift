@@ -414,6 +414,30 @@ extension PlaybackSpeedChangedEvent: JsonConvertible {
     }
 }
 
+extension CueEnterEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON {
+            [
+                "start": startTime,
+                "end": endTime,
+                "text": text
+            ]
+        }
+    }
+}
+
+extension CueExitEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON {
+            [
+                "start": startTime,
+                "end": endTime,
+                "text": text
+            ]
+        }
+    }
+}
+
 extension PlayerActiveEvent: DefaultJsonConvertibleEvent {}
 extension DestroyEvent: DefaultJsonConvertibleEvent {}
 extension MutedEvent: DefaultJsonConvertibleEvent {}

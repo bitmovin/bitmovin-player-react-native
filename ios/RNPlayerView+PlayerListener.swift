@@ -3,219 +3,227 @@ import BitmovinPlayer
 extension RNPlayerView: PlayerListener {
     public func onEvent(_ event: Event, player: Player) {
         guard let jsonConvertibleEvent = event as? JsonConvertible else { return }
-        onEvent?(jsonConvertibleEvent.toJSON())
+        onBmpEvent?(jsonConvertibleEvent.toJSON())
     }
 
     public func onPlayerActive(_ event: PlayerActiveEvent, player: Player) {
-        onPlayerActive?(event.toJSON())
+        onBmpPlayerActive?(event.toJSON())
     }
 
     public func onPlayerError(_ event: PlayerErrorEvent, player: Player) {
-        onPlayerError?(event.toJSON())
+        onBmpPlayerError?(event.toJSON())
     }
 
     public func onPlayerWarning(_ event: PlayerWarningEvent, player: Player) {
-        onPlayerWarning?(event.toJSON())
+        onBmpPlayerWarning?(event.toJSON())
     }
 
     public func onDestroy(_ event: DestroyEvent, player: Player) {
-        onDestroy?(event.toJSON())
+        onBmpDestroy?(event.toJSON())
     }
 
     public func onMuted(_ event: MutedEvent, player: Player) {
-        onMuted?(event.toJSON())
+        onBmpMuted?(event.toJSON())
     }
 
     public func onUnmuted(_ event: UnmutedEvent, player: Player) {
-        onUnmuted?(event.toJSON())
+        onBmpUnmuted?(event.toJSON())
     }
 
     public func onReady(_ event: ReadyEvent, player: Player) {
-        onReady?(event.toJSON())
+        onBmpReady?(event.toJSON())
     }
 
     public func onPaused(_ event: PausedEvent, player: Player) {
-        onPaused?(event.toJSON())
+        onBmpPaused?(event.toJSON())
     }
 
     public func onPlay(_ event: PlayEvent, player: Player) {
-        onPlay?(event.toJSON())
+        onBmpPlay?(event.toJSON())
     }
 
     public func onPlaying(_ event: PlayingEvent, player: Player) {
-        onPlaying?(event.toJSON())
+        onBmpPlaying?(event.toJSON())
     }
 
     public func onPlaybackFinished(_ event: PlaybackFinishedEvent, player: Player) {
-        onPlaybackFinished?(event.toJSON())
+        onBmpPlaybackFinished?(event.toJSON())
     }
 
     public func onSeek(_ event: SeekEvent, player: Player) {
-        onSeek?(event.toJSON())
+        onBmpSeek?(event.toJSON())
     }
 
     public func onSeeked(_ event: SeekedEvent, player: Player) {
-        onSeeked?(event.toJSON())
+        onBmpSeeked?(event.toJSON())
     }
 
     public func onTimeShift(_ event: TimeShiftEvent, player: Player) {
-        onTimeShift?(event.toJSON())
+        onBmpTimeShift?(event.toJSON())
     }
 
     public func onTimeShifted(_ event: TimeShiftedEvent, player: Player) {
-        onTimeShifted?(event.toJSON())
+        onBmpTimeShifted?(event.toJSON())
     }
 
     public func onStallStarted(_ event: StallStartedEvent, player: Player) {
-        onStallStarted?(event.toJSON())
+        onBmpStallStarted?(event.toJSON())
     }
 
     public func onStallEnded(_ event: StallEndedEvent, player: Player) {
-        onStallEnded?(event.toJSON())
+        onBmpStallEnded?(event.toJSON())
     }
 
     public func onTimeChanged(_ event: TimeChangedEvent, player: Player) {
-        onTimeChanged?(event.toJSON())
+        onBmpTimeChanged?(event.toJSON())
     }
 
     public func onPlaybackSpeedChanged(_ event: PlaybackSpeedChangedEvent, player: Player) {
-        onPlaybackSpeedChanged?(event.toJSON())
+        onBmpPlaybackSpeedChanged?(event.toJSON())
     }
 
     public func onSourceLoad(_ event: SourceLoadEvent, player: Player) {
-        onSourceLoad?(event.toJSON())
+        onBmpSourceLoad?(event.toJSON())
     }
 
     public func onSourceLoaded(_ event: SourceLoadedEvent, player: Player) {
-        onSourceLoaded?(event.toJSON())
+        onBmpSourceLoaded?(event.toJSON())
     }
 
     public func onSourceUnloaded(_ event: SourceUnloadedEvent, player: Player) {
-        onSourceUnloaded?(event.toJSON())
+        onBmpSourceUnloaded?(event.toJSON())
     }
 
     public func onSourceError(_ event: SourceErrorEvent, player: Player) {
-        onSourceError?(event.toJSON())
+        onBmpSourceError?(event.toJSON())
     }
 
     public func onSourceWarning(_ event: SourceWarningEvent, player: Player) {
-        onSourceWarning?(event.toJSON())
+        onBmpSourceWarning?(event.toJSON())
     }
 
     public func onAudioAdded(_ event: AudioAddedEvent, player: Player) {
-        onAudioAdded?(event.toJSON())
+        onBmpAudioAdded?(event.toJSON())
     }
 
     public func onAudioRemoved(_ event: AudioRemovedEvent, player: Player) {
-        onAudioRemoved?(event.toJSON())
+        onBmpAudioRemoved?(event.toJSON())
     }
 
     public func onAudioChanged(_ event: AudioChangedEvent, player: Player) {
-        onAudioChanged?(event.toJSON())
+        onBmpAudioChanged?(event.toJSON())
     }
 
     public func onSubtitleAdded(_ event: SubtitleAddedEvent, player: Player) {
-        onSubtitleAdded?(event.toJSON())
+        onBmpSubtitleAdded?(event.toJSON())
     }
 
     public func onSubtitleRemoved(_ event: SubtitleRemovedEvent, player: Player) {
-        onSubtitleRemoved?(event.toJSON())
+        onBmpSubtitleRemoved?(event.toJSON())
     }
 
     public func onSubtitleChanged(_ event: SubtitleChangedEvent, player: Player) {
-        onSubtitleChanged?(event.toJSON())
+        onBmpSubtitleChanged?(event.toJSON())
     }
 
     public func onDownloadFinished(_ event: DownloadFinishedEvent, player: Player) {
-        onDownloadFinished?(event.toJSON())
+        onBmpDownloadFinished?(event.toJSON())
     }
 
     public func onAdBreakFinished(_ event: AdBreakFinishedEvent, player: Player) {
-        onAdBreakFinished?(event.toJSON())
+        onBmpAdBreakFinished?(event.toJSON())
     }
 
     public func onAdBreakStarted(_ event: AdBreakStartedEvent, player: Player) {
-        onAdBreakStarted?(event.toJSON())
+        onBmpAdBreakStarted?(event.toJSON())
     }
 
     public func onAdClicked(_ event: AdClickedEvent, player: Player) {
-        onAdClicked?(event.toJSON())
+        onBmpAdClicked?(event.toJSON())
     }
 
     public func onAdError(_ event: AdErrorEvent, player: Player) {
-        onAdError?(event.toJSON())
+        onBmpAdError?(event.toJSON())
     }
 
     public func onAdFinished(_ event: AdFinishedEvent, player: Player) {
-        onAdFinished?(event.toJSON())
+        onBmpAdFinished?(event.toJSON())
     }
 
     public func onAdManifestLoad(_ event: AdManifestLoadEvent, player: Player) {
-        onAdManifestLoad?(event.toJSON())
+        onBmpAdManifestLoad?(event.toJSON())
     }
 
     public func onAdManifestLoaded(_ event: AdManifestLoadedEvent, player: Player) {
-        onAdManifestLoaded?(event.toJSON())
+        onBmpAdManifestLoaded?(event.toJSON())
     }
 
     public func onAdQuartile(_ event: AdQuartileEvent, player: Player) {
-        onAdQuartile?(event.toJSON())
+        onBmpAdQuartile?(event.toJSON())
     }
 
     public func onAdScheduled(_ event: AdScheduledEvent, player: Player) {
-        onAdScheduled?(event.toJSON())
+        onBmpAdScheduled?(event.toJSON())
     }
 
     public func onAdSkipped(_ event: AdSkippedEvent, player: Player) {
-        onAdSkipped?(event.toJSON())
+        onBmpAdSkipped?(event.toJSON())
     }
 
     public func onAdStarted(_ event: AdStartedEvent, player: Player) {
-        onAdStarted?(event.toJSON())
+        onBmpAdStarted?(event.toJSON())
     }
 
     public func onVideoDownloadQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
-        onVideoDownloadQualityChanged?(event.toJSON())
+        onBmpVideoDownloadQualityChanged?(event.toJSON())
      }
 
     public func onVideoPlaybackQualityChanged(_ event: VideoPlaybackQualityChangedEvent, player: Player) {
-        onVideoPlaybackQualityChanged?(event.toJSON())
+        onBmpVideoPlaybackQualityChanged?(event.toJSON())
+    }
+
+    public func onCueEnter(_ event: CueEnterEvent, player: Player) {
+        onBmpCueEnter?(event.toJSON())
+    }
+
+    public func onCueExit(_ event: CueExitEvent, player: Player) {
+        onBmpCueExit?(event.toJSON())
     }
 
 #if os(iOS)
     public func onCastAvailable(_ event: CastAvailableEvent, player: Player) {
-        onCastAvailable?(event.toJSON())
+        onBmpCastAvailable?(event.toJSON())
     }
 
     public func onCastPaused(_ event: CastPausedEvent, player: Player) {
-        onCastPaused?(event.toJSON())
+        onBmpCastPaused?(event.toJSON())
     }
 
     public func onCastPlaybackFinished(_ event: CastPlaybackFinishedEvent, player: Player) {
-        onCastPlaybackFinished?(event.toJSON())
+        onBmpCastPlaybackFinished?(event.toJSON())
     }
 
     public func onCastPlaying(_ event: CastPlayingEvent, player: Player) {
-        onCastPlaying?(event.toJSON())
+        onBmpCastPlaying?(event.toJSON())
     }
 
     public func onCastStarted(_ event: CastStartedEvent, player: Player) {
-        onCastStarted?(event.toJSON())
+        onBmpCastStarted?(event.toJSON())
     }
 
     public func onCastStart(_ event: CastStartEvent, player: Player) {
-        onCastStart?(event.toJSON())
+        onBmpCastStart?(event.toJSON())
     }
 
     public func onCastStopped(_ event: CastStoppedEvent, player: Player) {
-        onCastStopped?(event.toJSON())
+        onBmpCastStopped?(event.toJSON())
     }
 
     public func onCastTimeUpdated(_ event: CastTimeUpdatedEvent, player: Player) {
-        onCastTimeUpdated?(event.toJSON())
+        onBmpCastTimeUpdated?(event.toJSON())
     }
     public func onCastWaitingForDevice(_ event: CastWaitingForDeviceEvent, player: Player) {
-        onCastWaitingForDevice?(event.toJSON())
+        onBmpCastWaitingForDevice?(event.toJSON())
     }
 #endif
 }

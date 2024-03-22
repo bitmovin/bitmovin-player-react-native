@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.19.0]
+
+### Added
+
+- `CueEnterEvent` and `CueExitEvent` to signal when a subtitle entry transitions into an active or inactive status respectively
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.63.0`
+- Update Bitmovin's native iOS SDK version to `3.57.2`
+
+### Fixed
+
+- Fix potential event name conflicts with other 3rd party libraries
+
 ## [0.18.0] (2024-03-06)
 
 ### Changed

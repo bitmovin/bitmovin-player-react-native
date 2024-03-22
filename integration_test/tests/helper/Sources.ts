@@ -15,4 +15,9 @@ export const Sources = {
     url: 'https://cph-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
     type: SourceType.HLS,
   } as SourceConfig,
+
+  sintel: {
+    url: 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
+    type: SourceType.HLS,
+  } as SourceConfig,
 };

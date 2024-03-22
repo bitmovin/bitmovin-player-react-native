@@ -19,6 +19,8 @@ export enum EventType {
   CastStopped = 'onCastStopped',
   CastTimeUpdated = 'onCastTimeUpdated',
   CastWaitingForDevice = 'onCastWaitingForDevice',
+  CueEnter = 'onCueEnter',
+  CueExit = 'onCueExit',
   Destroy = 'onDestroy',
   Event = 'onEvent',
   FullscreenEnabled = 'onFullscreenEnabled',

@@ -79,6 +79,8 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING = mapOf(
     PlayerEvent.CastStopped::class to "castStopped",
     PlayerEvent.CastWaitingForDevice::class to "castWaitingForDevice",
     PlayerEvent.CastTimeUpdated::class to "castTimeUpdated",
+    PlayerEvent.CueEnter::class to "cueEnter",
+    PlayerEvent.CueExit::class to "cueExit",
 )
 
 private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event>, String>(
