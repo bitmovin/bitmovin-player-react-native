@@ -10,8 +10,12 @@ inputs:
     description: Setup node and install root and subproject node modules (overrides `node` input)
     default: false
     required: false
+  brew:
+    description: Setup Homebrew
+    default: false
+    required: false
   ios:
-    description: Setup xcode and install dependencies
+    description: Setup xcode and install dependencies (overrides `brew` input)
     default: false
     required: false
   restore-pods:
@@ -68,7 +72,7 @@ runs:
         xcode-version: '14.3'
 
     - name: Install dependencies
-      if: ${{ inputs.ios == 'true' }}
+      if: ${{ inputs.ios == 'true' || inputs.brew == 'true' }}
       shell: bash
       run: brew bundle install
 

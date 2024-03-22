@@ -49,6 +49,7 @@ jobs:
         with:
           node: true
           restore-pods: true
+          brew: true
 
       - name: Bump iOS player SDK version
         if: ${{ inputs.sdk_name == 'ios' }}
