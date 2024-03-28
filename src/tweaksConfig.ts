@@ -150,4 +150,11 @@ export interface TweaksConfig {
    * @platform Android
    */
   useFiletypeExtractorFallbackForHls?: boolean;
+  /**
+   * Specifies whether the player should prefer software decoding over hardware decoding for ad playback.
+   * This only affects ads playback, the player will still prefer hardware decoding for the main content.
+   *
+   * @platform Android
+   */
+  preferSoftwareDecodingForAds?: boolean;
 }
