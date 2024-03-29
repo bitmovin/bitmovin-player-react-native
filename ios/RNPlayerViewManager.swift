@@ -80,7 +80,7 @@ public class RNPlayerViewManager: RCTViewManager {
             }
 
             if let customMessageHandlerBridgeId = self.customMessageHandlerBridgeId,
-                let customMessageHandlerBridge = self.bridge[CustomMessageHandlerModule.self]?
+               let customMessageHandlerBridge = self.bridge[CustomMessageHandlerModule.self]?
                 .retrieve(customMessageHandlerBridgeId) {
                 bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
             }
@@ -89,12 +89,14 @@ public class RNPlayerViewManager: RCTViewManager {
         }
 #endif
         if styleConfig.userInterfaceType == .system {
-          let systemUserInterfaceConfig = styleConfig
+            let systemUserInterfaceConfig = styleConfig
                 .userInterfaceConfig as? SystemUserInterfaceConfig ?? SystemUserInterfaceConfig()
 
-          systemUserInterfaceConfig.hideFirstFrame = playerViewConfig?.hideFirstFrame ?? false
+            if let hideFirstFrame = playerViewConfig?.hideFirstFrame {
+                systemUserInterfaceConfig.hideFirstFrame = hideFirstFrame
+            }
 
-          return systemUserInterfaceConfig
+            return systemUserInterfaceConfig
         }
 
         return nil

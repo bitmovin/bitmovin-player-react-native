@@ -1265,7 +1265,7 @@ internal struct RNPlayerViewConfig {
      * To reliably hide the first frame before a pre-roll ad, please ensure that you are using the
      * `AdvertisingConfig` to schedule ads and not the `scheduleAd` API call.
      */
-    var hideFirstFrame: Bool
+    var hideFirstFrame: Bool?
 }
 
 /**
