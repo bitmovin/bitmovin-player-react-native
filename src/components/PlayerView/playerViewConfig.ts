@@ -23,7 +23,7 @@ export interface PlayerViewConfig {
   /**
    * When set to `true`, the first frame of the main content will not be rendered before playback starts. Default is `false`.
    *
-   * To reliably hide the first frame before a pre-roll ad, please ensure that you are using the {@link AdvertisingConfig} to schedule ads and not the {@link scheduleAd} API call.
+   * To reliably hide the first frame before a pre-roll ad, please ensure that you are using the {@link AdvertisingConfig} to schedule ads and not the {@link Player.scheduleAd} API call.
    */
   hideFirstFrame?: boolean;
 }
