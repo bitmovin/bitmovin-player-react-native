@@ -1,6 +1,6 @@
 {
   "name": "bitmovin-player-react-native",
-  "version": "0.19.0",
+  "version": "0.20.0",
   "description": "Official React Native bindings for Bitmovin's mobile Player SDKs.",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
@@ -59,14 +59,12 @@
     "@babel/core": "7.22.10",
     "@babel/preset-env": "7.22.10",
     "@babel/runtime": "7.22.10",
-    "@commitlint/config-conventional": "17.7.0",
     "@react-native-community/eslint-config": "3.1.0",
     "@react-native/babel-preset": "0.73.18",
     "@types/jest": "^28.1.2",
     "@types/lodash.omit": "4.5.0",
     "@types/react": "~18.2.26",
     "babel-plugin-module-resolver": "5.0.0",
-    "commitlint": "17.7.1",
     "eslint": "8.24.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
@@ -91,11 +89,6 @@
   "peerDependencies": {
     "react": ">=17",
     "react-native": ">=0.65"
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
   },
   "lint-staged": {
     "*.(ts|tsx)": "eslint",

@@ -181,6 +181,7 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     withBoolean("useDrmSessionForClearPeriods") { useDrmSessionForClearPeriods = it }
     withBoolean("useDrmSessionForClearSources") { useDrmSessionForClearSources = it }
     withBoolean("useFiletypeExtractorFallbackForHls") { useFiletypeExtractorFallbackForHls = it }
+    withBoolean("preferSoftwareDecodingForAds") { preferSoftwareDecodingForAds = it }
 }
 
 /**
@@ -750,6 +751,7 @@ fun toPlayerViewConfig(json: ReadableMap) = PlayerViewConfig(
             ?.getBooleanOrNull("playbackSpeedSelectionEnabled")
             ?: true,
     ),
+    hideFirstFrame = json.getBooleanOrNull("hideFirstFrame") ?: false,
 )
 
 private fun ReadableMap.toUserInterfaceTypeFromPlayerConfig(): UserInterfaceType? =
