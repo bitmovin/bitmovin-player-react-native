@@ -62,7 +62,7 @@ public class RNPlayerViewManager: RCTViewManager {
         }
     }
 
-    func maybeCreateUserInterfaceConfig(
+    private func maybeCreateUserInterfaceConfig(
         styleConfig: StyleConfig,
         playerViewConfig: RNPlayerViewConfig?
     ) -> UserInterfaceConfig? {
