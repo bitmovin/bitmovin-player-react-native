@@ -8,6 +8,7 @@ import {
   SourceType,
   AdSourceType,
   AdSkippedEvent,
+  PlayerViewConfig,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
@@ -56,6 +57,10 @@ const advertisingConfig = {
 
 const remoteControlConfig = {
   isCastEnabled: false,
+};
+
+const playerViewConfig: PlayerViewConfig = {
+  hideFirstFrame: true,
 };
 
 export default function BasicAds() {
@@ -126,6 +131,7 @@ export default function BasicAds() {
       <PlayerView
         player={player}
         style={styles.player}
+        config={playerViewConfig}
         onAdBreakFinished={onEvent}
         onAdBreakStarted={onEvent}
         onAdClicked={onEvent}
