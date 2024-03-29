@@ -4,6 +4,7 @@
 
 ### Added
 
+- `preferSoftwareDecodingForAds` in `TweaksConfig` to use software decoding for ads, which can be useful for low-end Android devices
 - `hideFirstFrame` in `PlayerViewConfig` to ensure no frame of the main content is shown before pre-roll ads
 
 ## [0.19.0] (2024-03-22)
