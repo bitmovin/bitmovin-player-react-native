@@ -32,25 +32,13 @@ public class RNPlayerViewManager: RCTViewManager {
                 return
             }
             let playerViewConfig = RCTConvert.rnPlayerViewConfig(view.config)
-#if os(iOS)
-            if player.config.styleConfig.userInterfaceType == .bitmovin {
-                let bitmovinUserInterfaceConfig = player
-                    .config
-                    .styleConfig
-                    .userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
-                player.config.styleConfig.userInterfaceConfig = bitmovinUserInterfaceConfig
-                if let uiConfig = playerViewConfig?.uiConfig {
-                    bitmovinUserInterfaceConfig
-                        .playbackSpeedSelectionEnabled = uiConfig.playbackSpeedSelectionEnabled
-                }
 
-                if let customMessageHandlerBridgeId = self.customMessageHandlerBridgeId,
-                   let customMessageHandlerBridge = self.bridge[CustomMessageHandlerModule.self]?
-                    .retrieve(customMessageHandlerBridgeId) {
-                    bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
-                }
+            if let userInterfaceConfig = maybeCreateUserInterfaceConfig(
+                styleConfig: player.config.styleConfig,
+                playerViewConfig: playerViewConfig
+            ) {
+              player.config.styleConfig.userInterfaceConfig = userInterfaceConfig
             }
-#endif
 
             let previousPictureInPictureAvailableValue: Bool
             if let playerView = view.playerView {
@@ -72,6 +60,42 @@ public class RNPlayerViewManager: RCTViewManager {
                 previousState: previousPictureInPictureAvailableValue
             )
         }
+    }
+
+    func maybeCreateUserInterfaceConfig(
+        styleConfig: StyleConfig,
+        playerViewConfig: RNPlayerViewConfig?
+    ) -> UserInterfaceConfig? {
+#if os(iOS)
+        if styleConfig.userInterfaceType == .bitmovin {
+            let bitmovinUserInterfaceConfig = styleConfig
+                .userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
+
+            if let uiConfig = playerViewConfig?.uiConfig {
+                bitmovinUserInterfaceConfig
+                    .playbackSpeedSelectionEnabled = uiConfig.playbackSpeedSelectionEnabled
+            }
+            bitmovinUserInterfaceConfig.hideFirstFrame = playerViewConfig?.hideFirstFrame ?? false
+
+            if let customMessageHandlerBridgeId = self.customMessageHandlerBridgeId,
+                let customMessageHandlerBridge = self.bridge[CustomMessageHandlerModule.self]?
+                .retrieve(customMessageHandlerBridgeId) {
+                bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
+            }
+
+            return bitmovinUserInterfaceConfig
+        }
+#endif
+        if styleConfig.userInterfaceType == .system {
+          let systemUserInterfaceConfig = styleConfig
+                .userInterfaceConfig as? SystemUserInterfaceConfig ?? SystemUserInterfaceConfig()
+
+          systemUserInterfaceConfig.hideFirstFrame = playerViewConfig?.hideFirstFrame ?? false
+
+          return systemUserInterfaceConfig
+        }
+
+        return nil
     }
 
     @objc
