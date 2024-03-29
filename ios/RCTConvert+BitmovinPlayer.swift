@@ -1156,7 +1156,8 @@ extension RCTConvert {
 
         return RNPlayerViewConfig(
             uiConfig: rnUiConfig(json["uiConfig"]),
-            pictureInPictureConfig: pictureInPictureConfig(json["pictureInPictureConfig"])
+            pictureInPictureConfig: pictureInPictureConfig(json["pictureInPictureConfig"]),
+            hideFirstFrame: json["hideFirstFrame"] as? Bool
         )
     }
 
@@ -1256,6 +1257,15 @@ internal struct RNPlayerViewConfig {
         }
         return config
     }
+
+    /**
+     * When set to `true` the first frame of the main content will not be rendered before playback starts.
+     * Default is `false`.
+     *
+     * To reliably hide the first frame before a pre-roll ad, please ensure that you are using the
+     * `AdvertisingConfig` to schedule ads and not the `scheduleAd` API call.
+     */
+    var hideFirstFrame: Bool?
 }
 
 /**
