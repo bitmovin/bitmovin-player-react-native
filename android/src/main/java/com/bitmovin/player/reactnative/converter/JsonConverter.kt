@@ -750,6 +750,9 @@ fun toPlayerViewConfig(json: ReadableMap) = PlayerViewConfig(
             ?.getBooleanOrNull("playbackSpeedSelectionEnabled")
             ?: true,
     ),
+    hideFirstFrame = json.getMap("hideFirstFrame")
+        ?.getBooleanOrNull("hideFirstFrame")
+        ?: false,
 )
 
 private fun ReadableMap.toUserInterfaceTypeFromPlayerConfig(): UserInterfaceType? =
