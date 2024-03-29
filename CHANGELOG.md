@@ -6,6 +6,10 @@
 
 - `preferSoftwareDecodingForAds` in `TweaksConfig` to use software decoding for ads, which can be useful for low-end Android devices
 
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.64.0`
+
 ## [0.19.0] (2024-03-22)
 
 ### Added
