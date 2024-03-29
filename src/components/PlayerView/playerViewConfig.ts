@@ -22,7 +22,7 @@ export interface PlayerViewConfig {
 
   /**
    * When set to `true`, the first frame of the main content will not be rendered before playback starts. Default is `false`.
-   * This configuration has no effect for the ${@link UserInterfaceType.Subtitle} on iOS/tvOS.
+   * This configuration has no effect for the {@link UserInterfaceType.Subtitle} on iOS/tvOS.
    *
    * To reliably hide the first frame before a pre-roll ad, please ensure that you are using the {@link AdvertisingConfig} to schedule ads and not the {@link Player.scheduleAd} API call.
    */
