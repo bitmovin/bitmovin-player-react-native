@@ -75,7 +75,9 @@ public class RNPlayerViewManager: RCTViewManager {
                 bitmovinUserInterfaceConfig
                     .playbackSpeedSelectionEnabled = uiConfig.playbackSpeedSelectionEnabled
             }
-            bitmovinUserInterfaceConfig.hideFirstFrame = playerViewConfig?.hideFirstFrame ?? false
+            if let hideFirstFrame = playerViewConfig?.hideFirstFrame {
+                bitmovinUserInterfaceConfig.hideFirstFrame = hideFirstFrame
+            }
 
             if let customMessageHandlerBridgeId = self.customMessageHandlerBridgeId,
                 let customMessageHandlerBridge = self.bridge[CustomMessageHandlerModule.self]?
