@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `hideFirstFrame` in `PlayerViewConfig` to ensure no frame of the main content is shown before pre-roll ads
+
 ## [0.19.0] (2024-03-22)
 
 ### Added
