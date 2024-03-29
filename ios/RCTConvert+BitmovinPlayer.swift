@@ -1157,7 +1157,7 @@ extension RCTConvert {
         return RNPlayerViewConfig(
             uiConfig: rnUiConfig(json["uiConfig"]),
             pictureInPictureConfig: pictureInPictureConfig(json["pictureInPictureConfig"]),
-            hideFirstFrame: json["hideFirstFrame"] as? Bool ?? false
+            hideFirstFrame: json["hideFirstFrame"] as? Bool
         )
     }
 
