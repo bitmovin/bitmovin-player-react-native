@@ -69,6 +69,7 @@ export default function BasicPictureInPicture({
 
   useEffect(() => {
     navigation.setOptions({
+      headerShown: !isInPictureInPicture,
       // eslint-disable-next-line react/no-unstable-nested-components
       headerRight: () => (
         <Button

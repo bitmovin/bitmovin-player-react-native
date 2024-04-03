@@ -164,6 +164,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         val command = commandId?.toInt()?.toCommand() ?: throw IllegalArgumentException(
             "The received command is not supported by the Bitmovin Player View",
         )
+
         fun <T> T?.require(): T = this ?: throw InvalidParameterException("Missing parameter")
         when (command) {
             Commands.ATTACH_PLAYER -> attachPlayer(view, args?.getString(1).require(), args?.getMap(2))
@@ -172,6 +173,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 view,
                 args?.getString(1).require(),
             )
+
             Commands.SET_FULLSCREEN -> setFullscreen(view, args?.getBoolean(1).require())
             Commands.SET_SCALING_MODE -> setScalingMode(view, args?.getString(1).require())
             Commands.SET_PICTURE_IN_PICTURE -> setPictureInPicture(view, args?.getBoolean(1).require())
@@ -241,14 +243,14 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      */
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId, playerConfig: ReadableMap?) {
         handler.postAndLogException {
+            // PlayerView has to be initialized with Activity context
+            val currentActivity = context.currentActivity
+                ?: throw IllegalStateException("Cannot create a PlayerView, because no activity is attached.")
             val player = playerId.let { context.playerModule?.getPlayerOrNull(it) }
                 ?: throw InvalidParameterException("Cannot create a PlayerView, invalid playerId was passed: $playerId")
             val playbackConfig = playerConfig?.getMap("playbackConfig")
             val isPictureInPictureEnabled = view.config?.pictureInPictureConfig?.isEnabled == true ||
-                playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
-            val pictureInPictureHandler = view.pictureInPictureHandler ?: RNPictureInPictureHandler(context)
-            view.pictureInPictureHandler = pictureInPictureHandler
-            view.pictureInPictureHandler?.isPictureInPictureEnabled = isPictureInPictureEnabled
+                    playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
 
             val rnStyleConfigWrapper = playerConfig?.toRNStyleConfigWrapperFromPlayerConfig()
             val configuredPlayerViewConfig = view.config?.playerViewConfig ?: PlayerViewConfig()
@@ -256,9 +258,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             if (view.playerView != null) {
                 view.player = player
             } else {
-                // PlayerView has to be initialized with Activity context
-                val currentActivity = context.currentActivity
-                    ?: throw IllegalStateException("Cannot create a PlayerView, because no activity is attached.")
                 val userInterfaceType = rnStyleConfigWrapper?.userInterfaceType ?: UserInterfaceType.Bitmovin
                 val playerViewConfig: PlayerViewConfig = if (userInterfaceType != UserInterfaceType.Bitmovin) {
                     configuredPlayerViewConfig.copy(uiConfig = UiConfig.Disabled)
@@ -274,6 +273,10 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 )
                 view.setPlayerView(playerView)
                 attachCustomMessageHandlerBridge(view)
+
+                if (isPictureInPictureEnabled) {
+                    playerView.setPictureInPictureHandler(RNPictureInPictureHandler(currentActivity, player))
+                }
             }
 
             if (rnStyleConfigWrapper?.styleConfig?.isUiEnabled != false &&
