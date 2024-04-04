@@ -247,7 +247,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 ?: throw InvalidParameterException("Cannot create a PlayerView, invalid playerId was passed: $playerId")
             val playbackConfig = playerConfig?.getMap("playbackConfig")
             val isPictureInPictureEnabled = view.config?.pictureInPictureConfig?.isEnabled == true ||
-                    playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
+                playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
 
             val rnStyleConfigWrapper = playerConfig?.toRNStyleConfigWrapperFromPlayerConfig()
             val configuredPlayerViewConfig = view.config?.playerViewConfig ?: PlayerViewConfig()

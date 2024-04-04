@@ -47,11 +47,11 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
+import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.RNStyleConfigWrapper
 import com.bitmovin.player.reactnative.UserInterfaceType
-import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.extensions.get
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getDoubleOrNull

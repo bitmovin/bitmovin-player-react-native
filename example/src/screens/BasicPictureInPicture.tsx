@@ -73,7 +73,6 @@ export default function BasicPictureInPicture({
 
   useEffect(() => {
     navigation.setOptions({
-      // On Android,
       headerShown: !renderOnlyPlayerView,
       // eslint-disable-next-line react/no-unstable-nested-components
       headerRight: () => (
