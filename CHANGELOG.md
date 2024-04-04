@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Android: Entering Picture-in-Picture automatically from all screens when navigating the app to the background (after navigating to Basic Picture-in-Picture screen once)
+- Android: Entering Picture-in-Picture automatically when navigating the app to the background after activating Picture-in-Picture mode once
 - Android: Example app Toolbar not visible after going into PiP mode -> Dismissing PiP window (stopping the app) -> Opening the app again
 
 ### Changed
