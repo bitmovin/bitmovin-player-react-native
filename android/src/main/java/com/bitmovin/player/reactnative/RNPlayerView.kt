@@ -227,16 +227,16 @@ class RNPlayerView(
         }
     }
 
-    private var isPictureInPictureMode: Boolean = isInPictureInPictureMode()
+    private var isCurrentActivityInPictureInPictureMode: Boolean = isInPictureInPictureMode()
 
     /**
      * Called whenever this view's activity configuration changes.
      */
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        if (isPictureInPictureMode != isInPictureInPictureMode()) {
-            isPictureInPictureMode = isInPictureInPictureMode()
-            onPictureInPictureModeChanged(isPictureInPictureMode, newConfig)
+        if (isCurrentActivityInPictureInPictureMode != isInPictureInPictureMode()) {
+            isCurrentActivityInPictureInPictureMode = isInPictureInPictureMode()
+            onPictureInPictureModeChanged(isCurrentActivityInPictureInPictureMode, newConfig)
         }
     }
 
