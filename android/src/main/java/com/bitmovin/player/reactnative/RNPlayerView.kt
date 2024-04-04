@@ -244,7 +244,7 @@ class RNPlayerView(
         isInPictureInPictureMode: Boolean,
         newConfig: Configuration,
     ) {
-        val playerView = playerView ?: error("How can this be?")
+        val playerView = playerView ?: return
         playerView.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         if (isInPictureInPictureMode) {
             playerView.enterPictureInPicture()

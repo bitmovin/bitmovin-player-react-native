@@ -9,7 +9,7 @@ import androidx.annotation.RequiresApi
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.ui.DefaultPictureInPictureHandler
 
-private val TAG = "RNPiPHandler"
+private const val TAG = "RNPiPHandler"
 
 class RNPictureInPictureHandler(
     private val activity: Activity,

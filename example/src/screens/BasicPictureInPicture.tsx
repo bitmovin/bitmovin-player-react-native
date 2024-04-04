@@ -67,9 +67,14 @@ export default function BasicPictureInPicture({
     }, [player])
   );
 
+  // Since PiP on Android is basically just the whole activity fitted in a small
+  // floating window, we only want to render the player and hide any other UI.
+  let renderOnlyPlayerView = Platform.OS === 'android' && isInPictureInPicture;
+
   useEffect(() => {
     navigation.setOptions({
-      headerShown: !isInPictureInPicture,
+      // On Android,
+      headerShown: !renderOnlyPlayerView,
       // eslint-disable-next-line react/no-unstable-nested-components
       headerRight: () => (
         <Button
@@ -80,7 +85,7 @@ export default function BasicPictureInPicture({
         />
       ),
     });
-  }, [navigation, isInPictureInPicture]);
+  }, [navigation, isInPictureInPicture, renderOnlyPlayerView]);
 
   const onEvent = useCallback((event: Event) => {
     prettyPrint(`[${event.name}]`, event);
@@ -108,7 +113,7 @@ export default function BasicPictureInPicture({
     <ContainerView
       style={
         // On Android, we need to remove the padding from the container when in PiP mode.
-        Platform.OS === 'android' && isInPictureInPicture
+        renderOnlyPlayerView
           ? [styles.container, { padding: 0 }]
           : styles.container
       }

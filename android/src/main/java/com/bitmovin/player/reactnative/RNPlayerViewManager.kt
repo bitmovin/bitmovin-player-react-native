@@ -243,9 +243,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      */
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId, playerConfig: ReadableMap?) {
         handler.postAndLogException {
-            // PlayerView has to be initialized with Activity context
-            val currentActivity = context.currentActivity
-                ?: throw IllegalStateException("Cannot create a PlayerView, because no activity is attached.")
             val player = playerId.let { context.playerModule?.getPlayerOrNull(it) }
                 ?: throw InvalidParameterException("Cannot create a PlayerView, invalid playerId was passed: $playerId")
             val playbackConfig = playerConfig?.getMap("playbackConfig")
@@ -258,6 +255,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             if (view.playerView != null) {
                 view.player = player
             } else {
+                // PlayerView has to be initialized with Activity context
+                val currentActivity = context.currentActivity
+                    ?: throw IllegalStateException("Cannot create a PlayerView, because no activity is attached.")
                 val userInterfaceType = rnStyleConfigWrapper?.userInterfaceType ?: UserInterfaceType.Bitmovin
                 val playerViewConfig: PlayerViewConfig = if (userInterfaceType != UserInterfaceType.Bitmovin) {
                     configuredPlayerViewConfig.copy(uiConfig = UiConfig.Disabled)
@@ -271,12 +271,11 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     LayoutParams.MATCH_PARENT,
                     LayoutParams.MATCH_PARENT,
                 )
-                view.setPlayerView(playerView)
-                attachCustomMessageHandlerBridge(view)
-
                 if (isPictureInPictureEnabled) {
                     playerView.setPictureInPictureHandler(RNPictureInPictureHandler(currentActivity, player))
                 }
+                view.setPlayerView(playerView)
+                attachCustomMessageHandlerBridge(view)
             }
 
             if (rnStyleConfigWrapper?.styleConfig?.isUiEnabled != false &&
