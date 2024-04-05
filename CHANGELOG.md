@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Android: Entering Picture-in-Picture automatically when navigating the app to the background after activating Picture-in-Picture mode once
+- Android: Example app Toolbar not visible after going into PiP mode -> Dismissing PiP window (stopping the app) -> Opening the app again
+
+### Changed
+
+- Android: Default Picture-in-Picture implementation doesn't automatically hide/show the Toolbar anymore. This should be handled by the app itself, check out the sample app for an example implementation
+
 ## [0.20.0] (2024-03-29)
 
 ### Added
