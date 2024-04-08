@@ -217,6 +217,7 @@ fun ReadableMap.toAdSource(): AdSource? {
  * Converts any JS string into an `AdSourceType` enum value.
  */
 private fun String.toAdSourceType(): AdSourceType? = when (this) {
+    "bitmovin" -> AdSourceType.Bitmovin
     "ima" -> AdSourceType.Ima
     "progressive" -> AdSourceType.Progressive
     "unknown" -> AdSourceType.Unknown
@@ -626,6 +627,7 @@ fun AdSource.toJson(): WritableMap = Arguments.createMap().apply {
  * Converts any `AdSourceType` value into its json representation.
  */
 fun AdSourceType.toJson(): String = when (this) {
+    AdSourceType.Bitmovin -> "bitmovin"
     AdSourceType.Ima -> "ima"
     AdSourceType.Unknown -> "unknown"
     AdSourceType.Progressive -> "progressive"
