@@ -164,6 +164,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
         val command = commandId?.toInt()?.toCommand() ?: throw IllegalArgumentException(
             "The received command is not supported by the Bitmovin Player View",
         )
+
         fun <T> T?.require(): T = this ?: throw InvalidParameterException("Missing parameter")
         when (command) {
             Commands.ATTACH_PLAYER -> attachPlayer(view, args?.getString(1).require(), args?.getMap(2))
@@ -172,6 +173,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 view,
                 args?.getString(1).require(),
             )
+
             Commands.SET_FULLSCREEN -> setFullscreen(view, args?.getBoolean(1).require())
             Commands.SET_SCALING_MODE -> setScalingMode(view, args?.getString(1).require())
             Commands.SET_PICTURE_IN_PICTURE -> setPictureInPicture(view, args?.getBoolean(1).require())
@@ -246,9 +248,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             val playbackConfig = playerConfig?.getMap("playbackConfig")
             val isPictureInPictureEnabled = view.config?.pictureInPictureConfig?.isEnabled == true ||
                 playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
-            val pictureInPictureHandler = view.pictureInPictureHandler ?: RNPictureInPictureHandler(context)
-            view.pictureInPictureHandler = pictureInPictureHandler
-            view.pictureInPictureHandler?.isPictureInPictureEnabled = isPictureInPictureEnabled
 
             val rnStyleConfigWrapper = playerConfig?.toRNStyleConfigWrapperFromPlayerConfig()
             val configuredPlayerViewConfig = view.config?.playerViewConfig ?: PlayerViewConfig()
@@ -272,6 +271,9 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                     LayoutParams.MATCH_PARENT,
                     LayoutParams.MATCH_PARENT,
                 )
+                if (isPictureInPictureEnabled) {
+                    playerView.setPictureInPictureHandler(RNPictureInPictureHandler(currentActivity, player))
+                }
                 view.setPlayerView(playerView)
                 attachCustomMessageHandlerBridge(view)
             }
