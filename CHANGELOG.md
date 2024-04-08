@@ -11,6 +11,7 @@
 
 - Android: Default Picture-in-Picture implementation doesn't automatically hide/show the Toolbar anymore. This should be handled by the app itself, check out the sample app for an example implementation
 - Update Bitmovin's native Android SDK version to `3.65.0`
+- Update Bitmovin's native iOS SDK version to `3.59.0`
 
 ## [0.20.0] (2024-03-29)
 
