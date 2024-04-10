@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Update IMA SDK dependency on iOS to `3.19.1`, respectively `4.9.2` for tvOS
+
 ## [0.21.0] (2024-04-08)
 
 ### Fixed
