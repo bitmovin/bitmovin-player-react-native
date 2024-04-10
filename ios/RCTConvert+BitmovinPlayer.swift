@@ -159,6 +159,9 @@ extension RCTConvert {
                 break
             }
         }
+        if let updatesNowPlayingInfoCenter = json["updatesNowPlayingInfoCenter"] as? Bool {
+            tweaksConfig.updatesNowPlayingInfoCenter = updatesNowPlayingInfoCenter
+        }
         return tweaksConfig
     }
 
