@@ -17,9 +17,9 @@ export interface TweaksConfig {
   /**
    * If enabled, HLS playlists will be parsed and additional features and events are enabled. This includes:
    *
-   * - MetadataEvents carrying segment-specific metadata for custom HLS tags, like `#EXT-X-SCTE35`
-   * - MetadataParsedEvents carrying segment-specific metadata for custom HLS tags, like `#EXT-X-SCTE35`
-   * - DrmDataParsedEvents when a `#EXT-X-KEY` is found
+   * - `MetadataEvent`s carrying segment-specific metadata for custom HLS tags, like `#EXT-X-SCTE35`
+   * - `MetadataParsedEvent`s carrying segment-specific metadata for custom HLS tags, like `#EXT-X-SCTE35`
+   * - `DrmDataParsedEvent`s when a `#EXT-X-KEY` is found
    * - `Player.availableVideoQualities` includes additional information
    * - Automatic retries when HLS playlist requests failed with non-2xx HTTP status code
    *
@@ -32,9 +32,9 @@ export interface TweaksConfig {
    * If enabled, playlists will be downloaded by the Bitmovin Player SDK instead of AVFoundation.
    * This enables additional features and events, like:
    *
-   * - DownloadFinishedEvents for playlist downloads.
-   * - SourceWarningEvents when no `#EXT-X-PLAYLIST-TYPE` is found If set to false, enabling
-   * nativeHlsParsingEnabled won’t have any effect.
+   * - `DownloadFinishedEvent`s for playlist downloads.
+   * - `SourceWarningEvent`s when no `#EXT-X-PLAYLIST-TYPE` is found If set to false, enabling
+   * `isNativeHlsParsingEnabled` won’t have any effect.
    *
    * Default is `true`.
    *
@@ -44,10 +44,10 @@ export interface TweaksConfig {
   /**
    * The threshold which will be applied when seeking to the end in seconds. This value will be used
    * to calculate the maximum seekable time when calling `player.seek(time:)` or `player.playlist.seek(source:time:)`,
-   * so the maximum value will be duration - seekToEndThreshold.
+   * so the maximum value will be `duration - seekToEndThreshold`.
    *
    * This is useful if the duration of the segments does not match the duration specified in the
-   * manifest. In this case, if we try to seek to the end, AVPlayer could get stuck and might stall
+   * manifest. In this case, if we try to seek to the end, `AVPlayer` could get stuck and might stall
    * forever Therefore increasing this value could help.
    *
    * Default is `0.5`.
