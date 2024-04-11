@@ -58,8 +58,8 @@ export interface TweaksConfig {
   /**
    * Specifies the player behaviour when `Player.play` is called.
    *
-   * - 'relaxed': Starts playback when enough media data is buffered and continuous playback without stalling can be ensured. If insufficient media data is buffered for playback to start, the player will act as if the buffer became empty during playback.
-   * - 'aggressive': When the buffer is not empty, this setting will cause the player to start playback of available media immediately. If insufficient media data is buffered for playback to start, the player will act as if the buffer became empty during playback.
+   * - relaxed: Starts playback when enough media data is buffered and continuous playback without stalling can be ensured. If insufficient media data is buffered for playback to start, the player will act as if the buffer became empty during playback.
+   * - aggressive: When the buffer is not empty, this setting will cause the player to start playback of available media immediately. If insufficient media data is buffered for playback to start, the player will act as if the buffer became empty during playback.
    *
    * Default is `relaxed`.
    *
@@ -69,8 +69,8 @@ export interface TweaksConfig {
   /**
    * Specifies the player behaviour when stalling should be exited.
    *
-   * - 'relaxed': The player will wait until the buffer is filled that it can, most likely, ensure continuous playback without another stalling right after playback continued.
-   * - 'aggressive': The player will try to unstall as soon as some media data became available and will start playback of this media immediately.
+   * - relaxed: The player will wait until the buffer is filled that it can, most likely, ensure continuous playback without another stalling right after playback continued.
+   * - aggressive: The player will try to unstall as soon as some media data became available and will start playback of this media immediately.
    *
    * Default is `relaxed`.
    *
