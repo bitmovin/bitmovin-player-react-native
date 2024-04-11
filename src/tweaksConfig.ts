@@ -11,7 +11,7 @@ export interface TweaksConfig {
    * Default value in iOS is `1.0`.
    * Default value in Android is `0.2`.
    *
-   * @platform iOS, Android
+   * @platform Android, iOS, tvOS
    */
   timeChangedInterval?: number;
   /**
@@ -25,7 +25,7 @@ export interface TweaksConfig {
    *
    * Default is false.
    *
-   * @platform iOS
+   * @platform iOS, tvOS
    */
   isNativeHlsParsingEnabled?: boolean;
   /**
@@ -38,7 +38,7 @@ export interface TweaksConfig {
    *
    * Default is true.
    *
-   * @platform iOS
+   * @platform iOS, tvOS
    */
   isCustomHlsLoadingEnabled?: boolean;
   /**
@@ -52,7 +52,7 @@ export interface TweaksConfig {
    *
    * Default is 0.5.
    *
-   * @platform iOS
+   * @platform iOS, tvOS
    */
   seekToEndThreshold?: number;
   /**
@@ -61,7 +61,7 @@ export interface TweaksConfig {
    * - 'relaxed': Starts playback when enough media data is buffered and continuous playback without stalling can be ensured. If insufficient media data is buffered for playback to start, the player will act as if the buffer became empty during playback.
    * - 'aggressive': When the buffer is not empty, this setting will cause the player to start playback of available media immediately. If insufficient media data is buffered for playback to start, the player will act as if the buffer became empty during playback.
    *
-   * @platform iOS
+   * @platform iOS, tvOS
    */
   playbackStartBehaviour?: 'relaxed' | 'aggressive';
   /**
@@ -70,7 +70,7 @@ export interface TweaksConfig {
    * - 'relaxed': The player will wait until the buffer is filled that it can, most likely, ensure continuous playback without another stalling right after playback continued.
    * - 'aggressive': The player will try to unstall as soon as some media data became available and will start playback of this media immediately.
    *
-   * @platform iOS
+   * @platform iOS, tvOS
    */
   unstallingBehaviour?: 'relaxed' | 'aggressive';
   /**
