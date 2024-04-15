@@ -159,6 +159,11 @@ extension RCTConvert {
                 break
             }
         }
+#if !os(tvOS)
+        if let updatesNowPlayingInfoCenter = json["updatesNowPlayingInfoCenter"] as? Bool {
+            tweaksConfig.updatesNowPlayingInfoCenter = updatesNowPlayingInfoCenter
+        }
+#endif
         return tweaksConfig
     }
 

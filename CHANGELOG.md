@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- iOS: `TweaksConfig.updatesNowPlayingInfoCenter` to decide whether AVKit should update Now Playing information automatically when using System UI. You may want to disable automatic updates in case they are interfering with manual updates you are performing
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to `3.60.0`
