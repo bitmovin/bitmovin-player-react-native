@@ -1,4 +1,7 @@
 name: Finish Release Train
+
+run-name: Finish release train on ${{ github.ref_name }}
+
 on:
   pull_request:
     types:
