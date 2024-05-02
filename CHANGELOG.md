@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.67.0`
+
 ### Fixed
 
 - Android: Player Web UI freezing sometimes, under excessive WebUI-RN code messaging
