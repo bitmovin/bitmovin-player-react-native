@@ -1,4 +1,7 @@
 name: Start Release Train
+
+run-name: Start Release Train ${{ inputs.version_number }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -11,13 +14,16 @@ on:
         type: boolean
         required: false
         default: false
+
 env:
   LC_ALL: en_US.UTF-8
   LANG: en_US.UTF-8
   NO_FLIPPER: 1
+
 concurrency:
   group: start-release-train-${{ inputs.version_number }}
   cancel-in-progress: true
+
 jobs:
   create_release_pr:
     name: Create release branch and bump version
