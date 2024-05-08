@@ -62,12 +62,12 @@ class CustomMessageHandlerModule(private val context: ReactApplicationContext) :
         val args = Arguments.createArray()
         args.pushString(message)
         args.pushString(data)
-        context.catalystInstance.callFunction(
-            "CustomMessageBridge-$nativeId",
-            "receivedSynchronousMessage",
-            args as NativeArray,
-        )
         lock.withLock {
+            context.catalystInstance.callFunction(
+                "CustomMessageBridge-$nativeId",
+                "receivedSynchronousMessage",
+                args as NativeArray,
+            )
             customMessageHandlerResultChangedCondition.await()
         }
         return customMessageHandler[nativeId]?.popSynchronousResult()
