@@ -36,6 +36,7 @@ export interface BasePlayerViewProps {
  * {@link PlayerView} component props.
  */
 export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
+  viewRef?: React.MutableRefObject<null>;
   /**
    * {@link Player} instance (generally returned from {@link usePlayer} hook) that will control
    * and render audio/video inside the {@link PlayerView}.
