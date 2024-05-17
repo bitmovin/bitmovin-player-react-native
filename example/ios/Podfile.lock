@@ -3,10 +3,10 @@ PODS:
     - BitmovinAnalyticsCollector/Core
     - BitmovinPlayerCore (~> 3.48)
   - BitmovinAnalyticsCollector/Core (3.6.2)
-  - BitmovinPlayer (3.62.0):
+  - BitmovinPlayer (3.63.0):
     - BitmovinAnalyticsCollector/BitmovinPlayer (~> 3.0)
-    - BitmovinPlayerCore (= 3.62.0)
-  - BitmovinPlayerCore (3.62.0)
+    - BitmovinPlayerCore (= 3.63.0)
+  - BitmovinPlayerCore (3.63.0)
   - boost (1.83.0)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.73.4-0)
@@ -1052,7 +1052,7 @@ PODS:
     - React-logger (= 0.73.4-0)
     - React-perflogger (= 0.73.4-0)
   - RNBitmovinPlayer (0.23.0):
-    - BitmovinPlayer (= 3.62.0)
+    - BitmovinPlayer (= 3.63.0)
     - GoogleAds-IMA-iOS-SDK (= 3.19.1)
     - GoogleAds-IMA-tvOS-SDK (= 4.9.2)
     - React-Core
@@ -1249,14 +1249,14 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   BitmovinAnalyticsCollector: 78308c1c02ee0390554c377204fcbab923369296
-  BitmovinPlayer: 3b392570a8021ea40bdbd6bb1cd4f92f53baa34c
-  BitmovinPlayerCore: 24499606c16170cf5e19e45175a0220ba9a8da5b
+  BitmovinPlayer: f697e7c11554ee45e7f42f824359a4e9ebc81e0e
+  BitmovinPlayerCore: f50c383ea03927fadbdf85b585916461975192e3
   boost: 88202336c3ba1e7a264a83c0c888784b0f360c28
-  DoubleConversion: 234abba95e31cc2aada0cf3b97cdb11bc5b90575
+  DoubleConversion: 74cb0ce4de271b23e772567504735c87134edf0a
   FBLazyVector: 33a271a7e8de0bd321e47356d8bc3b2d5fb9ddba
   FBReactNativeSpec: 55b7e93b71f300a051190f63c2afeccd839b7e9a
   fmt: 745abaaffe4da13101ae15d70dc68ec3d6a666a2
-  glog: a2ded9bf28f0cb2fce90ad21eb419299a500ff6c
+  glog: f0ddebfc00a905e9213e37801095a0a705d2e5f6
   google-cast-sdk: afeb1aac0744b1bc4f70bc3db8468e33fabbff38
   GoogleAds-IMA-iOS-SDK: 18adbec04a2e79ce828a992d37a4580deadbe525
   GoogleAds-IMA-tvOS-SDK: 7e72fb938c246fb9718a3468d3c7fa7c722b2ea1
@@ -1305,7 +1305,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 20b2202e3396589a71069d12ae9f328949c7c7b8
   React-utils: 0307d396f233e47a167b5aaf045b0e4e1dc19d74
   ReactCommon: 17891ca337bfa5a7263649b09f27a8c664537bf2
-  RNBitmovinPlayer: d29f702a36a63c9965067bebdd8cda2cee491bc7
+  RNBitmovinPlayer: c684e2287e6c25d4791de46e67606d52d098fe62
   RNCPicker: b18aaf30df596e9b1738e7c1f9ee55402a229dca
   RNScreens: b582cb834dc4133307562e930e8fa914b8c04ef2
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
