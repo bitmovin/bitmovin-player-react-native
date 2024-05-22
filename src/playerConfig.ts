@@ -8,6 +8,7 @@ import { BufferConfig } from './bufferConfig';
 import { NativeInstanceConfig } from './nativeInstance';
 import { PlaybackConfig } from './playbackConfig';
 import { LiveConfig } from './liveConfig';
+import { NetworkConfig } from './network/networkConfig';
 
 /**
  * Object used to configure a new `Player` instance.
@@ -68,4 +69,6 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures behaviour when playing live content. A default {@link LiveConfig} is set initially.
    */
   liveConfig?: LiveConfig;
+
+  networkConfig?: NetworkConfig;
 }

@@ -11,9 +11,9 @@ import {
 import { Sources } from './helper/Sources';
 import {
   DownloadFinishedEvent,
-  HttpRequestType,
   SourceConfig,
 } from 'bitmovin-player-react-native';
+import { HttpRequestType } from 'src/network/networkConfig';
 
 export default (spec: TestScope) => {
   function loadingSourceTests(sourceConfig: SourceConfig, label: string) {
