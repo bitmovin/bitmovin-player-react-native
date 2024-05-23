@@ -149,7 +149,6 @@ export function PlayerView({
   useEffect(() => {
     if (viewRef) {
       viewRef.current = nativeView.current;
-      console.log('PlayerView ref set');
     }
   }, [viewRef, nativeView]);
 
