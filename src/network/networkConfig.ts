@@ -74,6 +74,41 @@ export interface NetworkConfig extends NativeInstanceConfig {
    * @param type Type of the request to be made.
    * @param request The HTTP request to process.
    * @returns The processed HTTP request.
+   *
+   * @examples
+   * ```
+   *  let drmHeaders;
+   *  const requestCallback = (type: HttpRequestType, request: HttpRequest) => {
+   *    // Access current properties
+   *
+   *    console.log(JSON.stringify(type));
+   *    console.log(JSON.stringify(request));
+   *    if (type === HttpRequestType.DrmLicenseFairplay) {
+   *      drmHeaders = request.headers;
+   *    }
+   *
+   *    // Modify the request
+   *
+   *    request.headers['New-Header'] = 'val';
+   *    request.method = 'GET';
+   *
+   *    // Return the processed request via a Promise
+   *
+   *    const processed: HttpRequest = {
+   *      body: request.body,
+   *      headers: request.headers,
+   *      method: request.method,
+   *      url: request.url,
+   *    };
+   *    return Promise.resolve(processed);
+   *  };
+   *
+   *  const player = usePlayer({
+   *    networkConfig: {
+   *      preprocessHttpRequest: requestCallback,
+   *    },
+   *  });
+   * ```
    */
   preprocessHttpRequest?: (
     type: HttpRequestType,
@@ -86,6 +121,43 @@ export interface NetworkConfig extends NativeInstanceConfig {
    * @param type Type of the corresponding request object of the response.
    * @param response The HTTP response to process.
    * @returns The processed HTTP response.
+   *
+   * @example
+   * ```
+   *  let drmHeaders;
+   *  const responseCallback = (type: HttpRequestType, response: HttpResponse) => {
+   *    // Access response properties
+   *
+   *    console.log(JSON.stringify(type));
+   *    console.log(JSON.stringify(response));
+   *    if (type === HttpRequestType.DrmLicenseFairplay) {
+   *      drmHeaders = response.headers;
+   *    }
+   *
+   *    // Modify the response
+   *
+   *    response.headers['New-Header'] = 'val';
+   *    response.url = response.request.url; // remove eventual redirect changes
+   *
+   *    // Return the processed response via a Promise
+   *
+   *    const processed: HttpResponse = {
+   *      body: response.body,
+   *      headers: response.headers,
+   *      request: response.request,
+   *      status: response.status,
+   *      url: response.url,
+   *    };
+   *    return Promise.resolve(processed);
+   *  };
+   *
+   *  // Properly attach the callback to the config
+   *  const player = usePlayer({
+   *    networkConfig: {
+   *      preprocessHttpResponse: responseCallback,
+   *    },
+   *  });
+   * ```
    */
   preprocessHttpResponse?: (
     type: HttpRequestType,
