@@ -50,9 +50,11 @@ export class Network extends NativeInstance<NetworkConfig> {
    * Applies the user-defined `preprocessHttpResponse` function to native's `type` and `response` data and store
    * the result back in `NetworkModule`.
    *
-   * Called from native code when `FairplayConfig.prepareCertificate` is dispatched.
+   * Called from native code when `NetworkConfig.preprocessHttpResponse` is dispatched.
    *
-   * @param certificate - Base64 encoded certificate data.
+   * @param responseId Identifies the completion handler of the response.
+   * @param type Type of the request to be made.
+   * @param response The HTTP response to process.
    */
   onPreprocessHttpResponse = (
     responseId: string,

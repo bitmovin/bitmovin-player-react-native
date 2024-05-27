@@ -69,6 +69,8 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures behaviour when playing live content. A default {@link LiveConfig} is set initially.
    */
   liveConfig?: LiveConfig;
-
+  /**
+   * Configures network request manipulation functionality. A default {@link NetworkConfig} is set initially.
+   */
   networkConfig?: NetworkConfig;
 }

@@ -27,7 +27,7 @@ export type HttpRequestBody = string;
 
 /** Represents an HTTP request. */
 export interface HttpRequest {
-  /** The request body to send to the server. */
+  /** The {@link HttpRequestBody} to send to the server. */
   body?: HttpRequestBody;
   /**
    * The HTTP Headers of the request.
@@ -47,7 +47,7 @@ export type HttpResponseBody = string;
 
 /** Represents an HTTP response. */
 export interface HttpResponse {
-  /** The body of the response. */
+  /** The {@link HttpRequestBody} of the response. */
   body?: HttpResponseBody;
   /**
    * The HTTP Headers of the response.
@@ -68,17 +68,24 @@ export interface HttpResponse {
  */
 export interface NetworkConfig extends NativeInstanceConfig {
   /**
-   * Called before a HTTP request is made.
+   * Called before an HTTP request is made.
    * Can be used to change request parameters.
-   * TODO: add code sample (see web API reference)
+   *
+   * @param type Type of the request to be made.
+   * @param request The HTTP request to process.
+   * @returns The processed HTTP request.
    */
   preprocessHttpRequest?: (
     type: HttpRequestType,
     request: HttpRequest
   ) => Promise<HttpRequest>;
   /**
-   * Can be used to the access or change properties of the response before it gets into the player.
-   * TODO: add code sample (see web API reference)
+   * Called before an HTTP response is accessed by the player.
+   * Can be used to the access or change properties of the response.
+   *
+   * @param type Type of the corresponding request object of the response.
+   * @param response The HTTP response to process.
+   * @returns The processed HTTP response.
    */
   preprocessHttpResponse?: (
     type: HttpRequestType,
