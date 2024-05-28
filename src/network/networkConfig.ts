@@ -73,19 +73,17 @@ export interface NetworkConfig extends NativeInstanceConfig {
    *
    * @param type Type of the request to be made.
    * @param request The HTTP request to process.
-   * @returns The processed HTTP request.
+   * @returns A Promise that resolves to an `HttpRequest` object.
+   *          - If the promise resolves, the player will use the processed request.
+   *          - If the promise rejects, the player will fall back to using the original request.
    *
    * @examples
    * ```
-   *  let drmHeaders;
    *  const requestCallback = (type: HttpRequestType, request: HttpRequest) => {
    *    // Access current properties
    *
    *    console.log(JSON.stringify(type));
    *    console.log(JSON.stringify(request));
-   *    if (type === HttpRequestType.DrmLicenseFairplay) {
-   *      drmHeaders = request.headers;
-   *    }
    *
    *    // Modify the request
    *
@@ -120,19 +118,17 @@ export interface NetworkConfig extends NativeInstanceConfig {
    *
    * @param type Type of the corresponding request object of the response.
    * @param response The HTTP response to process.
-   * @returns The processed HTTP response.
+   * @returns A Promise that resolves to an `HttpResponse` object.
+   *          - If the promise resolves, the player will use the processed response.
+   *          - If the promise rejects, the player will fall back to using the original response.
    *
    * @example
    * ```
-   *  let drmHeaders;
    *  const responseCallback = (type: HttpRequestType, response: HttpResponse) => {
    *    // Access response properties
    *
    *    console.log(JSON.stringify(type));
    *    console.log(JSON.stringify(response));
-   *    if (type === HttpRequestType.DrmLicenseFairplay) {
-   *      drmHeaders = response.headers;
-   *    }
    *
    *    // Modify the response
    *
