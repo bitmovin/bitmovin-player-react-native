@@ -70,6 +70,9 @@ export class Network extends NativeInstance<NetworkConfig> {
       ?.preprocessHttpResponse?.(type, response)
       .then((resultResponse) => {
         NetworkModule.setPreprocessedHttpResponse(responseId, resultResponse);
+      })
+      .catch(() => {
+        NetworkModule.setPreprocessedHttpResponse(responseId, response);
       });
   };
 }
