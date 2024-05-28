@@ -10,7 +10,7 @@ extension RCTConvert {
      - Parameter json: JS object
      - Returns: The produced `PlayerConfig` object
      */
-    static func playerConfig(_ json: Any?) -> PlayerConfig? {
+    static func playerConfig(_ json: Any?) -> PlayerConfig? { // swiftlint:disable:this cyclomatic_complexity
         let playerConfig = PlayerConfig()
         guard let json = json as? [String: Any?] else {
             return playerConfig
@@ -1326,7 +1326,7 @@ extension RCTConvert {
     }
 
     static func toJson(data: Data?) -> String? {
-        return data?.base64EncodedString()
+        data?.base64EncodedString()
     }
 
     static func toJson(httpRequest: HttpRequest) -> [String: Any] {
