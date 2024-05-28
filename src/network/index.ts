@@ -61,12 +61,10 @@ export class Network extends NativeInstance<NetworkConfig> {
     type: HttpRequestType,
     response: HttpResponse
   ) => {
-    if (this.config?.preprocessHttpResponse) {
-      this.config
-        ?.preprocessHttpResponse?.(type, response)
-        .then((resultResponse) => {
-          NetworkModule.setPreprocessedHttpResponse(responseId, resultResponse);
-        });
-    }
+    this.config
+      ?.preprocessHttpResponse?.(type, response)
+      .then((resultResponse) => {
+        NetworkModule.setPreprocessedHttpResponse(responseId, resultResponse);// send back to native actual result given the reponseId and 
+      });
   };
 }
