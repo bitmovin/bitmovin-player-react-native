@@ -28,7 +28,7 @@ export class Network extends NativeInstance<NetworkConfig> {
   initialize = () => {
     if (!this.isInitialized) {
       // Register this object as a callable module so it's possible to
-      // call functions on it from native code, e.g `onPrepareMessage`.
+      // call functions on it from native code, e.g `onPreprocessHttpResponse`.
       BatchedBridge.registerCallableModule(`Network-${this.nativeId}`, this);
       // Create native configuration object.
       NetworkModule.initWithConfig(this.nativeId, this.config);
