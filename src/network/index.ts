@@ -57,7 +57,7 @@ export class Network extends NativeInstance<NetworkConfig> {
    *
    * Called from native code when `NetworkConfig.preprocessHttpResponse` is dispatched.
    *
-   * @param responseId Identifies the completion handler of the response.
+   * @param responseId Passed through to identify the completion handler of the response on native.
    * @param type Type of the request to be made.
    * @param response The HTTP response to process.
    */
