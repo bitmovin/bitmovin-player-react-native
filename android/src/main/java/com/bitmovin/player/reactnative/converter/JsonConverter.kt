@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative.converter
 
+import android.util.Base64
 import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
@@ -35,6 +36,10 @@ import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
+import com.bitmovin.player.api.network.HttpRequest
+import com.bitmovin.player.api.network.HttpRequestType
+import com.bitmovin.player.api.network.HttpResponse
+import com.bitmovin.player.api.network.NetworkConfig
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.Source
@@ -86,6 +91,7 @@ fun ReadableMap.toPlayerConfig(): PlayerConfig = PlayerConfig(key = getString("l
     withMap("remoteControlConfig") { remoteControlConfig = it.toRemoteControlConfig() }
     withMap("bufferConfig") { bufferConfig = it.toBufferConfig() }
     withMap("liveConfig") { liveConfig = it.toLiveConfig() }
+    withMap("networkConfig") { networkConfig = it.toNetworkConfig() }
 }
 
 /**
@@ -783,6 +789,64 @@ fun ReadableMap.toRNStyleConfigWrapperFromPlayerConfig(): RNStyleConfigWrapper? 
  */
 fun ReadableMap.toLiveConfig(): LiveConfig = LiveConfig().apply {
     withDouble("minTimeshiftBufferDepth") { minTimeShiftBufferDepth = it }
+}
+
+fun ReadableMap.toHttpRequest(): HttpRequest? {
+    return HttpRequest(
+        getString("url") ?: return null,
+        getMap("headers")?.toMap(),
+        getString("body")?.toByteArray(),
+        getString("method") ?: return null
+    )
+}
+
+private fun ByteArray.toJson(): String {
+    val decodedBytes = Base64.decode(this, Base64.NO_WRAP)
+    return String(decodedBytes, Charsets.UTF_8)
+}
+
+private fun String.toByteArray(): ByteArray = Base64.decode(this, Base64.NO_WRAP)
+
+fun ReadableMap.toHttpResponse(): HttpResponse? {
+    return HttpResponse(
+        httpRequest = getMap("request")?.toHttpRequest() ?: return null,
+        url = getString("url") ?: return null,
+        status = getInt("status"),
+        headers = getMap("headers")?.toMap() ?: return null,
+        body = getString("body")?.toByteArray() ?: return null
+    )
+}
+
+fun ReadableMap.toNetworkConfig(): NetworkConfig = NetworkConfig()
+
+fun HttpRequest.toJson(): WritableMap = Arguments.createMap().apply {
+    putString("url", url)
+    putMap("headers", headers?.toReadableMap())
+    putString("body", body?.toJson())
+    putString("method", method)
+}
+
+fun HttpResponse.toJson(): WritableMap = Arguments.createMap().apply {
+    putMap("request", httpRequest.toJson())
+    putString("url", url)
+    putInt("status", status)
+    putMap("headers", headers.toReadableMap())
+    putString("body", body.toJson())
+}
+
+fun HttpRequestType.toJson(): String = when (this) {
+    HttpRequestType.ManifestDash -> "manifest/dash"
+    HttpRequestType.ManifestHlsMaster -> "manifest/hls/master"
+    HttpRequestType.ManifestHlsVariant -> "manifest/hls/variant"
+    HttpRequestType.ManifestSmooth -> "manifest/smooth"
+    HttpRequestType.MediaProgressive -> "media/progressive"
+    HttpRequestType.MediaAudio -> "media/audio"
+    HttpRequestType.MediaVideo -> "media/video"
+    HttpRequestType.MediaSubtitles -> "media/subtitles"
+    HttpRequestType.MediaThumbnails -> "media/thumbnails"
+    HttpRequestType.DrmLicenseWidevine -> "drm/license/widevine"
+    HttpRequestType.KeyHlsAes -> "key/hls/aes"
+    HttpRequestType.Unknown -> "unknown"
 }
 
 /**
