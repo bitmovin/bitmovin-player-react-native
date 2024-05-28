@@ -68,7 +68,7 @@ public class NetworkModule: NSObject, RCTBridgeModule {
         }
     }
 
-    func preprocessHttpResponseFromJS(
+    private func preprocessHttpResponseFromJS(
         _ nativeId: NativeId,
         _ type: HttpRequestType,
         _ response: HttpResponse,
