@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `NetworkConfig` to configure the network request manipulation functionality
+  - `preprocessHttpRequest(type, request) => Promise<HttpRequest>` to pre-process an HTTP request before the request is made
+  - `preprocessHttpResponse(type, response) => Promise<HttpResponse>` to pre-process an HTTP response before it gets into the player
+
 ## [0.23.0] (2024-05-08)
 
 ### Changed
