@@ -1,10 +1,15 @@
 import { NativeModules } from 'react-native';
 import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
 import NativeInstance from '../nativeInstance';
-import { HttpRequestType, HttpResponse, NetworkConfig } from './networkConfig';
+import {
+  HttpRequestType,
+  HttpRequest,
+  HttpResponse,
+  NetworkConfig,
+} from './networkConfig';
 
 // Export config types from Network module.
-export { HttpRequestType, HttpResponse, NetworkConfig };
+export { HttpRequestType, HttpRequest, HttpResponse, NetworkConfig };
 
 const NetworkModule = NativeModules.NetworkModule;
 
@@ -64,7 +69,7 @@ export class Network extends NativeInstance<NetworkConfig> {
     this.config
       ?.preprocessHttpResponse?.(type, response)
       .then((resultResponse) => {
-        NetworkModule.setPreprocessedHttpResponse(responseId, resultResponse);// send back to native actual result given the reponseId and 
+        NetworkModule.setPreprocessedHttpResponse(responseId, resultResponse);
       });
   };
 }
