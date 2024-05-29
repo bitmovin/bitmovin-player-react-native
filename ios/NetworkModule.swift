@@ -52,9 +52,8 @@ public class NetworkModule: NSObject, RCTBridgeModule {
     }
 
     private func initConfigBlocks(_ nativeId: NativeId, _ config: Any?) {
-        if let json = config as? [String: Any] {
-            initPreprocessHttpResponse(nativeId, networkConfigJson: json)
-        }
+        guard let json = config as? [String: Any] else { return }
+        initPreprocessHttpResponse(nativeId, networkConfigJson: json)
     }
 
     private func initPreprocessHttpResponse(_ nativeId: NativeId, networkConfigJson: [String: Any]) {
