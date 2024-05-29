@@ -1303,7 +1303,7 @@ extension RCTConvert {
     }
 
     static func toJson(httpRequestType: HttpRequestType) -> String {
-        return httpRequestType.rawValue
+        httpRequestType.rawValue
     }
 
     static func toJson(data: Data?) -> String? {
