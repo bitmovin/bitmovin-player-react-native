@@ -4,8 +4,7 @@ import android.view.View
 import com.bitmovin.player.reactnative.ui.CustomMessageHandlerModule
 import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
 import com.facebook.react.ReactPackage
-import com.facebook.react.bridge.NativeModule
-import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.ReactShadowNode
 import com.facebook.react.uimanager.ViewManager
 
@@ -30,6 +29,7 @@ class RNPlayerViewPackage : ReactPackage {
             CustomMessageHandlerModule(reactContext),
             BitmovinCastManagerModule(reactContext),
             BufferModule(reactContext),
+            NetworkModule(reactContext)
         )
     }
 
