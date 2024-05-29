@@ -2,10 +2,13 @@ package com.bitmovin.player.reactnative
 
 import androidx.concurrent.futures.CallbackToFutureAdapter
 import androidx.concurrent.futures.CallbackToFutureAdapter.Completer
+import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.network.HttpResponse
 import com.bitmovin.player.api.network.NetworkConfig
+import com.bitmovin.player.api.network.PreprocessHttpRequestCallback
 import com.bitmovin.player.api.network.PreprocessHttpResponseCallback
+import com.bitmovin.player.reactnative.converter.toHttpRequest
 import com.bitmovin.player.reactnative.converter.toHttpResponse
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toNetworkConfig
@@ -22,6 +25,7 @@ class NetworkModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
      * In-memory mapping from `nativeId`s to `NetworkConfig` instances.
      */
     private val networkConfigs: Registry<NetworkConfig> = mutableMapOf()
+    private val preprocessHttpRequestCompleters: MutableMap<String, Completer<HttpRequest>> = mutableMapOf()
     private val preprocessHttpResponseCompleters: MutableMap<String, Completer<HttpResponse>> = mutableMapOf()
     override fun getName() = MODULE_NAME
 
@@ -46,6 +50,9 @@ class NetworkModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
     @ReactMethod
     fun destroy(nativeId: NativeId) {
         networkConfigs.remove(nativeId)
+        preprocessHttpRequestCompleters.keys.filter { it.startsWith(nativeId) }.forEach {
+            preprocessHttpRequestCompleters.remove(it)
+        }
         preprocessHttpResponseCompleters.keys.filter { it.startsWith(nativeId) }.forEach {
             preprocessHttpResponseCompleters.remove(it)
         }
@@ -53,7 +60,16 @@ class NetworkModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
 
     private fun initConfigBlocks(nativeId: String, config: Any?) {
         (config as? ReadableMap)?.let { json ->
+            initPreprocessHttpRequest(nativeId, networkConfigJson = json)
             initPreprocessHttpResponse(nativeId, networkConfigJson = json)
+        }
+    }
+
+    private fun initPreprocessHttpRequest(nativeId: NativeId, networkConfigJson: ReadableMap) {
+        val networkConfig = getConfig(nativeId) ?: return
+        if (!networkConfigJson.hasKey("preprocessHttpRequest")) return
+        networkConfig.preprocessHttpRequestCallback = PreprocessHttpRequestCallback { type, request ->
+            preprocessHttpRequestFromJS(nativeId, type, request)
         }
     }
 
@@ -63,6 +79,29 @@ class NetworkModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
         networkConfig.preprocessHttpResponseCallback = PreprocessHttpResponseCallback { type, response ->
             preprocessHttpResponseFromJS(nativeId, type, response)
         }
+    }
+
+    private fun preprocessHttpRequestFromJS(
+        nativeId: NativeId,
+        type: HttpRequestType,
+        request: HttpRequest,
+    ): Future<HttpRequest> {
+        val requestId = "$nativeId@${System.identityHashCode(request)}"
+        val args = Arguments.createArray()
+        args.pushString(requestId)
+        args.pushString(type.toJson())
+        args.pushMap(request.toJson())
+
+        return CallbackToFutureAdapter.getFuture { completer ->
+            preprocessHttpRequestCompleters[requestId] = completer
+            context.catalystInstance.callFunction("Network-$nativeId", "onPreprocessHttpRequest", args as NativeArray)
+        }
+    }
+
+    @ReactMethod
+    fun setPreprocessedHttpRequest(requestId: String, response: ReadableMap) {
+        preprocessHttpRequestCompleters[requestId]?.set(response.toHttpRequest())
+        preprocessHttpRequestCompleters.remove(requestId)
     }
 
     private fun preprocessHttpResponseFromJS(
