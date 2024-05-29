@@ -82,7 +82,12 @@ public class NetworkModule: NSObject, RCTBridgeModule {
         }
 
         networkConfig.preprocessHttpResponse = { [weak self] type, response, completionHandler in
-            self?.preprocessHttpResponseFromJS(nativeId, type, response, completionHandler)
+            self?.preprocessHttpResponseFromJS(
+                nativeId: nativeId,
+                type: type,
+                response: response,
+                completionHandler: completionHandler
+            )
         }
     }
 
@@ -116,10 +121,10 @@ public class NetworkModule: NSObject, RCTBridgeModule {
     }
 
     private func preprocessHttpResponseFromJS(
-        _ nativeId: NativeId,
-        _ type: HttpRequestType,
-        _ response: HttpResponse,
-        _ completionHandler: @escaping (
+        nativeId: NativeId,
+        type: HttpRequestType,
+        response: HttpResponse,
+        completionHandler: @escaping (
             _ response: HttpResponse
         ) -> Void
     ) {
