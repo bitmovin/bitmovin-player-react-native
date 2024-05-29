@@ -4,7 +4,7 @@
 
 RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config)
 RCT_EXTERN_METHOD(destroy:(NSString *)nativeId)
-RCT_EXTERN_METHOD(setPreprocessedHttpRequest:(NSString *)nativeId request:(NSDictionary *)response)
+RCT_EXTERN_METHOD(setPreprocessedHttpRequest:(NSString *)nativeId request:(NSDictionary *)request)
 RCT_EXTERN_METHOD(setPreprocessedHttpResponse:(NSString *)nativeId response:(NSDictionary *)response)
 
 @end

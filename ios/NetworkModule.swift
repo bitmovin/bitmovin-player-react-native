@@ -8,7 +8,7 @@ public class NetworkModule: NSObject, RCTBridgeModule {
     /// In-memory mapping from `nativeId`s to `NetworkConfig` instances.
     private var networkConfigs: Registry<NetworkConfig> = [:]
     private var preprocessHttpRequestDelegateBridges: Registry<PreprocessHttpRequestDelegate> = [:]
-    private var preprocessHttpRequestCompletionHandlers: Registry<(_ response: HttpRequest) -> Void> = [:]
+    private var preprocessHttpRequestCompletionHandlers: Registry<(_ request: HttpRequest) -> Void> = [:]
     private var preprocessHttpResponseCompletionHandlers: Registry<(_ response: HttpResponse) -> Void> = [:]
 
     // swiftlint:disable:next implicitly_unwrapped_optional
@@ -82,7 +82,12 @@ public class NetworkModule: NSObject, RCTBridgeModule {
         }
 
         networkConfig.preprocessHttpResponse = { [weak self] type, response, completionHandler in
-            self?.preprocessHttpResponseFromJS(nativeId, type, response, completionHandler)
+            self?.preprocessHttpResponseFromJS(
+                nativeId: nativeId,
+                type: type,
+                response: response,
+                completionHandler: completionHandler
+            )
         }
     }
 
@@ -116,10 +121,10 @@ public class NetworkModule: NSObject, RCTBridgeModule {
     }
 
     private func preprocessHttpResponseFromJS(
-        _ nativeId: NativeId,
-        _ type: HttpRequestType,
-        _ response: HttpResponse,
-        _ completionHandler: @escaping (
+        nativeId: NativeId,
+        type: HttpRequestType,
+        response: HttpResponse,
+        completionHandler: @escaping (
             _ response: HttpResponse
         ) -> Void
     ) {
