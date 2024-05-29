@@ -41,7 +41,7 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
     func initWithConfig(
         _ nativeId: NativeId,
         config: Any?,
-        networkNativeId: NativeId
+        networkNativeId: NativeId?
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
@@ -53,7 +53,8 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
 #if os(iOS)
             self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
 #endif
-            if let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
+            if let networkNativeId,
+               let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
                 playerConfig.networkConfig = networkConfig
             }
             self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
@@ -70,7 +71,7 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
     func initWithAnalyticsConfig(
         _ nativeId: NativeId,
         config: Any?,
-        networkNativeId: NativeId,
+        networkNativeId: NativeId?,
         analyticsConfig: Any?
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
@@ -85,7 +86,8 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
 #if os(iOS)
             self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
 #endif
-            if let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
+            if let networkNativeId,
+               let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
                 playerConfig.networkConfig = networkConfig
             }
             let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfigJson)
