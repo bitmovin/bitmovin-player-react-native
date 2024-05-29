@@ -52,6 +52,31 @@ export class Network extends NativeInstance<NetworkConfig> {
   };
 
   /**
+   * Applies the user-defined `preprocessHttpRequest` function to native's `type` and `request` data and store
+   * the result back in `NetworkModule`.
+   *
+   * Called from native code when `NetworkConfig.preprocessHttpRequest` is dispatched.
+   *
+   * @param requestId Identifies the completion handler of the request.
+   * @param type Type of the request to be made.
+   * @param request The HTTP request to process.
+   */
+  onPreprocessHttpRequest = (
+    requestId: string,
+    type: HttpRequestType,
+    request: HttpRequest
+  ) => {
+    this.config
+      ?.preprocessHttpRequest?.(type, request)
+      .then((resultRequest) => {
+        NetworkModule.setPreprocessedHttpRequest(requestId, resultRequest);
+      })
+      .catch(() => {
+        NetworkModule.setPreprocessedHttpRequest(requestId, request);
+      });
+  };
+
+  /**
    * Applies the user-defined `preprocessHttpResponse` function to native's `type` and `response` data and store
    * the result back in `NetworkModule`.
    *
