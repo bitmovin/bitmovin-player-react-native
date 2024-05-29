@@ -57,13 +57,13 @@ public class NetworkModule: NSObject, RCTBridgeModule {
     }
 
     private func initPreprocessHttpResponse(_ nativeId: NativeId, networkConfigJson: [String: Any]) {
-        guard let networkConfig = retrieve(nativeId) else {
+        guard let networkConfig = retrieve(nativeId),
+              networkConfigJson["preprocessHttpResponse"] != nil else {
             return
         }
-        if networkConfigJson["preprocessHttpResponse"] != nil {
-            networkConfig.preprocessHttpResponse = { [weak self] type, response, completionHandler in
-                self?.preprocessHttpResponseFromJS(nativeId, type, response, completionHandler)
-            }
+
+        networkConfig.preprocessHttpResponse = { [weak self] type, response, completionHandler in
+            self?.preprocessHttpResponseFromJS(nativeId, type, response, completionHandler)
         }
     }
 
