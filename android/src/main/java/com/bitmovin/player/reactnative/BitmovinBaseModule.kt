@@ -2,8 +2,10 @@ package com.bitmovin.player.reactnative
 
 import android.util.Log
 import com.bitmovin.player.api.Player
+import com.bitmovin.player.api.network.NetworkConfig
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.extensions.drmModule
+import com.bitmovin.player.reactnative.extensions.networkModule
 import com.bitmovin.player.reactnative.extensions.offlineModule
 import com.bitmovin.player.reactnative.extensions.playerModule
 import com.bitmovin.player.reactnative.extensions.sourceModule
@@ -54,6 +56,9 @@ abstract class BitmovinBaseModule(
     protected val RejectPromiseOnExceptionBlock.drmModule: DrmModule get() = context.drmModule
         ?: throw IllegalStateException("DrmModule not found")
 
+    protected val RejectPromiseOnExceptionBlock.networkModule: NetworkModule get() = context.networkModule
+        ?: throw IllegalStateException("NetworkModule not found")
+
     fun RejectPromiseOnExceptionBlock.getPlayer(
         nativeId: NativeId,
         playerModule: PlayerModule = this.playerModule,
@@ -63,6 +68,11 @@ abstract class BitmovinBaseModule(
         nativeId: NativeId,
         sourceModule: SourceModule = this.sourceModule,
     ): Source = sourceModule.getSourceOrNull(nativeId) ?: throw IllegalArgumentException("Invalid SourceId $nativeId")
+
+    fun RejectPromiseOnExceptionBlock.getNetworkConfig(
+        nativeId: NativeId,
+        networkModule: NetworkModule = this.networkModule,
+    ): NetworkConfig = networkModule.getConfig(nativeId) ?: throw IllegalArgumentException("Invalid SourceId $nativeId")
 }
 
 /** Run [block], returning it's return value. If [block] throws, [Promise.reject] [this] and return null. */

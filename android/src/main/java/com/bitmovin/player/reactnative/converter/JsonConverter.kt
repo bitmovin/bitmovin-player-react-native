@@ -795,17 +795,16 @@ fun ReadableMap.toHttpRequest(): HttpRequest? {
     return HttpRequest(
         getString("url") ?: return null,
         getMap("headers")?.toMap(),
-        getString("body")?.toByteArray(),
+        getString("body")?.toByteArrayFromBase64(),
         getString("method") ?: return null
     )
 }
 
-private fun ByteArray.toJson(): String {
-    val decodedBytes = Base64.decode(this, Base64.NO_WRAP)
-    return String(decodedBytes, Charsets.UTF_8)
+private fun ByteArray.toBase64String(): String {
+    return Base64.encodeToString(this, Base64.NO_WRAP)
 }
 
-private fun String.toByteArray(): ByteArray = Base64.decode(this, Base64.NO_WRAP)
+private fun String.toByteArrayFromBase64(): ByteArray = Base64.decode(this, Base64.NO_WRAP)
 
 fun ReadableMap.toHttpResponse(): HttpResponse? {
     return HttpResponse(
@@ -813,7 +812,7 @@ fun ReadableMap.toHttpResponse(): HttpResponse? {
         url = getString("url") ?: return null,
         status = getInt("status"),
         headers = getMap("headers")?.toMap() ?: return null,
-        body = getString("body")?.toByteArray() ?: return null
+        body = getString("body")?.toByteArrayFromBase64() ?: return null
     )
 }
 
@@ -822,7 +821,7 @@ fun ReadableMap.toNetworkConfig(): NetworkConfig = NetworkConfig()
 fun HttpRequest.toJson(): WritableMap = Arguments.createMap().apply {
     putString("url", url)
     putMap("headers", headers?.toReadableMap())
-    putString("body", body?.toJson())
+    putString("body", body?.toBase64String())
     putString("method", method)
 }
 
@@ -831,23 +830,10 @@ fun HttpResponse.toJson(): WritableMap = Arguments.createMap().apply {
     putString("url", url)
     putInt("status", status)
     putMap("headers", headers.toReadableMap())
-    putString("body", body.toJson())
+    putString("body", body.toBase64String())
 }
 
-fun HttpRequestType.toJson(): String = when (this) {
-    HttpRequestType.ManifestDash -> "manifest/dash"
-    HttpRequestType.ManifestHlsMaster -> "manifest/hls/master"
-    HttpRequestType.ManifestHlsVariant -> "manifest/hls/variant"
-    HttpRequestType.ManifestSmooth -> "manifest/smooth"
-    HttpRequestType.MediaProgressive -> "media/progressive"
-    HttpRequestType.MediaAudio -> "media/audio"
-    HttpRequestType.MediaVideo -> "media/video"
-    HttpRequestType.MediaSubtitles -> "media/subtitles"
-    HttpRequestType.MediaThumbnails -> "media/thumbnails"
-    HttpRequestType.DrmLicenseWidevine -> "drm/license/widevine"
-    HttpRequestType.KeyHlsAes -> "key/hls/aes"
-    HttpRequestType.Unknown -> "unknown"
-}
+fun HttpRequestType.toJson(): String = toString()
 
 /**
  * Converts any [MediaType] value into its json representation.

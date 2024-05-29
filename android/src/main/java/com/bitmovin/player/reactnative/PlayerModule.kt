@@ -39,8 +39,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      * @param config `PlayerConfig` object received from JS.
      */
     @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, promise: Promise) {
-        init(nativeId, config, analyticsConfigJson = null, promise)
+    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, networkNativeId: NativeId?, promise: Promise) {
+        init(nativeId, config, networkNativeId = networkNativeId,  analyticsConfigJson = null, promise)
     }
 
     /**
@@ -52,13 +52,15 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     fun initWithAnalyticsConfig(
         nativeId: NativeId,
         playerConfigJson: ReadableMap?,
+        networkNativeId: NativeId?,
         analyticsConfigJson: ReadableMap,
         promise: Promise,
-    ) = init(nativeId, playerConfigJson, analyticsConfigJson, promise)
+    ) = init(nativeId, playerConfigJson, networkNativeId, analyticsConfigJson, promise)
 
     private fun init(
         nativeId: NativeId,
         playerConfigJson: ReadableMap?,
+        networkNativeId: NativeId?,
         analyticsConfigJson: ReadableMap?,
         promise: Promise,
     ) = promise.unit.resolveOnUiThread {
@@ -68,6 +70,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()
         val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
+
+        networkNativeId?.let { playerConfig.networkConfig = getNetworkConfig(it) }
 
         players[nativeId] = if (analyticsConfig == null) {
             Player.create(context, playerConfig)
