@@ -14,7 +14,7 @@ internal class PreprocessHttpRequestDelegateBridge: NSObject, PreprocessHttpRequ
         _ type: String,
         httpRequest: HttpRequest,
         completionHandler: @escaping (
-            HttpRequest
+            _ request: HttpRequest
         ) -> Void
     ) {
         guard let networkModule = bridge[NetworkModule.self] else {
