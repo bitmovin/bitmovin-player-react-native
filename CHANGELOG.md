@@ -6,7 +6,7 @@
 
 - `NetworkConfig` to configure the network request manipulation functionality
   - `preprocessHttpRequest(type, request) => Promise<HttpRequest>` to pre-process an HTTP request before the request is executed by the player
-  - `preprocessHttpResponse(type, response) => Promise<HttpResponse>` to pre-process an HTTP response before it gets into the player
+  - `preprocessHttpResponse(type, response) => Promise<HttpResponse>` to pre-process an HTTP response before it gets passed to the player
 
 ## [0.23.0] (2024-05-08)
 
