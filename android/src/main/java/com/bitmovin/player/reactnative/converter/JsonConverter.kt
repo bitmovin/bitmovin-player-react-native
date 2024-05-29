@@ -796,7 +796,7 @@ fun ReadableMap.toHttpRequest(): HttpRequest? {
         getString("url") ?: return null,
         getMap("headers")?.toMap(),
         getString("body")?.toByteArrayFromBase64(),
-        getString("method") ?: return null
+        getString("method") ?: return null,
     )
 }
 
@@ -812,7 +812,7 @@ fun ReadableMap.toHttpResponse(): HttpResponse? {
         url = getString("url") ?: return null,
         status = getInt("status"),
         headers = getMap("headers")?.toMap() ?: return null,
-        body = getString("body")?.toByteArrayFromBase64() ?: return null
+        body = getString("body")?.toByteArrayFromBase64() ?: return null,
     )
 }
 

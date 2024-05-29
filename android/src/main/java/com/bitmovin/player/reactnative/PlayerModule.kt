@@ -40,7 +40,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun initWithConfig(nativeId: NativeId, config: ReadableMap?, networkNativeId: NativeId?, promise: Promise) {
-        init(nativeId, config, networkNativeId = networkNativeId,  analyticsConfigJson = null, promise)
+        init(nativeId, config, networkNativeId = networkNativeId, analyticsConfigJson = null, promise)
     }
 
     /**
