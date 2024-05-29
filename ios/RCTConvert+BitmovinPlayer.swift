@@ -1302,27 +1302,8 @@ extension RCTConvert {
         ]
     }
 
-    static func toJson(httpRequestType: HttpRequestType) -> String? {
-        switch httpRequestType {
-        case .drmLicenseFairplay:
-            return "drm/license/fairplay"
-        case .drmCertificateFairplay:
-            return "drm/certificate/fairplay"
-        case .mediaThumbnails:
-            return "media/thumbnails"
-        case .mediaSubtitles:
-            return "media/subtitles"
-        case .manifestHlsMaster:
-            return "manifest/hls/master"
-        case .manifestHlsVariant:
-            return "manifest/hls/variant"
-        case .keyHlsAes:
-            return "key/hls/aes"
-        case .unknown:
-            return "unknown"
-        default:
-            return nil
-        }
+    static func toJson(httpRequestType: HttpRequestType) -> String {
+        httpRequestType.rawValue
     }
 
     static func toJson(data: Data?) -> String? {

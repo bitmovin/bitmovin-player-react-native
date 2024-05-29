@@ -64,7 +64,7 @@ export interface HttpResponse {
 
 /**
  * The network API gives the ability to influence network requests.
- * It enables preprocessing requests and processing responses.
+ * It enables preprocessing requests and preprocessing responses.
  */
 export interface NetworkConfig extends NativeInstanceConfig {
   /**
@@ -114,7 +114,7 @@ export interface NetworkConfig extends NativeInstanceConfig {
   ) => Promise<HttpRequest>;
   /**
    * Called before an HTTP response is accessed by the player.
-   * Can be used to the access or change properties of the response.
+   * Can be used to access or change the response.
    *
    * @param type Type of the corresponding request object of the response.
    * @param response The HTTP response to process.

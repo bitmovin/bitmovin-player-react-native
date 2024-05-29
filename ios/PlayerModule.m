@@ -2,8 +2,8 @@
 
 @interface RCT_EXTERN_REMAP_MODULE(PlayerModule, PlayerModule, NSObject)
 
-RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config networkNativeId:(NSString *)networkNativeId)
-RCT_EXTERN_METHOD(initWithAnalyticsConfig:(NSString *)nativeId config:(nullable id)config networkNativeId:(NSString *)networkNativeId analyticsConfig:(nullable id)analyticsConfig)
+RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config networkNativeId:(nullable NSString *)networkNativeId)
+RCT_EXTERN_METHOD(initWithAnalyticsConfig:(NSString *)nativeId config:(nullable id)config networkNativeId:(nullable NSString *)networkNativeId analyticsConfig:(nullable id)analyticsConfig)
 RCT_EXTERN_METHOD(loadSource:(NSString *)nativeId sourceNativeId:(NSString *)sourceNativeId)
 RCT_EXTERN_METHOD(loadOfflineContent:(NSString *)nativeId offlineContentManagerBridgeId:(NSString *)offlineContentManagerBridgeId options:(nullable id)options)
 RCT_EXTERN_METHOD(unload:(NSString *)nativeId)

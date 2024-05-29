@@ -58,10 +58,9 @@ public class NetworkModule: NSObject, RCTBridgeModule {
     }
 
     private func initConfigBlocks(_ nativeId: NativeId, _ config: Any?) {
-        if let json = config as? [String: Any] {
-            initPreprocessHttpRequest(nativeId, networkConfigJson: json)
-            initPreprocessHttpResponse(nativeId, networkConfigJson: json)
-        }
+        guard let json = config as? [String: Any] else { return }
+        initPreprocessHttpRequest(nativeId, networkConfigJson: json)
+        initPreprocessHttpResponse(nativeId, networkConfigJson: json)
     }
 
     private func initPreprocessHttpRequest(_ nativeId: NativeId, networkConfigJson: [String: Any]) {
@@ -77,13 +76,13 @@ public class NetworkModule: NSObject, RCTBridgeModule {
     }
 
     private func initPreprocessHttpResponse(_ nativeId: NativeId, networkConfigJson: [String: Any]) {
-        guard let networkConfig = retrieve(nativeId) else {
+        guard let networkConfig = retrieve(nativeId),
+              networkConfigJson["preprocessHttpResponse"] != nil else {
             return
         }
-        if networkConfigJson["preprocessHttpResponse"] != nil {
-            networkConfig.preprocessHttpResponse = { [weak self] type, response, completionHandler in
-                self?.preprocessHttpResponseFromJS(nativeId, type, response, completionHandler)
-            }
+
+        networkConfig.preprocessHttpResponse = { [weak self] type, response, completionHandler in
+            self?.preprocessHttpResponseFromJS(nativeId, type, response, completionHandler)
         }
     }
 
