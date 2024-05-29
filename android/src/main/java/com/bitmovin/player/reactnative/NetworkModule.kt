@@ -43,10 +43,6 @@ class NetworkModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
         }
     }
 
-    /**
-     * Removes the `WidevineConfig` instance associated with `nativeId` from the internal drmConfigs.
-     * @param nativeId `WidevineConfig` to be disposed.
-     */
     @ReactMethod
     fun destroy(nativeId: NativeId) {
         networkConfigs.remove(nativeId)

@@ -72,7 +72,7 @@ abstract class BitmovinBaseModule(
     fun RejectPromiseOnExceptionBlock.getNetworkConfig(
         nativeId: NativeId,
         networkModule: NetworkModule = this.networkModule,
-    ): NetworkConfig = networkModule.getConfig(nativeId) ?: throw IllegalArgumentException("Invalid SourceId $nativeId")
+    ): NetworkConfig = networkModule.getConfig(nativeId) ?: throw IllegalArgumentException("Invalid NetworkId $nativeId")
 }
 
 /** Run [block], returning it's return value. If [block] throws, [Promise.reject] [this] and return null. */
