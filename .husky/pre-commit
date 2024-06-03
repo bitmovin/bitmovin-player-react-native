@@ -10,3 +10,5 @@ yarn lint-staged
 if [ "$(uname)" = Darwin ]; then
     swiftlint lint --strict
 fi
+
+(cd android && ./gradlew ktlintFormat)
