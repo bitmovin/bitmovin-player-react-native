@@ -274,7 +274,7 @@ class RNPlayerView(
      * @param name Native event name.
      * @param event Optional js object to be sent as payload.
      */
-    private inline fun <reified E : Event> emitEvent(name: String, event: E) {
+    private fun <E : Event> emitEvent(name: String, event: E) {
         val payload = when (event) {
             is PlayerEvent -> event.toJson()
             is SourceEvent -> event.toJson()
@@ -292,7 +292,7 @@ class RNPlayerView(
      * @param name Native event name.
      * @param event Optional js object to be sent as payload.
      */
-    private inline fun <reified E : Event> emitEventFromPlayer(name: String, event: E) {
+    private fun <E : Event> emitEventFromPlayer(name: String, event: E) {
         emitEvent(name, event)
         emitEvent("event", event)
     }
