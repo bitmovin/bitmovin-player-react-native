@@ -54,11 +54,9 @@ class NetworkModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
         }
     }
 
-    private fun initConfigBlocks(nativeId: String, config: Any?) {
-        (config as? ReadableMap)?.let { json ->
-            initPreprocessHttpRequest(nativeId, networkConfigJson = json)
-            initPreprocessHttpResponse(nativeId, networkConfigJson = json)
-        }
+    private fun initConfigBlocks(nativeId: String, config: ReadableMap) {
+        initPreprocessHttpRequest(nativeId, networkConfigJson = config)
+        initPreprocessHttpResponse(nativeId, networkConfigJson = config)
     }
 
     private fun initPreprocessHttpRequest(nativeId: NativeId, networkConfigJson: ReadableMap) {
