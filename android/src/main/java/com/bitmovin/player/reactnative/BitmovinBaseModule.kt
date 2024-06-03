@@ -2,7 +2,6 @@ package com.bitmovin.player.reactnative
 
 import android.util.Log
 import com.bitmovin.player.api.Player
-import com.bitmovin.player.api.network.NetworkConfig
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.extensions.drmModule
 import com.bitmovin.player.reactnative.extensions.networkModule
