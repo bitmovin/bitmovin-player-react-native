@@ -1,6 +1,8 @@
 package com.bitmovin.player.reactnative
 
+import android.util.Log
 import com.bitmovin.analytics.api.DefaultMetadata
+import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.analytics.create
@@ -14,6 +16,7 @@ import com.bitmovin.player.reactnative.extensions.mapToReactArray
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import java.security.InvalidParameterException
+import kotlin.math.log
 
 private const val MODULE_NAME = "PlayerModule"
 
@@ -63,6 +66,9 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         promise: Promise,
     ) = promise.unit.resolveOnUiThread {
         if (players.containsKey(nativeId)) {
+            if (playerConfigJson != null || analyticsConfigJson != null) {
+                Log.w("BitmovinPlayerModule", "Cannot reconfigure an existing player")
+            }
             return@resolveOnUiThread // key can be reused to access the same native instance (see NativeInstanceConfig)
         }
         val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()

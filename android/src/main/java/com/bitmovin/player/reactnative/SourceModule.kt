@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative
 
+import android.util.Log
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
@@ -77,6 +78,9 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         promise: Promise,
     ) = promise.unit.resolveOnUiThread {
         if (sources.containsKey(nativeId)) {
+            if (drmNativeId != null || config != null || analyticsSourceMetadata != null) {
+                Log.w("BitmovinSourceModule", "Cannot reconfigure an existing source")
+            }
             return@resolveOnUiThread // key can be reused to access the same native instance (see NativeInstanceConfig)
         }
         val drmConfig = drmNativeId?.let { drmModule.getConfig(it) }
