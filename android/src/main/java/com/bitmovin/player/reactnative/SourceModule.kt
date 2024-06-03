@@ -76,12 +76,12 @@ class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         analyticsSourceMetadata: ReadableMap?,
         promise: Promise,
     ) = promise.unit.resolveOnUiThread {
+        if (sources.containsKey(nativeId)) {
+            return@resolveOnUiThread // key can be reused to access the same native instance (see NativeInstanceConfig)
+        }
         val drmConfig = drmNativeId?.let { drmModule.getConfig(it) }
         val sourceConfig = config?.toSourceConfig() ?: throw InvalidParameterException("Invalid SourceConfig")
         val sourceMetadata = analyticsSourceMetadata?.toAnalyticsSourceMetadata()
-        if (sources.containsKey(nativeId)) {
-            throw IllegalStateException("NativeId $NativeId already exists")
-        }
         sourceConfig.drmConfig = drmConfig
         sources[nativeId] = if (sourceMetadata == null) {
             Source.create(sourceConfig)
