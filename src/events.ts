@@ -10,6 +10,7 @@ import { SubtitleTrack } from './subtitleTrack';
 import { VideoQuality } from './media';
 import { AudioTrack } from './audioTrack';
 import { LoadingState } from './source';
+import { HttpRequestType } from './network/networkConfig';
 
 /**
  * Base event type for all events.
@@ -664,26 +665,6 @@ export interface CastWaitingForDeviceEvent extends Event {
    * The `CastPayload` object for the event
    */
   castPayload: CastPayload;
-}
-
-/**
- * Available HTTP request types.
- */
-export enum HttpRequestType {
-  ManifestDash = 'manifest/dash',
-  ManifestHlsMaster = 'manifest/hls/master',
-  ManifestHlsVariant = 'manifest/hls/variant',
-  ManifestSmooth = 'manifest/smooth',
-  MediaProgressive = 'media/progressive',
-  MediaAudio = 'media/audio',
-  MediaVideo = 'media/video',
-  MediaSubtitles = 'media/subtitles',
-  MediaThumbnails = 'media/thumbnails',
-  DrmLicenseFairplay = 'drm/license/fairplay',
-  DrmCertificateFairplay = 'drm/certificate/fairplay',
-  DrmLicenseWidevine = 'drm/license/widevine',
-  KeyHlsAes = 'key/hls/aes',
-  Unknown = 'unknown',
 }
 
 /**
