@@ -95,11 +95,10 @@ class NetworkModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
     }
 
     @ReactMethod
-    fun setPreprocessedHttpRequest(requestId: String, response: ReadableMap) {
-        preprocessHttpRequestCompleters[requestId]?.set(response.toHttpRequest())
+    fun setPreprocessedHttpRequest(requestId: String, request: ReadableMap) {
+        preprocessHttpRequestCompleters[requestId]?.set(request.toHttpRequest())
         preprocessHttpRequestCompleters.remove(requestId)
     }
-
     private fun preprocessHttpResponseFromJS(
         nativeId: NativeId,
         type: HttpRequestType,
