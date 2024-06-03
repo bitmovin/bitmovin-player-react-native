@@ -44,7 +44,8 @@ class PlayerAnalyticsModule(context: ReactApplicationContext) : BitmovinBaseModu
         playerId: NativeId,
         crossinline block: AnalyticsApi.() -> T,
     ) = resolveOnUiThread {
-        val analytics = getPlayer(playerId).analytics ?: throw IllegalStateException("Analytics is disabled")
+        val analytics = getPlayer(playerId).analytics
+            ?: throw IllegalStateException("Analytics is disabled for player $playerId")
         analytics.block()
     }
 }
