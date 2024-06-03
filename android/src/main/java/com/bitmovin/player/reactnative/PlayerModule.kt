@@ -71,7 +71,10 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
 
-        networkNativeId?.let { networkModule.getConfig(it) }?.let { playerConfig.networkConfig = it }
+        val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
+        if (networkConfig != null) {
+            playerConfig.networkConfig = networkConfig
+        }
 
         players[nativeId] = if (analyticsConfig == null) {
             Player.create(context, playerConfig)
