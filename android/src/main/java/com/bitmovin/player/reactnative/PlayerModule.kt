@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative
 
+import android.util.Log
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
@@ -65,7 +66,10 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         promise: Promise,
     ) = promise.unit.resolveOnUiThread {
         if (players.containsKey(nativeId)) {
-            throw IllegalArgumentException("Duplicate player creation for id $nativeId")
+            if (playerConfigJson != null || analyticsConfigJson != null) {
+                Log.w("BitmovinPlayerModule", "Cannot reconfigure an existing player")
+            }
+            return@resolveOnUiThread // key can be reused to access the same native instance (see NativeInstanceConfig)
         }
         val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()
         val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()

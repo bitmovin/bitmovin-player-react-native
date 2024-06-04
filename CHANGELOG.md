@@ -12,6 +12,10 @@
 
 - Update Bitmovin's native iOS SDK version to `3.64.0`
 
+### Fixed
+
+- Android: Can't create a new Player with an existing NativeID (to bind to the same native Player)
+
 ## [0.23.0] (2024-05-08)
 
 ### Changed
