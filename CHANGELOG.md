@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- `NetworkConfig` to configure the network request manipulation functionality
+  - `preprocessHttpRequest(type, request) => Promise<HttpRequest>` to pre-process an HTTP request before the request is executed by the player
+  - `preprocessHttpResponse(type, response) => Promise<HttpResponse>` to pre-process an HTTP response before it gets passed to the player
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to `3.64.0`

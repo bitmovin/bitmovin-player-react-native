@@ -10,6 +10,7 @@ import { PlayerConfig } from './playerConfig';
 import { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
 import { VideoQuality } from './media';
+import { Network } from './network';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -23,6 +24,7 @@ const PlayerModule = NativeModules.PlayerModule;
  * @see PlayerView
  */
 export class Player extends NativeInstance<PlayerConfig> {
+  private network?: Network;
   /**
    * Currently active source, or `null` if none is active.
    */
@@ -51,16 +53,25 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   initialize = () => {
     if (!this.isInitialized) {
+      if (this.config?.networkConfig) {
+        this.network = new Network(this.config.networkConfig);
+        this.network.initialize();
+      }
       const analyticsConfig = this.config?.analyticsConfig;
       if (analyticsConfig) {
         PlayerModule.initWithAnalyticsConfig(
           this.nativeId,
           this.config,
+          this.network?.nativeId,
           analyticsConfig
         );
         this.analytics = new AnalyticsApi(this.nativeId);
       } else {
-        PlayerModule.initWithConfig(this.nativeId, this.config);
+        PlayerModule.initWithConfig(
+          this.nativeId,
+          this.config,
+          this.network?.nativeId
+        );
       }
       this.isInitialized = true;
     }
@@ -73,6 +84,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (!this.isDestroyed) {
       PlayerModule.destroy(this.nativeId);
       this.source?.destroy();
+      this.network?.destroy();
       this.isDestroyed = true;
     }
   };
