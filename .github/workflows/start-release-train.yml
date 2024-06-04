@@ -105,7 +105,7 @@ jobs:
           gh pr create \
           --base "main" \
           --title "Release ${{ inputs.version_number }}" \
-          --body "Release ${{ inputs.version_number }}.\n\nPlease review and merge this PR to continue the release process." \
+          --body "Release ${{ inputs.version_number }}. Please review and merge this PR to continue the release process." \
           --reviewer "${{ github.actor }}"
         env:
           GH_TOKEN: ${{ github.token }}

@@ -37,8 +37,12 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
      Creates a new `Player` instance inside the internal players using the provided `config` object.
      - Parameter config: `PlayerConfig` object received from JS.
      */
-    @objc(initWithConfig:config:)
-    func initWithConfig(_ nativeId: NativeId, config: Any?) {
+    @objc(initWithConfig:config:networkNativeId:)
+    func initWithConfig(
+        _ nativeId: NativeId,
+        config: Any?,
+        networkNativeId: NativeId?
+    ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
                 self?.players[nativeId] == nil,
@@ -49,6 +53,10 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
 #if os(iOS)
             self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
 #endif
+            if let networkNativeId,
+               let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
+                playerConfig.networkConfig = networkConfig
+            }
             self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
         }
     }
@@ -59,8 +67,13 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
      - Parameter config: `PlayerConfig` object received from JS.
      - Parameter analyticsConfig: `AnalyticsConfig` object received from JS.
      */
-    @objc(initWithAnalyticsConfig:config:analyticsConfig:)
-    func initWithAnalyticsConfig(_ nativeId: NativeId, config: Any?, analyticsConfig: Any?) {
+    @objc(initWithAnalyticsConfig:config:networkNativeId:analyticsConfig:)
+    func initWithAnalyticsConfig(
+        _ nativeId: NativeId,
+        config: Any?,
+        networkNativeId: NativeId?,
+        analyticsConfig: Any?
+    ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             let analyticsConfigJson = analyticsConfig
             guard
@@ -73,6 +86,10 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
 #if os(iOS)
             self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
 #endif
+            if let networkNativeId,
+               let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
+                playerConfig.networkConfig = networkConfig
+            }
             let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfigJson)
             self?.players[nativeId] = PlayerFactory.create(
                 playerConfig: playerConfig,
@@ -685,6 +702,14 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
 
             return castSourceConfig
         }
+    }
+
+    private func setupNetworkConfig(nativeId: NativeId) -> NetworkConfig? {
+        guard let networkModule = bridge[NetworkModule.self],
+              let networkConfig = networkModule.retrieve(nativeId) else {
+            return nil
+        }
+        return networkConfig
     }
 
     /**
