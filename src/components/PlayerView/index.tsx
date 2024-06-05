@@ -43,6 +43,7 @@ function dispatch(command: string, node: NodeHandle, ...args: any[]) {
  * @param options configuration options
  */
 export function PlayerView({
+  viewRef,
   style,
   player,
   config,
@@ -61,7 +62,8 @@ export function PlayerView({
     setTimeout(() => player.getDuration(), 100);
   }, [player]);
 
-  const nativeView = useRef(null);
+  const nativeView = useRef(viewRef?.current || null);
+
   // Native events proxy helper.
   const proxy = useProxy(nativeView);
   // Style resulting from merging `baseStyle` and `props.style`.
@@ -143,6 +145,12 @@ export function PlayerView({
       dispatch('setPictureInPicture', node, isPictureInPictureRequested);
     }
   }, [isPictureInPictureRequested, nativeView]);
+
+  useEffect(() => {
+    if (viewRef) {
+      viewRef.current = nativeView.current;
+    }
+  }, [viewRef, nativeView]);
 
   return (
     <NativePlayerView
