@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `viewRef` property to `PlayerView` to allow setting a reference to the native view
+
 ## [0.24.0] - 2024-06-04
 
 ### Added
