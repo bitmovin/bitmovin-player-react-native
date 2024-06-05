@@ -39,7 +39,7 @@
     "bootstrap": "yarn bootstrap:example && yarn bootstrap:integration-test",
     "bootstrap:example": "yarn && yarn example && yarn example pods && yarn brew",
     "bootstrap:integration-test": "yarn && yarn integration-test && yarn integration-test pods && yarn brew",
-    "brew": "[ \"$(uname)\" = \"Darwin\" ] && brew bundle install --no-lock",
+    "brew": "[ \"$(uname)\" != Darwin ] || brew bundle install --no-lock",
     "prepare": "husky install",
     "docs": "typedoc"
   },
