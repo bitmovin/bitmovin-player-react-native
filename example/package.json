@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "bitmovin-player-react-native-sample",
-  "description": "Example app showcasing bitmovin's RN player SDK",
+  "description": "Example app showcasing Bitmovin's React Native Player SDK",
   "version": "0.0.1",
   "scripts": {
     "postinstall": "patch-package",
