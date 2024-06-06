@@ -6,6 +6,10 @@
 
 - `viewRef` property to `PlayerView` to allow setting a reference to the native view
 
+### Fixed
+
+- iOS: Possible crash on hot-reload
+
 ## [0.24.0] - 2024-06-04
 
 ### Added
