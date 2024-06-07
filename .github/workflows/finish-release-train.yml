@@ -21,6 +21,7 @@ jobs:
   prepare:
     if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/v')
     runs-on: ubuntu-latest
+    name: Prepare Release
     outputs:
       version_number: ${{ steps.version_number.outputs.version_number }}
     steps:
@@ -53,6 +54,7 @@ jobs:
 
   create_pr:
     needs: [prepare]
+    name: Create Finish Release PR
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -69,6 +71,7 @@ jobs:
 
   publish_release:
     needs: [prepare, create_pr]
+    name: Publish Release
     runs-on: ubuntu-latest
     permissions:
       contents: write
