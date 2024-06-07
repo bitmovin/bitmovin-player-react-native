@@ -23,6 +23,15 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
         bridge.uiManager.methodQueue
     }
 
+    deinit {
+        // Destroy all players on the main thread when the module is deallocated.
+        // This is necessary when the IMA SDK is present in the app, as it may crash if the players are destroyed on a
+        // background thread.
+        DispatchQueue.main.async { [players] in
+            players.values.forEach { $0.destroy() }
+        }
+    }
+
     /**
      Fetches the `Player` instance associated with `nativeId` from the internal players.
      - Parameter nativeId: `Player` instance ID.
