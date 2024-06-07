@@ -43,7 +43,7 @@ jobs:
 
       - name: Update Changelog
         run: |
-          sed -i "s/\[${{ steps.version_number.outputs.version_number }}\].*/\[${{ steps.version_number.outputs.version_number }}\] \($(date +'%Y-%m-%d')\)/g" CHANGELOG.md
+          sed -i "s/\[${{ steps.version_number.outputs.version_number }}\].*/\[${{ steps.version_number.outputs.version_number }}\] - $(date +'%Y-%m-%d')/g" CHANGELOG.md
 
       - name: Commit changelog version bump
         run: |
