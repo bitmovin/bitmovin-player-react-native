@@ -43,4 +43,11 @@ export interface WebUiConfig extends UiConfig {
    * Default is `true`.
    */
   playbackSpeedSelectionEnabled?: boolean;
+
+  /**
+   * The Ui variant to use for the Bitmovin Player Web UI.
+   *
+   * @platform Android
+   */
+  variant?: 'DefaultUi' | 'SmallScreenUi' | 'CastReceiverUi' | 'TvUi';
 }

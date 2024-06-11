@@ -17,10 +17,20 @@ export default function BasicPlayback() {
   useTVGestures();
 
   const player = usePlayer({
+    styleConfig: {
+      playerUiJs: 'http://192.168.8.126:9000/js/bitmovinplayer-ui.js',
+      playerUiCss: 'http://192.168.8.126:9000/css/bitmovinplayer-ui.css',
+    },
     remoteControlConfig: {
       isCastEnabled: false,
     },
   });
+
+  const playerViewConfig: PlayerViewConfig = {
+    uiConfig: (UiConfig = {
+      variant: 'TvUi',
+    }),
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -66,6 +76,7 @@ export default function BasicPlayback() {
         onStallStarted={onEvent}
         onStallEnded={onEvent}
         onVideoPlaybackQualityChanged={onEvent}
+        config={playerViewConfig}
       />
     </View>
   );

@@ -758,9 +758,19 @@ fun toPlayerViewConfig(json: ReadableMap) = PlayerViewConfig(
         playbackSpeedSelectionEnabled = json.getMap("uiConfig")
             ?.getBooleanOrNull("playbackSpeedSelectionEnabled")
             ?: true,
+        variant = json.getMap("uiConfig")?.toVariant() ?: UiConfig.WebUi.Variant.SmallScreenUi,
     ),
     hideFirstFrame = json.getBooleanOrNull("hideFirstFrame") ?: false,
 )
+
+private fun ReadableMap.toVariant(): UiConfig.WebUi.Variant? =
+    when (getString("variant")) {
+        "DefaultUi" -> UiConfig.WebUi.Variant.DefaultUi
+        "SmallScreenUi" -> UiConfig.WebUi.Variant.SmallScreenUi
+        "CastReceiverUi" -> UiConfig.WebUi.Variant.CastReceiverUi
+        "TvUi" -> UiConfig.WebUi.Variant.TvUi
+        else -> null
+    }
 
 private fun ReadableMap.toUserInterfaceTypeFromPlayerConfig(): UserInterfaceType? =
     when (getMap("styleConfig")?.getString("userInterfaceType")) {
