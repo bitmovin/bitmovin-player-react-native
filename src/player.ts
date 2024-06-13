@@ -438,6 +438,20 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * Sets the video quality.
+   * ONLY works on Android. No effect on iOS and tvOS devices.
+   */
+  setVideoQuality = (qualityId: String) => {
+    if (Platform.OS !== 'android') {
+      console.warn(
+        `[Player ${this.nativeId}] Method setVideoQuality is not available for iOS and tvOS devices. Only Android devices.`
+      );
+    } else {
+      PlayerModule.setVideoQuality(this.nativeId, qualityId);
+    }
+  };
+
+  /**
    * Sets the playback speed of the player. Fast forward, slow motion and reverse playback are supported.
    * @note
    * - Slow motion is indicated by values between `0` and `1`.
