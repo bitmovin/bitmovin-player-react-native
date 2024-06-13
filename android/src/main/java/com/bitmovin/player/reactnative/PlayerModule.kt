@@ -564,7 +564,6 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         }
     }
 
-
     /**
      * Resolve [nativeId]'s current playback speed.
      */
