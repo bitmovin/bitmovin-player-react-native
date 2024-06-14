@@ -24,7 +24,7 @@ PODS:
     - Protobuf (~> 3.13)
   - google-cast-sdk/Core (4.8.0):
     - Protobuf (~> 3.13)
-  - GoogleAds-IMA-iOS-SDK (3.19.1)
+  - GoogleAds-IMA-iOS-SDK (3.22.1)
   - GoogleAds-IMA-tvOS-SDK (4.9.2)
   - hermes-engine (0.73.4-0):
     - hermes-engine/Pre-built (= 0.73.4-0)
@@ -1053,7 +1053,7 @@ PODS:
     - React-perflogger (= 0.73.4-0)
   - RNBitmovinPlayer (0.26.0):
     - BitmovinPlayer (= 3.65.0)
-    - GoogleAds-IMA-iOS-SDK (= 3.19.1)
+    - GoogleAds-IMA-iOS-SDK (= 3.22.1)
     - GoogleAds-IMA-tvOS-SDK (= 4.9.2)
     - React-Core
   - RNCPicker (2.6.1):
@@ -1258,7 +1258,7 @@ SPEC CHECKSUMS:
   fmt: 745abaaffe4da13101ae15d70dc68ec3d6a666a2
   glog: f0ddebfc00a905e9213e37801095a0a705d2e5f6
   google-cast-sdk: afeb1aac0744b1bc4f70bc3db8468e33fabbff38
-  GoogleAds-IMA-iOS-SDK: 18adbec04a2e79ce828a992d37a4580deadbe525
+  GoogleAds-IMA-iOS-SDK: 160c3616b8371b58016e30aaf441e71d6d9e8f7d
   GoogleAds-IMA-tvOS-SDK: 7e72fb938c246fb9718a3468d3c7fa7c722b2ea1
   hermes-engine: e7981489a718dff7c3a2dacd6302b8761375928d
   libevent: a6d75fcd7be07cbc5070300ea8dbc8d55dfab88e
