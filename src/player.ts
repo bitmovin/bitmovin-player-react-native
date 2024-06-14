@@ -439,7 +439,8 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Sets the video quality.
-   * ONLY works on Android. No effect on iOS and tvOS devices.
+   * @remarks Only available on Android.
+   * @platform Android
    */
   setVideoQuality = (qualityId: String) => {
     if (Platform.OS !== 'android') {
