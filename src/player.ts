@@ -446,9 +446,9 @@ export class Player extends NativeInstance<PlayerConfig> {
       console.warn(
         `[Player ${this.nativeId}] Method setVideoQuality is not available for iOS and tvOS devices. Only Android devices.`
       );
-    } else {
-      PlayerModule.setVideoQuality(this.nativeId, qualityId);
+      return;
     }
+    PlayerModule.setVideoQuality(this.nativeId, qualityId);
   };
 
   /**
