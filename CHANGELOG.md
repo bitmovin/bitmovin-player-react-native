@@ -2,9 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+
+- Support for `Player.setVideoQuality()` API to enable video quality selection on Android
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.73.0`
+- Update Bitmovin's native iOS SDK version to `3.65.0`
 
 ## [0.25.0] - 2024-06-07
 
