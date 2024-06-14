@@ -15,12 +15,12 @@ import { Network } from './network';
 const PlayerModule = NativeModules.PlayerModule;
 
 /**
- * Loads, controls and renders audio and video content represented through `Source`s. A player
- * instance can be created via the `usePlayer` hook and will idle until one or more `Source`s are
- * loaded. Once `load` is called, the player becomes active and initiates necessary downloads to
+ * Loads, controls and renders audio and video content represented through {@link Source}s. A player
+ * instance can be created via the {@link usePlayer} hook and will idle until one or more {@link Source}s are
+ * loaded. Once {@link Player.load} or {@link Player.loadSource} is called, the player becomes active and initiates necessary downloads to
  * start playback of the loaded source(s).
  *
- * Can be attached to `PlayerView` component in order to use Bitmovin's Player Web UI.
+ * Can be attached to {@link PlayerView} component in order to use Bitmovin's Player Web UI.
  * @see PlayerView
  */
 export class Player extends NativeInstance<PlayerConfig> {
@@ -90,14 +90,14 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * Loads a new `Source` from `sourceConfig` into the player.
+   * Loads a new {@link Source} from `sourceConfig` into the player.
    */
   load = (sourceConfig: SourceConfig) => {
     this.loadSource(new Source(sourceConfig));
   };
 
   /**
-   * Loads the downloaded content from `OfflineContentManager` into the player.
+   * Loads the downloaded content from {@link OfflineContentManager} into the player.
    */
   loadOfflineContent = (
     offlineContentManager: OfflineContentManager,
@@ -111,7 +111,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * Loads the given `Source` into the player.
+   * Loads the given {@link Source} into the player.
    */
   loadSource = (source: Source) => {
     source.initialize();
@@ -120,7 +120,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * Unloads all `Source`s from the player.
+   * Unloads all {@link Source}s from the player.
    */
   unload = () => {
     PlayerModule.unload(this.nativeId);
@@ -159,6 +159,8 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Has no effect for VoD.
    *
    * Has no effect if no sources are loaded.
+   *
+   * @param offset - Target offset from the live edge in seconds.
    */
   timeShift = (offset: number) => {
     PlayerModule.timeShift(this.nativeId, offset);
@@ -281,7 +283,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * @returns An array containing AudioTrack objects for all available audio tracks.
+   * @returns An array containing {@link AudioTrack} objects for all available audio tracks.
    */
   getAvailableAudioTracks = async (): Promise<AudioTrack[]> => {
     return PlayerModule.getAvailableAudioTracks(this.nativeId);
@@ -289,13 +291,15 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Sets the audio track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableAudioTracks.
+   *
+   * @param trackIdentifier - The {@link AudioTrack.identifier} to be set.
    */
   setAudioTrack = async (trackIdentifier: string): Promise<void> => {
     return PlayerModule.setAudioTrack(this.nativeId, trackIdentifier);
   };
 
   /**
-   * @returns The currently selected subtitle track or `null`.
+   * @returns The currently selected {@link SubtitleTrack} or `null`.
    */
   getSubtitleTrack = async (): Promise<SubtitleTrack | null> => {
     return PlayerModule.getSubtitleTrack(this.nativeId);
@@ -310,13 +314,15 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Sets the subtitle track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableSubtitles.
+   *
+   * @param trackIdentifier - The {@link SubtitleTrack.identifier} to be set.
    */
   setSubtitleTrack = async (trackIdentifier?: string): Promise<void> => {
     return PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier);
   };
 
   /**
-   * Dynamically schedules the `adItem` for playback.
+   * Dynamically schedules the {@link AdItem} for playback.
    * Has no effect if there is no active playback session.
    *
    * @param adItem - Ad to be scheduled for playback.
@@ -346,7 +352,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * The current time shift of the live stream in seconds. This value is always 0 if the active `source` is not a
+   * The current time shift of the live stream in seconds. This value is always 0 if the active {@link Source} is not a
    * live stream or no sources are loaded.
    */
   getTimeShift = async (): Promise<number> => {
@@ -355,7 +361,7 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * The limit in seconds for time shifting. This value is either negative or 0 and it is always 0 if the active
-   * `source` is not a live stream or no sources are loaded.
+   * {@link Source} is not a live stream or no sources are loaded.
    */
   getMaxTimeShift = async (): Promise<number> => {
     return PlayerModule.getMaxTimeShift(this.nativeId);
@@ -372,19 +378,21 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * @returns a `Thumbnail` for the specified playback time for the currently active source if available.
+   * @returns a {@link Thumbnail} for the specified playback time for the currently active source if available.
    * Supported thumbnail formats are:
-   * - `WebVtt` configured via `SourceConfig.thumbnailTrack`, on all supported platforms
+   * - `WebVtt` configured via {@link SourceConfig.thumbnailTrack}, on all supported platforms
    * - HLS `Image Media Playlist` in the multivariant playlist, Android-only
    * - DASH `Image Adaptation Set` as specified in DASH-IF IOP, Android-only
    * If a `WebVtt` thumbnail track is provided, any potential in-manifest thumbnails are ignored on Android.
+   *
+   * @param time - The time in seconds for which to retrieve the thumbnail.
    */
   getThumbnail = async (time: number): Promise<Thumbnail | null> => {
     return PlayerModule.getThumbnail(this.nativeId, time);
   };
 
   /**
-   * Whether casting to a cast-compatible remote device is available. `CastAvailableEvent` signals when
+   * Whether casting to a cast-compatible remote device is available. {@link CastAvailableEvent} signals when
    * casting becomes available.
    *
    * @platform iOS, Android
@@ -413,7 +421,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * Stops casting the current video. Has no effect if `isCasting` is false.
+   * Stops casting the current video. Has no effect if {@link Player.isCasting} is `false`.
    *
    * @platform iOS, Android
    */
@@ -484,7 +492,7 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Checks the possibility to play the media at specified playback speed.
-   * @param playbackSpeed The playback speed to check.
+   * @param playbackSpeed - The playback speed to check.
    * @returns `true` if it's possible to play the media at the specified playback speed, otherwise `false`. On Android it always returns `undefined`.
    * @platform iOS, tvOS
    */

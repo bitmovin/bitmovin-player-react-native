@@ -39,7 +39,7 @@ export interface ErrorEvent extends Event {
    */
   message: string;
   /**
-   * Underlying data emitted with the Error/Warning.
+   * Underlying data emitted with the error or warning.
    */
   data?: Record<string, any>;
 }
@@ -117,9 +117,9 @@ export interface PlayingEvent extends Event {
 export interface PlaybackFinishedEvent extends Event {}
 
 /**
- * Source object representation the way it appears on `Event` payloads such as `SeekEvent`, for example.
+ * Source object representation the way it appears on event's payloads such as `SeekEvent`, for example.
  *
- * This interface only type hints what should be the shape of a `Source` object inside an `Event`'s
+ * This interface only type hints what should be the shape of a {@link Source} object inside an event's
  * payload during runtime so it has no direct relation with the `Source` class present in `src/source.ts`.
  *
  * Do not mistake it for a `NativeInstance` type.
@@ -142,7 +142,7 @@ export interface EventSource {
    */
   metadata?: Record<string, any>;
   /**
-   * The current `LoadingState` of the source.
+   * The current {@link LoadingState} of the source.
    */
   loadingState: LoadingState;
 }
@@ -152,11 +152,11 @@ export interface EventSource {
  */
 export interface SeekPosition {
   /**
-   * The relevant `Source`.
+   * The relevant {@link Source}.
    */
   source: EventSource;
   /**
-   * The position within the `source` in seconds.
+   * The position within the {@link Source} in seconds.
    */
   time: number;
 }
@@ -240,7 +240,7 @@ export interface SourceLoadEvent extends Event {
 /**
  * Emitted when a new source is loaded.
  * This does not mean that the source is immediately ready for playback.
- * `ReadyEvent` indicates the player is ready for immediate playback.
+ * {@link ReadyEvent} indicates the player is ready for immediate playback.
  */
 export interface SourceLoadedEvent extends Event {
   /**
@@ -410,7 +410,7 @@ export interface PictureInPictureAvailabilityChangedEvent extends Event {
  */
 export interface AdBreakStartedEvent extends Event {
   /**
-   * The `AdBreak` that has started.
+   * The {@link AdBreak} that has started.
    */
   adBreak?: AdBreak;
 }
@@ -420,7 +420,7 @@ export interface AdBreakStartedEvent extends Event {
  */
 export interface AdBreakFinishedEvent extends Event {
   /**
-   * The `AdBreak` that has finished.
+   * The {@link AdBreak} that has finished.
    */
   adBreak?: AdBreak;
 }
@@ -430,7 +430,7 @@ export interface AdBreakFinishedEvent extends Event {
  */
 export interface AdStartedEvent extends Event {
   /**
-   * The `Ad` this event is related to.
+   * The {@link Ad} this event is related to.
    */
   ad?: Ad;
   /**
@@ -438,7 +438,7 @@ export interface AdStartedEvent extends Event {
    */
   clickThroughUrl?: string;
   /**
-   * The `AdSourceType` of the started `Ad`.
+   * The {@link AdSourceType} of the started ad.
    */
   clientType?: AdSourceType;
   /**
@@ -450,7 +450,7 @@ export interface AdStartedEvent extends Event {
    */
   indexInQueue: number;
   /**
-   * The position of the corresponding `Ad`.
+   * The position of the corresponding ad.
    */
   position?: string;
   /**
@@ -458,7 +458,7 @@ export interface AdStartedEvent extends Event {
    */
   skipOffset: number;
   /**
-   * The content time at which the `Ad` is played.
+   * The main content time at which the ad is played.
    */
   timeOffset: number;
 }
@@ -468,7 +468,7 @@ export interface AdStartedEvent extends Event {
  */
 export interface AdFinishedEvent extends Event {
   /**
-   * The `Ad` that finished playback.
+   * The {@link Ad} that finished playback.
    */
   ad?: Ad;
 }
@@ -478,11 +478,11 @@ export interface AdFinishedEvent extends Event {
  */
 export interface AdErrorEvent extends ErrorEvent {
   /**
-   * The `AdConfig` for which the ad error occurred.
+   * The {@link AdConfig} for which the ad error occurred.
    */
   adConfig?: AdConfig;
   /**
-   * The `AdItem` for which the ad error occurred.
+   * The {@link AdItem} for which the ad error occurred.
    */
   adItem?: AdItem;
 }
@@ -502,7 +502,7 @@ export interface AdClickedEvent extends Event {
  */
 export interface AdSkippedEvent extends Event {
   /**
-   * The `Ad` that was skipped.
+   * The ad that was skipped.
    */
   ad?: Ad;
 }
@@ -512,7 +512,7 @@ export interface AdSkippedEvent extends Event {
  */
 export interface AdQuartileEvent extends Event {
   /**
-   * The `AdQuartile` boundary that playback has progressed over.
+   * The {@link AdQuartile} boundary that playback has progressed over.
    */
   quartile: AdQuartile;
 }
@@ -532,11 +532,11 @@ export interface AdScheduledEvent extends Event {
  */
 export interface AdManifestLoadEvent extends Event {
   /**
-   * The `AdBreak` this event is related to.
+   * The {@link AdBreak} this event is related to.
    */
   adBreak?: AdBreak;
   /**
-   * The `AdConfig` of the loaded ad manifest.
+   * The {@link AdConfig} of the loaded ad manifest.
    */
   adConfig?: AdConfig;
 }
@@ -546,11 +546,11 @@ export interface AdManifestLoadEvent extends Event {
  */
 export interface AdManifestLoadedEvent extends Event {
   /**
-   * The `AdBreak` this event is related to.
+   * The {@link AdBreak} this event is related to.
    */
   adBreak?: AdBreak;
   /**
-   * The `AdConfig` of the loaded ad manifest.
+   * The {@link AdConfig} of the loaded ad manifest.
    */
   adConfig?: AdConfig;
   /**
@@ -595,21 +595,21 @@ export interface CastAvailableEvent extends Event {}
 /**
  * Emitted when the playback on a cast-compatible device was paused.
  *
- * On Android `PausedEvent` is also emitted while casting.
+ * On Android {@link PausedEvent} is also emitted while casting.
  */
 export interface CastPausedEvent extends Event {}
 
 /**
  * Emitted when the playback on a cast-compatible device has finished.
  *
- * On Android `PlaybackFinishedEvent` is also emitted while casting.
+ * On Android {@link PlaybackFinishedEvent} is also emitted while casting.
  */
 export interface CastPlaybackFinishedEvent extends Event {}
 
 /**
  * Emitted when playback on a cast-compatible device has started.
  *
- * On Android `PlayingEvent` is also emitted while casting.
+ * On Android {@link PlayingEvent} is also emitted while casting.
  */
 export interface CastPlayingEvent extends Event {}
 
@@ -639,7 +639,7 @@ export interface CastStoppedEvent extends Event {}
 export interface CastTimeUpdatedEvent extends Event {}
 
 /**
- * Contains information for the `CastWaitingForDeviceEvent`.
+ * Contains information for the {@link CastWaitingForDeviceEvent}.
  */
 export interface CastPayload {
   /**
@@ -651,7 +651,7 @@ export interface CastPayload {
    */
   deviceName: string | null;
   /**
-   * The type of the payload (always "cast").
+   * The type of the payload (always `"cast"`).
    */
   type: string;
 }
@@ -662,7 +662,7 @@ export interface CastPayload {
  */
 export interface CastWaitingForDeviceEvent extends Event {
   /**
-   * The `CastPayload` object for the event
+   * The {@link CastPayload} object for the event
    */
   castPayload: CastPayload;
 }

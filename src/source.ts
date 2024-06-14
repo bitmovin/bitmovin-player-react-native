@@ -30,7 +30,7 @@ export enum SourceType {
 }
 
 /**
- * The different loading states a `Source` instance can be in.
+ * The different loading states a {@link Source} instance can be in.
  */
 export enum LoadingState {
   /**
@@ -131,7 +131,7 @@ export interface SourceConfig extends NativeInstanceConfig {
    */
   options?: SourceOptions;
   /**
-   * The `SourceMetadata` for the `Source` to setup custom analytics tracking
+   * The `SourceMetadata` for the {@link Source} to setup custom analytics tracking
    */
   analyticsSourceMetadata?: SourceMetadata;
 }
@@ -167,16 +167,16 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   remoteControl: SourceRemoteControlConfig | null = null;
   /**
-   * Whether the native `Source` object has been created.
+   * Whether the native {@link Source} object has been created.
    */
   isInitialized = false;
   /**
-   * Whether the native `Source` object has been disposed.
+   * Whether the native {@link Source} object has been disposed.
    */
   isDestroyed = false;
 
   /**
-   * Allocates the native `Source` instance and its resources natively.
+   * Allocates the native {@link Source} instance and its resources natively.
    */
   initialize = () => {
     if (!this.isInitialized) {
@@ -206,7 +206,7 @@ export class Source extends NativeInstance<SourceConfig> {
   };
 
   /**
-   * Destroys the native `Source` and releases all of its allocated resources.
+   * Destroys the native {@link Source} and releases all of its allocated resources.
    */
   destroy = () => {
     if (!this.isDestroyed) {
@@ -249,6 +249,8 @@ export class Source extends NativeInstance<SourceConfig> {
   /**
    * Set metadata for the currently loaded source.
    * Setting the metadata to `null` clears the metadata object in native source.
+   *
+   * @param metadata metadata to be set.
    */
   setMetadata = (metadata: Record<string, any> | null): void => {
     SourceModule.setMetadata(this.nativeId, metadata);
@@ -264,10 +266,12 @@ export class Source extends NativeInstance<SourceConfig> {
   /**
    * @returns a `Thumbnail` for the specified playback time if available.
    * Supported thumbnail formats are:
-   * - `WebVtt` configured via `SourceConfig.thumbnailTrack`, on all supported platforms
+   * - `WebVtt` configured via {@link SourceConfig.thumbnailTrack}, on all supported platforms
    * - HLS `Image Media Playlist` in the multivariant playlist, Android-only
    * - DASH `Image Adaptation Set` as specified in DASH-IF IOP, Android-only
    * If a `WebVtt` thumbnail track is provided, any potential in-manifest thumbnails are ignored on Android.
+   *
+   * @param time - The time in seconds for which to retrieve the thumbnail.
    */
   getThumbnail = async (time: number): Promise<Thumbnail | null> => {
     return SourceModule.getThumbnail(this.nativeId, time);

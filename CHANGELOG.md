@@ -11,6 +11,10 @@
 - Update Bitmovin's native Android SDK version to `3.73.0`
 - Update Bitmovin's native iOS SDK version to `3.65.0`
 
+### Fixed
+
+- Missing parameter documentations in the API reference
+
 ## [0.25.0] - 2024-06-07
 
 ### Added
