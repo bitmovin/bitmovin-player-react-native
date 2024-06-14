@@ -551,6 +551,20 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     }
 
     /**
+     * Set [nativeId]'s player video quality.
+     * NOTE: ONLY available on Android. No effect on iOS and tvOS devices.
+     * @param nativeId Target player Id.
+     * @param qualityId The videoQualityId identifier. A list of currently available VideoQualitys can be retrieved via availableVideoQualities. To use automatic quality selection, Quality.AUTO_ID can be passed as qualityId.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun setVideoQuality(nativeId: NativeId, qualityId: String, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.setVideoQuality(qualityId)
+        }
+    }
+
+    /**
      * Resolve [nativeId]'s current playback speed.
      */
     @ReactMethod
