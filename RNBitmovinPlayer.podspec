@@ -21,5 +21,5 @@ Pod::Spec.new do |s|
   s.dependency "React-Core"
   s.dependency "BitmovinPlayer", "3.65.0"
   s.ios.dependency "GoogleAds-IMA-iOS-SDK", "3.23.0"
-  s.tvos.dependency "GoogleAds-IMA-tvOS-SDK", "4.9.2"
+  s.tvos.dependency "GoogleAds-IMA-tvOS-SDK", "4.13.0"
 end
