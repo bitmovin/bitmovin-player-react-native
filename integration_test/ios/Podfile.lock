@@ -19,7 +19,7 @@ PODS:
     - ReactCommon/turbomodule/core (= 0.73.4-0)
   - fmt (6.2.1)
   - glog (0.3.5)
-  - GoogleAds-IMA-iOS-SDK (3.19.1)
+  - GoogleAds-IMA-iOS-SDK (3.23.0)
   - hermes-engine (0.73.4-0):
     - hermes-engine/Pre-built (= 0.73.4-0)
   - hermes-engine/Pre-built (0.73.4-0)
@@ -1042,8 +1042,8 @@ PODS:
     - React-perflogger (= 0.73.4-0)
   - RNBitmovinPlayer (0.26.0):
     - BitmovinPlayer (= 3.65.0)
-    - GoogleAds-IMA-iOS-SDK (= 3.19.1)
-    - GoogleAds-IMA-tvOS-SDK (= 4.9.2)
+    - GoogleAds-IMA-iOS-SDK (= 3.23.0)
+    - GoogleAds-IMA-tvOS-SDK (= 4.13.0)
     - React-Core
   - SocketRocket (0.6.1)
   - Yoga (1.14.0)
@@ -1224,7 +1224,7 @@ SPEC CHECKSUMS:
   FBReactNativeSpec: 55b7e93b71f300a051190f63c2afeccd839b7e9a
   fmt: 745abaaffe4da13101ae15d70dc68ec3d6a666a2
   glog: f0ddebfc00a905e9213e37801095a0a705d2e5f6
-  GoogleAds-IMA-iOS-SDK: 18adbec04a2e79ce828a992d37a4580deadbe525
+  GoogleAds-IMA-iOS-SDK: ee2a68ed7a1a17c7bb81bdb1b81590b35a3fc8f3
   hermes-engine: e7981489a718dff7c3a2dacd6302b8761375928d
   libevent: a6d75fcd7be07cbc5070300ea8dbc8d55dfab88e
   RCT-Folly: 46220aef278c0f21b248ba3d60d26d2f64bb36e9
@@ -1267,7 +1267,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 20b2202e3396589a71069d12ae9f328949c7c7b8
   React-utils: 0307d396f233e47a167b5aaf045b0e4e1dc19d74
   ReactCommon: 17891ca337bfa5a7263649b09f27a8c664537bf2
-  RNBitmovinPlayer: d25be32a2f3e0b8a82e6cc1b8c06d27688e0fc8f
+  RNBitmovinPlayer: 17f2c2286eab25d8b4d697cd886836d1fa4545a2
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: e7f2a2256464d4ef7b3825d216bd22aac3b449c1
 
