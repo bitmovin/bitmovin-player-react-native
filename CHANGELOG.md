@@ -5,7 +5,7 @@
 ### Changed
 
 - Update Google IMA SDK dependencies to `3.23.0` for iOS, and to `4.13.0` for tvOS
-- Update sample dependency: Google Cast iOS sender SDK to `4.8.1`
+- Update example app dependency: Google Cast iOS sender SDK to `4.8.1`
 
 ## [0.26.0] - 2024-06-14
 
