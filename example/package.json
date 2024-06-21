@@ -10,7 +10,7 @@
     "start": "react-native start",
     "pods": "yarn pods-install || yarn pods-update",
     "pods-install": "NO_FLIPPER=1 yarn pod-install",
-    "pods-update": "NO_FLIPPER=1 cd ios; pod update --silent"
+    "pods-update": "cd ios && NO_FLIPPER=1 pod update --silent"
   },
   "dependencies": {
     "@react-native-picker/picker": "2.6.1",
