@@ -10,7 +10,7 @@ extension RCTConvert {
      - Parameter json: JS object
      - Returns: The produced `PlayerConfig` object
      */
-    static func playerConfig(_ json: Any?) -> PlayerConfig? {
+    static func playerConfig(_ json: Any?) -> PlayerConfig? { // swiftlint:disable:this cyclomatic_complexity
         let playerConfig = PlayerConfig()
         guard let json = json as? [String: Any?] else {
             return playerConfig
@@ -38,6 +38,9 @@ extension RCTConvert {
         }
         if let liveConfig = RCTConvert.liveConfig(json["liveConfig"]) {
             playerConfig.liveConfig = liveConfig
+        }
+        if let networkConfig = RCTConvert.networkConfig(json["networkConfig"]) {
+            playerConfig.networkConfig = networkConfig
         }
 #if os(iOS)
         if let remoteControlConfig = RCTConvert.remoteControlConfig(json["remoteControlConfig"]) {
@@ -159,6 +162,11 @@ extension RCTConvert {
                 break
             }
         }
+#if !os(tvOS)
+        if let updatesNowPlayingInfoCenter = json["updatesNowPlayingInfoCenter"] as? Bool {
+            tweaksConfig.updatesNowPlayingInfoCenter = updatesNowPlayingInfoCenter
+        }
+#endif
         return tweaksConfig
     }
 
@@ -208,6 +216,67 @@ extension RCTConvert {
             liveConfig.minTimeshiftBufferDepth = minTimeshiftBufferDepth.doubleValue
         }
         return liveConfig
+    }
+
+    /**
+     Utility method to instantiate a `HttpRequest` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `HttpRequest` object, or `nil` if `json` is not valid.
+     */
+    static func httpRequest(_ json: Any?) -> HttpRequest? {
+        guard
+            let json = json as? [String: Any?],
+            let url = RCTConvert.nsurl(json["url"]),
+            let method = json["method"] as? String,
+            let headers = json["headers"] as? [String: String]
+        else {
+            return nil
+        }
+        var request = HttpRequest(url: url, method: method)
+        request.headers = NSMutableDictionary(dictionary: headers)
+
+        if let bodyBase64EncodedString = json["body"] as? String {
+            request.body = Data(base64Encoded: bodyBase64EncodedString)
+        }
+
+        return request
+    }
+
+    /**
+     Utility method to instantiate a `HttpResponse` from a JS object.
+     - Parameter json: JS object.
+     - Returns: The produced `HttpResponse` object, or `nil` if `json` is not valid.
+     */
+    static func httpResponse(_ json: Any?) -> HttpResponse? {
+        guard
+            let json = json as? [String: Any?],
+            let request = RCTConvert.httpRequest(json["request"]),
+            let url = RCTConvert.nsurl(json["url"]),
+            let status = json["status"] as? Int,
+            let headers = json["headers"] as? [String: String]
+        else {
+            return nil
+        }
+
+        var body: Data?
+        if let bodyBase64EncodedString = json["body"] as? String {
+            body = Data(base64Encoded: bodyBase64EncodedString)
+        }
+
+        return HttpResponse(
+            request: request,
+            url: url,
+            status: status,
+            headers: headers,
+            body: body
+        )
+    }
+
+    static func networkConfig(_ json: Any?) -> NetworkConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+        return NetworkConfig()
     }
 
     /**
@@ -1156,7 +1225,8 @@ extension RCTConvert {
 
         return RNPlayerViewConfig(
             uiConfig: rnUiConfig(json["uiConfig"]),
-            pictureInPictureConfig: pictureInPictureConfig(json["pictureInPictureConfig"])
+            pictureInPictureConfig: pictureInPictureConfig(json["pictureInPictureConfig"]),
+            hideFirstFrame: json["hideFirstFrame"] as? Bool
         )
     }
 
@@ -1231,6 +1301,33 @@ extension RCTConvert {
             "video": toJson(bufferLevel: bufferLevels.video, mediaType: "video"),
         ]
     }
+
+    static func toJson(httpRequestType: HttpRequestType) -> String {
+        httpRequestType.rawValue
+    }
+
+    static func toJson(data: Data?) -> String? {
+        data?.base64EncodedString()
+    }
+
+    static func toJson(httpRequest: HttpRequest) -> [String: Any] {
+        [
+            "body": toJson(data: httpRequest.body),
+            "headers": httpRequest.headers,
+            "method": httpRequest.method,
+            "url": httpRequest.url.absoluteString
+        ]
+    }
+
+    static func toJson(httpResponse: HttpResponse) -> [String: Any] {
+        [
+            "request": toJson(httpRequest: httpResponse.request),
+            "url": httpResponse.url.absoluteString,
+            "status": httpResponse.status,
+            "headers": httpResponse.headers,
+            "body": toJson(data: httpResponse.body)
+        ]
+    }
 }
 /**
  * React native specific PlayerViewConfig.
@@ -1256,6 +1353,15 @@ internal struct RNPlayerViewConfig {
         }
         return config
     }
+
+    /**
+     * When set to `true` the first frame of the main content will not be rendered before playback starts.
+     * Default is `false`.
+     *
+     * To reliably hide the first frame before a pre-roll ad, please ensure that you are using the
+     * `AdvertisingConfig` to schedule ads and not the `scheduleAd` API call.
+     */
+    var hideFirstFrame: Bool?
 }
 
 /**

@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative
 
+import android.util.Log
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
@@ -42,8 +43,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      * @param config `PlayerConfig` object received from JS.
      */
     @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, promise: Promise) {
-        init(nativeId, config, analyticsConfigJson = null, promise)
+    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, networkNativeId: NativeId?, promise: Promise) {
+        init(nativeId, config, networkNativeId = networkNativeId, analyticsConfigJson = null, promise)
     }
 
     /**
@@ -55,22 +56,32 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     fun initWithAnalyticsConfig(
         nativeId: NativeId,
         playerConfigJson: ReadableMap?,
+        networkNativeId: NativeId?,
         analyticsConfigJson: ReadableMap,
         promise: Promise,
-    ) = init(nativeId, playerConfigJson, analyticsConfigJson, promise)
+    ) = init(nativeId, playerConfigJson, networkNativeId, analyticsConfigJson, promise)
 
     private fun init(
         nativeId: NativeId,
         playerConfigJson: ReadableMap?,
+        networkNativeId: NativeId?,
         analyticsConfigJson: ReadableMap?,
         promise: Promise,
     ) = promise.unit.resolveOnUiThread {
         if (players.containsKey(nativeId)) {
-            throw IllegalArgumentException("Duplicate player creation for id $nativeId")
+            if (playerConfigJson != null || analyticsConfigJson != null) {
+                Log.w("BitmovinPlayerModule", "Cannot reconfigure an existing player")
+            }
+            return@resolveOnUiThread // key can be reused to access the same native instance (see NativeInstanceConfig)
         }
         val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()
         val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
+
+        val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
+        if (networkConfig != null) {
+            playerConfig.networkConfig = networkConfig
+        }
 
         players[nativeId] = if (analyticsConfig == null) {
             Player.create(context, playerConfig)
@@ -539,6 +550,20 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     fun getAvailableVideoQualities(nativeId: NativeId, promise: Promise) {
         promise.array.resolveOnUiThreadWithPlayer(nativeId) {
             source?.availableVideoQualities?.mapToReactArray { it.toJson() } ?: Arguments.createArray()
+        }
+    }
+
+    /**
+     * Set [nativeId]'s player video quality.
+     * NOTE: ONLY available on Android. No effect on iOS and tvOS devices.
+     * @param nativeId Target player Id.
+     * @param qualityId The videoQualityId identifier. A list of currently available VideoQualitys can be retrieved via availableVideoQualities. To use automatic quality selection, Quality.AUTO_ID can be passed as qualityId.
+     * @param promise JS promise object.
+     */
+    @ReactMethod
+    fun setVideoQuality(nativeId: NativeId, qualityId: String, promise: Promise) {
+        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
+            source?.setVideoQuality(qualityId)
         }
     }
 

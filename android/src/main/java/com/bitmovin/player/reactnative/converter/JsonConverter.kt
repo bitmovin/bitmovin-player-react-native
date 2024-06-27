@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative.converter
 
+import android.util.Base64
 import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
@@ -35,6 +36,10 @@ import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
+import com.bitmovin.player.api.network.HttpRequest
+import com.bitmovin.player.api.network.HttpRequestType
+import com.bitmovin.player.api.network.HttpResponse
+import com.bitmovin.player.api.network.NetworkConfig
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.Source
@@ -47,6 +52,7 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
+import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.RNStyleConfigWrapper
@@ -71,7 +77,6 @@ import com.bitmovin.player.reactnative.extensions.withInt
 import com.bitmovin.player.reactnative.extensions.withMap
 import com.bitmovin.player.reactnative.extensions.withString
 import com.bitmovin.player.reactnative.extensions.withStringArray
-import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler.PictureInPictureConfig
 import com.bitmovin.player.reactnative.ui.SubtitleViewConfig
 import com.facebook.react.bridge.*
 import java.util.UUID
@@ -88,6 +93,7 @@ fun ReadableMap.toPlayerConfig(): PlayerConfig = PlayerConfig(key = getString("l
     withMap("remoteControlConfig") { remoteControlConfig = it.toRemoteControlConfig() }
     withMap("bufferConfig") { bufferConfig = it.toBufferConfig() }
     withMap("liveConfig") { liveConfig = it.toLiveConfig() }
+    withMap("networkConfig") { networkConfig = it.toNetworkConfig() }
 }
 
 /**
@@ -183,6 +189,7 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     withBoolean("useDrmSessionForClearPeriods") { useDrmSessionForClearPeriods = it }
     withBoolean("useDrmSessionForClearSources") { useDrmSessionForClearSources = it }
     withBoolean("useFiletypeExtractorFallbackForHls") { useFiletypeExtractorFallbackForHls = it }
+    withBoolean("preferSoftwareDecodingForAds") { preferSoftwareDecodingForAds = it }
 }
 
 /**
@@ -218,6 +225,7 @@ fun ReadableMap.toAdSource(): AdSource? {
  * Converts any JS string into an `AdSourceType` enum value.
  */
 private fun String.toAdSourceType(): AdSourceType? = when (this) {
+    "bitmovin" -> AdSourceType.Bitmovin
     "ima" -> AdSourceType.Ima
     "progressive" -> AdSourceType.Progressive
     "unknown" -> AdSourceType.Unknown
@@ -627,6 +635,7 @@ fun AdSource.toJson(): WritableMap = Arguments.createMap().apply {
  * Converts any `AdSourceType` value into its json representation.
  */
 fun AdSourceType.toJson(): String = when (this) {
+    AdSourceType.Bitmovin -> "bitmovin"
     AdSourceType.Ima -> "ima"
     AdSourceType.Unknown -> "unknown"
     AdSourceType.Progressive -> "progressive"
@@ -759,6 +768,7 @@ fun toPlayerViewConfig(json: ReadableMap) = PlayerViewConfig(
             ?.getBooleanOrNull("playbackSpeedSelectionEnabled")
             ?: true,
     ),
+    hideFirstFrame = json.getBooleanOrNull("hideFirstFrame") ?: false,
 )
 
 private fun ReadableMap.toUserInterfaceTypeFromPlayerConfig(): UserInterfaceType? =
@@ -790,6 +800,50 @@ fun ReadableMap.toRNStyleConfigWrapperFromPlayerConfig(): RNStyleConfigWrapper? 
 fun ReadableMap.toLiveConfig(): LiveConfig = LiveConfig().apply {
     withDouble("minTimeshiftBufferDepth") { minTimeShiftBufferDepth = it }
 }
+
+fun ReadableMap.toHttpRequest(): HttpRequest? {
+    return HttpRequest(
+        getString("url") ?: return null,
+        getMap("headers")?.toMap(),
+        getString("body")?.toByteArrayFromBase64(),
+        getString("method") ?: return null,
+    )
+}
+
+private fun ByteArray.toBase64String(): String {
+    return Base64.encodeToString(this, Base64.NO_WRAP)
+}
+
+private fun String.toByteArrayFromBase64(): ByteArray = Base64.decode(this, Base64.NO_WRAP)
+
+fun ReadableMap.toHttpResponse(): HttpResponse? {
+    return HttpResponse(
+        httpRequest = getMap("request")?.toHttpRequest() ?: return null,
+        url = getString("url") ?: return null,
+        status = getInt("status"),
+        headers = getMap("headers")?.toMap() ?: return null,
+        body = getString("body")?.toByteArrayFromBase64() ?: return null,
+    )
+}
+
+fun ReadableMap.toNetworkConfig(): NetworkConfig = NetworkConfig()
+
+fun HttpRequest.toJson(): WritableMap = Arguments.createMap().apply {
+    putString("url", url)
+    putMap("headers", headers?.toReadableMap())
+    putString("body", body?.toBase64String())
+    putString("method", method)
+}
+
+fun HttpResponse.toJson(): WritableMap = Arguments.createMap().apply {
+    putMap("request", httpRequest.toJson())
+    putString("url", url)
+    putInt("status", status)
+    putMap("headers", headers.toReadableMap())
+    putString("body", body.toBase64String())
+}
+
+fun HttpRequestType.toJson(): String = toString()
 
 /**
  * Converts any [MediaType] value into its json representation.

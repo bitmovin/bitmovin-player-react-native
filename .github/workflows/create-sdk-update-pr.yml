@@ -1,5 +1,7 @@
 name: Create SDK update PR
 
+run-name: Create SDK update PR for ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player to ${{ inputs.version_number }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -49,6 +51,7 @@ jobs:
         with:
           node: true
           restore-pods: true
+          brew: true
 
       - name: Bump iOS player SDK version
         if: ${{ inputs.sdk_name == 'ios' }}

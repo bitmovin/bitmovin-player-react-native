@@ -37,7 +37,16 @@ Before running the application, make sure to set up your Bitmovin's license key 
 
 **iOS**
 
-Edit the license key in `ios/BitmovinPlayerReactNativeExample/Info.plist`:
+Edit the license key in `example/ios/BitmovinPlayerReactNativeExample/Info.plist`:
+
+```xml
+<key>BitmovinPlayerLicenseKey</key>
+<string>ENTER_LICENSE_KEY</string>
+```
+
+**tvOS**
+
+Edit the license key in `example/ios/BitmovinPlayerReactNativeExample-tvOS/Info.plist`:
 
 ```xml
 <key>BitmovinPlayerLicenseKey</key>
@@ -46,7 +55,7 @@ Edit the license key in `ios/BitmovinPlayerReactNativeExample/Info.plist`:
 
 **Android**
 
-Edit the license key in `android/app/src/main/AndroidManifest.xml`:
+Edit the license key in `example/android/app/src/main/AndroidManifest.xml`:
 
 ```xml
 <meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="<ENTER_LICENSE_KEY>" />
@@ -97,12 +106,12 @@ yarn example android # Run examples on Android
 Hint: You can provide a specific simulator by name when using `--simulator` flag. `xcrun simctl list devices available` provides you with a list of available devices in your environment.
 
 ```sh
-yarn example ios --simulator="iPhone 14 Pro"
+yarn example ios --simulator="iPhone 15 Pro"
 ```
 
 **IDE**
 
-You can also open the iOS project using Xcode by typing `xed example/ios/` on terminal, or `studio example/android/` to open the android project in Android Studio (make sure to setup its binaries first).
+You can also open the iOS project using Xcode by typing `xed example/ios` on terminal, or `studio example/android` to open the android project in Android Studio (make sure to setup its binaries first).
 
 ### Running the bundler only
 

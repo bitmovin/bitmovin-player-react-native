@@ -25,7 +25,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		008F07F21AC5B25A0029DE68 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		06D60B6FD8A3297CA32930A9 /* libPods-BitmovinPlayerReactNativeExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BitmovinPlayerReactNativeExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07F961A680F5B00A75B9A /* BitmovinPlayerReactNativeExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BitmovinPlayerReactNativeExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = BitmovinPlayerReactNativeExample/AppDelegate.mm; sourceTree = "<group>"; };
@@ -78,7 +77,6 @@
 			isa = PBXGroup;
 			children = (
 				4CD973812836B701003409B0 /* AppDelegate.h */,
-				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
@@ -435,9 +433,10 @@
 				"${PODS_ROOT}/Target Support Files/Pods-BitmovinPlayerReactNativeExample/Pods-BitmovinPlayerReactNativeExample-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/Protobuf/Protobuf_Privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core-iOS/RCTI18nStrings.bundle",
-				"${PODS_ROOT}/google-cast-sdk/GoogleCastSDK-ios-4.8.0_static/GoogleCast.framework/GoogleCastCoreResources.bundle",
-				"${PODS_ROOT}/google-cast-sdk/GoogleCastSDK-ios-4.8.0_static/GoogleCast.framework/GoogleCastUIResources.bundle",
-				"${PODS_ROOT}/google-cast-sdk/GoogleCastSDK-ios-4.8.0_static/GoogleCast.framework/MaterialDialogs.bundle",
+				"${PODS_ROOT}/google-cast-sdk/Resources/GoogleCastCoreResources.bundle",
+				"${PODS_ROOT}/google-cast-sdk/Resources/GoogleCastUIResources.bundle",
+				"${PODS_ROOT}/google-cast-sdk/Resources/MaterialDialogs.bundle",
+				"${PODS_ROOT}/google-cast-sdk/GoogleCast.xcframework/ios-arm64/GoogleCast.framework/PrivacyInfo.xcprivacy",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
@@ -446,6 +445,7 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleCastCoreResources.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleCastUIResources.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/MaterialDialogs.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/PrivacyInfo.xcprivacy",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

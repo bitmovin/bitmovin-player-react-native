@@ -2,8 +2,7 @@ package com.bitmovin.player.reactnative
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
-import android.graphics.Rect
-import android.view.View
+import android.os.Build
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -17,8 +16,6 @@ import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.converter.toJson
-import com.bitmovin.player.reactnative.ui.RNPictureInPictureDelegate
-import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.bitmovin.player.reactnative.ui.SubtitleViewConfig
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.*
@@ -103,7 +100,7 @@ private val EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING_UI = mapOf<KClass<out Event
 @SuppressLint("ViewConstructor")
 class RNPlayerView(
     private val context: ThemedReactContext,
-) : FrameLayout(context), View.OnLayoutChangeListener, RNPictureInPictureDelegate {
+) : FrameLayout(context) {
     private val activityLifecycle = (context.currentActivity as? ReactActivity)?.lifecycle
         ?: error("Trying to create an instance of ${this::class.simpleName} while not attached to a ReactActivity")
 
@@ -155,7 +152,6 @@ class RNPlayerView(
 
     private var _playerView: PlayerView? = null
         set(value) {
-            field?.removeOnLayoutChangeListener(this)
             field = value
             viewEventRelay.eventEmitter = field
             playerEventRelay.eventEmitter = field?.player
@@ -179,11 +175,6 @@ class RNPlayerView(
         }
 
     /**
-     * Object that handles PiP mode changes in React Native.
-     */
-    var pictureInPictureHandler: RNPictureInPictureHandler? = null
-
-    /**
      * Configures the visual presentation and behaviour of the [playerView].
      */
     var config: RNPlayerViewConfigWrapper? = null
@@ -197,7 +188,6 @@ class RNPlayerView(
      */
     fun dispose() {
         activityLifecycle.removeObserver(activityLifecycleObserver)
-        pictureInPictureHandler?.dispose()
 
         val playerView = _playerView ?: return
         _playerView = null
@@ -221,11 +211,6 @@ class RNPlayerView(
             (playerView.parent as ViewGroup?)?.removeView(playerView)
             addView(playerView, 0)
         }
-        pictureInPictureHandler?.let {
-            it.setDelegate(this)
-            playerView.setPictureInPictureHandler(it)
-            playerView.addOnLayoutChangeListener(this)
-        }
     }
 
     /**
@@ -246,61 +231,38 @@ class RNPlayerView(
         }
     }
 
+    private fun isInPictureInPictureMode(): Boolean {
+        val activity = context.currentActivity ?: return false
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            activity.isInPictureInPictureMode
+        } else {
+            false
+        }
+    }
+
+    private var isCurrentActivityInPictureInPictureMode: Boolean = isInPictureInPictureMode()
+
     /**
      * Called whenever this view's activity configuration changes.
      */
-    override fun onConfigurationChanged(newConfig: Configuration?) {
+    override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        pictureInPictureHandler?.onConfigurationChanged(newConfig)
+        if (isCurrentActivityInPictureInPictureMode != isInPictureInPictureMode()) {
+            isCurrentActivityInPictureInPictureMode = isInPictureInPictureMode()
+            onPictureInPictureModeChanged(isCurrentActivityInPictureInPictureMode, newConfig)
+        }
     }
 
-    /**
-     * Called when the player has just entered PiP mode.
-     */
-    override fun onEnterPictureInPicture() {
-        playerView?.enterPictureInPicture()
-    }
-
-    /**
-     * Called when the player has just exited PiP mode.
-     */
-    override fun onExitPictureInPicture() {
-        // Explicitly call `exitPictureInPicture()` on PlayerView when exiting PiP state, otherwise
-        // the `PictureInPictureExit` event won't get dispatched.
-        playerView?.exitPictureInPicture()
-    }
-
-    /**
-     * Called when the player's PiP mode changes with a new configuration object.
-     */
-    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration?) {
-        playerView?.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-    }
-
-    /**
-     * Called whenever the PiP handler needs to compute the PlayerView's global visible rect.
-     */
-    override fun setSourceRectHint(sourceRectHint: Rect) {
-        playerView?.getGlobalVisibleRect(sourceRectHint)
-    }
-
-    /**
-     * Called whenever PlayerView's layout changes.
-     */
-    override fun onLayoutChange(
-        view: View?,
-        left: Int,
-        top: Int,
-        right: Int,
-        bottom: Int,
-        oldLeft: Int,
-        oldTop: Int,
-        oldRight: Int,
-        oldBottom: Int,
+    private fun onPictureInPictureModeChanged(
+        isInPictureInPictureMode: Boolean,
+        newConfig: Configuration,
     ) {
-        if (left != oldLeft || right != oldRight || top != oldTop || bottom != oldBottom) {
-            // Update source rect hint whenever the player's layout change
-            pictureInPictureHandler?.updateSourceRectHint()
+        val playerView = playerView ?: return
+        playerView.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        if (isInPictureInPictureMode) {
+            playerView.enterPictureInPicture()
+        } else {
+            playerView.exitPictureInPicture()
         }
     }
 
@@ -325,7 +287,7 @@ class RNPlayerView(
      * @param name Native event name.
      * @param event Optional js object to be sent as payload.
      */
-    private inline fun <reified E : Event> emitEvent(name: String, event: E) {
+    private fun <E : Event> emitEvent(name: String, event: E) {
         val payload = when (event) {
             is PlayerEvent -> event.toJson()
             is SourceEvent -> event.toJson()
@@ -343,7 +305,7 @@ class RNPlayerView(
      * @param name Native event name.
      * @param event Optional js object to be sent as payload.
      */
-    private inline fun <reified E : Event> emitEventFromPlayer(name: String, event: E) {
+    private fun <E : Event> emitEventFromPlayer(name: String, event: E) {
         emitEvent(name, event)
         emitEvent("event", event)
     }
@@ -355,7 +317,7 @@ class RNPlayerView(
  */
 data class RNPlayerViewConfigWrapper(
     val playerViewConfig: PlayerViewConfig?,
-    val pictureInPictureConfig: RNPictureInPictureHandler.PictureInPictureConfig?,
+    val pictureInPictureConfig: PictureInPictureConfig?,
     val subtitleViewConfig: SubtitleViewConfig?,
 )
 
@@ -367,3 +329,8 @@ data class RNStyleConfigWrapper(
 enum class UserInterfaceType {
     Bitmovin, Subtitle
 }
+
+/**
+ * Configuration type for picture in picture behaviors.
+ */
+data class PictureInPictureConfig(val isEnabled: Boolean)

@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "bitmovin-player-react-native-sample",
-  "description": "Example app showcasing bitmovin's RN player SDK",
+  "description": "Example app showcasing Bitmovin's React Native Player SDK",
   "version": "0.0.1",
   "scripts": {
     "postinstall": "patch-package",
@@ -10,7 +10,7 @@
     "start": "react-native start",
     "pods": "yarn pods-install || yarn pods-update",
     "pods-install": "NO_FLIPPER=1 yarn pod-install",
-    "pods-update": "NO_FLIPPER=1 pod update --silent"
+    "pods-update": "cd ios && NO_FLIPPER=1 pod update --silent"
   },
   "dependencies": {
     "@react-native-picker/picker": "2.6.1",
@@ -29,9 +29,9 @@
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "^7.20.0",
     "@babel/runtime": "^7.20.0",
+    "@react-native/babel-preset": "0.73.18",
     "@react-native/metro-config": "^0.73.5",
     "babel-plugin-module-resolver": "^5.0.0",
-    "@react-native/babel-preset": "0.73.18",
     "patch-package": "^8.0.0",
     "pod-install": "^0.1.0"
   },
