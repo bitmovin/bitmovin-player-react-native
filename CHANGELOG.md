@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- `player.setMaxSelectableBitrate(null)` does not reset the maximum selectable bitrate on iOS and tvOS
+- Building with Xcode 16 beta due to negative integer overflow error with `UInt` type
+
 ## [0.27.0] - 2024-06-21
 
 ### Changed
