@@ -15,6 +15,7 @@ on:
     branches: [development]
     paths:
       - '.github/workflows/ci-android.yml'
+      - '.github/actions/**'
       - 'package.json'
       - 'yarn.lock'
       - 'android/**'

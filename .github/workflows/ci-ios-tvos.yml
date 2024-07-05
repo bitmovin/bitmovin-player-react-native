@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/ci-ios-tvos.yml'
+      - '.github/actions/**'
       - 'package.json'
       - 'yarn.lock'
       - 'ios/**'
