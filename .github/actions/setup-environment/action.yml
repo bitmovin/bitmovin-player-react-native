@@ -18,10 +18,6 @@ inputs:
     description: Setup xcode and install dependencies (overrides `brew` input)
     default: false
     required: false
-  restore-pods:
-    description: Restores the Pod cache
-    default: false
-    required: false
   java:
     description: Setup Java and Gradle cache
     default: false
@@ -75,15 +71,3 @@ runs:
       if: ${{ inputs.ios == 'true' || inputs.brew == 'true' }}
       shell: bash
       run: brew bundle install
-
-    - name: Restore Pods cache
-      if: ${{ inputs.restore-pods == 'true' }}
-      id: pods-cache-restore
-      uses: actions/cache/restore@v3
-      with:
-        path: |
-          .cocoapods-cache
-          example/ios/Pods
-          integration_test/ios/Pods
-        key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
-        restore-keys: pods-
