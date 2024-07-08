@@ -25,6 +25,7 @@ on:
     branches: [development]
     paths:
       - '.github/workflows/ci-typescript.yml'
+      - '.github/actions/**'
       - '**.ts'
       - '**.tsx'
       - '**.js'
