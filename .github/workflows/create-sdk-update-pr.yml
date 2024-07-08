@@ -50,8 +50,17 @@ jobs:
         uses: ./.github/actions/setup-environment
         with:
           node: true
-          restore-pods: true
           brew: true
+
+      - name: Restore Pods cache
+        id: pods-cache-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            .cocoapods-cache
+            example/ios/Pods
+          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
+          restore-keys: pods-
 
       - name: Bump iOS player SDK version
         if: ${{ inputs.sdk_name == 'ios' }}
