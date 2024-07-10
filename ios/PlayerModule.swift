@@ -624,10 +624,10 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
      */
     @objc(setMaxSelectableBitrate:maxSelectableBitrate:)
     func setMaxSelectableBitrate(_ nativeId: NativeId, maxSelectableBitrate: NSNumber) {
-        let maxSelectableBitrateValue = maxSelectableBitrate.uintValue
+        let maxSelectableBitrateValue = maxSelectableBitrate.intValue
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             let maxSelectableBitrate = maxSelectableBitrateValue != -1 ? maxSelectableBitrateValue : 0
-            self?.players[nativeId]?.maxSelectableBitrate = maxSelectableBitrate
+            self?.players[nativeId]?.maxSelectableBitrate = UInt(maxSelectableBitrate)
         }
     }
 
