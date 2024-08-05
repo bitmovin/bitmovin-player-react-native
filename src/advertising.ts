@@ -1,5 +1,3 @@
-import { Double } from 'react-native/Libraries/Types/CodegenTypes';
-
 /**
  * Quartiles that can be reached during an ad playback.
  */
@@ -80,10 +78,12 @@ export interface AdItem {
   sources: AdSource[];
 
   /**
+   * @platform Android
    * The amount of seconds the ad manifest is loaded in advance;
    * i.e as compared to when the ad break is scheduled for playback.
+   * Default value is 0.0
    */
-  preloadOffset: Double;
+  preloadOffset: Number;
 }
 
 /**
