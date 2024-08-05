@@ -206,7 +206,7 @@ fun ReadableMap.toAdItem(): AdItem? {
     return AdItem(
         sources = getArray("sources") ?.toMapList()?.mapNotNull { it?.toAdSource() }?.toTypedArray() ?: return null,
         position = getString("position") ?: "pre",
-        preloadOffset = getString("preloadOffset") ?: 0,
+        preloadOffset = getDoubleOrNull("preloadOffset") ?: 0.0,
     )
 }
 
