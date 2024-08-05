@@ -83,7 +83,7 @@ export interface AdItem {
    * i.e as compared to when the ad break is scheduled for playback.
    * Default value is 0.0
    */
-  preloadOffset: Number;
+  preloadOffset?: Number;
 }
 
 /**
