@@ -1,3 +1,5 @@
+import { Double } from 'react-native/Libraries/Types/CodegenTypes';
+
 /**
  * Quartiles that can be reached during an ad playback.
  */
@@ -76,6 +78,12 @@ export interface AdItem {
    * The fallback ad sources need to have the same `AdSourceType` as the main ad source.
    */
   sources: AdSource[];
+
+  /**
+   * The amount of seconds the ad manifest is loaded in advance;
+   * i.e as compared to when the ad break is scheduled for playback.
+   */
+  preloadOffset: Double;
 }
 
 /**
