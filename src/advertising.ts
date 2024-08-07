@@ -76,6 +76,16 @@ export interface AdItem {
    * The fallback ad sources need to have the same `AdSourceType` as the main ad source.
    */
   sources: AdSource[];
+
+  /**
+   * The amount of seconds the ad manifest is loaded in advance
+   * compared to when the ad break is scheduled for playback.
+   *
+   * Default value is 0.0
+   *
+   * @platform Android
+   */
+  preloadOffset?: number;
 }
 
 /**

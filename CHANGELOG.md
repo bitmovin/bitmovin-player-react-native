@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.28.0]
+
+### Added
+
+- Android: `AdItem.preloadOffset` to control when ad manifest gets loaded
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.78.0`
+- Update Bitmovin's native iOS SDK version to `3.67.0`
+
 ## [0.27.1] - 2024-07-05
 
 ### Fixed
