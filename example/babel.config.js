@@ -14,4 +14,5 @@ module.exports = {
       },
     ],
   ],
+  assets: ['./src/assets/icons/'], // for CustomUi
 };
