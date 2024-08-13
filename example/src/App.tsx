@@ -20,6 +20,7 @@ import LandscapeFullscreenHandling from './screens/LandscapeFullscreenHandling';
 import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
+import CustomUi from './screens/CustomUi';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -32,6 +33,7 @@ export type RootStackParamsList = {
   BasicAnalytics: undefined;
   BasicPlayback: undefined;
   BasicDrmPlayback: undefined;
+  CustomUi: undefined;
   BasicPictureInPicture: {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
   };
@@ -92,6 +94,10 @@ export default function App() {
       {
         title: 'Basic Drm playback',
         routeName: 'BasicDrmPlayback' as keyof RootStackParamsList,
+      },
+      {
+        title: 'CustomUi',
+        routeName: 'CustomUi' as keyof RootStackParamsList,
       },
       {
         title: 'Subtitle and captions',
@@ -190,6 +196,11 @@ export default function App() {
           name="BasicDrmPlayback"
           component={BasicDrmPlayback}
           options={{ title: 'Basic Drm playback' }}
+        />
+        <RootStack.Screen
+          name="CustomUi"
+          component={CustomUi}
+          options={{ title: 'CustomUi' }}
         />
         <RootStack.Screen
           name="SubtitlePlayback"
