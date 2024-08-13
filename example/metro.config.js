@@ -6,6 +6,10 @@ const pak = require('../package.json');
 
 const root = path.resolve(__dirname, '..');
 
+const {
+  resolver: { sourceExts, assetExts },
+} = getDefaultConfig(__dirname);
+
 const modules = Object.keys({
   ...pak.peerDependencies,
 });
@@ -43,6 +47,11 @@ const config = {
         inlineRequires: true,
       },
     }),
+    babelTransformerPath: require.resolve('react-native-svg-transformer'),
+  },
+  resolver: {
+    assetExts: assetExts.filter((ext) => ext !== 'svg'),
+    sourceExts: [...sourceExts, 'svg'],
   },
 };
 
