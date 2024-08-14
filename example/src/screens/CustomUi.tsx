@@ -4,9 +4,9 @@ import {
   Platform,
   StyleSheet,
   Dimensions,
-  useTVEventHandler,
   HWEvent,
   TouchableOpacity,
+  useTVEventHandler,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { PlayerControls } from '../components/PlayerControls';
@@ -17,6 +17,8 @@ import {
   PlayerView,
   SourceType,
 } from 'bitmovin-player-react-native';
+
+// import { useTVGestures } from '../hooks';
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
@@ -30,13 +32,6 @@ interface State {
 }
 
 export default function CustomUi() {
-  const [state, setState] = useState<State>({
-    play: false,
-    currentTime: 0,
-    duration: 0,
-    showControls: true,
-  });
-
   const myTVEventHandler = (evt: HWEvent) => {
     if (!state.showControls) {
       if (
@@ -50,10 +45,24 @@ export default function CustomUi() {
       }
     }
   };
-
   useTVEventHandler(myTVEventHandler);
 
+  const [state, setState] = useState<State>({
+    play: false,
+    currentTime: 0,
+    duration: 0,
+    showControls: true,
+  });
+
   const player = usePlayer({
+    licenseKey: '',
+    remoteControlConfig: {
+      isCastEnabled: false,
+    },
+    playbackConfig: {
+      isAutoplayEnabled: true,
+      isMuted: true,
+    },
     styleConfig: {
       isUiEnabled: false,
     },
@@ -61,16 +70,20 @@ export default function CustomUi() {
 
   useFocusEffect(
     useCallback(() => {
-      player.load({
-        url:
-          Platform.OS === 'ios'
-            ? 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
-            : 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
-        type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
-        title: 'Art of Motion',
-        poster:
-          'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg',
-      });
+      if (!player.config?.licenseKey || player.config?.licenseKey === '') {
+        console.error('Bitmovin License Key is NOT specified');
+      } else {
+        player.load({
+          url:
+            Platform.OS === 'ios'
+              ? 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
+              : 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
+          type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
+          title: 'Art of Motion',
+          poster:
+            'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg',
+        });
+      }
       return () => {
         player.destroy();
       };
@@ -81,12 +94,16 @@ export default function CustomUi() {
     prettyPrint(`[${event.name}]`, event);
   }, []);
 
-  const onSourceLoaded = useCallback(
+  const onPlayEvent = useCallback(
     (event: Event) => {
+      setState({ ...state, play: true });
+      setTimeout(() => {
+        setState((s) => ({ ...s, showControls: false }));
+      }, 2000);
+
       onEvent(event);
-      // Dinamically schedule an ad to play after the video
     },
-    [onEvent]
+    [state, onEvent]
   );
 
   function handlePlayPause() {
@@ -155,7 +172,16 @@ export default function CustomUi() {
         player={player}
         onReady={onReady}
         onTimeChanged={onTimeChanged}
-        onSourceLoaded={onSourceLoaded}
+        onSourceError={onEvent}
+        onPlay={onEvent}
+        onPlaying={onPlayEvent}
+        onPaused={onEvent}
+        onSourceLoaded={onEvent}
+        onSeek={onEvent}
+        onSeeked={onEvent}
+        onStallStarted={onEvent}
+        onStallEnded={onEvent}
+        onVideoPlaybackQualityChanged={onEvent}
       />
       {state.showControls ? (
         <View style={styles.controlOverlay}>
