@@ -7,6 +7,7 @@ import {
   HWEvent,
   TouchableOpacity,
   useTVEventHandler,
+  BackHandler,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { PlayerControls } from '../components/PlayerControls';
@@ -16,9 +17,9 @@ import {
   usePlayer,
   PlayerView,
   SourceType,
+  AdSourceType,
+  AdSkippedEvent,
 } from 'bitmovin-player-react-native';
-
-// import { useTVGestures } from '../hooks';
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
@@ -29,6 +30,7 @@ interface State {
   currentTime: number;
   duration: number;
   showControls: boolean;
+  isAd: boolean;
 }
 
 export default function CustomUi() {
@@ -39,7 +41,8 @@ export default function CustomUi() {
         (evt.eventType === 'right' ||
           evt.eventType === 'left' ||
           evt.eventType === 'up' ||
-          evt.eventType === 'down')
+          evt.eventType === 'down' ||
+          evt.eventType === 'select')
       ) {
         showControls();
       }
@@ -48,14 +51,54 @@ export default function CustomUi() {
   useTVEventHandler(myTVEventHandler);
 
   const [state, setState] = useState<State>({
-    play: false,
+    play: true, //because we have autoplay
     currentTime: 0,
     duration: 0,
-    showControls: true,
+    showControls: false,
+    isAd: false,
   });
 
+  const withCorrelator = (tag: string): string =>
+    `${tag}${Math.floor(Math.random() * 100000)}`;
+
+  const adTags = {
+    vastSkippable: withCorrelator(
+      'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dskippablelinear&correlator='
+    ),
+    vast1: withCorrelator(
+      'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator='
+    ),
+    vast2: withCorrelator(
+      'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/ad_rule_samples&ciu_szs=300x250&ad_rule=1&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ar%3Dpostonly&cmsid=496&vid=short_onecue&correlator='
+    ),
+  };
+
+  const advertisingConfig = {
+    schedule: [
+      // First ad item at "pre" (default) position.
+      {
+        sources: [
+          {
+            tag: adTags.vastSkippable,
+            type: AdSourceType.IMA,
+          },
+        ],
+      },
+      // Second ad item at "20%" position.
+      {
+        position: '20%',
+        sources: [
+          {
+            tag: adTags.vast1,
+            type: AdSourceType.IMA,
+          },
+        ],
+      },
+    ],
+  };
+
   const player = usePlayer({
-    licenseKey: '',
+    licenseKey: '21531108-4c7f-4b73-bab9-9dadf43302b5',
     remoteControlConfig: {
       isCastEnabled: false,
     },
@@ -66,7 +109,28 @@ export default function CustomUi() {
     styleConfig: {
       isUiEnabled: false,
     },
+    advertisingConfig,
   });
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (state.showControls) {
+          setState((s) => ({ ...s, showControls: false }));
+          return true;
+        } else {
+          return false;
+        }
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [state])
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -97,13 +161,45 @@ export default function CustomUi() {
   const onPlayEvent = useCallback(
     (event: Event) => {
       setState({ ...state, play: true });
-      setTimeout(() => {
-        setState((s) => ({ ...s, showControls: false }));
-      }, 2000);
 
       onEvent(event);
     },
     [state, onEvent]
+  );
+
+  const onAdStarted = useCallback(
+    (event: Event) => {
+      onEvent(event);
+      // Check if an ad is playing right now
+      player.isAd().then((isAd) => {
+        prettyPrint('is Ad playing?', isAd);
+      });
+    },
+    [player, onEvent]
+  );
+
+  const onAdBreakStarted = useCallback(
+    (event: Event) => {
+      onEvent(event);
+      setState((s) => ({ ...s, isAd: true, showControls: false }));
+    },
+    [onEvent]
+  );
+
+  const onAdBreakFinished = useCallback(
+    (event: Event) => {
+      onEvent(event);
+      setState((s) => ({ ...s, isAd: false }));
+    },
+    [onEvent]
+  );
+
+  const onAdSkipped = useCallback(
+    (event: AdSkippedEvent) => {
+      onEvent(event);
+      prettyPrint(`[${event.name}]`, `ID (${event.ad?.id})`);
+    },
+    [onEvent]
   );
 
   function handlePlayPause() {
@@ -115,40 +211,34 @@ export default function CustomUi() {
       player.play();
       setState({ ...state, play: true });
     }
-
-    setTimeout(() => {
-      setState((s) => ({ ...s, showControls: false }));
-    }, 2000);
   }
 
   function skipBackward() {
     player.seek(state.currentTime - 15);
     setState({ ...state, currentTime: state.currentTime - 15 });
-    setTimeout(() => {
-      setState((s) => ({ ...s, showControls: false }));
-    }, 2000);
   }
 
   function skipForward() {
     player.seek(state.currentTime + 15);
     setState({ ...state, currentTime: state.currentTime + 15 });
-    setTimeout(() => {
-      setState((s) => ({ ...s, showControls: false }));
-    }, 2000);
   }
 
   function onSeek(seekTime: number) {
     player.seek(seekTime);
-
-    setTimeout(() => {
-      setState((s) => ({ ...s, showControls: false }));
-    }, 2000);
   }
 
   function showControls() {
-    state.showControls
-      ? setState({ ...state, showControls: false })
-      : setState({ ...state, showControls: true });
+    if (state.isAd) {
+      if (!state.play) {
+        player.play();
+        setState({ ...state, play: true });
+      } else {
+        player.pause();
+        setState({ ...state, play: false });
+      }
+    } else {
+      setState({ ...state, showControls: true });
+    }
   }
 
   function onReady() {
@@ -182,6 +272,17 @@ export default function CustomUi() {
         onStallStarted={onEvent}
         onStallEnded={onEvent}
         onVideoPlaybackQualityChanged={onEvent}
+        onAdBreakFinished={onAdBreakFinished}
+        onAdBreakStarted={onAdBreakStarted}
+        onAdClicked={onEvent}
+        onAdError={onEvent}
+        onAdFinished={onEvent}
+        onAdManifestLoad={onEvent}
+        onAdManifestLoaded={onEvent}
+        onAdQuartile={onEvent}
+        onAdScheduled={onEvent}
+        onAdSkipped={onAdSkipped}
+        onAdStarted={onAdStarted}
       />
       {state.showControls ? (
         <View style={styles.controlOverlay}>
