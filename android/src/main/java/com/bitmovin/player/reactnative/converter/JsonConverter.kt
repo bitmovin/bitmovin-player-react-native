@@ -144,6 +144,7 @@ private fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (t
  */
 private fun ReadableMap.toAdaptationConfig(): AdaptationConfig = AdaptationConfig().apply {
     withInt("maxSelectableBitrate") { maxSelectableVideoBitrate = it }
+    withInt("initialBandwidthEstimateOverride") { initialBandwidthEstimateOverride = it.toLong(); }
 }
 
 /**
