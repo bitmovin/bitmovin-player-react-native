@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Android: `AdaptationConfig.initialBandwidthEstimateOverride` to override the selection of the optimal media tracks before actual bandwidth data is available
+
 ## [0.28.0] - 2024-08-07
 
 ### Added
