@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.29.0]
+
+### Added
+
+- Android: `AdaptationConfig.initialBandwidthEstimateOverride` to override the selection of the optimal media tracks before actual bandwidth data is available
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.82.0`
+- Update Bitmovin's native iOS SDK version to `3.71.0`
+- Update IMA SDK dependency on Android to `3.33.0`
+
+### Changed
+
 ## [0.28.0] - 2024-08-07
 
 ### Added

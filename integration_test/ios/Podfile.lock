@@ -1,12 +1,12 @@
 PODS:
-  - BitmovinAnalyticsCollector/BitmovinPlayer (3.7.0):
+  - BitmovinAnalyticsCollector/BitmovinPlayer (3.8.0):
     - BitmovinAnalyticsCollector/Core
     - BitmovinPlayerCore (~> 3.48)
-  - BitmovinAnalyticsCollector/Core (3.7.0)
-  - BitmovinPlayer (3.67.0):
+  - BitmovinAnalyticsCollector/Core (3.8.0)
+  - BitmovinPlayer (3.71.0):
     - BitmovinAnalyticsCollector/BitmovinPlayer (~> 3.0)
-    - BitmovinPlayerCore (= 3.67.0)
-  - BitmovinPlayerCore (3.67.0)
+    - BitmovinPlayerCore (= 3.71.0)
+  - BitmovinPlayerCore (3.71.0)
   - boost (1.83.0)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.73.4-0)
@@ -1040,8 +1040,8 @@ PODS:
     - React-jsi (= 0.73.4-0)
     - React-logger (= 0.73.4-0)
     - React-perflogger (= 0.73.4-0)
-  - RNBitmovinPlayer (0.28.0):
-    - BitmovinPlayer (= 3.67.0)
+  - RNBitmovinPlayer (0.29.0):
+    - BitmovinPlayer (= 3.71.0)
     - GoogleAds-IMA-iOS-SDK (= 3.23.0)
     - GoogleAds-IMA-tvOS-SDK (= 4.13.0)
     - React-Core
@@ -1215,9 +1215,9 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  BitmovinAnalyticsCollector: bbd82c0b8e11aefacd8e53b6e40c62f2cba6f3f5
-  BitmovinPlayer: 48ee17de9e0bbd310d874112bab92cb78f5e1cbf
-  BitmovinPlayerCore: da464f49a91a1308519a7187088822e33f1d057b
+  BitmovinAnalyticsCollector: 1390e34dd1af4a0b9fe09e290510de648eec4c09
+  BitmovinPlayer: fa8d008541dfc63e974187a4f88dafcc8c62e927
+  BitmovinPlayerCore: 40e6e74a437e12adbaae10cbd59dc47454edf507
   boost: 88202336c3ba1e7a264a83c0c888784b0f360c28
   DoubleConversion: 74cb0ce4de271b23e772567504735c87134edf0a
   FBLazyVector: 33a271a7e8de0bd321e47356d8bc3b2d5fb9ddba
@@ -1267,7 +1267,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 20b2202e3396589a71069d12ae9f328949c7c7b8
   React-utils: 0307d396f233e47a167b5aaf045b0e4e1dc19d74
   ReactCommon: 17891ca337bfa5a7263649b09f27a8c664537bf2
-  RNBitmovinPlayer: ae4f785479c566a71bf03d84bde7ec139eb22eaa
+  RNBitmovinPlayer: f7ddd96ad231988fe728edef4d2bd0a8f99a5769
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: ab50eb8f7fcf1b36aad1801b5687b66b2c0aa000
 
