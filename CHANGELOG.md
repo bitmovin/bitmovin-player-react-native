@@ -9,6 +9,7 @@
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.82.0`
+- Update IMA SDK dependency on Android to `3.33.0`
 
 ### Changed
 
