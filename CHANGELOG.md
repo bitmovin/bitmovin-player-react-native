@@ -6,6 +6,12 @@
 
 - Android: `AdaptationConfig.initialBandwidthEstimateOverride` to override the selection of the optimal media tracks before actual bandwidth data is available
 
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.82.0`
+
+### Changed
+
 ## [0.28.0] - 2024-08-07
 
 ### Added
