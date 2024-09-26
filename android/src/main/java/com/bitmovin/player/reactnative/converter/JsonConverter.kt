@@ -52,9 +52,12 @@ import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.RNStyleConfigWrapper
 import com.bitmovin.player.reactnative.UserInterfaceType
 import com.bitmovin.player.reactnative.extensions.get
+import com.bitmovin.player.reactnative.extensions.getArrayOrThrow
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getDoubleOrNull
+import com.bitmovin.player.reactnative.extensions.getMapOrThrow
 import com.bitmovin.player.reactnative.extensions.getName
+import com.bitmovin.player.reactnative.extensions.getStringOrThrow
 import com.bitmovin.player.reactnative.extensions.mapToReactArray
 import com.bitmovin.player.reactnative.extensions.putBoolean
 import com.bitmovin.player.reactnative.extensions.putDouble
@@ -72,6 +75,7 @@ import com.bitmovin.player.reactnative.extensions.withString
 import com.bitmovin.player.reactnative.extensions.withStringArray
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler.PictureInPictureConfig
 import com.facebook.react.bridge.*
+import java.security.InvalidParameterException
 import java.util.UUID
 
 /**
@@ -127,10 +131,10 @@ fun ReadableMap.toSourceOptions(): SourceOptions = SourceOptions(
 /**
  * Converts an arbitrary `json` to `TimelineReferencePoint`.
  */
-private fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (this) {
+private fun String.toTimelineReferencePoint(): TimelineReferencePoint = when (this) {
     "start" -> TimelineReferencePoint.Start
     "end" -> TimelineReferencePoint.End
-    else -> null
+    else -> throw InvalidParameterException("Unknown timeline reference point $this")
 }
 
 /**
@@ -186,18 +190,18 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
 /**
  * Converts any JS object into an `AdvertisingConfig` object.
  */
-fun ReadableMap.toAdvertisingConfig(): AdvertisingConfig? {
+fun ReadableMap.toAdvertisingConfig(): AdvertisingConfig {
     return AdvertisingConfig(
-        getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: return null,
+        getArrayOrThrow("schedule").toMapList().checkNoNull().map { it.toAdItem() },
     )
 }
 
 /**
  * Converts any JS object into an `AdItem` object.
  */
-fun ReadableMap.toAdItem(): AdItem? {
+fun ReadableMap.toAdItem(): AdItem {
     return AdItem(
-        sources = getArray("sources") ?.toMapList()?.mapNotNull { it?.toAdSource() }?.toTypedArray() ?: return null,
+        sources = getArrayOrThrow("sources").toMapList().checkNoNull().map { it.toAdSource() }.toTypedArray(),
         position = getString("position") ?: "pre",
     )
 }
@@ -205,56 +209,53 @@ fun ReadableMap.toAdItem(): AdItem? {
 /**
  * Converts any JS object into an `AdSource` object.
  */
-fun ReadableMap.toAdSource(): AdSource? {
+fun ReadableMap.toAdSource(): AdSource {
     return AdSource(
-        type = getString("type")?.toAdSourceType() ?: return null,
-        tag = getString("tag") ?: return null,
+        type = getStringOrThrow("type").toAdSourceType(),
+        tag = getStringOrThrow("tag"),
     )
 }
 
 /**
  * Converts any JS string into an `AdSourceType` enum value.
  */
-private fun String.toAdSourceType(): AdSourceType? = when (this) {
+private fun String.toAdSourceType(): AdSourceType = when (this) {
     "ima" -> AdSourceType.Ima
     "progressive" -> AdSourceType.Progressive
     "unknown" -> AdSourceType.Unknown
-    else -> null
+    else -> throw InvalidParameterException("Unknown AdSourceType $this")
 }
 
 /**
  * Converts an arbitrary `json` to `SourceConfig`.
  */
-fun ReadableMap.toSourceConfig(): SourceConfig? {
-    val url = getString("url") ?: return null
-    val type = getString("type")?.toSourceType() ?: return null
-    return SourceConfig(url, type).apply {
-        withString("title") { title = it }
-        withString("description") { description = it }
-        withString("poster") { posterSource = it }
-        withBoolean("isPosterPersistent") { isPosterPersistent = it }
-        withArray("subtitleTracks") { subtitleTracks ->
-            for (i in 0 until subtitleTracks.size()) {
-                subtitleTracks.getMap(i).toSubtitleTrack()?.let {
-                    addSubtitleTrack(it)
-                }
-            }
+fun ReadableMap.toSourceConfig(): SourceConfig = SourceConfig(
+    url = getStringOrThrow("url"),
+    type = getStringOrThrow("type").toSourceType(),
+).apply {
+    withString("title") { title = it }
+    withString("description") { description = it }
+    withString("poster") { posterSource = it }
+    withBoolean("isPosterPersistent") { isPosterPersistent = it }
+    withArray("subtitleTracks") { subtitleTracks ->
+        subtitleTracks.toMapList().forEach {
+            addSubtitleTrack(it.toSubtitleTrack())
         }
-        withString("thumbnailTrack") { thumbnailTrack = it.toThumbnailTrack() }
-        withMap("metadata") { metadata = it.toMap() }
-        withMap("options") { options = it.toSourceOptions() }
     }
+    withString("thumbnailTrack") { thumbnailTrack = it.toThumbnailTrack() }
+    withMap("metadata") { metadata = it.toMap() }
+    withMap("options") { options = it.toSourceOptions() }
 }
 
 /**
  * Converts an arbitrary `json` to `SourceType`.
  */
-fun String.toSourceType(): SourceType? = when (this) {
+fun String.toSourceType(): SourceType = when (this) {
     "dash" -> SourceType.Dash
     "hls" -> SourceType.Hls
     "smooth" -> SourceType.Smooth
     "progressive" -> SourceType.Progressive
-    else -> null
+    else -> throw InvalidParameterException("Unknown source type $this")
 }
 
 /**
@@ -488,7 +489,7 @@ fun ReadableMap.toCastOptions(): BitmovinCastManagerOptions = BitmovinCastManage
 /**
  * Converts an arbitrary `json` to `WidevineConfig`.
  */
-fun ReadableMap.toWidevineConfig(): WidevineConfig? = getMap("widevine")?.run {
+fun ReadableMap.toWidevineConfig(): WidevineConfig = getMapOrThrow("widevine").run {
     WidevineConfig(getString("licenseUrl")).apply {
         withString("preferredSecurityLevel") { preferredSecurityLevel = it }
         withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
@@ -515,10 +516,10 @@ fun AudioTrack.toJson(): WritableMap = Arguments.createMap().apply {
 /**
  * Converts an arbitrary `json` into a `SubtitleTrack`.
  */
-fun ReadableMap.toSubtitleTrack(): SubtitleTrack? {
+fun ReadableMap.toSubtitleTrack(): SubtitleTrack {
     return SubtitleTrack(
-        url = getString("url") ?: return null,
-        label = getString("label") ?: return null,
+        url = getStringOrThrow("url"),
+        label = getStringOrThrow("label"),
         id = getString("identifier") ?: UUID.randomUUID().toString(),
         isDefault = getBooleanOrNull("isDefault") ?: false,
         language = getString("language"),
@@ -626,12 +627,10 @@ fun AdQuartile.toJson(): String = when (this) {
 /**
  * Converts an arbitrary json object into a `BitmovinAnalyticsConfig`.
  */
-fun ReadableMap.toAnalyticsConfig(): AnalyticsConfig? = getString("licenseKey")
-    ?.let { AnalyticsConfig.Builder(it) }
-    ?.apply {
-        withBoolean("adTrackingDisabled") { setAdTrackingDisabled(it) }
-        withBoolean("randomizeUserId") { setRandomizeUserId(it) }
-    }?.build()
+fun ReadableMap.toAnalyticsConfig(): AnalyticsConfig = AnalyticsConfig.Builder(getStringOrThrow("licenseKey")).apply {
+    withBoolean("adTrackingDisabled") { setAdTrackingDisabled(it) }
+    withBoolean("randomizeUserId") { setRandomizeUserId(it) }
+}.build()
 
 /**
  * Converts an arbitrary json object into an analytics `DefaultMetadata`.
@@ -736,12 +735,11 @@ fun toPlayerViewConfig(json: ReadableMap) = PlayerViewConfig(
     ),
 )
 
-private fun ReadableMap.toUserInterfaceTypeFromPlayerConfig(): UserInterfaceType? =
-    when (getMap("styleConfig")?.getString("userInterfaceType")) {
-        "Subtitle" -> UserInterfaceType.Subtitle
-        "Bitmovin" -> UserInterfaceType.Bitmovin
-        else -> null
-    }
+private fun String.toUserInterfaceType(): UserInterfaceType = when (this) {
+    "Subtitle" -> UserInterfaceType.Subtitle
+    "Bitmovin" -> UserInterfaceType.Bitmovin
+    else -> throw InvalidParameterException("Unknown user interface $this")
+}
 
 /**
  * Converts the [this@toRNPlayerViewConfigWrapper] to a `RNPlayerViewConfig` object.
@@ -751,10 +749,10 @@ fun ReadableMap.toRNPlayerViewConfigWrapper() = RNPlayerViewConfigWrapper(
     pictureInPictureConfig = getMap("pictureInPictureConfig")?.toPictureInPictureConfig(),
 )
 
-fun ReadableMap.toRNStyleConfigWrapperFromPlayerConfig(): RNStyleConfigWrapper? {
-    return RNStyleConfigWrapper(
+fun ReadableMap.toRNStyleConfigWrapperFromPlayerConfig(): RNStyleConfigWrapper? = getMap("styleConfig")?.run {
+    RNStyleConfigWrapper(
         styleConfig = toStyleConfig(),
-        userInterfaceType = toUserInterfaceTypeFromPlayerConfig() ?: return null,
+        userInterfaceType = getString("userInterfaceType")?.toUserInterfaceType(),
     )
 }
 
@@ -796,19 +794,19 @@ fun RNBufferLevels.toJson(): WritableMap = Arguments.createMap().apply {
 /**
  * Maps a JS string into the corresponding [BufferType] value.
  */
-fun String.toBufferType(): BufferType? = when (this) {
+fun String.toBufferType(): BufferType = when (this) {
     "forwardDuration" -> BufferType.ForwardDuration
     "backwardDuration" -> BufferType.BackwardDuration
-    else -> null
+    else -> throw InvalidParameterException("Unknown buffer type $this")
 }
 
 /**
  * Maps a JS string into the corresponding [MediaType] value.
  */
-fun String.toMediaType(): MediaType? = when (this) {
+fun String.toMediaType(): MediaType = when (this) {
     "audio" -> MediaType.Audio
     "video" -> MediaType.Video
-    else -> null
+    else -> throw InvalidParameterException("Unknown media type $this")
 }
 
 /**
@@ -821,3 +819,7 @@ private fun CastPayload.toJson(): WritableMap = Arguments.createMap().apply {
 }
 
 private fun WritableMap.putStringIfNotNull(name: String, value: String?) = value?.let { putString(name, value) }
+
+private fun <T> List<T?>.checkNoNull(): List<T> = map {
+    it ?: throw InvalidParameterException("Unexpected null in array")
+}
