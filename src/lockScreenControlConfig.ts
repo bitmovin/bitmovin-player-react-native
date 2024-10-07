@@ -17,7 +17,7 @@ export interface LockScreenControlConfig {
    *
    * ## Limitations
    * ---
-   * - Currently, the current Now Playing information is disabled during casting.
+   * - At the moment, the current Now Playing information is disabled during casting.
    *
    * ## Known Issues
    * ---
