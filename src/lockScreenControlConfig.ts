@@ -4,6 +4,47 @@
  * and inside the control center.
  */
 export interface LockScreenControlConfig {
-  // TODO: docs
+  // TODO: android docs, and merge them.
+  /**
+   * Enable the default behavior of displaying Now Playing information
+   * on the lock screen and inside the control center.
+   * Default is `false`.
+   *
+   * For a detailed list of the supported features in the **default behavior**,
+   * check the **Default Supported Features** section.
+   *
+   * @note Enabling this flag will automatically treat `TweaksConfig.updatesNowPlayingInfoCenter` as `false`.
+   *
+   * ## Limitations
+   * ---
+   * - Currently, the current Now Playing information is disabled during casting.
+   *
+   * ## Known Issues
+   * ---
+   * - There is unexpected behavior when using the IMA SDK. The Google IMA SDK adds its own commands
+   *   for play/pause as soon as the ad starts loading (not when it starts playing). Within this window
+   *   (approximately around 10 seconds), it is possible that both the ad and the main content are playing
+   *   at the same time when a user interacts with the Now Playing feature.
+   *
+   * ## Default Supported Features
+   * ---
+   * Here is the list of features supported by the default behavior.
+   *
+   * ### Populated Metadata
+   * - asset URL (to visualize the correct kind of data — _e.g. a waveform for audio files_)
+   * - title
+   * - artwork
+   * - live or VOD status
+   * - playback rate
+   * - default playback rate
+   * - elapsed time
+   * - duration
+   *
+   * ### Registered Commands
+   * - toggle play/pause
+   * - change playback position
+   * - skip forward
+   * - skip backward
+   */
   isEnabled?: boolean;
 }
