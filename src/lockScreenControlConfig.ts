@@ -13,7 +13,7 @@ export interface LockScreenControlConfig {
    * For a detailed list of the supported features in the **default behavior**,
    * check the **Default Supported Features** section.
    *
-   * @note Enabling this flag will automatically treat `TweaksConfig.updatesNowPlayingInfoCenter` as `false`.
+   * @note Enabling this flag will automatically treat {@link TweaksConfig.updatesNowPlayingInfoCenter} as `false`.
    *
    * ## Limitations
    * ---
