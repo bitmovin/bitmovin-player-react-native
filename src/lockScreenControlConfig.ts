@@ -4,7 +4,6 @@
  * and inside the control center.
  */
 export interface LockScreenControlConfig {
-  // TODO: android docs, and merge them.
   /**
    * Enable the default behavior of displaying media information
    * on the lock screen and within the control center.
