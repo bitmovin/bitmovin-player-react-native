@@ -10,6 +10,10 @@
 
 - Update Bitmovin's native Android SDK version to `3.84.0`
 
+### Deprecated
+
+- `TweaksConfig.updatesNowPlayingInfoCenter` in favor of `LockScreenControlConfig.isEnabled`
+
 ## [0.29.0] - 2024-09-09
 
 ### Added
