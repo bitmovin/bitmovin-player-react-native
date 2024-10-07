@@ -74,6 +74,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures network request manipulation functionality. A default {@link NetworkConfig} is set initially.
    */
   networkConfig?: NetworkConfig;
-  // TODO: docs
+  /**
+   * Configures the lock screen information for the application. This information will be displayed
+   * wherever lock screen information typically appears, such as the lock screen
+   * and inside the control center.
+   */
   lockScreenControlConfig?: LockScreenControlConfig;
 }
