@@ -6,8 +6,8 @@
 export interface LockScreenControlConfig {
   // TODO: android docs, and merge them.
   /**
-   * Enable the default behavior of displaying Now Playing information
-   * on the lock screen and inside the control center.
+   * Enable the default behavior of displaying media information
+   * on the lock screen and within the control center.
    * Default is `false`.
    *
    * For a detailed list of the supported features in the **default behavior**,
@@ -17,14 +17,15 @@ export interface LockScreenControlConfig {
    *
    * ## Limitations
    * ---
-   * - At the moment, the current Now Playing information is disabled during casting.
+   * - At the moment, the current media information is disabled during casting.
    *
    * ## Known Issues
    * ---
+   * **iOS**:
    * - There is unexpected behavior when using the IMA SDK. The Google IMA SDK adds its own commands
    *   for play/pause as soon as the ad starts loading (not when it starts playing). Within this window
    *   (approximately around 10 seconds), it is possible that both the ad and the main content are playing
-   *   at the same time when a user interacts with the Now Playing feature.
+   *   at the same time when a user interacts with the lock-screen control feature.
    *
    * ## Default Supported Features
    * ---
