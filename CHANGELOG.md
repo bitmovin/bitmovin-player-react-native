@@ -4,7 +4,7 @@
 
 ### Added
 
-- `LockScreenControlConfig` to configure the lock screen information for the application. When `isEnabled` is `true`, the current media information will be shown on the lock-screen and within the control center.
+- `LockScreenControlConfig` to configure the lock screen information for the application. When `isEnabled` is `true`, the current media information will be shown on the lock-screen and within the control center
 
 ### Changed
 
