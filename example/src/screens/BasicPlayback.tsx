@@ -38,7 +38,8 @@ export default function BasicPlayback() {
         metadata: { platform: Platform.OS },
       });
       return () => {
-        player.destroy();
+        // player.destroy();// TODO: this is customers'concerns: they should not destroy in case of background playback
+        // TODO: even on iOS actually it should not play after player.destroy()
       };
     }, [player])
   );

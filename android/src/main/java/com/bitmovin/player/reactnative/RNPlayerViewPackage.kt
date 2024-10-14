@@ -30,6 +30,7 @@ class RNPlayerViewPackage : ReactPackage {
             BitmovinCastManagerModule(reactContext),
             BufferModule(reactContext),
             NetworkModule(reactContext),
+            MediaSessionModule(reactContext),
         )
     }
 
