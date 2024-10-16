@@ -16,10 +16,21 @@ function prettyPrint(header: string, obj: any) {
 export default function BasicPlayback() {
   useTVGestures();
 
+  // when we want background playback,
+  // from native start the service and actually init the player
+  // from there (Android) -- or give the player to the service.
+  //
+  // so with background playblack enabled, there must be only a single
+  // player instance existing, in the service
+  //
+  // But the first time (app start), when the service is not existing yet,
+  // but we'll start it
+
   const player = usePlayer({
     remoteControlConfig: {
       isCastEnabled: false,
     },
+    // e.g. background playback / lock-screen-controls : true
   });
 
   useFocusEffect(

@@ -1,5 +1,8 @@
 package com.bitmovin.player.reactnative
 
+import android.content.ComponentName
+import android.content.ServiceConnection
+import android.os.IBinder
 import android.util.Log
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
@@ -12,8 +15,11 @@ import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.mapToReactArray
+import com.bitmovin.player.reactnative.services.MediaSessionPlaybackService
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.security.InvalidParameterException
 
 private const val MODULE_NAME = "PlayerModule"
@@ -89,6 +95,40 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
                 analyticsConfig = analyticsConfig,
                 defaultMetadata = defaultMetadata ?: DefaultMetadata(),
             )
+        }
+
+        // FINAL: (ideas)
+        // If config is enabled, create the Intent here to start/bind the service -- setupMediaSession()
+        // Put the nativeId in the thread
+
+    }
+
+    // where is the player created
+    // how the player instance is given to the service (binder setting player vs playerId passing)
+
+    private val _player = MutableStateFlow<Player?>(null)
+    val player = _player.asStateFlow()
+
+    private val _serviceBinder = MutableStateFlow<MediaSessionPlaybackService.ServiceBinder?>(null)
+    val serviceBinder = _serviceBinder.asStateFlow()
+
+    inner class MediaSessionServiceConnection(
+        val playerPromise: Promise
+    ): ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            // We've bound to the Service, cast the IBinder and get the Player instance
+            val binder = service as MediaSessionPlaybackService.ServiceBinder
+            _serviceBinder.value = binder
+            binder.player =
+
+
+            playerPromise.unit.resolveOnUiThread {
+                binder.playerNativeId
+            }
+        }
+
+        override fun onServiceDisconnected(name: ComponentName) {
+            _player.value = null
         }
     }
 

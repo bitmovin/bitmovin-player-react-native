@@ -56,6 +56,11 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   initialize = () => {
     if (!this.isInitialized) {
+      // check if media session service exists,
+      // if so grab the player instance from there
+      this.mediaSession.setupMediaSession();
+      // this.nativeId = this.mediaSession.setupMediaSession();
+
       if (this.config?.networkConfig) {
         this.network = new Network(this.config.networkConfig);
         this.network.initialize();
@@ -76,7 +81,6 @@ export class Player extends NativeInstance<PlayerConfig> {
           this.network?.nativeId
         );
       }
-      this.mediaSession.setupMediaSession();
       this.isInitialized = true;
     }
   };

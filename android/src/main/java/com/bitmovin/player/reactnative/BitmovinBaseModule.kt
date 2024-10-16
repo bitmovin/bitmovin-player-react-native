@@ -40,6 +40,15 @@ abstract class BitmovinBaseModule(
         }
     }
 
+    protected inline fun <T, R : T> TPromise<T>.runOnUiThread(
+        crossinline block: () -> Unit,
+    ) {
+        val uiManager = runAndRejectOnException { uiManager } ?: return
+        uiManager.addUIBlock {
+            block()
+        }
+    }
+
     protected val RejectPromiseOnExceptionBlock.playerModule: PlayerModule get() = context.playerModule
         ?: throw IllegalArgumentException("PlayerModule not found")
 

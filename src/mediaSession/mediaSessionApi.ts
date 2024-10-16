@@ -9,11 +9,24 @@ export class MediaSessionApi {
   readonly nativeId: string;
 
   constructor(playerId: string) {
+    // if service exists, take native id from it, and dont use playerId at all
+
     this.nativeId = playerId;
-    // console.log(NativeModules);
+    // FINAL:
+    // when player is created on RN, it always creates a player on native side
+    // and sets itself in-charge of the service. So the last player will be the
+    // one in charge.
+    // So I'll never go and retrieve the instance from the service, but just put it. 
   }
 
-  setupMediaSession() {
-    MediaSessionModule.setupMediaSession(this.nativeId);
-  }
+  /**
+   * Sets up the Media Session for the Player.
+   * In case there is already an existing Media Session, the player will be put
+   * in charge of it.
+   *
+   * @returns the native player ID which is in charge of the Media Session.
+   */
+  setupMediaSession = async (): Promise<string> => {
+    return MediaSessionModule.setupMediaSession(this.nativeId);
+  };
 }

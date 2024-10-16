@@ -6,9 +6,24 @@ import android.os.IBinder
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.media.session.MediaSession
 import com.bitmovin.player.api.media.session.MediaSessionService
+import com.bitmovin.player.reactnative.BitmovinBaseModule
+import com.bitmovin.player.reactnative.MODULE_NAME
+import com.bitmovin.player.reactnative.NativeId
+import com.facebook.react.bridge.*
+import com.facebook.react.module.annotations.ReactModule
 
 class MediaSessionPlaybackService : MediaSessionService() {
+    @ReactModule(name = "test")
+    inner class TestModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
+        override fun getName(): String {
+            // TODO: read background investigation on Confluence
+            return "test"
+        }
+    }
+
     inner class ServiceBinder : Binder() {
+        var playerNativeId: NativeId
+
         // When the service starts, it creates a player
         // When playback activity is created, it gets a binder and
         // goes to the service and gets the player from it -- the same player instance.
@@ -44,10 +59,12 @@ class MediaSessionPlaybackService : MediaSessionService() {
 //        player = Player(this)
 
         // cannot create mediaSession without a player
+        // TODO: call playerModule.createPlayer to actually create a player
+        // so then we'll go to `mediaSessionModule.. onServiceConnected`
         mediaSession = MediaSession(
             this,
             mainLooper,
-            Player(this),
+            Player(this),// use the playermodule's player here
         )
     }
 
