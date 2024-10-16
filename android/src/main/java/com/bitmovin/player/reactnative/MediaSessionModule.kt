@@ -19,10 +19,11 @@ private const val MODULE_NAME = "MediaSessionModule"
 class MediaSessionModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
     override fun getName() = MODULE_NAME
 
+    private var isServiceStarted = false
     private lateinit var playerId: NativeId
 
     private val _player = MutableStateFlow<Player?>(null)
-    val player = _player.asStateFlow()
+//    val player = _player.asStateFlow()
 
     private val _serviceBinder = MutableStateFlow<MediaSessionPlaybackService.ServiceBinder?>(null)
     val serviceBinder = _serviceBinder.asStateFlow()
@@ -34,7 +35,6 @@ class MediaSessionModule(context: ReactApplicationContext) : BitmovinBaseModule(
             // We've bound to the Service, cast the IBinder and get the Player instance
             val binder = service as MediaSessionPlaybackService.ServiceBinder
             _serviceBinder.value = binder
-//            binder.playerNativeId = playerId
             binder.player = getPlayer()
         }
 
@@ -42,31 +42,6 @@ class MediaSessionModule(context: ReactApplicationContext) : BitmovinBaseModule(
             _player.value = null
         }
     }
-
-//    private val connection = object : ServiceConnection {
-//
-//        // we need a promise here, so that we can resolve it here instead of in setupMediaSession
-//        // subclass ServiceConnection and pass promise
-//        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-//            // We've bound to the Service, cast the IBinder and get the Player instance
-//            val binder = service as MediaSessionPlaybackService.ServiceBinder
-//            _serviceBinder.value = binder
-//
-////            binder.player = getPlayer("", context.playerModule)
-////            if(binder.player == null && playerId != null) {
-//            if(playerId != null) {
-//                binder.player = getPlayer(playerId!!, context.playerModule)
-//            }
-//            _player.value = binder.player
-//
-////            val player = binder.player!!
-////            _player.value = player
-//        }
-//
-//        override fun onServiceDisconnected(name: ComponentName) {
-//            _player.value = null
-//        }
-//    }
 
 
     // [!!!] -- on new sources, the media session does not get overridden
@@ -78,7 +53,6 @@ class MediaSessionModule(context: ReactApplicationContext) : BitmovinBaseModule(
         // if there is an existing media session session, change its content
         // the change should be on play actually, not on player creation
 
-
         this@MediaSessionModule.playerId = playerId
         val intent = Intent(context, MediaSessionPlaybackService::class.java)
         intent.action = Intent.ACTION_MEDIA_BUTTON
@@ -86,19 +60,22 @@ class MediaSessionModule(context: ReactApplicationContext) : BitmovinBaseModule(
         val connection = MediaSessionServiceConnection()
         context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
 
-        // TODO: is this the same as applicationContext.start/bindService ??
-        context.startService(intent)
+        if (!isServiceStarted) {
+            context.startService(intent)
+            isServiceStarted = true
+        }
     }
 
     private fun getPlayer(
         nativeId: NativeId = playerId,
         playerModule: PlayerModule? = context.playerModule,
     ): Player = playerModule?.getPlayerOrNull(nativeId) ?: throw IllegalArgumentException("Invalid PlayerId $nativeId")
-}
 
-// TODO: check how the background playback feature on Android
-// TODO: check lock-screen control on iOS:
-//       what happens if I start art-of-motion, and go back to menu (is the played destroyed?)
+    /// FINE
+    // - add LockScreenConfig serializers
+    // - add a lock-screen control sample: only there the config is set to true
+    // - fix player is paused when app is minimized: see android codebase: implement Activity lfiecycle onStart and onStop and detach player
+}
 
 // ISSUE2 -- if I start playback, minimize, and restart playback. I should
 //           re-fetch the state of the player from the service and update
