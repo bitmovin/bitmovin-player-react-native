@@ -25,4 +25,3 @@ export * from './liveConfig';
 export * from './bufferApi';
 export * from './network';
 export * from './lockScreenControlConfig';
-export * from './mediaSession/mediaSessionApi';

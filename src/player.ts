@@ -11,7 +11,6 @@ import { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
 import { VideoQuality } from './media';
 import { Network } from './network';
-import { MediaSessionApi } from './mediaSession/mediaSessionApi';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -48,19 +47,12 @@ export class Player extends NativeInstance<PlayerConfig> {
    * The {@link BufferApi} for interactions regarding the buffer.
    */
   buffer: BufferApi = new BufferApi(this.nativeId);
-  // TODO: docs
-  mediaSession: MediaSessionApi = new MediaSessionApi(this.nativeId);
 
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
   initialize = () => {
     if (!this.isInitialized) {
-      // check if media session service exists,
-      // if so grab the player instance from there
-      // this.mediaSession.setupMediaSession();
-      // this.nativeId = this.mediaSession.setupMediaSession();
-
       if (this.config?.networkConfig) {
         this.network = new Network(this.config.networkConfig);
         this.network.initialize();
