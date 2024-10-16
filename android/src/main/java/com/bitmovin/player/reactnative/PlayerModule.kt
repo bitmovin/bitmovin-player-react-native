@@ -101,36 +101,16 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         // If config is enabled, create the Intent here to start/bind the service -- setupMediaSession()
         // Put the nativeId in the thread
 
-    }
-
-    // where is the player created
-    // how the player instance is given to the service (binder setting player vs playerId passing)
-
-    private val _player = MutableStateFlow<Player?>(null)
-    val player = _player.asStateFlow()
-
-    private val _serviceBinder = MutableStateFlow<MediaSessionPlaybackService.ServiceBinder?>(null)
-    val serviceBinder = _serviceBinder.asStateFlow()
-
-    inner class MediaSessionServiceConnection(
-        val playerPromise: Promise
-    ): ServiceConnection {
-        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            // We've bound to the Service, cast the IBinder and get the Player instance
-            val binder = service as MediaSessionPlaybackService.ServiceBinder
-            _serviceBinder.value = binder
-            binder.player =
-
-
-            playerPromise.unit.resolveOnUiThread {
-                binder.playerNativeId
-            }
-        }
-
-        override fun onServiceDisconnected(name: ComponentName) {
-            _player.value = null
+//        if (playerConfig.lockScreenConfig.isEnabled) {
+        promise.unit.resolveOnUiThread {
+            mediaSessionModule
+                .setupMediaSession(nativeId)
         }
     }
+
+    // FINAL: 2 issues to solve:
+    // - where is the player created
+    // - how the player instance is given to the service (binder setting player vs playerId passing)
 
     /**
      * Load the source of the given [nativeId] with `config` options from JS.

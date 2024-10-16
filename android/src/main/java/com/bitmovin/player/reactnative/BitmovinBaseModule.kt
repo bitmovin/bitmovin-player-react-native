@@ -4,6 +4,7 @@ import android.util.Log
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.extensions.drmModule
+import com.bitmovin.player.reactnative.extensions.mediaSessionModule
 import com.bitmovin.player.reactnative.extensions.networkModule
 import com.bitmovin.player.reactnative.extensions.offlineModule
 import com.bitmovin.player.reactnative.extensions.playerModule
@@ -66,6 +67,9 @@ abstract class BitmovinBaseModule(
 
     protected val RejectPromiseOnExceptionBlock.networkModule: NetworkModule get() = context.networkModule
         ?: throw IllegalStateException("NetworkModule not found")
+
+    protected val RejectPromiseOnExceptionBlock.mediaSessionModule: MediaSessionModule
+        get() = context.mediaSessionModule ?: throw IllegalStateException("MediaSessionModule not found")
 
     fun RejectPromiseOnExceptionBlock.getPlayer(
         nativeId: NativeId,

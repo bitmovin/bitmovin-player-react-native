@@ -58,7 +58,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (!this.isInitialized) {
       // check if media session service exists,
       // if so grab the player instance from there
-      this.mediaSession.setupMediaSession();
+      // this.mediaSession.setupMediaSession();
       // this.nativeId = this.mediaSession.setupMediaSession();
 
       if (this.config?.networkConfig) {

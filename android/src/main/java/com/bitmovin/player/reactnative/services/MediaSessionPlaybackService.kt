@@ -7,22 +7,20 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.media.session.MediaSession
 import com.bitmovin.player.api.media.session.MediaSessionService
 import com.bitmovin.player.reactnative.BitmovinBaseModule
-import com.bitmovin.player.reactnative.MODULE_NAME
 import com.bitmovin.player.reactnative.NativeId
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 
 class MediaSessionPlaybackService : MediaSessionService() {
-    @ReactModule(name = "test")
-    inner class TestModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
-        override fun getName(): String {
-            // TODO: read background investigation on Confluence
-            return "test"
-        }
-    }
+//    @ReactModule(name = "test")
+//    inner class TestModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
+//        override fun getName(): String {
+//            // TODO: read background investigation on Confluence
+//        }
+//    }
 
     inner class ServiceBinder : Binder() {
-        var playerNativeId: NativeId
+//        lateinit var playerNativeId: NativeId
 
         // When the service starts, it creates a player
         // When playback activity is created, it gets a binder and
