@@ -9,6 +9,7 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.event.PlayerEvent
+import com.bitmovin.player.reactnative.converter.lockScreenControlConfig
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
@@ -101,10 +102,12 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         // If config is enabled, create the Intent here to start/bind the service -- setupMediaSession()
         // Put the nativeId in the thread
 
-//        if (playerConfig.lockScreenConfig.isEnabled) {
-        promise.unit.resolveOnUiThread {
-            mediaSessionModule
-                .setupMediaSession(nativeId)
+        if (playerConfig.lockScreenControlConfig.isEnabled) {
+//        playerConfig.playbackConfig
+            promise.unit.resolveOnUiThread {
+                mediaSessionModule
+                    .setupMediaSession(nativeId)
+            }
         }
     }
 

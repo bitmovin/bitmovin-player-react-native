@@ -92,6 +92,7 @@ fun ReadableMap.toPlayerConfig(): PlayerConfig = PlayerConfig(key = getString("l
     withMap("bufferConfig") { bufferConfig = it.toBufferConfig() }
     withMap("liveConfig") { liveConfig = it.toLiveConfig() }
     withMap("networkConfig") { networkConfig = it.toNetworkConfig() }
+    withMap("lockScreenControlConfig") { lockScreenControlConfig = it.toLockScreenControlConfig() }
 }
 
 /**
@@ -882,6 +883,21 @@ fun String.toMediaType(): MediaType? = when (this) {
     "video" -> MediaType.Video
     else -> null
 }
+
+data class LockScreenControlConfig(
+    var isEnabled: Boolean = false
+)
+
+fun ReadableMap.toLockScreenControlConfig(): LockScreenControlConfig = LockScreenControlConfig().apply {
+    withBoolean("isEnabled") { isEnabled = it }
+}
+
+private val lockScreenConfigMap = mutableMapOf<PlayerConfig, LockScreenControlConfig>()
+var PlayerConfig.lockScreenControlConfig: LockScreenControlConfig
+    get() = lockScreenConfigMap[this] ?: LockScreenControlConfig()
+    set(value) {
+        lockScreenConfigMap[this] = value
+    }
 
 /**
  * Converts a [CastPayload] object into its JS representation.
