@@ -23,7 +23,7 @@ class MediaSessionModule(context: ReactApplicationContext) : BitmovinBaseModule(
     private lateinit var playerId: NativeId
 
     private val _player = MutableStateFlow<Player?>(null)
-//    val player = _player.asStateFlow()
+    val player = _player.asStateFlow()
 
     private val _serviceBinder = MutableStateFlow<MediaSessionPlaybackService.ServiceBinder?>(null)
     val serviceBinder = _serviceBinder.asStateFlow()
