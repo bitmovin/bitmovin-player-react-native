@@ -98,7 +98,6 @@ export default function CustomUi() {
   };
 
   const player = usePlayer({
-    licenseKey: '21531108-4c7f-4b73-bab9-9dadf43302b5',
     remoteControlConfig: {
       isCastEnabled: false,
     },
