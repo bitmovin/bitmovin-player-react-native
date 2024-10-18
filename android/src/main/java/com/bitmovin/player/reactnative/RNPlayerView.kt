@@ -109,32 +109,13 @@ class RNPlayerView(
      */
     private var playerEventRelay: EventRelay<Player, Event>
 
-//    val viewModelPlayer = context.mediaSessionModule?.player?.value
-
-    val viewModelPlayer: Player?
-        get() = context.mediaSessionModule?.player?.value
-
-//    // Don't stop the player when going to background
-//    override fun onStart(playerView: PlayerView) {
-//        playerView.player = player
-//        super.onStart(playerView)
-//    }
-//
-//    override fun onStop(playerView: PlayerView) {
-//        playerView.player = null
-//        super.onStop(playerView)
-//    }
-
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
+        // Don't stop the player when going to background
         override fun onStart(owner: LifecycleOwner) {
-//            if (context.mediaSessionModule?.player?.value != null) {
-//                player = context.mediaSessionModule?.player?.value
-//            }
-//            player = viewModelPlayer
-//            playerView?.player = viewModelPlayer
-            playerView?.player = context.mediaSessionModule?.serviceBinder?.value?.player
-
-
+//            playerView?.player = context.mediaSessionModule?.serviceBinder?.value?.player
+            if (context.mediaSessionModule?.serviceBinder?.value?.player != null) {
+                player = context.mediaSessionModule?.serviceBinder?.value?.player
+            }
             playerView?.onStart()
         }
 
@@ -147,12 +128,9 @@ class RNPlayerView(
         }
 
         override fun onStop(owner: LifecycleOwner) {
-//            player = null
-            playerView?.player = null
-//            context.mediaSessionModule?.serviceBinder?.value?.player = null
-//            if (context.mediaSessionModule?.player?.value != null) {
-//                player = context.mediaSessionModule?.player?.value
-//            }
+            if (context.mediaSessionModule?.serviceBinder?.value?.player != null) {
+                player = null
+            }
             playerView?.onStop()
         }
 
