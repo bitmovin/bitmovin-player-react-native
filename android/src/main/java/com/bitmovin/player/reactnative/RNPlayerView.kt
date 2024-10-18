@@ -15,8 +15,10 @@ import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.StyleConfig
+import com.bitmovin.player.reactnative.converter.lockScreenControlConfig
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.extensions.mediaSessionModule
+import com.bitmovin.player.reactnative.extensions.playerModule
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.events.RCTEventEmitter
@@ -109,12 +111,20 @@ class RNPlayerView(
      */
     private var playerEventRelay: EventRelay<Player, Event>
 
+    private var mediaSessionServicePlayer: Player?
+        get() = context.mediaSessionModule?.serviceBinder?.value?.player
+        set(value) {
+            context.mediaSessionModule?.serviceBinder?.value?.player = value
+        }
+
+    private var oldPlayer: Player? = null
+
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
         // Don't stop the player when going to background
         override fun onStart(owner: LifecycleOwner) {
-//            playerView?.player = context.mediaSessionModule?.serviceBinder?.value?.player
-            if (context.mediaSessionModule?.serviceBinder?.value?.player != null) {
-                player = context.mediaSessionModule?.serviceBinder?.value?.player
+            if (mediaSessionServicePlayer != null) {
+                oldPlayer = player
+                player = mediaSessionServicePlayer
             }
             playerView?.onStart()
         }
@@ -128,9 +138,20 @@ class RNPlayerView(
         }
 
         override fun onStop(owner: LifecycleOwner) {
-            if (context.mediaSessionModule?.serviceBinder?.value?.player != null) {
+            if (player?.config?.lockScreenControlConfig?.isEnabled == false) {
+                mediaSessionServicePlayer = null
+            }
+            else {
                 player = null
             }
+//            if (mediaSessionServicePlayer != null) {
+////                context.mediaSessionModule?.serviceBinder?.value?.player = null
+////                if (mediaSessionServicePlayer != player) {
+////                    mediaSessionServicePlayer = null
+////                }
+//
+//                player = oldPlayer
+//            }
             playerView?.onStop()
         }
 

@@ -22,9 +22,6 @@ class MediaSessionModule(context: ReactApplicationContext) : BitmovinBaseModule(
     private var isServiceStarted = false
     private lateinit var playerId: NativeId
 
-    private val _player = MutableStateFlow<Player?>(null)
-    val player = _player.asStateFlow()
-
     private val _serviceBinder = MutableStateFlow<MediaSessionPlaybackService.ServiceBinder?>(null)
     val serviceBinder = _serviceBinder.asStateFlow()
 
@@ -39,7 +36,7 @@ class MediaSessionModule(context: ReactApplicationContext) : BitmovinBaseModule(
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
-            _player.value = null
+            _serviceBinder.value?.player = null
         }
     }
 
