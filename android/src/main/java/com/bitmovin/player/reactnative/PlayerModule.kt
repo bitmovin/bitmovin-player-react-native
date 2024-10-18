@@ -26,6 +26,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     private val players: Registry<Player> = mutableMapOf()
 
+    var mediaSessionConnectionManager: MediaSessionConnectionManager? = null
+
     /**
      * JS exported module name.
      */
@@ -93,9 +95,9 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         }
 
         if (playerConfig.lockScreenControlConfig.isEnabled) {
+            mediaSessionConnectionManager = MediaSessionConnectionManager(context)
             promise.unit.resolveOnUiThread {
-                mediaSessionModule
-                    .setupMediaSession(nativeId)
+                mediaSessionConnectionManager?.setupMediaSession(nativeId)
             }
         }
     }
@@ -222,6 +224,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
             destroy()
             players.remove(nativeId)
+            mediaSessionConnectionManager = null
         }
     }
 

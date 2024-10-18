@@ -17,7 +17,7 @@ import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.converter.lockScreenControlConfig
 import com.bitmovin.player.reactnative.converter.toJson
-import com.bitmovin.player.reactnative.extensions.mediaSessionModule
+import com.bitmovin.player.reactnative.extensions.playerModule
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.events.RCTEventEmitter
@@ -111,9 +111,9 @@ class RNPlayerView(
     private var playerEventRelay: EventRelay<Player, Event>
 
     private var mediaSessionServicePlayer: Player?
-        get() = context.mediaSessionModule?.serviceBinder?.value?.player
+        get() = context.playerModule?.mediaSessionConnectionManager?.serviceBinder?.value?.player
         set(value) {
-            context.mediaSessionModule?.serviceBinder?.value?.player = value
+            context.playerModule?.mediaSessionConnectionManager?.serviceBinder?.value?.player = value
         }
 
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {

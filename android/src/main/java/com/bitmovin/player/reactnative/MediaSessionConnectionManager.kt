@@ -10,15 +10,10 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.reactnative.extensions.playerModule
 import com.bitmovin.player.reactnative.services.MediaSessionPlaybackService
 import com.facebook.react.bridge.*
-import com.facebook.react.module.annotations.ReactModule
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-private const val MODULE_NAME = "MediaSessionModule"
-@ReactModule(name = MODULE_NAME)
-class MediaSessionModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
-    override fun getName() = MODULE_NAME
-
+class MediaSessionConnectionManager(val context: ReactApplicationContext) {
     private var isServiceStarted = false
     private lateinit var playerId: NativeId
 
@@ -39,7 +34,7 @@ class MediaSessionModule(context: ReactApplicationContext) : BitmovinBaseModule(
     }
 
     fun setupMediaSession(playerId: NativeId) {
-        this@MediaSessionModule.playerId = playerId
+        this@MediaSessionConnectionManager.playerId = playerId
         val intent = Intent(context, MediaSessionPlaybackService::class.java)
         intent.action = Intent.ACTION_MEDIA_BUTTON
 
