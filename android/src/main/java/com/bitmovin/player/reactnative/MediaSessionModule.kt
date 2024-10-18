@@ -38,7 +38,6 @@ class MediaSessionModule(context: ReactApplicationContext) : BitmovinBaseModule(
         }
     }
 
-    @ReactMethod
     fun setupMediaSession(playerId: NativeId) {
         this@MediaSessionModule.playerId = playerId
         val intent = Intent(context, MediaSessionPlaybackService::class.java)
