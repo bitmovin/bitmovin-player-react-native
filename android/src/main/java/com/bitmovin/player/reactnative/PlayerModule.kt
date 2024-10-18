@@ -6,6 +6,7 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.event.PlayerEvent
+import com.bitmovin.player.reactnative.converter.lockScreenControlConfig
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
@@ -24,6 +25,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      * In-memory mapping from [NativeId]s to [Player] instances.
      */
     private val players: Registry<Player> = mutableMapOf()
+
+    var mediaSessionConnectionManager: MediaSessionConnectionManager? = null
 
     /**
      * JS exported module name.
@@ -89,6 +92,13 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
                 analyticsConfig = analyticsConfig,
                 defaultMetadata = defaultMetadata ?: DefaultMetadata(),
             )
+        }
+
+        if (playerConfig.lockScreenControlConfig.isEnabled) {
+            mediaSessionConnectionManager = MediaSessionConnectionManager(context)
+            promise.unit.resolveOnUiThread {
+                mediaSessionConnectionManager?.setupMediaSession(nativeId)
+            }
         }
     }
 
@@ -214,6 +224,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
             destroy()
             players.remove(nativeId)
+            mediaSessionConnectionManager = null
         }
     }
 
