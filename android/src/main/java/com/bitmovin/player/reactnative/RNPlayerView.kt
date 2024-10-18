@@ -18,7 +18,6 @@ import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.converter.lockScreenControlConfig
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.extensions.mediaSessionModule
-import com.bitmovin.player.reactnative.extensions.playerModule
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.events.RCTEventEmitter
@@ -117,13 +116,10 @@ class RNPlayerView(
             context.mediaSessionModule?.serviceBinder?.value?.player = value
         }
 
-    private var oldPlayer: Player? = null
-
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
         // Don't stop the player when going to background
         override fun onStart(owner: LifecycleOwner) {
             if (mediaSessionServicePlayer != null) {
-                oldPlayer = player
                 player = mediaSessionServicePlayer
             }
             playerView?.onStart()
@@ -140,18 +136,10 @@ class RNPlayerView(
         override fun onStop(owner: LifecycleOwner) {
             if (player?.config?.lockScreenControlConfig?.isEnabled == false) {
                 mediaSessionServicePlayer = null
-            }
-            else {
+            } else {
                 player = null
             }
-//            if (mediaSessionServicePlayer != null) {
-////                context.mediaSessionModule?.serviceBinder?.value?.player = null
-////                if (mediaSessionServicePlayer != player) {
-////                    mediaSessionServicePlayer = null
-////                }
-//
-//                player = oldPlayer
-//            }
+
             playerView?.onStop()
         }
 

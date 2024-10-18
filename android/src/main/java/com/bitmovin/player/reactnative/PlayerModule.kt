@@ -1,8 +1,5 @@
 package com.bitmovin.player.reactnative
 
-import android.content.ComponentName
-import android.content.ServiceConnection
-import android.os.IBinder
 import android.util.Log
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
@@ -16,11 +13,8 @@ import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.mapToReactArray
-import com.bitmovin.player.reactnative.services.MediaSessionPlaybackService
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import java.security.InvalidParameterException
 
 private const val MODULE_NAME = "PlayerModule"
@@ -98,22 +92,13 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
             )
         }
 
-        // FINAL: (ideas)
-        // If config is enabled, create the Intent here to start/bind the service -- setupMediaSession()
-        // Put the nativeId in the thread
-
         if (playerConfig.lockScreenControlConfig.isEnabled) {
-//        playerConfig.playbackConfig
             promise.unit.resolveOnUiThread {
                 mediaSessionModule
                     .setupMediaSession(nativeId)
             }
         }
     }
-
-    // FINAL: 2 issues to solve:
-    // - where is the player created
-    // - how the player instance is given to the service (binder setting player vs playerId passing)
 
     /**
      * Load the source of the given [nativeId] with `config` options from JS.

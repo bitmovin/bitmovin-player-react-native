@@ -26,8 +26,6 @@ class MediaSessionModule(context: ReactApplicationContext) : BitmovinBaseModule(
     val serviceBinder = _serviceBinder.asStateFlow()
 
     inner class MediaSessionServiceConnection: ServiceConnection {
-        // we need a promise here, so that we can resolve it here instead of in setupMediaSession
-        // subclass ServiceConnection and pass promise
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             // We've bound to the Service, cast the IBinder and get the Player instance
             val binder = service as MediaSessionPlaybackService.ServiceBinder
@@ -40,16 +38,8 @@ class MediaSessionModule(context: ReactApplicationContext) : BitmovinBaseModule(
         }
     }
 
-
-    // [!!!] -- on new sources, the media session does not get overridden
-    // ISSUE: whenever a player instance is created the service does not get
-    // updated/overridden with that instance.
-    // Because in player.ts we call `setupMediaSession` on `initialize()`.
     @ReactMethod
     fun setupMediaSession(playerId: NativeId) {
-        // if there is an existing media session session, change its content
-        // the change should be on play actually, not on player creation
-
         this@MediaSessionModule.playerId = playerId
         val intent = Intent(context, MediaSessionPlaybackService::class.java)
         intent.action = Intent.ACTION_MEDIA_BUTTON
@@ -67,19 +57,4 @@ class MediaSessionModule(context: ReactApplicationContext) : BitmovinBaseModule(
         nativeId: NativeId = playerId,
         playerModule: PlayerModule? = context.playerModule,
     ): Player = playerModule?.getPlayerOrNull(nativeId) ?: throw IllegalArgumentException("Invalid PlayerId $nativeId")
-
-    /// FINE
-    // - add LockScreenConfig serializers
-    // - add a lock-screen control sample: only there the config is set to true
-    // - fix player is paused when app is minimized: see android codebase: implement Activity lfiecycle onStart and onStop and detach player
 }
-
-// ISSUE2 -- if I start playback, minimize, and restart playback. I should
-//           re-fetch the state of the player from the service and update
-//           the player in the view
-
-// ISSUE3 -- if I start playback, minimize the app, the playback gets paused.
-//           It should not (it is background playback)
-
-// ISSUE4 -- if `loadSource()` is a different source than the one playing in the
-//           service, load that instead.
