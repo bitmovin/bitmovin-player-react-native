@@ -7,6 +7,7 @@ export interface LockScreenControlConfig {
   /**
    * Enable the default behavior of displaying media information
    * on the lock screen and within the control center.
+   *
    * Default is `false`.
    *
    * For a detailed list of the supported features in the **default behavior**,
@@ -31,18 +32,25 @@ export interface LockScreenControlConfig {
    * Here is the list of features supported by the default behavior.
    *
    * ### Populated Metadata
-   * - asset URL (to visualize the correct kind of data — _e.g. a waveform for audio files_)
+   * - media type (to visualize the correct kind of data — _e.g. a waveform for audio files_)
    * - title
    * - artwork
+   * - elapsed time
+   * - duration
+   *
+   * **Android-only**
+   * - source description
+   *
+   * **iOS-only**
    * - live or VOD status
    * - playback rate
    * - default playback rate
-   * - elapsed time
-   * - duration
    *
    * ### Registered Commands
    * - toggle play/pause
    * - change playback position
+   *
+   * **iOS-only**
    * - skip forward
    * - skip backward
    */
