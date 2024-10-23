@@ -47,10 +47,10 @@ export interface PlaybackConfig {
    * When set to `true`, also make sure to properly configure your app to allow
    * background playback.
    *
+   * Default is `false`.
+   *
    * @note
    * On tvOS, background playback is only supported for audio-only content.
-   *
-   * Default is `false`.
    *
    *  @example
    * ```
