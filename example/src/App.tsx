@@ -20,6 +20,7 @@ import LandscapeFullscreenHandling from './screens/LandscapeFullscreenHandling';
 import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
+import BackgroundPlayback from './screens/BackgroundPlayback';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -58,6 +59,7 @@ export type RootStackParamsList = {
   };
   Casting: undefined;
   SystemUI: undefined;
+  BackgroundPlayback: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsList>();
@@ -108,6 +110,10 @@ export default function App() {
       {
         title: 'Programmatic Track Selection',
         routeName: 'ProgrammaticTrackSelection' as keyof RootStackParamsList,
+      },
+      {
+        title: 'Background Playback',
+        routeName: 'BackgroundPlayback' as keyof RootStackParamsList,
       },
     ],
   };
@@ -262,6 +268,11 @@ export default function App() {
             options={{ title: 'Casting' }}
           />
         )}
+        <RootStack.Screen
+          name="BackgroundPlayback"
+          component={BackgroundPlayback}
+          options={{ title: 'Background Playback' }}
+        />
       </RootStack.Navigator>
     </NavigationContainer>
   );

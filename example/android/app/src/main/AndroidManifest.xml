@@ -52,5 +52,11 @@
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
             android:value="com.bitmovin.player.casting.BitmovinCastOptionsProvider" />
 
+    <service
+        android:name="com.bitmovin.player.reactnative.services.BackgroundPlaybackService"
+        android:foregroundServiceType="mediaPlayback"
+        android:exported="true">
+    </service>
+
     </application>
 </manifest>

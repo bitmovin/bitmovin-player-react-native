@@ -47,19 +47,19 @@ export interface PlaybackConfig {
    * When set to `true`, also make sure to properly configure your app to allow
    * background playback.
    *
-   * On tvOS, background playback is only supported for audio-only content.
-   *
    * Default is `false`.
+   *
+   * @note
+   * On tvOS, background playback is only supported for audio-only content.
    *
    *  @example
    * ```
    * const player = new Player({
-   *   {
+   *   playbackConfig: {
    *     isBackgroundPlaybackEnabled: true,
-   *   }
-   * })
+   *   },
+   * });
    * ```
-   * @platform iOS, tvOS
    */
   isBackgroundPlaybackEnabled?: boolean;
   /**
