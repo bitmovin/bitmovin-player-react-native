@@ -21,6 +21,7 @@ import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
 import LockScreenControls from './screens/LockScreenControls';
+import BackgroundPlayback from './screens/BackgroundPlayback';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -60,6 +61,7 @@ export type RootStackParamsList = {
   Casting: undefined;
   SystemUI: undefined;
   LockScreenControls: undefined;
+  BackgroundPlayback: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsList>();
@@ -114,6 +116,10 @@ export default function App() {
       {
         title: 'Lock-Screen Controls',
         routeName: 'LockScreenControls' as keyof RootStackParamsList,
+      },
+      {
+        title: 'Background Playback',
+        routeName: 'BackgroundPlayback' as keyof RootStackParamsList,
       },
     ],
   };
@@ -272,6 +278,11 @@ export default function App() {
           name="LockScreenControls"
           component={LockScreenControls}
           options={{ title: 'Lock-Screen Controls' }}
+        />
+        <RootStack.Screen
+          name="BackgroundPlayback"
+          component={BackgroundPlayback}
+          options={{ title: 'Background Playback' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>
