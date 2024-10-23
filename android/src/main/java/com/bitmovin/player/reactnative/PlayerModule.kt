@@ -25,6 +25,9 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     private val players: Registry<Player> = mutableMapOf()
 
+    var backgroundPlaybackConnectionManager: BackgroundPlaybackConnectionManager? = null
+    var isBackgroundPlaybackEnabled: Boolean = false
+
     /**
      * JS exported module name.
      */
@@ -74,6 +77,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()
         val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
+        isBackgroundPlaybackEnabled = playerConfigJson?.getMap("playbackConfig")
+            ?.getBoolean("isBackgroundPlaybackEnabled") ?: false
 
         val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
         if (networkConfig != null) {
@@ -89,6 +94,13 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
                 analyticsConfig = analyticsConfig,
                 defaultMetadata = defaultMetadata ?: DefaultMetadata(),
             )
+        }
+
+        if (isBackgroundPlaybackEnabled) {
+            backgroundPlaybackConnectionManager = BackgroundPlaybackConnectionManager(context)
+            promise.unit.resolveOnUiThread {
+                backgroundPlaybackConnectionManager?.setupBackgroundPlayback(nativeId)
+            }
         }
     }
 
@@ -214,6 +226,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
             destroy()
             players.remove(nativeId)
+            backgroundPlaybackConnectionManager = null
         }
     }
 
