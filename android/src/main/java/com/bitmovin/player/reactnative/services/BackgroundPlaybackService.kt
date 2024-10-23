@@ -19,11 +19,6 @@ class BackgroundPlaybackService : Service() {
     private val binder = ServiceBinder()
     private var player: Player? = null
 
-    override fun onCreate() {
-        super.onCreate()
-        val player = this.player ?: Player(this)
-    }
-
     override fun onDestroy() {
         player?.destroy()
         player = null
@@ -32,7 +27,6 @@ class BackgroundPlaybackService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder {
-//        super.onBind(intent)
         return binder
     }
 }
