@@ -1,6 +1,5 @@
 package com.bitmovin.player.reactnative
 
-
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -20,7 +19,7 @@ class BackgroundPlaybackConnectionManager(val context: ReactApplicationContext) 
     private val _serviceBinder = MutableStateFlow<BackgroundPlaybackService.ServiceBinder?>(null)
     val serviceBinder = _serviceBinder.asStateFlow()
 
-    inner class BackgroundPlaybackConnection: ServiceConnection {
+    inner class BackgroundPlaybackConnection : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             // We've bound to the Service, cast the IBinder and get the Player instance
             val binder = service as BackgroundPlaybackService.ServiceBinder
