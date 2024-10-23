@@ -134,7 +134,7 @@ class RNPlayerView(
         }
 
         override fun onStop(owner: LifecycleOwner) {
-            if (player?.config?.lockScreenControlConfig?.isEnabled == false) {
+            if (context.playerModule?.isMediaSessionPlaybackEnabled == false) {
                 mediaSessionServicePlayer = null
             } else {
                 player = null
