@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Android: `playerConfig.playbackConfig.isBackgroundPlaybackEnabled` to support background playback
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.84.0`
