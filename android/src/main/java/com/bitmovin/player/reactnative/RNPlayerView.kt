@@ -16,6 +16,7 @@ import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.extensions.playerModule
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.events.RCTEventEmitter
@@ -102,8 +103,24 @@ class RNPlayerView(
     private val activityLifecycle = (context.currentActivity as? ReactActivity)?.lifecycle
         ?: error("Trying to create an instance of ${this::class.simpleName} while not attached to a ReactActivity")
 
+    /**
+     * Relays the provided set of events, emitted by the player, together with the associated name
+     * to the `eventOutput` callback.
+     */
+    private var playerEventRelay: EventRelay<Player, Event>
+
+    private var backgroundPlaybackServicePlayer: Player?
+        get() = context.playerModule?.backgroundPlaybackConnectionManager?.serviceBinder?.value?.player
+        set(value) {
+            context.playerModule?.backgroundPlaybackConnectionManager?.serviceBinder?.value?.player = value
+        }
+
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
+        // Don't stop the player when going to background
         override fun onStart(owner: LifecycleOwner) {
+            if (backgroundPlaybackServicePlayer != null) {
+                player = backgroundPlaybackServicePlayer
+            }
             playerView?.onStart()
         }
 
@@ -116,6 +133,11 @@ class RNPlayerView(
         }
 
         override fun onStop(owner: LifecycleOwner) {
+            if (context.playerModule?.isBackgroundPlaybackEnabled == false) {
+                backgroundPlaybackServicePlayer = null
+            } else {
+                player = null
+            }
             playerView?.onStop()
         }
 
@@ -123,6 +145,11 @@ class RNPlayerView(
     }
 
     init {
+        playerEventRelay = EventRelay<Player, Event>(
+            EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING,
+            ::emitEventFromPlayer,
+        )
+
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
         // Since we dynamically add and remove SurfaceView under the hood this caused the player
         // to suddenly not show the video anymore because SurfaceView was not laid out properly.
@@ -132,15 +159,6 @@ class RNPlayerView(
 
         activityLifecycle.addObserver(activityLifecycleObserver)
     }
-
-    /**
-     * Relays the provided set of events, emitted by the player, together with the associated name
-     * to the `eventOutput` callback.
-     */
-    private val playerEventRelay = EventRelay<Player, Event>(
-        EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING,
-        ::emitEventFromPlayer,
-    )
 
     /**
      * Relays the provided set of events, emitted by the player view, together with the associated name
