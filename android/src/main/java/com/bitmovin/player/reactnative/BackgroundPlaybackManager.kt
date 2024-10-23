@@ -1,6 +1,5 @@
 package com.bitmovin.player.reactnative
 
-
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -15,16 +14,14 @@ import com.facebook.react.bridge.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-// TODO: rename BackgroundPlaybackConnectionManager as both are form of bg playback
-// TODO: mediaSessionPlayback<whatever> to mediaSession<whatever>
-class MediaSessionConnectionManager(val context: ReactApplicationContext) {
+class BackgroundPlaybackManager(val context: ReactApplicationContext) {
     private var isServiceStarted = false
     private lateinit var playerId: NativeId
 
     private val _serviceBinder = MutableStateFlow<PlayerServiceBinder?>(null)
     val serviceBinder = _serviceBinder.asStateFlow()
 
-    inner class BackgroundPlaybackServiceConnection: ServiceConnection {
+    inner class BackgroundPlaybackServiceConnection : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as PlayerServiceBinder
             _serviceBinder.value = binder
@@ -37,10 +34,13 @@ class MediaSessionConnectionManager(val context: ReactApplicationContext) {
     }
 
     fun setupBackgroundPlayback(playerId: NativeId, playerModule: PlayerModule) {
-        this@MediaSessionConnectionManager.playerId = playerId
-        val serviceClass = if (playerModule.isMediaSessionPlaybackEnabled)
-            MediaSessionPlaybackService::class.java else
+        this@BackgroundPlaybackManager.playerId = playerId
+        val serviceClass = if (playerModule.isMediaSessionPlaybackEnabled) {
+            MediaSessionPlaybackService::class.java
+        } else {
             BackgroundPlaybackService::class.java
+        }
+//        val serviceClass = MediaSessionPlaybackService::class.java
         val intent = Intent(context, serviceClass)
         intent.action = Intent.ACTION_MEDIA_BUTTON
         val connection: ServiceConnection = BackgroundPlaybackServiceConnection()

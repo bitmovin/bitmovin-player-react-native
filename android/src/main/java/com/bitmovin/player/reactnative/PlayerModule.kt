@@ -13,7 +13,6 @@ import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toLockScreenControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.mapToReactArray
-import com.bitmovin.player.reactnative.extensions.playerModule
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import java.security.InvalidParameterException
@@ -27,7 +26,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     private val players: Registry<Player> = mutableMapOf()
 
-    var backgroundPlaybackConnectionManager: MediaSessionConnectionManager? = null
+    var backgroundPlaybackConnectionManager: BackgroundPlaybackManager? = null
     var isMediaSessionPlaybackEnabled: Boolean = false
     var isBackgroundPlaybackEnabled: Boolean = false
 
@@ -82,9 +81,11 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
         isMediaSessionPlaybackEnabled = playerConfigJson?.getMap("lockScreenControlConfig")
             ?.toLockScreenControlConfig()?.isEnabled ?: false
-        isBackgroundPlaybackEnabled = if (isMediaSessionPlaybackEnabled)
-            isMediaSessionPlaybackEnabled else
+        isBackgroundPlaybackEnabled = if (isMediaSessionPlaybackEnabled) {
+            isMediaSessionPlaybackEnabled
+        } else {
             playerConfigJson?.getMap("playbackConfig")?.getBoolean("isBackgroundPlaybackEnabled") ?: false
+        }
 
         val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
         if (networkConfig != null) {
@@ -103,7 +104,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         }
 
         if (isBackgroundPlaybackEnabled) {
-            backgroundPlaybackConnectionManager = MediaSessionConnectionManager(context)
+            backgroundPlaybackConnectionManager = BackgroundPlaybackManager(context)
             promise.unit.resolveOnUiThread {
                 backgroundPlaybackConnectionManager?.setupBackgroundPlayback(nativeId, this@PlayerModule)
             }
