@@ -33,10 +33,12 @@ class MediaSessionConnectionManager(val context: ReactApplicationContext) {
         }
     }
 
-    fun setupMediaSession(playerId: NativeId) {
+    fun setupMediaSession(playerId: NativeId, playerModule: PlayerModule) {
         this@MediaSessionConnectionManager.playerId = playerId
         val intent = Intent(context, MediaSessionPlaybackService::class.java)
         intent.action = Intent.ACTION_MEDIA_BUTTON
+//        intent.putExtra(isBackgroundPlaybackEnabledKey, playerModule.isBackgroundPlaybackEnabled)
+        intent.putExtra(isMediaSessionPlaybackEnabledKey, playerModule.isMediaSessionPlaybackEnabled)
 
         val connection = MediaSessionServiceConnection()
         context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
@@ -51,4 +53,9 @@ class MediaSessionConnectionManager(val context: ReactApplicationContext) {
         nativeId: NativeId = playerId,
         playerModule: PlayerModule? = context.playerModule,
     ): Player = playerModule?.getPlayerOrNull(nativeId) ?: throw IllegalArgumentException("Invalid PlayerId $nativeId")
+
+    companion object {
+//        const val isBackgroundPlaybackEnabledKey: String = "isBackgroundPlaybackEnabled"
+        const val isMediaSessionPlaybackEnabledKey: String = "isMediaSessionPlaybackEnabled"
+    }
 }

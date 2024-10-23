@@ -13,6 +13,7 @@ import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toLockScreenControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.mapToReactArray
+import com.bitmovin.player.reactnative.extensions.playerModule
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import java.security.InvalidParameterException
@@ -28,6 +29,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
 
     var mediaSessionConnectionManager: MediaSessionConnectionManager? = null
     var isMediaSessionPlaybackEnabled: Boolean = false
+    var isBackgroundPlaybackEnabled: Boolean = false
 
     /**
      * JS exported module name.
@@ -80,6 +82,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
         isMediaSessionPlaybackEnabled = playerConfigJson?.getMap("lockScreenControlConfig")
             ?.toLockScreenControlConfig()?.isEnabled ?: false
+        isBackgroundPlaybackEnabled = playerConfigJson?.getMap("playbackConfig")
+            ?.getBoolean("isBackgroundPlaybackEnabled") ?: false
 
         val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
         if (networkConfig != null) {
@@ -97,10 +101,10 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
             )
         }
 
-        if (isMediaSessionPlaybackEnabled) {
+        if (isBackgroundPlaybackEnabled || isMediaSessionPlaybackEnabled) {
             mediaSessionConnectionManager = MediaSessionConnectionManager(context)
             promise.unit.resolveOnUiThread {
-                mediaSessionConnectionManager?.setupMediaSession(nativeId)
+                mediaSessionConnectionManager?.setupMediaSession(nativeId, this@PlayerModule)
             }
         }
     }
