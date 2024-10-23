@@ -15,7 +15,6 @@ import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.StyleConfig
-import com.bitmovin.player.reactnative.converter.lockScreenControlConfig
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.extensions.playerModule
 import com.facebook.react.ReactActivity
@@ -110,17 +109,17 @@ class RNPlayerView(
      */
     private var playerEventRelay: EventRelay<Player, Event>
 
-    private var mediaSessionServicePlayer: Player?
-        get() = context.playerModule?.mediaSessionConnectionManager?.serviceBinder?.value?.player
+    private var backgroundPlaybackServicePlayer: Player?
+        get() = context.playerModule?.backgroundPlaybackConnectionManager?.serviceBinder?.value?.player
         set(value) {
-            context.playerModule?.mediaSessionConnectionManager?.serviceBinder?.value?.player = value
+            context.playerModule?.backgroundPlaybackConnectionManager?.serviceBinder?.value?.player = value
         }
 
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
         // Don't stop the player when going to background
         override fun onStart(owner: LifecycleOwner) {
-            if (mediaSessionServicePlayer != null) {
-                player = mediaSessionServicePlayer
+            if (backgroundPlaybackServicePlayer != null) {
+                player = backgroundPlaybackServicePlayer // TODO: background playback does not go here on app reopening
             }
             playerView?.onStart()
         }
@@ -134,8 +133,8 @@ class RNPlayerView(
         }
 
         override fun onStop(owner: LifecycleOwner) {
-            if (context.playerModule?.isMediaSessionPlaybackEnabled == false) {
-                mediaSessionServicePlayer = null
+            if (context.playerModule?.isBackgroundPlaybackEnabled == false) {
+                backgroundPlaybackServicePlayer = null
             } else {
                 player = null
             }

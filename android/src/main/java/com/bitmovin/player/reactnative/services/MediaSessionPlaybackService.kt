@@ -1,15 +1,15 @@
 package com.bitmovin.player.reactnative.services
 
 import android.content.Intent
-import android.os.Binder
 import android.os.IBinder
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.media.session.MediaSession
 import com.bitmovin.player.api.media.session.MediaSessionService
+import com.bitmovin.player.reactnative.PlayerServiceBinder
 
 class MediaSessionPlaybackService : MediaSessionService() {
-    inner class ServiceBinder : Binder() {
-        var player: Player?
+    inner class ServiceBinder(player: Player?) : PlayerServiceBinder(player) {
+        override var player: Player?
             get() = this@MediaSessionPlaybackService.player
             set(value) {
                 this@MediaSessionPlaybackService.player?.destroy()
@@ -26,8 +26,8 @@ class MediaSessionPlaybackService : MediaSessionService() {
         }
     }
 
-    private val binder = ServiceBinder()
     private var player: Player? = null
+    private val binder = ServiceBinder(player)
     private var mediaSession: MediaSession? = null
 
     override fun onGetSession(): MediaSession? = mediaSession
