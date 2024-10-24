@@ -1,6 +1,5 @@
 package com.bitmovin.player.reactnative
 
-
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -20,7 +19,7 @@ class MediaSessionConnectionManager(val context: ReactApplicationContext) {
     private val _serviceBinder = MutableStateFlow<MediaSessionPlaybackService.ServiceBinder?>(null)
     val serviceBinder = _serviceBinder.asStateFlow()
 
-    inner class MediaSessionServiceConnection: ServiceConnection {
+    inner class MediaSessionServiceConnection : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             // We've bound to the Service, cast the IBinder and get the Player instance
             val binder = service as MediaSessionPlaybackService.ServiceBinder

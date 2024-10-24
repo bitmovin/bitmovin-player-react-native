@@ -15,7 +15,6 @@ import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.StyleConfig
-import com.bitmovin.player.reactnative.converter.lockScreenControlConfig
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.extensions.playerModule
 import com.facebook.react.ReactActivity

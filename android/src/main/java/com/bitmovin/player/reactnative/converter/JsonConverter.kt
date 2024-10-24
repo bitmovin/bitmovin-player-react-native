@@ -884,7 +884,7 @@ fun String.toMediaType(): MediaType? = when (this) {
 }
 
 data class LockScreenControlConfig(
-    var isEnabled: Boolean = false
+    var isEnabled: Boolean = false,
 )
 
 fun ReadableMap.toLockScreenControlConfig(): LockScreenControlConfig = LockScreenControlConfig().apply {

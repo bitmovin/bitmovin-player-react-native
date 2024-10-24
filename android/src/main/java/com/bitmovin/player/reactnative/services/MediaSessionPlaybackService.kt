@@ -20,7 +20,7 @@ class MediaSessionPlaybackService : MediaSessionService() {
             }
 
         fun connectSession() = mediaSession?.let { addSession(it) }
-        fun disconnectSession() = mediaSession?.let{
+        fun disconnectSession() = mediaSession?.let {
             removeSession(it)
             it.release()
         }
