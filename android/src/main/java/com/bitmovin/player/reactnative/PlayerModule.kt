@@ -26,8 +26,9 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     private val players: Registry<Player> = mutableMapOf()
 
-    var mediaSessionConnectionManager: MediaSessionConnectionManager? = null
+    var backgroundPlaybackConnectionManager: BackgroundPlaybackManager? = null
     var isMediaSessionPlaybackEnabled: Boolean = false
+    var isBackgroundPlaybackEnabled: Boolean = false
 
     /**
      * JS exported module name.
@@ -80,6 +81,11 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
         isMediaSessionPlaybackEnabled = playerConfigJson?.getMap("lockScreenControlConfig")
             ?.toLockScreenControlConfig()?.isEnabled ?: false
+        isBackgroundPlaybackEnabled = if (isMediaSessionPlaybackEnabled) {
+            isMediaSessionPlaybackEnabled
+        } else {
+            playerConfigJson?.getMap("playbackConfig")?.getBoolean("isBackgroundPlaybackEnabled") ?: false
+        }
 
         val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
         if (networkConfig != null) {
@@ -97,10 +103,10 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
             )
         }
 
-        if (isMediaSessionPlaybackEnabled) {
-            mediaSessionConnectionManager = MediaSessionConnectionManager(context)
+        if (isBackgroundPlaybackEnabled) {
+            backgroundPlaybackConnectionManager = BackgroundPlaybackManager(context)
             promise.unit.resolveOnUiThread {
-                mediaSessionConnectionManager?.setupMediaSession(nativeId)
+                backgroundPlaybackConnectionManager?.setupBackgroundPlayback(nativeId, this@PlayerModule)
             }
         }
     }
@@ -227,7 +233,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
             destroy()
             players.remove(nativeId)
-            mediaSessionConnectionManager = null
+            backgroundPlaybackConnectionManager = null
         }
     }
 

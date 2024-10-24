@@ -5,6 +5,7 @@
 ### Added
 
 - `LockScreenControlConfig` to configure the lock screen information for the application. When `isEnabled` is `true`, the current media information will be shown on the lock-screen and within the control center
+- Android: `playerConfig.playbackConfig.isBackgroundPlaybackEnabled` to support background playback
 
 ### Changed
 
