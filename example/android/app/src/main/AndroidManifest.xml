@@ -62,11 +62,5 @@
           </intent-filter>
       </service>
 
-        <service
-            android:name="com.bitmovin.player.reactnative.services.BackgroundPlaybackService"
-            android:foregroundServiceType="mediaPlayback"
-            android:exported="true">
-        </service>
-
     </application>
 </manifest>
