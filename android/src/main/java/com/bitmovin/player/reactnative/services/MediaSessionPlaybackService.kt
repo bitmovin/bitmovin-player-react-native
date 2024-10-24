@@ -32,17 +32,6 @@ class MediaSessionPlaybackService : MediaSessionService() {
 
     override fun onGetSession(): MediaSession? = mediaSession
 
-    override fun onCreate() {
-        super.onCreate()
-        val player = this.player ?: Player(this)
-
-        mediaSession = MediaSession(
-            this,
-            mainLooper,
-            player,
-        )
-    }
-
     override fun onDestroy() {
         binder.disconnectSession()
 
