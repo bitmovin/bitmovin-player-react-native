@@ -35,14 +35,9 @@ class BackgroundPlaybackManager(val context: ReactApplicationContext) {
 
     fun setupBackgroundPlayback(playerId: NativeId, playerModule: PlayerModule) {
         this@BackgroundPlaybackManager.playerId = playerId
-        val serviceClass = if (playerModule.isMediaSessionPlaybackEnabled) {
-            MediaSessionPlaybackService::class.java
-        } else {
-            BackgroundPlaybackService::class.java
-        }
-//        val serviceClass = MediaSessionPlaybackService::class.java
-        val intent = Intent(context, serviceClass)
+        val intent = Intent(context, MediaSessionPlaybackService::class.java)
         intent.action = Intent.ACTION_MEDIA_BUTTON
+        intent.putExtra("isMediaSessionEnabled", playerModule.isMediaSessionPlaybackEnabled)
         val connection: ServiceConnection = BackgroundPlaybackServiceConnection()
         context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
 

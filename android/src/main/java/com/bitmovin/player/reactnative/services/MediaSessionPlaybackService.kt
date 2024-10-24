@@ -15,7 +15,14 @@ class MediaSessionPlaybackService : MediaSessionService() {
                 this@MediaSessionPlaybackService.player?.destroy()
                 this@MediaSessionPlaybackService.player = value
                 value?.let {
-                    createMediaSession(it)
+                    mediaSession?.let { mediaSession ->
+                        removeSession(mediaSession)
+                        mediaSession.release()
+                    }
+
+                    if (this@MediaSessionPlaybackService.isMediaSessionEnabled) {
+                        createMediaSession(it)
+                    }
                 }
             }
 
@@ -29,6 +36,7 @@ class MediaSessionPlaybackService : MediaSessionService() {
     private var player: Player? = null
     private val binder = ServiceBinder(player)
     private var mediaSession: MediaSession? = null
+    private var isMediaSessionEnabled: Boolean = false
 
     override fun onGetSession(): MediaSession? = mediaSession
 
@@ -43,6 +51,7 @@ class MediaSessionPlaybackService : MediaSessionService() {
 
     override fun onBind(intent: Intent?): IBinder {
         super.onBind(intent)
+        isMediaSessionEnabled = intent?.getBooleanExtra("isMediaSessionEnabled", isMediaSessionEnabled) ?: false
         return binder
     }
 

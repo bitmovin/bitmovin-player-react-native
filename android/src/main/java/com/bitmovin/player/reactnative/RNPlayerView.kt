@@ -119,7 +119,7 @@ class RNPlayerView(
         // Don't stop the player when going to background
         override fun onStart(owner: LifecycleOwner) {
             if (backgroundPlaybackServicePlayer != null) {
-                player = backgroundPlaybackServicePlayer // TODO: background playback does not go here on app reopening
+                player = backgroundPlaybackServicePlayer
             }
             playerView?.onStart()
         }
