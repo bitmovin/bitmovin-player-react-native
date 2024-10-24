@@ -883,6 +883,14 @@ fun String.toMediaType(): MediaType? = when (this) {
     else -> null
 }
 
+data class LockScreenControlConfig(
+    var isEnabled: Boolean = false,
+)
+
+fun ReadableMap.toLockScreenControlConfig(): LockScreenControlConfig = LockScreenControlConfig().apply {
+    withBoolean("isEnabled") { isEnabled = it }
+}
+
 /**
  * Converts a [CastPayload] object into its JS representation.
  */

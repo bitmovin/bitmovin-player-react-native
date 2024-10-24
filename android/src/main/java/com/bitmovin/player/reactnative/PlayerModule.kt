@@ -10,6 +10,7 @@ import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.converter.toLockScreenControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.mapToReactArray
 import com.facebook.react.bridge.*
@@ -24,6 +25,9 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      * In-memory mapping from [NativeId]s to [Player] instances.
      */
     private val players: Registry<Player> = mutableMapOf()
+
+    var mediaSessionConnectionManager: MediaSessionConnectionManager? = null
+    var isMediaSessionPlaybackEnabled: Boolean = false
 
     /**
      * JS exported module name.
@@ -74,6 +78,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()
         val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
+        isMediaSessionPlaybackEnabled = playerConfigJson?.getMap("lockScreenControlConfig")
+            ?.toLockScreenControlConfig()?.isEnabled ?: false
 
         val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
         if (networkConfig != null) {
@@ -89,6 +95,13 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
                 analyticsConfig = analyticsConfig,
                 defaultMetadata = defaultMetadata ?: DefaultMetadata(),
             )
+        }
+
+        if (isMediaSessionPlaybackEnabled) {
+            mediaSessionConnectionManager = MediaSessionConnectionManager(context)
+            promise.unit.resolveOnUiThread {
+                mediaSessionConnectionManager?.setupMediaSession(nativeId)
+            }
         }
     }
 
@@ -214,6 +227,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
             destroy()
             players.remove(nativeId)
+            mediaSessionConnectionManager = null
         }
     }
 
