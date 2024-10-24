@@ -4,47 +4,42 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.os.Binder
 import android.os.IBinder
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.reactnative.extensions.playerModule
-import com.bitmovin.player.reactnative.services.BackgroundPlaybackService
+import com.bitmovin.player.reactnative.services.BackgroundPlaybackContext
 import com.bitmovin.player.reactnative.services.MediaSessionPlaybackService
 import com.facebook.react.bridge.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
 class BackgroundPlaybackManager(val context: ReactApplicationContext) {
-    private var isServiceStarted = false
     private lateinit var playerId: NativeId
+    private lateinit var playerModule: PlayerModule
 
-    private val _serviceBinder = MutableStateFlow<PlayerServiceBinder?>(null)
-    val serviceBinder = _serviceBinder.asStateFlow()
+    internal var serviceBinder: MediaSessionPlaybackService.ServiceBinder? = null
 
     inner class BackgroundPlaybackServiceConnection : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            val binder = service as PlayerServiceBinder
-            _serviceBinder.value = binder
-            binder.player = getPlayer()
+            val binder = service as MediaSessionPlaybackService.ServiceBinder
+            serviceBinder = binder
+            binder.context = BackgroundPlaybackContext(
+                getPlayer(),
+                playerModule.isMediaSessionPlaybackEnabled
+            )
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
-            _serviceBinder.value?.player = null
+            serviceBinder?.context = null
         }
     }
 
     fun setupBackgroundPlayback(playerId: NativeId, playerModule: PlayerModule) {
-        this@BackgroundPlaybackManager.playerId = playerId
+        this.playerId = playerId
+        this.playerModule = playerModule
+
         val intent = Intent(context, MediaSessionPlaybackService::class.java)
         intent.action = Intent.ACTION_MEDIA_BUTTON
-        intent.putExtra("isMediaSessionEnabled", playerModule.isMediaSessionPlaybackEnabled)
         val connection: ServiceConnection = BackgroundPlaybackServiceConnection()
         context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
-
-        if (!isServiceStarted) {
-            context.startService(intent)
-            isServiceStarted = true
-        }
     }
 
     private fun getPlayer(
@@ -52,5 +47,3 @@ class BackgroundPlaybackManager(val context: ReactApplicationContext) {
         playerModule: PlayerModule? = context.playerModule,
     ): Player = playerModule?.getPlayerOrNull(nativeId) ?: throw IllegalArgumentException("Invalid PlayerId $nativeId")
 }
-
-open class PlayerServiceBinder(open var player: Player?) : Binder()

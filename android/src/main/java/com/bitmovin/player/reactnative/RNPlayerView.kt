@@ -110,9 +110,11 @@ class RNPlayerView(
     private var playerEventRelay: EventRelay<Player, Event>
 
     private var backgroundPlaybackServicePlayer: Player?
-        get() = context.playerModule?.backgroundPlaybackConnectionManager?.serviceBinder?.value?.player
+        get() = context.playerModule?.backgroundPlaybackConnectionManager?.serviceBinder?.context?.player
         set(value) {
-            context.playerModule?.backgroundPlaybackConnectionManager?.serviceBinder?.value?.player = value
+            value?.let {
+                context.playerModule?.backgroundPlaybackConnectionManager?.serviceBinder?.context?.player = it
+            }
         }
 
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
