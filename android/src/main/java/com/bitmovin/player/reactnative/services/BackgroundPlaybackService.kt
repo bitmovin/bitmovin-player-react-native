@@ -9,13 +9,13 @@ import com.bitmovin.player.api.media.session.MediaSessionService
 
 class BackgroundPlaybackContext(var player: Player, var provideLockScreenControls: Boolean)
 
-class MediaSessionPlaybackService : MediaSessionService() {
+class BackgroundPlaybackService : MediaSessionService() {
     inner class ServiceBinder : Binder() {
         var context: BackgroundPlaybackContext?
-            get() = this@MediaSessionPlaybackService.playbackContext
+            get() = this@BackgroundPlaybackService.playbackContext
             set(value) {
                 disconnectSession()
-                this@MediaSessionPlaybackService.playbackContext = value
+                this@BackgroundPlaybackService.playbackContext = value
                 value?.let {
                     if (it.provideLockScreenControls) {
                         createSession(it.player)
