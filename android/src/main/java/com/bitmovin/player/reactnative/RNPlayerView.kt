@@ -110,10 +110,10 @@ class RNPlayerView(
     private var playerEventRelay: EventRelay<Player, Event>
 
     private var backgroundPlaybackServicePlayer: Player?
-        get() = context.playerModule?.backgroundPlaybackConnectionManager?.serviceBinder?.context?.player
+        get() = context.playerModule?.backgroundPlaybackConnectionManager?.serviceBinder?.player
         set(value) {
             value?.let {
-                context.playerModule?.backgroundPlaybackConnectionManager?.serviceBinder?.context?.player = it
+                context.playerModule?.backgroundPlaybackConnectionManager?.serviceBinder?.player = it
             }
         }
 

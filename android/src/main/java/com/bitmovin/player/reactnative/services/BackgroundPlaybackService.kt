@@ -7,25 +7,21 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.media.session.MediaSession
 import com.bitmovin.player.api.media.session.MediaSessionService
 
-class BackgroundPlaybackContext(var player: Player, var provideLockScreenControls: Boolean)
-
 class BackgroundPlaybackService : MediaSessionService() {
     inner class ServiceBinder : Binder() {
-        var context: BackgroundPlaybackContext?
-            get() = this@BackgroundPlaybackService.playbackContext
+        var player: Player?
+            get() = this@BackgroundPlaybackService.player
             set(value) {
                 disconnectSession()
-                this@BackgroundPlaybackService.playbackContext = value
+                this@BackgroundPlaybackService.player = value
                 value?.let {
-                    if (it.provideLockScreenControls) {
-                        createSession(it.player)
-                        connectSession()
-                    }
+                    createSession(it)
+                    connectSession()
                 }
             }
     }
 
-    private var playbackContext: BackgroundPlaybackContext? = null
+    private var player: Player? = null
     private val binder = ServiceBinder()
     private var mediaSession: MediaSession? = null
 
@@ -33,7 +29,7 @@ class BackgroundPlaybackService : MediaSessionService() {
 
     override fun onDestroy() {
         disconnectSession()
-        playbackContext = null
+        player = null
 
         super.onDestroy()
     }

@@ -103,7 +103,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         if (isMediaSessionPlaybackEnabled) {
             backgroundPlaybackConnectionManager = BackgroundPlaybackManager(context)
             promise.unit.resolveOnUiThread {
-                backgroundPlaybackConnectionManager?.setupBackgroundPlayback(nativeId, this@PlayerModule)
+                backgroundPlaybackConnectionManager?.setupBackgroundPlayback(nativeId)
             }
         }
     }
