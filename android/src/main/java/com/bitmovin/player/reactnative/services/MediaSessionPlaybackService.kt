@@ -12,30 +12,23 @@ class MediaSessionPlaybackService : MediaSessionService() {
         var player: Player?
             get() = this@MediaSessionPlaybackService.player
             set(value) {
-                this@MediaSessionPlaybackService.player?.destroy()
+                disconnectSession()
                 this@MediaSessionPlaybackService.player = value
                 value?.let {
-                    createMediaSession(it)
+                    createSession(it)
+                    connectSession()
                 }
             }
-
-        fun connectSession() = mediaSession?.let { addSession(it) }
-        fun disconnectSession() = mediaSession?.let {
-            removeSession(it)
-            it.release()
-        }
     }
 
-    private val binder = ServiceBinder()
     private var player: Player? = null
+    private val binder = ServiceBinder()
     private var mediaSession: MediaSession? = null
 
-    override fun onGetSession(): MediaSession? = mediaSession
+    override fun onGetSession(): MediaSession? = null
 
     override fun onDestroy() {
-        binder.disconnectSession()
-
-        player?.destroy()
+        disconnectSession()
         player = null
 
         super.onDestroy()
@@ -46,16 +39,17 @@ class MediaSessionPlaybackService : MediaSessionService() {
         return binder
     }
 
-    private fun createMediaSession(player: Player) {
-        binder.disconnectSession()
-
-        val newMediaSession = MediaSession(
+    private fun createSession(player: Player) {
+        mediaSession = MediaSession(
             this,
             mainLooper,
             player,
         )
+    }
 
-        mediaSession = newMediaSession
-        binder.connectSession()
+    private fun connectSession() = mediaSession?.let { addSession(it) }
+    private fun disconnectSession() = mediaSession?.let {
+        removeSession(it)
+        it.release()
     }
 }

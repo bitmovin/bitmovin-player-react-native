@@ -109,17 +109,19 @@ class RNPlayerView(
      */
     private var playerEventRelay: EventRelay<Player, Event>
 
-    private var mediaSessionServicePlayer: Player?
-        get() = context.playerModule?.mediaSessionConnectionManager?.serviceBinder?.value?.player
+    private var playerInMediaSessionService: Player?
+        get() = context.playerModule?.mediaSessionPlaybackManager?.serviceBinder?.player
         set(value) {
-            context.playerModule?.mediaSessionConnectionManager?.serviceBinder?.value?.player = value
+            value?.let {
+                context.playerModule?.mediaSessionPlaybackManager?.serviceBinder?.player = it
+            }
         }
 
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
         // Don't stop the player when going to background
         override fun onStart(owner: LifecycleOwner) {
-            if (mediaSessionServicePlayer != null) {
-                player = mediaSessionServicePlayer
+            if (playerInMediaSessionService != null) {
+                player = playerInMediaSessionService
             }
             playerView?.onStart()
         }
@@ -133,8 +135,8 @@ class RNPlayerView(
         }
 
         override fun onStop(owner: LifecycleOwner) {
-            if (context.playerModule?.isMediaSessionPlaybackEnabled == false) {
-                mediaSessionServicePlayer = null
+            if (context.playerModule?.enableBackgroundPlayback == false) {
+                playerInMediaSessionService = null
             } else {
                 player = null
             }

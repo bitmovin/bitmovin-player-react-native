@@ -26,8 +26,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     private val players: Registry<Player> = mutableMapOf()
 
-    var mediaSessionConnectionManager: MediaSessionConnectionManager? = null
-    var isMediaSessionPlaybackEnabled: Boolean = false
+    var mediaSessionPlaybackManager: MediaSessionPlaybackManager? = null
+    var enableBackgroundPlayback: Boolean = false
 
     /**
      * JS exported module name.
@@ -78,8 +78,10 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()
         val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
-        isMediaSessionPlaybackEnabled = playerConfigJson?.getMap("lockScreenControlConfig")
+        val enableMediaSession = playerConfigJson?.getMap("lockScreenControlConfig")
             ?.toLockScreenControlConfig()?.isEnabled ?: false
+        enableBackgroundPlayback = playerConfigJson?.getMap("playbackConfig")
+            ?.getBoolean("isBackgroundPlaybackEnabled") ?: false
 
         val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
         if (networkConfig != null) {
@@ -97,10 +99,10 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
             )
         }
 
-        if (isMediaSessionPlaybackEnabled) {
-            mediaSessionConnectionManager = MediaSessionConnectionManager(context)
+        if (enableMediaSession) {
+            mediaSessionPlaybackManager = MediaSessionPlaybackManager(context)
             promise.unit.resolveOnUiThread {
-                mediaSessionConnectionManager?.setupMediaSession(nativeId)
+                mediaSessionPlaybackManager?.setupMediaSessionPlayback(nativeId)
             }
         }
     }
@@ -227,7 +229,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
             destroy()
             players.remove(nativeId)
-            mediaSessionConnectionManager = null
+            mediaSessionPlaybackManager = null
         }
     }
 
