@@ -109,19 +109,19 @@ class RNPlayerView(
      */
     private var playerEventRelay: EventRelay<Player, Event>
 
-    private var backgroundPlaybackServicePlayer: Player?
-        get() = context.playerModule?.backgroundPlaybackConnectionManager?.serviceBinder?.player
+    private var playerInBackgroundService: Player?
+        get() = context.playerModule?.backgroundPlaybackManager?.serviceBinder?.player
         set(value) {
             value?.let {
-                context.playerModule?.backgroundPlaybackConnectionManager?.serviceBinder?.player = it
+                context.playerModule?.backgroundPlaybackManager?.serviceBinder?.player = it
             }
         }
 
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
         // Don't stop the player when going to background
         override fun onStart(owner: LifecycleOwner) {
-            if (backgroundPlaybackServicePlayer != null) {
-                player = backgroundPlaybackServicePlayer
+            if (playerInBackgroundService != null) {
+                player = playerInBackgroundService
             }
             playerView?.onStart()
         }
@@ -135,8 +135,8 @@ class RNPlayerView(
         }
 
         override fun onStop(owner: LifecycleOwner) {
-            if (context.playerModule?.isBackgroundPlaybackEnabled == false) {
-                backgroundPlaybackServicePlayer = null
+            if (context.playerModule?.enableBackgroundPlayback == false) {
+                playerInBackgroundService = null
             } else {
                 player = null
             }
