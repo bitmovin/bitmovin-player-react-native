@@ -81,11 +81,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
         isMediaSessionPlaybackEnabled = playerConfigJson?.getMap("lockScreenControlConfig")
             ?.toLockScreenControlConfig()?.isEnabled ?: false
-        isBackgroundPlaybackEnabled = if (isMediaSessionPlaybackEnabled) {
-            isMediaSessionPlaybackEnabled
-        } else {
-            playerConfigJson?.getMap("playbackConfig")?.getBoolean("isBackgroundPlaybackEnabled") ?: false
-        }
+        isBackgroundPlaybackEnabled = playerConfigJson?.getMap("playbackConfig")
+            ?.getBoolean("isBackgroundPlaybackEnabled") ?: false
 
         val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
         if (networkConfig != null) {
@@ -103,7 +100,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
             )
         }
 
-        if (isBackgroundPlaybackEnabled) {
+        if (isMediaSessionPlaybackEnabled) {
             backgroundPlaybackConnectionManager = BackgroundPlaybackManager(context)
             promise.unit.resolveOnUiThread {
                 backgroundPlaybackConnectionManager?.setupBackgroundPlayback(nativeId, this@PlayerModule)
