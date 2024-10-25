@@ -26,7 +26,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     private val players: Registry<Player> = mutableMapOf()
 
-    var backgroundPlaybackManager: BackgroundPlaybackManager? = null
+    var mediaSessionPlaybackManager: MediaSessionPlaybackManager? = null
     var enableBackgroundPlayback: Boolean = false
 
     /**
@@ -100,9 +100,9 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         }
 
         if (enableMediaSession) {
-            backgroundPlaybackManager = BackgroundPlaybackManager(context)
+            mediaSessionPlaybackManager = MediaSessionPlaybackManager(context)
             promise.unit.resolveOnUiThread {
-                backgroundPlaybackManager?.setupBackgroundPlayback(nativeId)
+                mediaSessionPlaybackManager?.setupMediaSessionPlayback(nativeId)
             }
         }
     }
@@ -229,7 +229,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
             destroy()
             players.remove(nativeId)
-            backgroundPlaybackManager = null
+            mediaSessionPlaybackManager = null
         }
     }
 

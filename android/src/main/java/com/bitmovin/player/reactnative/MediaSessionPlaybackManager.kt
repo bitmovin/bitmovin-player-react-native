@@ -7,16 +7,16 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.reactnative.extensions.playerModule
-import com.bitmovin.player.reactnative.services.BackgroundPlaybackService
+import com.bitmovin.player.reactnative.services.MediaSessionPlaybackService
 import com.facebook.react.bridge.*
 
-class BackgroundPlaybackManager(val context: ReactApplicationContext) {
+class MediaSessionPlaybackManager(val context: ReactApplicationContext) {
     private lateinit var playerId: NativeId
-    internal var serviceBinder: BackgroundPlaybackService.ServiceBinder? = null
+    internal var serviceBinder: MediaSessionPlaybackService.ServiceBinder? = null
 
-    inner class BackgroundPlaybackServiceConnection : ServiceConnection {
+    inner class MediaSessionPlaybackServiceConnection : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            val binder = service as BackgroundPlaybackService.ServiceBinder
+            val binder = service as MediaSessionPlaybackService.ServiceBinder
             serviceBinder = binder
             binder.player = getPlayer()
         }
@@ -26,12 +26,12 @@ class BackgroundPlaybackManager(val context: ReactApplicationContext) {
         }
     }
 
-    fun setupBackgroundPlayback(playerId: NativeId) {
+    fun setupMediaSessionPlayback(playerId: NativeId) {
         this.playerId = playerId
 
-        val intent = Intent(context, BackgroundPlaybackService::class.java)
+        val intent = Intent(context, MediaSessionPlaybackService::class.java)
         intent.action = Intent.ACTION_MEDIA_BUTTON
-        val connection: ServiceConnection = BackgroundPlaybackServiceConnection()
+        val connection: ServiceConnection = MediaSessionPlaybackServiceConnection()
         context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
     }
 

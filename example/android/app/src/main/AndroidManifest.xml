@@ -54,7 +54,7 @@
             android:value="com.bitmovin.player.casting.BitmovinCastOptionsProvider" />
 
       <service
-          android:name="com.bitmovin.player.reactnative.services.BackgroundPlaybackService"
+          android:name="com.bitmovin.player.reactnative.services.MediaSessionPlaybackService"
           android:foregroundServiceType="mediaPlayback"
           android:exported="true">
           <intent-filter>

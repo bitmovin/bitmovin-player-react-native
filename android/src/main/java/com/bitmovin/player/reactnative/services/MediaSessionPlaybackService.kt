@@ -7,13 +7,13 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.media.session.MediaSession
 import com.bitmovin.player.api.media.session.MediaSessionService
 
-class BackgroundPlaybackService : MediaSessionService() {
+class MediaSessionPlaybackService : MediaSessionService() {
     inner class ServiceBinder : Binder() {
         var player: Player?
-            get() = this@BackgroundPlaybackService.player
+            get() = this@MediaSessionPlaybackService.player
             set(value) {
                 disconnectSession()
-                this@BackgroundPlaybackService.player = value
+                this@MediaSessionPlaybackService.player = value
                 value?.let {
                     createSession(it)
                     connectSession()
