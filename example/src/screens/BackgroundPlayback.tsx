@@ -20,6 +20,9 @@ export default function BackgroundPlayback() {
     playbackConfig: {
       isBackgroundPlaybackEnabled: true,
     },
+    lockScreenControlConfig: {
+      isEnabled: true,
+    },
     remoteControlConfig: {
       isCastEnabled: false,
     },
