@@ -6,6 +6,9 @@ import {
   usePlayer,
   PlayerView,
   SourceType,
+  TvUi,
+  SmallScreenUi,
+  PlayerViewConfig,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
@@ -21,6 +24,12 @@ export default function BasicPlayback() {
       isCastEnabled: false,
     },
   });
+
+  const config: PlayerViewConfig = {
+    uiConfig: {
+      variant: Platform.isTV ? new TvUi() : new SmallScreenUi(),
+    },
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -56,6 +65,7 @@ export default function BasicPlayback() {
       <PlayerView
         player={player}
         style={styles.player}
+        config={config}
         onPlay={onEvent}
         onPlaying={onEvent}
         onPaused={onEvent}
