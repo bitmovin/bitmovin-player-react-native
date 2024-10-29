@@ -48,7 +48,7 @@ export interface WebUiConfig extends UiConfig {
    *
    * Default is {@link SmallScreenUi}
    */
-  variant?: SmallScreenUi | TvUi | CustomUi;
+  variant?: Variant;
   /**
    * Whether the WebView should be focused on initialization.
    *
