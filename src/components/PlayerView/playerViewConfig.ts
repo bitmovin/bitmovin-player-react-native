@@ -45,6 +45,8 @@ export interface WebUiConfig extends UiConfig {
   playbackSpeedSelectionEnabled?: boolean;
   /**
    * The Ui variant to use for the Bitmovin Player Web UI.
+   *
+   * Default is {@link SmallScreenUi}
    */
   variant?: SmallScreenUi | TvUi | CustomUi;
   /**
@@ -67,10 +69,10 @@ export abstract class Variant {
    * the `UIConfig` as the second argument.
    *
    * Example:
-   * When you added a new function or want to use a different function of our
-   * [`UIFactory`](https://github.com/bitmovin/bitmovin-player-ui/blob/develop/src/ts/uifactory.ts#L60),
+   * When you added a new function or want to use a different function of our `UIFactory`,
    * you can specify the full qualifier name including namespaces.
-   * e.g. `bitmovin.playerui.UIFactory.buildDefaultSmallScreenUI` for the SmallScreenUi
+   * e.g. `bitmovin.playerui.UIFactory.buildDefaultSmallScreenUI` for the SmallScreenUi.
+   * @see UIFactory https://github.com/bitmovin/bitmovin-player-ui/blob/develop/src/ts/uifactory.ts#L60
    *
    * Notes:
    * - It's not necessary to use our `UIFactory`. Any static function can be specified.
