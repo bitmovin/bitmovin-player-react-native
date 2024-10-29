@@ -752,30 +752,28 @@ fun ReadableMap.toPictureInPictureConfig(): PictureInPictureConfig = PictureInPi
     isEnabled = getBooleanOrNull("isEnabled") ?: false,
 )
 
-/**
- * Converts the [json] to a `RNUiConfig` object.
- */
-fun ReadableMap.toPlayerViewConfig(): PlayerViewConfig {
-    val uiConfig = getMap("uiConfig") ?: return PlayerViewConfig()
-    val variant = uiConfig.toVariant()
-    val focusUiOnInitialization = uiConfig.getBooleanOrNull("focusUiOnInitialization")
+fun ReadableMap.toPlayerViewConfig(): PlayerViewConfig = PlayerViewConfig(
+    uiConfig = getMap("uiConfig")?.toUiConfig() ?: UiConfig.WebUi(),
+    hideFirstFrame = getBooleanOrNull("hideFirstFrame") ?: false,
+)
+
+private fun ReadableMap.toUiConfig(): UiConfig {
+    val variant = toVariant() ?: UiConfig.WebUi.Variant.SmallScreenUi
+    val focusUiOnInitialization = getBooleanOrNull("focusUiOnInitialization")
     val defaultFocusUiOnInitialization = variant == UiConfig.WebUi.Variant.TvUi
 
-    return PlayerViewConfig(
-        uiConfig = UiConfig.WebUi(
-            playbackSpeedSelectionEnabled = uiConfig.getBooleanOrNull("playbackSpeedSelectionEnabled") ?: true,
-            variant = variant,
-            focusUiOnInitialization = focusUiOnInitialization ?: defaultFocusUiOnInitialization,
-        ),
-        hideFirstFrame = getBooleanOrNull("hideFirstFrame") ?: false,
+    return UiConfig.WebUi(
+        playbackSpeedSelectionEnabled = getBooleanOrNull("playbackSpeedSelectionEnabled") ?: true,
+        variant = variant,
+        focusUiOnInitialization = focusUiOnInitialization ?: defaultFocusUiOnInitialization,
     )
 }
 
-private fun ReadableMap.toVariant(): UiConfig.WebUi.Variant {
-    val uiManagerFactoryFunction = getMap("variant")?.getString("uiManagerFactoryFunction")
+private fun ReadableMap.toVariant(): UiConfig.WebUi.Variant? {
+    val uiManagerFactoryFunction = getMap("variant")?.getString("uiManagerFactoryFunction") ?: return null
 
     return when (uiManagerFactoryFunction) {
-        "bitmovin.playerui.UIFactory.buildDefaultSmallScreenUI", null -> UiConfig.WebUi.Variant.SmallScreenUi
+        "bitmovin.playerui.UIFactory.buildDefaultSmallScreenUI" -> UiConfig.WebUi.Variant.SmallScreenUi
         "bitmovin.playerui.UIFactory.buildDefaultTvUI" -> UiConfig.WebUi.Variant.TvUi
         else -> UiConfig.WebUi.Variant.Custom(uiManagerFactoryFunction)
     }
