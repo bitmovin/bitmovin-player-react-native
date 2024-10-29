@@ -44,7 +44,7 @@ export interface WebUiConfig extends UiConfig {
    */
   playbackSpeedSelectionEnabled?: boolean;
   /**
-   * The Ui variant to use for the Bitmovin Player Web UI.
+   * The UI variant to use for the Bitmovin Player Web UI.
    *
    * Default is {@link SmallScreenUi}
    */
