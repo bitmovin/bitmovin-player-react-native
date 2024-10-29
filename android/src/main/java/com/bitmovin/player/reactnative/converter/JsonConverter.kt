@@ -763,9 +763,7 @@ fun ReadableMap.toPlayerViewConfig(): PlayerViewConfig {
 
     return PlayerViewConfig(
         uiConfig = UiConfig.WebUi(
-            playbackSpeedSelectionEnabled = uiConfig
-                .getBooleanOrNull("playbackSpeedSelectionEnabled")
-                ?: true,
+            playbackSpeedSelectionEnabled = uiConfig.getBooleanOrNull("playbackSpeedSelectionEnabled") ?: true,
             variant = variant,
             focusUiOnInitialization = focusUiOnInitialization ?: defaultFocusUiOnInitialization,
         ),
