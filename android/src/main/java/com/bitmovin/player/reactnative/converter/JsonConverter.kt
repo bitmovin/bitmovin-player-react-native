@@ -757,7 +757,7 @@ fun ReadableMap.toPictureInPictureConfig(): PictureInPictureConfig = PictureInPi
  */
 fun ReadableMap.toPlayerViewConfig(): PlayerViewConfig {
     val uiConfig = getMap("uiConfig") ?: return PlayerViewConfig()
-    val variant = uiConfig.toVariant() ?: UiConfig.WebUi.Variant.SmallScreenUi
+    val variant = uiConfig.toVariant()
     val focusUiOnInitialization = uiConfig.getBooleanOrNull("focusUiOnInitialization")
     val defaultFocusUiOnInitialization = variant == UiConfig.WebUi.Variant.TvUi
 
@@ -773,10 +773,11 @@ fun ReadableMap.toPlayerViewConfig(): PlayerViewConfig {
     )
 }
 
-private fun ReadableMap.toVariant(): UiConfig.WebUi.Variant? {
-    val uiManagerFactoryFunction = this.getMap("variant")?.getString("uiManagerFactoryFunction") ?: return null
+private fun ReadableMap.toVariant(): UiConfig.WebUi.Variant {
+    val uiManagerFactoryFunction = getMap("variant")?.getString("uiManagerFactoryFunction")
+
     return when (uiManagerFactoryFunction) {
-        "bitmovin.playerui.UIFactory.buildDefaultSmallScreenUI" -> UiConfig.WebUi.Variant.SmallScreenUi
+        "bitmovin.playerui.UIFactory.buildDefaultSmallScreenUI", null -> UiConfig.WebUi.Variant.SmallScreenUi
         "bitmovin.playerui.UIFactory.buildDefaultTvUI" -> UiConfig.WebUi.Variant.TvUi
         else -> UiConfig.WebUi.Variant.Custom(uiManagerFactoryFunction)
     }
