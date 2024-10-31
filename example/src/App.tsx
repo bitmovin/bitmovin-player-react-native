@@ -192,11 +192,13 @@ export default function App() {
           component={BasicPlayback}
           options={{ title: 'Basic playback' }}
         />
-        <RootStack.Screen
-          name="BasicTvPlayback"
-          component={BasicTvPlayback}
-          options={{ title: 'Basic TV playback' }}
-        />
+        {Platform.OS === 'android' && Platform.isTV && (
+          <RootStack.Screen
+            name="BasicTvPlayback"
+            component={BasicTvPlayback}
+            options={{ title: 'Basic TV playback' }}
+          />
+        )}
         <RootStack.Screen
           name="BasicDrmPlayback"
           component={BasicDrmPlayback}
