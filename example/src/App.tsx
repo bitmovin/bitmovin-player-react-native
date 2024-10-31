@@ -65,6 +65,7 @@ export type RootStackParamsList = {
 const RootStack = createNativeStackNavigator<RootStackParamsList>();
 
 const isTVOS = Platform.OS === 'ios' && Platform.isTV;
+const isAndroidTV = Platform.OS === 'android' && Platform.isTV;
 
 export default function App() {
   useEffect(() => {
@@ -86,10 +87,6 @@ export default function App() {
       {
         title: 'Basic playback',
         routeName: 'BasicPlayback' as keyof RootStackParamsList,
-      },
-      {
-        title: 'Basic TV playback',
-        routeName: 'BasicTvPlayback' as keyof RootStackParamsList,
       },
       {
         title: 'Basic Analytics',
@@ -117,6 +114,13 @@ export default function App() {
       },
     ],
   };
+
+  if (isAndroidTV) {
+    stackParams.data.unshift({
+      title: 'Basic TV playback',
+      routeName: 'BasicTvPlayback',
+    });
+  }
 
   if (!isTVOS) {
     stackParams.data.push({
@@ -192,7 +196,7 @@ export default function App() {
           component={BasicPlayback}
           options={{ title: 'Basic playback' }}
         />
-        {Platform.OS === 'android' && Platform.isTV && (
+        {isAndroidTV && (
           <RootStack.Screen
             name="BasicTvPlayback"
             component={BasicTvPlayback}
