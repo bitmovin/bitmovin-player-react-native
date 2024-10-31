@@ -1103,13 +1103,12 @@ DEPENDENCIES:
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
-  https://github.com/bitmovin/cocoapod-specs.git:
-    - BitmovinPlayerCore
   https://github.com/react-native-tvos/react-native-tvos-podspecs.git:
     - libevent
   trunk:
     - BitmovinAnalyticsCollector
     - BitmovinPlayer
+    - BitmovinPlayerCore
     - GoogleAds-IMA-iOS-SDK
     - SocketRocket
 
@@ -1217,7 +1216,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   BitmovinAnalyticsCollector: d08e0b13bcc32973370e0d71f2faa739561bac0a
   BitmovinPlayer: 65866e13f7a8246ccbc7378607d6ca789f0f459e
-  BitmovinPlayerCore: 7151c7836f0e0c906a17c897576d3bd892b51b4a
+  BitmovinPlayerCore: 158b4a5b81b12b819f0f51b7b89711ca47e11583
   boost: 88202336c3ba1e7a264a83c0c888784b0f360c28
   DoubleConversion: 74cb0ce4de271b23e772567504735c87134edf0a
   FBLazyVector: 33a271a7e8de0bd321e47356d8bc3b2d5fb9ddba
@@ -1269,8 +1268,8 @@ SPEC CHECKSUMS:
   ReactCommon: 17891ca337bfa5a7263649b09f27a8c664537bf2
   RNBitmovinPlayer: 5df76edfd71a5887aa20210108bdf9ac7227048b
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  Yoga: ab50eb8f7fcf1b36aad1801b5687b66b2c0aa000
+  Yoga: e7f2a2256464d4ef7b3825d216bd22aac3b449c1
 
-PODFILE CHECKSUM: 0bfe194f5e28f1cf54d3d732eda8c78fadbeeedd
+PODFILE CHECKSUM: d1cd0316ec7219d421f4dfb46ced3af29fd4e932
 
 COCOAPODS: 1.15.2
