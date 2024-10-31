@@ -8,7 +8,6 @@ import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
 import BasicAnalytics from './screens/BasicAnalytics';
 import BasicPlayback from './screens/BasicPlayback';
-import BasicTvPlayback from './screens/BasicTvPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
 import ProgrammaticTrackSelection from './screens/ProgrammaticTrackSelection';
@@ -32,7 +31,6 @@ export type RootStackParamsList = {
   BasicAds: undefined;
   BasicAnalytics: undefined;
   BasicPlayback: undefined;
-  BasicTvPlayback: undefined;
   BasicDrmPlayback: undefined;
   BasicPictureInPicture: {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
@@ -86,10 +84,6 @@ export default function App() {
       {
         title: 'Basic playback',
         routeName: 'BasicPlayback' as keyof RootStackParamsList,
-      },
-      {
-        title: 'Basic TV playback',
-        routeName: 'BasicTvPlayback' as keyof RootStackParamsList,
       },
       {
         title: 'Basic Analytics',
@@ -191,11 +185,6 @@ export default function App() {
           name="BasicPlayback"
           component={BasicPlayback}
           options={{ title: 'Basic playback' }}
-        />
-        <RootStack.Screen
-          name="BasicTvPlayback"
-          component={BasicTvPlayback}
-          options={{ title: 'Basic TV playback' }}
         />
         <RootStack.Screen
           name="BasicDrmPlayback"
