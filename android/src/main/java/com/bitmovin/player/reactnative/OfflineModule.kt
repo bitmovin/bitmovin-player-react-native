@@ -118,7 +118,6 @@ class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
                 OfflineOptionEntryState.Downloading, OfflineOptionEntryState.Failed -> throw IllegalStateException(
                     "Download already in progress",
                 )
-
                 OfflineOptionEntryState.Suspended -> throw IllegalStateException("Download is suspended")
                 else -> {}
             }

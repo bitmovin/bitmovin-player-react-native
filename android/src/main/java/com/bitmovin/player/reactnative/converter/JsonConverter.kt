@@ -755,10 +755,10 @@ fun ReadableMap.toPictureInPictureConfig(): PictureInPictureConfig = PictureInPi
 )
 
 fun ReadableMap.toSubtitleViewConfig(): SubtitleViewConfig = SubtitleViewConfig(
-    paddingLeft = getIntOrNull("paddingLeft")?: 0,
-    paddingTop = getIntOrNull("paddingTop")?: 0,
-    paddingRight = getIntOrNull("paddingRight")?: 0,
-    paddingBottom = getIntOrNull("paddingBottom")?: 0,
+    paddingLeft = getIntOrNull("paddingLeft") ?: 0,
+    paddingTop = getIntOrNull("paddingTop") ?: 0,
+    paddingRight = getIntOrNull("paddingRight") ?: 0,
+    paddingBottom = getIntOrNull("paddingBottom") ?: 0,
 )
 
 fun ReadableMap.toPlayerViewConfig(): PlayerViewConfig = PlayerViewConfig(
@@ -801,7 +801,7 @@ private fun ReadableMap.toUserInterfaceTypeFromPlayerConfig(): UserInterfaceType
 fun ReadableMap.toRNPlayerViewConfigWrapper() = RNPlayerViewConfigWrapper(
     playerViewConfig = toPlayerViewConfig(),
     pictureInPictureConfig = getMap("pictureInPictureConfig")?.toPictureInPictureConfig(),
-    subtitleViewConfig = getMap("subtitleViewConfig")?.toSubtitleViewConfig()
+    subtitleViewConfig = getMap("subtitleViewConfig")?.toSubtitleViewConfig(),
 )
 
 fun ReadableMap.toRNStyleConfigWrapperFromPlayerConfig(): RNStyleConfigWrapper? {

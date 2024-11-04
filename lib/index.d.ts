@@ -1,5 +1,5 @@
-import React from 'react';
-import { NativeSyntheticEvent, ViewStyle } from 'react-native';
+import React$1 from 'react';
+import { ViewStyle } from 'react-native';
 
 /**
  * Configures the adaptation logic.
@@ -10,6 +10,13 @@ interface AdaptationConfig {
      * Can be set to `undefined` for no limitation.
      */
     maxSelectableBitrate?: number;
+    /**
+     * The initial bandwidth estimate in bits per second the player uses to select the optimal media tracks before actual bandwidth data is available. Overriding this value should only be done in specific cases and will most of the time not result in better selection logic.
+     *
+     * @platform Android
+     * @see https://cdn.bitmovin.com/player/android/3/docs/player-core/com.bitmovin.player.api.media/-adaptation-config/initial-bandwidth-estimate-override.html
+     */
+    initialBandwidthEstimateOverride?: number;
 }
 
 /**
@@ -87,6 +94,15 @@ interface AdItem {
      * The fallback ad sources need to have the same `AdSourceType` as the main ad source.
      */
     sources: AdSource[];
+    /**
+     * The amount of seconds the ad manifest is loaded in advance
+     * compared to when the ad break is scheduled for playback.
+     *
+     * Default value is 0.0
+     *
+     * @platform Android
+     */
+    preloadOffset?: number;
 }
 /**
  * Contains configuration values regarding the ads which should be played back by the player.
@@ -923,7 +939,7 @@ declare enum SourceType {
     PROGRESSIVE = "progressive"
 }
 /**
- * The different loading states a `Source` instance can be in.
+ * The different loading states a {@link Source} instance can be in.
  */
 declare enum LoadingState {
     /**
@@ -1021,7 +1037,7 @@ interface SourceConfig extends NativeInstanceConfig {
      */
     options?: SourceOptions;
     /**
-     * The `SourceMetadata` for the `Source` to setup custom analytics tracking
+     * The `SourceMetadata` for the {@link Source} to setup custom analytics tracking
      */
     analyticsSourceMetadata?: SourceMetadata;
 }
@@ -1055,19 +1071,19 @@ declare class Source extends NativeInstance<SourceConfig> {
      */
     remoteControl: SourceRemoteControlConfig | null;
     /**
-     * Whether the native `Source` object has been created.
+     * Whether the native {@link Source} object has been created.
      */
     isInitialized: boolean;
     /**
-     * Whether the native `Source` object has been disposed.
+     * Whether the native {@link Source} object has been disposed.
      */
     isDestroyed: boolean;
     /**
-     * Allocates the native `Source` instance and its resources natively.
+     * Allocates the native {@link Source} instance and its resources natively.
      */
     initialize: () => void;
     /**
-     * Destroys the native `Source` and releases all of its allocated resources.
+     * Destroys the native {@link Source} and releases all of its allocated resources.
      */
     destroy: () => void;
     /**
@@ -1091,6 +1107,8 @@ declare class Source extends NativeInstance<SourceConfig> {
     /**
      * Set metadata for the currently loaded source.
      * Setting the metadata to `null` clears the metadata object in native source.
+     *
+     * @param metadata metadata to be set.
      */
     setMetadata: (metadata: Record<string, any> | null) => void;
     /**
@@ -1100,12 +1118,164 @@ declare class Source extends NativeInstance<SourceConfig> {
     /**
      * @returns a `Thumbnail` for the specified playback time if available.
      * Supported thumbnail formats are:
-     * - `WebVtt` configured via `SourceConfig.thumbnailTrack`, on all supported platforms
+     * - `WebVtt` configured via {@link SourceConfig.thumbnailTrack}, on all supported platforms
      * - HLS `Image Media Playlist` in the multivariant playlist, Android-only
      * - DASH `Image Adaptation Set` as specified in DASH-IF IOP, Android-only
      * If a `WebVtt` thumbnail track is provided, any potential in-manifest thumbnails are ignored on Android.
+     *
+     * @param time - The time in seconds for which to retrieve the thumbnail.
      */
     getThumbnail: (time: number) => Promise<Thumbnail | null>;
+}
+
+/**
+ * Available HTTP request types.
+ */
+declare enum HttpRequestType {
+    ManifestDash = "manifest/dash",
+    ManifestHlsMaster = "manifest/hls/master",
+    ManifestHlsVariant = "manifest/hls/variant",
+    ManifestSmooth = "manifest/smooth",
+    MediaProgressive = "media/progressive",
+    MediaAudio = "media/audio",
+    MediaVideo = "media/video",
+    MediaSubtitles = "media/subtitles",
+    MediaThumbnails = "media/thumbnails",
+    DrmLicenseFairplay = "drm/license/fairplay",
+    DrmCertificateFairplay = "drm/certificate/fairplay",
+    DrmLicenseWidevine = "drm/license/widevine",
+    KeyHlsAes = "key/hls/aes",
+    Unknown = "unknown"
+}
+/**
+ * Base64-encoded string representing the HTTP request body.
+ */
+type HttpRequestBody = string;
+/** Represents an HTTP request. */
+interface HttpRequest {
+    /** The {@link HttpRequestBody} to send to the server. */
+    body?: HttpRequestBody;
+    /**
+     * The HTTP Headers of the request.
+     * Entries are expected to have the HTTP header as the key and its string content as the value.
+     */
+    headers: Record<string, string>;
+    /** The HTTP method of the request. */
+    method: string;
+    /** The URL of the request. */
+    url: string;
+}
+/**
+ * Base64-encoded string representing the HTTP response body.
+ */
+type HttpResponseBody = string;
+/** Represents an HTTP response. */
+interface HttpResponse {
+    /** The {@link HttpRequestBody} of the response. */
+    body?: HttpResponseBody;
+    /**
+     * The HTTP Headers of the response.
+     * Entries are expected to have the HTTP header as the key and its string content as the value.
+     */
+    headers: Record<string, string>;
+    /** The corresponding request object of the response. */
+    request: HttpRequest;
+    /** The HTTP status code of the response. */
+    status: number;
+    /** The URL of the response. May differ from {@link HttpRequest.url} when redirects have happened. */
+    url: string;
+}
+/**
+ * The network API gives the ability to influence network requests.
+ * It enables preprocessing requests and preprocessing responses.
+ */
+interface NetworkConfig extends NativeInstanceConfig {
+    /**
+     * Called before an HTTP request is made.
+     * Can be used to change request parameters.
+     *
+     * @param type Type of the request to be made.
+     * @param request The HTTP request to process.
+     * @returns A Promise that resolves to an `HttpRequest` object.
+     *          - If the promise resolves, the player will use the processed request.
+     *          - If the promise rejects, the player will fall back to using the original request.
+     *
+     * @examples
+     * ```
+     *  const requestCallback = (type: HttpRequestType, request: HttpRequest) => {
+     *    // Access current properties
+     *
+     *    console.log(JSON.stringify(type));
+     *    console.log(JSON.stringify(request));
+     *
+     *    // Modify the request
+     *
+     *    request.headers['New-Header'] = 'val';
+     *    request.method = 'GET';
+     *
+     *    // Return the processed request via a Promise
+     *
+     *    const processed: HttpRequest = {
+     *      body: request.body,
+     *      headers: request.headers,
+     *      method: request.method,
+     *      url: request.url,
+     *    };
+     *    return Promise.resolve(processed);
+     *  };
+     *
+     *  const player = usePlayer({
+     *    networkConfig: {
+     *      preprocessHttpRequest: requestCallback,
+     *    },
+     *  });
+     * ```
+     */
+    preprocessHttpRequest?: (type: HttpRequestType, request: HttpRequest) => Promise<HttpRequest>;
+    /**
+     * Called before an HTTP response is accessed by the player.
+     * Can be used to access or change the response.
+     *
+     * @param type Type of the corresponding request object of the response.
+     * @param response The HTTP response to process.
+     * @returns A Promise that resolves to an `HttpResponse` object.
+     *          - If the promise resolves, the player will use the processed response.
+     *          - If the promise rejects, the player will fall back to using the original response.
+     *
+     * @example
+     * ```
+     *  const responseCallback = (type: HttpRequestType, response: HttpResponse) => {
+     *    // Access response properties
+     *
+     *    console.log(JSON.stringify(type));
+     *    console.log(JSON.stringify(response));
+     *
+     *    // Modify the response
+     *
+     *    response.headers['New-Header'] = 'val';
+     *    response.url = response.request.url; // remove eventual redirect changes
+     *
+     *    // Return the processed response via a Promise
+     *
+     *    const processed: HttpResponse = {
+     *      body: response.body,
+     *      headers: response.headers,
+     *      request: response.request,
+     *      status: response.status,
+     *      url: response.url,
+     *    };
+     *    return Promise.resolve(processed);
+     *  };
+     *
+     *  // Properly attach the callback to the config
+     *  const player = usePlayer({
+     *    networkConfig: {
+     *      preprocessHttpResponse: responseCallback,
+     *    },
+     *  });
+     * ```
+     */
+    preprocessHttpResponse?: (type: HttpRequestType, response: HttpResponse) => Promise<HttpResponse>;
 }
 
 /**
@@ -1134,7 +1304,7 @@ interface ErrorEvent extends Event {
      */
     message: string;
     /**
-     * Underlying data emitted with the Error/Warning.
+     * Underlying data emitted with the error or warning.
      */
     data?: Record<string, any>;
 }
@@ -1208,9 +1378,9 @@ interface PlayingEvent extends Event {
 interface PlaybackFinishedEvent extends Event {
 }
 /**
- * Source object representation the way it appears on `Event` payloads such as `SeekEvent`, for example.
+ * Source object representation the way it appears on event's payloads such as `SeekEvent`, for example.
  *
- * This interface only type hints what should be the shape of a `Source` object inside an `Event`'s
+ * This interface only type hints what should be the shape of a {@link Source} object inside an event's
  * payload during runtime so it has no direct relation with the `Source` class present in `src/source.ts`.
  *
  * Do not mistake it for a `NativeInstance` type.
@@ -1233,7 +1403,7 @@ interface EventSource {
      */
     metadata?: Record<string, any>;
     /**
-     * The current `LoadingState` of the source.
+     * The current {@link LoadingState} of the source.
      */
     loadingState: LoadingState;
 }
@@ -1242,11 +1412,11 @@ interface EventSource {
  */
 interface SeekPosition {
     /**
-     * The relevant `Source`.
+     * The relevant {@link Source}.
      */
     source: EventSource;
     /**
-     * The position within the `source` in seconds.
+     * The position within the {@link Source} in seconds.
      */
     time: number;
 }
@@ -1325,7 +1495,7 @@ interface SourceLoadEvent extends Event {
 /**
  * Emitted when a new source is loaded.
  * This does not mean that the source is immediately ready for playback.
- * `ReadyEvent` indicates the player is ready for immediate playback.
+ * {@link ReadyEvent} indicates the player is ready for immediate playback.
  */
 interface SourceLoadedEvent extends Event {
     /**
@@ -1486,7 +1656,7 @@ interface PictureInPictureAvailabilityChangedEvent extends Event {
  */
 interface AdBreakStartedEvent extends Event {
     /**
-     * The `AdBreak` that has started.
+     * The {@link AdBreak} that has started.
      */
     adBreak?: AdBreak;
 }
@@ -1495,7 +1665,7 @@ interface AdBreakStartedEvent extends Event {
  */
 interface AdBreakFinishedEvent extends Event {
     /**
-     * The `AdBreak` that has finished.
+     * The {@link AdBreak} that has finished.
      */
     adBreak?: AdBreak;
 }
@@ -1504,7 +1674,7 @@ interface AdBreakFinishedEvent extends Event {
  */
 interface AdStartedEvent extends Event {
     /**
-     * The `Ad` this event is related to.
+     * The {@link Ad} this event is related to.
      */
     ad?: Ad;
     /**
@@ -1512,7 +1682,7 @@ interface AdStartedEvent extends Event {
      */
     clickThroughUrl?: string;
     /**
-     * The `AdSourceType` of the started `Ad`.
+     * The {@link AdSourceType} of the started ad.
      */
     clientType?: AdSourceType;
     /**
@@ -1524,7 +1694,7 @@ interface AdStartedEvent extends Event {
      */
     indexInQueue: number;
     /**
-     * The position of the corresponding `Ad`.
+     * The position of the corresponding ad.
      */
     position?: string;
     /**
@@ -1532,7 +1702,7 @@ interface AdStartedEvent extends Event {
      */
     skipOffset: number;
     /**
-     * The content time at which the `Ad` is played.
+     * The main content time at which the ad is played.
      */
     timeOffset: number;
 }
@@ -1541,7 +1711,7 @@ interface AdStartedEvent extends Event {
  */
 interface AdFinishedEvent extends Event {
     /**
-     * The `Ad` that finished playback.
+     * The {@link Ad} that finished playback.
      */
     ad?: Ad;
 }
@@ -1550,11 +1720,11 @@ interface AdFinishedEvent extends Event {
  */
 interface AdErrorEvent extends ErrorEvent {
     /**
-     * The `AdConfig` for which the ad error occurred.
+     * The {@link AdConfig} for which the ad error occurred.
      */
     adConfig?: AdConfig;
     /**
-     * The `AdItem` for which the ad error occurred.
+     * The {@link AdItem} for which the ad error occurred.
      */
     adItem?: AdItem;
 }
@@ -1572,7 +1742,7 @@ interface AdClickedEvent extends Event {
  */
 interface AdSkippedEvent extends Event {
     /**
-     * The `Ad` that was skipped.
+     * The ad that was skipped.
      */
     ad?: Ad;
 }
@@ -1581,7 +1751,7 @@ interface AdSkippedEvent extends Event {
  */
 interface AdQuartileEvent extends Event {
     /**
-     * The `AdQuartile` boundary that playback has progressed over.
+     * The {@link AdQuartile} boundary that playback has progressed over.
      */
     quartile: AdQuartile;
 }
@@ -1599,11 +1769,11 @@ interface AdScheduledEvent extends Event {
  */
 interface AdManifestLoadEvent extends Event {
     /**
-     * The `AdBreak` this event is related to.
+     * The {@link AdBreak} this event is related to.
      */
     adBreak?: AdBreak;
     /**
-     * The `AdConfig` of the loaded ad manifest.
+     * The {@link AdConfig} of the loaded ad manifest.
      */
     adConfig?: AdConfig;
 }
@@ -1612,11 +1782,11 @@ interface AdManifestLoadEvent extends Event {
  */
 interface AdManifestLoadedEvent extends Event {
     /**
-     * The `AdBreak` this event is related to.
+     * The {@link AdBreak} this event is related to.
      */
     adBreak?: AdBreak;
     /**
-     * The `AdConfig` of the loaded ad manifest.
+     * The {@link AdConfig} of the loaded ad manifest.
      */
     adConfig?: AdConfig;
     /**
@@ -1658,21 +1828,21 @@ interface CastAvailableEvent extends Event {
 /**
  * Emitted when the playback on a cast-compatible device was paused.
  *
- * On Android `PausedEvent` is also emitted while casting.
+ * On Android {@link PausedEvent} is also emitted while casting.
  */
 interface CastPausedEvent extends Event {
 }
 /**
  * Emitted when the playback on a cast-compatible device has finished.
  *
- * On Android `PlaybackFinishedEvent` is also emitted while casting.
+ * On Android {@link PlaybackFinishedEvent} is also emitted while casting.
  */
 interface CastPlaybackFinishedEvent extends Event {
 }
 /**
  * Emitted when playback on a cast-compatible device has started.
  *
- * On Android `PlayingEvent` is also emitted while casting.
+ * On Android {@link PlayingEvent} is also emitted while casting.
  */
 interface CastPlayingEvent extends Event {
 }
@@ -1701,7 +1871,7 @@ interface CastStoppedEvent extends Event {
 interface CastTimeUpdatedEvent extends Event {
 }
 /**
- * Contains information for the `CastWaitingForDeviceEvent`.
+ * Contains information for the {@link CastWaitingForDeviceEvent}.
  */
 interface CastPayload {
     /**
@@ -1713,7 +1883,7 @@ interface CastPayload {
      */
     deviceName: string | null;
     /**
-     * The type of the payload (always "cast").
+     * The type of the payload (always `"cast"`).
      */
     type: string;
 }
@@ -1723,28 +1893,9 @@ interface CastPayload {
  */
 interface CastWaitingForDeviceEvent extends Event {
     /**
-     * The `CastPayload` object for the event
+     * The {@link CastPayload} object for the event
      */
     castPayload: CastPayload;
-}
-/**
- * Available HTTP request types.
- */
-declare enum HttpRequestType {
-    ManifestDash = "manifest/dash",
-    ManifestHlsMaster = "manifest/hls/master",
-    ManifestHlsVariant = "manifest/hls/variant",
-    ManifestSmooth = "manifest/smooth",
-    MediaProgressive = "media/progressive",
-    MediaAudio = "media/audio",
-    MediaVideo = "media/video",
-    MediaSubtitles = "media/subtitles",
-    MediaThumbnails = "media/thumbnails",
-    DrmLicenseFairplay = "drm/license/fairplay",
-    DrmCertificateFairplay = "drm/certificate/fairplay",
-    DrmLicenseWidevine = "drm/license/widevine",
-    KeyHlsAes = "key/hls/aes",
-    Unknown = "unknown"
 }
 /**
  * Emitted when a download was finished.
@@ -2143,12 +2294,6 @@ interface EventProps {
  */
 type PlayerViewEvents = {
     [Prop in keyof EventProps]?: (event: EventProps[Prop]) => void;
-};
-/**
- * Event props for `NativePlayerView`.
- */
-type NativePlayerViewEvents = {
-    [Prop in keyof EventProps]?: (nativeEvent: NativeSyntheticEvent<EventProps[Prop]>) => void;
 };
 
 /**
@@ -2786,6 +2931,25 @@ interface TweaksConfig {
      * @platform Android
      */
     useFiletypeExtractorFallbackForHls?: boolean;
+    /**
+     * Specifies whether the player should prefer software decoding over hardware decoding for ad playback.
+     * This only affects ads playback, the player will still prefer hardware decoding for the main content.
+     *
+     * @platform Android
+     */
+    preferSoftwareDecodingForAds?: boolean;
+    /**
+     * Determines whether `AVKit` should update Now Playing information automatically when using System UI.
+     *
+     * - If set to `false`, the automatic updates of Now Playing Info sent by `AVKit` are disabled.
+     *   This prevents interference with manual updates you may want to perform.
+     * - If set to `true`, the default behaviour is maintained, allowing `AVKit` to handle Now Playing updates.
+     *
+     * Default is `true`.
+     *
+     * @platform iOS
+     */
+    updatesNowPlayingInfoCenter?: boolean;
 }
 
 /**
@@ -3019,6 +3183,10 @@ interface PlayerConfig extends NativeInstanceConfig {
      * Configures behaviour when playing live content. A default {@link LiveConfig} is set initially.
      */
     liveConfig?: LiveConfig;
+    /**
+     * Configures network request manipulation functionality. A default {@link NetworkConfig} is set initially.
+     */
+    networkConfig?: NetworkConfig;
 }
 
 /**
@@ -3107,15 +3275,16 @@ declare class BufferApi {
 }
 
 /**
- * Loads, controls and renders audio and video content represented through `Source`s. A player
- * instance can be created via the `usePlayer` hook and will idle until one or more `Source`s are
- * loaded. Once `load` is called, the player becomes active and initiates necessary downloads to
+ * Loads, controls and renders audio and video content represented through {@link Source}s. A player
+ * instance can be created via the {@link usePlayer} hook and will idle until one or more {@link Source}s are
+ * loaded. Once {@link Player.load} or {@link Player.loadSource} is called, the player becomes active and initiates necessary downloads to
  * start playback of the loaded source(s).
  *
- * Can be attached to `PlayerView` component in order to use Bitmovin's Player Web UI.
+ * Can be attached to {@link PlayerView} component in order to use Bitmovin's Player Web UI.
  * @see PlayerView
  */
 declare class Player extends NativeInstance<PlayerConfig> {
+    private network?;
     /**
      * Currently active source, or `null` if none is active.
      */
@@ -3147,19 +3316,19 @@ declare class Player extends NativeInstance<PlayerConfig> {
      */
     destroy: () => void;
     /**
-     * Loads a new `Source` from `sourceConfig` into the player.
+     * Loads a new {@link Source} from `sourceConfig` into the player.
      */
     load: (sourceConfig: SourceConfig) => void;
     /**
-     * Loads the downloaded content from `OfflineContentManager` into the player.
+     * Loads the downloaded content from {@link OfflineContentManager} into the player.
      */
     loadOfflineContent: (offlineContentManager: OfflineContentManager, options?: OfflineSourceOptions) => void;
     /**
-     * Loads the given `Source` into the player.
+     * Loads the given {@link Source} into the player.
      */
     loadSource: (source: Source) => void;
     /**
-     * Unloads all `Source`s from the player.
+     * Unloads all {@link Source}s from the player.
      */
     unload: () => void;
     /**
@@ -3186,6 +3355,8 @@ declare class Player extends NativeInstance<PlayerConfig> {
      * Has no effect for VoD.
      *
      * Has no effect if no sources are loaded.
+     *
+     * @param offset - Target offset from the live edge in seconds.
      */
     timeShift: (offset: number) => void;
     /**
@@ -3252,15 +3423,17 @@ declare class Player extends NativeInstance<PlayerConfig> {
      */
     getAudioTrack: () => Promise<AudioTrack | null>;
     /**
-     * @returns An array containing AudioTrack objects for all available audio tracks.
+     * @returns An array containing {@link AudioTrack} objects for all available audio tracks.
      */
     getAvailableAudioTracks: () => Promise<AudioTrack[]>;
     /**
      * Sets the audio track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableAudioTracks.
+     *
+     * @param trackIdentifier - The {@link AudioTrack.identifier} to be set.
      */
     setAudioTrack: (trackIdentifier: string) => Promise<void>;
     /**
-     * @returns The currently selected subtitle track or `null`.
+     * @returns The currently selected {@link SubtitleTrack} or `null`.
      */
     getSubtitleTrack: () => Promise<SubtitleTrack | null>;
     /**
@@ -3269,10 +3442,12 @@ declare class Player extends NativeInstance<PlayerConfig> {
     getAvailableSubtitles: () => Promise<SubtitleTrack[]>;
     /**
      * Sets the subtitle track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableSubtitles.
+     *
+     * @param trackIdentifier - The {@link SubtitleTrack.identifier} to be set.
      */
     setSubtitleTrack: (trackIdentifier?: string) => Promise<void>;
     /**
-     * Dynamically schedules the `adItem` for playback.
+     * Dynamically schedules the {@link AdItem} for playback.
      * Has no effect if there is no active playback session.
      *
      * @param adItem - Ad to be scheduled for playback.
@@ -3293,13 +3468,13 @@ declare class Player extends NativeInstance<PlayerConfig> {
      */
     isAd: () => Promise<boolean>;
     /**
-     * The current time shift of the live stream in seconds. This value is always 0 if the active `source` is not a
+     * The current time shift of the live stream in seconds. This value is always 0 if the active {@link Source} is not a
      * live stream or no sources are loaded.
      */
     getTimeShift: () => Promise<number>;
     /**
      * The limit in seconds for time shifting. This value is either negative or 0 and it is always 0 if the active
-     * `source` is not a live stream or no sources are loaded.
+     * {@link Source} is not a live stream or no sources are loaded.
      */
     getMaxTimeShift: () => Promise<number>;
     /**
@@ -3310,16 +3485,18 @@ declare class Player extends NativeInstance<PlayerConfig> {
      */
     setMaxSelectableBitrate: (bitrate: number | null) => void;
     /**
-     * @returns a `Thumbnail` for the specified playback time for the currently active source if available.
+     * @returns a {@link Thumbnail} for the specified playback time for the currently active source if available.
      * Supported thumbnail formats are:
-     * - `WebVtt` configured via `SourceConfig.thumbnailTrack`, on all supported platforms
+     * - `WebVtt` configured via {@link SourceConfig.thumbnailTrack}, on all supported platforms
      * - HLS `Image Media Playlist` in the multivariant playlist, Android-only
      * - DASH `Image Adaptation Set` as specified in DASH-IF IOP, Android-only
      * If a `WebVtt` thumbnail track is provided, any potential in-manifest thumbnails are ignored on Android.
+     *
+     * @param time - The time in seconds for which to retrieve the thumbnail.
      */
     getThumbnail: (time: number) => Promise<Thumbnail | null>;
     /**
-     * Whether casting to a cast-compatible remote device is available. `CastAvailableEvent` signals when
+     * Whether casting to a cast-compatible remote device is available. {@link CastAvailableEvent} signals when
      * casting becomes available.
      *
      * @platform iOS, Android
@@ -3339,7 +3516,7 @@ declare class Player extends NativeInstance<PlayerConfig> {
      */
     castVideo: () => void;
     /**
-     * Stops casting the current video. Has no effect if `isCasting` is false.
+     * Stops casting the current video. Has no effect if {@link Player.isCasting} is `false`.
      *
      * @platform iOS, Android
      */
@@ -3354,6 +3531,14 @@ declare class Player extends NativeInstance<PlayerConfig> {
      * @returns An array containing all available video qualities the player can adapt between.
      */
     getAvailableVideoQualities: () => Promise<VideoQuality[]>;
+    /**
+     * Sets the video quality.
+     * @remarks Only available on Android.
+     * @platform Android
+     *
+     * @param qualityId value obtained from {@link VideoQuality}'s `id` property, which can be obtained via `Player.getAvailableVideoQualities()` to select a specific quality. To use automatic quality selection, 'auto' can be passed here.
+     */
+    setVideoQuality: (qualityId: String) => void;
     /**
      * Sets the playback speed of the player. Fast forward, slow motion and reverse playback are supported.
      * @note
@@ -3378,7 +3563,7 @@ declare class Player extends NativeInstance<PlayerConfig> {
     getPlaybackSpeed: () => Promise<number>;
     /**
      * Checks the possibility to play the media at specified playback speed.
-     * @param playbackSpeed The playback speed to check.
+     * @param playbackSpeed - The playback speed to check.
      * @returns `true` if it's possible to play the media at the specified playback speed, otherwise `false`. On Android it always returns `undefined`.
      * @platform iOS, tvOS
      */
@@ -3511,6 +3696,13 @@ interface PlayerViewConfig {
      * Provides options to configure Picture in Picture playback.
      */
     pictureInPictureConfig?: PictureInPictureConfig;
+    /**
+     * When set to `true`, the first frame of the main content will not be rendered before playback starts. Default is `false`.
+     * This configuration has no effect for the {@link UserInterfaceType.Subtitle} on iOS/tvOS.
+     *
+     * To reliably hide the first frame before a pre-roll ad, please ensure that you are using the {@link AdvertisingConfig} to schedule ads and not the {@link Player.scheduleAd} API call.
+     */
+    hideFirstFrame?: boolean;
     subtitleViewConfig?: SubtitleViewConfig;
 }
 /**
@@ -3527,6 +3719,50 @@ interface WebUiConfig extends UiConfig {
      * Default is `true`.
      */
     playbackSpeedSelectionEnabled?: boolean;
+    /**
+     * The UI variant to use for the Bitmovin Player Web UI.
+     *
+     * Default is {@link SmallScreenUi}
+     */
+    variant?: Variant;
+    /**
+     * Whether the WebView should be focused on initialization.
+     *
+     * By default this is enabled only for the TV UI variant, as it's needed there to
+     * initiate spatial navigation using the remote control.
+     *
+     * @platform Android
+     */
+    focusUiOnInitialization?: boolean;
+}
+declare abstract class Variant {
+    readonly uiManagerFactoryFunction: string;
+    /**
+     * Specifies the function name that will be used to initialize the `UIManager`
+     * for the Bitmovin Player Web UI.
+     *
+     * The function is called on the `window` object with the `Player` as the first argument and
+     * the `UIConfig` as the second argument.
+     *
+     * Example:
+     * When you added a new function or want to use a different function of our `UIFactory`,
+     * you can specify the full qualifier name including namespaces.
+     * e.g. `bitmovin.playerui.UIFactory.buildDefaultSmallScreenUI` for the SmallScreenUi.
+     * @see UIFactory https://github.com/bitmovin/bitmovin-player-ui/blob/develop/src/ts/uifactory.ts#L60
+     *
+     * Notes:
+     * - It's not necessary to use our `UIFactory`. Any static function can be specified.
+     */
+    constructor(uiManagerFactoryFunction: string);
+}
+declare class SmallScreenUi extends Variant {
+    constructor();
+}
+declare class TvUi extends Variant {
+    constructor();
+}
+declare class CustomUi extends Variant {
+    constructor(uiManagerFactoryFunction: string);
 }
 
 /**
@@ -3556,6 +3792,7 @@ interface BasePlayerViewProps {
  * {@link PlayerView} component props.
  */
 interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
+    viewRef?: React.MutableRefObject<null>;
     /**
      * {@link Player} instance (generally returned from {@link usePlayer} hook) that will control
      * and render audio/video inside the {@link PlayerView}.
@@ -3588,7 +3825,7 @@ interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
  *
  * @param options configuration options
  */
-declare function PlayerView({ style, player, config, fullscreenHandler, customMessageHandler, isFullscreenRequested, scalingMode, isPictureInPictureRequested, ...props }: PlayerViewProps): React.JSX.Element;
+declare function PlayerView({ viewRef, style, player, config, fullscreenHandler, customMessageHandler, isFullscreenRequested, scalingMode, isPictureInPictureRequested, ...props }: PlayerViewProps): React$1.JSX.Element;
 
 /**
  * React hook that creates and returns a reference to a `Player` instance
@@ -3666,4 +3903,49 @@ declare const BitmovinCastManager: {
     disconnect: () => Promise<void>;
 };
 
-export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdaptationConfig, AdvertisingConfig, AnalyticsApi, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BitmovinCastManager, BitmovinCastManagerOptions, BitmovinNativeOfflineEventData, BufferApi, BufferConfig, BufferLevel, BufferLevels, BufferMediaTypeConfig, BufferType, CastAvailableEvent, CastPausedEvent, CastPayload, CastPlaybackFinishedEvent, CastPlayingEvent, CastStartEvent, CastStartedEvent, CastStoppedEvent, CastTimeUpdatedEvent, CastWaitingForDeviceEvent, CueEnterEvent, CueExitEvent, CustomDataConfig, CustomMessageHandler, CustomMessageHandlerProps, DefaultMetadata, DestroyEvent, DownloadFinishedEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, HttpRequestType, LiveConfig, LoadingState, MediaType, MutedEvent, NativePlayerViewEvents, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptionEntry, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineSourceOptions, OfflineState, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureConfig, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, PlaybackSpeedChangedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewConfig, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, RemoteControlConfig, ScalingMode, SeekEvent, SeekPosition, SeekedEvent, SideLoadedSubtitleTrack, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceMetadata, SourceOptions, SourceRemoteControlConfig, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, Thumbnail, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TimelineReferencePoint, TweaksConfig, UiConfig, UnmutedEvent, UserInterfaceType, VideoDownloadQualityChangedEvent, VideoPlaybackQualityChangedEvent, VideoQuality, WebUiConfig, WidevineConfig, usePlayer };
+/**
+ * Represents a native Network configuration object.
+ * @internal
+ */
+declare class Network extends NativeInstance<NetworkConfig> {
+    /**
+     * Whether this object's native instance has been created.
+     */
+    isInitialized: boolean;
+    /**
+     * Whether this object's native instance has been disposed.
+     */
+    isDestroyed: boolean;
+    /**
+     * Allocates the Network config instance and its resources natively.
+     */
+    initialize: () => void;
+    /**
+     * Destroys the native Network config and releases all of its allocated resources.
+     */
+    destroy: () => void;
+    /**
+     * Applies the user-defined `preprocessHttpRequest` function to native's `type` and `request` data and store
+     * the result back in `NetworkModule`.
+     *
+     * Called from native code when `NetworkConfig.preprocessHttpRequest` is dispatched.
+     *
+     * @param requestId Passed through to identify the completion handler of the request on native.
+     * @param type Type of the request to be made.
+     * @param request The HTTP request to process.
+     */
+    onPreprocessHttpRequest: (requestId: string, type: HttpRequestType, request: HttpRequest) => void;
+    /**
+     * Applies the user-defined `preprocessHttpResponse` function to native's `type` and `response` data and store
+     * the result back in `NetworkModule`.
+     *
+     * Called from native code when `NetworkConfig.preprocessHttpResponse` is dispatched.
+     *
+     * @param responseId Passed through to identify the completion handler of the response on native.
+     * @param type Type of the request to be made.
+     * @param response The HTTP response to process.
+     */
+    onPreprocessHttpResponse: (responseId: string, type: HttpRequestType, response: HttpResponse) => void;
+}
+
+export { Ad, AdBreak, AdBreakFinishedEvent, AdBreakStartedEvent, AdClickedEvent, AdConfig, AdData, AdErrorEvent, AdFinishedEvent, AdItem, AdManifestLoadEvent, AdManifestLoadedEvent, AdQuartile, AdQuartileEvent, AdScheduledEvent, AdSkippedEvent, AdSource, AdSourceType, AdStartedEvent, AdaptationConfig, AdvertisingConfig, AnalyticsApi, AnalyticsConfig, AudioAddedEvent, AudioChangedEvent, AudioRemovedEvent, AudioSession, AudioSessionCategory, AudioTrack, BasePlayerViewProps, BitmovinCastManager, BitmovinCastManagerOptions, BitmovinNativeOfflineEventData, BufferApi, BufferConfig, BufferLevel, BufferLevels, BufferMediaTypeConfig, BufferType, CastAvailableEvent, CastPausedEvent, CastPayload, CastPlaybackFinishedEvent, CastPlayingEvent, CastStartEvent, CastStartedEvent, CastStoppedEvent, CastTimeUpdatedEvent, CastWaitingForDeviceEvent, CueEnterEvent, CueExitEvent, CustomDataConfig, CustomMessageHandler, CustomMessageHandlerProps, CustomUi, DefaultMetadata, DestroyEvent, DownloadFinishedEvent, Drm, DrmConfig, ErrorEvent, Event, EventSource, FairplayConfig, FullscreenDisabledEvent, FullscreenEnabledEvent, FullscreenEnterEvent, FullscreenExitEvent, FullscreenHandler, HttpRequest, HttpRequestType, HttpResponse, LiveConfig, LoadingState, MediaType, MutedEvent, Network, NetworkConfig, OfflineContentConfig, OfflineContentManager, OfflineContentManagerListener, OfflineContentOptionEntry, OfflineContentOptions, OfflineDownloadRequest, OfflineEvent, OfflineEventType, OfflineSourceOptions, OfflineState, OnCanceledEvent, OnCompletedEvent, OnDrmLicenseExpiredEvent, OnDrmLicenseUpdatedEvent, OnErrorEvent, OnOptionsAvailableEvent, OnProgressEvent, OnResumedEvent, OnSuspendedEvent, PausedEvent, PictureInPictureAvailabilityChangedEvent, PictureInPictureConfig, PictureInPictureEnterEvent, PictureInPictureEnteredEvent, PictureInPictureExitEvent, PictureInPictureExitedEvent, PlayEvent, PlaybackConfig, PlaybackFinishedEvent, PlaybackSpeedChangedEvent, Player, PlayerActiveEvent, PlayerConfig, PlayerErrorEvent, PlayerView, PlayerViewConfig, PlayerViewEvents, PlayerViewProps, PlayerWarningEvent, PlayingEvent, ReadyEvent, RemoteControlConfig, ScalingMode, SeekEvent, SeekPosition, SeekedEvent, SideLoadedSubtitleTrack, SmallScreenUi, Source, SourceConfig, SourceErrorEvent, SourceLoadEvent, SourceLoadedEvent, SourceMetadata, SourceOptions, SourceRemoteControlConfig, SourceType, SourceUnloadedEvent, SourceWarningEvent, StallEndedEvent, StallStartedEvent, StyleConfig, SubtitleAddedEvent, SubtitleChangedEvent, SubtitleFormat, SubtitleRemovedEvent, SubtitleTrack, Thumbnail, TimeChangedEvent, TimeShiftEvent, TimeShiftedEvent, TimelineReferencePoint, TvUi, TweaksConfig, UiConfig, UnmutedEvent, UserInterfaceType, Variant, VideoDownloadQualityChangedEvent, VideoPlaybackQualityChangedEvent, VideoQuality, WebUiConfig, WidevineConfig, usePlayer };
