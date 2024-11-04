@@ -115,9 +115,7 @@ class RNPlayerView(
     private var playerInMediaSessionService: Player?
         get() = context.playerModule?.mediaSessionPlaybackManager?.serviceBinder?.player
         set(value) {
-            value?.let {
-                context.playerModule?.mediaSessionPlaybackManager?.serviceBinder?.player = it
-            }
+            context.playerModule?.mediaSessionPlaybackManager?.serviceBinder?.player = value
         }
 
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
@@ -137,9 +135,7 @@ class RNPlayerView(
         }
 
         override fun onStop(owner: LifecycleOwner) {
-            if (context.playerModule?.enableBackgroundPlayback == false) {
-                playerInMediaSessionService = null
-            } else {
+            if (context.playerModule?.enableBackgroundPlayback == true) {
                 player = null
             }
 
