@@ -107,7 +107,10 @@ class RNPlayerView(
      * Relays the provided set of events, emitted by the player, together with the associated name
      * to the `eventOutput` callback.
      */
-    private var playerEventRelay: EventRelay<Player, Event>
+    private var playerEventRelay: EventRelay<Player, Event> = EventRelay<Player, Event>(
+        EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING,
+        ::emitEventFromPlayer,
+    )
 
     private var playerInMediaSessionService: Player?
         get() = context.playerModule?.mediaSessionPlaybackManager?.serviceBinder?.player
@@ -148,11 +151,6 @@ class RNPlayerView(
     }
 
     init {
-        playerEventRelay = EventRelay<Player, Event>(
-            EVENT_CLASS_TO_REACT_NATIVE_NAME_MAPPING,
-            ::emitEventFromPlayer,
-        )
-
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
         // Since we dynamically add and remove SurfaceView under the hood this caused the player
         // to suddenly not show the video anymore because SurfaceView was not laid out properly.
