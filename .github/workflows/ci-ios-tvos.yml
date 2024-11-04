@@ -78,9 +78,7 @@ jobs:
           restore-keys: pods-
 
       - name: Install pods
-        run: |
-          pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git || pod repo update bitmovin
-          yarn pods
+        run: yarn pods
         env:
           CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
 
@@ -131,9 +129,7 @@ jobs:
           restore-keys: pods-
 
       - name: Install pods
-        run: |
-          pod repo add bitmovin https://github.com/bitmovin/cocoapod-specs.git || pod repo update bitmovin
-          yarn example pods
+        run: yarn example pods
         env:
           CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
 

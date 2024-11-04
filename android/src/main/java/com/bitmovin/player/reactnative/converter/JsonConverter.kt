@@ -146,6 +146,7 @@ private fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (t
  */
 private fun ReadableMap.toAdaptationConfig(): AdaptationConfig = AdaptationConfig().apply {
     withInt("maxSelectableBitrate") { maxSelectableVideoBitrate = it }
+    withInt("initialBandwidthEstimateOverride") { initialBandwidthEstimateOverride = it.toLong(); }
 }
 
 /**
@@ -208,6 +209,7 @@ fun ReadableMap.toAdItem(): AdItem? {
     return AdItem(
         sources = getArray("sources") ?.toMapList()?.mapNotNull { it?.toAdSource() }?.toTypedArray() ?: return null,
         position = getString("position") ?: "pre",
+        preloadOffset = getDoubleOrNull("preloadOffset") ?: 0.0,
     )
 }
 
@@ -759,17 +761,32 @@ fun ReadableMap.toSubtitleViewConfig(): SubtitleViewConfig = SubtitleViewConfig(
     paddingBottom = getIntOrNull("paddingBottom")?: 0,
 )
 
-/**
- * Converts the [json] to a `RNUiConfig` object.
- */
-fun toPlayerViewConfig(json: ReadableMap) = PlayerViewConfig(
-    uiConfig = UiConfig.WebUi(
-        playbackSpeedSelectionEnabled = json.getMap("uiConfig")
-            ?.getBooleanOrNull("playbackSpeedSelectionEnabled")
-            ?: true,
-    ),
-    hideFirstFrame = json.getBooleanOrNull("hideFirstFrame") ?: false,
+fun ReadableMap.toPlayerViewConfig(): PlayerViewConfig = PlayerViewConfig(
+    uiConfig = getMap("uiConfig")?.toUiConfig() ?: UiConfig.WebUi(),
+    hideFirstFrame = getBooleanOrNull("hideFirstFrame") ?: false,
 )
+
+private fun ReadableMap.toUiConfig(): UiConfig {
+    val variant = toVariant() ?: UiConfig.WebUi.Variant.SmallScreenUi
+    val focusUiOnInitialization = getBooleanOrNull("focusUiOnInitialization")
+    val defaultFocusUiOnInitialization = variant == UiConfig.WebUi.Variant.TvUi
+
+    return UiConfig.WebUi(
+        playbackSpeedSelectionEnabled = getBooleanOrNull("playbackSpeedSelectionEnabled") ?: true,
+        variant = variant,
+        focusUiOnInitialization = focusUiOnInitialization ?: defaultFocusUiOnInitialization,
+    )
+}
+
+private fun ReadableMap.toVariant(): UiConfig.WebUi.Variant? {
+    val uiManagerFactoryFunction = getMap("variant")?.getString("uiManagerFactoryFunction") ?: return null
+
+    return when (uiManagerFactoryFunction) {
+        "bitmovin.playerui.UIFactory.buildDefaultSmallScreenUI" -> UiConfig.WebUi.Variant.SmallScreenUi
+        "bitmovin.playerui.UIFactory.buildDefaultTvUI" -> UiConfig.WebUi.Variant.TvUi
+        else -> UiConfig.WebUi.Variant.Custom(uiManagerFactoryFunction)
+    }
+}
 
 private fun ReadableMap.toUserInterfaceTypeFromPlayerConfig(): UserInterfaceType? =
     when (getMap("styleConfig")?.getString("userInterfaceType")) {
@@ -782,7 +799,7 @@ private fun ReadableMap.toUserInterfaceTypeFromPlayerConfig(): UserInterfaceType
  * Converts the [this@toRNPlayerViewConfigWrapper] to a `RNPlayerViewConfig` object.
  */
 fun ReadableMap.toRNPlayerViewConfigWrapper() = RNPlayerViewConfigWrapper(
-    playerViewConfig = toPlayerViewConfig(this),
+    playerViewConfig = toPlayerViewConfig(),
     pictureInPictureConfig = getMap("pictureInPictureConfig")?.toPictureInPictureConfig(),
     subtitleViewConfig = getMap("subtitleViewConfig")?.toSubtitleViewConfig()
 )

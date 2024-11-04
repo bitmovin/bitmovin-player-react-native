@@ -46,4 +46,57 @@ export interface WebUiConfig extends UiConfig {
    * Default is `true`.
    */
   playbackSpeedSelectionEnabled?: boolean;
+  /**
+   * The UI variant to use for the Bitmovin Player Web UI.
+   *
+   * Default is {@link SmallScreenUi}
+   */
+  variant?: Variant;
+  /**
+   * Whether the WebView should be focused on initialization.
+   *
+   * By default this is enabled only for the TV UI variant, as it's needed there to
+   * initiate spatial navigation using the remote control.
+   *
+   * @platform Android
+   */
+  focusUiOnInitialization?: boolean;
+}
+
+export abstract class Variant {
+  /**
+   * Specifies the function name that will be used to initialize the `UIManager`
+   * for the Bitmovin Player Web UI.
+   *
+   * The function is called on the `window` object with the `Player` as the first argument and
+   * the `UIConfig` as the second argument.
+   *
+   * Example:
+   * When you added a new function or want to use a different function of our `UIFactory`,
+   * you can specify the full qualifier name including namespaces.
+   * e.g. `bitmovin.playerui.UIFactory.buildDefaultSmallScreenUI` for the SmallScreenUi.
+   * @see UIFactory https://github.com/bitmovin/bitmovin-player-ui/blob/develop/src/ts/uifactory.ts#L60
+   *
+   * Notes:
+   * - It's not necessary to use our `UIFactory`. Any static function can be specified.
+   */
+  constructor(public readonly uiManagerFactoryFunction: string) {}
+}
+
+export class SmallScreenUi extends Variant {
+  constructor() {
+    super('bitmovin.playerui.UIFactory.buildDefaultSmallScreenUI');
+  }
+}
+
+export class TvUi extends Variant {
+  constructor() {
+    super('bitmovin.playerui.UIFactory.buildDefaultTvUI');
+  }
+}
+
+export class CustomUi extends Variant {
+  constructor(uiManagerFactoryFunction: string) {
+    super(uiManagerFactoryFunction);
+  }
 }

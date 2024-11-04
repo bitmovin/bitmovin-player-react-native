@@ -74,6 +74,7 @@ public class RNPlayerViewManager: RCTViewManager {
             if let uiConfig = playerViewConfig?.uiConfig {
                 bitmovinUserInterfaceConfig
                     .playbackSpeedSelectionEnabled = uiConfig.playbackSpeedSelectionEnabled
+                bitmovinUserInterfaceConfig.uiManagerFactoryFunction = uiConfig.uiManagerFactoryFunction
             }
             if let hideFirstFrame = playerViewConfig?.hideFirstFrame {
                 bitmovinUserInterfaceConfig.hideFirstFrame = hideFirstFrame
