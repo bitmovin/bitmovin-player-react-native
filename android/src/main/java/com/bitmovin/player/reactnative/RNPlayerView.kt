@@ -121,7 +121,6 @@ class RNPlayerView(
         }
 
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
-        // Don't stop the player when going to background
         override fun onStart(owner: LifecycleOwner) {
             if (playerInMediaSessionService != null) {
                 player = playerInMediaSessionService
