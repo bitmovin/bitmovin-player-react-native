@@ -9,7 +9,7 @@ import { NativeInstanceConfig } from './nativeInstance';
 import { PlaybackConfig } from './playbackConfig';
 import { LiveConfig } from './liveConfig';
 import { NetworkConfig } from './network/networkConfig';
-import { LockScreenControlConfig } from './lockScreenControlConfig';
+import { MediaControlConfig } from './mediaControlConfig';
 
 /**
  * Object used to configure a new `Player` instance.
@@ -75,9 +75,9 @@ export interface PlayerConfig extends NativeInstanceConfig {
    */
   networkConfig?: NetworkConfig;
   /**
-   * Configures the lock screen information for the application. This information will be displayed
-   * wherever current media information typically appears, such as the lock screen
+   * Configures the media control information for the application. This information will be displayed
+   * wherever current media information typically appears, such as the lock screen, in notifications,
    * and inside the control center.
    */
-  lockScreenControlConfig?: LockScreenControlConfig;
+  mediaControlConfig?: MediaControlConfig;
 }

@@ -883,11 +883,11 @@ fun String.toMediaType(): MediaType? = when (this) {
     else -> null
 }
 
-data class LockScreenControlConfig(
+data class MediaControlConfig(
     var isEnabled: Boolean = false,
 )
 
-fun ReadableMap.toLockScreenControlConfig(): LockScreenControlConfig = LockScreenControlConfig().apply {
+fun ReadableMap.toMediaControlConfig(): MediaControlConfig = MediaControlConfig().apply {
     withBoolean("isEnabled") { isEnabled = it }
 }
 

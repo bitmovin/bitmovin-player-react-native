@@ -17,7 +17,7 @@ export default function LockScreenControls() {
   useTVGestures();
 
   const player = usePlayer({
-    lockScreenControlConfig: {
+    mediaControlConfig: {
       isEnabled: true,
     },
     remoteControlConfig: {

@@ -50,7 +50,7 @@ export interface PlaybackConfig {
    * Default is `false`.
    *
    * @note
-   * On Android, {@link LockScreenControlConfig.isEnabled} has to be `true` for
+   * On Android, {@link MediaControlConfig.isEnabled} has to be `true` for
    * background playback to work.
    * @note
    * On tvOS, background playback is only supported for audio-only content.

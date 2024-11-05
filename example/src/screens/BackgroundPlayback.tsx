@@ -20,7 +20,7 @@ export default function BackgroundPlayback() {
     playbackConfig: {
       isBackgroundPlaybackEnabled: true,
     },
-    lockScreenControlConfig: {
+    mediaControlConfig: {
       isEnabled: true,
     },
     remoteControlConfig: {

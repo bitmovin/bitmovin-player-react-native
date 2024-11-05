@@ -42,7 +42,7 @@ extension RCTConvert {
         if let networkConfig = RCTConvert.networkConfig(json["networkConfig"]) {
             playerConfig.networkConfig = networkConfig
         }
-        if let nowPlayingConfig = RCTConvert.lockScreenControlConfig(json["lockScreenControlConfig"]) {
+        if let nowPlayingConfig = RCTConvert.mediaControlConfig(json["mediaControlConfig"]) {
             playerConfig.nowPlayingConfig = nowPlayingConfig
         }
 #if os(iOS)
@@ -1332,7 +1332,7 @@ extension RCTConvert {
         ]
     }
 
-    static func lockScreenControlConfig(_ json: Any?) -> NowPlayingConfig? {
+    static func mediaControlConfig(_ json: Any?) -> NowPlayingConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
         }

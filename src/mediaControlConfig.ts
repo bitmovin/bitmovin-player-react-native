@@ -1,12 +1,12 @@
 /**
- * Configures the lock screen information for the application. This information will be displayed
- * wherever current media information typically appears, such as the lock screen
+ * Configures the media control information for the application. This information will be displayed
+ * wherever current media information typically appears, such as the lock screen, in notifications, and
  * and inside the control center.
  */
-export interface LockScreenControlConfig {
+export interface MediaControlConfig {
   /**
    * Enable the default behavior of displaying media information
-   * on the lock screen and within the control center.
+   * on the lock screen, in notifications, and within the control center.
    *
    * Default is `false`.
    *
@@ -25,7 +25,7 @@ export interface LockScreenControlConfig {
    * - There is unexpected behavior when using the IMA SDK. The Google IMA SDK adds its own commands
    *   for play/pause as soon as the ad starts loading (not when it starts playing). Within this window
    *   (approximately around 10 seconds), it is possible that both the ad and the main content are playing
-   *   at the same time when a user interacts with the lock-screen control feature.
+   *   at the same time when a user interacts with the media control feature.
    *
    * ## Default Supported Features
    * ---
