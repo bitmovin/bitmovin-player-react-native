@@ -16,7 +16,6 @@ import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.converter.toJson
-import com.bitmovin.player.reactnative.extensions.playerModule
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.events.RCTEventEmitter
@@ -112,17 +111,13 @@ class RNPlayerView(
         ::emitEventFromPlayer,
     )
 
-    private var playerInMediaSessionService: Player?
-        get() = context.playerModule?.mediaSessionPlaybackManager?.serviceBinder?.player
-        set(value) {
-            context.playerModule?.mediaSessionPlaybackManager?.serviceBinder?.player = value
-        }
-    var player3:Player? = null
+    internal var enableBackgroundPlayback: Boolean = false
+    var playerInMediaSessionService: Player? = null
 
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
         override fun onStart(owner: LifecycleOwner) {
-            if (player3 != null) {
-                player = player3
+            if (playerInMediaSessionService != null) {
+                player = playerInMediaSessionService
             }
             playerView?.onStart()
         }
@@ -136,8 +131,8 @@ class RNPlayerView(
         }
 
         override fun onStop(owner: LifecycleOwner) {
-            if (context.playerModule?.enableBackgroundPlayback == true) {
-                player3 = player
+            if (enableBackgroundPlayback) {
+                playerInMediaSessionService = player
                 player = null
             }
 

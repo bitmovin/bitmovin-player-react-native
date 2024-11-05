@@ -26,8 +26,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     private val players: Registry<Player> = mutableMapOf()
 
-    var mediaSessionPlaybackManager: MediaSessionPlaybackManager? = null
-    var enableBackgroundPlayback: Boolean = false
+    private var mediaSessionPlaybackManager: MediaSessionPlaybackManager? = null
 
     /**
      * JS exported module name.
@@ -80,8 +79,6 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
         val enableMediaSession = playerConfigJson?.getMap("lockScreenControlConfig")
             ?.toLockScreenControlConfig()?.isEnabled ?: false
-        enableBackgroundPlayback = playerConfigJson?.getMap("playbackConfig")
-            ?.getBoolean("isBackgroundPlaybackEnabled") ?: false
 
         val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
         if (networkConfig != null) {
