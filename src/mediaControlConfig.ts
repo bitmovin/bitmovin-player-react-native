@@ -8,7 +8,7 @@ export interface MediaControlConfig {
    * Enable the default behavior of displaying media information
    * on the lock screen, in notifications, and within the control center.
    *
-   * Default is `false`.
+   * Default is `true`.
    *
    * For a detailed list of the supported features in the **default behavior**,
    * check the **Default Supported Features** section.

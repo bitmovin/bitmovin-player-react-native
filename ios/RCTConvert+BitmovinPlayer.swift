@@ -1333,10 +1333,11 @@ extension RCTConvert {
     }
 
     static func mediaControlConfig(_ json: Any?) -> NowPlayingConfig? {
-        guard let json = json as? [String: Any?] else {
-            return nil
-        }
         let nowPlayingConfig = NowPlayingConfig()
+        guard let json = json as? [String: Any?] else {
+            nowPlayingConfig.isNowPlayingInfoEnabled = true
+            return nowPlayingConfig
+        }
         if let isEnabled = json["isEnabled"] as? Bool {
             nowPlayingConfig.isNowPlayingInfoEnabled = isEnabled
         }
