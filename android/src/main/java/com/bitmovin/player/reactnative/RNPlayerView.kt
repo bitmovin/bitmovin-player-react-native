@@ -132,7 +132,6 @@ class RNPlayerView(
         }
 
         override fun onStop(owner: LifecycleOwner) {
-            playerInMediaSessionService = null
             removePlayerForBackgroundPlayback()
             playerView?.onStop()
         }
@@ -142,6 +141,7 @@ class RNPlayerView(
         // When background playback is enabled,
         // remove player from view so it does not get paused when entering background
         private fun removePlayerForBackgroundPlayback() {
+            playerInMediaSessionService = null
             playerView?.player?.let {
                 if (!enableBackgroundPlayback) {
                     return
