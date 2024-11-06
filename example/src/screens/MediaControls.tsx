@@ -13,10 +13,11 @@ function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
 }
 
-export default function LockScreenControls() {
+export default function MediaControls() {
   useTVGestures();
 
   const player = usePlayer({
+    nativeId: '123',
     mediaControlConfig: {
       isEnabled: true,
     },

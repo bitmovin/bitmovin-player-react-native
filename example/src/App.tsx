@@ -20,7 +20,7 @@ import LandscapeFullscreenHandling from './screens/LandscapeFullscreenHandling';
 import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
-import LockScreenControls from './screens/LockScreenControls';
+import MediaControls from './screens/MediaControls';
 import BackgroundPlayback from './screens/BackgroundPlayback';
 
 export type RootStackParamsList = {
@@ -60,7 +60,7 @@ export type RootStackParamsList = {
   };
   Casting: undefined;
   SystemUI: undefined;
-  LockScreenControls: undefined;
+  MediaControls: undefined;
   BackgroundPlayback: undefined;
 };
 
@@ -114,8 +114,8 @@ export default function App() {
         routeName: 'ProgrammaticTrackSelection' as keyof RootStackParamsList,
       },
       {
-        title: 'Lock-Screen Controls',
-        routeName: 'LockScreenControls' as keyof RootStackParamsList,
+        title: 'Media Controls',
+        routeName: 'MediaControls' as keyof RootStackParamsList,
       },
       {
         title: 'Background Playback',
@@ -275,9 +275,9 @@ export default function App() {
           />
         )}
         <RootStack.Screen
-          name="LockScreenControls"
-          component={LockScreenControls}
-          options={{ title: 'Lock-Screen Controls' }}
+          name="MediaControls"
+          component={MediaControls}
+          options={{ title: 'Media Controls' }}
         />
         <RootStack.Screen
           name="BackgroundPlayback"
