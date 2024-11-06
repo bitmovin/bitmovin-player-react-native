@@ -297,7 +297,6 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             block()
         } catch (e: Exception) {
             Log.e(MODULE_NAME, "Error while executing command", e)
-            // TODO: re throw
         }
     }
 }

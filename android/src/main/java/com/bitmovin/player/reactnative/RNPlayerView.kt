@@ -228,7 +228,6 @@ class RNPlayerView(
         }
         this._playerView = playerView
         if (playerView.parent != this) {
-            (playerView.parent as ViewGroup?)?.removeView(playerView)
             addView(playerView, 0)
         }
     }
