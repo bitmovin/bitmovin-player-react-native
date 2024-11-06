@@ -26,7 +26,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     private val players: Registry<Player> = mutableMapOf()
 
-    private var mediaSessionPlaybackManager: MediaSessionPlaybackManager? = null
+    var mediaSessionPlaybackManager: MediaSessionPlaybackManager? = null
 
     /**
      * JS exported module name.
@@ -223,10 +223,10 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun destroy(nativeId: NativeId, promise: Promise) {
+        mediaSessionPlaybackManager?.destroy(nativeId)
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
             destroy()
             players.remove(nativeId)
-            mediaSessionPlaybackManager = null
         }
     }
 

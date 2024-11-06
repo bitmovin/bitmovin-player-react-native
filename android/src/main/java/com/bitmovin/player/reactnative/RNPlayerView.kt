@@ -16,6 +16,7 @@ import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.extensions.playerModule
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.*
 import com.facebook.react.uimanager.events.RCTEventEmitter
@@ -117,7 +118,7 @@ class RNPlayerView(
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
         override fun onStart(owner: LifecycleOwner) {
             if (playerInMediaSessionService != null) {
-                player = playerInMediaSessionService
+                playerView?.player = playerInMediaSessionService
             }
             playerView?.onStart()
         }
@@ -131,9 +132,20 @@ class RNPlayerView(
         }
 
         override fun onStop(owner: LifecycleOwner) {
-            if (enableBackgroundPlayback) {
-                playerInMediaSessionService = player
-                player = null
+            playerInMediaSessionService = null
+
+            // Remove player from view so it does not get paused when entering background
+            // when background playback is enabled
+            playerView?.player?.let {
+                if (!enableBackgroundPlayback) {
+                    return
+                }
+                if (context.playerModule?.mediaSessionPlaybackManager?.player != it) {
+                    return
+                }
+
+                playerInMediaSessionService = it
+                playerView?.player = null
             }
 
             playerView?.onStop()
@@ -201,6 +213,7 @@ class RNPlayerView(
         // is responsible for destroying the player in the end.
         playerView.player = null
         playerView.onDestroy()
+        (playerView.parent as? ViewGroup)?.removeView(playerView)
     }
 
     /**

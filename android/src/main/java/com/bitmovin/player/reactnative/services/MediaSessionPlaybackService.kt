@@ -12,6 +12,10 @@ class MediaSessionPlaybackService : MediaSessionService() {
         var player: Player?
             get() = this@MediaSessionPlaybackService.player
             set(value) {
+                if (player == value) {
+                    return
+                }
+
                 disconnectSession()
                 this@MediaSessionPlaybackService.player = value
                 value?.let {

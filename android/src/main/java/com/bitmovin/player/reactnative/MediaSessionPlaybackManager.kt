@@ -11,8 +11,10 @@ import com.bitmovin.player.reactnative.services.MediaSessionPlaybackService
 import com.facebook.react.bridge.*
 
 class MediaSessionPlaybackManager(val context: ReactApplicationContext) {
+    private var serviceBinder: MediaSessionPlaybackService.ServiceBinder? = null
     private lateinit var playerId: NativeId
-    internal var serviceBinder: MediaSessionPlaybackService.ServiceBinder? = null
+    val player: Player?
+        get() = serviceBinder?.player
 
     inner class MediaSessionPlaybackServiceConnection : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
@@ -22,7 +24,7 @@ class MediaSessionPlaybackManager(val context: ReactApplicationContext) {
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
-            serviceBinder?.player = null
+            destroy(playerId)
         }
     }
 
@@ -33,6 +35,12 @@ class MediaSessionPlaybackManager(val context: ReactApplicationContext) {
         intent.action = Intent.ACTION_MEDIA_BUTTON
         val connection: ServiceConnection = MediaSessionPlaybackServiceConnection()
         context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+    }
+
+    fun destroy(nativeId: NativeId) {
+        if (nativeId != playerId) { return }
+        serviceBinder?.player = null
+        serviceBinder = null
     }
 
     private fun getPlayer(
