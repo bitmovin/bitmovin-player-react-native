@@ -78,7 +78,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
         val enableMediaSession = playerConfigJson?.getMap("mediaControlConfig")
-            ?.toMediaControlConfig()?.isEnabled ?: true
+            ?.toMediaControlConfig()?.isEnabled
 
         val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
         if (networkConfig != null) {
