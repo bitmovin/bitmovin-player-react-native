@@ -215,7 +215,6 @@ class RNPlayerView(
         // is responsible for destroying the player in the end.
         playerView.player = null
         playerView.onDestroy()
-        (playerView.parent as? ViewGroup)?.removeView(playerView)
     }
 
     /**
@@ -228,6 +227,7 @@ class RNPlayerView(
         }
         this._playerView = playerView
         if (playerView.parent != this) {
+            (playerView.parent as ViewGroup?)?.removeView(playerView)
             addView(playerView, 0)
         }
     }
