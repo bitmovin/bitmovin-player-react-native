@@ -26,7 +26,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     private val players: Registry<Player> = mutableMapOf()
 
-    var mediaSessionPlaybackManager: MediaSessionPlaybackManager? = null
+    var mediaSessionPlaybackManager: MediaSessionPlaybackManager? = MediaSessionPlaybackManager(context)
 
     /**
      * JS exported module name.
@@ -97,7 +97,6 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         }
 
         if (enableMediaSession) {
-            mediaSessionPlaybackManager = MediaSessionPlaybackManager(context)
             promise.unit.resolveOnUiThread {
                 mediaSessionPlaybackManager?.setupMediaSessionPlayback(nativeId)
             }
