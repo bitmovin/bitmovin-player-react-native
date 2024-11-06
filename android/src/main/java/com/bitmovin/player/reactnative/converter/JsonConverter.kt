@@ -884,7 +884,7 @@ fun String.toMediaType(): MediaType? = when (this) {
 }
 
 data class MediaControlConfig(
-    var isEnabled: Boolean = false,
+    var isEnabled: Boolean = true,
 )
 
 fun ReadableMap.toMediaControlConfig(): MediaControlConfig = MediaControlConfig().apply {
