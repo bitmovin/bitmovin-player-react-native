@@ -17,6 +17,7 @@ export interface MediaControlConfig {
    *
    * ## Limitations
    * ---
+   * - Android: If an app creates multiple player instances, the player shown in media controls is the latest one created having media controls enabled.
    * - At the moment, the current media information is disabled during casting.
    *
    * ## Known Issues
