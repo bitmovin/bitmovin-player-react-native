@@ -1242,9 +1242,13 @@ extension RCTConvert {
         guard let json = json as? [String: Any?] else {
             return nil
         }
+        let variant = json["variant"] as? [String: Any?]
+        let uiManagerFactoryFunction = variant?["uiManagerFactoryFunction"] as? String
+        let defaultUiManagerFactoryFunction = "bitmovin.playerui.UIFactory.buildDefaultSmallScreenUI"
 
         return RNUiConfig(
-            playbackSpeedSelectionEnabled: json["playbackSpeedSelectionEnabled"] as? Bool ?? true
+            playbackSpeedSelectionEnabled: json["playbackSpeedSelectionEnabled"] as? Bool ?? true,
+            uiManagerFactoryFunction: uiManagerFactoryFunction ?? defaultUiManagerFactoryFunction
         )
     }
 
@@ -1384,6 +1388,7 @@ internal struct RNPlayerViewConfig {
  */
 internal struct RNUiConfig {
     let playbackSpeedSelectionEnabled: Bool
+    let uiManagerFactoryFunction: String
 }
 
 /**

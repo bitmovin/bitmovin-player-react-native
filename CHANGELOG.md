@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.30.0] - 2024-10-31
 
 ### Added
 
@@ -9,7 +9,16 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.84.0`
+- Update Bitmovin's native Android SDK version to `3.90.0`
+- Update Bitmovin's native iOS SDK version to `3.77.0`
+
+### Added
+
+- `WebUiConfig.variant` to set the UI variant that should be used by the Bitmovin Web UI
+
+### Fixed
+
+- Spatial navigation in the Web UI does not work properly
 
 ### Deprecated
 
