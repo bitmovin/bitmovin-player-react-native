@@ -2,9 +2,17 @@
 
 ## [Unreleased]
 
+### Added
+
+- `LockScreenControlConfig` to configure the lock screen information for the application. When `isEnabled` is `true`, the current media information will be shown on the lock-screen and within the control center
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.84.0`
+
+### Deprecated
+
+- `TweaksConfig.updatesNowPlayingInfoCenter` in favor of `LockScreenControlConfig.isEnabled`
 
 ## [0.29.0] - 2024-09-09
 
