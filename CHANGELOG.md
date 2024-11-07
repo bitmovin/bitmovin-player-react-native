@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.31.0]
+
+### Added
+
+- `MediaControlConfig` to configure the media control information for the application. When `isEnabled` is `true`, the current media information will be shown on the lock-screen, in notifications, and within the control center
+- Android: `playerConfig.playbackConfig.isBackgroundPlaybackEnabled` to support background playback
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.91.0`
+
+### Deprecated
+
+- `TweaksConfig.updatesNowPlayingInfoCenter` in favor of `MediaControlConfig.isEnabled`
+
 ## [0.30.0] - 2024-10-31
 
 ### Changed

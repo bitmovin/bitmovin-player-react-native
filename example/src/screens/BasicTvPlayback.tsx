@@ -6,6 +6,8 @@ import {
   usePlayer,
   PlayerView,
   SourceType,
+  PlayerViewConfig,
+  TvUi,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
@@ -13,7 +15,7 @@ function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
 }
 
-export default function BasicPlayback() {
+export default function BasicTvPlayback() {
   useTVGestures();
 
   const player = usePlayer({
@@ -21,6 +23,13 @@ export default function BasicPlayback() {
       isCastEnabled: false,
     },
   });
+
+  const config: PlayerViewConfig = {
+    uiConfig: {
+      // This is only applied for Android TVs, as on TvOS only the system UI is supported.
+      variant: new TvUi(),
+    },
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -56,6 +65,7 @@ export default function BasicPlayback() {
       <PlayerView
         player={player}
         style={styles.player}
+        config={config}
         onPlay={onEvent}
         onPlaying={onEvent}
         onPaused={onEvent}

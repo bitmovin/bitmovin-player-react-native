@@ -42,6 +42,9 @@ extension RCTConvert {
         if let networkConfig = RCTConvert.networkConfig(json["networkConfig"]) {
             playerConfig.networkConfig = networkConfig
         }
+        if let nowPlayingConfig = RCTConvert.mediaControlConfig(json["mediaControlConfig"]) {
+            playerConfig.nowPlayingConfig = nowPlayingConfig
+        }
 #if os(iOS)
         if let remoteControlConfig = RCTConvert.remoteControlConfig(json["remoteControlConfig"]) {
             playerConfig.remoteControlConfig = remoteControlConfig
@@ -1331,6 +1334,18 @@ extension RCTConvert {
             "headers": httpResponse.headers,
             "body": toJson(data: httpResponse.body)
         ]
+    }
+
+    static func mediaControlConfig(_ json: Any?) -> NowPlayingConfig? {
+        let nowPlayingConfig = NowPlayingConfig()
+        guard let json = json as? [String: Any?] else {
+            nowPlayingConfig.isNowPlayingInfoEnabled = true
+            return nowPlayingConfig
+        }
+        if let isEnabled = json["isEnabled"] as? Bool {
+            nowPlayingConfig.isNowPlayingInfoEnabled = isEnabled
+        }
+        return nowPlayingConfig
     }
 }
 /**

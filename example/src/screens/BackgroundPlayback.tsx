@@ -13,10 +13,16 @@ function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
 }
 
-export default function BasicPlayback() {
+export default function BackgroundPlayback() {
   useTVGestures();
 
   const player = usePlayer({
+    playbackConfig: {
+      isBackgroundPlaybackEnabled: true,
+    },
+    mediaControlConfig: {
+      isEnabled: true,
+    },
     remoteControlConfig: {
       isCastEnabled: false,
     },

@@ -2,7 +2,6 @@ require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
 source 'https://cdn.cocoapods.org'
-source 'https://github.com/bitmovin/cocoapod-specs.git'
 source 'https://github.com/react-native-tvos/react-native-tvos-podspecs.git'
 
 prepare_react_native_project!
