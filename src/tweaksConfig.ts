@@ -166,7 +166,7 @@ export interface TweaksConfig {
    *
    * Default is `true`.
    *
-   * @deprecated To enable the Now Playing information use {@link LockScreenControlConfig.isEnabled}
+   * @deprecated To enable the Now Playing information use {@link MediaControlConfig.isEnabled}
    * @platform iOS
    */
   updatesNowPlayingInfoCenter?: boolean;

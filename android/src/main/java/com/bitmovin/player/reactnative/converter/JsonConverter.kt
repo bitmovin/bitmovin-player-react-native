@@ -883,6 +883,14 @@ fun String.toMediaType(): MediaType? = when (this) {
     else -> null
 }
 
+data class MediaControlConfig(
+    var isEnabled: Boolean = true,
+)
+
+fun ReadableMap.toMediaControlConfig(): MediaControlConfig = MediaControlConfig().apply {
+    withBoolean("isEnabled") { isEnabled = it }
+}
+
 /**
  * Converts a [CastPayload] object into its JS representation.
  */
