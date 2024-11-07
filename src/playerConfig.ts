@@ -9,6 +9,7 @@ import { NativeInstanceConfig } from './nativeInstance';
 import { PlaybackConfig } from './playbackConfig';
 import { LiveConfig } from './liveConfig';
 import { NetworkConfig } from './network/networkConfig';
+import { MediaControlConfig } from './mediaControlConfig';
 
 /**
  * Object used to configure a new `Player` instance.
@@ -73,4 +74,10 @@ export interface PlayerConfig extends NativeInstanceConfig {
    * Configures network request manipulation functionality. A default {@link NetworkConfig} is set initially.
    */
   networkConfig?: NetworkConfig;
+  /**
+   * Configures the media control information for the application. This information will be displayed
+   * wherever current media information typically appears, such as the lock screen, in notifications,
+   * and inside the control center.
+   */
+  mediaControlConfig?: MediaControlConfig;
 }

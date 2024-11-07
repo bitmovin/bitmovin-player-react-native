@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 <!--END-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
     <application
       android:name=".MainApplication"
@@ -51,6 +52,15 @@
       <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
             android:value="com.bitmovin.player.casting.BitmovinCastOptionsProvider" />
+
+      <service
+          android:name="com.bitmovin.player.reactnative.services.MediaSessionPlaybackService"
+          android:foregroundServiceType="mediaPlayback"
+          android:exported="true">
+          <intent-filter>
+              <action android:name="androidx.media3.session.MediaSessionService"/>
+          </intent-filter>
+      </service>
 
     </application>
 </manifest>
