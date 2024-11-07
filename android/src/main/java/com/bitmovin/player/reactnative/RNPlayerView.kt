@@ -142,17 +142,17 @@ class RNPlayerView(
         // remove player from view so it does not get paused when entering background
         private fun removePlayerForBackgroundPlayback() {
             playerInMediaSessionService = null
-            playerView?.player?.let {
-                if (!enableBackgroundPlayback) {
-                    return
-                }
-                if (context.playerModule?.mediaSessionPlaybackManager?.player != it) {
-                    return
-                }
+            val player = playerView?.player ?: return
 
-                playerInMediaSessionService = it
-                playerView?.player = null
+            if (!enableBackgroundPlayback) {
+                return
             }
+            if (context.playerModule?.mediaSessionPlaybackManager?.player != player) {
+                return
+            }
+
+            playerInMediaSessionService = player
+            playerView?.player = null
         }
     }
 
