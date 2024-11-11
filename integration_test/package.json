@@ -14,8 +14,8 @@
     "test:android": "yarn stop-test:android && yarn start-test:android",
     "test:ios": "yarn stop-test:ios && yarn start-test:ios",
     "pods": "yarn pods-install || yarn pods-update",
-    "pods-install": "NO_FLIPPER=1 yarn pod-install",
-    "pods-update": "cd ios && NO_FLIPPER=1 pod update --silent"
+    "pods-install": "[ \"$(uname)\" != Darwin ] || NO_FLIPPER=1 yarn pod-install",
+    "pods-update": "[ \"$(uname)\" != Darwin ] || cd ios && NO_FLIPPER=1 pod update --silent"
   },
   "dependencies": {
     "@types/react": "^18.0.0",
