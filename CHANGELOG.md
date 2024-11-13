@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Potential infinite stall when using `NetworkConfig.preprocessHttpRequest` and `NetworkConfig.preprocessHttpResponse` on Android
+
 ## [0.31.0] - 2024-11-07
 
 ### Added
