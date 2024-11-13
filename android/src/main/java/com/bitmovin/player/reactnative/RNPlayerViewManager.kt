@@ -248,7 +248,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
             val playbackConfig = playerConfig?.getMap("playbackConfig")
             val isPictureInPictureEnabled = view.config?.pictureInPictureConfig?.isEnabled == true ||
                 playbackConfig?.getBooleanOrNull("isPictureInPictureEnabled") == true
-            view.enableBackgroundPlayback = playbackConfig?.getBoolean("isBackgroundPlaybackEnabled") ?: false
+            view.enableBackgroundPlayback = playbackConfig?.getBooleanOrNull("isBackgroundPlaybackEnabled") == true
 
             val rnStyleConfigWrapper = playerConfig?.toRNStyleConfigWrapperFromPlayerConfig()
             val configuredPlayerViewConfig = view.config?.playerViewConfig ?: PlayerViewConfig()
