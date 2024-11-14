@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import com.bitmovin.player.api.Player
+import com.bitmovin.player.api.media.session.ControllerInfo
 import com.bitmovin.player.api.media.session.MediaSession
 import com.bitmovin.player.api.media.session.MediaSessionService
 
@@ -29,7 +30,7 @@ class MediaSessionPlaybackService : MediaSessionService() {
     private val binder = ServiceBinder()
     private var mediaSession: MediaSession? = null
 
-    override fun onGetSession(): MediaSession? = null
+    override fun onGetSession(controllerInfo: ControllerInfo) = null
 
     override fun onDestroy() {
         disconnectSession()
