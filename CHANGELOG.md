@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- exposed `TweaksConfig.forceReuseVideoCodecReasons`
+
 ### Fixed
 
 - Error where setting `PlaybackConfig.isAutoplayEnabled = true` causes the player view creation to fail on Android

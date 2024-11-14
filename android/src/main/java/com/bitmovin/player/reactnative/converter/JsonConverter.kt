@@ -6,6 +6,7 @@ import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.analytics.api.SourceMetadata
 import com.bitmovin.player.api.DeviceDescription.DeviceName
+import com.bitmovin.player.api.ForceReuseVideoCodecReason
 import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.TweaksConfig
@@ -168,6 +169,16 @@ fun ReadableMap.toStyleConfig(): StyleConfig = StyleConfig().apply {
 }
 
 /**
+ * Converts any JS string into an `AdSourceType` enum value.
+ */
+private fun String.forceReuseVideoCodecReason(): ForceReuseVideoCodecReason? = when (this) {
+    "ColorInfoMismatch" -> ForceReuseVideoCodecReason.ColorInfoMismatch
+    "MaxInputSizeExceeded" -> ForceReuseVideoCodecReason.MaxInputSizeExceeded
+    "MaxResolutionExceeded" -> ForceReuseVideoCodecReason.MaxResolutionExceeded
+    else -> null
+}
+
+/**
  * Converts any JS object into a `TweaksConfig` object.
  */
 fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
@@ -189,6 +200,16 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     withBoolean("useDrmSessionForClearSources") { useDrmSessionForClearSources = it }
     withBoolean("useFiletypeExtractorFallbackForHls") { useFiletypeExtractorFallbackForHls = it }
     withBoolean("preferSoftwareDecodingForAds") { preferSoftwareDecodingForAds = it }
+    withStringArray("forceReuseVideoCodecReasons") {
+        val mutableSet = mutableSetOf<ForceReuseVideoCodecReason>()
+        for (item in it) {
+            val reason = item?.forceReuseVideoCodecReason()
+            if (reason != null) {
+                mutableSet.add(reason)
+            }
+        }
+        forceReuseVideoCodecReasons = mutableSet
+    }
 }
 
 /**
