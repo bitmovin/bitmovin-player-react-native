@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative
 
+import android.util.Log
 import androidx.concurrent.futures.CallbackToFutureAdapter
 import androidx.concurrent.futures.CallbackToFutureAdapter.Completer
 import com.bitmovin.player.api.network.HttpRequest
@@ -14,6 +15,7 @@ import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toNetworkConfig
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Future
 
 private const val MODULE_NAME = "NetworkModule"
@@ -25,8 +27,9 @@ class NetworkModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
      * In-memory mapping from `nativeId`s to `NetworkConfig` instances.
      */
     private val networkConfigs: Registry<NetworkConfig> = mutableMapOf()
-    private val preprocessHttpRequestCompleters: MutableMap<String, Completer<HttpRequest>> = mutableMapOf()
-    private val preprocessHttpResponseCompleters: MutableMap<String, Completer<HttpResponse>> = mutableMapOf()
+    private val preprocessHttpRequestCompleters = ConcurrentHashMap<String, Completer<HttpRequest>>()
+    private val preprocessHttpResponseCompleters = ConcurrentHashMap<String, Completer<HttpResponse>>()
+
     override fun getName() = MODULE_NAME
 
     fun getConfig(nativeId: NativeId?): NetworkConfig? = nativeId?.let { networkConfigs[it] }
@@ -94,9 +97,14 @@ class NetworkModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
 
     @ReactMethod
     fun setPreprocessedHttpRequest(requestId: String, request: ReadableMap) {
-        preprocessHttpRequestCompleters[requestId]?.set(request.toHttpRequest())
-        preprocessHttpRequestCompleters.remove(requestId)
+        val completer = preprocessHttpRequestCompleters.remove(requestId)
+        if (completer == null) {
+            Log.e(MODULE_NAME, "Completer is null for requestId: $requestId, this can cause stuck network requests")
+            return
+        }
+        completer.set(request.toHttpRequest())
     }
+
     private fun preprocessHttpResponseFromJS(
         nativeId: NativeId,
         type: HttpRequestType,

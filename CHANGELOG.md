@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.32.0]
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.92.0`
+
+### Fixed
+
+- Error where setting `PlaybackConfig.isAutoplayEnabled = true` causes the player view creation to fail on Android
+- Potential infinite stall when using `NetworkConfig.preprocessHttpRequest` and `NetworkConfig.preprocessHttpResponse` on Android
+
 ## [0.31.0] - 2024-11-07
 
 ### Added
