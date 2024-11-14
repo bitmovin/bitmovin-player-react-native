@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import {
   View,
-  Platform,
   StyleSheet,
   Dimensions,
   HWEvent,
@@ -19,6 +18,7 @@ import {
   SourceType,
   AdSourceType,
   AdSkippedEvent,
+  SourceLoadedEvent,
 } from 'bitmovin-player-react-native';
 
 function prettyPrint(header: string, obj: any) {
@@ -51,27 +51,12 @@ export default function CustomUi() {
   useTVEventHandler(myTVEventHandler);
 
   const [state, setState] = useState<State>({
-    play: true, //because we have autoplay
+    play: false, //because we disabled autoplay
     currentTime: 0,
     duration: 0,
     showControls: false,
     isAd: false,
   });
-
-  const withCorrelator = (tag: string): string =>
-    `${tag}${Math.floor(Math.random() * 100000)}`;
-
-  const adTags = {
-    vastSkippable: withCorrelator(
-      'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dskippablelinear&correlator='
-    ),
-    vast1: withCorrelator(
-      'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator='
-    ),
-    vast2: withCorrelator(
-      'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/ad_rule_samples&ciu_szs=300x250&ad_rule=1&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ar%3Dpostonly&cmsid=496&vid=short_onecue&correlator='
-    ),
-  };
 
   const advertisingConfig = {
     schedule: [
@@ -79,17 +64,7 @@ export default function CustomUi() {
       {
         sources: [
           {
-            tag: adTags.vastSkippable,
-            type: AdSourceType.IMA,
-          },
-        ],
-      },
-      // Second ad item at "20%" position.
-      {
-        position: '20%',
-        sources: [
-          {
-            tag: adTags.vast1,
+            tag: 'https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/vmap_ad_samples&sz=640x480&cust_params=sample_ar%3Dpremidpost&ciu_szs=300x250&gdfp_req=1&ad_rule=1&output=vmap&unviewed_position_start=1&env=vp&impl=s&cmsid=496&vid=short_onecue&correlator=78976985545',
             type: AdSourceType.IMA,
           },
         ],
@@ -101,10 +76,10 @@ export default function CustomUi() {
     remoteControlConfig: {
       isCastEnabled: false,
     },
-    playbackConfig: {
-      isAutoplayEnabled: true,
-      isMuted: true,
-    },
+    // playbackConfig: {
+    //   isAutoplayEnabled: true,
+    //   isMuted: true,
+    // },
     styleConfig: {
       isUiEnabled: false,
     },
@@ -137,11 +112,8 @@ export default function CustomUi() {
         console.error('Bitmovin License Key is NOT specified');
       } else {
         player.load({
-          url:
-            Platform.OS === 'ios'
-              ? 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
-              : 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
-          type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
+          url: 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
+          type: SourceType.HLS,
           title: 'Art of Motion',
           poster:
             'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg',
@@ -240,11 +212,14 @@ export default function CustomUi() {
     }
   }
 
-  function onReady() {
-    player.getDuration().then((time) => {
-      setState({ ...state, duration: time });
-    });
-  }
+  const onSourceLoaded = useCallback(
+    (event: SourceLoadedEvent) => {
+      onEvent(event);
+      console.log('-------- ' + event.source.duration);
+      setState({ ...state, duration: event.source.duration });
+    },
+    [onEvent, state]
+  );
 
   function onTimeChanged() {
     if (state.showControls) {
@@ -259,13 +234,13 @@ export default function CustomUi() {
       <PlayerView
         style={styles.video}
         player={player}
-        onReady={onReady}
+        // onReady={onReady}
         onTimeChanged={onTimeChanged}
         onSourceError={onEvent}
         onPlay={onEvent}
         onPlaying={onPlayEvent}
         onPaused={onEvent}
-        onSourceLoaded={onEvent}
+        onSourceLoaded={onSourceLoaded}
         onSeek={onEvent}
         onSeeked={onEvent}
         onStallStarted={onEvent}
