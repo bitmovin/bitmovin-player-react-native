@@ -78,10 +78,12 @@ export interface AdItem {
   sources: AdSource[];
 
   /**
-   * @platform Android
-   * The amount of seconds the ad manifest is loaded in advance;
-   * i.e as compared to when the ad break is scheduled for playback.
+   * The amount of seconds the ad manifest is loaded in advance
+   * compared to when the ad break is scheduled for playback.
+   *
    * Default value is 0.0
+   *
+   * @platform Android
    */
   preloadOffset?: number;
 }

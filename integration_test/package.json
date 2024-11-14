@@ -34,7 +34,8 @@
     "cavy-cli": "^3.0.0",
     "patch-package": "^8.0.0",
     "pod-install": "^0.1.39",
-    "react-native-uuid": "^2.0.1"
+    "react-native-uuid": "^2.0.1",
+    "fast-xml-parser": "4.4.1"
   },
   "engines": {
     "node": ">=18"
