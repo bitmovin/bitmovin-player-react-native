@@ -9,6 +9,7 @@
 ### Fixed
 
 - Error where setting `PlaybackConfig.isAutoplayEnabled = true` causes the player view creation to fail on Android
+- Potential infinite stall when using `NetworkConfig.preprocessHttpRequest` and `NetworkConfig.preprocessHttpResponse` on Android
 
 ## [0.31.0] - 2024-11-07
 
