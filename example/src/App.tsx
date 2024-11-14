@@ -8,6 +8,7 @@ import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
 import BasicAnalytics from './screens/BasicAnalytics';
 import BasicPlayback from './screens/BasicPlayback';
+import BasicTvPlayback from './screens/BasicTvPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
 import ProgrammaticTrackSelection from './screens/ProgrammaticTrackSelection';
@@ -21,6 +22,7 @@ import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
 import CustomUi from './screens/CustomUi';
+import BackgroundPlayback from './screens/BackgroundPlayback';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -32,6 +34,7 @@ export type RootStackParamsList = {
   BasicAds: undefined;
   BasicAnalytics: undefined;
   BasicPlayback: undefined;
+  BasicTvPlayback: undefined;
   BasicDrmPlayback: undefined;
   CustomUi: undefined;
   BasicPictureInPicture: {
@@ -60,11 +63,13 @@ export type RootStackParamsList = {
   };
   Casting: undefined;
   SystemUI: undefined;
+  BackgroundPlayback: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsList>();
 
 const isTVOS = Platform.OS === 'ios' && Platform.isTV;
+const isAndroidTV = Platform.OS === 'android' && Platform.isTV;
 
 export default function App() {
   useEffect(() => {
@@ -115,8 +120,19 @@ export default function App() {
         title: 'Programmatic Track Selection',
         routeName: 'ProgrammaticTrackSelection' as keyof RootStackParamsList,
       },
+      {
+        title: 'Background Playback',
+        routeName: 'BackgroundPlayback' as keyof RootStackParamsList,
+      },
     ],
   };
+
+  if (isAndroidTV) {
+    stackParams.data.unshift({
+      title: 'Basic TV playback',
+      routeName: 'BasicTvPlayback',
+    });
+  }
 
   if (!isTVOS) {
     stackParams.data.push({
@@ -192,6 +208,13 @@ export default function App() {
           component={BasicPlayback}
           options={{ title: 'Basic playback' }}
         />
+        {isAndroidTV && (
+          <RootStack.Screen
+            name="BasicTvPlayback"
+            component={BasicTvPlayback}
+            options={{ title: 'Basic TV playback' }}
+          />
+        )}
         <RootStack.Screen
           name="BasicDrmPlayback"
           component={BasicDrmPlayback}
@@ -273,6 +296,11 @@ export default function App() {
             options={{ title: 'Casting' }}
           />
         )}
+        <RootStack.Screen
+          name="BackgroundPlayback"
+          component={BackgroundPlayback}
+          options={{ title: 'Background Playback' }}
+        />
       </RootStack.Navigator>
     </NavigationContainer>
   );

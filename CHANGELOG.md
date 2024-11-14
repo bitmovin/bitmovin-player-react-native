@@ -2,9 +2,39 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Error where setting `PlaybackConfig.isAutoplayEnabled = true` causes the player view creation to fail on Android
+
+## [0.31.0] - 2024-11-07
+
+### Added
+
+- `MediaControlConfig` to configure the media control information for the application. When `isEnabled` is `true`, the current media information will be shown on the lock-screen, in notifications, and within the control center
+- Android: `playerConfig.playbackConfig.isBackgroundPlaybackEnabled` to support background playback
+
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.84.0`
+- Update Bitmovin's native Android SDK version to `3.91.0`
+
+### Deprecated
+
+- `TweaksConfig.updatesNowPlayingInfoCenter` in favor of `MediaControlConfig.isEnabled`
+
+## [0.30.0] - 2024-10-31
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.90.0`
+- Update Bitmovin's native iOS SDK version to `3.77.0`
+
+### Added
+
+- `WebUiConfig.variant` to set the UI variant that should be used by the Bitmovin Web UI
+
+### Fixed
+
+- Spatial navigation in the Web UI does not work properly
 
 ## [0.29.0] - 2024-09-09
 

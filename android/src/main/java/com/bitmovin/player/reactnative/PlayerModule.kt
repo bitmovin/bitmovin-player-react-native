@@ -10,6 +10,7 @@ import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.converter.toMediaControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.mapToReactArray
 import com.facebook.react.bridge.*
@@ -24,6 +25,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      * In-memory mapping from [NativeId]s to [Player] instances.
      */
     private val players: Registry<Player> = mutableMapOf()
+
+    val mediaSessionPlaybackManager = MediaSessionPlaybackManager(context)
 
     /**
      * JS exported module name.
@@ -74,6 +77,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()
         val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
+        val enableMediaSession = playerConfigJson?.getMap("mediaControlConfig")
+            ?.toMediaControlConfig()?.isEnabled ?: true
 
         val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
         if (networkConfig != null) {
@@ -89,6 +94,12 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
                 analyticsConfig = analyticsConfig,
                 defaultMetadata = defaultMetadata ?: DefaultMetadata(),
             )
+        }
+
+        if (enableMediaSession) {
+            promise.unit.resolveOnUiThread {
+                mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
+            }
         }
     }
 
@@ -211,6 +222,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     @ReactMethod
     fun destroy(nativeId: NativeId, promise: Promise) {
+        mediaSessionPlaybackManager.destroy(nativeId)
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
             destroy()
             players.remove(nativeId)
