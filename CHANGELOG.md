@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.92.0`
+
 ### Fixed
 
 - Error where setting `PlaybackConfig.isAutoplayEnabled = true` causes the player view creation to fail on Android
