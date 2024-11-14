@@ -193,7 +193,7 @@ export interface TweaksConfig {
    * When switching between video formats (eg: adapting between video qualities) the codec might be recreated due to several reasons.
    * This behaviour can cause brief black screens when switching between video qualities as codec recreation can be slow.
    *
-   * Default is `[]` i.e not set
+   * Default is `null` i.e not set
    *
    * @platform Android
    */
