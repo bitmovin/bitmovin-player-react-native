@@ -4,7 +4,7 @@
 
 ### Added
 
-- exposed `TweaksConfig.forceReuseVideoCodecReasons`
+- Android: `TweaksConfig.forceReuseVideoCodecReasons` that allows to force the reuse of the video codec despite a configuration change. This flag should be set only, if it is known that the codec can handle the given configuration change
 
 ### Changed
 
