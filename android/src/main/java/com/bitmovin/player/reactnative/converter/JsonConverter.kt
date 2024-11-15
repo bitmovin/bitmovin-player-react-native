@@ -169,9 +169,9 @@ fun ReadableMap.toStyleConfig(): StyleConfig = StyleConfig().apply {
 }
 
 /**
- * Converts any JS string into an `AdSourceType` enum value.
+ * Converts any JS string into an `ForceReuseVideoCodecReason` enum value.
  */
-private fun String.forceReuseVideoCodecReason(): ForceReuseVideoCodecReason? = when (this) {
+private fun String.toForceReuseVideoCodecReason(): ForceReuseVideoCodecReason? = when (this) {
     "ColorInfoMismatch" -> ForceReuseVideoCodecReason.ColorInfoMismatch
     "MaxInputSizeExceeded" -> ForceReuseVideoCodecReason.MaxInputSizeExceeded
     "MaxResolutionExceeded" -> ForceReuseVideoCodecReason.MaxResolutionExceeded
@@ -201,14 +201,10 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     withBoolean("useFiletypeExtractorFallbackForHls") { useFiletypeExtractorFallbackForHls = it }
     withBoolean("preferSoftwareDecodingForAds") { preferSoftwareDecodingForAds = it }
     withStringArray("forceReuseVideoCodecReasons") {
-        val mutableSet = mutableSetOf<ForceReuseVideoCodecReason>()
-        for (item in it) {
-            val reason = item?.forceReuseVideoCodecReason()
-            if (reason != null) {
-                mutableSet.add(reason)
-            }
-        }
-        forceReuseVideoCodecReasons = mutableSet
+        forceReuseVideoCodecReasons = it
+            .filterNotNull()
+            .mapNotNull(String::toForceReuseVideoCodecReason)
+            .toSet()
     }
 }
 
