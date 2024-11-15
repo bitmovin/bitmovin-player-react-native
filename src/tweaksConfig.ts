@@ -1,5 +1,11 @@
 /**
- * The different reasons when the video codec should be reused.
+ * When switching the video quality, the video decoder's configuration might change
+ * as the player can't always know if the codec supports such configuration change, it destroys and recreates it.
+ * This behaviour can cause brief black screens when switching between video qualities as codec recreation can be slow.
+ *
+ * If a codec is know to support a given configuration change without issues,
+ * the configuration can be added to the `TweaksConfig.forceReuseVideoCodecReasons`
+ * to always reuse the video codec and avoid the black screen.
  */
 export enum ForceReuseVideoCodecReason {
   /**
@@ -190,8 +196,13 @@ export interface TweaksConfig {
   updatesNowPlayingInfoCenter?: boolean;
 
   /**
-   * When switching between video formats (eg: adapting between video qualities) the codec might be recreated due to several reasons.
-   * This behaviour can cause brief black screens when switching between video qualities as codec recreation can be slow.
+   * When switching between video formats (eg: adapting between video qualities)
+   * the codec might be recreated due to several reasons.
+   * This behaviour can cause brief black screens when switching between video qualities as codec recreation can be
+   * slow.
+   *
+   * If a device is know to support video format changes and keep the current decoder without issues,
+   * this set can be filled with multiple `ForceReuseVideoCodecReason` and avoid the black screen.
    *
    * Default is `null` i.e not set
    *
