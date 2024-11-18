@@ -3,7 +3,11 @@ import { Platform, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AudioSession, SourceType } from 'bitmovin-player-react-native';
+import {
+  AudioSession,
+  SourceType,
+  usePlayer,
+} from 'bitmovin-player-react-native';
 import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
 import BasicAnalytics from './screens/BasicAnalytics';
@@ -23,6 +27,9 @@ import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
 import CustomUi from './screens/CustomUi';
 import BackgroundPlayback from './screens/BackgroundPlayback';
+import { createNavigationContainerRef } from '@react-navigation/native';
+
+export const navigationRef = createNavigationContainerRef();
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -84,6 +91,15 @@ export default function App() {
       // Handle any native errors that might occur while setting the audio's category.
       console.log("Failed to set app's audio category to `playback`:\n", error);
     });
+  });
+
+  const player = usePlayer({
+    remoteControlConfig: {
+      isCastEnabled: false,
+    },
+    playbackConfig: {
+      isAutoplayEnabled: true,
+    },
   });
 
   const stackParams = {
@@ -169,7 +185,7 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <RootStack.Navigator
         screenOptions={{
           headerShown: !Platform.isTV,
@@ -186,6 +202,7 @@ export default function App() {
               <Button
                 title="Custom"
                 onPress={() => {
+                  navigation.setOptions({ playerRef: player });
                   navigation.navigate('CustomPlaybackForm');
                 }}
               />

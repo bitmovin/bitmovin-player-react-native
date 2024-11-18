@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { navigationRef } from '../App';
 import {
   Event,
   usePlayer,
@@ -8,6 +9,7 @@ import {
   SourceType,
   PlayerViewConfig,
   TvUi,
+  AdSourceType,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
@@ -19,8 +21,14 @@ export default function BasicTvPlayback() {
   useTVGestures();
 
   const player = usePlayer({
+    analyticsConfig: {
+      licenseKey: '', // `licenseKey` is the only required parameter.
+    },
     remoteControlConfig: {
       isCastEnabled: false,
+    },
+    playbackConfig: {
+      isAutoplayEnabled: true,
     },
   });
 
@@ -33,6 +41,7 @@ export default function BasicTvPlayback() {
 
   useFocusEffect(
     useCallback(() => {
+      prettyPrint('current options', navigationRef.getCurrentOptions());
       player.load({
         url:
           Platform.OS === 'ios'
@@ -60,6 +69,22 @@ export default function BasicTvPlayback() {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
 
+  const onSourceLoaded = useCallback(
+    (event: Event) => {
+      onEvent(event);
+      // Dinamically schedule an ad to play after the video
+      player.scheduleAd({
+        sources: [
+          {
+            tag: 'https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/vmap_ad_samples&sz=640x480&cust_params=sample_ar%3Dpremidpost&ciu_szs=300x250&gdfp_req=1&ad_rule=1&output=vmap&unviewed_position_start=1&env=vp&impl=s&cmsid=496&vid=short_onecue&correlator=',
+            type: AdSourceType.IMA,
+          },
+        ],
+      });
+    },
+    [player, onEvent]
+  );
+
   return (
     <View style={styles.container}>
       <PlayerView
@@ -70,7 +95,7 @@ export default function BasicTvPlayback() {
         onPlaying={onEvent}
         onPaused={onEvent}
         onReady={onReady}
-        onSourceLoaded={onEvent}
+        onSourceLoaded={onSourceLoaded}
         onSeek={onEvent}
         onSeeked={onEvent}
         onStallStarted={onEvent}
