@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { navigationRef } from '../App';
 import {
   Event,
   usePlayer,
@@ -21,15 +20,7 @@ export default function BasicTvPlayback() {
   useTVGestures();
 
   const player = usePlayer({
-    analyticsConfig: {
-      licenseKey: '', // `licenseKey` is the only required parameter.
-    },
-    remoteControlConfig: {
-      isCastEnabled: false,
-    },
-    playbackConfig: {
-      isAutoplayEnabled: true,
-    },
+    nativeId: 'my-player',
   });
 
   const config: PlayerViewConfig = {
@@ -39,14 +30,21 @@ export default function BasicTvPlayback() {
     },
   };
 
+  const wmToken =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyMzkwMjIsImlzcyI6IlZSIiwiZXhwIjoxNzQ5ODU2ODQ0LCJ3bXZlciI6Mywid21pZGZtdCI6ImFzY2lpIiwid21pZHR5cCI6MSwid21rZXl2ZXIiOjMsIndtdG1pZHZlciI6NCwid21pZGxlbiI6NTEyLCJ3bW9waWQiOjMyLCJ3bWlkIjoiNTdiY2ZlODgtM2VmNC00N2FiLWFiYTktYmNmZGVkZGU3OTczIn0.ulJyt1AO1mubxTj23aRXMHHdUK1OaEylUSAixHW6yiM';
+  const drmToken =
+    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ijg2MWFhZGE1LTc1YzctNGJkMi04YTBmLTcyYWZmMzdkZTg4OCJ9.eyJpc3MiOiJ2ZWFyY2hKV1QiLCJzdWIiOiJiaXRtb3ZpbiIsImh0dHA6Ly9pcmRldG8uY29tL2NvbnRyb2wvYWlkIjoiYXN0cm8iLCJqdGkiOiJmZDIyYzc1OC02MmQ2LTQyNWUtOGE2Yy04N2ZlODM2MDgzMWUiLCJpYXQiOjE3MzA3MjAyNjYsImV4cCI6MTc2NjcyMDI2NiwiaHR0cDovL2lyZGV0by5jb20vY29udHJvbC9lbnQiOlt7ImVwaWQiOiJpcmRldG8tdGVzdC1lbnRpdGxlbWVudCIsImJpZCI6InZvZCJ9XSwiaXNlIjp0cnVlfQ.EurkMhiK8eAn19OhEKSjd2y9gkTMlP4Xds3yvPQ5f1A';
+
   useFocusEffect(
     useCallback(() => {
-      prettyPrint('current options', navigationRef.getCurrentOptions());
       player.load({
         url:
           Platform.OS === 'ios'
             ? 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
-            : 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
+            : // : 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
+              'https://vodc.dp.sooka.my/wmt:' +
+              wmToken +
+              '/4dcedab14f7a335f089a92ca9a05cd0f-a0ed04ae76afad077444-2/4dcedab14f7a335f089a92ca9a05cd0f-a0ed04ae76afad077444-2/index.mpd',
         type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
         title: 'Art of Motion',
         poster:
@@ -54,6 +52,15 @@ export default function BasicTvPlayback() {
         thumbnailTrack:
           'https://cdn.bitmovin.com/content/assets/art-of-motion-dash-hls-progressive/thumbnails/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.vtt',
         metadata: { platform: Platform.OS },
+        drmConfig: {
+          widevine: {
+            licenseUrl:
+              'https://license.ctrp.astro.com.my/licenseServer/widevine/v1/astro/license?contentId=4dcedab14f7a335f089a92ca9a05cd0f-a0ed04ae76afad077444-2',
+            httpHeaders: {
+              Authorization: 'Bearer ' + drmToken,
+            },
+          },
+        },
       });
       return () => {
         player.destroy();

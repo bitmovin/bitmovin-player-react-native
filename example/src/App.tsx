@@ -7,6 +7,7 @@ import {
   AudioSession,
   SourceType,
   usePlayer,
+  PlayerView,
 } from 'bitmovin-player-react-native';
 import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
@@ -27,9 +28,6 @@ import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
 import CustomUi from './screens/CustomUi';
 import BackgroundPlayback from './screens/BackgroundPlayback';
-import { createNavigationContainerRef } from '@react-navigation/native';
-
-export const navigationRef = createNavigationContainerRef();
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -94,6 +92,7 @@ export default function App() {
   });
 
   const player = usePlayer({
+    nativeId: 'my-player',
     remoteControlConfig: {
       isCastEnabled: false,
     },
@@ -185,7 +184,7 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer>
       <RootStack.Navigator
         screenOptions={{
           headerShown: !Platform.isTV,
@@ -202,7 +201,6 @@ export default function App() {
               <Button
                 title="Custom"
                 onPress={() => {
-                  navigation.setOptions({ playerRef: player });
                   navigation.navigate('CustomPlaybackForm');
                 }}
               />
@@ -319,6 +317,7 @@ export default function App() {
           options={{ title: 'Background Playback' }}
         />
       </RootStack.Navigator>
+      {false && <PlayerView player={player} />}
     </NavigationContainer>
   );
 }
