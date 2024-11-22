@@ -27,12 +27,7 @@ extension DebugModule {
     @objc(setLoggingEnabled:)
     func setLoggingEnabled(enabled: Bool) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
-            let defaultMinimumLevel: LogLevel = .warning
-            if enabled {
-                DebugConfig.logging.logger?.level = .verbose
-            } else {
-                DebugConfig.logging.logger?.level = defaultMinimumLevel
-            }
+            DebugConfig.logging.logger?.level = enabled ? .verbose : .warning
         }
     }
 }
