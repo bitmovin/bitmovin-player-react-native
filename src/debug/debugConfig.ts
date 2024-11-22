@@ -3,7 +3,7 @@ import { NativeInstanceConfig } from 'src/nativeInstance';
 /**
  * Global debug configuration for all Bitmovin components.
  */
-export interface DebugConfig extends NativeInstanceConfig {
+export interface DebugConfigOld extends NativeInstanceConfig {
   /**
    * Enables global debug logging for all Bitmovin components.
    *

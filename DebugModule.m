@@ -1,8 +1,7 @@
-//
-//  DebugModule.m
-//  Pods
-//
-//  Created by Michele Pozzi on 21.11.24.
-//
+#import <React/RCTBridgeModule.h>
 
-#import <Foundation/Foundation.h>
+@interface RCT_EXTERN_REMAP_MODULE(DebugModule, DebugModule, NSObject)
+
+RCT_EXTERN_METHOD(setLoggingEnabled:(nonnull BOOL)enabled)
+
+@end

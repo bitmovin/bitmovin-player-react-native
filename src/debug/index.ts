@@ -1,95 +1,52 @@
 import { NativeModules } from 'react-native';
-import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
-import NativeInstance from '../nativeInstance';
-import { DebugConfig } from './debugConfig';
 
 const DebugModule = NativeModules.DebugModule;
 
-/**
- * Represents a native Network configuration object.
- * @internal
- */
-export class Debug extends NativeInstance<DebugConfig> {
-  /**
-   * Whether this object's native instance has been created.
-   */
-  isInitialized = false;
-  /**
-   * Whether this object's native instance has been disposed.
-   */
-  isDestroyed = false;
+export class DebugConfig {
+  private static _isDebugEnabled = false;
 
   /**
-   * Allocates the Network config instance and its resources natively.
+   * Enables global debug logging for all Bitmovin components.
+   *
+   * Provides detailed information primarily for debugging purposes, helping to
+   * diagnose problems and trace the flow of execution within the Player.
+   *
+   * ### Platform-Specific Logging Behavior:
+   * - **iOS:** logs are printed using `NSLog` at the verbose log level.
+   * - **Android:** logs are printed using `android.util.Log` with the following tags:
+   *   - `BitmovinPlayer`
+   *   - `BitmovinPlayerView`
+   *   - `BitmovinOffline`
+   *   - `BitmovinSource`
+   *   - `BitmovinExoPlayer`
+   *
+   * ### Usage Notes:
+   * - On Android, this flag **must** be set **before** creating any Bitmovin component to take effect.
+   * - We recommend setting this flag during your app's initialization phase, such as in the
+   *   `Application.onCreate` function on Android or equivalent initialization on iOS.
+   *
+   * ### Warning:
+   * This option **should not be enabled in production** as it may log sensitive or confidential
+   * information to the console.
+   *
+   * @defaultValue `false`
    */
-  initialize = () => {
-    if (!this.isInitialized) {
-      // Register this object as a callable module so it's possible to
-      // call functions on it from native code, e.g `onPreprocessHttpResponse`.
-      BatchedBridge.registerCallableModule(`Debug-${this.nativeId}`, this);
-      // Create native configuration object.
-      DebugModule.initWithConfig(this.nativeId, this.config);
-      this.isInitialized = true;
-    }
-  };
+  static get isDebugLoggingEnabled(): boolean {
+    return DebugConfig._isDebugEnabled;
+  }
 
-  /**
-   * Destroys the native Network config and releases all of its allocated resources.
-   */
-  destroy = () => {
-    if (!this.isDestroyed) {
-      DebugModule.destroy(this.nativeId);
-      this.isDestroyed = true;
-    }
-  };
-
-  /**
-   * Applies the user-defined `preprocessHttpRequest` function to native's `type` and `request` data and store
-   * the result back in `NetworkModule`.
-   *
-   * Called from native code when `NetworkConfig.preprocessHttpRequest` is dispatched.
-   *
-   * @param requestId Passed through to identify the completion handler of the request on native.
-   * @param type Type of the request to be made.
-   * @param request The HTTP request to process.
-   */
-  onPreprocessHttpRequest = (
-    requestId: string,
-    type: HttpRequestType,
-    request: HttpRequest
-  ) => {
-    this.config
-      ?.preprocessHttpRequest?.(type, request)
-      .then((resultRequest) => {
-        NetworkModule.setPreprocessedHttpRequest(requestId, resultRequest);
-      })
-      .catch(() => {
-        NetworkModule.setPreprocessedHttpRequest(requestId, request);
-      });
-  };
-
-  /**
-   * Applies the user-defined `preprocessHttpResponse` function to native's `type` and `response` data and store
-   * the result back in `NetworkModule`.
-   *
-   * Called from native code when `NetworkConfig.preprocessHttpResponse` is dispatched.
-   *
-   * @param responseId Passed through to identify the completion handler of the response on native.
-   * @param type Type of the request to be made.
-   * @param response The HTTP response to process.
-   */
-  onPreprocessHttpResponse = (
-    responseId: string,
-    type: HttpRequestType,
-    response: HttpResponse
-  ) => {
-    this.config
-      ?.preprocessHttpResponse?.(type, response)
-      .then((resultResponse) => {
-        NetworkModule.setPreprocessedHttpResponse(responseId, resultResponse);
-      })
-      .catch(() => {
-        NetworkModule.setPreprocessedHttpResponse(responseId, response);
-      });
-  };
+  static set isDebugLoggingEnabled(value: boolean) {
+    DebugConfig._isDebugEnabled = value;
+    DebugModule.setLoggingEnabled(value).then(() => {});
+  }
+  // getter sync, setter sync (empty promise)
 }
+
+// const DebugConfig = {
+//   set isDebugLoggingEnabled(value: boolean) {
+//     DebugModule.setLoggingEnabled(value).then(() => {}); // TODO: do I need a promise here?
+//   },
+//   // use get and set if cannot figure it out
+// };
+
+// export default DebugConfig;

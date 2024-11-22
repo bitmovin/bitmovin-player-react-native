@@ -1347,18 +1347,6 @@ extension RCTConvert {
         }
         return nowPlayingConfig
     }
-
-    static func debugConfig(_ json: Any?) -> DebugConfig? {
-        guard let json = json as? [String: Any?] else { return DebugConfig() }
-        var debugConfig = DebugConfig()
-        let isLoggingEnabled = json["isLoggingEnabled"] as? Bool ?? false
-        debugConfig.isLoggingEnabled = isLoggingEnabled
-        return debugConfig
-    }
-
-    static func toJson(logLevel: LogLevel) -> Int {
-        logLevel.rawValue
-    }
 }
 /**
  * React native specific PlayerViewConfig.
@@ -1413,7 +1401,3 @@ internal struct RNBufferLevels {
     let audio: BufferLevel
     let video: BufferLevel
 }
-
-//internal struct DebugConfig {
-//    var isLoggingEnabled: Bool = false
-//}
