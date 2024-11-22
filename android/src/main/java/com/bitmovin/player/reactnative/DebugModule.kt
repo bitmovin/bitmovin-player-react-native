@@ -10,7 +10,10 @@ private const val MODULE_NAME = "DebugModule"
 class DebugModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
     override fun getName() = MODULE_NAME
 
-    // TODO: docs
+    /**
+     * Enable/disable verbose logging for the console logger.
+     * @param enabled Whether to set verbose logging as enabled or disabled.
+     */
     @ReactMethod
     fun setLoggingEnabled(enabled: Boolean, promise: Promise) {
         promise.unit.resolveOnUiThread {
