@@ -4,7 +4,7 @@
 
 ### Added
 
-- `DebugConfig.isDebugLoggingEnabled` and `DebugConfig.setDebugLogging(value: boolean)` to check and set whether debug logging is enabled. Debug logging helps diagnose problems and trace the flow of execution within the Player and **should not be enabled in production** as it may log sensitive or confidential information to the console.
+- `DebugConfig.isDebugLoggingEnabled` and `DebugConfig.setDebugLoggingEnabled(value: boolean)` to check and set whether debug logging is enabled. Debug logging helps diagnose problems and trace the flow of execution within the Player and **should not be enabled in production** as it may log sensitive or confidential information to the console.
 
 ## [0.32.0] - 2024-11-14
 

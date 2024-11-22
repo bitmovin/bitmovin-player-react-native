@@ -49,7 +49,7 @@ export class DebugConfig {
    *
    * @defaultValue `false`
    */
-  static async setDebugLogging(value: boolean): Promise<void> {
+  static async setDebugLoggingEnabled(value: boolean): Promise<void> {
     DebugConfig._isDebugEnabled = value;
     await DebugModule.setLoggingEnabled(value);
   }
