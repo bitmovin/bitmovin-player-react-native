@@ -200,6 +200,7 @@ public class RNPlayerViewManager: RCTViewManager {
         bridge.module(for: FullscreenHandlerModule.self) as? FullscreenHandlerModule
     }
 
+    @MainActor
     private func maybeEmitPictureInPictureAvailabilityEvent(for view: RNPlayerView, previousState: Bool) {
         guard let playerView = view.playerView,
               playerView.isPictureInPictureAvailable != previousState else {
