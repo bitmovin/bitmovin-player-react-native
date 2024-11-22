@@ -45,7 +45,7 @@ export class DebugConfig {
    * ## Usage Notes
    * ---
    * - We recommend setting this flag during your app's initialization phase, such as in the
-   *   `Application.onCreate` function on Android or equivalent initialization on iOS.
+   *   application's entry point (e.g. `App.tsx`).
    *
    * @defaultValue `false`
    */
