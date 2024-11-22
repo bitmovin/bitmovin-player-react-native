@@ -1,7 +1,9 @@
+import { NativeInstanceConfig } from 'src/nativeInstance';
+
 /**
  * Global debug configuration for all Bitmovin components.
  */
-export interface DebugConfig {
+export interface DebugConfig extends NativeInstanceConfig {
   /**
    * Enables global debug logging for all Bitmovin components.
    *
@@ -28,5 +30,5 @@ export interface DebugConfig {
    *
    * @defaultValue `false`
    */
-  isLoggingEnabled?: boolean;
+  isDebugLoggingEnabled?: boolean;
 }
