@@ -51,6 +51,6 @@ export class DebugConfig {
    */
   static async setDebugLoggingEnabled(value: boolean): Promise<void> {
     DebugConfig._isDebugEnabled = value;
-    await DebugModule.setLoggingEnabled(value);
+    await DebugModule.setDebugLoggingEnabled(value);
   }
 }

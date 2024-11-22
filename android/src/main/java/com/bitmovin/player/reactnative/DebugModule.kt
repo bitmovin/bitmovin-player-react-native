@@ -15,7 +15,7 @@ class DebugModule(context: ReactApplicationContext) : BitmovinBaseModule(context
      * @param enabled Whether to set verbose logging as enabled or disabled.
      */
     @ReactMethod
-    fun setLoggingEnabled(enabled: Boolean, promise: Promise) {
+    fun setDebugLoggingEnabled(enabled: Boolean, promise: Promise) {
         promise.unit.resolveOnUiThread {
             DebugConfig.isLoggingEnabled = enabled
         }

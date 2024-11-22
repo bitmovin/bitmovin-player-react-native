@@ -2,6 +2,6 @@
 
 @interface RCT_EXTERN_REMAP_MODULE(DebugModule, DebugModule, NSObject)
 
-RCT_EXTERN_METHOD(setLoggingEnabled:(nonnull BOOL)enabled)
+RCT_EXTERN_METHOD(setDebugLoggingEnabled:(nonnull BOOL)enabled)
 
 @end
