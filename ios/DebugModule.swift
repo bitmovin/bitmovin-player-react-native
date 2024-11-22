@@ -22,16 +22,17 @@ public class DebugModule: NSObject, RCTBridgeModule {
 }
 
 extension DebugModule {
-    // TODO: docs
+    /// Enable/disable verbose logging for the console logger.
+    /// - Parameter enabled: Whether to set verbose logging as enabled or disabled.
     @objc(setLoggingEnabled:)
     func setLoggingEnabled(enabled: Bool) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
+            let defaultMinimumLevel: LogLevel = .warning
             if enabled {
-                DebugConfig.logging.logger?.level = .warning// TODO: .verbose
+                DebugConfig.logging.logger?.level = .verbose
+            } else {
+                DebugConfig.logging.logger?.level = defaultMinimumLevel
             }
-            //        else {// TODO: else necessary??
-            //            DebugConfig.logging.logger?.level
-            //        }
         }
     }
 }
