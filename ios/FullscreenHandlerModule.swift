@@ -44,6 +44,7 @@ public class FullscreenHandlerModule: NSObject, RCTBridgeModule {
         fullscreenHandlers.removeValue(forKey: nativeId)
     }
 
+    @MainActor
     @objc(onFullscreenChanged:isFullscreenEnabled:)
     func onFullscreenChanged(_ nativeId: NativeId, isFullscreenEnabled: Bool) -> Any? {
         fullscreenHandlers[nativeId]?.isFullscreen = isFullscreenEnabled
@@ -51,12 +52,14 @@ public class FullscreenHandlerModule: NSObject, RCTBridgeModule {
         return nil
     }
 
+    @MainActor
     @objc(registerHandler:)
     func registerHandler(_ nativeId: NativeId) {
         guard fullscreenHandlers[nativeId] == nil else { return }
         fullscreenHandlers[nativeId] = FullscreenHandlerBridge(nativeId, bridge: bridge)
     }
 
+    @MainActor
     @objc(setIsFullscreenActive:isFullscreen:)
     func setIsFullscreenActive(_ nativeId: NativeId, isFullscreen: Bool) {
         fullscreenHandlers[nativeId]?.isFullscreen = isFullscreen
