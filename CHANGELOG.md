@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `DebugConfig.isDebugLoggingEnabled` and `DebugConfig.setDebugLoggingEnabled(value: boolean)` to check and set whether debug logging is enabled. Debug logging helps diagnose problems and trace the flow of execution within the Player and **should not be enabled in production** as it may log sensitive or confidential information to the console.
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to `3.78.0`
