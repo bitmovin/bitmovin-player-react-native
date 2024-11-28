@@ -1,20 +1,18 @@
 # Changelog
 
-## [Unreleased]
+## [0.33.0] - 2024-11-28
 
 ### Added
 
+- Android: `TweaksConfig.forceReuseVideoCodecReasons` that allows to force the reuse of the video codec despite a configuration change. This flag should be set only, if it is known that the codec can handle the given configuration change.
 - `DebugConfig.isDebugLoggingEnabled` and `DebugConfig.setDebugLoggingEnabled(value: boolean)` to check and set whether debug logging is enabled. Debug logging helps diagnose problems and trace the flow of execution within the Player and **should not be enabled in production** as it may log sensitive or confidential information to the console.
 
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to `3.78.0`
+- Update Bitmovin's native Android SDK version to `3.94.0`
 
 ## [0.32.0] - 2024-11-14
-
-### Added
-
-- Android: `TweaksConfig.forceReuseVideoCodecReasons` that allows to force the reuse of the video codec despite a configuration change. This flag should be set only, if it is known that the codec can handle the given configuration change
 
 ### Changed
 
