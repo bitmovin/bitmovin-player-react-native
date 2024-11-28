@@ -1,4 +1,28 @@
 /**
+ * When switching the video quality, the video decoder's configuration might change
+ * as the player can't always know if the codec supports such configuration change, it destroys and recreates it.
+ * This behaviour can cause brief black screens when switching between video qualities as codec recreation can be slow.
+ *
+ * If a codec is know to support a given configuration change without issues,
+ * the configuration can be added to the `TweaksConfig.forceReuseVideoCodecReasons`
+ * to always reuse the video codec and avoid the black screen.
+ */
+export enum ForceReuseVideoCodecReason {
+  /**
+   * The new video quality color information is not compatible.
+   */
+  ColorInfoMismatch = 'ColorInfoMismatch',
+  /**
+   * The new video quality exceed the decoder's configured maximum sample size.
+   */
+  MaxInputSizeExceeded = 'MaxInputSizeExceeded',
+  /**
+   * The new video quality exceed the decoder's configured maximum resolution.
+   */
+  MaxResolutionExceeded = 'MaxResolutionExceeded',
+}
+
+/**
  * This configuration is used as an incubator for experimental features. Tweaks are not officially
  * supported and are not guaranteed to be stable, i.e. their naming, functionality and API can
  * change at any time within the tweaks or when being promoted to an official feature and moved
@@ -170,4 +194,19 @@ export interface TweaksConfig {
    * @platform iOS
    */
   updatesNowPlayingInfoCenter?: boolean;
+
+  /**
+   * When switching between video formats (eg: adapting between video qualities)
+   * the codec might be recreated due to several reasons.
+   * This behaviour can cause brief black screens when switching between video qualities as codec recreation can be
+   * slow.
+   *
+   * If a device is know to support video format changes and keep the current decoder without issues,
+   * this set can be filled with multiple `ForceReuseVideoCodecReason` and avoid the black screen.
+   *
+   * Default is `null` i.e not set
+   *
+   * @platform Android
+   */
+  forceReuseVideoCodecReasons?: Array<ForceReuseVideoCodecReason>;
 }
