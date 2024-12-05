@@ -1,66 +1,76 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.bitmovin.player.reactnative.example"
-  xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.bitmovin.player.reactnative.example">
 
     <uses-permission android:name="android.permission.INTERNET" />
-<!--Only needed if the offline feature is used-->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Only needed for Offline & Background playback features -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <!-- Only needed for the Offline playback feature -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-<!--END-->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- END: Only needed for the Offline playback feature -->
+
+    <!-- Only needed for the Background playback feature -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
     <application
-      android:name=".MainApplication"
-      android:label="@string/app_name"
-      android:icon="@mipmap/ic_launcher"
-      android:roundIcon="@mipmap/ic_launcher_round"
-      android:allowBackup="false"
-      tools:replace="android:allowBackup"
-      android:theme="@style/AppTheme">
-      <meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="ENTER_LICENSE_KEY" />
-      <activity
-        android:name=".MainActivity"
+        android:name=".MainApplication"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
-        android:launchMode="singleTask"
-        android:windowSoftInputMode="adjustResize"
-        android:supportsPictureInPicture="true"
-        android:exported="true">
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
-      </activity>
-
-    <!-- Following lines are needed for the usage of cast -->
-    <activity
-        android:name="com.bitmovin.player.casting.ExpandedControllerActivity"
-        android:exported="true"
-        android:label="@string/app_name"
-        android:launchMode="singleTask"
-        android:screenOrientation="portrait">
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-        </intent-filter>
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="@style/AppTheme"
+        tools:replace="android:allowBackup">
         <meta-data
-            android:name="android.support.PARENT_ACTIVITY"
-            android:value="com.bitmovin.player.reactnative.example.MainActivity" />
-    </activity>
+            android:name="BITMOVIN_PLAYER_LICENSE_KEY"
+            android:value="ENTER_LICENSE_KEY" />
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:supportsPictureInPicture="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
-      <meta-data
+        <!-- Only needed for Casting feature -->
+        <activity
+            android:name="com.bitmovin.player.casting.ExpandedControllerActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.bitmovin.player.reactnative.example.MainActivity" />
+        </activity>
+
+        <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
             android:value="com.bitmovin.player.casting.BitmovinCastOptionsProvider" />
+        <!-- END: Only needed for Casting feature -->
 
-      <service
-          android:name="com.bitmovin.player.reactnative.services.MediaSessionPlaybackService"
-          android:foregroundServiceType="mediaPlayback"
-          android:exported="true">
-          <intent-filter>
-              <action android:name="androidx.media3.session.MediaSessionService"/>
-          </intent-filter>
-      </service>
+        <!-- Only needed for Background playback feature -->
+        <service
+            android:name="com.bitmovin.player.reactnative.services.MediaSessionPlaybackService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
+        <!-- END: Only needed for Background playback feature -->
 
     </application>
 </manifest>
