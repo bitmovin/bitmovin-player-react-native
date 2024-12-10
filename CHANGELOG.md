@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.35.0] - 2024-12-10
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.98.0`
+- Update Bitmovin's native iOS SDK version to `3.79.0`
+
 ## [0.34.0] - 2024-12-04
 
 ### Changed
