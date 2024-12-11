@@ -1,11 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
 ## [0.35.0] - 2024-12-10
 
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.98.0`
 - Update Bitmovin's native iOS SDK version to `3.79.0`
+
+### Fixed
+
+- Android: Controls disappearing post midroll ads on select device by setting background color to `Color.TRANSPARENT` on IMA Ad-UI container player
 
 ## [0.34.0] - 2024-12-04
 
