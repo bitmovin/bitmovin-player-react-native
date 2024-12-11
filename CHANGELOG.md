@@ -11,7 +11,7 @@
 
 ### Fixed
 
-- Android: Controls disappearing post midroll ads on select device by setting background color to `Color.TRANSPARENT` on IMA Ad-UI container player
+- Android: Controls disappearing post midroll ads on select device by setting background color to `Color.TRANSPARENT` on IMA Ad container
 
 ## [0.34.0] - 2024-12-04
 
