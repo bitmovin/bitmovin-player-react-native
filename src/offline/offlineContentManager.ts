@@ -14,7 +14,7 @@ import {
 import { OfflineContentConfig } from './offlineContentConfig';
 import { OfflineDownloadRequest } from './offlineDownloadRequest';
 import { OfflineState } from './offlineState';
-import { Drm } from 'bitmovin-player-react-native';
+import { Drm } from '../drm';
 
 interface NativeOfflineModule extends NativeModule {
   initWithConfig(

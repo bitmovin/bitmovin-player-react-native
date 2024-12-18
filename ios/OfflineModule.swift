@@ -1,5 +1,6 @@
 import BitmovinPlayer
 import Foundation
+import React
 
 @objc(OfflineModule)
 public class OfflineModule: RCTEventEmitter { // swiftlint:disable:this type_body_length

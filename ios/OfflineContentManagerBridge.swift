@@ -1,6 +1,7 @@
 #if os(iOS)
 import BitmovinPlayer
 import Foundation
+import React
 
 internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListener {
     enum EventType: String {

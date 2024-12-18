@@ -1,114 +1,65 @@
-require_relative '../node_modules/react-native/scripts/react_native_pods'
-require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
+require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
 
-source 'https://cdn.cocoapods.org'
-source 'https://github.com/react-native-tvos/react-native-tvos-podspecs.git'
+require 'json'
+podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
+
+ENV['RCT_NEW_ARCH_ENABLED'] = podfile_properties['newArchEnabled'] == 'true' ? '1' : '0'
+ENV['EX_DEV_CLIENT_NETWORK_INSPECTOR'] = podfile_properties['EX_DEV_CLIENT_NETWORK_INSPECTOR']
+
+platform :ios, podfile_properties['ios.deploymentTarget'] || '15.1'
+install! 'cocoapods',
+  :deterministic_uuids => false
 
 prepare_react_native_project!
 
-def setup os
-  inhibit_all_warnings!
-  platform os, '14.0'
+target 'BitmovinPlayerReactNativeExample' do
+  use_expo_modules!
 
-  # If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
-  # because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
-  #
-  # To fix this you can also exclude `react-native-flipper` using a `react-native.config.js`
-  # ```js
-  # module.exports = {
-  #   dependencies: {
-  #     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
-  # ```
-  flipper_config = (ENV['NO_FLIPPER'] == "1" || os != :ios) ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
-  linkage = ENV['USE_FRAMEWORKS']
-  if linkage != nil
-    Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-    use_frameworks! :linkage => linkage.to_sym
+  if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
+    config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
+  else
+    config_command = [
+      'node',
+      '--no-warnings',
+      '--eval',
+      'require(require.resolve(\'expo-modules-autolinking\', { paths: [require.resolve(\'expo/package.json\')] }))(process.argv.slice(1))',
+      'react-native-config',
+      '--json',
+      '--platform',
+      'ios'
+    ]
   end
 
-  config = use_native_modules!
+  config = use_native_modules!(config_command)
 
-  # Flags change depending on the env values.
-  flags = get_default_flags()
+  use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
+  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
 
   use_react_native!(
-    # Enables Flipper.
-    #
-    # Note that if you have use_frameworks! enabled, Flipper will not work and
-    # you should disable the next line.
-    :flipper_configuration => flipper_config,
     :path => config[:reactNativePath],
+    :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
     # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+    :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
   )
 
-  pod 'RNBitmovinPlayer', :path => '../..'
-end
+  post_install do |installer|
+    react_native_post_install(
+      installer,
+      config[:reactNativePath],
+      :mac_catalyst_enabled => false,
+      :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
+    )
 
-target 'BitmovinPlayerReactNativeExample' do
-  setup :ios
-  pod 'google-cast-sdk', '4.8.1'
-end
-
-target 'BitmovinPlayerReactNativeExample-tvOS' do
-  setup :tvos
-end
-
-post_install do |installer|
-  react_native_post_install(
-    installer,
-    # Set `mac_catalyst_enabled` to `true` in order to apply patches
-    # necessary for Mac Catalyst builds
-    :mac_catalyst_enabled => false
-  )
-  fix_simulator_run(installer)
-  fix_deployment_target(installer)
-  disable_resource_bundle_signing(installer)
-end
-
-# Workaround for running on simulator on Apple Silicon from the command-line
-def fix_simulator_run(installer)
-  installer.pods_project.targets.each do |target|
-    target.build_configurations.each do |config|
-      config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
-      config.build_settings["EXCLUDED_ARCHS[sdk=appletvsimulator*]"] = "i386"
-    end
-  end
-end
-
-# Align deployment target of all targets in the Pods project with the main project
-def fix_deployment_target(installer)
-  return if !installer
-  project = installer.pods_project
-  project_deployment_target_iOS = project.build_configurations.first.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
-  project_deployment_target_tvOS = project.build_configurations.first.build_settings['TVOS_DEPLOYMENT_TARGET']
-
-  project.targets.each do |target|
-    target.build_configurations.each do |config|
-      old_target_iOS = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
-      unless old_target_iOS.nil?
-        new_target_iOS = project_deployment_target_iOS
-        next if old_target_iOS.to_f >= new_target_iOS.to_f
-        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = new_target_iOS
-      end
-
-      old_target_tvOS = config.build_settings['TVOS_DEPLOYMENT_TARGET']
-      unless old_target_tvOS.nil?
-        new_target_tvOS = project_deployment_target_tvOS
-        next if old_target_tvOS.to_f >= new_target_tvOS.to_f
-        config.build_settings['TVOS_DEPLOYMENT_TARGET'] = new_target_tvOS
-      end
-    end
-  end
-end
-
-# Workaround against required code-signing for resource bundle targets
-def disable_resource_bundle_signing(installer)
-  installer.pods_project.targets.each do |target|
-    target_is_resource_bundle = target.respond_to?(:product_type) && target.product_type == 'com.apple.product-type.bundle'
-    target.build_configurations.each do |config|
-      if target_is_resource_bundle
-        config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+    # This is necessary for Xcode 14, because it signs resource bundles by default
+    # when building for devices.
+    installer.target_installation_results.pod_target_installation_results
+      .each do |pod_name, target_installation_result|
+      target_installation_result.resource_bundle_targets.each do |resource_bundle_target|
+        resource_bundle_target.build_configurations.each do |config|
+          config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+        end
       end
     end
   end
