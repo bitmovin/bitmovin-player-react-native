@@ -121,7 +121,7 @@ export enum SurfaceType {
    * SurfaceView generally causes lower battery consumption,
    * and has better handling for HDR and secure content.
    */
-  SurfaceView,
+  SurfaceView = 'SurfaceView',
   /** TextureView is sometime needed for smooth animations. */
-  TextureView,
+  TextureView = 'TextureView',
 }
