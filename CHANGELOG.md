@@ -1,11 +1,25 @@
 # Changelog
 
+## [0.36.0]
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.80.0`
+
+### Added
+
+- Android: `PlayerViewConfig.surfaceType` that allows to render video on a `TextureView`
+
 ## [0.35.0] - 2024-12-10
 
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.98.0`
 - Update Bitmovin's native iOS SDK version to `3.79.0`
+
+### Fixed
+
+- Android: Controls disappearing post midroll ads on select device by setting background color to `Color.TRANSPARENT` on IMA Ad container
 
 ## [0.34.0] - 2024-12-04
 
