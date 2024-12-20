@@ -6,6 +6,10 @@
 
 - Update Bitmovin's native iOS SDK version to `3.80.0`
 
+### Added
+
+- Android: `PlayerViewConfig.surfaceType` that allows to render video on a `TextureView`
+
 ## [0.35.0] - 2024-12-10
 
 ### Changed
