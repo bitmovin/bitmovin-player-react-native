@@ -43,8 +43,21 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      * @param config `PlayerConfig` object received from JS.
      */
     @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, networkNativeId: NativeId?, promise: Promise) {
-        init(nativeId, config, networkNativeId = networkNativeId, analyticsConfigJson = null, promise)
+    fun initWithConfig(
+        nativeId: NativeId,
+        config: ReadableMap?,
+        adaptationNativeId: NativeId?,
+        networkNativeId: NativeId?,
+        promise: Promise,
+    ) {
+        init(
+            nativeId,
+            config,
+            adaptationNativeId = adaptationNativeId,
+            networkNativeId = networkNativeId,
+            analyticsConfigJson = null,
+            promise,
+        )
     }
 
     /**
@@ -56,14 +69,16 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     fun initWithAnalyticsConfig(
         nativeId: NativeId,
         playerConfigJson: ReadableMap?,
+        adaptationNativeId: NativeId?,
         networkNativeId: NativeId?,
         analyticsConfigJson: ReadableMap,
         promise: Promise,
-    ) = init(nativeId, playerConfigJson, networkNativeId, analyticsConfigJson, promise)
+    ) = init(nativeId, playerConfigJson, adaptationNativeId, networkNativeId, analyticsConfigJson, promise)
 
     private fun init(
         nativeId: NativeId,
         playerConfigJson: ReadableMap?,
+        adaptationNativeId: NativeId?,
         networkNativeId: NativeId?,
         analyticsConfigJson: ReadableMap?,
         promise: Promise,
@@ -83,6 +98,11 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
         if (networkConfig != null) {
             playerConfig.networkConfig = networkConfig
+        }
+
+        val adaptationConfig = adaptationNativeId?.let { adaptationModule.getConfig(it) }
+        if (adaptationConfig != null) {
+            playerConfig.adaptationConfig = adaptationConfig
         }
 
         players[nativeId] = if (analyticsConfig == null) {

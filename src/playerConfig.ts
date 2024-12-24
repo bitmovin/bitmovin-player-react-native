@@ -2,7 +2,7 @@ import { AdvertisingConfig } from './advertising';
 import { AnalyticsConfig } from './analytics';
 import { StyleConfig } from './styleConfig';
 import { TweaksConfig } from './tweaksConfig';
-import { AdaptationConfig } from './adaptationConfig';
+import { AdaptationConfig } from './adaptation/adaptationConfig';
 import { RemoteControlConfig } from './remoteControlConfig';
 import { BufferConfig } from './bufferConfig';
 import { NativeInstanceConfig } from './nativeInstance';

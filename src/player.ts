@@ -11,6 +11,7 @@ import { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
 import { VideoQuality } from './media';
 import { Network } from './network';
+import { Adaptation } from './adaptation';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -24,6 +25,7 @@ const PlayerModule = NativeModules.PlayerModule;
  * @see PlayerView
  */
 export class Player extends NativeInstance<PlayerConfig> {
+  private adaptation?: Adaptation;
   private network?: Network;
   /**
    * Currently active source, or `null` if none is active.
@@ -57,11 +59,16 @@ export class Player extends NativeInstance<PlayerConfig> {
         this.network = new Network(this.config.networkConfig);
         this.network.initialize();
       }
+      if (this.config?.adaptationConfig) {
+        this.adaptation = new Adaptation(this.config.adaptationConfig);
+        this.adaptation.initialize();
+      }
       const analyticsConfig = this.config?.analyticsConfig;
       if (analyticsConfig) {
         PlayerModule.initWithAnalyticsConfig(
           this.nativeId,
           this.config,
+          this.adaptation?.nativeId,
           this.network?.nativeId,
           analyticsConfig
         );
@@ -70,6 +77,7 @@ export class Player extends NativeInstance<PlayerConfig> {
         PlayerModule.initWithConfig(
           this.nativeId,
           this.config,
+          this.adaptation?.nativeId,
           this.network?.nativeId
         );
       }
@@ -84,6 +92,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (!this.isDestroyed) {
       PlayerModule.destroy(this.nativeId);
       this.source?.destroy();
+      this.adaptation?.destroy();
       this.network?.destroy();
       this.isDestroyed = true;
     }

@@ -29,6 +29,7 @@ class RNPlayerViewPackage : ReactPackage {
             CustomMessageHandlerModule(reactContext),
             BitmovinCastManagerModule(reactContext),
             BufferModule(reactContext),
+            AdaptationModule(reactContext),
             NetworkModule(reactContext),
             DebugModule(reactContext),
         )
