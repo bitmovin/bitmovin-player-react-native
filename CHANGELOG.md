@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Android: Refactored AdaptationConfig to enable the `onVideoAdaptation` callback
+
+### Added
+
+- Android: Added support for the `onVideoAdaptation` callback
+
 ## [0.36.0] - 2024-12-20
 
 ### Changed
