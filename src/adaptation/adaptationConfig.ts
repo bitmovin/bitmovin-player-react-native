@@ -6,6 +6,12 @@ import { NativeInstanceConfig } from '../nativeInstance';
  * @platform Android
  */
 export interface VideoAdaptation {
+  /**
+   * Is called before the next video segment is downloaded. The quality according to VideoQuality.id that is returned will be downloaded next. Invalid IDs or null will result in a fallback to the ID provided in data.
+   *
+   * @platform Android
+   * @see https://cdn.bitmovin.com/player/android/3/docs/player-core/com.bitmovin.player.api.media.video.quality/-video-adaptation/on-video-adaptation.html
+   */
   onVideoAdaptation?: (data: VideoAdaptationData) => Promise<string>;
 }
 
