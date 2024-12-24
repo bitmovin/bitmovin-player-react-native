@@ -36,6 +36,7 @@ import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
+import com.bitmovin.player.api.media.video.quality.VideoAdaptationData
 import com.bitmovin.player.api.media.video.quality.VideoQuality
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
@@ -144,9 +145,15 @@ private fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (t
 /**
  * Converts an arbitrary `json` to `AdaptationConfig`.
  */
-private fun ReadableMap.toAdaptationConfig(): AdaptationConfig = AdaptationConfig().apply {
+fun ReadableMap.toAdaptationConfig(): AdaptationConfig = AdaptationConfig().apply {
     withInt("maxSelectableBitrate") { maxSelectableVideoBitrate = it }
     withInt("initialBandwidthEstimateOverride") { initialBandwidthEstimateOverride = it.toLong(); }
+}
+
+fun ReadableMap.toVideoAdaptationData(): VideoAdaptationData? {
+    return VideoAdaptationData(
+        getString("suggested") ?: return null,
+    )
 }
 
 /**
@@ -903,6 +910,10 @@ fun BufferLevel.toJson(): WritableMap = Arguments.createMap().apply {
 fun RNBufferLevels.toJson(): WritableMap = Arguments.createMap().apply {
     putMap("audio", audio.toJson())
     putMap("video", video.toJson())
+}
+
+fun VideoAdaptationData.toJson(): WritableMap = Arguments.createMap().apply {
+    putString("suggested", suggested)
 }
 
 /**

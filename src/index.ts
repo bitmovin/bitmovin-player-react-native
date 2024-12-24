@@ -1,4 +1,3 @@
-export * from './adaptationConfig';
 export * from './advertising';
 export * from './analytics';
 export * from './audioSession';
@@ -24,5 +23,6 @@ export * from './playerConfig';
 export * from './liveConfig';
 export * from './bufferApi';
 export * from './network';
+export * from './adaptation';
 export * from './mediaControlConfig';
 export * from './debug';
