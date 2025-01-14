@@ -28,22 +28,22 @@ export default function SubtitlePlayback() {
       player.load({
         url:
           Platform.OS === 'ios'
-            ? 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8'
-            : 'https://bitmovin-a.akamaihd.net/content/sintel/sintel.mpd',
+            ? 'https://cdn.bitmovin.com/content/assets/sintel/hls/playlist.m3u8'
+            : 'https://cdn.bitmovin.com/content/assets/sintel/sintel.mpd',
         type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
-        poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
+        poster: 'https://cdn.bitmovin.com/content/assets/sintel/poster.png',
         // External subtitle tracks to be added to the source.
         subtitleTracks: [
           // Add custom english subtitles. You can select 'Custom English (WebVTT)' in the subtitles menu.
           {
-            url: 'https://bitdash-a.akamaihd.net/content/sintel/subtitles/subtitles_en.vtt',
+            url: 'https://cdn.bitmovin.com/content/assets/sintel/subtitles/subtitles_en.vtt',
             label: 'Custom English (WebVTT)',
             language: 'en',
             format: SubtitleFormat.VTT,
           },
           // Add custom english subtitles. You can select 'Custom English (SRT)' in the subtitles menu.
           {
-            url: 'https://bitdash-a.akamaihd.net/content/sintel/subtitles/subtitles_en.srt',
+            url: 'https://cdn.bitmovin.com/content/assets/sintel/subtitles/subtitles_en.srt',
             label: 'Custom English (SRT)',
             language: 'en',
             format: SubtitleFormat.SRT,
