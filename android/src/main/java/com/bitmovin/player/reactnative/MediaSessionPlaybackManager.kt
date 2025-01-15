@@ -12,7 +12,7 @@ import com.facebook.react.bridge.*
 
 class MediaSessionPlaybackManager(val context: ReactApplicationContext) {
     private var serviceBinder: MediaSessionPlaybackService.ServiceBinder? = null
-    private lateinit var playerId: NativeId
+    private var playerId: NativeId? = null
     val player: Player?
         get() = serviceBinder?.player
 
@@ -24,7 +24,9 @@ class MediaSessionPlaybackManager(val context: ReactApplicationContext) {
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
-            destroy(playerId)
+            playerId?.let {
+                destroy(it)
+            }
         }
     }
 
@@ -38,13 +40,16 @@ class MediaSessionPlaybackManager(val context: ReactApplicationContext) {
     }
 
     fun destroy(nativeId: NativeId) {
-        if (nativeId != playerId) { return }
+        if (nativeId != playerId) {
+            return
+        }
         serviceBinder?.player = null
         serviceBinder = null
     }
 
     private fun getPlayer(
-        nativeId: NativeId = playerId,
+        nativeId: NativeId? = playerId,
         playerModule: PlayerModule? = context.playerModule,
-    ): Player = playerModule?.getPlayerOrNull(nativeId) ?: throw IllegalArgumentException("Invalid PlayerId $nativeId")
+    ): Player = nativeId?.let { playerModule?.getPlayerOrNull(nativeId) }
+        ?: throw IllegalArgumentException("Invalid PlayerId $nativeId")
 }
