@@ -14,10 +14,6 @@
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
 
-  // TODO: migrate to ExpoAppDelegateSubscriber
-  // Only needed if the offline feature is used
-  [BMPOfflineManager initializeOfflineManager];
-
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
@@ -62,11 +58,5 @@
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
 {
   return [super application:application didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
-}
-
-// TODO: migrate to ExpoAppDelegateSubscriber
-// Only needed if the offline feature is used
-- (void)application:(UIApplication *)application handleEventsForBackgroundURLSession:(NSString *)identifier completionHandler:(void (^)(void))completionHandler {
-  [[BMPOfflineManager sharedInstance] addCompletionHandler:completionHandler forIdentifier:identifier];
 }
 @end
