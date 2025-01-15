@@ -34,11 +34,29 @@
           "android": {
             "compileSdkVersion": 34,
             "targetSdkVersion": 34,
-            "buildToolsVersion": "34.0.0"
+            "buildToolsVersion": "34.0.0",
+            "extraMavenRepos": [
+              // TODO: add this to README?
+              {
+                "url": "https://artifacts.bitmovin.com/artifactory/public-releases"
+              }
+            ]
           },
           "ios": {
-            "deploymentTarget": "15.1"// TODO redo with SDK 51 and change to 14.0
+            "deploymentTarget": "15.1",// TODO: redo with SDK 51 and change to 14.0
+            // TODO: add this to README for casting support?
+            "extraIosPodDependency": [
+              {
+                "name": "google-cast-sdk",
+                "version": "4.8.1"
+              }
+            ]
           }
+        }
+      ],
+      ["../app.plugin.js",
+        {
+          "playerLicenseKey": "7e9c8483-ea84-423e-b675-19cf31dec43a"
         }
       ]
     ]
