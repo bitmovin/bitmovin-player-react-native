@@ -170,7 +170,7 @@ export default (spec: TestScope) => {
     spec.it('emits TimeChanged events', async () => {
       await startPlayerTest({}, async () => {
         await loadSourceConfig({
-          url: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
+          url: 'https://cdn.bitmovin.com/content/assets/MI201109210084/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
           type: SourceType.HLS,
         });
         await callPlayerAndExpectEvents((player) => {
