@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Android: App crashes when `mediaControlConfig.isEnabled` is set to `false` and the player gets destroyed
+
 ## [0.36.0] - 2024-12-20
 
 ### Changed
