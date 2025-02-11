@@ -1,12 +1,12 @@
 PODS:
-  - BitmovinAnalyticsCollector/BitmovinPlayer (3.9.0):
+  - BitmovinAnalyticsCollector/BitmovinPlayer (3.12.0):
     - BitmovinAnalyticsCollector/Core
     - BitmovinPlayerCore (~> 3.48)
-  - BitmovinAnalyticsCollector/Core (3.9.0)
-  - BitmovinPlayer (3.81.0):
+  - BitmovinAnalyticsCollector/Core (3.12.0)
+  - BitmovinPlayer (3.84.0):
     - BitmovinAnalyticsCollector/BitmovinPlayer (~> 3.0)
-    - BitmovinPlayerCore (= 3.81.0)
-  - BitmovinPlayerCore (3.81.0)
+    - BitmovinPlayerCore (= 3.84.0)
+  - BitmovinPlayerCore (3.84.0)
   - boost (1.83.0)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.73.4-0)
@@ -1049,7 +1049,7 @@ PODS:
     - React-logger (= 0.73.4-0)
     - React-perflogger (= 0.73.4-0)
   - RNBitmovinPlayer (0.37.0):
-    - BitmovinPlayer (= 3.81.0)
+    - BitmovinPlayer (= 3.84.0)
     - GoogleAds-IMA-iOS-SDK (= 3.23.0)
     - GoogleAds-IMA-tvOS-SDK (= 4.13.0)
     - React-Core
@@ -1244,9 +1244,9 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  BitmovinAnalyticsCollector: d08e0b13bcc32973370e0d71f2faa739561bac0a
-  BitmovinPlayer: 4dd87b63c192ceaa4b29db93a7c7430eece618dc
-  BitmovinPlayerCore: 63641d00a689efbca6fe97bb8f68aea91f303758
+  BitmovinAnalyticsCollector: a5192c8cbbbd400ff627d9ab73d35f6e3a06b65c
+  BitmovinPlayer: 8b2d29265342331ad98cac87917b5fd0f057d39e
+  BitmovinPlayerCore: 87135a781f609bdb0e4f08974a5e4e8ef9086f26
   boost: 88202336c3ba1e7a264a83c0c888784b0f360c28
   DoubleConversion: 74cb0ce4de271b23e772567504735c87134edf0a
   FBLazyVector: 33a271a7e8de0bd321e47356d8bc3b2d5fb9ddba
@@ -1301,7 +1301,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 20b2202e3396589a71069d12ae9f328949c7c7b8
   React-utils: 0307d396f233e47a167b5aaf045b0e4e1dc19d74
   ReactCommon: 17891ca337bfa5a7263649b09f27a8c664537bf2
-  RNBitmovinPlayer: 7a9b1b5e67cb39c9c2a35549ec5616e519a30291
+  RNBitmovinPlayer: 29dbacb2c90f09fdbf93b64c8615b6f94f94f7d1
   RNCPicker: b18aaf30df596e9b1738e7c1f9ee55402a229dca
   RNScreens: b582cb834dc4133307562e930e8fa914b8c04ef2
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
