@@ -28,11 +28,11 @@ extension NSError: JsonConvertible {
 
 extension DeficiencyData: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
-        var json: [AnyHashable: Any] = ["code": code, "message": message]
-        if let underlyingError {
-            json["underlyingError"] = underlyingError.toJSON()
-        }
-        return json
+        [
+            "code": code,
+            "message": message,
+            "underlyingError": underlyingError.toJSON()
+        ]
     }
 }
 
