@@ -184,7 +184,7 @@ private fun String.toForceReuseVideoCodecReason(): ForceReuseVideoCodecReason? =
  */
 fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     withDouble("timeChangedInterval") { timeChangedInterval = it }
-    withInt("bandwidthEstimateWeightLimit") { bandwidthEstimateWeightLimit = it }
+    // withMap("bandwidthMeterType") { bandwidthMeterType = it }
     withMap("devicesThatRequireSurfaceWorkaround") { devices ->
         val deviceNames = devices.withStringArray("deviceNames") {
             it.filterNotNull().map(::DeviceName)
@@ -208,6 +208,8 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
             .toSet()
     }
 }
+
+
 
 /**
  * Converts any JS object into an `AdvertisingConfig` object.

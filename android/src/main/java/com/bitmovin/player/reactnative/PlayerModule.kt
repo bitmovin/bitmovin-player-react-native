@@ -17,6 +17,12 @@ import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import java.security.InvalidParameterException
 
+import com.google.android.gms.net.CronetProviderInstaller
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.future.asCompletableFuture
+import org.chromium.net.CronetEngine
+import java.util.concurrent.Future
+
 private const val MODULE_NAME = "PlayerModule"
 
 @ReactModule(name = MODULE_NAME)
@@ -27,6 +33,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     private val players: Registry<Player> = mutableMapOf()
 
     val mediaSessionPlaybackManager = MediaSessionPlaybackManager(context)
+
+    private lateinit var cronetEngine: Future<CronetEngine?>
 
     /**
      * JS exported module name.
@@ -74,6 +82,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
             }
             return@resolveOnUiThread // key can be reused to access the same native instance (see NativeInstanceConfig)
         }
+        cronetEngine = loadCronet();
         val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()
         val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
@@ -84,6 +93,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         if (networkConfig != null) {
             playerConfig.networkConfig = networkConfig
         }
+
+        playerConfig.tweaksConfig.cronetEngine = cronetEngine
 
         players[nativeId] = if (analyticsConfig == null) {
             Player.create(context, playerConfig)
@@ -99,7 +110,22 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         if (enableMediaSession) {
             mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
         }
+
     }
+
+    private fun loadCronet(): Future<CronetEngine?> {
+        // See https://developer.android.com/codelabs/cronet#5
+        val result = CompletableDeferred<CronetEngine?>()
+        CronetProviderInstaller.installProvider(context).addOnCompleteListener {
+            if (it.isSuccessful) {
+                result.complete(CronetEngine.Builder(context).build())
+            } else {
+                Log.w("BitmovinPlayer", "Cronet provider installation failed, fallback to HTTP/1")
+                result.complete(null)
+            }
+        }
+        return result.asCompletableFuture()
+    }    
 
     /**
      * Load the source of the given [nativeId] with `config` options from JS.
