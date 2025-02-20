@@ -101,12 +101,12 @@ export default function BasicFullscreenHandling({
       player.load({
         url:
           Platform.OS === 'ios'
-            ? 'https://cdn.bitmovin.com/content/assets/MI201109210084/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
-            : 'https://cdn.bitmovin.com/content/assets/MI201109210084/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
+            ? 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
+            : 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
         type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
         title: 'Art of Motion',
         poster:
-          'https://cdn.bitmovin.com/content/assets/MI201109210084/poster.jpg',
+          'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/poster.jpg',
       });
       return () => {
         player.destroy();
