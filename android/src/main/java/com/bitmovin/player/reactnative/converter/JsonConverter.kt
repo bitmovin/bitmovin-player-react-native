@@ -5,6 +5,7 @@ import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.analytics.api.SourceMetadata
+import com.bitmovin.player.api.BandwidthMeterType
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.ForceReuseVideoCodecReason
 import com.bitmovin.player.api.PlaybackConfig
@@ -184,7 +185,11 @@ private fun String.toForceReuseVideoCodecReason(): ForceReuseVideoCodecReason? =
  */
 fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     withDouble("timeChangedInterval") { timeChangedInterval = it }
-    withInt("bandwidthEstimateWeightLimit") { bandwidthEstimateWeightLimit = it }
+    withInt("bandwidthEstimateWeightLimit") {
+        bandwidthMeterType = BandwidthMeterType.Default(
+            bandwidthEstimateWeightLimit = it,
+        )
+    }
     withMap("devicesThatRequireSurfaceWorkaround") { devices ->
         val deviceNames = devices.withStringArray("deviceNames") {
             it.filterNotNull().map(::DeviceName)
