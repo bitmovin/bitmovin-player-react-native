@@ -5,6 +5,7 @@ import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.analytics.api.SourceMetadata
+import com.bitmovin.player.api.BandwidthMeterType
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.ForceReuseVideoCodecReason
 import com.bitmovin.player.api.PlaybackConfig
@@ -19,7 +20,6 @@ import com.bitmovin.player.api.advertising.AdQuartile
 import com.bitmovin.player.api.advertising.AdSource
 import com.bitmovin.player.api.advertising.AdSourceType
 import com.bitmovin.player.api.advertising.AdvertisingConfig
-import com.bitmovin.player.api.BandwidthMeterType
 import com.bitmovin.player.api.buffer.BufferConfig
 import com.bitmovin.player.api.buffer.BufferLevel
 import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
@@ -187,7 +187,7 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     withDouble("timeChangedInterval") { timeChangedInterval = it }
     withInt("bandwidthEstimateWeightLimit") {
         bandwidthMeterType = BandwidthMeterType.Default(
-            bandwidthEstimateWeightLimit = it
+            bandwidthEstimateWeightLimit = it,
         )
     }
     withMap("devicesThatRequireSurfaceWorkaround") { devices ->
