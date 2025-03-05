@@ -5,12 +5,12 @@ import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.analytics.api.SourceMetadata
+import com.bitmovin.player.api.BandwidthMeterType
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.ForceReuseVideoCodecReason
 import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.TweaksConfig
-import com.bitmovin.player.api.BandwidthMeterType
 import com.bitmovin.player.api.advertising.Ad
 import com.bitmovin.player.api.advertising.AdBreak
 import com.bitmovin.player.api.advertising.AdConfig
@@ -209,8 +209,6 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
             .toSet()
     }
 }
-
-
 
 /**
  * Converts any JS object into an `AdvertisingConfig` object.
