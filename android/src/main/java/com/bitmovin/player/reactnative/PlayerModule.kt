@@ -15,12 +15,11 @@ import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.mapToReactArray
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
-import java.security.InvalidParameterException
-
 import com.google.android.gms.net.CronetProviderInstaller
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.future.asCompletableFuture
 import org.chromium.net.CronetEngine
+import java.security.InvalidParameterException
 import java.util.concurrent.Future
 
 private const val MODULE_NAME = "PlayerModule"
@@ -34,7 +33,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
 
     val mediaSessionPlaybackManager = MediaSessionPlaybackManager(context)
 
-    private lateinit var cronetEngine: Future<CronetEngine?>
+    // Ensure the same cronetEngine is used for all player instances
+    private val cronetEngine = lazy { loadCronet() }
 
     /**
      * JS exported module name.
@@ -82,7 +82,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
             }
             return@resolveOnUiThread // key can be reused to access the same native instance (see NativeInstanceConfig)
         }
-        cronetEngine = loadCronet();
+        cronetEngine = loadCronet()
         val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()
         val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
         val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
@@ -110,7 +110,6 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         if (enableMediaSession) {
             mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
         }
-
     }
 
     private fun loadCronet(): Future<CronetEngine?> {
@@ -125,7 +124,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
             }
         }
         return result.asCompletableFuture()
-    }    
+    }
 
     /**
      * Load the source of the given [nativeId] with `config` options from JS.
