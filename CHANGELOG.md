@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+
+- `CueEnterEvent.imageUri` and `CueExitEvent.imageUri` to expose the Base64 encoded image data URI of the cue when available
 
 ## [0.38.0] - 2025-02-28
 
