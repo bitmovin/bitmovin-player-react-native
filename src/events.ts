@@ -756,7 +756,7 @@ export interface CueExitEvent extends Event {
    */
   text?: string;
   /**
-   * Base64 encoded PNG image data for the subtitle.
+   * Data URI for image data of this subtitle.
    */
   image?: string;
 }
