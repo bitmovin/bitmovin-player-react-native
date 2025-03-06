@@ -508,14 +508,14 @@ fun PlayerEvent.toJson(): WritableMap {
             json.putDouble("start", start)
             json.putDouble("end", end)
             json.putString("text", text)
-            json.putString("imageUri", image?.toBase64DataUri())
+            json.putString("image", image?.toBase64DataUri())
         }
 
         is PlayerEvent.CueExit -> {
             json.putDouble("start", start)
             json.putDouble("end", end)
             json.putString("text", text)
-            json.putString("imageUri", image?.toBase64DataUri())
+            json.putString("image", image?.toBase64DataUri())
         }
 
         else -> {

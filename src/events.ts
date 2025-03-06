@@ -736,7 +736,7 @@ export interface CueEnterEvent extends Event {
   /**
    * Data URI for image data of this subtitle.
    */
-  imageUri?: string;
+  image?: string;
 }
 
 /**

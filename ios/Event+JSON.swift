@@ -423,7 +423,7 @@ extension CueEnterEvent: JsonConvertible {
                 "text": text,
             ]
             if let imagePngData = image?.pngData() {
-                json["imageUri"] = "data:image/png;base64,\(imagePngData.base64EncodedString())"
+                json["image"] = "data:image/png;base64,\(imagePngData.base64EncodedString())"
             }
             return json
         }
