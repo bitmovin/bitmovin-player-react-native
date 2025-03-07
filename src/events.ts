@@ -733,6 +733,10 @@ export interface CueEnterEvent extends Event {
    * The textual content of this subtitle.
    */
   text?: string;
+  /**
+   * Data URI for image data of this subtitle.
+   */
+  image?: string;
 }
 
 /**
@@ -751,4 +755,8 @@ export interface CueExitEvent extends Event {
    * The textual content of this subtitle.
    */
   text?: string;
+  /**
+   * Data URI for image data of this subtitle.
+   */
+  image?: string;
 }

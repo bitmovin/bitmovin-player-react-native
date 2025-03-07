@@ -69,6 +69,7 @@ import com.bitmovin.player.reactnative.extensions.putBoolean
 import com.bitmovin.player.reactnative.extensions.putDouble
 import com.bitmovin.player.reactnative.extensions.putInt
 import com.bitmovin.player.reactnative.extensions.set
+import com.bitmovin.player.reactnative.extensions.toBase64DataUri
 import com.bitmovin.player.reactnative.extensions.toMap
 import com.bitmovin.player.reactnative.extensions.toMapList
 import com.bitmovin.player.reactnative.extensions.toReadableMap
@@ -507,12 +508,14 @@ fun PlayerEvent.toJson(): WritableMap {
             json.putDouble("start", start)
             json.putDouble("end", end)
             json.putString("text", text)
+            json.putString("image", image?.toBase64DataUri())
         }
 
         is PlayerEvent.CueExit -> {
             json.putDouble("start", start)
             json.putDouble("end", end)
             json.putString("text", text)
+            json.putString("image", image?.toBase64DataUri())
         }
 
         else -> {
