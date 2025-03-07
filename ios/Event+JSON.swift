@@ -417,11 +417,15 @@ extension PlaybackSpeedChangedEvent: JsonConvertible {
 extension CueEnterEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
         toEventJSON {
-            [
+            var json: [AnyHashable: Any] = [
                 "start": startTime,
                 "end": endTime,
-                "text": text
+                "text": text,
             ]
+            if let imagePngData = image?.pngData() {
+                json["image"] = "data:image/png;base64,\(imagePngData.base64EncodedString())"
+            }
+            return json
         }
     }
 }
@@ -429,11 +433,15 @@ extension CueEnterEvent: JsonConvertible {
 extension CueExitEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
         toEventJSON {
-            [
+            var json: [AnyHashable: Any] = [
                 "start": startTime,
                 "end": endTime,
-                "text": text
+                "text": text,
             ]
+            if let imagePngData = image?.pngData() {
+                json["image"] = "data:image/png;base64,\(imagePngData.base64EncodedString())"
+            }
+            return json
         }
     }
 }
