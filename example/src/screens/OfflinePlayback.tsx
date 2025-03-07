@@ -48,10 +48,10 @@ const initialDownloadRequest: OfflineDownloadRequest = {
 
 const STABLE_CONTENT_IDENTIFIER = 'sintel-content-id';
 const sourceConfig: SourceConfig = {
-  url: 'https://cdn.bitmovin.com/content/assets/sintel/hls/playlist.m3u8',
+  url: 'https://cdn.bitmovin.com/content/internal/assets/sintel/hls/playlist.m3u8',
   type: SourceType.HLS,
   title: 'Sintel',
-  poster: 'https://cdn.bitmovin.com/content/assets/sintel/poster.png',
+  poster: 'https://cdn.bitmovin.com/content/internal/assets/sintel/poster.png',
 };
 
 export default function OfflinePlayback() {

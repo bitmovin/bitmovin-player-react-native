@@ -46,10 +46,11 @@ export default function ProgrammaticTrackSelection() {
       player.load({
         url:
           Platform.OS === 'ios'
-            ? 'https://cdn.bitmovin.com/content/assets/sintel/hls/playlist.m3u8'
-            : 'https://cdn.bitmovin.com/content/assets/sintel/sintel.mpd',
+            ? 'https://cdn.bitmovin.com/content/internal/assets/sintel/hls/playlist.m3u8'
+            : 'https://cdn.bitmovin.com/content/internal/assets/sintel/sintel.mpd',
         type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
-        poster: 'https://cdn.bitmovin.com/content/assets/sintel/poster.png',
+        poster:
+          'https://cdn.bitmovin.com/content/internal/assets/sintel/poster.png',
       });
       return () => {
         player.destroy();
