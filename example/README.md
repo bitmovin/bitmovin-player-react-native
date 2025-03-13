@@ -31,6 +31,13 @@ cd bitmovin-player-react-native # Go to library's root directory
 yarn bootstrap # Install all dependencies
 ```
 
+Note: Windows users should instead run:
+```cmd
+cd bitmovin-player-react-native # Go to library's root directory
+yarn install # Install root project dependencies
+yarn example install # Install example folder dependencies
+```
+
 ## Configuring your license key
 
 Before running the application, make sure to set up your Bitmovin's license key in the native metadata file of each platform:
