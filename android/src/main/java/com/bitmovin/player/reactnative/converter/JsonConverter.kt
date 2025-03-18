@@ -25,6 +25,10 @@ import com.bitmovin.player.api.buffer.BufferLevel
 import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
 import com.bitmovin.player.api.buffer.BufferType
 import com.bitmovin.player.api.casting.RemoteControlConfig
+import com.bitmovin.player.api.decoder.DecoderConfig
+import com.bitmovin.player.api.decoder.DecoderPriorityProvider
+import com.bitmovin.player.api.decoder.DecoderPriorityProvider.DecoderContext
+import com.bitmovin.player.api.decoder.MediaCodecInfo
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
@@ -945,3 +949,19 @@ private fun CastPayload.toJson(): WritableMap = Arguments.createMap().apply {
 }
 
 private fun WritableMap.putStringIfNotNull(name: String, value: String?) = value?.let { putString(name, value) }
+
+fun DecoderContext.toJson(): ReadableMap = Arguments.createMap().apply {
+    putString("mediaType", mediaType.name)
+    putBoolean("isAd", isAd)
+}
+
+fun List<MediaCodecInfo>.toJson() : ReadableArray = Arguments.createArray().apply {
+    forEach {
+        pushMap(it.toJson())
+    }
+}
+
+fun MediaCodecInfo.toJson(): ReadableMap = Arguments.createMap().apply {
+    putString("name", name)
+    putBoolean("isSoftware", isSoftware)
+}

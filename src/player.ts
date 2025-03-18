@@ -13,6 +13,7 @@ import { VideoQuality } from './media';
 import { Network } from './network';
 
 const PlayerModule = NativeModules.PlayerModule;
+const DecoderConfigModule = NativeModules.DecoderConfigModule;
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -73,6 +74,11 @@ export class Player extends NativeInstance<PlayerConfig> {
           this.network?.nativeId
         );
       }
+
+      if (this.config?.playbackConfig?.decoderConfig) {
+        DecoderConfigModule.initWithConfig(this.nativeId, this.config);
+      }
+
       this.isInitialized = true;
     }
   };

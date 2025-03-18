@@ -4,7 +4,7 @@
  @platform Android
  */
 export interface DecoderConfig {
-  decoderPriorityProvider?: DecoderPriorityProvider;
+  decoderPriorityProvider?: DecoderPriorityProvider | null;
 }
 
 /**
@@ -13,10 +13,10 @@ export interface DecoderConfig {
  @platform Android
  */
 export interface DecoderPriorityProvider {
-  overrideDecodersPriority(
+  overrideDecodersPriority: (
     context: DecoderContext,
-    preferredDecoders: [MediaCodecInfo]
-  ): [MediaCodecInfo];
+    preferredDecoders: MediaCodecInfo[]
+  ) => MediaCodecInfo[];
 }
 
 /** The context in which a new decoder is chosen. */
