@@ -15,6 +15,6 @@ export const AdTags = {
     'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/ad_rule_samples&ciu_szs=300x250&ad_rule=1&impl=s&gdfp_req=1&env=vp&output=vmap&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ar%3Dpremidpost&cmsid=496&vid=short_onecue&correlator='
   ),
   progressive:
-    'https://cdn.bitmovin.com/content/assets/testing/ads/testad2s.mp4',
+    'https://cdn.bitmovin.com/content/internal/assets/testing/ads/testad2s.mp4',
   error: withCorrelator('https://mock.codes/404?correlator='),
 };
