@@ -1,9 +1,11 @@
+import { NativeInstanceConfig } from '../nativeInstance';
+
 /**
  * Configures the playback behaviour of the player.
  *
  @platform Android
  */
-export interface DecoderConfig {
+export interface DecoderConfig extends NativeInstanceConfig {
   decoderPriorityProvider?: DecoderPriorityProvider | null;
 }
 
@@ -31,6 +33,6 @@ export interface MediaCodecInfo {
 }
 
 export enum DecoderContextMediaType {
-  AUDIO = 'audio',
-  VIDEO = 'video',
+  AUDIO = 'Audio',
+  VIDEO = 'Video',
 }

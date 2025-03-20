@@ -11,9 +11,9 @@ import { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
 import { VideoQuality } from './media';
 import { Network } from './network';
+import { DecoderConfigBridge } from './decoder';
 
 const PlayerModule = NativeModules.PlayerModule;
-const DecoderConfigModule = NativeModules.DecoderConfigModule;
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -26,6 +26,8 @@ const DecoderConfigModule = NativeModules.DecoderConfigModule;
  */
 export class Player extends NativeInstance<PlayerConfig> {
   private network?: Network;
+
+  private decoderConfig?: DecoderConfigBridge;
   /**
    * Currently active source, or `null` if none is active.
    */
@@ -58,12 +60,19 @@ export class Player extends NativeInstance<PlayerConfig> {
         this.network = new Network(this.config.networkConfig);
         this.network.initialize();
       }
+      if (this.config?.playbackConfig?.decoderConfig) {
+        this.decoderConfig = new DecoderConfigBridge(
+          this.config.playbackConfig.decoderConfig
+        );
+        this.decoderConfig.initialize();
+      }
       const analyticsConfig = this.config?.analyticsConfig;
       if (analyticsConfig) {
         PlayerModule.initWithAnalyticsConfig(
           this.nativeId,
           this.config,
           this.network?.nativeId,
+          this.decoderConfig?.nativeId,
           analyticsConfig
         );
         this.analytics = new AnalyticsApi(this.nativeId);
@@ -71,12 +80,9 @@ export class Player extends NativeInstance<PlayerConfig> {
         PlayerModule.initWithConfig(
           this.nativeId,
           this.config,
-          this.network?.nativeId
+          this.network?.nativeId,
+          this.decoderConfig?.nativeId
         );
-      }
-
-      if (this.config?.playbackConfig?.decoderConfig) {
-        DecoderConfigModule.initWithConfig(this.nativeId, this.config);
       }
 
       this.isInitialized = true;
@@ -91,6 +97,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       PlayerModule.destroy(this.nativeId);
       this.source?.destroy();
       this.network?.destroy();
+      this.decoderConfig?.destroy();
       this.isDestroyed = true;
     }
   };

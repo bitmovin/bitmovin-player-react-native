@@ -4,7 +4,7 @@ import com.bitmovin.player.api.decoder.DecoderConfig
 import com.bitmovin.player.api.decoder.DecoderPriorityProvider
 import com.bitmovin.player.api.decoder.MediaCodecInfo
 import com.bitmovin.player.reactnative.converter.toJson
-import com.bitmovin.player.reactnative.extensions.getModule
+import com.bitmovin.player.reactnative.converter.toMediaCodecInfo
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import java.util.concurrent.locks.ReentrantLock
@@ -18,7 +18,8 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
     /**
      * In-memory mapping from `nativeId`s to `DecoderConfig` instances.
      */
-    private val decoderConfigs: Registry<DecoderConfigBridge> = mutableMapOf()
+    private val decoderConfigs: Registry<DecoderConfig> = mutableMapOf()
+    private val decoderPriorityProviderResponses: Registry<List<MediaCodecInfo>> = mutableMapOf()
 
     /**
      * Module's local lock object used to sync calls between Kotlin and JS.
@@ -32,29 +33,38 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
 
     override fun getName() = MODULE_NAME
 
+    fun getConfig(nativeId: NativeId?): DecoderConfig? = nativeId?.let { decoderConfigs[it] }
+
     @ReactMethod
     fun initWithConfig(nativeId: NativeId, config: ReadableMap, promise: Promise) {
-        promise.unit.resolveOnUiThread {
-            if (decoderConfigs.containsKey(nativeId)) {
-                return@resolveOnUiThread
-            }
-            if (config.getMap("playbackConfig")?.hasKey("decoderConfig") == false) {
-                return@resolveOnUiThread
-            }
-
-            val decoderConfig = DecoderConfig(
-                decoderPriorityProvider = { context, preferredDecoders ->
-                    overrideDecoderPriorityProvider(nativeId, context, preferredDecoders)
-                },
-            )
-            val decoderBridge = DecoderConfigBridge(context, nativeId, decoderConfig)
-            decoderConfigs[nativeId] = decoderBridge
+        if (decoderConfigs.containsKey(nativeId)) {
+            return
         }
+        if (config.getMap("playbackConfig")?.hasKey("decoderConfig") == false) {
+            return
+        }
+
+        val decoderConfig = DecoderConfig(
+            decoderPriorityProvider = object : DecoderPriorityProvider {
+                override fun overrideDecodersPriority(
+                    context: DecoderPriorityProvider.DecoderContext,
+                    preferredDecoders: List<MediaCodecInfo>,
+                ): List<MediaCodecInfo> {
+                    return overrideDecoderPriorityProvider(nativeId, context, preferredDecoders)
+                }
+            },
+        )
+        decoderConfigs[nativeId] = decoderConfig
     }
 
     @ReactMethod
     fun destroy(nativeId: NativeId) {
         decoderConfigs.remove(nativeId)
+        decoderPriorityProviderResponses.keys.filter {
+            it.startsWith(nativeId)
+        }.forEach {
+            decoderPriorityProviderResponses.remove(it)
+        }
     }
 
     fun overrideDecoderPriorityProvider(
@@ -62,12 +72,7 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
         context: DecoderPriorityProvider.DecoderContext,
         preferredDecoders: List<MediaCodecInfo>,
     ): List<MediaCodecInfo> {
-
-        val bridge = decoderConfigs[nativeId] ?: return preferredDecoders
-
-        val requestId = "$nativeId@${System.identityHashCode(context)}@${System.identityHashCode(preferredDecoders)}"
         val args = Arguments.createArray()
-        args.pushString(requestId)
         args.pushMap(context.toJson())
         args.pushArray(preferredDecoders.toJson())
 
@@ -77,40 +82,22 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
             args as NativeArray,
         )
 
+        var response: List<MediaCodecInfo>? = null
         lock.withLock {
-            decoderOrderedCondition.await()
+            while (response == null) {
+                decoderOrderedCondition.await()
+                response = decoderPriorityProviderResponses[nativeId]
+            }
         }
 
-        return bridge.preferredDecodersPriority
+        return response!!
     }
 
     @ReactMethod
-    fun overrideDecoderPriorityProviderComplete(nativeId: NativeId, preferredDecodersPriority: List<MediaCodecInfo>) {
-        decoderConfigs[nativeId]?.preferredDecodersPriority = preferredDecodersPriority
+    fun overrideDecoderPriorityProviderComplete(nativeId: NativeId, response: ReadableArray) {
+        decoderPriorityProviderResponses[nativeId] = response.toMediaCodecInfo()
         lock.withLock {
             decoderOrderedCondition.signal()
         }
-    }
-}
-
-private class DecoderConfigBridge(
-    private val context: ReactApplicationContext,
-    private val nativeId: NativeId,
-    var config: DecoderConfig,
-) : DecoderPriorityProvider {
-
-    var preferredDecodersPriority: List<MediaCodecInfo> = emptyList()
-
-    override fun overrideDecodersPriority(
-        context: DecoderPriorityProvider.DecoderContext,
-        preferredDecoders: List<MediaCodecInfo>,
-    ): List<MediaCodecInfo> {
-        return this.context.getModule<DecoderConfigModule>()
-            ?.overrideDecoderPriorityProvider(
-                nativeId,
-                context,
-                preferredDecoders,
-            )
-            ?: preferredDecoders
     }
 }

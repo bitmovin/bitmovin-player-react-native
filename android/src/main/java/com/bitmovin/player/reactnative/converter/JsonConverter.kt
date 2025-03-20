@@ -25,8 +25,6 @@ import com.bitmovin.player.api.buffer.BufferLevel
 import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
 import com.bitmovin.player.api.buffer.BufferType
 import com.bitmovin.player.api.casting.RemoteControlConfig
-import com.bitmovin.player.api.decoder.DecoderConfig
-import com.bitmovin.player.api.decoder.DecoderPriorityProvider
 import com.bitmovin.player.api.decoder.DecoderPriorityProvider.DecoderContext
 import com.bitmovin.player.api.decoder.MediaCodecInfo
 import com.bitmovin.player.api.drm.WidevineConfig
@@ -955,7 +953,7 @@ fun DecoderContext.toJson(): ReadableMap = Arguments.createMap().apply {
     putBoolean("isAd", isAd)
 }
 
-fun List<MediaCodecInfo>.toJson() : ReadableArray = Arguments.createArray().apply {
+fun List<MediaCodecInfo>.toJson(): ReadableArray = Arguments.createArray().apply {
     forEach {
         pushMap(it.toJson())
     }
@@ -964,4 +962,18 @@ fun List<MediaCodecInfo>.toJson() : ReadableArray = Arguments.createArray().appl
 fun MediaCodecInfo.toJson(): ReadableMap = Arguments.createMap().apply {
     putString("name", name)
     putBoolean("isSoftware", isSoftware)
+}
+
+fun ReadableArray.toMediaCodecInfo(): List<MediaCodecInfo> {
+    if (size() <= 0) {
+        return emptyList()
+    }
+    val mediaCodecInfoList = mutableListOf<MediaCodecInfo>()
+    (0 until size()).forEach {
+        val element = getMap(it)
+        val name = element.getString("name") ?: return@forEach
+        val isSoftware = element.getBooleanOrNull("isSoftware") ?: return@forEach
+        mediaCodecInfoList.add(MediaCodecInfo(name, isSoftware))
+    }
+    return mediaCodecInfoList
 }
