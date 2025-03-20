@@ -30,7 +30,7 @@ export default function SystemUI() {
   useFocusEffect(
     useCallback(() => {
       player.load({
-        url: 'https://cdn.bitmovin.com/content/assets/sintel/hls/playlist.m3u8',
+        url: 'https://cdn.bitmovin.com/content/internal/assets/sintel/hls/playlist.m3u8',
         type: SourceType.HLS,
         title: 'Sintel',
       });
