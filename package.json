@@ -1,6 +1,6 @@
 {
   "name": "bitmovin-player-react-native",
-  "version": "0.38.0",
+  "version": "0.40.0",
   "description": "Official React Native bindings for Bitmovin's mobile Player SDKs.",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
@@ -39,7 +39,7 @@
     "bootstrap": "yarn bootstrap:example && yarn bootstrap:integration-test",
     "bootstrap:example": "yarn && yarn example && yarn example pods && yarn brew",
     "bootstrap:integration-test": "yarn && yarn integration-test && yarn integration-test pods && yarn brew",
-    "brew": "[ \"$(uname)\" != Darwin ] || brew bundle install --no-lock",
+    "brew": "[ \"$(uname)\" != Darwin ] || brew bundle install",
     "prepare": "husky install",
     "docs": "typedoc"
   },

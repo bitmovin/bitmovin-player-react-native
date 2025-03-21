@@ -18,7 +18,7 @@ const source: SourceConfig = {
   url:
     Platform.OS === 'ios'
       ? 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8'
-      : 'https://cdn.bitmovin.com/content/assets/art-of-motion_drm/mpds/11331.mpd',
+      : 'https://cdn.bitmovin.com/content/internal/assets/art-of-motion_drm/mpds/11331.mpd',
   type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
   drmConfig: {
     // Android only.

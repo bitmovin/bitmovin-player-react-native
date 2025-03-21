@@ -1,7 +1,17 @@
 # Changelog
 
-## [Unreleased]
+## [0.40.0] - 2025-03-20
 
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.104.2`
+- Update Bitmovin's native iOS SDK version to `3.85.2`
+
+## [0.39.0] - 2025-03-07
+
+### Added
+
+- `CueEnterEvent.image` and `CueExitEvent.image` to expose the Base64 encoded image data URI of the cue when available
 
 ## [0.38.0] - 2025-02-28
 
