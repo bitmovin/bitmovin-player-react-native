@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Android: `DecoderConfig` as part of `PlaybackConfig.decoderConfig` to select the preferred decoder.
+
 ## [0.40.0] - 2025-03-20
 
 ### Changed
