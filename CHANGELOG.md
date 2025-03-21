@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update IMA SDK dependency on Android to `3.35.1`
+
 ## [0.40.0] - 2025-03-20
 
 ### Changed
