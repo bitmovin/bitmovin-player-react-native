@@ -60,12 +60,7 @@ export class Player extends NativeInstance<PlayerConfig> {
         this.network = new Network(this.config.networkConfig);
         this.network.initialize();
       }
-      if (this.config?.playbackConfig?.decoderConfig) {
-        this.decoderConfig = new DecoderConfigBridge(
-          this.config.playbackConfig.decoderConfig
-        );
-        this.decoderConfig.initialize();
-      }
+      this.initDecoderConfig();
       const analyticsConfig = this.config?.analyticsConfig;
       if (analyticsConfig) {
         PlayerModule.initWithAnalyticsConfig(
@@ -519,5 +514,22 @@ export class Player extends NativeInstance<PlayerConfig> {
       return undefined;
     }
     return PlayerModule.canPlayAtPlaybackSpeed(this.nativeId, playbackSpeed);
+  };
+
+  initDecoderConfig = () => {
+    if (this.config?.playbackConfig?.decoderConfig == null) {
+      return;
+    }
+
+    if (Platform.OS === 'ios') {
+      console.warn(
+        `[Player ${this.nativeId}] config: PlaybackConfig.DecoderConfig is not available for iOS. Only Android devices.`
+      );
+      return;
+    }
+    this.decoderConfig = new DecoderConfigBridge(
+      this.config.playbackConfig.decoderConfig
+    );
+    this.decoderConfig.initialize();
   };
 }
