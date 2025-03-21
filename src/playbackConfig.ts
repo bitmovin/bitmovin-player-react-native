@@ -86,5 +86,5 @@ export interface PlaybackConfig {
    *
    * @platform Android
    */
-  decoderConfig: DecoderConfig;
+  decoderConfig?: DecoderConfig;
 }
