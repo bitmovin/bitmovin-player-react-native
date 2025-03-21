@@ -43,8 +43,21 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      * @param config `PlayerConfig` object received from JS.
      */
     @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, networkNativeId: NativeId?, promise: Promise) {
-        init(nativeId, config, networkNativeId = networkNativeId, analyticsConfigJson = null, promise)
+    fun initWithConfig(
+        nativeId: NativeId,
+        config: ReadableMap?,
+        networkNativeId: NativeId?,
+        decoderNativeId: NativeId?,
+        promise: Promise,
+    ) {
+        init(
+            nativeId,
+            config,
+            networkNativeId = networkNativeId,
+            decoderNativeId = decoderNativeId,
+            analyticsConfigJson = null,
+            promise,
+        )
     }
 
     /**
@@ -57,14 +70,23 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         nativeId: NativeId,
         playerConfigJson: ReadableMap?,
         networkNativeId: NativeId?,
+        decoderNativeId: NativeId?,
         analyticsConfigJson: ReadableMap,
         promise: Promise,
-    ) = init(nativeId, playerConfigJson, networkNativeId, analyticsConfigJson, promise)
+    ) = init(
+        nativeId,
+        playerConfigJson,
+        networkNativeId,
+        decoderNativeId,
+        analyticsConfigJson,
+        promise,
+    )
 
     private fun init(
         nativeId: NativeId,
         playerConfigJson: ReadableMap?,
         networkNativeId: NativeId?,
+        decoderNativeId: NativeId?,
         analyticsConfigJson: ReadableMap?,
         promise: Promise,
     ) = promise.unit.resolveOnUiThread {
@@ -83,6 +105,11 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
         if (networkConfig != null) {
             playerConfig.networkConfig = networkConfig
+        }
+
+        val decoderConfig = decoderNativeId?.let { decoderConfigModule.getConfig(it) }
+        if (decoderConfig != null) {
+            playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = decoderConfig)
         }
 
         players[nativeId] = if (analyticsConfig == null) {

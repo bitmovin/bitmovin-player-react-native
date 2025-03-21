@@ -1,3 +1,5 @@
+import { DecoderConfig } from './decoder/decoderConfig';
+
 /**
  * Configures the playback behaviour of the player.
  */
@@ -78,4 +80,11 @@ export interface PlaybackConfig {
    * @deprecated Use {@link PictureInPictureConfig.isEnabled} instead.
    */
   isPictureInPictureEnabled?: boolean;
+
+  /**
+   * Configures decoder behaviour.
+   *
+   * @platform Android
+   */
+  decoderConfig?: DecoderConfig;
 }

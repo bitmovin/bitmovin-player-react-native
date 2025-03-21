@@ -175,13 +175,6 @@ export interface TweaksConfig {
    */
   useFiletypeExtractorFallbackForHls?: boolean;
   /**
-   * Specifies whether the player should prefer software decoding over hardware decoding for ad playback.
-   * This only affects ads playback, the player will still prefer hardware decoding for the main content.
-   *
-   * @platform Android
-   */
-  preferSoftwareDecodingForAds?: boolean;
-  /**
    * Determines whether `AVKit` should update Now Playing information automatically when using System UI.
    *
    * - If set to `false`, the automatic updates of Now Playing Info sent by `AVKit` are disabled.

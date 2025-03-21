@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Android: `DecoderConfig` as part of `PlaybackConfig.decoderConfig` to select the preferred decoder.
+
 ### Changed
 
 - Update IMA SDK dependency on Android to `3.35.1`
