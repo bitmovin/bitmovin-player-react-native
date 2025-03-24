@@ -520,13 +520,10 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (this.config?.playbackConfig?.decoderConfig == null) {
       return;
     }
-
     if (Platform.OS === 'ios') {
-      console.warn(
-        `[Player ${this.nativeId}] config: PlaybackConfig.DecoderConfig is not available for iOS. Only Android devices.`
-      );
       return;
     }
+
     this.decoderConfig = new DecoderConfigBridge(
       this.config.playbackConfig.decoderConfig
     );
