@@ -26,7 +26,7 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
     private val lock = ReentrantLock()
 
     /**
-     *  Lock condition used to sync operations on the fullscreen handler.
+     *  Lock condition used to sync operations DecoderConfig callback.
      */
     private val decoderOrderedCondition = lock.newCondition()
 

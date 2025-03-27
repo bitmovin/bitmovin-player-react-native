@@ -6,7 +6,7 @@ import NativeInstance from '../nativeInstance';
 const DecoderConfigModule = NativeModules.DecoderConfigModule;
 
 /**
- * Takes care of JS/Native communication for a FullscreenHandler.
+ * Takes care of JS/Native communication for a `DecoderConfig`.
  */
 export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
   constructor(decoderConfig: DecoderConfig) {
@@ -24,8 +24,6 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
 
   initialize() {
     if (!this.isInitialized) {
-      // Register this object as a callable module so it's possible to
-      // call functions on it from native code, e.g `onPreprocessHttpResponse`.
       BatchedBridge.registerCallableModule(
         `DecoderConfigBridge-${this.nativeId}`,
         this
@@ -37,7 +35,7 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
   }
 
   /**
-   * Destroys the native FullscreenHandler
+   * Destroys the native `DecoderConfig`
    */
   destroy() {
     if (!this.isDestroyed) {
