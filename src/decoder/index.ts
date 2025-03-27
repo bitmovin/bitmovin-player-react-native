@@ -56,7 +56,7 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
       this.config?.decoderPriorityProvider?.overrideDecodersPriority(
         context,
         preferredDecoders
-      ) ?? [];
+      ) ?? preferredDecoders;
 
     DecoderConfigModule.overrideDecoderPriorityProviderComplete(
       this.nativeId,
