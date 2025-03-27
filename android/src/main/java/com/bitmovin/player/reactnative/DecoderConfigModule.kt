@@ -4,7 +4,7 @@ import com.bitmovin.player.api.decoder.DecoderConfig
 import com.bitmovin.player.api.decoder.DecoderPriorityProvider
 import com.bitmovin.player.api.decoder.MediaCodecInfo
 import com.bitmovin.player.reactnative.converter.toJson
-import com.bitmovin.player.reactnative.converter.toMediaCodecInfo
+import com.bitmovin.player.reactnative.converter.toMediaCodecInfoList
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import java.util.concurrent.locks.ReentrantLock
@@ -94,7 +94,7 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
 
     @ReactMethod
     fun overrideDecoderPriorityProviderComplete(nativeId: NativeId, response: ReadableArray) {
-        decoderPriorityProviderResponses[nativeId] = response.toMediaCodecInfo()
+        decoderPriorityProviderResponses[nativeId] = response.toMediaCodecInfoList()
         lock.withLock {
             decoderOrderedCondition.signal()
         }

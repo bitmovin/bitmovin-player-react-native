@@ -967,7 +967,7 @@ fun MediaCodecInfo.toJson(): ReadableMap = Arguments.createMap().apply {
     putBoolean("isSoftware", isSoftware)
 }
 
-fun ReadableArray.toMediaCodecInfo(): List<MediaCodecInfo> {
+fun ReadableArray.toMediaCodecInfoList(): List<MediaCodecInfo> {
     if (size() <= 0) {
         return emptyList()
     }
