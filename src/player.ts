@@ -60,7 +60,7 @@ export class Player extends NativeInstance<PlayerConfig> {
         this.network = new Network(this.config.networkConfig);
         this.network.initialize();
       }
-      this.initDecoderConfig();
+      this.maybeInitDecoderConfig();
       const analyticsConfig = this.config?.analyticsConfig;
       if (analyticsConfig) {
         PlayerModule.initWithAnalyticsConfig(
@@ -516,7 +516,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     return PlayerModule.canPlayAtPlaybackSpeed(this.nativeId, playbackSpeed);
   };
 
-  private initDecoderConfig = () => {
+  private maybeInitDecoderConfig = () => {
     if (this.config?.playbackConfig?.decoderConfig == null) {
       return;
     }
