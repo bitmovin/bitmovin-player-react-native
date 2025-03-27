@@ -25,13 +25,6 @@ const PlayerModule = NativeModules.PlayerModule;
  * @see PlayerView
  */
 export class Player extends NativeInstance<PlayerConfig> {
-  private network?: Network;
-
-  private decoderConfig?: DecoderConfigBridge;
-  /**
-   * Currently active source, or `null` if none is active.
-   */
-  source?: Source;
   /**
    * Whether the native `Player` object has been created.
    */
@@ -40,6 +33,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Whether the native `Player` object has been disposed.
    */
   isDestroyed = false;
+  /**
+   * Currently active source, or `null` if none is active.
+   */
+  source?: Source;
   /**
    * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.
    *
@@ -51,6 +48,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   buffer: BufferApi = new BufferApi(this.nativeId);
 
+  private network?: Network;
+
+  private decoderConfig?: DecoderConfigBridge;
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
