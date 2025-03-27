@@ -973,10 +973,14 @@ fun ReadableArray.toMediaCodecInfoList(): List<MediaCodecInfo> {
     }
     val mediaCodecInfoList = mutableListOf<MediaCodecInfo>()
     (0 until size()).forEach {
-        val element = getMap(it)
-        val name = element.getString("name") ?: return@forEach
-        val isSoftware = element.getBooleanOrNull("isSoftware") ?: return@forEach
-        mediaCodecInfoList.add(MediaCodecInfo(name, isSoftware))
+        val info = getMap(it).toMediaCodecInfo() ?: return@forEach
+        mediaCodecInfoList.add(info)
     }
     return mediaCodecInfoList
+}
+
+fun ReadableMap.toMediaCodecInfo(): MediaCodecInfo? {
+    val name = getString("name") ?: return null
+    val isSoftware = getBooleanOrNull("isSoftware") ?: return null
+    return MediaCodecInfo(name, isSoftware)
 }
