@@ -4,7 +4,7 @@
 
 ### Added
 
-- Android: `DecoderConfig` as part of `PlaybackConfig.decoderConfig` to select the preferred decoder.
+- Android: `DecoderConfig.decoderPriorityProvider`, a callback interface to specify which decoder implementation the Player should use to decode the media
 
 ### Changed
 

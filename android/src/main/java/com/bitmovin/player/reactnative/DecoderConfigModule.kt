@@ -14,7 +14,6 @@ private const val MODULE_NAME = "DecoderConfigModule"
 
 @ReactModule(name = MODULE_NAME)
 class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
-
     /**
      * In-memory mapping from `nativeId`s to `DecoderConfig` instances.
      */
@@ -67,7 +66,7 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
         }
     }
 
-    fun overrideDecoderPriorityProvider(
+    private fun overrideDecoderPriorityProvider(
         nativeId: NativeId,
         context: DecoderPriorityProvider.DecoderContext,
         preferredDecoders: List<MediaCodecInfo>,

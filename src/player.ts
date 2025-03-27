@@ -516,7 +516,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     return PlayerModule.canPlayAtPlaybackSpeed(this.nativeId, playbackSpeed);
   };
 
-  initDecoderConfig = () => {
+  private initDecoderConfig = () => {
     if (this.config?.playbackConfig?.decoderConfig == null) {
       return;
     }
