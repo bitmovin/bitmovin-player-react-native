@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative
 
+import androidx.concurrent.futures.CallbackToFutureAdapter
 import com.bitmovin.player.api.decoder.DecoderConfig
 import com.bitmovin.player.api.decoder.DecoderPriorityProvider
 import com.bitmovin.player.api.decoder.MediaCodecInfo
@@ -7,30 +8,21 @@ import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toMediaCodecInfoList
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import java.util.concurrent.ConcurrentHashMap
 
 private const val MODULE_NAME = "DecoderConfigModule"
 
 @ReactModule(name = MODULE_NAME)
 class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
+    override fun getName() = MODULE_NAME
+
     /**
      * In-memory mapping from `nativeId`s to `DecoderConfig` instances.
      */
     private val decoderConfigs: Registry<DecoderConfig> = mutableMapOf()
     private val decoderPriorityProviderResponses: Registry<List<MediaCodecInfo>> = mutableMapOf()
 
-    /**
-     * Module's local lock object used to sync calls between Kotlin and JS.
-     */
-    private val lock = ReentrantLock()
-
-    /**
-     *  Lock condition used to sync operations DecoderConfig callback.
-     */
-    private val decoderOrderedCondition = lock.newCondition()
-
-    override fun getName() = MODULE_NAME
+    private val completers = ConcurrentHashMap<NativeId, CallbackToFutureAdapter.Completer<List<MediaCodecInfo>>>()
 
     fun getConfig(nativeId: NativeId?): DecoderConfig? = nativeId?.let { decoderConfigs[it] }
 
@@ -71,32 +63,22 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
         context: DecoderPriorityProvider.DecoderContext,
         preferredDecoders: List<MediaCodecInfo>,
     ): List<MediaCodecInfo> {
-        val args = Arguments.createArray()
-        args.pushMap(context.toJson())
-        args.pushArray(preferredDecoders.toJson())
-
-        this.context.catalystInstance.callFunction(
-            "DecoderConfigBridge-$nativeId",
-            "overrideDecodersPriority",
-            args as NativeArray,
-        )
-
-        var response: List<MediaCodecInfo>? = null
-        lock.withLock {
-            while (response == null) {
-                decoderOrderedCondition.await()
-                response = decoderPriorityProviderResponses[nativeId]
-            }
-        }
-
-        return response!!
+        return CallbackToFutureAdapter.getFuture { completer ->
+            completers[nativeId] = completer
+            val args = Arguments.createArray()
+            args.pushMap(context.toJson())
+            args.pushArray(preferredDecoders.toJson())
+            this@DecoderConfigModule.context.catalystInstance.callFunction(
+                "DecoderConfigBridge-$nativeId",
+                "overrideDecodersPriority",
+                args as NativeArray,
+            )
+        }.get()
     }
 
     @ReactMethod
     fun overrideDecoderPriorityProviderComplete(nativeId: NativeId, response: ReadableArray) {
-        decoderPriorityProviderResponses[nativeId] = response.toMediaCodecInfoList()
-        lock.withLock {
-            decoderOrderedCondition.signal()
-        }
+        completers[nativeId]?.set(response.toMediaCodecInfoList())
+        completers.remove(nativeId)
     }
 }
