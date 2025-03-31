@@ -31,6 +31,7 @@ class RNPlayerViewPackage : ReactPackage {
             BufferModule(reactContext),
             NetworkModule(reactContext),
             DebugModule(reactContext),
+            DecoderConfigModule(reactContext),
         )
     }
 

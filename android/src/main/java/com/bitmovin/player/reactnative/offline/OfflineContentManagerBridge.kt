@@ -150,12 +150,12 @@ class OfflineContentManagerBridge(
     /**
      * Called when a process call has completed.
      */
-    override fun onCompleted(source: SourceConfig?, options: OfflineContentOptions?) {
+    override fun onCompleted(source: SourceConfig, options: OfflineContentOptions) {
         this.contentOptions = options
         sendEvent(
             OfflineEventType.ON_COMPLETED,
             Arguments.createMap().apply {
-                putMap("options", options?.toJson())
+                putMap("options", options.toJson())
             },
         )
     }
@@ -163,12 +163,12 @@ class OfflineContentManagerBridge(
     /**
      * Called when an error occurs.
      */
-    override fun onError(source: SourceConfig?, event: ErrorEvent?) {
+    override fun onError(source: SourceConfig, event: ErrorEvent) {
         sendEvent(
             OfflineEventType.ON_ERROR,
             Arguments.createMap().apply {
-                event?.code?.value?.let { putInt("code", it) }
-                putString("message", event?.message)
+                putInt("code", event.code.value)
+                putString("message", event.message)
             },
         )
     }
@@ -176,7 +176,7 @@ class OfflineContentManagerBridge(
     /**
      * Called when the progress for a process call changes.
      */
-    override fun onProgress(source: SourceConfig?, progress: Float) {
+    override fun onProgress(source: SourceConfig, progress: Float) {
         sendEvent(
             OfflineEventType.ON_PROGRESS,
             Arguments.createMap().apply {
@@ -188,12 +188,12 @@ class OfflineContentManagerBridge(
     /**
      * Called after a getOptions or when am OfflineOptionEntry has been updated during a process call.
      */
-    override fun onOptionsAvailable(source: SourceConfig?, options: OfflineContentOptions?) {
+    override fun onOptionsAvailable(source: SourceConfig, options: OfflineContentOptions) {
         this.contentOptions = options
         sendEvent(
             OfflineEventType.ON_OPTIONS_AVAILABLE,
             Arguments.createMap().apply {
-                putMap("options", options?.toJson())
+                putMap("options", options.toJson())
             },
         )
     }
@@ -201,21 +201,21 @@ class OfflineContentManagerBridge(
     /**
      * Called when the DRM license was updated.
      */
-    override fun onDrmLicenseUpdated(source: SourceConfig?) {
+    override fun onDrmLicenseUpdated(source: SourceConfig) {
         sendEvent(OfflineEventType.ON_DRM_LICENSE_UPDATED)
     }
 
     /**
      * Called when all actions have been suspended.
      */
-    override fun onSuspended(source: SourceConfig?) {
+    override fun onSuspended(source: SourceConfig) {
         sendEvent(OfflineEventType.ON_SUSPENDED)
     }
 
     /**
      * Called when all actions have been resumed.
      */
-    override fun onResumed(source: SourceConfig?) {
+    override fun onResumed(source: SourceConfig) {
         sendEvent(OfflineEventType.ON_RESUMED)
     }
 

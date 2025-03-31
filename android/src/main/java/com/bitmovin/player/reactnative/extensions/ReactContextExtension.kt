@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative.extensions
 
+import com.bitmovin.player.reactnative.DecoderConfigModule
 import com.bitmovin.player.reactnative.DrmModule
 import com.bitmovin.player.reactnative.NetworkModule
 import com.bitmovin.player.reactnative.OfflineModule
@@ -20,3 +21,4 @@ val ReactApplicationContext.uiManagerModule get() = getModule<UIManagerModule>()
 val ReactApplicationContext.drmModule get() = getModule<DrmModule>()
 val ReactApplicationContext.customMessageHandlerModule get() = getModule<CustomMessageHandlerModule>()
 val ReactApplicationContext.networkModule get() = getModule<NetworkModule>()
+val ReactApplicationContext.decoderConfigModule get() = getModule<DecoderConfigModule>()
