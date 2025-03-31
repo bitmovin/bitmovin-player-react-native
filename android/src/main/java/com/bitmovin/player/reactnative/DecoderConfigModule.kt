@@ -20,7 +20,8 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
      * In-memory mapping from `nativeId`s to `DecoderConfig` instances.
      */
     private val decoderConfigs: Registry<DecoderConfig> = mutableMapOf()
-    private val completers = ConcurrentHashMap<NativeId, CallbackToFutureAdapter.Completer<List<MediaCodecInfo>>>()
+    private val overrideDecoderPriorityProviderCompleters =
+        ConcurrentHashMap<NativeId, CallbackToFutureAdapter.Completer<List<MediaCodecInfo>>>()
 
     fun getConfig(nativeId: NativeId?): DecoderConfig? = nativeId?.let { decoderConfigs[it] }
 
@@ -49,8 +50,8 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
     @ReactMethod
     fun destroy(nativeId: NativeId) {
         decoderConfigs.remove(nativeId)
-        completers.keys.filter { it.startsWith(nativeId) }.forEach {
-            completers.remove(it)
+        overrideDecoderPriorityProviderCompleters.keys.filter { it.startsWith(nativeId) }.forEach {
+            overrideDecoderPriorityProviderCompleters.remove(it)
         }
     }
 
@@ -60,7 +61,7 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
         preferredDecoders: List<MediaCodecInfo>,
     ): List<MediaCodecInfo> {
         return CallbackToFutureAdapter.getFuture { completer ->
-            completers[nativeId] = completer
+            overrideDecoderPriorityProviderCompleters[nativeId] = completer
             val args = Arguments.createArray()
             args.pushMap(context.toJson())
             args.pushArray(preferredDecoders.toJson())
@@ -74,7 +75,7 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
 
     @ReactMethod
     fun overrideDecoderPriorityProviderComplete(nativeId: NativeId, response: ReadableArray) {
-        completers[nativeId]?.set(response.toMediaCodecInfoList())
-        completers.remove(nativeId)
+        overrideDecoderPriorityProviderCompleters[nativeId]?.set(response.toMediaCodecInfoList())
+        overrideDecoderPriorityProviderCompleters.remove(nativeId)
     }
 }
