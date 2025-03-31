@@ -20,8 +20,6 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
      * In-memory mapping from `nativeId`s to `DecoderConfig` instances.
      */
     private val decoderConfigs: Registry<DecoderConfig> = mutableMapOf()
-    private val decoderPriorityProviderResponses: Registry<List<MediaCodecInfo>> = mutableMapOf()
-
     private val completers = ConcurrentHashMap<NativeId, CallbackToFutureAdapter.Completer<List<MediaCodecInfo>>>()
 
     fun getConfig(nativeId: NativeId?): DecoderConfig? = nativeId?.let { decoderConfigs[it] }
@@ -51,10 +49,8 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
     @ReactMethod
     fun destroy(nativeId: NativeId) {
         decoderConfigs.remove(nativeId)
-        decoderPriorityProviderResponses.keys.filter {
-            it.startsWith(nativeId)
-        }.forEach {
-            decoderPriorityProviderResponses.remove(it)
+        completers.keys.filter { it.startsWith(nativeId) }.forEach {
+            completers.remove(it)
         }
     }
 
