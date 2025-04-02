@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update react-native-screens to v3.35.0 for Android SDK version compatibility
+
 ### Added
 
 - Android: `DecoderConfig.decoderPriorityProvider`, a callback interface to specify which decoder implementation the Player should use to decode the media
