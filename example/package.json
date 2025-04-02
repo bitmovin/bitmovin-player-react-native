@@ -22,7 +22,7 @@
     "react-native-modal": "13.0.1",
     "react-native-orientation-locker": "1.6.0",
     "react-native-safe-area-context": "4.9.0",
-    "react-native-screens": "3.29.0",
+    "react-native-screens": "3.35.0",
     "react-native-system-navigation-bar": "^2.6.4"
   },
   "devDependencies": {

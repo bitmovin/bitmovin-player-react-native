@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.41.0]
+
+### Changed
+
+- Update react-native-screens to v3.35.0 for Android SDK version compatibility
+
+### Added
+
+- Android: `DecoderConfig.decoderPriorityProvider`, a callback interface to specify which decoder implementation the Player should use to decode the media
+
+### Changed
+
+- Update IMA SDK dependency on Android to `3.35.1`
+
 ## [0.40.0] - 2025-03-20
 
 ### Changed

@@ -46,11 +46,12 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
      Creates a new `Player` instance inside the internal players using the provided `config` object.
      - Parameter config: `PlayerConfig` object received from JS.
      */
-    @objc(initWithConfig:config:networkNativeId:)
+    @objc(initWithConfig:config:networkNativeId:decoderNativeId:)
     func initWithConfig(
         _ nativeId: NativeId,
         config: Any?,
-        networkNativeId: NativeId?
+        networkNativeId: NativeId?,
+        decoderNativeId: NativeId?
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             guard
@@ -76,12 +77,13 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
      - Parameter config: `PlayerConfig` object received from JS.
      - Parameter analyticsConfig: `AnalyticsConfig` object received from JS.
      */
-    @objc(initWithAnalyticsConfig:config:networkNativeId:analyticsConfig:)
+    @objc(initWithAnalyticsConfig:config:networkNativeId:analyticsConfig:decoderNativeId:)
     func initWithAnalyticsConfig(
         _ nativeId: NativeId,
         config: Any?,
         networkNativeId: NativeId?,
-        analyticsConfig: Any?
+        analyticsConfig: Any?,
+        decoderNativeId: NativeId?
     ) {
         bridge.uiManager.addUIBlock { [weak self] _, _ in
             let analyticsConfigJson = analyticsConfig

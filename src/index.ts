@@ -26,3 +26,4 @@ export * from './bufferApi';
 export * from './network';
 export * from './mediaControlConfig';
 export * from './debug';
+export * from './decoder/decoderConfig';

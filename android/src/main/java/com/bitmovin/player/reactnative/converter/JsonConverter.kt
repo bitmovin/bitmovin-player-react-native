@@ -25,6 +25,8 @@ import com.bitmovin.player.api.buffer.BufferLevel
 import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
 import com.bitmovin.player.api.buffer.BufferType
 import com.bitmovin.player.api.casting.RemoteControlConfig
+import com.bitmovin.player.api.decoder.DecoderPriorityProvider.DecoderContext
+import com.bitmovin.player.api.decoder.MediaCodecInfo
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
@@ -206,7 +208,6 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     withBoolean("useDrmSessionForClearPeriods") { useDrmSessionForClearPeriods = it }
     withBoolean("useDrmSessionForClearSources") { useDrmSessionForClearSources = it }
     withBoolean("useFiletypeExtractorFallbackForHls") { useFiletypeExtractorFallbackForHls = it }
-    withBoolean("preferSoftwareDecodingForAds") { preferSoftwareDecodingForAds = it }
     withStringArray("forceReuseVideoCodecReasons") {
         forceReuseVideoCodecReasons = it
             .filterNotNull()
@@ -949,3 +950,37 @@ private fun CastPayload.toJson(): WritableMap = Arguments.createMap().apply {
 }
 
 private fun WritableMap.putStringIfNotNull(name: String, value: String?) = value?.let { putString(name, value) }
+
+fun DecoderContext.toJson(): ReadableMap = Arguments.createMap().apply {
+    putString("mediaType", mediaType.name)
+    putBoolean("isAd", isAd)
+}
+
+fun List<MediaCodecInfo>.toJson(): ReadableArray = Arguments.createArray().apply {
+    forEach {
+        pushMap(it.toJson())
+    }
+}
+
+fun MediaCodecInfo.toJson(): ReadableMap = Arguments.createMap().apply {
+    putString("name", name)
+    putBoolean("isSoftware", isSoftware)
+}
+
+fun ReadableArray.toMediaCodecInfoList(): List<MediaCodecInfo> {
+    if (size() <= 0) {
+        return emptyList()
+    }
+    val mediaCodecInfoList = mutableListOf<MediaCodecInfo>()
+    (0 until size()).forEach {
+        val info = getMap(it).toMediaCodecInfo() ?: return@forEach
+        mediaCodecInfoList.add(info)
+    }
+    return mediaCodecInfoList
+}
+
+fun ReadableMap.toMediaCodecInfo(): MediaCodecInfo? {
+    val name = getString("name") ?: return null
+    val isSoftware = getBooleanOrNull("isSoftware") ?: return null
+    return MediaCodecInfo(name, isSoftware)
+}
