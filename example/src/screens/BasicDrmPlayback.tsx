@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -111,7 +111,7 @@ const source: SourceConfig = {
 export default function BasicDrmPlayback() {
   useTVGestures();
 
-  const [clickStartTime, setClickStartTime] = useState(0);
+  const clickStartTime = useRef(0);
 
   const player = usePlayer({
     remoteControlConfig: {
@@ -127,8 +127,8 @@ export default function BasicDrmPlayback() {
 
   useFocusEffect(
     useCallback(() => {
-      setClickStartTime(Date.now());
-      console.log('player.load called at', clickStartTime);
+      clickStartTime.current = Date.now();
+      console.log('player.load called at', clickStartTime.current);
       player.load(source);
       return () => {
         player.destroy();
@@ -138,7 +138,7 @@ export default function BasicDrmPlayback() {
 
   const onReady = useCallback(
     (event: Event) => {
-      prettyPrint(`Ready in - (ms)`, event.timestamp - clickStartTime);
+      prettyPrint(`Ready in - (ms)`, event.timestamp - clickStartTime.current);
     },
     [clickStartTime]
   );
@@ -147,7 +147,7 @@ export default function BasicDrmPlayback() {
     (event: Event) => {
       prettyPrint(
         `EVENT [${event.name}] since player.load - (ms)`,
-        event.timestamp - clickStartTime
+        event.timestamp - clickStartTime.current
       );
     },
     [clickStartTime]
