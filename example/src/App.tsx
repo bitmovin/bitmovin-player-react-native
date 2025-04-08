@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Platform, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -22,6 +22,10 @@ import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
 import BackgroundPlayback from './screens/BackgroundPlayback';
+import LazyLoad from './LazyLoad';
+
+// This top-level require call will be evaluated lazily as part of the component below.
+require('./LazyLoad').default;
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -70,6 +74,8 @@ const isTVOS = Platform.OS === 'ios' && Platform.isTV;
 const isAndroidTV = Platform.OS === 'android' && Platform.isTV;
 
 export default function App() {
+  const [needsLazyLoad, setNeedsLazyLoad] = useState(true);
+
   useEffect(() => {
     // iOS audio session category must be set to `playback` first, otherwise playback
     // will have no audio when the device is silenced.
@@ -163,10 +169,16 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      onStateChange={(state) => {
+        console.log('New state ', state, ' @ ', Date.now());
+        setNeedsLazyLoad(false);
+      }}
+    >
       <RootStack.Navigator
         screenOptions={{
           headerShown: !Platform.isTV,
+          animation: 'none',
         }}
         initialRouteName="ExamplesList"
       >
@@ -291,6 +303,7 @@ export default function App() {
           options={{ title: 'Background Playback' }}
         />
       </RootStack.Navigator>
+      {needsLazyLoad ? <LazyLoad /> : null}
     </NavigationContainer>
   );
 }
