@@ -3,10 +3,10 @@ PODS:
     - BitmovinAnalyticsCollector/Core
     - BitmovinPlayerCore (~> 3.48)
   - BitmovinAnalyticsCollector/Core (3.12.1)
-  - BitmovinPlayer (3.88.0):
+  - BitmovinPlayer (3.89.0):
     - BitmovinAnalyticsCollector/BitmovinPlayer (~> 3.0)
-    - BitmovinPlayerCore (= 3.88.0)
-  - BitmovinPlayerCore (3.88.0)
+    - BitmovinPlayerCore (= 3.89.0)
+  - BitmovinPlayerCore (3.89.0)
   - boost (1.83.0)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.73.4-0)
@@ -1049,7 +1049,7 @@ PODS:
     - React-logger (= 0.73.4-0)
     - React-perflogger (= 0.73.4-0)
   - RNBitmovinPlayer (0.41.0):
-    - BitmovinPlayer (= 3.88.0)
+    - BitmovinPlayer (= 3.89.0)
     - GoogleAds-IMA-iOS-SDK (= 3.23.0)
     - GoogleAds-IMA-tvOS-SDK (= 4.13.0)
     - React-Core
@@ -1246,8 +1246,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   BitmovinAnalyticsCollector: 3518b6a3634ba3719f422e60c39b222922058ca0
-  BitmovinPlayer: 77bb659b70ee3cda0d6fe0ca73ab36d7fb58d15e
-  BitmovinPlayerCore: ae71b3cc36b2210f248ad66d3c60df48027dc3b4
+  BitmovinPlayer: 423e7ec652efdac10682da343e5963371ab4880e
+  BitmovinPlayerCore: ad415798d8a8115a16a5fbe316e8632aada3611e
   boost: 88202336c3ba1e7a264a83c0c888784b0f360c28
   DoubleConversion: 74cb0ce4de271b23e772567504735c87134edf0a
   FBLazyVector: 33a271a7e8de0bd321e47356d8bc3b2d5fb9ddba
@@ -1302,7 +1302,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 20b2202e3396589a71069d12ae9f328949c7c7b8
   React-utils: 0307d396f233e47a167b5aaf045b0e4e1dc19d74
   ReactCommon: 17891ca337bfa5a7263649b09f27a8c664537bf2
-  RNBitmovinPlayer: 161c82ce5053f7728479c5feedd5f8ff64bd1951
+  RNBitmovinPlayer: 66ef3fd19ff4ec8decc4c03ea8e04cd9205d1d83
   RNCPicker: b18aaf30df596e9b1738e7c1f9ee55402a229dca
   RNScreens: f8d5311675a63b7a8a75f46fe5bc231002899650
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
