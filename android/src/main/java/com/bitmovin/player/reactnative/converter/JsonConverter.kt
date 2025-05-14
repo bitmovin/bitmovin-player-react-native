@@ -214,6 +214,10 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
             .mapNotNull(String::toForceReuseVideoCodecReason)
             .toSet()
     }
+    withBoolean("enableMainContentDecodingDuringAds") { enableMainContentDecodingDuringAds = it }
+    withBoolean("reuseAdsLoaderAcrossImaAds") { reuseAdsLoaderAcrossImaAds = it }
+    withBoolean("allowChunklessPreparationForHls") { allowChunklessPreparationForHls = it }
+    withBoolean("allowChunklessPreparationForHlsStreamingAds") { allowChunklessPreparationForHlsStreamingAds = it }
 }
 
 /**
