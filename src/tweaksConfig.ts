@@ -202,4 +202,46 @@ export interface TweaksConfig {
    * @platform Android
    */
   forceReuseVideoCodecReasons?: Array<ForceReuseVideoCodecReason>;
+
+  /**
+   * Specifies whether the active source should be decoded during ads playback.
+   * Some devices only support one hardware decoder and can't decode ads and main content in parallel. Disabling this option will allow ad playback on such devices at the cost of slower switch from ads to main content.
+   * Only supported for AdSourceType.Ima ads.
+   *
+   * Default is true.
+   *
+   * @platform Android
+   */
+  enableMainContentDecodingDuringAds?: Boolean;
+
+  /**
+   * Enables reusing the IMA AdsLoader across multiple ads and playback sessions for improved ad startup time performance.
+   * There is a known issue when multiple VAST tags are scheduled and triggered for playback at the same time.
+   *
+   * Default value is false.
+   *
+   * @platform Android
+   */
+  reuseAdsLoaderAcrossImaAds?: Boolean;
+
+  /**
+   * Specifies whether the player should try to prepare HLS streams without downloading media segments.
+   * This is generally possible if the #EXT-X-STREAM-INF tag contains the CODECS attribute and may speed up startup time.
+   * In case of muxed closed-caption tracks that are not declared in the HLS playlist, enabling chunkless preparation will cause exclusion of those tracks.
+   *
+   * Default is false.
+   *
+   * @platform Android
+   */
+  allowChunklessPreparationForHls?: Boolean;
+
+  /**
+   * Specifies whether the player should try to prepare HLS streaming ads without downloading media segments.
+   * See allowChunklessPreparationForHls for more details.
+   *
+   * Default is true.
+   *
+   * @platform Android
+   */
+  allowChunklessPreparationForHlsStreamingAds?: Boolean;
 }
