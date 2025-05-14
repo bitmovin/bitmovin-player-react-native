@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -9,6 +9,8 @@ import {
   AdSourceType,
   AdSkippedEvent,
   PlayerViewConfig,
+  TweaksConfig,
+  ForceReuseVideoCodecReason,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
@@ -32,27 +34,7 @@ const adTags = {
 };
 
 const advertisingConfig = {
-  schedule: [
-    // First ad item at "pre" (default) position.
-    {
-      sources: [
-        {
-          tag: adTags.vastSkippable,
-          type: AdSourceType.IMA,
-        },
-      ],
-    },
-    // Second ad item at "20%" position.
-    {
-      position: '20%',
-      sources: [
-        {
-          tag: adTags.vast1,
-          type: AdSourceType.IMA,
-        },
-      ],
-    },
-  ],
+  schedule: [],
 };
 
 const remoteControlConfig = {
@@ -63,13 +45,33 @@ const playerViewConfig: PlayerViewConfig = {
   hideFirstFrame: true,
 };
 
+const tweaksConfig: TweaksConfig = {
+  enableMainContentDecodingDuringAds: false,
+  reuseAdsLoaderAcrossImaAds: true,
+  forceReuseVideoCodecReasons: [
+    ForceReuseVideoCodecReason.ColorInfoMismatch,
+    ForceReuseVideoCodecReason.MaxInputSizeExceeded,
+    ForceReuseVideoCodecReason.MaxResolutionExceeded,
+  ],
+  allowChunklessPreparationForHls: true,
+  useDrmSessionForClearSources: true,
+};
+
 export default function BasicAds() {
   useTVGestures();
+  const clickStartTime = useRef(0);
 
-  const player = usePlayer({ advertisingConfig, remoteControlConfig });
+  const player = usePlayer({
+    tweaksConfig,
+    advertisingConfig,
+    remoteControlConfig,
+    playbackConfig: { isAutoplayEnabled: true },
+  });
 
   useFocusEffect(
     useCallback(() => {
+      clickStartTime.current = Date.now();
+      console.log('player.load called at', clickStartTime.current);
       player.load({
         url:
           Platform.OS === 'ios'
@@ -80,6 +82,7 @@ export default function BasicAds() {
         poster:
           'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/poster.jpg',
       });
+
       return () => {
         player.destroy();
       };
@@ -93,12 +96,12 @@ export default function BasicAds() {
   const onSourceLoaded = useCallback(
     (event: Event) => {
       onEvent(event);
-      // Dinamically schedule an ad to play after the video
+      // Dynamically schedule a pre-roll ad
       player.scheduleAd({
-        position: 'post',
+        position: 'pre',
         sources: [
           {
-            tag: adTags.vast2,
+            tag: adTags.vastSkippable,
             type: AdSourceType.IMA,
           },
         ],
@@ -114,8 +117,12 @@ export default function BasicAds() {
       player.isAd().then((isAd) => {
         prettyPrint('is Ad playing?', isAd);
       });
+      prettyPrint(
+        `Ad started in - (ms)`,
+        event.timestamp - clickStartTime.current
+      );
     },
-    [player, onEvent]
+    [player, onEvent, clickStartTime]
   );
 
   const onAdSkipped = useCallback(
