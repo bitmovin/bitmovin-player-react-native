@@ -25,7 +25,7 @@ export interface AudioTrack {
    */
   language?: string;
   /**
-   * An array of {@link MediaTrackRole} objects, each describing a specific role or characteristic of the subtitle track.
+   * An array of {@link MediaTrackRole} objects, each describing a specific role or characteristic of the audio track.
    * This property provides a unified way to understand track purposes (e.g., for accessibility) across platforms.
    */
   roles?: MediaTrackRole[];
