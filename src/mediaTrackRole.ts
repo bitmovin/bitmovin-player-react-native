@@ -6,7 +6,7 @@ export interface MediaTrackRole {
    * The unique identifier for this role instance.
    * - On Android: Corresponds to the native [`MediaTrackRole.id`](https://cdn.bitmovin.com/player/android/3/docs/player-core/com.bitmovin.player.api.media/-media-track-role/id.html).
    *  May be undefined.
-   * - On iOS and tvOS: Typically `undefined`, as HLS characteristics do not have inherent IDs in this context.
+   * - On iOS and tvOS: `undefined`, as HLS characteristics do not have inherent IDs in this context.
    */
   id?: string;
 
