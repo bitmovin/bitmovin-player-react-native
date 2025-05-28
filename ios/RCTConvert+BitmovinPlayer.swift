@@ -561,13 +561,20 @@ extension RCTConvert {
         guard let audioTrack else {
             return nil
         }
-        return [
+        var audioTrackDict: [String: Any?] = [
             "url": audioTrack.url?.absoluteString,
             "label": audioTrack.label,
             "isDefault": audioTrack.isDefaultTrack,
             "identifier": audioTrack.identifier,
             "language": audioTrack.language
         ]
+        audioTrackDict["roles"] = audioTrack.characteristics.map { characteristic in
+            [
+                "schemeIdUri": "urn:hls:characteristic",
+                "value": characteristic
+            ]
+        }
+        return audioTrackDict
     }
 
     /**
@@ -641,26 +648,34 @@ extension RCTConvert {
         guard let subtitleTrack else {
             return nil
         }
-        return [
+        var subtitleTrackDict: [String: Any?] = [
             "url": subtitleTrack.url?.absoluteString,
             "label": subtitleTrack.label,
             "isDefault": subtitleTrack.isDefaultTrack,
             "identifier": subtitleTrack.identifier,
             "language": subtitleTrack.language,
             "isForced": subtitleTrack.isForced,
-            "format": {
-                switch subtitleTrack.format {
-                case .cea:
-                    return "cea"
-                case .webVtt:
-                    return "vtt"
-                case .ttml:
-                    return "ttml"
-                case .srt:
-                    return "srt"
-                }
-            }(),
         ]
+        switch subtitleTrack.format {
+        case .cea:
+            subtitleTrackDict["format"] = "cea"
+        case .webVtt:
+            subtitleTrackDict["format"] = "vtt"
+        case .ttml:
+            subtitleTrackDict["format"] = "ttml"
+        case .srt:
+            subtitleTrackDict["format"] = "srt"
+        default:
+            break
+        }
+
+        subtitleTrackDict["roles"] = subtitleTrack.characteristics.map { characteristic in
+            [
+                "schemeIdUri": "urn:hls:characteristic",
+                "value": characteristic
+            ]
+        }
+        return subtitleTrackDict
     }
 
     /**

@@ -34,6 +34,7 @@ import com.bitmovin.player.api.event.data.CastPayload
 import com.bitmovin.player.api.event.data.SeekPosition
 import com.bitmovin.player.api.live.LiveConfig
 import com.bitmovin.player.api.media.AdaptationConfig
+import com.bitmovin.player.api.media.MediaTrackRole
 import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
@@ -559,6 +560,7 @@ fun AudioTrack.toJson(): WritableMap = Arguments.createMap().apply {
     putBoolean("isDefault", isDefault)
     putString("identifier", id)
     putString("language", language)
+    putArray("roles", roles.mapToReactArray { it.toJson() })
 }
 
 /**
@@ -596,6 +598,7 @@ fun SubtitleTrack.toJson(): WritableMap = Arguments.createMap().apply {
     putString("language", language)
     putBoolean("isForced", isForced)
     putString("format", mimeType?.textMimeTypeToJson())
+    putArray("roles", roles.mapToReactArray { it.toJson() })
 }
 
 /**
@@ -983,4 +986,10 @@ fun ReadableMap.toMediaCodecInfo(): MediaCodecInfo? {
     val name = getString("name") ?: return null
     val isSoftware = getBooleanOrNull("isSoftware") ?: return null
     return MediaCodecInfo(name, isSoftware)
+}
+
+fun MediaTrackRole.toJson(): WritableMap = Arguments.createMap().apply {
+    putString("id", id)
+    putString("schemeIdUri", schemeIdUri)
+    putString("value", value)
 }

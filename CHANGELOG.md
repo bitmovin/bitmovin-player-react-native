@@ -7,6 +7,10 @@
 - Update Bitmovin's native Android SDK version to `3.111.0`
 - Update Bitmovin's native iOS SDK version to `3.90.0`
 
+### Added
+
+- `SubtitleTrack.roles` and `AudioTrack.roles` to list the associated `MediaTrackRole` information
+
 ## [0.41.0] - 2025-04-02
 
 ### Changed
