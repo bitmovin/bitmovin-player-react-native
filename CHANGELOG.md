@@ -9,7 +9,7 @@
 
 ### Added
 
-- `SubtitleTrack.roles` and `AudioTrack.roles` to expose list of associated `MediaTrackRole` information
+- `SubtitleTrack.roles` and `AudioTrack.roles` to list the associated `MediaTrackRole` information
 
 ## [0.41.0] - 2025-04-02
 
