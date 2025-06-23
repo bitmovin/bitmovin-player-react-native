@@ -15,7 +15,7 @@
     "example": "yarn --cwd example",
     "open:ios": "xed example/ios",
     "open:android": "open -a \"Android Studio\" example/android",
-    "brew": "[ \"$(uname)\" != Darwin ] || brew bundle install --no-lock",
+    "brew": "[ \"$(uname)\" != Darwin ] || brew bundle install",
     "docs": "typedoc",
     "pods": "yarn example pods #&& yarn integration-test pods",
     "bootstrap": "yarn bootstrap:example && yarn bootstrap:integration-test",

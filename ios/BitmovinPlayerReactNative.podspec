@@ -1,6 +1,7 @@
 require 'json'
 
 package = JSON.parse(File.read(File.join(__dir__, '..', 'package.json')))
+podfile_properties = JSON.parse(File.read("#{Pod::Config.instance.installation_root}/Podfile.properties.json")) rescue {}
 
 Pod::Spec.new do |s|
   s.name           = 'BitmovinPlayerReactNative'
@@ -22,6 +23,10 @@ Pod::Spec.new do |s|
   s.dependency "BitmovinPlayer", "3.78.0"
   s.ios.dependency "GoogleAds-IMA-iOS-SDK", "3.23.0"
   s.tvos.dependency "GoogleAds-IMA-tvOS-SDK", "4.13.0"
+
+  if podfile_properties['BITMOVIN_GOOGLE_CAST_SDK_VERSION'].to_s != ''
+    s.ios.dependency "google-cast-sdk", podfile_properties['BITMOVIN_GOOGLE_CAST_SDK_VERSION'].to_s
+  end
 
   # Swift/Objective-C compatibility
   s.pod_target_xcconfig = {

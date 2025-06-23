@@ -60,3 +60,5 @@ docs/generated
 
 # developer specific configuration file
 example/ios/Developer.xcconfig
+
+plugin/tsconfig.tsbuildinfo

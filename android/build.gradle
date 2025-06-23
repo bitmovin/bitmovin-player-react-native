@@ -102,6 +102,9 @@ dependencies {
     implementation "androidx.concurrent:concurrent-futures:1.1.0"
     implementation "androidx.concurrent:concurrent-futures-ktx:1.1.0"
 
+    // Expo
+    implementation project(':expo-modules-core')
+
     // Bitmovin
     implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.33.0'
     implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
