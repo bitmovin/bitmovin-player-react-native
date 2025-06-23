@@ -5,6 +5,7 @@ import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.analytics.api.SourceMetadata
+import com.bitmovin.player.api.BandwidthMeterType
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.ForceReuseVideoCodecReason
 import com.bitmovin.player.api.PlaybackConfig
@@ -24,6 +25,8 @@ import com.bitmovin.player.api.buffer.BufferLevel
 import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
 import com.bitmovin.player.api.buffer.BufferType
 import com.bitmovin.player.api.casting.RemoteControlConfig
+import com.bitmovin.player.api.decoder.DecoderPriorityProvider.DecoderContext
+import com.bitmovin.player.api.decoder.MediaCodecInfo
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
@@ -31,6 +34,7 @@ import com.bitmovin.player.api.event.data.CastPayload
 import com.bitmovin.player.api.event.data.SeekPosition
 import com.bitmovin.player.api.live.LiveConfig
 import com.bitmovin.player.api.media.AdaptationConfig
+import com.bitmovin.player.api.media.MediaTrackRole
 import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
@@ -51,6 +55,7 @@ import com.bitmovin.player.api.source.TimelineReferencePoint
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
+import com.bitmovin.player.api.ui.SurfaceType
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
 import com.bitmovin.player.reactnative.PictureInPictureConfig
@@ -67,6 +72,7 @@ import com.bitmovin.player.reactnative.extensions.putBoolean
 import com.bitmovin.player.reactnative.extensions.putDouble
 import com.bitmovin.player.reactnative.extensions.putInt
 import com.bitmovin.player.reactnative.extensions.set
+import com.bitmovin.player.reactnative.extensions.toBase64DataUri
 import com.bitmovin.player.reactnative.extensions.toMap
 import com.bitmovin.player.reactnative.extensions.toMapList
 import com.bitmovin.player.reactnative.extensions.toReadableMap
@@ -183,7 +189,11 @@ private fun String.toForceReuseVideoCodecReason(): ForceReuseVideoCodecReason? =
  */
 fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     withDouble("timeChangedInterval") { timeChangedInterval = it }
-    withInt("bandwidthEstimateWeightLimit") { bandwidthEstimateWeightLimit = it }
+    withInt("bandwidthEstimateWeightLimit") {
+        bandwidthMeterType = BandwidthMeterType.Default(
+            bandwidthEstimateWeightLimit = it,
+        )
+    }
     withMap("devicesThatRequireSurfaceWorkaround") { devices ->
         val deviceNames = devices.withStringArray("deviceNames") {
             it.filterNotNull().map(::DeviceName)
@@ -199,7 +209,6 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     withBoolean("useDrmSessionForClearPeriods") { useDrmSessionForClearPeriods = it }
     withBoolean("useDrmSessionForClearSources") { useDrmSessionForClearSources = it }
     withBoolean("useFiletypeExtractorFallbackForHls") { useFiletypeExtractorFallbackForHls = it }
-    withBoolean("preferSoftwareDecodingForAds") { preferSoftwareDecodingForAds = it }
     withStringArray("forceReuseVideoCodecReasons") {
         forceReuseVideoCodecReasons = it
             .filterNotNull()
@@ -501,12 +510,14 @@ fun PlayerEvent.toJson(): WritableMap {
             json.putDouble("start", start)
             json.putDouble("end", end)
             json.putString("text", text)
+            json.putString("image", image?.toBase64DataUri())
         }
 
         is PlayerEvent.CueExit -> {
             json.putDouble("start", start)
             json.putDouble("end", end)
             json.putString("text", text)
+            json.putString("image", image?.toBase64DataUri())
         }
 
         else -> {
@@ -549,6 +560,7 @@ fun AudioTrack.toJson(): WritableMap = Arguments.createMap().apply {
     putBoolean("isDefault", isDefault)
     putString("identifier", id)
     putString("language", language)
+    putArray("roles", roles.mapToReactArray { it.toJson() })
 }
 
 /**
@@ -586,6 +598,7 @@ fun SubtitleTrack.toJson(): WritableMap = Arguments.createMap().apply {
     putString("language", language)
     putBoolean("isForced", isForced)
     putString("format", mimeType?.textMimeTypeToJson())
+    putArray("roles", roles.mapToReactArray { it.toJson() })
 }
 
 /**
@@ -772,7 +785,14 @@ fun ReadableMap.toPictureInPictureConfig(): PictureInPictureConfig = PictureInPi
 fun ReadableMap.toPlayerViewConfig(): PlayerViewConfig = PlayerViewConfig(
     uiConfig = getMap("uiConfig")?.toUiConfig() ?: UiConfig.WebUi(),
     hideFirstFrame = getBooleanOrNull("hideFirstFrame") ?: false,
+    surfaceType = getString("surfaceType")?.toSurfaceType() ?: SurfaceType.SurfaceView,
 )
+
+private fun String.toSurfaceType(): SurfaceType? = when (this) {
+    "SurfaceView" -> SurfaceType.SurfaceView
+    "TextureView" -> SurfaceType.TextureView
+    else -> null
+}
 
 private fun ReadableMap.toUiConfig(): UiConfig {
     val variant = toVariant() ?: UiConfig.WebUi.Variant.SmallScreenUi
@@ -933,3 +953,43 @@ private fun CastPayload.toJson(): WritableMap = Arguments.createMap().apply {
 }
 
 private fun WritableMap.putStringIfNotNull(name: String, value: String?) = value?.let { putString(name, value) }
+
+fun DecoderContext.toJson(): ReadableMap = Arguments.createMap().apply {
+    putString("mediaType", mediaType.name)
+    putBoolean("isAd", isAd)
+}
+
+fun List<MediaCodecInfo>.toJson(): ReadableArray = Arguments.createArray().apply {
+    forEach {
+        pushMap(it.toJson())
+    }
+}
+
+fun MediaCodecInfo.toJson(): ReadableMap = Arguments.createMap().apply {
+    putString("name", name)
+    putBoolean("isSoftware", isSoftware)
+}
+
+fun ReadableArray.toMediaCodecInfoList(): List<MediaCodecInfo> {
+    if (size() <= 0) {
+        return emptyList()
+    }
+    val mediaCodecInfoList = mutableListOf<MediaCodecInfo>()
+    (0 until size()).forEach {
+        val info = getMap(it).toMediaCodecInfo() ?: return@forEach
+        mediaCodecInfoList.add(info)
+    }
+    return mediaCodecInfoList
+}
+
+fun ReadableMap.toMediaCodecInfo(): MediaCodecInfo? {
+    val name = getString("name") ?: return null
+    val isSoftware = getBooleanOrNull("isSoftware") ?: return null
+    return MediaCodecInfo(name, isSoftware)
+}
+
+fun MediaTrackRole.toJson(): WritableMap = Arguments.createMap().apply {
+    putString("id", id)
+    putString("schemeIdUri", schemeIdUri)
+    putString("value", value)
+}

@@ -26,3 +26,6 @@ export * from './bufferApi';
 export * from './network';
 export * from './mediaControlConfig';
 export * from './debug';
+export * from './decoder/decoderConfig';
+export * from './mediaTrackRole';
+export * from './subtitleFormat';

@@ -54,6 +54,8 @@ export interface MediaControlConfig {
    * **iOS-only**
    * - skip forward
    * - skip backward
+   * - play
+   * - pause
    */
   isEnabled?: boolean;
 }

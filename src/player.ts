@@ -11,6 +11,7 @@ import { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
 import { VideoQuality } from './media';
 import { Network } from './network';
+import { DecoderConfigBridge } from './decoder';
 
 const PlayerModule = NativeModules.PlayerModule;
 
@@ -24,11 +25,6 @@ const PlayerModule = NativeModules.PlayerModule;
  * @see PlayerView
  */
 export class Player extends NativeInstance<PlayerConfig> {
-  private network?: Network;
-  /**
-   * Currently active source, or `null` if none is active.
-   */
-  source?: Source;
   /**
    * Whether the native `Player` object has been created.
    */
@@ -37,6 +33,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Whether the native `Player` object has been disposed.
    */
   isDestroyed = false;
+  /**
+   * Currently active source, or `null` if none is active.
+   */
+  source?: Source;
   /**
    * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.
    *
@@ -48,6 +48,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   buffer: BufferApi = new BufferApi(this.nativeId);
 
+  private network?: Network;
+
+  private decoderConfig?: DecoderConfigBridge;
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
@@ -57,12 +60,14 @@ export class Player extends NativeInstance<PlayerConfig> {
         this.network = new Network(this.config.networkConfig);
         this.network.initialize();
       }
+      this.maybeInitDecoderConfig();
       const analyticsConfig = this.config?.analyticsConfig;
       if (analyticsConfig) {
         PlayerModule.initWithAnalyticsConfig(
           this.nativeId,
           this.config,
           this.network?.nativeId,
+          this.decoderConfig?.nativeId,
           analyticsConfig
         );
         this.analytics = new AnalyticsApi(this.nativeId);
@@ -70,9 +75,11 @@ export class Player extends NativeInstance<PlayerConfig> {
         PlayerModule.initWithConfig(
           this.nativeId,
           this.config,
-          this.network?.nativeId
+          this.network?.nativeId,
+          this.decoderConfig?.nativeId
         );
       }
+
       this.isInitialized = true;
     }
   };
@@ -85,6 +92,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       PlayerModule.destroy(this.nativeId);
       this.source?.destroy();
       this.network?.destroy();
+      this.decoderConfig?.destroy();
       this.isDestroyed = true;
     }
   };
@@ -506,5 +514,19 @@ export class Player extends NativeInstance<PlayerConfig> {
       return undefined;
     }
     return PlayerModule.canPlayAtPlaybackSpeed(this.nativeId, playbackSpeed);
+  };
+
+  private maybeInitDecoderConfig = () => {
+    if (this.config?.playbackConfig?.decoderConfig == null) {
+      return;
+    }
+    if (Platform.OS === 'ios') {
+      return;
+    }
+
+    this.decoderConfig = new DecoderConfigBridge(
+      this.config.playbackConfig.decoderConfig
+    );
+    this.decoderConfig.initialize();
   };
 }
