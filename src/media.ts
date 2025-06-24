@@ -31,3 +31,25 @@ export interface VideoQuality {
    */
   width?: number;
 }
+
+/**
+ * Quality definition of an audio representation.
+ */
+export interface AudioQuality {
+  /**
+   * The id of the media quality.
+   */
+  id: string;
+  /**
+   * The label of the media quality that should be exposed to the user.
+   */
+  label?: string;
+  /**
+   * The bitrate of the media quality.
+   */
+  bitrate?: number;
+  /**
+   * The codec of the media quality.
+   */
+  codec?: string;
+}
