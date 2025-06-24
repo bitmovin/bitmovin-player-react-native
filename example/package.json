@@ -5,7 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "bootstrap": "yarn install && yarn && yarn prebuild && yarn pods",
-    "open:android": "studio android",
+    "open:android": "open -a \"Android Studio\" android",
     "open:ios": "xed ios",
     "pods": "yarn pods-install || yarn pods-update",
     "pods-install": "[ \"$(uname)\" != Darwin ] || yarn pod-install",
@@ -13,12 +13,12 @@
     "prebuild": "expo prebuild",
     "prebuild:tv": "EXPO_TV=1 expo prebuild",
     "run:android": "expo run:android",
+    "run:android-tv": "EXPO_TV=1 expo run:android",
     "run:ios": "expo run:ios",
+    "run:tvos": "EXPO_TV=1 expo run:ios",
     "start": "expo start",
     "android": "expo run:android",
-    "ios": "expo run:ios",
-    "tvos": "EXPO_TV=1 expo run:ios",
-    "android-tv": "EXPO_TV=1 expo run:android"
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@react-native-picker/picker": "2.7.5",
