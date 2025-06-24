@@ -38,15 +38,17 @@ const withBitmovinAndroidConfig: ConfigPlugin<{ playerLicenseKey: string, featur
     );
 
     config.modResults.manifest['uses-permission'] = config.modResults.manifest['uses-permission'] || [];
+
     if (features.backgroundPlayback) {
-      mainApplication.service = mainApplication.service || [];;
+      mainApplication.service = mainApplication.service || [];
       if (!mainApplication.service.find(s => s.$['android:name'] === 'com.bitmovin.player.reactnative.services.MediaSessionPlaybackService')) {
+        // Includes foregroundServiceType for Android 14+ compliance
         mainApplication.service.push({
           $: {
             'android:name': 'com.bitmovin.player.reactnative.services.MediaSessionPlaybackService',
-            'android:foregroundServiceType': 'mediaPlayback',
             'android:exported': 'true',
-          },
+            'android:foregroundServiceType': 'mediaPlayback',
+          } as any,
           'intent-filter': [{
             action: [{
               $: { 'android:name': 'androidx.media3.session.MediaSessionService' },

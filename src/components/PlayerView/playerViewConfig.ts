@@ -44,7 +44,7 @@ export interface PlayerViewConfig {
 /**
  * Configures the visual presentation and behaviour of the Bitmovin Player UI.
  */
-export interface UiConfig {}
+export type UiConfig = object;
 
 /**
  * Configures the visual presentation and behaviour of the Bitmovin Web UI.
@@ -104,11 +104,7 @@ export class TvUi extends Variant {
   }
 }
 
-export class CustomUi extends Variant {
-  constructor(uiManagerFactoryFunction: string) {
-    super(uiManagerFactoryFunction);
-  }
-}
+export class CustomUi extends Variant {}
 
 /**
  * The type of surface on which to render video.

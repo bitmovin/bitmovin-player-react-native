@@ -201,5 +201,5 @@ export interface TweaksConfig {
    *
    * @platform Android
    */
-  forceReuseVideoCodecReasons?: Array<ForceReuseVideoCodecReason>;
+  forceReuseVideoCodecReasons?: ForceReuseVideoCodecReason[];
 }

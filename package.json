@@ -5,21 +5,22 @@
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
-    "build": "expo-module build",
+    "build": "yarn build:module && yarn build:plugin",
+    "build:module": "EXPO_NONINTERACTIVE=true expo-module build",
+    "build:plugin": "EXPO_NONINTERACTIVE=true expo-module build plugin",
+    "dev:plugin": "expo-module build plugin",
     "clean": "expo-module clean",
     "lint": "expo-module lint",
-    "test": "expo-module test",
     "prepare": "expo-module prepare",
     "prepublishOnly": "expo-module prepublishOnly",
     "expo-module": "expo-module",
     "example": "yarn --cwd example",
-    "open:ios": "xed example/ios",
-    "open:android": "open -a \"Android Studio\" example/android",
+    "open:ios": "yarn example open:ios",
+    "open:android": "yarn example open:android",
     "brew": "[ \"$(uname)\" != Darwin ] || brew bundle install",
     "docs": "typedoc",
     "pods": "yarn example pods #&& yarn integration-test pods",
-    "bootstrap": "yarn bootstrap:example && yarn bootstrap:integration-test",
-    "bootstrap:example": "yarn && yarn example && yarn example pods && yarn brew",
+    "bootstrap": "yarn brew && yarn example bootstrap && yarn bootstrap:integration-test",
     "bootstrap:integration-test": "# yarn && yarn integration-test && yarn integration-test pods && yarn brew"
   },
   "keywords": [
@@ -40,24 +41,24 @@
   "author": "Bitmovin GmbH <player-sdks@bitmovin.com> (https://github.com/bitmovin)",
   "license": "MIT",
   "homepage": "https://bitmovin.com/video-player/react-native-sdk",
-  "dependencies": {
-    "lodash.omit": "4.5.0"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@types/react": "~18.3.12",
-    "eslint": "8.24.0",
-    "eslint-config-expo": "^8.0.1",
+    "@types/react": "~18.2.79",
+    "eslint": "^8.57.0",
+    "eslint-config-expo": "~9.2.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
-    "expo": "~52.0.0",
+    "expo": "~51.0.0",
     "expo-module-scripts": "^4.0.2",
     "lint-staged": "13.0.3",
     "prettier": "^3.4.2",
-    "react-native": "0.76.0",
-    "typedoc": "^0.25.2"
+    "react": "^18.3.1",
+    "react-native": "0.74.5",
+    "typedoc": "^0.25.2",
+    "typescript": "~5.4.5"
   },
   "peerDependencies": {
-    "expo": "*",
+    "expo": ">=51.0.0",
     "react": ">=17",
     "react-native": ">=0.65"
   },

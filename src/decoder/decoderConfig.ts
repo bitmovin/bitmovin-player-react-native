@@ -93,7 +93,7 @@ export interface DecoderContext {
 }
 
 export interface MediaCodecInfo {
-  name: String;
+  name: string;
   isSoftware: boolean;
 }
 

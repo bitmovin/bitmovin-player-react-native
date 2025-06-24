@@ -78,7 +78,7 @@ export const BitmovinCastManager = {
    * @param messageNamespace The message namespace to be used, in case of null the default message namespace will be used
    * @returns A promise that resolves when the message was sent successfully
    */
-  sendMessage: (message: String, messageNamespace: String | null = null) => {
+  sendMessage: (message: string, messageNamespace: string | null = null) => {
     if (Platform.OS === 'ios' && Platform.isTV) {
       return Promise.resolve();
     }

@@ -1,4 +1,4 @@
-import { ConfigPlugin, IOSConfig, withInfoPlist, withPodfileProperties } from "expo/config-plugins";
+import { ConfigPlugin, withInfoPlist, withPodfileProperties } from "expo/config-plugins";
 import FeatureFlags from "./FeatureFlags";
 
 const withBitmovinIosConfig: ConfigPlugin<{ playerLicenseKey: string, features: FeatureFlags }> = (config, { playerLicenseKey, features }) => {
@@ -21,7 +21,7 @@ const withBitmovinIosConfig: ConfigPlugin<{ playerLicenseKey: string, features: 
     if (features.googleCastSDK?.ios) {
       const castSdkVersion = typeof features.googleCastSDK.ios === 'string' ? features.googleCastSDK.ios : features.googleCastSDK.ios.version;
       config.modResults['BITMOVIN_GOOGLE_CAST_SDK_VERSION'] = castSdkVersion;
-      // TODO permissions?
+      // TODO: Roland auto add Google Cast SDK permissions?
     }
     return config;
   });

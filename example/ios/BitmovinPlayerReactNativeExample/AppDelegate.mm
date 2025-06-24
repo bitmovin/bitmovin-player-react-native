@@ -1,4 +1,3 @@
-#import <BitmovinPlayerCore/BitmovinPlayerCore-Swift.h>
 #import "AppDelegate.h"
 
 #import <React/RCTBundleURLProvider.h>
@@ -59,4 +58,5 @@
 {
   return [super application:application didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
 }
+
 @end

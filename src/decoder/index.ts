@@ -9,10 +9,6 @@ const DecoderConfigModule = NativeModules.DecoderConfigModule;
  * Takes care of JS/Native communication for a `DecoderConfig`.
  */
 export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
-  constructor(decoderConfig: DecoderConfig) {
-    super(decoderConfig);
-  }
-
   /**
    * Whether this object's native instance has been created.
    */

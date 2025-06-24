@@ -83,10 +83,6 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
     new Set<OfflineContentManagerListener>();
   private drm?: Drm;
 
-  constructor(config: OfflineContentConfig) {
-    super(config);
-  }
-
   /**
    * Allocates the native `OfflineManager` instance and its resources natively.
    * Registers the `DeviceEventEmitter` listener to receive data from the native `OfflineContentManagerListener` callbacks

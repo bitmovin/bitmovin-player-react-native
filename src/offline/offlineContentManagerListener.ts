@@ -95,36 +95,33 @@ export interface OnOptionsAvailableEvent
  * Emitted when the DRM license was updated.
  * @platform Android, iOS
  */
-export interface OnDrmLicenseUpdatedEvent
-  extends OfflineEvent<OfflineEventType.onDrmLicenseUpdated> {}
+export type OnDrmLicenseUpdatedEvent =
+  OfflineEvent<OfflineEventType.onDrmLicenseUpdated>;
 
 /**
  * Emitted when the DRM license has expired.
  * @platform iOS
  */
-export interface OnDrmLicenseExpiredEvent
-  extends OfflineEvent<OfflineEventType.onDrmLicenseExpired> {}
+export type OnDrmLicenseExpiredEvent =
+  OfflineEvent<OfflineEventType.onDrmLicenseExpired>;
 
 /**
  * Emitted when all active actions have been suspended.
  * @platform Android, iOS
  */
-export interface OnSuspendedEvent
-  extends OfflineEvent<OfflineEventType.onSuspended> {}
+export type OnSuspendedEvent = OfflineEvent<OfflineEventType.onSuspended>;
 
 /**
  * Emitted when all actions have been resumed.
  * @platform Android, iOS
  */
-export interface OnResumedEvent
-  extends OfflineEvent<OfflineEventType.onResumed> {}
+export type OnResumedEvent = OfflineEvent<OfflineEventType.onResumed>;
 
 /**
  * Emitted when the download of the media content was canceled by the user and all partially downloaded content has been deleted from disk.
  * @platform Android, iOS
  */
-export interface OnCanceledEvent
-  extends OfflineEvent<OfflineEventType.onCanceled> {}
+export type OnCanceledEvent = OfflineEvent<OfflineEventType.onCanceled>;
 
 /**
  * The type aggregation for all possible native offline events received from the `DeviceEventEmitter`

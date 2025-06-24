@@ -51,7 +51,7 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
    * of potential fullscreen state changes.
    * To use this property, a {@link FullscreenHandler} must be set.
    */
-  isFullscreenRequested?: Boolean;
+  isFullscreenRequested?: boolean;
 
   /**
    * A value defining how the video is displayed within the parent container's bounds.
@@ -63,5 +63,5 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
    * Can be set to `true` to request Picture in Picture mode, or `false` to request exit of Picture in Picture mode.
    * Should not be used to get the current Picture in Picture state. Use {@link PlayerViewEvents.onPictureInPictureEnter} and {@link PlayerViewEvents.onPictureInPictureExit}.
    */
-  isPictureInPictureRequested?: Boolean;
+  isPictureInPictureRequested?: boolean;
 }
