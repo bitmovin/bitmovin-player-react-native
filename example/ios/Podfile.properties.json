@@ -1,9 +1,0 @@
-{
-  "expo.jsEngine": "hermes",
-  "EX_DEV_CLIENT_NETWORK_INSPECTOR": "true",
-  "BITMOVIN_GOOGLE_CAST_SDK_VERSION": "4.8.1.2",
-  "ios.deploymentTarget": "14.0",
-  "apple.extraPods": "[]",
-  "apple.ccacheEnabled": "false",
-  "apple.privacyManifestAggregationEnabled": "true"
-}

@@ -58,6 +58,10 @@ yarn-error.log
 # generated API documentation
 docs/generated
 
+# Generated native projects (can be regenerated with `yarn example prebuild`)
+example/ios/
+example/android/
+
 # developer specific configuration file
 example/ios/Developer.xcconfig
 
