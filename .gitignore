@@ -65,4 +65,18 @@ example/android/
 # developer specific configuration file
 example/ios/Developer.xcconfig
 
+# Expo prebuild
+.expo/
+web-build/
+
+# Expo local env files
+.env*.local
+
+# EAS
+eas-build-pre-install.sh
+eas-build-post-install.sh
+eas-hooks/
+
+# Plugin build artifacts
 plugin/tsconfig.tsbuildinfo
+plugin/build/
