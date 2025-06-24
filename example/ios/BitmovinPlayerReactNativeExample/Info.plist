@@ -46,6 +46,13 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+    <key>NSBonjourServices</key>
+    <array>
+      <string>_googlecast._tcp</string>
+      <string>_FFE417E5._googlecast._tcp</string>
+    </array>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>This app uses the local network to discover Cast-enabled devices on your WiFi network.</string>
     <key>UIBackgroundModes</key>
     <array>
       <string>audio</string>

@@ -3,6 +3,7 @@ import FeatureFlags from "./FeatureFlags";
 
 const withBitmovinIosConfig: ConfigPlugin<{ playerLicenseKey: string, features: FeatureFlags }> = (config, { playerLicenseKey, features }) => {
   const offlineFeatureConfig = typeof features.offline === 'object' ? features.offline : { android: { isEnabled: !!features.offline, externalStoragePermission: false }, ios: { isEnabled: !!features.offline } };
+  const googleCastIosConfig = features.googleCastSDK?.ios ? (typeof features.googleCastSDK.ios === 'string' ? { version: features.googleCastSDK.ios } : features.googleCastSDK.ios) : null;
 
   config = withInfoPlist(config, config => {
     config.modResults['BitmovinPlayerLicenseKey'] = playerLicenseKey;
@@ -14,14 +15,22 @@ const withBitmovinIosConfig: ConfigPlugin<{ playerLicenseKey: string, features: 
     if (offlineFeatureConfig?.ios?.isEnabled) {
       config.modResults['BitmovinPlayerOfflineSupportEnabled'] = true;
     }
+    if (googleCastIosConfig) {
+      const appId = googleCastIosConfig.appId || 'FFE417E5';
+      const localNetworkUsageDescription = googleCastIosConfig.localNetworkUsageDescription || '${PRODUCT_NAME} uses the local network to discover Cast-enabled devices on your WiFi network.';
+      
+      config.modResults['NSBonjourServices'] = [
+        '_googlecast._tcp',
+        `_${appId}._googlecast._tcp`
+      ];
+      config.modResults['NSLocalNetworkUsageDescription'] = localNetworkUsageDescription;
+    }
     return config;
   });
 
   config = withPodfileProperties(config, config => {
-    if (features.googleCastSDK?.ios) {
-      const castSdkVersion = typeof features.googleCastSDK.ios === 'string' ? features.googleCastSDK.ios : features.googleCastSDK.ios.version;
-      config.modResults['BITMOVIN_GOOGLE_CAST_SDK_VERSION'] = castSdkVersion;
-      // TODO: Roland auto add Google Cast SDK permissions?
+    if (googleCastIosConfig) {
+      config.modResults['BITMOVIN_GOOGLE_CAST_SDK_VERSION'] = googleCastIosConfig.version;
     }
     return config;
   });
