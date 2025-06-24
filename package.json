@@ -29,6 +29,8 @@
     "bitmovin-player-react-native",
     "ios",
     "android",
+    "tvos",
+    "androidtv",
     "bitmovin",
     "player",
     "video",

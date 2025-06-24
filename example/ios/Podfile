@@ -1,3 +1,8 @@
+# @generated begin react-native-tvos-import - expo prebuild (DO NOT MODIFY) sync-45ad7228312d07c1751c6969560a210e8ec46f80
+source 'https://github.com/react-native-tvos/react-native-tvos-podspecs.git'
+source 'https://cdn.cocoapods.org/'
+
+# @generated end react-native-tvos-import
 require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
 require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
 
@@ -28,7 +33,7 @@ self.define_singleton_method(use_autolinking_method_symbol) do |*args|
   end
 end
 
-platform :ios, podfile_properties['ios.deploymentTarget'] || '13.4'
+platform :tvos, podfile_properties['ios.deploymentTarget'] || '13.4'
 install! 'cocoapods',
   :deterministic_uuids => false
 

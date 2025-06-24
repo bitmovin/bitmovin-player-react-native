@@ -11,11 +11,14 @@
     "pods-install": "[ \"$(uname)\" != Darwin ] || yarn pod-install",
     "pods-update": "[ \"$(uname)\" != Darwin ] || cd ios && pod update --silent",
     "prebuild": "expo prebuild",
+    "prebuild:tv": "EXPO_TV=1 expo prebuild",
     "run:android": "expo run:android",
     "run:ios": "expo run:ios",
     "start": "expo start",
     "android": "expo run:android",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "tvos": "EXPO_TV=1 expo run:ios",
+    "android-tv": "EXPO_TV=1 expo run:android"
   },
   "dependencies": {
     "@react-native-picker/picker": "2.7.5",

@@ -143,8 +143,14 @@ jobs:
             integration_test/ios/Pods
           key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
 
+      - name: Prebuild tvOS example
+        run: yarn example prebuild --clean
+        env:
+          EXPO_TV: 1
+          NSUnbufferedIO: YES
+
       - name: Build tvOS example
-        run: set -o pipefail && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample-tvOS -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcpretty
+        run: set -o pipefail && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample -configuration Debug -destination 'platform=tvOS Simulator,name=Apple TV,OS=latest' build CODE_SIGNING_ALLOWED='NO' | xcbeautify --renderer github-actions
         working-directory: example/ios
         env:
           NSUnbufferedIO: YES

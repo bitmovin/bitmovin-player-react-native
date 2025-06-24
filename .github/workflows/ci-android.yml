@@ -66,6 +66,15 @@ jobs:
         run: ./gradlew assembleDebug --build-cache
         working-directory: example/android
 
+      - name: Prebuild Android TV example
+        run: yarn example prebuild --clean
+        env:
+          EXPO_TV: 1
+
+      - name: Build Android TV example
+        run: ./gradlew assembleDebug --build-cache
+        working-directory: example/android
+
       - name: Build Android integration test host app
         run: ./gradlew assembleDebug --build-cache
         working-directory: integration_test/android
