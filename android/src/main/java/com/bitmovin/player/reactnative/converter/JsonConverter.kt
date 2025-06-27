@@ -565,10 +565,15 @@ fun AudioTrack.toJson(): WritableMap = Arguments.createMap().apply {
     putArray("qualities", qualities.mapToReactArray { it.toJson() })
 }
 
+/**
+ * Converts any `AudioQuality` into its json representation.
+ */
 fun AudioQuality.toJson(): WritableMap = Arguments.createMap().apply {
     putString("id", id)
     putString("label", label)
     putInt("bitrate", bitrate)
+    putInt("averageBitrate", averageBitrate)
+    putInt("peakBitrate", peakBitrate)
     putString("codec", codec)
 }
 

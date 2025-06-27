@@ -33,6 +33,7 @@ export interface AudioTrack {
 
   /**
    * A list of AudioQuality associated with this AudioTrack.
+   *
    * @platform Android
    */
   qualities?: AudioQuality[];
