@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Android: `AudioTrack.qualities`, providing the `AudioQuality`s associated with the `AudioTrack`
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.114.0`
