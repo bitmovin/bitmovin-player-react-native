@@ -30,7 +30,6 @@ export interface AudioTrack {
    * This property provides a unified way to understand track purposes (e.g., for accessibility) across platforms.
    */
   roles?: MediaTrackRole[];
-
   /**
    * A list of AudioQuality associated with this AudioTrack.
    *
