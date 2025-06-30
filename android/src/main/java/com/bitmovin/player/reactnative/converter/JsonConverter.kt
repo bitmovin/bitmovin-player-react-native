@@ -37,6 +37,7 @@ import com.bitmovin.player.api.media.AdaptationConfig
 import com.bitmovin.player.api.media.MediaTrackRole
 import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.media.audio.AudioTrack
+import com.bitmovin.player.api.media.audio.quality.AudioQuality
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
@@ -561,6 +562,19 @@ fun AudioTrack.toJson(): WritableMap = Arguments.createMap().apply {
     putString("identifier", id)
     putString("language", language)
     putArray("roles", roles.mapToReactArray { it.toJson() })
+    putArray("qualities", qualities.mapToReactArray { it.toJson() })
+}
+
+/**
+ * Converts any `AudioQuality` into its json representation.
+ */
+fun AudioQuality.toJson(): WritableMap = Arguments.createMap().apply {
+    putString("id", id)
+    putString("label", label)
+    putInt("bitrate", bitrate)
+    putInt("averageBitrate", averageBitrate)
+    putInt("peakBitrate", peakBitrate)
+    putString("codec", codec)
 }
 
 /**
