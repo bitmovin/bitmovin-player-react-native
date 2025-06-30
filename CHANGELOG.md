@@ -1,5 +1,7 @@
 # Changelog
 
+## [Unreleased]
+
 ## [0.43.0] - 2025-06-30
 
 ### Added
