@@ -11,6 +11,7 @@ import {
     googleCastSDK: undefined,
     offline: false,
     pictureInPicture: false,
+    expoPermissionsServiceFix: false,
   };
   
   const withBitmovinConfig: ConfigPlugin<{ playerLicenseKey: string, featureFlags: FeatureFlags }> = (config, { playerLicenseKey, featureFlags }) => {

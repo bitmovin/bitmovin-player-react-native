@@ -1,6 +1,7 @@
 import { AndroidConfig, ConfigPlugin, withAndroidManifest, withGradleProperties } from "expo/config-plugins";
 import FeatureFlags from "./FeatureFlags";
 import withAppGradleDependencies from "./withAppGradleDependencies";
+import withPermissionsServiceFix from './withPermissionsServiceFix';
 
 type ManifestActivity = AndroidConfig.Manifest.ManifestActivity;
 
@@ -132,6 +133,10 @@ const withBitmovinAndroidConfig: ConfigPlugin<{ playerLicenseKey: string, featur
     config.modResults = properties;
     return config;
   });
+
+  if (features.expoPermissionsServiceFix) {
+    config = withPermissionsServiceFix(config);
+  }
 
   return config;
 };
