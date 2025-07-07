@@ -34,9 +34,6 @@ concurrency:
   group: ci-ios-tvos-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-env:
-  NO_FLIPPER: 1
-
 jobs:
   code-style-ios:
     name: Code style iOS

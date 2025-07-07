@@ -28,9 +28,6 @@ concurrency:
   group: ci-android-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-env:
-  NO_FLIPPER: 1
-
 jobs:
   code-style-android:
     name: Code style Android

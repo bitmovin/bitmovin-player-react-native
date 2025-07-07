@@ -5,13 +5,13 @@
   ],
   "apple": {
     "modules": [
-
+     
     ],
     "appDelegateSubscribers": ["AppLifecycleDelegate"]
   },
   "android": {
     "modules": [
-
+      
     ]
   }
 }

@@ -18,7 +18,6 @@ on:
 env:
   LC_ALL: en_US.UTF-8
   LANG: en_US.UTF-8
-  NO_FLIPPER: 1
 
 concurrency:
   group: start-release-train-${{ inputs.version_number }}
@@ -82,7 +81,6 @@ jobs:
           yarn bootstrap
         env:
           CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
-          NO_FLIPPER: 1
 
       - name: Save Pods cache
         if: steps.pods-cache-restore.outputs.cache-hit != 'true'

@@ -17,9 +17,6 @@ on:
         required: true
         type: string
 
-env:
-  NO_FLIPPER: 1
-
 jobs:
   update:
     name: Update SDK version

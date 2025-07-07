@@ -6,6 +6,7 @@ import {
   findNodeHandle,
   NodeHandle,
 } from 'react-native';
+import { useKeepAwake } from 'expo-keep-awake';
 import { NativePlayerView } from './native';
 import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
@@ -54,6 +55,9 @@ export function PlayerView({
   isPictureInPictureRequested = false,
   ...props
 }: PlayerViewProps) {
+  // Keep the device awake while the PlayerView is mounted
+  useKeepAwake();
+
   // Workaround React Native UIManager commands not sent until UI refresh
   // See: https://github.com/bitmovin/bitmovin-player-react-native/issues/163
   // Might be fixed in recent RN version: https://github.com/microsoft/react-native-windows/issues/7543
