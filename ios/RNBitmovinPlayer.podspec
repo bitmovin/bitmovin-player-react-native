@@ -4,7 +4,7 @@ package = JSON.parse(File.read(File.join(__dir__, '..', 'package.json')))
 podfile_properties = JSON.parse(File.read("#{Pod::Config.instance.installation_root}/Podfile.properties.json")) rescue {}
 
 Pod::Spec.new do |s|
-  s.name           = 'BitmovinPlayerReactNative'
+  s.name           = 'RNBitmovinPlayer'
   s.version        = package['version']
   s.summary        = package['description']
   s.description    = package['description']
