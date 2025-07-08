@@ -16,70 +16,47 @@ public class NetworkExpoModule: Module {
         Name("NetworkExpoModule")
 
         AsyncFunction("initWithConfig") { (nativeId: String, config: [String: Any]) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    guard
-                        self?.retrieve(nativeId) == nil,
-                        let networkConfig = RCTConvert.networkConfig(config)
-                    else {
-                        continuation.resume()
-                        return
-                    }
-                    self?.networkConfigs[nativeId] = networkConfig
-                    self?.initConfigBlocks(nativeId, config)
-                    continuation.resume()
-                }
+            guard
+                self.retrieve(nativeId) == nil,
+                let networkConfig = RCTConvert.networkConfig(config)
+            else {
+                return
             }
-        }
+            self.networkConfigs[nativeId] = networkConfig
+            self.initConfigBlocks(nativeId, config)
+        }.runOnQueue(.main)
 
         AsyncFunction("destroy") { (nativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.networkConfigs.removeValue(forKey: nativeId)
-                    
-                    // Clean up completion handlers
-                    self?.preprocessHttpRequestCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
-                        self?.preprocessHttpRequestCompletionHandlers.removeValue(forKey: $0)
-                    }
-                    self?.preprocessHttpRequestDelegateBridges.removeValue(forKey: nativeId)
-                    self?.preprocessHttpResponseCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
-                        self?.preprocessHttpResponseCompletionHandlers.removeValue(forKey: $0)
-                    }
-                    continuation.resume()
-                }
+            self.networkConfigs.removeValue(forKey: nativeId)
+
+            // Clean up completion handlers
+            self.preprocessHttpRequestCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
+                self.preprocessHttpRequestCompletionHandlers.removeValue(forKey: $0)
             }
-        }
+            self.preprocessHttpRequestDelegateBridges.removeValue(forKey: nativeId)
+            self.preprocessHttpResponseCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
+                self.preprocessHttpResponseCompletionHandlers.removeValue(forKey: $0)
+            }
+        }.runOnQueue(.main)
 
         AsyncFunction("setPreprocessedHttpRequest") { (requestId: String, request: [String: Any]) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    guard let completionHandler = self?.preprocessHttpRequestCompletionHandlers[requestId],
-                          let httpRequest = RCTConvert.httpRequest(request) else {
-                        continuation.resume()
-                        return
-                    }
-
-                    self?.preprocessHttpRequestCompletionHandlers.removeValue(forKey: requestId)
-                    completionHandler(httpRequest)
-                    continuation.resume()
-                }
+            guard let completionHandler = self.preprocessHttpRequestCompletionHandlers[requestId],
+                  let httpRequest = RCTConvert.httpRequest(request) else {
+                return
             }
-        }
+
+            self.preprocessHttpRequestCompletionHandlers.removeValue(forKey: requestId)
+            completionHandler(httpRequest)
+        }.runOnQueue(.main)
 
         AsyncFunction("setPreprocessedHttpResponse") { (responseId: String, response: [String: Any]) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    guard let completionHandler = self?.preprocessHttpResponseCompletionHandlers[responseId],
-                          let httpResponse = RCTConvert.httpResponse(response) else {
-                        continuation.resume()
-                        return
-                    }
-                    self?.preprocessHttpResponseCompletionHandlers.removeValue(forKey: responseId)
-                    completionHandler(httpResponse)
-                    continuation.resume()
-                }
+            guard let completionHandler = self.preprocessHttpResponseCompletionHandlers[responseId],
+                  let httpResponse = RCTConvert.httpResponse(response) else {
+                return
             }
-        }
+            self.preprocessHttpResponseCompletionHandlers.removeValue(forKey: responseId)
+            completionHandler(httpResponse)
+        }.runOnQueue(.main)
     }
 
     /**
@@ -139,12 +116,12 @@ public class NetworkExpoModule: Module {
             RCTConvert.toJson(httpRequest: request),
         ]
         preprocessHttpRequestCompletionHandlers[requestId] = completionHandler
-        
-        // Call JavaScript function directly using Expo's React Context
-        // This maintains the same bidirectional communication pattern as the legacy module
-        if let reactContext = appContext?.reactContext {
-            reactContext.enqueueJSCall("Network-\(nativeId)", method: "onPreprocessHttpRequest", args: args, completion: nil)
-        }
+        sendEvent("onPreprocessHttpRequest", [
+            "nativeId": nativeId,
+            "requestId": requestId,
+            "type": type,
+            "request": RCTConvert.toJson(httpRequest: request)
+        ])
     }
 
     private func preprocessHttpResponseFromJS(
@@ -162,11 +139,12 @@ public class NetworkExpoModule: Module {
             RCTConvert.toJson(httpResponse: response),
         ]
         preprocessHttpResponseCompletionHandlers[responseId] = completionHandler
-        
-        // Call JavaScript function directly using Expo's React Context
-        if let reactContext = appContext?.reactContext {
-            reactContext.enqueueJSCall("Network-\(nativeId)", method: "onPreprocessHttpResponse", args: args, completion: nil)
-        }
+        sendEvent("onPreprocessHttpResponse", [
+            "nativeId": nativeId,
+            "responseId": responseId,
+            "type": RCTConvert.toJson(httpRequestType: type),
+            "response": RCTConvert.toJson(httpResponse: response)
+        ])
     }
 
     /**

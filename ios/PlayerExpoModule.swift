@@ -8,11 +8,11 @@ public class PlayerExpoModule: Module {
     
     public func definition() -> ModuleDefinition {
         Name("PlayerExpoModule")
-        
+
         OnCreate {
             // Module initialization
         }
-        
+
         OnDestroy {
             // Destroy all players on the main thread when the module is deallocated.
             // This is necessary when the IMA SDK is present in the app, as it may crash if the players are destroyed on a
@@ -21,476 +21,307 @@ public class PlayerExpoModule: Module {
                 players.values.forEach { $0.destroy() }
             }
         }
-        
+
         // PHASE 1: Start with simple utility methods to establish pattern
-        
+
         /**
          Returns the count of active players for debugging purposes
          */
         Function("getPlayerCount") {
             return players.count
         }
-        
+
         /**
          Checks if a player with the given nativeId exists
          */
         Function("hasPlayer") { (nativeId: String) in
             return players[nativeId] != nil
         }
-        
+
         // PHASE 2: Simple player control methods migration
-        
+
         /**
          Call .play() on nativeId's player.
          */
         AsyncFunction("play") { (nativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.players[nativeId]?.play()
-                    continuation.resume()
-                }
-            }
-        }
-        
+            self.players[nativeId]?.play()
+        }.runOnQueue(.main)
+
         /**
          Call .pause() on nativeId's player.
          */
         AsyncFunction("pause") { (nativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.players[nativeId]?.pause()
-                    continuation.resume()
-                }
-            }
-        }
-        
+            self.players[nativeId]?.pause()
+        }.runOnQueue(.main)
+
         /**
          Call .mute() on nativeId's player.
          */
         AsyncFunction("mute") { (nativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.players[nativeId]?.mute()
-                    continuation.resume()
-                }
-            }
-        }
-        
+            self.players[nativeId]?.mute()
+        }.runOnQueue(.main)
+
         /**
          Call .unmute() on nativeId's player.
          */
         AsyncFunction("unmute") { (nativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.players[nativeId]?.unmute()
-                    continuation.resume()
-                }
-            }
-        }
-        
+            self.players[nativeId]?.unmute()
+        }.runOnQueue(.main)
+
         /**
          Call .seek(time:) on nativeId's player.
          */
         AsyncFunction("seek") { (nativeId: String, time: Double) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.players[nativeId]?.seek(time: time)
-                    continuation.resume()
-                }
-            }
-        }
-        
+            self.players[nativeId]?.seek(time: time)
+        }.runOnQueue(.main)
+
         /**
          Sets timeShift on nativeId's player.
          */
         AsyncFunction("timeShift") { (nativeId: String, offset: Double) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.players[nativeId]?.timeShift = offset
-                    continuation.resume()
-                }
-            }
-        }
-        
+            self.players[nativeId]?.timeShift = offset
+        }.runOnQueue(.main)
+
         /**
          Call .destroy() on nativeId's player and remove from registry.
          */
         AsyncFunction("destroy") { (nativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    if let player = self?.players[nativeId] {
-                        player.destroy()
-                        self?.players[nativeId] = nil
-                    }
-                    continuation.resume()
-                }
+            if let player = self.players[nativeId] {
+                player.destroy()
+                self.players[nativeId] = nil
             }
-        }
-        
+        }.runOnQueue(.main)
+
         /**
          Call .setVolume(volume:) on nativeId's player.
          */
         AsyncFunction("setVolume") { (nativeId: String, volume: Int) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.players[nativeId]?.volume = volume
-                    continuation.resume()
-                }
-            }
-        }
-        
+            self.players[nativeId]?.volume = volume
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's current volume.
          */
         AsyncFunction("getVolume") { (nativeId: String) -> Int? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    let volume = self?.players[nativeId]?.volume
-                    continuation.resume(returning: volume)
-                }
-            }
-        }
-        
+            self.players[nativeId]?.volume
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's current time.
          */
         AsyncFunction("currentTime") { (nativeId: String, mode: String?) -> Double? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    let player = self?.players[nativeId]
-                    if let mode {
-                        let currentTime = player?.currentTime(RCTConvert.timeMode(mode))
-                        continuation.resume(returning: currentTime)
-                    } else {
-                        let currentTime = player?.currentTime
-                        continuation.resume(returning: currentTime)
-                    }
-                }
+            let player = self.players[nativeId]
+            if let mode {
+                return player?.currentTime(RCTConvert.timeMode(mode))
+            } else {
+                return player?.currentTime
             }
-        }
-        
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's current playing state.
          */
         AsyncFunction("isPlaying") { (nativeId: String) -> Bool? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    let isPlaying = self?.players[nativeId]?.isPlaying
-                    continuation.resume(returning: isPlaying)
-                }
-            }
-        }
-        
+            self.players[nativeId]?.isPlaying
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's current paused state.
          */
         AsyncFunction("isPaused") { (nativeId: String) -> Bool? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    let isPaused = self?.players[nativeId]?.isPaused
-                    continuation.resume(returning: isPaused)
-                }
-            }
-        }
-        
+            self.players[nativeId]?.isPaused
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's active source duration.
          */
         AsyncFunction("duration") { (nativeId: String) -> Double? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    let duration = self?.players[nativeId]?.duration
-                    continuation.resume(returning: duration)
-                }
-            }
-        }
-        
+            self.players[nativeId]?.duration
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's current muted state.
          */
         AsyncFunction("isMuted") { (nativeId: String) -> Bool? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    let isMuted = self?.players[nativeId]?.isMuted
-                    continuation.resume(returning: isMuted)
-                }
-            }
-        }
-        
+            self.players[nativeId]?.isMuted
+        }.runOnQueue(.main)
+
         /**
          Call .unload() on nativeId's player.
          */
         AsyncFunction("unload") { (nativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.players[nativeId]?.unload()
-                    continuation.resume()
-                }
-            }
-        }
-        
+            self.players[nativeId]?.unload()
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's current time shift value.
          */
         AsyncFunction("getTimeShift") { (nativeId: String) -> Double? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    let timeShift = self?.players[nativeId]?.timeShift
-                    continuation.resume(returning: timeShift)
-                }
-            }
-        }
-        
+            self.players[nativeId]?.timeShift
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's live stream state.
          */
         AsyncFunction("isLive") { (nativeId: String) -> Bool? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    let isLive = self?.players[nativeId]?.isLive
-                    continuation.resume(returning: isLive)
-                }
-            }
-        }
-        
+            self.players[nativeId]?.isLive
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's maximum time shift value.
          */
         AsyncFunction("getMaxTimeShift") { (nativeId: String) -> Double? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    let maxTimeShift = self?.players[nativeId]?.maxTimeShift
-                    continuation.resume(returning: maxTimeShift)
-                }
-            }
-        }
-        
+            self.players[nativeId]?.maxTimeShift
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's current playback speed.
          */
         AsyncFunction("getPlaybackSpeed") { (nativeId: String) -> Float? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    let playbackSpeed = self?.players[nativeId]?.playbackSpeed
-                    continuation.resume(returning: playbackSpeed)
-                }
-            }
-        }
-        
+            self.players[nativeId]?.playbackSpeed
+        }.runOnQueue(.main)
+
         /**
          Set playback speed for nativeId's player.
          */
         AsyncFunction("setPlaybackSpeed") { (nativeId: String, playbackSpeed: Float) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.players[nativeId]?.playbackSpeed = playbackSpeed
-                    continuation.resume()
-                }
-            }
-        }
-        
+            self.players[nativeId]?.playbackSpeed = playbackSpeed
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's current ad state.
          */
         AsyncFunction("isAd") { (nativeId: String) -> Bool? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    let isAd = self?.players[nativeId]?.isAd
-                    continuation.resume(returning: isAd)
-                }
-            }
-        }
-        
+            self.players[nativeId]?.isAd
+        }.runOnQueue(.main)
+
         /**
          Set maximum selectable bitrate for nativeId's player.
          */
         AsyncFunction("setMaxSelectableBitrate") { (nativeId: String, maxBitrate: Int) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.players[nativeId]?.maxSelectableBitrate = maxBitrate
-                    continuation.resume()
-                }
-            }
-        }
-        
+            self.players[nativeId]?.maxSelectableBitrate = UInt(maxBitrate)
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's AirPlay activation state (iOS only).
          */
         AsyncFunction("isAirPlayActive") { (nativeId: String) -> Bool? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-#if os(iOS)
-                    let isActive = self?.players[nativeId]?.isAirPlayActive
-                    continuation.resume(returning: isActive)
-#else
-                    continuation.resume(returning: nil)
-#endif
-                }
-            }
-        }
-        
+            #if os(iOS)
+            return self.players[nativeId]?.isAirPlayActive
+            #else
+            return nil
+            #endif
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's AirPlay availability state (iOS only).
          */
         AsyncFunction("isAirPlayAvailable") { (nativeId: String) -> Bool? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-#if os(iOS)
-                    let isAvailable = self?.players[nativeId]?.isAirPlayAvailable
-                    continuation.resume(returning: isAvailable)
-#else
-                    continuation.resume(returning: nil)
-#endif
-                }
-            }
-        }
-        
+            #if os(iOS)
+            return self.players[nativeId]?.isAirPlayAvailable
+            #else
+            return nil
+            #endif
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's cast availability state.
          */
         AsyncFunction("isCastAvailable") { (nativeId: String) -> Bool? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    let isCastAvailable = self?.players[nativeId]?.isCastAvailable
-                    continuation.resume(returning: isCastAvailable)
-                }
-            }
-        }
-        
+            self.players[nativeId]?.isCastAvailable
+        }.runOnQueue(.main)
+
         /**
          Resolve nativeId's current casting state.
          */
         AsyncFunction("isCasting") { (nativeId: String) -> Bool? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    let isCasting = self?.players[nativeId]?.isCasting
-                    continuation.resume(returning: isCasting)
-                }
-            }
-        }
-        
+            self.players[nativeId]?.isCasting
+        }.runOnQueue(.main)
+
         /**
          Initiate casting for nativeId's player.
          */
         AsyncFunction("castVideo") { (nativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.players[nativeId]?.castVideo()
-                    continuation.resume()
-                }
-            }
-        }
-        
+            self.players[nativeId]?.castVideo()
+        }.runOnQueue(.main)
+
         /**
          Stop casting for nativeId's player.
          */
         AsyncFunction("castStop") { (nativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.players[nativeId]?.castStop()
-                    continuation.resume()
-                }
-            }
-        }
-        
+            self.players[nativeId]?.castStop()
+        }.runOnQueue(.main)
+
         /**
          Skip current ad for nativeId's player.
          */
         AsyncFunction("skipAd") { (nativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.players[nativeId]?.skipAd()
-                    continuation.resume()
-                }
-            }
-        }
-        
+            self.players[nativeId]?.skipAd()
+        }.runOnQueue(.main)
+
         /**
          Check if player can play at specified playback speed (iOS only).
          */
         AsyncFunction("canPlayAtPlaybackSpeed") { (nativeId: String, playbackSpeed: Float) -> Bool? in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    let canPlay = self?.players[nativeId]?.canPlay(atPlaybackSpeed: playbackSpeed)
-                    continuation.resume(returning: canPlay)
-                }
-            }
-        }
-        
+            self.players[nativeId]?.canPlay(atPlaybackSpeed: playbackSpeed)
+        }.runOnQueue(.main)
+
         /**
          Creates a new Player instance using the provided config.
          This is a complex method requiring config conversion and cross-module setup.
          */
         AsyncFunction("initWithConfig") { (nativeId: String, config: [String: Any]?, networkNativeId: String?, decoderNativeId: String?) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    guard self?.players[nativeId] == nil else {
-                        // Player already exists for this nativeId
-                        continuation.resume()
-                        return
-                    }
-                    
-                    // For now, create a basic player config - full conversion would require RCTConvert
-                    // This is a simplified implementation that creates a default player
-                    let playerConfig = PlayerConfig()
-                    
-                    // TODO: Add full config conversion when RCTConvert patterns are available
-                    // TODO: Add network config setup if networkNativeId is provided
-                    // TODO: Add remote control config setup for iOS
-                    
-                    self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
-                    continuation.resume()
-                }
+            guard self.players[nativeId] == nil else {
+                // Player already exists for this nativeId
+                return
             }
-        }
-        
+
+            // For now, create a basic player config - full conversion would require RCTConvert
+            // This is a simplified implementation that creates a default player
+            let playerConfig = PlayerConfig()
+
+            // TODO: Add full config conversion when RCTConvert patterns are available
+            // TODO: Add network config setup if networkNativeId is provided
+            // TODO: Add remote control config setup for iOS
+
+            self.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
+        }.runOnQueue(.main)
+
         /**
          Creates a new analytics-enabled Player instance.
          */
         AsyncFunction("initWithAnalyticsConfig") { (nativeId: String, analyticsConfig: [String: Any], config: [String: Any]?, networkNativeId: String?, decoderNativeId: String?) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    guard self?.players[nativeId] == nil else {
-                        // Player already exists for this nativeId
-                        continuation.resume()
-                        return
-                    }
-                    
-                    // For now, create a basic player config with analytics
-                    let playerConfig = PlayerConfig()
-                    
-                    // TODO: Add full analytics config conversion
-                    // TODO: Add network config setup if networkNativeId is provided
-                    
-                    self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
-                    continuation.resume()
-                }
+            guard self.players[nativeId] == nil else {
+                // Player already exists for this nativeId
+                return
             }
-        }
-        
+
+            // For now, create a basic player config with analytics
+            let playerConfig = PlayerConfig()
+
+            // TODO: Add full analytics config conversion
+            // TODO: Add network config setup if networkNativeId is provided
+
+            self.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
+        }.runOnQueue(.main)
+
         /**
          Load source into the player.
          This requires cross-module dependency on SourceModule.
          */
         AsyncFunction("loadSource") { (nativeId: String, sourceNativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    guard let player = self?.players[nativeId] else {
-                        continuation.resume()
-                        return
-                    }
-                    
-                    // TODO: This requires SourceModule dependency to retrieve source
-                    // For now, this is a placeholder implementation
-                    // Need: let source = self?.bridge[SourceModule.self]?.retrieve(sourceNativeId)
-                    // Then: player.load(source: source)
-                    
-                    // Placeholder - would load source if SourceModule integration is available
-                    continuation.resume()
-                }
+            guard let player = self.players[nativeId] else {
+                return
             }
-        }
-        
+
+            // TODO: This requires SourceModule dependency to retrieve source
+            // For now, this is a placeholder implementation
+            // Need: let source = self?.bridge[SourceModule.self]?.retrieve(sourceNativeId)
+            // Then: player.load(source: source)
+
+            // Placeholder - would load source if SourceModule integration is available
+        }.runOnQueue(.main)
+
         // TODO: Continue with remaining complex methods
     }
     

@@ -4,8 +4,8 @@ import AVFAudio
 public class AudioSessionExpoModule: Module {
     public func definition() -> ModuleDefinition {
         Name("AudioSessionModule")
-        
-        AsyncFunction("setCategory") { (category: String) -> Void in
+
+        AsyncFunction("setCategory") { (category: String) in
             if let parsedCategory = parseCategory(category) {
                 do {
                     try AVAudioSession.sharedInstance().setCategory(parsedCategory)
@@ -15,7 +15,7 @@ public class AudioSessionExpoModule: Module {
             } else {
                 throw Exception(name: "INVALID_CATEGORY", description: "Unknown audio session category: \(category)")
             }
-        }
+        }.runOnQueue(.main)
     }
     
     /**

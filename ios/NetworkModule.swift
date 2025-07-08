@@ -65,12 +65,13 @@ public class NetworkModule: NSObject, RCTBridgeModule {
 
     private func initPreprocessHttpRequest(_ nativeId: NativeId, networkConfigJson: [String: Any]) {
         guard let networkConfig = retrieve(nativeId),
-              networkConfigJson["preprocessHttpRequest"] != nil else {
+              networkConfigJson["preprocessHttpRequest"] != nil,
+              let networkExpoModule = bridge.module(for: NetworkExpoModule.self) as? NetworkExpoModule else {
             return
         }
         preprocessHttpRequestDelegateBridges[nativeId] = PreprocessHttpRequestDelegateBridge(
             nativeId,
-            bridge: bridge
+            networkExpoModule: networkExpoModule
         )
         networkConfig.preprocessHttpRequestDelegate = preprocessHttpRequestDelegateBridges[nativeId]
     }
