@@ -14,17 +14,55 @@ public class BufferExpoModule: Module {
         /**
          Get buffer level for the specified player and buffer type.
          */
-        AsyncFunction("getLevel") { (_: String, _: String) -> Double? in
-            // TODO: This requires PlayerExpoModule dependency to retrieve player
-            // For now, this is a placeholder implementation
-            // Need: Access to PlayerExpoModule.retrieve(playerId)?.buffer
-            // Then: Get buffer level based on type
+        AsyncFunction("getLevel") { (playerId: String, type: String) -> Double? in
+            await withCheckedContinuation { (continuation: CheckedContinuation<Double?, Never>) in
+                DispatchQueue.main.async {
+                    defer { continuation.resume(returning: nil) }
+                    
+                    // Access PlayerExpoModule to retrieve player
+                    guard let player = PlayerExpoModule.retrieve(playerId) else {
+                        return
+                    }
+                    
+                    let bufferLevel: Double
+                    switch type.lowercased() {
+                    case "audio":
+                        bufferLevel = player.buffer.getLevel(for: .audio)
+                    case "video":
+                        bufferLevel = player.buffer.getLevel(for: .video)
+                    default:
+                        return // Unknown buffer type
+                    }
+                    
+                    continuation.resume(returning: bufferLevel)
+                }
+            }
+        }
 
-            // Placeholder - would get buffer level if PlayerModule integration is available
-            nil
-        }.runOnQueue(.main)
-
-        // TODO: Add more BufferModule methods
-        // setTargetLevel, getTargetLevel, etc.
+        /**
+         Set target level for the specified player and buffer type.
+         */
+        AsyncFunction("setTargetLevel") { (playerId: String, type: String, value: Double) -> Void in
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                DispatchQueue.main.async {
+                    defer { continuation.resume() }
+                    
+                    // Access PlayerExpoModule to retrieve player
+                    guard let player = PlayerExpoModule.retrieve(playerId) else {
+                        return
+                    }
+                    
+                    let targetLevel = TimeInterval(value)
+                    switch type.lowercased() {
+                    case "audio":
+                        player.buffer.setTargetLevel(targetLevel, for: .audio)
+                    case "video":
+                        player.buffer.setTargetLevel(targetLevel, for: .video)
+                    default:
+                        break // Unknown buffer type
+                    }
+                }
+            }
+        }
     }
 }

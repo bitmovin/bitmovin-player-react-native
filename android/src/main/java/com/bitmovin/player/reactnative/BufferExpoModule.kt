@@ -2,6 +2,7 @@ package com.bitmovin.player.reactnative
 
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import com.bitmovin.player.api.buffer.BufferType
 
 class BufferExpoModule : Module() {
     override fun definition() = ModuleDefinition {
@@ -17,16 +18,30 @@ class BufferExpoModule : Module() {
          * Get buffer level for the specified player and buffer type.
          */
         AsyncFunction("getLevel") { playerId: String, type: String ->
-            // TODO: This requires PlayerExpoModule dependency to retrieve player
-            // For now, this is a placeholder implementation
-            // Need: Access to PlayerExpoModule.getPlayerOrNull(playerId)?.buffer
-            // Then: Get buffer level based on type
+            // Access PlayerExpoModule to retrieve player
+            val player = PlayerExpoModule.getPlayerOrNull(playerId)
+                ?: return@AsyncFunction null
             
-            // Placeholder - would get buffer level if PlayerModule integration is available
-            return@AsyncFunction 0.0
+            when (type.lowercase()) {
+                "audio" -> player.buffer.getLevel(BufferType.AUDIO)
+                "video" -> player.buffer.getLevel(BufferType.VIDEO)
+                else -> null // Unknown buffer type
+            }
         }
 
-        // TODO: Add more BufferModule methods
-        // setTargetLevel, getTargetLevel, etc.
+        /**
+         * Set target level for the specified player and buffer type.
+         */
+        AsyncFunction("setTargetLevel") { playerId: String, type: String, value: Double ->
+            // Access PlayerExpoModule to retrieve player
+            val player = PlayerExpoModule.getPlayerOrNull(playerId)
+                ?: return@AsyncFunction
+            
+            when (type.lowercase()) {
+                "audio" -> player.buffer.setTargetLevel(BufferType.AUDIO, value)
+                "video" -> player.buffer.setTargetLevel(BufferType.VIDEO, value)
+                else -> {} // Unknown buffer type
+            }
+        }
     }
 }
