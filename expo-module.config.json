@@ -8,7 +8,8 @@
       "UuidExpoModule",
       "DebugExpoModule",
       "AudioSessionExpoModule",
-      "BitmovinCastManagerExpoModule"
+      "BitmovinCastManagerExpoModule",
+      "PlayerExpoModule"
     ],
     "appDelegateSubscribers": ["AppLifecycleDelegate"]
   },
@@ -16,7 +17,8 @@
     "modules": [
       "com.bitmovin.player.reactnative.UuidExpoModule",
       "com.bitmovin.player.reactnative.DebugExpoModule",
-      "com.bitmovin.player.reactnative.BitmovinCastManagerExpoModule"
+      "com.bitmovin.player.reactnative.BitmovinCastManagerExpoModule",
+      "com.bitmovin.player.reactnative.PlayerExpoModule"
     ]
   }
 }
