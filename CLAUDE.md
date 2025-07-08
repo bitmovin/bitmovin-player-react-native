@@ -15,7 +15,7 @@ yarn build
 
 # Run lints and type checking
 yarn lint
-yarn test
+yarn lint:ios  # Swift linting
 
 # Clean build artifacts
 yarn clean
