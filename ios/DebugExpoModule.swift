@@ -1,5 +1,5 @@
-import ExpoModulesCore
 import BitmovinPlayer
+import ExpoModulesCore
 
 public class DebugExpoModule: Module {
     public func definition() -> ModuleDefinition {

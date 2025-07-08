@@ -1,5 +1,5 @@
-import ExpoModulesCore
 import BitmovinPlayer
+import ExpoModulesCore
 
 public class BitmovinCastManagerExpoModule: Module {
     public func definition() -> ModuleDefinition {
@@ -7,9 +7,12 @@ public class BitmovinCastManagerExpoModule: Module {
 
         AsyncFunction("initializeCastManager") { (config: [String: Any]?) throws in
             #if os(iOS)
-            if let config = config {
+            if let config {
                 guard let options = RCTConvert.castManagerOptions(config) else {
-                    throw Exception(name: "DESERIALIZATION_ERROR", description: "Could not deserialize BitmovinCastManagerOptions")
+                    throw Exception(
+                        name: "DESERIALIZATION_ERROR",
+                        description: "Could not deserialize BitmovinCastManagerOptions"
+                    )
                 }
                 BitmovinCastManager.initializeCasting(options: options)
             } else {

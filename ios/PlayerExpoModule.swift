@@ -1,11 +1,11 @@
-import ExpoModulesCore
 import BitmovinPlayer
+import ExpoModulesCore
 
 public class PlayerExpoModule: Module {
     /// In-memory mapping from `nativeId`s to `Player` instances.
-    /// This must match the Registry pattern from legacy PlayerModule
+    /// Must match the legacy PlayerModule's Registry pattern.
     private var players: Registry<Player> = [:]
-    
+
     public func definition() -> ModuleDefinition {
         Name("PlayerExpoModule")
 
@@ -15,31 +15,39 @@ public class PlayerExpoModule: Module {
 
         OnDestroy {
             // Destroy all players on the main thread when the module is deallocated.
-            // This is necessary when the IMA SDK is present in the app, as it may crash if the players are destroyed on a
-            // background thread.
+            // This is necessary when the IMA SDK is present in the app,
+            // as it may crash if the players are destroyed on a background thread.
             DispatchQueue.main.async { [players] in
                 players.values.forEach { $0.destroy() }
             }
         }
 
-        // PHASE 1: Start with simple utility methods to establish pattern
+        playerManagement()
+        playerMethods()
+        playerGetters()
+        castingAndAds()
+        initializationAndLoading()
+    }
 
+    @ModuleDefinitionBuilder
+    private func playerManagement() -> [AnyDefinition] {
         /**
          Returns the count of active players for debugging purposes
          */
         Function("getPlayerCount") {
-            return players.count
+            players.count
         }
 
         /**
          Checks if a player with the given nativeId exists
          */
         Function("hasPlayer") { (nativeId: String) in
-            return players[nativeId] != nil
+            players[nativeId] != nil
         }
+    }
 
-        // PHASE 2: Simple player control methods migration
-
+    @ModuleDefinitionBuilder
+    private func playerMethods() -> [AnyDefinition] {
         /**
          Call .play() on nativeId's player.
          */
@@ -100,6 +108,30 @@ public class PlayerExpoModule: Module {
         }.runOnQueue(.main)
 
         /**
+         Call .unload() on nativeId's player.
+         */
+        AsyncFunction("unload") { (nativeId: String) in
+            self.players[nativeId]?.unload()
+        }.runOnQueue(.main)
+
+        /**
+         Set playback speed for nativeId's player.
+         */
+        AsyncFunction("setPlaybackSpeed") { (nativeId: String, playbackSpeed: Float) in
+            self.players[nativeId]?.playbackSpeed = playbackSpeed
+        }.runOnQueue(.main)
+
+        /**
+         Set maximum selectable bitrate for nativeId's player.
+         */
+        AsyncFunction("setMaxSelectableBitrate") { (nativeId: String, maxBitrate: Int) in
+            self.players[nativeId]?.maxSelectableBitrate = UInt(maxBitrate)
+        }.runOnQueue(.main)
+    }
+
+    @ModuleDefinitionBuilder
+    private func playerGetters() -> [AnyDefinition] {
+        /**
          Resolve nativeId's current volume.
          */
         AsyncFunction("getVolume") { (nativeId: String) -> Int? in
@@ -147,13 +179,6 @@ public class PlayerExpoModule: Module {
         }.runOnQueue(.main)
 
         /**
-         Call .unload() on nativeId's player.
-         */
-        AsyncFunction("unload") { (nativeId: String) in
-            self.players[nativeId]?.unload()
-        }.runOnQueue(.main)
-
-        /**
          Resolve nativeId's current time shift value.
          */
         AsyncFunction("getTimeShift") { (nativeId: String) -> Double? in
@@ -182,13 +207,6 @@ public class PlayerExpoModule: Module {
         }.runOnQueue(.main)
 
         /**
-         Set playback speed for nativeId's player.
-         */
-        AsyncFunction("setPlaybackSpeed") { (nativeId: String, playbackSpeed: Float) in
-            self.players[nativeId]?.playbackSpeed = playbackSpeed
-        }.runOnQueue(.main)
-
-        /**
          Resolve nativeId's current ad state.
          */
         AsyncFunction("isAd") { (nativeId: String) -> Bool? in
@@ -196,12 +214,15 @@ public class PlayerExpoModule: Module {
         }.runOnQueue(.main)
 
         /**
-         Set maximum selectable bitrate for nativeId's player.
+         Check if player can play at specified playback speed (iOS only).
          */
-        AsyncFunction("setMaxSelectableBitrate") { (nativeId: String, maxBitrate: Int) in
-            self.players[nativeId]?.maxSelectableBitrate = UInt(maxBitrate)
+        AsyncFunction("canPlayAtPlaybackSpeed") { (nativeId: String, playbackSpeed: Float) -> Bool? in
+            self.players[nativeId]?.canPlay(atPlaybackSpeed: playbackSpeed)
         }.runOnQueue(.main)
+    }
 
+    @ModuleDefinitionBuilder
+    private func castingAndAds() -> [AnyDefinition] {
         /**
          Resolve nativeId's AirPlay activation state (iOS only).
          */
@@ -258,19 +279,15 @@ public class PlayerExpoModule: Module {
         AsyncFunction("skipAd") { (nativeId: String) in
             self.players[nativeId]?.skipAd()
         }.runOnQueue(.main)
+    }
 
-        /**
-         Check if player can play at specified playback speed (iOS only).
-         */
-        AsyncFunction("canPlayAtPlaybackSpeed") { (nativeId: String, playbackSpeed: Float) -> Bool? in
-            self.players[nativeId]?.canPlay(atPlaybackSpeed: playbackSpeed)
-        }.runOnQueue(.main)
-
+    @ModuleDefinitionBuilder
+    private func initializationAndLoading() -> [AnyDefinition] {
         /**
          Creates a new Player instance using the provided config.
          This is a complex method requiring config conversion and cross-module setup.
          */
-        AsyncFunction("initWithConfig") { (nativeId: String, config: [String: Any]?, networkNativeId: String?, decoderNativeId: String?) in
+        AsyncFunction("initWithConfig") { (nativeId: String, _: [String: Any]?, _: String?, _: String?) in
             guard self.players[nativeId] == nil else {
                 // Player already exists for this nativeId
                 return
@@ -287,10 +304,8 @@ public class PlayerExpoModule: Module {
             self.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
         }.runOnQueue(.main)
 
-        /**
-         Creates a new analytics-enabled Player instance.
-         */
-        AsyncFunction("initWithAnalyticsConfig") { (nativeId: String, analyticsConfig: [String: Any], config: [String: Any]?, networkNativeId: String?, decoderNativeId: String?) in
+        // swiftlint:disable:next line_length
+        AsyncFunction("initWithAnalyticsConfig") { (nativeId: String, _: [String: Any], _: [String: Any]?, _: [String: Any]?, _: String?) in
             guard self.players[nativeId] == nil else {
                 // Player already exists for this nativeId
                 return
@@ -309,8 +324,8 @@ public class PlayerExpoModule: Module {
          Load source into the player.
          This requires cross-module dependency on SourceModule.
          */
-        AsyncFunction("loadSource") { (nativeId: String, sourceNativeId: String) in
-            guard let player = self.players[nativeId] else {
+        AsyncFunction("loadSource") { (nativeId: String, _: String) in
+            guard self.players[nativeId] != nil else {
                 return
             }
 
@@ -321,10 +336,8 @@ public class PlayerExpoModule: Module {
 
             // Placeholder - would load source if SourceModule integration is available
         }.runOnQueue(.main)
-
-        // TODO: Continue with remaining complex methods
     }
-    
+
     // CRITICAL: This method must remain available for cross-module access
     // Called by BufferModule, PlayerAnalyticsModule, RNPlayerViewManager, etc.
     @objc

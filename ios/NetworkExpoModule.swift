@@ -156,6 +156,6 @@ public class NetworkExpoModule: Module {
         // This static access pattern maintains compatibility with existing code
         // In a production implementation, we would need to maintain a global registry
         // or use dependency injection to access the module instance
-        return nil // TODO: Implement global registry pattern if needed
+        nil // TODO: Implement global registry pattern if needed
     }
 }

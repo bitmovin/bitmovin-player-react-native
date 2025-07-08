@@ -1,5 +1,5 @@
-import ExpoModulesCore
 import AVFAudio
+import ExpoModulesCore
 
 public class AudioSessionExpoModule: Module {
     public func definition() -> ModuleDefinition {
@@ -17,7 +17,7 @@ public class AudioSessionExpoModule: Module {
             }
         }.runOnQueue(.main)
     }
-    
+
     /**
      Parse any category string to an `AVAudioSession.Category` type.
      */

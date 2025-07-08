@@ -1,5 +1,5 @@
-import ExpoModulesCore
 import BitmovinPlayer
+import ExpoModulesCore
 
 public class BufferExpoModule: Module {
     public func definition() -> ModuleDefinition {
@@ -14,14 +14,14 @@ public class BufferExpoModule: Module {
         /**
          Get buffer level for the specified player and buffer type.
          */
-        AsyncFunction("getLevel") { (playerId: String, type: String) -> Double? in
+        AsyncFunction("getLevel") { (_: String, _: String) -> Double? in
             // TODO: This requires PlayerExpoModule dependency to retrieve player
             // For now, this is a placeholder implementation
             // Need: Access to PlayerExpoModule.retrieve(playerId)?.buffer
             // Then: Get buffer level based on type
 
             // Placeholder - would get buffer level if PlayerModule integration is available
-            return nil
+            nil
         }.runOnQueue(.main)
 
         // TODO: Add more BufferModule methods

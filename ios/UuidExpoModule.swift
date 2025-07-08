@@ -7,7 +7,7 @@ import Foundation
 public class UuidExpoModule: Module {
     public func definition() -> ModuleDefinition {
         Name("UuidModule")
-        
+
         Function("generate") { () -> String in
             UUID().uuidString
         }
