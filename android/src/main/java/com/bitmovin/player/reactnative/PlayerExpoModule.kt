@@ -46,9 +46,42 @@ class PlayerExpoModule : Module() {
             return players.containsKey(nativeId)
         }
 
-        // TODO: Incrementally migrate methods from PlayerModule.kt
-        // Starting with simple methods, then complex ones
-        // Must preserve static access pattern for cross-module compatibility
+        // PHASE 2: Simple player control methods migration
+        
+        /**
+         * Call .play() on nativeId's player.
+         */
+        AsyncFunction("play") { nativeId: String ->
+            val player = players[nativeId]
+            player?.play()
+        }
+        
+        /**
+         * Call .pause() on nativeId's player.
+         */
+        AsyncFunction("pause") { nativeId: String ->
+            val player = players[nativeId]
+            player?.pause()
+        }
+        
+        /**
+         * Call .mute() on nativeId's player.
+         */
+        AsyncFunction("mute") { nativeId: String ->
+            val player = players[nativeId]
+            player?.mute()
+        }
+        
+        /**
+         * Call .unmute() on nativeId's player.
+         */
+        AsyncFunction("unmute") { nativeId: String ->
+            val player = players[nativeId]
+            player?.unmute()
+        }
+        
+        // TODO: Continue incrementally migrating remaining methods
+        // Next batch: seek, timeShift, destroy, then complex methods
     }
 
     // CRITICAL: This method must remain available for cross-module access

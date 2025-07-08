@@ -11,8 +11,30 @@ export interface PlayerExpoModuleType {
    */
   hasPlayer(nativeId: string): boolean;
 
-  // TODO: Add method types as they are migrated from PlayerModule
-  // This will grow incrementally during Phase 3 migration
+  // PHASE 2: Simple player control methods
+
+  /**
+   * Call .play() on nativeId's player.
+   */
+  play(nativeId: string): Promise<void>;
+
+  /**
+   * Call .pause() on nativeId's player.
+   */
+  pause(nativeId: string): Promise<void>;
+
+  /**
+   * Call .mute() on nativeId's player.
+   */
+  mute(nativeId: string): Promise<void>;
+
+  /**
+   * Call .unmute() on nativeId's player.
+   */
+  unmute(nativeId: string): Promise<void>;
+
+  // TODO: Add remaining method types as they are migrated
+  // Next batch: seek, timeShift, destroy, then complex methods
 }
 
 export default requireNativeModule<PlayerExpoModuleType>('PlayerExpoModule');

@@ -38,9 +38,58 @@ public class PlayerExpoModule: Module {
             return players[nativeId] != nil
         }
         
-        // TODO: Incrementally migrate methods from PlayerModule.swift
-        // Starting with simple methods, then complex ones
-        // Must preserve static access pattern for cross-module compatibility
+        // PHASE 2: Simple player control methods migration
+        
+        /**
+         Call .play() on nativeId's player.
+         */
+        AsyncFunction("play") { (nativeId: String) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    self?.players[nativeId]?.play()
+                    continuation.resume()
+                }
+            }
+        }
+        
+        /**
+         Call .pause() on nativeId's player.
+         */
+        AsyncFunction("pause") { (nativeId: String) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    self?.players[nativeId]?.pause()
+                    continuation.resume()
+                }
+            }
+        }
+        
+        /**
+         Call .mute() on nativeId's player.
+         */
+        AsyncFunction("mute") { (nativeId: String) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    self?.players[nativeId]?.mute()
+                    continuation.resume()
+                }
+            }
+        }
+        
+        /**
+         Call .unmute() on nativeId's player.
+         */
+        AsyncFunction("unmute") { (nativeId: String) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    self?.players[nativeId]?.unmute()
+                    continuation.resume()
+                }
+            }
+        }
+        
+        // TODO: Continue incrementally migrating remaining methods
+        // Next batch: seek, timeShift, destroy, then complex methods
     }
     
     // CRITICAL: This method must remain available for cross-module access
