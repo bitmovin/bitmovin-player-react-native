@@ -12,7 +12,9 @@
       "PlayerExpoModule",
       "SourceExpoModule",
       "BufferExpoModule",
-      "NetworkExpoModule"
+      "NetworkExpoModule",
+      "CustomMessageHandlerExpoModule",
+      "DrmExpoModule"
     ],
     "appDelegateSubscribers": ["AppLifecycleDelegate"]
   },
@@ -24,7 +26,9 @@
       "com.bitmovin.player.reactnative.PlayerExpoModule",
       "com.bitmovin.player.reactnative.SourceExpoModule",
       "com.bitmovin.player.reactnative.BufferExpoModule",
-      "com.bitmovin.player.reactnative.NetworkExpoModule"
+      "com.bitmovin.player.reactnative.NetworkExpoModule",
+      "com.bitmovin.player.reactnative.CustomMessageHandlerExpoModule",
+      "com.bitmovin.player.reactnative.DrmExpoModule"
     ]
   }
 }

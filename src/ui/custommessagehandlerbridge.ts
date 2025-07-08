@@ -1,10 +1,8 @@
-import { NativeModules } from 'react-native';
 import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
 import { CustomMessageHandler } from './custommessagehandler';
 import { CustomMessageSender } from './custommessagesender';
-
-const Uuid = NativeModules.UuidModule;
-const CustomMessageHandlerModule = NativeModules.CustomMessageHandlerModule;
+import UuidExpoModule from '../modules/UuidExpoModule';
+import CustomMessageHandlerExpoModule from './customMessageHandlerExpoModule';
 
 /**
  * Takes care of JS/Native communication for a CustomMessageHandler.
@@ -15,13 +13,13 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
   private isDestroyed: boolean;
 
   constructor(nativeId?: string) {
-    this.nativeId = nativeId ?? Uuid.generate();
+    this.nativeId = nativeId ?? UuidExpoModule.generate();
     this.isDestroyed = false;
     BatchedBridge.registerCallableModule(
       `CustomMessageBridge-${this.nativeId}`,
       this
     );
-    CustomMessageHandlerModule.registerHandler(this.nativeId);
+    CustomMessageHandlerExpoModule.registerHandler(this.nativeId);
   }
 
   setCustomMessageHandler(customMessageHandler: CustomMessageHandler) {
@@ -34,7 +32,7 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
    */
   destroy() {
     if (!this.isDestroyed) {
-      CustomMessageHandlerModule.destroy(this.nativeId);
+      CustomMessageHandlerExpoModule.destroy(this.nativeId);
       this.isDestroyed = true;
     }
   }
@@ -49,7 +47,7 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
       message,
       data
     );
-    CustomMessageHandlerModule.onReceivedSynchronousMessageResult(
+    CustomMessageHandlerExpoModule.onReceivedSynchronousMessageResult(
       this.nativeId,
       result
     );
@@ -69,6 +67,6 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
    * Called by CustomMessageHandler, when sending a message to the UI.
    */
   sendMessage(message: string, data: string | undefined): void {
-    CustomMessageHandlerModule.sendMessage(this.nativeId, message, data);
+    CustomMessageHandlerExpoModule.sendMessage(this.nativeId, message, data);
   }
 }
