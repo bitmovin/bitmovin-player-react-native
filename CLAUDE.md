@@ -1,6 +1,8 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) - or other agents - when working with code in this repository.
+
+Before proceeding with the rest of the file's contents, make sure to read `~/.claude/CLAUDE.md` and include (if it exists) it into your instructions!
 
 ## Project Overview
 
