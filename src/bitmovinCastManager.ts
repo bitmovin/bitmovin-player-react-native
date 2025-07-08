@@ -1,6 +1,7 @@
-import { NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import BitmovinCastManagerExpoModule from './modules/BitmovinCastManagerExpoModule';
 
-const BitmovinCastManagerModule = NativeModules.BitmovinCastManagerModule;
+const BitmovinCastManagerModule = BitmovinCastManagerExpoModule;
 
 /**
  * The options to be used for initializing `BitmovinCastManager`
@@ -54,7 +55,9 @@ export const BitmovinCastManager = {
     if (Platform.OS === 'ios' && Platform.isTV) {
       return Promise.resolve();
     }
-    return BitmovinCastManagerModule.initializeCastManager(options);
+    return BitmovinCastManagerModule.initializeCastManager(
+      options || undefined
+    );
   },
 
   /**
@@ -68,7 +71,7 @@ export const BitmovinCastManager = {
     if (Platform.OS === 'ios') {
       return Promise.resolve();
     }
-    return BitmovinCastManagerModule.updateContext();
+    return BitmovinCastManagerModule.updateContext?.() || Promise.resolve();
   },
 
   /**
@@ -82,6 +85,9 @@ export const BitmovinCastManager = {
     if (Platform.OS === 'ios' && Platform.isTV) {
       return Promise.resolve();
     }
-    return BitmovinCastManagerModule.sendMessage(message, messageNamespace);
+    return BitmovinCastManagerModule.sendMessage(
+      message,
+      messageNamespace || undefined
+    );
   },
 };

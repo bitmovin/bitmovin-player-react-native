@@ -1,6 +1,6 @@
-import { NativeModules } from 'react-native';
+import AudioSessionExpoModule from './modules/AudioSessionExpoModule';
 
-const AudioSessionModule = NativeModules.AudioSessionModule;
+const AudioSessionModule = AudioSessionExpoModule;
 
 /**
  * An audio session category defines a set of audio behaviors.

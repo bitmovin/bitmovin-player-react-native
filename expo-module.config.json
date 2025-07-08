@@ -5,13 +5,18 @@
   ],
   "apple": {
     "modules": [
-     
+      "UuidExpoModule",
+      "DebugExpoModule",
+      "AudioSessionExpoModule",
+      "BitmovinCastManagerExpoModule"
     ],
     "appDelegateSubscribers": ["AppLifecycleDelegate"]
   },
   "android": {
     "modules": [
-      
+      "com.bitmovin.player.reactnative.UuidExpoModule",
+      "com.bitmovin.player.reactnative.DebugExpoModule",
+      "com.bitmovin.player.reactnative.BitmovinCastManagerExpoModule"
     ]
   }
 }
