@@ -16,7 +16,8 @@
       "CustomMessageHandlerExpoModule",
       "DrmExpoModule",
       "FullscreenHandlerExpoModule",
-      "PlayerAnalyticsExpoModule"
+      "PlayerAnalyticsExpoModule",
+      "OfflineExpoModule"
     ],
     "appDelegateSubscribers": ["AppLifecycleDelegate"]
   },
@@ -32,7 +33,8 @@
       "com.bitmovin.player.reactnative.CustomMessageHandlerExpoModule",
       "com.bitmovin.player.reactnative.DrmExpoModule",
       "com.bitmovin.player.reactnative.FullscreenHandlerExpoModule",
-      "com.bitmovin.player.reactnative.PlayerAnalyticsExpoModule"
+      "com.bitmovin.player.reactnative.PlayerAnalyticsExpoModule",
+      "com.bitmovin.player.reactnative.OfflineExpoModule"
     ]
   }
 }
