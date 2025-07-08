@@ -88,8 +88,88 @@ public class PlayerExpoModule: Module {
             }
         }
         
-        // TODO: Continue incrementally migrating remaining methods
-        // Next batch: seek, timeShift, destroy, then complex methods
+        /**
+         Call .seek(time:) on nativeId's player.
+         */
+        AsyncFunction("seek") { (nativeId: String, time: Double) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    self?.players[nativeId]?.seek(time: time)
+                    continuation.resume()
+                }
+            }
+        }
+        
+        /**
+         Sets timeShift on nativeId's player.
+         */
+        AsyncFunction("timeShift") { (nativeId: String, offset: Double) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    self?.players[nativeId]?.timeShift = offset
+                    continuation.resume()
+                }
+            }
+        }
+        
+        /**
+         Call .destroy() on nativeId's player and remove from registry.
+         */
+        AsyncFunction("destroy") { (nativeId: String) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    if let player = self?.players[nativeId] {
+                        player.destroy()
+                        self?.players[nativeId] = nil
+                    }
+                    continuation.resume()
+                }
+            }
+        }
+        
+        /**
+         Call .setVolume(volume:) on nativeId's player.
+         */
+        AsyncFunction("setVolume") { (nativeId: String, volume: Int) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    self?.players[nativeId]?.volume = volume
+                    continuation.resume()
+                }
+            }
+        }
+        
+        /**
+         Resolve nativeId's current volume.
+         */
+        AsyncFunction("getVolume") { (nativeId: String) -> Int? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    let volume = self?.players[nativeId]?.volume
+                    continuation.resume(returning: volume)
+                }
+            }
+        }
+        
+        /**
+         Resolve nativeId's current time.
+         */
+        AsyncFunction("currentTime") { (nativeId: String, mode: String?) -> Double? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    let player = self?.players[nativeId]
+                    if let mode {
+                        let currentTime = player?.currentTime(RCTConvert.timeMode(mode))
+                        continuation.resume(returning: currentTime)
+                    } else {
+                        let currentTime = player?.currentTime
+                        continuation.resume(returning: currentTime)
+                    }
+                }
+            }
+        }
+        
+        // TODO: Continue with more methods (getDuration, isPlaying, isPaused, etc.)
     }
     
     // CRITICAL: This method must remain available for cross-module access

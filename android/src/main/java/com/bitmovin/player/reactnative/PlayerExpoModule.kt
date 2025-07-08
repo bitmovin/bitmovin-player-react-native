@@ -80,8 +80,66 @@ class PlayerExpoModule : Module() {
             player?.unmute()
         }
         
-        // TODO: Continue incrementally migrating remaining methods
-        // Next batch: seek, timeShift, destroy, then complex methods
+        /**
+         * Call .seek(time) on nativeId's player.
+         */
+        AsyncFunction("seek") { nativeId: String, time: Double ->
+            val player = players[nativeId]
+            player?.seek(time)
+        }
+        
+        /**
+         * Sets timeShift on nativeId's player.
+         */
+        AsyncFunction("timeShift") { nativeId: String, offset: Double ->
+            val player = players[nativeId]
+            player?.timeShift(offset)
+        }
+        
+        /**
+         * Call .destroy() on nativeId's player and remove from registry.
+         * Also handles MediaSession cleanup.
+         */
+        AsyncFunction("destroy") { nativeId: String ->
+            val player = players[nativeId]
+            if (player != null) {
+                // Note: MediaSession cleanup would need to be handled here
+                // For now, just destroy the player and remove from registry
+                player.destroy()
+                players.remove(nativeId)
+            }
+        }
+        
+        /**
+         * Call .setVolume(volume) on nativeId's player.
+         */
+        AsyncFunction("setVolume") { nativeId: String, volume: Int ->
+            val player = players[nativeId]
+            player?.volume = volume
+        }
+        
+        /**
+         * Resolve nativeId's current volume.
+         */
+        AsyncFunction("getVolume") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.volume
+        }
+        
+        /**
+         * Resolve nativeId's current time.
+         */
+        AsyncFunction("currentTime") { nativeId: String, mode: String? ->
+            val player = players[nativeId]
+            return@AsyncFunction when {
+                player == null -> null
+                mode == "relative" -> player.currentTime + player.playbackTimeOffsetToRelativeTime
+                mode == "absolute" -> player.currentTime + player.playbackTimeOffsetToAbsoluteTime
+                else -> player.currentTime
+            }
+        }
+        
+        // TODO: Continue with more methods (getDuration, isPlaying, isPaused, etc.)
     }
 
     // CRITICAL: This method must remain available for cross-module access

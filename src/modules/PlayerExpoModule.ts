@@ -33,8 +33,38 @@ export interface PlayerExpoModuleType {
    */
   unmute(nativeId: string): Promise<void>;
 
+  /**
+   * Call .seek(time) on nativeId's player.
+   */
+  seek(nativeId: string, time: number): Promise<void>;
+
+  /**
+   * Sets timeShift on nativeId's player.
+   */
+  timeShift(nativeId: string, offset: number): Promise<void>;
+
+  /**
+   * Call .destroy() on nativeId's player and remove from registry.
+   */
+  destroy(nativeId: string): Promise<void>;
+
+  /**
+   * Call .setVolume(volume) on nativeId's player.
+   */
+  setVolume(nativeId: string, volume: number): Promise<void>;
+
+  /**
+   * Resolve nativeId's current volume.
+   */
+  getVolume(nativeId: string): Promise<number | null>;
+
+  /**
+   * Resolve nativeId's current time.
+   */
+  currentTime(nativeId: string, mode?: string): Promise<number | null>;
+
   // TODO: Add remaining method types as they are migrated
-  // Next batch: seek, timeShift, destroy, then complex methods
+  // Next batch: getDuration, isPlaying, isPaused, then complex methods
 }
 
 export default requireNativeModule<PlayerExpoModuleType>('PlayerExpoModule');
