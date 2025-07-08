@@ -63,8 +63,33 @@ export interface PlayerExpoModuleType {
    */
   currentTime(nativeId: string, mode?: string): Promise<number | null>;
 
+  /**
+   * Resolve nativeId's current playing state.
+   */
+  isPlaying(nativeId: string): Promise<boolean | null>;
+
+  /**
+   * Resolve nativeId's current paused state.
+   */
+  isPaused(nativeId: string): Promise<boolean | null>;
+
+  /**
+   * Resolve nativeId's active source duration.
+   */
+  duration(nativeId: string): Promise<number | null>;
+
+  /**
+   * Resolve nativeId's current muted state.
+   */
+  isMuted(nativeId: string): Promise<boolean | null>;
+
+  /**
+   * Call .unload() on nativeId's player.
+   */
+  unload(nativeId: string): Promise<void>;
+
   // TODO: Add remaining method types as they are migrated
-  // Next batch: getDuration, isPlaying, isPaused, then complex methods
+  // Next batch: loadSource (requires SourceModule), complex initialization methods
 }
 
 export default requireNativeModule<PlayerExpoModuleType>('PlayerExpoModule');

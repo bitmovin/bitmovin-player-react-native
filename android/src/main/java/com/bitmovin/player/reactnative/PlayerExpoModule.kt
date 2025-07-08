@@ -139,7 +139,47 @@ class PlayerExpoModule : Module() {
             }
         }
         
-        // TODO: Continue with more methods (getDuration, isPlaying, isPaused, etc.)
+        /**
+         * Resolve nativeId's current playing state.
+         */
+        AsyncFunction("isPlaying") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.isPlaying
+        }
+        
+        /**
+         * Resolve nativeId's current paused state.
+         */
+        AsyncFunction("isPaused") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.isPaused
+        }
+        
+        /**
+         * Resolve nativeId's current source duration.
+         */
+        AsyncFunction("duration") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.duration
+        }
+        
+        /**
+         * Resolve nativeId's current muted state.
+         */
+        AsyncFunction("isMuted") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.isMuted
+        }
+        
+        /**
+         * Call .unload() on nativeId's player.
+         */
+        AsyncFunction("unload") { nativeId: String ->
+            val player = players[nativeId]
+            player?.unload()
+        }
+        
+        // TODO: Continue with more methods (loadSource requires SourceModule dependency)
     }
 
     // CRITICAL: This method must remain available for cross-module access

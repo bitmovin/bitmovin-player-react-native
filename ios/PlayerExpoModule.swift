@@ -169,7 +169,67 @@ public class PlayerExpoModule: Module {
             }
         }
         
-        // TODO: Continue with more methods (getDuration, isPlaying, isPaused, etc.)
+        /**
+         Resolve nativeId's current playing state.
+         */
+        AsyncFunction("isPlaying") { (nativeId: String) -> Bool? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    let isPlaying = self?.players[nativeId]?.isPlaying
+                    continuation.resume(returning: isPlaying)
+                }
+            }
+        }
+        
+        /**
+         Resolve nativeId's current paused state.
+         */
+        AsyncFunction("isPaused") { (nativeId: String) -> Bool? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    let isPaused = self?.players[nativeId]?.isPaused
+                    continuation.resume(returning: isPaused)
+                }
+            }
+        }
+        
+        /**
+         Resolve nativeId's active source duration.
+         */
+        AsyncFunction("duration") { (nativeId: String) -> Double? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    let duration = self?.players[nativeId]?.duration
+                    continuation.resume(returning: duration)
+                }
+            }
+        }
+        
+        /**
+         Resolve nativeId's current muted state.
+         */
+        AsyncFunction("isMuted") { (nativeId: String) -> Bool? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    let isMuted = self?.players[nativeId]?.isMuted
+                    continuation.resume(returning: isMuted)
+                }
+            }
+        }
+        
+        /**
+         Call .unload() on nativeId's player.
+         */
+        AsyncFunction("unload") { (nativeId: String) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    self?.players[nativeId]?.unload()
+                    continuation.resume()
+                }
+            }
+        }
+        
+        // TODO: Continue with more methods (loadSource requires SourceModule dependency)
     }
     
     // CRITICAL: This method must remain available for cross-module access
