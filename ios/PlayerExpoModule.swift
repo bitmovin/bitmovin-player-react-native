@@ -25,6 +25,8 @@ public class PlayerExpoModule: Module {
         playerManagement()
         playerMethods()
         playerGetters()
+        trackMethods()
+        qualityAndOtherMethods()
         castingAndAds()
         initializationAndLoading()
     }
@@ -218,6 +220,114 @@ public class PlayerExpoModule: Module {
          */
         AsyncFunction("canPlayAtPlaybackSpeed") { (nativeId: String, playbackSpeed: Float) -> Bool? in
             self.players[nativeId]?.canPlay(atPlaybackSpeed: playbackSpeed)
+        }.runOnQueue(.main)
+    }
+
+    @ModuleDefinitionBuilder
+    private func trackMethods() -> [AnyDefinition] {
+        /**
+         Get current audio track.
+         */
+        AsyncFunction("getAudioTrack") { (nativeId: String) -> [String: Any]? in
+            RCTConvert.audioTrackJson(self.players[nativeId]?.audio)
+        }.runOnQueue(.main)
+
+        /**
+         Get all available audio tracks.
+         */
+        AsyncFunction("getAvailableAudioTracks") { (nativeId: String) -> [[String: Any]] in
+            self.players[nativeId]?.availableAudio.map {
+                RCTConvert.audioTrackJson($0)
+            } ?? []
+        }.runOnQueue(.main)
+
+        /**
+         Set audio track.
+         */
+        AsyncFunction("setAudioTrack") { (nativeId: String, trackIdentifier: String) in
+            self.players[nativeId]?.setAudio(trackIdentifier: trackIdentifier)
+        }.runOnQueue(.main)
+
+        /**
+         Get current subtitle track.
+         */
+        AsyncFunction("getSubtitleTrack") { (nativeId: String) -> [String: Any]? in
+            RCTConvert.subtitleTrackJson(self.players[nativeId]?.subtitle)
+        }.runOnQueue(.main)
+
+        /**
+         Get all available subtitle tracks.
+         */
+        AsyncFunction("getAvailableSubtitles") { (nativeId: String) -> [[String: Any]] in
+            self.players[nativeId]?.availableSubtitles.map {
+                RCTConvert.subtitleTrackJson($0)
+            } ?? []
+        }.runOnQueue(.main)
+
+        /**
+         Set subtitle track.
+         */
+        AsyncFunction("setSubtitleTrack") { (nativeId: String, trackIdentifier: String?) in
+            self.players[nativeId]?.setSubtitle(trackIdentifier: trackIdentifier)
+        }.runOnQueue(.main)
+    }
+
+    @ModuleDefinitionBuilder
+    private func qualityAndOtherMethods() -> [AnyDefinition] {
+        /**
+         Get current video quality.
+         */
+        AsyncFunction("getVideoQuality") { (nativeId: String) -> [String: Any]? in
+            RCTConvert.toJson(videoQuality: self.players[nativeId]?.videoQuality)
+        }.runOnQueue(.main)
+
+        /**
+         Get all available video qualities.
+         */
+        AsyncFunction("getAvailableVideoQualities") { (nativeId: String) -> [[String: Any]] in
+            self.players[nativeId]?.availableVideoQualities.map {
+                RCTConvert.toJson(videoQuality: $0)
+            } ?? []
+        }.runOnQueue(.main)
+
+        /**
+         Get thumbnail for time position.
+         */
+        AsyncFunction("getThumbnail") { (nativeId: String, time: Double) -> [String: Any]? in
+            RCTConvert.toJson(thumbnail: self.players[nativeId]?.thumbnail(forTime: time))
+        }.runOnQueue(.main)
+
+        /**
+         Load offline content into the player.
+         */
+        AsyncFunction("loadOfflineContent") { (nativeId: String, bridgeId: String, options: [String: Any]?) in
+            #if os(iOS)
+            guard let player = self.players[nativeId],
+                  let offlineContentManagerBridge = OfflineExpoModule
+                    .getInstanceRegistry()[bridgeId] else {
+                return
+            }
+            let optionsDictionary = options ?? [:]
+            let restrictedToAssetCache = optionsDictionary["restrictedToAssetCache"] as? Bool ?? true
+            let offlineSourceConfig = offlineContentManagerBridge
+                .offlineContentManager?
+                .createOfflineSourceConfig(
+                    restrictedToAssetCache: restrictedToAssetCache
+                )
+
+            guard let offlineSourceConfig else { return }
+            player.load(sourceConfig: offlineSourceConfig)
+            #endif
+        }.runOnQueue(.main)
+
+        /**
+         Schedule an ad item in the player.
+         */
+        AsyncFunction("scheduleAd") { (nativeId: String, adItemJson: [String: Any]) in
+            guard let adItem = RCTConvert.adItem(adItemJson) else {
+                return
+            }
+            self.players[nativeId]?.scheduleAd(adItem: adItem)
         }.runOnQueue(.main)
     }
 

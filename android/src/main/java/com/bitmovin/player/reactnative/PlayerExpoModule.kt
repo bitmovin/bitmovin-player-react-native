@@ -300,6 +300,107 @@ class PlayerExpoModule : Module() {
         }
         
         /**
+         * Get current audio track.
+         */
+        AsyncFunction("getAudioTrack") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.source?.selectedAudioTrack?.toJson()
+        }
+        
+        /**
+         * Get all available audio tracks.
+         */
+        AsyncFunction("getAvailableAudioTracks") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.source?.availableAudioTracks?.map { it.toJson() } ?: emptyList()
+        }
+        
+        /**
+         * Set audio track.
+         */
+        AsyncFunction("setAudioTrack") { nativeId: String, trackIdentifier: String ->
+            val player = players[nativeId]
+            player?.source?.setAudioTrack(trackIdentifier)
+        }
+        
+        /**
+         * Get current subtitle track.
+         */
+        AsyncFunction("getSubtitleTrack") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.source?.selectedSubtitleTrack?.toJson()
+        }
+        
+        /**
+         * Get all available subtitle tracks.
+         */
+        AsyncFunction("getAvailableSubtitles") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.source?.availableSubtitleTracks?.map { it.toJson() } ?: emptyList()
+        }
+        
+        /**
+         * Set subtitle track.
+         */
+        AsyncFunction("setSubtitleTrack") { nativeId: String, trackIdentifier: String? ->
+            val player = players[nativeId]
+            player?.source?.setSubtitleTrack(trackIdentifier)
+        }
+        
+        /**
+         * Get current video quality.
+         */
+        AsyncFunction("getVideoQuality") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.videoQuality?.toJson()
+        }
+        
+        /**
+         * Get all available video qualities.
+         */
+        AsyncFunction("getAvailableVideoQualities") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.availableVideoQualities?.map { it.toJson() } ?: emptyList()
+        }
+        
+        /**
+         * Get thumbnail for time position.
+         */
+        AsyncFunction("getThumbnail") { nativeId: String, time: Double ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.getThumbnail(time)?.toJson()
+        }
+        
+        /**
+         * Load offline content into the player.
+         */
+        AsyncFunction("loadOfflineContent") { nativeId: String, offlineContentManagerBridgeId: String, options: Map<String, Any>? ->
+            val player = players[nativeId]
+            val offlineContentManagerBridge = OfflineExpoModule.getInstanceRegistry()[offlineContentManagerBridgeId]
+            
+            if (player != null && offlineContentManagerBridge != null) {
+                val restrictedToAssetCache = options?.get("restrictedToAssetCache") as? Boolean ?: true
+                val offlineSourceConfig = offlineContentManagerBridge
+                    .getOfflineContentManagerBridgeOrNull()
+                    ?.offlineContentManager
+                    ?.offlineSourceConfig
+                
+                offlineSourceConfig?.let { player.load(it) }
+            }
+        }
+        
+        /**
+         * Schedule an ad item in the player.
+         */
+        AsyncFunction("scheduleAd") { nativeId: String, adItemJson: Map<String, Any> ->
+            val player = players[nativeId]
+            val adItem = adItemJson.toAdItem()
+            if (player != null && adItem != null) {
+                player.scheduleAd(adItem)
+            }
+        }
+        
+        /**
          * Creates a new Player instance using the provided config.
          * This is a complex method requiring config conversion and cross-module setup.
          */
