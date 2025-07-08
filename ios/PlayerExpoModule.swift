@@ -229,6 +229,66 @@ public class PlayerExpoModule: Module {
             }
         }
         
+        /**
+         Resolve nativeId's current time shift value.
+         */
+        AsyncFunction("getTimeShift") { (nativeId: String) -> Double? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    let timeShift = self?.players[nativeId]?.timeShift
+                    continuation.resume(returning: timeShift)
+                }
+            }
+        }
+        
+        /**
+         Resolve nativeId's live stream state.
+         */
+        AsyncFunction("isLive") { (nativeId: String) -> Bool? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    let isLive = self?.players[nativeId]?.isLive
+                    continuation.resume(returning: isLive)
+                }
+            }
+        }
+        
+        /**
+         Resolve nativeId's maximum time shift value.
+         */
+        AsyncFunction("getMaxTimeShift") { (nativeId: String) -> Double? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    let maxTimeShift = self?.players[nativeId]?.maxTimeShift
+                    continuation.resume(returning: maxTimeShift)
+                }
+            }
+        }
+        
+        /**
+         Resolve nativeId's current playback speed.
+         */
+        AsyncFunction("getPlaybackSpeed") { (nativeId: String) -> Float? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    let playbackSpeed = self?.players[nativeId]?.playbackSpeed
+                    continuation.resume(returning: playbackSpeed)
+                }
+            }
+        }
+        
+        /**
+         Set playback speed for nativeId's player.
+         */
+        AsyncFunction("setPlaybackSpeed") { (nativeId: String, playbackSpeed: Float) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    self?.players[nativeId]?.playbackSpeed = playbackSpeed
+                    continuation.resume()
+                }
+            }
+        }
+        
         // TODO: Continue with more methods (loadSource requires SourceModule dependency)
     }
     

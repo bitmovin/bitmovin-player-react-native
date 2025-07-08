@@ -179,6 +179,46 @@ class PlayerExpoModule : Module() {
             player?.unload()
         }
         
+        /**
+         * Resolve nativeId's current time shift value.
+         */
+        AsyncFunction("getTimeShift") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.timeShift
+        }
+        
+        /**
+         * Resolve nativeId's live stream state.
+         */
+        AsyncFunction("isLive") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.isLive
+        }
+        
+        /**
+         * Resolve nativeId's maximum time shift value.
+         */
+        AsyncFunction("getMaxTimeShift") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.maxTimeShift
+        }
+        
+        /**
+         * Resolve nativeId's current playback speed.
+         */
+        AsyncFunction("getPlaybackSpeed") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.playbackSpeed
+        }
+        
+        /**
+         * Set playback speed for nativeId's player.
+         */
+        AsyncFunction("setPlaybackSpeed") { nativeId: String, playbackSpeed: Float ->
+            val player = players[nativeId]
+            player?.playbackSpeed = playbackSpeed
+        }
+        
         // TODO: Continue with more methods (loadSource requires SourceModule dependency)
     }
 

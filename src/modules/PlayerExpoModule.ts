@@ -88,6 +88,31 @@ export interface PlayerExpoModuleType {
    */
   unload(nativeId: string): Promise<void>;
 
+  /**
+   * Resolve nativeId's current time shift value.
+   */
+  getTimeShift(nativeId: string): Promise<number | null>;
+
+  /**
+   * Resolve nativeId's live stream state.
+   */
+  isLive(nativeId: string): Promise<boolean | null>;
+
+  /**
+   * Resolve nativeId's maximum time shift value.
+   */
+  getMaxTimeShift(nativeId: string): Promise<number | null>;
+
+  /**
+   * Resolve nativeId's current playback speed.
+   */
+  getPlaybackSpeed(nativeId: string): Promise<number | null>;
+
+  /**
+   * Set playback speed for nativeId's player.
+   */
+  setPlaybackSpeed(nativeId: string, playbackSpeed: number): Promise<void>;
+
   // TODO: Add remaining method types as they are migrated
   // Next batch: loadSource (requires SourceModule), complex initialization methods
 }
