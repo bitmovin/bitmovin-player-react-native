@@ -113,8 +113,61 @@ export interface PlayerExpoModuleType {
    */
   setPlaybackSpeed(nativeId: string, playbackSpeed: number): Promise<void>;
 
+  /**
+   * Resolve nativeId's current ad state.
+   */
+  isAd(nativeId: string): Promise<boolean | null>;
+
+  /**
+   * Set maximum selectable bitrate for nativeId's player.
+   */
+  setMaxSelectableBitrate(nativeId: string, maxBitrate: number): Promise<void>;
+
+  /**
+   * Resolve nativeId's AirPlay activation state (iOS only).
+   */
+  isAirPlayActive(nativeId: string): Promise<boolean | null>;
+
+  /**
+   * Resolve nativeId's AirPlay availability state (iOS only).
+   */
+  isAirPlayAvailable(nativeId: string): Promise<boolean | null>;
+
+  /**
+   * Resolve nativeId's cast availability state.
+   */
+  isCastAvailable(nativeId: string): Promise<boolean | null>;
+
+  /**
+   * Resolve nativeId's current casting state.
+   */
+  isCasting(nativeId: string): Promise<boolean | null>;
+
+  /**
+   * Initiate casting for nativeId's player.
+   */
+  castVideo(nativeId: string): Promise<void>;
+
+  /**
+   * Stop casting for nativeId's player.
+   */
+  castStop(nativeId: string): Promise<void>;
+
+  /**
+   * Skip current ad for nativeId's player.
+   */
+  skipAd(nativeId: string): Promise<void>;
+
+  /**
+   * Check if player can play at specified playback speed (iOS only).
+   */
+  canPlayAtPlaybackSpeed(
+    nativeId: string,
+    playbackSpeed: number
+  ): Promise<boolean | null>;
+
   // TODO: Add remaining method types as they are migrated
-  // Next batch: loadSource (requires SourceModule), complex initialization methods
+  // Continue with more methods
 }
 
 export default requireNativeModule<PlayerExpoModuleType>('PlayerExpoModule');

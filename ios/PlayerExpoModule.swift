@@ -289,7 +289,135 @@ public class PlayerExpoModule: Module {
             }
         }
         
-        // TODO: Continue with more methods (loadSource requires SourceModule dependency)
+        /**
+         Resolve nativeId's current ad state.
+         */
+        AsyncFunction("isAd") { (nativeId: String) -> Bool? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    let isAd = self?.players[nativeId]?.isAd
+                    continuation.resume(returning: isAd)
+                }
+            }
+        }
+        
+        /**
+         Set maximum selectable bitrate for nativeId's player.
+         */
+        AsyncFunction("setMaxSelectableBitrate") { (nativeId: String, maxBitrate: Int) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    self?.players[nativeId]?.maxSelectableBitrate = maxBitrate
+                    continuation.resume()
+                }
+            }
+        }
+        
+        /**
+         Resolve nativeId's AirPlay activation state (iOS only).
+         */
+        AsyncFunction("isAirPlayActive") { (nativeId: String) -> Bool? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+#if os(iOS)
+                    let isActive = self?.players[nativeId]?.isAirPlayActive
+                    continuation.resume(returning: isActive)
+#else
+                    continuation.resume(returning: nil)
+#endif
+                }
+            }
+        }
+        
+        /**
+         Resolve nativeId's AirPlay availability state (iOS only).
+         */
+        AsyncFunction("isAirPlayAvailable") { (nativeId: String) -> Bool? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+#if os(iOS)
+                    let isAvailable = self?.players[nativeId]?.isAirPlayAvailable
+                    continuation.resume(returning: isAvailable)
+#else
+                    continuation.resume(returning: nil)
+#endif
+                }
+            }
+        }
+        
+        /**
+         Resolve nativeId's cast availability state.
+         */
+        AsyncFunction("isCastAvailable") { (nativeId: String) -> Bool? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    let isCastAvailable = self?.players[nativeId]?.isCastAvailable
+                    continuation.resume(returning: isCastAvailable)
+                }
+            }
+        }
+        
+        /**
+         Resolve nativeId's current casting state.
+         */
+        AsyncFunction("isCasting") { (nativeId: String) -> Bool? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    let isCasting = self?.players[nativeId]?.isCasting
+                    continuation.resume(returning: isCasting)
+                }
+            }
+        }
+        
+        /**
+         Initiate casting for nativeId's player.
+         */
+        AsyncFunction("castVideo") { (nativeId: String) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    self?.players[nativeId]?.castVideo()
+                    continuation.resume()
+                }
+            }
+        }
+        
+        /**
+         Stop casting for nativeId's player.
+         */
+        AsyncFunction("castStop") { (nativeId: String) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    self?.players[nativeId]?.castStop()
+                    continuation.resume()
+                }
+            }
+        }
+        
+        /**
+         Skip current ad for nativeId's player.
+         */
+        AsyncFunction("skipAd") { (nativeId: String) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    self?.players[nativeId]?.skipAd()
+                    continuation.resume()
+                }
+            }
+        }
+        
+        /**
+         Check if player can play at specified playback speed (iOS only).
+         */
+        AsyncFunction("canPlayAtPlaybackSpeed") { (nativeId: String, playbackSpeed: Float) -> Bool? in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    let canPlay = self?.players[nativeId]?.canPlay(atPlaybackSpeed: playbackSpeed)
+                    continuation.resume(returning: canPlay)
+                }
+            }
+        }
+        
+        // TODO: Continue with more methods
     }
     
     // CRITICAL: This method must remain available for cross-module access

@@ -219,7 +219,87 @@ class PlayerExpoModule : Module() {
             player?.playbackSpeed = playbackSpeed
         }
         
-        // TODO: Continue with more methods (loadSource requires SourceModule dependency)
+        /**
+         * Resolve nativeId's current ad state.
+         */
+        AsyncFunction("isAd") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.isAd
+        }
+        
+        /**
+         * Set maximum selectable bitrate for nativeId's player.
+         */
+        AsyncFunction("setMaxSelectableBitrate") { nativeId: String, maxBitrate: Int ->
+            val player = players[nativeId]
+            player?.setMaxSelectableBitrate(maxBitrate)
+        }
+        
+        /**
+         * Resolve nativeId's AirPlay activation state (Android returns null).
+         */
+        AsyncFunction("isAirPlayActive") { nativeId: String ->
+            // AirPlay is iOS-only, return null on Android
+            return@AsyncFunction null
+        }
+        
+        /**
+         * Resolve nativeId's AirPlay availability state (Android returns null).
+         */
+        AsyncFunction("isAirPlayAvailable") { nativeId: String ->
+            // AirPlay is iOS-only, return null on Android
+            return@AsyncFunction null
+        }
+        
+        /**
+         * Resolve nativeId's cast availability state.
+         */
+        AsyncFunction("isCastAvailable") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.isCastAvailable
+        }
+        
+        /**
+         * Resolve nativeId's current casting state.
+         */
+        AsyncFunction("isCasting") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.isCasting
+        }
+        
+        /**
+         * Initiate casting for nativeId's player.
+         */
+        AsyncFunction("castVideo") { nativeId: String ->
+            val player = players[nativeId]
+            player?.castVideo()
+        }
+        
+        /**
+         * Stop casting for nativeId's player.
+         */
+        AsyncFunction("castStop") { nativeId: String ->
+            val player = players[nativeId]
+            player?.castStop()
+        }
+        
+        /**
+         * Skip current ad for nativeId's player.
+         */
+        AsyncFunction("skipAd") { nativeId: String ->
+            val player = players[nativeId]
+            player?.skipAd()
+        }
+        
+        /**
+         * Check if player can play at specified playback speed (Android returns null).
+         */
+        AsyncFunction("canPlayAtPlaybackSpeed") { nativeId: String, playbackSpeed: Float ->
+            // This method is iOS-only, return null on Android
+            return@AsyncFunction null
+        }
+        
+        // TODO: Continue with more methods
     }
 
     // CRITICAL: This method must remain available for cross-module access
