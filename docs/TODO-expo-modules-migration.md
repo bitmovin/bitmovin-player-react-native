@@ -9,6 +9,7 @@ This document outlines a complete, phased plan to migrate all legacy React Nativ
 
 ## Contingency and Rollback Plan
 - **Per-Module Rollback:** If a migrated module fails verification and a fix is not straightforward, the commit(s) for that specific module will be reverted using `git revert`.
+- **Commit Strategy:** Each successfully migrated module must be committed immediately after verification to enable precise rollback capabilities.
 
 ## Migration Progress Summary
 
@@ -166,6 +167,7 @@ Priority 1 (Utils): Independent modules ✅ COMPLETED
 - Complexity assessment framework application
 - Per-module rollback planning
 - Integration testing strategy for complex modules
+- **Mandatory per-module commits** for precise rollback capabilities
 
 ## Migration Log & Checklist
 This document serves as the primary log for the migration. After a module's migration is complete, its status and the final commit hash should be recorded in the checklist below.
@@ -233,6 +235,7 @@ This document serves as the primary log for the migration. After a module's migr
 - [ ] Run a full manual test case checklist.
 - [ ] **Verify Event Payloads:** During testing, log events and their data payloads to confirm that the event names and payload structures are identical to the legacy implementation.
 - [ ] Perform a clean rebuild (`yarn example prebuild`).
+- [ ] **REQUIRED: Commit Migration:** After successful verification, immediately commit the migrated module with descriptive commit message including module name and key changes.
 
 ## Phase 3: Enhanced Process for High-Risk Modules
 
@@ -250,6 +253,7 @@ For all **Priority 3** modules, the following additional steps are required.
 
 - [ ] Once a module is fully migrated and verified, its legacy files can be removed in a distinct commit.
 - [ ] **Remove Legacy Code:** Delete the legacy module's native files and any associated `import` or `require` statements in the native code.
+- [ ] **REQUIRED: Commit Cleanup:** Create a separate commit for legacy code removal to maintain clear change history.
 
 ## Phase 5: Documentation
 
