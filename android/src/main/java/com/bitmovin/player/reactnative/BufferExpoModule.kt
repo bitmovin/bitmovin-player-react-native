@@ -23,7 +23,7 @@ class BufferExpoModule : Module() {
             // Then: Get buffer level based on type
             
             // Placeholder - would get buffer level if PlayerModule integration is available
-            return@AsyncFunction null
+            return@AsyncFunction 0.0
         }
 
         // TODO: Add more BufferModule methods
