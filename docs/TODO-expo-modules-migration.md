@@ -175,9 +175,9 @@ This document serves as the primary log for the migration. After a module's migr
 ### Priority 1: Foundational & Utility Modules (Low Risk)
 | Module Name | Status | Commit |
 | -------------------------- | :------: | :---: |
-| `UuidModule` | ✅ Completed | In Progress |
-| `DebugModule` | ✅ Completed | In Progress |
-| `AudioSessionModule` | ✅ Completed | In Progress |
+| `UuidModule` | ✅ Completed | 00c3ee83 |
+| `DebugModule` | ✅ Completed | 00c3ee83 |
+| `AudioSessionModule` | ✅ Completed | 00c3ee83 |
 | `NetworkModule` | ⏸️ Deferred (Complex) | |
 | `CustomMessageHandlerModule`| ⏸️ Deferred (Complex) | |
 
@@ -187,7 +187,7 @@ This document serves as the primary log for the migration. After a module's migr
 | `DrmModule` | ⏸️ Deferred (Complex) | |
 | `OfflineModule` | ⏸️ Deferred (Complex) | |
 | `PlayerAnalyticsModule` | ⏸️ Deferred (Depends on PlayerModule) | |
-| `BitmovinCastManagerModule`| ✅ Completed | In Progress |
+| `BitmovinCastManagerModule`| ✅ Completed | 00c3ee83 |
 | `FullscreenHandlerModule` | ⏸️ Deferred (Complex) | |
 
 ### Priority 3: Core Player Engine & View (High Risk)
