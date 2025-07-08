@@ -34,7 +34,8 @@
       "com.bitmovin.player.reactnative.DrmExpoModule",
       "com.bitmovin.player.reactnative.FullscreenHandlerExpoModule",
       "com.bitmovin.player.reactnative.PlayerAnalyticsExpoModule",
-      "com.bitmovin.player.reactnative.OfflineExpoModule"
+      "com.bitmovin.player.reactnative.OfflineExpoModule",
+      "com.bitmovin.player.reactnative.DecoderConfigExpoModule"
     ]
   }
 }

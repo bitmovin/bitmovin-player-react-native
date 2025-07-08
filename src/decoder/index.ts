@@ -1,9 +1,7 @@
-import { NativeModules } from 'react-native';
 import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
 import { DecoderConfig, DecoderContext, MediaCodecInfo } from './decoderConfig';
 import NativeInstance from '../nativeInstance';
-
-const DecoderConfigModule = NativeModules.DecoderConfigModule;
+import DecoderConfigExpoModule from './decoderConfigExpoModule';
 
 /**
  * Takes care of JS/Native communication for a `DecoderConfig`.
@@ -25,7 +23,7 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
         this
       );
       // Create native configuration object.
-      DecoderConfigModule.initWithConfig(this.nativeId, this.config);
+      DecoderConfigExpoModule.initWithConfig(this.nativeId, this.config || {});
       this.isInitialized = true;
     }
   }
@@ -35,7 +33,7 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
    */
   destroy() {
     if (!this.isDestroyed) {
-      DecoderConfigModule.destroy(this.nativeId);
+      DecoderConfigExpoModule.destroy(this.nativeId);
       this.isDestroyed = true;
     }
   }
@@ -54,7 +52,7 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
         preferredDecoders
       ) ?? preferredDecoders;
 
-    DecoderConfigModule.overrideDecoderPriorityProviderComplete(
+    DecoderConfigExpoModule.overrideDecoderPriorityProviderComplete(
       this.nativeId,
       orderedPriority
     );
