@@ -1,9 +1,7 @@
-import { NativeModules } from 'react-native';
 import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
 import { FullscreenHandler } from './fullscreenhandler';
-
-const Uuid = NativeModules.UuidModule;
-const FullscreenHandlerModule = NativeModules.FullscreenHandlerModule;
+import UuidExpoModule from '../modules/UuidExpoModule';
+import FullscreenHandlerExpoModule from './fullscreenHandlerExpoModule';
 
 /**
  * Takes care of JS/Native communication for a FullscreenHandler.
@@ -14,13 +12,13 @@ export class FullscreenHandlerBridge {
   isDestroyed: boolean;
 
   constructor(nativeId?: string) {
-    this.nativeId = nativeId ?? Uuid.generate();
+    this.nativeId = nativeId ?? UuidExpoModule.generate();
     this.isDestroyed = false;
     BatchedBridge.registerCallableModule(
       `FullscreenBridge-${this.nativeId}`,
       this
     );
-    FullscreenHandlerModule.registerHandler(this.nativeId);
+    FullscreenHandlerExpoModule.registerHandler(this.nativeId);
   }
 
   setFullscreenHandler(fullscreenHandler: FullscreenHandler | undefined) {
@@ -31,7 +29,7 @@ export class FullscreenHandlerBridge {
     this.fullscreenHandler = fullscreenHandler;
 
     // synchronize current state from fullscreenHandler to native
-    FullscreenHandlerModule.setIsFullscreenActive(
+    FullscreenHandlerExpoModule.setIsFullscreenActive(
       this.nativeId,
       fullscreenHandler?.isFullscreenActive ?? false
     );
@@ -42,7 +40,7 @@ export class FullscreenHandlerBridge {
    */
   destroy() {
     if (!this.isDestroyed) {
-      FullscreenHandlerModule.destroy(this.nativeId);
+      FullscreenHandlerExpoModule.destroy(this.nativeId);
       this.isDestroyed = true;
     }
   }
@@ -53,7 +51,7 @@ export class FullscreenHandlerBridge {
    */
   enterFullscreen(): void {
     this.fullscreenHandler?.enterFullscreen();
-    FullscreenHandlerModule.onFullscreenChanged(
+    FullscreenHandlerExpoModule.onFullscreenChanged(
       this.nativeId,
       this.fullscreenHandler?.isFullscreenActive ?? false
     );
@@ -65,7 +63,7 @@ export class FullscreenHandlerBridge {
    */
   exitFullscreen(): void {
     this.fullscreenHandler?.exitFullscreen();
-    FullscreenHandlerModule.onFullscreenChanged(
+    FullscreenHandlerExpoModule.onFullscreenChanged(
       this.nativeId,
       this.fullscreenHandler?.isFullscreenActive ?? false
     );
