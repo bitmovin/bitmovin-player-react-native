@@ -166,8 +166,35 @@ export interface PlayerExpoModuleType {
     playbackSpeed: number
   ): Promise<boolean | null>;
 
+  /**
+   * Creates a new Player instance using the provided config.
+   */
+  initWithConfig(
+    nativeId: string,
+    config?: Record<string, any>,
+    networkNativeId?: string,
+    decoderNativeId?: string
+  ): Promise<void>;
+
+  /**
+   * Creates a new analytics-enabled Player instance.
+   */
+  initWithAnalyticsConfig(
+    nativeId: string,
+    analyticsConfig: Record<string, any>,
+    config?: Record<string, any>,
+    networkNativeId?: string,
+    decoderNativeId?: string
+  ): Promise<void>;
+
+  /**
+   * Load source into the player.
+   * Requires SourceModule dependency.
+   */
+  loadSource(nativeId: string, sourceNativeId: string): Promise<void>;
+
   // TODO: Add remaining method types as they are migrated
-  // Continue with more methods
+  // Continue with more complex methods
 }
 
 export default requireNativeModule<PlayerExpoModuleType>('PlayerExpoModule');

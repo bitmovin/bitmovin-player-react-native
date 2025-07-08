@@ -417,7 +417,81 @@ public class PlayerExpoModule: Module {
             }
         }
         
-        // TODO: Continue with more methods
+        /**
+         Creates a new Player instance using the provided config.
+         This is a complex method requiring config conversion and cross-module setup.
+         */
+        AsyncFunction("initWithConfig") { (nativeId: String, config: [String: Any]?, networkNativeId: String?, decoderNativeId: String?) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    guard self?.players[nativeId] == nil else {
+                        // Player already exists for this nativeId
+                        continuation.resume()
+                        return
+                    }
+                    
+                    // For now, create a basic player config - full conversion would require RCTConvert
+                    // This is a simplified implementation that creates a default player
+                    let playerConfig = PlayerConfig()
+                    
+                    // TODO: Add full config conversion when RCTConvert patterns are available
+                    // TODO: Add network config setup if networkNativeId is provided
+                    // TODO: Add remote control config setup for iOS
+                    
+                    self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
+                    continuation.resume()
+                }
+            }
+        }
+        
+        /**
+         Creates a new analytics-enabled Player instance.
+         */
+        AsyncFunction("initWithAnalyticsConfig") { (nativeId: String, analyticsConfig: [String: Any], config: [String: Any]?, networkNativeId: String?, decoderNativeId: String?) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    guard self?.players[nativeId] == nil else {
+                        // Player already exists for this nativeId
+                        continuation.resume()
+                        return
+                    }
+                    
+                    // For now, create a basic player config with analytics
+                    let playerConfig = PlayerConfig()
+                    
+                    // TODO: Add full analytics config conversion
+                    // TODO: Add network config setup if networkNativeId is provided
+                    
+                    self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
+                    continuation.resume()
+                }
+            }
+        }
+        
+        /**
+         Load source into the player.
+         This requires cross-module dependency on SourceModule.
+         */
+        AsyncFunction("loadSource") { (nativeId: String, sourceNativeId: String) in
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { [weak self] in
+                    guard let player = self?.players[nativeId] else {
+                        continuation.resume()
+                        return
+                    }
+                    
+                    // TODO: This requires SourceModule dependency to retrieve source
+                    // For now, this is a placeholder implementation
+                    // Need: let source = self?.bridge[SourceModule.self]?.retrieve(sourceNativeId)
+                    // Then: player.load(source: source)
+                    
+                    // Placeholder - would load source if SourceModule integration is available
+                    continuation.resume()
+                }
+            }
+        }
+        
+        // TODO: Continue with remaining complex methods
     }
     
     // CRITICAL: This method must remain available for cross-module access

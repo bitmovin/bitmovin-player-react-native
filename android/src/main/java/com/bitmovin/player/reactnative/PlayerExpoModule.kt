@@ -299,7 +299,65 @@ class PlayerExpoModule : Module() {
             return@AsyncFunction null
         }
         
-        // TODO: Continue with more methods
+        /**
+         * Creates a new Player instance using the provided config.
+         * This is a complex method requiring config conversion and cross-module setup.
+         */
+        AsyncFunction("initWithConfig") { nativeId: String, config: Map<String, Any>?, networkNativeId: String?, decoderNativeId: String? ->
+            if (players.containsKey(nativeId)) {
+                // Player already exists for this nativeId
+                return@AsyncFunction
+            }
+            
+            // For now, create a basic player config - full conversion would require toPlayerConfig()
+            // This is a simplified implementation that creates a default player
+            val playerConfig = com.bitmovin.player.api.PlayerConfig()
+            
+            // TODO: Add full config conversion when config conversion patterns are available
+            // TODO: Add network config setup if networkNativeId is provided  
+            // TODO: Add decoder config setup if decoderNativeId is provided
+            
+            val player = com.bitmovin.player.api.Player.create(appContext.reactApplicationContext, playerConfig)
+            players[nativeId] = player
+        }
+        
+        /**
+         * Creates a new analytics-enabled Player instance.
+         */
+        AsyncFunction("initWithAnalyticsConfig") { nativeId: String, analyticsConfig: Map<String, Any>, config: Map<String, Any>?, networkNativeId: String?, decoderNativeId: String? ->
+            if (players.containsKey(nativeId)) {
+                // Player already exists for this nativeId
+                return@AsyncFunction
+            }
+            
+            // For now, create a basic player config with analytics
+            val playerConfig = com.bitmovin.player.api.PlayerConfig()
+            
+            // TODO: Add full analytics config conversion
+            // TODO: Add network config setup if networkNativeId is provided
+            // TODO: Add decoder config setup if decoderNativeId is provided
+            
+            val player = com.bitmovin.player.api.Player.create(appContext.reactApplicationContext, playerConfig)
+            players[nativeId] = player
+        }
+        
+        /**
+         * Load source into the player.
+         * This requires cross-module dependency on SourceModule.
+         */
+        AsyncFunction("loadSource") { nativeId: String, sourceNativeId: String ->
+            val player = players[nativeId]
+            if (player != null) {
+                // TODO: This requires SourceModule dependency to retrieve source
+                // For now, this is a placeholder implementation
+                // Need: val source = getSource(sourceNativeId)
+                // Then: player.load(source)
+                
+                // Placeholder - would load source if SourceModule integration is available
+            }
+        }
+        
+        // TODO: Continue with remaining complex methods
     }
 
     // CRITICAL: This method must remain available for cross-module access
