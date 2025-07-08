@@ -3,7 +3,7 @@
 This document outlines a complete, phased plan to migrate all legacy React Native bridge modules to the modern Expo Modules API. The migration is prioritized by complexity to minimize risk and ensure stability.
 
 ## Guiding Principles
-- **Expo modules API***: Expo modules API is documented in @docs/expo-module-api.md
+- **Expo modules API***: Expo modules API is documented in @docs/expo-module-api.md. MAKE SURE TO READ THIS BEFORE THE MIGRATION!
 - **Single Library Architecture:** This is not a migration to separate libraries. The goal is to add new `Expo Module` subclasses *within the existing `bitmovin-player-react-native` package*. New native files will be added to the existing `ios/` and `android/` source sets.
 - **Preserve Public API and Stability:** The primary goal is to ensure the library's public API and the stability of the core player do not change. All changes must be internal.
 - **Phased Migration:** Modules are grouped into three priority levels based on complexity and risk. Migration will proceed in order, from lowest to highest risk.
