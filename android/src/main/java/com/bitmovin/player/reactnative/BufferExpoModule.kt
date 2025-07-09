@@ -3,6 +3,9 @@ package com.bitmovin.player.reactnative
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import com.bitmovin.player.api.buffer.BufferType
+import com.bitmovin.player.api.media.MediaType
+import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
+import com.bitmovin.player.reactnative.converter.toJson
 
 class BufferExpoModule : Module() {
     override fun definition() = ModuleDefinition {
@@ -19,14 +22,12 @@ class BufferExpoModule : Module() {
          */
         AsyncFunction("getLevel") { playerId: String, type: String ->
             // Access PlayerExpoModule to retrieve player
-            val player = PlayerExpoModule.getPlayerOrNull(playerId)
+            val player = appContext.registry.getModule<PlayerExpoModule>()?.getPlayerOrNull(playerId)
                 ?: return@AsyncFunction null
             
-            when (type.lowercase()) {
-                "audio" -> player.buffer.getLevel(BufferType.AUDIO)
-                "video" -> player.buffer.getLevel(BufferType.VIDEO)
-                else -> null // Unknown buffer type
-            }
+            val bufferType = type.toBufferTypeOrThrow()
+            val level = player.buffer.getLevel(bufferType, MediaType.Video)
+            level.toJson()
         }
 
         /**
@@ -34,13 +35,12 @@ class BufferExpoModule : Module() {
          */
         AsyncFunction("setTargetLevel") { playerId: String, type: String, value: Double ->
             // Access PlayerExpoModule to retrieve player
-            val player = PlayerExpoModule.getPlayerOrNull(playerId)
+            val player = appContext.registry.getModule<PlayerExpoModule>()?.getPlayerOrNull(playerId)
                 ?: return@AsyncFunction
             
-            when (type.lowercase()) {
-                "audio" -> player.buffer.setTargetLevel(BufferType.AUDIO, value)
-                "video" -> player.buffer.setTargetLevel(BufferType.VIDEO, value)
-                else -> {} // Unknown buffer type
+            val bufferType = type.toBufferTypeOrThrow()
+            if (bufferType == BufferType.ForwardDuration) {
+                player.buffer.setTargetLevel(bufferType, value)
             }
         }
     }

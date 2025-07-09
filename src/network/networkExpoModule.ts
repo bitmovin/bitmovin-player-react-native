@@ -6,7 +6,7 @@ import { HttpRequest, HttpResponse, NetworkConfig } from './networkConfig';
  * Provides modern async/await interface while maintaining backward compatibility.
  */
 interface NetworkExpoModuleInterface {
-  initWithConfig(nativeId: string, config: NetworkConfig): Promise<void>;
+  initializeWithConfig(nativeId: string, config: NetworkConfig): Promise<void>;
   destroy(nativeId: string): Promise<void>;
   setPreprocessedHttpRequest(
     requestId: string,

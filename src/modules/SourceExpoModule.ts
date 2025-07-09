@@ -1,6 +1,8 @@
-import { requireNativeModule } from 'expo-modules-core';
+import { NativeModule, requireNativeModule } from 'expo-modules-core';
 
-export interface SourceExpoModuleType {
+export type SourceExpoModuleEvents = Record<string, any>;
+
+declare class SourceExpoModule extends NativeModule<SourceExpoModuleEvents> {
   /**
    * Returns the count of active sources for debugging purposes
    */
@@ -12,7 +14,7 @@ export interface SourceExpoModuleType {
   hasSource(nativeId: string): boolean;
 
   // TODO: Add method types as they are migrated from SourceModule
-  // Priority: initWithConfig, setSourceConfig methods
+  // Priority: initializeWithConfig, setSourceConfig methods
 }
 
-export default requireNativeModule<SourceExpoModuleType>('SourceExpoModule');
+export default requireNativeModule<SourceExpoModule>('SourceExpoModule');

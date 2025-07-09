@@ -1,6 +1,8 @@
-import { requireNativeModule } from 'expo-modules-core';
+import { NativeModule, requireNativeModule } from 'expo-modules-core';
 
-export interface PlayerExpoModuleType {
+export type PlayerExpoModuleEvents = Record<string, any>;
+
+declare class PlayerExpoModule extends NativeModule<PlayerExpoModuleEvents> {
   /**
    * Returns the count of active players for debugging purposes
    */
@@ -169,7 +171,7 @@ export interface PlayerExpoModuleType {
   /**
    * Creates a new Player instance using the provided config.
    */
-  initWithConfig(
+  initializeWithConfig(
     nativeId: string,
     config?: Record<string, any>,
     networkNativeId?: string,
@@ -179,7 +181,7 @@ export interface PlayerExpoModuleType {
   /**
    * Creates a new analytics-enabled Player instance.
    */
-  initWithAnalyticsConfig(
+  initializeWithAnalyticsConfig(
     nativeId: string,
     analyticsConfig: Record<string, any>,
     config?: Record<string, any>,
@@ -193,8 +195,69 @@ export interface PlayerExpoModuleType {
    */
   loadSource(nativeId: string, sourceNativeId: string): Promise<void>;
 
-  // TODO: Add remaining method types as they are migrated
-  // Continue with more complex methods
+  /**
+   * Load offline content into the player.
+   */
+  loadOfflineContent(
+    nativeId: string,
+    offlineContentId: string,
+    options?: Record<string, any>
+  ): Promise<void>;
+
+  /**
+   * Get current audio track.
+   */
+  getAudioTrack(nativeId: string): Promise<any | null>;
+
+  /**
+   * Get available audio tracks.
+   */
+  getAvailableAudioTracks(nativeId: string): Promise<any[]>;
+
+  /**
+   * Set audio track.
+   */
+  setAudioTrack(nativeId: string, trackId: string): Promise<void>;
+
+  /**
+   * Get current subtitle track.
+   */
+  getSubtitleTrack(nativeId: string): Promise<any | null>;
+
+  /**
+   * Get available subtitle tracks.
+   */
+  getAvailableSubtitles(nativeId: string): Promise<any[]>;
+
+  /**
+   * Set subtitle track.
+   */
+  setSubtitleTrack(nativeId: string, trackId: string): Promise<void>;
+
+  /**
+   * Schedule an ad.
+   */
+  scheduleAd(nativeId: string, adConfig: Record<string, any>): Promise<void>;
+
+  /**
+   * Get thumbnail for time position.
+   */
+  getThumbnail(nativeId: string, time: number): Promise<any | null>;
+
+  /**
+   * Get current video quality.
+   */
+  getVideoQuality(nativeId: string): Promise<any | null>;
+
+  /**
+   * Get available video qualities.
+   */
+  getAvailableVideoQualities(nativeId: string): Promise<any[]>;
+
+  /**
+   * Set video quality.
+   */
+  setVideoQuality(nativeId: string, qualityId: string): Promise<void>;
 }
 
-export default requireNativeModule<PlayerExpoModuleType>('PlayerExpoModule');
+export default requireNativeModule<PlayerExpoModule>('PlayerExpoModule');

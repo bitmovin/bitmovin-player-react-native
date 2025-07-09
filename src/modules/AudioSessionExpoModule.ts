@@ -1,11 +1,13 @@
-import { requireNativeModule } from 'expo-modules-core';
+import { NativeModule, requireNativeModule } from 'expo-modules-core';
 import { Platform } from 'react-native';
 
-export interface AudioSessionExpoModuleType {
+export type AudioSessionExpoModuleEvents = Record<string, any>;
+
+declare class AudioSessionExpoModule extends NativeModule<AudioSessionExpoModuleEvents> {
   setCategory(category: string): Promise<void>;
 }
 
 // iOS-only module
 export default Platform.OS === 'ios'
-  ? requireNativeModule<AudioSessionExpoModuleType>('AudioSessionModule')
+  ? requireNativeModule<AudioSessionExpoModule>('AudioSessionModule')
   : null;

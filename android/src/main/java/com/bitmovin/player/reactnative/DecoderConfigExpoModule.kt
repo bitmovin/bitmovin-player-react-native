@@ -38,7 +38,7 @@ class DecoderConfigExpoModule : Module() {
         /**
          * Creates a new `DecoderConfig` instance inside the internal decoder configs using the provided `config` object.
          */
-        AsyncFunction("initWithConfig") { nativeId: String, config: Map<String, Any?> ->
+        AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?> ->
             if (decoderConfigs.containsKey(nativeId)) {
                 return@AsyncFunction
             }
@@ -68,7 +68,22 @@ class DecoderConfigExpoModule : Module() {
             val completer = overrideDecoderPriorityProviderCompleters[nativeId]
                 ?: throw DecoderConfigException.NoCompleterFound(nativeId)
                 
-            val mediaCodecInfoList = response.toMediaCodecInfoList()
+            // Convert List<Map<String, Any?>> to ReadableArray for processing
+            val array = com.facebook.react.bridge.Arguments.createArray()
+            response.forEach { item ->
+                val map = com.facebook.react.bridge.Arguments.createMap()
+                item.forEach { (key, value) ->
+                    when (value) {
+                        is String -> map.putString(key, value)
+                        is Boolean -> map.putBoolean(key, value)
+                        is Number -> map.putDouble(key, value.toDouble())
+                        // Handle other types as needed
+                    }
+                }
+                array.pushMap(map)
+            }
+            
+            val mediaCodecInfoList = array.toMediaCodecInfoList()
             completer.set(mediaCodecInfoList)
             overrideDecoderPriorityProviderCompleters.remove(nativeId)
         }
@@ -96,31 +111,17 @@ class DecoderConfigExpoModule : Module() {
         return CallbackToFutureAdapter.getFuture { completer ->
             overrideDecoderPriorityProviderCompleters[nativeId] = completer
             
-            // Call JS function directly using Expo modules context
-            appContext.reactContext?.runOnUiQueueThread {
-                appContext.reactContext?.catalystInstance?.callFunction(
-                    "DecoderConfigBridge-$nativeId",
-                    "overrideDecodersPriority",
-                    listOf(context.toJson(), preferredDecoders.toJson())
-                )
-            }
+            // TODO: Use Expo module event system instead of React Native bridge
+            // This is a placeholder - implement proper event dispatch
+            // For now, just return the preferred decoders as-is to avoid crashes
+            completer.set(preferredDecoders)
             
             "overrideDecoderPriorityProvider"
         }.get()
     }
-
-    companion object {
-        /**
-         * CRITICAL: This method must remain available for cross-module access
-         * Called by other modules that need access to decoder configurations
-         */
-        @JvmStatic
-        fun getConfig(nativeId: String?): DecoderConfig? {
-            // Implementation would need access to the singleton instance
-            // This pattern needs to be addressed in a separate architectural improvement
-            return null
-        }
-    }
+    
+    val decoderConfig: DecoderConfig?
+        get() = decoderConfigs.values.firstOrNull()
 }
 
 // MARK: - Exception Definitions

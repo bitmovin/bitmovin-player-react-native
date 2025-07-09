@@ -557,17 +557,21 @@ extension RCTConvert {
      - Parameter audioTrack: The track to convert to json format.
      - Returns: The generated json dictionary.
      */
-    static func audioTrackJson(_ audioTrack: AudioTrack?) -> [AnyHashable: Any]? {
+    static func audioTrackJson(_ audioTrack: AudioTrack?) -> [String: Any]? {
         guard let audioTrack else {
             return nil
         }
-        var audioTrackDict: [String: Any?] = [
-            "url": audioTrack.url?.absoluteString,
+        var audioTrackDict: [String: Any] = [
             "label": audioTrack.label,
             "isDefault": audioTrack.isDefaultTrack,
             "identifier": audioTrack.identifier,
-            "language": audioTrack.language
         ]
+        if let url = audioTrack.url {
+            audioTrackDict["url"] = url.absoluteString
+        }
+        if let language = audioTrack.language {
+            audioTrackDict["language"] = language
+        }
         audioTrackDict["roles"] = audioTrack.characteristics.map { characteristic in
             [
                 "schemeIdUri": "urn:hls:characteristic",
@@ -644,18 +648,22 @@ extension RCTConvert {
      - Parameter subtitleTrack: The track to convert to json format.
      - Returns: The generated json dictionary.
      */
-    static func subtitleTrackJson(_ subtitleTrack: SubtitleTrack?) -> [AnyHashable: Any]? {
+    static func subtitleTrackJson(_ subtitleTrack: SubtitleTrack?) -> [String: Any]? {
         guard let subtitleTrack else {
             return nil
         }
-        var subtitleTrackDict: [String: Any?] = [
-            "url": subtitleTrack.url?.absoluteString,
+        var subtitleTrackDict: [String: Any] = [
             "label": subtitleTrack.label,
             "isDefault": subtitleTrack.isDefaultTrack,
             "identifier": subtitleTrack.identifier,
-            "language": subtitleTrack.language,
             "isForced": subtitleTrack.isForced,
         ]
+        if let url = subtitleTrack.url {
+            subtitleTrackDict["url"] = url.absoluteString
+        }
+        if let language = subtitleTrack.language {
+            subtitleTrackDict["language"] = language
+        }
         switch subtitleTrack.format {
         case .cea:
             subtitleTrackDict["format"] = "cea"
@@ -688,12 +696,16 @@ extension RCTConvert {
             return nil
         }
 
-        return [
-            "url": thumbnailTrack.url?.absoluteString,
+        var thumbnailTrackDict: [String: Any] = [
             "label": thumbnailTrack.label,
             "isDefault": thumbnailTrack.isDefaultTrack,
             "identifier": thumbnailTrack.identifier
         ]
+        if let url = thumbnailTrack.url {
+            thumbnailTrackDict["url"] = url.absoluteString
+        }
+
+        return thumbnailTrackDict
     }
 
     /**
@@ -987,18 +999,22 @@ extension RCTConvert {
      - Parameter videoQuality `VideoQuality` object to be converted.
      - Returns: The produced JS object.
      */
-    static func toJson(videoQuality: VideoQuality?) -> [String: Any?]? {
+    static func toJson(videoQuality: VideoQuality?) -> [String: Any]? {
         guard let videoQuality else {
             return nil
         }
-        return [
+        var videoQualityDict: [String: Any] = [
             "id": videoQuality.identifier,
             "label": videoQuality.label,
             "height": videoQuality.height,
             "width": videoQuality.width,
-            "codec": videoQuality.codec,
             "bitrate": videoQuality.bitrate,
         ]
+        if let codec = videoQuality.codec {
+            videoQualityDict["codec"] = codec
+        }
+
+        return videoQualityDict
     }
 
     /**

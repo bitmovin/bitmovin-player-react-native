@@ -8,53 +8,32 @@ import ExpoModulesCore
 public class CustomMessageHandlerExpoModule: Module {
     /// In-memory mapping from `nativeId`s to `CustomMessageHandlerBridge` instances.
     private var customMessageHandlers: Registry<CustomMessageHandlerBridge> = [:]
-    
+
     /// Dispatch group used for blocking thread while waiting for state change
     private let customMessageHandlerDispatchGroup = DispatchGroup()
 
     public func definition() -> ModuleDefinition {
         Name("CustomMessageHandlerExpoModule")
 
-        AsyncFunction("registerHandler") { (nativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    guard self?.customMessageHandlers[nativeId] == nil else {
-                        continuation.resume()
-                        return
-                    }
-                    self?.customMessageHandlers[nativeId] = CustomMessageHandlerBridge(nativeId, bridge: nil)
-                    continuation.resume()
-                }
+        AsyncFunction("registerHandler") { [weak self] (nativeId: String) in
+            guard self?.customMessageHandlers[nativeId] == nil else {
+                return
             }
-        }
+            self?.customMessageHandlers[nativeId] = CustomMessageHandlerBridge(nativeId, expoModule: self)
+        }.runOnQueue(.main)
 
-        AsyncFunction("destroy") { (nativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.customMessageHandlers.removeValue(forKey: nativeId)
-                    continuation.resume()
-                }
-            }
-        }
+        AsyncFunction("destroy") { [weak self] (nativeId: String) in
+            self?.customMessageHandlers.removeValue(forKey: nativeId)
+        }.runOnQueue(.main)
 
-        AsyncFunction("onReceivedSynchronousMessageResult") { (nativeId: String, result: String?) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.customMessageHandlers[nativeId]?.pushSynchronousResult(result)
-                    self?.customMessageHandlerDispatchGroup.leave()
-                    continuation.resume()
-                }
-            }
-        }
+        AsyncFunction("onReceivedSynchronousMessageResult") { [weak self] (nativeId: String, result: String?) in
+            self?.customMessageHandlers[nativeId]?.pushSynchronousResult(result)
+            self?.customMessageHandlerDispatchGroup.leave()
+        }.runOnQueue(.main)
 
-        AsyncFunction("sendMessage") { (nativeId: String, message: String, data: String?) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.customMessageHandlers[nativeId]?.sendMessage(message, withData: data)
-                    continuation.resume()
-                }
-            }
-        }
+        AsyncFunction("sendMessage") { [weak self] (nativeId: String, message: String, data: String?) in
+            self?.customMessageHandlers[nativeId]?.sendMessage(message, withData: data)
+        }.runOnQueue(.main)
     }
 
     /**
@@ -76,14 +55,14 @@ public class CustomMessageHandlerExpoModule: Module {
         withData data: String?
     ) -> String? {
         customMessageHandlerDispatchGroup.enter()
-        
+
         // Send event to JavaScript
         sendEvent("onReceivedSynchronousMessage", [
             "nativeId": nativeId,
             "message": message,
             "data": data as Any
         ])
-        
+
         customMessageHandlerDispatchGroup.wait()
         return customMessageHandlers[nativeId]?.popSynchronousResult()
     }
@@ -105,13 +84,4 @@ public class CustomMessageHandlerExpoModule: Module {
         ])
     }
 
-    /**
-     * Static access method to maintain compatibility with other modules.
-     * Retrieves the CustomMessageHandlerBridge for the given nativeId.
-     */
-    @objc
-    public static func getCustomMessageHandlerBridge(_ nativeId: String) -> CustomMessageHandlerBridge? {
-        // TODO: Implement global registry pattern if needed by other modules
-        return nil
-    }
 }

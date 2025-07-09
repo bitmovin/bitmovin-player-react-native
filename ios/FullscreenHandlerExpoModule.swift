@@ -8,49 +8,47 @@ import ExpoModulesCore
 public class FullscreenHandlerExpoModule: Module {
     /// In-memory mapping from `nativeId`s to `FullscreenHandlerBridge` instances.
     private var fullscreenHandlers: Registry<FullscreenHandlerBridge> = [:]
-    
+
     /// Dispatch group used for blocking thread while waiting for state change
     private let fullscreenChangeDispatchGroup = DispatchGroup()
 
     public func definition() -> ModuleDefinition {
         Name("FullscreenHandlerExpoModule")
 
+        Events("onEnterFullscreen", "onExitFullscreen")
+
         AsyncFunction("registerHandler") { (nativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    guard self?.fullscreenHandlers[nativeId] == nil else {
-                        continuation.resume()
-                        return
-                    }
-                    self?.fullscreenHandlers[nativeId] = FullscreenHandlerBridge(nativeId, bridge: nil)
-                    continuation.resume()
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.fullscreenHandlers[nativeId] == nil else {
+                    return
                 }
+                self.fullscreenHandlers[nativeId] = FullscreenHandlerBridge(
+                    nativeId,
+                    moduleRegistry: appContext?.moduleRegistry
+                )
             }
-        }
+        }.runOnQueue(.main)
 
-        AsyncFunction("destroy") { (nativeId: String) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.fullscreenHandlers.removeValue(forKey: nativeId)
-                    continuation.resume()
-                }
+        AsyncFunction("destroy") { [weak self] (nativeId: String) in
+            self?.fullscreenHandlers.removeValue(forKey: nativeId)
+        }.runOnQueue(.main)
+
+        AsyncFunction("notifyFullscreenChanged") { (nativeId: String, isFullscreenEnabled: Bool) -> Any? in
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.fullscreenHandlers[nativeId]?.isFullscreen = isFullscreenEnabled
+                self.fullscreenChangeDispatchGroup.leave()
             }
-        }
-
-        Function("onFullscreenChanged") { (nativeId: String, isFullscreenEnabled: Bool) -> Any? in
-            fullscreenHandlers[nativeId]?.isFullscreen = isFullscreenEnabled
-            fullscreenChangeDispatchGroup.leave()
             return nil
         }
 
-        AsyncFunction("setIsFullscreenActive") { (nativeId: String, isFullscreen: Bool) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async { [weak self] in
-                    self?.fullscreenHandlers[nativeId]?.isFullscreen = isFullscreen
-                    continuation.resume()
-                }
+        AsyncFunction("setIsFullscreenActive") { (nativeId: String, isFullscreen: Bool, promise: Promise) in
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.fullscreenHandlers[nativeId]?.isFullscreen = isFullscreen
+                promise.resolve()
             }
-        }
+        }.runOnQueue(.main)
     }
 
     /**
@@ -68,13 +66,13 @@ public class FullscreenHandlerExpoModule: Module {
      */
     func onFullscreenRequested(nativeId: String) {
         fullscreenChangeDispatchGroup.enter()
-        
+
         // Send event to JavaScript
         sendEvent("onEnterFullscreen", [
             "nativeId": nativeId
         ])
-        
-        fullscreenChangeDispatchGroup.wait()
+
+//        fullscreenChangeDispatchGroup.wait()
     }
 
     /**
@@ -83,22 +81,12 @@ public class FullscreenHandlerExpoModule: Module {
      */
     func onFullscreenExitRequested(nativeId: String) {
         fullscreenChangeDispatchGroup.enter()
-        
+
         // Send event to JavaScript
         sendEvent("onExitFullscreen", [
             "nativeId": nativeId
         ])
-        
-        fullscreenChangeDispatchGroup.wait()
-    }
 
-    /**
-     * Static access method to maintain compatibility with other modules.
-     * Retrieves the FullscreenHandlerBridge for the given nativeId.
-     */
-    @objc
-    public static func getFullscreenHandlerBridge(_ nativeId: String) -> FullscreenHandlerBridge? {
-        // TODO: Implement global registry pattern if needed by other modules
-        return nil
+//        fullscreenChangeDispatchGroup.wait()
     }
 }

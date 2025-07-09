@@ -9,6 +9,7 @@ import {
   ListRenderItemInfo,
   ViewProps,
 } from 'react-native';
+import type { JSX } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,

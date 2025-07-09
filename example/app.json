@@ -43,8 +43,7 @@
             "backgroundPlayback": true,
             "googleCastSDK": { "android": "21.3.0", "ios": "4.8.1.2" },
             "offline": true,
-            "pictureInPicture": true,
-            "expoPermissionsServiceFix": true
+            "pictureInPicture": true
           }
         }
       ]

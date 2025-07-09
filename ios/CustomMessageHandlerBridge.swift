@@ -1,4 +1,5 @@
 import BitmovinPlayer
+import ExpoModulesCore
 
 internal class CustomMessageHandlerBridge: NSObject {
 #if os(iOS)
@@ -10,18 +11,17 @@ internal class CustomMessageHandlerBridge: NSObject {
 #endif
 
     private let nativeId: NativeId
-    private let bridge: RCTBridge
+    private weak var expoModule: CustomMessageHandlerExpoModule?
 
     private var currentSynchronousResult: String?
-
-    init(_ nativeId: NativeId, bridge: RCTBridge) {
+    
+    init(_ nativeId: NativeId, expoModule: CustomMessageHandlerExpoModule?) {
         self.nativeId = nativeId
-        self.bridge = bridge
-        super.init()
+        self.expoModule = expoModule
     }
 
     func receivedSynchronousMessage(_ message: String, withData data: String?) -> String? {
-        bridge[CustomMessageHandlerModule.self]?.receivedSynchronousMessage(
+        expoModule?.receivedSynchronousMessage(
             nativeId: nativeId,
             message: message,
             withData: data
@@ -29,7 +29,7 @@ internal class CustomMessageHandlerBridge: NSObject {
     }
 
     func receivedAsynchronousMessage(_ message: String, withData data: String?) {
-        bridge[CustomMessageHandlerModule.self]?.receivedAsynchronousMessage(
+        expoModule?.receivedAsynchronousMessage(
             nativeId: nativeId,
             message: message,
             withData: data

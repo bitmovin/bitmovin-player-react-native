@@ -7,51 +7,33 @@ import ExpoModulesCore
  * Provides analytics functionality for player instances.
  */
 public class PlayerAnalyticsExpoModule: Module {
-
     public func definition() -> ModuleDefinition {
         Name("PlayerAnalyticsExpoModule")
 
-        AsyncFunction("sendCustomDataEvent") { (playerId: String, json: [String: Any]) in
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async {
-                    guard
-                        let playerExpoModule = self.appContext?.legacyModule(for: PlayerExpoModule.self) as? PlayerExpoModule,
-                        let player = playerExpoModule.retrieve(playerId),
-                        let playerAnalytics = player.analytics,
-                        let customData = RCTConvert.analyticsCustomData(json)
-                    else {
-                        continuation.resume()
-                        return
-                    }
-                    playerAnalytics.sendCustomDataEvent(customData: customData)
-                    continuation.resume()
-                }
+        AsyncFunction("sendCustomDataEvent") { [weak self] (playerId: String, json: [String: Any]) in
+            guard
+                let playerExpoModule = self?.appContext?.moduleRegistry.get(PlayerExpoModule.self)
+                    as? PlayerExpoModule,
+                let player = playerExpoModule.retrieve(playerId),
+                let playerAnalytics = player.analytics,
+                let customData = RCTConvert.analyticsCustomData(json)
+            else {
+                return
             }
-        }
+            playerAnalytics.sendCustomDataEvent(customData: customData)
+        }.runOnQueue(.main)
 
-        AsyncFunction("getUserId") { (playerId: String) -> String? in
-            return await withCheckedContinuation { continuation in
-                DispatchQueue.main.async {
-                    guard
-                        let playerExpoModule = self.appContext?.legacyModule(for: PlayerExpoModule.self) as? PlayerExpoModule,
-                        let player = playerExpoModule.retrieve(playerId),
-                        let playerAnalytics = player.analytics
-                    else {
-                        continuation.resume(returning: nil)
-                        return
-                    }
-                    continuation.resume(returning: playerAnalytics.userId)
-                }
+        AsyncFunction("getUserId") { [weak self] (playerId: String) -> String? in
+            guard
+                let playerExpoModule = self?.appContext?.moduleRegistry.get(PlayerExpoModule.self)
+                    as? PlayerExpoModule,
+                let player = playerExpoModule.retrieve(playerId),
+                let playerAnalytics = player.analytics
+            else {
+                return nil
             }
-        }
+            return playerAnalytics.userId
+        }.runOnQueue(.main)
     }
 
-    /**
-     * Static access method to maintain compatibility with other modules.
-     */
-    @objc
-    public static func getPlayerAnalytics(_ playerId: String) -> BitmovinPlayerCollector? {
-        // TODO: Implement global registry pattern if needed by other modules
-        return nil
-    }
 }

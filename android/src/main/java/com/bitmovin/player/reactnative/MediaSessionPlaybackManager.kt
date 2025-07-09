@@ -6,11 +6,12 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import com.bitmovin.player.api.Player
-import com.bitmovin.player.reactnative.extensions.playerModule
+// import com.bitmovin.player.reactnative.extensions.playerModule
 import com.bitmovin.player.reactnative.services.MediaSessionPlaybackService
 import com.facebook.react.bridge.*
+import expo.modules.kotlin.AppContext
 
-class MediaSessionPlaybackManager(val context: ReactApplicationContext) {
+class MediaSessionPlaybackManager(val appContext: AppContext) {
     private var serviceBinder: MediaSessionPlaybackService.ServiceBinder? = null
     private var playerId: NativeId? = null
     val player: Player?
@@ -33,10 +34,12 @@ class MediaSessionPlaybackManager(val context: ReactApplicationContext) {
     fun setupMediaSessionPlayback(playerId: NativeId) {
         this.playerId = playerId
 
-        val intent = Intent(context, MediaSessionPlaybackService::class.java)
+        val reactContext = appContext.reactContext as? ReactApplicationContext
+            ?: throw IllegalStateException("ReactApplicationContext is not available")
+        val intent = Intent(reactContext, MediaSessionPlaybackService::class.java)
         intent.action = Intent.ACTION_MEDIA_BUTTON
         val connection: ServiceConnection = MediaSessionPlaybackServiceConnection()
-        context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        reactContext.bindService(intent, connection, Context.BIND_AUTO_CREATE)
     }
 
     fun destroy(nativeId: NativeId) {
@@ -49,7 +52,6 @@ class MediaSessionPlaybackManager(val context: ReactApplicationContext) {
 
     private fun getPlayer(
         nativeId: NativeId? = playerId,
-        playerModule: PlayerModule? = context.playerModule,
-    ): Player = nativeId?.let { playerModule?.getPlayerOrNull(nativeId) }
+    ): Player = playerId?.let { appContext.registry.getModule<PlayerExpoModule>()?.getPlayerOrNull(it) }
         ?: throw IllegalArgumentException("Invalid PlayerId $nativeId")
 }

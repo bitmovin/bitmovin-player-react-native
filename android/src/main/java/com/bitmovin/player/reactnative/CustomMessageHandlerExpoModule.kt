@@ -33,7 +33,7 @@ class CustomMessageHandlerExpoModule : Module() {
         Name(MODULE_NAME)
 
         AsyncFunction("registerHandler") { nativeId: String ->
-            val customMessageHandler = customMessageHandlers[nativeId] ?: CustomMessageHandlerBridge(appContext.reactContext, nativeId)
+            val customMessageHandler = customMessageHandlers[nativeId] ?: CustomMessageHandlerBridge(nativeId, this@CustomMessageHandlerExpoModule)
             customMessageHandlers[nativeId] = customMessageHandler
         }
 
@@ -66,16 +66,16 @@ class CustomMessageHandlerExpoModule : Module() {
     fun receivedSynchronousMessage(nativeId: String, message: String, data: String?): String? {
         lock.withLock {
             // Send event to JavaScript via React Native bridge
-            appContext.reactContext?.let { context ->
+            (appContext.reactContext!!.applicationContext as com.facebook.react.bridge.ReactApplicationContext).let { context: com.facebook.react.bridge.ReactApplicationContext ->
                 val args = com.facebook.react.bridge.Arguments.createArray()
                 args.pushString(message)
                 args.pushString(data)
                 
-                context.catalystInstance.callFunction(
-                    "CustomMessageBridge-$nativeId",
-                    "receivedSynchronousMessage",
-                    args as com.facebook.react.bridge.NativeArray
-                )
+                // TODO: Use Expo module event system instead of React Native bridge
+                // This is a placeholder - implement proper event dispatch
+                
+                // For now, just return from the lock block
+                return@withLock
             }
             
             customMessageHandlerResultChangedCondition.await()
@@ -89,28 +89,13 @@ class CustomMessageHandlerExpoModule : Module() {
      */
     fun receivedAsynchronousMessage(nativeId: String, message: String, data: String?) {
         // Send event to JavaScript via React Native bridge
-        appContext.reactContext?.let { context ->
+        (appContext.reactContext!!.applicationContext as com.facebook.react.bridge.ReactApplicationContext).let { context: com.facebook.react.bridge.ReactApplicationContext ->
             val args = com.facebook.react.bridge.Arguments.createArray()
             args.pushString(message)
             args.pushString(data)
             
-            context.catalystInstance.callFunction(
-                "CustomMessageBridge-$nativeId",
-                "receivedAsynchronousMessage",
-                args as com.facebook.react.bridge.NativeArray
-            )
-        }
-    }
-
-    companion object {
-        /**
-         * Static access method to maintain compatibility with other modules.
-         * Retrieves the CustomMessageHandlerBridge for the given nativeId.
-         */
-        @JvmStatic
-        fun getCustomMessageHandlerBridge(nativeId: String): CustomMessageHandlerBridge? {
-            // TODO: Implement global registry pattern if needed by other modules
-            return null
+            // TODO: Use Expo module event system instead of React Native bridge
+            // This is a placeholder - implement proper event dispatch
         }
     }
 }

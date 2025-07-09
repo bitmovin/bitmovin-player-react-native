@@ -1,5 +1,6 @@
 #if os(iOS)
 import BitmovinPlayer
+import ExpoModulesCore
 import Foundation
 import React
 
@@ -17,14 +18,14 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
     }
 
     let offlineContentManager: OfflineContentManager
-    let eventEmitter: RCTEventEmitter?
+    private weak var eventEmitter: EXEventEmitterService?
     let nativeId: NativeId
     let identifier: String
     var currentTrackSelection: OfflineTrackSelection?
 
     init(
         forManager offlineContentManager: OfflineContentManager,
-        eventEmitter: RCTEventEmitter,
+        eventEmitter: EXEventEmitterService?,
         nativeId: NativeId,
         identifier: String
     ) {
@@ -56,7 +57,7 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         offlineContentManager: OfflineContentManager
     ) {
         sendOfflineEvent(eventType: .onError, body: [
-            "code": event.code,
+            "code": event.errorCode,
             "message": event.message
         ])
     }
@@ -161,11 +162,7 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
 
         let eventBody = baseEvent.merging(body) { current, _ in current }
 
-        do {
-            try eventEmitter?.sendEvent(withName: "BitmovinOfflineEvent", body: eventBody)
-        } catch let error as NSError {
-            print(error)
-        }
+        eventEmitter?.sendEvent(withName: "BitmovinOfflineEvent", body: eventBody)
     }
 }
 #endif

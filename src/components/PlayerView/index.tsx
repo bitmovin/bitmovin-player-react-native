@@ -1,11 +1,5 @@
-import React, { useRef, useEffect, useCallback } from 'react';
-import {
-  Platform,
-  UIManager,
-  StyleSheet,
-  findNodeHandle,
-  NodeHandle,
-} from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { StyleSheet } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
 import { NativePlayerView } from './native';
 import { useProxy } from '../../hooks/useProxy';
@@ -21,21 +15,6 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
 });
-
-/**
- * Dispatches any given `NativePlayerView` commands on React's `UIManager`.
- */
-function dispatch(command: string, node: NodeHandle, ...args: any[]) {
-  const commandId =
-    Platform.OS === 'android'
-      ? (UIManager as any).NativePlayerView.Commands[command].toString()
-      : UIManager.getViewManagerConfig('NativePlayerView').Commands[command];
-  UIManager.dispatchViewManagerCommand(
-    node,
-    commandId,
-    Platform.select({ ios: args, android: [node, ...args] })
-  );
-}
 
 /**
  * Component that provides the Bitmovin Player UI and default UI handling to an attached `Player` instance.
@@ -58,14 +37,6 @@ export function PlayerView({
   // Keep the device awake while the PlayerView is mounted
   useKeepAwake();
 
-  // Workaround React Native UIManager commands not sent until UI refresh
-  // See: https://github.com/bitmovin/bitmovin-player-react-native/issues/163
-  // Might be fixed in recent RN version: https://github.com/microsoft/react-native-windows/issues/7543
-  // Workaround: call a native (noop) function after a (necessary) arbitrary delay
-  const workaroundViewManagerCommandNotSent = useCallback(() => {
-    setTimeout(() => player.getDuration(), 100);
-  }, [player]);
-
   const nativeView = useRef(viewRef?.current || null);
 
   // Native events proxy helper.
@@ -73,9 +44,8 @@ export function PlayerView({
   // Style resulting from merging `baseStyle` and `props.style`.
   const nativeViewStyle = StyleSheet.flatten([styles.baseStyle, style]);
 
-  const fullscreenBridge: React.MutableRefObject<
-    FullscreenHandlerBridge | undefined
-  > = useRef(undefined);
+  const fullscreenBridge: React.RefObject<FullscreenHandlerBridge | undefined> =
+    useRef(undefined);
   if (fullscreenHandler && !fullscreenBridge.current) {
     fullscreenBridge.current = new FullscreenHandlerBridge();
   }
@@ -83,7 +53,7 @@ export function PlayerView({
     fullscreenBridge.current.setFullscreenHandler(fullscreenHandler);
   }
 
-  const customMessageHandlerBridge: React.MutableRefObject<
+  const customMessageHandlerBridge: React.RefObject<
     CustomMessageHandlerBridge | undefined
   > = useRef(undefined);
   if (customMessageHandler && !customMessageHandlerBridge.current) {
@@ -98,28 +68,6 @@ export function PlayerView({
   useEffect(() => {
     // Initialize native player instance if needed.
     player.initialize();
-    // Attach native player to native `PlayerView`.
-    const node = findNodeHandle(nativeView.current);
-    if (node) {
-      // For iOS this has to happen before attaching the player to the view
-      // as we need to set the CustomMessageHandler on the BitmovinUserInterfaceConfig
-      if (customMessageHandlerBridge.current) {
-        dispatch(
-          'setCustomMessageHandlerBridgeId',
-          node,
-          customMessageHandlerBridge.current.nativeId
-        );
-      }
-      dispatch('attachPlayer', node, player.nativeId, player.config);
-      if (fullscreenBridge.current) {
-        dispatch(
-          'attachFullscreenBridge',
-          node,
-          fullscreenBridge.current.nativeId
-        );
-      }
-      workaroundViewManagerCommandNotSent();
-    }
 
     return () => {
       fullscreenBridge.current?.destroy();
@@ -127,28 +75,7 @@ export function PlayerView({
       customMessageHandlerBridge.current?.destroy();
       customMessageHandlerBridge.current = undefined;
     };
-  }, [player, workaroundViewManagerCommandNotSent]);
-
-  useEffect(() => {
-    const node = findNodeHandle(nativeView.current);
-    if (node) {
-      dispatch('setFullscreen', node, isFullscreenRequested);
-    }
-  }, [isFullscreenRequested, nativeView]);
-
-  useEffect(() => {
-    const node = findNodeHandle(nativeView.current);
-    if (node && scalingMode) {
-      dispatch('setScalingMode', node, scalingMode);
-    }
-  }, [scalingMode, nativeView]);
-
-  useEffect(() => {
-    const node = findNodeHandle(nativeView.current);
-    if (node) {
-      dispatch('setPictureInPicture', node, isPictureInPictureRequested);
-    }
-  }, [isPictureInPictureRequested, nativeView]);
+  }, [player, fullscreenBridge, customMessageHandlerBridge]);
 
   useEffect(() => {
     if (viewRef) {
@@ -160,8 +87,14 @@ export function PlayerView({
     <NativePlayerView
       ref={nativeView}
       style={nativeViewStyle}
-      fullscreenBridge={fullscreenBridge.current}
-      customMessageHandlerBridge={customMessageHandlerBridge.current}
+      playerConfig={{ id: player.nativeId, ...player.config }}
+      isFullscreenRequested={isFullscreenRequested}
+      isPictureInPictureRequested={isPictureInPictureRequested}
+      scalingMode={scalingMode}
+      fullscreenBridgeId={fullscreenBridge.current?.nativeId}
+      customMessageHandlerBridgeId={
+        customMessageHandlerBridge.current?.nativeId
+      }
       config={config}
       onBmpAdBreakFinished={proxy(props.onAdBreakFinished)}
       onBmpAdBreakStarted={proxy(props.onAdBreakStarted)}

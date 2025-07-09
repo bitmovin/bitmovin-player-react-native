@@ -7,7 +7,7 @@ import { OfflineDownloadRequest } from './offlineDownloadRequest';
  * Provides modern async/await interface while maintaining backward compatibility.
  */
 interface OfflineExpoModuleInterface {
-  initWithConfig(
+  initializeWithConfig(
     nativeId: string,
     config: { identifier: string; sourceConfig: SourceConfig },
     drmNativeId: string | undefined

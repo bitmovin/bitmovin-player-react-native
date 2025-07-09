@@ -1,12 +1,14 @@
-import { requireNativeModule } from 'expo-modules-core';
+import { NativeModule, requireNativeModule } from 'expo-modules-core';
 
-export interface BitmovinCastManagerExpoModuleType {
+export type BitmovinCastManagerExpoModuleEvents = Record<string, any>;
+
+declare class BitmovinCastManagerExpoModule extends NativeModule<BitmovinCastManagerExpoModuleEvents> {
   isInitialized(): Promise<boolean>;
   initializeCastManager(config?: Record<string, any>): Promise<void>;
   sendMessage(message: string, messageNamespace?: string): Promise<void>;
   updateContext?(): Promise<void>; // Android only
 }
 
-export default requireNativeModule<BitmovinCastManagerExpoModuleType>(
+export default requireNativeModule<BitmovinCastManagerExpoModule>(
   'BitmovinCastManagerModule'
 );

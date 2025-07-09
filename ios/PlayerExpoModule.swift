@@ -2,17 +2,11 @@ import BitmovinPlayer
 import ExpoModulesCore
 
 public class PlayerExpoModule: Module {
-    /// In-memory mapping from `nativeId`s to `Player` instances.
-    /// Must match the legacy PlayerModule's Registry pattern.
     private var players: Registry<Player> = [:]
 
     public func definition() -> ModuleDefinition {
         Name("PlayerExpoModule")
-
-        OnCreate {
-            // Module initialization
-        }
-
+        OnCreate {}
         OnDestroy {
             // Destroy all players on the main thread when the module is deallocated.
             // This is necessary when the IMA SDK is present in the app,
@@ -21,437 +15,202 @@ public class PlayerExpoModule: Module {
                 players.values.forEach { $0.destroy() }
             }
         }
-
-        playerManagement()
-        playerMethods()
-        playerGetters()
-        trackMethods()
-        qualityAndOtherMethods()
-        castingAndAds()
-        initializationAndLoading()
-    }
-
-    @ModuleDefinitionBuilder
-    private func playerManagement() -> [AnyDefinition] {
-        /**
-         Returns the count of active players for debugging purposes
-         */
-        Function("getPlayerCount") {
-            players.count
-        }
-
-        /**
-         Checks if a player with the given nativeId exists
-         */
-        Function("hasPlayer") { (nativeId: String) in
-            players[nativeId] != nil
-        }
-    }
-
-    @ModuleDefinitionBuilder
-    private func playerMethods() -> [AnyDefinition] {
-        /**
-         Call .play() on nativeId's player.
-         */
-        AsyncFunction("play") { (nativeId: String) in
-            self.players[nativeId]?.play()
+        AsyncFunction("play") { [weak self] (nativeId: String) in self?.players[nativeId]?.play() }.runOnQueue(.main)
+        AsyncFunction("pause") { [weak self] (nativeId: String) in self?.players[nativeId]?.pause() }.runOnQueue(.main)
+        AsyncFunction("mute") { [weak self] (nativeId: String) in self?.players[nativeId]?.mute() }.runOnQueue(.main)
+        AsyncFunction("unmute") { [weak self] (nativeId: String) in self?.players[nativeId]?.unmute() }.runOnQueue(.main)
+        AsyncFunction("seek") { [weak self] (nativeId: String, time: Double) in
+            self?.players[nativeId]?.seek(time: time)
         }.runOnQueue(.main)
-
-        /**
-         Call .pause() on nativeId's player.
-         */
-        AsyncFunction("pause") { (nativeId: String) in
-            self.players[nativeId]?.pause()
+        AsyncFunction("timeShift") { [weak self] (nativeId: String, offset: Double) in
+            self?.players[nativeId]?.timeShift = offset
         }.runOnQueue(.main)
-
-        /**
-         Call .mute() on nativeId's player.
-         */
-        AsyncFunction("mute") { (nativeId: String) in
-            self.players[nativeId]?.mute()
-        }.runOnQueue(.main)
-
-        /**
-         Call .unmute() on nativeId's player.
-         */
-        AsyncFunction("unmute") { (nativeId: String) in
-            self.players[nativeId]?.unmute()
-        }.runOnQueue(.main)
-
-        /**
-         Call .seek(time:) on nativeId's player.
-         */
-        AsyncFunction("seek") { (nativeId: String, time: Double) in
-            self.players[nativeId]?.seek(time: time)
-        }.runOnQueue(.main)
-
-        /**
-         Sets timeShift on nativeId's player.
-         */
-        AsyncFunction("timeShift") { (nativeId: String, offset: Double) in
-            self.players[nativeId]?.timeShift = offset
-        }.runOnQueue(.main)
-
-        /**
-         Call .destroy() on nativeId's player and remove from registry.
-         */
-        AsyncFunction("destroy") { (nativeId: String) in
-            if let player = self.players[nativeId] {
+        AsyncFunction("destroy") { [weak self] (nativeId: String) in
+            if let player = self?.players[nativeId] {
                 player.destroy()
-                self.players[nativeId] = nil
+                self?.players[nativeId] = nil
             }
         }.runOnQueue(.main)
-
-        /**
-         Call .setVolume(volume:) on nativeId's player.
-         */
-        AsyncFunction("setVolume") { (nativeId: String, volume: Int) in
-            self.players[nativeId]?.volume = volume
+        AsyncFunction("setVolume") { [weak self] (nativeId: String, volume: Int) in
+            self?.players[nativeId]?.volume = volume
         }.runOnQueue(.main)
-
-        /**
-         Call .unload() on nativeId's player.
-         */
-        AsyncFunction("unload") { (nativeId: String) in
-            self.players[nativeId]?.unload()
+        AsyncFunction("unload") { [weak self] (nativeId: String) in self?.players[nativeId]?.unload() }.runOnQueue(.main)
+        AsyncFunction("setPlaybackSpeed") { [weak self] (nativeId: String, playbackSpeed: Float) in
+            self?.players[nativeId]?.playbackSpeed = playbackSpeed
         }.runOnQueue(.main)
-
-        /**
-         Set playback speed for nativeId's player.
-         */
-        AsyncFunction("setPlaybackSpeed") { (nativeId: String, playbackSpeed: Float) in
-            self.players[nativeId]?.playbackSpeed = playbackSpeed
+        AsyncFunction("setMaxSelectableBitrate") { [weak self] (nativeId: String, maxBitrate: Int) in
+            self?.players[nativeId]?.maxSelectableBitrate = UInt(maxBitrate)
         }.runOnQueue(.main)
-
-        /**
-         Set maximum selectable bitrate for nativeId's player.
-         */
-        AsyncFunction("setMaxSelectableBitrate") { (nativeId: String, maxBitrate: Int) in
-            self.players[nativeId]?.maxSelectableBitrate = UInt(maxBitrate)
-        }.runOnQueue(.main)
-    }
-
-    @ModuleDefinitionBuilder
-    private func playerGetters() -> [AnyDefinition] {
-        /**
-         Resolve nativeId's current volume.
-         */
-        AsyncFunction("getVolume") { (nativeId: String) -> Int? in
-            self.players[nativeId]?.volume
-        }.runOnQueue(.main)
-
-        /**
-         Resolve nativeId's current time.
-         */
-        AsyncFunction("currentTime") { (nativeId: String, mode: String?) -> Double? in
-            let player = self.players[nativeId]
+        AsyncFunction("getVolume") { [weak self] (nativeId: String) -> Int? in self?.players[nativeId]?.volume }.runOnQueue(.main)
+        AsyncFunction("currentTime") { [weak self] (nativeId: String, mode: String?) -> Double? in
+            let player = self?.players[nativeId]
             if let mode {
                 return player?.currentTime(RCTConvert.timeMode(mode))
-            } else {
-                return player?.currentTime
             }
+            return player?.currentTime
+        }.runOnQueue(.main)
+        AsyncFunction("isPlaying") { [weak self] (nativeId: String) -> Bool? in
+            self?.players[nativeId]?.isPlaying
+        }.runOnQueue(.main)
+        AsyncFunction("isPaused") { [weak self] (nativeId: String) -> Bool? in
+            self?.players[nativeId]?.isPaused
+        }.runOnQueue(.main)
+        AsyncFunction("duration") { [weak self] (nativeId: String) -> Double? in
+            self?.players[nativeId]?.duration
+        }.runOnQueue(.main)
+        AsyncFunction("isMuted") { [weak self] (nativeId: String) -> Bool? in self?.players[nativeId]?.isMuted }.runOnQueue(.main)
+        AsyncFunction("getTimeShift") { [weak self] (nativeId: String) -> Double? in
+            self?.players[nativeId]?.timeShift
+        }.runOnQueue(.main)
+        AsyncFunction("isLive") { [weak self] (nativeId: String) -> Bool? in self?.players[nativeId]?.isLive }.runOnQueue(.main)
+        AsyncFunction("getMaxTimeShift") { [weak self] (nativeId: String) -> Double? in
+            self?.players[nativeId]?.maxTimeShift
+        }.runOnQueue(.main)
+        AsyncFunction("getPlaybackSpeed") { [weak self] (nativeId: String) -> Float? in
+            self?.players[nativeId]?.playbackSpeed
+        }.runOnQueue(.main)
+        AsyncFunction("isAd") { [weak self] (nativeId: String) -> Bool? in self?.players[nativeId]?.isAd }.runOnQueue(.main)
+        AsyncFunction("canPlayAtPlaybackSpeed") { [weak self] (nativeId: String, playbackSpeed: Float) -> Bool? in
+            self?.players[nativeId]?.canPlay(atPlaybackSpeed: playbackSpeed)
+        }.runOnQueue(.main)
+        AsyncFunction("getAudioTrack") { [weak self] (nativeId: String) -> [String: Any]? in
+            RCTConvert.audioTrackJson(self?.players[nativeId]?.audio)
+        }.runOnQueue(.main)
+        AsyncFunction("getAvailableAudioTracks") { [weak self] (nativeId: String) -> [[String: Any]] in
+            self?.players[nativeId]?.availableAudio.compactMap { RCTConvert.audioTrackJson($0) } ?? []
+        }.runOnQueue(.main)
+        AsyncFunction("setAudioTrack") { [weak self] (nativeId: String, trackIdentifier: String) in
+            self?.players[nativeId]?.setAudio(trackIdentifier: trackIdentifier)
+        }.runOnQueue(.main)
+        AsyncFunction("getSubtitleTrack") { [weak self] (nativeId: String) -> [String: Any]? in
+            RCTConvert.subtitleTrackJson(self?.players[nativeId]?.subtitle)
+        }.runOnQueue(.main)
+        AsyncFunction("getAvailableSubtitles") { [weak self] (nativeId: String) -> [[String: Any]] in
+            self?.players[nativeId]?.availableSubtitles.compactMap { RCTConvert.subtitleTrackJson($0) } ?? []
+        }.runOnQueue(.main)
+        AsyncFunction("setSubtitleTrack") { [weak self] (nativeId: String, trackIdentifier: String?) in
+            self?.players[nativeId]?.setSubtitle(trackIdentifier: trackIdentifier)
         }.runOnQueue(.main)
 
-        /**
-         Resolve nativeId's current playing state.
-         */
-        AsyncFunction("isPlaying") { (nativeId: String) -> Bool? in
-            self.players[nativeId]?.isPlaying
+        AsyncFunction("getVideoQuality") { [weak self] (nativeId: String) -> [String: Any]? in
+            RCTConvert.toJson(videoQuality: self?.players[nativeId]?.videoQuality)
         }.runOnQueue(.main)
-
-        /**
-         Resolve nativeId's current paused state.
-         */
-        AsyncFunction("isPaused") { (nativeId: String) -> Bool? in
-            self.players[nativeId]?.isPaused
+        AsyncFunction("getAvailableVideoQualities") { [weak self] (nativeId: String) -> [[String: Any]] in
+            self?.players[nativeId]?.availableVideoQualities.compactMap { RCTConvert.toJson(videoQuality: $0) } ?? []
         }.runOnQueue(.main)
-
-        /**
-         Resolve nativeId's active source duration.
-         */
-        AsyncFunction("duration") { (nativeId: String) -> Double? in
-            self.players[nativeId]?.duration
+        AsyncFunction("getThumbnail") { [weak self] (nativeId: String, time: Double) -> [String: Any]? in
+            RCTConvert.toJson(thumbnail: self?.players[nativeId]?.thumbnail(forTime: time))
         }.runOnQueue(.main)
-
-        /**
-         Resolve nativeId's current muted state.
-         */
-        AsyncFunction("isMuted") { (nativeId: String) -> Bool? in
-            self.players[nativeId]?.isMuted
-        }.runOnQueue(.main)
-
-        /**
-         Resolve nativeId's current time shift value.
-         */
-        AsyncFunction("getTimeShift") { (nativeId: String) -> Double? in
-            self.players[nativeId]?.timeShift
-        }.runOnQueue(.main)
-
-        /**
-         Resolve nativeId's live stream state.
-         */
-        AsyncFunction("isLive") { (nativeId: String) -> Bool? in
-            self.players[nativeId]?.isLive
-        }.runOnQueue(.main)
-
-        /**
-         Resolve nativeId's maximum time shift value.
-         */
-        AsyncFunction("getMaxTimeShift") { (nativeId: String) -> Double? in
-            self.players[nativeId]?.maxTimeShift
-        }.runOnQueue(.main)
-
-        /**
-         Resolve nativeId's current playback speed.
-         */
-        AsyncFunction("getPlaybackSpeed") { (nativeId: String) -> Float? in
-            self.players[nativeId]?.playbackSpeed
-        }.runOnQueue(.main)
-
-        /**
-         Resolve nativeId's current ad state.
-         */
-        AsyncFunction("isAd") { (nativeId: String) -> Bool? in
-            self.players[nativeId]?.isAd
-        }.runOnQueue(.main)
-
-        /**
-         Check if player can play at specified playback speed (iOS only).
-         */
-        AsyncFunction("canPlayAtPlaybackSpeed") { (nativeId: String, playbackSpeed: Float) -> Bool? in
-            self.players[nativeId]?.canPlay(atPlaybackSpeed: playbackSpeed)
-        }.runOnQueue(.main)
-    }
-
-    @ModuleDefinitionBuilder
-    private func trackMethods() -> [AnyDefinition] {
-        /**
-         Get current audio track.
-         */
-        AsyncFunction("getAudioTrack") { (nativeId: String) -> [String: Any]? in
-            RCTConvert.audioTrackJson(self.players[nativeId]?.audio)
-        }.runOnQueue(.main)
-
-        /**
-         Get all available audio tracks.
-         */
-        AsyncFunction("getAvailableAudioTracks") { (nativeId: String) -> [[String: Any]] in
-            self.players[nativeId]?.availableAudio.map {
-                RCTConvert.audioTrackJson($0)
-            } ?? []
-        }.runOnQueue(.main)
-
-        /**
-         Set audio track.
-         */
-        AsyncFunction("setAudioTrack") { (nativeId: String, trackIdentifier: String) in
-            self.players[nativeId]?.setAudio(trackIdentifier: trackIdentifier)
-        }.runOnQueue(.main)
-
-        /**
-         Get current subtitle track.
-         */
-        AsyncFunction("getSubtitleTrack") { (nativeId: String) -> [String: Any]? in
-            RCTConvert.subtitleTrackJson(self.players[nativeId]?.subtitle)
-        }.runOnQueue(.main)
-
-        /**
-         Get all available subtitle tracks.
-         */
-        AsyncFunction("getAvailableSubtitles") { (nativeId: String) -> [[String: Any]] in
-            self.players[nativeId]?.availableSubtitles.map {
-                RCTConvert.subtitleTrackJson($0)
-            } ?? []
-        }.runOnQueue(.main)
-
-        /**
-         Set subtitle track.
-         */
-        AsyncFunction("setSubtitleTrack") { (nativeId: String, trackIdentifier: String?) in
-            self.players[nativeId]?.setSubtitle(trackIdentifier: trackIdentifier)
-        }.runOnQueue(.main)
-    }
-
-    @ModuleDefinitionBuilder
-    private func qualityAndOtherMethods() -> [AnyDefinition] {
-        /**
-         Get current video quality.
-         */
-        AsyncFunction("getVideoQuality") { (nativeId: String) -> [String: Any]? in
-            RCTConvert.toJson(videoQuality: self.players[nativeId]?.videoQuality)
-        }.runOnQueue(.main)
-
-        /**
-         Get all available video qualities.
-         */
-        AsyncFunction("getAvailableVideoQualities") { (nativeId: String) -> [[String: Any]] in
-            self.players[nativeId]?.availableVideoQualities.map {
-                RCTConvert.toJson(videoQuality: $0)
-            } ?? []
-        }.runOnQueue(.main)
-
-        /**
-         Get thumbnail for time position.
-         */
-        AsyncFunction("getThumbnail") { (nativeId: String, time: Double) -> [String: Any]? in
-            RCTConvert.toJson(thumbnail: self.players[nativeId]?.thumbnail(forTime: time))
-        }.runOnQueue(.main)
-
-        /**
-         Load offline content into the player.
-         */
-        AsyncFunction("loadOfflineContent") { (nativeId: String, bridgeId: String, options: [String: Any]?) in
+        AsyncFunction("loadOfflineContent") { [weak self] (nativeId: String, bridgeId: String, options: [String: Any]?) in
             #if os(iOS)
-            guard let player = self.players[nativeId],
-                  let offlineContentManagerBridge = OfflineExpoModule
-                    .getInstanceRegistry()[bridgeId] else {
-                return
-            }
+            guard let player = self?.players[nativeId],
+                  let offlineModule = self?.appContext?.moduleRegistry.get(OfflineExpoModule.self), // swiftlint:disable:this line_length
+                  let offlineContentManagerBridge = offlineModule.retrieve(bridgeId) else { return }
             let optionsDictionary = options ?? [:]
             let restrictedToAssetCache = optionsDictionary["restrictedToAssetCache"] as? Bool ?? true
-            let offlineSourceConfig = offlineContentManagerBridge
-                .offlineContentManager?
-                .createOfflineSourceConfig(
-                    restrictedToAssetCache: restrictedToAssetCache
-                )
-
+            let offlineSourceConfig = offlineContentManagerBridge.offlineContentManager.createOfflineSourceConfig(
+                restrictedToAssetCache: restrictedToAssetCache
+            )
             guard let offlineSourceConfig else { return }
             player.load(sourceConfig: offlineSourceConfig)
             #endif
         }.runOnQueue(.main)
-
-        /**
-         Schedule an ad item in the player.
-         */
-        AsyncFunction("scheduleAd") { (nativeId: String, adItemJson: [String: Any]) in
-            guard let adItem = RCTConvert.adItem(adItemJson) else {
-                return
-            }
-            self.players[nativeId]?.scheduleAd(adItem: adItem)
+        AsyncFunction("scheduleAd") { [weak self] (nativeId: String, adItemJson: [String: Any]) in
+            guard let adItem = RCTConvert.adItem(adItemJson) else { return }
+            self?.players[nativeId]?.scheduleAd(adItem: adItem)
         }.runOnQueue(.main)
-    }
-
-    @ModuleDefinitionBuilder
-    private func castingAndAds() -> [AnyDefinition] {
-        /**
-         Resolve nativeId's AirPlay activation state (iOS only).
-         */
-        AsyncFunction("isAirPlayActive") { (nativeId: String) -> Bool? in
+        AsyncFunction("isAirPlayActive") { [weak self] (nativeId: String) -> Bool? in
             #if os(iOS)
-            return self.players[nativeId]?.isAirPlayActive
+            return self?.players[nativeId]?.isAirPlayActive
             #else
             return nil
             #endif
         }.runOnQueue(.main)
-
-        /**
-         Resolve nativeId's AirPlay availability state (iOS only).
-         */
-        AsyncFunction("isAirPlayAvailable") { (nativeId: String) -> Bool? in
+        AsyncFunction("isAirPlayAvailable") { [weak self] (nativeId: String) -> Bool? in
             #if os(iOS)
-            return self.players[nativeId]?.isAirPlayAvailable
+            return self?.players[nativeId]?.allowsAirPlay
             #else
             return nil
             #endif
         }.runOnQueue(.main)
-
-        /**
-         Resolve nativeId's cast availability state.
-         */
-        AsyncFunction("isCastAvailable") { (nativeId: String) -> Bool? in
-            self.players[nativeId]?.isCastAvailable
+        AsyncFunction("isCastAvailable") { [weak self] (nativeId: String) -> Bool? in
+            self?.players[nativeId]?.isCastAvailable
+        }.runOnQueue(.main)
+        AsyncFunction("isCasting") { [weak self] (nativeId: String) -> Bool? in
+            self?.players[nativeId]?.isCasting
+        }.runOnQueue(.main)
+        AsyncFunction("castVideo") { [weak self] (nativeId: String) in
+            self?.players[nativeId]?.castVideo()
+        }.runOnQueue(.main)
+        AsyncFunction("castStop") { [weak self] (nativeId: String) in
+            self?.players[nativeId]?.castStop()
+        }.runOnQueue(.main)
+        AsyncFunction("skipAd") { [weak self] (nativeId: String) in
+            self?.players[nativeId]?.skipAd()
+        }.runOnQueue(.main)
+        AsyncFunction(
+            "initializeWithConfig"
+        ) { [weak self] (nativeId: String, config: [String: Any]?, networkNativeId: String?, _: String?) in // swiftlint:disable:this line_length
+            guard self?.players[nativeId] == nil, let playerConfig = RCTConvert.playerConfig(config) else { return }
+            #if os(iOS)
+            self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
+            #endif
+            if let networkNativeId, let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
+                playerConfig.networkConfig = networkConfig
+            }
+            self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
+        }.runOnQueue(.main)
+        AsyncFunction(
+            "initializeWithAnalyticsConfig"
+        ) { [weak self] (nativeId: String, analyticsConfig: [String: Any]?, config: [String: Any]?, networkNativeId: String?, _: String?) in // swiftlint:disable:this line_length
+            guard self?.players[nativeId] == nil,
+                  let playerConfig = RCTConvert.playerConfig(config),
+                  let analyticsConfig = RCTConvert.analyticsConfig(analyticsConfig) else { return } // swiftlint:disable:this line_length
+            #if os(iOS)
+            self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
+            #endif
+            if let networkNativeId, let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
+                playerConfig.networkConfig = networkConfig
+            }
+            let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfig)
+            self?.players[nativeId] = PlayerFactory.create(
+                playerConfig: playerConfig,
+                analyticsConfig: analyticsConfig,
+                defaultMetadata: defaultMetadata ?? DefaultMetadata()
+            )
+        }.runOnQueue(.main)
+        AsyncFunction("loadSource") { [weak self] (nativeId: String, sourceNativeId: String) in
+            guard let player = self?.players[nativeId],
+                  let sourceModule = appContext?.moduleRegistry.get(SourceExpoModule.self), // swiftlint:disable:this line_length
+                  let source = sourceModule.retrieve(sourceNativeId) else { return }
+            player.load(source: source)
         }.runOnQueue(.main)
 
-        /**
-         Resolve nativeId's current casting state.
-         */
-        AsyncFunction("isCasting") { (nativeId: String) -> Bool? in
-            self.players[nativeId]?.isCasting
-        }.runOnQueue(.main)
-
-        /**
-         Initiate casting for nativeId's player.
-         */
-        AsyncFunction("castVideo") { (nativeId: String) in
-            self.players[nativeId]?.castVideo()
-        }.runOnQueue(.main)
-
-        /**
-         Stop casting for nativeId's player.
-         */
-        AsyncFunction("castStop") { (nativeId: String) in
-            self.players[nativeId]?.castStop()
-        }.runOnQueue(.main)
-
-        /**
-         Skip current ad for nativeId's player.
-         */
-        AsyncFunction("skipAd") { (nativeId: String) in
-            self.players[nativeId]?.skipAd()
-        }.runOnQueue(.main)
+        Function("getPlayerCount") { players.count }
+        Function("hasPlayer") { (nativeId: String) in players[nativeId] != nil }
     }
 
-    @ModuleDefinitionBuilder
-    private func initializationAndLoading() -> [AnyDefinition] {
-        /**
-         Creates a new Player instance using the provided config.
-         This is a complex method requiring config conversion and cross-module setup.
-         */
-        AsyncFunction("initWithConfig") { (nativeId: String, _: [String: Any]?, _: String?, _: String?) in
-            guard self.players[nativeId] == nil else {
-                // Player already exists for this nativeId
-                return
-            }
-
-            // For now, create a basic player config - full conversion would require RCTConvert
-            // This is a simplified implementation that creates a default player
-            let playerConfig = PlayerConfig()
-
-            // TODO: Add full config conversion when RCTConvert patterns are available
-            // TODO: Add network config setup if networkNativeId is provided
-            // TODO: Add remote control config setup for iOS
-
-            self.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
-        }.runOnQueue(.main)
-
-        // swiftlint:disable:next line_length
-        AsyncFunction("initWithAnalyticsConfig") { (nativeId: String, _: [String: Any], _: [String: Any]?, _: [String: Any]?, _: String?) in
-            guard self.players[nativeId] == nil else {
-                // Player already exists for this nativeId
-                return
-            }
-
-            // For now, create a basic player config with analytics
-            let playerConfig = PlayerConfig()
-
-            // TODO: Add full analytics config conversion
-            // TODO: Add network config setup if networkNativeId is provided
-
-            self.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
-        }.runOnQueue(.main)
-
-        /**
-         Load source into the player.
-         This requires cross-module dependency on SourceModule.
-         */
-        AsyncFunction("loadSource") { (nativeId: String, _: String) in
-            guard self.players[nativeId] != nil else {
-                return
-            }
-
-            // TODO: This requires SourceModule dependency to retrieve source
-            // For now, this is a placeholder implementation
-            // Need: let source = self?.bridge[SourceModule.self]?.retrieve(sourceNativeId)
-            // Then: player.load(source: source)
-
-            // Placeholder - would load source if SourceModule integration is available
-        }.runOnQueue(.main)
-    }
-
-    // CRITICAL: This method must remain available for cross-module access
-    // Called by BufferModule, PlayerAnalyticsModule, RNPlayerViewManager, etc.
     @objc
     public func retrieve(_ nativeId: NativeId) -> Player? {
         players[nativeId]
+    }
+
+    private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {
+        remoteControlConfig.prepareSource = { [weak self] _, sourceConfig in
+            guard let sourceModule = self?.appContext?.moduleRegistry.get(SourceExpoModule.self), // swiftlint:disable:this line_length
+                  let sourceNativeId = sourceModule.nativeId(where: { $0.sourceConfig === sourceConfig }),
+                  let castSourceConfig = sourceModule.retrieveCastSourceConfig(sourceNativeId) else {
+                return nil
+            }
+
+            return castSourceConfig
+        }
+    }
+
+    private func setupNetworkConfig(nativeId: String) -> NetworkConfig? {
+        guard let networkModule = self.appContext?.moduleRegistry.get(NetworkExpoModule.self) else {
+            return nil
+        }
+        return networkModule.retrieve(nativeId)
     }
 }

@@ -23,7 +23,10 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
         this
       );
       // Create native configuration object.
-      DecoderConfigExpoModule.initWithConfig(this.nativeId, this.config || {});
+      DecoderConfigExpoModule.initializeWithConfig(
+        this.nativeId,
+        this.config || {}
+      );
       this.isInitialized = true;
     }
   }

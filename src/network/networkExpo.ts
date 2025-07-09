@@ -34,7 +34,10 @@ export class NetworkExpo extends NativeInstance<NetworkConfig> {
 
       // Create native configuration object using Expo module
       if (this.config) {
-        await NetworkExpoModule.initWithConfig(this.nativeId, this.config);
+        await NetworkExpoModule.initializeWithConfig(
+          this.nativeId,
+          this.config
+        );
       }
       this.isInitialized = true;
     }

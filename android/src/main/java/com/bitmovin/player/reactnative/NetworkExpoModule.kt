@@ -41,7 +41,7 @@ class NetworkExpoModule : Module() {
     override fun definition() = ModuleDefinition {
         Name(MODULE_NAME)
 
-        AsyncFunction("initWithConfig") { nativeId: String, config: Map<String, Any?>, promise: Promise ->
+        AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>, promise: Promise ->
             if (networkConfigs.containsKey(nativeId)) {
                 promise.resolve(null)
                 return@AsyncFunction

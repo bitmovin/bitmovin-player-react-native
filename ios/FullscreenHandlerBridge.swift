@@ -1,14 +1,15 @@
 import BitmovinPlayer
+import ExpoModulesCore
 
 internal class FullscreenHandlerBridge: NSObject, FullscreenHandler {
     var isFullscreen = false
 
     private let nativeId: NativeId
-    private let bridge: RCTBridge
+    private let moduleRegistry: ModuleRegistry?
 
-    init(_ nativeId: NativeId, bridge: RCTBridge) {
+    init(_ nativeId: NativeId, moduleRegistry: ModuleRegistry?) {
         self.nativeId = nativeId
-        self.bridge = bridge
+        self.moduleRegistry = moduleRegistry
         super.init()
     }
 
@@ -16,6 +17,8 @@ internal class FullscreenHandlerBridge: NSObject, FullscreenHandler {
         guard let fullscreenHandlerModule = getFullscreenHandlerModule() else {
             return
         }
+        // We need to set the fullscreen state before notifying the module,
+        isFullscreen = true
         fullscreenHandlerModule.onFullscreenRequested(nativeId: nativeId)
     }
 
@@ -23,11 +26,13 @@ internal class FullscreenHandlerBridge: NSObject, FullscreenHandler {
         guard let fullscreenHandlerModule = getFullscreenHandlerModule() else {
             return
         }
+        // We need to set the fullscreen state before notifying the module,
+        isFullscreen = false
         fullscreenHandlerModule.onFullscreenExitRequested(nativeId: nativeId)
     }
 
     /// Fetches the initialized `FullscreenHandlerModule` instance on RN's bridge object.
-    private func getFullscreenHandlerModule() -> FullscreenHandlerModule? {
-        bridge.module(for: FullscreenHandlerModule.self) as? FullscreenHandlerModule
+    private func getFullscreenHandlerModule() -> FullscreenHandlerExpoModule? {
+        moduleRegistry?.get(FullscreenHandlerExpoModule.self)
     }
 }

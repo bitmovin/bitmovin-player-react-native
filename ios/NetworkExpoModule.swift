@@ -15,46 +15,46 @@ public class NetworkExpoModule: Module {
     public func definition() -> ModuleDefinition {
         Name("NetworkExpoModule")
 
-        AsyncFunction("initWithConfig") { (nativeId: String, config: [String: Any]) in
+        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: String, config: [String: Any]) in
             guard
-                self.retrieve(nativeId) == nil,
+                self?.retrieve(nativeId) == nil,
                 let networkConfig = RCTConvert.networkConfig(config)
             else {
                 return
             }
-            self.networkConfigs[nativeId] = networkConfig
-            self.initConfigBlocks(nativeId, config)
+            self?.networkConfigs[nativeId] = networkConfig
+            self?.initConfigBlocks(nativeId, config)
         }.runOnQueue(.main)
 
-        AsyncFunction("destroy") { (nativeId: String) in
-            self.networkConfigs.removeValue(forKey: nativeId)
+        AsyncFunction("destroy") { [weak self] (nativeId: String) in
+            self?.networkConfigs.removeValue(forKey: nativeId)
 
             // Clean up completion handlers
-            self.preprocessHttpRequestCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
-                self.preprocessHttpRequestCompletionHandlers.removeValue(forKey: $0)
+            self?.preprocessHttpRequestCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
+                self?.preprocessHttpRequestCompletionHandlers.removeValue(forKey: $0)
             }
-            self.preprocessHttpRequestDelegateBridges.removeValue(forKey: nativeId)
-            self.preprocessHttpResponseCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
-                self.preprocessHttpResponseCompletionHandlers.removeValue(forKey: $0)
+            self?.preprocessHttpRequestDelegateBridges.removeValue(forKey: nativeId)
+            self?.preprocessHttpResponseCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
+                self?.preprocessHttpResponseCompletionHandlers.removeValue(forKey: $0)
             }
         }.runOnQueue(.main)
 
-        AsyncFunction("setPreprocessedHttpRequest") { (requestId: String, request: [String: Any]) in
-            guard let completionHandler = self.preprocessHttpRequestCompletionHandlers[requestId],
+        AsyncFunction("setPreprocessedHttpRequest") { [weak self] (requestId: String, request: [String: Any]) in
+            guard let completionHandler = self?.preprocessHttpRequestCompletionHandlers[requestId],
                   let httpRequest = RCTConvert.httpRequest(request) else {
                 return
             }
 
-            self.preprocessHttpRequestCompletionHandlers.removeValue(forKey: requestId)
+            self?.preprocessHttpRequestCompletionHandlers.removeValue(forKey: requestId)
             completionHandler(httpRequest)
         }.runOnQueue(.main)
 
-        AsyncFunction("setPreprocessedHttpResponse") { (responseId: String, response: [String: Any]) in
-            guard let completionHandler = self.preprocessHttpResponseCompletionHandlers[responseId],
+        AsyncFunction("setPreprocessedHttpResponse") { [weak self] (responseId: String, response: [String: Any]) in
+            guard let completionHandler = self?.preprocessHttpResponseCompletionHandlers[responseId],
                   let httpResponse = RCTConvert.httpResponse(response) else {
                 return
             }
-            self.preprocessHttpResponseCompletionHandlers.removeValue(forKey: responseId)
+            self?.preprocessHttpResponseCompletionHandlers.removeValue(forKey: responseId)
             completionHandler(httpResponse)
         }.runOnQueue(.main)
     }
@@ -145,17 +145,5 @@ public class NetworkExpoModule: Module {
             "type": RCTConvert.toJson(httpRequestType: type),
             "response": RCTConvert.toJson(httpResponse: response)
         ])
-    }
-
-    /**
-     * Static access method to maintain compatibility with other modules.
-     * Retrieves the NetworkConfig for the given nativeId from any NetworkExpoModule instance.
-     */
-    @objc
-    public static func getNetworkConfig(_ nativeId: String) -> NetworkConfig? {
-        // This static access pattern maintains compatibility with existing code
-        // In a production implementation, we would need to maintain a global registry
-        // or use dependency injection to access the module instance
-        nil // TODO: Implement global registry pattern if needed
     }
 }

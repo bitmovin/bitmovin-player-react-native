@@ -1,8 +1,16 @@
 package com.bitmovin.player.reactnative
 
+import com.bitmovin.player.api.Player
+import com.bitmovin.player.api.analytics.AnalyticsConfig
+import com.bitmovin.player.api.analytics.DefaultMetadata
+import com.bitmovin.player.api.analytics.create
+import com.bitmovin.player.reactnative.converter.toAdItem
+import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
+import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
+import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import com.bitmovin.player.api.Player
 
 class PlayerExpoModule : Module() {
     /**
@@ -10,6 +18,8 @@ class PlayerExpoModule : Module() {
      * This must match the Registry pattern from legacy PlayerModule
      */
     private val players: Registry<Player> = mutableMapOf()
+
+    val mediaSessionPlaybackManager = MediaSessionPlaybackManager(appContext)
 
     override fun definition() = ModuleDefinition {
         Name("PlayerExpoModule")
@@ -36,14 +46,14 @@ class PlayerExpoModule : Module() {
          * Returns the count of active players for debugging purposes
          */
         Function("getPlayerCount") {
-            return players.size
+            return@Function players.size
         }
 
         /**
          * Checks if a player with the given nativeId exists
          */
         Function("hasPlayer") { nativeId: String ->
-            return players.containsKey(nativeId)
+            return@Function players.containsKey(nativeId)
         }
 
         // PHASE 2: Simple player control methods migration
@@ -232,13 +242,13 @@ class PlayerExpoModule : Module() {
          */
         AsyncFunction("setMaxSelectableBitrate") { nativeId: String, maxBitrate: Int ->
             val player = players[nativeId]
-            player?.setMaxSelectableBitrate(maxBitrate)
+            player?.setMaxSelectableVideoBitrate(maxBitrate)
         }
         
         /**
          * Resolve nativeId's AirPlay activation state (Android returns null).
          */
-        AsyncFunction("isAirPlayActive") { nativeId: String ->
+        AsyncFunction("isAirPlayActive") { _: String ->
             // AirPlay is iOS-only, return null on Android
             return@AsyncFunction null
         }
@@ -246,7 +256,7 @@ class PlayerExpoModule : Module() {
         /**
          * Resolve nativeId's AirPlay availability state (Android returns null).
          */
-        AsyncFunction("isAirPlayAvailable") { nativeId: String ->
+        AsyncFunction("isAirPlayAvailable") { _: String ->
             // AirPlay is iOS-only, return null on Android
             return@AsyncFunction null
         }
@@ -294,7 +304,7 @@ class PlayerExpoModule : Module() {
         /**
          * Check if player can play at specified playback speed (Android returns null).
          */
-        AsyncFunction("canPlayAtPlaybackSpeed") { nativeId: String, playbackSpeed: Float ->
+        AsyncFunction("canPlayAtPlaybackSpeed") { _: String, _: Float ->
             // This method is iOS-only, return null on Android
             return@AsyncFunction null
         }
@@ -362,6 +372,14 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.availableVideoQualities?.map { it.toJson() } ?: emptyList()
         }
+
+        /**
+         * Set video quality.
+         */
+        AsyncFunction("setVideoQuality") { nativeId: String, qualityId: String ->
+            val player = players[nativeId]
+            player?.source?.setVideoQuality(qualityId)
+        }
         
         /**
          * Get thumbnail for time position.
@@ -383,7 +401,7 @@ class PlayerExpoModule : Module() {
                 val offlineSourceConfig = offlineContentManagerBridge
                     .getOfflineContentManagerBridgeOrNull()
                     ?.offlineContentManager
-                    ?.offlineSourceConfig
+                    ?.createOfflineSourceConfig(restrictedToAssetCache)
                 
                 offlineSourceConfig?.let { player.load(it) }
             }
@@ -404,41 +422,68 @@ class PlayerExpoModule : Module() {
          * Creates a new Player instance using the provided config.
          * This is a complex method requiring config conversion and cross-module setup.
          */
-        AsyncFunction("initWithConfig") { nativeId: String, config: Map<String, Any>?, networkNativeId: String?, decoderNativeId: String? ->
+        AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any>?, networkNativeId: String?, decoderNativeId: String? ->
             if (players.containsKey(nativeId)) {
                 // Player already exists for this nativeId
                 return@AsyncFunction
             }
             
-            // For now, create a basic player config - full conversion would require toPlayerConfig()
-            // This is a simplified implementation that creates a default player
-            val playerConfig = com.bitmovin.player.api.PlayerConfig()
+            val playerConfig = config?.toPlayerConfig() ?: com.bitmovin.player.api.PlayerConfig()
             
-            // TODO: Add full config conversion when config conversion patterns are available
-            // TODO: Add network config setup if networkNativeId is provided  
-            // TODO: Add decoder config setup if decoderNativeId is provided
+            val networkConfig = networkNativeId?.let { 
+                NetworkExpoModule.getInstanceRegistry()[it]?.networkConfig 
+            }
+            if (networkConfig != null) {
+                playerConfig.networkConfig = networkConfig
+            }
             
-            val player = com.bitmovin.player.api.Player.create(appContext.reactApplicationContext, playerConfig)
+            val decoderConfig = decoderNativeId?.let { 
+                DecoderConfigExpoModule.getInstanceRegistry()[it]?.decoderConfig 
+            }
+            if (decoderConfig != null) {
+                playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = decoderConfig)
+            }
+            val applicationContext = appContext.reactContext?.applicationContext
+                ?: throw IllegalStateException("Application context is not available")
+            val player = com.bitmovin.player.api.Player.create(applicationContext, playerConfig)
             players[nativeId] = player
         }
         
         /**
          * Creates a new analytics-enabled Player instance.
          */
-        AsyncFunction("initWithAnalyticsConfig") { nativeId: String, analyticsConfig: Map<String, Any>, config: Map<String, Any>?, networkNativeId: String?, decoderNativeId: String? ->
+        AsyncFunction("initializeWithAnalyticsConfig") { nativeId: String, analyticsConfigJson: Map<String, Any>, config: Map<String, Any>?, networkNativeId: String?, decoderNativeId: String? ->
             if (players.containsKey(nativeId)) {
                 // Player already exists for this nativeId
                 return@AsyncFunction
             }
             
-            // For now, create a basic player config with analytics
-            val playerConfig = com.bitmovin.player.api.PlayerConfig()
+            val playerConfig = config?.toPlayerConfig() ?: com.bitmovin.player.api.PlayerConfig()
+            val analyticsConfig = analyticsConfigJson.toAnalyticsConfig()
+            val defaultMetadata = analyticsConfigJson["defaultMetadata"]?.let {
+                (it as? Map<String, Any>)?.toAnalyticsDefaultMetadata()
+            } ?: DefaultMetadata()
             
-            // TODO: Add full analytics config conversion
-            // TODO: Add network config setup if networkNativeId is provided
-            // TODO: Add decoder config setup if decoderNativeId is provided
+            val networkConfig = networkNativeId?.let { 
+                NetworkExpoModule.getInstanceRegistry()[it]?.networkConfig 
+            }
+            if (networkConfig != null) {
+                playerConfig.networkConfig = networkConfig
+            }
             
-            val player = com.bitmovin.player.api.Player.create(appContext.reactApplicationContext, playerConfig)
+            val decoderConfig = decoderNativeId?.let { 
+                DecoderConfigExpoModule.getInstanceRegistry()[it]?.decoderConfig 
+            }
+            if (decoderConfig != null) {
+                playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = decoderConfig)
+            }
+            
+            val player = com.bitmovin.player.api.Player.create(
+                context = appContext.reactContext.applicationContext,
+                playerConfig = playerConfig,
+                analyticsConfig = analyticsConfig,
+                defaultMetadata = defaultMetadata
+            )
             players[nativeId] = player
         }
         
@@ -448,17 +493,19 @@ class PlayerExpoModule : Module() {
          */
         AsyncFunction("loadSource") { nativeId: String, sourceNativeId: String ->
             val player = players[nativeId]
-            if (player != null) {
-                // TODO: This requires SourceModule dependency to retrieve source
-                // For now, this is a placeholder implementation
-                // Need: val source = getSource(sourceNativeId)
-                // Then: player.load(source)
-                
-                // Placeholder - would load source if SourceModule integration is available
+            val source = SourceExpoModule.getInstanceRegistry()[sourceNativeId]?.source
+            if (player != null && source != null) {
+                player.load(source)
             }
         }
-        
-        // TODO: Continue with remaining complex methods
+
+        /**
+         * Get the current source from the player.
+         */
+        AsyncFunction("source") { nativeId: String ->
+            val player = players[nativeId]
+            return@AsyncFunction player?.source?.toJson()
+        }
     }
 
     // CRITICAL: This method must remain available for cross-module access

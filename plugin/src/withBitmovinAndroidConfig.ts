@@ -1,7 +1,6 @@
 import { AndroidConfig, ConfigPlugin, withAndroidManifest, withGradleProperties } from "expo/config-plugins";
 import FeatureFlags from "./FeatureFlags";
 import withAppGradleDependencies from "./withAppGradleDependencies";
-import withPermissionsServiceFix from './withPermissionsServiceFix';
 
 type ManifestActivity = AndroidConfig.Manifest.ManifestActivity;
 
@@ -43,13 +42,12 @@ const withBitmovinAndroidConfig: ConfigPlugin<{ playerLicenseKey: string, featur
     if (features.backgroundPlayback) {
       mainApplication.service = mainApplication.service || [];
       if (!mainApplication.service.find(s => s.$['android:name'] === 'com.bitmovin.player.reactnative.services.MediaSessionPlaybackService')) {
-        // Includes foregroundServiceType for Android 14+ compliance
         mainApplication.service.push({
           $: {
             'android:name': 'com.bitmovin.player.reactnative.services.MediaSessionPlaybackService',
             'android:exported': 'true',
             'android:foregroundServiceType': 'mediaPlayback',
-          } as any,
+          },
           'intent-filter': [{
             action: [{
               $: { 'android:name': 'androidx.media3.session.MediaSessionService' },
@@ -133,10 +131,6 @@ const withBitmovinAndroidConfig: ConfigPlugin<{ playerLicenseKey: string, featur
     config.modResults = properties;
     return config;
   });
-
-  if (features.expoPermissionsServiceFix) {
-    config = withPermissionsServiceFix(config);
-  }
 
   return config;
 };

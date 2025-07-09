@@ -57,7 +57,6 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.api.ui.SurfaceType
 import com.bitmovin.player.api.ui.UiConfig
-import com.bitmovin.player.reactnative.BitmovinCastManagerOptions
 import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
@@ -528,14 +527,6 @@ fun PlayerEvent.toJson(): WritableMap {
 }
 
 /**
- * Converts an arbitrary `json` into [BitmovinCastManagerOptions].
- */
-fun ReadableMap.toCastOptions(): BitmovinCastManagerOptions = BitmovinCastManagerOptions(
-    applicationId = getString("applicationId"),
-    messageNamespace = getString("messageNamespace"),
-)
-
-/**
  * Converts an arbitrary `json` to `WidevineConfig`.
  */
 fun ReadableMap.toWidevineConfig(): WidevineConfig? = getMap("widevine")?.run {
@@ -917,13 +908,11 @@ fun RNBufferLevels.toJson(): WritableMap = Arguments.createMap().apply {
     putMap("video", video.toJson())
 }
 
-/**
- * Maps a JS string into the corresponding [BufferType] value.
- */
-fun String.toBufferType(): BufferType? = when (this) {
-    "forwardDuration" -> BufferType.ForwardDuration
-    "backwardDuration" -> BufferType.BackwardDuration
-    else -> null
+// Extension function to convert string to BufferType
+fun String.toBufferTypeOrThrow(): BufferType = when (this.lowercase()) {
+    "forwardduration" -> BufferType.ForwardDuration
+    "backwardduration" -> BufferType.BackwardDuration
+    else -> throw IllegalArgumentException("Unknown buffer type: $this")
 }
 
 /**

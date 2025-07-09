@@ -109,8 +109,8 @@ fun getPlayerOrNull(nativeId: NativeId): Player?
 ### 🎯 Remaining Work (70/90 = 77.8%)
 **Complex Methods Requiring Cross-Module Dependencies:**
 - loadSource() - Requires SourceModule
-- initWithConfig() - Complex initialization 
-- initWithAnalyticsConfig() - Analytics integration
+- initializeWithConfig() - Complex initialization 
+- initializeWithAnalyticsConfig() - Analytics integration
 - Event handling methods
 - Configuration methods
 - Cross-module integration methods

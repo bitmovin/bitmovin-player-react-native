@@ -15,15 +15,12 @@ class BitmovinCastManagerExpoModule : Module() {
         }
         
         AsyncFunction("initializeCastManager") { options: Map<String, Any>? ->
-            val castOptions = options?.let { 
-                BitmovinCastManagerOptions(
-                    applicationId = it["applicationId"] as? String,
-                    messageNamespace = it["messageNamespace"] as? String
-                )
-            }
+            val applicationId = options?.get("applicationId") as? String
+            val messageNamespace = options?.get("messageNamespace") as? String
+
             BitmovinCastManager.initialize(
-                castOptions?.applicationId,
-                castOptions?.messageNamespace,
+                applicationId,
+                messageNamespace,
             )
         }
         

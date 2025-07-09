@@ -1,7 +1,9 @@
-import { requireNativeModule } from 'expo-modules-core';
+import { NativeModule, requireNativeModule } from 'expo-modules-core';
 
-export interface DebugExpoModuleType {
+export type DebugExpoModuleEvents = Record<string, any>;
+
+declare class DebugExpoModule extends NativeModule<DebugExpoModuleEvents> {
   setDebugLoggingEnabled(enabled: boolean): Promise<void>;
 }
 
-export default requireNativeModule<DebugExpoModuleType>('DebugModule');
+export default requireNativeModule<DebugExpoModule>('DebugModule');

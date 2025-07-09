@@ -6,7 +6,7 @@ import { DrmConfig } from './index';
  * Provides modern async/await interface while maintaining backward compatibility.
  */
 interface DrmExpoModuleInterface {
-  initWithConfig(nativeId: string, config: DrmConfig): Promise<void>;
+  initializeWithConfig(nativeId: string, config: DrmConfig): Promise<void>;
   destroy(nativeId: string): Promise<void>;
   setPreparedCertificate(nativeId: string, certificate: string): any;
   setPreparedMessage(nativeId: string, message: string): any;

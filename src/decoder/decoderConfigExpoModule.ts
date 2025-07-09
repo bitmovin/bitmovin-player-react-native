@@ -6,7 +6,10 @@ import { Platform } from 'react-native';
  * Android-only module for decoder configuration.
  */
 interface DecoderConfigExpoModuleInterface {
-  initWithConfig(nativeId: string, config: Record<string, any>): Promise<void>;
+  initializeWithConfig(
+    nativeId: string,
+    config: Record<string, any>
+  ): Promise<void>;
   overrideDecoderPriorityProviderComplete(
     nativeId: string,
     response: any[]
@@ -28,7 +31,7 @@ if (Platform.OS === 'android') {
 } else {
   // iOS graceful fallback - provide no-op implementations
   DecoderConfigExpoModule = {
-    initWithConfig: async () => {
+    initializeWithConfig: async () => {
       // No-op on iOS
     },
     overrideDecoderPriorityProviderComplete: async () => {

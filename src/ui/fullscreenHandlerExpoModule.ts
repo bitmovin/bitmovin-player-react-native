@@ -1,27 +1,23 @@
-import { requireNativeModule } from 'expo-modules-core';
+import { NativeModule, requireNativeModule } from 'expo-modules-core';
 
-/**
- * Native FullscreenHandlerExpoModule interface using Expo modules API.
- * Provides modern async/await interface while maintaining backward compatibility.
- */
-interface FullscreenHandlerExpoModuleInterface {
+export type FullscreenHandlerExpoModuleEvents = {
+  onEnterFullscreen: ({ nativeId }: { nativeId: string }) => void;
+  onExitFullscreen: ({ nativeId }: { nativeId: string }) => void;
+};
+
+declare class FullscreenHandlerExpoModule extends NativeModule<FullscreenHandlerExpoModuleEvents> {
   registerHandler(nativeId: string): Promise<void>;
   destroy(nativeId: string): Promise<void>;
-  onFullscreenChanged(nativeId: string, isFullscreenEnabled: boolean): any;
+  notifyFullscreenChanged(
+    nativeId: string,
+    isFullscreenEnabled: boolean
+  ): Promise<void>;
   setIsFullscreenActive(
     nativeId: string,
     isFullscreenActive: boolean
   ): Promise<void>;
 }
 
-/**
- * Expo-based FullscreenHandlerModule implementation.
- * This provides the same functionality as the legacy FullscreenHandlerModule but uses Expo's modern module system.
- */
-const FullscreenHandlerExpoModule =
-  requireNativeModule<FullscreenHandlerExpoModuleInterface>(
-    'FullscreenHandlerExpoModule'
-  );
-
-export default FullscreenHandlerExpoModule;
-export { FullscreenHandlerExpoModuleInterface };
+export default requireNativeModule<FullscreenHandlerExpoModule>(
+  'FullscreenHandlerExpoModule'
+);

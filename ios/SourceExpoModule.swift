@@ -3,262 +3,140 @@ import ExpoModulesCore
 
 public class SourceExpoModule: Module {
     /// In-memory mapping from `nativeId`s to `Source` instances.
-    /// This must match the Registry pattern from legacy SourceModule
     private var sources: Registry<Source> = [:]
-
     /// In-memory mapping from `nativeId`s to `SourceConfig` instances for casting.
     private var castSourceConfigs: Registry<SourceConfig> = [:]
 
+    // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("SourceExpoModule")
-
         OnCreate {
             // Module initialization
         }
-
         OnDestroy {
             // Clean up sources
             sources.removeAll()
             castSourceConfigs.removeAll()
         }
 
-        // PHASE 1: Start with simple utility methods
-
-        /**
-         Returns the count of active sources for debugging purposes
-         */
-        Function("getSourceCount") {
-            sources.count
+        // MARK: - Module methods
+        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: String, // swiftlint:disable:this closure_parameter_position
+                                             drmNativeId: String?, // swiftlint:disable:this closure_parameter_position line_length
+                                             config: [String: Any]?, // swiftlint:disable:this closure_parameter_position line_length
+                                             sourceRemoteControlConfig: [String: Any]?) in // swiftlint:disable:this closure_parameter_position line_length
+            self?.createSource(
+                nativeId: nativeId,
+                drmNativeId: drmNativeId,
+                config: config,
+                sourceRemoteControlConfig: sourceRemoteControlConfig
+            )
         }
-
-        /**
-         Checks if a source with the given nativeId exists
-         */
-        Function("hasSource") { (nativeId: String) in
-            sources[nativeId] != nil
+        AsyncFunction("initializeWithAnalyticsConfig") { [weak self] (nativeId: String, // swiftlint:disable:this closure_parameter_position line_length
+                                                     drmNativeId: String?, // swiftlint:disable:this closure_parameter_position line_length
+                                                     config: [String: Any]?, // swiftlint:disable:this closure_parameter_position line_length
+                                                     sourceRemoteControlConfig: [String: Any]?, // swiftlint:disable:this closure_parameter_position line_length
+                                                     analyticsSourceMetadata: [String: Any]?) in // swiftlint:disable:this closure_parameter_position line_length
+            self?.createSource(
+                nativeId: nativeId,
+                drmNativeId: drmNativeId,
+                config: config,
+                sourceRemoteControlConfig: sourceRemoteControlConfig,
+                analyticsSourceMetadata: analyticsSourceMetadata
+            )
         }
-
-        /**
-         Creates a new `Source` instance with the provided config.
-         */
-        AsyncFunction("initWithConfig") { [weak self] (nativeId: String, drmNativeId: String?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?) -> Void in
-            guard let self else { throw SourceError.moduleDestroyed }
-            
-            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                DispatchQueue.main.async { [weak self] in
-                    defer { continuation.resume() }
-                    
-                    guard let self else { return }
-                    
-                    if self.sources[nativeId] != nil {
-                        return // Source already exists
-                    }
-                    
-                    // Get DRM config if provided
-                    let drmConfig = drmNativeId.flatMap { DrmExpoModule.retrieve($0) }
-                    
-                    guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig) else {
-                        throw SourceError.invalidSourceConfig
-                    }
-                    
-                    do {
-                        let source = SourceFactory.create(from: sourceConfig)
-                        self.sources[nativeId] = source
-                        
-                        // Store cast source config if provided
-                        if sourceRemoteControlConfig != nil {
-                            self.castSourceConfigs[nativeId] = sourceConfig
-                        }
-                    } catch {
-                        throw SourceError.sourceCreationFailed(error.localizedDescription)
-                    }
-                }
-            }
+        AsyncFunction("destroy") { [weak self] (nativeId: String) in
+            self?.destroySource(nativeId: nativeId)
         }
-
-        /**
-         Creates a new `Source` instance with analytics configuration.
-         */
-        AsyncFunction("initWithAnalyticsConfig") { [weak self] (nativeId: String, drmNativeId: String?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?, analyticsSourceMetadata: [String: Any]?) -> Void in
-            guard let self else { throw SourceError.moduleDestroyed }
-            
-            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                DispatchQueue.main.async { [weak self] in
-                    defer { continuation.resume() }
-                    
-                    guard let self else { return }
-                    
-                    if self.sources[nativeId] != nil {
-                        return // Source already exists
-                    }
-                    
-                    // Get DRM config if provided
-                    let drmConfig = drmNativeId.flatMap { DrmExpoModule.retrieve($0) }
-                    
-                    guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig) else {
-                        throw SourceError.invalidSourceConfig
-                    }
-                    
-                    // Add analytics metadata if provided
-                    if let analyticsMetadata = analyticsSourceMetadata {
-                        sourceConfig.analyticsSourceMetadata = RCTConvert.analyticsSourceMetadata(analyticsMetadata)
-                    }
-                    
-                    do {
-                        let source = SourceFactory.create(from: sourceConfig)
-                        self.sources[nativeId] = source
-                        
-                        // Store cast source config if provided
-                        if sourceRemoteControlConfig != nil {
-                            self.castSourceConfigs[nativeId] = sourceConfig
-                        }
-                    } catch {
-                        throw SourceError.sourceCreationFailed(error.localizedDescription)
-                    }
-                }
-            }
-        }
-
-        /**
-         Destroys the source instance with the given native ID.
-         */
-        AsyncFunction("destroy") { [weak self] (nativeId: String) -> Void in
-            guard let self else { throw SourceError.moduleDestroyed }
-            
-            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                DispatchQueue.main.async { [weak self] in
-                    defer { continuation.resume() }
-                    
-                    guard let self else { return }
-                    
-                    self.sources.removeValue(forKey: nativeId)
-                    self.castSourceConfigs.removeValue(forKey: nativeId)
-                }
-            }
-        }
-
-        /**
-         Checks if the source is attached to a player.
-         */
         AsyncFunction("isAttachedToPlayer") { [weak self] (nativeId: String) -> Bool? in
-            guard let self else { throw SourceError.moduleDestroyed }
-            
-            return await withCheckedContinuation { (continuation: CheckedContinuation<Bool?, Never>) in
-                DispatchQueue.main.async { [weak self] in
-                    defer { continuation.resume(returning: nil) }
-                    
-                    guard 
-                        let self,
-                        let source = self.sources[nativeId]
-                    else {
-                        return
-                    }
-                    
-                    // Check if source is attached to any player
-                    let isAttached = source.isAttachedToPlayer
-                    continuation.resume(returning: isAttached)
-                }
-            }
+            self?.sources[nativeId]?.isAttachedToPlayer
         }
-
-        /**
-         Checks if the source is currently active.
-         */
         AsyncFunction("isActive") { [weak self] (nativeId: String) -> Bool? in
-            guard let self else { throw SourceError.moduleDestroyed }
-            
-            return await withCheckedContinuation { (continuation: CheckedContinuation<Bool?, Never>) in
-                DispatchQueue.main.async { [weak self] in
-                    defer { continuation.resume(returning: nil) }
-                    
-                    guard 
-                        let self,
-                        let source = self.sources[nativeId]
-                    else {
-                        return
-                    }
-                    
-                    let isActive = source.isActive
-                    continuation.resume(returning: isActive)
-                }
-            }
+            self?.sources[nativeId]?.isActive
         }
-
-        /**
-         Gets the duration of the source.
-         */
         AsyncFunction("duration") { [weak self] (nativeId: String) -> Double? in
-            guard let self else { throw SourceError.moduleDestroyed }
-            
-            return await withCheckedContinuation { (continuation: CheckedContinuation<Double?, Never>) in
-                DispatchQueue.main.async { [weak self] in
-                    defer { continuation.resume(returning: nil) }
-                    
-                    guard 
-                        let self,
-                        let source = self.sources[nativeId]
-                    else {
-                        return
-                    }
-                    
-                    let duration = source.duration
-                    continuation.resume(returning: duration)
-                }
-            }
+            self?.sources[nativeId]?.duration
         }
-
-        /**
-         Gets the loading state of the source.
-         */
-        AsyncFunction("loadingState") { [weak self] (nativeId: String) -> String? in
-            guard let self else { throw SourceError.moduleDestroyed }
-            
-            return await withCheckedContinuation { (continuation: CheckedContinuation<String?, Never>) in
-                DispatchQueue.main.async { [weak self] in
-                    defer { continuation.resume(returning: nil) }
-                    
-                    guard 
-                        let self,
-                        let source = self.sources[nativeId]
-                    else {
-                        return
-                    }
-                    
-                    let loadingState = RCTConvert.toJson(loadingState: source.loadingState)
-                    continuation.resume(returning: loadingState)
-                }
-            }
+        AsyncFunction("loadingState") { [weak self] (nativeId: String) -> Int? in
+            self?.sources[nativeId]?.loadingState.rawValue
+        }
+        Function("getSourceCount") { [weak self] in
+            self?.sources.count ?? 0
+        }
+        Function("hasSource") { [weak self] (nativeId: String) in
+            self?.sources[nativeId] != nil
         }
     }
 
-    // CRITICAL: This method must remain available for cross-module access
-    // Called by PlayerModule.loadSource()
+    // MARK: - Public methods
+    /**
+     Retrieves the `Source` instance associated with `nativeId`.
+     */
     @objc
     public func retrieve(_ nativeId: NativeId) -> Source? {
         sources[nativeId]
     }
 
-    // Fetches cast-specific `SourceConfig` by `NativeId` if exists
+    // Finds `NativeId` based on predicate ran on `Source` instances
+    public func nativeId(where predicate: (Source) -> Bool) -> NativeId? {
+        sources.first { _, value in
+            predicate(value)
+        }?.key
+    }
+
+    /**
+     Retrieves the cast-specific `SourceConfig` by `nativeId` if it exists.
+     */
     public func retrieveCastSourceConfig(_ nativeId: NativeId) -> SourceConfig? {
         castSourceConfigs[nativeId]
     }
-}
 
-// MARK: - Error Definitions
+    // MARK: - Private methods
+    /**
+     Creates a new `Source` instance with the provided configuration.
+     */
+    private func createSource(
+        nativeId: String,
+        drmNativeId: String?,
+        config: [String: Any]?,
+        sourceRemoteControlConfig: [String: Any]?,
+        analyticsSourceMetadata: [String: Any]? = nil
+    ) {
+        guard sources[nativeId] == nil else {
+            // Source already exists
+            return
+        }
+        // Get DRM config if provided
+        let drmModule = appContext?.moduleRegistry.get(DrmExpoModule.self)
+        let drmConfig = drmNativeId.flatMap { drmModule?.retrieve($0) }
+        guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig) else {
+            return
+        }
+        // Add analytics metadata if provided
+        let sourceMetadata = RCTConvert.analyticsSourceMetadata(analyticsSourceMetadata)
 
-enum SourceError: Error, CustomStringConvertible {
-    case moduleDestroyed
-    case invalidSourceConfig
-    case sourceCreationFailed(String)
-    
-    var description: String {
-        switch self {
-        case .moduleDestroyed:
-            return "SourceExpoModule has been destroyed"
-        case .invalidSourceConfig:
-            return "Invalid source configuration"
-        case .sourceCreationFailed(let message):
-            return "Could not create source: \(message)"
+        let source: Source
+        if let sourceMetadata {
+            source = SourceFactory.createSource(from: sourceConfig, sourceMetadata: sourceMetadata)
+        } else {
+            source = SourceFactory.createSource(from: sourceConfig)
+        }
+        sources[nativeId] = source
+        // Store cast source config if provided
+        if sourceRemoteControlConfig != nil {
+            castSourceConfigs[nativeId] = sourceConfig
         }
     }
+
+    /**
+     Destroys the source instance with the given `nativeId`.
+     */
+    private func destroySource(nativeId: String) {
+        sources.removeValue(forKey: nativeId)
+        castSourceConfigs.removeValue(forKey: nativeId)
+    }
 }
+
+internal struct SourceRemoteControlConfig {
+    let castSourceConfig: SourceConfig?
+}
+

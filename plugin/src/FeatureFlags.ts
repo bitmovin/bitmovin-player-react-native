@@ -4,5 +4,4 @@ export default interface FeatureFlags {
   googleCastSDK?: { android: string | { version: string }, ios: string | { version: string, appId?: string, localNetworkUsageDescription?: string } };
   offline?: boolean | { android?: { isEnabled: boolean, externalStoragePermission?: boolean }, ios?: { isEnabled: boolean } };
   pictureInPicture?: boolean;
-  expoPermissionsServiceFix?: boolean;
 }

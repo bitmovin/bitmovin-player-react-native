@@ -50,7 +50,7 @@ export class Drm extends NativeInstance<DrmConfig> {
       BatchedBridge.registerCallableModule(`DRM-${this.nativeId}`, this);
       // Create native configuration object using Expo module.
       if (this.config) {
-        await DrmExpoModule.initWithConfig(this.nativeId, this.config);
+        await DrmExpoModule.initializeWithConfig(this.nativeId, this.config);
       }
       this.isInitialized = true;
     }

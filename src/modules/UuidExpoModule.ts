@@ -1,7 +1,9 @@
-import { requireNativeModule } from 'expo-modules-core';
+import { NativeModule, requireNativeModule } from 'expo-modules-core';
 
-export interface UuidExpoModuleType {
+export type UuidExpoModuleEvents = Record<string, any>;
+
+declare class UuidExpoModule extends NativeModule<UuidExpoModuleEvents> {
   generate(): string;
 }
 
-export default requireNativeModule<UuidExpoModuleType>('UuidModule');
+export default requireNativeModule<UuidExpoModule>('UuidModule');

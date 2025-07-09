@@ -78,7 +78,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
         this.drm.initialize();
       }
 
-      initPromise = OfflineExpoModule.initWithConfig(
+      initPromise = OfflineExpoModule.initializeWithConfig(
         this.nativeId,
         {
           identifier: this.config.identifier,

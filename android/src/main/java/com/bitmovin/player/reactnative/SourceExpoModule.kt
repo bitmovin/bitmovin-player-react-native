@@ -47,7 +47,7 @@ class SourceExpoModule : Module() {
         /**
          * Creates a new `Source` instance with the provided config.
          */
-        AsyncFunction("initWithConfig") { nativeId: String, drmNativeId: String?, config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>? ->
+        AsyncFunction("initializeWithConfig") { nativeId: String, drmNativeId: String?, config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>? ->
             if (sources.containsKey(nativeId)) {
                 return@AsyncFunction // Source already exists
             }
@@ -71,7 +71,7 @@ class SourceExpoModule : Module() {
         /**
          * Creates a new `Source` instance with analytics configuration.
          */
-        AsyncFunction("initWithAnalyticsConfig") { nativeId: String, drmNativeId: String?, config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?, analyticsSourceMetadata: Map<String, Any>? ->
+        AsyncFunction("initializeWithAnalyticsConfig") { nativeId: String, drmNativeId: String?, config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?, analyticsSourceMetadata: Map<String, Any>? ->
             if (sources.containsKey(nativeId)) {
                 return@AsyncFunction // Source already exists
             }

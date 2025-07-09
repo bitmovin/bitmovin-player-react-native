@@ -14,55 +14,37 @@ public class BufferExpoModule: Module {
         /**
          Get buffer level for the specified player and buffer type.
          */
-        AsyncFunction("getLevel") { (playerId: String, type: String) -> Double? in
-            await withCheckedContinuation { (continuation: CheckedContinuation<Double?, Never>) in
-                DispatchQueue.main.async {
-                    defer { continuation.resume(returning: nil) }
-                    
-                    // Access PlayerExpoModule to retrieve player
-                    guard let player = PlayerExpoModule.retrieve(playerId) else {
-                        return
-                    }
-                    
-                    let bufferLevel: Double
-                    switch type.lowercased() {
-                    case "audio":
-                        bufferLevel = player.buffer.getLevel(for: .audio)
-                    case "video":
-                        bufferLevel = player.buffer.getLevel(for: .video)
-                    default:
-                        return // Unknown buffer type
-                    }
-                    
-                    continuation.resume(returning: bufferLevel)
-                }
+        AsyncFunction("getLevel") { (playerId: String, type: String) -> [String: Any]? in
+            guard let playerModule = appContext?.moduleRegistry.get(PlayerExpoModule.self),
+                  let player = playerModule.retrieve(playerId) else {
+                return nil
             }
-        }
+
+            guard let bufferType = RCTConvert.bufferType(type) else {
+                return nil
+            }
+
+            let level = player.buffer.getLevel(bufferType)
+            let bufferLevels = RNBufferLevels(audio: level, video: level)
+            return RCTConvert.toJson(bufferLevels: bufferLevels)
+        }.runOnQueue(.main)
 
         /**
          Set target level for the specified player and buffer type.
          */
-        AsyncFunction("setTargetLevel") { (playerId: String, type: String, value: Double) -> Void in
-            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                DispatchQueue.main.async {
-                    defer { continuation.resume() }
-                    
-                    // Access PlayerExpoModule to retrieve player
-                    guard let player = PlayerExpoModule.retrieve(playerId) else {
-                        return
-                    }
-                    
-                    let targetLevel = TimeInterval(value)
-                    switch type.lowercased() {
-                    case "audio":
-                        player.buffer.setTargetLevel(targetLevel, for: .audio)
-                    case "video":
-                        player.buffer.setTargetLevel(targetLevel, for: .video)
-                    default:
-                        break // Unknown buffer type
-                    }
-                }
+        AsyncFunction("setTargetLevel") { (playerId: String, type: String, value: Double) in
+            guard let playerModule = appContext?.moduleRegistry.get(PlayerExpoModule.self),
+                  let player = playerModule.retrieve(playerId) else {
+                return
             }
-        }
+
+            let bufferType = RCTConvert.bufferType(type)
+
+            guard bufferType == .forwardDuration else {
+                return
+            }
+
+            player.buffer.setTargetLevel(value)
+        }.runOnQueue(.main)
     }
 }

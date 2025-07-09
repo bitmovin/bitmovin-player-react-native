@@ -59,7 +59,7 @@ class DrmExpoModule : Module() {
     override fun definition() = ModuleDefinition {
         Name(MODULE_NAME)
 
-        AsyncFunction("initWithConfig") { nativeId: String, config: Map<String, Any?>, promise: Promise ->
+        AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>, promise: Promise ->
             if (drmConfigs.containsKey(nativeId)) {
                 promise.reject("DrmError", "NativeId already exists $nativeId", null)
                 return@AsyncFunction
@@ -96,10 +96,10 @@ class DrmExpoModule : Module() {
         }
 
         // iOS-specific methods that return null on Android for compatibility
-        Function("setPreparedCertificate") { _: String, _: String -> null }
-        Function("setPreparedSyncMessage") { _: String, _: String -> null }
-        Function("setPreparedLicenseServerUrl") { _: String, _: String -> null }
-        Function("setPreparedContentId") { _: String, _: String -> null }
+        AsyncFunction("setPreparedCertificate") { _: String, _: String -> null }
+        AsyncFunction("setPreparedSyncMessage") { _: String, _: String -> null }
+        AsyncFunction("setPreparedLicenseServerUrl") { _: String, _: String -> null }
+        AsyncFunction("setPreparedContentId") { _: String, _: String -> null }
     }
 
     /**

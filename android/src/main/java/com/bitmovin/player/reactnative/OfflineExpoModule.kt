@@ -39,7 +39,7 @@ class OfflineExpoModule : Module() {
          * Creates a new `OfflineContentManager` instance inside the internal offline managers using the provided `config` object.
          * @param config Map object received from JS. Should contain a sourceConfig and location.
          */
-        AsyncFunction("initWithConfig") { nativeId: String, config: Map<String, Any?>?, drmNativeId: String? ->
+        AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>?, drmNativeId: String? ->
             if (offlineContentManagerBridges.containsKey(nativeId)) {
                 throw OfflineException.ManagerAlreadyExists(nativeId)
             }

@@ -33,7 +33,7 @@ class FullscreenHandlerExpoModule : Module() {
         Name(MODULE_NAME)
 
         AsyncFunction("registerHandler") { nativeId: String ->
-            val fullscreenHandler = fullscreenHandlers[nativeId] ?: FullscreenHandlerBridge(appContext.reactContext, nativeId)
+            val fullscreenHandler = fullscreenHandlers[nativeId] ?: FullscreenHandlerBridge(appContext.reactApplicationContext!! as com.facebook.react.bridge.ReactApplicationContext, nativeId, this@FullscreenHandlerExpoModule)
             fullscreenHandlers[nativeId] = fullscreenHandler
         }
 
@@ -41,7 +41,7 @@ class FullscreenHandlerExpoModule : Module() {
             fullscreenHandlers.remove(nativeId)
         }
 
-        Function("onFullscreenChanged") { nativeId: String, isFullscreenEnabled: Boolean ->
+        AsyncFunction("notifyFullscreenChanged") { nativeId: String, isFullscreenEnabled: Boolean ->
             fullscreenHandlers[nativeId]?.isFullscreen = isFullscreenEnabled
             lock.withLock {
                 fullscreenChangedCondition.signal()
