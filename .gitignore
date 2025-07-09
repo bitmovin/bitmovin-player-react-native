@@ -80,3 +80,4 @@ eas-hooks/
 # Plugin build artifacts
 plugin/tsconfig.tsbuildinfo
 plugin/build/
+example/.env

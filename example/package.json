@@ -47,8 +47,10 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
+    "@expo/config-types": "^53.0.5",
     "@types/lodash.omit": "^4.5.9",
     "@types/react": "~19.0.10",
+    "dotenv": "^17.2.0",
     "eslint": "^8.57.0",
     "eslint-config-expo": "~9.2.0",
     "pod-install": "^0.3.10",
