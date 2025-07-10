@@ -19,38 +19,41 @@ import {
 } from 'bitmovin-player-react-native';
 import { AdTags } from './helper/Ads';
 import { Platform } from 'react-native';
+import { expect } from './helper/Expect';
 
 export default (spec: TestScope) => {
   function commonAdvertisingTests(
-    adItems: AdItem[],
+    adItems: () => AdItem[],
     type: 'VAST' | 'VMAP' | 'progressive'
   ) {
     spec.describe(`scheduling ${type} ads via AdvertisingConfig`, () => {
       spec.it('emits AdScheduled events', async () => {
+        const ads = adItems();
         const advertisingConfig = {
-          schedule: adItems,
+          schedule: ads,
         } as AdvertisingConfig;
         await startPlayerTest({ advertisingConfig }, async () => {
           await callPlayerAndExpectEvents((player) => {
             player.load(Sources.artOfMotionHls);
-          }, RepeatedEvent(EventType.AdScheduled, adItems.length));
+          }, RepeatedEvent(EventType.AdScheduled, ads.length));
         });
       });
     });
     spec.describe(`scheduling ${type} ads via scheduleAd API`, () => {
       spec.it('emits AdScheduled events', async () => {
+        const ads = adItems();
         await startPlayerTest({}, async () => {
           await loadSourceConfig(Sources.artOfMotionHls);
           await callPlayerAndExpectEvents((player) => {
-            adItems.forEach((adItem) => player.scheduleAd(adItem));
-          }, RepeatedEvent(EventType.AdScheduled, adItems.length));
+            ads.forEach((adItem) => player.scheduleAd(adItem));
+          }, RepeatedEvent(EventType.AdScheduled, ads.length));
         });
       });
     });
     spec.describe(`playing ${type} ads`, () => {
       spec.it('emits Ad events', async () => {
         const advertisingConfig = {
-          schedule: adItems,
+          schedule: adItems(),
         } as AdvertisingConfig;
         await startPlayerTest({ advertisingConfig }, async () => {
           await callPlayer(async (player) => {
@@ -115,28 +118,30 @@ export default (spec: TestScope) => {
   }
 
   commonAdvertisingTests(
-    [{ sources: [{ tag: AdTags.vmapPreMidPost, type: AdSourceType.IMA }] }],
+    () => [
+      { sources: [{ tag: AdTags.vmapPreMidPost(), type: AdSourceType.IMA }] },
+    ],
     'VMAP'
   );
   commonAdvertisingTests(
-    [
+    () => [
       {
-        sources: [{ tag: AdTags.vastSkippable, type: AdSourceType.IMA }],
+        sources: [{ tag: AdTags.vastSkippable(), type: AdSourceType.IMA }],
         position: 'pre',
       },
       {
-        sources: [{ tag: AdTags.vast1, type: AdSourceType.IMA }],
+        sources: [{ tag: AdTags.vast1(), type: AdSourceType.IMA }],
         position: '15',
       },
       {
-        sources: [{ tag: AdTags.vast2, type: AdSourceType.IMA }],
+        sources: [{ tag: AdTags.vast2(), type: AdSourceType.IMA }],
         position: 'post',
       },
     ],
     'VAST'
   );
   commonAdvertisingTests(
-    [
+    () => [
       {
         sources: [{ tag: AdTags.progressive, type: AdSourceType.PROGRESSIVE }],
         position: 'pre',
@@ -153,29 +158,60 @@ export default (spec: TestScope) => {
     'progressive'
   );
 
-  function advertisingErrorTests(adItem: AdItem, label: string) {
+  function advertisingErrorTests(adItem: () => AdItem, label: string) {
     spec.describe(`scheduling erroneous ${label} ad`, () => {
       spec.it('emits AdError events', async () => {
         await startPlayerTest({}, async () => {
           await loadSourceConfig(Sources.artOfMotionHls);
           await callPlayerAndExpectEvent((player) => {
-            player.scheduleAd(adItem);
+            player.scheduleAd(adItem());
             player.play();
           }, EventType.AdError);
+        });
+      });
+
+      spec.it('validates AdError event properties', async () => {
+        await startPlayerTest({}, async () => {
+          await loadSourceConfig(Sources.artOfMotionHls);
+          const adErrorEvent = await callPlayerAndExpectEvent((player) => {
+            player.scheduleAd(adItem());
+            player.play();
+          }, EventType.AdError);
+
+          expect(
+            adErrorEvent.name,
+            'AdError event should have name'
+          ).toBeDefined();
+          expect(
+            adErrorEvent.name,
+            'AdError event name should be onAdError'
+          ).toBe('onAdError');
+          expect(
+            adErrorEvent.timestamp,
+            'AdError event should have timestamp'
+          ).toBeDefined();
+          expect(
+            typeof adErrorEvent.timestamp,
+            'timestamp should be a number'
+          ).toBe('number');
+          expect(
+            adErrorEvent.timestamp,
+            'timestamp should be > 0'
+          ).toBeGreaterThan(0);
         });
       });
     });
   }
 
-  advertisingErrorTests(
-    { sources: [{ tag: AdTags.error, type: AdSourceType.IMA }] },
-    'IMA'
-  );
+  advertisingErrorTests(() => {
+    return { sources: [{ tag: AdTags.error(), type: AdSourceType.IMA }] };
+  }, 'IMA');
   if (Platform.OS !== 'android') {
     // AdError event is not emitted on Android when progressive ad playback fails
-    advertisingErrorTests(
-      { sources: [{ tag: AdTags.error, type: AdSourceType.PROGRESSIVE }] },
-      'progressive'
-    );
+    advertisingErrorTests(() => {
+      return {
+        sources: [{ tag: AdTags.error(), type: AdSourceType.PROGRESSIVE }],
+      };
+    }, 'progressive');
   }
 };

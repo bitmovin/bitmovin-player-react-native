@@ -11,8 +11,8 @@ export const Sources = {
     type: SourceType.DASH,
   } as SourceConfig,
 
-  akamaiTestLiveHls: {
-    url: 'https://cph-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
+  iReplayTestLiveHls: {
+    url: 'https://ireplay.tv/test/blender.m3u8',
     type: SourceType.HLS,
   } as SourceConfig,
 
