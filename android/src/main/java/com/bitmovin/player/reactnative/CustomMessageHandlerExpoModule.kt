@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative
 
+import androidx.core.os.bundleOf
 import com.bitmovin.player.reactnative.ui.CustomMessageHandlerBridge
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -31,6 +32,8 @@ class CustomMessageHandlerExpoModule : Module() {
 
     override fun definition() = ModuleDefinition {
         Name(MODULE_NAME)
+        
+        Events("onReceivedSynchronousMessage", "onReceivedAsynchronousMessage")
 
         AsyncFunction("registerHandler") { nativeId: String ->
             val customMessageHandler = customMessageHandlers[nativeId] ?: CustomMessageHandlerBridge(nativeId, this@CustomMessageHandlerExpoModule)
@@ -65,18 +68,12 @@ class CustomMessageHandlerExpoModule : Module() {
      */
     fun receivedSynchronousMessage(nativeId: String, message: String, data: String?): String? {
         lock.withLock {
-            // Send event to JavaScript via React Native bridge
-            (appContext.reactContext!!.applicationContext as com.facebook.react.bridge.ReactApplicationContext).let { context: com.facebook.react.bridge.ReactApplicationContext ->
-                val args = com.facebook.react.bridge.Arguments.createArray()
-                args.pushString(message)
-                args.pushString(data)
-                
-                // TODO: Use Expo module event system instead of React Native bridge
-                // This is a placeholder - implement proper event dispatch
-                
-                // For now, just return from the lock block
-                return@withLock
-            }
+            // Send event to TypeScript using Expo module event system
+            sendEvent("onReceivedSynchronousMessage", bundleOf(
+                "nativeId" to nativeId,
+                "message" to message,
+                "data" to data
+            ))
             
             customMessageHandlerResultChangedCondition.await()
         }
@@ -88,14 +85,11 @@ class CustomMessageHandlerExpoModule : Module() {
      * Called by CustomMessageHandlerBridge when an asynchronous message is received.
      */
     fun receivedAsynchronousMessage(nativeId: String, message: String, data: String?) {
-        // Send event to JavaScript via React Native bridge
-        (appContext.reactContext!!.applicationContext as com.facebook.react.bridge.ReactApplicationContext).let { context: com.facebook.react.bridge.ReactApplicationContext ->
-            val args = com.facebook.react.bridge.Arguments.createArray()
-            args.pushString(message)
-            args.pushString(data)
-            
-            // TODO: Use Expo module event system instead of React Native bridge
-            // This is a placeholder - implement proper event dispatch
-        }
+        // Send event to TypeScript using Expo module event system
+        sendEvent("onReceivedAsynchronousMessage", bundleOf(
+            "nativeId" to nativeId,
+            "message" to message,
+            "data" to data
+        ))
     }
 }

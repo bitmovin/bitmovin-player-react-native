@@ -2,8 +2,39 @@ import BitmovinPlayer
 import ExpoModulesCore
 
 public class RNPlayerViewExpo: ExpoView {
-    let playerView: PlayerView
+    var playerView: PlayerView? {
+        willSet {
+            newValue?.autoresizingMask = [
+                .flexibleWidth,
+                .flexibleHeight
+            ]
+        }
+        didSet {
+            guard let playerView else {
+                return
+            }
+            addSubview(playerView)
+            if let fullscreenBridgeId {
+                attachFullscreenBridge(fullscreenBridgeId: fullscreenBridgeId)
+            }
+            if let scalingMode {
+                playerView.scalingMode = scalingMode
+            }
+            if let requestedFullscreenValue {
+                setFullscreenRequested(isFullscreen: requestedFullscreenValue)
+            }
+            if let requestedPictureInPictureValue {
+                setPictureInPicture(enterPictureInPicture: requestedPictureInPictureValue)
+            }
+        }
+    }
+
     private var customMessageHandlerBridgeId: NativeId?
+    private var playerId: NativeId?
+    private var fullscreenBridgeId: NativeId?
+    private var scalingMode: ScalingMode?
+    private var requestedFullscreenValue: Bool?
+    private var requestedPictureInPictureValue: Bool?
     internal var config: RNPlayerViewConfig?
 
     let onBmpEvent = EventDispatcher()
@@ -73,25 +104,22 @@ public class RNPlayerViewExpo: ExpoView {
     let onBmpCueExit = EventDispatcher()
 
     required init(appContext: AppContext? = nil) {
-        let playerViewConfig = config?.playerViewConfig ?? PlayerViewConfig()
-        self.playerView = PlayerView(
-            player: PlayerFactory.create(playerConfig: PlayerConfig()),
-            frame: .zero,
-            playerViewConfig: playerViewConfig
-        )
         super.init(appContext: appContext)
         clipsToBounds = true
-        addSubview(playerView)
     }
 
     override public func layoutSubviews() {
-        playerView.frame = bounds
+        playerView?.frame = bounds
     }
 
-    internal func attachPlayer(playerId: NativeId?, playerConfig: [String: Any]?) {
+    internal func attachPlayer(
+        playerId: NativeId?,
+        customMessageHandlerBridgeId: NativeId?
+    ) {
+        self.playerId = playerId
         guard let playerId else {
-            playerView.player?.remove(listener: self)
-            playerView.player = nil
+            playerView?.player?.remove(listener: self)
+            playerView?.player = nil
             return
         }
         guard let player = self.appContext?.moduleRegistry.get(PlayerExpoModule.self)?.retrieve(playerId) else {
@@ -100,16 +128,27 @@ public class RNPlayerViewExpo: ExpoView {
 
         if let userInterfaceConfig = maybeCreateUserInterfaceConfig(
             styleConfig: player.config.styleConfig,
-            playerViewConfig: config
+            playerViewConfig: config,
+            customMessageHandlerBridgeId: customMessageHandlerBridgeId
         ) {
             player.config.styleConfig.userInterfaceConfig = userInterfaceConfig
         }
-
-        let previousPictureInPictureAvailableValue = playerView.isPictureInPictureAvailable
-        playerView.player = player
+        
+        let previousPictureInPictureAvailableValue: Bool
+        if let playerView  {
+            playerView.player = player
+            previousPictureInPictureAvailableValue = playerView.isPictureInPictureAvailable
+        } else {
+            self.playerView = PlayerView(
+                player: player,
+                frame: bounds,
+                playerViewConfig: config?.playerViewConfig ?? PlayerViewConfig()
+            )
+            previousPictureInPictureAvailableValue = false
+        }
 
         player.add(listener: self)
-        playerView.add(listener: self)
+        playerView?.add(listener: self)
 
         self.maybeEmitPictureInPictureAvailabilityEvent(
             previousState: previousPictureInPictureAvailableValue
@@ -118,7 +157,8 @@ public class RNPlayerViewExpo: ExpoView {
 
     private func maybeCreateUserInterfaceConfig(
         styleConfig: StyleConfig,
-        playerViewConfig: RNPlayerViewConfig?
+        playerViewConfig: RNPlayerViewConfig?,
+        customMessageHandlerBridgeId: NativeId?
     ) -> UserInterfaceConfig? {
         #if os(iOS)
         if styleConfig.userInterfaceType == .bitmovin {
@@ -134,12 +174,8 @@ public class RNPlayerViewExpo: ExpoView {
                 bitmovinUserInterfaceConfig.hideFirstFrame = hideFirstFrame
             }
 
-            if let customMessageHandlerBridgeId = self.customMessageHandlerBridgeId,
-               let customMessageHandlerBridgeModule = self.appContext?.moduleRegistry
-                   .get(CustomMessageHandlerExpoModule.self),
-               let customMessageHandlerBridge = customMessageHandlerBridgeModule
-                   .retrieve(customMessageHandlerBridgeId) {
-                bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
+            if let customMessageHandlerBridgeId {
+                attachCustomMessageHandlerBridge(id: customMessageHandlerBridgeId, to: bitmovinUserInterfaceConfig)
             }
 
             return bitmovinUserInterfaceConfig
@@ -160,21 +196,39 @@ public class RNPlayerViewExpo: ExpoView {
     }
 
     internal func attachFullscreenBridge(fullscreenBridgeId: NativeId) {
+        self.fullscreenBridgeId = fullscreenBridgeId
         guard let fullscreenBridgeModule = self.appContext?.moduleRegistry.get(FullscreenHandlerExpoModule.self),
               let fullscreenBridge = fullscreenBridgeModule.retrieve(fullscreenBridgeId) else {
             return
         }
-        playerView.fullscreenHandler = fullscreenBridge
+        playerView?.fullscreenHandler = fullscreenBridge
     }
 
-    internal func setCustomMessageHandlerBridgeId(customMessageHandlerBridgeId: NativeId) {
-        self.customMessageHandlerBridgeId = customMessageHandlerBridgeId
+    private func attachCustomMessageHandlerBridge(
+        id customMessageHandlerBridgeId: NativeId,
+        to bitmovinUserInterfaceConfig: BitmovinUserInterfaceConfig
+    ) {
+        guard let customMessageHandlerBridgeModule = self.appContext?.moduleRegistry.get(CustomMessageHandlerExpoModule.self) else {
+            return
+        }
+        guard let customMessageHandlerBridge = customMessageHandlerBridgeModule.retrieve(customMessageHandlerBridgeId) else {
+            return
+        }
+
+        bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
     }
 
-    internal func setFullscreen(isFullscreen: Bool) {
+    internal func setFullscreenRequested(isFullscreen: Bool) {
+        guard let playerView else {
+            requestedFullscreenValue = isFullscreen
+            return
+        }
+
+        requestedFullscreenValue = nil
         guard playerView.isFullscreen != isFullscreen else {
             return
         }
+
         if isFullscreen {
             playerView.enterFullscreen()
         } else {
@@ -183,6 +237,11 @@ public class RNPlayerViewExpo: ExpoView {
     }
 
     internal func setPictureInPicture(enterPictureInPicture: Bool) {
+        guard let playerView else {
+            requestedPictureInPictureValue = enterPictureInPicture
+            return
+        }
+        requestedPictureInPictureValue = nil
         guard playerView.isPictureInPicture != enterPictureInPicture else {
             return
         }
@@ -196,19 +255,23 @@ public class RNPlayerViewExpo: ExpoView {
     internal func setScalingMode(scalingMode: String) {
         switch scalingMode {
         case "Zoom":
-            playerView.scalingMode = .zoom
+            self.scalingMode = .zoom
         case "Stretch":
-            playerView.scalingMode = .stretch
+            self.scalingMode = .stretch
         case "Fit":
-            playerView.scalingMode = .fit
+            self.scalingMode = .fit
         default:
             break
         }
+        guard let playerView, let nativeScalingMode = self.scalingMode else {
+            return
+        }
+        playerView.scalingMode = nativeScalingMode
     }
 
     @MainActor
     private func maybeEmitPictureInPictureAvailabilityEvent(previousState: Bool) {
-        guard playerView.isPictureInPictureAvailable != previousState else {
+        guard let playerView, playerView.isPictureInPictureAvailable != previousState else {
             return
         }
         let event: [String: Any] = [
@@ -217,278 +280,286 @@ public class RNPlayerViewExpo: ExpoView {
             "timestamp": Date().timeIntervalSince1970
         ]
 
-        sendEvent("onBmpPictureInPictureAvailabilityChanged", event)
+        onBmpPictureInPictureAvailabilityChanged(event)
     }
 }
 
 private extension RNPlayerViewExpo {
-    func sendEvent<T: Event>(_ name: String, _ event: T) {
-        guard let payload = event as? JsonConvertible else { return }
-        sendEvent(name, payload.toJSON())
-    }
+    // Helper methods no longer needed - using EventDispatcher properties directly
+}
 
-    func sendEvent(_ name: String, _ payload: [AnyHashable: Any]) {
-        appContext?.eventEmitter?.sendEvent(withName: name, body: payload)
+private extension Event {
+    func eventPayload() -> [String: Any] {
+        guard let jsonConvertible = self as? JsonConvertible else {
+            return [:]
+        }
+        let anyHashableKeyedPayload = jsonConvertible.toJSON()
+        let stringKeyedPayload = anyHashableKeyedPayload.reduce(into: [String: Any]()) { result, pair in
+            if let key = pair.key as? String {
+                result[key] = pair.value
+            }
+        }
+        return stringKeyedPayload
     }
 }
 
 extension RNPlayerViewExpo: PlayerListener {
     public func onPlayerActive(_ event: PlayerActiveEvent, player: Player) {
-        sendEvent("onPlayerActive", event)
+        onBmpPlayerActive(event.eventPayload())
     }
 
     public func onPlayerError(_ event: PlayerErrorEvent, player: Player) {
-        sendEvent("onPlayerError", event)
+        onBmpPlayerError(event.eventPayload())
     }
 
     public func onPlayerWarning(_ event: PlayerWarningEvent, player: Player) {
-        sendEvent("onPlayerWarning", event)
+        onBmpPlayerWarning(event.eventPayload())
     }
 
     public func onDestroy(_ event: DestroyEvent, player: Player) {
-        sendEvent("onDestroy", event)
+        onBmpDestroy(event.eventPayload())
     }
 
     public func onMuted(_ event: MutedEvent, player: Player) {
-        sendEvent("onMuted", event)
+        onBmpMuted(event.eventPayload())
     }
 
     public func onUnmuted(_ event: UnmutedEvent, player: Player) {
-        sendEvent("onUnmuted", event)
+        onBmpUnmuted(event.eventPayload())
     }
 
     public func onReady(_ event: ReadyEvent, player: Player) {
-        sendEvent("onReady", event)
+        onBmpReady(event.eventPayload())
     }
 
     public func onPaused(_ event: PausedEvent, player: Player) {
-        sendEvent("onPaused", event)
+        onBmpPaused(event.eventPayload())
     }
 
     public func onPlay(_ event: PlayEvent, player: Player) {
-        sendEvent("onPlay", event)
+        onBmpPlay(event.eventPayload())
     }
 
     public func onPlaying(_ event: PlayingEvent, player: Player) {
-        sendEvent("onPlaying", event)
+        onBmpPlaying(event.eventPayload())
     }
 
     public func onPlaybackFinished(_ event: PlaybackFinishedEvent, player: Player) {
-        sendEvent("onPlaybackFinished", event)
+        onBmpPlaybackFinished(event.eventPayload())
     }
 
     public func onSeek(_ event: SeekEvent, player: Player) {
-        sendEvent("onSeek", event)
+        onBmpSeek(event.eventPayload())
     }
 
     public func onSeeked(_ event: SeekedEvent, player: Player) {
-        sendEvent("onSeeked", event)
+        onBmpSeeked(event.eventPayload())
     }
 
     public func onTimeShift(_ event: TimeShiftEvent, player: Player) {
-        sendEvent("onTimeShift", event)
+        onBmpTimeShift(event.eventPayload())
     }
 
     public func onTimeShifted(_ event: TimeShiftedEvent, player: Player) {
-        sendEvent("onTimeShifted", event)
+        onBmpTimeShifted(event.eventPayload())
     }
 
     public func onStallStarted(_ event: StallStartedEvent, player: Player) {
-        sendEvent("onStallStarted", event)
+        onBmpStallStarted(event.eventPayload())
     }
 
     public func onStallEnded(_ event: StallEndedEvent, player: Player) {
-        sendEvent("onStallEnded", event)
+        onBmpStallEnded(event.eventPayload())
     }
 
     public func onTimeChanged(_ event: TimeChangedEvent, player: Player) {
-        sendEvent("onTimeChanged", event)
+        onBmpTimeChanged(event.eventPayload())
     }
 
     public func onPlaybackSpeedChanged(_ event: PlaybackSpeedChangedEvent, player: Player) {
-        sendEvent("onPlaybackSpeedChanged", event)
+        onBmpPlaybackSpeedChanged(event.eventPayload())
     }
 
     public func onSourceLoad(_ event: SourceLoadEvent, player: Player) {
-        sendEvent("onSourceLoad", event)
+        onBmpSourceLoad(event.eventPayload())
     }
 
     public func onSourceLoaded(_ event: SourceLoadedEvent, player: Player) {
-        sendEvent("onSourceLoaded", event)
+        onBmpSourceLoaded(event.eventPayload())
     }
 
     public func onSourceUnloaded(_ event: SourceUnloadedEvent, player: Player) {
-        sendEvent("onSourceUnloaded", event)
+        onBmpSourceUnloaded(event.eventPayload())
     }
 
     public func onSourceError(_ event: SourceErrorEvent, player: Player) {
-        sendEvent("onSourceError", event)
+        onBmpSourceError(event.eventPayload())
     }
 
     public func onSourceWarning(_ event: SourceWarningEvent, player: Player) {
-        sendEvent("onSourceWarning", event)
+        onBmpSourceWarning(event.eventPayload())
     }
 
     public func onAudioAdded(_ event: AudioAddedEvent, player: Player) {
-        sendEvent("onAudioAdded", event)
+        onBmpAudioAdded(event.eventPayload())
     }
 
     public func onAudioRemoved(_ event: AudioRemovedEvent, player: Player) {
-        sendEvent("onAudioRemoved", event)
+        onBmpAudioRemoved(event.eventPayload())
     }
 
     public func onAudioChanged(_ event: AudioChangedEvent, player: Player) {
-        sendEvent("onAudioChanged", event)
+        onBmpAudioChanged(event.eventPayload())
     }
 
     public func onSubtitleAdded(_ event: SubtitleAddedEvent, player: Player) {
-        sendEvent("onSubtitleAdded", event)
+        onBmpSubtitleAdded(event.eventPayload())
     }
 
     public func onSubtitleRemoved(_ event: SubtitleRemovedEvent, player: Player) {
-        sendEvent("onSubtitleRemoved", event)
+        onBmpSubtitleRemoved(event.eventPayload())
     }
 
     public func onSubtitleChanged(_ event: SubtitleChangedEvent, player: Player) {
-        sendEvent("onSubtitleChanged", event)
+        onBmpSubtitleChanged(event.eventPayload())
     }
 
     public func onDownloadFinished(_ event: DownloadFinishedEvent, player: Player) {
-        sendEvent("onDownloadFinished", event)
+        onBmpDownloadFinished(event.eventPayload())
     }
 
     public func onAdBreakFinished(_ event: AdBreakFinishedEvent, player: Player) {
-        sendEvent("onAdBreakFinished", event)
+        onBmpAdBreakFinished(event.eventPayload())
     }
 
     public func onAdBreakStarted(_ event: AdBreakStartedEvent, player: Player) {
-        sendEvent("onAdBreakStarted", event)
+        onBmpAdBreakStarted(event.eventPayload())
     }
 
     public func onAdClicked(_ event: AdClickedEvent, player: Player) {
-        sendEvent("onAdClicked", event)
+        onBmpAdClicked(event.eventPayload())
     }
 
     public func onAdError(_ event: AdErrorEvent, player: Player) {
-        sendEvent("onAdError", event)
+        onBmpAdError(event.eventPayload())
     }
 
     public func onAdFinished(_ event: AdFinishedEvent, player: Player) {
-        sendEvent("onAdFinished", event)
+        onBmpAdFinished(event.eventPayload())
     }
 
     public func onAdManifestLoad(_ event: AdManifestLoadEvent, player: Player) {
-        sendEvent("onAdManifestLoad", event)
+        onBmpAdManifestLoad(event.eventPayload())
     }
 
     public func onAdManifestLoaded(_ event: AdManifestLoadedEvent, player: Player) {
-        sendEvent("onAdManifestLoaded", event)
+        onBmpAdManifestLoaded(event.eventPayload())
     }
 
     public func onAdQuartile(_ event: AdQuartileEvent, player: Player) {
-        sendEvent("onAdQuartile", event)
+        onBmpAdQuartile(event.eventPayload())
     }
 
     public func onAdScheduled(_ event: AdScheduledEvent, player: Player) {
-        sendEvent("onAdScheduled", event)
+        onBmpAdScheduled(event.eventPayload())
     }
 
     public func onAdSkipped(_ event: AdSkippedEvent, player: Player) {
-        sendEvent("onAdSkipped", event)
+        onBmpAdSkipped(event.eventPayload())
     }
 
     public func onAdStarted(_ event: AdStartedEvent, player: Player) {
-        sendEvent("onAdStarted", event)
+        onBmpAdStarted(event.eventPayload())
     }
 
     public func onVideoDownloadQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
-        sendEvent("onVideoDownloadQualityChanged", event)
+        onBmpVideoDownloadQualityChanged(event.eventPayload())
      }
 
     public func onVideoPlaybackQualityChanged(_ event: VideoPlaybackQualityChangedEvent, player: Player) {
-        sendEvent("onVideoPlaybackQualityChanged", event)
+        onBmpVideoPlaybackQualityChanged(event.eventPayload())
     }
 
     public func onCueEnter(_ event: CueEnterEvent, player: Player) {
-        sendEvent("onCueEnter", event)
+        onBmpCueEnter(event.eventPayload())
     }
 
     public func onCueExit(_ event: CueExitEvent, player: Player) {
-        sendEvent("onCueExit", event)
+        onBmpCueExit(event.eventPayload())
     }
 
 #if os(iOS)
     public func onCastAvailable(_ event: CastAvailableEvent, player: Player) {
-        sendEvent("onCastAvailable", event)
+        onBmpCastAvailable(event.eventPayload())
     }
 
     public func onCastPaused(_ event: CastPausedEvent, player: Player) {
-        sendEvent("onCastPaused", event)
+        onBmpCastPaused(event.eventPayload())
     }
 
     public func onCastPlaybackFinished(_ event: CastPlaybackFinishedEvent, player: Player) {
-        sendEvent("onCastPlaybackFinished", event)
+        onBmpCastPlaybackFinished(event.eventPayload())
     }
 
     public func onCastPlaying(_ event: CastPlayingEvent, player: Player) {
-        sendEvent("onCastPlaying", event)
+        onBmpCastPlaying(event.eventPayload())
     }
 
     public func onCastStarted(_ event: CastStartedEvent, player: Player) {
-        sendEvent("onCastStarted", event)
+        onBmpCastStarted(event.eventPayload())
     }
 
     public func onCastStart(_ event: CastStartEvent, player: Player) {
-        sendEvent("onCastStart", event)
+        onBmpCastStart(event.eventPayload())
     }
 
     public func onCastStopped(_ event: CastStoppedEvent, player: Player) {
-        sendEvent("onCastStopped", event)
+        onBmpCastStopped(event.eventPayload())
     }
 
     public func onCastTimeUpdated(_ event: CastTimeUpdatedEvent, player: Player) {
-        sendEvent("onCastTimeUpdated", event)
+        onBmpCastTimeUpdated(event.eventPayload())
     }
     func onCastWaitingForDevice(_ event: CastWaitingForDeviceEvent, player: Player) {
-        sendEvent("onCastWaitingForDevice", event)
+        onBmpCastWaitingForDevice(event.eventPayload())
     }
 #endif
 }
 
 extension RNPlayerViewExpo: UserInterfaceListener {
     public func onPictureInPictureEnter(_ event: PictureInPictureEnterEvent, view: PlayerView) {
-        sendEvent("onPictureInPictureEnter", event)
+        onBmpPictureInPictureEnter(event.eventPayload())
     }
 
     public func onPictureInPictureEntered(_ event: PictureInPictureEnteredEvent, view: PlayerView) {
-        sendEvent("onPictureInPictureEntered", event)
+        onBmpPictureInPictureEntered(event.eventPayload())
     }
 
     public func onPictureInPictureExit(_ event: PictureInPictureExitEvent, view: PlayerView) {
-        sendEvent("onPictureInPictureExit", event)
+        onBmpPictureInPictureExit(event.eventPayload())
     }
 
     public func onPictureInPictureExited(_ event: PictureInPictureExitedEvent, view: PlayerView) {
-        sendEvent("onPictureInPictureExited", event)
+        onBmpPictureInPictureExited(event.eventPayload())
     }
 
     public func onFullscreenEnter(_ event: FullscreenEnterEvent, view: PlayerView) {
-        sendEvent("onFullscreenEnter", event)
+        onBmpFullscreenEnter(event.eventPayload())
     }
 
     public func onFullscreenExit(_ event: FullscreenExitEvent, view: PlayerView) {
-        sendEvent("onFullscreenExit", event)
+        onBmpFullscreenExit(event.eventPayload())
     }
 
     public func onFullscreenEnabled(_ event: FullscreenEnabledEvent, view: PlayerView) {
-        sendEvent("onFullscreenEnabled", event)
+        onBmpFullscreenEnabled(event.eventPayload())
     }
 
     public func onFullscreenDisabled(_ event: FullscreenDisabledEvent, view: PlayerView) {
-        sendEvent("onFullscreenDisabled", event)
+        onBmpFullscreenDisabled(event.eventPayload())
     }
 
     public func onEvent(_ event: any Event, player: any Player) {
-        sendEvent("onBmpEvent", event)
+        onBmpEvent(event.eventPayload())
     }
 }

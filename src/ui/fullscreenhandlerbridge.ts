@@ -21,20 +21,20 @@ export class FullscreenHandlerBridge {
     this.onEnterFullScreenSubscription =
       FullscreenHandlerExpoModule.addListener(
         'onEnterFullscreen',
-        ({ nativeId }) => {
+        ({ nativeId, id }) => {
           if (nativeId !== this.nativeId) {
             return;
           }
-          this.enterFullscreen();
+          this.enterFullscreen(id);
         }
       );
     this.onExitFullScreenSubscription = FullscreenHandlerExpoModule.addListener(
       'onExitFullscreen',
-      ({ nativeId }) => {
+      ({ nativeId, id }) => {
         if (nativeId !== this.nativeId) {
           return;
         }
-        this.exitFullscreen();
+        this.exitFullscreen(id);
       }
     );
     FullscreenHandlerExpoModule.registerHandler(this.nativeId);
@@ -72,10 +72,10 @@ export class FullscreenHandlerBridge {
   /**
    * Called by native code, when the UI should enter fullscreen.
    */
-  private enterFullscreen(): void {
+  private enterFullscreen(id: number): void {
     this.fullscreenHandler?.enterFullscreen();
     FullscreenHandlerExpoModule.notifyFullscreenChanged(
-      this.nativeId,
+      id,
       this.fullscreenHandler?.isFullscreenActive ?? false
     );
   }
@@ -84,10 +84,10 @@ export class FullscreenHandlerBridge {
   /**
    * Called by native code, when the UI should exit fullscreen.
    */
-  private exitFullscreen(): void {
+  private exitFullscreen(id: number): void {
     this.fullscreenHandler?.exitFullscreen();
     FullscreenHandlerExpoModule.notifyFullscreenChanged(
-      this.nativeId,
+      id,
       this.fullscreenHandler?.isFullscreenActive ?? false
     );
   }

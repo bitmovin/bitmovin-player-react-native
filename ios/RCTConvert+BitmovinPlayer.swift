@@ -1258,8 +1258,8 @@ extension RCTConvert {
         }
 
         return RNPlayerViewConfig(
-            uiConfig: rnUiConfig(json["uiConfig"]),
-            pictureInPictureConfig: pictureInPictureConfig(json["pictureInPictureConfig"]),
+            uiConfig: json["uiConfig"].flatMap(rnUiConfig),
+            pictureInPictureConfig: json["pictureInPictureConfig"].flatMap(pictureInPictureConfig),
             hideFirstFrame: json["hideFirstFrame"] as? Bool
         )
     }

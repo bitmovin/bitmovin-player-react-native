@@ -11,17 +11,16 @@ internal class CustomMessageHandlerBridge: NSObject {
 #endif
 
     private let nativeId: NativeId
-    private weak var expoModule: CustomMessageHandlerExpoModule?
+    private weak var delegate: CustomMessageHandlerBridgeDelegate?
 
-    private var currentSynchronousResult: String?
 
-    init(_ nativeId: NativeId, expoModule: CustomMessageHandlerExpoModule?) {
+    init(_ nativeId: NativeId, delegate: CustomMessageHandlerBridgeDelegate?) {
         self.nativeId = nativeId
-        self.expoModule = expoModule
+        self.delegate = delegate
     }
 
     func receivedSynchronousMessage(_ message: String, withData data: String?) -> String? {
-        expoModule?.receivedSynchronousMessage(
+        delegate?.receivedSynchronousMessage(
             nativeId: nativeId,
             message: message,
             withData: data
@@ -29,7 +28,7 @@ internal class CustomMessageHandlerBridge: NSObject {
     }
 
     func receivedAsynchronousMessage(_ message: String, withData data: String?) {
-        expoModule?.receivedAsynchronousMessage(
+        delegate?.receivedAsynchronousMessage(
             nativeId: nativeId,
             message: message,
             withData: data
@@ -42,17 +41,13 @@ internal class CustomMessageHandlerBridge: NSObject {
 #endif
     }
 
-    func pushSynchronousResult(_ result: String?) {
-        currentSynchronousResult = result
-    }
-
-    func popSynchronousResult() -> String? {
-        let result = currentSynchronousResult
-        currentSynchronousResult = nil
-        return result
-    }
 }
 
 #if os(iOS)
 extension CustomMessageHandlerBridge: CustomMessageHandlerDelegate {}
 #endif
+
+internal protocol CustomMessageHandlerBridgeDelegate: AnyObject {
+    func receivedSynchronousMessage(nativeId: NativeId, message: String, withData data: String?) -> String?
+    func receivedAsynchronousMessage(nativeId: NativeId, message: String, withData data: String?)
+}

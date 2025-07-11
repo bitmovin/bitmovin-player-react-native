@@ -1,7 +1,35 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
-import { HttpRequest, HttpResponse, NetworkConfig } from './networkConfig';
+import {
+  HttpRequest,
+  HttpResponse,
+  NetworkConfig,
+  HttpRequestType,
+} from './networkConfig';
 
-export type NetworkExpoModuleEvents = Record<string, any>;
+export type NetworkExpoModuleEvents = {
+  onPreprocessHttpRequest: ({
+    nativeId,
+    requestId,
+    type,
+    request,
+  }: {
+    nativeId: string;
+    requestId: string;
+    type: HttpRequestType;
+    request: HttpRequest;
+  }) => void;
+  onPreprocessHttpResponse: ({
+    nativeId,
+    responseId,
+    type,
+    response,
+  }: {
+    nativeId: string;
+    responseId: string;
+    type: HttpRequestType;
+    response: HttpResponse;
+  }) => void;
+};
 
 /**
  * Native NetworkExpoModule using Expo modules API.

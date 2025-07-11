@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative
 
 import android.util.Base64
+import androidx.core.os.bundleOf
 import com.bitmovin.player.api.drm.PrepareLicenseCallback
 import com.bitmovin.player.api.drm.PrepareMessageCallback
 import com.bitmovin.player.api.drm.WidevineConfig
@@ -58,6 +59,8 @@ class DrmExpoModule : Module() {
 
     override fun definition() = ModuleDefinition {
         Name(MODULE_NAME)
+        
+        Events("onPrepareMessage", "onPrepareLicense")
 
         AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>, promise: Promise ->
             if (drmConfigs.containsKey(nativeId)) {
@@ -171,12 +174,11 @@ class DrmExpoModule : Module() {
         registry: Registry<String>,
         registryCondition: Condition,
     ): PrepareCallback = {
-        // Call JavaScript function directly using React Native bridge
-        appContext.reactContext?.let { context ->
-            val args = Arguments.createArray()
-            args.pushString(Base64.encodeToString(it, Base64.NO_WRAP))
-            (context as ReactApplicationContext).catalystInstance.callFunction("DRM-$nativeId", method, args as NativeArray)
-        }
+        // Send event to TypeScript using Expo module event system
+        sendEvent(method, bundleOf(
+            "nativeId" to nativeId,
+            "data" to Base64.encodeToString(it, Base64.NO_WRAP)
+        ))
         
         lock.withLock {
             registryCondition.await()

@@ -1,7 +1,6 @@
 import { requireNativeViewManager } from 'expo-modules-core';
 import { NativePlayerViewEvents } from './nativeEvents';
 import { BasePlayerViewProps } from './properties';
-import { PlayerConfig } from '../../playerConfig';
 
 /**
  * Props type for `NativePlayerView` native component.
@@ -10,9 +9,11 @@ import { PlayerConfig } from '../../playerConfig';
 export interface NativePlayerViewProps
   extends BasePlayerViewProps,
     NativePlayerViewEvents {
-  playerConfig: { id: string } & PlayerConfig;
+  playerInfo: {
+    id: string;
+    customMessageHandlerBridgeId?: string;
+  };
   fullscreenBridgeId?: string;
-  customMessageHandlerBridgeId?: string;
 }
 
 /**

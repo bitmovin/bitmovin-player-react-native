@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative
 
 import androidx.concurrent.futures.CallbackToFutureAdapter
+import androidx.core.os.bundleOf
 import com.bitmovin.player.api.decoder.DecoderConfig
 import com.bitmovin.player.api.decoder.DecoderPriorityProvider
 import com.bitmovin.player.api.decoder.MediaCodecInfo
@@ -24,6 +25,8 @@ class DecoderConfigExpoModule : Module() {
 
     override fun definition() = ModuleDefinition {
         Name("DecoderConfigExpoModule")
+
+        Events("onOverrideDecodersPriority")
 
         OnCreate {
             // Module initialization
@@ -111,10 +114,12 @@ class DecoderConfigExpoModule : Module() {
         return CallbackToFutureAdapter.getFuture { completer ->
             overrideDecoderPriorityProviderCompleters[nativeId] = completer
             
-            // TODO: Use Expo module event system instead of React Native bridge
-            // This is a placeholder - implement proper event dispatch
-            // For now, just return the preferred decoders as-is to avoid crashes
-            completer.set(preferredDecoders)
+            // Send event to TypeScript with decoder context and preferred decoders
+            sendEvent("onOverrideDecodersPriority", bundleOf(
+                "nativeId" to nativeId,
+                "context" to context.toJson(),
+                "preferredDecoders" to preferredDecoders.map { it.toJson() }
+            ))
             
             "overrideDecoderPriorityProvider"
         }.get()

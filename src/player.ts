@@ -53,16 +53,16 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
-  initialize = () => {
+  initialize = async (): Promise<void> => {
     if (!this.isInitialized) {
       if (this.config?.networkConfig) {
         this.network = new Network(this.config.networkConfig);
-        this.network.initialize();
+        await this.network.initialize();
       }
-      this.maybeInitDecoderConfig();
+      await this.maybeInitDecoderConfig();
       const analyticsConfig = this.config?.analyticsConfig;
       if (analyticsConfig) {
-        PlayerExpoModule.initializeWithAnalyticsConfig(
+        await PlayerExpoModule.initializeWithAnalyticsConfig(
           this.nativeId,
           analyticsConfig,
           this.config,
@@ -71,7 +71,7 @@ export class Player extends NativeInstance<PlayerConfig> {
         );
         this.analytics = new AnalyticsApi(this.nativeId);
       } else {
-        PlayerExpoModule.initializeWithConfig(
+        await PlayerExpoModule.initializeWithConfig(
           this.nativeId,
           this.config,
           this.network?.nativeId,
@@ -81,6 +81,7 @@ export class Player extends NativeInstance<PlayerConfig> {
 
       this.isInitialized = true;
     }
+    return Promise.resolve();
   };
 
   /**
@@ -121,9 +122,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Loads the given {@link Source} into the player.
    */
   loadSource = (source: Source) => {
-    source.initialize();
     this.source = source;
-    PlayerExpoModule.loadSource(this.nativeId, source.nativeId);
+    source.initialize().then(() => {
+      PlayerExpoModule.loadSource(this.nativeId, source.nativeId);
+    });
   };
 
   /**

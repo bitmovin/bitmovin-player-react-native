@@ -26,6 +26,16 @@ Before proceeding with the rest of the file's contents, make sure to read `~/.cl
 - **Preserve exact indentation and formatting** from original files
 - **NEVER add code comments** unless explicitly requested
 
+### React Performance & Lifecycle
+- **ALWAYS consider React lifecycle and performance** when modifying TypeScript code
+- **Use React.memo() for expensive components** to prevent unnecessary re-renders
+- **Use useCallback() for functions passed as props** to prevent child re-renders
+- **Use useMemo() for expensive calculations** that don't need to run on every render
+- **Consider dependency arrays carefully** - include all dependencies that could change
+- **Avoid creating objects/functions in render** - move them outside or memoize them
+- **Use proper keys for lists** to help React track changes efficiently
+- **Consider useRef for values that don't trigger re-renders** when changed
+
 ### Response Style
 - **Be concise and direct** - answer in 1-4 lines maximum unless detail requested
 - **No unnecessary preamble or postamble** - avoid phrases like "Here's what I found..."
@@ -37,7 +47,7 @@ When `VSCODE_INJECTION=1` environment variable is set:
 - **ALWAYS use mcp__vs-claude__open tool** to open files in VSCode
 - **Open files with line ranges** for precise navigation: `{"type": "file", "path": "/path/file.ts", "startLine": 10, "endLine": 20}`
 - **Use diff view** for comparing files: `{"type": "diff", "left": "/path/old.ts", "right": "/path/new.ts"}`
-- **Use git diff view** for working changes: `{"type": "gitDiff", "path": "/path/file.ts", "from": "HEAD", "to": "working"}`
+- **Use git diff view** for working changes**: `{"type": "gitDiff", "path": "/path/file.ts", "from": "HEAD", "to": "working"}`
 - **Specify windowId** when multiple VS Code windows are open
 
 ## Project Overview
@@ -314,3 +324,4 @@ For native development, first ensure the native projects exist by running `yarn 
   - **For TV platforms**: Use `yarn example prebuild:tv` to generate tvOS and Android TV projects
   - Do NOT manually modify these generated folders - use Expo config plugins or app.json configuration instead
   - If these folders are missing, simply run the prebuild command to regenerate them
+

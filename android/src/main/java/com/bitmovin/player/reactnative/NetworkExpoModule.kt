@@ -3,6 +3,7 @@ package com.bitmovin.player.reactnative
 import android.util.Log
 import androidx.concurrent.futures.CallbackToFutureAdapter
 import androidx.concurrent.futures.CallbackToFutureAdapter.Completer
+import androidx.core.os.bundleOf
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.network.HttpResponse
@@ -40,6 +41,8 @@ class NetworkExpoModule : Module() {
 
     override fun definition() = ModuleDefinition {
         Name(MODULE_NAME)
+        
+        Events("onPreprocessHttpRequest", "onPreprocessHttpResponse")
 
         AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>, promise: Promise ->
             if (networkConfigs.containsKey(nativeId)) {
@@ -131,15 +134,13 @@ class NetworkExpoModule : Module() {
         return CallbackToFutureAdapter.getFuture { completer ->
             preprocessHttpRequestCompleters[requestId] = completer
             
-            // Call JavaScript function directly using React Native bridge
-            // This maintains the same bidirectional communication pattern as the legacy module
-            appContext.reactContext?.let { context ->
-                val args = Arguments.createArray()
-                args.pushString(requestId)
-                args.pushString(type.toJson())
-                args.pushMap(request.toJson())
-                (context as ReactApplicationContext).catalystInstance.callFunction("Network-$nativeId", "onPreprocessHttpRequest", args as NativeArray)
-            }
+            // Send event to TypeScript using Expo module event system
+            sendEvent("onPreprocessHttpRequest", bundleOf(
+                "nativeId" to nativeId,
+                "requestId" to requestId,
+                "type" to type.toJson(),
+                "request" to request.toJson()
+            ))
             
             return@getFuture "NetworkExpoModule-preprocessHttpRequest-$requestId"
         }
@@ -155,14 +156,13 @@ class NetworkExpoModule : Module() {
         return CallbackToFutureAdapter.getFuture { completer ->
             preprocessHttpResponseCompleters[responseId] = completer
             
-            // Call JavaScript function directly using React Native bridge
-            appContext.reactContext?.let { context ->
-                val args = Arguments.createArray()
-                args.pushString(responseId)
-                args.pushString(type.toJson())
-                args.pushMap(response.toJson())
-                (context as ReactApplicationContext).catalystInstance.callFunction("Network-$nativeId", "onPreprocessHttpResponse", args as NativeArray)
-            }
+            // Send event to TypeScript using Expo module event system
+            sendEvent("onPreprocessHttpResponse", bundleOf(
+                "nativeId" to nativeId,
+                "responseId" to responseId,
+                "type" to type.toJson(),
+                "response" to response.toJson()
+            ))
             
             return@getFuture "NetworkExpoModule-preprocessHttpResponse-$responseId"
         }

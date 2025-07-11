@@ -9,8 +9,8 @@ public class FullscreenHandlerExpoModule: Module {
     /// In-memory mapping from `nativeId`s to `FullscreenHandlerBridge` instances.
     private var fullscreenHandlers: Registry<FullscreenHandlerBridge> = [:]
 
-    /// Dispatch group used for blocking thread while waiting for state change
-    private let fullscreenChangeDispatchGroup = DispatchGroup()
+    /// ResultWaiter used for blocking thread while waiting for fullscreen state change
+    private let waiter = ResultWaiter<Bool>()
 
     public func definition() -> ModuleDefinition {
         Name("FullscreenHandlerExpoModule")
@@ -33,13 +33,8 @@ public class FullscreenHandlerExpoModule: Module {
             self?.fullscreenHandlers.removeValue(forKey: nativeId)
         }.runOnQueue(.main)
 
-        AsyncFunction("notifyFullscreenChanged") { (nativeId: String, isFullscreenEnabled: Bool) -> Any? in
-            DispatchQueue.main.async { [weak self] in
-                guard let self else { return }
-                self.fullscreenHandlers[nativeId]?.isFullscreen = isFullscreenEnabled
-                self.fullscreenChangeDispatchGroup.leave()
-            }
-            return nil
+        AsyncFunction("notifyFullscreenChanged") { [weak self] (id: Int, isFullscreenEnabled: Bool) in
+            self?.waiter.complete(id: id, with: isFullscreenEnabled)
         }
 
         AsyncFunction("setIsFullscreenActive") { (nativeId: String, isFullscreen: Bool, promise: Promise) in
@@ -65,14 +60,24 @@ public class FullscreenHandlerExpoModule: Module {
      * Called by FullscreenHandlerBridge when fullscreen should be entered.
      */
     func onFullscreenRequested(nativeId: String) {
-        fullscreenChangeDispatchGroup.enter()
-
+        guard let handler = retrieve(nativeId) else {
+            return
+        }
+        
+        let (id, wait) = waiter.make(timeout: 0.25)
+        
         // Send event to JavaScript
         sendEvent("onEnterFullscreen", [
-            "nativeId": nativeId
+            "nativeId": nativeId,
+            "id": id
         ])
-
-//        fullscreenChangeDispatchGroup.wait()
+        
+        guard let result = wait() else {
+            return
+        }
+        DispatchQueue.main.async {
+            handler.isFullscreen = result
+        }
     }
 
     /**
@@ -80,13 +85,23 @@ public class FullscreenHandlerExpoModule: Module {
      * Called by FullscreenHandlerBridge when fullscreen should be exited.
      */
     func onFullscreenExitRequested(nativeId: String) {
-        fullscreenChangeDispatchGroup.enter()
-
+        guard let handler = retrieve(nativeId) else {
+            return
+        }
+        
+        let (id, wait) = waiter.make(timeout: 0.25)
+        
         // Send event to JavaScript
         sendEvent("onExitFullscreen", [
-            "nativeId": nativeId
+            "nativeId": nativeId,
+            "id": id
         ])
-
-//        fullscreenChangeDispatchGroup.wait()
+        
+        guard let result = wait() else {
+            return
+        }
+        DispatchQueue.main.async {
+            handler.isFullscreen = result
+        }
     }
 }

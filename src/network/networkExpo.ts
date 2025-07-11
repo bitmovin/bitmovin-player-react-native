@@ -1,4 +1,4 @@
-import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
+import { EventSubscription } from 'expo-modules-core';
 import NativeInstance from '../nativeInstance';
 import NetworkExpoModule from './networkExpoModule';
 import {
@@ -23,14 +23,34 @@ export class NetworkExpo extends NativeInstance<NetworkConfig> {
    */
   isDestroyed = false;
 
+  private onPreprocessHttpRequestSubscription?: EventSubscription;
+  private onPreprocessHttpResponseSubscription?: EventSubscription;
+
   /**
    * Allocates the Network config instance and its resources natively.
    */
   initialize = async () => {
     if (!this.isInitialized) {
-      // Register this object as a callable module so it's possible to
-      // call functions on it from native code, e.g `onPreprocessHttpResponse`.
-      BatchedBridge.registerCallableModule(`Network-${this.nativeId}`, this);
+      // Set up event listeners for HTTP request/response preprocessing
+      this.onPreprocessHttpRequestSubscription = NetworkExpoModule.addListener(
+        'onPreprocessHttpRequest',
+        ({ nativeId, requestId, type, request }) => {
+          if (nativeId !== this.nativeId) {
+            return;
+          }
+          this.onPreprocessHttpRequest(requestId, type, request);
+        }
+      );
+
+      this.onPreprocessHttpResponseSubscription = NetworkExpoModule.addListener(
+        'onPreprocessHttpResponse',
+        ({ nativeId, responseId, type, response }) => {
+          if (nativeId !== this.nativeId) {
+            return;
+          }
+          this.onPreprocessHttpResponse(responseId, type, response);
+        }
+      );
 
       // Create native configuration object using Expo module
       if (this.config) {
@@ -49,6 +69,10 @@ export class NetworkExpo extends NativeInstance<NetworkConfig> {
   destroy = async () => {
     if (!this.isDestroyed) {
       await NetworkExpoModule.destroy(this.nativeId);
+      this.onPreprocessHttpRequestSubscription?.remove();
+      this.onPreprocessHttpResponseSubscription?.remove();
+      this.onPreprocessHttpRequestSubscription = undefined;
+      this.onPreprocessHttpResponseSubscription = undefined;
       this.isDestroyed = true;
     }
   };
@@ -63,7 +87,7 @@ export class NetworkExpo extends NativeInstance<NetworkConfig> {
    * @param type Type of the request to be made.
    * @param request The HTTP request to process.
    */
-  onPreprocessHttpRequest = (
+  private onPreprocessHttpRequest = (
     requestId: string,
     type: HttpRequestType,
     request: HttpRequest
@@ -88,7 +112,7 @@ export class NetworkExpo extends NativeInstance<NetworkConfig> {
    * @param type Type of the request to be made.
    * @param response The HTTP response to process.
    */
-  onPreprocessHttpResponse = (
+  private onPreprocessHttpResponse = (
     responseId: string,
     type: HttpRequestType,
     response: HttpResponse

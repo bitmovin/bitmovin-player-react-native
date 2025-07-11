@@ -9,24 +9,25 @@ public class RNPlayerViewManagerExpo: Module {
             Prop("config") { (view: RNPlayerViewExpo, config: [String: Any]?) in
                 view.config = RCTConvert.rnPlayerViewConfig(config)
             }
-            Prop("playerConfig") { (view: RNPlayerViewExpo, playerConfig: [String: Any]?) in
-                let playerId = playerConfig?["id"] as? String
-                view.attachPlayer(playerId: playerId, playerConfig: playerConfig)
+            Prop("playerInfo") { (view: RNPlayerViewExpo, playerInfo: [String: Any]?) in
+                let playerId = playerInfo?["id"] as? NativeId
+                let customMessageHandlerBridgeId = playerInfo?["customMessageHandlerBridgeId"] as? NativeId
+                view.attachPlayer(
+                    playerId: playerId,
+                    customMessageHandlerBridgeId: customMessageHandlerBridgeId
+                )
             }
             Prop("scalingMode") { (view: RNPlayerViewExpo, scalingMode: String) in
                 view.setScalingMode(scalingMode: scalingMode)
             }
             Prop("isFullscreenRequested") { (view: RNPlayerViewExpo, isFullscreenRequested: Bool) in
-                view.setFullscreen(isFullscreen: isFullscreenRequested)
+                view.setFullscreenRequested(isFullscreen: isFullscreenRequested)
             }
             Prop("isPictureInPictureRequested") { (view: RNPlayerViewExpo, isPictureInPictureRequested: Bool) in
                 view.setPictureInPicture(enterPictureInPicture: isPictureInPictureRequested)
             }
             Prop("fullscreenBridgeId") { (view: RNPlayerViewExpo, fullscreenBridgeId: String) in
                 view.attachFullscreenBridge(fullscreenBridgeId: fullscreenBridgeId)
-            }
-            Prop("customMessageHandlerBridgeId") { (view: RNPlayerViewExpo, bridgeId: String) in
-                view.setCustomMessageHandlerBridgeId(customMessageHandlerBridgeId: bridgeId)
             }
 
             Events(

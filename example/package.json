@@ -19,13 +19,13 @@
     "start": "expo start",
     "start:log": "rm -f expo.log && script -q -F expo.log bash -c 'expo start'",
     "logs": "tail -n ${LINES:-30} expo.log",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
     "build:ios": "xcodebuild -workspace ios/BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample -configuration Debug -destination 'generic/platform=iOS Simulator' -quiet | xcbeautify -qq --disable-logging",
     "build:android": "cd android && ./gradlew assembleDebug --quiet --console=plain --warning-mode=none",
     "build:ts": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@react-native-picker/picker": "2.11.1",

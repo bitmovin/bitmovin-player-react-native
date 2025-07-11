@@ -3,38 +3,42 @@ import ExpoModulesCore
 
 public class DrmExpoModule: Module {
     private var drmConfigs: Registry<FairplayConfig> = [:]
-    var preparedCertificates: Registry<String> = [:]
-    var preparedMessages: Registry<String> = [:]
-    var preparedSyncMessages: Registry<String> = [:]
-    var preparedLicenses: Registry<String> = [:]
-    var preparedLicenseServerUrls: Registry<String> = [:]
-    var preparedContentIds: Registry<String> = [:]
+    private let waiter = ResultWaiter<String>()
 
     public func definition() -> ModuleDefinition {
         Name("DrmExpoModule")
+
+        Events(
+            "onPrepareCertificate",
+            "onPrepareMessage",
+            "onPrepareSyncMessage",
+            "onPrepareLicense",
+            "onPrepareLicenseServerUrl",
+            "onPrepareContentId"
+        )
         AsyncFunction("initializeWithConfig") { [weak self] (nativeId: String, config: [String: Any]) in
             self?.initializeWithConfig(nativeId: nativeId, config: config)
         }
         AsyncFunction("destroy") { [weak self] (nativeId: String) in
             self?.destroy(nativeId: nativeId)
         }
-        Function("setPreparedCertificate") { (nativeId: String, certificate: String) in
-            self.preparedCertificates[nativeId] = certificate
+        AsyncFunction("setPreparedCertificate") { [weak self] (id: Int, certificate: String?) in
+            self?.waiter.complete(id: id, with: certificate ?? "")
         }
-        Function("setPreparedMessage") { (nativeId: String, message: String) in
-            self.preparedMessages[nativeId] = message
+        AsyncFunction("setPreparedMessage") { [weak self] (id: Int, message: String?) in
+            self?.waiter.complete(id: id, with: message ?? "")
         }
-        Function("setPreparedSyncMessage") { (nativeId: String, syncMessage: String) in
-            self.preparedSyncMessages[nativeId] = syncMessage
+        AsyncFunction("setPreparedSyncMessage") { [weak self] (id: Int, syncMessage: String?) in
+            self?.waiter.complete(id: id, with: syncMessage ?? "")
         }
-        Function("setPreparedLicense") { (nativeId: String, license: String) in
-            self.preparedLicenses[nativeId] = license
+        AsyncFunction("setPreparedLicense") { [weak self] (id: Int, license: String?) in
+            self?.waiter.complete(id: id, with: license ?? "")
         }
-        Function("setPreparedLicenseServerUrl") { (nativeId: String, url: String) in
-            self.preparedLicenseServerUrls[nativeId] = url
+        AsyncFunction("setPreparedLicenseServerUrl") { [weak self] (id: Int, url: String?) in
+            self?.waiter.complete(id: id, with: url ?? "")
         }
-        Function("setPreparedContentId") { (nativeId: String, contentId: String) in
-            self.preparedContentIds[nativeId] = contentId
+        AsyncFunction("setPreparedContentId") { [weak self] (id: Int, contentId: String?) in
+            self?.waiter.complete(id: id, with: contentId ?? "")
         }
     }
 
@@ -47,12 +51,6 @@ public class DrmExpoModule: Module {
 
     private func destroy(nativeId: String) {
         self.drmConfigs.removeValue(forKey: nativeId)
-        self.preparedCertificates.removeValue(forKey: nativeId)
-        self.preparedMessages.removeValue(forKey: nativeId)
-        self.preparedSyncMessages.removeValue(forKey: nativeId)
-        self.preparedLicenses.removeValue(forKey: nativeId)
-        self.preparedLicenseServerUrls.removeValue(forKey: nativeId)
-        self.preparedContentIds.removeValue(forKey: nativeId)
     }
 
     @objc
@@ -120,55 +118,59 @@ public class DrmExpoModule: Module {
     }
 
     private func prepareCertificateFromJS(_ nativeId: String, _ data: Data) -> Data {
-        let dispatchGroup = DispatchGroup()
-        dispatchGroup.enter()
-        sendEvent("onPrepareCertificate", ["nativeId": nativeId, "certificate": data.base64EncodedString()])
-        dispatchGroup.wait()
-        return Data(base64Encoded: preparedCertificates[nativeId] ?? "") ?? data
+        let (id, wait) = waiter.make(timeout: 0.25)
+        sendEvent("onPrepareCertificate", ["nativeId": nativeId,
+                                           "id": id,
+                                           "certificate": data.base64EncodedString()])
+        let result = wait() ?? data.base64EncodedString()
+        return Data(base64Encoded: result) ?? data
     }
 
     private func prepareMessageFromJS(_ nativeId: String, _ data: Data, _ assetId: String) -> Data {
-        let dispatchGroup = DispatchGroup()
-        dispatchGroup.enter()
-        sendEvent("onPrepareMessage", ["nativeId": nativeId, "message": data.base64EncodedString(), "assetId": assetId])
-        dispatchGroup.wait()
-        return Data(base64Encoded: preparedMessages[nativeId] ?? "") ?? data
+        let (id, wait) = waiter.make(timeout: 0.25)
+        sendEvent("onPrepareMessage", ["nativeId": nativeId,
+                                      "id": id,
+                                      "message": data.base64EncodedString(),
+                                      "assetId": assetId])
+        let result = wait() ?? data.base64EncodedString()
+        return Data(base64Encoded: result) ?? data
     }
 
     private func prepareSyncMessageFromJS(_ nativeId: String, _ data: Data, _ assetId: String) -> Data {
-        let dispatchGroup = DispatchGroup()
-        dispatchGroup.enter()
+        let (id, wait) = waiter.make(timeout: 0.25)
         sendEvent("onPrepareSyncMessage", [
             "nativeId": nativeId,
+            "id": id,
             "syncMessage": data.base64EncodedString(),
             "assetId": assetId
         ])
-        dispatchGroup.wait()
-        return Data(base64Encoded: preparedSyncMessages[nativeId] ?? "") ?? data
+        let result = wait() ?? data.base64EncodedString()
+        return Data(base64Encoded: result) ?? data
     }
 
     private func prepareLicenseFromJS(_ nativeId: String, _ data: Data) -> Data {
-        let dispatchGroup = DispatchGroup()
-        dispatchGroup.enter()
-        sendEvent("onPrepareLicense", ["nativeId": nativeId, "license": data.base64EncodedString()])
-        dispatchGroup.wait()
-        return Data(base64Encoded: preparedLicenses[nativeId] ?? "") ?? data
+        let (id, wait) = waiter.make(timeout: 0.25)
+        sendEvent("onPrepareLicense", ["nativeId": nativeId,
+                                      "id": id,
+                                      "license": data.base64EncodedString()])
+        let result = wait() ?? data.base64EncodedString()
+        return Data(base64Encoded: result) ?? data
     }
 
     private func prepareLicenseServerUrlFromJS(_ nativeId: String, _ url: String) -> String {
-        let dispatchGroup = DispatchGroup()
-        dispatchGroup.enter()
-        sendEvent("onPrepareLicenseServerUrl", ["nativeId": nativeId, "licenseServerUrl": url])
-        dispatchGroup.wait()
-        return preparedLicenseServerUrls[nativeId] ?? url
+        let (id, wait) = waiter.make(timeout: 0.25)
+        sendEvent("onPrepareLicenseServerUrl", ["nativeId": nativeId,
+                                                "id": id,
+                                                "licenseServerUrl": url])
+        return wait() ?? url
     }
 
     private func prepareContentIdFromJS(_ nativeId: String, _ contentId: String) -> String {
-        let dispatchGroup = DispatchGroup()
-        dispatchGroup.enter()
-        sendEvent("onPrepareContentId", ["nativeId": nativeId, "contentId": contentId])
-        dispatchGroup.wait()
-        return preparedContentIds[nativeId] ?? contentId
+        let (id, wait) = waiter.make(timeout: 0.25)
+        sendEvent("onPrepareContentId", ["nativeId": nativeId,
+                                         "id": id,
+                                         "contentId": contentId])
+        return wait() ?? contentId
     }
 
     @objc

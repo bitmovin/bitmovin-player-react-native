@@ -1,7 +1,17 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
 import { Platform } from 'react-native';
 
-export type DecoderConfigExpoModuleEvents = Record<string, any>;
+export type DecoderConfigExpoModuleEvents = {
+  onOverrideDecodersPriority: ({
+    nativeId,
+    context,
+    preferredDecoders,
+  }: {
+    nativeId: string;
+    context: any;
+    preferredDecoders: any[];
+  }) => void;
+};
 
 /**
  * Native DecoderConfigExpoModule using Expo modules API.

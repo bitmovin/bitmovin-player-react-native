@@ -1,4 +1,4 @@
-import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
+import { EventSubscription } from 'expo-modules-core';
 import { CustomMessageHandler } from './custommessagehandler';
 import { CustomMessageSender } from './custommessagesender';
 import UuidExpoModule from '../modules/UuidExpoModule';
@@ -12,13 +12,36 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
   private customMessageHandler?: CustomMessageHandler;
   private isDestroyed: boolean;
 
+  private onReceivedSynchronousMessageSubscription?: EventSubscription;
+  private onReceivedAsynchronousMessageSubscription?: EventSubscription;
+
   constructor(nativeId?: string) {
     this.nativeId = nativeId ?? UuidExpoModule.generate();
     this.isDestroyed = false;
-    BatchedBridge.registerCallableModule(
-      `CustomMessageBridge-${this.nativeId}`,
-      this
-    );
+
+    // Set up event listeners for synchronous and asynchronous messages
+    this.onReceivedSynchronousMessageSubscription =
+      CustomMessageHandlerExpoModule.addListener(
+        'onReceivedSynchronousMessage',
+        ({ nativeId, id, message, data }) => {
+          if (nativeId !== this.nativeId) {
+            return;
+          }
+          this.receivedSynchronousMessage(id, message, data);
+        }
+      );
+
+    this.onReceivedAsynchronousMessageSubscription =
+      CustomMessageHandlerExpoModule.addListener(
+        'onReceivedAsynchronousMessage',
+        ({ nativeId, message, data }) => {
+          if (nativeId !== this.nativeId) {
+            return;
+          }
+          this.receivedAsynchronousMessage(message, data);
+        }
+      );
+
     CustomMessageHandlerExpoModule.registerHandler(this.nativeId);
   }
 
@@ -33,32 +56,41 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
   destroy() {
     if (!this.isDestroyed) {
       CustomMessageHandlerExpoModule.destroy(this.nativeId);
+      this.onReceivedSynchronousMessageSubscription?.remove();
+      this.onReceivedAsynchronousMessageSubscription?.remove();
+      this.onReceivedSynchronousMessageSubscription = undefined;
+      this.onReceivedAsynchronousMessageSubscription = undefined;
       this.isDestroyed = true;
     }
   }
 
-  // noinspection JSUnusedGlobalSymbols
   /**
    * Called by native code, when the UI sends a synchronous message.
    * @internal
    */
-  receivedSynchronousMessage(message: string, data: string | undefined): void {
+  private receivedSynchronousMessage(
+    id: number,
+    message: string,
+    data: string | undefined
+  ): void {
     const result = this.customMessageHandler?.receivedSynchronousMessage(
       message,
       data
     );
     CustomMessageHandlerExpoModule.onReceivedSynchronousMessageResult(
-      this.nativeId,
+      id,
       result
     );
   }
 
-  // noinspection JSUnusedGlobalSymbols
   /**
    * Called by native code, when the UI sends an asynchronous message.
    * @internal
    */
-  receivedAsynchronousMessage(message: string, data: string | undefined): void {
+  private receivedAsynchronousMessage(
+    message: string,
+    data: string | undefined
+  ): void {
     this.customMessageHandler?.receivedAsynchronousMessage(message, data);
   }
 

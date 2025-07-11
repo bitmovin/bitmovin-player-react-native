@@ -1,6 +1,27 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
 
-export type CustomMessageHandlerExpoModuleEvents = Record<string, any>;
+export type CustomMessageHandlerExpoModuleEvents = {
+  onReceivedSynchronousMessage: ({
+    nativeId,
+    id,
+    message,
+    data,
+  }: {
+    nativeId: string;
+    id: number;
+    message: string;
+    data: string | undefined;
+  }) => void;
+  onReceivedAsynchronousMessage: ({
+    nativeId,
+    message,
+    data,
+  }: {
+    nativeId: string;
+    message: string;
+    data: string | undefined;
+  }) => void;
+};
 
 /**
  * Native CustomMessageHandlerExpoModule using Expo modules API.
@@ -10,7 +31,7 @@ declare class CustomMessageHandlerExpoModule extends NativeModule<CustomMessageH
   registerHandler(nativeId: string): Promise<void>;
   destroy(nativeId: string): Promise<void>;
   onReceivedSynchronousMessageResult(
-    nativeId: string,
+    id: number,
     result: string | undefined
   ): Promise<void>;
   sendMessage(

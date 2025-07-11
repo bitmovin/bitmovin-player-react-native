@@ -176,7 +176,7 @@ export class Source extends NativeInstance<SourceConfig> {
   /**
    * Allocates the native {@link Source} instance and its resources natively.
    */
-  initialize = () => {
+  initialize = async (): Promise<void> => {
     if (!this.isInitialized) {
       const sourceMetadata = this.config?.analyticsSourceMetadata;
       if (this.config?.drmConfig) {
@@ -184,23 +184,24 @@ export class Source extends NativeInstance<SourceConfig> {
         this.drm.initialize();
       }
       if (sourceMetadata) {
-        SourceExpoModule.initializeWithAnalyticsConfig(
+        await SourceExpoModule.initializeWithAnalyticsConfig(
           this.nativeId,
           this.drm?.nativeId,
           this.config,
-          this.remoteControl,
+          this.remoteControl || undefined,
           sourceMetadata
         );
       } else {
-        SourceExpoModule.initializeWithConfig(
+        await SourceExpoModule.initializeWithConfig(
           this.nativeId,
           this.drm?.nativeId,
           this.config,
-          this.remoteControl
+          this.remoteControl || undefined
         );
       }
       this.isInitialized = true;
     }
+    return Promise.resolve();
   };
 
   /**
@@ -258,7 +259,10 @@ export class Source extends NativeInstance<SourceConfig> {
    * The current `LoadingState` of the source.
    */
   loadingState = async (): Promise<LoadingState> => {
-    return (await SourceExpoModule.loadingState(this.nativeId)) || LoadingState.UNLOADED;
+    return (
+      (await SourceExpoModule.loadingState(this.nativeId)) ||
+      LoadingState.UNLOADED
+    );
   };
 
   /**

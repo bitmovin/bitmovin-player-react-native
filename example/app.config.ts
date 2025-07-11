@@ -1,4 +1,3 @@
-// example/app.config.ts
 import { ExpoConfig } from '@expo/config-types';
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -38,7 +37,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.bitmovin.player.reactnative.example',
-    ...(APPLE_DEVELOPMENT_TEAM_ID && { developmentTeam: APPLE_DEVELOPMENT_TEAM_ID }),
+    ...(APPLE_DEVELOPMENT_TEAM_ID && { appleTeamId: APPLE_DEVELOPMENT_TEAM_ID }),
   },
   android: {
     adaptiveIcon: {
