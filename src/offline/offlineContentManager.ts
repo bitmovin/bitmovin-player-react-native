@@ -63,8 +63,8 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
     if (!this.isInitialized && this.config) {
       this.eventSubscription = OfflineExpoModule.addListener(
         'onBitmovinOfflineEvent',
-        (event?: BitmovinNativeOfflineEventData) => {
-          if (this.nativeId !== event?.nativeId) {
+        (event: BitmovinNativeOfflineEventData) => {
+          if (this.nativeId !== event.nativeId) {
             return;
           }
 
@@ -74,7 +74,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
 
       if (this.config.sourceConfig.drmConfig) {
         this.drm = new Drm(this.config.sourceConfig.drmConfig);
-        this.drm.initialize();
+        await this.drm.initialize();
       }
 
       await OfflineExpoModule.initializeWithConfig(

@@ -18,19 +18,19 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
     }
 
     let offlineContentManager: OfflineContentManager
-    private weak var eventEmitter: EXEventEmitterService?
+    private weak var module: OfflineExpoModule?
     let nativeId: NativeId
     let identifier: String
     var currentTrackSelection: OfflineTrackSelection?
 
     init(
         forManager offlineContentManager: OfflineContentManager,
-        eventEmitter: EXEventEmitterService?,
+        module: OfflineExpoModule,
         nativeId: NativeId,
         identifier: String
     ) {
         self.offlineContentManager = offlineContentManager
-        self.eventEmitter = eventEmitter
+        self.module = module
         self.nativeId = nativeId
         self.identifier = identifier
         super.init()
@@ -72,7 +72,7 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         currentTrackSelection = event.tracks
 
         sendOfflineEvent(eventType: .onOptionsAvailable, body: [
-            "options": RCTConvert.toJson(offlineTracks: event.tracks)
+            "options": RCTConvert.toJson(offlineTracks: event.tracks) ?? [:]
         ])
     }
 
@@ -84,7 +84,7 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         offlineContentManager: OfflineContentManager
     ) {
         sendOfflineEvent(eventType: .onCompleted, body: [
-            "options": RCTConvert.toJson(offlineTracks: currentTrackSelection)
+            "options": RCTConvert.toJson(offlineTracks: currentTrackSelection) ?? [:]
         ])
     }
 
@@ -152,8 +152,8 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         sendOfflineEvent(eventType: .onDrmLicenseExpired)
     }
 
-    private func sendOfflineEvent(eventType: EventType, body: [String: Any?] = [:]) {
-        let baseEvent: [String: Any?] = [
+    private func sendOfflineEvent(eventType: EventType, body: [String: Any] = [:]) {
+        let baseEvent: [String: Any] = [
             "nativeId": nativeId,
             "identifier": identifier,
             "eventType": eventType.rawValue,
@@ -162,7 +162,7 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
 
         let eventBody = baseEvent.merging(body) { current, _ in current }
 
-        eventEmitter?.sendEvent(withName: "onBitmovinOfflineEvent", body: eventBody)
+        module?.sendEvent("onBitmovinOfflineEvent", eventBody)
     }
 }
 #endif

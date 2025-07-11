@@ -1093,7 +1093,7 @@ extension RCTConvert {
      - Parameter offlineTracks `OfflineTrackSelection` object to be converted.
      - Returns: The produced JS object.
      */
-    static func toJson(offlineTracks: OfflineTrackSelection?) -> [String: Any?]? {
+    static func toJson(offlineTracks: OfflineTrackSelection?) -> [String: Any]? {
         guard let offlineTracks else {
             return nil
         }

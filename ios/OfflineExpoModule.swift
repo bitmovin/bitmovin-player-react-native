@@ -23,7 +23,7 @@ public class OfflineExpoModule: Module {
             #if os(iOS)
             self?.createOfflineManager(nativeId: nativeId, config: config, drmNativeId: drmNativeId)
             #endif
-        }
+        }.runOnQueue(.main)
         AsyncFunction("getState") { [weak self] (nativeId: String) -> String? in
             #if os(iOS)
             let offlineState = self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.offlineState
@@ -31,63 +31,63 @@ public class OfflineExpoModule: Module {
             #else
             return nil
             #endif
-        }
+        }.runOnQueue(.main)
         AsyncFunction("getOptions") { [weak self] (nativeId: String) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.fetchAvailableTracks()
             #endif
-        }
+        }.runOnQueue(.main)
         AsyncFunction("usedStorage") { [weak self] (nativeId: String) -> Int? in
             #if os(iOS)
             return self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.usedStorage
             #else
             return nil
             #endif
-        }
+        }.runOnQueue(.main)
         AsyncFunction("deleteAll") { [weak self] (nativeId: String) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.deleteOfflineData()
             #endif
-        }
+        }.runOnQueue(.main)
         AsyncFunction("release") { [weak self] (nativeId: String) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.release()
             self?.offlineContentManagerBridges[nativeId] = nil
             #endif
-        }
+        }.runOnQueue(.main)
         AsyncFunction("download") { [weak self] (nativeId: String, request: [String: Any?]?) in
             #if os(iOS)
             self?.download(nativeId: nativeId, request: request)
             #endif
-        }
+        }.runOnQueue(.main)
         AsyncFunction("resume") { [weak self] (nativeId: String) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.resumeDownload()
             #endif
-        }
+        }.runOnQueue(.main)
         AsyncFunction("suspend") { [weak self] (nativeId: String) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.suspendDownload()
             #endif
-        }
+        }.runOnQueue(.main)
         AsyncFunction("cancelDownload") { [weak self] (nativeId: String) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.cancelDownload()
             #endif
-        }
+        }.runOnQueue(.main)
         AsyncFunction("downloadLicense") { [weak self] (nativeId: String) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.syncOfflineDrmLicenseInformation()
             #endif
-        }
+        }.runOnQueue(.main)
         AsyncFunction("renewOfflineLicense") { [weak self] (nativeId: String) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.renewOfflineLicense()
             #endif
-        }
+        }.runOnQueue(.main)
         AsyncFunction("releaseLicense") { (_: String) in
             // No-op on iOS
-        }
+        }.runOnQueue(.main)
     }
 
     #if os(iOS)
@@ -108,7 +108,7 @@ public class OfflineExpoModule: Module {
                 .offlineContentManager(for: sourceConfig, id: identifier)
             let offlineContentManagerBridge = OfflineContentManagerBridge(
                 forManager: offlineContentManager,
-                eventEmitter: appContext?.eventEmitter,
+                module: self,
                 nativeId: nativeId,
                 identifier: identifier
             )
@@ -120,14 +120,10 @@ public class OfflineExpoModule: Module {
         guard let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId], let request else {
             return
         }
-        switch offlineContentManagerBridge.offlineContentManager.offlineState {
-        case .downloaded, .downloading, .suspended, .canceling: // TODO double check if canceling is correct
+        guard offlineContentManagerBridge.offlineContentManager.offlineState == .notDownloaded else {
             return
-        case .notDownloaded:
-            break
-        @unknown default:
-            break
         }
+
         guard let currentTrackSelection = offlineContentManagerBridge.currentTrackSelection else {
             return
         }
