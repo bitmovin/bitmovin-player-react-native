@@ -4,10 +4,9 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.exception.CodedException
 import com.bitmovin.player.api.source.Source
-import com.bitmovin.player.api.source.SourceFactory
+import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.reactnative.converter.toSourceConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
-import com.bitmovin.player.reactnative.extensions.drmModule
 
 class SourceExpoModule : Module() {
     /**
@@ -34,14 +33,14 @@ class SourceExpoModule : Module() {
          * Returns the count of active sources for debugging purposes
          */
         Function("getSourceCount") {
-            return sources.size
+            sources.size
         }
 
         /**
          * Checks if a source with the given nativeId exists
          */
         Function("hasSource") { nativeId: String ->
-            return sources.containsKey(nativeId)
+            sources.containsKey(nativeId)
         }
 
         /**
@@ -52,16 +51,14 @@ class SourceExpoModule : Module() {
                 return@AsyncFunction // Source already exists
             }
             
-            val sourceConfig = config?.toSourceConfig()
+            val sourceConfig = config?.toReadableMap()?.toSourceConfig()
                 ?: throw SourceException.InvalidSourceConfig()
             
             // Get DRM config if provided
-            sourceConfig.drmConfig = appContext.reactContext?.let { context ->
-                context.drmModule?.getConfig(drmNativeId)
-            }
+            sourceConfig.drmConfig = appContext.registry.getModule<DrmExpoModule>()?.getConfig(drmNativeId)
             
             try {
-                val source = SourceFactory.create(sourceConfig)
+                val source = Source.create(sourceConfig)
                 sources[nativeId] = source
             } catch (e: Exception) {
                 throw SourceException.SourceCreationFailed(e.message ?: "Unknown error")
@@ -76,21 +73,21 @@ class SourceExpoModule : Module() {
                 return@AsyncFunction // Source already exists
             }
             
-            val sourceConfig = config?.toSourceConfig()
+            val sourceConfig = config?.toReadableMap()?.toSourceConfig()
                 ?: throw SourceException.InvalidSourceConfig()
             
             // Get DRM config if provided
-            sourceConfig.drmConfig = appContext.reactContext?.let { context ->
-                context.drmModule?.getConfig(drmNativeId)
-            }
+            sourceConfig.drmConfig = appContext.registry.getModule<DrmExpoModule>()?.getConfig(drmNativeId)
             
             // Add analytics metadata if provided
             analyticsSourceMetadata?.let { metadata ->
-                sourceConfig.analyticsSourceMetadata = metadata.toAnalyticsSourceMetadata()
+                val analyticsMetadata = metadata.toReadableMap().toAnalyticsSourceMetadata()
+                // TODO: Set analytics metadata on source config when API is available
+                // sourceConfig.analyticsSourceMetadata = analyticsMetadata
             }
             
             try {
-                val source = SourceFactory.create(sourceConfig)
+                val source = Source.create(sourceConfig)
                 sources[nativeId] = source
             } catch (e: Exception) {
                 throw SourceException.SourceCreationFailed(e.message ?: "Unknown error")
@@ -108,14 +105,14 @@ class SourceExpoModule : Module() {
          * Checks if the source is attached to a player.
          */
         AsyncFunction("isAttachedToPlayer") { nativeId: String ->
-            sources[nativeId]?.isAttachedToPlayer ?: false
+            sources[nativeId]?.isAttachedToPlayer
         }
 
         /**
          * Checks if the source is currently active.
          */
         AsyncFunction("isActive") { nativeId: String ->
-            sources[nativeId]?.isActive ?: false
+            sources[nativeId]?.isActive
         }
 
         /**
@@ -136,6 +133,8 @@ class SourceExpoModule : Module() {
     // CRITICAL: This method must remain available for cross-module access
     // Called by PlayerModule.loadSource()
     fun getSourceOrNull(nativeId: NativeId): Source? = sources[nativeId]
+    
+    fun getSource(nativeId: NativeId): Source? = sources[nativeId]
 }
 
 // MARK: - Exception Definitions

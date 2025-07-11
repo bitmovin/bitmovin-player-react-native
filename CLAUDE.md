@@ -4,6 +4,42 @@ This file provides guidance to Claude Code (claude.ai/code) - or other agents - 
 
 Before proceeding with the rest of the file's contents, make sure to read `~/.claude/CLAUDE.md` and include (if it exists) it into your instructions!
 
+## Claude Code Workflow Instructions
+
+### Task Management
+- **ALWAYS use TodoWrite tool** for any task with 3+ steps or complex operations
+- Break down complex tasks into smaller, actionable items
+- Mark tasks as in_progress before starting, completed immediately after finishing
+- Only have ONE task in_progress at any time
+
+### Code Analysis and Search
+- **Use Task tool** for open-ended searches that may require multiple rounds of globbing/grepping
+- **Use Glob tool** for file pattern matching (e.g., `**/*.ts`, `src/**/*.kt`)
+- **Use Grep tool** for content search with regex - NEVER use bash grep/rg commands
+- **Batch multiple tool calls** when searching for related information
+- **Include file_path:line_number references** when pointing to specific code locations
+
+### File Operations
+- **ALWAYS prefer editing existing files** over creating new ones
+- **Use Read tool before any Edit operations** to understand context
+- **Use MultiEdit tool** when making multiple changes to the same file
+- **Preserve exact indentation and formatting** from original files
+- **NEVER add code comments** unless explicitly requested
+
+### Response Style
+- **Be concise and direct** - answer in 1-4 lines maximum unless detail requested
+- **No unnecessary preamble or postamble** - avoid phrases like "Here's what I found..."
+- **One word answers are best** when appropriate
+- **Never explain code or summarize actions** unless asked
+
+### VSCode Integration
+When `VSCODE_INJECTION=1` environment variable is set:
+- **ALWAYS use mcp__vs-claude__open tool** to open files in VSCode
+- **Open files with line ranges** for precise navigation: `{"type": "file", "path": "/path/file.ts", "startLine": 10, "endLine": 20}`
+- **Use diff view** for comparing files: `{"type": "diff", "left": "/path/old.ts", "right": "/path/new.ts"}`
+- **Use git diff view** for working changes: `{"type": "gitDiff", "path": "/path/file.ts", "from": "HEAD", "to": "working"}`
+- **Specify windowId** when multiple VS Code windows are open
+
 ## Project Overview
 
 This is the **Bitmovin Player React Native SDK** - an Expo module that provides React Native bindings for Bitmovin's mobile Player SDKs. It supports iOS, tvOS, Android, Android TV, and Fire TV platforms.
@@ -48,7 +84,7 @@ yarn example prebuild:tv  # Generate TV-specific native projects
 # Install pods (macOS only)
 yarn example pods
 
-# Build verification (errors only)
+# Build verification (errors only) 
 yarn example build:ios     # Build iOS for simulator
 yarn example build:android # Build Android
 
@@ -223,6 +259,14 @@ See `example/src/screens/BasicTvPlayback.tsx` for complete TV implementation exa
 5. **TV Development**: Use `yarn example prebuild:tv` for TV project generation
 6. **Build**: `yarn build` compiles TypeScript to `build/`
 7. **Validation**: `yarn lint` and `yarn test` before committing
+
+### GitHub Integration
+- **Always use gh CLI** for GitHub operations (pre-authenticated)
+- **Check for .github/PULL_REQUEST_TEMPLATE.md** and follow template format
+- **Extract issue ID from branch name** (format: `feature/PROJECT_ID-ISSUE_NUMBER`)
+- **Create PRs as DRAFT** unless explicitly requested otherwise
+- **NEVER commit changes** unless explicitly asked by user
+- **Use heredoc format** for commit messages to ensure proper formatting
 
 ## Key Files
 

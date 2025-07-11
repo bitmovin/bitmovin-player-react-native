@@ -4,6 +4,7 @@ import ExpoModulesCore
 public class PlayerExpoModule: Module {
     private var players: Registry<Player> = [:]
 
+    // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("PlayerExpoModule")
         OnCreate {}
@@ -15,10 +16,18 @@ public class PlayerExpoModule: Module {
                 players.values.forEach { $0.destroy() }
             }
         }
-        AsyncFunction("play") { [weak self] (nativeId: String) in self?.players[nativeId]?.play() }.runOnQueue(.main)
-        AsyncFunction("pause") { [weak self] (nativeId: String) in self?.players[nativeId]?.pause() }.runOnQueue(.main)
-        AsyncFunction("mute") { [weak self] (nativeId: String) in self?.players[nativeId]?.mute() }.runOnQueue(.main)
-        AsyncFunction("unmute") { [weak self] (nativeId: String) in self?.players[nativeId]?.unmute() }.runOnQueue(.main)
+        AsyncFunction("play") { [weak self] (nativeId: String) in
+            self?.players[nativeId]?.play()
+        }.runOnQueue(.main)
+        AsyncFunction("pause") { [weak self] (nativeId: String) in
+            self?.players[nativeId]?.pause()
+        }.runOnQueue(.main)
+        AsyncFunction("mute") { [weak self] (nativeId: String) in
+            self?.players[nativeId]?.mute()
+        }.runOnQueue(.main)
+        AsyncFunction("unmute") { [weak self] (nativeId: String) in
+            self?.players[nativeId]?.unmute()
+        }.runOnQueue(.main)
         AsyncFunction("seek") { [weak self] (nativeId: String, time: Double) in
             self?.players[nativeId]?.seek(time: time)
         }.runOnQueue(.main)
@@ -34,14 +43,18 @@ public class PlayerExpoModule: Module {
         AsyncFunction("setVolume") { [weak self] (nativeId: String, volume: Int) in
             self?.players[nativeId]?.volume = volume
         }.runOnQueue(.main)
-        AsyncFunction("unload") { [weak self] (nativeId: String) in self?.players[nativeId]?.unload() }.runOnQueue(.main)
+        AsyncFunction("unload") { [weak self] (nativeId: String) in
+            self?.players[nativeId]?.unload()
+        }.runOnQueue(.main)
         AsyncFunction("setPlaybackSpeed") { [weak self] (nativeId: String, playbackSpeed: Float) in
             self?.players[nativeId]?.playbackSpeed = playbackSpeed
         }.runOnQueue(.main)
         AsyncFunction("setMaxSelectableBitrate") { [weak self] (nativeId: String, maxBitrate: Int) in
             self?.players[nativeId]?.maxSelectableBitrate = UInt(maxBitrate)
         }.runOnQueue(.main)
-        AsyncFunction("getVolume") { [weak self] (nativeId: String) -> Int? in self?.players[nativeId]?.volume }.runOnQueue(.main)
+        AsyncFunction("getVolume") { [weak self] (nativeId: String) -> Int? in
+            self?.players[nativeId]?.volume
+        }.runOnQueue(.main)
         AsyncFunction("currentTime") { [weak self] (nativeId: String, mode: String?) -> Double? in
             let player = self?.players[nativeId]
             if let mode {
@@ -58,18 +71,24 @@ public class PlayerExpoModule: Module {
         AsyncFunction("duration") { [weak self] (nativeId: String) -> Double? in
             self?.players[nativeId]?.duration
         }.runOnQueue(.main)
-        AsyncFunction("isMuted") { [weak self] (nativeId: String) -> Bool? in self?.players[nativeId]?.isMuted }.runOnQueue(.main)
+        AsyncFunction("isMuted") { [weak self] (nativeId: String) -> Bool? in
+            self?.players[nativeId]?.isMuted
+        }.runOnQueue(.main)
         AsyncFunction("getTimeShift") { [weak self] (nativeId: String) -> Double? in
             self?.players[nativeId]?.timeShift
         }.runOnQueue(.main)
-        AsyncFunction("isLive") { [weak self] (nativeId: String) -> Bool? in self?.players[nativeId]?.isLive }.runOnQueue(.main)
+        AsyncFunction("isLive") { [weak self] (nativeId: String) -> Bool? in
+            self?.players[nativeId]?.isLive
+        }.runOnQueue(.main)
         AsyncFunction("getMaxTimeShift") { [weak self] (nativeId: String) -> Double? in
             self?.players[nativeId]?.maxTimeShift
         }.runOnQueue(.main)
         AsyncFunction("getPlaybackSpeed") { [weak self] (nativeId: String) -> Float? in
             self?.players[nativeId]?.playbackSpeed
         }.runOnQueue(.main)
-        AsyncFunction("isAd") { [weak self] (nativeId: String) -> Bool? in self?.players[nativeId]?.isAd }.runOnQueue(.main)
+        AsyncFunction("isAd") { [weak self] (nativeId: String) -> Bool? in
+            self?.players[nativeId]?.isAd
+        }.runOnQueue(.main)
         AsyncFunction("canPlayAtPlaybackSpeed") { [weak self] (nativeId: String, playbackSpeed: Float) -> Bool? in
             self?.players[nativeId]?.canPlay(atPlaybackSpeed: playbackSpeed)
         }.runOnQueue(.main)
@@ -101,10 +120,10 @@ public class PlayerExpoModule: Module {
         AsyncFunction("getThumbnail") { [weak self] (nativeId: String, time: Double) -> [String: Any]? in
             RCTConvert.toJson(thumbnail: self?.players[nativeId]?.thumbnail(forTime: time))
         }.runOnQueue(.main)
-        AsyncFunction("loadOfflineContent") { [weak self] (nativeId: String, bridgeId: String, options: [String: Any]?) in
+        AsyncFunction("loadOfflineContent") { [weak self] (nativeId: String, bridgeId: String, options: [String: Any]?) in // swiftlint:disable:this line_length
             #if os(iOS)
             guard let player = self?.players[nativeId],
-                  let offlineModule = self?.appContext?.moduleRegistry.get(OfflineExpoModule.self), // swiftlint:disable:this line_length
+                  let offlineModule = self?.appContext?.moduleRegistry.get(OfflineExpoModule.self),
                   let offlineContentManagerBridge = offlineModule.retrieve(bridgeId) else { return }
             let optionsDictionary = options ?? [:]
             let restrictedToAssetCache = optionsDictionary["restrictedToAssetCache"] as? Bool ?? true
@@ -181,7 +200,7 @@ public class PlayerExpoModule: Module {
         }.runOnQueue(.main)
         AsyncFunction("loadSource") { [weak self] (nativeId: String, sourceNativeId: String) in
             guard let player = self?.players[nativeId],
-                  let sourceModule = appContext?.moduleRegistry.get(SourceExpoModule.self), // swiftlint:disable:this line_length
+                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceExpoModule.self), // swiftlint:disable:this line_length
                   let source = sourceModule.retrieve(sourceNativeId) else { return }
             player.load(source: source)
         }.runOnQueue(.main)

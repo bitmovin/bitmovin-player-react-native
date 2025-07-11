@@ -1,19 +1,45 @@
 package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.reactnative.converter.toRNPlayerViewConfigWrapper
-import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule
+// import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule - TODO: Fix fullscreen handler integration
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import expo.modules.kotlin.views.ViewManagerDefinition
-import expo.modules.kotlin.views.ViewManager
 
 class RNPlayerViewManagerExpo : Module() {
     override fun definition() = ModuleDefinition {
         Name("RNPlayerViewManagerExpo")
 
-        ViewManager {
-            View { context ->
-                ExpoRNPlayerView(context, appContext)
+        View(RNPlayerViewExpo::class) {
+            Prop("config") { view: RNPlayerViewExpo, config: Map<String, Any>? ->
+                view.config = config?.toReadableMap()?.toRNPlayerViewConfigWrapper()
+            }
+
+            Prop("playerConfig") { view: RNPlayerViewExpo, playerConfig: Map<String, Any>? ->
+                val playerId = playerConfig?.get("id") as? String
+                    ?: throw IllegalArgumentException("Player config must contain 'id' field")
+                view.attachPlayer(playerId, playerConfig)
+            }
+
+            Prop("scalingMode") { view: RNPlayerViewExpo, scalingMode: String ->
+                view.setScalingMode(scalingMode)
+            }
+
+            Prop("isFullscreenRequested") { view: RNPlayerViewExpo, isFullscreen: Boolean ->
+                view.setFullscreen(isFullscreen)
+            }
+
+            Prop("isPictureInPictureRequested") { view: RNPlayerViewExpo, isPictureInPicture: Boolean ->
+                view.setPictureInPicture(isPictureInPicture)
+            }
+
+            Prop("fullscreenBridgeId") { view: RNPlayerViewExpo, fullscreenBridgeId: String ->
+                // TODO: Implement fullscreen handler integration with Expo modules
+                // view.playerView?.setFullscreenHandler(...)
+            }
+
+            Prop("customMessageHandlerBridgeId") { view: RNPlayerViewExpo, bridgeId: String ->
+                // TODO: Implement custom message handler integration with Expo modules
+//                view.setCustomMessageHandlerBridgeId(customMessageHandlerBridgeId: bridgeId)
             }
 
             Events(
@@ -79,32 +105,6 @@ class RNPlayerViewManagerExpo : Module() {
                 "onBmpCueEnter",
                 "onBmpCueExit"
             )
-
-            Prop("config") { view: ExpoRNPlayerView, config: Map<String, Any>? ->
-                view.config = config?.toRNPlayerViewConfigWrapper()
-            }
-
-            AsyncFunction("attachPlayer") { view: ExpoRNPlayerView, playerId: String, playerConfig: Map<String, Any>? ->
-                view.attachPlayer(playerId, playerConfig)
-            }
-
-            AsyncFunction("attachFullscreenBridge") { view: ExpoRNPlayerView, fullscreenBridgeId: String ->
-                view.playerView?.setFullscreenHandler(
-                    appContext.legacyModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId)
-                )
-            }
-
-            AsyncFunction("setFullscreen") { view: ExpoRNPlayerView, isFullscreen: Boolean ->
-                view.setFullscreen(isFullscreen)
-            }
-
-            AsyncFunction("setPictureInPicture") { view: ExpoRNPlayerView, isPictureInPicture: Boolean ->
-                view.setPictureInPicture(isPictureInPicture)
-            }
-
-            AsyncFunction("setScalingMode") { view: ExpoRNPlayerView, scalingMode: String ->
-                view.setScalingMode(scalingMode)
-            }
         }
     }
 }

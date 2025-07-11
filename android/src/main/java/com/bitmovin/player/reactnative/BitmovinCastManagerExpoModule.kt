@@ -1,10 +1,8 @@
 package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.casting.BitmovinCastManager
-import com.bitmovin.player.reactnative.converter.toCastOptions
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import expo.modules.kotlin.types.Enumerable
 
 class BitmovinCastManagerExpoModule : Module() {
     override fun definition() = ModuleDefinition {

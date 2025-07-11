@@ -219,7 +219,7 @@ export class Source extends NativeInstance<SourceConfig> {
    * Default value is `0` if the duration is not available or not known.
    */
   duration = async (): Promise<number> => {
-    return SourceExpoModule.duration(this.nativeId);
+    return (await SourceExpoModule.duration(this.nativeId)) || 0;
   };
 
   /**
@@ -227,14 +227,14 @@ export class Source extends NativeInstance<SourceConfig> {
    * Only one source can be active in the same player instance at any time.
    */
   isActive = async (): Promise<boolean> => {
-    return SourceExpoModule.isActive(this.nativeId);
+    return (await SourceExpoModule.isActive(this.nativeId)) ?? false;
   };
 
   /**
    * Whether the source is currently attached to a player instance.
    */
   isAttachedToPlayer = async (): Promise<boolean> => {
-    return SourceExpoModule.isAttachedToPlayer(this.nativeId);
+    return (await SourceExpoModule.isAttachedToPlayer(this.nativeId)) ?? false;
   };
 
   /**
@@ -258,7 +258,7 @@ export class Source extends NativeInstance<SourceConfig> {
    * The current `LoadingState` of the source.
    */
   loadingState = async (): Promise<LoadingState> => {
-    return SourceExpoModule.loadingState(this.nativeId);
+    return (await SourceExpoModule.loadingState(this.nativeId)) || LoadingState.UNLOADED;
   };
 
   /**

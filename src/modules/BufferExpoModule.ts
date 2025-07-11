@@ -9,8 +9,10 @@ declare class BufferExpoModule extends NativeModule<BufferExpoModuleEvents> {
    */
   getLevel(playerId: string, type: string): Promise<BufferLevels>;
 
-  // TODO: Add method types as they are migrated from BufferModule
-  // setTargetLevel, getTargetLevel, etc.
+  /**
+   * Set target level for the specified player and buffer type.
+   */
+  setTargetLevel(playerId: string, type: string, value: number): Promise<void>;
 }
 
 export default requireNativeModule<BufferExpoModule>('BufferExpoModule');

@@ -35,5 +35,4 @@ public class PlayerAnalyticsExpoModule: Module {
             return playerAnalytics.userId
         }.runOnQueue(.main)
     }
-
 }

@@ -217,7 +217,6 @@ public class RNPlayerViewExpo: ExpoView {
             "timestamp": Date().timeIntervalSince1970
         ]
 
-
         sendEvent("onBmpPictureInPictureAvailabilityChanged", event)
     }
 }

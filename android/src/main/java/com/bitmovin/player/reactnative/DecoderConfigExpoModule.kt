@@ -122,6 +122,8 @@ class DecoderConfigExpoModule : Module() {
     
     val decoderConfig: DecoderConfig?
         get() = decoderConfigs.values.firstOrNull()
+    
+    fun getDecoderConfig(nativeId: String): DecoderConfig? = decoderConfigs[nativeId]
 }
 
 // MARK: - Exception Definitions

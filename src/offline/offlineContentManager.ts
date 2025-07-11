@@ -1,4 +1,4 @@
-import { EmitterSubscription } from 'react-native';
+import { EventSubscription } from 'expo-modules-core';
 import NativeInstance from '../nativeInstance';
 import {
   BitmovinNativeOfflineEventData,
@@ -50,7 +50,7 @@ const handleBitmovinNativeOfflineEvent = (
 export class OfflineContentManager extends NativeInstance<OfflineContentConfig> {
   isInitialized = false;
   isDestroyed = false;
-  private eventSubscription?: EmitterSubscription = undefined;
+  private eventSubscription?: EventSubscription;
   private listeners: Set<OfflineContentManagerListener> =
     new Set<OfflineContentManagerListener>();
   private drm?: Drm;
@@ -60,25 +60,24 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Registers the `DeviceEventEmitter` listener to receive data from the native `OfflineContentManagerListener` callbacks
    */
   initialize = async (): Promise<void> => {
-    let initPromise = Promise.resolve();
     if (!this.isInitialized && this.config) {
-      this.eventSubscription = OfflineExpoModule.addListener?.(
-        'BitmovinOfflineEvent',
-        (data?: BitmovinNativeOfflineEventData) => {
-          if (this.nativeId !== data?.nativeId) {
+      this.eventSubscription = OfflineExpoModule.addListener(
+        'onBitmovinOfflineEvent',
+        (event?: BitmovinNativeOfflineEventData) => {
+          if (this.nativeId !== event?.nativeId) {
             return;
           }
 
-          handleBitmovinNativeOfflineEvent(data, this.listeners);
+          handleBitmovinNativeOfflineEvent(event, this.listeners);
         }
-      ) as EmitterSubscription;
+      );
 
       if (this.config.sourceConfig.drmConfig) {
         this.drm = new Drm(this.config.sourceConfig.drmConfig);
         this.drm.initialize();
       }
 
-      initPromise = OfflineExpoModule.initializeWithConfig(
+      await OfflineExpoModule.initializeWithConfig(
         this.nativeId,
         {
           identifier: this.config.identifier,
@@ -89,7 +88,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
     }
 
     this.isInitialized = true;
-    return initPromise;
+    return Promise.resolve();
   };
 
   /**

@@ -96,10 +96,18 @@ class DrmExpoModule : Module() {
         }
 
         // iOS-specific methods that return null on Android for compatibility
-        AsyncFunction("setPreparedCertificate") { _: String, _: String -> null }
-        AsyncFunction("setPreparedSyncMessage") { _: String, _: String -> null }
-        AsyncFunction("setPreparedLicenseServerUrl") { _: String, _: String -> null }
-        AsyncFunction("setPreparedContentId") { _: String, _: String -> null }
+        AsyncFunction("setPreparedCertificate") { _: String, _: String -> 
+            // No-op on Android
+        }
+        AsyncFunction("setPreparedSyncMessage") { _: String, _: String -> 
+            // No-op on Android
+        }
+        AsyncFunction("setPreparedLicenseServerUrl") { _: String, _: String -> 
+            // No-op on Android
+        }
+        AsyncFunction("setPreparedContentId") { _: String, _: String -> 
+            // No-op on Android
+        }
     }
 
     /**

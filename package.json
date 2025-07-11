@@ -11,7 +11,7 @@
     "dev:plugin": "expo-module build plugin",
     "clean": "expo-module clean",
     "lint": "expo-module lint",
-    "lint:ios": "swiftlint",
+    "lint:ios": "swiftlint ios",
     "prepare": "expo-module prepare",
     "prepublishOnly": "expo-module prepublishOnly",
     "module": "expo-module",

@@ -7,7 +7,6 @@ public class SourceExpoModule: Module {
     /// In-memory mapping from `nativeId`s to `SourceConfig` instances for casting.
     private var castSourceConfigs: Registry<SourceConfig> = [:]
 
-    // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("SourceExpoModule")
         OnCreate {
@@ -20,10 +19,7 @@ public class SourceExpoModule: Module {
         }
 
         // MARK: - Module methods
-        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: String, // swiftlint:disable:this closure_parameter_position
-                                             drmNativeId: String?, // swiftlint:disable:this closure_parameter_position line_length
-                                             config: [String: Any]?, // swiftlint:disable:this closure_parameter_position line_length
-                                             sourceRemoteControlConfig: [String: Any]?) in // swiftlint:disable:this closure_parameter_position line_length
+        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: String, drmNativeId: String?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?) in // swiftlint:disable:this line_length
             self?.createSource(
                 nativeId: nativeId,
                 drmNativeId: drmNativeId,
@@ -31,11 +27,7 @@ public class SourceExpoModule: Module {
                 sourceRemoteControlConfig: sourceRemoteControlConfig
             )
         }
-        AsyncFunction("initializeWithAnalyticsConfig") { [weak self] (nativeId: String, // swiftlint:disable:this closure_parameter_position line_length
-                                                     drmNativeId: String?, // swiftlint:disable:this closure_parameter_position line_length
-                                                     config: [String: Any]?, // swiftlint:disable:this closure_parameter_position line_length
-                                                     sourceRemoteControlConfig: [String: Any]?, // swiftlint:disable:this closure_parameter_position line_length
-                                                     analyticsSourceMetadata: [String: Any]?) in // swiftlint:disable:this closure_parameter_position line_length
+        AsyncFunction("initializeWithAnalyticsConfig") { [weak self] (nativeId: String, drmNativeId: String?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?, analyticsSourceMetadata: [String: Any]?) in // swiftlint:disable:this line_length
             self?.createSource(
                 nativeId: nativeId,
                 drmNativeId: drmNativeId,
@@ -139,4 +131,3 @@ public class SourceExpoModule: Module {
 internal struct SourceRemoteControlConfig {
     let castSourceConfig: SourceConfig?
 }
-

@@ -69,7 +69,6 @@ const RootStack = createNativeStackNavigator<RootStackParamsList>();
 
 const isTVOS = Platform.OS === 'ios' && Platform.isTV;
 const isAndroidTV = Platform.OS === 'android' && Platform.isTV;
-
 const isIOSSimulator = Device.osName === 'iOS' && Device.isDevice === false;
 
 export default function App() {

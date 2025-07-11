@@ -1,11 +1,13 @@
-import { requireNativeModule } from 'expo-modules-core';
+import { NativeModule, requireNativeModule } from 'expo-modules-core';
 import { DrmConfig } from './index';
 
+export type DrmExpoModuleEvents = Record<string, any>;
+
 /**
- * Native DrmExpoModule interface using Expo modules API.
+ * Native DrmExpoModule using Expo modules API.
  * Provides modern async/await interface while maintaining backward compatibility.
  */
-interface DrmExpoModuleInterface {
+declare class DrmExpoModule extends NativeModule<DrmExpoModuleEvents> {
   initializeWithConfig(nativeId: string, config: DrmConfig): Promise<void>;
   destroy(nativeId: string): Promise<void>;
   setPreparedCertificate(nativeId: string, certificate: string): any;
@@ -16,12 +18,4 @@ interface DrmExpoModuleInterface {
   setPreparedContentId(nativeId: string, contentId: string): any;
 }
 
-/**
- * Expo-based DrmModule implementation.
- * This provides the same functionality as the legacy DrmModule but uses Expo's modern module system.
- */
-const DrmExpoModule =
-  requireNativeModule<DrmExpoModuleInterface>('DrmExpoModule');
-
-export default DrmExpoModule;
-export { DrmExpoModuleInterface };
+export default requireNativeModule<DrmExpoModule>('DrmExpoModule');

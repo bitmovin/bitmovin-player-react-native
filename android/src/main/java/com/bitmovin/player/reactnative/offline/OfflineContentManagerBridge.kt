@@ -224,7 +224,7 @@ class OfflineContentManagerBridge(
         event.putString("identifier", identifier)
         event.putString("eventType", eventType.eventName)
         event.putString("state", aggregateState(contentOptions).name)
-        context.rtcDeviceEventEmitter.emit("BitmovinOfflineEvent", event)
+        context.rtcDeviceEventEmitter.emit("onBitmovinOfflineEvent", event)
     }
 }
 

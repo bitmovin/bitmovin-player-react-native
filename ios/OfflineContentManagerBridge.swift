@@ -153,7 +153,7 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
     }
 
     private func sendOfflineEvent(eventType: EventType, body: [String: Any?] = [:]) {
-        var baseEvent: [String: Any?] = [
+        let baseEvent: [String: Any?] = [
             "nativeId": nativeId,
             "identifier": identifier,
             "eventType": eventType.rawValue,
@@ -162,7 +162,7 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
 
         let eventBody = baseEvent.merging(body) { current, _ in current }
 
-        eventEmitter?.sendEvent(withName: "BitmovinOfflineEvent", body: eventBody)
+        eventEmitter?.sendEvent(withName: "onBitmovinOfflineEvent", body: eventBody)
     }
 }
 #endif

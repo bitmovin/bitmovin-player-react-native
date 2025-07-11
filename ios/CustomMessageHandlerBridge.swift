@@ -14,7 +14,7 @@ internal class CustomMessageHandlerBridge: NSObject {
     private weak var expoModule: CustomMessageHandlerExpoModule?
 
     private var currentSynchronousResult: String?
-    
+
     init(_ nativeId: NativeId, expoModule: CustomMessageHandlerExpoModule?) {
         self.nativeId = nativeId
         self.expoModule = expoModule

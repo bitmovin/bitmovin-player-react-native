@@ -43,12 +43,3 @@ data class RNBufferLevels(
     val video: BufferLevel
 )
 
-/**
- * Registry type alias for mapping native IDs to instances.
- */
-typealias Registry<T> = MutableMap<String, T>
-
-/**
- * Type alias for native ID strings.
- */
-typealias NativeId = String

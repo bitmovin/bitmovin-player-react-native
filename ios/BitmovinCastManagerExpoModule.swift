@@ -34,5 +34,10 @@ public class BitmovinCastManagerExpoModule: Module {
             BitmovinCastManager.sharedInstance().sendMessage(message, withNamespace: messageNamespace)
             #endif
         }.runOnQueue(.main)
+
+        AsyncFunction("updateContext") { () in
+            // iOS/tvOS doesn't need updateContext like Android does
+            // This is a no-op for iOS compatibility
+        }.runOnQueue(.main)
     }
 }

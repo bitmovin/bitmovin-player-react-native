@@ -33,7 +33,7 @@ class FullscreenHandlerExpoModule : Module() {
         Name(MODULE_NAME)
 
         AsyncFunction("registerHandler") { nativeId: String ->
-            val fullscreenHandler = fullscreenHandlers[nativeId] ?: FullscreenHandlerBridge(appContext.reactApplicationContext!! as com.facebook.react.bridge.ReactApplicationContext, nativeId, this@FullscreenHandlerExpoModule)
+            val fullscreenHandler = fullscreenHandlers[nativeId] ?: FullscreenHandlerBridge(appContext.reactContext as com.facebook.react.bridge.ReactApplicationContext, nativeId, this@FullscreenHandlerExpoModule)
             fullscreenHandlers[nativeId] = fullscreenHandler
         }
 

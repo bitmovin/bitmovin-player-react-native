@@ -83,5 +83,4 @@ public class CustomMessageHandlerExpoModule: Module {
             "data": data as Any
         ])
     }
-
 }

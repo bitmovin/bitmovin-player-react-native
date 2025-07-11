@@ -1,3 +1,4 @@
+import { EventSubscription } from 'expo-modules-core';
 import { FullscreenHandler } from './fullscreenhandler';
 import UuidExpoModule from '../modules/UuidExpoModule';
 import FullscreenHandlerExpoModule from './fullscreenHandlerExpoModule';
@@ -10,8 +11,8 @@ export class FullscreenHandlerBridge {
   fullscreenHandler?: FullscreenHandler;
   isDestroyed: boolean;
 
-  private onEnterFullScreenSubscription?: any;
-  private onExitFullScreenSubscription?: any;
+  private onEnterFullScreenSubscription?: EventSubscription;
+  private onExitFullScreenSubscription?: EventSubscription;
 
   constructor(nativeId?: string) {
     this.nativeId = nativeId ?? UuidExpoModule.generate();

@@ -1,10 +1,12 @@
-import { requireNativeModule } from 'expo-modules-core';
+import { NativeModule, requireNativeModule } from 'expo-modules-core';
+
+export type CustomMessageHandlerExpoModuleEvents = Record<string, any>;
 
 /**
- * Native CustomMessageHandlerExpoModule interface using Expo modules API.
+ * Native CustomMessageHandlerExpoModule using Expo modules API.
  * Provides modern async/await interface while maintaining backward compatibility.
  */
-interface CustomMessageHandlerExpoModuleInterface {
+declare class CustomMessageHandlerExpoModule extends NativeModule<CustomMessageHandlerExpoModuleEvents> {
   registerHandler(nativeId: string): Promise<void>;
   destroy(nativeId: string): Promise<void>;
   onReceivedSynchronousMessageResult(
@@ -18,14 +20,6 @@ interface CustomMessageHandlerExpoModuleInterface {
   ): Promise<void>;
 }
 
-/**
- * Expo-based CustomMessageHandlerModule implementation.
- * This provides the same functionality as the legacy CustomMessageHandlerModule but uses Expo's modern module system.
- */
-const CustomMessageHandlerExpoModule =
-  requireNativeModule<CustomMessageHandlerExpoModuleInterface>(
-    'CustomMessageHandlerExpoModule'
-  );
-
-export default CustomMessageHandlerExpoModule;
-export { CustomMessageHandlerExpoModuleInterface };
+export default requireNativeModule<CustomMessageHandlerExpoModule>(
+  'CustomMessageHandlerExpoModule'
+);

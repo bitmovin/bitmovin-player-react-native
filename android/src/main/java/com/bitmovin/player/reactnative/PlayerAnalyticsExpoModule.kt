@@ -4,6 +4,7 @@ import com.bitmovin.player.api.analytics.AnalyticsApi
 import com.bitmovin.player.api.analytics.AnalyticsApi.Companion.analytics
 import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
 import com.facebook.react.bridge.*
+import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.Promise
@@ -28,7 +29,7 @@ class PlayerAnalyticsExpoModule : Module() {
             } catch (e: Exception) {
                 promise.reject("PlayerAnalyticsError", "Failed to send custom data event", e)
             }
-        }
+        }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("getUserId") { playerId: String, promise: Promise ->
             try {
@@ -37,7 +38,7 @@ class PlayerAnalyticsExpoModule : Module() {
             } catch (e: Exception) {
                 promise.reject("PlayerAnalyticsError", "Failed to get user ID", e)
             }
-        }
+        }.runOnQueue(Queues.MAIN)
     }
 
     /**
@@ -45,8 +46,8 @@ class PlayerAnalyticsExpoModule : Module() {
      */
     private fun getAnalyticsForPlayer(playerId: String): AnalyticsApi {
         // Get the player from PlayerExpoModule
-        val playerExpoModule = appContext.legacyModule<PlayerExpoModule>()
-        val player = playerExpoModule?.getPlayer(playerId) ?: throw IllegalStateException("Could not find player with ID $playerId")
+        val playerExpoModule = appContext.registry.getModule<PlayerExpoModule>()
+        val player = playerExpoModule?.getPlayerOrNull(playerId) ?: throw IllegalStateException("Could not find player with ID $playerId")
         return player.analytics ?: throw IllegalStateException("Analytics is disabled")
     }
 

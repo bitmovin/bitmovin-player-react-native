@@ -1,13 +1,10 @@
 package com.bitmovin.player.reactnative
 
 import android.annotation.SuppressLint
-import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
-import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.UiConfig
-import com.bitmovin.player.reactnative.converter.toRNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.converter.toRNStyleConfigWrapperFromPlayerConfig
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import expo.modules.kotlin.AppContext
@@ -15,7 +12,7 @@ import expo.modules.kotlin.views.ExpoView
 import java.security.InvalidParameterException
 
 @SuppressLint("ViewConstructor")
-class ExpoRNPlayerView(context: android.content.Context, appContext: AppContext) : ExpoView(context, appContext) {
+class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext) : ExpoView(context, appContext) {
     var playerView: PlayerView? = null
         private set
     var config: RNPlayerViewConfigWrapper? = null
@@ -38,14 +35,14 @@ class ExpoRNPlayerView(context: android.content.Context, appContext: AppContext)
     }
 
     fun attachPlayer(playerId: NativeId, playerConfig: Map<String, Any>?) {
-        val player = appContext.legacyModule<PlayerExpoModule>()?.getPlayerOrNull(playerId)
+        val player = appContext.registry.getModule<PlayerExpoModule>()?.getPlayerOrNull(playerId)
             ?: throw InvalidParameterException("Cannot create a PlayerView, invalid playerId was passed: $playerId")
         val playbackConfig = playerConfig?.get("playbackConfig") as? Map<String, Any>
         val isPictureInPictureEnabled = config?.pictureInPictureConfig?.isEnabled == true ||
             playbackConfig?.get("isPictureInPictureEnabled") as? Boolean == true
         enableBackgroundPlayback = playbackConfig?.get("isBackgroundPlaybackEnabled") as? Boolean == true
 
-        val rnStyleConfigWrapper = playerConfig?.toRNStyleConfigWrapperFromPlayerConfig()
+        val rnStyleConfigWrapper = playerConfig?.toReadableMap()?.toRNStyleConfigWrapperFromPlayerConfig()
         val configuredPlayerViewConfig = config?.playerViewConfig ?: PlayerViewConfig()
 
         if (playerView != null) {

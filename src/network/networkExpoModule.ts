@@ -1,11 +1,13 @@
-import { requireNativeModule } from 'expo-modules-core';
+import { NativeModule, requireNativeModule } from 'expo-modules-core';
 import { HttpRequest, HttpResponse, NetworkConfig } from './networkConfig';
 
+export type NetworkExpoModuleEvents = Record<string, any>;
+
 /**
- * Native NetworkExpoModule interface using Expo modules API.
+ * Native NetworkExpoModule using Expo modules API.
  * Provides modern async/await interface while maintaining backward compatibility.
  */
-interface NetworkExpoModuleInterface {
+declare class NetworkExpoModule extends NativeModule<NetworkExpoModuleEvents> {
   initializeWithConfig(nativeId: string, config: NetworkConfig): Promise<void>;
   destroy(nativeId: string): Promise<void>;
   setPreprocessedHttpRequest(
@@ -18,12 +20,4 @@ interface NetworkExpoModuleInterface {
   ): Promise<void>;
 }
 
-/**
- * Expo-based NetworkModule implementation.
- * This provides the same functionality as the legacy NetworkModule but uses Expo's modern module system.
- */
-const NetworkExpoModule =
-  requireNativeModule<NetworkExpoModuleInterface>('NetworkExpoModule');
-
-export default NetworkExpoModule;
-export { NetworkExpoModuleInterface };
+export default requireNativeModule<NetworkExpoModule>('NetworkExpoModule');

@@ -1,12 +1,17 @@
-import { requireNativeModule } from 'expo-modules-core';
+import { NativeModule, requireNativeModule } from 'expo-modules-core';
 import { SourceConfig } from '../source';
 import { OfflineDownloadRequest } from './offlineDownloadRequest';
+import { BitmovinNativeOfflineEventData } from './offlineContentManagerListener';
+
+export type OfflineExpoModuleEvents = {
+  onBitmovinOfflineEvent: (event: BitmovinNativeOfflineEventData) => void;
+};
 
 /**
- * Native OfflineExpoModule interface using Expo modules API.
+ * Native OfflineExpoModule using Expo modules API.
  * Provides modern async/await interface while maintaining backward compatibility.
  */
-interface OfflineExpoModuleInterface {
+declare class OfflineExpoModule extends NativeModule<OfflineExpoModuleEvents> {
   initializeWithConfig(
     nativeId: string,
     config: { identifier: string; sourceConfig: SourceConfig },
@@ -36,21 +41,6 @@ interface OfflineExpoModuleInterface {
   renewOfflineLicense(nativeId: string): Promise<void>;
 
   release(nativeId: string): Promise<void>;
-
-  // Event support
-  addListener?: (
-    eventName: string,
-    listener: (event: any) => void
-  ) => { remove: () => void };
-  removeListeners?: (count: number) => void;
 }
 
-/**
- * Expo-based OfflineModule implementation.
- * This provides the same functionality as the legacy OfflineModule but uses Expo's modern module system.
- */
-const OfflineExpoModule =
-  requireNativeModule<OfflineExpoModuleInterface>('OfflineExpoModule');
-
-export default OfflineExpoModule;
-export { OfflineExpoModuleInterface };
+export default requireNativeModule<OfflineExpoModule>('OfflineExpoModule');

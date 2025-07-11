@@ -7,9 +7,10 @@ public class OfflineExpoModule: Module {
     private var offlineContentManagerBridges: Registry<OfflineContentManagerBridge> = [:]
     #endif
 
+    // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("OfflineExpoModule")
-        Events("BitmovinOfflineEvent")
+        Events("onBitmovinOfflineEvent")
         OnCreate {
             // Module initialization
         }
@@ -18,7 +19,7 @@ public class OfflineExpoModule: Module {
             self.offlineContentManagerBridges.removeAll()
             #endif
         }
-        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: String, config: [String: Any?]?, drmNativeId: String?) in
+        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: String, config: [String: Any?]?, drmNativeId: String?) in // swiftlint:disable:this line_length
             #if os(iOS)
             self?.createOfflineManager(nativeId: nativeId, config: config, drmNativeId: drmNativeId)
             #endif
@@ -158,11 +159,5 @@ public class OfflineExpoModule: Module {
         #else
         return nil
         #endif
-    }
-}
-
-extension OfflineExpoModule {
-    func sendEvent(name: String, body: [String: Any?]) {
-        sendEvent("BitmovinOfflineEvent", body)
     }
 }

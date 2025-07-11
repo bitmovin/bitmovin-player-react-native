@@ -2,11 +2,9 @@ package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.reactnative.converter.toSourceConfig
-import com.bitmovin.player.reactnative.extensions.drmModule
-import com.bitmovin.player.reactnative.extensions.getIntOrNull
-import com.bitmovin.player.reactnative.extensions.getStringArray
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
+import com.facebook.react.bridge.Arguments
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
@@ -24,7 +22,7 @@ class OfflineExpoModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("OfflineExpoModule")
 
-        Events("BitmovinOfflineEvent")
+        Events("onBitmovinOfflineEvent")
 
         OnCreate {
             // Module initialization
@@ -47,17 +45,15 @@ class OfflineExpoModule : Module() {
             val identifier = config?.get("identifier") as? String
                 ?: throw OfflineException.InvalidIdentifier()
 
-            val sourceConfig = (config["sourceConfig"] as? Map<String, Any?>)?.toSourceConfig()
+            val sourceConfig = (config["sourceConfig"] as? Map<String, Any?>)?.toReadableMap()?.toSourceConfig()
                 ?: throw OfflineException.InvalidSourceConfig()
 
             // Get DRM config from DrmExpoModule if available
-            sourceConfig.drmConfig = appContext.reactContext?.let { context ->
-                context.drmModule?.getConfig(drmNativeId)
-            }
+            sourceConfig.drmConfig = appContext.registry.getModule<DrmExpoModule>()?.getConfig(drmNativeId)
 
             offlineContentManagerBridges[nativeId] = OfflineContentManagerBridge(
                 nativeId,
-                appContext.reactContext!!,
+                appContext.reactContext as com.facebook.react.bridge.ReactApplicationContext,
                 identifier,
                 sourceConfig,
                 appContext.reactContext!!.cacheDir.path,
