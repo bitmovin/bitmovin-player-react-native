@@ -3,6 +3,7 @@ package com.bitmovin.player.reactnative
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.os.Build
+import android.view.View.MeasureSpec
 import android.view.ViewGroup
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
@@ -149,12 +150,12 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
             ?: (context as? LifecycleOwner)?.lifecycle
 
     init {
-//        // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
-//        // Since we dynamically add and remove SurfaceView under the hood this caused the player
-//        // to suddenly not show the video anymore because SurfaceView was not laid out properly.
-//        // Bitmovin player issue: https://github.com/bitmovin/bitmovin-player-react-native/issues/180
-//        // React Native layout issue: https://github.com/facebook/react-native/issues/17968
-//        getViewTreeObserver().addOnGlobalLayoutListener { requestLayout() }
+        // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
+        // Since we dynamically add and remove SurfaceView under the hood this caused the player
+        // to suddenly not show the video anymore because SurfaceView was not laid out properly.
+        // Bitmovin player issue: https://github.com/bitmovin/bitmovin-player-react-native/issues/180
+        // React Native layout issue: https://github.com/facebook/react-native/issues/17968
+        viewTreeObserver.addOnGlobalLayoutListener { requestLayout() }
 
         activityLifecycle?.addObserver(activityLifecycleObserver)
     }
@@ -175,7 +176,10 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
             oldPlayerView.player = null
         }
         this.playerView = playerView
-        addView(this.playerView)
+        if (playerView.parent != this) {
+            (playerView.parent as ViewGroup?)?.removeView(playerView)
+            addView(playerView, 0)
+        }
         scalingMode?.let {
             playerView.scalingMode = it
         }
@@ -434,6 +438,7 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
 
     fun setScalingMode(scalingMode: String?) {
         this.scalingMode = scalingMode?.let { ScalingMode.valueOf(it) } ?: ScalingMode.Fit
+        playerView?.scalingMode = this.scalingMode ?: ScalingMode.Fit
     }
 
     fun attachFullscreenBridge(fullscreenBridgeId: NativeId) {
@@ -451,6 +456,22 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
                     it.exitFullscreen()
                 }
             }
+        }
+    }
+
+    /**
+     * Try to measure and update this view layout as much as possible to
+     * avoid layout problems related to React or old layout values present
+     * in `playerView` due to being previously attached to a different parent.
+     */
+    override fun requestLayout() {
+        super.requestLayout()
+        post {
+            measure(
+                MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
+            )
+            layout(left, top, right, bottom)
         }
     }
 }
