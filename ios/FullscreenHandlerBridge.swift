@@ -2,7 +2,11 @@ import BitmovinPlayer
 import ExpoModulesCore
 
 internal class FullscreenHandlerBridge: NSObject, FullscreenHandler {
-    var isFullscreen = false
+    nonisolated let isFullscreenValueBox = LockedBox(value: false)
+
+    var isFullscreen: Bool {
+        isFullscreenValueBox.value
+    }
 
     private let nativeId: NativeId
     private let moduleRegistry: ModuleRegistry?
@@ -18,7 +22,6 @@ internal class FullscreenHandlerBridge: NSObject, FullscreenHandler {
             return
         }
         // We need to set the fullscreen state before notifying the module,
-        isFullscreen = true
         fullscreenHandlerModule.onFullscreenRequested(nativeId: nativeId)
     }
 
@@ -27,7 +30,6 @@ internal class FullscreenHandlerBridge: NSObject, FullscreenHandler {
             return
         }
         // We need to set the fullscreen state before notifying the module,
-        isFullscreen = false
         fullscreenHandlerModule.onFullscreenExitRequested(nativeId: nativeId)
     }
 

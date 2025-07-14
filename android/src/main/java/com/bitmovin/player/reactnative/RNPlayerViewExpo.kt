@@ -18,7 +18,6 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toUserInterfaceType
-import com.bitmovin.player.reactnative.extensions.toMap
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
@@ -34,6 +33,7 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
     private var scalingMode: ScalingMode? = null
     private var requestedFullscreenValue: Boolean? = null
     private var requestedPictureInPictureValue: Boolean? = null
+    private var fullscreenBridgeId: NativeId? = null
 
     private val onBmpEvent by EventDispatcher()
     private val onBmpPlayerActive by EventDispatcher()
@@ -101,7 +101,7 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
     private val onBmpPictureInPictureEnter by EventDispatcher()
     private val onBmpPictureInPictureExit by EventDispatcher()
 
-    var playerInMediaSessionService: Player? = null
+    private var playerInMediaSessionService: Player? = null
 
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
         override fun onStart(owner: LifecycleOwner) {
@@ -178,6 +178,9 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
         addView(this.playerView)
         scalingMode?.let {
             playerView.scalingMode = it
+        }
+        fullscreenBridgeId?.let {
+            attachFullscreenBridge(it)
         }
         requestedFullscreenValue?.let {
             setFullscreen(it)
@@ -434,10 +437,21 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
     }
 
     fun attachFullscreenBridge(fullscreenBridgeId: NativeId) {
+        this.fullscreenBridgeId = fullscreenBridgeId
+        val playerView = playerView ?: return
         appContext.registry.getModule<FullscreenHandlerExpoModule>()?.getInstance(fullscreenBridgeId)
             ?.let { fullscreenBridge ->
-                playerView?.setFullscreenHandler(fullscreenBridge)
+                playerView.setFullscreenHandler(fullscreenBridge)
             } ?: throw IllegalArgumentException("Fullscreen bridge with ID $fullscreenBridgeId not found")
+        requestedFullscreenValue?.let { isFullscreen ->
+            playerView.let {
+                if (isFullscreen) {
+                    it.enterFullscreen()
+                } else {
+                    it.exitFullscreen()
+                }
+            }
+        }
     }
 }
 

@@ -1,11 +1,8 @@
 package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.reactnative.ui.FullscreenHandlerBridge
-import com.facebook.react.bridge.*
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 private const val MODULE_NAME = "FullscreenHandlerExpoModule"
 
@@ -20,32 +17,27 @@ class FullscreenHandlerExpoModule : Module() {
     private val fullscreenHandlers: Registry<FullscreenHandlerBridge> = mutableMapOf()
 
     /**
-     * Module's local lock object used to sync calls between Kotlin and JS.
+     * ResultWaiter used for blocking thread while waiting for fullscreen state change
      */
-    private val lock = ReentrantLock()
-
-    /**
-     * Lock condition used to sync operations on the fullscreen handler.
-     */
-    private val fullscreenChangedCondition = lock.newCondition()
+    private val waiter = ResultWaiter<Boolean>()
 
     override fun definition() = ModuleDefinition {
         Name(MODULE_NAME)
 
+        Events("onEnterFullscreen", "onExitFullscreen")
+
         AsyncFunction("registerHandler") { nativeId: String ->
-            val fullscreenHandler = fullscreenHandlers[nativeId] ?: FullscreenHandlerBridge(appContext.reactContext as com.facebook.react.bridge.ReactApplicationContext, nativeId, this@FullscreenHandlerExpoModule)
-            fullscreenHandlers[nativeId] = fullscreenHandler
+            if (fullscreenHandlers[nativeId] == null) {
+                fullscreenHandlers[nativeId] = FullscreenHandlerBridge(nativeId, this@FullscreenHandlerExpoModule)
+            }
         }
 
         AsyncFunction("destroy") { nativeId: String ->
             fullscreenHandlers.remove(nativeId)
         }
 
-        AsyncFunction("notifyFullscreenChanged") { nativeId: String, isFullscreenEnabled: Boolean ->
-            fullscreenHandlers[nativeId]?.isFullscreen = isFullscreenEnabled
-            lock.withLock {
-                fullscreenChangedCondition.signal()
-            }
+        AsyncFunction("notifyFullscreenChanged") { id: Int, isFullscreenEnabled: Boolean ->
+            waiter.complete(id, isFullscreenEnabled)
         }
 
         AsyncFunction("setIsFullscreenActive") { nativeId: String, isFullscreenActive: Boolean ->
@@ -64,18 +56,18 @@ class FullscreenHandlerExpoModule : Module() {
      * Called by FullscreenHandlerBridge when fullscreen should be entered.
      */
     fun requestEnterFullscreen(nativeId: String) {
-        // Call JavaScript function directly using React Native bridge
-        appContext.reactContext?.let { context ->
-            (context as ReactApplicationContext).catalystInstance.callFunction(
-                "FullscreenBridge-$nativeId",
-                "enterFullscreen",
-                Arguments.createArray() as NativeArray
-            )
-        }
+        val handler = getInstance(nativeId) ?: return
         
-        lock.withLock {
-            fullscreenChangedCondition.await()
-        }
+        val (id, wait) = waiter.make(250) // 250ms timeout
+        
+        // Send event to JavaScript
+        sendEvent("onEnterFullscreen", mapOf(
+            "nativeId" to nativeId,
+            "id" to id
+        ))
+        
+        val result = wait() ?: return
+        handler.isFullscreen = result
     }
 
     /**
@@ -83,17 +75,17 @@ class FullscreenHandlerExpoModule : Module() {
      * Called by FullscreenHandlerBridge when fullscreen should be exited.
      */
     fun requestExitFullscreen(nativeId: String) {
-        // Call JavaScript function directly using React Native bridge
-        appContext.reactContext?.let { context ->
-            (context as ReactApplicationContext).catalystInstance.callFunction(
-                "FullscreenBridge-$nativeId",
-                "exitFullscreen",
-                Arguments.createArray() as NativeArray
-            )
-        }
+        val handler = getInstance(nativeId) ?: return
         
-        lock.withLock {
-            fullscreenChangedCondition.await()
-        }
+        val (id, wait) = waiter.make(250) // 250ms timeout
+        
+        // Send event to JavaScript
+        sendEvent("onExitFullscreen", mapOf(
+            "nativeId" to nativeId,
+            "id" to id
+        ))
+        
+        val result = wait() ?: return
+        handler.isFullscreen = result
     }
 }

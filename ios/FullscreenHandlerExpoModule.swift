@@ -37,12 +37,8 @@ public class FullscreenHandlerExpoModule: Module {
             self?.waiter.complete(id: id, with: isFullscreenEnabled)
         }
 
-        AsyncFunction("setIsFullscreenActive") { (nativeId: String, isFullscreen: Bool, promise: Promise) in
-            DispatchQueue.main.async { [weak self] in
-                guard let self else { return }
-                self.fullscreenHandlers[nativeId]?.isFullscreen = isFullscreen
-                promise.resolve()
-            }
+        AsyncFunction("setIsFullscreenActive") { [weak self] (nativeId: String, isFullscreen: Bool) in
+            self?.fullscreenHandlers[nativeId]?.isFullscreenValueBox.update(isFullscreen)
         }.runOnQueue(.main)
     }
 
@@ -75,9 +71,7 @@ public class FullscreenHandlerExpoModule: Module {
         guard let result = wait() else {
             return
         }
-        DispatchQueue.main.async {
-            handler.isFullscreen = result
-        }
+        handler.isFullscreenValueBox.update(result)
     }
 
     /**
@@ -100,8 +94,6 @@ public class FullscreenHandlerExpoModule: Module {
         guard let result = wait() else {
             return
         }
-        DispatchQueue.main.async {
-            handler.isFullscreen = result
-        }
+        handler.isFullscreenValueBox.update(result)
     }
 }

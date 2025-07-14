@@ -68,10 +68,12 @@ export function PlayerView({
   const nativePlayerViewConfig: NativePlayerViewConfig = {
     playerId: player.nativeId,
     customMessageHandlerBridgeId: customMessageHandlerBridge.current?.nativeId,
-    enableBackgroundPlayback: player.config?.playbackConfig?.isBackgroundPlaybackEnabled,
-    isPictureInPictureEnabledOnPlayer: player.config?.playbackConfig?.isPictureInPictureEnabled,
+    enableBackgroundPlayback:
+      player.config?.playbackConfig?.isBackgroundPlaybackEnabled,
+    isPictureInPictureEnabledOnPlayer:
+      player.config?.playbackConfig?.isPictureInPictureEnabled,
     userInterfaceTypeName: player.config?.styleConfig?.userInterfaceType,
-    playerViewConfig: config
+    playerViewConfig: config,
   };
 
   const [isPlayerInitialized, setIsPlayerInitialized] = useState(false);

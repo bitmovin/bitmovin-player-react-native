@@ -32,7 +32,7 @@ const config: ExpoConfig = {
   splash: {
     image: './assets/splash-icon.png',
     resizeMode: 'contain',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#51a9de',
   },
   ios: {
     supportsTablet: true,
@@ -42,7 +42,7 @@ const config: ExpoConfig = {
   android: {
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#ffffff',
+      backgroundColor: '#51a9de',
     },
     package: 'com.bitmovin.player.reactnative.example',
   },

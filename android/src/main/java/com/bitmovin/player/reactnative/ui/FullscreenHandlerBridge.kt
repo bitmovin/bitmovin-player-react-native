@@ -6,7 +6,6 @@ import com.bitmovin.player.reactnative.NativeId
 import com.facebook.react.bridge.ReactApplicationContext
 
 class FullscreenHandlerBridge(
-    val context: ReactApplicationContext,
     private val nativeId: NativeId,
     private val expoModule: FullscreenHandlerExpoModule? = null,
 ) : FullscreenHandler {
