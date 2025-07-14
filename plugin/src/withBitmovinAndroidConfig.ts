@@ -39,6 +39,25 @@ const withBitmovinAndroidConfig: ConfigPlugin<{ playerLicenseKey: string, featur
 
     config.modResults.manifest['uses-permission'] = config.modResults.manifest['uses-permission'] || [];
 
+    // Configure Picture-in-Picture support
+    if (features.pictureInPicture) {
+      const mainActivity = AndroidConfig.Manifest.getMainActivityOrThrow(config.modResults);
+      
+      // Add PiP support attribute
+      mainActivity.$['android:supportsPictureInPicture'] = 'true';
+      
+      // Enhance configChanges to handle PiP transitions properly
+      const currentConfigChanges = mainActivity.$['android:configChanges'] || '';
+      const requiredConfigChanges = [
+        'keyboard', 'keyboardHidden', 'orientation', 
+        'screenLayout', 'screenSize', 'smallestScreenSize', 'uiMode'
+      ];
+      
+      const existingChanges = currentConfigChanges.split('|').filter(Boolean);
+      const allChanges = [...new Set([...existingChanges, ...requiredConfigChanges])];
+      mainActivity.$['android:configChanges'] = allChanges.join('|');
+    }
+
     if (features.backgroundPlayback) {
       mainApplication.service = mainApplication.service || [];
       if (!mainApplication.service.find(s => s.$['android:name'] === 'com.bitmovin.player.reactnative.services.MediaSessionPlaybackService')) {
