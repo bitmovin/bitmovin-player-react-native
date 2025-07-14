@@ -447,6 +447,7 @@ extension CueExitEvent: JsonConvertible {
 }
 
 extension PlayerActiveEvent: DefaultJsonConvertibleEvent {}
+extension PlayerInactiveEvent: DefaultJsonConvertibleEvent {}
 extension DestroyEvent: DefaultJsonConvertibleEvent {}
 extension MutedEvent: DefaultJsonConvertibleEvent {}
 extension UnmutedEvent: DefaultJsonConvertibleEvent {}

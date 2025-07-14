@@ -5,10 +5,10 @@ public class BitmovinCastManagerExpoModule: Module {
     public func definition() -> ModuleDefinition {
         Name("BitmovinCastManagerModule")
 
-        AsyncFunction("initializeCastManager") { (config: [String: Any]?) throws in
+        AsyncFunction("initializeCastManager") { (options: [String: Any]?) throws in
             #if os(iOS)
-            if let config {
-                guard let options = RCTConvert.castManagerOptions(config) else {
+            if let options {
+                guard let options = RCTConvert.castManagerOptions(options) else {
                     throw Exception(
                         name: "DESERIALIZATION_ERROR",
                         description: "Could not deserialize BitmovinCastManagerOptions"

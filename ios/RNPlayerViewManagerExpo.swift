@@ -10,7 +10,7 @@ public class RNPlayerViewManagerExpo: Module {
                 view.config = RCTConvert.rnPlayerViewConfig(config)
             }
             Prop("playerInfo") { (view: RNPlayerViewExpo, playerInfo: [String: Any]?) in
-                let playerId = playerInfo?["id"] as? NativeId
+                let playerId = playerInfo?["playerId"] as? NativeId
                 let customMessageHandlerBridgeId = playerInfo?["customMessageHandlerBridgeId"] as? NativeId
                 view.attachPlayer(
                     playerId: playerId,

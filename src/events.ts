@@ -51,6 +51,12 @@ export interface ErrorEvent extends Event {
 export type PlayerActiveEvent = Event;
 
 /**
+ * Emitted when a source is unloaded from the player.
+ * Seeking and time shifting are not allowed anymore after this event.
+ */
+export type PlayerInactiveEvent = Event;
+
+/**
  * Emitted when a player error occurred.
  */
 export type PlayerErrorEvent = ErrorEvent;

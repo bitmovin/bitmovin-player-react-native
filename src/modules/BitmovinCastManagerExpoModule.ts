@@ -4,7 +4,7 @@ export type BitmovinCastManagerExpoModuleEvents = Record<string, any>;
 
 declare class BitmovinCastManagerExpoModule extends NativeModule<BitmovinCastManagerExpoModuleEvents> {
   isInitialized(): Promise<boolean>;
-  initializeCastManager(config?: Record<string, any>): Promise<void>;
+  initializeCastManager(options?: Record<string, any>): Promise<void>;
   sendMessage(message: string, messageNamespace?: string): Promise<void>;
   updateContext?(): Promise<void>; // Android only
 }

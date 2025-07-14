@@ -11,7 +11,7 @@ class CustomMessageHandlerBridge(
     private val nativeId: NativeId,
     private val expoModule: CustomMessageHandlerExpoModule? = null,
 ) {
-    private val customMessageHandler = CustomMessageHandler(
+    val customMessageHandler = CustomMessageHandler(
         object : Any() {
             @JavascriptInterface
             fun sendSynchronous(name: String, data: String?): String? = 

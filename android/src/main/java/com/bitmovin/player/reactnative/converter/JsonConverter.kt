@@ -814,6 +814,12 @@ private fun ReadableMap.toUserInterfaceTypeFromPlayerConfig(): UserInterfaceType
         else -> null
     }
 
+fun String.toUserInterfaceType(): UserInterfaceType? = when (this) {
+    "Subtitle" -> UserInterfaceType.Subtitle
+    "Bitmovin" -> UserInterfaceType.Bitmovin
+    else -> null
+}
+
 /**
  * Converts the [this@toRNPlayerViewConfigWrapper] to a `RNPlayerViewConfig` object.
  */

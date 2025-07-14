@@ -14,10 +14,20 @@ class RNPlayerViewManagerExpo : Module() {
                 view.config = config?.toReadableMap()?.toRNPlayerViewConfigWrapper()
             }
 
-            Prop("playerConfig") { view: RNPlayerViewExpo, playerConfig: Map<String, Any>? ->
-                val playerId = playerConfig?.get("id") as? String
-                    ?: throw IllegalArgumentException("Player config must contain 'id' field")
-                view.attachPlayer(playerId, playerConfig)
+            Prop("playerInfo") { view: RNPlayerViewExpo, playerInfo: Map<String, Any>? ->
+                val playerId = playerInfo?.get("playerId") as? String
+                    ?: throw IllegalArgumentException("Player info must contain 'playerId' field")
+                val customMessageHandlerBridgeId = playerInfo["customMessageHandlerBridgeId"] as? String
+                val enableBackgroundPlayback = playerInfo["enableBackgroundPlayback"] as? Boolean ?: false
+                val isPictureInPictureEnabled = playerInfo["isPictureInPictureEnabled"] as? Boolean ?: false
+                val userInterfaceTypeName = playerInfo["userInterfaceTypeName"] as? String
+                view.attachPlayer(
+                    playerId,
+                    customMessageHandlerBridgeId,
+                    enableBackgroundPlayback,
+                    isPictureInPictureEnabled,
+                    userInterfaceTypeName
+                )
             }
 
             Prop("scalingMode") { view: RNPlayerViewExpo, scalingMode: String ->
@@ -33,13 +43,7 @@ class RNPlayerViewManagerExpo : Module() {
             }
 
             Prop("fullscreenBridgeId") { view: RNPlayerViewExpo, fullscreenBridgeId: String ->
-                // TODO: Implement fullscreen handler integration with Expo modules
-                // view.playerView?.setFullscreenHandler(...)
-            }
-
-            Prop("customMessageHandlerBridgeId") { view: RNPlayerViewExpo, bridgeId: String ->
-                // TODO: Implement custom message handler integration with Expo modules
-//                view.setCustomMessageHandlerBridgeId(customMessageHandlerBridgeId: bridgeId)
+                 view.attachFullscreenBridge(fullscreenBridgeId)
             }
 
             Events(

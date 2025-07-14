@@ -20,7 +20,7 @@ class PlayerExpoModule : Module() {
      */
     private val players: Registry<Player> = mutableMapOf()
 
-    private val mediaSessionPlaybackManager by lazy { MediaSessionPlaybackManager(appContext) }
+    val mediaSessionPlaybackManager by lazy { MediaSessionPlaybackManager(appContext) }
 
     override fun definition() = ModuleDefinition {
         Name("PlayerExpoModule")
@@ -124,9 +124,9 @@ class PlayerExpoModule : Module() {
         /**
          * Call .setVolume(volume) on nativeId's player.
          */
-        AsyncFunction("setVolume") { nativeId: String, volume: Int ->
+        AsyncFunction("setVolume") { nativeId: String, volume: Double ->
             val player = players[nativeId]
-            player?.volume = volume
+            player?.volume = volume.toInt()
         }.runOnQueue(Queues.MAIN)
         
         /**
@@ -134,7 +134,7 @@ class PlayerExpoModule : Module() {
          */
         AsyncFunction("getVolume") { nativeId: String ->
             val player = players[nativeId]
-            return@AsyncFunction player?.volume
+            return@AsyncFunction player?.volume?.toDouble()
         }
         
         /**
@@ -219,15 +219,15 @@ class PlayerExpoModule : Module() {
          */
         AsyncFunction("getPlaybackSpeed") { nativeId: String ->
             val player = players[nativeId]
-            return@AsyncFunction player?.playbackSpeed
+            return@AsyncFunction player?.playbackSpeed?.toDouble()
         }
         
         /**
          * Set playback speed for nativeId's player.
          */
-        AsyncFunction("setPlaybackSpeed") { nativeId: String, playbackSpeed: Float ->
+        AsyncFunction("setPlaybackSpeed") { nativeId: String, playbackSpeed: Double ->
             val player = players[nativeId]
-            player?.playbackSpeed = playbackSpeed
+            player?.playbackSpeed = playbackSpeed.toFloat()
         }.runOnQueue(Queues.MAIN)
         
         /**
@@ -241,9 +241,9 @@ class PlayerExpoModule : Module() {
         /**
          * Set maximum selectable bitrate for nativeId's player.
          */
-        AsyncFunction("setMaxSelectableBitrate") { nativeId: String, maxBitrate: Int ->
+        AsyncFunction("setMaxSelectableBitrate") { nativeId: String, maxBitrate: Double ->
             val player = players[nativeId]
-            player?.setMaxSelectableVideoBitrate(maxBitrate)
+            player?.setMaxSelectableVideoBitrate(maxBitrate.toInt())
         }.runOnQueue(Queues.MAIN)
         
         /**
@@ -305,7 +305,7 @@ class PlayerExpoModule : Module() {
         /**
          * Check if player can play at specified playback speed (Android returns null).
          */
-        AsyncFunction("canPlayAtPlaybackSpeed") { _: String, _: Float ->
+        AsyncFunction("canPlayAtPlaybackSpeed") { _: String, _: Double ->
             // This method is iOS-only, return false on Android
             false
         }
