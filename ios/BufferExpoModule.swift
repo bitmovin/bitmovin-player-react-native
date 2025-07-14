@@ -9,8 +9,6 @@ public class BufferExpoModule: Module {
             // Module initialization
         }
 
-        // PHASE 1: Start with simple utility methods
-
         /**
          Get buffer level for the specified player and buffer type.
          */

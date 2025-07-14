@@ -72,21 +72,7 @@ class DecoderConfigExpoModule : Module() {
                 ?: throw DecoderConfigException.NoCompleterFound(nativeId)
                 
             // Convert List<Map<String, Any?>> to ReadableArray for processing
-            val array = com.facebook.react.bridge.Arguments.createArray()
-            response.forEach { item ->
-                val map = com.facebook.react.bridge.Arguments.createMap()
-                item.forEach { (key, value) ->
-                    when (value) {
-                        is String -> map.putString(key, value)
-                        is Boolean -> map.putBoolean(key, value)
-                        is Number -> map.putDouble(key, value.toDouble())
-                        // Handle other types as needed
-                    }
-                }
-                array.pushMap(map)
-            }
-            
-            val mediaCodecInfoList = array.toMediaCodecInfoList()
+            val mediaCodecInfoList = response.toMediaCodecInfoList()
             completer.set(mediaCodecInfoList)
             overrideDecoderPriorityProviderCompleters.remove(nativeId)
         }

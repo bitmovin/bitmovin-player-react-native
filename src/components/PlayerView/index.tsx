@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
-import { NativePlayerView, PlayerViewInitialConfig } from './native';
+import { NativePlayerView, NativePlayerViewConfig } from './native';
 import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
@@ -65,12 +65,13 @@ export function PlayerView({
     );
   }
 
-  const playerInfo: PlayerViewInitialConfig = {
+  const nativePlayerViewConfig: NativePlayerViewConfig = {
     playerId: player.nativeId,
     customMessageHandlerBridgeId: customMessageHandlerBridge.current?.nativeId,
     enableBackgroundPlayback: player.config?.playbackConfig?.isBackgroundPlaybackEnabled,
-    isPictureInPictureEnabled: player.config?.playbackConfig?.isPictureInPictureEnabled || config?.pictureInPictureConfig?.isEnabled,
+    isPictureInPictureEnabledOnPlayer: player.config?.playbackConfig?.isPictureInPictureEnabled,
     userInterfaceTypeName: player.config?.styleConfig?.userInterfaceType,
+    playerViewConfig: config
   };
 
   const [isPlayerInitialized, setIsPlayerInitialized] = useState(false);
@@ -100,12 +101,11 @@ export function PlayerView({
       <NativePlayerView
         ref={nativeView}
         style={nativeViewStyle}
-        playerInfo={playerInfo}
+        config={nativePlayerViewConfig}
         isFullscreenRequested={isFullscreenRequested}
         isPictureInPictureRequested={isPictureInPictureRequested}
         scalingMode={scalingMode}
         fullscreenBridgeId={fullscreenBridge.current?.nativeId}
-        config={config}
         onBmpAdBreakFinished={proxy(props.onAdBreakFinished)}
         onBmpAdBreakStarted={proxy(props.onAdBreakStarted)}
         onBmpAdClicked={proxy(props.onAdClicked)}

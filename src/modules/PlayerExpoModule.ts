@@ -13,8 +13,6 @@ declare class PlayerExpoModule extends NativeModule<PlayerExpoModuleEvents> {
    */
   hasPlayer(nativeId: string): boolean;
 
-  // PHASE 2: Simple player control methods
-
   /**
    * Call .play() on nativeId's player.
    */

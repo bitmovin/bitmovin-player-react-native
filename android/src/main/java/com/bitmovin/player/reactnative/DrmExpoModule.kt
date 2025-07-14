@@ -6,7 +6,6 @@ import com.bitmovin.player.api.drm.PrepareLicenseCallback
 import com.bitmovin.player.api.drm.PrepareMessageCallback
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.reactnative.converter.toWidevineConfig
-import com.facebook.react.bridge.*
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.Promise
@@ -69,10 +68,9 @@ class DrmExpoModule : Module() {
             }
             
             try {
-                val readableMap = convertMapToReadableMap(config)
-                val widevineConfig = readableMap.toWidevineConfig() ?: throw InvalidParameterException("Invalid widevine config")
-                widevineConfig.prepareMessageCallback = buildPrepareMessageCallback(nativeId, readableMap)
-                widevineConfig.prepareLicenseCallback = buildPrepareLicense(nativeId, readableMap)
+                val widevineConfig = config.toWidevineConfig() ?: throw InvalidParameterException("Invalid widevine config")
+                widevineConfig.prepareMessageCallback = buildPrepareMessageCallback(nativeId, config)
+                widevineConfig.prepareLicenseCallback = buildPrepareLicense(nativeId, config)
                 drmConfigs[nativeId] = widevineConfig
                 promise.resolve(null)
             } catch (e: Exception) {
@@ -130,8 +128,8 @@ class DrmExpoModule : Module() {
      * @param nativeId Instance ID.
      * @param config `DrmConfig` config object sent from JS.
      */
-    private fun buildPrepareMessageCallback(nativeId: String, config: ReadableMap): PrepareMessageCallback? {
-        if (config.getMap("widevine")?.hasKey("prepareMessage") != true) {
+    private fun buildPrepareMessageCallback(nativeId: String, config: Map<String, Any?>): PrepareMessageCallback? {
+        if ((config["widevine"] as? Map<*, *>)?.containsKey("prepareMessage") != true) {
             return null
         }
         val prepareMessageCallback = createPrepareCallback(
@@ -148,8 +146,8 @@ class DrmExpoModule : Module() {
      * @param nativeId Instance ID.
      * @param config `DrmConfig` config object sent from JS.
      */
-    private fun buildPrepareLicense(nativeId: String, config: ReadableMap): PrepareLicenseCallback? {
-        if (config.getMap("widevine")?.hasKey("prepareLicense") != true) {
+    private fun buildPrepareLicense(nativeId: String, config: Map<String, Any?>): PrepareLicenseCallback? {
+        if ((config["widevine"] as? Map<*, *>)?.containsKey("prepareLicense") != true) {
             return null
         }
         val prepareLicense = createPrepareCallback(
@@ -184,49 +182,6 @@ class DrmExpoModule : Module() {
             registryCondition.await()
             val result = registry[nativeId]
             Base64.decode(result, Base64.NO_WRAP)
-        }
-    }
-
-    /**
-     * Converts a Map<String, Any?> to ReadableMap for compatibility with legacy converter methods.
-     */
-    private fun convertMapToReadableMap(map: Map<String, Any?>): ReadableMap {
-        val writableMap = Arguments.createMap()
-        map.forEach { (key, value) ->
-            when (value) {
-                is String -> writableMap.putString(key, value)
-                is Int -> writableMap.putInt(key, value)
-                is Double -> writableMap.putDouble(key, value)
-                is Boolean -> writableMap.putBoolean(key, value)
-                is Map<*, *> -> writableMap.putMap(key, convertMapToReadableMap(value as Map<String, Any?>))
-                is List<*> -> {
-                    val array = Arguments.createArray()
-                    value.forEach { item ->
-                        when (item) {
-                            is String -> array.pushString(item)
-                            is Int -> array.pushInt(item)
-                            is Double -> array.pushDouble(item)
-                            is Boolean -> array.pushBoolean(item)
-                            is Map<*, *> -> array.pushMap(convertMapToReadableMap(item as Map<String, Any?>))
-                        }
-                    }
-                    writableMap.putArray(key, array)
-                }
-                null -> writableMap.putNull(key)
-            }
-        }
-        return writableMap
-    }
-
-    companion object {
-        /**
-         * Static access method to maintain compatibility with other modules.
-         * Retrieves the WidevineConfig for the given nativeId.
-         */
-        @JvmStatic
-        fun getDrmConfig(nativeId: String): WidevineConfig? {
-            // TODO: Implement global registry pattern if needed by other modules
-            return null
         }
     }
 }

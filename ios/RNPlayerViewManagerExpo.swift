@@ -6,18 +6,18 @@ public class RNPlayerViewManagerExpo: Module {
         Name("RNPlayerViewManagerExpo")
 
         View(RNPlayerViewExpo.self) {
-            Prop("config") { (view: RNPlayerViewExpo, config: [String: Any]?) in
-                view.config = RCTConvert.rnPlayerViewConfig(config)
-            }
-            Prop("playerInfo") { (view: RNPlayerViewExpo, playerInfo: [String: Any]?) in
+            Prop("config") { (view: RNPlayerViewExpo, playerInfo: [String: Any]?) in
                 let playerId = playerInfo?["playerId"] as? NativeId
+                let playerViewConfigWrapper = RCTConvert
+                    .rnPlayerViewConfig(playerInfo?["playerViewConfig"] as? [String: Any])
                 let customMessageHandlerBridgeId = playerInfo?["customMessageHandlerBridgeId"] as? NativeId
                 view.attachPlayer(
                     playerId: playerId,
+                    playerViewConfigWrapper: playerViewConfigWrapper,
                     customMessageHandlerBridgeId: customMessageHandlerBridgeId
                 )
             }
-            Prop("scalingMode") { (view: RNPlayerViewExpo, scalingMode: String) in
+            Prop("scalingMode") { (view: RNPlayerViewExpo, scalingMode: String?) in
                 view.setScalingMode(scalingMode: scalingMode)
             }
             Prop("isFullscreenRequested") { (view: RNPlayerViewExpo, isFullscreenRequested: Bool) in

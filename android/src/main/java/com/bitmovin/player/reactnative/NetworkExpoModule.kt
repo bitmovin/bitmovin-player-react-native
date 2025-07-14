@@ -51,10 +51,9 @@ class NetworkExpoModule : Module() {
             }
             
             try {
-                val readableMap = convertMapToReadableMap(config)
-                val networkConfig = readableMap.toNetworkConfig()
+                val networkConfig = config.toNetworkConfig()
                 networkConfigs[nativeId] = networkConfig
-                initConfigBlocks(nativeId, readableMap)
+                initConfigBlocks(nativeId, config)
                 promise.resolve(null)
             } catch (e: Exception) {
                 promise.reject("NetworkError", "Failed to initialize network config", e)
@@ -79,13 +78,11 @@ class NetworkExpoModule : Module() {
                 Log.e(MODULE_NAME, "Completer is null for requestId: $requestId, this can cause stuck network requests")
                 return@AsyncFunction
             }
-            val readableMap = convertMapToReadableMap(request)
-            completer.set(readableMap.toHttpRequest())
+            completer.set(request.toHttpRequest())
         }
 
         AsyncFunction("setPreprocessedHttpResponse") { responseId: String, response: Map<String, Any?> ->
-            val readableMap = convertMapToReadableMap(response)
-            preprocessHttpResponseCompleters[responseId]?.set(readableMap.toHttpResponse())
+            preprocessHttpResponseCompleters[responseId]?.set(response.toHttpResponse())
             preprocessHttpResponseCompleters.remove(responseId)
         }
     }
@@ -96,23 +93,23 @@ class NetworkExpoModule : Module() {
      */
     fun getConfig(nativeId: String?): NetworkConfig? = nativeId?.let { networkConfigs[it] }
 
-    private fun initConfigBlocks(nativeId: String, config: ReadableMap) {
+    private fun initConfigBlocks(nativeId: String, config: Map<String, Any?>) {
         initPreprocessHttpRequest(nativeId, config)
         initPreprocessHttpResponse(nativeId, config)
     }
 
-    private fun initPreprocessHttpRequest(nativeId: String, networkConfigJson: ReadableMap) {
+    private fun initPreprocessHttpRequest(nativeId: String, networkConfigJson: Map<String, Any?>) {
         val networkConfig = getConfig(nativeId) ?: return
-        if (!networkConfigJson.hasKey("preprocessHttpRequest")) return
+        if (!networkConfigJson.containsKey("preprocessHttpRequest")) return
         
         networkConfig.preprocessHttpRequestCallback = PreprocessHttpRequestCallback { type, request ->
             preprocessHttpRequestFromJS(nativeId, type, request)
         }
     }
 
-    private fun initPreprocessHttpResponse(nativeId: String, networkConfigJson: ReadableMap) {
+    private fun initPreprocessHttpResponse(nativeId: String, networkConfigJson: Map<String, Any?>) {
         val networkConfig = getConfig(nativeId) ?: return
-        if (!networkConfigJson.hasKey("preprocessHttpResponse")) return
+        if (!networkConfigJson.containsKey("preprocessHttpResponse")) return
         
         networkConfig.preprocessHttpResponseCallback = PreprocessHttpResponseCallback { type, response ->
             preprocessHttpResponseFromJS(nativeId, type, response)
@@ -197,19 +194,5 @@ class NetworkExpoModule : Module() {
             }
         }
         return writableMap
-    }
-
-    companion object {
-        /**
-         * Static access method to maintain compatibility with other modules.
-         * Retrieves the NetworkConfig for the given nativeId from any NetworkExpoModule instance.
-         */
-        @JvmStatic
-        fun getNetworkConfig(nativeId: String): NetworkConfig? {
-            // This static access pattern maintains compatibility with existing code
-            // In a production implementation, we would need to maintain a global registry
-            // or use dependency injection to access the module instance
-            return null // TODO: Implement global registry pattern if needed
-        }
     }
 }

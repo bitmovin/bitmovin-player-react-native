@@ -4,6 +4,7 @@ import ExpoModulesCore
 public class RNPlayerViewExpo: ExpoView {
     var playerView: PlayerView? {
         willSet {
+            playerView?.removeFromSuperview()
             newValue?.autoresizingMask = [
                 .flexibleWidth,
                 .flexibleHeight
@@ -35,7 +36,6 @@ public class RNPlayerViewExpo: ExpoView {
     private var scalingMode: ScalingMode?
     private var requestedFullscreenValue: Bool?
     private var requestedPictureInPictureValue: Bool?
-    internal var config: RNPlayerViewConfig?
 
     let onBmpEvent = EventDispatcher()
     let onBmpPlayerActive = EventDispatcher()
@@ -114,6 +114,7 @@ public class RNPlayerViewExpo: ExpoView {
 
     internal func attachPlayer(
         playerId: NativeId?,
+        playerViewConfigWrapper: RNPlayerViewConfig?,
         customMessageHandlerBridgeId: NativeId?
     ) {
         self.playerId = playerId
@@ -128,7 +129,7 @@ public class RNPlayerViewExpo: ExpoView {
 
         if let userInterfaceConfig = maybeCreateUserInterfaceConfig(
             styleConfig: player.config.styleConfig,
-            playerViewConfig: config,
+            playerViewConfig: playerViewConfigWrapper,
             customMessageHandlerBridgeId: customMessageHandlerBridgeId
         ) {
             player.config.styleConfig.userInterfaceConfig = userInterfaceConfig
@@ -142,7 +143,7 @@ public class RNPlayerViewExpo: ExpoView {
             self.playerView = PlayerView(
                 player: player,
                 frame: bounds,
-                playerViewConfig: config?.playerViewConfig ?? PlayerViewConfig()
+                playerViewConfig: playerViewConfigWrapper?.playerViewConfig ?? PlayerViewConfig()
             )
             previousPictureInPictureAvailableValue = false
         }
@@ -252,7 +253,7 @@ public class RNPlayerViewExpo: ExpoView {
         }
     }
 
-    internal func setScalingMode(scalingMode: String) {
+    internal func setScalingMode(scalingMode: String?) {
         switch scalingMode {
         case "Zoom":
             self.scalingMode = .zoom
@@ -261,7 +262,7 @@ public class RNPlayerViewExpo: ExpoView {
         case "Fit":
             self.scalingMode = .fit
         default:
-            break
+            self.scalingMode = .fit
         }
         guard let playerView, let nativeScalingMode = self.scalingMode else {
             return

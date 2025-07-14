@@ -27,8 +27,6 @@ class SourceExpoModule : Module() {
             sources.clear()
         }
 
-        // PHASE 1: Start with simple utility methods
-
         /**
          * Returns the count of active sources for debugging purposes
          */
@@ -51,7 +49,7 @@ class SourceExpoModule : Module() {
                 return@AsyncFunction // Source already exists
             }
             
-            val sourceConfig = config?.toReadableMap()?.toSourceConfig()
+            val sourceConfig = config?.toSourceConfig()
                 ?: throw SourceException.InvalidSourceConfig()
             
             // Get DRM config if provided
@@ -73,7 +71,7 @@ class SourceExpoModule : Module() {
                 return@AsyncFunction // Source already exists
             }
             
-            val sourceConfig = config?.toReadableMap()?.toSourceConfig()
+            val sourceConfig = config?.toSourceConfig()
                 ?: throw SourceException.InvalidSourceConfig()
             
             // Get DRM config if provided
@@ -81,7 +79,7 @@ class SourceExpoModule : Module() {
             
             // Add analytics metadata if provided
             analyticsSourceMetadata?.let { metadata ->
-                val analyticsMetadata = metadata.toReadableMap().toAnalyticsSourceMetadata()
+                val analyticsMetadata = metadata.toAnalyticsSourceMetadata()
                 // TODO: Set analytics metadata on source config when API is available
                 // sourceConfig.analyticsSourceMetadata = analyticsMetadata
             }

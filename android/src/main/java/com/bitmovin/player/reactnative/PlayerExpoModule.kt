@@ -41,8 +41,6 @@ class PlayerExpoModule : Module() {
             players.clear()
         }
 
-        // PHASE 1: Start with simple utility methods to establish pattern
-
         /**
          * Returns the count of active players for debugging purposes
          */
@@ -56,8 +54,6 @@ class PlayerExpoModule : Module() {
         Function("hasPlayer") { nativeId: String ->
             return@Function players.containsKey(nativeId)
         }
-
-        // PHASE 2: Simple player control methods migration
         
         /**
          * Call .play() on nativeId's player.
@@ -389,32 +385,22 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.getThumbnail(time)?.toJson()
         }
-        
-        /**
-         * Load offline content into the player.
-         * TODO: Fix offline functionality
-         */
-        // AsyncFunction("loadOfflineContent") { nativeId: String, offlineContentManagerBridgeId: String, options: Map<String, Any>? ->
-        //     val player = players[nativeId]
-        //     val offlineContentManagerBridge = OfflineExpoModule.getInstanceRegistry()[offlineContentManagerBridgeId]
-        //     
-        //     if (player != null && offlineContentManagerBridge != null) {
-        //         val restrictedToAssetCache = options?.get("restrictedToAssetCache") as? Boolean ?: true
-        //         val offlineSourceConfig = offlineContentManagerBridge
-        //             .getOfflineContentManagerBridgeOrNull()
-        //             ?.offlineContentManager
-        //             ?.createOfflineSourceConfig(restrictedToAssetCache)
-        //         
-        //         offlineSourceConfig?.let { player.load(it) }
-        //     }
-        // }
+         AsyncFunction("loadOfflineContent") { nativeId: String, offlineContentManagerBridgeId: String, options: Map<String, Any>? ->
+             val player = players[nativeId] ?: return@AsyncFunction
+             val offlineContentManagerBridge = appContext.registry.getModule<OfflineExpoModule>()
+                 ?.getOfflineContentManagerBridge(offlineContentManagerBridgeId)
+
+             offlineContentManagerBridge?.offlineContentManager?.offlineSourceConfig?.let {
+                 player.load(it)
+             }
+         }.runOnQueue(Queues.MAIN)
         
         /**
          * Schedule an ad item in the player.
          */
         AsyncFunction("scheduleAd") { nativeId: String, adItemJson: Map<String, Any> ->
             val player = players[nativeId]
-            val adItem = adItemJson.toReadableMap().toAdItem()
+            val adItem = adItemJson.toAdItem()
             if (player != null && adItem != null) {
                 player.scheduleAd(adItem)
             }
@@ -430,7 +416,7 @@ class PlayerExpoModule : Module() {
                 return@AsyncFunction
             }
             
-            val playerConfig = config?.toReadableMap()?.toPlayerConfig() ?: com.bitmovin.player.api.PlayerConfig()
+            val playerConfig = config?.toPlayerConfig() ?: com.bitmovin.player.api.PlayerConfig()
             
             val networkConfig = networkNativeId?.let { id ->
                 appContext.registry.getModule<NetworkExpoModule>()?.getConfig(id)
@@ -460,10 +446,10 @@ class PlayerExpoModule : Module() {
                 return@AsyncFunction
             }
             
-            val playerConfig = config?.toReadableMap()?.toPlayerConfig() ?: com.bitmovin.player.api.PlayerConfig()
-            val analyticsConfig = analyticsConfigJson.toReadableMap().toAnalyticsConfig()
+            val playerConfig = config?.toPlayerConfig() ?: com.bitmovin.player.api.PlayerConfig()
+            val analyticsConfig = analyticsConfigJson.toAnalyticsConfig()
             val defaultMetadata = analyticsConfigJson["defaultMetadata"]?.let {
-                (it as? Map<String, Any>)?.toReadableMap()?.toAnalyticsDefaultMetadata()
+                (it as? Map<String, Any?>)?.toAnalyticsDefaultMetadata()
             } ?: DefaultMetadata()
             
             val networkConfig = networkNativeId?.let { id ->
@@ -508,6 +494,5 @@ class PlayerExpoModule : Module() {
     }
 
     // CRITICAL: This method must remain available for cross-module access
-    // Called by various modules including BufferModule, SourceModule, etc.
     fun getPlayerOrNull(nativeId: NativeId): Player? = players[nativeId]
 }

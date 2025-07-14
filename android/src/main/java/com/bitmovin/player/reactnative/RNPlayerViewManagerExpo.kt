@@ -1,7 +1,9 @@
 package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.reactnative.converter.toRNPlayerViewConfigWrapper
-// import com.bitmovin.player.reactnative.ui.FullscreenHandlerModule - TODO: Fix fullscreen handler integration
+import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
+import com.bitmovin.player.reactnative.extensions.getMap
+import com.bitmovin.player.reactnative.extensions.getString
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -10,27 +12,25 @@ class RNPlayerViewManagerExpo : Module() {
         Name("RNPlayerViewManagerExpo")
 
         View(RNPlayerViewExpo::class) {
-            Prop("config") { view: RNPlayerViewExpo, config: Map<String, Any>? ->
-                view.config = config?.toReadableMap()?.toRNPlayerViewConfigWrapper()
-            }
-
-            Prop("playerInfo") { view: RNPlayerViewExpo, playerInfo: Map<String, Any>? ->
+            Prop("config") { view: RNPlayerViewExpo, playerInfo: Map<String, Any>? ->
                 val playerId = playerInfo?.get("playerId") as? String
                     ?: throw IllegalArgumentException("Player info must contain 'playerId' field")
-                val customMessageHandlerBridgeId = playerInfo["customMessageHandlerBridgeId"] as? String
-                val enableBackgroundPlayback = playerInfo["enableBackgroundPlayback"] as? Boolean ?: false
-                val isPictureInPictureEnabled = playerInfo["isPictureInPictureEnabled"] as? Boolean ?: false
-                val userInterfaceTypeName = playerInfo["userInterfaceTypeName"] as? String
+                val customMessageHandlerBridgeId = playerInfo.getString("customMessageHandlerBridgeId")
+                val enableBackgroundPlayback = playerInfo.getBooleanOrNull("enableBackgroundPlayback") ?: false
+                val isPictureInPictureEnabledOnPlayer = playerInfo.getBooleanOrNull("isPictureInPictureEnabledOnPlayer") ?: false
+                val userInterfaceTypeName = playerInfo.getString("userInterfaceTypeName")
+                val playerViewConfigWrapper = playerInfo.getMap("playerViewConfig")?.toRNPlayerViewConfigWrapper()
                 view.attachPlayer(
                     playerId,
+                    playerViewConfigWrapper,
                     customMessageHandlerBridgeId,
                     enableBackgroundPlayback,
-                    isPictureInPictureEnabled,
-                    userInterfaceTypeName
+                    isPictureInPictureEnabledOnPlayer,
+                    userInterfaceTypeName,
                 )
             }
 
-            Prop("scalingMode") { view: RNPlayerViewExpo, scalingMode: String ->
+            Prop("scalingMode") { view: RNPlayerViewExpo, scalingMode: String? ->
                 view.setScalingMode(scalingMode)
             }
 

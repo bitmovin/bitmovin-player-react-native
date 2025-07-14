@@ -96,16 +96,4 @@ class FullscreenHandlerExpoModule : Module() {
             fullscreenChangedCondition.await()
         }
     }
-
-    companion object {
-        /**
-         * Static access method to maintain compatibility with other modules.
-         * Retrieves the FullscreenHandlerBridge for the given nativeId.
-         */
-        @JvmStatic
-        fun getFullscreenHandlerBridge(nativeId: String): FullscreenHandlerBridge? {
-            // TODO: Implement global registry pattern if needed by other modules
-            return null
-        }
-    }
 }

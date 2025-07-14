@@ -4,8 +4,6 @@ import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.reactnative.converter.toSourceConfig
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
-import com.facebook.react.bridge.Arguments
-import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -33,10 +31,6 @@ class OfflineExpoModule : Module() {
             offlineContentManagerBridges.clear()
         }
 
-        /**
-         * Creates a new `OfflineContentManager` instance inside the internal offline managers using the provided `config` object.
-         * @param config Map object received from JS. Should contain a sourceConfig and location.
-         */
         AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>?, drmNativeId: String? ->
             if (offlineContentManagerBridges.containsKey(nativeId)) {
                 throw OfflineException.ManagerAlreadyExists(nativeId)
@@ -45,18 +39,22 @@ class OfflineExpoModule : Module() {
             val identifier = config?.get("identifier") as? String
                 ?: throw OfflineException.InvalidIdentifier()
 
-            val sourceConfig = (config["sourceConfig"] as? Map<String, Any?>)?.toReadableMap()?.toSourceConfig()
+            val sourceConfig = (config["sourceConfig"] as? Map<String, Any?>)?.toSourceConfig()
                 ?: throw OfflineException.InvalidSourceConfig()
 
             // Get DRM config from DrmExpoModule if available
             sourceConfig.drmConfig = appContext.registry.getModule<DrmExpoModule>()?.getConfig(drmNativeId)
 
+            val context = appContext.reactContext
+                ?: throw InvalidParameterException("ReactApplicationContext is not available")
+
             offlineContentManagerBridges[nativeId] = OfflineContentManagerBridge(
                 nativeId,
-                appContext.reactContext as com.facebook.react.bridge.ReactApplicationContext,
+                context,
+                this@OfflineExpoModule,
                 identifier,
                 sourceConfig,
-                appContext.reactContext!!.cacheDir.path,
+                appContext.cacheDirectory.path,
             )
         }
 
@@ -179,22 +177,9 @@ class OfflineExpoModule : Module() {
     /**
      * Helper function to get OfflineContentManagerBridge with proper error handling
      */
-    private fun getOfflineContentManagerBridge(nativeId: String): OfflineContentManagerBridge {
+    fun getOfflineContentManagerBridge(nativeId: String): OfflineContentManagerBridge {
         return offlineContentManagerBridges[nativeId] 
             ?: throw OfflineException.ManagerNotFound(nativeId)
-    }
-
-    companion object {
-        /**
-         * CRITICAL: This method must remain available for cross-module access
-         * Called by other modules that need access to offline content managers
-         */
-        @JvmStatic
-        fun retrieve(nativeId: String): OfflineContentManagerBridge? {
-            // Implementation would need access to the singleton instance
-            // This pattern needs to be addressed in a separate architectural improvement
-            return null
-        }
     }
 }
 
