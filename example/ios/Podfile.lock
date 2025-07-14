@@ -1,12 +1,12 @@
 PODS:
-  - BitmovinAnalyticsCollector/BitmovinPlayer (3.12.2):
+  - BitmovinAnalyticsCollector/BitmovinPlayer (3.13.0):
     - BitmovinAnalyticsCollector/Core
     - BitmovinPlayerCore (~> 3.48)
-  - BitmovinAnalyticsCollector/Core (3.12.2)
-  - BitmovinPlayer (3.92.1):
+  - BitmovinAnalyticsCollector/Core (3.13.0)
+  - BitmovinPlayer (3.93.0):
     - BitmovinAnalyticsCollector/BitmovinPlayer (~> 3.0)
-    - BitmovinPlayerCore (= 3.92.1)
-  - BitmovinPlayerCore (3.92.1)
+    - BitmovinPlayerCore (= 3.93.0)
+  - BitmovinPlayerCore (3.93.0)
   - boost (1.83.0)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.73.4-0)
@@ -27,7 +27,7 @@ PODS:
     - hermes-engine/Pre-built (= 0.73.4-0)
   - hermes-engine/Pre-built (0.73.4-0)
   - libevent (2.1.12.1)
-  - Protobuf (3.27.1)
+  - Protobuf (3.29.5)
   - RCT-Folly (2022.05.16.00):
     - boost
     - DoubleConversion
@@ -1049,7 +1049,7 @@ PODS:
     - React-logger (= 0.73.4-0)
     - React-perflogger (= 0.73.4-0)
   - RNBitmovinPlayer (0.43.0):
-    - BitmovinPlayer (= 3.92.1)
+    - BitmovinPlayer (= 3.93.0)
     - GoogleAds-IMA-iOS-SDK (= 3.23.0)
     - GoogleAds-IMA-tvOS-SDK (= 4.13.0)
     - React-Core
@@ -1245,9 +1245,9 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  BitmovinAnalyticsCollector: 159ff3328f6e517824fae855348a0ff1aae9b5fa
-  BitmovinPlayer: 7f51c299c8263296ef44ba6e2c7c3f9a2cc2a17c
-  BitmovinPlayerCore: f4558dbde85d87341b1956bae5f6b42710fc7f9b
+  BitmovinAnalyticsCollector: fef12ac57ac455a74e5b662cc48d62bc609008c2
+  BitmovinPlayer: 26874d68a52313fd3298be9cf41aa7a6369a7c84
+  BitmovinPlayerCore: a15dccc573fed749b4ba084ee1f33ed5503bf74c
   boost: 88202336c3ba1e7a264a83c0c888784b0f360c28
   DoubleConversion: 74cb0ce4de271b23e772567504735c87134edf0a
   FBLazyVector: 33a271a7e8de0bd321e47356d8bc3b2d5fb9ddba
@@ -1259,7 +1259,7 @@ SPEC CHECKSUMS:
   GoogleAds-IMA-tvOS-SDK: 9f79f4adcccd2393a93b00f62f566a69175f3978
   hermes-engine: e7981489a718dff7c3a2dacd6302b8761375928d
   libevent: a6d75fcd7be07cbc5070300ea8dbc8d55dfab88e
-  Protobuf: f1b82a3ffb1c8f13d20e141a838c411840e1c223
+  Protobuf: 164aea2ae380c3951abdc3e195220c01d17400e0
   RCT-Folly: ac5f237bf478a8d5c142153e2ad2406202daea2c
   RCTRequired: 013247b5dbfcf0d918480c9282ed9aa4a142f115
   RCTTypeSafety: 74a07efe760f43e2725acdde03c37ef98dfa02f6
@@ -1302,7 +1302,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: e83b922fe331cd2ef1519142cd473b4d67d985f8
   React-utils: e935a619ca1103da0ef9b5fb2dfe50d303e0a2c7
   ReactCommon: 90cab375776b3ba71b16464a83196f4e6c3358ff
-  RNBitmovinPlayer: cba30c84a070a9932e2185099504fc3dcbc42674
+  RNBitmovinPlayer: 74e7920f5ae98e53e7ae2d5086ebbd43e9f95bdf
   RNCPicker: 7ea4c112b43a2033ddb1e5e2ecb2e826f222b897
   RNScreens: 21da79a31c4419656d8cc4c6e9412cfc9c461551
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
