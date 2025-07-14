@@ -41,19 +41,6 @@ class PlayerExpoModule : Module() {
             players.clear()
         }
 
-        /**
-         * Returns the count of active players for debugging purposes
-         */
-        Function("getPlayerCount") {
-            return@Function players.size
-        }
-
-        /**
-         * Checks if a player with the given nativeId exists
-         */
-        Function("hasPlayer") { nativeId: String ->
-            return@Function players.containsKey(nativeId)
-        }
         
         /**
          * Call .play() on nativeId's player.

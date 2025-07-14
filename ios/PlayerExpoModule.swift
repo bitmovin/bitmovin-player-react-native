@@ -205,8 +205,6 @@ public class PlayerExpoModule: Module {
             player.load(source: source)
         }.runOnQueue(.main)
 
-        Function("getPlayerCount") { players.count }
-        Function("hasPlayer") { (nativeId: String) in players[nativeId] != nil }
     }
 
     @objc

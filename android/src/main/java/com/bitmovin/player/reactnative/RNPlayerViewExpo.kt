@@ -175,13 +175,16 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
             oldPlayerView.player = null
         }
         this.playerView = playerView
+        addView(this.playerView)
         scalingMode?.let {
             playerView.scalingMode = it
         }
         requestedFullscreenValue?.let {
             setFullscreen(it)
         }
-        addView(this.playerView)
+        requestedPictureInPictureValue?.let {
+            setPictureInPicture(it)
+        }
     }
 
     fun attachPlayer(
@@ -403,6 +406,7 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
     }
 
     fun setFullscreen(isFullscreen: Boolean) {
+        requestedFullscreenValue = isFullscreen
         playerView?.let {
             if (it.isFullscreen == isFullscreen) return
             if (isFullscreen) {
@@ -414,6 +418,7 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
     }
 
     fun setPictureInPicture(isPictureInPicture: Boolean) {
+        requestedPictureInPictureValue = isPictureInPicture
         playerView?.let {
             if (it.isPictureInPicture == isPictureInPicture) return
             if (isPictureInPicture) {

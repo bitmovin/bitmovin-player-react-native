@@ -5,16 +5,6 @@ export type SourceExpoModuleEvents = Record<string, any>;
 
 declare class SourceExpoModule extends NativeModule<SourceExpoModuleEvents> {
   /**
-   * Returns the count of active sources for debugging purposes
-   */
-  getSourceCount(): number;
-
-  /**
-   * Checks if a source with the given nativeId exists
-   */
-  hasSource(nativeId: string): boolean;
-
-  /**
    * Checks if the source is attached to a player.
    */
   isAttachedToPlayer(nativeId: string): Promise<boolean | null>;

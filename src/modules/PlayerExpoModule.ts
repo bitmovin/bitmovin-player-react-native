@@ -4,16 +4,6 @@ export type PlayerExpoModuleEvents = Record<string, any>;
 
 declare class PlayerExpoModule extends NativeModule<PlayerExpoModuleEvents> {
   /**
-   * Returns the count of active players for debugging purposes
-   */
-  getPlayerCount(): number;
-
-  /**
-   * Checks if a player with the given nativeId exists
-   */
-  hasPlayer(nativeId: string): boolean;
-
-  /**
    * Call .play() on nativeId's player.
    */
   play(nativeId: string): Promise<void>;

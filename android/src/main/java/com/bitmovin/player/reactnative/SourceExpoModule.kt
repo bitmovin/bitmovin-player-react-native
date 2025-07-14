@@ -28,20 +28,6 @@ class SourceExpoModule : Module() {
         }
 
         /**
-         * Returns the count of active sources for debugging purposes
-         */
-        Function("getSourceCount") {
-            sources.size
-        }
-
-        /**
-         * Checks if a source with the given nativeId exists
-         */
-        Function("hasSource") { nativeId: String ->
-            sources.containsKey(nativeId)
-        }
-
-        /**
          * Creates a new `Source` instance with the provided config.
          */
         AsyncFunction("initializeWithConfig") { nativeId: String, drmNativeId: String?, config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>? ->

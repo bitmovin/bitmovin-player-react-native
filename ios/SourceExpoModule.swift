@@ -51,12 +51,6 @@ public class SourceExpoModule: Module {
         AsyncFunction("loadingState") { [weak self] (nativeId: String) -> Int? in
             self?.sources[nativeId]?.loadingState.rawValue
         }
-        Function("getSourceCount") { [weak self] in
-            self?.sources.count ?? 0
-        }
-        Function("hasSource") { [weak self] (nativeId: String) in
-            self?.sources[nativeId] != nil
-        }
     }
 
     // MARK: - Public methods
