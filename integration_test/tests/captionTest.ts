@@ -11,6 +11,7 @@ import {
 } from '../playertesting';
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
+import { CueEnterEvent, CueExitEvent } from 'bitmovin-player-react-native';
 
 export default (spec: TestScope) => {
   spec.describe('playing captions', () => {
@@ -102,7 +103,9 @@ export default (spec: TestScope) => {
           player.seek(105);
         }, EventType.Seeked);
 
-        const cueEnterEvent = await expectEvent(EventType.CueEnter);
+        const cueEnterEvent: CueEnterEvent = await expectEvent(
+          EventType.CueEnter
+        );
         expect(
           cueEnterEvent.name,
           'CueEnter event should have name'
@@ -123,6 +126,94 @@ export default (spec: TestScope) => {
           cueEnterEvent.timestamp,
           'timestamp should be > 0'
         ).toBeGreaterThan(0);
+
+        // Validate CueEnter event-specific fields
+        expect(
+          cueEnterEvent.start,
+          'CueEnter event should have start'
+        ).toBeDefined();
+        expect(typeof cueEnterEvent.start, 'start should be a number').toBe(
+          'number'
+        );
+        expect(
+          cueEnterEvent.start,
+          'start should be >= 0'
+        ).toBeGreaterThanOrEqual(0);
+
+        expect(
+          cueEnterEvent.end,
+          'CueEnter event should have end'
+        ).toBeDefined();
+        expect(typeof cueEnterEvent.end, 'end should be a number').toBe(
+          'number'
+        );
+        expect(cueEnterEvent.end, 'end should be >= 0').toBeGreaterThanOrEqual(
+          0
+        );
+        expect(typeof cueEnterEvent.text, 'text should be a string').toBe(
+          'string'
+        );
+      });
+    });
+
+    spec.it('validates CueExit event properties', async () => {
+      await startPlayerTest({}, async () => {
+        await loadSourceConfig(Sources.sintel);
+        await callPlayer(async (player) => {
+          const subtitleTrack = (await player.getAvailableSubtitles())[1];
+          player.setSubtitleTrack(subtitleTrack.identifier);
+          player.play();
+        });
+        await callPlayerAndExpectEvent((player) => {
+          player.seek(105);
+        }, EventType.Seeked);
+
+        // Wait for CueEnter first, then CueExit
+        await expectEvent(EventType.CueEnter);
+        const cueExitEvent: CueExitEvent = await expectEvent(EventType.CueExit);
+        expect(
+          cueExitEvent.name,
+          'CueExit event should have name'
+        ).toBeDefined();
+        expect(
+          cueExitEvent.name,
+          'CueExit event name should be onCueExit'
+        ).toBe('onCueExit');
+        expect(
+          cueExitEvent.timestamp,
+          'CueExit event should have timestamp'
+        ).toBeDefined();
+        expect(
+          typeof cueExitEvent.timestamp,
+          'timestamp should be a number'
+        ).toBe('number');
+        expect(
+          cueExitEvent.timestamp,
+          'timestamp should be > 0'
+        ).toBeGreaterThan(0);
+
+        // Validate CueExit event-specific fields
+        expect(
+          cueExitEvent.start,
+          'CueExit event should have start'
+        ).toBeDefined();
+        expect(typeof cueExitEvent.start, 'start should be a number').toBe(
+          'number'
+        );
+        expect(
+          cueExitEvent.start,
+          'start should be >= 0'
+        ).toBeGreaterThanOrEqual(0);
+
+        expect(typeof cueExitEvent.end, 'end should be a number').toBe(
+          'number'
+        );
+        expect(cueExitEvent.end, 'end should be >= 0').toBeGreaterThanOrEqual(
+          0
+        );
+        expect(typeof cueExitEvent.text, 'text should be a string').toBe(
+          'string'
+        );
       });
     });
   });

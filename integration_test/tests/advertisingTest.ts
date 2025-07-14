@@ -16,6 +16,7 @@ import {
   AdItem,
   AdSourceType,
   AdvertisingConfig,
+  AdErrorEvent,
 } from 'bitmovin-player-react-native';
 import { AdTags } from './helper/Ads';
 import { Platform } from 'react-native';
@@ -173,10 +174,13 @@ export default (spec: TestScope) => {
       spec.it('validates AdError event properties', async () => {
         await startPlayerTest({}, async () => {
           await loadSourceConfig(Sources.artOfMotionHls);
-          const adErrorEvent = await callPlayerAndExpectEvent((player) => {
-            player.scheduleAd(adItem());
-            player.play();
-          }, EventType.AdError);
+          const adErrorEvent: AdErrorEvent = await callPlayerAndExpectEvent(
+            (player) => {
+              player.scheduleAd(adItem());
+              player.play();
+            },
+            EventType.AdError
+          );
 
           expect(
             adErrorEvent.name,
@@ -198,6 +202,28 @@ export default (spec: TestScope) => {
             adErrorEvent.timestamp,
             'timestamp should be > 0'
           ).toBeGreaterThan(0);
+
+          expect(
+            adErrorEvent.message,
+            'AdError event should have message'
+          ).toBeDefined();
+          expect(
+            typeof adErrorEvent.message,
+            'message should be a string'
+          ).toBe('string');
+
+          expect(typeof adErrorEvent.code, 'code should be a number').toBe(
+            'number'
+          );
+
+          expect(
+            typeof adErrorEvent.adConfig,
+            'adConfig should be an object'
+          ).toBe('object');
+
+          expect(typeof adErrorEvent.adItem, 'adItem should be an object').toBe(
+            'object'
+          );
         });
       });
     });
