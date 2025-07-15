@@ -38,6 +38,14 @@ This document outlines a comprehensive refactoring plan for `RNPlayerViewExpo.kt
    - Inconsistent null handling patterns
    - Silent failures without proper logging
 
+### Recently Fixed Issues
+
+✅ **SubtitleView Integration Fixed** (2025-01-15):
+- **Problem**: SubtitleView was not displaying on top of PlayerView due to incorrect parent container and missing layout parameters
+- **Solution**: Modified `setSubtitleView()` to add SubtitleView to `playerContainer` instead of `ExpoView` with proper `FrameLayout.LayoutParams`
+- **PiP Support**: Added SubtitleView resizing logic in `onPictureInPictureModeChanged()` for both entering and exiting PiP mode
+- **Result**: SubtitleView now properly displays on top of PlayerView and resizes correctly during PiP transitions
+
 ## Refactoring Strategy
 
 ### Primary Goals

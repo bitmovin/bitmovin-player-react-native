@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
-import android.view.View.MeasureSpec
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
@@ -29,7 +28,7 @@ import expo.modules.kotlin.viewevent.ViewEventCallback
 import expo.modules.kotlin.views.ExpoView
 
 @SuppressLint("ViewConstructor")
-class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext) : ExpoView(context, appContext) {
+class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
     var playerView: PlayerView? = null
         private set
     private var subtitleView: SubtitleView? = null
@@ -299,7 +298,17 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
             (currentSubtitleView.parent as? ViewGroup)?.removeView(currentSubtitleView)
         }
         this.subtitleView = subtitleView
-        addView(subtitleView)
+        
+        // Add SubtitleView to the playerContainer instead of the ExpoView
+        // This ensures it's on top of the PlayerView
+        playerContainer?.let { container ->
+            val layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            container.addView(subtitleView, layoutParams)
+            subtitleView.bringToFront() // Ensure proper z-ordering
+        }
     }
 
     private fun isInPictureInPictureMode(): Boolean {
@@ -410,6 +419,17 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
                     )
                     playerView.layout(0, 0, pipWidth, pipHeight)
                     
+                    // Ensure the SubtitleView is properly sized for PiP
+                    subtitleView?.let { subtitleView ->
+                        subtitleView.layoutParams = FrameLayout.LayoutParams(pipWidth, pipHeight)
+                        subtitleView.measure(
+                            MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
+                            MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY)
+                        )
+                        subtitleView.layout(0, 0, pipWidth, pipHeight)
+                        subtitleView.invalidate()
+                    }
+                    
                     // Try to force a redraw
                     playerView.invalidate()
                     playerContainer?.invalidate()
@@ -445,6 +465,14 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
                     FrameLayout.LayoutParams.MATCH_PARENT
                 )
                 
+                // Reset SubtitleView to full size
+                subtitleView?.let { subtitleView ->
+                    subtitleView.layoutParams = FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                    )
+                }
+                
                 // Force layout updates
                 measure(
                     MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
@@ -465,6 +493,16 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
                     MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
                 )
                 playerView.layout(0, 0, width, height)
+                
+                // Ensure SubtitleView is properly measured and laid out when exiting PiP
+                subtitleView?.let { subtitleView ->
+                    subtitleView.measure(
+                        MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+                    )
+                    subtitleView.layout(0, 0, width, height)
+                    subtitleView.invalidate()
+                }
                 
             }
         }
