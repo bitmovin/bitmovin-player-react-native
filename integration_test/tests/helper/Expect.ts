@@ -152,8 +152,8 @@ export function expect(actual: any, desc?: string) {
       assert(actual === null, `Expected ${formatValue(actual)} to be null`);
     },
 
-    toBeNotNull() {
-      assert(actual !== null, `Expected ${formatValue(actual)} to be not null`);
+    toNotBeNull() {
+      assert(actual !== null, `Expected ${formatValue(actual)} to not be null`);
     },
 
     toBeInstanceOf(expected: any) {
