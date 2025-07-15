@@ -107,7 +107,7 @@ export function expect(actual: any, desc?: string) {
 
     toHaveProperty(property: string) {
       assert(
-        actual && actual.hasOwnProperty(property),
+        actual && Object.prototype.hasOwnProperty.call(actual, property),
         `Expected ${actual} to have property '${property}'`
       );
     },
@@ -115,17 +115,22 @@ export function expect(actual: any, desc?: string) {
     toHavePropertyValue(property: string, value: any) {
       const actualValue = actual ? actual[property] : 'undefined';
       assert(
-        actual && actual.hasOwnProperty(property) && actual[property] === value,
+        actual &&
+          Object.prototype.hasOwnProperty.call(actual, property) &&
+          actual[property] === value,
         `Expected ${actual} to have property '${property}' with value ${value}, but got ${actualValue}`
       );
     },
 
     toMatchRegex(regex: RegExp) {
-      assert(regex.test(actual), `Expected ${actual} to match regex ${regex}`);
+      assert(
+        regex.test(String(actual)),
+        `Expected ${actual} to match regex ${regex}`
+      );
     },
 
     toBeCloseTo(expected: number, precision: number = 2) {
-      if (typeof actual !== 'number') {
+      if (typeof actual !== 'number' || typeof expected !== 'number') {
         throwErr(`Both ${actual} and ${expected} must be numbers`);
       }
       const diff = Math.abs(actual - expected);
