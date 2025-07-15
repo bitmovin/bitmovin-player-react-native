@@ -62,6 +62,13 @@ export function expect(actual: any, desc?: string) {
       );
     },
 
+    toNotEqual(expected: any) {
+      assert(
+        !deepEqual(actual, expected),
+        `Expected ${formatValue(actual)} not to equal ${formatValue(expected)}`
+      );
+    },
+
     toBeGreaterThan(expected: number) {
       if (!isNumber(actual) || !isNumber(expected)) {
         throwErr(
