@@ -15,13 +15,10 @@ import com.bitmovin.player.reactnative.converter.toHttpResponse
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toNetworkConfig
 import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.NativeArray
-import com.facebook.react.common.MapBuilder
+import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import expo.modules.kotlin.Promise
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Future
 
@@ -41,7 +38,7 @@ class NetworkExpoModule : Module() {
 
     override fun definition() = ModuleDefinition {
         Name(MODULE_NAME)
-        
+
         Events("onPreprocessHttpRequest", "onPreprocessHttpResponse")
 
         AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>, promise: Promise ->
@@ -49,7 +46,7 @@ class NetworkExpoModule : Module() {
                 promise.resolve(null)
                 return@AsyncFunction
             }
-            
+
             try {
                 val networkConfig = config.toNetworkConfig()
                 networkConfigs[nativeId] = networkConfig
@@ -62,7 +59,7 @@ class NetworkExpoModule : Module() {
 
         AsyncFunction("destroy") { nativeId: String ->
             networkConfigs.remove(nativeId)
-            
+
             // Clean up completion handlers
             preprocessHttpRequestCompleters.keys.filter { it.startsWith(nativeId) }.forEach {
                 preprocessHttpRequestCompleters.remove(it)
@@ -101,7 +98,7 @@ class NetworkExpoModule : Module() {
     private fun initPreprocessHttpRequest(nativeId: String, networkConfigJson: Map<String, Any?>) {
         val networkConfig = getConfig(nativeId) ?: return
         if (!networkConfigJson.containsKey("preprocessHttpRequest")) return
-        
+
         networkConfig.preprocessHttpRequestCallback = PreprocessHttpRequestCallback { type, request ->
             preprocessHttpRequestFromJS(nativeId, type, request)
         }
@@ -110,7 +107,7 @@ class NetworkExpoModule : Module() {
     private fun initPreprocessHttpResponse(nativeId: String, networkConfigJson: Map<String, Any?>) {
         val networkConfig = getConfig(nativeId) ?: return
         if (!networkConfigJson.containsKey("preprocessHttpResponse")) return
-        
+
         networkConfig.preprocessHttpResponseCallback = PreprocessHttpResponseCallback { type, response ->
             preprocessHttpResponseFromJS(nativeId, type, response)
         }
@@ -125,20 +122,23 @@ class NetworkExpoModule : Module() {
         val args = mapOf(
             "requestId" to requestId,
             "type" to type.toJson(),
-            "request" to request.toJson()
+            "request" to request.toJson(),
         )
 
         return CallbackToFutureAdapter.getFuture { completer ->
             preprocessHttpRequestCompleters[requestId] = completer
-            
+
             // Send event to TypeScript using Expo module event system
-            sendEvent("onPreprocessHttpRequest", bundleOf(
-                "nativeId" to nativeId,
-                "requestId" to requestId,
-                "type" to type.toJson(),
-                "request" to request.toJson()
-            ))
-            
+            sendEvent(
+                "onPreprocessHttpRequest",
+                bundleOf(
+                    "nativeId" to nativeId,
+                    "requestId" to requestId,
+                    "type" to type.toJson(),
+                    "request" to request.toJson(),
+                ),
+            )
+
             return@getFuture "NetworkExpoModule-preprocessHttpRequest-$requestId"
         }
     }
@@ -152,15 +152,18 @@ class NetworkExpoModule : Module() {
 
         return CallbackToFutureAdapter.getFuture { completer ->
             preprocessHttpResponseCompleters[responseId] = completer
-            
+
             // Send event to TypeScript using Expo module event system
-            sendEvent("onPreprocessHttpResponse", bundleOf(
-                "nativeId" to nativeId,
-                "responseId" to responseId,
-                "type" to type.toJson(),
-                "response" to response.toJson()
-            ))
-            
+            sendEvent(
+                "onPreprocessHttpResponse",
+                bundleOf(
+                    "nativeId" to nativeId,
+                    "responseId" to responseId,
+                    "type" to type.toJson(),
+                    "response" to response.toJson(),
+                ),
+            )
+
             return@getFuture "NetworkExpoModule-preprocessHttpResponse-$responseId"
         }
     }

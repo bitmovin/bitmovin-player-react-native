@@ -12,6 +12,7 @@
     "clean": "expo-module clean",
     "lint": "expo-module lint",
     "lint:ios": "swiftlint ios",
+    "lint:android": "cd android && ./gradlew -b ktlint.gradle ktlintCheck",
     "prepare": "expo-module prepare",
     "prepublishOnly": "expo-module prepublishOnly",
     "module": "expo-module",

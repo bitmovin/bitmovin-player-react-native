@@ -4,8 +4,6 @@ import android.webkit.JavascriptInterface
 import com.bitmovin.player.reactnative.CustomMessageHandlerExpoModule
 import com.bitmovin.player.reactnative.NativeId
 import com.bitmovin.player.ui.CustomMessageHandler
-import com.facebook.react.bridge.ReactApplicationContext
-import expo.modules.kotlin.AppContext
 
 class CustomMessageHandlerBridge(
     private val nativeId: NativeId,
@@ -14,12 +12,16 @@ class CustomMessageHandlerBridge(
     val customMessageHandler = CustomMessageHandler(
         object : Any() {
             @JavascriptInterface
-            fun sendSynchronous(name: String, data: String?): String? = 
-                expoModule?.receivedSynchronousMessage(nativeId, name, data)
+            fun sendSynchronous(
+                name: String,
+                data: String?,
+            ): String? = expoModule?.receivedSynchronousMessage(nativeId, name, data)
 
             @JavascriptInterface
-            fun sendAsynchronous(name: String, data: String?) = 
-                expoModule?.receivedAsynchronousMessage(nativeId, name, data)
+            fun sendAsynchronous(
+                name: String,
+                data: String?,
+            ) = expoModule?.receivedAsynchronousMessage(nativeId, name, data)
         },
     )
 

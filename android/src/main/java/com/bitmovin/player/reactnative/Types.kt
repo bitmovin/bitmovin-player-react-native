@@ -9,14 +9,14 @@ import com.bitmovin.player.api.ui.StyleConfig
  */
 enum class UserInterfaceType {
     Subtitle,
-    Bitmovin
+    Bitmovin,
 }
 
 /**
  * Configuration wrapper for Picture-in-Picture functionality.
  */
 data class PictureInPictureConfig(
-    val isEnabled: Boolean = false
+    val isEnabled: Boolean = false,
 )
 
 /**
@@ -24,7 +24,7 @@ data class PictureInPictureConfig(
  */
 data class RNPlayerViewConfigWrapper(
     val playerViewConfig: PlayerViewConfig,
-    val pictureInPictureConfig: PictureInPictureConfig? = null
+    val pictureInPictureConfig: PictureInPictureConfig? = null,
 )
 
 /**
@@ -32,7 +32,7 @@ data class RNPlayerViewConfigWrapper(
  */
 data class RNStyleConfigWrapper(
     val styleConfig: StyleConfig,
-    val userInterfaceType: UserInterfaceType
+    val userInterfaceType: UserInterfaceType,
 )
 
 /**
@@ -40,6 +40,5 @@ data class RNStyleConfigWrapper(
  */
 data class RNBufferLevels(
     val audio: BufferLevel,
-    val video: BufferLevel
+    val video: BufferLevel,
 )
-

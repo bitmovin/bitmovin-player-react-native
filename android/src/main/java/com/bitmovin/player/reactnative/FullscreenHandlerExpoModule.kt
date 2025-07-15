@@ -57,15 +57,18 @@ class FullscreenHandlerExpoModule : Module() {
      */
     fun requestEnterFullscreen(nativeId: String) {
         val handler = getInstance(nativeId) ?: return
-        
+
         val (id, wait) = waiter.make(250) // 250ms timeout
-        
+
         // Send event to JavaScript
-        sendEvent("onEnterFullscreen", mapOf(
-            "nativeId" to nativeId,
-            "id" to id
-        ))
-        
+        sendEvent(
+            "onEnterFullscreen",
+            mapOf(
+                "nativeId" to nativeId,
+                "id" to id,
+            ),
+        )
+
         val result = wait() ?: return
         handler.isFullscreen = result
     }
@@ -76,15 +79,18 @@ class FullscreenHandlerExpoModule : Module() {
      */
     fun requestExitFullscreen(nativeId: String) {
         val handler = getInstance(nativeId) ?: return
-        
+
         val (id, wait) = waiter.make(250) // 250ms timeout
-        
+
         // Send event to JavaScript
-        sendEvent("onExitFullscreen", mapOf(
-            "nativeId" to nativeId,
-            "id" to id
-        ))
-        
+        sendEvent(
+            "onExitFullscreen",
+            mapOf(
+                "nativeId" to nativeId,
+                "id" to id,
+            ),
+        )
+
         val result = wait() ?: return
         handler.isFullscreen = result
     }

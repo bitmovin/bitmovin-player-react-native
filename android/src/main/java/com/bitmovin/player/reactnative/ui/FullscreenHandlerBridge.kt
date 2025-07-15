@@ -3,7 +3,6 @@ package com.bitmovin.player.reactnative.ui
 import com.bitmovin.player.api.ui.FullscreenHandler
 import com.bitmovin.player.reactnative.FullscreenHandlerExpoModule
 import com.bitmovin.player.reactnative.NativeId
-import com.facebook.react.bridge.ReactApplicationContext
 
 class FullscreenHandlerBridge(
     private val nativeId: NativeId,

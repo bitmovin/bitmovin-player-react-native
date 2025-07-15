@@ -7,7 +7,7 @@ import expo.modules.kotlin.modules.ModuleDefinition
 class DebugExpoModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("DebugModule")
-        
+
         AsyncFunction("setDebugLoggingEnabled") { enabled: Boolean ->
             DebugConfig.isLoggingEnabled = enabled
         }

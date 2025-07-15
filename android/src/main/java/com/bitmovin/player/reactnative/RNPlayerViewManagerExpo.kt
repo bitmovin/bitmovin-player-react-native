@@ -17,7 +17,8 @@ class RNPlayerViewManagerExpo : Module() {
                     ?: throw IllegalArgumentException("Player info must contain 'playerId' field")
                 val customMessageHandlerBridgeId = playerInfo.getString("customMessageHandlerBridgeId")
                 val enableBackgroundPlayback = playerInfo.getBooleanOrNull("enableBackgroundPlayback") ?: false
-                val isPictureInPictureEnabledOnPlayer = playerInfo.getBooleanOrNull("isPictureInPictureEnabledOnPlayer") ?: false
+                val isPictureInPictureEnabledOnPlayer =
+                    playerInfo.getBooleanOrNull("isPictureInPictureEnabledOnPlayer") ?: false
                 val userInterfaceTypeName = playerInfo.getString("userInterfaceTypeName")
                 val playerViewConfigWrapper = playerInfo.getMap("playerViewConfig")?.toRNPlayerViewConfigWrapper()
                 view.attachPlayer(
@@ -43,7 +44,7 @@ class RNPlayerViewManagerExpo : Module() {
             }
 
             Prop("fullscreenBridgeId") { view: RNPlayerViewExpo, fullscreenBridgeId: String ->
-                 view.attachFullscreenBridge(fullscreenBridgeId)
+                view.attachFullscreenBridge(fullscreenBridgeId)
             }
 
             Events(
@@ -107,7 +108,7 @@ class RNPlayerViewManagerExpo : Module() {
                 "onBmpCastWaitingForDevice",
                 "onBmpCastTimeUpdated",
                 "onBmpCueEnter",
-                "onBmpCueExit"
+                "onBmpCueExit",
             )
         }
     }

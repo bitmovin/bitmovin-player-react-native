@@ -13,7 +13,11 @@ class ActivityLifecycleListener : ReactActivityLifecycleListener {
         // Only execute Google Cast code if the CastContext class is available
         try {
             val castContextClass = Class.forName("com.google.android.gms.cast.framework.CastContext")
-            val getSharedInstanceMethod = castContextClass.getMethod("getSharedInstance", Any::class.java, Runnable::class.java)
+            val getSharedInstanceMethod = castContextClass.getMethod(
+                "getSharedInstance",
+                Any::class.java,
+                Runnable::class.java,
+            )
             getSharedInstanceMethod.invoke(null, this, Runnable { })
         } catch (_: Exception) { }
     }

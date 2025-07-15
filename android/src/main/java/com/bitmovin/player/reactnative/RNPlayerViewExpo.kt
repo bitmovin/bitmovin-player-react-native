@@ -181,36 +181,39 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
             (oldPlayerView.parent as? ViewGroup)?.removeView(oldPlayerView)
             oldPlayerView.player = null
         }
-        
+
         // Remove existing container if it exists
         playerContainer?.let { oldContainer ->
             (oldContainer.parent as? ViewGroup)?.removeView(oldContainer)
         }
-        
+
         // Create new container for the PlayerView
         val newContainer = FrameLayout(context).apply {
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
+                FrameLayout.LayoutParams.MATCH_PARENT,
             )
         }
-        
+
         // Add PlayerView to the container
         (playerView.parent as ViewGroup?)?.removeView(playerView)
-        newContainer.addView(playerView, FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.MATCH_PARENT
-        ))
-        
+        newContainer.addView(
+            playerView,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT,
+            ),
+        )
+
         // Add container to the ExpoView with correct layout parameters
         val containerLayoutParams = generateDefaultLayoutParams()
         containerLayoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
         containerLayoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
         addView(newContainer, 0, containerLayoutParams)
-        
+
         this.playerView = playerView
         this.playerContainer = newContainer
-        
+
         scalingMode?.let {
             playerView.scalingMode = it
         }
@@ -269,7 +272,8 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
                 LayoutParams.MATCH_PARENT,
             )
 
-            val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || playerViewConfigWrapper?.pictureInPictureConfig?.isEnabled == true
+            val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer ||
+                playerViewConfigWrapper?.pictureInPictureConfig?.isEnabled == true
             if (isPictureInPictureEnabled) {
                 newPlayerView.setPictureInPictureHandler(RNPictureInPictureHandler(currentActivity, player))
             }
@@ -298,13 +302,13 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
             (currentSubtitleView.parent as? ViewGroup)?.removeView(currentSubtitleView)
         }
         this.subtitleView = subtitleView
-        
+
         // Add SubtitleView to the playerContainer instead of the ExpoView
         // This ensures it's on top of the PlayerView
         playerContainer?.let { container ->
             val layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
+                FrameLayout.LayoutParams.MATCH_PARENT,
             )
             container.addView(subtitleView, layoutParams)
             subtitleView.bringToFront() // Ensure proper z-ordering
@@ -327,10 +331,10 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
      */
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        
+
         val wasInPiP = isCurrentActivityInPictureInPictureMode
         val nowInPiP = isInPictureInPictureMode()
-        
+
         if (wasInPiP != nowInPiP) {
             isCurrentActivityInPictureInPictureMode = nowInPiP
             onPictureInPictureModeChanged(nowInPiP, newConfig)
@@ -342,27 +346,29 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
         newConfig: Configuration,
     ) {
         val playerView = playerView ?: return
-        
+
         playerView.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-        
+
         if (isInPictureInPictureMode) {
             if (!playerView.isPictureInPicture) {
                 playerView.enterPictureInPicture()
             }
-            
+
             // Force layout update for PiP mode and ensure proper sizing
             playerView.requestLayout()
             requestLayout()
-            
+
             // Additional PiP-specific layout handling
             post {
                 val activity = appContext.activityProvider?.currentActivity
-                if (activity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && activity.isInPictureInPictureMode) {
+                if (activity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    activity.isInPictureInPictureMode
+                ) {
                     // Get the actual PiP window dimensions from WindowManager
                     val windowManager = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
                     val pipWidth: Int
                     val pipHeight: Int
-                    
+
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         // Use WindowMetrics for API 30+
                         val windowMetrics = windowManager.currentWindowMetrics
@@ -377,8 +383,7 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
                         pipWidth = displayMetrics.widthPixels
                         pipHeight = displayMetrics.heightPixels
                     }
-                    
-                    
+
                     // Force the ExpoView to be resized to PiP dimensions
                     // Preserve the original layout params type to avoid ClassCastException
                     layoutParams?.let { currentParams ->
@@ -387,14 +392,14 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
                         // Re-assign to trigger layout update
                         layoutParams = currentParams
                     }
-                    
+
                     // Ensure the ExpoView container is properly sized for PiP
                     measure(
                         MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY)
+                        MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
                     )
                     layout(left, top, left + pipWidth, top + pipHeight)
-                    
+
                     // Ensure the intermediate container is properly sized for PiP
                     playerContainer?.let { container ->
                         // Preserve the original layout params type for the container
@@ -405,31 +410,30 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
                         }
                         container.measure(
                             MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
-                            MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY)
+                            MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
                         )
                         container.layout(0, 0, pipWidth, pipHeight)
-                        
                     }
-                    
+
                     // Ensure the PlayerView is properly sized for PiP
                     playerView.layoutParams = FrameLayout.LayoutParams(pipWidth, pipHeight)
                     playerView.measure(
                         MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY)
+                        MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
                     )
                     playerView.layout(0, 0, pipWidth, pipHeight)
-                    
+
                     // Ensure the SubtitleView is properly sized for PiP
                     subtitleView?.let { subtitleView ->
                         subtitleView.layoutParams = FrameLayout.LayoutParams(pipWidth, pipHeight)
                         subtitleView.measure(
                             MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
-                            MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY)
+                            MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
                         )
                         subtitleView.layout(0, 0, pipWidth, pipHeight)
                         subtitleView.invalidate()
                     }
-                    
+
                     // Try to force a redraw
                     playerView.invalidate()
                     playerContainer?.invalidate()
@@ -440,7 +444,7 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
             if (playerView.isPictureInPicture) {
                 playerView.exitPictureInPicture()
             }
-            
+
             // Restore full size layout when exiting PiP
             post {
                 // Reset ExpoView to full size
@@ -449,7 +453,7 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
                     currentParams.height = ViewGroup.LayoutParams.MATCH_PARENT
                     layoutParams = currentParams
                 }
-                
+
                 // Reset intermediate container to full size
                 playerContainer?.let { container ->
                     container.layoutParams?.let { containerParams ->
@@ -458,52 +462,51 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
                         container.layoutParams = containerParams
                     }
                 }
-                
+
                 // Reset PlayerView to full size
                 playerView.layoutParams = FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT
+                    FrameLayout.LayoutParams.MATCH_PARENT,
                 )
-                
+
                 // Reset SubtitleView to full size
                 subtitleView?.let { subtitleView ->
                     subtitleView.layoutParams = FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.MATCH_PARENT,
-                        FrameLayout.LayoutParams.MATCH_PARENT
+                        FrameLayout.LayoutParams.MATCH_PARENT,
                     )
                 }
-                
+
                 // Force layout updates
                 measure(
                     MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                    MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+                    MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
                 )
                 layout(left, top, right, bottom)
-                
+
                 playerContainer?.let { container ->
                     container.measure(
                         MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
                     )
                     container.layout(0, 0, width, height)
                 }
-                
+
                 playerView.measure(
                     MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                    MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+                    MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
                 )
                 playerView.layout(0, 0, width, height)
-                
+
                 // Ensure SubtitleView is properly measured and laid out when exiting PiP
                 subtitleView?.let { subtitleView ->
                     subtitleView.measure(
                         MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
                     )
                     subtitleView.layout(0, 0, width, height)
                     subtitleView.invalidate()
                 }
-                
             }
         }
     }

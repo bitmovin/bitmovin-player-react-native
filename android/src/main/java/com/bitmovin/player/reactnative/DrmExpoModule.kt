@@ -6,9 +6,9 @@ import com.bitmovin.player.api.drm.PrepareLicenseCallback
 import com.bitmovin.player.api.drm.PrepareMessageCallback
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.reactnative.converter.toWidevineConfig
+import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import expo.modules.kotlin.Promise
 import java.security.InvalidParameterException
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
@@ -58,7 +58,7 @@ class DrmExpoModule : Module() {
 
     override fun definition() = ModuleDefinition {
         Name(MODULE_NAME)
-        
+
         Events("onPrepareMessage", "onPrepareLicense")
 
         AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>, promise: Promise ->
@@ -66,9 +66,11 @@ class DrmExpoModule : Module() {
                 promise.reject("DrmError", "NativeId already exists $nativeId", null)
                 return@AsyncFunction
             }
-            
+
             try {
-                val widevineConfig = config.toWidevineConfig() ?: throw InvalidParameterException("Invalid widevine config")
+                val widevineConfig = config.toWidevineConfig() ?: throw InvalidParameterException(
+                    "Invalid widevine config",
+                )
                 widevineConfig.prepareMessageCallback = buildPrepareMessageCallback(nativeId, config)
                 widevineConfig.prepareLicenseCallback = buildPrepareLicense(nativeId, config)
                 drmConfigs[nativeId] = widevineConfig
@@ -97,17 +99,13 @@ class DrmExpoModule : Module() {
         }
 
         // iOS-specific methods that return null on Android for compatibility
-        AsyncFunction("setPreparedCertificate") { _: String, _: String -> 
-            // No-op on Android
+        AsyncFunction("setPreparedCertificate") { _: String, _: String -> // No-op on Android
         }
-        AsyncFunction("setPreparedSyncMessage") { _: String, _: String -> 
-            // No-op on Android
+        AsyncFunction("setPreparedSyncMessage") { _: String, _: String -> // No-op on Android
         }
-        AsyncFunction("setPreparedLicenseServerUrl") { _: String, _: String -> 
-            // No-op on Android
+        AsyncFunction("setPreparedLicenseServerUrl") { _: String, _: String -> // No-op on Android
         }
-        AsyncFunction("setPreparedContentId") { _: String, _: String -> 
-            // No-op on Android
+        AsyncFunction("setPreparedContentId") { _: String, _: String -> // No-op on Android
         }
     }
 
@@ -173,11 +171,14 @@ class DrmExpoModule : Module() {
         registryCondition: Condition,
     ): PrepareCallback = {
         // Send event to TypeScript using Expo module event system
-        sendEvent(method, bundleOf(
-            "nativeId" to nativeId,
-            "data" to Base64.encodeToString(it, Base64.NO_WRAP)
-        ))
-        
+        sendEvent(
+            method,
+            bundleOf(
+                "nativeId" to nativeId,
+                "data" to Base64.encodeToString(it, Base64.NO_WRAP),
+            ),
+        )
+
         lock.withLock {
             registryCondition.await()
             val result = registry[nativeId]

@@ -15,7 +15,7 @@ import com.facebook.react.uimanager.ViewManager
 
 /**
  * React package registry.
- * 
+ *
  * NOTE: This class is no longer used in the Expo modules architecture.
  * All modules are now automatically registered by ExpoModulesCore.
  */
@@ -26,7 +26,7 @@ class RNPlayerViewPackage : ReactPackage {
     override fun createNativeModules(reactContext: ReactApplicationContext): MutableList<NativeModule> {
         // All modules migrated to Expo:
         // - OfflineModule -> OfflineExpoModule
-        // - PlayerModule -> PlayerExpoModule  
+        // - PlayerModule -> PlayerExpoModule
         // - SourceModule -> SourceExpoModule
         // - DrmModule -> DrmExpoModule
         // - etc.

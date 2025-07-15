@@ -3,10 +3,10 @@ package com.bitmovin.player.reactnative
 import com.bitmovin.player.api.analytics.AnalyticsApi
 import com.bitmovin.player.api.analytics.AnalyticsApi.Companion.analytics
 import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
+import expo.modules.kotlin.Promise
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import expo.modules.kotlin.Promise
 
 private const val MODULE_NAME = "PlayerAnalyticsExpoModule"
 
@@ -45,7 +45,9 @@ class PlayerAnalyticsExpoModule : Module() {
     private fun getAnalyticsForPlayer(playerId: String): AnalyticsApi {
         // Get the player from PlayerExpoModule
         val playerExpoModule = appContext.registry.getModule<PlayerExpoModule>()
-        val player = playerExpoModule?.getPlayerOrNull(playerId) ?: throw IllegalStateException("Could not find player with ID $playerId")
+        val player = playerExpoModule?.getPlayerOrNull(playerId) ?: throw IllegalStateException(
+            "Could not find player with ID $playerId",
+        )
         return player.analytics ?: throw IllegalStateException("Analytics is disabled")
     }
 }

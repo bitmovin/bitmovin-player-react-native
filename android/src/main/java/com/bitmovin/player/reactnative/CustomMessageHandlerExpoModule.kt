@@ -4,7 +4,6 @@ import androidx.core.os.bundleOf
 import com.bitmovin.player.reactnative.ui.CustomMessageHandlerBridge
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import expo.modules.kotlin.Promise
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -32,11 +31,14 @@ class CustomMessageHandlerExpoModule : Module() {
 
     override fun definition() = ModuleDefinition {
         Name(MODULE_NAME)
-        
+
         Events("onReceivedSynchronousMessage", "onReceivedAsynchronousMessage")
 
         AsyncFunction("registerHandler") { nativeId: String ->
-            val customMessageHandler = customMessageHandlers[nativeId] ?: CustomMessageHandlerBridge(nativeId, this@CustomMessageHandlerExpoModule)
+            val customMessageHandler = customMessageHandlers[nativeId] ?: CustomMessageHandlerBridge(
+                nativeId,
+                this@CustomMessageHandlerExpoModule,
+            )
             customMessageHandlers[nativeId] = customMessageHandler
         }
 
@@ -69,12 +71,15 @@ class CustomMessageHandlerExpoModule : Module() {
     fun receivedSynchronousMessage(nativeId: String, message: String, data: String?): String? {
         lock.withLock {
             // Send event to TypeScript using Expo module event system
-            sendEvent("onReceivedSynchronousMessage", bundleOf(
-                "nativeId" to nativeId,
-                "message" to message,
-                "data" to data
-            ))
-            
+            sendEvent(
+                "onReceivedSynchronousMessage",
+                bundleOf(
+                    "nativeId" to nativeId,
+                    "message" to message,
+                    "data" to data,
+                ),
+            )
+
             customMessageHandlerResultChangedCondition.await()
         }
         return customMessageHandlers[nativeId]?.popSynchronousResult()
@@ -86,10 +91,13 @@ class CustomMessageHandlerExpoModule : Module() {
      */
     fun receivedAsynchronousMessage(nativeId: String, message: String, data: String?) {
         // Send event to TypeScript using Expo module event system
-        sendEvent("onReceivedAsynchronousMessage", bundleOf(
-            "nativeId" to nativeId,
-            "message" to message,
-            "data" to data
-        ))
+        sendEvent(
+            "onReceivedAsynchronousMessage",
+            bundleOf(
+                "nativeId" to nativeId,
+                "message" to message,
+                "data" to data,
+            ),
+        )
     }
 }

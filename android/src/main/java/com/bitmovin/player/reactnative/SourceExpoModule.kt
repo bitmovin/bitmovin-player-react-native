@@ -1,7 +1,7 @@
 package com.bitmovin.player.reactnative
 
-import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.analytics.create
+import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
 import com.bitmovin.player.reactnative.converter.toSourceConfig
 import expo.modules.kotlin.exception.CodedException
@@ -30,15 +30,18 @@ class SourceExpoModule : Module() {
         /**
          * Creates a new `Source` instance with the provided config.
          */
-        AsyncFunction("initializeWithConfig") { nativeId: String, drmNativeId: String?, config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>? ->
+        AsyncFunction("initializeWithConfig") { nativeId: String, drmNativeId: String?,
+            config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?, ->
             initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, null)
         }
 
         /**
          * Creates a new `Source` instance with analytics configuration.
          */
-        AsyncFunction("initializeWithAnalyticsConfig") { nativeId: String, drmNativeId: String?, config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?, analyticsSourceMetadata: Map<String, Any>? ->
-           initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, analyticsSourceMetadata)
+        AsyncFunction("initializeWithAnalyticsConfig") { nativeId: String, drmNativeId: String?,
+            config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?,
+            analyticsSourceMetadata: Map<String, Any>?, ->
+            initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, analyticsSourceMetadata)
         }
 
         /**

@@ -62,13 +62,29 @@ import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.RNStyleConfigWrapper
 import com.bitmovin.player.reactnative.UserInterfaceType
-import com.bitmovin.player.reactnative.extensions.*
+import com.bitmovin.player.reactnative.extensions.getArray
+import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
+import com.bitmovin.player.reactnative.extensions.getDoubleOrNull
+import com.bitmovin.player.reactnative.extensions.getInt
+import com.bitmovin.player.reactnative.extensions.getMap
+import com.bitmovin.player.reactnative.extensions.getName
+import com.bitmovin.player.reactnative.extensions.getString
+import com.bitmovin.player.reactnative.extensions.toBase64DataUri
+import com.bitmovin.player.reactnative.extensions.toMap
+import com.bitmovin.player.reactnative.extensions.toMapList
+import com.bitmovin.player.reactnative.extensions.withArray
+import com.bitmovin.player.reactnative.extensions.withBoolean
+import com.bitmovin.player.reactnative.extensions.withDouble
+import com.bitmovin.player.reactnative.extensions.withInt
+import com.bitmovin.player.reactnative.extensions.withMap
+import com.bitmovin.player.reactnative.extensions.withString
+import com.bitmovin.player.reactnative.extensions.withStringArray
 import java.util.UUID
 
 /**
  * Filters out null values from a map to ensure compatibility with Expo modules
  */
-private fun Map<String, Any?>.filterNotNullValues(): Map<String, Any> = 
+private fun Map<String, Any?>.filterNotNullValues(): Map<String, Any> =
     this.filterValues { it != null }.mapValues { it.value!! }
 
 /**
@@ -286,7 +302,7 @@ fun Source.toJson(): Map<String, Any> = mapOf(
     "isActive" to isActive,
     "isAttachedToPlayer" to isAttachedToPlayer,
     "loadingState" to loadingState.ordinal,
-    "metadata" to (config.metadata ?: emptyMap<String, Any>())
+    "metadata" to (config.metadata ?: emptyMap<String, Any>()),
 ).filterNotNullValues()
 
 /**
@@ -294,7 +310,7 @@ fun Source.toJson(): Map<String, Any> = mapOf(
  */
 fun SeekPosition.toJson(): Map<String, Any> = mapOf(
     "time" to time,
-    "source" to source.toJson()
+    "source" to source.toJson(),
 ).filterNotNullValues()
 
 /**
@@ -303,9 +319,9 @@ fun SeekPosition.toJson(): Map<String, Any> = mapOf(
 fun SourceEvent.toJson(): Map<String, Any> {
     val baseMap = mutableMapOf<String, Any?>(
         "name" to getName(),
-        "timestamp" to timestamp.toDouble()
+        "timestamp" to timestamp.toDouble(),
     )
-    
+
     when (this) {
         is SourceEvent.Load -> {
             baseMap["source"] = source.toJson()
@@ -381,9 +397,9 @@ fun SourceEvent.toJson(): Map<String, Any> {
 fun PlayerEvent.toJson(): Map<String, Any> {
     val baseMap = mutableMapOf<String, Any?>(
         "name" to getName(),
-        "timestamp" to timestamp.toDouble()
+        "timestamp" to timestamp.toDouble(),
     )
-    
+
     when (this) {
         is PlayerEvent.Error -> {
             baseMap["code"] = code.value
@@ -541,7 +557,7 @@ fun AudioTrack.toJson(): Map<String, Any> = mapOf(
     "isDefault" to isDefault,
     "identifier" to id,
     "language" to language,
-    "roles" to roles.map { it.toJson() }
+    "roles" to roles.map { it.toJson() },
 ).filterNotNullValues()
 
 /**
@@ -579,7 +595,7 @@ fun SubtitleTrack.toJson(): Map<String, Any> = mapOf(
     "language" to language,
     "isForced" to isForced,
     "format" to mimeType?.textMimeTypeToJson(),
-    "roles" to roles.map { it.toJson() }
+    "roles" to roles.map { it.toJson() },
 ).filterNotNullValues()
 
 /**
@@ -593,7 +609,7 @@ private fun String.textMimeTypeToJson(): String = split("/").last()
 fun AdBreak.toJson(): Map<String, Any> = mapOf(
     "ads" to ads.map { it.toJson() },
     "id" to id,
-    "scheduleTime" to scheduleTime
+    "scheduleTime" to scheduleTime,
 )
 
 /**
@@ -606,7 +622,7 @@ fun Ad.toJson(): Map<String, Any> = mapOf(
     "id" to id,
     "isLinear" to isLinear,
     "mediaFileUrl" to mediaFileUrl,
-    "width" to width
+    "width" to width,
 ).filterNotNullValues()
 
 /**
@@ -616,14 +632,14 @@ fun AdData.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "bitrate" to bitrate,
     "maxBitrate" to maxBitrate,
     "mimeType" to mimeType,
-    "minBitrate" to minBitrate
+    "minBitrate" to minBitrate,
 ).filterNotNullValues()
 
 /**
  * Converts any `AdConfig` object into its json representation.
  */
 fun AdConfig.toJson(): Map<String, Any> = mapOf<String, Any?>(
-    "replaceContentDuration" to replaceContentDuration
+    "replaceContentDuration" to replaceContentDuration,
 ).filterNotNullValues()
 
 /**
@@ -631,7 +647,7 @@ fun AdConfig.toJson(): Map<String, Any> = mapOf<String, Any?>(
  */
 fun AdItem.toJson(): Map<String, Any> = mapOf(
     "position" to position,
-    "sources" to sources.toList().map { it.toJson() }
+    "sources" to sources.toList().map { it.toJson() },
 )
 
 /**
@@ -639,7 +655,7 @@ fun AdItem.toJson(): Map<String, Any> = mapOf(
  */
 fun AdSource.toJson(): Map<String, Any> = mapOf(
     "tag" to tag,
-    "type" to type.toJson()
+    "type" to type.toJson(),
 )
 
 /**
@@ -733,7 +749,7 @@ fun VideoQuality.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "codec" to codec,
     "frameRate" to frameRate.toDouble(),
     "height" to height,
-    "width" to width
+    "width" to width,
 ).filterNotNullValues()
 
 /**
@@ -741,7 +757,7 @@ fun VideoQuality.toJson(): Map<String, Any> = mapOf<String, Any?>(
  */
 fun OfflineOptionEntry.toJson(): Map<String, Any> = mapOf(
     "id" to id,
-    "language" to language
+    "language" to language,
 ).filterNotNullValues()
 
 /**
@@ -749,7 +765,7 @@ fun OfflineOptionEntry.toJson(): Map<String, Any> = mapOf(
  */
 fun OfflineContentOptions.toJson(): Map<String, Any> = mapOf(
     "audioOptions" to audioOptions.map { it.toJson() },
-    "textOptions" to textOptions.map { it.toJson() }
+    "textOptions" to textOptions.map { it.toJson() },
 )
 
 fun Thumbnail.toJson(): Map<String, Any> = mapOf(
@@ -760,7 +776,7 @@ fun Thumbnail.toJson(): Map<String, Any> = mapOf(
     "x" to x,
     "y" to y,
     "width" to width,
-    "height" to height
+    "height" to height,
 )
 
 fun Map<String, Any?>.toPictureInPictureConfig(): PictureInPictureConfig = PictureInPictureConfig(
@@ -867,7 +883,7 @@ fun HttpRequest.toJson(): Map<String, Any> = mapOf(
     "url" to url,
     "headers" to headers,
     "body" to body?.toBase64String(),
-    "method" to method
+    "method" to method,
 ).filterNotNullValues()
 
 fun HttpResponse.toJson(): Map<String, Any> = mapOf(
@@ -875,7 +891,7 @@ fun HttpResponse.toJson(): Map<String, Any> = mapOf(
     "url" to url,
     "status" to status,
     "headers" to headers,
-    "body" to body.toBase64String()
+    "body" to body.toBase64String(),
 )
 
 fun HttpRequestType.toJson(): String = toString()
@@ -900,12 +916,12 @@ fun BufferLevel.toJson(): Map<String, Any> = mapOf(
     "level" to level,
     "targetLevel" to targetLevel,
     "media" to media.toJson(),
-    "type" to type.toJson()
+    "type" to type.toJson(),
 )
 
 fun RNBufferLevels.toJson(): Map<String, Any> = mapOf(
     "audio" to audio.toJson(),
-    "video" to video.toJson()
+    "video" to video.toJson(),
 )
 
 // Extension function to convert string to BufferType
@@ -938,21 +954,21 @@ fun Map<String, Any?>.toMediaControlConfig(): MediaControlConfig = MediaControlC
 private fun CastPayload.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "currentTime" to currentTime,
     "deviceName" to deviceName,
-    "type" to type
+    "type" to type,
 ).filterNotNullValues()
 
 // Removed WritableMap utility function - no longer needed with Map<String, Any?>
 
 fun DecoderContext.toJson(): Map<String, Any> = mapOf(
     "mediaType" to mediaType.name,
-    "isAd" to isAd
+    "isAd" to isAd,
 )
 
 fun List<MediaCodecInfo>.toJson(): List<Map<String, Any>> = map { it.toJson() }
 
 fun MediaCodecInfo.toJson(): Map<String, Any> = mapOf(
     "name" to name,
-    "isSoftware" to isSoftware
+    "isSoftware" to isSoftware,
 )
 
 fun List<Any?>.toMediaCodecInfoList(): List<MediaCodecInfo> {
@@ -976,5 +992,5 @@ fun Map<String, Any?>.toMediaCodecInfo(): MediaCodecInfo? {
 fun MediaTrackRole.toJson(): Map<String, Any> = mapOf(
     "id" to id,
     "schemeIdUri" to schemeIdUri,
-    "value" to value
+    "value" to value,
 ).filterNotNullValues()

@@ -10,7 +10,7 @@ import java.util.UUID
 class UuidExpoModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("UuidModule")
-        
+
         Function("generate") {
             UUID.randomUUID().toString()
         }

@@ -15,40 +15,40 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class ResultWaiter<T> {
 
-  private data class Entry<V>(
-    val latch: CountDownLatch = CountDownLatch(1),
-    @Volatile var value: V? = null
-  )
+    private data class Entry<V>(
+        val latch: CountDownLatch = CountDownLatch(1),
+        @Volatile var value: V? = null,
+    )
 
-  private val nextId   = AtomicInteger()
-  private val table    = ConcurrentHashMap<Int, Entry<T>>()
+    private val nextId = AtomicInteger()
+    private val table = ConcurrentHashMap<Int, Entry<T>>()
 
-  /**
-   * Registers a new waiter and returns:
-   *   • id    – unique request handle
-   *   • wait  – blocking lambda that returns null on timeout
-   *
-   * @param timeoutMs  max time the caller is willing to block
-   */
-  fun make(timeoutMs: Long): Pair<Int, () -> T?> {
-    val id     = nextId.incrementAndGet()
-    val entry  = Entry<T>()
-    table[id]  = entry
+    /**
+     * Registers a new waiter and returns:
+     *   • id    – unique request handle
+     *   • wait  – blocking lambda that returns null on timeout
+     *
+     * @param timeoutMs  max time the caller is willing to block
+     */
+    fun make(timeoutMs: Long): Pair<Int, () -> T?> {
+        val id = nextId.incrementAndGet()
+        val entry = Entry<T>()
+        table[id] = entry
 
-    val waitFn = {
-      entry.latch.await(timeoutMs, TimeUnit.MILLISECONDS)
-      table.remove(id)               // GC once done
-      entry.value
+        val waitFn = {
+            entry.latch.await(timeoutMs, TimeUnit.MILLISECONDS)
+            table.remove(id) // GC once done
+            entry.value
+        }
+
+        return id to waitFn
     }
 
-    return id to waitFn
-  }
-
-  /** Completes the waiter if it exists; does nothing otherwise. */
-  fun complete(id: Int, value: T) {
-    table[id]?.let {
-      it.value = value
-      it.latch.countDown()
+    /** Completes the waiter if it exists; does nothing otherwise. */
+    fun complete(id: Int, value: T) {
+        table[id]?.let {
+            it.value = value
+            it.latch.countDown()
+        }
     }
-  }
 }

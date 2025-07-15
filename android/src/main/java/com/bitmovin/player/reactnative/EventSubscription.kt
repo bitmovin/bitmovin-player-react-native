@@ -15,7 +15,7 @@ import kotlin.reflect.KClass
 data class EventSubscription<E : Event> (
     val eventClass: KClass<out E>,
     val action: (E) -> Unit,
-): EventListener<E> {
+) : EventListener<E> {
     override fun onEvent(event: E) {
         action(event)
     }

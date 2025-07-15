@@ -11,4 +11,4 @@ if [ "$(uname)" = Darwin ]; then
     swiftlint lint --strict
 fi
 
-(cd android && ./gradlew ktlintFormat)
+(cd android && ./gradlew -b ktlint.gradle ktlintFormat)

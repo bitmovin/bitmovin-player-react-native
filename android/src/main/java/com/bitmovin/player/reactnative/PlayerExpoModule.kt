@@ -373,7 +373,8 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.getThumbnail(time)?.toJson()
         }
-        AsyncFunction("loadOfflineContent") { nativeId: String, offlineContentManagerBridgeId: String, options: Map<String, Any>? ->
+        AsyncFunction("loadOfflineContent") { nativeId: String, offlineContentManagerBridgeId: String,
+            options: Map<String, Any>?, ->
             val player = players[nativeId] ?: return@AsyncFunction
             val offlineContentManagerBridge = appContext.registry.getModule<OfflineExpoModule>()
                 ?.getOfflineContentManagerBridge(offlineContentManagerBridgeId)
@@ -398,14 +399,16 @@ class PlayerExpoModule : Module() {
          * Creates a new Player instance using the provided config.
          * This is a complex method requiring config conversion and cross-module setup.
          */
-        AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any>?, networkNativeId: String?, decoderNativeId: String? ->
+        AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any>?,
+            networkNativeId: String?, decoderNativeId: String?, ->
             initializePlayer(nativeId, config, networkNativeId, decoderNativeId, null)
         }.runOnQueue(Queues.MAIN)
 
         /**
          * Creates a new analytics-enabled Player instance.
          */
-        AsyncFunction("initializeWithAnalyticsConfig") { nativeId: String, analyticsConfigJson: Map<String, Any>, config: Map<String, Any>?, networkNativeId: String?, decoderNativeId: String? ->
+        AsyncFunction("initializeWithAnalyticsConfig") { nativeId: String, analyticsConfigJson: Map<String, Any>,
+            config: Map<String, Any>?, networkNativeId: String?, decoderNativeId: String?, ->
             initializePlayer(nativeId, config, networkNativeId, decoderNativeId, analyticsConfigJson)
         }.runOnQueue(Queues.MAIN)
 

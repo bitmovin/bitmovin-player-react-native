@@ -7,11 +7,11 @@ import expo.modules.kotlin.modules.ModuleDefinition
 class BitmovinCastManagerExpoModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("BitmovinCastManagerModule")
-        
+
         AsyncFunction("isInitialized") {
             BitmovinCastManager.isInitialized()
         }
-        
+
         AsyncFunction("initializeCastManager") { options: Map<String, Any>? ->
             val applicationId = options?.get("applicationId") as? String
             val messageNamespace = options?.get("messageNamespace") as? String
@@ -21,11 +21,11 @@ class BitmovinCastManagerExpoModule : Module() {
                 messageNamespace,
             )
         }
-        
+
         AsyncFunction("sendMessage") { message: String, messageNamespace: String? ->
             BitmovinCastManager.getInstance().sendMessage(message, messageNamespace)
         }
-        
+
         AsyncFunction("updateContext") {
             appContext.currentActivity?.let { activity ->
                 BitmovinCastManager.getInstance().updateContext(activity)

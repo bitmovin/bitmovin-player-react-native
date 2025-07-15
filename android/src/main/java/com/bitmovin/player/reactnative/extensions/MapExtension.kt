@@ -68,16 +68,14 @@ inline fun <T> Map<String, Any?>.withStringArray(
     return if (value != null) block(value) else null
 }
 
-fun Map<String, Any?>.getStringArray(key: String): List<String?>? = 
-    (get(key) as? List<*>)?.map { it as? String }
+fun Map<String, Any?>.getStringArray(key: String): List<String?>? = (get(key) as? List<*>)?.map { it as? String }
 
 inline fun <T, R> Map<String, Any?>.mapValue(
     key: String,
     transform: (Any?) -> R?,
 ): R? = if (containsKey(key)) transform(get(key)) else null
 
-inline fun <reified T> Map<String, Any?>.toMap(): Map<String, T> = 
-    mapValues { it.value as T }
+inline fun <reified T> Map<String, Any?>.toMap(): Map<String, T> = mapValues { it.value as T }
 
 /** Convert a [Map] to [Map], adding each [T] value using [put]. */
 private inline fun <T> Map<String, T>.toMap(
@@ -89,8 +87,7 @@ private inline fun <T> Map<String, T>.toMap(
 @JvmName("toStringMap")
 fun Map<String, String>.toMap(): Map<String, Any?> = toMap()
 
-fun List<Any?>.toMapList(): List<Map<String, Any?>?> = 
-    map { it as? Map<String, Any?> }
+fun List<Any?>.toMapList(): List<Map<String, Any?>?> = map { it as? Map<String, Any?> }
 
 fun List<Any?>.toStringList(): List<String?> = map { it as? String }
 fun List<Any?>.toBooleanList(): List<Boolean?> = map { it as? Boolean }

@@ -12,10 +12,6 @@ import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.reactnative.NativeId
 import com.bitmovin.player.reactnative.OfflineExpoModule
 import com.bitmovin.player.reactnative.converter.toJson
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.WritableMap
-import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 
 class OfflineContentManagerBridge(
     private val nativeId: NativeId,
