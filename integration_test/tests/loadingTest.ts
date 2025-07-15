@@ -67,9 +67,10 @@ export default (spec: TestScope) => {
 
       spec.it('validates DownloadFinished event properties', async () => {
         await startPlayerTest({}, async () => {
-          const downloadEvent = (await callPlayerAndExpectEvent((player) => {
-            player.load(sourceConfig);
-          }, EventType.DownloadFinished)) as DownloadFinishedEvent;
+          const downloadEvent: DownloadFinishedEvent =
+            await callPlayerAndExpectEvent((player) => {
+              player.load(sourceConfig);
+            }, EventType.DownloadFinished);
 
           expect(
             downloadEvent.requestType,
