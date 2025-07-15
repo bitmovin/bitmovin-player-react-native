@@ -1,4 +1,4 @@
-import BufferExpoModule from './modules/BufferExpoModule';
+import BufferModule from './modules/BufferModule';
 
 /**
  * Represents different types of media.
@@ -84,7 +84,7 @@ export class BufferApi {
    * @returns a {@link BufferLevels} that contains {@link BufferLevel} values for audio and video.
    */
   getLevel = async (type: BufferType): Promise<BufferLevels> => {
-    return BufferExpoModule.getLevel(this.nativeId, type);
+    return BufferModule.getLevel(this.nativeId, type);
   };
 
   /**
@@ -94,6 +94,6 @@ export class BufferApi {
    * @param value The value to set. On iOS and tvOS when passing `0`, the player will choose an appropriate forward buffer duration suitable for most use-cases. On Android setting to `0` will have no effect.
    */
   setTargetLevel = async (type: BufferType, value: number): Promise<void> => {
-    return BufferExpoModule.setTargetLevel(this.nativeId, type, value);
+    return BufferModule.setTargetLevel(this.nativeId, type, value);
   };
 }

@@ -1,9 +1,9 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
 import { LoadingState, SourceRemoteControlConfig } from '../source';
 
-export type SourceExpoModuleEvents = Record<string, any>;
+export type SourceModuleEvents = Record<string, any>;
 
-declare class SourceExpoModule extends NativeModule<SourceExpoModuleEvents> {
+declare class SourceModule extends NativeModule<SourceModuleEvents> {
   /**
    * Checks if the source is attached to a player.
    */
@@ -52,4 +52,4 @@ declare class SourceExpoModule extends NativeModule<SourceExpoModuleEvents> {
   loadingState(nativeId: string): Promise<LoadingState | null>;
 }
 
-export default requireNativeModule<SourceExpoModule>('SourceExpoModule');
+export default requireNativeModule<SourceModule>('SourceModule');

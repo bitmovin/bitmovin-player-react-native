@@ -8,16 +8,14 @@ import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
-private const val MODULE_NAME = "PlayerAnalyticsExpoModule"
-
 /**
  * Expo module for PlayerAnalytics management.
  * Provides analytics functionality for player instances.
  */
-class PlayerAnalyticsExpoModule : Module() {
+class PlayerAnalyticsModule : Module() {
 
     override fun definition() = ModuleDefinition {
-        Name(MODULE_NAME)
+        Name("PlayerAnalyticsModule")
 
         AsyncFunction("sendCustomDataEvent") { playerId: String, json: Map<String, Any?>, promise: Promise ->
             try {
@@ -43,9 +41,9 @@ class PlayerAnalyticsExpoModule : Module() {
      * Helper method to get analytics for a player instance.
      */
     private fun getAnalyticsForPlayer(playerId: String): AnalyticsApi {
-        // Get the player from PlayerExpoModule
-        val playerExpoModule = appContext.registry.getModule<PlayerExpoModule>()
-        val player = playerExpoModule?.getPlayerOrNull(playerId) ?: throw IllegalStateException(
+        // Get the player from PlayerModule
+        val playerModule = appContext.registry.getModule<PlayerModule>()
+        val player = playerModule?.getPlayerOrNull(playerId) ?: throw IllegalStateException(
             "Could not find player with ID $playerId",
         )
         return player.analytics ?: throw IllegalStateException("Analytics is disabled")

@@ -3,7 +3,7 @@ import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { SideLoadedSubtitleTrack } from './subtitleTrack';
 import { Thumbnail } from './thumbnail';
 import { SourceMetadata } from './analytics';
-import SourceExpoModule from './modules/SourceExpoModule';
+import SourceModule from './modules/SourceModule';
 
 /**
  * Types of media that can be handled by the player.
@@ -184,7 +184,7 @@ export class Source extends NativeInstance<SourceConfig> {
         this.drm.initialize();
       }
       if (sourceMetadata) {
-        await SourceExpoModule.initializeWithAnalyticsConfig(
+        await SourceModule.initializeWithAnalyticsConfig(
           this.nativeId,
           this.drm?.nativeId,
           this.config,
@@ -192,7 +192,7 @@ export class Source extends NativeInstance<SourceConfig> {
           sourceMetadata
         );
       } else {
-        await SourceExpoModule.initializeWithConfig(
+        await SourceModule.initializeWithConfig(
           this.nativeId,
           this.drm?.nativeId,
           this.config,
@@ -209,7 +209,7 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   destroy = () => {
     if (!this.isDestroyed) {
-      SourceExpoModule.destroy(this.nativeId);
+      SourceModule.destroy(this.nativeId);
       this.drm?.destroy();
       this.isDestroyed = true;
     }
@@ -220,7 +220,7 @@ export class Source extends NativeInstance<SourceConfig> {
    * Default value is `0` if the duration is not available or not known.
    */
   duration = async (): Promise<number> => {
-    return (await SourceExpoModule.duration(this.nativeId)) || 0;
+    return (await SourceModule.duration(this.nativeId)) || 0;
   };
 
   /**
@@ -228,21 +228,21 @@ export class Source extends NativeInstance<SourceConfig> {
    * Only one source can be active in the same player instance at any time.
    */
   isActive = async (): Promise<boolean> => {
-    return (await SourceExpoModule.isActive(this.nativeId)) ?? false;
+    return (await SourceModule.isActive(this.nativeId)) ?? false;
   };
 
   /**
    * Whether the source is currently attached to a player instance.
    */
   isAttachedToPlayer = async (): Promise<boolean> => {
-    return (await SourceExpoModule.isAttachedToPlayer(this.nativeId)) ?? false;
+    return (await SourceModule.isAttachedToPlayer(this.nativeId)) ?? false;
   };
 
   /**
    * Metadata for the currently loaded source.
    */
   metadata = async (): Promise<Record<string, any> | null> => {
-    return SourceExpoModule.getMetadata(this.nativeId);
+    return SourceModule.getMetadata(this.nativeId);
   };
 
   /**
@@ -252,7 +252,7 @@ export class Source extends NativeInstance<SourceConfig> {
    * @param metadata metadata to be set.
    */
   setMetadata = (metadata: Record<string, any> | null): void => {
-    SourceExpoModule.setMetadata(this.nativeId, metadata);
+    SourceModule.setMetadata(this.nativeId, metadata);
   };
 
   /**
@@ -260,8 +260,7 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   loadingState = async (): Promise<LoadingState> => {
     return (
-      (await SourceExpoModule.loadingState(this.nativeId)) ||
-      LoadingState.UNLOADED
+      (await SourceModule.loadingState(this.nativeId)) || LoadingState.UNLOADED
     );
   };
 
@@ -276,6 +275,6 @@ export class Source extends NativeInstance<SourceConfig> {
    * @param time - The time in seconds for which to retrieve the thumbnail.
    */
   getThumbnail = async (time: number): Promise<Thumbnail | null> => {
-    return SourceExpoModule.getThumbnail(this.nativeId, time);
+    return SourceModule.getThumbnail(this.nativeId, time);
   };
 }

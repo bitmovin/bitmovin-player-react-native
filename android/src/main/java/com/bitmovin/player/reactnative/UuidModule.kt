@@ -7,7 +7,7 @@ import java.util.UUID
 /**
  * Native module for easy and fast unique ID generation on JS side. Used to generate native instance IDs.
  */
-class UuidExpoModule : Module() {
+class UuidModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("UuidModule")
 

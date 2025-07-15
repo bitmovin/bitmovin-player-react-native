@@ -7,9 +7,9 @@ import com.bitmovin.player.reactnative.converter.toJson
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
-class BufferExpoModule : Module() {
+class BufferModule : Module() {
     override fun definition() = ModuleDefinition {
-        Name("BufferExpoModule")
+        Name("BufferModule")
 
         OnCreate {
             // Module initialization
@@ -19,8 +19,8 @@ class BufferExpoModule : Module() {
          * Get buffer level for the specified player and buffer type.
          */
         AsyncFunction("getLevel") { playerId: String, type: String ->
-            // Access PlayerExpoModule to retrieve player
-            val player = appContext.registry.getModule<PlayerExpoModule>()?.getPlayerOrNull(playerId)
+            // Access PlayerModule to retrieve player
+            val player = appContext.registry.getModule<PlayerModule>()?.getPlayerOrNull(playerId)
                 ?: return@AsyncFunction null
 
             val bufferType = type.toBufferTypeOrThrow()
@@ -32,8 +32,8 @@ class BufferExpoModule : Module() {
          * Set target level for the specified player and buffer type.
          */
         AsyncFunction("setTargetLevel") { playerId: String, type: String, value: Double ->
-            // Access PlayerExpoModule to retrieve player
-            val player = appContext.registry.getModule<PlayerExpoModule>()?.getPlayerOrNull(playerId)
+            // Access PlayerModule to retrieve player
+            val player = appContext.registry.getModule<PlayerModule>()?.getPlayerOrNull(playerId)
                 ?: return@AsyncFunction
 
             val bufferType = type.toBufferTypeOrThrow()

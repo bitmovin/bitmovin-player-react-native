@@ -1,5 +1,5 @@
 import { CustomDataConfig } from './config';
-import PlayerAnalyticsExpoModule from './playerAnalyticsExpoModule';
+import PlayerAnalyticsModule from './playerAnalyticsModule';
 
 /**
  * Provides the means to control the analytics collected by a `Player`.
@@ -20,10 +20,7 @@ export class AnalyticsApi {
    * Does not change the configured custom data of the collector or source.
    */
   sendCustomDataEvent = async (customData: CustomDataConfig) => {
-    await PlayerAnalyticsExpoModule.sendCustomDataEvent(
-      this.playerId,
-      customData
-    );
+    await PlayerAnalyticsModule.sendCustomDataEvent(this.playerId, customData);
   };
 
   /**
@@ -32,6 +29,6 @@ export class AnalyticsApi {
    * @returns The current user id.
    */
   getUserId = async (): Promise<string | null> => {
-    return PlayerAnalyticsExpoModule.getUserId(this.playerId);
+    return PlayerAnalyticsModule.getUserId(this.playerId);
   };
 }

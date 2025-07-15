@@ -2,7 +2,7 @@ package com.bitmovin.player.reactnative
 
 // LEGACY PACKAGE - NO LONGER USED IN EXPO MODULES ARCHITECTURE
 // This file is kept for reference only. All modules have been migrated to Expo modules.
-// The registration is now handled by ExpoModulesCore automatically.
+// The registration is now handled by ModulesCore automatically.
 
 /*
 import android.view.View
@@ -17,7 +17,7 @@ import com.facebook.react.uimanager.ViewManager
  * React package registry.
  *
  * NOTE: This class is no longer used in the Expo modules architecture.
- * All modules are now automatically registered by ExpoModulesCore.
+ * All modules are now automatically registered by ModulesCore.
  */
 class RNPlayerViewPackage : ReactPackage {
     /**
@@ -25,10 +25,10 @@ class RNPlayerViewPackage : ReactPackage {
      */
     override fun createNativeModules(reactContext: ReactApplicationContext): MutableList<NativeModule> {
         // All modules migrated to Expo:
-        // - OfflineModule -> OfflineExpoModule
-        // - PlayerModule -> PlayerExpoModule
-        // - SourceModule -> SourceExpoModule
-        // - DrmModule -> DrmExpoModule
+        // - OfflineModule -> OfflineModule
+        // - PlayerModule -> PlayerModule
+        // - SourceModule -> SourceModule
+        // - DrmModule -> DrmModule
         // - etc.
         return mutableListOf()
     }

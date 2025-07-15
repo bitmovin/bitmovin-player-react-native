@@ -1,9 +1,9 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
 import { BufferLevels } from '../bufferApi';
 
-export type BufferExpoModuleEvents = Record<string, any>;
+export type BufferModuleEvents = Record<string, any>;
 
-declare class BufferExpoModule extends NativeModule<BufferExpoModuleEvents> {
+declare class BufferModule extends NativeModule<BufferModuleEvents> {
   /**
    * Get buffer level for the specified player and buffer type.
    */
@@ -15,4 +15,4 @@ declare class BufferExpoModule extends NativeModule<BufferExpoModuleEvents> {
   setTargetLevel(playerId: string, type: string, value: number): Promise<void>;
 }
 
-export default requireNativeModule<BufferExpoModule>('BufferExpoModule');
+export default requireNativeModule<BufferModule>('BufferModule');

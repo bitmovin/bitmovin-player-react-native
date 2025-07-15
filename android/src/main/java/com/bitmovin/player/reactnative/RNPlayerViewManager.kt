@@ -7,12 +7,12 @@ import com.bitmovin.player.reactnative.extensions.getString
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
-class RNPlayerViewManagerExpo : Module() {
+class RNPlayerViewManager : Module() {
     override fun definition() = ModuleDefinition {
         Name("RNPlayerViewManagerExpo")
 
-        View(RNPlayerViewExpo::class) {
-            Prop("config") { view: RNPlayerViewExpo, playerInfo: Map<String, Any>? ->
+        View(RNPlayerView::class) {
+            Prop("config") { view: RNPlayerView, playerInfo: Map<String, Any>? ->
                 val playerId = playerInfo?.get("playerId") as? String
                     ?: throw IllegalArgumentException("Player info must contain 'playerId' field")
                 val customMessageHandlerBridgeId = playerInfo.getString("customMessageHandlerBridgeId")
@@ -31,19 +31,19 @@ class RNPlayerViewManagerExpo : Module() {
                 )
             }
 
-            Prop("scalingMode") { view: RNPlayerViewExpo, scalingMode: String? ->
+            Prop("scalingMode") { view: RNPlayerView, scalingMode: String? ->
                 view.setScalingMode(scalingMode)
             }
 
-            Prop("isFullscreenRequested") { view: RNPlayerViewExpo, isFullscreen: Boolean ->
+            Prop("isFullscreenRequested") { view: RNPlayerView, isFullscreen: Boolean ->
                 view.setFullscreen(isFullscreen)
             }
 
-            Prop("isPictureInPictureRequested") { view: RNPlayerViewExpo, isPictureInPicture: Boolean ->
+            Prop("isPictureInPictureRequested") { view: RNPlayerView, isPictureInPicture: Boolean ->
                 view.setPictureInPicture(isPictureInPicture)
             }
 
-            Prop("fullscreenBridgeId") { view: RNPlayerViewExpo, fullscreenBridgeId: String ->
+            Prop("fullscreenBridgeId") { view: RNPlayerView, fullscreenBridgeId: String ->
                 view.attachFullscreenBridge(fullscreenBridgeId)
             }
 

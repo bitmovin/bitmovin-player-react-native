@@ -6,7 +6,7 @@ import {
   HttpRequestType,
 } from './networkConfig';
 
-export type NetworkExpoModuleEvents = {
+export type NetworkModuleEvents = {
   onPreprocessHttpRequest: ({
     nativeId,
     requestId,
@@ -32,10 +32,10 @@ export type NetworkExpoModuleEvents = {
 };
 
 /**
- * Native NetworkExpoModule using Expo modules API.
+ * Native NetworkModule using Expo modules API.
  * Provides modern async/await interface while maintaining backward compatibility.
  */
-declare class NetworkExpoModule extends NativeModule<NetworkExpoModuleEvents> {
+declare class NetworkModule extends NativeModule<NetworkModuleEvents> {
   initializeWithConfig(nativeId: string, config: NetworkConfig): Promise<void>;
   destroy(nativeId: string): Promise<void>;
   setPreprocessedHttpRequest(
@@ -48,4 +48,4 @@ declare class NetworkExpoModule extends NativeModule<NetworkExpoModuleEvents> {
   ): Promise<void>;
 }
 
-export default requireNativeModule<NetworkExpoModule>('NetworkExpoModule');
+export default requireNativeModule<NetworkModule>('NetworkModule');

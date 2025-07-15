@@ -1,12 +1,12 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
 
-export type PlayerAnalyticsExpoModuleEvents = Record<string, any>;
+export type PlayerAnalyticsModuleEvents = Record<string, any>;
 
 /**
- * Native PlayerAnalyticsExpoModule using Expo modules API.
+ * Native PlayerAnalyticsModule using Expo modules API.
  * Provides modern async/await interface while maintaining backward compatibility.
  */
-declare class PlayerAnalyticsExpoModule extends NativeModule<PlayerAnalyticsExpoModuleEvents> {
+declare class PlayerAnalyticsModule extends NativeModule<PlayerAnalyticsModuleEvents> {
   sendCustomDataEvent(
     playerId: string,
     customData: Record<string, any>
@@ -14,6 +14,6 @@ declare class PlayerAnalyticsExpoModule extends NativeModule<PlayerAnalyticsExpo
   getUserId(playerId: string): Promise<string | null>;
 }
 
-export default requireNativeModule<PlayerAnalyticsExpoModule>(
-  'PlayerAnalyticsExpoModule'
+export default requireNativeModule<PlayerAnalyticsModule>(
+  'PlayerAnalyticsModule'
 );

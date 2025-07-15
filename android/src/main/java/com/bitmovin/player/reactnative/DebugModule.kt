@@ -4,7 +4,7 @@ import com.bitmovin.player.api.DebugConfig
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
-class DebugExpoModule : Module() {
+class DebugModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("DebugModule")
 

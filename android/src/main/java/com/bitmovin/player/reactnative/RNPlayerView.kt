@@ -28,7 +28,7 @@ import expo.modules.kotlin.viewevent.ViewEventCallback
 import expo.modules.kotlin.views.ExpoView
 
 @SuppressLint("ViewConstructor")
-class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
+class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
     var playerView: PlayerView? = null
         private set
     private var subtitleView: SubtitleView? = null
@@ -139,7 +139,7 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
             if (!enableBackgroundPlayback) {
                 return
             }
-            if (appContext.registry.getModule<PlayerExpoModule>()?.mediaSessionPlaybackManager?.player != player) {
+            if (appContext.registry.getModule<PlayerModule>()?.mediaSessionPlaybackManager?.player != player) {
                 return
             }
 
@@ -236,7 +236,7 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
         isPictureInPictureEnabledOnPlayer: Boolean,
         userInterfaceTypeName: String?,
     ) {
-        val playerModule = appContext.registry.getModule<PlayerExpoModule>()
+        val playerModule = appContext.registry.getModule<PlayerModule>()
         // Player might not be initialized yet, this is a timing issue
         // Return early without throwing to avoid crash
         val player = playerModule?.getPlayerOrNull(playerId) ?: return
@@ -290,7 +290,7 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
             }
         }
         customMessageHandlerBridgeId?.let {
-            appContext.registry.getModule<CustomMessageHandlerExpoModule>()?.getInstance(it)
+            appContext.registry.getModule<CustomMessageHandlerModule>()?.getInstance(it)
                 ?.let { customMessageHandlerBridge ->
                     playerView?.setCustomMessageHandler(customMessageHandlerBridge.customMessageHandler)
                 }
@@ -653,7 +653,7 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
     fun attachFullscreenBridge(fullscreenBridgeId: NativeId) {
         this.fullscreenBridgeId = fullscreenBridgeId
         val playerView = playerView ?: return
-        appContext.registry.getModule<FullscreenHandlerExpoModule>()?.getInstance(fullscreenBridgeId)
+        appContext.registry.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId)
             ?.let { fullscreenBridge ->
                 playerView.setFullscreenHandler(fullscreenBridge)
             } ?: throw IllegalArgumentException("Fullscreen bridge with ID $fullscreenBridgeId not found")

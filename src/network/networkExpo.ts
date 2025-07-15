@@ -1,6 +1,6 @@
 import { EventSubscription } from 'expo-modules-core';
 import NativeInstance from '../nativeInstance';
-import NetworkExpoModule from './networkExpoModule';
+import NetworkModule from './networkModule';
 import {
   HttpRequestType,
   HttpRequest,
@@ -32,7 +32,7 @@ export class NetworkExpo extends NativeInstance<NetworkConfig> {
   initialize = async () => {
     if (!this.isInitialized) {
       // Set up event listeners for HTTP request/response preprocessing
-      this.onPreprocessHttpRequestSubscription = NetworkExpoModule.addListener(
+      this.onPreprocessHttpRequestSubscription = NetworkModule.addListener(
         'onPreprocessHttpRequest',
         ({ nativeId, requestId, type, request }) => {
           if (nativeId !== this.nativeId) {
@@ -42,7 +42,7 @@ export class NetworkExpo extends NativeInstance<NetworkConfig> {
         }
       );
 
-      this.onPreprocessHttpResponseSubscription = NetworkExpoModule.addListener(
+      this.onPreprocessHttpResponseSubscription = NetworkModule.addListener(
         'onPreprocessHttpResponse',
         ({ nativeId, responseId, type, response }) => {
           if (nativeId !== this.nativeId) {
@@ -54,10 +54,7 @@ export class NetworkExpo extends NativeInstance<NetworkConfig> {
 
       // Create native configuration object using Expo module
       if (this.config) {
-        await NetworkExpoModule.initializeWithConfig(
-          this.nativeId,
-          this.config
-        );
+        await NetworkModule.initializeWithConfig(this.nativeId, this.config);
       }
       this.isInitialized = true;
     }
@@ -68,7 +65,7 @@ export class NetworkExpo extends NativeInstance<NetworkConfig> {
    */
   destroy = async () => {
     if (!this.isDestroyed) {
-      await NetworkExpoModule.destroy(this.nativeId);
+      await NetworkModule.destroy(this.nativeId);
       this.onPreprocessHttpRequestSubscription?.remove();
       this.onPreprocessHttpResponseSubscription?.remove();
       this.onPreprocessHttpRequestSubscription = undefined;
@@ -79,7 +76,7 @@ export class NetworkExpo extends NativeInstance<NetworkConfig> {
 
   /**
    * Applies the user-defined `preprocessHttpRequest` function to native's `type` and `request` data and store
-   * the result back in `NetworkExpoModule`.
+   * the result back in `NetworkModule`.
    *
    * Called from native code when `NetworkConfig.preprocessHttpRequest` is dispatched.
    *
@@ -95,16 +92,16 @@ export class NetworkExpo extends NativeInstance<NetworkConfig> {
     this.config
       ?.preprocessHttpRequest?.(type, request)
       .then((resultRequest) => {
-        NetworkExpoModule.setPreprocessedHttpRequest(requestId, resultRequest);
+        NetworkModule.setPreprocessedHttpRequest(requestId, resultRequest);
       })
       .catch(() => {
-        NetworkExpoModule.setPreprocessedHttpRequest(requestId, request);
+        NetworkModule.setPreprocessedHttpRequest(requestId, request);
       });
   };
 
   /**
    * Applies the user-defined `preprocessHttpResponse` function to native's `type` and `response` data and store
-   * the result back in `NetworkExpoModule`.
+   * the result back in `NetworkModule`.
    *
    * Called from native code when `NetworkConfig.preprocessHttpResponse` is dispatched.
    *
@@ -120,13 +117,10 @@ export class NetworkExpo extends NativeInstance<NetworkConfig> {
     this.config
       ?.preprocessHttpResponse?.(type, response)
       .then((resultResponse) => {
-        NetworkExpoModule.setPreprocessedHttpResponse(
-          responseId,
-          resultResponse
-        );
+        NetworkModule.setPreprocessedHttpResponse(responseId, resultResponse);
       })
       .catch(() => {
-        NetworkExpoModule.setPreprocessedHttpResponse(responseId, response);
+        NetworkModule.setPreprocessedHttpResponse(responseId, response);
       });
   };
 }

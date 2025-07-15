@@ -1,6 +1,4 @@
-import DebugExpoModule from './modules/DebugExpoModule';
-
-const DebugModule = DebugExpoModule;
+import DebugModule from './modules/DebugModule';
 
 /**
  * Global debug configuration for all Bitmovin components.

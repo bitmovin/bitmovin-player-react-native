@@ -7,13 +7,11 @@ import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-private const val MODULE_NAME = "CustomMessageHandlerExpoModule"
-
 /**
  * Expo module for CustomMessageHandler management with bidirectional communication.
  * Handles synchronous and asynchronous message handling between native code and JavaScript.
  */
-class CustomMessageHandlerExpoModule : Module() {
+class CustomMessageHandlerModule : Module() {
     /**
      * In-memory mapping from `nativeId`s to `CustomMessageHandlerBridge` instances.
      */
@@ -30,14 +28,14 @@ class CustomMessageHandlerExpoModule : Module() {
     private val customMessageHandlerResultChangedCondition = lock.newCondition()
 
     override fun definition() = ModuleDefinition {
-        Name(MODULE_NAME)
+        Name("CustomMessageHandlerModule")
 
         Events("onReceivedSynchronousMessage", "onReceivedAsynchronousMessage")
 
         AsyncFunction("registerHandler") { nativeId: String ->
             val customMessageHandler = customMessageHandlers[nativeId] ?: CustomMessageHandlerBridge(
                 nativeId,
-                this@CustomMessageHandlerExpoModule,
+                this@CustomMessageHandlerModule,
             )
             customMessageHandlers[nativeId] = customMessageHandler
         }

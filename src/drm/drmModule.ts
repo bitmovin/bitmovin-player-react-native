@@ -1,7 +1,7 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
 import { DrmConfig } from './index';
 
-export type DrmExpoModuleEvents = {
+export type DrmModuleEvents = {
   onPrepareCertificate: ({
     nativeId,
     certificate,
@@ -55,10 +55,10 @@ export type DrmExpoModuleEvents = {
 };
 
 /**
- * Native DrmExpoModule using Expo modules API.
+ * Native DrmModule using Expo modules API.
  * Provides modern async/await interface while maintaining backward compatibility.
  */
-declare class DrmExpoModule extends NativeModule<DrmExpoModuleEvents> {
+declare class DrmModule extends NativeModule<DrmModuleEvents> {
   initializeWithConfig(nativeId: string, config: DrmConfig): Promise<void>;
   destroy(nativeId: string): Promise<void>;
   setPreparedCertificate(nativeId: string, certificate: string): any;
@@ -69,4 +69,4 @@ declare class DrmExpoModule extends NativeModule<DrmExpoModuleEvents> {
   setPreparedContentId(nativeId: string, contentId?: string): any;
 }
 
-export default requireNativeModule<DrmExpoModule>('DrmExpoModule');
+export default requireNativeModule<DrmModule>('DrmModule');

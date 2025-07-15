@@ -8,7 +8,7 @@ import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
-class SourceExpoModule : Module() {
+class SourceModule : Module() {
     /**
      * In-memory mapping from [NativeId]s to [Source] instances.
      * This must match the Registry pattern from legacy SourceModule
@@ -16,7 +16,7 @@ class SourceExpoModule : Module() {
     private val sources: Registry<Source> = mutableMapOf()
 
     override fun definition() = ModuleDefinition {
-        Name("SourceExpoModule")
+        Name("SourceModule")
 
         OnCreate {
             // Module initialization
@@ -95,7 +95,7 @@ class SourceExpoModule : Module() {
             ?: throw SourceException.InvalidSourceConfig()
 
         // Get DRM config if provided
-        sourceConfig.drmConfig = appContext.registry.getModule<DrmExpoModule>()?.getConfig(drmNativeId)
+        sourceConfig.drmConfig = appContext.registry.getModule<DrmModule>()?.getConfig(drmNativeId)
 
         val sourceMetadata = analyticsSourceMetadata?.toAnalyticsSourceMetadata()
         try {

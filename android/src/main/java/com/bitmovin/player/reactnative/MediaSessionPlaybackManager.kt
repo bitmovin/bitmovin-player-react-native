@@ -50,6 +50,6 @@ class MediaSessionPlaybackManager(val appContext: AppContext) {
 
     private fun getPlayer(
         nativeId: NativeId? = playerId,
-    ): Player = playerId?.let { appContext.registry.getModule<PlayerExpoModule>()?.getPlayerOrNull(it) }
+    ): Player = playerId?.let { appContext.registry.getModule<PlayerModule>()?.getPlayerOrNull(it) }
         ?: throw IllegalArgumentException("Invalid PlayerId $nativeId")
 }

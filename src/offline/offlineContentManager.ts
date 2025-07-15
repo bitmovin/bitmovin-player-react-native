@@ -9,7 +9,7 @@ import { OfflineContentConfig } from './offlineContentConfig';
 import { OfflineDownloadRequest } from './offlineDownloadRequest';
 import { OfflineState } from './offlineState';
 import { Drm } from '../drm';
-import OfflineExpoModule from './offlineExpoModule';
+import OfflineModule from './offlineModule';
 
 const handleBitmovinNativeOfflineEvent = (
   data: BitmovinNativeOfflineEventData,
@@ -61,7 +61,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    */
   initialize = async (): Promise<void> => {
     if (!this.isInitialized && this.config) {
-      this.eventSubscription = OfflineExpoModule.addListener(
+      this.eventSubscription = OfflineModule.addListener(
         'onBitmovinOfflineEvent',
         (event: BitmovinNativeOfflineEventData) => {
           if (this.nativeId !== event.nativeId) {
@@ -77,7 +77,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
         await this.drm.initialize();
       }
 
-      await OfflineExpoModule.initializeWithConfig(
+      await OfflineModule.initializeWithConfig(
         this.nativeId,
         {
           identifier: this.config.identifier,
@@ -113,7 +113,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
       this.listeners.clear();
       this.drm?.destroy();
 
-      return OfflineExpoModule.release(this.nativeId);
+      return OfflineModule.release(this.nativeId);
     }
 
     return Promise.resolve();
@@ -123,7 +123,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Gets the current state of the `OfflineContentManager`
    */
   state = async (): Promise<OfflineState> => {
-    return OfflineExpoModule.getState(this.nativeId) as Promise<OfflineState>;
+    return OfflineModule.getState(this.nativeId) as Promise<OfflineState>;
   };
 
   /**
@@ -131,7 +131,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * When the options are loaded the data will be passed to the `OfflineContentManagerListener.onOptionsAvailable`.
    */
   getOptions = async (): Promise<void> => {
-    return OfflineExpoModule.getOptions(this.nativeId);
+    return OfflineModule.getOptions(this.nativeId);
   };
 
   /**
@@ -141,42 +141,42 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * The promise will resolve when the download has been queued. The download will is not finished when the promise resolves.
    */
   download = async (request: OfflineDownloadRequest): Promise<void> => {
-    return OfflineExpoModule.download(this.nativeId, request);
+    return OfflineModule.download(this.nativeId, request);
   };
 
   /**
    * Resumes all suspended actions.
    */
   resume = async (): Promise<void> => {
-    return OfflineExpoModule.resume(this.nativeId);
+    return OfflineModule.resume(this.nativeId);
   };
 
   /**
    * Suspends all active actions.
    */
   suspend = async (): Promise<void> => {
-    return OfflineExpoModule.suspend(this.nativeId);
+    return OfflineModule.suspend(this.nativeId);
   };
 
   /**
    * Cancels and deletes the active download.
    */
   cancelDownload = async (): Promise<void> => {
-    return OfflineExpoModule.cancelDownload(this.nativeId);
+    return OfflineModule.cancelDownload(this.nativeId);
   };
 
   /**
    * Resolves how many bytes of storage are used by the offline content.
    */
   usedStorage = async (): Promise<number> => {
-    return OfflineExpoModule.usedStorage(this.nativeId);
+    return OfflineModule.usedStorage(this.nativeId);
   };
 
   /**
    * Deletes everything related to the related content ID.
    */
   deleteAll = async (): Promise<void> => {
-    return OfflineExpoModule.deleteAll(this.nativeId);
+    return OfflineModule.deleteAll(this.nativeId);
   };
 
   /**
@@ -185,7 +185,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
   downloadLicense = async (): Promise<void> => {
-    return OfflineExpoModule.downloadLicense(this.nativeId);
+    return OfflineModule.downloadLicense(this.nativeId);
   };
 
   /**
@@ -196,7 +196,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * @platform Android
    */
   releaseLicense = async (): Promise<void> => {
-    return OfflineExpoModule.releaseLicense(this.nativeId);
+    return OfflineModule.releaseLicense(this.nativeId);
   };
 
   /**
@@ -205,6 +205,6 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
   renewOfflineLicense = async (): Promise<void> => {
-    return OfflineExpoModule.renewOfflineLicense(this.nativeId);
+    return OfflineModule.renewOfflineLicense(this.nativeId);
   };
 }

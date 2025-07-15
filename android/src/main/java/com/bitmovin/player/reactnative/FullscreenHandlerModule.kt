@@ -4,13 +4,11 @@ import com.bitmovin.player.reactnative.ui.FullscreenHandlerBridge
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
-private const val MODULE_NAME = "FullscreenHandlerExpoModule"
-
 /**
  * Expo module for FullscreenHandler management with bidirectional communication.
  * Handles synchronous fullscreen state changes between native code and JavaScript.
  */
-class FullscreenHandlerExpoModule : Module() {
+class FullscreenHandlerModule : Module() {
     /**
      * In-memory mapping from `nativeId`s to `FullscreenHandlerBridge` instances.
      */
@@ -22,13 +20,13 @@ class FullscreenHandlerExpoModule : Module() {
     private val waiter = ResultWaiter<Boolean>()
 
     override fun definition() = ModuleDefinition {
-        Name(MODULE_NAME)
+        Name("FullscreenHandlerModule")
 
         Events("onEnterFullscreen", "onExitFullscreen")
 
         AsyncFunction("registerHandler") { nativeId: String ->
             if (fullscreenHandlers[nativeId] == null) {
-                fullscreenHandlers[nativeId] = FullscreenHandlerBridge(nativeId, this@FullscreenHandlerExpoModule)
+                fullscreenHandlers[nativeId] = FullscreenHandlerBridge(nativeId, this@FullscreenHandlerModule)
             }
         }
 

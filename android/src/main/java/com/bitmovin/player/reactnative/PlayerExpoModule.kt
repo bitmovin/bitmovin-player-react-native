@@ -15,7 +15,7 @@ import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
-class PlayerExpoModule : Module() {
+class PlayerModule : Module() {
     /**
      * In-memory mapping from [NativeId]s to [Player] instances.
      * This must match the Registry pattern from legacy PlayerModule
@@ -25,7 +25,7 @@ class PlayerExpoModule : Module() {
     val mediaSessionPlaybackManager by lazy { MediaSessionPlaybackManager(appContext) }
 
     override fun definition() = ModuleDefinition {
-        Name("PlayerExpoModule")
+        Name("PlayerModule")
 
         OnCreate {
             // Module initialization
@@ -376,7 +376,7 @@ class PlayerExpoModule : Module() {
         AsyncFunction("loadOfflineContent") { nativeId: String, offlineContentManagerBridgeId: String,
             options: Map<String, Any>?, ->
             val player = players[nativeId] ?: return@AsyncFunction
-            val offlineContentManagerBridge = appContext.registry.getModule<OfflineExpoModule>()
+            val offlineContentManagerBridge = appContext.registry.getModule<OfflineModule>()
                 ?.getOfflineContentManagerBridge(offlineContentManagerBridgeId)
 
             offlineContentManagerBridge?.offlineContentManager?.offlineSourceConfig?.let {
@@ -418,7 +418,7 @@ class PlayerExpoModule : Module() {
          */
         AsyncFunction("loadSource") { nativeId: String, sourceNativeId: String ->
             val player = players[nativeId]
-            val source = appContext.registry.getModule<SourceExpoModule>()?.getSourceOrNull(sourceNativeId)
+            val source = appContext.registry.getModule<SourceModule>()?.getSourceOrNull(sourceNativeId)
             if (player != null && source != null) {
                 player.load(source)
             }
@@ -450,14 +450,14 @@ class PlayerExpoModule : Module() {
             ?.toMediaControlConfig()?.isEnabled ?: true
 
         val networkConfig = networkNativeId?.let { id ->
-            appContext.registry.getModule<NetworkExpoModule>()?.getConfig(id)
+            appContext.registry.getModule<NetworkModule>()?.getConfig(id)
         }
         networkConfig?.let {
             playerConfig.networkConfig = it
         }
 
         val decoderConfig = decoderNativeId?.let {
-            appContext.registry.getModule<DecoderConfigExpoModule>()?.getDecoderConfig(it)
+            appContext.registry.getModule<DecoderConfigModule>()?.getDecoderConfig(it)
         }
         if (decoderConfig != null) {
             playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = decoderConfig)

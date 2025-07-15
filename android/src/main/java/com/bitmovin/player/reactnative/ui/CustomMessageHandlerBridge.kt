@@ -1,13 +1,13 @@
 package com.bitmovin.player.reactnative.ui
 
 import android.webkit.JavascriptInterface
-import com.bitmovin.player.reactnative.CustomMessageHandlerExpoModule
+import com.bitmovin.player.reactnative.CustomMessageHandlerModule
 import com.bitmovin.player.reactnative.NativeId
 import com.bitmovin.player.ui.CustomMessageHandler
 
 class CustomMessageHandlerBridge(
     private val nativeId: NativeId,
-    private val expoModule: CustomMessageHandlerExpoModule? = null,
+    private val module: CustomMessageHandlerModule? = null,
 ) {
     val customMessageHandler = CustomMessageHandler(
         object : Any() {
@@ -15,13 +15,13 @@ class CustomMessageHandlerBridge(
             fun sendSynchronous(
                 name: String,
                 data: String?,
-            ): String? = expoModule?.receivedSynchronousMessage(nativeId, name, data)
+            ): String? = module?.receivedSynchronousMessage(nativeId, name, data)
 
             @JavascriptInterface
             fun sendAsynchronous(
                 name: String,
                 data: String?,
-            ) = expoModule?.receivedAsynchronousMessage(nativeId, name, data)
+            ) = module?.receivedAsynchronousMessage(nativeId, name, data)
         },
     )
 

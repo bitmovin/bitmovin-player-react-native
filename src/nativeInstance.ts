@@ -1,6 +1,6 @@
-import UuidExpoModule from './modules/UuidExpoModule';
+import UuidModule from './modules/UuidModule';
 
-const Uuid = UuidExpoModule;
+const Uuid = UuidModule;
 
 export interface NativeInstanceConfig {
   /**

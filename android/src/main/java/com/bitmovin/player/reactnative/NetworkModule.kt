@@ -14,21 +14,17 @@ import com.bitmovin.player.reactnative.converter.toHttpRequest
 import com.bitmovin.player.reactnative.converter.toHttpResponse
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toNetworkConfig
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.ReadableMap
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Future
 
-private const val MODULE_NAME = "NetworkExpoModule"
-
 /**
  * Expo module for NetworkConfig management with HTTP request/response preprocessing.
  * Handles bidirectional communication between native code and JavaScript for network operations.
  */
-class NetworkExpoModule : Module() {
+class NetworkModule : Module() {
     /**
      * In-memory mapping from `nativeId`s to `NetworkConfig` instances.
      */
@@ -37,7 +33,7 @@ class NetworkExpoModule : Module() {
     private val preprocessHttpResponseCompleters = ConcurrentHashMap<String, Completer<HttpResponse>>()
 
     override fun definition() = ModuleDefinition {
-        Name(MODULE_NAME)
+        Name("NetworkModule")
 
         Events("onPreprocessHttpRequest", "onPreprocessHttpResponse")
 
@@ -72,7 +68,7 @@ class NetworkExpoModule : Module() {
         AsyncFunction("setPreprocessedHttpRequest") { requestId: String, request: Map<String, Any?> ->
             val completer = preprocessHttpRequestCompleters.remove(requestId)
             if (completer == null) {
-                Log.e(MODULE_NAME, "Completer is null for requestId: $requestId, this can cause stuck network requests")
+                Log.e("NetworkModule", "Completer is null for requestId: $requestId, this can cause stuck network requests")
                 return@AsyncFunction
             }
             completer.set(request.toHttpRequest())
@@ -139,7 +135,7 @@ class NetworkExpoModule : Module() {
                 ),
             )
 
-            return@getFuture "NetworkExpoModule-preprocessHttpRequest-$requestId"
+            return@getFuture "NetworkModule-preprocessHttpRequest-$requestId"
         }
     }
 
@@ -164,38 +160,7 @@ class NetworkExpoModule : Module() {
                 ),
             )
 
-            return@getFuture "NetworkExpoModule-preprocessHttpResponse-$responseId"
+            return@getFuture "NetworkModule-preprocessHttpResponse-$responseId"
         }
-    }
-
-    /**
-     * Converts a Map<String, Any?> to ReadableMap for compatibility with legacy converter methods.
-     */
-    private fun convertMapToReadableMap(map: Map<String, Any?>): ReadableMap {
-        val writableMap = Arguments.createMap()
-        map.forEach { (key, value) ->
-            when (value) {
-                is String -> writableMap.putString(key, value)
-                is Int -> writableMap.putInt(key, value)
-                is Double -> writableMap.putDouble(key, value)
-                is Boolean -> writableMap.putBoolean(key, value)
-                is Map<*, *> -> writableMap.putMap(key, convertMapToReadableMap(value as Map<String, Any?>))
-                is List<*> -> {
-                    val array = Arguments.createArray()
-                    value.forEach { item ->
-                        when (item) {
-                            is String -> array.pushString(item)
-                            is Int -> array.pushInt(item)
-                            is Double -> array.pushDouble(item)
-                            is Boolean -> array.pushBoolean(item)
-                            is Map<*, *> -> array.pushMap(convertMapToReadableMap(item as Map<String, Any?>))
-                        }
-                    }
-                    writableMap.putArray(key, array)
-                }
-                null -> writableMap.putNull(key)
-            }
-        }
-        return writableMap
     }
 }

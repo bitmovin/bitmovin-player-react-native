@@ -4,7 +4,7 @@ import com.bitmovin.player.casting.BitmovinCastManager
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
-class BitmovinCastManagerExpoModule : Module() {
+class BitmovinCastManagerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("BitmovinCastManagerModule")
 

@@ -1,8 +1,8 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
 
-export type PlayerExpoModuleEvents = Record<string, any>;
+export type PlayerModuleEvents = Record<string, any>;
 
-declare class PlayerExpoModule extends NativeModule<PlayerExpoModuleEvents> {
+declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
   /**
    * Call .play() on nativeId's player.
    */
@@ -248,4 +248,4 @@ declare class PlayerExpoModule extends NativeModule<PlayerExpoModuleEvents> {
   setVideoQuality(nativeId: string, qualityId: string): Promise<void>;
 }
 
-export default requireNativeModule<PlayerExpoModule>('PlayerExpoModule');
+export default requireNativeModule<PlayerModule>('PlayerModule');

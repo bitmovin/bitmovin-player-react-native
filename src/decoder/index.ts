@@ -1,7 +1,7 @@
 import { EventSubscription } from 'expo-modules-core';
 import { DecoderConfig, DecoderContext, MediaCodecInfo } from './decoderConfig';
 import NativeInstance from '../nativeInstance';
-import DecoderConfigExpoModule from './decoderConfigExpoModule';
+import DecoderConfigModule from './decoderConfigModule';
 
 /**
  * Takes care of JS/Native communication for a `DecoderConfig`.
@@ -22,7 +22,7 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
     if (!this.isInitialized) {
       // Set up event listener for decoder priority override
       this.onOverrideDecodersPrioritySubscription =
-        DecoderConfigExpoModule.addListener(
+        DecoderConfigModule.addListener(
           'onOverrideDecodersPriority',
           ({
             nativeId,
@@ -41,7 +41,7 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
         );
 
       // Create native configuration object.
-      DecoderConfigExpoModule.initializeWithConfig(
+      DecoderConfigModule.initializeWithConfig(
         this.nativeId,
         this.config || {}
       );
@@ -54,7 +54,7 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
    */
   destroy() {
     if (!this.isDestroyed) {
-      DecoderConfigExpoModule.destroy(this.nativeId);
+      DecoderConfigModule.destroy(this.nativeId);
       this.onOverrideDecodersPrioritySubscription?.remove();
       this.onOverrideDecodersPrioritySubscription = undefined;
       this.isDestroyed = true;
@@ -74,7 +74,7 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
         preferredDecoders
       ) ?? preferredDecoders;
 
-    DecoderConfigExpoModule.overrideDecoderPriorityProviderComplete(
+    DecoderConfigModule.overrideDecoderPriorityProviderComplete(
       this.nativeId,
       orderedPriority
     );

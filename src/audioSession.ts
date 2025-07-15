@@ -1,6 +1,4 @@
-import AudioSessionExpoModule from './modules/AudioSessionExpoModule';
-
-const AudioSessionModule = AudioSessionExpoModule;
+import AudioSessionModule from './modules/AudioSessionModule';
 
 /**
  * An audio session category defines a set of audio behaviors.

@@ -12,7 +12,7 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.concurrent.ConcurrentHashMap
 
-class DecoderConfigExpoModule : Module() {
+class DecoderConfigModule : Module() {
 
     /**
      * In-memory mapping from `nativeId`s to `DecoderConfig` instances.
@@ -23,7 +23,7 @@ class DecoderConfigExpoModule : Module() {
         ConcurrentHashMap<String, CallbackToFutureAdapter.Completer<List<MediaCodecInfo>>>()
 
     override fun definition() = ModuleDefinition {
-        Name("DecoderConfigExpoModule")
+        Name("DecoderConfigModule")
 
         Events("onOverrideDecodersPriority")
 

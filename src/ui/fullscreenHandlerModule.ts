@@ -1,6 +1,6 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
 
-export type FullscreenHandlerExpoModuleEvents = {
+export type FullscreenHandlerModuleEvents = {
   onEnterFullscreen: ({
     nativeId,
     id,
@@ -17,7 +17,7 @@ export type FullscreenHandlerExpoModuleEvents = {
   }) => void;
 };
 
-declare class FullscreenHandlerExpoModule extends NativeModule<FullscreenHandlerExpoModuleEvents> {
+declare class FullscreenHandlerModule extends NativeModule<FullscreenHandlerModuleEvents> {
   registerHandler(nativeId: string): Promise<void>;
   destroy(nativeId: string): Promise<void>;
   notifyFullscreenChanged(
@@ -30,6 +30,6 @@ declare class FullscreenHandlerExpoModule extends NativeModule<FullscreenHandler
   ): Promise<void>;
 }
 
-export default requireNativeModule<FullscreenHandlerExpoModule>(
-  'FullscreenHandlerExpoModule'
+export default requireNativeModule<FullscreenHandlerModule>(
+  'FullscreenHandlerModule'
 );

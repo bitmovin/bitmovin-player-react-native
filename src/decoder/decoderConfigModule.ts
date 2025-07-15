@@ -1,7 +1,7 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
 import { Platform } from 'react-native';
 
-export type DecoderConfigExpoModuleEvents = {
+export type DecoderConfigModuleEvents = {
   onOverrideDecodersPriority: ({
     nativeId,
     context,
@@ -14,10 +14,10 @@ export type DecoderConfigExpoModuleEvents = {
 };
 
 /**
- * Native DecoderConfigExpoModule using Expo modules API.
+ * Native DecoderConfigModule using Expo modules API.
  * Android-only module for decoder configuration.
  */
-declare class DecoderConfigExpoModule extends NativeModule<DecoderConfigExpoModuleEvents> {
+declare class DecoderConfigModule extends NativeModule<DecoderConfigModuleEvents> {
   initializeWithConfig(
     nativeId: string,
     config: Record<string, any>
@@ -33,14 +33,15 @@ declare class DecoderConfigExpoModule extends NativeModule<DecoderConfigExpoModu
  * Expo-based DecoderConfigModule implementation.
  * Android-only module that gracefully handles iOS by providing no-op implementations.
  */
-let DecoderConfigExpoModuleInstance: any;
+let DecoderConfigModuleInstance: any;
 
 if (Platform.OS === 'android') {
-  DecoderConfigExpoModuleInstance =
-    requireNativeModule<DecoderConfigExpoModule>('DecoderConfigExpoModule');
+  DecoderConfigModuleInstance = requireNativeModule<DecoderConfigModule>(
+    'DecoderConfigModule'
+  );
 } else {
   // iOS graceful fallback - provide no-op implementations
-  DecoderConfigExpoModuleInstance = {
+  DecoderConfigModuleInstance = {
     initializeWithConfig: async () => {
       // No-op on iOS
     },
@@ -58,4 +59,4 @@ if (Platform.OS === 'android') {
   };
 }
 
-export default DecoderConfigExpoModuleInstance;
+export default DecoderConfigModuleInstance;

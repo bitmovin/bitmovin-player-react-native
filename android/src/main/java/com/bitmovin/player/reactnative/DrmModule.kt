@@ -19,13 +19,11 @@ import kotlin.concurrent.withLock
  */
 typealias PrepareCallback = (ByteArray) -> ByteArray
 
-private const val MODULE_NAME = "DrmExpoModule"
-
 /**
  * Expo module for DRM configuration management with Widevine DRM support.
  * Handles bidirectional communication for DRM preparation callbacks.
  */
-class DrmExpoModule : Module() {
+class DrmModule : Module() {
     /**
      * In-memory mapping from `nativeId`s to `WidevineConfig` instances.
      */
@@ -57,7 +55,7 @@ class DrmExpoModule : Module() {
     private val preparedLicensesCondition = lock.newCondition()
 
     override fun definition() = ModuleDefinition {
-        Name(MODULE_NAME)
+        Name("DrmModule")
 
         Events("onPrepareMessage", "onPrepareLicense")
 

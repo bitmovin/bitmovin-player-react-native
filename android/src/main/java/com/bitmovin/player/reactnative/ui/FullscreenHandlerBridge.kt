@@ -1,12 +1,12 @@
 package com.bitmovin.player.reactnative.ui
 
 import com.bitmovin.player.api.ui.FullscreenHandler
-import com.bitmovin.player.reactnative.FullscreenHandlerExpoModule
+import com.bitmovin.player.reactnative.FullscreenHandlerModule
 import com.bitmovin.player.reactnative.NativeId
 
 class FullscreenHandlerBridge(
     private val nativeId: NativeId,
-    private val expoModule: FullscreenHandlerExpoModule? = null,
+    private val module: FullscreenHandlerModule? = null,
 ) : FullscreenHandler {
     override var isFullscreen = false
 
@@ -15,11 +15,11 @@ class FullscreenHandlerBridge(
     }
 
     override fun onFullscreenExitRequested() {
-        expoModule?.requestExitFullscreen(nativeId)
+        module?.requestExitFullscreen(nativeId)
     }
 
     override fun onFullscreenRequested() {
-        expoModule?.requestEnterFullscreen(nativeId)
+        module?.requestEnterFullscreen(nativeId)
     }
 
     override fun onPause() {

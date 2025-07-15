@@ -3,7 +3,7 @@ import { EventSubscription } from 'expo-modules-core';
 import NativeInstance, { NativeInstanceConfig } from '../nativeInstance';
 import { FairplayConfig } from './fairplayConfig';
 import { WidevineConfig } from './widevineConfig';
-import DrmExpoModule from './drmExpoModule';
+import DrmModule from './drmModule';
 
 // Export config types from DRM module.
 export { FairplayConfig, WidevineConfig };
@@ -52,7 +52,7 @@ export class Drm extends NativeInstance<DrmConfig> {
 
       // Create native configuration object using Expo module.
       if (this.config) {
-        await DrmExpoModule.initializeWithConfig(this.nativeId, this.config);
+        await DrmModule.initializeWithConfig(this.nativeId, this.config);
       }
       this.isInitialized = true;
     }
@@ -63,7 +63,7 @@ export class Drm extends NativeInstance<DrmConfig> {
    */
   destroy = async () => {
     if (!this.isDestroyed) {
-      await DrmExpoModule.destroy(this.nativeId);
+      await DrmModule.destroy(this.nativeId);
       // Clean up event subscriptions
       this.eventSubscriptions.forEach((subscription) => subscription.remove());
       this.eventSubscriptions = [];
@@ -77,7 +77,7 @@ export class Drm extends NativeInstance<DrmConfig> {
   private setupEventListeners() {
     // iOS-only events
     this.eventSubscriptions.push(
-      DrmExpoModule.addListener(
+      DrmModule.addListener(
         'onPrepareCertificate',
         ({ nativeId, certificate }) => {
           if (nativeId !== this.nativeId) return;
@@ -87,7 +87,7 @@ export class Drm extends NativeInstance<DrmConfig> {
     );
 
     this.eventSubscriptions.push(
-      DrmExpoModule.addListener(
+      DrmModule.addListener(
         'onPrepareSyncMessage',
         ({ nativeId, syncMessage, assetId }) => {
           if (nativeId !== this.nativeId) return;
@@ -97,7 +97,7 @@ export class Drm extends NativeInstance<DrmConfig> {
     );
 
     this.eventSubscriptions.push(
-      DrmExpoModule.addListener(
+      DrmModule.addListener(
         'onPrepareLicenseServerUrl',
         ({ nativeId, licenseServerUrl }) => {
           if (nativeId !== this.nativeId) return;
@@ -107,18 +107,15 @@ export class Drm extends NativeInstance<DrmConfig> {
     );
 
     this.eventSubscriptions.push(
-      DrmExpoModule.addListener(
-        'onPrepareContentId',
-        ({ nativeId, contentId }) => {
-          if (nativeId !== this.nativeId) return;
-          this.onPrepareContentId(contentId);
-        }
-      )
+      DrmModule.addListener('onPrepareContentId', ({ nativeId, contentId }) => {
+        if (nativeId !== this.nativeId) return;
+        this.onPrepareContentId(contentId);
+      })
     );
 
     // Cross-platform events
     this.eventSubscriptions.push(
-      DrmExpoModule.addListener(
+      DrmModule.addListener(
         'onPrepareMessage',
         ({ nativeId, data, message, assetId }) => {
           if (nativeId !== this.nativeId) return;
@@ -129,7 +126,7 @@ export class Drm extends NativeInstance<DrmConfig> {
     );
 
     this.eventSubscriptions.push(
-      DrmExpoModule.addListener(
+      DrmModule.addListener(
         'onPrepareLicense',
         ({ nativeId, data, license }) => {
           if (nativeId !== this.nativeId) return;
@@ -153,7 +150,7 @@ export class Drm extends NativeInstance<DrmConfig> {
   private onPrepareCertificate = (certificate: string) => {
     if (this.config?.fairplay?.prepareCertificate) {
       const result = this.config?.fairplay?.prepareCertificate?.(certificate);
-      DrmExpoModule.setPreparedCertificate(this.nativeId, result);
+      DrmModule.setPreparedCertificate(this.nativeId, result);
     }
   };
 
@@ -168,7 +165,7 @@ export class Drm extends NativeInstance<DrmConfig> {
    */
   private onPrepareMessage = (message?: string, assetId?: string) => {
     if (!message) {
-      DrmExpoModule.setPreparedMessage(this.nativeId, undefined);
+      DrmModule.setPreparedMessage(this.nativeId, undefined);
       return;
     }
     const config =
@@ -178,7 +175,7 @@ export class Drm extends NativeInstance<DrmConfig> {
         Platform.OS === 'ios'
           ? (config as FairplayConfig).prepareMessage?.(message, assetId!)
           : (config as WidevineConfig).prepareMessage?.(message);
-      DrmExpoModule.setPreparedMessage(this.nativeId, result);
+      DrmModule.setPreparedMessage(this.nativeId, result);
     }
   };
 
@@ -198,7 +195,7 @@ export class Drm extends NativeInstance<DrmConfig> {
         syncMessage,
         assetId
       );
-      DrmExpoModule.setPreparedSyncMessage(this.nativeId, result);
+      DrmModule.setPreparedSyncMessage(this.nativeId, result);
     }
   };
 
@@ -212,7 +209,7 @@ export class Drm extends NativeInstance<DrmConfig> {
    */
   private onPrepareLicense = (license?: string) => {
     if (!license) {
-      DrmExpoModule.setPreparedLicense(this.nativeId, undefined);
+      DrmModule.setPreparedLicense(this.nativeId, undefined);
       return;
     }
     const prepareLicense =
@@ -220,7 +217,7 @@ export class Drm extends NativeInstance<DrmConfig> {
         ? this.config?.fairplay?.prepareLicense
         : this.config?.widevine?.prepareLicense;
     if (prepareLicense) {
-      DrmExpoModule.setPreparedLicense(this.nativeId, prepareLicense(license));
+      DrmModule.setPreparedLicense(this.nativeId, prepareLicense(license));
     }
   };
 
@@ -238,7 +235,7 @@ export class Drm extends NativeInstance<DrmConfig> {
     if (this.config?.fairplay?.prepareLicenseServerUrl) {
       const result =
         this.config?.fairplay?.prepareLicenseServerUrl?.(licenseServerUrl);
-      DrmExpoModule.setPreparedLicenseServerUrl(this.nativeId, result);
+      DrmModule.setPreparedLicenseServerUrl(this.nativeId, result);
     }
   };
 
@@ -256,7 +253,7 @@ export class Drm extends NativeInstance<DrmConfig> {
     console.log('onPrepareContentId', contentId);
     if (this.config?.fairplay?.prepareContentId) {
       const result = this.config?.fairplay?.prepareContentId?.(contentId);
-      DrmExpoModule.setPreparedContentId(this.nativeId, result);
+      DrmModule.setPreparedContentId(this.nativeId, result);
     }
   };
 }

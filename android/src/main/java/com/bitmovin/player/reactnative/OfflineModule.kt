@@ -9,7 +9,7 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.security.InvalidParameterException
 
-class OfflineExpoModule : Module() {
+class OfflineModule : Module() {
 
     /**
      * In-memory mapping from `nativeId`s to `OfflineContentManagerBridge` instances.
@@ -18,7 +18,7 @@ class OfflineExpoModule : Module() {
     private val offlineContentManagerBridges: Registry<OfflineContentManagerBridge> = mutableMapOf()
 
     override fun definition() = ModuleDefinition {
-        Name("OfflineExpoModule")
+        Name("OfflineModule")
 
         Events("onBitmovinOfflineEvent")
 
@@ -42,8 +42,8 @@ class OfflineExpoModule : Module() {
             val sourceConfig = (config["sourceConfig"] as? Map<String, Any?>)?.toSourceConfig()
                 ?: throw OfflineException.InvalidSourceConfig()
 
-            // Get DRM config from DrmExpoModule if available
-            sourceConfig.drmConfig = appContext.registry.getModule<DrmExpoModule>()?.getConfig(drmNativeId)
+            // Get DRM config from DrmModule if available
+            sourceConfig.drmConfig = appContext.registry.getModule<DrmModule>()?.getConfig(drmNativeId)
 
             val context = appContext.reactContext
                 ?: throw InvalidParameterException("ReactApplicationContext is not available")
@@ -51,7 +51,7 @@ class OfflineExpoModule : Module() {
             offlineContentManagerBridges[nativeId] = OfflineContentManagerBridge(
                 nativeId,
                 context,
-                this@OfflineExpoModule,
+                this@OfflineModule,
                 identifier,
                 sourceConfig,
                 appContext.cacheDirectory.path,

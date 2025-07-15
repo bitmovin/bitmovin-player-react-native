@@ -3,15 +3,15 @@ import { SourceConfig } from '../source';
 import { OfflineDownloadRequest } from './offlineDownloadRequest';
 import { BitmovinNativeOfflineEventData } from './offlineContentManagerListener';
 
-export type OfflineExpoModuleEvents = {
+export type OfflineModuleEvents = {
   onBitmovinOfflineEvent: (event: BitmovinNativeOfflineEventData) => void;
 };
 
 /**
- * Native OfflineExpoModule using Expo modules API.
+ * Native OfflineModule using Expo modules API.
  * Provides modern async/await interface while maintaining backward compatibility.
  */
-declare class OfflineExpoModule extends NativeModule<OfflineExpoModuleEvents> {
+declare class OfflineModule extends NativeModule<OfflineModuleEvents> {
   initializeWithConfig(
     nativeId: string,
     config: { identifier: string; sourceConfig: SourceConfig },
@@ -43,4 +43,4 @@ declare class OfflineExpoModule extends NativeModule<OfflineExpoModuleEvents> {
   release(nativeId: string): Promise<void>;
 }
 
-export default requireNativeModule<OfflineExpoModule>('OfflineExpoModule');
+export default requireNativeModule<OfflineModule>('OfflineModule');

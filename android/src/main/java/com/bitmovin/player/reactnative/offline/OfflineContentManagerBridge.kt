@@ -10,13 +10,13 @@ import com.bitmovin.player.api.offline.options.OfflineOptionEntryAction
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.reactnative.NativeId
-import com.bitmovin.player.reactnative.OfflineExpoModule
+import com.bitmovin.player.reactnative.OfflineModule
 import com.bitmovin.player.reactnative.converter.toJson
 
 class OfflineContentManagerBridge(
     private val nativeId: NativeId,
     context: Context,
-    private val offlineExpoModule: OfflineExpoModule,
+    private val offlineModule: OfflineModule,
     private val identifier: String,
     source: SourceConfig,
     location: String,
@@ -216,6 +216,6 @@ class OfflineContentManagerBridge(
         mutableEvent["identifier"] = identifier
         mutableEvent["eventType"] = eventType.eventName
         mutableEvent["state"] = aggregateState(contentOptions).name
-        offlineExpoModule.sendEvent("onBitmovinOfflineEvent", mutableEvent)
+        offlineModule.sendEvent("onBitmovinOfflineEvent", mutableEvent)
     }
 }
