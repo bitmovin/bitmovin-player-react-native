@@ -26,7 +26,7 @@ export default (spec: TestScope) => {
               player.load(Sources.artOfMotionHls);
             }, EventType.AudioAdded);
 
-            callPlayer(async (player) => {
+            await callPlayer(async (player) => {
               const audioTrack = await player.getAudioTrack();
               expect(
                 audioTrack?.qualities,
@@ -106,7 +106,7 @@ export default (spec: TestScope) => {
                 player.load(Sources.artOfMotionHls);
               }, EventType.AudioAdded);
 
-              callPlayer(async (player) => {
+              await callPlayer(async (player) => {
                 const audioTrack = await player.getAudioTrack();
                 expect(
                   audioTrack?.qualities,
