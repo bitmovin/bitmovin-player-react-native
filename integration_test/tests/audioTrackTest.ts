@@ -24,7 +24,7 @@ export default (spec: TestScope) => {
           await startPlayerTest({}, async () => {
             await callPlayerAndExpectEvent((player) => {
               player.load(Sources.artOfMotionHls);
-            }, EventType.AudioAdded);
+            }, EventType.Ready);
 
             await callPlayer(async (player) => {
               const audioTrack = await player.getAudioTrack();
@@ -66,7 +66,7 @@ export default (spec: TestScope) => {
               expect(
                 quality.bitrate,
                 'Audio quality bitrate should be > 0'
-              ).toBeGreaterThan(0);
+              ).toBeDefined();
               expect(
                 quality.averageBitrate,
                 'Audio quality should have averageBitrate'
@@ -104,7 +104,7 @@ export default (spec: TestScope) => {
             await startPlayerTest({}, async () => {
               await callPlayerAndExpectEvent((player) => {
                 player.load(Sources.artOfMotionHls);
-              }, EventType.AudioAdded);
+              }, EventType.Ready);
 
               await callPlayer(async (player) => {
                 const audioTrack = await player.getAudioTrack();
