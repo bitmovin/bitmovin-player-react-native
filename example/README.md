@@ -32,6 +32,7 @@ yarn bootstrap # Install all dependencies
 ```
 
 Note that Windows users should instead run:
+
 ```powershell
 cd bitmovin-player-react-native # Go to library's root directory
 yarn install # Install root project dependencies
