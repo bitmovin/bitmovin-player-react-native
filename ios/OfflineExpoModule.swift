@@ -148,7 +148,6 @@ public class OfflineExpoModule: Module {
     }
     #endif
 
-    @objc
     internal func retrieve(_ nativeId: NativeId) -> OfflineContentManagerBridge? {
         #if os(iOS)
         return self.offlineContentManagerBridges[nativeId]

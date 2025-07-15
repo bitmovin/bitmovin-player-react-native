@@ -53,7 +53,6 @@ public class DrmExpoModule: Module {
         self.drmConfigs.removeValue(forKey: nativeId)
     }
 
-    @objc
     func retrieve(_ nativeId: String) -> FairplayConfig? {
         drmConfigs[nativeId]
     }
@@ -171,10 +170,5 @@ public class DrmExpoModule: Module {
                                          "id": id,
                                          "contentId": contentId])
         return wait() ?? contentId
-    }
-
-    @objc
-    public static func getDrmConfig(_ nativeId: String) -> FairplayConfig? {
-        nil
     }
 }

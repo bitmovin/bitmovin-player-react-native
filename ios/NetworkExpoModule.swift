@@ -63,7 +63,6 @@ public class NetworkExpoModule: Module {
      * Retrieves the NetworkConfig instance for the given nativeId.
      * This method maintains the same static access pattern as the legacy module.
      */
-    @objc
     func retrieve(_ nativeId: String) -> NetworkConfig? {
         networkConfigs[nativeId]
     }
@@ -110,11 +109,6 @@ public class NetworkExpoModule: Module {
         ) -> Void
     ) {
         let requestId = "\(nativeId)@\(ObjectIdentifier(request).hashValue)"
-        let args: [Any] = [
-            requestId,
-            type,
-            RCTConvert.toJson(httpRequest: request),
-        ]
         preprocessHttpRequestCompletionHandlers[requestId] = completionHandler
         sendEvent("onPreprocessHttpRequest", [
             "nativeId": nativeId,
@@ -133,11 +127,6 @@ public class NetworkExpoModule: Module {
         ) -> Void
     ) {
         let responseId = "\(nativeId)@\(ObjectIdentifier(response).hashValue)"
-        let args: [Any] = [
-            responseId,
-            RCTConvert.toJson(httpRequestType: type),
-            RCTConvert.toJson(httpResponse: response),
-        ]
         preprocessHttpResponseCompletionHandlers[responseId] = completionHandler
         sendEvent("onPreprocessHttpResponse", [
             "nativeId": nativeId,

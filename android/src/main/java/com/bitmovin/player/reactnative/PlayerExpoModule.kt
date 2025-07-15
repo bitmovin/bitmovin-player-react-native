@@ -3,11 +3,15 @@ package com.bitmovin.player.reactnative
 import com.bitmovin.player.api.Player
 import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.DefaultMetadata
+import com.bitmovin.player.api.PlayerConfig
+import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.converter.toMediaControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
+import com.bitmovin.player.reactnative.extensions.getMap
 import com.facebook.react.bridge.Arguments
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
@@ -398,65 +402,14 @@ class PlayerExpoModule : Module() {
          * This is a complex method requiring config conversion and cross-module setup.
          */
         AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any>?, networkNativeId: String?, decoderNativeId: String? ->
-            if (players.containsKey(nativeId)) {
-                // Player already exists for this nativeId
-                return@AsyncFunction
-            }
-            
-            val playerConfig = config?.toPlayerConfig() ?: com.bitmovin.player.api.PlayerConfig()
-            
-            val networkConfig = networkNativeId?.let { id ->
-                appContext.registry.getModule<NetworkExpoModule>()?.getConfig(id)
-            }
-            networkConfig?.let { config ->
-                playerConfig.networkConfig = config
-            }
-            
-            val decoderConfig = decoderNativeId?.let { 
-                appContext.registry.getModule<DecoderConfigExpoModule>()?.getDecoderConfig(it)
-            }
-            if (decoderConfig != null) {
-                playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = decoderConfig)
-            }
-            val applicationContext = appContext.reactContext?.applicationContext
-                ?: throw IllegalStateException("Application context is not available")
-            val player = Player.create(applicationContext, playerConfig)
-            players[nativeId] = player
+            initializePlayer(nativeId, config, networkNativeId, decoderNativeId, null)
         }.runOnQueue(Queues.MAIN)
         
         /**
          * Creates a new analytics-enabled Player instance.
          */
         AsyncFunction("initializeWithAnalyticsConfig") { nativeId: String, analyticsConfigJson: Map<String, Any>, config: Map<String, Any>?, networkNativeId: String?, decoderNativeId: String? ->
-            if (players.containsKey(nativeId)) {
-                // Player already exists for this nativeId
-                return@AsyncFunction
-            }
-            
-            val playerConfig = config?.toPlayerConfig() ?: com.bitmovin.player.api.PlayerConfig()
-            val analyticsConfig = analyticsConfigJson.toAnalyticsConfig()
-            val defaultMetadata = analyticsConfigJson["defaultMetadata"]?.let {
-                (it as? Map<String, Any?>)?.toAnalyticsDefaultMetadata()
-            } ?: DefaultMetadata()
-            
-            val networkConfig = networkNativeId?.let { id ->
-                appContext.registry.getModule<NetworkExpoModule>()?.getConfig(id)
-            }
-            networkConfig?.let { config ->
-                playerConfig.networkConfig = config
-            }
-            
-            val decoderConfig = decoderNativeId?.let { 
-                appContext.registry.getModule<DecoderConfigExpoModule>()?.getDecoderConfig(it)
-            }
-            if (decoderConfig != null) {
-                playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = decoderConfig)
-            }
-            
-            val applicationContext = appContext.reactContext?.applicationContext
-                ?: throw IllegalStateException("Application context is not available")
-            val player = Player.create(applicationContext, playerConfig)
-            players[nativeId] = player
+            initializePlayer(nativeId, config, networkNativeId, decoderNativeId, analyticsConfigJson)
         }.runOnQueue(Queues.MAIN)
         
         /**
@@ -477,6 +430,58 @@ class PlayerExpoModule : Module() {
         AsyncFunction("source") { nativeId: String ->
             val player = players[nativeId]
             return@AsyncFunction player?.source?.toJson()
+        }
+    }
+
+    private fun initializePlayer(
+        nativeId: String,
+        config: Map<String, Any>?,
+        networkNativeId: String?,
+        decoderNativeId: String?,
+        analyticsConfigJson: Map<String, Any>?,
+    ) {
+        if (players.containsKey(nativeId)) {
+            // Player already exists for this nativeId
+            return
+        }
+
+        val playerConfig = config?.toPlayerConfig() ?: PlayerConfig()
+        val enableMediaSession = config?.getMap("mediaControlConfig")
+            ?.toMediaControlConfig()?.isEnabled ?: true
+
+        val networkConfig = networkNativeId?.let { id ->
+            appContext.registry.getModule<NetworkExpoModule>()?.getConfig(id)
+        }
+        networkConfig?.let {
+            playerConfig.networkConfig = it
+        }
+
+        val decoderConfig = decoderNativeId?.let {
+            appContext.registry.getModule<DecoderConfigExpoModule>()?.getDecoderConfig(it)
+        }
+        if (decoderConfig != null) {
+            playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = decoderConfig)
+        }
+
+        val applicationContext = appContext.reactContext?.applicationContext
+            ?: throw IllegalStateException("Application context is not available")
+        val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
+        val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
+
+        val player = if (analyticsConfig != null) {
+            Player.create(
+                context = applicationContext,
+                playerConfig = playerConfig,
+                analyticsConfig = analyticsConfig,
+                defaultMetadata = defaultMetadata ?: DefaultMetadata(),
+            )
+        } else {
+            Player.create(applicationContext, playerConfig)
+        }
+        players[nativeId] = player
+
+        if (enableMediaSession) {
+            mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
         }
     }
 

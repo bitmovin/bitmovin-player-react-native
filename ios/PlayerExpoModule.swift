@@ -207,6 +207,7 @@ public class PlayerExpoModule: Module {
 
     }
 
+    /// This needs to stay stable to maintain compatibility for cross-module access..
     @objc
     public func retrieve(_ nativeId: NativeId) -> Player? {
         players[nativeId]

@@ -57,7 +57,6 @@ public class SourceExpoModule: Module {
     /**
      Retrieves the `Source` instance associated with `nativeId`.
      */
-    @objc
     public func retrieve(_ nativeId: NativeId) -> Source? {
         sources[nativeId]
     }

@@ -41,7 +41,6 @@ public class CustomMessageHandlerExpoModule: Module {
      * Retrieves the CustomMessageHandlerBridge instance for the given nativeId.
      * This method maintains the same static access pattern as the legacy module.
      */
-    @objc
     func retrieve(_ nativeId: String) -> CustomMessageHandlerBridge? {
         customMessageHandlers[nativeId]
     }
