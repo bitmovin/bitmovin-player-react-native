@@ -1,8 +1,7 @@
 package com.bitmovin.player.reactnative
 
-import com.bitmovin.player.api.Player
-import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.DefaultMetadata
+import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.reactnative.converter.toAdItem
@@ -12,7 +11,6 @@ import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toMediaControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.getMap
-import com.facebook.react.bridge.Arguments
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -45,7 +43,6 @@ class PlayerExpoModule : Module() {
             players.clear()
         }
 
-        
         /**
          * Call .play() on nativeId's player.
          */
@@ -53,7 +50,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.play()
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Call .pause() on nativeId's player.
          */
@@ -61,7 +58,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.pause()
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Call .mute() on nativeId's player.
          */
@@ -69,7 +66,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.mute()
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Call .unmute() on nativeId's player.
          */
@@ -77,7 +74,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.unmute()
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Call .seek(time) on nativeId's player.
          */
@@ -85,7 +82,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.seek(time)
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Sets timeShift on nativeId's player.
          */
@@ -93,7 +90,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.timeShift(offset)
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Call .destroy() on nativeId's player and remove from registry.
          * Also handles MediaSession cleanup.
@@ -107,7 +104,7 @@ class PlayerExpoModule : Module() {
                 players.remove(nativeId)
             }
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Call .setVolume(volume) on nativeId's player.
          */
@@ -115,7 +112,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.volume = volume.toInt()
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Resolve nativeId's current volume.
          */
@@ -123,7 +120,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.volume?.toDouble()
         }
-        
+
         /**
          * Resolve nativeId's current time.
          */
@@ -136,7 +133,7 @@ class PlayerExpoModule : Module() {
                 else -> player.currentTime
             }
         }
-        
+
         /**
          * Resolve nativeId's current playing state.
          */
@@ -144,7 +141,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.isPlaying
         }
-        
+
         /**
          * Resolve nativeId's current paused state.
          */
@@ -152,7 +149,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.isPaused
         }
-        
+
         /**
          * Resolve nativeId's current source duration.
          */
@@ -160,7 +157,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.duration
         }
-        
+
         /**
          * Resolve nativeId's current muted state.
          */
@@ -168,7 +165,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.isMuted
         }
-        
+
         /**
          * Call .unload() on nativeId's player.
          */
@@ -176,7 +173,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.unload()
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Resolve nativeId's current time shift value.
          */
@@ -184,7 +181,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.timeShift
         }
-        
+
         /**
          * Resolve nativeId's live stream state.
          */
@@ -192,7 +189,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.isLive
         }
-        
+
         /**
          * Resolve nativeId's maximum time shift value.
          */
@@ -200,7 +197,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.maxTimeShift
         }
-        
+
         /**
          * Resolve nativeId's current playback speed.
          */
@@ -208,7 +205,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.playbackSpeed?.toDouble()
         }
-        
+
         /**
          * Set playback speed for nativeId's player.
          */
@@ -216,7 +213,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.playbackSpeed = playbackSpeed.toFloat()
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Resolve nativeId's current ad state.
          */
@@ -224,7 +221,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.isAd
         }
-        
+
         /**
          * Set maximum selectable bitrate for nativeId's player.
          */
@@ -232,7 +229,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.setMaxSelectableVideoBitrate(maxBitrate.toInt())
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Resolve nativeId's AirPlay activation state (Android returns null).
          */
@@ -240,7 +237,7 @@ class PlayerExpoModule : Module() {
             // AirPlay is iOS-only, return null on Android
             false
         }
-        
+
         /**
          * Resolve nativeId's AirPlay availability state (Android returns null).
          */
@@ -248,7 +245,7 @@ class PlayerExpoModule : Module() {
             // AirPlay is iOS-only, return null on Android
             false
         }
-        
+
         /**
          * Resolve nativeId's cast availability state.
          */
@@ -256,7 +253,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.isCastAvailable
         }
-        
+
         /**
          * Resolve nativeId's current casting state.
          */
@@ -264,7 +261,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.isCasting
         }
-        
+
         /**
          * Initiate casting for nativeId's player.
          */
@@ -272,7 +269,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.castVideo()
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Stop casting for nativeId's player.
          */
@@ -280,7 +277,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.castStop()
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Skip current ad for nativeId's player.
          */
@@ -288,7 +285,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.skipAd()
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Check if player can play at specified playback speed (Android returns null).
          */
@@ -296,7 +293,7 @@ class PlayerExpoModule : Module() {
             // This method is iOS-only, return false on Android
             false
         }
-        
+
         /**
          * Get current audio track.
          */
@@ -304,7 +301,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.source?.selectedAudioTrack?.toJson()
         }
-        
+
         /**
          * Get all available audio tracks.
          */
@@ -312,7 +309,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.source?.availableAudioTracks?.map { it.toJson() } ?: emptyList()
         }
-        
+
         /**
          * Set audio track.
          */
@@ -320,7 +317,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.source?.setAudioTrack(trackIdentifier)
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Get current subtitle track.
          */
@@ -328,7 +325,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.source?.selectedSubtitleTrack?.toJson()
         }
-        
+
         /**
          * Get all available subtitle tracks.
          */
@@ -336,7 +333,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.source?.availableSubtitleTracks?.map { it.toJson() } ?: emptyList()
         }
-        
+
         /**
          * Set subtitle track.
          */
@@ -344,7 +341,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.source?.setSubtitleTrack(trackIdentifier)
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Get current video quality.
          */
@@ -352,7 +349,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.videoQuality?.toJson()
         }
-        
+
         /**
          * Get all available video qualities.
          */
@@ -368,7 +365,7 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             player?.source?.setVideoQuality(qualityId)
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Get thumbnail for time position.
          */
@@ -376,16 +373,16 @@ class PlayerExpoModule : Module() {
             val player = players[nativeId]
             return@AsyncFunction player?.getThumbnail(time)?.toJson()
         }
-         AsyncFunction("loadOfflineContent") { nativeId: String, offlineContentManagerBridgeId: String, options: Map<String, Any>? ->
-             val player = players[nativeId] ?: return@AsyncFunction
-             val offlineContentManagerBridge = appContext.registry.getModule<OfflineExpoModule>()
-                 ?.getOfflineContentManagerBridge(offlineContentManagerBridgeId)
+        AsyncFunction("loadOfflineContent") { nativeId: String, offlineContentManagerBridgeId: String, options: Map<String, Any>? ->
+            val player = players[nativeId] ?: return@AsyncFunction
+            val offlineContentManagerBridge = appContext.registry.getModule<OfflineExpoModule>()
+                ?.getOfflineContentManagerBridge(offlineContentManagerBridgeId)
 
-             offlineContentManagerBridge?.offlineContentManager?.offlineSourceConfig?.let {
-                 player.load(it)
-             }
-         }.runOnQueue(Queues.MAIN)
-        
+            offlineContentManagerBridge?.offlineContentManager?.offlineSourceConfig?.let {
+                player.load(it)
+            }
+        }.runOnQueue(Queues.MAIN)
+
         /**
          * Schedule an ad item in the player.
          */
@@ -396,7 +393,7 @@ class PlayerExpoModule : Module() {
                 player.scheduleAd(adItem)
             }
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Creates a new Player instance using the provided config.
          * This is a complex method requiring config conversion and cross-module setup.
@@ -404,21 +401,21 @@ class PlayerExpoModule : Module() {
         AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any>?, networkNativeId: String?, decoderNativeId: String? ->
             initializePlayer(nativeId, config, networkNativeId, decoderNativeId, null)
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Creates a new analytics-enabled Player instance.
          */
         AsyncFunction("initializeWithAnalyticsConfig") { nativeId: String, analyticsConfigJson: Map<String, Any>, config: Map<String, Any>?, networkNativeId: String?, decoderNativeId: String? ->
             initializePlayer(nativeId, config, networkNativeId, decoderNativeId, analyticsConfigJson)
         }.runOnQueue(Queues.MAIN)
-        
+
         /**
          * Load source into the player.
          * This requires cross-module dependency on SourceModule.
          */
         AsyncFunction("loadSource") { nativeId: String, sourceNativeId: String ->
             val player = players[nativeId]
-            val source = appContext.registry.getModule<SourceExpoModule>()?.getSource(sourceNativeId)
+            val source = appContext.registry.getModule<SourceExpoModule>()?.getSourceOrNull(sourceNativeId)
             if (player != null && source != null) {
                 player.load(source)
             }
