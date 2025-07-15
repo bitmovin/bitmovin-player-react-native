@@ -6,201 +6,131 @@ export function expect(actual: any, desc?: string) {
     throw new Error(`${descPrefix}${msg} ❌`);
   };
 
+  function assert(condition: boolean, message: string) {
+    if (condition) logPass(message);
+    else {
+      console.error(`[EXPECTATION NOT MET]: ${message}`);
+      throwErr(message);
+    }
+  }
+
   return {
     toBe(expected: any) {
-      if (actual === expected) logPass(`${actual} == ${expected}`);
-      else {
-        const errorMessage = `Expected ${actual} to be ${expected}`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(actual === expected, `Expected ${actual} to be ${expected}`);
     },
 
     toNotBe(expected: any) {
-      if (actual !== expected) logPass(`${actual} != ${expected}`);
-      else {
-        const errorMessage = `Expected ${actual} not to be ${expected}`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(actual !== expected, `Expected ${actual} not to be ${expected}`);
     },
 
     toEqual(expected: any) {
-      if (JSON.stringify(actual) === JSON.stringify(expected))
-        logPass(`Expected ${actual} to equal ${expected}`);
-      else {
-        const errorMessage = `Expected ${actual} to equal ${expected}`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(
+        JSON.stringify(actual) === JSON.stringify(expected),
+        `Expected ${actual} to equal ${expected}`
+      );
     },
 
     toBeGreaterThan(expected: number) {
-      if (actual > expected) logPass(`${actual} > ${expected}`);
-      else {
-        const errorMessage = `Expected ${actual} to be greater than ${expected}`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(
+        actual > expected,
+        `Expected ${actual} to be greater than ${expected}`
+      );
     },
 
     toBeGreaterThanOrEqual(expected: number) {
-      if (actual >= expected) logPass(`${actual} >= ${expected}`);
-      else {
-        const errorMessage = `Expected ${actual} to be greater than or equal to ${expected}`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(
+        actual >= expected,
+        `Expected ${actual} to be greater than or equal to ${expected}`
+      );
     },
 
     toBeSmallerThan(expected: number) {
-      if (actual < expected) logPass(`${actual} < ${expected}`);
-      else {
-        const errorMessage = `Expected ${actual} to be smaller than ${expected}`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(
+        actual < expected,
+        `Expected ${actual} to be smaller than ${expected}`
+      );
     },
 
     toBeSmallerThanOrEqual(expected: number) {
-      if (actual <= expected) logPass(`${actual} <= ${expected}`);
-      else {
-        const errorMessage = `Expected ${actual} to be smaller than or equal to ${expected}`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(
+        actual <= expected,
+        `Expected ${actual} to be smaller than or equal to ${expected}`
+      );
     },
 
     toBeTruthy() {
-      if (actual) logPass(`${actual} is truthy`);
-      else {
-        const errorMessage = `Expected ${actual} to be truthy`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(actual, `Expected ${actual} to be truthy`);
     },
 
     toBeFalsy() {
-      if (!actual) logPass(`${actual} is falsy`);
-      else {
-        const errorMessage = `Expected ${actual} to be falsy`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(!actual, `Expected ${actual} to be falsy`);
     },
 
     toBeDefined() {
-      if (actual !== undefined) logPass(`${actual} is defined`);
-      else {
-        const errorMessage = `Expected ${actual} to be defined`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(actual !== undefined, `Expected ${actual} to be defined`);
     },
 
     toBeUndefined() {
-      if (actual === undefined) logPass(`${actual} is undefined`);
-      else {
-        const errorMessage = `Expected ${actual} to be undefined`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(actual === undefined, `Expected ${actual} to be undefined`);
     },
 
     toBeNull() {
-      if (actual === null) logPass(`${actual} is null`);
-      else {
-        const errorMessage = `Expected ${actual} to be null`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(actual === null, `Expected ${actual} to be null`);
     },
 
     toBeNotNull() {
-      if (actual !== null) logPass(`${actual} is not null`);
-      else {
-        const errorMessage = `Expected ${actual} to be not null`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(actual !== null, `Expected ${actual} to be not null`);
     },
 
     toBeInstanceOf(expected: any) {
-      if (actual instanceof expected)
-        logPass(`${actual} is instance of ${expected.name}`);
-      else {
-        const errorMessage = `Expected ${actual} to be instance of ${expected.name}`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(
+        actual instanceof expected,
+        `Expected ${actual} to be instance of ${expected.name}`
+      );
     },
 
     toContain(expected: any) {
-      if (actual && actual.includes && actual.includes(expected))
-        logPass(`${actual} contains ${expected}`);
-      else {
-        const errorMessage = `Expected ${actual} to contain ${expected}`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(
+        actual && actual.includes && actual.includes(expected),
+        `Expected ${actual} to contain ${expected}`
+      );
     },
 
     toHaveLength(expected: number) {
-      if (actual && actual.length === expected)
-        logPass(`${actual} has length ${expected}`);
-      else {
-        const errorMessage = `Expected ${actual} to have length ${expected}, but got ${
+      assert(
+        actual && actual.length === expected,
+        `Expected ${actual} to have length ${expected}, but got ${
           actual ? actual.length : 'undefined'
-        }`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+        }`
+      );
     },
 
     toHaveProperty(property: string) {
-      if (actual && actual.hasOwnProperty(property))
-        logPass(`${actual} has property '${property}'`);
-      else {
-        const errorMessage = `Expected ${actual} to have property '${property}'`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(
+        actual && actual.hasOwnProperty(property),
+        `Expected ${actual} to have property '${property}'`
+      );
     },
 
     toHavePropertyValue(property: string, value: any) {
-      if (
-        actual &&
-        actual.hasOwnProperty(property) &&
-        actual[property] === value
-      ) {
-        logPass(`${actual} has property '${property}' with value ${value}`);
-      } else {
-        const actualValue = actual ? actual[property] : 'undefined';
-        const errorMessage = `Expected ${actual} to have property '${property}' with value ${value}, but got ${actualValue}`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      const actualValue = actual ? actual[property] : 'undefined';
+      assert(
+        actual && actual.hasOwnProperty(property) && actual[property] === value,
+        `Expected ${actual} to have property '${property}' with value ${value}, but got ${actualValue}`
+      );
     },
 
     toMatchRegex(regex: RegExp) {
-      if (regex.test(actual)) logPass(`${actual} matches regex ${regex}`);
-      else {
-        const errorMessage = `Expected ${actual} to match regex ${regex}`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(regex.test(actual), `Expected ${actual} to match regex ${regex}`);
     },
 
     toBeCloseTo(expected: number, precision: number = 2) {
       const diff = Math.abs(actual - expected);
       const tolerance = Math.pow(10, -precision);
-      if (diff <= tolerance)
-        logPass(`${actual} is close to ${expected} (precision: ${precision})`);
-      else {
-        const errorMessage = `Expected ${actual} to be close to ${expected} (precision: ${precision}), but difference is ${diff}`;
-        console.error(`[EXPECTATION NOT MET]: ${errorMessage}`);
-        throwErr(errorMessage);
-      }
+      assert(
+        diff <= tolerance,
+        `Expected ${actual} to be close to ${expected} (precision: ${precision}), but difference is ${diff}`
+      );
     },
   };
 }
