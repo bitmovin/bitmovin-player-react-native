@@ -125,6 +125,9 @@ export function expect(actual: any, desc?: string) {
     },
 
     toBeCloseTo(expected: number, precision: number = 2) {
+      if (typeof actual !== 'number') {
+        throwErr(`Both ${actual} and ${expected} must be numbers`);
+      }
       const diff = Math.abs(actual - expected);
       const tolerance = Math.pow(10, -precision);
       assert(
