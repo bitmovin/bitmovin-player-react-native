@@ -1,10 +1,13 @@
 package com.bitmovin.player.reactnative
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.view.View.MeasureSpec
 import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.FrameLayout
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -30,6 +33,7 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
     var playerView: PlayerView? = null
         private set
     private var subtitleView: SubtitleView? = null
+    private var playerContainer: FrameLayout? = null
     var enableBackgroundPlayback: Boolean = false
     private var scalingMode: ScalingMode? = null
     private var requestedFullscreenValue: Boolean? = null
@@ -147,7 +151,6 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
 
     private val activityLifecycle: Lifecycle? =
         (appContext.activityProvider?.currentActivity as? LifecycleOwner)?.lifecycle
-            ?: (context as? LifecycleOwner)?.lifecycle
 
     init {
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
@@ -164,6 +167,10 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
         activityLifecycle?.removeObserver(activityLifecycleObserver)
         playerView?.onDestroy()
         playerView = null
+        playerContainer?.let { container ->
+            (container.parent as? ViewGroup)?.removeView(container)
+        }
+        playerContainer = null
     }
 
     private fun setPlayerView(playerView: PlayerView) {
@@ -175,11 +182,36 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
             (oldPlayerView.parent as? ViewGroup)?.removeView(oldPlayerView)
             oldPlayerView.player = null
         }
-        this.playerView = playerView
-        if (playerView.parent != this) {
-            (playerView.parent as ViewGroup?)?.removeView(playerView)
-            addView(playerView, 0)
+        
+        // Remove existing container if it exists
+        playerContainer?.let { oldContainer ->
+            (oldContainer.parent as? ViewGroup)?.removeView(oldContainer)
         }
+        
+        // Create new container for the PlayerView
+        val newContainer = FrameLayout(context).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        }
+        
+        // Add PlayerView to the container
+        (playerView.parent as ViewGroup?)?.removeView(playerView)
+        newContainer.addView(playerView, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        ))
+        
+        // Add container to the ExpoView with correct layout parameters
+        val containerLayoutParams = generateDefaultLayoutParams()
+        containerLayoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+        containerLayoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+        addView(newContainer, 0, containerLayoutParams)
+        
+        this.playerView = playerView
+        this.playerContainer = newContainer
+        
         scalingMode?.let {
             playerView.scalingMode = it
         }
@@ -238,7 +270,8 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
                 LayoutParams.MATCH_PARENT,
             )
 
-            if (isPictureInPictureEnabledOnPlayer || playerViewConfigWrapper?.pictureInPictureConfig?.isEnabled == true) {
+            val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || playerViewConfigWrapper?.pictureInPictureConfig?.isEnabled == true
+            if (isPictureInPictureEnabled) {
                 newPlayerView.setPictureInPictureHandler(RNPictureInPictureHandler(currentActivity, player))
             }
             setPlayerView(newPlayerView)
@@ -285,9 +318,13 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
      */
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        if (isCurrentActivityInPictureInPictureMode != isInPictureInPictureMode()) {
-            isCurrentActivityInPictureInPictureMode = isInPictureInPictureMode()
-            onPictureInPictureModeChanged(isCurrentActivityInPictureInPictureMode, newConfig)
+        
+        val wasInPiP = isCurrentActivityInPictureInPictureMode
+        val nowInPiP = isInPictureInPictureMode()
+        
+        if (wasInPiP != nowInPiP) {
+            isCurrentActivityInPictureInPictureMode = nowInPiP
+            onPictureInPictureModeChanged(nowInPiP, newConfig)
         }
     }
 
@@ -296,11 +333,140 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
         newConfig: Configuration,
     ) {
         val playerView = playerView ?: return
+        
         playerView.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        
         if (isInPictureInPictureMode) {
-            playerView.enterPictureInPicture()
+            if (!playerView.isPictureInPicture) {
+                playerView.enterPictureInPicture()
+            }
+            
+            // Force layout update for PiP mode and ensure proper sizing
+            playerView.requestLayout()
+            requestLayout()
+            
+            // Additional PiP-specific layout handling
+            post {
+                val activity = appContext.activityProvider?.currentActivity
+                if (activity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && activity.isInPictureInPictureMode) {
+                    // Get the actual PiP window dimensions from WindowManager
+                    val windowManager = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                    val pipWidth: Int
+                    val pipHeight: Int
+                    
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        // Use WindowMetrics for API 30+
+                        val windowMetrics = windowManager.currentWindowMetrics
+                        val windowBounds = windowMetrics.bounds
+                        pipWidth = windowBounds.width()
+                        pipHeight = windowBounds.height()
+                    } else {
+                        // Use deprecated Display.getSize() for older APIs
+                        val displayMetrics = android.util.DisplayMetrics()
+                        @Suppress("DEPRECATION")
+                        windowManager.defaultDisplay.getMetrics(displayMetrics)
+                        pipWidth = displayMetrics.widthPixels
+                        pipHeight = displayMetrics.heightPixels
+                    }
+                    
+                    
+                    // Force the ExpoView to be resized to PiP dimensions
+                    // Preserve the original layout params type to avoid ClassCastException
+                    layoutParams?.let { currentParams ->
+                        currentParams.width = pipWidth
+                        currentParams.height = pipHeight
+                        // Re-assign to trigger layout update
+                        layoutParams = currentParams
+                    }
+                    
+                    // Ensure the ExpoView container is properly sized for PiP
+                    measure(
+                        MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY)
+                    )
+                    layout(left, top, left + pipWidth, top + pipHeight)
+                    
+                    // Ensure the intermediate container is properly sized for PiP
+                    playerContainer?.let { container ->
+                        // Preserve the original layout params type for the container
+                        container.layoutParams?.let { containerParams ->
+                            containerParams.width = pipWidth
+                            containerParams.height = pipHeight
+                            container.layoutParams = containerParams
+                        }
+                        container.measure(
+                            MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
+                            MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY)
+                        )
+                        container.layout(0, 0, pipWidth, pipHeight)
+                        
+                    }
+                    
+                    // Ensure the PlayerView is properly sized for PiP
+                    playerView.layoutParams = FrameLayout.LayoutParams(pipWidth, pipHeight)
+                    playerView.measure(
+                        MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY)
+                    )
+                    playerView.layout(0, 0, pipWidth, pipHeight)
+                    
+                    // Try to force a redraw
+                    playerView.invalidate()
+                    playerContainer?.invalidate()
+                    invalidate()
+                }
+            }
         } else {
-            playerView.exitPictureInPicture()
+            if (playerView.isPictureInPicture) {
+                playerView.exitPictureInPicture()
+            }
+            
+            // Restore full size layout when exiting PiP
+            post {
+                // Reset ExpoView to full size
+                layoutParams?.let { currentParams ->
+                    currentParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+                    currentParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                    layoutParams = currentParams
+                }
+                
+                // Reset intermediate container to full size
+                playerContainer?.let { container ->
+                    container.layoutParams?.let { containerParams ->
+                        containerParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+                        containerParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                        container.layoutParams = containerParams
+                    }
+                }
+                
+                // Reset PlayerView to full size
+                playerView.layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                )
+                
+                // Force layout updates
+                measure(
+                    MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+                )
+                layout(left, top, right, bottom)
+                
+                playerContainer?.let { container ->
+                    container.measure(
+                        MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+                    )
+                    container.layout(0, 0, width, height)
+                }
+                
+                playerView.measure(
+                    MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+                )
+                playerView.layout(0, 0, width, height)
+                
+            }
         }
     }
 
@@ -427,7 +593,9 @@ class RNPlayerViewExpo(context: android.content.Context, appContext: AppContext)
     fun setPictureInPicture(isPictureInPicture: Boolean) {
         requestedPictureInPictureValue = isPictureInPicture
         playerView?.let {
-            if (it.isPictureInPicture == isPictureInPicture) return
+            if (it.isPictureInPicture == isPictureInPicture) {
+                return
+            }
             if (isPictureInPicture) {
                 it.enterPictureInPicture()
             } else {
