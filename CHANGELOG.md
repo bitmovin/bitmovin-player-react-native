@@ -6,6 +6,7 @@
 
 - Update Bitmovin's native Android SDK version to `3.117.0`
 - Update Bitmovin's native iOS SDK version to `3.93.0`
+- Add null safety checks to ReadableMap calls in JsonConverter.kt
 
 ## [0.43.0] - 2025-06-30
 
