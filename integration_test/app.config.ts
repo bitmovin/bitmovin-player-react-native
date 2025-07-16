@@ -48,9 +48,6 @@ export default {
       targetSdkVersion: 34,
       minSdkVersion: 21,
     },
-    web: {
-      favicon: './assets/favicon.png',
-    },
     plugins: [
       [
         '../',
