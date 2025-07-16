@@ -3,7 +3,7 @@ import BitmovinPlayer
 import ExpoModulesCore
 
 // swiftlint:disable:next type_body_length
-public class RNPlayerViewExpo: ExpoView {
+public class RNPlayerView: ExpoView {
     var playerView: PlayerView? {
         willSet {
             playerView?.removeFromSuperview()
@@ -125,7 +125,7 @@ public class RNPlayerViewExpo: ExpoView {
             playerView?.player = nil
             return
         }
-        guard let player = self.appContext?.moduleRegistry.get(PlayerExpoModule.self)?.retrieve(playerId) else {
+        guard let player = self.appContext?.moduleRegistry.get(PlayerModule.self)?.retrieve(playerId) else {
             return
         }
 
@@ -200,7 +200,7 @@ public class RNPlayerViewExpo: ExpoView {
 
     internal func attachFullscreenBridge(fullscreenBridgeId: NativeId) {
         self.fullscreenBridgeId = fullscreenBridgeId
-        guard let fullscreenBridgeModule = self.appContext?.moduleRegistry.get(FullscreenHandlerExpoModule.self),
+        guard let fullscreenBridgeModule = self.appContext?.moduleRegistry.get(FullscreenHandlerModule.self),
               let fullscreenBridge = fullscreenBridgeModule.retrieve(fullscreenBridgeId) else {
             return
         }
@@ -212,7 +212,7 @@ public class RNPlayerViewExpo: ExpoView {
         to bitmovinUserInterfaceConfig: BitmovinUserInterfaceConfig
     ) {
         guard let customMessageHandlerBridgeModule = self.appContext?.moduleRegistry
-            .get(CustomMessageHandlerExpoModule.self) else {
+            .get(CustomMessageHandlerModule.self) else {
             return
         }
         guard let customMessageHandlerBridge = customMessageHandlerBridgeModule
@@ -289,7 +289,7 @@ public class RNPlayerViewExpo: ExpoView {
     }
 }
 
-private extension RNPlayerViewExpo {
+private extension RNPlayerView {
     // Helper methods no longer needed - using EventDispatcher properties directly
 }
 
@@ -308,7 +308,7 @@ private extension Event {
     }
 }
 
-extension RNPlayerViewExpo: PlayerListener {
+extension RNPlayerView: PlayerListener {
     public func onPlayerActive(_ event: PlayerActiveEvent, player: Player) {
         onBmpPlayerActive(event.eventPayload())
     }
@@ -531,7 +531,7 @@ extension RNPlayerViewExpo: PlayerListener {
 #endif
 }
 
-extension RNPlayerViewExpo: UserInterfaceListener {
+extension RNPlayerView: UserInterfaceListener {
     public func onPictureInPictureEnter(_ event: PictureInPictureEnterEvent, view: PlayerView) {
         onBmpPictureInPictureEnter(event.eventPayload())
     }

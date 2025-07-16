@@ -34,7 +34,7 @@ internal class FullscreenHandlerBridge: NSObject, FullscreenHandler {
     }
 
     /// Fetches the initialized `FullscreenHandlerModule` instance on RN's bridge object.
-    private func getFullscreenHandlerModule() -> FullscreenHandlerExpoModule? {
-        moduleRegistry?.get(FullscreenHandlerExpoModule.self)
+    private func getFullscreenHandlerModule() -> FullscreenHandlerModule? {
+        moduleRegistry?.get(FullscreenHandlerModule.self)
     }
 }

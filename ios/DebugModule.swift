@@ -1,7 +1,7 @@
 import BitmovinPlayer
 import ExpoModulesCore
 
-public class DebugExpoModule: Module {
+public class DebugModule: Module {
     public func definition() -> ModuleDefinition {
         Name("DebugModule")
 

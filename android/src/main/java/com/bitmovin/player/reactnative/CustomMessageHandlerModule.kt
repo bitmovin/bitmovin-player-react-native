@@ -4,8 +4,6 @@ import androidx.core.os.bundleOf
 import com.bitmovin.player.reactnative.ui.CustomMessageHandlerBridge
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 /**
  * Expo module for CustomMessageHandler management with bidirectional communication.
@@ -18,14 +16,9 @@ class CustomMessageHandlerModule : Module() {
     private val customMessageHandlers: Registry<CustomMessageHandlerBridge> = mutableMapOf()
 
     /**
-     * Module's local lock object used to sync calls between Kotlin and JS.
+     * ResultWaiter for synchronous message handling
      */
-    private val lock = ReentrantLock()
-
-    /**
-     * Lock condition used to sync operations on the custom message handler.
-     */
-    private val customMessageHandlerResultChangedCondition = lock.newCondition()
+    private val synchronousMessageWaiter = ResultWaiter<String?>()
 
     override fun definition() = ModuleDefinition {
         Name("CustomMessageHandlerModule")
@@ -44,11 +37,8 @@ class CustomMessageHandlerModule : Module() {
             customMessageHandlers.remove(nativeId)
         }
 
-        AsyncFunction("onReceivedSynchronousMessageResult") { nativeId: String, result: String? ->
-            customMessageHandlers[nativeId]?.pushSynchronousResult(result)
-            lock.withLock {
-                customMessageHandlerResultChangedCondition.signal()
-            }
+        AsyncFunction("onReceivedSynchronousMessageResult") { id: Int, result: String? ->
+            synchronousMessageWaiter.complete(id, result)
         }
 
         AsyncFunction("sendMessage") { nativeId: String, message: String, data: String? ->
@@ -67,20 +57,20 @@ class CustomMessageHandlerModule : Module() {
      * Called by CustomMessageHandlerBridge when a synchronous message is received.
      */
     fun receivedSynchronousMessage(nativeId: String, message: String, data: String?): String? {
-        lock.withLock {
-            // Send event to TypeScript using Expo module event system
-            sendEvent(
-                "onReceivedSynchronousMessage",
-                bundleOf(
-                    "nativeId" to nativeId,
-                    "message" to message,
-                    "data" to data,
-                ),
-            )
+        val (id, wait) = synchronousMessageWaiter.make(5000) // 5 second timeout
+        
+        // Send event to TypeScript using Expo module event system
+        sendEvent(
+            "onReceivedSynchronousMessage",
+            bundleOf(
+                "nativeId" to nativeId,
+                "id" to id,
+                "message" to message,
+                "data" to data,
+            ),
+        )
 
-            customMessageHandlerResultChangedCondition.await()
-        }
-        return customMessageHandlers[nativeId]?.popSynchronousResult()
+        return wait()
     }
 
     /**

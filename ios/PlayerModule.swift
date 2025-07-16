@@ -1,12 +1,12 @@
 import BitmovinPlayer
 import ExpoModulesCore
 
-public class PlayerExpoModule: Module {
+public class PlayerModule: Module {
     private var players: Registry<Player> = [:]
 
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
-        Name("PlayerExpoModule")
+        Name("PlayerModule")
         OnCreate {}
         OnDestroy {
             // Destroy all players on the main thread when the module is deallocated.
@@ -123,7 +123,7 @@ public class PlayerExpoModule: Module {
         AsyncFunction("loadOfflineContent") { [weak self] (nativeId: String, bridgeId: String, options: [String: Any]?) in // swiftlint:disable:this line_length
             #if os(iOS)
             guard let player = self?.players[nativeId],
-                  let offlineModule = self?.appContext?.moduleRegistry.get(OfflineExpoModule.self),
+                  let offlineModule = self?.appContext?.moduleRegistry.get(OfflineModule.self),
                   let offlineContentManagerBridge = offlineModule.retrieve(bridgeId) else { return }
             let optionsDictionary = options ?? [:]
             let restrictedToAssetCache = optionsDictionary["restrictedToAssetCache"] as? Bool ?? true
@@ -200,7 +200,7 @@ public class PlayerExpoModule: Module {
         }.runOnQueue(.main)
         AsyncFunction("loadSource") { [weak self] (nativeId: String, sourceNativeId: String) in
             guard let player = self?.players[nativeId],
-                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceExpoModule.self), // swiftlint:disable:this line_length
+                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self), // swiftlint:disable:this line_length
                   let source = sourceModule.retrieve(sourceNativeId) else { return }
             player.load(source: source)
         }.runOnQueue(.main)
@@ -214,7 +214,7 @@ public class PlayerExpoModule: Module {
 
     private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {
         remoteControlConfig.prepareSource = { [weak self] _, sourceConfig in
-            guard let sourceModule = self?.appContext?.moduleRegistry.get(SourceExpoModule.self), // swiftlint:disable:this line_length
+            guard let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self), // swiftlint:disable:this line_length
                   let sourceNativeId = sourceModule.nativeId(where: { $0.sourceConfig === sourceConfig }),
                   let castSourceConfig = sourceModule.retrieveCastSourceConfig(sourceNativeId) else {
                 return nil
@@ -225,7 +225,7 @@ public class PlayerExpoModule: Module {
     }
 
     private func setupNetworkConfig(nativeId: String) -> NetworkConfig? {
-        guard let networkModule = self.appContext?.moduleRegistry.get(NetworkExpoModule.self) else {
+        guard let networkModule = self.appContext?.moduleRegistry.get(NetworkModule.self) else {
             return nil
         }
         return networkModule.retrieve(nativeId)

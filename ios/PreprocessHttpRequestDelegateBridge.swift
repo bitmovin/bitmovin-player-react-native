@@ -1,14 +1,14 @@
 import BitmovinPlayer
 
 /**
- * Bridge class for handling HTTP request preprocessing with the NetworkExpoModule.
+ * Bridge class for handling HTTP request preprocessing with the NetworkModule.
  * This maintains the same delegation pattern as the legacy implementation but works with Expo modules.
  */
 internal class PreprocessHttpRequestDelegateBridge: NSObject, PreprocessHttpRequestDelegate {
     private let nativeId: String
-    private weak var networkExpoModule: NetworkExpoModule?
+    private weak var networkExpoModule: NetworkModule?
 
-    init(_ nativeId: String, networkExpoModule: NetworkExpoModule) {
+    init(_ nativeId: String, networkExpoModule: NetworkModule) {
         self.nativeId = nativeId
         self.networkExpoModule = networkExpoModule
         super.init()

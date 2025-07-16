@@ -5,7 +5,7 @@ import ExpoModulesCore
  * Expo module for CustomMessageHandler management with bidirectional communication.
  * Handles synchronous and asynchronous message handling between native code and JavaScript.
  */
-public class CustomMessageHandlerExpoModule: Module {
+public class CustomMessageHandlerModule: Module {
     /// In-memory mapping from `nativeId`s to `CustomMessageHandlerBridge` instances.
     private var customMessageHandlers: Registry<CustomMessageHandlerBridge> = [:]
 
@@ -13,7 +13,7 @@ public class CustomMessageHandlerExpoModule: Module {
     private let waiter = ResultWaiter<String?>()
 
     public func definition() -> ModuleDefinition {
-        Name("CustomMessageHandlerExpoModule")
+        Name("CustomMessageHandlerModule")
 
         Events("onReceivedSynchronousMessage", "onReceivedAsynchronousMessage")
 
@@ -46,7 +46,7 @@ public class CustomMessageHandlerExpoModule: Module {
     }
 }
 
-extension CustomMessageHandlerExpoModule: CustomMessageHandlerBridgeDelegate {
+extension CustomMessageHandlerModule: CustomMessageHandlerBridgeDelegate {
     /**
      * Handles synchronous message received from native code.
      * Called by CustomMessageHandlerBridge when a synchronous message is received.

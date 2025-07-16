@@ -5,7 +5,7 @@ import ExpoModulesCore
  * Expo module for FullscreenHandler management with bidirectional communication.
  * Handles synchronous fullscreen state changes between native code and JavaScript.
  */
-public class FullscreenHandlerExpoModule: Module {
+public class FullscreenHandlerModule: Module {
     /// In-memory mapping from `nativeId`s to `FullscreenHandlerBridge` instances.
     private var fullscreenHandlers: Registry<FullscreenHandlerBridge> = [:]
 
@@ -13,7 +13,7 @@ public class FullscreenHandlerExpoModule: Module {
     private let waiter = ResultWaiter<Bool>()
 
     public func definition() -> ModuleDefinition {
-        Name("FullscreenHandlerExpoModule")
+        Name("FullscreenHandlerModule")
 
         Events("onEnterFullscreen", "onExitFullscreen")
 

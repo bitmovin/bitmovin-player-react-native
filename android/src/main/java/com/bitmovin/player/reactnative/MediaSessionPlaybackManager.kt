@@ -32,12 +32,12 @@ class MediaSessionPlaybackManager(val appContext: AppContext) {
     fun setupMediaSessionPlayback(playerId: NativeId) {
         this.playerId = playerId
 
-        val reactContext = appContext.reactContext as? ReactApplicationContext
-            ?: throw IllegalStateException("ReactApplicationContext is not available")
-        val intent = Intent(reactContext, MediaSessionPlaybackService::class.java)
+        val context = appContext.reactContext
+            ?: throw IllegalStateException("React context is not available")
+        val intent = Intent(context, MediaSessionPlaybackService::class.java)
         intent.action = Intent.ACTION_MEDIA_BUTTON
         val connection: ServiceConnection = MediaSessionPlaybackServiceConnection()
-        reactContext.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
     }
 
     fun destroy(nativeId: NativeId) {

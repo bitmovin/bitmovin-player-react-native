@@ -105,7 +105,7 @@ yarn example run:android-tv # Android TV
 yarn example pods
 
 # Build verification (errors only)
-yarn example build:ios     # Build iOS for simulator  
+yarn example build:ios     # Build iOS for simulator (takes 2-5 minutes, use 600s timeout)
 yarn example build:android # Build Android
 yarn example build:ts      # TypeScript type checking
 
@@ -286,6 +286,11 @@ See `example/src/screens/BasicTvPlayback.tsx` for complete TV implementation exa
 5. **TV Development**: Use `yarn example prebuild:tv` for TV project generation
 6. **Build**: `yarn build` compiles TypeScript to `build/`
 7. **Validation**: `yarn lint` and `yarn test` before committing
+
+### Build Notes
+- **iOS builds take 2-5 minutes**: Always use at least 600 seconds timeout for `yarn example build:ios`
+- **Android builds are faster**: Usually complete in under 1 minute
+- **When running iOS builds via Bash tool**: Use `timeout 600` command wrapper to avoid timeouts
 
 ### GitHub Integration
 - **Always use gh CLI** for GitHub operations (pre-authenticated)

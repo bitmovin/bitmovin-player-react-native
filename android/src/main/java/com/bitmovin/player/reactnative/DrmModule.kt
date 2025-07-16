@@ -10,9 +10,6 @@ import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.security.InvalidParameterException
-import java.util.concurrent.locks.Condition
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 /**
  * Represents some operation that transforms data as bytes.
@@ -30,29 +27,14 @@ class DrmModule : Module() {
     private val drmConfigs: Registry<WidevineConfig> = mutableMapOf()
 
     /**
-     * Module's local lock object used to sync calls between Kotlin and JS.
+     * ResultWaiter for prepare message callbacks
      */
-    private val lock = ReentrantLock()
+    private val prepareMessageWaiter = ResultWaiter<String>()
 
     /**
-     * Mapping between an object's `nativeId` and the value that'll be returned by its `prepareMessage` callback.
+     * ResultWaiter for prepare license callbacks
      */
-    private val preparedMessages: Registry<String> = mutableMapOf()
-
-    /**
-     *  Lock condition used to sync read/write operations on `preparedMessages`.
-     */
-    private val preparedMessagesCondition = lock.newCondition()
-
-    /**
-     * Mapping between an object's `nativeId` and the value that'll be returned by its `prepareLicense` callback.
-     */
-    private val preparedLicenses: Registry<String> = mutableMapOf()
-
-    /**
-     *  Lock condition used to sync read/write operations on `preparedLicenses`.
-     */
-    private val preparedLicensesCondition = lock.newCondition()
+    private val prepareLicenseWaiter = ResultWaiter<String>()
 
     override fun definition() = ModuleDefinition {
         Name("DrmModule")
@@ -82,18 +64,12 @@ class DrmModule : Module() {
             drmConfigs.remove(nativeId)
         }
 
-        Function("setPreparedMessage") { nativeId: String, message: String ->
-            lock.withLock {
-                preparedMessages[nativeId] = message
-                preparedMessagesCondition.signal()
-            }
+        Function("setPreparedMessage") { id: Int, message: String ->
+            prepareMessageWaiter.complete(id, message)
         }
 
-        Function("setPreparedLicense") { nativeId: String, license: String ->
-            lock.withLock {
-                preparedLicenses[nativeId] = license
-                preparedLicensesCondition.signal()
-            }
+        Function("setPreparedLicense") { id: Int, license: String ->
+            prepareLicenseWaiter.complete(id, license)
         }
 
         // iOS-specific methods that return null on Android for compatibility
@@ -131,8 +107,7 @@ class DrmModule : Module() {
         val prepareMessageCallback = createPrepareCallback(
             nativeId,
             "onPrepareMessage",
-            preparedMessages,
-            preparedMessagesCondition,
+            prepareMessageWaiter,
         )
         return PrepareMessageCallback(prepareMessageCallback)
     }
@@ -149,8 +124,7 @@ class DrmModule : Module() {
         val prepareLicense = createPrepareCallback(
             nativeId,
             "onPrepareLicense",
-            preparedLicenses,
-            preparedLicensesCondition,
+            prepareLicenseWaiter,
         )
         return PrepareLicenseCallback(prepareLicense)
     }
@@ -159,28 +133,27 @@ class DrmModule : Module() {
      * Creates the body of a preparation callback e.g. `prepareMessage`, `prepareLicense`, etc.
      * @param nativeId Instance ID.
      * @param method JS prepare callback name.
-     * @param registry Registry where JS preparation result will be stored.
+     * @param waiter ResultWaiter for handling async response.
      * @return The preparation callback function.
      */
     private fun createPrepareCallback(
         nativeId: String,
         method: String,
-        registry: Registry<String>,
-        registryCondition: Condition,
+        waiter: ResultWaiter<String>,
     ): PrepareCallback = {
+        val (id, wait) = waiter.make(5000) // 5 second timeout
+        
         // Send event to TypeScript using Expo module event system
         sendEvent(
             method,
             bundleOf(
                 "nativeId" to nativeId,
+                "id" to id,
                 "data" to Base64.encodeToString(it, Base64.NO_WRAP),
             ),
         )
 
-        lock.withLock {
-            registryCondition.await()
-            val result = registry[nativeId]
-            Base64.decode(result, Base64.NO_WRAP)
-        }
+        val result = wait() ?: ""
+        Base64.decode(result, Base64.NO_WRAP)
     }
 }

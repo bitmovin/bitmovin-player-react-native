@@ -25,16 +25,5 @@ class CustomMessageHandlerBridge(
         },
     )
 
-    private var currentSynchronousResult: String? = null
-
     fun sendMessage(message: String, data: String?) = customMessageHandler.sendMessage(message, data)
-
-    fun popSynchronousResult(): String? = currentSynchronousResult?.let {
-        currentSynchronousResult = null
-        return it
-    }
-
-    fun pushSynchronousResult(result: String?) {
-        currentSynchronousResult = result
-    }
 }

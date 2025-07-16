@@ -4,7 +4,7 @@ import Foundation
 /**
  Native module for easy and fast unique ID generation on JS side. Used to generate native instance IDs.
  */
-public class UuidExpoModule: Module {
+public class UuidModule: Module {
     public func definition() -> ModuleDefinition {
         Name("UuidModule")
 

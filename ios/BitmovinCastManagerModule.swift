@@ -1,7 +1,7 @@
 import BitmovinPlayer
 import ExpoModulesCore
 
-public class BitmovinCastManagerExpoModule: Module {
+public class BitmovinCastManagerModule: Module {
     public func definition() -> ModuleDefinition {
         Name("BitmovinCastManagerModule")
 

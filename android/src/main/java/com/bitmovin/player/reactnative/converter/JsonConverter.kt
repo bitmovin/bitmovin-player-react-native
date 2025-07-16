@@ -5,6 +5,8 @@ import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.analytics.api.SourceMetadata
+import com.bitmovin.player.reactnative.extensions.get
+import com.bitmovin.player.reactnative.extensions.set
 import com.bitmovin.player.api.BandwidthMeterType
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.ForceReuseVideoCodecReason

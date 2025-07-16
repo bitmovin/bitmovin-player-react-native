@@ -1,12 +1,12 @@
 import ExpoModulesCore
 
-public class RNPlayerViewManagerExpo: Module {
+public class RNPlayerViewManager: Module {
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
-        Name("RNPlayerViewManagerExpo")
+        Name("RNPlayerViewManager")
 
-        View(RNPlayerViewExpo.self) {
-            Prop("config") { (view: RNPlayerViewExpo, playerInfo: [String: Any]?) in
+        View(RNPlayerView.self) {
+            Prop("config") { (view: RNPlayerView, playerInfo: [String: Any]?) in
                 let playerId = playerInfo?["playerId"] as? NativeId
                 let playerViewConfigWrapper = RCTConvert
                     .rnPlayerViewConfig(playerInfo?["playerViewConfig"] as? [String: Any])
@@ -17,16 +17,16 @@ public class RNPlayerViewManagerExpo: Module {
                     customMessageHandlerBridgeId: customMessageHandlerBridgeId
                 )
             }
-            Prop("scalingMode") { (view: RNPlayerViewExpo, scalingMode: String?) in
+            Prop("scalingMode") { (view: RNPlayerView, scalingMode: String?) in
                 view.setScalingMode(scalingMode: scalingMode)
             }
-            Prop("isFullscreenRequested") { (view: RNPlayerViewExpo, isFullscreenRequested: Bool) in
+            Prop("isFullscreenRequested") { (view: RNPlayerView, isFullscreenRequested: Bool) in
                 view.setFullscreenRequested(isFullscreen: isFullscreenRequested)
             }
-            Prop("isPictureInPictureRequested") { (view: RNPlayerViewExpo, isPictureInPictureRequested: Bool) in
+            Prop("isPictureInPictureRequested") { (view: RNPlayerView, isPictureInPictureRequested: Bool) in
                 view.setPictureInPicture(enterPictureInPicture: isPictureInPictureRequested)
             }
-            Prop("fullscreenBridgeId") { (view: RNPlayerViewExpo, fullscreenBridgeId: String) in
+            Prop("fullscreenBridgeId") { (view: RNPlayerView, fullscreenBridgeId: String) in
                 view.attachFullscreenBridge(fullscreenBridgeId: fullscreenBridgeId)
             }
 

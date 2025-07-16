@@ -1,9 +1,9 @@
 import BitmovinPlayer
 import ExpoModulesCore
 
-public class BufferExpoModule: Module {
+public class BufferModule: Module {
     public func definition() -> ModuleDefinition {
-        Name("BufferExpoModule")
+        Name("BufferModule")
 
         OnCreate {
             // Module initialization
@@ -13,7 +13,7 @@ public class BufferExpoModule: Module {
          Get buffer level for the specified player and buffer type.
          */
         AsyncFunction("getLevel") { (playerId: String, type: String) -> [String: Any]? in
-            guard let playerModule = appContext?.moduleRegistry.get(PlayerExpoModule.self),
+            guard let playerModule = appContext?.moduleRegistry.get(PlayerModule.self),
                   let player = playerModule.retrieve(playerId) else {
                 return nil
             }
@@ -31,7 +31,7 @@ public class BufferExpoModule: Module {
          Set target level for the specified player and buffer type.
          */
         AsyncFunction("setTargetLevel") { (playerId: String, type: String, value: Double) in
-            guard let playerModule = appContext?.moduleRegistry.get(PlayerExpoModule.self),
+            guard let playerModule = appContext?.moduleRegistry.get(PlayerModule.self),
                   let player = playerModule.retrieve(playerId) else {
                 return
             }

@@ -5,7 +5,7 @@ import ExpoModulesCore
  * Expo module for NetworkConfig management with HTTP request/response preprocessing.
  * Handles bidirectional communication between native code and JavaScript for network operations.
  */
-public class NetworkExpoModule: Module {
+public class NetworkModule: Module {
     /// In-memory mapping from `nativeId`s to `NetworkConfig` instances.
     private var networkConfigs: Registry<NetworkConfig> = [:]
     private var preprocessHttpRequestDelegateBridges: Registry<PreprocessHttpRequestDelegate> = [:]
@@ -13,7 +13,7 @@ public class NetworkExpoModule: Module {
     private var preprocessHttpResponseCompletionHandlers: Registry<(_ response: HttpResponse) -> Void> = [:]
 
     public func definition() -> ModuleDefinition {
-        Name("NetworkExpoModule")
+        Name("NetworkModule")
 
         AsyncFunction("initializeWithConfig") { [weak self] (nativeId: String, config: [String: Any]) in
             guard

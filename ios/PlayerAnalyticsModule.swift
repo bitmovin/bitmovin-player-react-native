@@ -6,14 +6,14 @@ import ExpoModulesCore
  * Expo module for PlayerAnalytics management.
  * Provides analytics functionality for player instances.
  */
-public class PlayerAnalyticsExpoModule: Module {
+public class PlayerAnalyticsModule: Module {
     public func definition() -> ModuleDefinition {
-        Name("PlayerAnalyticsExpoModule")
+        Name("PlayerAnalyticsModule")
 
         AsyncFunction("sendCustomDataEvent") { [weak self] (playerId: String, json: [String: Any]) in
             guard
-                let playerExpoModule = self?.appContext?.moduleRegistry.get(PlayerExpoModule.self)
-                    as? PlayerExpoModule,
+                let playerExpoModule = self?.appContext?.moduleRegistry.get(PlayerModule.self)
+                    as? PlayerModule,
                 let player = playerExpoModule.retrieve(playerId),
                 let playerAnalytics = player.analytics,
                 let customData = RCTConvert.analyticsCustomData(json)
@@ -25,8 +25,8 @@ public class PlayerAnalyticsExpoModule: Module {
 
         AsyncFunction("getUserId") { [weak self] (playerId: String) -> String? in
             guard
-                let playerExpoModule = self?.appContext?.moduleRegistry.get(PlayerExpoModule.self)
-                    as? PlayerExpoModule,
+                let playerExpoModule = self?.appContext?.moduleRegistry.get(PlayerModule.self)
+                    as? PlayerModule,
                 let player = playerExpoModule.retrieve(playerId),
                 let playerAnalytics = player.analytics
             else {

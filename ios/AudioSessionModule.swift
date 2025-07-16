@@ -1,7 +1,7 @@
 import AVFAudio
 import ExpoModulesCore
 
-public class AudioSessionExpoModule: Module {
+public class AudioSessionModule: Module {
     public func definition() -> ModuleDefinition {
         Name("AudioSessionModule")
 

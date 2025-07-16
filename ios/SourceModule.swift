@@ -1,14 +1,14 @@
 import BitmovinPlayer
 import ExpoModulesCore
 
-public class SourceExpoModule: Module {
+public class SourceModule: Module {
     /// In-memory mapping from `nativeId`s to `Source` instances.
     private var sources: Registry<Source> = [:]
     /// In-memory mapping from `nativeId`s to `SourceConfig` instances for casting.
     private var castSourceConfigs: Registry<SourceConfig> = [:]
 
     public func definition() -> ModuleDefinition {
-        Name("SourceExpoModule")
+        Name("SourceModule")
         OnCreate {
             // Module initialization
         }
@@ -91,7 +91,7 @@ public class SourceExpoModule: Module {
             return
         }
         // Get DRM config if provided
-        let drmModule = appContext?.moduleRegistry.get(DrmExpoModule.self)
+        let drmModule = appContext?.moduleRegistry.get(DrmModule.self)
         let drmConfig = drmNativeId.flatMap { drmModule?.retrieve($0) }
         guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig) else {
             return

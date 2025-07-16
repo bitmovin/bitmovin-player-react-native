@@ -1,12 +1,12 @@
 import BitmovinPlayer
 import ExpoModulesCore
 
-public class DrmExpoModule: Module {
+public class DrmModule: Module {
     private var drmConfigs: Registry<FairplayConfig> = [:]
     private let waiter = ResultWaiter<String>()
 
     public func definition() -> ModuleDefinition {
-        Name("DrmExpoModule")
+        Name("DrmModule")
 
         Events(
             "onPrepareCertificate",

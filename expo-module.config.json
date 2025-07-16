@@ -5,39 +5,39 @@
   ],
   "apple": {
     "modules": [
-      "UuidExpoModule",
-      "DebugExpoModule",
-      "AudioSessionExpoModule",
-      "BitmovinCastManagerExpoModule",
-      "PlayerExpoModule",
-      "SourceExpoModule",
-      "BufferExpoModule",
-      "NetworkExpoModule",
-      "CustomMessageHandlerExpoModule",
-      "DrmExpoModule",
-      "FullscreenHandlerExpoModule",
-      "PlayerAnalyticsExpoModule",
-      "OfflineExpoModule",
-      "RNPlayerViewManagerExpo"
+      "UuidModule",
+      "DebugModule",
+      "AudioSessionModule",
+      "BitmovinCastManagerModule",
+      "PlayerModule",
+      "SourceModule",
+      "BufferModule",
+      "NetworkModule",
+      "CustomMessageHandlerModule",
+      "DrmModule",
+      "FullscreenHandlerModule",
+      "PlayerAnalyticsModule",
+      "OfflineModule",
+      "RNPlayerViewManager"
     ],
     "appDelegateSubscribers": ["AppLifecycleDelegate"]
   },
   "android": {
     "modules": [
-      "com.bitmovin.player.reactnative.UuidExpoModule",
-      "com.bitmovin.player.reactnative.DebugExpoModule",
-      "com.bitmovin.player.reactnative.BitmovinCastManagerExpoModule",
-      "com.bitmovin.player.reactnative.PlayerExpoModule",
-      "com.bitmovin.player.reactnative.SourceExpoModule",
-      "com.bitmovin.player.reactnative.BufferExpoModule",
-      "com.bitmovin.player.reactnative.NetworkExpoModule",
-      "com.bitmovin.player.reactnative.CustomMessageHandlerExpoModule",
-      "com.bitmovin.player.reactnative.DrmExpoModule",
-      "com.bitmovin.player.reactnative.FullscreenHandlerExpoModule",
-      "com.bitmovin.player.reactnative.PlayerAnalyticsExpoModule",
-      "com.bitmovin.player.reactnative.OfflineExpoModule",
-      "com.bitmovin.player.reactnative.DecoderConfigExpoModule",
-      "com.bitmovin.player.reactnative.RNPlayerViewManagerExpo"
+      "com.bitmovin.player.reactnative.UuidModule",
+      "com.bitmovin.player.reactnative.DebugModule",
+      "com.bitmovin.player.reactnative.BitmovinCastManagerModule",
+      "com.bitmovin.player.reactnative.PlayerModule",
+      "com.bitmovin.player.reactnative.SourceModule",
+      "com.bitmovin.player.reactnative.BufferModule",
+      "com.bitmovin.player.reactnative.NetworkModule",
+      "com.bitmovin.player.reactnative.CustomMessageHandlerModule",
+      "com.bitmovin.player.reactnative.DrmModule",
+      "com.bitmovin.player.reactnative.FullscreenHandlerModule",
+      "com.bitmovin.player.reactnative.PlayerAnalyticsModule",
+      "com.bitmovin.player.reactnative.OfflineModule",
+      "com.bitmovin.player.reactnative.DecoderConfigModule",
+      "com.bitmovin.player.reactnative.RNPlayerViewManager"
     ]
   }
 }

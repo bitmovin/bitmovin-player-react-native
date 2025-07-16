@@ -2,14 +2,14 @@ import BitmovinPlayer
 import ExpoModulesCore
 import Foundation
 
-public class OfflineExpoModule: Module {
+public class OfflineModule: Module {
     #if os(iOS)
     private var offlineContentManagerBridges: Registry<OfflineContentManagerBridge> = [:]
     #endif
 
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
-        Name("OfflineExpoModule")
+        Name("OfflineModule")
         Events("onBitmovinOfflineEvent")
         OnCreate {
             // Module initialization
@@ -98,7 +98,7 @@ public class OfflineExpoModule: Module {
         guard let config, let identifier = config["identifier"] as? String else {
             return
         }
-        let fairplayConfig = drmNativeId.flatMap { appContext?.moduleRegistry.get(DrmExpoModule.self)?.retrieve($0) }
+        let fairplayConfig = drmNativeId.flatMap { appContext?.moduleRegistry.get(DrmModule.self)?.retrieve($0) }
         guard let sourceConfigDict = config["sourceConfig"],
               let sourceConfig = RCTConvert.sourceConfig(sourceConfigDict, drmConfig: fairplayConfig) else {
             return

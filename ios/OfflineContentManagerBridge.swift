@@ -18,14 +18,14 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
     }
 
     let offlineContentManager: OfflineContentManager
-    private weak var module: OfflineExpoModule?
+    private weak var module: OfflineModule?
     let nativeId: NativeId
     let identifier: String
     var currentTrackSelection: OfflineTrackSelection?
 
     init(
         forManager offlineContentManager: OfflineContentManager,
-        module: OfflineExpoModule,
+        module: OfflineModule,
         nativeId: NativeId,
         identifier: String
     ) {
