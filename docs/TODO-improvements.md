@@ -9,6 +9,7 @@ This document outlines 10 key areas for improving the integration with the Expo 
 **Improvement:** Refactor these configuration objects into `Record` structs/classes on iOS and Android. The Expo Modules API will then handle the conversion and validation from the JavaScript object automatically, providing compile-time and runtime type safety.
 
 **Example (`PlayerConfig`):**
+
 - **Swift:** Create a `struct PlayerConfig: Record` with `@Field` properties.
 - **Kotlin:** Create a `class PlayerConfig: Record` with `@Field` properties.
 - The `initializeWithConfig` function signature would change from `(nativeId: String, config: [String: Any]?)` to `(nativeId: String, config: PlayerConfig)`.
@@ -20,6 +21,7 @@ This document outlines 10 key areas for improving the integration with the Expo 
 **Improvement:** Define these as native enums that conform to the `Enumerable` protocol. This allows the Expo bridge to automatically validate incoming string values and convert them to a type-safe native enum, throwing a descriptive error for invalid values.
 
 **Example (`scalingMode`):**
+
 - **Swift:** `enum ScalingMode: String, Enumerable { case fit, stretch, zoom }`
 - **Kotlin:** `enum class ScalingMode(val value: String) : Enumerable { FIT("fit"), ... }`
 - The `scalingMode` prop on `RNPlayerViewExpo` would then be of type `ScalingMode`.
@@ -31,6 +33,7 @@ This document outlines 10 key areas for improving the integration with the Expo 
 **Improvement:** Decompose the `config` prop into multiple, strongly-typed props. Use a `Record` for the complex `playerViewConfig`.
 
 **Example:**
+
 - **Before:** `Prop("config", (view, playerInfo: [String: Any]?))`
 - **After:**
   - `Prop("playerId", (view, playerId: String?))`
@@ -44,6 +47,7 @@ This document outlines 10 key areas for improving the integration with the Expo 
 **Improvement:** Fully adopt the modern `EventDispatcher` pattern for all view events. In `RNPlayerViewExpo`, declare each event using `let onPlayerReady = EventDispatcher()`. The Expo Modules API handles the wiring. This makes the code more declarative and reduces the chance of errors from stringly-typed event names.
 
 **Example (`onReady` event):**
+
 - **Swift:** In `RNPlayerViewExpo.swift`, declare `let onReady = EventDispatcher()`. In the native player's ready delegate method, call `onReady([:])`.
 - **Kotlin:** In `RNPlayerViewExpo.kt`, declare `val onReady by EventDispatcher()`. In the native listener, call `onReady(emptyMap())`.
 - The `Events(...)` list in the module definition remains the same.
@@ -61,6 +65,7 @@ This document outlines 10 key areas for improving the integration with the Expo 
 **Improvement:** Refactor key async functions to accept a `Promise` as the final argument. This allows for more robust error handling by calling `promise.reject(...)` with a specific error code and message, which is more informative for the TypeScript caller than receiving `null`.
 
 **Example (`getVolume`):**
+
 - **Swift:** `AsyncFunction("getVolume") { (nativeId: String, promise: Promise) in ... promise.resolve(volume) }`
 
 ### 7. Leverage Modern Lifecycle Events (`OnAppEntersBackground`, etc.)

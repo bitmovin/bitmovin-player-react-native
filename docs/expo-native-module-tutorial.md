@@ -40,14 +40,14 @@ First, create a new module. For this tutorial, the module is named `expo-setting
 Clean up the default module to start with a clean slate. Delete the view module since this guide does not use it.
 
 <Terminal
-  cmdCopy="cd expo-settings && rm ios/ExpoSettingsView.swift && rm android/src/main/java/expo/modules/settings/ExpoSettingsView.kt && rm src/ExpoSettingsView.tsx src/ExpoSettingsView.web.tsx src/ExpoSettingsModule.web.ts"
-  cmd={[
-    '$ cd expo-settings',
-    '$ rm ios/ExpoSettingsView.swift',
-    '$ rm android/src/main/java/expo/modules/settings/ExpoSettingsView.kt',
-    '$ rm src/ExpoSettingsView.tsx',
-    '$ rm src/ExpoSettingsView.web.tsx src/ExpoSettingsModule.web.ts',
-  ]}
+cmdCopy="cd expo-settings && rm ios/ExpoSettingsView.swift && rm android/src/main/java/expo/modules/settings/ExpoSettingsView.kt && rm src/ExpoSettingsView.tsx src/ExpoSettingsView.web.tsx src/ExpoSettingsModule.web.ts"
+cmd={[
+'$ cd expo-settings',
+'$ rm ios/ExpoSettingsView.swift',
+'$ rm android/src/main/java/expo/modules/settings/ExpoSettingsView.kt',
+'$ rm src/ExpoSettingsView.tsx',
+'$ rm src/ExpoSettingsView.web.tsx src/ExpoSettingsModule.web.ts',
+]}
 />
 
 Locate the following files and replace their contents with the provided minimal boilerplate:
@@ -130,24 +130,24 @@ export default function App() {
 Start the TypeScript compiler to watch for changes.
 
 <Terminal
-  cmdCopy="npm run build"
-  cmd={[
-    '# Run this in the root of the project to start the TypeScript compiler',
-    '$ npm run build',
-  ]}
+cmdCopy="npm run build"
+cmd={[
+'# Run this in the root of the project to start the TypeScript compiler',
+'$ npm run build',
+]}
 />
 
 In a separate terminal window, run the example app.
 
 <Terminal
-  cmdCopy="cd example && npx expo run:ios"
-  cmd={[
-    '$ cd example',
-    '# Run the example app on Android',
-    '$ npx expo run:android',
-    '# Run the example app on iOS',
-    '$ npx expo run:ios',
-  ]}
+cmdCopy="cd example && npx expo run:ios"
+cmd={[
+'$ cd example',
+'# Run the example app on Android',
+'$ npx expo run:android',
+'# Run the example app on iOS',
+'$ npx expo run:ios',
+]}
 />
 
 You should see the text "Theme: system" in the center of the screen when you launch the example app. The value `"system"` comes from synchronously calling the `getTheme()` function in the native module. You will change this value in the next step.
@@ -266,7 +266,10 @@ export default function App() {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Text>Theme: {Settings.getTheme()}</Text>
-      <Button title={`Set theme to ${nextTheme}`} onPress={() => Settings.setTheme(nextTheme)} />
+      <Button
+        title={`Set theme to ${nextTheme}`}
+        onPress={() => Settings.setTheme(nextTheme)}
+      />
     </View>
   );
 }
@@ -362,7 +365,9 @@ import { EventSubscription } from 'expo-modules-core';
 import ExpoSettingsModule from './ExpoSettingsModule';
 import { ThemeChangeEvent } from './ExpoSettings.types';
 
-export function addThemeListener(listener: (event: ThemeChangeEvent) => void): EventSubscription {
+export function addThemeListener(
+  listener: (event: ThemeChangeEvent) => void
+): EventSubscription {
   return ExpoSettingsModule.addListener('onChangeTheme', listener);
 }
 
@@ -399,7 +404,10 @@ export default function App() {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Text>Theme: {Settings.getTheme()}</Text>
-      <Button title={`Set theme to ${nextTheme}`} onPress={() => Settings.setTheme(nextTheme)} />
+      <Button
+        title={`Set theme to ${nextTheme}`}
+        onPress={() => Settings.setTheme(nextTheme)}
+      />
     </View>
   );
 }
@@ -522,7 +530,9 @@ import ExpoSettingsModule from './ExpoSettingsModule';
 
 import { Theme, ThemeChangeEvent } from './ExpoSettings.types';
 
-export function addThemeListener(listener: (event: ThemeChangeEvent) => void): EventSubscription {
+export function addThemeListener(
+  listener: (event: ThemeChangeEvent) => void
+): EventSubscription {
   return ExpoSettingsModule.addListener('onChangeTheme', listener);
 }
 

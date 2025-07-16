@@ -33,7 +33,7 @@ This document outlines a comprehensive refactoring plan for `RNPlayerViewExpo.kt
    - Large monolithic class difficult to maintain
    - Complex dependencies on Expo modules
 
-5. **Error Handling**: 
+5. **Error Handling**:
    - Race conditions in `attachPlayer()` method
    - Inconsistent null handling patterns
    - Silent failures without proper logging
@@ -41,6 +41,7 @@ This document outlines a comprehensive refactoring plan for `RNPlayerViewExpo.kt
 ### Recently Fixed Issues
 
 ✅ **SubtitleView Integration Fixed** (2025-01-15):
+
 - **Problem**: SubtitleView was not displaying on top of PlayerView due to incorrect parent container and missing layout parameters
 - **Solution**: Modified `setSubtitleView()` to add SubtitleView to `playerContainer` instead of `ExpoView` with proper `FrameLayout.LayoutParams`
 - **PiP Support**: Added SubtitleView resizing logic in `onPictureInPictureModeChanged()` for both entering and exiting PiP mode
@@ -78,6 +79,7 @@ android/src/main/java/com/bitmovin/player/reactnative/
 **Purpose**: Extract all Android Activity lifecycle management logic from the main class.
 
 **Responsibilities**:
+
 - Handle `onStart`, `onStop`, `onResume`, `onPause` lifecycle events
 - Manage background playback coordination
 - Handle `playerInMediaSessionService` logic
@@ -91,9 +93,9 @@ class PlayerViewLifecycleObserver(
     private val appContext: AppContext,
     private val view: RNPlayerViewExpo
 ) : DefaultLifecycleObserver {
-    
+
     private var playerInMediaSessionService: Player? = null
-    
+
     override fun onStart(owner: LifecycleOwner) {
         // Move logic from current onStart implementation
         if (playerInMediaSessionService != null) {
@@ -101,20 +103,20 @@ class PlayerViewLifecycleObserver(
         }
         view.playerView?.onStart()
     }
-    
+
     override fun onResume(owner: LifecycleOwner) {
         view.playerView?.onResume()
     }
-    
+
     override fun onPause(owner: LifecycleOwner) {
         view.playerView?.onPause()
     }
-    
+
     override fun onStop(owner: LifecycleOwner) {
         removePlayerForBackgroundPlayback()
         view.playerView?.onStop()
     }
-    
+
     private fun removePlayerForBackgroundPlayback() {
         // Extract logic from current implementation
         if (view.enableBackgroundPlayback) {
@@ -122,7 +124,7 @@ class PlayerViewLifecycleObserver(
             view.playerView?.player = null
         }
     }
-    
+
     fun cleanup() {
         playerInMediaSessionService = null
     }
@@ -130,6 +132,7 @@ class PlayerViewLifecycleObserver(
 ```
 
 **Integration in Main Class**:
+
 ```kotlin
 // In RNPlayerViewExpo.kt
 private lateinit var lifecycleObserver: PlayerViewLifecycleObserver
@@ -145,6 +148,7 @@ init {
 **Purpose**: Extract all Picture-in-Picture related logic into a dedicated manager class.
 
 **Responsibilities**:
+
 - Handle `onConfigurationChanged` events
 - Manage PiP mode transitions (enter/exit)
 - Calculate and apply PiP window dimensions
@@ -159,56 +163,56 @@ class PipManager(
     private val appContext: AppContext,
     private val view: RNPlayerViewExpo
 ) {
-    
+
     private var isCurrentActivityInPictureInPictureMode = false
-    
+
     fun onConfigurationChanged(newConfig: Configuration) {
         val wasInPiP = isCurrentActivityInPictureInPictureMode
         val nowInPiP = isInPictureInPictureMode()
-        
+
         if (wasInPiP != nowInPiP) {
             isCurrentActivityInPictureInPictureMode = nowInPiP
             onPictureInPictureModeChanged(nowInPiP, newConfig)
         }
     }
-    
+
     private fun onPictureInPictureModeChanged(
         isInPictureInPictureMode: Boolean,
         newConfig: Configuration
     ) {
         val playerView = view.playerView ?: return
-        
+
         playerView.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-        
+
         if (isInPictureInPictureMode) {
             enterPictureInPictureMode(playerView)
         } else {
             exitPictureInPictureMode(playerView)
         }
     }
-    
+
     private fun enterPictureInPictureMode(playerView: PlayerView) {
         if (!playerView.isPictureInPicture) {
             playerView.enterPictureInPicture()
         }
-        
+
         // Force layout updates
         playerView.requestLayout()
         view.requestLayout()
-        
+
         // Apply PiP-specific layout handling
         applyPipLayout()
     }
-    
+
     private fun exitPictureInPictureMode(playerView: PlayerView) {
         if (playerView.isPictureInPicture) {
             playerView.exitPictureInPicture()
         }
-        
+
         // Restore full size layout
         restoreFullSizeLayout()
     }
-    
+
     private fun applyPipLayout() {
         view.post {
             val activity = appContext.activityProvider?.currentActivity
@@ -218,10 +222,10 @@ class PipManager(
             }
         }
     }
-    
+
     private fun calculatePipDimensions(activity: Activity): PipDimensions {
         val windowManager = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        
+
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val windowMetrics = windowManager.currentWindowMetrics
             val bounds = windowMetrics.bounds
@@ -233,33 +237,33 @@ class PipManager(
             PipDimensions(displayMetrics.widthPixels, displayMetrics.heightPixels)
         }
     }
-    
+
     private fun applyPipDimensions(pipWidth: Int, pipHeight: Int) {
         // Extract current complex layout logic
         applyExpoViewDimensions(pipWidth, pipHeight)
         applyContainerDimensions(pipWidth, pipHeight)
         applyPlayerViewDimensions(pipWidth, pipHeight)
-        
+
         // Force redraws
         view.playerView?.invalidate()
         view.playerContainer?.invalidate()
         view.invalidate()
     }
-    
+
     private fun restoreFullSizeLayout() {
         view.post {
             // Extract current layout restoration logic
             restoreExpoViewDimensions()
             restoreContainerDimensions()
             restorePlayerViewDimensions()
-            
+
             // Force layout updates
             forceLayoutUpdate()
         }
     }
-    
+
     private data class PipDimensions(val width: Int, val height: Int)
-    
+
     // Additional helper methods for dimension management...
 }
 ```
@@ -269,6 +273,7 @@ class PipManager(
 **Purpose**: Extract event listener management and reduce boilerplate in the main class.
 
 **Responsibilities**:
+
 - Manage all player event listeners (~60 EventDispatcher properties)
 - Handle event attachment and detachment
 - Provide clean interface for event management
@@ -281,44 +286,44 @@ class PipManager(
 class PlayerEventBridge(
     private val eventCallbacks: PlayerEventCallbacks
 ) {
-    
+
     private var playerEventSubscriptions = mutableListOf<EventSubscription<*>>()
-    
+
     fun attachPlayerListeners(playerView: PlayerView) {
         // Extract all current event listener logic
         attachPlayerEvents(playerView)
         attachSourceEvents(playerView)
         attachUIEvents(playerView)
     }
-    
+
     private fun attachPlayerEvents(playerView: PlayerView) {
         playerView.on(PlayerEvent.Ready::class) {
             eventCallbacks.onBmpReady(it.toJson())
         }
-        
+
         playerView.on(PlayerEvent.Play::class) {
             eventCallbacks.onBmpPlay(it.toJson())
         }
-        
+
         // ... continue for all player events
     }
-    
+
     private fun attachSourceEvents(playerView: PlayerView) {
         playerView.on(SourceEvent.Loaded::class) {
             eventCallbacks.onBmpSourceLoaded(it.toJson())
         }
-        
+
         // ... continue for all source events
     }
-    
+
     private fun attachUIEvents(playerView: PlayerView) {
         playerView.on(PlayerEvent.FullscreenEnabled::class) {
             eventCallbacks.onBmpFullscreenEnabled(it.toJson())
         }
-        
+
         // ... continue for all UI events
     }
-    
+
     fun detachPlayerListeners() {
         playerEventSubscriptions.forEach { it.dispose() }
         playerEventSubscriptions.clear()
@@ -339,6 +344,7 @@ data class PlayerEventCallbacks(
 ### 2.1 Break Down attachPlayer() Method
 
 **Current Issues**:
+
 - 50+ lines handling multiple responsibilities
 - Complex initialization logic
 - Difficult to maintain and extend
@@ -355,15 +361,15 @@ fun attachPlayer(
     userInterfaceTypeName: String?
 ) {
     val player = getPlayerOrReturn(playerId) ?: return
-    
+
     if (isPlayerAlreadyAttached(player)) return
-    
+
     detachCurrentPlayer()
-    
+
     val playerView = initializePlayerView(player, playerViewConfigWrapper, userInterfaceTypeName)
     initializeSubtitleView(player)
     setupPictureInPicture(player, playerView, isPictureInPictureEnabledOnPlayer, playerViewConfigWrapper)
-    
+
     attachPlayerToView(player, playerView)
     updateBackgroundPlaybackSetting(enableBackgroundPlayback)
 }
@@ -392,8 +398,8 @@ private fun initializePlayerView(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT
         )
-        userInterfaceTypeName?.let { 
-            userInterfaceType = it.toUserInterfaceType() 
+        userInterfaceTypeName?.let {
+            userInterfaceType = it.toUserInterfaceType()
         }
     }
 }
@@ -404,9 +410,9 @@ private fun setupPictureInPicture(
     isPictureInPictureEnabledOnPlayer: Boolean,
     config: RNPlayerViewConfigWrapper?
 ) {
-    val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || 
+    val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer ||
         config?.pictureInPictureConfig?.isEnabled == true
-    
+
     if (isPictureInPictureEnabled) {
         val currentActivity = appContext.activityProvider?.currentActivity
         playerView.setPictureInPictureHandler(
@@ -424,11 +430,11 @@ private fun setupPictureInPicture(
 private fun setPlayerView(playerView: PlayerView) {
     removeExistingPlayerView()
     removeExistingContainer()
-    
+
     val container = createPlayerContainer()
     addPlayerViewToContainer(playerView, container)
     addContainerToExpoView(container)
-    
+
     updatePlayerViewReferences(playerView, container)
     applyPendingConfiguration(playerView)
 }
@@ -467,18 +473,18 @@ private fun addContainerToExpoView(container: FrameLayout) {
 ```kotlin
 // File: utils/LayoutHelpers.kt
 object LayoutHelpers {
-    
+
     fun createMatchParentLayoutParams(): FrameLayout.LayoutParams {
         return FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT
         )
     }
-    
+
     fun createLayoutParams(width: Int, height: Int): FrameLayout.LayoutParams {
         return FrameLayout.LayoutParams(width, height)
     }
-    
+
     fun forceViewLayout(view: View, width: Int, height: Int) {
         view.measure(
             View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
@@ -486,7 +492,7 @@ object LayoutHelpers {
         )
         view.layout(0, 0, width, height)
     }
-    
+
     fun restoreViewToFullSize(view: View, parentWidth: Int, parentHeight: Int) {
         view.layoutParams?.let { params ->
             params.width = ViewGroup.LayoutParams.MATCH_PARENT
@@ -507,7 +513,7 @@ object LayoutHelpers {
 private fun syncFullscreenState() {
     val isFullscreen = isFullscreenRequested ?: return
     val playerView = this.playerView ?: return
-    
+
     if (playerView.isFullscreen != isFullscreen) {
         if (isFullscreen) {
             playerView.enterFullscreen()
@@ -533,6 +539,7 @@ fun attachFullscreenBridge(fullscreenBridgeId: NativeId) {
 ### 4.1 Improved Naming Conventions
 
 **Current** → **Improved**:
+
 - `playerInMediaSessionService` → `backgroundPlayer`
 - `requestedFullscreenValue` → `isFullscreenRequested`
 - `requestedPictureInPictureValue` → `isPictureInPictureRequested`
@@ -541,22 +548,24 @@ fun attachFullscreenBridge(fullscreenBridgeId: NativeId) {
 ### 4.2 Enhanced Error Handling
 
 **Race Condition Handling**:
+
 ```kotlin
 private fun attachPlayer(playerId: NativeId, ...) {
     val playerModule = appContext.registry.getModule<PlayerExpoModule>()
     val player = playerModule?.getPlayerOrNull(playerId)
-    
+
     if (player == null) {
         Log.w("RNPlayerViewExpo", "Player not ready for id: $playerId, deferring attachment")
         // TODO: Implement queueing mechanism for better handling
         return
     }
-    
+
     // Continue with attachment...
 }
 ```
 
 **Consistent Null Handling**:
+
 ```kotlin
 private fun safePlayerOperation(operation: (PlayerView) -> Unit) {
     playerView?.let { playerView ->
@@ -576,54 +585,54 @@ private fun safePlayerOperation(operation: (PlayerView) -> Unit) {
 ```kotlin
 @SuppressLint("ViewConstructor")
 class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
-    
+
     // Core components
     var playerView: PlayerView? = null
         private set
     private var subtitleView: SubtitleView? = null
     private var playerContainer: FrameLayout? = null
-    
+
     // Helper classes
     private lateinit var lifecycleObserver: PlayerViewLifecycleObserver
     private lateinit var pipManager: PipManager
     private lateinit var eventBridge: PlayerEventBridge
-    
+
     // Configuration state
     var enableBackgroundPlayback: Boolean = false
     private var scalingMode: ScalingMode? = null
     private var isFullscreenRequested: Boolean? = null
     private var isPictureInPictureRequested: Boolean? = null
     private var fullscreenBridgeId: NativeId? = null
-    
+
     // Event dispatchers (managed by eventBridge)
     private val eventCallbacks = PlayerEventCallbacks(
         onBmpReady = { onBmpReady(it) },
         onBmpPlay = { onBmpPlay(it) },
         // ... all other callbacks
     )
-    
+
     init {
         setupHelperClasses()
         setupLifecycleObserver()
     }
-    
+
     private fun setupHelperClasses() {
         lifecycleObserver = PlayerViewLifecycleObserver(appContext, this)
         pipManager = PipManager(appContext, this)
         eventBridge = PlayerEventBridge(eventCallbacks)
     }
-    
+
     // Simplified public API
     fun attachPlayer(playerId: NativeId, ...) { /* Refactored implementation */ }
     fun setFullscreen(isFullscreen: Boolean) { /* Simplified implementation */ }
     fun setPictureInPicture(isPictureInPicture: Boolean) { /* Simplified implementation */ }
-    
+
     // Lifecycle delegation
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         pipManager.onConfigurationChanged(newConfig)
     }
-    
+
     // Cleanup
     override fun onDestroy() {
         super.onDestroy()
@@ -637,28 +646,33 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
 ## Implementation Timeline
 
 ### Phase 1 (Week 1-2): Core Extraction
+
 - [ ] Create `PlayerViewLifecycleObserver.kt`
 - [ ] Create `PipManager.kt`
 - [ ] Create `PlayerEventBridge.kt`
 - [ ] Validate each component functionality
 
 ### Phase 2 (Week 3): Method Refactoring
+
 - [ ] Refactor `attachPlayer()` method
 - [ ] Refactor `setPlayerView()` method
 - [ ] Manual testing of new methods
 
 ### Phase 3 (Week 4): Utilities and Helpers
+
 - [ ] Create `LayoutHelpers.kt`
 - [ ] Implement `syncFullscreenState()` helper
 - [ ] Eliminate remaining code duplication
 
 ### Phase 4 (Week 5): Polish and Integration
+
 - [ ] Apply naming convention improvements
 - [ ] Enhance error handling
 - [ ] Update main class to use helper classes
 - [ ] Manual validation
 
 ### Phase 5 (Week 6): Manual Validation and Documentation
+
 - [ ] Manual integration testing
 - [ ] Performance validation
 - [ ] Manual regression testing
@@ -667,12 +681,14 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
 ## Success Metrics
 
 ### Quantitative Metrics:
+
 - **Line Count Reduction**: From ~650 lines to ~300-400 lines in main class
 - **Method Complexity**: No method over 30 lines
 - **Manual Validation**: All helper classes manually tested
 - **Cyclomatic Complexity**: Reduced by 40%
 
 ### Qualitative Metrics:
+
 - **Single Responsibility**: Each class has one clear purpose
 - **Maintainability**: All major components have clear interfaces
 - **Maintainability**: New features can be added without modifying multiple classes
@@ -681,11 +697,13 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
 ## Risk Mitigation
 
 ### Technical Risks:
+
 1. **Functionality Regression**: Manual testing at each phase
 2. **Performance Impact**: Benchmark before/after refactoring
 3. **Integration Issues**: Incremental integration with existing codebase
 
 ### Mitigation Strategies:
+
 1. **Feature Flags**: Implement new classes alongside existing code
 2. **Gradual Migration**: Phase-by-phase replacement
 3. **Manual Testing**: Thorough manual testing of all functionality
@@ -696,12 +714,14 @@ class RNPlayerViewExpo(context: Context, appContext: AppContext) : ExpoView(cont
 ## Post-Refactoring Benefits
 
 ### For Development:
+
 - **Faster Development**: Clear separation of concerns
 - **Easier Debugging**: Isolated components
 - **Better Structure**: Well-organized components
 - **Reduced Bugs**: Simpler, more focused code
 
 ### For Maintenance:
+
 - **Easier Onboarding**: Self-documenting code structure
 - **Safer Changes**: Isolated impact of modifications
 - **Better Documentation**: Clear component boundaries

@@ -68,16 +68,18 @@ DEVELOPMENT_TEAM = YOUR_TEAM_ID
 The project uses pre-commit hooks to automatically enforce code quality standards across all languages (TypeScript, Swift, Kotlin). The hooks will:
 
 - Run ESLint (quiet mode) on TypeScript/JavaScript files
-- Auto-format Swift files with SwiftLint, then run SwiftLint (strict mode) 
+- Auto-format Swift files with SwiftLint, then run SwiftLint (strict mode)
 - Auto-format Kotlin files with ktlint, then run ktlint
 - Auto-format files with Prettier
 
 **Setup:**
+
 ```sh
 yarn setup-hooks
 ```
 
 Or manually install the pre-commit hook:
+
 ```sh
 # Copy the pre-commit hook (done automatically by yarn setup-hooks)
 cp scripts/pre-commit.sh .git/hooks/pre-commit
@@ -85,6 +87,7 @@ chmod +x .git/hooks/pre-commit
 ```
 
 **Testing all linting:**
+
 ```sh
 yarn lint:all
 ```
@@ -212,9 +215,12 @@ export default (spec: TestScope) => {
           url: 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
           type: SourceType.HLS,
         });
-        await callPlayerAndExpectEvents((player) => {
-          player.play();
-        }, EventSequence(EventType.Play, EventType.Playing));
+        await callPlayerAndExpectEvents(
+          (player) => {
+            player.play();
+          },
+          EventSequence(EventType.Play, EventType.Playing)
+        );
         await expectEvents(RepeatedEvent(EventType.TimeChanged, 5));
       });
     });

@@ -7,12 +7,14 @@ Before proceeding with the rest of the file's contents, make sure to read `~/.cl
 ## Claude Code Workflow Instructions
 
 ### Task Management
+
 - **ALWAYS use TodoWrite tool** for any task with 3+ steps or complex operations
 - Break down complex tasks into smaller, actionable items
 - Mark tasks as in_progress before starting, completed immediately after finishing
 - Only have ONE task in_progress at any time
 
 ### Code Analysis and Search
+
 - **Use Task tool** for open-ended searches that may require multiple rounds of globbing/grepping
 - **Use Glob tool** for file pattern matching (e.g., `**/*.ts`, `src/**/*.kt`)
 - **Use Grep tool** for content search with regex - NEVER use bash grep/rg commands
@@ -20,6 +22,7 @@ Before proceeding with the rest of the file's contents, make sure to read `~/.cl
 - **Include file_path:line_number references** when pointing to specific code locations
 
 ### File Operations
+
 - **ALWAYS prefer editing existing files** over creating new ones
 - **Use Read tool before any Edit operations** to understand context
 - **Use MultiEdit tool** when making multiple changes to the same file
@@ -27,6 +30,7 @@ Before proceeding with the rest of the file's contents, make sure to read `~/.cl
 - **NEVER add code comments** unless explicitly requested
 
 ### React Performance & Lifecycle
+
 - **ALWAYS consider React lifecycle and performance** when modifying TypeScript code
 - **Use React.memo() for expensive components** to prevent unnecessary re-renders
 - **Use useCallback() for functions passed as props** to prevent child re-renders
@@ -37,17 +41,20 @@ Before proceeding with the rest of the file's contents, make sure to read `~/.cl
 - **Consider useRef for values that don't trigger re-renders** when changed
 
 ### Response Style
+
 - **Be concise and direct** - answer in 1-4 lines maximum unless detail requested
 - **No unnecessary preamble or postamble** - avoid phrases like "Here's what I found..."
 - **One word answers are best** when appropriate
 - **Never explain code or summarize actions** unless asked
 
 ### VSCode Integration
+
 When `VSCODE_INJECTION=1` environment variable is set:
-- **ALWAYS use mcp__vs-claude__open tool** to open files in VSCode
+
+- **ALWAYS use mcp**vs-claude**open tool** to open files in VSCode
 - **Open files with line ranges** for precise navigation: `{"type": "file", "path": "/path/file.ts", "startLine": 10, "endLine": 20}`
 - **Use diff view** for comparing files: `{"type": "diff", "left": "/path/old.ts", "right": "/path/new.ts"}`
-- **Use git diff view** for working changes**: `{"type": "gitDiff", "path": "/path/file.ts", "from": "HEAD", "to": "working"}`
+- **Use git diff view** for working changes\*\*: `{"type": "gitDiff", "path": "/path/file.ts", "from": "HEAD", "to": "working"}`
 - **Specify windowId** when multiple VS Code windows are open
 
 ## Project Overview
@@ -57,6 +64,7 @@ This is the **Bitmovin Player React Native SDK** - a fully migrated Expo Modules
 ## Development Commands
 
 ### Main Library
+
 ```bash
 # Build the library (builds both module and plugin)
 yarn build
@@ -64,7 +72,7 @@ yarn build
 # Build module only
 yarn build:module
 
-# Build plugin only  
+# Build plugin only
 yarn build:plugin
 
 # Run lints and type checking
@@ -82,6 +90,7 @@ yarn bootstrap
 ```
 
 ### Example App
+
 ```bash
 # Bootstrap example app (install deps, prebuild, pods)
 yarn example bootstrap
@@ -121,6 +130,7 @@ yarn open:android  # Opens Android Studio with example project
 ## Architecture
 
 ### Core Structure
+
 - **`src/`** - TypeScript library code using Expo Modules Core
 - **`ios/`** - Native iOS/tvOS Swift modules using ExpoModulesCore
 - **`android/`** - Native Android Kotlin modules using Expo Modules API
@@ -130,18 +140,21 @@ yarn open:android  # Opens Android Studio with example project
 ### Key Patterns
 
 **Expo Modules Architecture**: The library uses a fully migrated Expo Modules implementation:
+
 1. **TypeScript API Layer** (`src/`) - Public React Native API using Expo Modules Core
 2. **Native Expo Modules Layer** (`ios/`, `android/`) - All native functionality implemented as Expo modules
 3. **Expo Infrastructure Layer** - Lifecycle management, config plugins, and build tooling
 4. **Native SDK Layer** - Bitmovin Player SDKs (iOS v3.91.0, Android v3.112.0)
 
 **Configuration-Driven Design**: All features are configured through TypeScript config objects that are passed to native modules:
+
 - `PlayerConfig` - Main player configuration
-- `SourceConfig` - Media source configuration  
+- `SourceConfig` - Media source configuration
 - `PlaybackConfig` - Playback behavior settings (includes DecoderConfig for Android)
 - Feature-specific configs (DRM, analytics, offline, etc.)
 
 **Hook-Based Usage**: Main integration pattern is through the `usePlayer` hook:
+
 ```typescript
 import { usePlayer, PlayerView } from 'bitmovin-player-react-native';
 
@@ -160,6 +173,7 @@ This project has completed a full migration from React Native bridge modules to 
 - **Production Ready**: Battle-tested video functionality maintained through careful migration with zero breaking changes
 
 **Architecture Components**:
+
 - **Expo Lifecycle**: `AppLifecycleDelegate.swift` and `ActivityLifecycleListener.kt` handle app lifecycle through Expo patterns
 - **Config Plugins**: Automatic native configuration via `plugin/src/withBitmovinConfig.ts`
 - **Expo Modules**: All player functionality (`PlayerExpoModule`, `DrmExpoModule`, `OfflineExpoModule`, etc.) uses Expo Modules API
@@ -168,12 +182,14 @@ This project has completed a full migration from React Native bridge modules to 
 ### Module Organization
 
 **Core Components**:
+
 - `src/components/PlayerView/` - React components for video player UI
 - `src/hooks/` - React hooks (`usePlayer`, `useProxy`)
 - `src/analytics/`, `src/drm/`, `src/offline/`, `src/ui/` - Feature-specific modules
 - `src/decoder/` - Android decoder configuration (DecoderConfig API)
 
 **Native Modules**:
+
 - iOS: Swift modules using Expo Modules API with full ExpoModulesCore integration
 - Android: Kotlin modules using Expo Modules API with native infrastructure
 - Expo components: AppLifecycleDelegate, ActivityLifecycleListener, config plugins
@@ -182,6 +198,7 @@ This project has completed a full migration from React Native bridge modules to 
 ## Testing
 
 Tests are run via Expo module scripts:
+
 ```bash
 yarn test  # Runs TypeScript tests
 ```
@@ -195,14 +212,17 @@ The project includes an Expo config plugin (`plugin/app.plugin.js`) for automati
 ```json
 {
   "plugins": [
-    ["bitmovin-player-react-native", {
-      "playerLicenseKey": "ENTER_LICENSE_KEY",
-      "featureFlags": {
-        "airplay": true,
-        "offline": true,
-        "pictureInPicture": true
+    [
+      "bitmovin-player-react-native",
+      {
+        "playerLicenseKey": "ENTER_LICENSE_KEY",
+        "featureFlags": {
+          "airplay": true,
+          "offline": true,
+          "pictureInPicture": true
+        }
       }
-    }]
+    ]
   ]
 }
 ```
@@ -210,7 +230,7 @@ The project includes an Expo config plugin (`plugin/app.plugin.js`) for automati
 ## Platform Requirements
 
 - **React Native**: 0.79.5+ (using react-native-tvos@0.79.5-0 in example)
-- **React**: 19.0+ (using 19.0.0 in example) 
+- **React**: 19.0+ (using 19.0.0 in example)
 - **Expo**: 53.0+ (SDK developed on 53.0.19, compatible with newer versions)
 - **iOS/tvOS**: 14.0+
 - **Android**: API 21+ (Android 5.0+)
@@ -241,6 +261,7 @@ When using this SDK with Expo SDK 52+ or newer:
 This SDK provides comprehensive support for TV platforms through Expo's TV infrastructure:
 
 ### Supported TV Platforms
+
 - **Apple TV (tvOS)**: 14.0+ with native tvOS SDK integration
 - **Android TV**: API 21+ with Android TV optimizations
 - **Fire TV**: Supported through Android TV compatibility
@@ -288,11 +309,13 @@ See `example/src/screens/BasicTvPlayback.tsx` for complete TV implementation exa
 7. **Validation**: `yarn lint` and `yarn test` before committing
 
 ### Build Notes
+
 - **iOS builds take 2-5 minutes**: Always use at least 600 seconds timeout for `yarn example build:ios`
 - **Android builds are faster**: Usually complete in under 1 minute
 - **When running iOS builds via Bash tool**: Use `timeout 600` command wrapper to avoid timeouts
 
 ### GitHub Integration
+
 - **Always use gh CLI** for GitHub operations (pre-authenticated)
 - **Check for .github/PULL_REQUEST_TEMPLATE.md** and follow template format
 - **Extract issue ID from branch name** (format: `feature/PROJECT_ID-ISSUE_NUMBER`)
@@ -326,6 +349,7 @@ When working with player features, configurations are typically defined in `src/
 For native development, first ensure the native projects exist by running `yarn example prebuild`, then use `yarn open:ios` or `yarn open:android` to open the respective IDEs with the example project.
 
 ### Expo Modules Architecture Benefits
+
 - **Modern Native Development**: Full Expo Modules API implementation provides superior developer experience and maintainability
 - **Zero Breaking Changes**: Complete migration achieved while maintaining perfect API compatibility
 - **Enhanced Developer Experience**: Full Expo ecosystem integration with automated native setup and build processes
@@ -333,6 +357,7 @@ For native development, first ensure the native projects exist by running `yarn 
 - **Production Proven**: Successfully migrated complex video player functionality with zero performance degradation
 
 ### Key Notes
+
 - Integration tests have been disabled in this Expo modules branch (`bootstrap:integration-test` is commented out)
 - Focus is on the example app for comprehensive testing functionality
 - Currently on `feature/expo-modules-migration` branch, targeting merge to `development`
@@ -344,11 +369,13 @@ For native development, first ensure the native projects exist by running `yarn 
 ## Project Development Notes
 
 ### Current Branch Status
+
 - **Branch**: `feature/expo-modules-migration` (migrating from `feature/expo-modules`)
 - **Target**: Merge to `development` branch
 - **Status**: Active development with Android view layout fixes in progress
 
 ### Generated Folders Warning
+
 - **Generated Folders**: `example/ios` and `example/android` are generated by Expo and **not tracked in git**
 - **Regeneration**: Run `yarn example prebuild` to create these folders when missing
 - **TV Projects**: Use `yarn example prebuild:tv` with `EXPO_TV=1` to generate tvOS and Android TV projects
@@ -356,6 +383,7 @@ For native development, first ensure the native projects exist by running `yarn 
 - **First Setup**: Always run `yarn example bootstrap` to install deps, prebuild, and install pods
 
 ### Development Workflow
+
 1. **Initial Setup**: `yarn bootstrap` (installs deps and runs example bootstrap)
 2. **Native Projects**: `yarn example prebuild` (generates iOS/Android folders)
 3. **Development**: Work in `src/` (TypeScript), `ios/` (Swift), `android/` (Kotlin)
@@ -364,6 +392,7 @@ For native development, first ensure the native projects exist by running `yarn 
 6. **Validation**: Always run `yarn lint` and `yarn example typecheck` before committing
 
 ### Current Implementation Status
+
 - Successfully migrated to Expo 53.0.19 with React Native 0.79.5
 - TV platform support via `@react-native-tvos/config-tv` plugin
 - Android view layout fixes in progress (recent commits)
@@ -371,4 +400,3 @@ For native development, first ensure the native projects exist by running `yarn 
 - **Migration Complete**: 100% Expo Modules implementation with all legacy React Native bridge code removed
 - **17/17 modules migrated**: PlayerExpoModule, SourceExpoModule, DrmExpoModule, OfflineExpoModule, etc.
 - **Zero Legacy Debt**: All React Native bridge files have been removed from the codebase
-

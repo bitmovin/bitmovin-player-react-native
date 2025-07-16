@@ -6,7 +6,7 @@
  *     [
  *       "bitmovin-player-react-native",
  *       {
-*          "licenseKey": "ENTER_LICENSE_KEY",
+ *          "licenseKey": "ENTER_LICENSE_KEY",
  *         "featureFlags": {
  *           "airPlay": true,
  *           "backgroundPlayback": true,

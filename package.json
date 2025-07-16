@@ -83,8 +83,14 @@
     "src/**/*.(ts|tsx)": "eslint --quiet",
     "example/src/**/*.(ts|tsx)": "eslint --quiet --config example/.eslintrc.js",
     "integration_test/{src,playertesting,tests}/**/*.(ts|tsx)": "eslint --quiet --config integration_test/.eslintrc.js",
-    "ios/**/*.swift": ["./scripts/format-swift.sh", "./scripts/lint-swift.sh"],
-    "android/**/*.kt": ["./scripts/format-android.sh", "./scripts/lint-android.sh"],
+    "ios/**/*.swift": [
+      "./scripts/format-swift.sh",
+      "./scripts/lint-swift.sh"
+    ],
+    "android/**/*.kt": [
+      "./scripts/format-android.sh",
+      "./scripts/lint-android.sh"
+    ],
     "*.(ts|tsx|js|jsx|md|json|yml|yaml)": "prettier --write"
   }
 }

@@ -1,3 +1,4 @@
+import { ExpoConfig } from '@expo/config-types';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -21,41 +22,57 @@ if (!BITMOVIN_PLAYER_LICENSE_KEY) {
   );
 }
 
-export default {
-  expo: {
-    name: 'IntegrationTest',
-    slug: 'integration-test',
-    version: '1.0.0',
-    orientation: 'portrait',
-    icon: './assets/icon.png',
-    userInterfaceStyle: 'light',
-    splash: {
-      image: './assets/splash.png',
-      resizeMode: 'contain',
+const config: ExpoConfig = {
+  name: 'IntegrationTest',
+  slug: 'integration-test',
+  version: '1.0.0',
+  orientation: 'portrait',
+  icon: './assets/images/icon.png',
+  userInterfaceStyle: 'light',
+  splash: {
+    image: './assets/images/splash-icon.png',
+    resizeMode: 'contain',
+    backgroundColor: '#ffffff',
+  },
+  assetBundlePatterns: ['**/*'],
+  ios: {
+    supportsTablet: true,
+    bundleIdentifier: 'com.bitmovin.integrationtestnew',
+  },
+  android: {
+    adaptiveIcon: {
+      foregroundImage: './assets/images/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },
-    assetBundlePatterns: ['**/*'],
-    ios: {
-      supportsTablet: true,
-      deploymentTarget: '14.0',
-    },
-    android: {
-      adaptiveIcon: {
-        foregroundImage: './assets/adaptive-icon.png',
-        backgroundColor: '#ffffff',
-      },
-      compileSdkVersion: 34,
-      targetSdkVersion: 34,
-      minSdkVersion: 21,
-    },
-    plugins: [
-      [
-        '../',
-        {
-          playerLicenseKey: BITMOVIN_PLAYER_LICENSE_KEY,
-        },
-      ],
-    ],
+    package: 'com.bitmovin.integrationtestnew',
   },
-  licenseKey: BITMOVIN_PLAYER_LICENSE_KEY,
+  plugins: [
+    '@react-native-tvos/config-tv',
+    [
+      'expo-build-properties',
+      {
+        android: {
+          buildToolsVersion: '35.0.0',
+        },
+        ios: {
+          flipper: false,
+        },
+      },
+    ],
+    [
+      '../app.plugin.js',
+      {
+        playerLicenseKey: BITMOVIN_PLAYER_LICENSE_KEY,
+        featureFlags: {
+          airPlay: true,
+          backgroundPlayback: true,
+          googleCastSDK: { android: '21.3.0', ios: '4.8.1.2' },
+          offline: true,
+          pictureInPicture: true,
+        },
+      },
+    ],
+  ],
 };
+
+export default config;

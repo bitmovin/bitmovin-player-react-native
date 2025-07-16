@@ -37,7 +37,9 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.bitmovin.player.reactnative.example',
-    ...(APPLE_DEVELOPMENT_TEAM_ID && { appleTeamId: APPLE_DEVELOPMENT_TEAM_ID }),
+    ...(APPLE_DEVELOPMENT_TEAM_ID && {
+      appleTeamId: APPLE_DEVELOPMENT_TEAM_ID,
+    }),
   },
   android: {
     adaptiveIcon: {

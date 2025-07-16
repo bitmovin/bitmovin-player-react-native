@@ -33,12 +33,12 @@ Create a new module by running the following command and name the example module
 Clean up the default module to start with a clean slate by deleting the following files:
 
 <Terminal
-  cmdCopy="cd expo-web-view && rm src/ExpoWebView.types.ts src/ExpoWebView.web.tsx src/ExpoWebViewModule.ts src/ExpoWebViewModule.web.ts"
-  cmd={[
-    '$ cd expo-web-view',
-    '$ rm src/ExpoWebView.types.ts src/ExpoWebViewModule.ts',
-    '$ rm src/ExpoWebView.web.tsx src/ExpoWebViewModule.web.ts',
-  ]}
+cmdCopy="cd expo-web-view && rm src/ExpoWebView.types.ts src/ExpoWebView.web.tsx src/ExpoWebViewModule.ts src/ExpoWebViewModule.web.ts"
+cmd={[
+'$ cd expo-web-view',
+'$ rm src/ExpoWebView.types.ts src/ExpoWebViewModule.ts',
+'$ rm src/ExpoWebView.web.tsx src/ExpoWebViewModule.web.ts',
+]}
 />
 
 Locate the following files and replace them with the provided minimal boilerplate:
@@ -77,7 +77,8 @@ import * as React from 'react';
 
 export type Props = ViewProps;
 
-const NativeView: React.ComponentType<Props> = requireNativeViewManager('ExpoWebView');
+const NativeView: React.ComponentType<Props> =
+  requireNativeViewManager('ExpoWebView');
 
 export default function ExpoWebView(props: Props) {
   return <NativeView {...props} />;
@@ -105,22 +106,22 @@ export default function App() {
 To ensure everything is working, start the TypeScript compiler to watch for changes and rebuild the module's JavaScript:
 
 <Terminal
-  cmdCopy="npm run build"
-  cmd={[
-    '# Run this in the root of the project to start the TypeScript compiler',
-    '$ npm run build',
-  ]}
+cmdCopy="npm run build"
+cmd={[
+'# Run this in the root of the project to start the TypeScript compiler',
+'$ npm run build',
+]}
 />
 
 <Terminal
-  cmd={[
-    '# Navigate to the example directory',
-    '$ cd example',
-    '# Run the example app on Android',
-    '$ npx expo run:android',
-    '# Run the example app on iOS',
-    '$ npx expo run:ios',
-  ]}
+cmd={[
+'# Navigate to the example directory',
+'$ cd example',
+'# Run the example app on Android',
+'$ npx expo run:android',
+'# Run the example app on iOS',
+'$ npx expo run:ios',
+]}
 />
 
 You should now see a blank purple screen. While it's not very exciting, it's a good start. Next, turn it into a WebView.
@@ -191,14 +192,14 @@ class ExpoWebView: ExpoView {
 No changes are required. Rebuild and run the app using the following commands:
 
 <Terminal
-  cmd={[
-    '# Prebuild the example app with the --clean flag to ensure a clean build',
-    '$ npx expo prebuild --clean',
-    '# Run the example app on Android',
-    '$ npx expo run:android',
-    '# Run the example app on iOS',
-    '$ npx expo run:ios',
-  ]}
+cmd={[
+'# Prebuild the example app with the --clean flag to ensure a clean build',
+'$ npx expo prebuild --clean',
+'# Run the example app on Android',
+'$ npx expo run:android',
+'# Run the example app on iOS',
+'$ npx expo run:ios',
+]}
 />
 
 After that, you'll see the [Expo Modules API overview page](/modules/overview) rendered. If the changes aren't reflected, try reinstalling the app.
@@ -269,7 +270,8 @@ export type Props = {
   url?: string;
 } & ViewProps;
 
-const NativeView: React.ComponentType<Props> = requireNativeViewManager('ExpoWebView');
+const NativeView: React.ComponentType<Props> =
+  requireNativeViewManager('ExpoWebView');
 
 export default function ExpoWebView(props: Props) {
   return <NativeView {...props} />;
@@ -291,13 +293,13 @@ export default function App() {
 Rebuild the example app:
 
 <Terminal
-  cmd={[
-    '$ npx expo prebuild --clean',
-    '# Run the example app on Android',
-    '$ npx expo run:android',
-    '# Run the example app on iOS',
-    '$ npx expo run:ios',
-  ]}
+cmd={[
+'$ npx expo prebuild --clean',
+'# Run the example app on Android',
+'$ npx expo run:android',
+'# Run the example app on iOS',
+'$ npx expo run:ios',
+]}
 />
 
 After that, you'll see the [Expo homepage](https://expo.dev) in the WebView.
@@ -442,7 +444,8 @@ export type Props = {
   onLoad?: (event: { nativeEvent: OnLoadEvent }) => void;
 } & ViewProps;
 
-const NativeView: React.ComponentType<Props> = requireNativeViewManager('ExpoWebView');
+const NativeView: React.ComponentType<Props> =
+  requireNativeViewManager('ExpoWebView');
 
 export default function ExpoWebView(props: Props) {
   return <NativeView {...props} />;
@@ -461,7 +464,7 @@ export default function App() {
     <WebView
       style={{ flex: 1 }}
       url="https://expo.dev"
-      onLoad={event => alert(`loaded ${event.nativeEvent.url}`)}
+      onLoad={(event) => alert(`loaded ${event.nativeEvent.url}`)}
     />
   );
 }
@@ -479,7 +482,13 @@ Now that you have a WebView, build a web browser UI around it. Try rebuilding a 
 
 ```tsx App.tsx
 import { useState } from 'react';
-import { ActivityIndicator, Platform, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Platform,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { WebView } from 'expo-web-view';
 
 export default function App() {
@@ -512,7 +521,11 @@ export default function App() {
       />
 
       <WebView
-        url={url.startsWith('https://') || url.startsWith('http://') ? url : `https://${url}`}
+        url={
+          url.startsWith('https://') || url.startsWith('http://')
+            ? url
+            : `https://${url}`
+        }
         onLoad={() => setIsLoading(false)}
         style={{ flex: 1, marginTop: 20 }}
       />
@@ -539,8 +552,13 @@ function LoadingView({ isLoading }: { isLoading: boolean }) {
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: 'row',
-      }}>
-      <ActivityIndicator animating={isLoading} color="#fff" style={{ marginRight: 10 }} />
+      }}
+    >
+      <ActivityIndicator
+        animating={isLoading}
+        color="#fff"
+        style={{ marginRight: 10 }}
+      />
       <Text style={{ color: '#fff' }}>Loading...</Text>
     </View>
   );
