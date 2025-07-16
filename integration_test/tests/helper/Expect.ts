@@ -237,6 +237,11 @@ export function expect(actual: any, desc?: string) {
 
     // Async assertion support
     async toResolve() {
+      if (!(actual instanceof Promise)) {
+        throwErr(
+          `Expected a Promise to resolve, but got a non-promise: ${actual}`
+        );
+      }
       try {
         const result = await Promise.resolve(actual);
         logPass(`Expected promise to resolve, got: ${formatValue(result)}`);
@@ -251,6 +256,11 @@ export function expect(actual: any, desc?: string) {
     },
 
     async toReject() {
+      if (!(actual instanceof Promise)) {
+        throwErr(
+          `Expected a Promise to reject, but got a non-promise: ${actual}`
+        );
+      }
       try {
         const result = await Promise.resolve(actual);
         throwErr(
@@ -265,6 +275,11 @@ export function expect(actual: any, desc?: string) {
     },
 
     async toResolveWith(expected: any) {
+      if (!(actual instanceof Promise)) {
+        throwErr(
+          `Expected a Promise to resolve, but got a non-promise: ${actual}`
+        );
+      }
       try {
         const result = await Promise.resolve(actual);
         assert(
@@ -284,6 +299,11 @@ export function expect(actual: any, desc?: string) {
     },
 
     async toRejectWith(expected: any) {
+      if (!(actual instanceof Promise)) {
+        throwErr(
+          `Expected a Promise to reject, but got a non-promise: ${actual}`
+        );
+      }
       try {
         const result = await Promise.resolve(actual);
         throwErr(
