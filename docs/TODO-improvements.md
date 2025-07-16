@@ -16,7 +16,7 @@ This document outlines 10 key areas for improving the integration with the Expo 
 
 ### 2. Use `Enumerable` for Type-Safe Native Enums
 
-**Problem:** Many properties accept a limited set of string values (e.g., `scalingMode` in `RNPlayerViewManagerExpo`, `mode` in `currentTime`). These are passed as raw strings, offering no validation until they are used in native logic.
+**Problem:** Many properties accept a limited set of string values (e.g., `scalingMode` in `RNPlayerViewManager`, `mode` in `currentTime`). These are passed as raw strings, offering no validation until they are used in native logic.
 
 **Improvement:** Define these as native enums that conform to the `Enumerable` protocol. This allows the Expo bridge to automatically validate incoming string values and convert them to a type-safe native enum, throwing a descriptive error for invalid values.
 
@@ -26,9 +26,9 @@ This document outlines 10 key areas for improving the integration with the Expo 
 - **Kotlin:** `enum class ScalingMode(val value: String) : Enumerable { FIT("fit"), ... }`
 - The `scalingMode` prop on `RNPlayerViewExpo` would then be of type `ScalingMode`.
 
-### 3. Refactor `RNPlayerViewManagerExpo` Props to Use Records
+### 3. Refactor `RNPlayerViewManager` Props to Use Records
 
-**Problem:** The `config` prop for the `RNPlayerViewManagerExpo` is a generic dictionary (`[String: Any]?`). This bundles multiple pieces of information (`playerId`, `playerViewConfig`, etc.) into one untyped object, requiring manual extraction and casting inside the view.
+**Problem:** The `config` prop for the `RNPlayerViewManager` is a generic dictionary (`[String: Any]?`). This bundles multiple pieces of information (`playerId`, `playerViewConfig`, etc.) into one untyped object, requiring manual extraction and casting inside the view.
 
 **Improvement:** Decompose the `config` prop into multiple, strongly-typed props. Use a `Record` for the complex `playerViewConfig`.
 
