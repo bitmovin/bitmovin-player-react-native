@@ -9,7 +9,7 @@ import expo.modules.kotlin.modules.ModuleDefinition
 
 class RNPlayerViewManager : Module() {
     override fun definition() = ModuleDefinition {
-        Name("RNPlayerViewManagerExpo")
+        Name("RNPlayerViewManager")
 
         View(RNPlayerView::class) {
             Prop("config") { view: RNPlayerView, playerInfo: Map<String, Any>? ->

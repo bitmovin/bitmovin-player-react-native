@@ -39,7 +39,7 @@ class RNPlayerViewPackage : ReactPackage {
     override fun createViewManagers(
         reactContext: ReactApplicationContext,
     ): MutableList<ViewManager<out View, out ReactShadowNode<*>>> {
-        // RNPlayerViewManager -> RNPlayerViewManagerExpo
+        // RNPlayerViewManager -> RNPlayerViewManager
         return mutableListOf()
     }
 }
