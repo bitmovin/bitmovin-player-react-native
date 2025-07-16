@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "bootstrap": "yarn install && yarn && yarn prebuild && yarn pods",
+    "bootstrap": "yarn install && yarn prebuild && yarn pods",
     "open:android": "open -a \"Android Studio\" android",
     "open:ios": "xed ios",
     "pods": "yarn pods-install || yarn pods-update",
@@ -22,7 +22,7 @@
     "build:ios": "xcodebuild -workspace ios/BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample -configuration Debug -destination 'generic/platform=iOS Simulator' -quiet | xcbeautify -qq --disable-logging",
     "build:android": "cd android && ./gradlew assembleDebug --quiet --console=plain --warning-mode=none",
     "build:ts": "tsc --noEmit",
-    "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
+    "lint": "eslint src --ext .ts,.tsx,.js,.jsx --quiet",
     "typecheck": "tsc --noEmit",
     "android": "expo run:android",
     "ios": "expo run:ios"
@@ -53,7 +53,10 @@
     "dotenv": "^17.2.0",
     "eslint": "^8.57.0",
     "eslint-config-expo": "~9.2.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.5.1",
     "pod-install": "^0.3.10",
+    "prettier": "^3.6.2",
     "typescript": "~5.8.3"
   },
   "private": true,

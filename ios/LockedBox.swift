@@ -1,6 +1,6 @@
 import Foundation
 
-class LockedBox<T> {
+internal class LockedBox<T> {
     private let lock = NSRecursiveLock()
     var value: T {
         lock.withLock {

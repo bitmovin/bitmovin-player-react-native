@@ -58,15 +58,15 @@ public class FullscreenHandlerExpoModule: Module {
         guard let handler = retrieve(nativeId) else {
             return
         }
-        
+
         let (id, wait) = waiter.make(timeout: 0.25)
-        
+
         // Send event to JavaScript
         sendEvent("onEnterFullscreen", [
             "nativeId": nativeId,
             "id": id
         ])
-        
+
         guard let result = wait() else {
             return
         }
@@ -81,15 +81,15 @@ public class FullscreenHandlerExpoModule: Module {
         guard let handler = retrieve(nativeId) else {
             return
         }
-        
+
         let (id, wait) = waiter.make(timeout: 0.25)
-        
+
         // Send event to JavaScript
         sendEvent("onExitFullscreen", [
             "nativeId": nativeId,
             "id": id
         ])
-        
+
         guard let result = wait() else {
             return
         }

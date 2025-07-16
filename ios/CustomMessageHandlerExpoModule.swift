@@ -61,7 +61,7 @@ extension CustomMessageHandlerExpoModule: CustomMessageHandlerBridgeDelegate {
         }
 
         let (id, wait) = waiter.make(timeout: 0.25)
-        
+
         // Send event to JavaScript
         sendEvent("onReceivedSynchronousMessage", [
             "nativeId": nativeId,

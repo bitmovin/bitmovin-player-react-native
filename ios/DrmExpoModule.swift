@@ -118,19 +118,23 @@ public class DrmExpoModule: Module {
 
     private func prepareCertificateFromJS(_ nativeId: String, _ data: Data) -> Data {
         let (id, wait) = waiter.make(timeout: 0.25)
-        sendEvent("onPrepareCertificate", ["nativeId": nativeId,
-                                           "id": id,
-                                           "certificate": data.base64EncodedString()])
+        sendEvent("onPrepareCertificate", [
+            "nativeId": nativeId,
+            "id": id,
+            "certificate": data.base64EncodedString()
+        ])
         let result = wait() ?? data.base64EncodedString()
         return Data(base64Encoded: result) ?? data
     }
 
     private func prepareMessageFromJS(_ nativeId: String, _ data: Data, _ assetId: String) -> Data {
         let (id, wait) = waiter.make(timeout: 0.25)
-        sendEvent("onPrepareMessage", ["nativeId": nativeId,
-                                      "id": id,
-                                      "message": data.base64EncodedString(),
-                                      "assetId": assetId])
+        sendEvent("onPrepareMessage", [
+            "nativeId": nativeId,
+            "id": id,
+            "message": data.base64EncodedString(),
+            "assetId": assetId
+        ])
         let result = wait() ?? data.base64EncodedString()
         return Data(base64Encoded: result) ?? data
     }
@@ -149,26 +153,32 @@ public class DrmExpoModule: Module {
 
     private func prepareLicenseFromJS(_ nativeId: String, _ data: Data) -> Data {
         let (id, wait) = waiter.make(timeout: 0.25)
-        sendEvent("onPrepareLicense", ["nativeId": nativeId,
-                                      "id": id,
-                                      "license": data.base64EncodedString()])
+        sendEvent("onPrepareLicense", [
+            "nativeId": nativeId,
+            "id": id,
+            "license": data.base64EncodedString()
+        ])
         let result = wait() ?? data.base64EncodedString()
         return Data(base64Encoded: result) ?? data
     }
 
     private func prepareLicenseServerUrlFromJS(_ nativeId: String, _ url: String) -> String {
         let (id, wait) = waiter.make(timeout: 0.25)
-        sendEvent("onPrepareLicenseServerUrl", ["nativeId": nativeId,
-                                                "id": id,
-                                                "licenseServerUrl": url])
+        sendEvent("onPrepareLicenseServerUrl", [
+            "nativeId": nativeId,
+            "id": id,
+            "licenseServerUrl": url
+        ])
         return wait() ?? url
     }
 
     private func prepareContentIdFromJS(_ nativeId: String, _ contentId: String) -> String {
         let (id, wait) = waiter.make(timeout: 0.25)
-        sendEvent("onPrepareContentId", ["nativeId": nativeId,
-                                         "id": id,
-                                         "contentId": contentId])
+        sendEvent("onPrepareContentId", [
+            "nativeId": nativeId,
+            "id": id,
+            "contentId": contentId
+        ])
         return wait() ?? contentId
     }
 }

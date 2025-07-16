@@ -1,6 +1,8 @@
+// swiftlint:disable file_length
 import BitmovinPlayer
 import ExpoModulesCore
 
+// swiftlint:disable:next type_body_length
 public class RNPlayerViewExpo: ExpoView {
     var playerView: PlayerView? {
         willSet {
@@ -134,9 +136,9 @@ public class RNPlayerViewExpo: ExpoView {
         ) {
             player.config.styleConfig.userInterfaceConfig = userInterfaceConfig
         }
-        
+
         let previousPictureInPictureAvailableValue: Bool
-        if let playerView  {
+        if let playerView {
             playerView.player = player
             previousPictureInPictureAvailableValue = playerView.isPictureInPictureAvailable
         } else {
@@ -209,10 +211,12 @@ public class RNPlayerViewExpo: ExpoView {
         id customMessageHandlerBridgeId: NativeId,
         to bitmovinUserInterfaceConfig: BitmovinUserInterfaceConfig
     ) {
-        guard let customMessageHandlerBridgeModule = self.appContext?.moduleRegistry.get(CustomMessageHandlerExpoModule.self) else {
+        guard let customMessageHandlerBridgeModule = self.appContext?.moduleRegistry
+            .get(CustomMessageHandlerExpoModule.self) else {
             return
         }
-        guard let customMessageHandlerBridge = customMessageHandlerBridgeModule.retrieve(customMessageHandlerBridgeId) else {
+        guard let customMessageHandlerBridge = customMessageHandlerBridgeModule
+            .retrieve(customMessageHandlerBridgeId) else {
             return
         }
 

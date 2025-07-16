@@ -13,7 +13,6 @@ internal class CustomMessageHandlerBridge: NSObject {
     private let nativeId: NativeId
     private weak var delegate: CustomMessageHandlerBridgeDelegate?
 
-
     init(_ nativeId: NativeId, delegate: CustomMessageHandlerBridgeDelegate?) {
         self.nativeId = nativeId
         self.delegate = delegate
@@ -40,7 +39,6 @@ internal class CustomMessageHandlerBridge: NSObject {
         customMessageHandler.sendMessage(message, withData: data)
 #endif
     }
-
 }
 
 #if os(iOS)

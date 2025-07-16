@@ -11,8 +11,17 @@
     "dev:plugin": "expo-module build plugin",
     "clean": "expo-module clean",
     "lint": "expo-module lint",
-    "lint:ios": "swiftlint ios",
-    "lint:android": "cd android && ./gradlew -b ktlint.gradle ktlintCheck",
+    "lint:all": "yarn lint && yarn example lint && yarn lint:ios && yarn lint:android",
+    "lint:all-with-tests": "yarn lint && yarn example lint && yarn integration-test lint && yarn lint:ios && yarn lint:android",
+    "typecheck": "tsc --noEmit",
+    "typecheck:all": "yarn typecheck && yarn example typecheck && yarn integration-test typecheck",
+    "format": "prettier --write '**/*.{ts,tsx,js,jsx,md,json,yml,yaml}'",
+    "format:ios": "./scripts/format-swift.sh",
+    "format:android": "./scripts/format-android.sh",
+    "format:all": "yarn format && yarn format:ios && yarn format:android",
+    "setup-hooks": "./scripts/setup-hooks.sh",
+    "lint:ios": "swiftlint ios --strict --quiet",
+    "lint:android": "cd android && ./gradlew -b ktlint.gradle ktlintCheck --quiet --console=plain",
     "prepare": "expo-module prepare",
     "prepublishOnly": "expo-module prepublishOnly",
     "module": "expo-module",
@@ -22,8 +31,8 @@
     "brew": "[ \"$(uname)\" != Darwin ] || brew bundle install",
     "docs": "typedoc",
     "pods": "yarn example pods #&& yarn integration-test pods",
-    "bootstrap": "yarn brew && yarn example bootstrap && yarn bootstrap:integration-test",
-    "bootstrap:integration-test": "# yarn && yarn integration-test && yarn integration-test pods && yarn brew"
+    "bootstrap": "yarn brew && yarn example bootstrap && yarn integration-test bootstrap && yarn setup-hooks",
+    "integration-test": "yarn --cwd integration_test"
   },
   "keywords": [
     "react-native",
@@ -71,7 +80,11 @@
     "react-native": "*"
   },
   "lint-staged": {
-    "*.(ts|tsx)": "eslint",
+    "src/**/*.(ts|tsx)": "eslint --quiet",
+    "example/src/**/*.(ts|tsx)": "eslint --quiet --config example/.eslintrc.js",
+    "integration_test/{src,playertesting,tests}/**/*.(ts|tsx)": "eslint --quiet --config integration_test/.eslintrc.js",
+    "ios/**/*.swift": ["./scripts/format-swift.sh", "./scripts/lint-swift.sh"],
+    "android/**/*.kt": ["./scripts/format-android.sh", "./scripts/lint-android.sh"],
     "*.(ts|tsx|js|jsx|md|json|yml|yaml)": "prettier --write"
   }
 }

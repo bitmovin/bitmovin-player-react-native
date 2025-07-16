@@ -204,7 +204,6 @@ public class PlayerExpoModule: Module {
                   let source = sourceModule.retrieve(sourceNativeId) else { return }
             player.load(source: source)
         }.runOnQueue(.main)
-
     }
 
     /// This needs to stay stable to maintain compatibility for cross-module access..
