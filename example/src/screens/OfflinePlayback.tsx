@@ -177,18 +177,19 @@ export default function OfflinePlayback() {
             }}
           />
         )}
-        {downloadState === OfflineState.Downloaded && !isLoadedSourceOffline && (
-          <Action
-            text={'Load offline content'}
-            onPress={() => {
-              if (offlineContentManager != null) {
-                onEvent('Loading the offline video');
-                player.loadOfflineContent(offlineContentManager);
-                setIsLoadedSourceOffline(true);
-              }
-            }}
-          />
-        )}
+        {downloadState === OfflineState.Downloaded &&
+          !isLoadedSourceOffline && (
+            <Action
+              text={'Load offline content'}
+              onPress={() => {
+                if (offlineContentManager != null) {
+                  onEvent('Loading the offline video');
+                  player.loadOfflineContent(offlineContentManager);
+                  setIsLoadedSourceOffline(true);
+                }
+              }}
+            />
+          )}
         {downloadState === OfflineState.NotDownloaded && (
           <Action
             text={'Download'}

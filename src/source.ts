@@ -1,11 +1,9 @@
-import { NativeModules } from 'react-native';
 import { Drm, DrmConfig } from './drm';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { SideLoadedSubtitleTrack } from './subtitleTrack';
 import { Thumbnail } from './thumbnail';
 import { SourceMetadata } from './analytics';
-
-const SourceModule = NativeModules.SourceModule;
+import SourceModule from './modules/SourceModule';
 
 /**
  * Types of media that can be handled by the player.
@@ -138,7 +136,7 @@ export interface SourceConfig extends NativeInstanceConfig {
 
 /**
  * The remote control config for a source.
- * @platform iOS
+ * @remarks Platform: iOS
  */
 export interface SourceRemoteControlConfig {
   /**
@@ -163,7 +161,7 @@ export class Source extends NativeInstance<SourceConfig> {
    * The remote control config for this source.
    * This is only supported on iOS.
    *
-   * @platform iOS
+   * @remarks Platform: iOS
    */
   remoteControl: SourceRemoteControlConfig | null = null;
   /**
@@ -178,7 +176,7 @@ export class Source extends NativeInstance<SourceConfig> {
   /**
    * Allocates the native {@link Source} instance and its resources natively.
    */
-  initialize = () => {
+  initialize = async (): Promise<void> => {
     if (!this.isInitialized) {
       const sourceMetadata = this.config?.analyticsSourceMetadata;
       if (this.config?.drmConfig) {
@@ -186,23 +184,24 @@ export class Source extends NativeInstance<SourceConfig> {
         this.drm.initialize();
       }
       if (sourceMetadata) {
-        SourceModule.initWithAnalyticsConfig(
+        await SourceModule.initializeWithAnalyticsConfig(
           this.nativeId,
           this.drm?.nativeId,
           this.config,
-          this.remoteControl,
+          this.remoteControl || undefined,
           sourceMetadata
         );
       } else {
-        SourceModule.initWithConfig(
+        await SourceModule.initializeWithConfig(
           this.nativeId,
           this.drm?.nativeId,
           this.config,
-          this.remoteControl
+          this.remoteControl || undefined
         );
       }
       this.isInitialized = true;
     }
+    return Promise.resolve();
   };
 
   /**
@@ -221,7 +220,7 @@ export class Source extends NativeInstance<SourceConfig> {
    * Default value is `0` if the duration is not available or not known.
    */
   duration = async (): Promise<number> => {
-    return SourceModule.duration(this.nativeId);
+    return (await SourceModule.duration(this.nativeId)) || 0;
   };
 
   /**
@@ -229,14 +228,14 @@ export class Source extends NativeInstance<SourceConfig> {
    * Only one source can be active in the same player instance at any time.
    */
   isActive = async (): Promise<boolean> => {
-    return SourceModule.isActive(this.nativeId);
+    return (await SourceModule.isActive(this.nativeId)) ?? false;
   };
 
   /**
    * Whether the source is currently attached to a player instance.
    */
   isAttachedToPlayer = async (): Promise<boolean> => {
-    return SourceModule.isAttachedToPlayer(this.nativeId);
+    return (await SourceModule.isAttachedToPlayer(this.nativeId)) ?? false;
   };
 
   /**
@@ -260,7 +259,9 @@ export class Source extends NativeInstance<SourceConfig> {
    * The current `LoadingState` of the source.
    */
   loadingState = async (): Promise<LoadingState> => {
-    return SourceModule.loadingState(this.nativeId);
+    return (
+      (await SourceModule.loadingState(this.nativeId)) || LoadingState.UNLOADED
+    );
   };
 
   /**

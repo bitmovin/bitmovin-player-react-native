@@ -3,6 +3,7 @@ package com.bitmovin.player.reactnative
 import android.util.Log
 import androidx.concurrent.futures.CallbackToFutureAdapter
 import androidx.concurrent.futures.CallbackToFutureAdapter.Completer
+import androidx.core.os.bundleOf
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.network.HttpResponse
@@ -13,16 +14,17 @@ import com.bitmovin.player.reactnative.converter.toHttpRequest
 import com.bitmovin.player.reactnative.converter.toHttpResponse
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toNetworkConfig
-import com.facebook.react.bridge.*
-import com.facebook.react.module.annotations.ReactModule
+import expo.modules.kotlin.Promise
+import expo.modules.kotlin.modules.Module
+import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Future
 
-private const val MODULE_NAME = "NetworkModule"
-
-@ReactModule(name = MODULE_NAME)
-class NetworkModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
-
+/**
+ * Expo module for NetworkConfig management with HTTP request/response preprocessing.
+ * Handles bidirectional communication between native code and JavaScript for network operations.
+ */
+class NetworkModule : Module() {
     /**
      * In-memory mapping from `nativeId`s to `NetworkConfig` instances.
      */
@@ -30,101 +32,135 @@ class NetworkModule(context: ReactApplicationContext) : BitmovinBaseModule(conte
     private val preprocessHttpRequestCompleters = ConcurrentHashMap<String, Completer<HttpRequest>>()
     private val preprocessHttpResponseCompleters = ConcurrentHashMap<String, Completer<HttpResponse>>()
 
-    override fun getName() = MODULE_NAME
+    override fun definition() = ModuleDefinition {
+        Name("NetworkModule")
 
-    fun getConfig(nativeId: NativeId?): NetworkConfig? = nativeId?.let { networkConfigs[it] }
+        Events("onPreprocessHttpRequest", "onPreprocessHttpResponse")
 
-    @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap, promise: Promise) {
-        promise.unit.resolveOnUiThread {
+        AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>, promise: Promise ->
             if (networkConfigs.containsKey(nativeId)) {
-                return@resolveOnUiThread
+                promise.resolve(null)
+                return@AsyncFunction
             }
-            val networkConfig = config.toNetworkConfig()
-            networkConfigs[nativeId] = networkConfig
-            initConfigBlocks(nativeId, config)
+
+            try {
+                val networkConfig = config.toNetworkConfig()
+                networkConfigs[nativeId] = networkConfig
+                initConfigBlocks(nativeId, config)
+                promise.resolve(null)
+            } catch (e: Exception) {
+                promise.reject("NetworkError", "Failed to initialize network config", e)
+            }
+        }
+
+        AsyncFunction("destroy") { nativeId: String ->
+            networkConfigs.remove(nativeId)
+
+            // Clean up completion handlers
+            preprocessHttpRequestCompleters.keys.filter { it.startsWith(nativeId) }.forEach {
+                preprocessHttpRequestCompleters.remove(it)
+            }
+            preprocessHttpResponseCompleters.keys.filter { it.startsWith(nativeId) }.forEach {
+                preprocessHttpResponseCompleters.remove(it)
+            }
+        }
+
+        AsyncFunction("setPreprocessedHttpRequest") { requestId: String, request: Map<String, Any?> ->
+            val completer = preprocessHttpRequestCompleters.remove(requestId)
+            if (completer == null) {
+                Log.e("NetworkModule", "Completer is null for requestId: $requestId, this can cause stuck network requests")
+                return@AsyncFunction
+            }
+            completer.set(request.toHttpRequest())
+        }
+
+        AsyncFunction("setPreprocessedHttpResponse") { responseId: String, response: Map<String, Any?> ->
+            preprocessHttpResponseCompleters[responseId]?.set(response.toHttpResponse())
+            preprocessHttpResponseCompleters.remove(responseId)
         }
     }
 
-    @ReactMethod
-    fun destroy(nativeId: NativeId) {
-        networkConfigs.remove(nativeId)
-        preprocessHttpRequestCompleters.keys.filter { it.startsWith(nativeId) }.forEach {
-            preprocessHttpRequestCompleters.remove(it)
-        }
-        preprocessHttpResponseCompleters.keys.filter { it.startsWith(nativeId) }.forEach {
-            preprocessHttpResponseCompleters.remove(it)
-        }
+    /**
+     * Retrieves the NetworkConfig instance for the given nativeId.
+     * This method maintains the same static access pattern as the legacy module.
+     */
+    fun getConfig(nativeId: String?): NetworkConfig? = nativeId?.let { networkConfigs[it] }
+
+    private fun initConfigBlocks(nativeId: String, config: Map<String, Any?>) {
+        initPreprocessHttpRequest(nativeId, config)
+        initPreprocessHttpResponse(nativeId, config)
     }
 
-    private fun initConfigBlocks(nativeId: String, config: ReadableMap) {
-        initPreprocessHttpRequest(nativeId, networkConfigJson = config)
-        initPreprocessHttpResponse(nativeId, networkConfigJson = config)
-    }
-
-    private fun initPreprocessHttpRequest(nativeId: NativeId, networkConfigJson: ReadableMap) {
+    private fun initPreprocessHttpRequest(nativeId: String, networkConfigJson: Map<String, Any?>) {
         val networkConfig = getConfig(nativeId) ?: return
-        if (!networkConfigJson.hasKey("preprocessHttpRequest")) return
+        if (!networkConfigJson.containsKey("preprocessHttpRequest")) return
+
         networkConfig.preprocessHttpRequestCallback = PreprocessHttpRequestCallback { type, request ->
             preprocessHttpRequestFromJS(nativeId, type, request)
         }
     }
 
-    private fun initPreprocessHttpResponse(nativeId: NativeId, networkConfigJson: ReadableMap) {
+    private fun initPreprocessHttpResponse(nativeId: String, networkConfigJson: Map<String, Any?>) {
         val networkConfig = getConfig(nativeId) ?: return
-        if (!networkConfigJson.hasKey("preprocessHttpResponse")) return
+        if (!networkConfigJson.containsKey("preprocessHttpResponse")) return
+
         networkConfig.preprocessHttpResponseCallback = PreprocessHttpResponseCallback { type, response ->
             preprocessHttpResponseFromJS(nativeId, type, response)
         }
     }
 
     private fun preprocessHttpRequestFromJS(
-        nativeId: NativeId,
+        nativeId: String,
         type: HttpRequestType,
         request: HttpRequest,
     ): Future<HttpRequest> {
         val requestId = "$nativeId@${System.identityHashCode(request)}"
-        val args = Arguments.createArray()
-        args.pushString(requestId)
-        args.pushString(type.toJson())
-        args.pushMap(request.toJson())
+        val args = mapOf(
+            "requestId" to requestId,
+            "type" to type.toJson(),
+            "request" to request.toJson(),
+        )
 
         return CallbackToFutureAdapter.getFuture { completer ->
             preprocessHttpRequestCompleters[requestId] = completer
-            context.catalystInstance.callFunction("Network-$nativeId", "onPreprocessHttpRequest", args as NativeArray)
-        }
-    }
 
-    @ReactMethod
-    fun setPreprocessedHttpRequest(requestId: String, request: ReadableMap) {
-        val completer = preprocessHttpRequestCompleters.remove(requestId)
-        if (completer == null) {
-            Log.e(MODULE_NAME, "Completer is null for requestId: $requestId, this can cause stuck network requests")
-            return
+            // Send event to TypeScript using Expo module event system
+            sendEvent(
+                "onPreprocessHttpRequest",
+                bundleOf(
+                    "nativeId" to nativeId,
+                    "requestId" to requestId,
+                    "type" to type.toJson(),
+                    "request" to request.toJson(),
+                ),
+            )
+
+            return@getFuture "NetworkModule-preprocessHttpRequest-$requestId"
         }
-        completer.set(request.toHttpRequest())
     }
 
     private fun preprocessHttpResponseFromJS(
-        nativeId: NativeId,
+        nativeId: String,
         type: HttpRequestType,
         response: HttpResponse,
     ): Future<HttpResponse> {
         val responseId = "$nativeId@${System.identityHashCode(response)}"
-        val args = Arguments.createArray()
-        args.pushString(responseId)
-        args.pushString(type.toJson())
-        args.pushMap(response.toJson())
 
         return CallbackToFutureAdapter.getFuture { completer ->
             preprocessHttpResponseCompleters[responseId] = completer
-            context.catalystInstance.callFunction("Network-$nativeId", "onPreprocessHttpResponse", args as NativeArray)
-        }
-    }
 
-    @ReactMethod
-    fun setPreprocessedHttpResponse(responseId: String, response: ReadableMap) {
-        preprocessHttpResponseCompleters[responseId]?.set(response.toHttpResponse())
-        preprocessHttpResponseCompleters.remove(responseId)
+            // Send event to TypeScript using Expo module event system
+            sendEvent(
+                "onPreprocessHttpResponse",
+                bundleOf(
+                    "nativeId" to nativeId,
+                    "responseId" to responseId,
+                    "type" to type.toJson(),
+                    "response" to response.toJson(),
+                ),
+            )
+
+            return@getFuture "NetworkModule-preprocessHttpResponse-$responseId"
+        }
     }
 }

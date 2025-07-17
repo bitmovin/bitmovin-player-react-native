@@ -48,38 +48,44 @@ export interface ErrorEvent extends Event {
  * Emitted when a source is loaded into the player.
  * Seeking and time shifting are allowed as soon as this event is seen.
  */
-export interface PlayerActiveEvent extends Event {}
+export type PlayerActiveEvent = Event;
+
+/**
+ * Emitted when a source is unloaded from the player.
+ * Seeking and time shifting are not allowed anymore after this event.
+ */
+export type PlayerInactiveEvent = Event;
 
 /**
  * Emitted when a player error occurred.
  */
-export interface PlayerErrorEvent extends ErrorEvent {}
+export type PlayerErrorEvent = ErrorEvent;
 
 /**
  * Emitted when a player warning occurred.
  */
-export interface PlayerWarningEvent extends ErrorEvent {}
+export type PlayerWarningEvent = ErrorEvent;
 
 /**
  * Emitted when the player is destroyed.
  */
-export interface DestroyEvent extends Event {}
+export type DestroyEvent = Event;
 
 /**
  * Emitted when the player is muted.
  */
-export interface MutedEvent extends Event {}
+export type MutedEvent = Event;
 
 /**
  * Emitted when the player is unmuted.
  */
-export interface UnmutedEvent extends Event {}
+export type UnmutedEvent = Event;
 
 /**
  * Emitted when the player is ready for immediate playback, because initial audio/video
  * has been downloaded.
  */
-export interface ReadyEvent extends Event {}
+export type ReadyEvent = Event;
 
 /**
  * Emitted when the player is paused.
@@ -114,7 +120,7 @@ export interface PlayingEvent extends Event {
 /**
  * Emitted when the playback of the current media has finished.
  */
-export interface PlaybackFinishedEvent extends Event {}
+export type PlaybackFinishedEvent = Event;
 
 /**
  * Source object representation the way it appears on event's payloads such as `SeekEvent`, for example.
@@ -182,7 +188,7 @@ export interface SeekEvent extends Event {
  * This event only applies to VoD streams.
  * When looking for an equivalent for live streams, the {@link TimeShiftedEvent} is relevant.
  */
-export interface SeekedEvent extends Event {}
+export type SeekedEvent = Event;
 
 /**
  * Emitted when the player starts time shifting.
@@ -205,17 +211,17 @@ export interface TimeShiftEvent extends Event {
  * This event only applies to live streams.
  * When looking for an equivalent for VoD streams, the {@link SeekedEvent} is relevant.
  */
-export interface TimeShiftedEvent extends Event {}
+export type TimeShiftedEvent = Event;
 
 /**
  * Emitted when the player begins to stall and to buffer due to an empty buffer.
  */
-export interface StallStartedEvent extends Event {}
+export type StallStartedEvent = Event;
 
 /**
  * Emitted when the player ends stalling, due to enough data in the buffer.
  */
-export interface StallEndedEvent extends Event {}
+export type StallEndedEvent = Event;
 
 /**
  * Emitted when the current playback time has changed.
@@ -262,12 +268,12 @@ export interface SourceUnloadedEvent extends Event {
 /**
  * Emitted when a source error occurred.
  */
-export interface SourceErrorEvent extends ErrorEvent {}
+export type SourceErrorEvent = ErrorEvent;
 
 /**
  * Emitted when a source warning occurred.
  */
-export interface SourceWarningEvent extends ErrorEvent {}
+export type SourceWarningEvent = ErrorEvent;
 
 /**
  * Emitted when a new audio track is added to the player.
@@ -340,63 +346,63 @@ export interface SubtitleChangedEvent extends Event {
 /**
  * Emitted when the player enters Picture in Picture mode.
  *
- * @platform iOS, Android
+ * @remarks Platform: iOS, Android
  */
-export interface PictureInPictureEnterEvent extends Event {}
+export type PictureInPictureEnterEvent = Event;
 
 /**
  * Emitted when the player exits Picture in Picture mode.
  *
- * @platform iOS, Android
+ * @remarks Platform: iOS, Android
  */
-export interface PictureInPictureExitEvent extends Event {}
+export type PictureInPictureExitEvent = Event;
 
 /**
  * Emitted when the player has finished entering Picture in Picture mode on iOS.
  *
- * @platform iOS
+ * @remarks Platform: iOS
  */
-export interface PictureInPictureEnteredEvent extends Event {}
+export type PictureInPictureEnteredEvent = Event;
 
 /**
  * Emitted when the player has finished exiting Picture in Picture mode on iOS.
  *
- * @platform iOS
+ * @remarks Platform: iOS
  */
-export interface PictureInPictureExitedEvent extends Event {}
+export type PictureInPictureExitedEvent = Event;
 
 /**
  * Emitted when the fullscreen functionality has been enabled.
  *
- * @platform iOS, Android
+ * @remarks Platform: iOS, Android
  */
-export interface FullscreenEnabledEvent extends Event {}
+export type FullscreenEnabledEvent = Event;
 
 /**
  * Emitted when the fullscreen functionality has been disabled.
  *
- * @platform iOS, Android
+ * @remarks Platform: iOS, Android
  */
-export interface FullscreenDisabledEvent extends Event {}
+export type FullscreenDisabledEvent = Event;
 
 /**
  * Emitted when the player enters fullscreen mode.
  *
- * @platform iOS, Android
+ * @remarks Platform: iOS, Android
  */
-export interface FullscreenEnterEvent extends Event {}
+export type FullscreenEnterEvent = Event;
 
 /**
  * Emitted when the player exits fullscreen mode.
  *
- * @platform iOS, Android
+ * @remarks Platform: iOS, Android
  */
-export interface FullscreenExitEvent extends Event {}
+export type FullscreenExitEvent = Event;
 
 /**
  * Emitted when the availability of the Picture in Picture mode changed on Android.
  *
- * @platform Android
+ * @remarks Platform: Android
  */
 export interface PictureInPictureAvailabilityChangedEvent extends Event {
   /**
@@ -590,28 +596,28 @@ export interface VideoPlaybackQualityChangedEvent extends Event {
 /**
  * Emitted when casting to a cast-compatible device is available.
  */
-export interface CastAvailableEvent extends Event {}
+export type CastAvailableEvent = Event;
 
 /**
  * Emitted when the playback on a cast-compatible device was paused.
  *
  * On Android {@link PausedEvent} is also emitted while casting.
  */
-export interface CastPausedEvent extends Event {}
+export type CastPausedEvent = Event;
 
 /**
  * Emitted when the playback on a cast-compatible device has finished.
  *
  * On Android {@link PlaybackFinishedEvent} is also emitted while casting.
  */
-export interface CastPlaybackFinishedEvent extends Event {}
+export type CastPlaybackFinishedEvent = Event;
 
 /**
  * Emitted when playback on a cast-compatible device has started.
  *
  * On Android {@link PlayingEvent} is also emitted while casting.
  */
-export interface CastPlayingEvent extends Event {}
+export type CastPlayingEvent = Event;
 
 /**
  * Emitted when the cast app is launched successfully.
@@ -626,17 +632,17 @@ export interface CastStartedEvent extends Event {
 /**
  * Emitted when casting is initiated, but the user still needs to choose which device should be used.
  */
-export interface CastStartEvent extends Event {}
+export type CastStartEvent = Event;
 
 /**
  * Emitted when casting to a cast-compatible device is stopped.
  */
-export interface CastStoppedEvent extends Event {}
+export type CastStoppedEvent = Event;
 
 /**
  * Emitted when the time update from the currently used cast-compatible device is received.
  */
-export interface CastTimeUpdatedEvent extends Event {}
+export type CastTimeUpdatedEvent = Event;
 
 /**
  * Contains information for the {@link CastWaitingForDeviceEvent}.
@@ -691,7 +697,7 @@ export interface DownloadFinishedEvent extends Event {
   /**
    * The last redirect location, or `null` if no redirect happened.
    */
-  lastRedirectLocation?: String;
+  lastRedirectLocation?: string;
   /**
    * The size of the downloaded data, in bytes.
    */
@@ -699,12 +705,12 @@ export interface DownloadFinishedEvent extends Event {
   /**
    * The URL of the request.
    */
-  url: String;
+  url: string;
 }
 
 /**
  * Emitted when the player transitions from one playback speed to another.
- * @platform iOS, tvOS
+ * @remarks Platform: iOS, tvOS
  */
 export interface PlaybackSpeedChangedEvent extends Event {
   /**

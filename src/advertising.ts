@@ -83,7 +83,7 @@ export interface AdItem {
    *
    * Default value is 0.0
    *
-   * @platform Android
+   * @remarks Platform: Android
    */
   preloadOffset?: number;
 }

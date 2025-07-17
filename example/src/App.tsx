@@ -22,6 +22,7 @@ import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
 import BackgroundPlayback from './screens/BackgroundPlayback';
+import * as Device from 'expo-device';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -68,6 +69,7 @@ const RootStack = createNativeStackNavigator<RootStackParamsList>();
 
 const isTVOS = Platform.OS === 'ios' && Platform.isTV;
 const isAndroidTV = Platform.OS === 'android' && Platform.isTV;
+const isIOSSimulator = Device.osName === 'iOS' && Device.isDevice === false;
 
 export default function App() {
   useEffect(() => {
@@ -134,10 +136,12 @@ export default function App() {
       routeName: 'CustomHtmlUi',
     });
 
-    stackParams.data.push({
-      title: 'Offline playback',
-      routeName: 'OfflinePlayback',
-    });
+    if (!isIOSSimulator) {
+      stackParams.data.push({
+        title: 'Offline playback',
+        routeName: 'OfflinePlayback',
+      });
+    }
   }
 
   if (!Platform.isTV) {

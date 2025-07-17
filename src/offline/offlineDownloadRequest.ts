@@ -1,6 +1,6 @@
 /**
  * Represents the configuration to start a download.
- * @platform Android, iOS
+ * @remarks Platform: Android, iOS
  */
 export interface OfflineDownloadRequest {
   /**

@@ -1,44 +1,21 @@
 import AVFAudio
+import ExpoModulesCore
 
-@objc(AudioSessionModule)
-public class AudioSessionModule: NSObject, RCTBridgeModule {
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    public var methodQueue: DispatchQueue! {
-        DispatchQueue.main
-    }
+public class AudioSessionModule: Module {
+    public func definition() -> ModuleDefinition {
+        Name("AudioSessionModule")
 
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    public static func moduleName() -> String! {
-        "AudioSessionModule"
-    }
-
-    public static func requiresMainQueueSetup() -> Bool {
-        true
-    }
-
-    /**
-     Sets the audio session’s category.
-     - Parameter category: Category string.
-     - Parameter resolver: JS promise resolver block.
-     - Parameter rejecter: JS promise rejecter block.
-     */
-    @objc
-    func setCategory(
-        _ category: String,
-        resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock
-    ) {
-        if let category = parseCategory(category) {
-            do {
-                try AVAudioSession.sharedInstance().setCategory(category)
-                resolve(nil)
-            } catch {
-                reject("\((error as NSError).code)", error.localizedDescription, error as NSError)
+        AsyncFunction("setCategory") { (category: String) in
+            if let parsedCategory = parseCategory(category) {
+                do {
+                    try AVAudioSession.sharedInstance().setCategory(parsedCategory)
+                } catch {
+                    throw Exception(name: "AUDIO_SESSION_ERROR", description: error.localizedDescription)
+                }
+            } else {
+                throw Exception(name: "INVALID_CATEGORY", description: "Unknown audio session category: \(category)")
             }
-        } else {
-            let error = RCTErrorWithMessage("Unknown audio session category: \(category)") as NSError
-            reject("\(error.code)", error.localizedDescription, error)
-        }
+        }.runOnQueue(.main)
     }
 
     /**

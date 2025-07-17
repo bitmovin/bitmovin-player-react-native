@@ -1,6 +1,6 @@
-import { NativeModules } from 'react-native';
+import UuidModule from './modules/UuidModule';
 
-const Uuid = NativeModules.UuidModule;
+const Uuid = UuidModule;
 
 export interface NativeInstanceConfig {
   /**
@@ -20,7 +20,7 @@ export interface NativeInstanceConfig {
 }
 
 export default abstract class NativeInstance<
-  Config extends NativeInstanceConfig
+  Config extends NativeInstanceConfig,
 > {
   /**
    * Optionally user-defined string `id` for the native instance, or UUIDv4.

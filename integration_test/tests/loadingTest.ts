@@ -38,9 +38,12 @@ export default (spec: TestScope) => {
       });
       spec.it('emits SourceLoad and SourceLoaded events', async () => {
         await startPlayerTest({}, async () => {
-          await callPlayerAndExpectEvents((player) => {
-            player.load(sourceConfig);
-          }, EventSequence(EventType.SourceLoad, EventType.SourceLoaded));
+          await callPlayerAndExpectEvents(
+            (player) => {
+              player.load(sourceConfig);
+            },
+            EventSequence(EventType.SourceLoad, EventType.SourceLoaded)
+          );
         });
       });
       spec.it('emits DownloadFinished events', async () => {

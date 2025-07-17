@@ -16,7 +16,7 @@ export interface PictureInPictureConfig {
    *
    * Default is `false`.
    *
-   * @platform iOS 14.2 and above
+   * @remarks Platform: iOS 14.2 and above
    */
   shouldEnterOnBackground?: boolean;
 }

@@ -12,7 +12,7 @@ import {
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import { RootStackParamsList } from '../App';
-import Orientation from 'react-native-orientation-locker';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 
 type LandscapeFullscreenHandlingProps = NativeStackScreenProps<
@@ -45,7 +45,7 @@ class SampleFullscreenHandler implements FullscreenHandler {
       // Hides status bar on iOS
       StatusBar.setHidden(true);
     }
-    Orientation.lockToLandscape();
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
     console.log('enter fullscreen');
     this.onFullscreen(true);
   }
@@ -59,7 +59,7 @@ class SampleFullscreenHandler implements FullscreenHandler {
       // shows status bar on iOS
       StatusBar.setHidden(false);
     }
-    Orientation.unlockAllOrientations();
+    ScreenOrientation.unlockAsync();
     console.log('exit fullscreen');
     this.onFullscreen(false);
   }

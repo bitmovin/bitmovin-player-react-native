@@ -1,6 +1,8 @@
 #if os(iOS)
 import BitmovinPlayer
+import ExpoModulesCore
 import Foundation
+import React
 
 internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListener {
     enum EventType: String {
@@ -16,19 +18,19 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
     }
 
     let offlineContentManager: OfflineContentManager
-    let eventEmitter: RCTEventEmitter?
+    private weak var module: OfflineModule?
     let nativeId: NativeId
     let identifier: String
     var currentTrackSelection: OfflineTrackSelection?
 
     init(
         forManager offlineContentManager: OfflineContentManager,
-        eventEmitter: RCTEventEmitter,
+        module: OfflineModule,
         nativeId: NativeId,
         identifier: String
     ) {
         self.offlineContentManager = offlineContentManager
-        self.eventEmitter = eventEmitter
+        self.module = module
         self.nativeId = nativeId
         self.identifier = identifier
         super.init()
@@ -55,7 +57,7 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         offlineContentManager: OfflineContentManager
     ) {
         sendOfflineEvent(eventType: .onError, body: [
-            "code": event.code,
+            "code": event.errorCode,
             "message": event.message
         ])
     }
@@ -70,7 +72,7 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         currentTrackSelection = event.tracks
 
         sendOfflineEvent(eventType: .onOptionsAvailable, body: [
-            "options": RCTConvert.toJson(offlineTracks: event.tracks)
+            "options": RCTConvert.toJson(offlineTracks: event.tracks) ?? [:]
         ])
     }
 
@@ -82,7 +84,7 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         offlineContentManager: OfflineContentManager
     ) {
         sendOfflineEvent(eventType: .onCompleted, body: [
-            "options": RCTConvert.toJson(offlineTracks: currentTrackSelection)
+            "options": RCTConvert.toJson(offlineTracks: currentTrackSelection) ?? [:]
         ])
     }
 
@@ -150,8 +152,8 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         sendOfflineEvent(eventType: .onDrmLicenseExpired)
     }
 
-    private func sendOfflineEvent(eventType: EventType, body: [String: Any?] = [:]) {
-        var baseEvent: [String: Any?] = [
+    private func sendOfflineEvent(eventType: EventType, body: [String: Any] = [:]) {
+        let baseEvent: [String: Any] = [
             "nativeId": nativeId,
             "identifier": identifier,
             "eventType": eventType.rawValue,
@@ -160,11 +162,7 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
 
         let eventBody = baseEvent.merging(body) { current, _ in current }
 
-        do {
-            try eventEmitter?.sendEvent(withName: "BitmovinOfflineEvent", body: eventBody)
-        } catch let error as NSError {
-            print(error)
-        }
+        module?.sendEvent("onBitmovinOfflineEvent", eventBody)
     }
 }
 #endif

@@ -1,6 +1,4 @@
-import { NativeModules } from 'react-native';
-
-const DebugModule = NativeModules.DebugModule;
+import DebugModule from './modules/DebugModule';
 
 /**
  * Global debug configuration for all Bitmovin components.
