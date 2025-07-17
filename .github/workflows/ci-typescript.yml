@@ -71,7 +71,7 @@ jobs:
         run: yarn install --frozen-lockfile --cwd integration_test
 
       - name: Lint Typescript
-        run: yarn lint:all
+        run: yarn lint
 
   test-build-typescript:
     name: Build
