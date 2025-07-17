@@ -10,8 +10,8 @@
     "pods": "yarn pods-install || yarn pods-update",
     "pods-install": "[ \"$(uname)\" != Darwin ] || yarn pod-install",
     "pods-update": "[ \"$(uname)\" != Darwin ] || cd ios && pod update --silent",
-    "prebuild": "expo prebuild",
-    "prebuild:tv": "EXPO_TV=1 expo prebuild",
+    "prebuild": "npx expo prebuild",
+    "prebuild:tv": "EXPO_TV=1 npx expo prebuild",
     "run:android": "expo run:android",
     "run:android-tv": "EXPO_TV=1 expo run:android",
     "run:ios": "expo run:ios",
@@ -48,6 +48,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
+    "@expo/cli": "^0.24.3",
     "@expo/config-types": "^53.0.5",
     "@types/lodash.omit": "^4.5.9",
     "@types/react": "~19.0.10",
