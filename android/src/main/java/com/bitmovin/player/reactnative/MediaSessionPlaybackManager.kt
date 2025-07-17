@@ -6,13 +6,12 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import com.bitmovin.player.api.Player
-import com.bitmovin.player.reactnative.extensions.playerModule
 import com.bitmovin.player.reactnative.services.MediaSessionPlaybackService
-import com.facebook.react.bridge.*
+import expo.modules.kotlin.AppContext
 
-class MediaSessionPlaybackManager(val context: ReactApplicationContext) {
+class MediaSessionPlaybackManager(val appContext: AppContext) {
     private var serviceBinder: MediaSessionPlaybackService.ServiceBinder? = null
-    private lateinit var playerId: NativeId
+    private var playerId: NativeId? = null
     val player: Player?
         get() = serviceBinder?.player
 
@@ -24,13 +23,17 @@ class MediaSessionPlaybackManager(val context: ReactApplicationContext) {
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
-            destroy(playerId)
+            playerId?.let {
+                destroy(it)
+            }
         }
     }
 
     fun setupMediaSessionPlayback(playerId: NativeId) {
         this.playerId = playerId
 
+        val context = appContext.reactContext
+            ?: throw IllegalStateException("React context is not available")
         val intent = Intent(context, MediaSessionPlaybackService::class.java)
         intent.action = Intent.ACTION_MEDIA_BUTTON
         val connection: ServiceConnection = MediaSessionPlaybackServiceConnection()
@@ -38,13 +41,15 @@ class MediaSessionPlaybackManager(val context: ReactApplicationContext) {
     }
 
     fun destroy(nativeId: NativeId) {
-        if (nativeId != playerId) { return }
+        if (nativeId != playerId) {
+            return
+        }
         serviceBinder?.player = null
         serviceBinder = null
     }
 
     private fun getPlayer(
-        nativeId: NativeId = playerId,
-        playerModule: PlayerModule? = context.playerModule,
-    ): Player = playerModule?.getPlayerOrNull(nativeId) ?: throw IllegalArgumentException("Invalid PlayerId $nativeId")
+        nativeId: NativeId? = playerId,
+    ): Player = playerId?.let { appContext.registry.getModule<PlayerModule>()?.getPlayerOrNull(it) }
+        ?: throw IllegalArgumentException("Invalid PlayerId $nativeId")
 }

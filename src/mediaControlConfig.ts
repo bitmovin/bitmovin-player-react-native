@@ -13,7 +13,7 @@ export interface MediaControlConfig {
    * For a detailed list of the supported features in the **default behavior**,
    * check the **Default Supported Features** section.
    *
-   * @note Enabling this flag will automatically treat {@link TweaksConfig.updatesNowPlayingInfoCenter} as `false`.
+   * @remarks Enabling this flag will automatically treat {@link TweaksConfig.updatesNowPlayingInfoCenter} as `false`.
    *
    * ## Limitations
    * ---
@@ -54,6 +54,8 @@ export interface MediaControlConfig {
    * **iOS-only**
    * - skip forward
    * - skip backward
+   * - play
+   * - pause
    */
   isEnabled?: boolean;
 }

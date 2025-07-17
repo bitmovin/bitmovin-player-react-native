@@ -28,9 +28,6 @@ concurrency:
   group: ci-android-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-env:
-  NO_FLIPPER: 1
-
 jobs:
   code-style-android:
     name: Code style Android
@@ -63,9 +60,14 @@ jobs:
           subprojects: true
 
       - name: Build Android example
-        run: ./gradlew assembleDebug --build-cache
-        working-directory: example/android
+        run: yarn example build:android --build-cache
+
+      - name: Prebuild Android TV example
+        run: yarn example prebuild:tv --clean
+
+      - name: Build Android TV example
+        run: yarn example build:tv --build-cache
 
       - name: Build Android integration test host app
-        run: ./gradlew assembleDebug --build-cache
-        working-directory: integration_test/android
+        run: yarn integration-test build:android --build-cache
+        working-directory: integration_test

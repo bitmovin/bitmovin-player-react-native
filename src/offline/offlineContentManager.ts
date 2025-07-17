@@ -1,11 +1,5 @@
-import {
-  EmitterSubscription,
-  NativeEventEmitter,
-  NativeModule,
-  NativeModules,
-} from 'react-native';
+import { EventSubscription } from 'expo-modules-core';
 import NativeInstance from '../nativeInstance';
-import { SourceConfig } from '../source';
 import {
   BitmovinNativeOfflineEventData,
   OfflineContentManagerListener,
@@ -15,29 +9,7 @@ import { OfflineContentConfig } from './offlineContentConfig';
 import { OfflineDownloadRequest } from './offlineDownloadRequest';
 import { OfflineState } from './offlineState';
 import { Drm } from '../drm';
-
-interface NativeOfflineModule extends NativeModule {
-  initWithConfig(
-    nativeId: string,
-    config: { identifier: string; sourceConfig: SourceConfig },
-    drmNativeId: string | undefined
-  ): Promise<void>;
-  getState(nativeId: string): Promise<OfflineState>;
-  getOptions(nativeId: string): Promise<void>;
-  download(nativeId: string, request: OfflineDownloadRequest): Promise<void>;
-  resume(nativeId: string): Promise<void>;
-  suspend(nativeId: string): Promise<void>;
-  cancelDownload(nativeId: string): Promise<void>;
-  usedStorage(nativeId: string): Promise<number>;
-  deleteAll(nativeId: string): Promise<void>;
-  downloadLicense(nativeId: string): Promise<void>;
-  releaseLicense(nativeId: string): Promise<void>;
-  renewOfflineLicense(nativeId: string): Promise<void>;
-  release(nativeId: string): Promise<void>;
-}
-
-const OfflineModule =
-  NativeModules.BitmovinOfflineModule as NativeOfflineModule;
+import OfflineModule from './offlineModule';
 
 const handleBitmovinNativeOfflineEvent = (
   data: BitmovinNativeOfflineEventData,
@@ -73,46 +45,39 @@ const handleBitmovinNativeOfflineEvent = (
  * without an active network connection. An OfflineContentManager instance can be created via
  * the constructor and will be idle until initialized.
  *
- * @platform Android, iOS
+ * @remarks Platform: Android, iOS
  */
 export class OfflineContentManager extends NativeInstance<OfflineContentConfig> {
   isInitialized = false;
   isDestroyed = false;
-  private eventSubscription?: EmitterSubscription = undefined;
+  private eventSubscription?: EventSubscription;
   private listeners: Set<OfflineContentManagerListener> =
     new Set<OfflineContentManagerListener>();
   private drm?: Drm;
-
-  constructor(config: OfflineContentConfig) {
-    super(config);
-  }
 
   /**
    * Allocates the native `OfflineManager` instance and its resources natively.
    * Registers the `DeviceEventEmitter` listener to receive data from the native `OfflineContentManagerListener` callbacks
    */
   initialize = async (): Promise<void> => {
-    let initPromise = Promise.resolve();
     if (!this.isInitialized && this.config) {
-      this.eventSubscription = new NativeEventEmitter(
-        OfflineModule
-      ).addListener(
-        'BitmovinOfflineEvent',
-        (data?: BitmovinNativeOfflineEventData) => {
-          if (this.nativeId !== data?.nativeId) {
+      this.eventSubscription = OfflineModule.addListener(
+        'onBitmovinOfflineEvent',
+        (event: BitmovinNativeOfflineEventData) => {
+          if (this.nativeId !== event.nativeId) {
             return;
           }
 
-          handleBitmovinNativeOfflineEvent(data, this.listeners);
+          handleBitmovinNativeOfflineEvent(event, this.listeners);
         }
       );
 
       if (this.config.sourceConfig.drmConfig) {
         this.drm = new Drm(this.config.sourceConfig.drmConfig);
-        this.drm.initialize();
+        await this.drm.initialize();
       }
 
-      initPromise = OfflineModule.initWithConfig(
+      await OfflineModule.initializeWithConfig(
         this.nativeId,
         {
           identifier: this.config.identifier,
@@ -123,7 +88,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
     }
 
     this.isInitialized = true;
-    return initPromise;
+    return Promise.resolve();
   };
 
   /**
@@ -158,7 +123,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Gets the current state of the `OfflineContentManager`
    */
   state = async (): Promise<OfflineState> => {
-    return OfflineModule.getState(this.nativeId);
+    return OfflineModule.getState(this.nativeId) as Promise<OfflineState>;
   };
 
   /**
@@ -228,7 +193,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    *
-   * @platform Android
+   * @remarks Platform: Android
    */
   releaseLicense = async (): Promise<void> => {
     return OfflineModule.releaseLicense(this.nativeId);

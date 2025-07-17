@@ -28,11 +28,11 @@ extension NSError: JsonConvertible {
 
 extension DeficiencyData: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
-        var json: [AnyHashable: Any] = ["code": code, "message": message]
-        if let underlyingError {
-            json["underlyingError"] = underlyingError.toJSON()
-        }
-        return json
+        [
+            "code": code,
+            "message": message,
+            "underlyingError": underlyingError.toJSON()
+        ]
     }
 }
 
@@ -417,11 +417,15 @@ extension PlaybackSpeedChangedEvent: JsonConvertible {
 extension CueEnterEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
         toEventJSON {
-            [
+            var json: [AnyHashable: Any] = [
                 "start": startTime,
                 "end": endTime,
-                "text": text
+                "text": text,
             ]
+            if let imagePngData = image?.pngData() {
+                json["image"] = "data:image/png;base64,\(imagePngData.base64EncodedString())"
+            }
+            return json
         }
     }
 }
@@ -429,16 +433,21 @@ extension CueEnterEvent: JsonConvertible {
 extension CueExitEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
         toEventJSON {
-            [
+            var json: [AnyHashable: Any] = [
                 "start": startTime,
                 "end": endTime,
-                "text": text
+                "text": text,
             ]
+            if let imagePngData = image?.pngData() {
+                json["image"] = "data:image/png;base64,\(imagePngData.base64EncodedString())"
+            }
+            return json
         }
     }
 }
 
 extension PlayerActiveEvent: DefaultJsonConvertibleEvent {}
+extension PlayerInactiveEvent: DefaultJsonConvertibleEvent {}
 extension DestroyEvent: DefaultJsonConvertibleEvent {}
 extension MutedEvent: DefaultJsonConvertibleEvent {}
 extension UnmutedEvent: DefaultJsonConvertibleEvent {}

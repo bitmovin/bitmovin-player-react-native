@@ -1,38 +1,21 @@
 import BitmovinPlayer
+import ExpoModulesCore
 
-@objc(NetworkModule)
-public class NetworkModule: NSObject, RCTBridgeModule {
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    @objc public var bridge: RCTBridge!
-
+/**
+ * Expo module for NetworkConfig management with HTTP request/response preprocessing.
+ * Handles bidirectional communication between native code and JavaScript for network operations.
+ */
+public class NetworkModule: Module {
     /// In-memory mapping from `nativeId`s to `NetworkConfig` instances.
     private var networkConfigs: Registry<NetworkConfig> = [:]
     private var preprocessHttpRequestDelegateBridges: Registry<PreprocessHttpRequestDelegate> = [:]
     private var preprocessHttpRequestCompletionHandlers: Registry<(_ request: HttpRequest) -> Void> = [:]
     private var preprocessHttpResponseCompletionHandlers: Registry<(_ response: HttpResponse) -> Void> = [:]
 
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    public static func moduleName() -> String! {
-        "NetworkModule"
-    }
+    public func definition() -> ModuleDefinition {
+        Name("NetworkModule")
 
-    public static func requiresMainQueueSetup() -> Bool {
-        true
-    }
-
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    public var methodQueue: DispatchQueue! {
-        bridge.uiManager.methodQueue
-    }
-
-    @objc
-    func retrieve(_ nativeId: NativeId) -> NetworkConfig? {
-        networkConfigs[nativeId]
-    }
-
-    @objc(initWithConfig:config:)
-    func initWithConfig(_ nativeId: NativeId, config: Any?) {
-        bridge.uiManager.addUIBlock { [weak self] _, _ in
+        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: String, config: [String: Any]) in
             guard
                 self?.retrieve(nativeId) == nil,
                 let networkConfig = RCTConvert.networkConfig(config)
@@ -41,41 +24,67 @@ public class NetworkModule: NSObject, RCTBridgeModule {
             }
             self?.networkConfigs[nativeId] = networkConfig
             self?.initConfigBlocks(nativeId, config)
-        }
+        }.runOnQueue(.main)
+
+        AsyncFunction("destroy") { [weak self] (nativeId: String) in
+            self?.networkConfigs.removeValue(forKey: nativeId)
+
+            // Clean up completion handlers
+            self?.preprocessHttpRequestCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
+                self?.preprocessHttpRequestCompletionHandlers.removeValue(forKey: $0)
+            }
+            self?.preprocessHttpRequestDelegateBridges.removeValue(forKey: nativeId)
+            self?.preprocessHttpResponseCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
+                self?.preprocessHttpResponseCompletionHandlers.removeValue(forKey: $0)
+            }
+        }.runOnQueue(.main)
+
+        AsyncFunction("setPreprocessedHttpRequest") { [weak self] (requestId: String, request: [String: Any]) in
+            guard let completionHandler = self?.preprocessHttpRequestCompletionHandlers[requestId],
+                  let httpRequest = RCTConvert.httpRequest(request) else {
+                return
+            }
+
+            self?.preprocessHttpRequestCompletionHandlers.removeValue(forKey: requestId)
+            completionHandler(httpRequest)
+        }.runOnQueue(.main)
+
+        AsyncFunction("setPreprocessedHttpResponse") { [weak self] (responseId: String, response: [String: Any]) in
+            guard let completionHandler = self?.preprocessHttpResponseCompletionHandlers[responseId],
+                  let httpResponse = RCTConvert.httpResponse(response) else {
+                return
+            }
+            self?.preprocessHttpResponseCompletionHandlers.removeValue(forKey: responseId)
+            completionHandler(httpResponse)
+        }.runOnQueue(.main)
     }
 
-    @objc(destroy:)
-    func destroy(_ nativeId: NativeId) {
-        networkConfigs.removeValue(forKey: nativeId)
-
-        preprocessHttpRequestCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
-            preprocessHttpRequestCompletionHandlers.removeValue(forKey: $0)
-        }
-        preprocessHttpRequestDelegateBridges.removeValue(forKey: nativeId)
-        preprocessHttpResponseCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
-            preprocessHttpResponseCompletionHandlers.removeValue(forKey: $0)
-        }
+    /**
+     * Retrieves the NetworkConfig instance for the given nativeId.
+     * This method maintains the same static access pattern as the legacy module.
+     */
+    func retrieve(_ nativeId: String) -> NetworkConfig? {
+        networkConfigs[nativeId]
     }
 
-    private func initConfigBlocks(_ nativeId: NativeId, _ config: Any?) {
-        guard let json = config as? [String: Any] else { return }
-        initPreprocessHttpRequest(nativeId, networkConfigJson: json)
-        initPreprocessHttpResponse(nativeId, networkConfigJson: json)
+    private func initConfigBlocks(_ nativeId: String, _ config: [String: Any]) {
+        initPreprocessHttpRequest(nativeId, networkConfigJson: config)
+        initPreprocessHttpResponse(nativeId, networkConfigJson: config)
     }
 
-    private func initPreprocessHttpRequest(_ nativeId: NativeId, networkConfigJson: [String: Any]) {
+    private func initPreprocessHttpRequest(_ nativeId: String, networkConfigJson: [String: Any]) {
         guard let networkConfig = retrieve(nativeId),
               networkConfigJson["preprocessHttpRequest"] != nil else {
             return
         }
         preprocessHttpRequestDelegateBridges[nativeId] = PreprocessHttpRequestDelegateBridge(
             nativeId,
-            bridge: bridge
+            networkExpoModule: self
         )
         networkConfig.preprocessHttpRequestDelegate = preprocessHttpRequestDelegateBridges[nativeId]
     }
 
-    private func initPreprocessHttpResponse(_ nativeId: NativeId, networkConfigJson: [String: Any]) {
+    private func initPreprocessHttpResponse(_ nativeId: String, networkConfigJson: [String: Any]) {
         guard let networkConfig = retrieve(nativeId),
               networkConfigJson["preprocessHttpResponse"] != nil else {
             return
@@ -92,7 +101,7 @@ public class NetworkModule: NSObject, RCTBridgeModule {
     }
 
     internal func preprocessHttpRequestFromJS(
-        nativeId: NativeId,
+        nativeId: String,
         type: String,
         request: HttpRequest,
         completionHandler: @escaping (
@@ -100,28 +109,17 @@ public class NetworkModule: NSObject, RCTBridgeModule {
         ) -> Void
     ) {
         let requestId = "\(nativeId)@\(ObjectIdentifier(request).hashValue)"
-        let args: [Any] = [
-            requestId,
-            type,
-            RCTConvert.toJson(httpRequest: request),
-        ]
         preprocessHttpRequestCompletionHandlers[requestId] = completionHandler
-        bridge.enqueueJSCall("Network-\(nativeId)", method: "onPreprocessHttpRequest", args: args) {}
-    }
-
-    @objc(setPreprocessedHttpRequest:request:)
-    func setPreprocessedHttpRequest(_ requestId: String, _ request: [String: Any]) {
-        guard let completionHandler = preprocessHttpRequestCompletionHandlers[requestId],
-              let httpRequest = RCTConvert.httpRequest(request) else {
-            return
-        }
-
-        preprocessHttpRequestCompletionHandlers.removeValue(forKey: requestId)
-        completionHandler(httpRequest)
+        sendEvent("onPreprocessHttpRequest", [
+            "nativeId": nativeId,
+            "requestId": requestId,
+            "type": type,
+            "request": RCTConvert.toJson(httpRequest: request)
+        ])
     }
 
     private func preprocessHttpResponseFromJS(
-        nativeId: NativeId,
+        nativeId: String,
         type: HttpRequestType,
         response: HttpResponse,
         completionHandler: @escaping (
@@ -129,22 +127,12 @@ public class NetworkModule: NSObject, RCTBridgeModule {
         ) -> Void
     ) {
         let responseId = "\(nativeId)@\(ObjectIdentifier(response).hashValue)"
-        let args: [Any] = [
-            responseId,
-            RCTConvert.toJson(httpRequestType: type),
-            RCTConvert.toJson(httpResponse: response),
-        ]
         preprocessHttpResponseCompletionHandlers[responseId] = completionHandler
-        bridge.enqueueJSCall("Network-\(nativeId)", method: "onPreprocessHttpResponse", args: args) {}
-    }
-
-    @objc(setPreprocessedHttpResponse:response:)
-    func setPreprocessedHttpResponse(_ responseId: String, _ response: [String: Any]) {
-        guard let completionHandler = preprocessHttpResponseCompletionHandlers[responseId],
-              let httpResponse = RCTConvert.httpResponse(response) else {
-            return
-        }
-        preprocessHttpResponseCompletionHandlers.removeValue(forKey: responseId)
-        completionHandler(httpResponse)
+        sendEvent("onPreprocessHttpResponse", [
+            "nativeId": nativeId,
+            "responseId": responseId,
+            "type": RCTConvert.toJson(httpRequestType: type),
+            "response": RCTConvert.toJson(httpResponse: response)
+        ])
     }
 }

@@ -1,188 +1,122 @@
 package com.bitmovin.player.reactnative
 
-import android.util.Log
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
-import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toSourceConfig
-import com.bitmovin.player.reactnative.extensions.toMap
-import com.bitmovin.player.reactnative.extensions.toReadableMap
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.module.annotations.ReactModule
-import java.security.InvalidParameterException
+import expo.modules.kotlin.exception.CodedException
+import expo.modules.kotlin.modules.Module
+import expo.modules.kotlin.modules.ModuleDefinition
 
-private const val MODULE_NAME = "SourceModule"
-
-@ReactModule(name = MODULE_NAME)
-class SourceModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
+class SourceModule : Module() {
     /**
-     * In-memory mapping from `nativeId`s to `Source` instances.
+     * In-memory mapping from [NativeId]s to [Source] instances.
+     * This must match the Registry pattern from legacy SourceModule
      */
     private val sources: Registry<Source> = mutableMapOf()
 
-    /**
-     * JS exported module name.
-     */
-    override fun getName() = MODULE_NAME
+    override fun definition() = ModuleDefinition {
+        Name("SourceModule")
 
-    /**
-     * Fetches the [Source] instance associated with [nativeId] from internal sources or null.
-     */
-    fun getSourceOrNull(nativeId: NativeId): Source? = sources[nativeId]
-
-    /**
-     * Creates a new `Source` instance inside the internal sources using the provided
-     * `config` and `analyticsSourceMetadata` object as well as an initialized DRM configuration ID.
-     * @param nativeId ID to be associated with the `Source` instance.
-     * @param drmNativeId ID of the DRM config to use.
-     * @param config `SourceConfig` object received from JS.
-     * @param sourceRemoteControlConfig `SourceRemoteControlConfig` object received from JS. Not supported on Android.
-     * @param analyticsSourceMetadata `SourceMetadata` object received from JS.
-     */
-    @ReactMethod
-    fun initWithAnalyticsConfig(
-        nativeId: NativeId,
-        drmNativeId: NativeId?,
-        config: ReadableMap?,
-        sourceRemoteControlConfig: ReadableMap?,
-        analyticsSourceMetadata: ReadableMap,
-        promise: Promise,
-    ) = initializeSource(nativeId, drmNativeId, config, analyticsSourceMetadata, promise)
-
-    /**
-     * Creates a new `Source` instance inside the internal sources using the provided
-     * `config` object and an initialized DRM configuration ID.
-     * @param nativeId ID to be associated with the `Source` instance.
-     * @param drmNativeId ID of the DRM config to use.
-     * @param config `SourceConfig` object received from JS.
-     * @param sourceRemoteControlConfig `SourceRemoteControlConfig` object received from JS. Not supported on Android.
-     */
-    @ReactMethod
-    fun initWithConfig(
-        nativeId: NativeId,
-        drmNativeId: NativeId?,
-        config: ReadableMap?,
-        sourceRemoteControlConfig: ReadableMap?,
-        promise: Promise,
-    ) = initializeSource(nativeId, drmNativeId, config, analyticsSourceMetadata = null, promise)
-
-    private fun initializeSource(
-        nativeId: NativeId,
-        drmNativeId: NativeId?,
-        config: ReadableMap?,
-        analyticsSourceMetadata: ReadableMap?,
-        promise: Promise,
-    ) = promise.unit.resolveOnUiThread {
-        if (sources.containsKey(nativeId)) {
-            if (drmNativeId != null || config != null || analyticsSourceMetadata != null) {
-                Log.w("BitmovinSourceModule", "Cannot reconfigure an existing source")
-            }
-            return@resolveOnUiThread // key can be reused to access the same native instance (see NativeInstanceConfig)
+        OnCreate {
+            // Module initialization
         }
-        val drmConfig = drmNativeId?.let { drmModule.getConfig(it) }
-        val sourceConfig = config?.toSourceConfig() ?: throw InvalidParameterException("Invalid SourceConfig")
-        val sourceMetadata = analyticsSourceMetadata?.toAnalyticsSourceMetadata()
-        sourceConfig.drmConfig = drmConfig
-        sources[nativeId] = if (sourceMetadata == null) {
-            Source.create(sourceConfig)
-        } else {
-            Source.create(sourceConfig, sourceMetadata)
-        }
-    }
 
-    /**
-     * Removes the `Source` instance associated with `nativeId` from the internal sources.
-     * @param nativeId `Source` to be disposed.
-     */
-    @ReactMethod
-    fun destroy(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithSource(nativeId) {
+        OnDestroy {
+            // Clean up sources
+            sources.clear()
+        }
+
+        /**
+         * Creates a new `Source` instance with the provided config.
+         */
+        AsyncFunction("initializeWithConfig") { nativeId: String, drmNativeId: String?,
+            config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?, ->
+            initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, null)
+        }
+
+        /**
+         * Creates a new `Source` instance with analytics configuration.
+         */
+        AsyncFunction("initializeWithAnalyticsConfig") { nativeId: String, drmNativeId: String?,
+            config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?,
+            analyticsSourceMetadata: Map<String, Any>?, ->
+            initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, analyticsSourceMetadata)
+        }
+
+        /**
+         * Destroys the source instance with the given native ID.
+         */
+        AsyncFunction("destroy") { nativeId: String ->
             sources.remove(nativeId)
         }
-    }
 
-    /**
-     * Whether `nativeId` source is currently attached to a player instance.
-     * @param nativeId Source `nativeId`.
-     * @param promise: JS promise object.
-     */
-    @ReactMethod
-    fun isAttachedToPlayer(nativeId: NativeId, promise: Promise) {
-        promise.bool.resolveOnUiThreadWithSource(nativeId) {
-            isAttachedToPlayer
+        /**
+         * Checks if the source is attached to a player.
+         */
+        AsyncFunction("isAttachedToPlayer") { nativeId: String ->
+            sources[nativeId]?.isAttachedToPlayer
+        }
+
+        /**
+         * Checks if the source is currently active.
+         */
+        AsyncFunction("isActive") { nativeId: String ->
+            sources[nativeId]?.isActive
+        }
+
+        /**
+         * Gets the duration of the source.
+         */
+        AsyncFunction("duration") { nativeId: String ->
+            sources[nativeId]?.duration
+        }
+
+        /**
+         * Gets the loading state of the source.
+         */
+        AsyncFunction("loadingState") { nativeId: String ->
+            sources[nativeId]?.loadingState?.name
         }
     }
 
-    /**
-     * Whether `nativeId` source is currently active in a `Player`.
-     * @param nativeId Source `nativeId`.
-     * @param promise: JS promise object.
-     */
-    @ReactMethod
-    fun isActive(nativeId: NativeId, promise: Promise) {
-        promise.bool.resolveOnUiThreadWithSource(nativeId) {
-            isActive
+    private fun initializeSource(
+        nativeId: String,
+        drmNativeId: String?,
+        config: Map<String, Any>?,
+        sourceRemoteControlConfig: Map<String, Any>?,
+        analyticsSourceMetadata: Map<String, Any>?,
+    ) {
+        if (sources.containsKey(nativeId)) {
+            return // Source already exists
+        }
+
+        val sourceConfig = config?.toSourceConfig()
+            ?: throw SourceException.InvalidSourceConfig()
+
+        // Get DRM config if provided
+        sourceConfig.drmConfig = appContext.registry.getModule<DrmModule>()?.getConfig(drmNativeId)
+
+        val sourceMetadata = analyticsSourceMetadata?.toAnalyticsSourceMetadata()
+        try {
+            sources[nativeId] = if (sourceMetadata != null) {
+                Source.create(sourceConfig, sourceMetadata)
+            } else {
+                Source.create(sourceConfig)
+            }
+        } catch (e: Exception) {
+            throw SourceException.SourceCreationFailed(e.message ?: "Unknown error")
         }
     }
 
-    /**
-     * The duration of `nativeId` source in seconds.
-     */
-    @ReactMethod
-    fun duration(nativeId: NativeId, promise: Promise) {
-        promise.double.resolveOnUiThreadWithSource(nativeId) {
-            duration
-        }
-    }
+    // CRITICAL: This method must remain available for cross-module access
+    // Called by PlayerModule.loadSource()
+    fun getSourceOrNull(nativeId: NativeId): Source? = sources[nativeId]
+}
 
-    /**
-     * The current loading state of `nativeId` source.
-     */
-    @ReactMethod
-    fun loadingState(nativeId: NativeId, promise: Promise) {
-        promise.int.resolveOnUiThreadWithSource(nativeId) {
-            loadingState.ordinal
-        }
-    }
+// MARK: - Exception Definitions
 
-    /**
-     * Metadata for the currently loaded `nativeId` source.
-     */
-    @ReactMethod
-    fun getMetadata(nativeId: NativeId, promise: Promise) {
-        promise.map.nullable.resolveOnUiThreadWithSource(nativeId) {
-            config.metadata?.toReadableMap()
-        }
-    }
-
-    /**
-     * Set the metadata for a loaded `nativeId` source.
-     */
-    @ReactMethod
-    fun setMetadata(nativeId: NativeId, metadata: ReadableMap?, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithSource(nativeId) {
-            config.metadata = metadata?.toMap()
-        }
-    }
-
-    /**
-     * Returns the thumbnail image for the `Source` at a certain time.
-     * @param nativeId Target player id.
-     * @param time Playback time for the thumbnail.
-     */
-    @ReactMethod
-    fun getThumbnail(nativeId: NativeId, time: Double, promise: Promise) {
-        promise.map.nullable.resolveOnUiThreadWithSource(nativeId) {
-            getThumbnail(time)?.toJson()
-        }
-    }
-
-    private inline fun <T> TPromise<T>.resolveOnUiThreadWithSource(
-        nativeId: NativeId,
-        crossinline block: Source.() -> T,
-    ) = resolveOnUiThread { getSource(nativeId, this@SourceModule).block() }
+sealed class SourceException(message: String) : CodedException(message) {
+    class InvalidSourceConfig : SourceException("Invalid source configuration")
+    class SourceCreationFailed(reason: String) : SourceException("Could not create source: $reason")
 }

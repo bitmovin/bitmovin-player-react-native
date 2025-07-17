@@ -9,6 +9,7 @@ import {
   ListRenderItemInfo,
   ViewProps,
 } from 'react-native';
+import type { JSX } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -46,10 +47,11 @@ export default function ProgrammaticTrackSelection() {
       player.load({
         url:
           Platform.OS === 'ios'
-            ? 'https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8'
-            : 'https://bitmovin-a.akamaihd.net/content/sintel/sintel.mpd',
+            ? 'https://cdn.bitmovin.com/content/internal/assets/sintel/hls/playlist.m3u8'
+            : 'https://cdn.bitmovin.com/content/internal/assets/sintel/sintel.mpd',
         type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
-        poster: 'https://bitmovin-a.akamaihd.net/content/sintel/poster.png',
+        poster:
+          'https://cdn.bitmovin.com/content/internal/assets/sintel/poster.png',
       });
       return () => {
         player.destroy();
@@ -70,7 +72,7 @@ export default function ProgrammaticTrackSelection() {
               display: track.label,
               identifier: track.identifier,
               type: 'audio',
-            } as TrackDisplay)
+            }) as TrackDisplay
         ),
         ...subtitleTracks.map(
           (track) =>
@@ -78,7 +80,7 @@ export default function ProgrammaticTrackSelection() {
               display: track.label,
               identifier: track.identifier,
               type: 'subtitle',
-            } as TrackDisplay)
+            }) as TrackDisplay
         ),
       ]);
     },

@@ -27,12 +27,24 @@ export interface PlayerViewConfig {
    * To reliably hide the first frame before a pre-roll ad, please ensure that you are using the {@link AdvertisingConfig} to schedule ads and not the {@link Player.scheduleAd} API call.
    */
   hideFirstFrame?: boolean;
+
+  /**
+   * Specify on which surface type the video should be rendered.
+   *
+   * See {@link https://developer.android.com/guide/topics/media/ui/playerview#surfacetype|Choosing a surface type}
+   * for more information.
+   *
+   * Default is {@link SurfaceType.SurfaceView}.
+   *
+   * @remarks Platform: Android
+   */
+  surfaceType?: SurfaceType;
 }
 
 /**
  * Configures the visual presentation and behaviour of the Bitmovin Player UI.
  */
-export interface UiConfig {}
+export type UiConfig = object;
 
 /**
  * Configures the visual presentation and behaviour of the Bitmovin Web UI.
@@ -55,7 +67,7 @@ export interface WebUiConfig extends UiConfig {
    * By default this is enabled only for the TV UI variant, as it's needed there to
    * initiate spatial navigation using the remote control.
    *
-   * @platform Android
+   * @remarks Platform: Android
    */
   focusUiOnInitialization?: boolean;
 }
@@ -92,8 +104,20 @@ export class TvUi extends Variant {
   }
 }
 
-export class CustomUi extends Variant {
-  constructor(uiManagerFactoryFunction: string) {
-    super(uiManagerFactoryFunction);
-  }
+export class CustomUi extends Variant {}
+
+/**
+ * The type of surface on which to render video.
+ *
+ * See {@link https://developer.android.com/guide/topics/media/ui/playerview#surfacetype|Choosing a surface type}
+ * for more information.
+ */
+export enum SurfaceType {
+  /**
+   * SurfaceView generally causes lower battery consumption,
+   * and has better handling for HDR and secure content.
+   */
+  SurfaceView = 'SurfaceView',
+  /** TextureView is sometime needed for smooth animations. */
+  TextureView = 'TextureView',
 }

@@ -3,7 +3,7 @@ import { SourceConfig } from '../source';
 
 /**
  * Object used to configure a new `OfflineContentManager` instance.
- * @platform Android, iOS
+ * @remarks Platform: Android, iOS
  */
 export interface OfflineContentConfig extends NativeInstanceConfig {
   /**

@@ -1,6 +1,6 @@
 /**
  * Contains the state an OfflineContentManager can have.
- * @platform Android, iOS
+ * @remarks Platform: Android, iOS
  */
 export enum OfflineState {
   /**

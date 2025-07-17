@@ -35,7 +35,7 @@ export interface TweaksConfig {
    * Default value in iOS is `1.0`.
    * Default value in Android is `0.2`.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   timeChangedInterval?: number;
   /**
@@ -49,7 +49,7 @@ export interface TweaksConfig {
    *
    * Default is false.
    *
-   * @platform iOS
+   * @remarks Platform: iOS
    */
   isNativeHlsParsingEnabled?: boolean;
   /**
@@ -62,7 +62,7 @@ export interface TweaksConfig {
    *
    * Default is true.
    *
-   * @platform iOS
+   * @remarks Platform: iOS
    */
   isCustomHlsLoadingEnabled?: boolean;
   /**
@@ -76,7 +76,7 @@ export interface TweaksConfig {
    *
    * Default is 0.5.
    *
-   * @platform iOS
+   * @remarks Platform: iOS
    */
   seekToEndThreshold?: number;
   /**
@@ -85,7 +85,7 @@ export interface TweaksConfig {
    * - 'relaxed': Starts playback when enough media data is buffered and continuous playback without stalling can be ensured. If insufficient media data is buffered for playback to start, the player will act as if the buffer became empty during playback.
    * - 'aggressive': When the buffer is not empty, this setting will cause the player to start playback of available media immediately. If insufficient media data is buffered for playback to start, the player will act as if the buffer became empty during playback.
    *
-   * @platform iOS
+   * @remarks Platform: iOS
    */
   playbackStartBehaviour?: 'relaxed' | 'aggressive';
   /**
@@ -94,20 +94,20 @@ export interface TweaksConfig {
    * - 'relaxed': The player will wait until the buffer is filled that it can, most likely, ensure continuous playback without another stalling right after playback continued.
    * - 'aggressive': The player will try to unstall as soon as some media data became available and will start playback of this media immediately.
    *
-   * @platform iOS
+   * @remarks Platform: iOS
    */
   unstallingBehaviour?: 'relaxed' | 'aggressive';
   /**
    * Constantly aggregated and weighted bandwidth samples are summed up to this weight limit to calculate an bandwidth estimation. Remaining samples (i.e. that would lead to exceeding the limit) are dropped from memory as they are not relevant anymore.
    * Default is 2000.
    *
-   * @platform Android
+   * @remarks Platform: Android
    */
   bandwidthEstimateWeightLimit?: number;
   /**
    * Some devices have an incorrect implementation of MediaCodec.setOutputSurface. This leads to failure when the surface changes. To prevent failure, the codec will be released and re-instantiated in those scenarios.
    *
-   * @platform Android
+   * @remarks Platform: Android
    */
   devicesThatRequireSurfaceWorkaround?: {
     /**
@@ -132,21 +132,21 @@ export interface TweaksConfig {
    * - "en_us" is normalized to "en-us"
    * - "en-US-x-lvariant-POSIX" is normalized to "en-us-posix"
    *
-   * @platform Android
+   * @remarks Platform: Android
    */
   languagePropertyNormalization?: boolean;
   /**
    * The interval in which dynamic DASH windows are updated locally. I.e. The rate by which the
    * playback window is moved forward on the timeline.
    *
-   * @platform Android
+   * @remarks Platform: Android
    */
   localDynamicDashWindowUpdateInterval?: number;
   /**
    * Specifies whether default positioning values should be assumed when parsing TTML regions in case of
    * unsupported TTML features. Default is true
    *
-   * @platform Android
+   * @remarks Platform: Android
    */
   shouldApplyTtmlRegionWorkaround?: boolean;
   /**
@@ -154,7 +154,7 @@ export interface TweaksConfig {
    * DRM sessions for clear content avoids the recreation of decoders when transitioning between clear
    * and encrypted sections of content. Default is false.
    *
-   * @platform Android
+   * @remarks Platform: Android
    */
   useDrmSessionForClearPeriods?: boolean;
   /**
@@ -163,7 +163,7 @@ export interface TweaksConfig {
    * periods in a DRM protected source. Using DRM sessions for clear content avoids the recreation of
    * decoders when transitioning between clear and encrypted sections of content. Default is false.
    *
-   * @platform Android
+   * @remarks Platform: Android
    */
   useDrmSessionForClearSources?: boolean;
   /**
@@ -171,16 +171,9 @@ export interface TweaksConfig {
    * matching extractor was found. If the fallback is applied, this will ignore potential incompatibilities
    * with streams and thus can result in unstable or failing playback.
    *
-   * @platform Android
+   * @remarks Platform: Android
    */
   useFiletypeExtractorFallbackForHls?: boolean;
-  /**
-   * Specifies whether the player should prefer software decoding over hardware decoding for ad playback.
-   * This only affects ads playback, the player will still prefer hardware decoding for the main content.
-   *
-   * @platform Android
-   */
-  preferSoftwareDecodingForAds?: boolean;
   /**
    * Determines whether `AVKit` should update Now Playing information automatically when using System UI.
    *
@@ -191,7 +184,7 @@ export interface TweaksConfig {
    * Default is `true`.
    *
    * @deprecated To enable the Now Playing information use {@link MediaControlConfig.isEnabled}
-   * @platform iOS
+   * @remarks Platform: iOS
    */
   updatesNowPlayingInfoCenter?: boolean;
 
@@ -206,7 +199,7 @@ export interface TweaksConfig {
    *
    * Default is `null` i.e not set
    *
-   * @platform Android
+   * @remarks Platform: Android
    */
-  forceReuseVideoCodecReasons?: Array<ForceReuseVideoCodecReason>;
+  forceReuseVideoCodecReasons?: ForceReuseVideoCodecReason[];
 }

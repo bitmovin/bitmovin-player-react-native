@@ -1,4 +1,5 @@
-import { NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import PlayerModule from './modules/PlayerModule';
 import NativeInstance from './nativeInstance';
 import { Source, SourceConfig } from './source';
 import { AudioTrack } from './audioTrack';
@@ -11,8 +12,7 @@ import { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
 import { VideoQuality } from './media';
 import { Network } from './network';
-
-const PlayerModule = NativeModules.PlayerModule;
+import { DecoderConfigBridge } from './decoder';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -24,11 +24,6 @@ const PlayerModule = NativeModules.PlayerModule;
  * @see PlayerView
  */
 export class Player extends NativeInstance<PlayerConfig> {
-  private network?: Network;
-  /**
-   * Currently active source, or `null` if none is active.
-   */
-  source?: Source;
   /**
    * Whether the native `Player` object has been created.
    */
@@ -37,6 +32,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Whether the native `Player` object has been disposed.
    */
   isDestroyed = false;
+  /**
+   * Currently active source, or `null` if none is active.
+   */
+  source?: Source;
   /**
    * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.
    *
@@ -48,33 +47,41 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   buffer: BufferApi = new BufferApi(this.nativeId);
 
+  private network?: Network;
+
+  private decoderConfig?: DecoderConfigBridge;
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
-  initialize = () => {
+  initialize = async (): Promise<void> => {
     if (!this.isInitialized) {
       if (this.config?.networkConfig) {
         this.network = new Network(this.config.networkConfig);
-        this.network.initialize();
+        await this.network.initialize();
       }
+      await this.maybeInitDecoderConfig();
       const analyticsConfig = this.config?.analyticsConfig;
       if (analyticsConfig) {
-        PlayerModule.initWithAnalyticsConfig(
+        await PlayerModule.initializeWithAnalyticsConfig(
           this.nativeId,
+          analyticsConfig,
           this.config,
           this.network?.nativeId,
-          analyticsConfig
+          this.decoderConfig?.nativeId
         );
         this.analytics = new AnalyticsApi(this.nativeId);
       } else {
-        PlayerModule.initWithConfig(
+        await PlayerModule.initializeWithConfig(
           this.nativeId,
           this.config,
-          this.network?.nativeId
+          this.network?.nativeId,
+          this.decoderConfig?.nativeId
         );
       }
+
       this.isInitialized = true;
     }
+    return Promise.resolve();
   };
 
   /**
@@ -85,6 +92,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       PlayerModule.destroy(this.nativeId);
       this.source?.destroy();
       this.network?.destroy();
+      this.decoderConfig?.destroy();
       this.isDestroyed = true;
     }
   };
@@ -114,9 +122,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Loads the given {@link Source} into the player.
    */
   loadSource = (source: Source) => {
-    source.initialize();
     this.source = source;
-    PlayerModule.loadSource(this.nativeId, source.nativeId);
+    source.initialize().then(() => {
+      PlayerModule.loadSource(this.nativeId, source.nativeId);
+    });
   };
 
   /**
@@ -193,7 +202,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @returns The player's current volume level.
    */
   getVolume = async (): Promise<number> => {
-    return PlayerModule.getVolume(this.nativeId);
+    return (await PlayerModule.getVolume(this.nativeId)) ?? 0;
   };
 
   /**
@@ -209,42 +218,42 @@ export class Player extends NativeInstance<PlayerConfig> {
   getCurrentTime = async (
     mode: 'relative' | 'absolute' = 'absolute'
   ): Promise<number> => {
-    return PlayerModule.currentTime(this.nativeId, mode);
+    return (await PlayerModule.currentTime(this.nativeId, mode)) ?? 0;
   };
 
   /**
    * @returns The total duration in seconds of the current video or INFINITY if it’s a live stream.
    */
   getDuration = async (): Promise<number> => {
-    return PlayerModule.duration(this.nativeId);
+    return (await PlayerModule.duration(this.nativeId)) ?? 0;
   };
 
   /**
    * @returns `true` if the player is muted.
    */
   isMuted = async (): Promise<boolean> => {
-    return PlayerModule.isMuted(this.nativeId);
+    return (await PlayerModule.isMuted(this.nativeId)) ?? false;
   };
 
   /**
    * @returns `true` if the player is currently playing, i.e. has started and is not paused.
    */
   isPlaying = async (): Promise<boolean> => {
-    return PlayerModule.isPlaying(this.nativeId);
+    return (await PlayerModule.isPlaying(this.nativeId)) ?? false;
   };
 
   /**
    * @returns `true` if the player has started playback but it's currently paused.
    */
   isPaused = async (): Promise<boolean> => {
-    return PlayerModule.isPaused(this.nativeId);
+    return (await PlayerModule.isPaused(this.nativeId)) ?? false;
   };
 
   /**
    * @returns `true` if the displayed video is a live stream.
    */
   isLive = async (): Promise<boolean> => {
-    return PlayerModule.isLive(this.nativeId);
+    return (await PlayerModule.isLive(this.nativeId)) ?? false;
   };
 
   /**
@@ -258,7 +267,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       );
       return false;
     }
-    return PlayerModule.isAirPlayActive(this.nativeId);
+    return (await PlayerModule.isAirPlayActive(this.nativeId)) ?? false;
   };
 
   /**
@@ -272,7 +281,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       );
       return false;
     }
-    return PlayerModule.isAirPlayAvailable(this.nativeId);
+    return (await PlayerModule.isAirPlayAvailable(this.nativeId)) ?? false;
   };
 
   /**
@@ -318,7 +327,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @param trackIdentifier - The {@link SubtitleTrack.identifier} to be set.
    */
   setSubtitleTrack = async (trackIdentifier?: string): Promise<void> => {
-    return PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier);
+    return PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier ?? '');
   };
 
   /**
@@ -327,7 +336,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * @param adItem - Ad to be scheduled for playback.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   scheduleAd = (adItem: AdItem) => {
     PlayerModule.scheduleAd(this.nativeId, adItem);
@@ -337,7 +346,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Skips the current ad.
    * Has no effect if the current ad is not skippable or if no ad is being played back.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   skipAd = () => {
     PlayerModule.skipAd(this.nativeId);
@@ -345,10 +354,10 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * @returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   isAd = async (): Promise<boolean> => {
-    return PlayerModule.isAd(this.nativeId);
+    return (await PlayerModule.isAd(this.nativeId)) ?? false;
   };
 
   /**
@@ -356,7 +365,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * live stream or no sources are loaded.
    */
   getTimeShift = async (): Promise<number> => {
-    return PlayerModule.getTimeShift(this.nativeId);
+    return (await PlayerModule.getTimeShift(this.nativeId)) ?? 0;
   };
 
   /**
@@ -364,7 +373,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * {@link Source} is not a live stream or no sources are loaded.
    */
   getMaxTimeShift = async (): Promise<number> => {
-    return PlayerModule.getMaxTimeShift(this.nativeId);
+    return (await PlayerModule.getMaxTimeShift(this.nativeId)) ?? 0;
   };
 
   /**
@@ -395,26 +404,26 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Whether casting to a cast-compatible remote device is available. {@link CastAvailableEvent} signals when
    * casting becomes available.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   isCastAvailable = async (): Promise<boolean> => {
-    return PlayerModule.isCastAvailable(this.nativeId);
+    return (await PlayerModule.isCastAvailable(this.nativeId)) ?? false;
   };
 
   /**
    * Whether video is currently being casted to a remote device and not played locally.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   isCasting = async (): Promise<boolean> => {
-    return PlayerModule.isCasting(this.nativeId);
+    return (await PlayerModule.isCasting(this.nativeId)) ?? false;
   };
 
   /**
    * Initiates casting the current video to a cast-compatible remote device. The user has to choose to which device it
    * should be sent.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   castVideo = () => {
     PlayerModule.castVideo(this.nativeId);
@@ -423,7 +432,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Stops casting the current video. Has no effect if {@link Player.isCasting} is `false`.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   castStop = () => {
     PlayerModule.castStop(this.nativeId);
@@ -447,12 +456,11 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Sets the video quality.
-   * @remarks Only available on Android.
-   * @platform Android
+   * @remarks Platform: Android
    *
    * @param qualityId value obtained from {@link VideoQuality}'s `id` property, which can be obtained via `Player.getAvailableVideoQualities()` to select a specific quality. To use automatic quality selection, 'auto' can be passed here.
    */
-  setVideoQuality = (qualityId: String) => {
+  setVideoQuality = (qualityId: string) => {
     if (Platform.OS !== 'android') {
       console.warn(
         `[Player ${this.nativeId}] Method setVideoQuality is not available for iOS and tvOS devices. Only Android devices.`
@@ -464,17 +472,17 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Sets the playback speed of the player. Fast forward, slow motion and reverse playback are supported.
-   * @note
+   * @remarks
+   * Platform: iOS, tvOS
+   * 
    * - Slow motion is indicated by values between `0` and `1`.
    * - Fast forward by values greater than `1`.
    * - Slow reverse is used by values between `0` and `-1`, and fast reverse is used by values less than `-1`. iOS and tvOS only.
-   * @note
-   * Negative values are ignored during Casting and on Android.
-   * @note
-   * During reverse playback the playback will continue until the beginning of the active source is
-   * reached. When reaching the beginning of the source, playback will be paused and the playback
-   * speed will be reset to its default value of `1`. No {@link PlaybackFinishedEvent} will be
-   * emitted in this case.
+   * - Negative values are ignored during Casting and on Android.
+   * - During reverse playback the playback will continue until the beginning of the active source is
+   *   reached. When reaching the beginning of the source, playback will be paused and the playback
+   *   speed will be reset to its default value of `1`. No {@link PlaybackFinishedEvent} will be
+   *   emitted in this case.
    *
    * @param playbackSpeed - The playback speed to set.
    */
@@ -487,14 +495,14 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @returns The player's current playback speed.
    */
   getPlaybackSpeed = async (): Promise<number> => {
-    return PlayerModule.getPlaybackSpeed(this.nativeId);
+    return (await PlayerModule.getPlaybackSpeed(this.nativeId)) ?? 0;
   };
 
   /**
    * Checks the possibility to play the media at specified playback speed.
    * @param playbackSpeed - The playback speed to check.
    * @returns `true` if it's possible to play the media at the specified playback speed, otherwise `false`. On Android it always returns `undefined`.
-   * @platform iOS, tvOS
+   * @remarks Platform: iOS, tvOS
    */
   canPlayAtPlaybackSpeed = async (
     playbackSpeed: number
@@ -505,6 +513,25 @@ export class Player extends NativeInstance<PlayerConfig> {
       );
       return undefined;
     }
-    return PlayerModule.canPlayAtPlaybackSpeed(this.nativeId, playbackSpeed);
+    return (
+      (await PlayerModule.canPlayAtPlaybackSpeed(
+        this.nativeId,
+        playbackSpeed
+      )) ?? false
+    );
+  };
+
+  private maybeInitDecoderConfig = () => {
+    if (this.config?.playbackConfig?.decoderConfig == null) {
+      return;
+    }
+    if (Platform.OS === 'ios') {
+      return;
+    }
+
+    this.decoderConfig = new DecoderConfigBridge(
+      this.config.playbackConfig.decoderConfig
+    );
+    this.decoderConfig.initialize();
   };
 }

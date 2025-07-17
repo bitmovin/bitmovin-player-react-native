@@ -101,12 +101,12 @@ export default function BasicFullscreenHandling({
       player.load({
         url:
           Platform.OS === 'ios'
-            ? 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
-            : 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
+            ? 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
+            : 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
         type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
         title: 'Art of Motion',
         poster:
-          'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg',
+          'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/poster.jpg',
       });
       return () => {
         player.destroy();
@@ -123,6 +123,7 @@ export default function BasicFullscreenHandling({
       <PlayerView
         player={player}
         style={fullscreenMode ? styles.playerFullscreen : styles.player}
+        isFullscreenRequested={fullscreenMode}
         fullscreenHandler={fullscreenHandler}
         onFullscreenEnter={onEvent}
         onFullscreenExit={onEvent}

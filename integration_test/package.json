@@ -1,0 +1,69 @@
+{
+  "name": "bitmovin-player-react-native-integration-test",
+  "main": "index.js",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "bootstrap": "yarn install && yarn prebuild && yarn pods",
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "test": "yarn stop-test:android && yarn stop-test:ios && yarn start-test:android && yarn start-test:ios",
+    "stop-packager": "./scripts/stop-packager.sh",
+    "stop-test:android": "./scripts/stop-test-android.sh",
+    "stop-test:ios": "./scripts/stop-test-ios.sh",
+    "start-test:android": "./scripts/start-test-android.sh",
+    "start-test:ios": "./scripts/start-test-ios.sh",
+    "test:android": "yarn stop-test:android && yarn start-test:android",
+    "test:ios": "yarn stop-test:ios && yarn start-test:ios",
+    "pods": "yarn pods-install || yarn pods-update",
+    "pods-install": "./scripts/pods-install.sh",
+    "pods-update": "./scripts/pods-update.sh",
+    "prebuild": "expo prebuild",
+    "build:ios": "./scripts/build-ios.sh",
+    "build:android": "./scripts/build-android.sh",
+    "build:ts": "tsc --noEmit",
+    "lint": "eslint src playertesting tests --ext .ts,.tsx,.js,.jsx --quiet",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@expo/config-types": "^53.0.0",
+    "@react-native-tvos/config-tv": "^0.1.1",
+    "cavy": "^4.0.2",
+    "expo": "53.0.19",
+    "expo-build-properties": "~0.14.8",
+    "expo-status-bar": "~2.2.3",
+    "react": "19.0.0",
+    "react-native": "npm:react-native-tvos@0.79.5-0",
+    "react-native-uuid": "^2.0.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@react-native-community/cli": "latest",
+    "@types/react": "~19.0.10",
+    "@types/react-native": "~0.70.6",
+    "babel-plugin-module-resolver": "^5.0.0",
+    "cavy-cli": "^3.0.0",
+    "dotenv": "^17.2.0",
+    "eslint": "^8.57.0",
+    "eslint-config-expo": "~9.2.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.5.1",
+    "pod-install": "^0.3.10",
+    "prettier": "^3.6.2",
+    "typescript": "~5.8.3"
+  },
+  "resolutions": {
+    "react-native": "npm:react-native-tvos@0.79.5-0"
+  },
+  "expo": {
+    "install": {
+      "exclude": [
+        "react-native"
+      ]
+    },
+    "autolinking": {
+      "nativeModulesDir": ".."
+    }
+  }
+}

@@ -1,3 +1,5 @@
+import { DecoderConfig } from './decoder/decoderConfig';
+
 /**
  * Configures the playback behaviour of the player.
  */
@@ -49,11 +51,10 @@ export interface PlaybackConfig {
    *
    * Default is `false`.
    *
-   * @note
-   * On Android, {@link MediaControlConfig.isEnabled} has to be `true` for
-   * background playback to work.
-   * @note
-   * On tvOS, background playback is only supported for audio-only content.
+   * @remarks
+   * - On Android, {@link MediaControlConfig.isEnabled} has to be `true` for
+   *   background playback to work.
+   * - On tvOS, background playback is only supported for audio-only content.
    *
    *  @example
    * ```
@@ -78,4 +79,11 @@ export interface PlaybackConfig {
    * @deprecated Use {@link PictureInPictureConfig.isEnabled} instead.
    */
   isPictureInPictureEnabled?: boolean;
+
+  /**
+   * Configures decoder behaviour.
+   *
+   * @remarks Platform: Android
+   */
+  decoderConfig?: DecoderConfig;
 }

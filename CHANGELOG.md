@@ -2,19 +2,97 @@
 
 ## [Unreleased]
 
+## [0.42.0] - 2025-06-02
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.112.0`
+- Update Bitmovin's native iOS SDK version to `3.90.0`
+
 ### Added
 
+- `SubtitleTrack.roles` and `AudioTrack.roles` to list the associated `MediaTrackRole` information
+
+## [0.41.0] - 2025-04-02
+
+### Changed
+
+- Update react-native-screens to v3.35.0 for Android SDK version compatibility
+
+### Added
+
+- Android: `DecoderConfig.decoderPriorityProvider`, a callback interface to specify which decoder implementation the Player should use to decode the media
+
+### Changed
+
+- Update IMA SDK dependency on Android to `3.35.1`
+
+## [0.40.0] - 2025-03-20
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.104.2`
+- Update Bitmovin's native iOS SDK version to `3.85.2`
+
+## [0.39.0] - 2025-03-07
+
+### Added
+
+- `CueEnterEvent.image` and `CueExitEvent.image` to expose the Base64 encoded image data URI of the cue when available
+
+## [0.38.0] - 2025-02-28
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.104.1`
+- Update Bitmovin's native iOS SDK version to `3.85.0`
+
+## [0.37.0] - 2025-01-17
+
+### Fixed
+
+- Android: App crashes when `mediaControlConfig.isEnabled` is set to `false` and the player gets destroyed
+
+## [0.36.0] - 2024-12-20
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.80.0`
+
+### Added
+
+- Android: `PlayerViewConfig.surfaceType` that allows to render video on a `TextureView`
+
+## [0.35.0] - 2024-12-10
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.98.0`
+- Update Bitmovin's native iOS SDK version to `3.79.0`
+
+### Fixed
+
+- Android: Controls disappearing post midroll ads on select device by setting background color to `Color.TRANSPARENT` on IMA Ad container
+
+## [0.34.0] - 2024-12-04
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.96.0`
+
+## [0.33.0] - 2024-11-28
+
+### Added
+
+- Android: `TweaksConfig.forceReuseVideoCodecReasons` that allows to force the reuse of the video codec despite a configuration change. This flag should be set only, if it is known that the codec can handle the given configuration change.
 - `DebugConfig.isDebugLoggingEnabled` and `DebugConfig.setDebugLoggingEnabled(value: boolean)` to check and set whether debug logging is enabled. Debug logging helps diagnose problems and trace the flow of execution within the Player and **should not be enabled in production** as it may log sensitive or confidential information to the console.
 
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to `3.78.0`
+- Update Bitmovin's native Android SDK version to `3.94.0`
 
 ## [0.32.0] - 2024-11-14
-
-### Added
-
-- Android: `TweaksConfig.forceReuseVideoCodecReasons` that allows to force the reuse of the video codec despite a configuration change. This flag should be set only, if it is known that the codec can handle the given configuration change
 
 ### Changed
 

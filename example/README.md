@@ -31,39 +31,36 @@ cd bitmovin-player-react-native # Go to library's root directory
 yarn bootstrap # Install all dependencies
 ```
 
-## Configuring your license key
+Note that Windows users should instead run:
 
-Before running the application, make sure to set up your Bitmovin's license key in the native metadata file of each platform:
-
-**iOS**
-
-Edit the license key in `example/ios/BitmovinPlayerReactNativeExample/Info.plist`:
-
-```xml
-<key>BitmovinPlayerLicenseKey</key>
-<string>ENTER_LICENSE_KEY</string>
+```powershell
+cd bitmovin-player-react-native # Go to library's root directory
+yarn install # Install root project dependencies
+yarn example install # Install example folder dependencies
 ```
 
-**tvOS**
+## Development Setup
 
-Edit the license key in `example/ios/BitmovinPlayerReactNativeExample-tvOS/Info.plist`:
+To run the example app for local development, you need to provide a Bitmovin Player license key. This project uses a local `.env` file and a dynamic `app.config.ts` to manage these secrets.
 
-```xml
-<key>BitmovinPlayerLicenseKey</key>
-<string>ENTER_LICENSE_KEY</string>
-```
+1. **Create a local environment file:**
+   From the root of the repository, copy the example `.env` template:
 
-**Android**
+   ```bash
+   cp example/.env.example example/.env
+   ```
 
-Edit the license key in `example/android/app/src/main/AndroidManifest.xml`:
+2. **Add your credentials:**
+   Open `example/.env` and replace the placeholder values.
+   - The `BITMOVIN_PLAYER_LICENSE_KEY` is required.
+   - The `BITMOVIN_ANALYTICS_LICENSE_KEY` is optional. It is used in the "Basic Analytics" screen.
+   - The `APPLE_DEVELOPMENT_TEAM_ID` is optional and only needed if you want to build the app on a physical iOS or tvOS device. You can find your Apple Team ID on the [Apple Developer website](https://developer.apple.com/account/) under "Membership details".
 
-```xml
-<meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="<ENTER_LICENSE_KEY>" />
-```
+These values are loaded automatically by `example/app.config.ts` during the prebuild process and are not committed to version control. **This method is for internal development only.**
 
-**Programmatically**
+### Alternative: Programmatic License Key
 
-Alternatively you can provide your license key programmatically via the config object of `usePlayer`. Providing it this way removes the need for the step above, but keep in mind that at least one of them is necessary to successfully run the examples.
+Alternatively you can provide your license key programmatically via the config object of `usePlayer`. This method can be used alongside the `.env` configuration.
 
 ```ts
 const player = usePlayer({

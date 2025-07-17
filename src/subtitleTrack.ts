@@ -1,33 +1,9 @@
-/**
- * Supported subtitle/caption file formats.
- * @platform Android, iOS, tvOS
- */
-export enum SubtitleFormat {
-  /**
-   * Closed Captioning (CEA) subtitle format.
-   * @platform Android, iOS, tvOS
-   */
-  CEA = 'cea',
-  /**
-   * Timed Text Markup Language (TTML) subtitle format.
-   * @platform Android, iOS, tvOS
-   */
-  TTML = 'ttml',
-  /**
-   * Web Video Text Tracks Format (WebVTT) subtitle format.
-   * @platform Android, iOS, tvOS
-   */
-  VTT = 'vtt',
-  /**
-   * SubRip (SRT) subtitle format.
-   * @platform Android, iOS, tvOS
-   */
-  SRT = 'srt',
-}
+import { MediaTrackRole } from './mediaTrackRole';
+import { SubtitleFormat } from './subtitleFormat';
 
 /**
  * Describes a subtitle track.
- * @platform Android, iOS, tvOS
+ * @remarks Platform: Android, iOS, tvOS
  */
 export interface SubtitleTrack {
   /**
@@ -62,6 +38,11 @@ export interface SubtitleTrack {
    * The IETF BCP 47 language tag associated with this track, e.g. `pt`, `en`, `es` etc.
    */
   language?: string;
+  /**
+   * An array of {@link MediaTrackRole} objects, each describing a specific role or characteristic of the subtitle track.
+   * This property provides a unified way to understand track purposes (e.g., for accessibility) across platforms.
+   */
+  roles?: MediaTrackRole[];
 }
 
 /**

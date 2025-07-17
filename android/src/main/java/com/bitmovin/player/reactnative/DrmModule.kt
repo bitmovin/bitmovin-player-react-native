@@ -1,67 +1,89 @@
 package com.bitmovin.player.reactnative
 
 import android.util.Base64
+import androidx.core.os.bundleOf
 import com.bitmovin.player.api.drm.PrepareLicenseCallback
 import com.bitmovin.player.api.drm.PrepareMessageCallback
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.reactnative.converter.toWidevineConfig
-import com.facebook.react.bridge.*
-import com.facebook.react.module.annotations.ReactModule
+import expo.modules.kotlin.Promise
+import expo.modules.kotlin.modules.Module
+import expo.modules.kotlin.modules.ModuleDefinition
 import java.security.InvalidParameterException
-import java.util.concurrent.locks.Condition
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 /**
  * Represents some operation that transforms data as bytes.
  */
 typealias PrepareCallback = (ByteArray) -> ByteArray
 
-private const val MODULE_NAME = "DrmModule"
-
-@ReactModule(name = MODULE_NAME)
-class DrmModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
+/**
+ * Expo module for DRM configuration management with Widevine DRM support.
+ * Handles bidirectional communication for DRM preparation callbacks.
+ */
+class DrmModule : Module() {
     /**
      * In-memory mapping from `nativeId`s to `WidevineConfig` instances.
      */
     private val drmConfigs: Registry<WidevineConfig> = mutableMapOf()
 
     /**
-     * Module's local lock object used to sync calls between Kotlin and JS.
+     * Shared ResultWaiter for all DRM callbacks
      */
-    private val lock = ReentrantLock()
+    private val waiter = ResultWaiter<String>()
 
-    /**
-     * Mapping between an object's `nativeId` and the value that'll be returned by its `prepareMessage` callback.
-     */
-    private val preparedMessages: Registry<String> = mutableMapOf()
+    override fun definition() = ModuleDefinition {
+        Name("DrmModule")
 
-    /**
-     *  Lock condition used to sync read/write operations on `preparedMessages`.
-     */
-    private val preparedMessagesCondition = lock.newCondition()
+        Events("onPrepareMessage", "onPrepareLicense")
 
-    /**
-     * Mapping between an object's `nativeId` and the value that'll be returned by its `prepareLicense` callback.
-     */
-    private val preparedLicenses: Registry<String> = mutableMapOf()
+        AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>, promise: Promise ->
+            if (drmConfigs.containsKey(nativeId)) {
+                promise.reject("DrmError", "NativeId already exists $nativeId", null)
+                return@AsyncFunction
+            }
 
-    /**
-     *  Lock condition used to sync read/write operations on `preparedMessages`.
-     */
-    private val preparedLicensesCondition = lock.newCondition()
+            try {
+                val widevineConfig = config.toWidevineConfig() ?: throw InvalidParameterException(
+                    "Invalid widevine config",
+                )
+                widevineConfig.prepareMessageCallback = buildPrepareMessageCallback(nativeId, config)
+                widevineConfig.prepareLicenseCallback = buildPrepareLicense(nativeId, config)
+                drmConfigs[nativeId] = widevineConfig
+                promise.resolve(null)
+            } catch (e: Exception) {
+                promise.reject("DrmError", "Failed to initialize DRM config", e)
+            }
+        }
 
-    /**
-     * JS exported module name.
-     */
-    override fun getName() = MODULE_NAME
+        AsyncFunction("destroy") { nativeId: String ->
+            drmConfigs.remove(nativeId)
+        }
+
+        Function("setPreparedMessage") { id: Int, message: String ->
+            waiter.complete(id, message)
+        }
+
+        Function("setPreparedLicense") { id: Int, license: String ->
+            waiter.complete(id, license)
+        }
+
+        // iOS-specific methods that return null on Android for compatibility
+        AsyncFunction("setPreparedCertificate") { _: String, _: String -> // No-op on Android
+        }
+        AsyncFunction("setPreparedSyncMessage") { _: String, _: String -> // No-op on Android
+        }
+        AsyncFunction("setPreparedLicenseServerUrl") { _: String, _: String -> // No-op on Android
+        }
+        AsyncFunction("setPreparedContentId") { _: String, _: String -> // No-op on Android
+        }
+    }
 
     /**
      * Fetches the `WidevineConfig` instance associated with `nativeId` from internal drmConfigs.
      * @param nativeId `WidevineConfig` instance ID.
      * @return The associated `WidevineConfig` instance or `null`.
      */
-    fun getConfig(nativeId: NativeId?): WidevineConfig? {
+    fun getConfig(nativeId: String?): WidevineConfig? {
         if (nativeId == null) {
             return null
         }
@@ -69,68 +91,18 @@ class DrmModule(context: ReactApplicationContext) : BitmovinBaseModule(context) 
     }
 
     /**
-     * Creates a new `WidevineConfig` instance inside the internal drmConfigs using the provided `config` object.
-     * @param nativeId ID to associate with the `WidevineConfig` instance.
-     * @param config `DrmConfig` object received from JS.
-     */
-    @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap, promise: Promise) {
-        promise.unit.resolveOnUiThread {
-            if (drmConfigs.containsKey(nativeId)) {
-                throw InvalidParameterException("NativeId already exists $nativeId")
-            }
-            val widevineConfig = config.toWidevineConfig() ?: throw InvalidParameterException("Invalid widevine config")
-            widevineConfig.prepareMessageCallback = buildPrepareMessageCallback(nativeId, config)
-            widevineConfig.prepareLicenseCallback = buildPrepareLicense(nativeId, config)
-            drmConfigs[nativeId] = widevineConfig
-        }
-    }
-
-    /**
-     * Removes the `WidevineConfig` instance associated with `nativeId` from the internal drmConfigs.
-     * @param nativeId `WidevineConfig` to be disposed.
-     */
-    @ReactMethod
-    fun destroy(nativeId: NativeId) {
-        drmConfigs.remove(nativeId)
-    }
-
-    /**
-     * Function called from JS to store the computed `prepareMessage` return value for `nativeId`.
-     */
-    @ReactMethod(isBlockingSynchronousMethod = true)
-    fun setPreparedMessage(nativeId: NativeId, message: String) {
-        lock.withLock {
-            preparedMessages[nativeId] = message
-            preparedMessagesCondition.signal()
-        }
-    }
-
-    /**
-     * Function called from JS to store the computed `prepareLicense` return value for `nativeId`.
-     */
-    @ReactMethod(isBlockingSynchronousMethod = true)
-    fun setPreparedLicense(nativeId: NativeId, license: String) {
-        lock.withLock {
-            preparedLicenses[nativeId] = license
-            preparedLicensesCondition.signal()
-        }
-    }
-
-    /**
      * Initialize the `prepareMessage` block in the [widevineConfig]
-     * @param widevineConfig Instance ID.
+     * @param nativeId Instance ID.
      * @param config `DrmConfig` config object sent from JS.
      */
-    private fun buildPrepareMessageCallback(nativeId: NativeId, config: ReadableMap): PrepareMessageCallback? {
-        if (config.getMap("widevine")?.hasKey("prepareMessage") != true) {
+    private fun buildPrepareMessageCallback(nativeId: String, config: Map<String, Any?>): PrepareMessageCallback? {
+        if ((config["widevine"] as? Map<*, *>)?.containsKey("prepareMessage") != true) {
             return null
         }
         val prepareMessageCallback = createPrepareCallback(
             nativeId,
             "onPrepareMessage",
-            preparedMessages,
-            preparedMessagesCondition,
+            waiter,
         )
         return PrepareMessageCallback(prepareMessageCallback)
     }
@@ -140,15 +112,14 @@ class DrmModule(context: ReactApplicationContext) : BitmovinBaseModule(context) 
      * @param nativeId Instance ID.
      * @param config `DrmConfig` config object sent from JS.
      */
-    private fun buildPrepareLicense(nativeId: NativeId, config: ReadableMap): PrepareLicenseCallback? {
-        if (config.getMap("widevine")?.hasKey("prepareLicense") != true) {
+    private fun buildPrepareLicense(nativeId: String, config: Map<String, Any?>): PrepareLicenseCallback? {
+        if ((config["widevine"] as? Map<*, *>)?.containsKey("prepareLicense") != true) {
             return null
         }
         val prepareLicense = createPrepareCallback(
             nativeId,
             "onPrepareLicense",
-            preparedLicenses,
-            preparedLicensesCondition,
+            waiter,
         )
         return PrepareLicenseCallback(prepareLicense)
     }
@@ -157,22 +128,27 @@ class DrmModule(context: ReactApplicationContext) : BitmovinBaseModule(context) 
      * Creates the body of a preparation callback e.g. `prepareMessage`, `prepareLicense`, etc.
      * @param nativeId Instance ID.
      * @param method JS prepare callback name.
-     * @param registry Registry where JS preparation result will be stored.
+     * @param waiter ResultWaiter for handling async response.
      * @return The preparation callback function.
      */
     private fun createPrepareCallback(
-        nativeId: NativeId,
+        nativeId: String,
         method: String,
-        registry: Registry<String>,
-        registryCondition: Condition,
+        waiter: ResultWaiter<String>,
     ): PrepareCallback = {
-        val args = Arguments.createArray()
-        args.pushString(Base64.encodeToString(it, Base64.NO_WRAP))
-        context.catalystInstance.callFunction("DRM-$nativeId", method, args as NativeArray)
-        lock.withLock {
-            registryCondition.await()
-            val result = registry[nativeId]
-            Base64.decode(result, Base64.NO_WRAP)
-        }
+        val (id, wait) = waiter.make(5000) // 5 second timeout
+        
+        // Send event to TypeScript using Expo module event system
+        sendEvent(
+            method,
+            bundleOf(
+                "nativeId" to nativeId,
+                "id" to id,
+                "data" to Base64.encodeToString(it, Base64.NO_WRAP),
+            ),
+        )
+
+        val result = wait() ?: ""
+        Base64.decode(result, Base64.NO_WRAP)
     }
 }

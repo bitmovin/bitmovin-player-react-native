@@ -1,26 +1,38 @@
 {
   "name": "bitmovin-player-react-native",
-  "version": "0.32.0",
+  "version": "0.42.0",
   "description": "Official React Native bindings for Bitmovin's mobile Player SDKs.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
-    "build": "expo-module build",
+    "build": "yarn build:module && yarn build:plugin",
+    "build:module": "EXPO_NONINTERACTIVE=true expo-module build",
+    "build:plugin": "EXPO_NONINTERACTIVE=true expo-module build plugin",
+    "dev:plugin": "expo-module build plugin",
     "clean": "expo-module clean",
     "lint": "expo-module lint",
-    "test": "expo-module test",
+    "lint:all": "yarn lint && yarn example lint && yarn lint:ios && yarn lint:android",
+    "lint:all-with-tests": "yarn lint && yarn example lint && yarn integration-test lint && yarn lint:ios && yarn lint:android",
+    "typecheck": "tsc --noEmit",
+    "typecheck:all": "yarn typecheck && yarn example typecheck && yarn integration-test typecheck",
+    "format": "prettier --write '**/*.{ts,tsx,js,jsx,md,json,yml,yaml}'",
+    "format:ios": "./scripts/format-swift.sh",
+    "format:android": "./scripts/format-android.sh",
+    "format:all": "yarn format && yarn format:ios && yarn format:android",
+    "setup-hooks": "./scripts/setup-hooks.sh",
+    "lint:ios": "swiftlint ios --strict --quiet",
+    "lint:android": "cd android && ./gradlew -b ktlint.gradle ktlintCheck --quiet --console=plain",
     "prepare": "expo-module prepare",
     "prepublishOnly": "expo-module prepublishOnly",
-    "expo-module": "expo-module",
+    "module": "expo-module",
     "example": "yarn --cwd example",
-    "open:ios": "xed example/ios",
-    "open:android": "open -a \"Android Studio\" example/android",
-    "brew": "[ \"$(uname)\" != Darwin ] || brew bundle install --no-lock",
+    "open:ios": "yarn example open:ios",
+    "open:android": "yarn example open:android",
+    "brew": "[ \"$(uname)\" != Darwin ] || brew bundle install",
     "docs": "typedoc",
     "pods": "yarn example pods #&& yarn integration-test pods",
-    "bootstrap": "yarn bootstrap:example && yarn bootstrap:integration-test",
-    "bootstrap:example": "yarn && yarn example && yarn example pods && yarn brew",
-    "bootstrap:integration-test": "# yarn && yarn integration-test && yarn integration-test pods && yarn brew"
+    "bootstrap": "yarn brew && yarn example bootstrap && yarn integration-test bootstrap && yarn setup-hooks",
+    "integration-test": "yarn --cwd integration_test"
   },
   "keywords": [
     "react-native",
@@ -28,6 +40,8 @@
     "bitmovin-player-react-native",
     "ios",
     "android",
+    "tvos",
+    "androidtv",
     "bitmovin",
     "player",
     "video",
@@ -41,28 +55,42 @@
   "license": "MIT",
   "homepage": "https://bitmovin.com/video-player/react-native-sdk",
   "dependencies": {
-    "lodash.omit": "4.5.0"
+    "@expo/config-plugins": "~10.1.2",
+    "expo-keep-awake": "~14.1.4"
   },
   "devDependencies": {
-    "@types/react": "~18.3.12",
-    "eslint": "8.24.0",
-    "eslint-config-expo": "^8.0.1",
+    "@babel/core": "^7.28.0",
+    "@types/react": "~19.0.10",
+    "eslint": "^8.57.0",
+    "eslint-config-expo": "~9.2.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.1",
-    "expo": "~52.0.0",
-    "expo-module-scripts": "^4.0.2",
+    "eslint-plugin-prettier": "^5.5.1",
+    "expo": "53.0.19",
+    "expo-module-scripts": "^4.1.9",
     "lint-staged": "13.0.3",
-    "prettier": "^3.4.2",
-    "react-native": "0.76.0",
-    "typedoc": "^0.25.2"
+    "prettier": "^3.6.2",
+    "react": "19.0.0",
+    "react-native": "0.79.5",
+    "typedoc": "^0.28.7",
+    "typescript": "~5.8.3"
   },
   "peerDependencies": {
-    "expo": "*",
-    "react": ">=17",
-    "react-native": ">=0.65"
+    "expo": ">=53.0.0",
+    "react": "*",
+    "react-native": "*"
   },
   "lint-staged": {
-    "*.(ts|tsx)": "eslint",
+    "src/**/*.(ts|tsx)": "eslint --quiet",
+    "example/src/**/*.(ts|tsx)": "eslint --quiet --config example/.eslintrc.js",
+    "integration_test/{src,playertesting,tests}/**/*.(ts|tsx)": "eslint --quiet --config integration_test/.eslintrc.js",
+    "ios/**/*.swift": [
+      "./scripts/format-swift.sh",
+      "./scripts/lint-swift.sh"
+    ],
+    "android/**/*.kt": [
+      "./scripts/format-android.sh",
+      "./scripts/lint-android.sh"
+    ],
     "*.(ts|tsx|js|jsx|md|json|yml|yaml)": "prettier --write"
   }
 }
