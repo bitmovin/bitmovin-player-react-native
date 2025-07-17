@@ -40,7 +40,7 @@ export function PlayerView({
   const nativeView = useRef(viewRef?.current || null);
 
   // Native events proxy helper.
-  const proxy = useProxy();
+  const proxy = useProxy(nativeView);
   // Style resulting from merging `baseStyle` and `props.style`.
   const nativeViewStyle = StyleSheet.flatten([styles.baseStyle, style]);
 
