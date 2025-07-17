@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import type { RootStackParamsList } from '../App';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ExampleItemProps {
   title: string;
@@ -27,25 +28,29 @@ type ExamplesListProps = NativeStackScreenProps<
   'ExamplesList'
 >;
 
-const ExamplesList: React.FC<ExamplesListProps> = ({ route, navigation }) => (
-  <FlatList
-    data={route.params.data}
-    style={styles.examplesList}
-    keyExtractor={({ routeName }) => routeName}
-    renderItem={({ item }) => (
-      <ExampleItem
-        title={item.title}
-        onPress={() => {
-          // @ts-ignore
-          navigation.navigate(item.routeName);
-        }}
-      />
-    )}
-    ListHeaderComponent={Separator}
-    ListFooterComponent={Separator}
-    ItemSeparatorComponent={Separator}
-  />
-);
+const ExamplesList: React.FC<ExamplesListProps> = ({ route, navigation }) => {
+  const insets = useSafeAreaInsets();
+  return (
+    <FlatList
+      data={route.params.data}
+      style={styles.examplesList}
+      contentContainerStyle={{ paddingBottom: insets.bottom }}
+      keyExtractor={({ routeName }) => routeName}
+      renderItem={({ item }) => (
+        <ExampleItem
+          title={item.title}
+          onPress={() => {
+            // @ts-ignore
+            navigation.navigate(item.routeName);
+          }}
+        />
+      )}
+      ListHeaderComponent={Separator}
+      ListFooterComponent={Separator}
+      ItemSeparatorComponent={Separator}
+    />
+  );
+};
 
 export default ExamplesList;
 

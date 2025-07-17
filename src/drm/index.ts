@@ -15,13 +15,13 @@ export interface DrmConfig extends NativeInstanceConfig {
   /**
    * FairPlay specific configuration.
    *
-   * @platform iOS
+   * @remarks Platform: iOS
    */
   fairplay?: FairplayConfig;
   /**
    * Widevine specific configuration.
    *
-   * @platform Android, iOS (only for casting).
+   * @remarks Platform: Android, iOS (only for casting).
    */
   widevine?: WidevineConfig;
 }

@@ -119,19 +119,19 @@ export type NativePlayerViewEvents = {
   /**
    * Event emitted when casting to a cast-compatible device is available.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   onBmpCastAvailable?: (event: { nativeEvent: CastAvailableEvent }) => void;
   /**
    * Event emitted when the playback on a cast-compatible device was paused.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   onBmpCastPaused?: (event: { nativeEvent: CastPausedEvent }) => void;
   /**
    * Event emitted when the playback on a cast-compatible device has finished.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   onBmpCastPlaybackFinished?: (event: {
     nativeEvent: CastPlaybackFinishedEvent;
@@ -139,38 +139,38 @@ export type NativePlayerViewEvents = {
   /**
    * Event emitted when playback on a cast-compatible device has started.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   onBmpCastPlaying?: (event: { nativeEvent: CastPlayingEvent }) => void;
   /**
    * Event emitted when the cast app is launched successfully.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   onBmpCastStarted?: (event: { nativeEvent: CastStartedEvent }) => void;
   /**
    * Event emitted when casting is initiated, but the user still needs to choose which device should be used.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   onBmpCastStart?: (event: { nativeEvent: CastStartEvent }) => void;
   /**
    * Event emitted when casting to a cast-compatible device is stopped.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   onBmpCastStopped?: (event: { nativeEvent: CastStoppedEvent }) => void;
   /**
    * Event emitted when the time update from the currently used cast-compatible device is received.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   onBmpCastTimeUpdated?: (event: { nativeEvent: CastTimeUpdatedEvent }) => void;
   /**
    * Event emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
    * playback.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   onBmpCastWaitingForDevice?: (event: {
     nativeEvent: CastWaitingForDeviceEvent;
@@ -200,7 +200,7 @@ export type NativePlayerViewEvents = {
   /**
    * Event emitted when fullscreen mode has been enabled.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   onBmpFullscreenEnabled?: (event: {
     nativeEvent: FullscreenEnabledEvent;
@@ -208,7 +208,7 @@ export type NativePlayerViewEvents = {
   /**
    * Event emitted when fullscreen mode has been disabled.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   onBmpFullscreenDisabled?: (event: {
     nativeEvent: FullscreenDisabledEvent;
@@ -216,13 +216,13 @@ export type NativePlayerViewEvents = {
   /**
    * Event emitted when fullscreen mode has been entered.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   onBmpFullscreenEnter?: (event: { nativeEvent: FullscreenEnterEvent }) => void;
   /**
    * Event emitted when fullscreen mode has been exited.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   onBmpFullscreenExit?: (event: { nativeEvent: FullscreenExitEvent }) => void;
   /**
@@ -248,7 +248,7 @@ export type NativePlayerViewEvents = {
   /**
    * Event emitted when the player entered Picture in Picture mode.
    *
-   * @platform iOS
+   * @remarks Platform: iOS
    */
   onBmpPictureInPictureEntered?: (event: {
     nativeEvent: PictureInPictureEnteredEvent;
@@ -262,7 +262,7 @@ export type NativePlayerViewEvents = {
   /**
    * Event emitted when the player exited Picture in Picture mode.
    *
-   * @platform iOS
+   * @remarks Platform: iOS
    */
   onBmpPictureInPictureExited?: (event: {
     nativeEvent: PictureInPictureExitedEvent;
@@ -279,7 +279,7 @@ export type NativePlayerViewEvents = {
   }) => void;
   /**
    * Emitted when the player transitions from one playback speed to another.
-   * @platform iOS, tvOS
+   * @remarks Platform: iOS, tvOS
    */
   onBmpPlaybackSpeedChanged?: (event: {
     nativeEvent: PlaybackSpeedChangedEvent;

@@ -336,7 +336,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * @param adItem - Ad to be scheduled for playback.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   scheduleAd = (adItem: AdItem) => {
     PlayerModule.scheduleAd(this.nativeId, adItem);
@@ -346,7 +346,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Skips the current ad.
    * Has no effect if the current ad is not skippable or if no ad is being played back.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   skipAd = () => {
     PlayerModule.skipAd(this.nativeId);
@@ -354,7 +354,7 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * @returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   isAd = async (): Promise<boolean> => {
     return (await PlayerModule.isAd(this.nativeId)) ?? false;
@@ -404,7 +404,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Whether casting to a cast-compatible remote device is available. {@link CastAvailableEvent} signals when
    * casting becomes available.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   isCastAvailable = async (): Promise<boolean> => {
     return (await PlayerModule.isCastAvailable(this.nativeId)) ?? false;
@@ -413,7 +413,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Whether video is currently being casted to a remote device and not played locally.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   isCasting = async (): Promise<boolean> => {
     return (await PlayerModule.isCasting(this.nativeId)) ?? false;
@@ -423,7 +423,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Initiates casting the current video to a cast-compatible remote device. The user has to choose to which device it
    * should be sent.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   castVideo = () => {
     PlayerModule.castVideo(this.nativeId);
@@ -432,7 +432,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Stops casting the current video. Has no effect if {@link Player.isCasting} is `false`.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   castStop = () => {
     PlayerModule.castStop(this.nativeId);
@@ -456,8 +456,7 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Sets the video quality.
-   * @remarks Only available on Android.
-   * @platform Android
+   * @remarks Platform: Android
    *
    * @param qualityId value obtained from {@link VideoQuality}'s `id` property, which can be obtained via `Player.getAvailableVideoQualities()` to select a specific quality. To use automatic quality selection, 'auto' can be passed here.
    */
@@ -473,17 +472,17 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Sets the playback speed of the player. Fast forward, slow motion and reverse playback are supported.
-   * @note
+   * @remarks
+   * Platform: iOS, tvOS
+   * 
    * - Slow motion is indicated by values between `0` and `1`.
    * - Fast forward by values greater than `1`.
    * - Slow reverse is used by values between `0` and `-1`, and fast reverse is used by values less than `-1`. iOS and tvOS only.
-   * @note
-   * Negative values are ignored during Casting and on Android.
-   * @note
-   * During reverse playback the playback will continue until the beginning of the active source is
-   * reached. When reaching the beginning of the source, playback will be paused and the playback
-   * speed will be reset to its default value of `1`. No {@link PlaybackFinishedEvent} will be
-   * emitted in this case.
+   * - Negative values are ignored during Casting and on Android.
+   * - During reverse playback the playback will continue until the beginning of the active source is
+   *   reached. When reaching the beginning of the source, playback will be paused and the playback
+   *   speed will be reset to its default value of `1`. No {@link PlaybackFinishedEvent} will be
+   *   emitted in this case.
    *
    * @param playbackSpeed - The playback speed to set.
    */
@@ -503,7 +502,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Checks the possibility to play the media at specified playback speed.
    * @param playbackSpeed - The playback speed to check.
    * @returns `true` if it's possible to play the media at the specified playback speed, otherwise `false`. On Android it always returns `undefined`.
-   * @platform iOS, tvOS
+   * @remarks Platform: iOS, tvOS
    */
   canPlayAtPlaybackSpeed = async (
     playbackSpeed: number
