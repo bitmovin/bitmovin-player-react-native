@@ -19,7 +19,7 @@
     "pods": "yarn pods-install || yarn pods-update",
     "pods-install": "./scripts/pods-install.sh",
     "pods-update": "./scripts/pods-update.sh",
-    "prebuild": "expo prebuild",
+    "prebuild": "npx expo prebuild",
     "build:ios": "./scripts/build-ios.sh",
     "build:android": "./scripts/build-android.sh",
     "build:ts": "tsc --noEmit",
@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
+    "@expo/cli": "^0.24.3",
     "@react-native-community/cli": "latest",
     "@types/react": "~19.0.10",
     "@types/react-native": "~0.70.6",
