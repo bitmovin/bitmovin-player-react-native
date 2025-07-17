@@ -146,6 +146,6 @@ jobs:
           NSUnbufferedIO: YES
 
       - name: Build tvOS example
-        run: yarn example build:tv --renderer github-actions
+        run: yarn example build:tvos --renderer github-actions
         env:
           NSUnbufferedIO: YES

@@ -65,7 +65,7 @@ jobs:
         run: yarn example prebuild:tv --clean
 
       - name: Build Android TV example
-        run: yarn example build:tv --build-cache
+        run: yarn example build:android-tv --build-cache
 
       - name: Build Android integration test host app
         run: yarn integration-test build:android --build-cache
