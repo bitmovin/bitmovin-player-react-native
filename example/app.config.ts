@@ -22,6 +22,12 @@ if (!BITMOVIN_PLAYER_LICENSE_KEY) {
   );
 }
 
+if (!APPLE_DEVELOPMENT_TEAM_ID) {
+  console.warn(
+    'APPLE_DEVELOPMENT_TEAM_ID is not set in example/.env. This is required for running on real iOS/tvOS devices. Please follow the setup instructions in example/README.md.'
+  );
+}
+
 const config: ExpoConfig = {
   name: 'Bitmovin Player React Native Example',
   slug: 'bitmovin-player-react-native-example',
@@ -32,7 +38,7 @@ const config: ExpoConfig = {
   splash: {
     image: './assets/splash-icon.png',
     resizeMode: 'contain',
-    backgroundColor: '#51a9de',
+    backgroundColor: '#1EABE3',
   },
   ios: {
     supportsTablet: true,
@@ -44,7 +50,7 @@ const config: ExpoConfig = {
   android: {
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#51a9de',
+      backgroundColor: '#1EABE3',
     },
     package: 'com.bitmovin.player.reactnative.example',
   },

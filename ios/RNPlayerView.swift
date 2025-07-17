@@ -7,6 +7,7 @@ public class RNPlayerView: ExpoView {
     var playerView: PlayerView? {
         willSet {
             playerView?.removeFromSuperview()
+            avPlayerViewControllerTransitionWasForced = false
             newValue?.autoresizingMask = [
                 .flexibleWidth,
                 .flexibleHeight
@@ -17,6 +18,7 @@ public class RNPlayerView: ExpoView {
                 return
             }
             addSubview(playerView)
+            maybeFixAVPlayerViewControllerVisibility()
             if let fullscreenBridgeId {
                 attachFullscreenBridge(fullscreenBridgeId: fullscreenBridgeId)
             }
@@ -38,6 +40,7 @@ public class RNPlayerView: ExpoView {
     private var scalingMode: ScalingMode?
     private var requestedFullscreenValue: Bool?
     private var requestedPictureInPictureValue: Bool?
+    private var avPlayerViewControllerTransitionWasForced = false
 
     let onBmpEvent = EventDispatcher()
     let onBmpPlayerActive = EventDispatcher()
@@ -111,7 +114,8 @@ public class RNPlayerView: ExpoView {
     }
 
     override public func layoutSubviews() {
-        playerView?.frame = bounds
+        super.layoutSubviews()
+        maybeFixAVPlayerViewControllerVisibility()
     }
 
     internal func attachPlayer(
@@ -158,46 +162,6 @@ public class RNPlayerView: ExpoView {
         )
     }
 
-    private func maybeCreateUserInterfaceConfig(
-        styleConfig: StyleConfig,
-        playerViewConfig: RNPlayerViewConfig?,
-        customMessageHandlerBridgeId: NativeId?
-    ) -> UserInterfaceConfig? {
-        #if os(iOS)
-        if styleConfig.userInterfaceType == .bitmovin {
-            let bitmovinUserInterfaceConfig = styleConfig
-                .userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
-
-            if let uiConfig = playerViewConfig?.uiConfig {
-                bitmovinUserInterfaceConfig
-                    .playbackSpeedSelectionEnabled = uiConfig.playbackSpeedSelectionEnabled
-                bitmovinUserInterfaceConfig.uiManagerFactoryFunction = uiConfig.uiManagerFactoryFunction
-            }
-            if let hideFirstFrame = playerViewConfig?.hideFirstFrame {
-                bitmovinUserInterfaceConfig.hideFirstFrame = hideFirstFrame
-            }
-
-            if let customMessageHandlerBridgeId {
-                attachCustomMessageHandlerBridge(id: customMessageHandlerBridgeId, to: bitmovinUserInterfaceConfig)
-            }
-
-            return bitmovinUserInterfaceConfig
-        }
-        #endif
-        if styleConfig.userInterfaceType == .system {
-            let systemUserInterfaceConfig = styleConfig
-                .userInterfaceConfig as? SystemUserInterfaceConfig ?? SystemUserInterfaceConfig()
-
-            if let hideFirstFrame = playerViewConfig?.hideFirstFrame {
-                systemUserInterfaceConfig.hideFirstFrame = hideFirstFrame
-            }
-
-            return systemUserInterfaceConfig
-        }
-
-        return nil
-    }
-
     internal func attachFullscreenBridge(fullscreenBridgeId: NativeId) {
         self.fullscreenBridgeId = fullscreenBridgeId
         guard let fullscreenBridgeModule = self.appContext?.moduleRegistry.get(FullscreenHandlerModule.self),
@@ -205,22 +169,6 @@ public class RNPlayerView: ExpoView {
             return
         }
         playerView?.fullscreenHandler = fullscreenBridge
-    }
-
-    private func attachCustomMessageHandlerBridge(
-        id customMessageHandlerBridgeId: NativeId,
-        to bitmovinUserInterfaceConfig: BitmovinUserInterfaceConfig
-    ) {
-        guard let customMessageHandlerBridgeModule = self.appContext?.moduleRegistry
-            .get(CustomMessageHandlerModule.self) else {
-            return
-        }
-        guard let customMessageHandlerBridge = customMessageHandlerBridgeModule
-            .retrieve(customMessageHandlerBridgeId) else {
-            return
-        }
-
-        bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
     }
 
     internal func setFullscreenRequested(isFullscreen: Bool) {
@@ -272,20 +220,6 @@ public class RNPlayerView: ExpoView {
             return
         }
         playerView.scalingMode = nativeScalingMode
-    }
-
-    @MainActor
-    private func maybeEmitPictureInPictureAvailabilityEvent(previousState: Bool) {
-        guard let playerView, playerView.isPictureInPictureAvailable != previousState else {
-            return
-        }
-        let event: [String: Any] = [
-            "isPictureInPictureAvailable": playerView.isPictureInPictureAvailable,
-            "name": "onPictureInPictureAvailabilityChanged",
-            "timestamp": Date().timeIntervalSince1970
-        ]
-
-        onBmpPictureInPictureAvailabilityChanged(event)
     }
 }
 
@@ -525,7 +459,8 @@ extension RNPlayerView: PlayerListener {
     public func onCastTimeUpdated(_ event: CastTimeUpdatedEvent, player: Player) {
         onBmpCastTimeUpdated(event.eventPayload())
     }
-    func onCastWaitingForDevice(_ event: CastWaitingForDeviceEvent, player: Player) {
+
+    public func onCastWaiting(forDevice event: CastWaitingForDeviceEvent, player: Player) {
         onBmpCastWaitingForDevice(event.eventPayload())
     }
 #endif
@@ -566,5 +501,119 @@ extension RNPlayerView: UserInterfaceListener {
 
     public func onEvent(_ event: any Event, player: any Player) {
         onBmpEvent(event.eventPayload())
+    }
+}
+
+private extension RNPlayerView {
+    /// This method is used to fix the visibility issue of `AVPlayerViewController` when it is presented on iOS 17 or earlier
+    /// when using the new architecture.
+    func maybeFixAVPlayerViewControllerVisibility() {
+#if RCT_NEW_ARCH_ENABLED
+        guard !avPlayerViewControllerTransitionWasForced,
+              let avPlayerViewController = AVPlayerViewController.findAVPlayerViewController(in: window) else {
+            return
+        }
+        avPlayerViewControllerTransitionWasForced = true
+        avPlayerViewController.beginAppearanceTransition(true, animated: false)
+        avPlayerViewController.endAppearanceTransition()
+#endif
+    }
+
+    func maybeCreateUserInterfaceConfig(
+        styleConfig: StyleConfig,
+        playerViewConfig: RNPlayerViewConfig?,
+        customMessageHandlerBridgeId: NativeId?
+    ) -> UserInterfaceConfig? {
+        #if os(iOS)
+        if styleConfig.userInterfaceType == .bitmovin {
+            let bitmovinUserInterfaceConfig = styleConfig
+                .userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
+
+            if let uiConfig = playerViewConfig?.uiConfig {
+                bitmovinUserInterfaceConfig
+                    .playbackSpeedSelectionEnabled = uiConfig.playbackSpeedSelectionEnabled
+                bitmovinUserInterfaceConfig.uiManagerFactoryFunction = uiConfig.uiManagerFactoryFunction
+            }
+            if let hideFirstFrame = playerViewConfig?.hideFirstFrame {
+                bitmovinUserInterfaceConfig.hideFirstFrame = hideFirstFrame
+            }
+
+            if let customMessageHandlerBridgeId {
+                attachCustomMessageHandlerBridge(id: customMessageHandlerBridgeId, to: bitmovinUserInterfaceConfig)
+            }
+
+            return bitmovinUserInterfaceConfig
+        }
+        #endif
+        if styleConfig.userInterfaceType == .system {
+            let systemUserInterfaceConfig = styleConfig
+                .userInterfaceConfig as? SystemUserInterfaceConfig ?? SystemUserInterfaceConfig()
+
+            if let hideFirstFrame = playerViewConfig?.hideFirstFrame {
+                systemUserInterfaceConfig.hideFirstFrame = hideFirstFrame
+            }
+
+            return systemUserInterfaceConfig
+        }
+
+        return nil
+    }
+
+    func attachCustomMessageHandlerBridge(
+        id customMessageHandlerBridgeId: NativeId,
+        to bitmovinUserInterfaceConfig: BitmovinUserInterfaceConfig
+    ) {
+        guard let customMessageHandlerBridgeModule = self.appContext?.moduleRegistry
+            .get(CustomMessageHandlerModule.self) else {
+            return
+        }
+        guard let customMessageHandlerBridge = customMessageHandlerBridgeModule
+            .retrieve(customMessageHandlerBridgeId) else {
+            return
+        }
+
+        bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
+    }
+
+    @MainActor
+    func maybeEmitPictureInPictureAvailabilityEvent(previousState: Bool) {
+        guard let playerView, playerView.isPictureInPictureAvailable != previousState else {
+            return
+        }
+        let event: [String: Any] = [
+            "isPictureInPictureAvailable": playerView.isPictureInPictureAvailable,
+            "name": "onPictureInPictureAvailabilityChanged",
+            "timestamp": Date().timeIntervalSince1970
+        ]
+
+        onBmpPictureInPictureAvailabilityChanged(event)
+    }
+}
+
+private extension UIViewController {
+    func findChildViewController(matching check: (UIViewController) -> Bool) -> UIViewController? {
+        if check(self) {
+            return self
+        }
+        for child in children {
+            if check(child) {
+                return child
+            }
+            if let found = child.findChildViewController(matching: check) {
+                return found
+            }
+        }
+        return nil
+    }
+}
+
+private extension AVPlayerViewController {
+    static func findAVPlayerViewController(in window: UIWindow?) -> AVPlayerViewController? {
+        guard let avPlayerViewController = window?
+            .rootViewController?
+            .findChildViewController(matching: { $0 is AVPlayerViewController }) as? AVPlayerViewController else {
+                return nil
+        }
+        return avPlayerViewController
     }
 }
