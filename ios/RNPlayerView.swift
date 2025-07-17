@@ -2,12 +2,11 @@
 import BitmovinPlayer
 import ExpoModulesCore
 
-// swiftlint:disable:next type_body_length
 public class RNPlayerView: ExpoView {
     var playerView: PlayerView? {
         willSet {
             playerView?.removeFromSuperview()
-            avPlayerViewControllerTransitionWasForced = false
+            avPlayerViewControllerTransitionForced = false
             newValue?.autoresizingMask = [
                 .flexibleWidth,
                 .flexibleHeight
@@ -40,7 +39,7 @@ public class RNPlayerView: ExpoView {
     private var scalingMode: ScalingMode?
     private var requestedFullscreenValue: Bool?
     private var requestedPictureInPictureValue: Bool?
-    private var avPlayerViewControllerTransitionWasForced = false
+    private var avPlayerViewControllerTransitionForced = false
 
     let onBmpEvent = EventDispatcher()
     let onBmpPlayerActive = EventDispatcher()
@@ -505,15 +504,15 @@ extension RNPlayerView: UserInterfaceListener {
 }
 
 private extension RNPlayerView {
-    /// This method is used to fix the visibility issue of `AVPlayerViewController` when it is presented on iOS 17 or earlier
-    /// when using the new architecture.
+    /// This method is used to fix the visibility issue of `AVPlayerViewController` when it is presented on iOS 17
+    /// or earlier when using the new architecture.
     func maybeFixAVPlayerViewControllerVisibility() {
 #if RCT_NEW_ARCH_ENABLED
-        guard !avPlayerViewControllerTransitionWasForced,
+        guard !avPlayerViewControllerTransitionForced,
               let avPlayerViewController = AVPlayerViewController.findAVPlayerViewController(in: window) else {
             return
         }
-        avPlayerViewControllerTransitionWasForced = true
+        avPlayerViewControllerTransitionForced = true
         avPlayerViewController.beginAppearanceTransition(true, animated: false)
         avPlayerViewController.endAppearanceTransition()
 #endif

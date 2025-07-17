@@ -8,7 +8,10 @@ import {
   View,
 } from 'react-native';
 import type { RootStackParamsList } from '../App';
-import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 interface ExampleItemProps {
   title: string;

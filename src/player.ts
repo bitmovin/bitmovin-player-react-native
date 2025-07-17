@@ -474,7 +474,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Sets the playback speed of the player. Fast forward, slow motion and reverse playback are supported.
    * @remarks
    * Platform: iOS, tvOS
-   * 
+   *
    * - Slow motion is indicated by values between `0` and `1`.
    * - Fast forward by values greater than `1`.
    * - Slow reverse is used by values between `0` and `-1`, and fast reverse is used by values less than `-1`. iOS and tvOS only.

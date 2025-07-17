@@ -107,10 +107,13 @@ export class Drm extends NativeInstance<DrmConfig> {
     );
 
     this.eventSubscriptions.push(
-      DrmModule.addListener('onPrepareContentId', ({ nativeId, id, contentId }) => {
-        if (nativeId !== this.nativeId) return;
-        this.onPrepareContentId(id, contentId);
-      })
+      DrmModule.addListener(
+        'onPrepareContentId',
+        ({ nativeId, id, contentId }) => {
+          if (nativeId !== this.nativeId) return;
+          this.onPrepareContentId(id, contentId);
+        }
+      )
     );
 
     // Cross-platform events
@@ -163,7 +166,11 @@ export class Drm extends NativeInstance<DrmConfig> {
    * @param message - Base64 encoded message data.
    * @param assetId - Optional asset ID. Only sent by iOS.
    */
-  private onPrepareMessage = (id: string, message?: string, assetId?: string) => {
+  private onPrepareMessage = (
+    id: string,
+    message?: string,
+    assetId?: string
+  ) => {
     if (!message) {
       DrmModule.setPreparedMessage(id, undefined);
       return;
@@ -189,7 +196,11 @@ export class Drm extends NativeInstance<DrmConfig> {
    *
    * @param syncMessage - Base64 encoded sync SPC message data.
    */
-  private onPrepareSyncMessage = (id: string, syncMessage: string, assetId: string) => {
+  private onPrepareSyncMessage = (
+    id: string,
+    syncMessage: string,
+    assetId: string
+  ) => {
     if (this.config?.fairplay?.prepareSyncMessage) {
       const result = this.config?.fairplay?.prepareSyncMessage?.(
         syncMessage,
@@ -231,7 +242,10 @@ export class Drm extends NativeInstance<DrmConfig> {
    *
    * @param licenseServerUrl - The license server URL string.
    */
-  private onPrepareLicenseServerUrl = (id: string, licenseServerUrl: string) => {
+  private onPrepareLicenseServerUrl = (
+    id: string,
+    licenseServerUrl: string
+  ) => {
     if (this.config?.fairplay?.prepareLicenseServerUrl) {
       const result =
         this.config?.fairplay?.prepareLicenseServerUrl?.(licenseServerUrl);

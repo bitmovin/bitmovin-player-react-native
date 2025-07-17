@@ -46,9 +46,10 @@ jobs:
         uses: ./.github/actions/setup-environment
         with:
           ios: true
+          node: true
 
       - name: Check code style
-        run: swiftlint --strict
+        run: yarn lint:ios
 
   test-build-ios:
     name: Build iOS
