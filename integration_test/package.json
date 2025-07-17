@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "bootstrap": "yarn install && yarn prebuild && yarn pods",
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",

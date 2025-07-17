@@ -8,7 +8,7 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - 'ios/**'
-      - 'RNBitmovinPlayer.podspec'
+      - 'ios/RNBitmovinPlayer.podspec'
       - '.swiftlint.yml'
       - 'Brewfile.lock.json'
       - 'example/ios/**'
@@ -23,7 +23,7 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - 'ios/**'
-      - 'RNBitmovinPlayer.podspec'
+      - 'ios/RNBitmovinPlayer.podspec'
       - '.swiftlint.yml'
       - 'Brewfile.lock.json'
       - 'example/ios/**'
@@ -90,14 +90,13 @@ jobs:
           key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
 
       - name: Build iOS example
-        run: set -o pipefail && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcbeautify --renderer github-actions
-        working-directory: example/ios
+        run: yarn example build:ios --renderer github-actions
         env:
           NSUnbufferedIO: YES
 
       - name: Build iOS integration test host app
-        run: set -o pipefail && xcodebuild -workspace IntegrationTest.xcworkspace -scheme IntegrationTest -configuration Debug build CODE_SIGNING_ALLOWED='NO' | xcbeautify --renderer github-actions
-        working-directory: integration_test/ios
+        run: yarn integration-test build:ios --renderer github-actions
+        working-directory: integration_test
         env:
           NSUnbufferedIO: YES
 
@@ -141,13 +140,11 @@ jobs:
           key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
 
       - name: Prebuild tvOS example
-        run: yarn example prebuild --clean
+        run: yarn example prebuild:tv --clean
         env:
-          EXPO_TV: 1
           NSUnbufferedIO: YES
 
       - name: Build tvOS example
-        run: set -o pipefail && xcodebuild -workspace BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample -configuration Debug -destination 'platform=tvOS Simulator,name=Apple TV,OS=latest' build CODE_SIGNING_ALLOWED='NO' | xcbeautify --renderer github-actions
-        working-directory: example/ios
+        run: yarn example build:tv --renderer github-actions
         env:
           NSUnbufferedIO: YES

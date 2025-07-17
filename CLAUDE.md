@@ -358,8 +358,8 @@ For native development, first ensure the native projects exist by running `yarn 
 
 ### Key Notes
 
-- Integration tests have been disabled in this Expo modules branch (`bootstrap:integration-test` is commented out)
-- Focus is on the example app for comprehensive testing functionality
+- Integration tests are fully functional and re-enabled in this Expo modules branch
+- Both example app and integration tests provide comprehensive testing functionality
 - Currently on `feature/expo-modules-migration` branch, targeting merge to `development`
 - **Expo Modules Implementation**: Fully migrated from React Native bridge to Expo Modules API (100% complete)
 - **Breaking Change**: Example app now uses React 19.0 and React Native 0.79.5 with tvOS support

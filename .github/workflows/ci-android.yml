@@ -60,18 +60,14 @@ jobs:
           subprojects: true
 
       - name: Build Android example
-        run: ./gradlew assembleDebug --build-cache
-        working-directory: example/android
+        run: yarn example build:android --build-cache
 
       - name: Prebuild Android TV example
-        run: yarn example prebuild --clean
-        env:
-          EXPO_TV: 1
+        run: yarn example prebuild:tv --clean
 
       - name: Build Android TV example
-        run: ./gradlew assembleDebug --build-cache
-        working-directory: example/android
+        run: yarn example build:tv --build-cache
 
       - name: Build Android integration test host app
-        run: ./gradlew assembleDebug --build-cache
-        working-directory: integration_test/android
+        run: yarn integration-test build:android --build-cache
+        working-directory: integration_test
