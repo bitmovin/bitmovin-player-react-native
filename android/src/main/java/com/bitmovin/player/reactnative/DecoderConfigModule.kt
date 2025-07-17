@@ -99,7 +99,6 @@ class DecoderConfigModule : Module() {
     ): List<MediaCodecInfo> {
         return CallbackToFutureAdapter.getFuture { completer ->
             overrideDecoderPriorityProviderCompleters[nativeId] = completer
-
             // Send event to TypeScript with decoder context and preferred decoders
             sendEvent(
                 "onOverrideDecodersPriority",

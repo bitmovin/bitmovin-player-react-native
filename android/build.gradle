@@ -19,7 +19,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'org.jlleitschuh.gradle.ktlint'
 
 group = 'com.bitmovin.player.reactnative'
-version = '0.42.0'
+version = '0.43.0'
 
 def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
 apply from: expoModulesCorePlugin
@@ -54,7 +54,7 @@ android {
   
   defaultConfig {
     versionCode 1
-    versionName "0.42.0"
+    versionName "0.43.0"
   }
 
   buildTypes {
@@ -99,6 +99,6 @@ dependencies {
 
   // Bitmovin
   implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
-  implementation 'com.bitmovin.player:player:3.112.0+jason'
-  implementation 'com.bitmovin.player:player-media-session:3.112.0+jason'
+  implementation 'com.bitmovin.player:player:3.117.0+jason'
+  implementation 'com.bitmovin.player:player-media-session:3.117.0+jason'
 }

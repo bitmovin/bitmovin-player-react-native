@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.117.0`
+- Update Bitmovin's native iOS SDK version to `3.93.0`
+
+## [0.43.0] - 2025-06-30
+
+### Added
+
+- Android: `AudioTrack.qualities`, providing the `AudioQuality`s associated with the `AudioTrack`
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.115.0`
+- Update Bitmovin's native iOS SDK version to `3.92.0`
+
 ## [0.42.0] - 2025-06-02
 
 ### Changed
@@ -10,7 +26,6 @@
 - Update Bitmovin's native iOS SDK version to `3.90.0`
 
 ### Added
-
 - `SubtitleTrack.roles` and `AudioTrack.roles` to list the associated `MediaTrackRole` information
 
 ## [0.41.0] - 2025-04-02
