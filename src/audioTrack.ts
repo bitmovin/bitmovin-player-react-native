@@ -32,7 +32,7 @@ export interface AudioTrack {
   roles?: MediaTrackRole[];
   /**
    * The AudioQuality array associated with this AudioTrack.
-   * 
+   *
    * @platform Android
    */
   qualities?: AudioQuality[];
