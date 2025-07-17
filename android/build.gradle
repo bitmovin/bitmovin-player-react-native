@@ -2,6 +2,7 @@ buildscript {
     // Buildscript is evaluated before everything else so we can't use getExtOrDefault
     def kotlin_version = rootProject.ext.has("kotlinVersion") ? rootProject.ext.get("kotlinVersion") : project.properties["BitmovinPlayerReactNative_kotlinVersion"]
     def ktlint_version = rootProject.ext.has("ktlintVersion") ? rootProject.ext.get("ktlintVersion") : project.properties["BitmovinPlayerReactNative_ktlintVersion"]
+    def android_plugin_version = rootProject.ext.has("androidPluginVersion") ? rootProject.ext.get("androidPluginVersion") : project.properties["BitmovinPlayerReactNative_androidPluginVersion"]
 
     repositories {
         google()
@@ -11,6 +12,7 @@ buildscript {
         }
     }
     dependencies {
+        classpath "com.android.tools.build:gradle:$android_plugin_version"
         classpath "org.jlleitschuh.gradle:ktlint-gradle:$ktlint_version"
     }
 }
