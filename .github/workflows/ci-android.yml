@@ -42,8 +42,7 @@ jobs:
           java: true
 
       - name: Check code style
-        run: ./gradlew ktlintCheck
-        working-directory: android
+        run: yarn lint:android
 
   test-build-android:
     name: Build Android
