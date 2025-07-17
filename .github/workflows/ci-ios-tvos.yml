@@ -97,7 +97,6 @@ jobs:
 
       - name: Build iOS integration test host app
         run: yarn integration-test build:ios --renderer github-actions
-        working-directory: integration_test
         env:
           NSUnbufferedIO: YES
 

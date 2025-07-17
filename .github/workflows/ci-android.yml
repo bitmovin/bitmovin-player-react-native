@@ -61,12 +61,25 @@ jobs:
       - name: Build Android example
         run: yarn example build:android --build-cache
 
+      - name: Build Android integration test host app
+        run: yarn integration-test build:android --build-cache
+
+  test-build-android-tv:
+    name: Build Android TV
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          java: true
+          node: true
+          subprojects: true
+
       - name: Prebuild Android TV example
         run: yarn example prebuild:tv --clean
 
       - name: Build Android TV example
         run: yarn example build:android-tv --build-cache
-
-      - name: Build Android integration test host app
-        run: yarn integration-test build:android --build-cache
-        working-directory: integration_test
