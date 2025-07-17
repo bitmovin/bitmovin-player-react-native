@@ -27,14 +27,9 @@ class DrmModule : Module() {
     private val drmConfigs: Registry<WidevineConfig> = mutableMapOf()
 
     /**
-     * ResultWaiter for prepare message callbacks
+     * Shared ResultWaiter for all DRM callbacks
      */
-    private val prepareMessageWaiter = ResultWaiter<String>()
-
-    /**
-     * ResultWaiter for prepare license callbacks
-     */
-    private val prepareLicenseWaiter = ResultWaiter<String>()
+    private val waiter = ResultWaiter<String>()
 
     override fun definition() = ModuleDefinition {
         Name("DrmModule")
@@ -65,11 +60,11 @@ class DrmModule : Module() {
         }
 
         Function("setPreparedMessage") { id: Int, message: String ->
-            prepareMessageWaiter.complete(id, message)
+            waiter.complete(id, message)
         }
 
         Function("setPreparedLicense") { id: Int, license: String ->
-            prepareLicenseWaiter.complete(id, license)
+            waiter.complete(id, license)
         }
 
         // iOS-specific methods that return null on Android for compatibility
@@ -107,7 +102,7 @@ class DrmModule : Module() {
         val prepareMessageCallback = createPrepareCallback(
             nativeId,
             "onPrepareMessage",
-            prepareMessageWaiter,
+            waiter,
         )
         return PrepareMessageCallback(prepareMessageCallback)
     }
@@ -124,7 +119,7 @@ class DrmModule : Module() {
         val prepareLicense = createPrepareCallback(
             nativeId,
             "onPrepareLicense",
-            prepareLicenseWaiter,
+            waiter,
         )
         return PrepareLicenseCallback(prepareLicense)
     }
