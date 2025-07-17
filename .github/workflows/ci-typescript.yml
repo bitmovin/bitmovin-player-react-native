@@ -64,6 +64,12 @@ jobs:
       - name: Install node_modules
         run: yarn install --frozen-lockfile
 
+      - name: Install node_modules (example/)
+        run: yarn install --frozen-lockfile --cwd example
+
+      - name: Install node_modules (integration_test/)
+        run: yarn install --frozen-lockfile --cwd integration_test
+
       - name: Lint Typescript
         run: yarn lint:all
 
