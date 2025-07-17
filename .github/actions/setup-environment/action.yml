@@ -57,6 +57,7 @@ runs:
       shell: bash
       run: |
         yarn install --cwd example
+        cp example/.env.example example/.env
         yarn --cwd example prebuild --clean --no-install
 
     - name: Install node_modules (integration_test/)
@@ -64,6 +65,7 @@ runs:
       shell: bash
       run: |
         yarn install --cwd integration_test
+        cp integration_test/.env.example integration_test/.env
         yarn --cwd integration_test prebuild --clean --no-install
 
     - uses: maxim-lobanov/setup-xcode@v1
