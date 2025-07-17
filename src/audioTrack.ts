@@ -1,4 +1,5 @@
 import { MediaTrackRole } from './mediaTrackRole';
+import { AudioQuality } from './media';
 
 /**
  * Represents an audio track for a video.
@@ -29,4 +30,10 @@ export interface AudioTrack {
    * This property provides a unified way to understand track purposes (e.g., for accessibility) across platforms.
    */
   roles?: MediaTrackRole[];
+  /**
+   * The AudioQuality array associated with this AudioTrack.
+   * 
+   * @platform Android
+   */
+  qualities?: AudioQuality[];
 }
