@@ -20,6 +20,7 @@ To run the tests, run the following command from the repository root:
 ```sh
 yarn integration-test test:ios # Run tests on iOS simulator
 yarn integration-test test:android # Run tests on Android emulator
+yarn integration-test test # Run tests on both Android emulator and iOS simulator
 ```
 
 To set the license key to be used for the tests, you can set the key `"licenseKey"` in `integration_test/app.json`.
