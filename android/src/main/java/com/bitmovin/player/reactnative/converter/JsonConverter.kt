@@ -206,7 +206,6 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     }
     withBoolean("languagePropertyNormalization") { languagePropertyNormalization = it }
     withDouble("localDynamicDashWindowUpdateInterval") { localDynamicDashWindowUpdateInterval = it }
-    withBoolean("shouldApplyTtmlRegionWorkaround") { shouldApplyTtmlRegionWorkaround = it }
     withBoolean("useDrmSessionForClearPeriods") { useDrmSessionForClearPeriods = it }
     withBoolean("useDrmSessionForClearSources") { useDrmSessionForClearSources = it }
     withBoolean("useFiletypeExtractorFallbackForHls") { useFiletypeExtractorFallbackForHls = it }
