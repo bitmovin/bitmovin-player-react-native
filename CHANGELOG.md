@@ -4,8 +4,12 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.117.0`
+- Update Bitmovin's native Android SDK version to `3.118.0`
 - Update Bitmovin's native iOS SDK version to `3.93.0`
+
+### Removed
+
+- Android: `TweaksConfig.shouldApplyTtmlRegionWorkaround` as support for TTML attributes defined in a Region's Style has improved
 
 ## [0.43.0] - 2025-06-30
 
