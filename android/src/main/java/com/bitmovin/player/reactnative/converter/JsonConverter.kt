@@ -206,7 +206,6 @@ fun ReadableMap.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     }
     withBoolean("languagePropertyNormalization") { languagePropertyNormalization = it }
     withDouble("localDynamicDashWindowUpdateInterval") { localDynamicDashWindowUpdateInterval = it }
-    withBoolean("shouldApplyTtmlRegionWorkaround") { shouldApplyTtmlRegionWorkaround = it }
     withBoolean("useDrmSessionForClearPeriods") { useDrmSessionForClearPeriods = it }
     withBoolean("useDrmSessionForClearSources") { useDrmSessionForClearSources = it }
     withBoolean("useFiletypeExtractorFallbackForHls") { useFiletypeExtractorFallbackForHls = it }
@@ -272,7 +271,7 @@ fun ReadableMap.toSourceConfig(): SourceConfig? {
         withBoolean("isPosterPersistent") { isPosterPersistent = it }
         withArray("subtitleTracks") { subtitleTracks ->
             for (i in 0 until subtitleTracks.size()) {
-                subtitleTracks.getMap(i).toSubtitleTrack()?.let {
+                subtitleTracks.getMap(i)?.toSubtitleTrack()?.let {
                     addSubtitleTrack(it)
                 }
             }
@@ -990,7 +989,7 @@ fun ReadableArray.toMediaCodecInfoList(): List<MediaCodecInfo> {
     }
     val mediaCodecInfoList = mutableListOf<MediaCodecInfo>()
     (0 until size()).forEach {
-        val info = getMap(it).toMediaCodecInfo() ?: return@forEach
+        val info = getMap(it)?.toMediaCodecInfo() ?: return@forEach
         mediaCodecInfoList.add(info)
     }
     return mediaCodecInfoList
