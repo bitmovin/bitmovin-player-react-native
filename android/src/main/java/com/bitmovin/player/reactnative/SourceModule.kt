@@ -27,54 +27,33 @@ class SourceModule : Module() {
             sources.clear()
         }
 
-        /**
-         * Creates a new `Source` instance with the provided config.
-         */
         AsyncFunction("initializeWithConfig") { nativeId: String, drmNativeId: String?,
             config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?, ->
             initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, null)
         }
 
-        /**
-         * Creates a new `Source` instance with analytics configuration.
-         */
         AsyncFunction("initializeWithAnalyticsConfig") { nativeId: String, drmNativeId: String?,
             config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?,
             analyticsSourceMetadata: Map<String, Any>?, ->
             initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, analyticsSourceMetadata)
         }
 
-        /**
-         * Destroys the source instance with the given native ID.
-         */
         AsyncFunction("destroy") { nativeId: String ->
             sources.remove(nativeId)
         }
 
-        /**
-         * Checks if the source is attached to a player.
-         */
         AsyncFunction("isAttachedToPlayer") { nativeId: String ->
             sources[nativeId]?.isAttachedToPlayer
         }
 
-        /**
-         * Checks if the source is currently active.
-         */
         AsyncFunction("isActive") { nativeId: String ->
             sources[nativeId]?.isActive
         }
 
-        /**
-         * Gets the duration of the source.
-         */
         AsyncFunction("duration") { nativeId: String ->
             sources[nativeId]?.duration
         }
 
-        /**
-         * Gets the loading state of the source.
-         */
         AsyncFunction("loadingState") { nativeId: String ->
             sources[nativeId]?.loadingState?.name
         }

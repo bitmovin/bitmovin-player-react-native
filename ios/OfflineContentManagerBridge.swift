@@ -49,9 +49,6 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         sendOfflineEvent(eventType: .onOptionsAvailable)
     }
 
-    /**
-     Called when an error occurs.
-     */
     func onOfflineError(
         _ event: OfflineErrorEvent,
         offlineContentManager: OfflineContentManager
@@ -62,9 +59,6 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         ])
     }
 
-    /**
-     Called after a getOptions or when am OfflineOptionEntry has been updated during a process call.
-     */
     func onAvailableTracksFetched(
         _ event: AvailableTracksFetchedEvent,
         offlineContentManager: OfflineContentManager
@@ -76,9 +70,6 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         ])
     }
 
-    /**
-     Called when a process call has completed.
-     */
     func onContentDownloadFinished(
         _ event: ContentDownloadFinishedEvent,
         offlineContentManager: OfflineContentManager
@@ -88,9 +79,6 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         ])
     }
 
-    /**
-     Called when the progress for a process call changes.
-     */
     func onContentDownloadProgressChanged(
         _ event: ContentDownloadProgressChangedEvent,
         offlineContentManager: OfflineContentManager
@@ -100,9 +88,6 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         ])
     }
 
-    /**
-     Called when all actions have been suspended.
-     */
     func onContentDownloadSuspended(
         _ event: ContentDownloadSuspendedEvent,
         offlineContentManager: OfflineContentManager
@@ -110,9 +95,6 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         sendOfflineEvent(eventType: .onSuspended)
     }
 
-    /**
-     Called when all actions have been resumed.
-     */
     func onContentDownloadResumed(
         _ event: ContentDownloadResumedEvent,
         offlineContentManager: OfflineContentManager
@@ -120,10 +102,6 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         sendOfflineEvent(eventType: .onResumed)
     }
 
-    /**
-     Called when the download of the media content was canceled by the user
-     and all partially downloaded content has been deleted from disk.
-     */
     func onContentDownloadCanceled(
         _ event: ContentDownloadCanceledEvent,
         offlineContentManager: OfflineContentManager
@@ -131,9 +109,6 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
         sendOfflineEvent(eventType: .onCanceled)
     }
 
-    /**
-     Called when the DRM license was renewed.
-     */
     func onOfflineContentLicenseRenewed(
         _ event: OfflineContentLicenseRenewedEvent,
         offlineContentManager: OfflineContentManager

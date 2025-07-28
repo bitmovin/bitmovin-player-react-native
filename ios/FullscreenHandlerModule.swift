@@ -42,10 +42,6 @@ public class FullscreenHandlerModule: Module {
         }.runOnQueue(.main)
     }
 
-    /**
-     * Retrieves the FullscreenHandlerBridge instance for the given nativeId.
-     * This method maintains the same static access pattern as the legacy module.
-     */
     func retrieve(_ nativeId: String) -> FullscreenHandlerBridge? {
         fullscreenHandlers[nativeId]
     }
@@ -73,10 +69,6 @@ public class FullscreenHandlerModule: Module {
         handler.isFullscreenValueBox.update(result)
     }
 
-    /**
-     * Handles fullscreen exit request from native code.
-     * Called by FullscreenHandlerBridge when fullscreen should be exited.
-     */
     func onFullscreenExitRequested(nativeId: String) {
         guard let handler = retrieve(nativeId) else {
             return

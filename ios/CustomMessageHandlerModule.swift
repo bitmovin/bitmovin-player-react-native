@@ -37,10 +37,6 @@ public class CustomMessageHandlerModule: Module {
         }.runOnQueue(.main)
     }
 
-    /**
-     * Retrieves the CustomMessageHandlerBridge instance for the given nativeId.
-     * This method maintains the same static access pattern as the legacy module.
-     */
     func retrieve(_ nativeId: String) -> CustomMessageHandlerBridge? {
         customMessageHandlers[nativeId]
     }
@@ -73,10 +69,6 @@ extension CustomMessageHandlerModule: CustomMessageHandlerBridgeDelegate {
         return wait() ?? ""
     }
 
-    /**
-     * Handles asynchronous message received from native code.
-     * Called by CustomMessageHandlerBridge when an asynchronous message is received.
-     */
     func receivedAsynchronousMessage(
         nativeId: String,
         message: String,

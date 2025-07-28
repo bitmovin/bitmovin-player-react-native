@@ -46,16 +46,8 @@ class CustomMessageHandlerModule : Module() {
         }
     }
 
-    /**
-     * Retrieves the CustomMessageHandlerBridge instance for the given nativeId.
-     * This method maintains the same static access pattern as the legacy module.
-     */
     fun getInstance(nativeId: String?): CustomMessageHandlerBridge? = customMessageHandlers[nativeId]
 
-    /**
-     * Handles synchronous message received from native code.
-     * Called by CustomMessageHandlerBridge when a synchronous message is received.
-     */
     fun receivedSynchronousMessage(nativeId: String, message: String, data: String?): String? {
         val (id, wait) = synchronousMessageWaiter.make(5000) // 5 second timeout
         
@@ -73,10 +65,6 @@ class CustomMessageHandlerModule : Module() {
         return wait()
     }
 
-    /**
-     * Handles asynchronous message received from native code.
-     * Called by CustomMessageHandlerBridge when an asynchronous message is received.
-     */
     fun receivedAsynchronousMessage(nativeId: String, message: String, data: String?) {
         // Send event to TypeScript using Expo module event system
         sendEvent(

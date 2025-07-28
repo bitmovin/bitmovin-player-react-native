@@ -18,9 +18,6 @@ public class AudioSessionModule: Module {
         }.runOnQueue(.main)
     }
 
-    /**
-     Parse any category string to an `AVAudioSession.Category` type.
-     */
     private func parseCategory(_ category: String) -> AVAudioSession.Category? {
         switch category {
         case "ambient":

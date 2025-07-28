@@ -144,9 +144,6 @@ class OfflineContentManagerBridge(
         return state ?: OfflineOptionEntryState.NotDownloaded
     }
 
-    /**
-     * Called when a process call has completed.
-     */
     override fun onCompleted(source: SourceConfig, options: OfflineContentOptions) {
         this.contentOptions = options
         sendEvent(
@@ -155,9 +152,6 @@ class OfflineContentManagerBridge(
         )
     }
 
-    /**
-     * Called when an error occurs.
-     */
     override fun onError(source: SourceConfig, event: ErrorEvent) {
         sendEvent(
             OfflineEventType.ON_ERROR,
@@ -168,9 +162,6 @@ class OfflineContentManagerBridge(
         )
     }
 
-    /**
-     * Called when the progress for a process call changes.
-     */
     override fun onProgress(source: SourceConfig, progress: Float) {
         sendEvent(
             OfflineEventType.ON_PROGRESS,
@@ -178,9 +169,6 @@ class OfflineContentManagerBridge(
         )
     }
 
-    /**
-     * Called after a getOptions or when am OfflineOptionEntry has been updated during a process call.
-     */
     override fun onOptionsAvailable(source: SourceConfig, options: OfflineContentOptions) {
         this.contentOptions = options
         sendEvent(
@@ -189,23 +177,14 @@ class OfflineContentManagerBridge(
         )
     }
 
-    /**
-     * Called when the DRM license was updated.
-     */
     override fun onDrmLicenseUpdated(source: SourceConfig) {
         sendEvent(OfflineEventType.ON_DRM_LICENSE_UPDATED)
     }
 
-    /**
-     * Called when all actions have been suspended.
-     */
     override fun onSuspended(source: SourceConfig) {
         sendEvent(OfflineEventType.ON_SUSPENDED)
     }
 
-    /**
-     * Called when all actions have been resumed.
-     */
     override fun onResumed(source: SourceConfig) {
         sendEvent(OfflineEventType.ON_RESUMED)
     }

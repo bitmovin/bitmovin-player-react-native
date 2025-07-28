@@ -5,11 +5,6 @@ import BitmovinPlayer
 import Foundation
 
 extension RCTConvert {
-    /**
-     Utility method to instantiate a `PlayerConfig` from a JS object.
-     - Parameter json: JS object
-     - Returns: The produced `PlayerConfig` object
-     */
     static func playerConfig(_ json: Any?) -> PlayerConfig? { // swiftlint:disable:this cyclomatic_complexity
         let playerConfig = PlayerConfig()
         guard let json = json as? [String: Any?] else {
@@ -53,11 +48,6 @@ extension RCTConvert {
         return playerConfig
     }
 
-    /**
-     Utility method to instantiate a `PlaybackConfig` from a JS object.
-     - Parameter json: JS object.
-     - Returns: The produced `PlaybackConfig` object.
-     */
     static func playbackConfig(_ json: Any?) -> PlaybackConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -81,11 +71,6 @@ extension RCTConvert {
         return playbackConfig
     }
 
-    /**
-     Utility method to instantiate a `StyleConfig` from a JS object.
-     - Parameter json: JS object.
-     - Returns: The produced `StyleConfig` object.
-     */
     static func styleConfig(_ json: Any?) -> StyleConfig? { // swiftlint:disable:this cyclomatic_complexity
         guard let json = json as? [String: Any?] else {
             return nil
@@ -123,11 +108,6 @@ extension RCTConvert {
         return styleConfig
     }
 
-    /**
-     Utility method to instantiate a `TweaksConfig` from a JS object.
-     - Parameter json: JS object.
-     - Returns: The produced `TweaksConfig` object.
-     */
     static func tweaksConfig(_ json: Any?) -> TweaksConfig? { // swiftlint:disable:this cyclomatic_complexity
         guard let json = json as? [String: Any?] else {
             return nil
@@ -173,11 +153,6 @@ extension RCTConvert {
         return tweaksConfig
     }
 
-    /**
-     Utility method to instantiate a `BufferMediaTypeConfig` from a JS object.
-     - Parameter json: JS object.
-     - Returns: The produced `BufferMediaTypeConfig` object.
-     */
     static func bufferMediaTypeConfig(_ json: Any?) -> BufferMediaTypeConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -189,11 +164,6 @@ extension RCTConvert {
         return bufferMediaTypeConfig
     }
 
-    /**
-     Utility method to instantiate a `BufferConfig` from a JS object.
-     - Parameter json: JS object.
-     - Returns: The produced `BufferConfig` object.
-     */
     static func bufferConfig(_ json: Any?) -> BufferConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -205,11 +175,6 @@ extension RCTConvert {
         return bufferConfig
     }
 
-    /**
-     Utility method to instantiate a `LiveConfig` from a JS object.
-     - Parameter json: JS object.
-     - Returns: The produced `LiveConfig` object, or `nil` if `json` is not valid.
-     */
     static func liveConfig(_ json: Any?) -> LiveConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -221,11 +186,6 @@ extension RCTConvert {
         return liveConfig
     }
 
-    /**
-     Utility method to instantiate a `HttpRequest` from a JS object.
-     - Parameter json: JS object.
-     - Returns: The produced `HttpRequest` object, or `nil` if `json` is not valid.
-     */
     static func httpRequest(_ json: Any?) -> HttpRequest? {
         guard
             let json = json as? [String: Any?],
@@ -245,11 +205,6 @@ extension RCTConvert {
         return request
     }
 
-    /**
-     Utility method to instantiate a `HttpResponse` from a JS object.
-     - Parameter json: JS object.
-     - Returns: The produced `HttpResponse` object, or `nil` if `json` is not valid.
-     */
     static func httpResponse(_ json: Any?) -> HttpResponse? {
         guard
             let json = json as? [String: Any?],
@@ -282,11 +237,6 @@ extension RCTConvert {
         return NetworkConfig()
     }
 
-    /**
-     Utility method to instantiate an `AdvertisingConfig` from a JS object.
-     - Parameter json: JS object.
-     - Returns: The produced `AdvertisingConfig` object.
-     */
     static func advertisingConfig(_ json: Any?) -> AdvertisingConfig? {
         guard
             let json = json as? [String: Any?],
@@ -297,11 +247,6 @@ extension RCTConvert {
         return AdvertisingConfig(schedule: schedule.compactMap { RCTConvert.adItem($0) })
     }
 
-    /**
-     Utility method to instantiate an `AdItem` from a JS object.
-     - Parameter json: JS object.
-     - Returns: The produced `AdItem` object.
-     */
     static func adItem(_ json: Any?) -> AdItem? {
         guard
             let json = json as? [String: Any?],
@@ -315,11 +260,6 @@ extension RCTConvert {
         )
     }
 
-    /**
-     Utility method to instantiate an `AdSource` from a JS object.
-     - Parameter json: JS object.
-     - Returns: The produced `AdSource` object.
-     */
     static func adSource(_ json: Any?) -> AdSource? {
         guard
             let json = json as? [String: Any?],
@@ -331,11 +271,6 @@ extension RCTConvert {
         return AdSource(tag: tag, ofType: type)
     }
 
-    /**
-     Utility method to instantiate an `AdSourceType` from a JS object.
-     - Parameter json: JS object.
-     - Returns: The produced `AdSourceType` object.
-     */
     static func adSourceType(_ json: Any?) -> AdSourceType? {
         guard let json = json as? String else {
             return nil
@@ -352,11 +287,6 @@ extension RCTConvert {
         }
     }
 
-    /**
-     Utility method to instantiate a `SourceConfig` from a JS object.
-     - Parameter json: JS object
-     - Returns: The produced `SourceConfig` object
-     */
     static func sourceConfig(_ json: Any?, drmConfig: DrmConfig? = nil) -> SourceConfig? { // swiftlint:disable:this cyclomatic_complexity line_length
         guard let json = json as? [String: Any?] else {
             return nil
@@ -399,11 +329,6 @@ extension RCTConvert {
         return sourceConfig
     }
 
-    /**
-     Utility method to instantiate a `SourceOptions` from a JS object.
-     - Parameter json: JS object
-     - Returns: The produced `SourceOptions` object
-     */
     static func sourceOptions(_ json: Any?) -> SourceOptions {
         let sourceOptions = SourceOptions()
         guard let json = json as? [String: Any?] else {
@@ -417,11 +342,6 @@ extension RCTConvert {
         return sourceOptions
     }
 
-    /**
-     Utility method to instantiate a `TimelineReferencePoint` from a JS object.
-     - Parameter json: JS object
-     - Returns: The produced `TimelineReferencePoint` value
-     */
     static func timelineReferencePoint(_ json: Any?) -> TimelineReferencePoint {
         guard let stringValue = json as? String else { return .auto }
         switch stringValue {
@@ -434,11 +354,6 @@ extension RCTConvert {
         }
     }
 
-    /**
-     Utility method to get a `SourceType` from a JS object.
-     - Parameter json: JS object
-     - Returns: The associated `SourceType` value
-     */
     static func sourceType(_ json: Any?) -> SourceType {
         guard let json = json as? String else {
             return .none
@@ -457,11 +372,6 @@ extension RCTConvert {
         }
     }
 
-    /**
-     Utility method to get a `TimeMode` from a JS object.
-     - Parameter json: JS object
-     - Returns: The associated `TimeMode` value
-     */
     static func timeMode(_ json: Any?) -> TimeMode {
         guard let json = json as? String else {
             return .absoluteTime
@@ -476,11 +386,6 @@ extension RCTConvert {
         }
     }
 
-    /**
-     Utility method to get a `DrmConfig` from a JS object.
-     - Parameter json: JS object
-     - Returns: The generated `DrmConfig` object
-     */
     static func drmConfig(_ json: Any?) -> (fairplay: FairplayConfig?, widevine: WidevineConfig?) {
         guard let json = json as? [String: Any?] else {
             return (nil, nil)
@@ -491,11 +396,6 @@ extension RCTConvert {
         )
     }
 
-    /**
-     Utility method to get a `FairplayConfig` from a JS object.
-     - Parameter json: JS object
-     - Returns: The generated `FairplayConfig` object
-     */
     static func fairplayConfig(_ json: Any?) -> FairplayConfig? {
         guard let json = json as? [String: Any?],
               let licenseURLString = json["licenseUrl"] as? String,
@@ -516,11 +416,6 @@ extension RCTConvert {
         return fairplayConfig
     }
 
-    /**
-     Utility method to get a `WidevineConfig` from a JS object.
-     - Parameter json: JS object
-     - Returns: The generated `WidevineConfig` object
-     */
     static func widevineConfig(_ json: Any?) -> WidevineConfig? {
         guard let json = json as? [String: Any?],
             let licenseURL = json["licenseUrl"] as? String else {
@@ -533,11 +428,6 @@ extension RCTConvert {
         return widevineConfig
     }
 
-    /**
-     Utility method to get a `ThumbnailTrack` instance from a JS object.
-     - Parameter url: String.
-     - Returns: The generated `ThumbnailTrack`.
-     */
     static func thumbnailTrack(_ url: String?) -> ThumbnailTrack? {
         guard
             let url = RCTConvert.nsurl(url)
@@ -552,11 +442,6 @@ extension RCTConvert {
         )
     }
 
-    /**
-     Utility method to get a json dictionary value from a `AudioTrack` object.
-     - Parameter audioTrack: The track to convert to json format.
-     - Returns: The generated json dictionary.
-     */
     static func audioTrackJson(_ audioTrack: AudioTrack?) -> [String: Any]? {
         guard let audioTrack else {
             return nil
@@ -581,11 +466,6 @@ extension RCTConvert {
         return audioTrackDict
     }
 
-    /**
-     Utility method to get a `SubtitleTrack` instance from a JS object.
-     - Parameter json: JS object.
-     - Returns: The generated `SubtitleTrack`.
-     */
     static func subtitleTrack(_ json: [String: Any]) -> SubtitleTrack? {
         guard
             let url = RCTConvert.nsurl(json["url"]),
@@ -620,11 +500,6 @@ extension RCTConvert {
         )
     }
 
-    /**
-     Utility method to get a `SubtitleFormat` value from a JS object.
-     - Parameter json: JS object.
-     - Returns: The associated `SubtitleFormat` value or nil.
-     */
     static func subtitleFormat(_ json: Any?) -> SubtitleFormat? {
         guard let json = json as? String else {
             return nil
@@ -643,11 +518,6 @@ extension RCTConvert {
         }
     }
 
-    /**
-     Utility method to get a json dictionary value from a `SubtitleTrack` object.
-     - Parameter subtitleTrack: The track to convert to json format.
-     - Returns: The generated json dictionary.
-     */
     static func subtitleTrackJson(_ subtitleTrack: SubtitleTrack?) -> [String: Any]? {
         guard let subtitleTrack else {
             return nil
@@ -686,11 +556,6 @@ extension RCTConvert {
         return subtitleTrackDict
     }
 
-    /**
-     Utility method to get a json dictionary value from a `ThumbnailTrack` object.
-     - Parameter thumbnailTrack: The `ThumbnailTrack` to convert to json format.
-     - Returns: The generated json dictionary.
-     */
     static func toJson(thumbnailTrack: ThumbnailTrack?) -> [AnyHashable: Any]? {
         guard let thumbnailTrack else {
             return nil
@@ -708,11 +573,6 @@ extension RCTConvert {
         return thumbnailTrackDict
     }
 
-    /**
-     Utility method to compute a JS value from an `AdItem` object.
-     - Parameter adItem: `AdItem` object to be converted.
-     - Returns: The produced JS object.
-     */
     static func toJson(adItem: AdItem?) -> [String: Any?]? {
         guard let adItem else {
             return nil
@@ -723,11 +583,6 @@ extension RCTConvert {
         ]
     }
 
-    /**
-     Utility method to compute a JS value from an `AdSource` object.
-     - Parameter adSource: `AdSource` object to be converted.
-     - Returns: The produced JS object.
-     */
     static func toJson(adSource: AdSource?) -> [String: Any?]? {
         guard let adSource else {
             return nil
@@ -738,11 +593,6 @@ extension RCTConvert {
         ]
     }
 
-    /**
-     Utility method to compute a JS value from an `AdSourceType` value.
-     - Parameter adSourceType: `AdSourceType` object to be converted.
-     - Returns: The produced JS object.
-     */
     static func toJson(adSourceType: AdSourceType?) -> String? {
         guard let adSourceType else {
             return nil
@@ -759,11 +609,6 @@ extension RCTConvert {
         }
     }
 
-    /**
-     Utility method to compute a JS value from an `AdConfig` object.
-     - Parameter adConfig: `AdConfig` object to be converted.
-     - Returns: The produced JS object.
-     */
     static func toJson(adConfig: AdConfig?) -> [String: Any?]? {
         guard let adConfig else {
             return nil
@@ -771,11 +616,6 @@ extension RCTConvert {
         return ["replaceContentDuration": adConfig.replaceContentDuration]
     }
 
-    /**
-     Utility method to compute a JS string from an `AdQuartile` value.
-     - Parameter adQuartile: `AdQuartile` value to be converted.
-     - Returns: The produced JS string.
-     */
     static func toJson(adQuartile: AdQuartile?) -> String? {
         guard let adQuartile else {
             return nil
@@ -790,11 +630,6 @@ extension RCTConvert {
         }
     }
 
-    /**
-     Utility method to compute a JS value from an `AdBreak` object.
-     - Parameter adBreak: `AdBreak` object to be converted.
-     - Returns: The produced JS object.
-     */
     static func toJson(adBreak: AdBreak?) -> [String: Any?]? {
         guard let adBreak else {
             return nil
@@ -806,11 +641,6 @@ extension RCTConvert {
         ]
     }
 
-    /**
-     Utility method to compute a JS value from an `Ad` object.
-     - Parameter ad: `Ad` object to be converted.
-     - Returns: The produced JS object.
-     */
     static func toJson(ad: Ad?) -> [String: Any?]? {
         guard let ad else {
             return nil
@@ -826,11 +656,6 @@ extension RCTConvert {
         ]
     }
 
-    /**
-     Utility method to compute a JS value from an `AdData` object.
-     - Parameter adData `AdData` object to be converted.
-     - Returns: The produced JS object.
-     */
     static func toJson(adData: AdData?) -> [String: Any?]? {
         guard let adData else {
             return nil
@@ -843,11 +668,6 @@ extension RCTConvert {
         ]
     }
 
-    /**
-     Utility method to get a `BitmovinAnalyticsConfig` value from a JS object.
-     - Parameter json: JS object.
-     - Returns: The associated `BitmovinAnalyticsConfig` value or nil.
-     */
     static func analyticsConfig(_ json: Any?) -> AnalyticsConfig? {
         guard
             let json = json as? [String: Any?],
@@ -884,11 +704,6 @@ extension RCTConvert {
         )
     }
 
-    /**
-     Utility method to get an analytics `CustomData` value from a JS object.
-     - Parameter json: JS object.
-     - Returns: The associated `CustomData` value or nil.
-     */
     static func analyticsCustomData(_ json: Any?) -> CustomData? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -928,11 +743,6 @@ extension RCTConvert {
         )
     }
 
-    /**
-     Utility method to get a JS value from a `CustomData` object.
-     - Parameter analyticsCustomData: Analytics custom data object.
-     - Returns: The JS value representing the given object.
-     */
     static func toJson(analyticsCustomData: CustomData?) -> [String: Any?]? {
         guard let analyticsCustomData else {
             return nil
@@ -972,11 +782,6 @@ extension RCTConvert {
         return json
     }
 
-    /**
-     Utility method to get an analytics `SourceMetadata` value from a JS object.
-     - Parameter json: JS object.
-     - Returns: The associated `SourceMetadata` value or nil.
-     */
     static func analyticsSourceMetadata(_ json: Any?) -> SourceMetadata? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -994,11 +799,6 @@ extension RCTConvert {
         )
     }
 
-    /**
-     Utility method to compute a JS value from a `VideoQuality` object.
-     - Parameter videoQuality `VideoQuality` object to be converted.
-     - Returns: The produced JS object.
-     */
     static func toJson(videoQuality: VideoQuality?) -> [String: Any]? {
         guard let videoQuality else {
             return nil
@@ -1017,11 +817,6 @@ extension RCTConvert {
         return videoQualityDict
     }
 
-    /**
-     Utility method to get a `UserInterfaceType` from a JS object.
-     - Parameter json: JS object
-     - Returns: The associated `UserInterfaceType` value or `nil`
-     */
     static func userInterfaceType(_ json: Any?) -> UserInterfaceType? {
         guard let json = json as? String else {
             return .none
@@ -1041,11 +836,6 @@ extension RCTConvert {
     }
 
 #if os(iOS)
-    /**
-     Utility method to compute a JS value from an `OfflineState` object.
-     - Parameter offlineState `OfflineState` object to be converted.
-     - Returns: The produced JS object.
-     */
     static func toJson(offlineState: OfflineState?) -> String {
         var notDownloaded = "NotDownloaded"
         guard let offlineState else {
@@ -1064,11 +854,6 @@ extension RCTConvert {
         }
     }
 
-    /**
-     Utility method to compute a JS value from an `OfflineTextTrack` object.
-     - Parameter offlineTrack `OfflineTextTrack` object to be converted.
-     - Returns: The produced JS object.
-     */
     static func toJson(offlineTrack: OfflineTextTrack) -> [String: Any?] {
         [
             "id": offlineTrack.label,
@@ -1076,11 +861,6 @@ extension RCTConvert {
         ]
     }
 
-    /**
-     Utility method to compute a JS value from an `OfflineAudioTrack` object.
-     - Parameter offlineTrack `OfflineAudioTrack` object to be converted.
-     - Returns: The produced JS object.
-     */
     static func toJson(offlineTrack: OfflineAudioTrack) -> [String: Any?] {
         [
             "id": offlineTrack.label,
@@ -1088,11 +868,6 @@ extension RCTConvert {
         ]
     }
 
-    /**
-     Utility method to compute a JS value from an `OfflineTrackSelection` object.
-     - Parameter offlineTracks `OfflineTrackSelection` object to be converted.
-     - Returns: The produced JS object.
-     */
     static func toJson(offlineTracks: OfflineTrackSelection?) -> [String: Any]? {
         guard let offlineTracks else {
             return nil
@@ -1105,11 +880,6 @@ extension RCTConvert {
     }
 #endif
 
-    /**
-     Utility method to instantiate a `AdaptationConfig` from a JS object.
-     - Parameter json: JS object
-     - Returns: The produced `AdaptationConfig` object
-     */
     static func adaptationConfig(_ json: Any?) -> AdaptationConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -1122,11 +892,6 @@ extension RCTConvert {
         return adaptationConfig
     }
 
-    /**
-     Utility method to compute a JS value from an `Thumbnail` object.
-     - Parameter thumbnail `Thumbnail` object to be converted.
-     - Returns: The produced JS object.
-     */
     static func toJson(thumbnail: Thumbnail?) -> [String: Any?]? {
         guard let thumbnail else {
             return nil
@@ -1144,11 +909,6 @@ extension RCTConvert {
         ]
     }
 
-    /**
-     Utility method to instantiate a `RemoteControlConfig` from a JS object.
-     - Parameter json: JS object
-     - Returns: The produced `RemoteControlConfig` object
-     */
     static func remoteControlConfig(_ json: Any?) -> RemoteControlConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -1176,11 +936,6 @@ extension RCTConvert {
     }
 
 #if os(iOS)
-    /**
-     Utility method to instantiate a `BitmovinCastManagerOptions` from a JS object.
-     - Parameter json: JS object
-     - Returns: The produced `BitmovinCastManagerOptions` object
-     */
     static func castManagerOptions(_ json: Any?) -> BitmovinCastManagerOptions? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -1192,11 +947,6 @@ extension RCTConvert {
         return options
     }
 
-    /**
-     Utility method to compute a JS value from an `CastPayload` object.
-     - Parameter castPayload `CastPayload` object to be converted.
-     - Returns: The produced JS object.
-     */
     static func toJson(castPayload: CastPayload) -> [String: Any?] {
         [
             "currentTime": castPayload.currentTime,
@@ -1205,11 +955,6 @@ extension RCTConvert {
         ]
     }
 
-    /**
-     Utility method to instantiate a `SourceRemoteControlConfig` from a JS object.
-     - Parameter json: JS object
-     - Returns: The produced `SourceRemoteControlConfig` object
-     */
     static func sourceRemoteControlConfig(_ json: Any?) -> SourceRemoteControlConfig? {
         guard let json = json as? [String: Any?],
               let castSourceConfigJson = json["castSourceConfig"] as? [String: Any?] else {
@@ -1224,11 +969,6 @@ extension RCTConvert {
     }
 #endif
 
-    /**
-     Utility method to instantiate a `PictureInPictureConfig` from a JS object.
-     - Parameter json: JS object
-     - Returns: The produced `PictureInPictureConfig` object
-     */
     static func pictureInPictureConfig(_ json: Any?) -> PictureInPictureConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -1247,11 +987,6 @@ extension RCTConvert {
         return pictureInPictureConfig
     }
 
-    /**
-     Utility method to instantiate a `RNPlayerViewConfig` from a JS object.
-     - Parameter json: JS object
-     - Returns: The produced `UiConfig` object
-     */
     static func rnPlayerViewConfig(_ json: Any?) -> RNPlayerViewConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -1264,11 +999,6 @@ extension RCTConvert {
         )
     }
 
-    /**
-     Utility method to instantiate a `RNUiConfig` from a JS object.
-     - Parameter json: JS object
-     - Returns: The produced `RNUiConfig` object
-     */
     static func rnUiConfig(_ json: Any?) -> RNUiConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -1283,11 +1013,6 @@ extension RCTConvert {
         )
     }
 
-    /**
-     * Maps a JS string into the corresponding `BufferType` value.
-     * - Parameter json: JS string representing the `BufferType`.
-     * - Returns: The `BufferType` corresponding to `json`, or `nil` if the conversion fails.
-     */
     static func bufferType(_ json: String) -> BufferType? {
         switch json {
         case "forwardDuration":
@@ -1299,11 +1024,6 @@ extension RCTConvert {
         }
     }
 
-    /**
-     * Converts any `BufferType` value into its json representation.
-     * - Parameter bufferType: `BufferType` value.
-     * - Returns: The produced JS string.
-     */
     static func toJson(bufferType: BufferType) -> String {
         switch bufferType {
         case .forwardDuration:
@@ -1313,12 +1033,6 @@ extension RCTConvert {
         }
     }
 
-    /**
-     Utility method to get a json dictionary value from a `BufferLevel` object.
-     - Parameter bufferLevel: The `BufferLevel` to convert to json format.
-     - Parameter mediaType: The `MediaType` value to pass through.
-     - Returns: The generated json dictionary.
-     */
     static func toJson(bufferLevel: BufferLevel, mediaType: String) -> [String: Any] {
         [
             "level": bufferLevel.level,
@@ -1328,11 +1042,6 @@ extension RCTConvert {
         ]
     }
 
-    /**
-     Utility method to get a json dictionary value from a `BufferModule.RNBufferLevels` object.
-     - Parameter bufferLevels: The `BufferModule.RNBufferLevels` to convert to json format.
-     - Returns: The generated json dictionary.
-     */
     static func toJson(bufferLevels: RNBufferLevels) -> [String: Any] {
         [
             "audio": toJson(bufferLevel: bufferLevels.audio, mediaType: "audio"),

@@ -54,9 +54,6 @@ public class SourceModule: Module {
     }
 
     // MARK: - Public methods
-    /**
-     Retrieves the `Source` instance associated with `nativeId`.
-     */
     public func retrieve(_ nativeId: NativeId) -> Source? {
         sources[nativeId]
     }
@@ -68,17 +65,11 @@ public class SourceModule: Module {
         }?.key
     }
 
-    /**
-     Retrieves the cast-specific `SourceConfig` by `nativeId` if it exists.
-     */
     public func retrieveCastSourceConfig(_ nativeId: NativeId) -> SourceConfig? {
         castSourceConfigs[nativeId]
     }
 
     // MARK: - Private methods
-    /**
-     Creates a new `Source` instance with the provided configuration.
-     */
     private func createSource(
         nativeId: String,
         drmNativeId: String?,

@@ -60,9 +60,12 @@ export default (spec: TestScope) => {
     spec.it('validates TimeChanged event properties', async () => {
       await startPlayerTest({}, async () => {
         await loadSourceConfig(Sources.artOfMotionHls);
-        await callPlayerAndExpectEvents((player) => {
-          player.play();
-        }, EventSequence(EventType.Play, EventType.Playing));
+        await callPlayerAndExpectEvents(
+          (player) => {
+            player.play();
+          },
+          EventSequence(EventType.Play, EventType.Playing)
+        );
 
         const timeChangedEvent = (await expectEvent(
           EventType.TimeChanged

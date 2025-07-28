@@ -15,9 +15,6 @@ class BufferModule : Module() {
             // Module initialization
         }
 
-        /**
-         * Get buffer level for the specified player and buffer type.
-         */
         AsyncFunction("getLevel") { playerId: String, type: String ->
             // Access PlayerModule to retrieve player
             val player = appContext.registry.getModule<PlayerModule>()?.getPlayerOrNull(playerId)
@@ -28,9 +25,6 @@ class BufferModule : Module() {
             level.toJson()
         }
 
-        /**
-         * Set target level for the specified player and buffer type.
-         */
         AsyncFunction("setTargetLevel") { playerId: String, type: String, value: Double ->
             // Access PlayerModule to retrieve player
             val player = appContext.registry.getModule<PlayerModule>()?.getPlayerOrNull(playerId)

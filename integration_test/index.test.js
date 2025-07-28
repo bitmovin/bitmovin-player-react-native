@@ -1,8 +1,11 @@
 import PlayerTestWorld from './playertesting/PlayerTestWorld';
 
-const BITMOVIN_PLAYER_LICENSE_KEY = process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY;
+const BITMOVIN_PLAYER_LICENSE_KEY =
+  process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY;
 if (!BITMOVIN_PLAYER_LICENSE_KEY) {
-  throw new Error('EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY is not set. Please set it in your .env file.');
+  throw new Error(
+    'EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY is not set. Please set it in your .env file.'
+  );
 }
 
 PlayerTestWorld.defaultLicenseKey = BITMOVIN_PLAYER_LICENSE_KEY;

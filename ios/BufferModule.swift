@@ -9,9 +9,6 @@ public class BufferModule: Module {
             // Module initialization
         }
 
-        /**
-         Get buffer level for the specified player and buffer type.
-         */
         AsyncFunction("getLevel") { (playerId: String, type: String) -> [String: Any]? in
             guard let playerModule = appContext?.moduleRegistry.get(PlayerModule.self),
                   let player = playerModule.retrieve(playerId) else {
@@ -27,9 +24,6 @@ public class BufferModule: Module {
             return RCTConvert.toJson(bufferLevels: bufferLevels)
         }.runOnQueue(.main)
 
-        /**
-         Set target level for the specified player and buffer type.
-         */
         AsyncFunction("setTargetLevel") { (playerId: String, type: String, value: Double) in
             guard let playerModule = appContext?.moduleRegistry.get(PlayerModule.self),
                   let player = playerModule.retrieve(playerId) else {

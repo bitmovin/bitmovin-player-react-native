@@ -89,9 +89,6 @@ import java.util.UUID
 private fun Map<String, Any?>.filterNotNullValues(): Map<String, Any> =
     this.filterValues { it != null }.mapValues { it.value!! }
 
-/**
- * Converts an arbitrary `json` to `PlayerConfig`.
- */
 fun Map<String, Any?>.toPlayerConfig(): PlayerConfig = PlayerConfig(key = getString("licenseKey")).apply {
     withMap("playbackConfig") { playbackConfig = it.toPlaybackConfig() }
     withMap("styleConfig") { styleConfig = it.toStyleConfig() }
@@ -104,25 +101,16 @@ fun Map<String, Any?>.toPlayerConfig(): PlayerConfig = PlayerConfig(key = getStr
     withMap("networkConfig") { networkConfig = it.toNetworkConfig() }
 }
 
-/**
- * Converts any JS object into a `BufferMediaTypeConfig` object.
- */
 fun Map<String, Any?>.toBufferMediaTypeConfig(): BufferMediaTypeConfig = BufferMediaTypeConfig().apply {
     withDouble("forwardDuration") { forwardDuration = it }
 }
 
-/**
- * Converts any JS object into a `BufferConfig` object.
- */
 fun Map<String, Any?>.toBufferConfig(): BufferConfig = BufferConfig().apply {
     withMap("audioAndVideo") { audioAndVideo = it.toBufferMediaTypeConfig() }
     withDouble("restartThreshold") { restartThreshold = it }
     withDouble("startupThreshold") { startupThreshold = it }
 }
 
-/**
- * Converts an arbitrary [Map] to a [RemoteControlConfig].
- */
 private fun Map<String, Any?>.toRemoteControlConfig(): RemoteControlConfig = RemoteControlConfig().apply {
     withString("receiverStylesheetUrl") { receiverStylesheetUrl = it }
     withMap("customReceiverConfig") { customReceiverConfig = it.mapValues { entry -> entry.value as? String } }
@@ -132,43 +120,28 @@ private fun Map<String, Any?>.toRemoteControlConfig(): RemoteControlConfig = Rem
     withBoolean("sendDrmLicenseRequestsWithCredentials") { sendDrmLicenseRequestsWithCredentials = it }
 }
 
-/**
- * Converts an arbitrary `json` to `SourceOptions`.
- */
 fun Map<String, Any?>.toSourceOptions(): SourceOptions = SourceOptions(
     startOffset = getDoubleOrNull("startOffset"),
     startOffsetTimelineReference = getString("startOffsetTimelineReference")?.toTimelineReferencePoint(),
 )
 
-/**
- * Converts an arbitrary `json` to `TimelineReferencePoint`.
- */
 private fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (this) {
     "start" -> TimelineReferencePoint.Start
     "end" -> TimelineReferencePoint.End
     else -> null
 }
 
-/**
- * Converts an arbitrary `json` to `AdaptationConfig`.
- */
 private fun Map<String, Any?>.toAdaptationConfig(): AdaptationConfig = AdaptationConfig().apply {
     withInt("maxSelectableBitrate") { maxSelectableVideoBitrate = it }
     withInt("initialBandwidthEstimateOverride") { initialBandwidthEstimateOverride = it.toLong(); }
 }
 
-/**
- * Converts any JS object into a `PlaybackConfig` object.
- */
 fun Map<String, Any?>.toPlaybackConfig(): PlaybackConfig = PlaybackConfig().apply {
     withBoolean("isAutoplayEnabled") { isAutoplayEnabled = it }
     withBoolean("isMuted") { isMuted = it }
     withBoolean("isTimeShiftEnabled") { isTimeShiftEnabled = it }
 }
 
-/**
- * Converts any JS object into a `StyleConfig` object.
- */
 fun Map<String, Any?>.toStyleConfig(): StyleConfig = StyleConfig().apply {
     withBoolean("isUiEnabled") { isUiEnabled = it }
     getString("playerUiCss")?.takeIf { it.isNotEmpty() }?.let { playerUiCss = it }
@@ -177,9 +150,6 @@ fun Map<String, Any?>.toStyleConfig(): StyleConfig = StyleConfig().apply {
     withString("scalingMode") { scalingMode = ScalingMode.valueOf(it) }
 }
 
-/**
- * Converts any JS string into an `ForceReuseVideoCodecReason` enum value.
- */
 private fun String.toForceReuseVideoCodecReason(): ForceReuseVideoCodecReason? = when (this) {
     "ColorInfoMismatch" -> ForceReuseVideoCodecReason.ColorInfoMismatch
     "MaxInputSizeExceeded" -> ForceReuseVideoCodecReason.MaxInputSizeExceeded
@@ -187,9 +157,6 @@ private fun String.toForceReuseVideoCodecReason(): ForceReuseVideoCodecReason? =
     else -> null
 }
 
-/**
- * Converts any JS object into a `TweaksConfig` object.
- */
 fun Map<String, Any?>.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     withDouble("timeChangedInterval") { timeChangedInterval = it }
     withInt("bandwidthEstimateWeightLimit") {
@@ -219,18 +186,12 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     }
 }
 
-/**
- * Converts any JS object into an `AdvertisingConfig` object.
- */
 fun Map<String, Any?>.toAdvertisingConfig(): AdvertisingConfig? {
     return AdvertisingConfig(
         getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: return null,
     )
 }
 
-/**
- * Converts any JS object into an `AdItem` object.
- */
 fun Map<String, Any?>.toAdItem(): AdItem? {
     return AdItem(
         sources = getArray("sources")?.toMapList()?.mapNotNull { it?.toAdSource() }?.toTypedArray() ?: return null,
@@ -239,9 +200,6 @@ fun Map<String, Any?>.toAdItem(): AdItem? {
     )
 }
 
-/**
- * Converts any JS object into an `AdSource` object.
- */
 fun Map<String, Any?>.toAdSource(): AdSource? {
     return AdSource(
         type = getString("type")?.toAdSourceType() ?: return null,
@@ -249,9 +207,6 @@ fun Map<String, Any?>.toAdSource(): AdSource? {
     )
 }
 
-/**
- * Converts any JS string into an `AdSourceType` enum value.
- */
 private fun String.toAdSourceType(): AdSourceType? = when (this) {
     "bitmovin" -> AdSourceType.Bitmovin
     "ima" -> AdSourceType.Ima
@@ -260,9 +215,6 @@ private fun String.toAdSourceType(): AdSourceType? = when (this) {
     else -> null
 }
 
-/**
- * Converts an arbitrary `json` to `SourceConfig`.
- */
 fun Map<String, Any?>.toSourceConfig(): SourceConfig? {
     val url = getString("url") ?: return null
     val type = getString("type")?.toSourceType() ?: return null
@@ -284,9 +236,6 @@ fun Map<String, Any?>.toSourceConfig(): SourceConfig? {
     }
 }
 
-/**
- * Converts an arbitrary `json` to `SourceType`.
- */
 fun String.toSourceType(): SourceType? = when (this) {
     "dash" -> SourceType.Dash
     "hls" -> SourceType.Hls
@@ -295,9 +244,6 @@ fun String.toSourceType(): SourceType? = when (this) {
     else -> null
 }
 
-/**
- * Converts any given `Source` object into its `json` representation.
- */
 fun Source.toJson(): Map<String, Any> = mapOf(
     "duration" to duration,
     "isActive" to isActive,
@@ -306,17 +252,11 @@ fun Source.toJson(): Map<String, Any> = mapOf(
     "metadata" to (config.metadata ?: emptyMap<String, Any>()),
 ).filterNotNullValues()
 
-/**
- * Converts any given `SeekPosition` object into its `json` representation.
- */
 fun SeekPosition.toJson(): Map<String, Any> = mapOf(
     "time" to time,
     "source" to source.toJson(),
 ).filterNotNullValues()
 
-/**
- * Converts any given `SourceEvent` object into its `json` representation.
- */
 fun SourceEvent.toJson(): Map<String, Any> {
     val baseMap = mutableMapOf<String, Any?>(
         "name" to getName(),
@@ -392,9 +332,6 @@ fun SourceEvent.toJson(): Map<String, Any> {
     return baseMap.filterNotNullValues()
 }
 
-/**
- * Converts any given `PlayerEvent` object into its `json` representation.
- */
 fun PlayerEvent.toJson(): Map<String, Any> {
     val baseMap = mutableMapOf<String, Any?>(
         "name" to getName(),
@@ -533,9 +470,6 @@ fun PlayerEvent.toJson(): Map<String, Any> {
     return baseMap.filterNotNullValues()
 }
 
-/**
- * Converts an arbitrary `json` to `WidevineConfig`.
- */
 fun Map<String, Any?>.toWidevineConfig(): WidevineConfig? = getMap("widevine")?.run {
     WidevineConfig(getString("licenseUrl")).apply {
         withString("preferredSecurityLevel") { preferredSecurityLevel = it }
@@ -544,14 +478,8 @@ fun Map<String, Any?>.toWidevineConfig(): WidevineConfig? = getMap("widevine")?.
     }
 }
 
-/**
- * Converts an `url` string into a `ThumbnailsTrack`.
- */
 fun String.toThumbnailTrack(): ThumbnailTrack = ThumbnailTrack(this)
 
-/**
- * Converts any `AudioTrack` into its json representation.
- */
 fun AudioTrack.toJson(): Map<String, Any> = mapOf(
     "url" to url,
     "label" to label,
@@ -561,9 +489,6 @@ fun AudioTrack.toJson(): Map<String, Any> = mapOf(
     "roles" to roles.map { it.toJson() },
 ).filterNotNullValues()
 
-/**
- * Converts an arbitrary `json` into a `SubtitleTrack`.
- */
 fun Map<String, Any?>.toSubtitleTrack(): SubtitleTrack? {
     return SubtitleTrack(
         url = getString("url") ?: return null,
@@ -576,18 +501,12 @@ fun Map<String, Any?>.toSubtitleTrack(): SubtitleTrack? {
     )
 }
 
-/**
- * Converts any subtitle format name in its mime type representation.
- */
 private fun String.toSubtitleMimeType(): String = when (this) {
     "srt" -> "application/x-subrip"
     "ttml" -> "application/ttml+xml"
     else -> "text/$this"
 }
 
-/**
- * Converts any `SubtitleTrack` into its json representation.
- */
 fun SubtitleTrack.toJson(): Map<String, Any> = mapOf(
     "url" to url,
     "label" to label,
@@ -599,23 +518,14 @@ fun SubtitleTrack.toJson(): Map<String, Any> = mapOf(
     "roles" to roles.map { it.toJson() },
 ).filterNotNullValues()
 
-/**
- * Converts any subtitle track mime type into its json representation (file format value).
- */
 private fun String.textMimeTypeToJson(): String = split("/").last()
 
-/**
- * Converts any `AdBreak` object into its json representation.
- */
 fun AdBreak.toJson(): Map<String, Any> = mapOf(
     "ads" to ads.map { it.toJson() },
     "id" to id,
     "scheduleTime" to scheduleTime,
 )
 
-/**
- * Converts any `Ad` object into its json representation.
- */
 fun Ad.toJson(): Map<String, Any> = mapOf(
     "clickThroughUrl" to clickThroughUrl,
     "data" to data?.toJson(),
@@ -626,9 +536,6 @@ fun Ad.toJson(): Map<String, Any> = mapOf(
     "width" to width,
 ).filterNotNullValues()
 
-/**
- * Converts any `AdData` object into its json representation.
- */
 fun AdData.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "bitrate" to bitrate,
     "maxBitrate" to maxBitrate,
@@ -636,32 +543,20 @@ fun AdData.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "minBitrate" to minBitrate,
 ).filterNotNullValues()
 
-/**
- * Converts any `AdConfig` object into its json representation.
- */
 fun AdConfig.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "replaceContentDuration" to replaceContentDuration,
 ).filterNotNullValues()
 
-/**
- * Converts any `AdItem` object into its json representation.
- */
 fun AdItem.toJson(): Map<String, Any> = mapOf(
     "position" to position,
     "sources" to sources.toList().map { it.toJson() },
 )
 
-/**
- * Converts any `AdSource` object into its json representation.
- */
 fun AdSource.toJson(): Map<String, Any> = mapOf(
     "tag" to tag,
     "type" to type.toJson(),
 )
 
-/**
- * Converts any `AdSourceType` value into its json representation.
- */
 fun AdSourceType.toJson(): String = when (this) {
     AdSourceType.Bitmovin -> "bitmovin"
     AdSourceType.Ima -> "ima"
@@ -669,18 +564,12 @@ fun AdSourceType.toJson(): String = when (this) {
     AdSourceType.Progressive -> "progressive"
 }
 
-/**
- * Converts any `AdQuartile` value into its json representation.
- */
 fun AdQuartile.toJson(): String = when (this) {
     AdQuartile.FirstQuartile -> "first"
     AdQuartile.MidPoint -> "mid_point"
     AdQuartile.ThirdQuartile -> "third"
 }
 
-/**
- * Converts an arbitrary json object into a `BitmovinAnalyticsConfig`.
- */
 fun Map<String, Any?>.toAnalyticsConfig(): AnalyticsConfig? = getString("licenseKey")
     ?.let { AnalyticsConfig.Builder(it) }
     ?.apply {
@@ -688,18 +577,12 @@ fun Map<String, Any?>.toAnalyticsConfig(): AnalyticsConfig? = getString("license
         withBoolean("randomizeUserId") { setRandomizeUserId(it) }
     }?.build()
 
-/**
- * Converts an arbitrary json object into an analytics `DefaultMetadata`.
- */
 fun Map<String, Any?>.toAnalyticsDefaultMetadata(): DefaultMetadata = DefaultMetadata.Builder().apply {
     setCustomData(toAnalyticsCustomData())
     withString("cdnProvider") { setCdnProvider(it) }
     withString("customUserId") { setCustomUserId(it) }
 }.build()
 
-/**
- * Converts an arbitrary json object into an analytics `CustomData`.
- */
 fun Map<String, Any?>.toAnalyticsCustomData(): CustomData = CustomData.Builder().apply {
     for (n in 1..30) {
         this[n] = getString("customData$n")
@@ -709,9 +592,6 @@ fun Map<String, Any?>.toAnalyticsCustomData(): CustomData = CustomData.Builder()
     }
 }.build()
 
-/**
- * Converts an arbitrary analytics `CustomData` object into a JS value.
- */
 fun CustomData.toJson(): Map<String, Any> {
     val map = mutableMapOf<String, Any?>()
     for (n in 1..30) {
@@ -740,9 +620,6 @@ fun SourceMetadata.toJson(): Map<String, Any> {
     return map.filterNotNullValues()
 }
 
-/**
- * Converts any `VideoQuality` value into its json representation.
- */
 fun VideoQuality.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "id" to id,
     "label" to label,
@@ -753,17 +630,11 @@ fun VideoQuality.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "width" to width,
 ).filterNotNullValues()
 
-/**
- * Converts any `OfflineOptionEntry` into its json representation.
- */
 fun OfflineOptionEntry.toJson(): Map<String, Any> = mapOf(
     "id" to id,
     "language" to language,
 ).filterNotNullValues()
 
-/**
- * Converts any `OfflineContentOptions` into its json representation.
- */
 fun OfflineContentOptions.toJson(): Map<String, Any> = mapOf(
     "audioOptions" to audioOptions.map { it.toJson() },
     "textOptions" to textOptions.map { it.toJson() },
@@ -831,9 +702,6 @@ fun String.toUserInterfaceType(): UserInterfaceType? = when (this) {
     else -> null
 }
 
-/**
- * Converts the [this@toRNPlayerViewConfigWrapper] to a `RNPlayerViewConfig` object.
- */
 fun Map<String, Any?>.toRNPlayerViewConfigWrapper() = RNPlayerViewConfigWrapper(
     playerViewConfig = toPlayerViewConfig(),
     pictureInPictureConfig = getMap("pictureInPictureConfig")?.toPictureInPictureConfig(),
@@ -846,9 +714,6 @@ fun Map<String, Any?>.toRNStyleConfigWrapperFromPlayerConfig(): RNStyleConfigWra
     )
 }
 
-/**
- * Converts any JS object into a [LiveConfig] object.
- */
 fun Map<String, Any?>.toLiveConfig(): LiveConfig = LiveConfig().apply {
     withDouble("minTimeshiftBufferDepth") { minTimeShiftBufferDepth = it }
 }
@@ -897,17 +762,11 @@ fun HttpResponse.toJson(): Map<String, Any> = mapOf(
 
 fun HttpRequestType.toJson(): String = toString()
 
-/**
- * Converts any [MediaType] value into its json representation.
- */
 fun MediaType.toJson(): String = when (this) {
     MediaType.Audio -> "audio"
     MediaType.Video -> "video"
 }
 
-/**
- * Converts any [BufferType] value into its json representation.
- */
 fun BufferType.toJson(): String = when (this) {
     BufferType.ForwardDuration -> "forwardDuration"
     BufferType.BackwardDuration -> "backwardDuration"
@@ -932,9 +791,6 @@ fun String.toBufferTypeOrThrow(): BufferType = when (this.lowercase()) {
     else -> throw IllegalArgumentException("Unknown buffer type: $this")
 }
 
-/**
- * Maps a JS string into the corresponding [MediaType] value.
- */
 fun String.toMediaType(): MediaType? = when (this) {
     "audio" -> MediaType.Audio
     "video" -> MediaType.Video
@@ -949,9 +805,6 @@ fun Map<String, Any?>.toMediaControlConfig(): MediaControlConfig = MediaControlC
     withBoolean("isEnabled") { isEnabled = it }
 }
 
-/**
- * Converts a [CastPayload] object into its JS representation.
- */
 private fun CastPayload.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "currentTime" to currentTime,
     "deviceName" to deviceName,
