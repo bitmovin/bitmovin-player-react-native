@@ -119,8 +119,8 @@ yarn example build:android # Build Android
 yarn example build:ts      # TypeScript type checking
 
 # Linting and type checking
-yarn example lint
-yarn example typecheck
+yarn lint:all
+yarn typecheck:all
 
 # Open native projects in IDEs
 yarn open:ios      # Opens Xcode with example project
