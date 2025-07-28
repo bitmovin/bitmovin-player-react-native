@@ -81,3 +81,5 @@ eas-hooks/
 plugin/tsconfig.tsbuildinfo
 plugin/build/
 example/.env
+
+.docs
