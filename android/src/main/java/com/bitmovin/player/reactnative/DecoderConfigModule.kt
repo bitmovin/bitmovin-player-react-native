@@ -71,7 +71,6 @@ class DecoderConfigModule : Module() {
             val completer = overrideDecoderPriorityProviderCompleters[nativeId]
                 ?: throw DecoderConfigException.NoCompleterFound(nativeId)
 
-            // Convert List<Map<String, Any?>> to ReadableArray for processing
             val mediaCodecInfoList = response.toMediaCodecInfoList()
             completer.set(mediaCodecInfoList)
             overrideDecoderPriorityProviderCompleters.remove(nativeId)

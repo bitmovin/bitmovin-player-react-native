@@ -1,9 +1,5 @@
 package com.bitmovin.player.reactnative.extensions
 
-/**
- * Extension functions for Map<String, Any?> to replace ReadableMap functionality
- */
-
 fun Map<String, Any?>.getBooleanOrNull(key: String): Boolean? = get(key) as? Boolean
 fun Map<String, Any?>.getIntOrNull(key: String): Int? = (get(key) as? Number)?.toInt()
 fun Map<String, Any?>.getInt(key: String): Int = (get(key) as? Number)?.toInt() ?: 0

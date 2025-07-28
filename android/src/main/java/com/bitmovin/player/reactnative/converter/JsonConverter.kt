@@ -233,7 +233,7 @@ fun Map<String, Any?>.toAdvertisingConfig(): AdvertisingConfig? {
  */
 fun Map<String, Any?>.toAdItem(): AdItem? {
     return AdItem(
-        sources = getArray("sources") ?.toMapList()?.mapNotNull { it?.toAdSource() }?.toTypedArray() ?: return null,
+        sources = getArray("sources")?.toMapList()?.mapNotNull { it?.toAdSource() }?.toTypedArray() ?: return null,
         position = getString("position") ?: "pre",
         preloadOffset = getDoubleOrNull("preloadOffset") ?: 0.0,
     )
@@ -272,8 +272,8 @@ fun Map<String, Any?>.toSourceConfig(): SourceConfig? {
         withString("poster") { posterSource = it }
         withBoolean("isPosterPersistent") { isPosterPersistent = it }
         withArray("subtitleTracks") { subtitleTracks ->
-            for (i in 0 until subtitleTracks.size()) {
-                subtitleTracks.getMap(i)?.toSubtitleTrack()?.let {
+            subtitleTracks.indices.forEach { subtitleTrack ->
+                subtitleTracks.getMap(subtitleTrack)?.toSubtitleTrack()?.let {
                     addSubtitleTrack(it)
                 }
             }
@@ -958,8 +958,6 @@ private fun CastPayload.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "type" to type,
 ).filterNotNullValues()
 
-// Removed WritableMap utility function - no longer needed with Map<String, Any?>
-
 fun DecoderContext.toJson(): Map<String, Any> = mapOf(
     "mediaType" to mediaType.name,
     "isAd" to isAd,
@@ -977,7 +975,7 @@ fun List<Any?>.toMediaCodecInfoList(): List<MediaCodecInfo> {
         return emptyList()
     }
     val mediaCodecInfoList = mutableListOf<MediaCodecInfo>()
-    (0 until size()).forEach {
+    indices.forEach {
         val info = getMap(it)?.toMediaCodecInfo() ?: return@forEach
         mediaCodecInfoList.add(info)
     }
