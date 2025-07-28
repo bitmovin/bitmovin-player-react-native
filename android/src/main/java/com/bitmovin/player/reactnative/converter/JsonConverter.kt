@@ -208,7 +208,6 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
     }
     withBoolean("languagePropertyNormalization") { languagePropertyNormalization = it }
     withDouble("localDynamicDashWindowUpdateInterval") { localDynamicDashWindowUpdateInterval = it }
-    withBoolean("shouldApplyTtmlRegionWorkaround") { shouldApplyTtmlRegionWorkaround = it }
     withBoolean("useDrmSessionForClearPeriods") { useDrmSessionForClearPeriods = it }
     withBoolean("useDrmSessionForClearSources") { useDrmSessionForClearSources = it }
     withBoolean("useFiletypeExtractorFallbackForHls") { useFiletypeExtractorFallbackForHls = it }
@@ -273,8 +272,8 @@ fun Map<String, Any?>.toSourceConfig(): SourceConfig? {
         withString("poster") { posterSource = it }
         withBoolean("isPosterPersistent") { isPosterPersistent = it }
         withArray("subtitleTracks") { subtitleTracks ->
-            subtitleTracks.toMapList().filterNotNull().forEach { trackMap ->
-                trackMap.toSubtitleTrack()?.let {
+            for (i in 0 until subtitleTracks.size()) {
+                subtitleTracks.getMap(i)?.toSubtitleTrack()?.let {
                     addSubtitleTrack(it)
                 }
             }
@@ -978,8 +977,8 @@ fun List<Any?>.toMediaCodecInfoList(): List<MediaCodecInfo> {
         return emptyList()
     }
     val mediaCodecInfoList = mutableListOf<MediaCodecInfo>()
-    forEach { item ->
-        val info = (item as? Map<String, Any?>)?.toMediaCodecInfo() ?: return@forEach
+    (0 until size()).forEach {
+        val info = getMap(it)?.toMediaCodecInfo() ?: return@forEach
         mediaCodecInfoList.add(info)
     }
     return mediaCodecInfoList

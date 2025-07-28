@@ -6,6 +6,7 @@ excluded:
   - ${PWD}/example/node_modules
   - ${PWD}/integration_test/ios/Pods
   - ${PWD}/integration_test/node_modules
+  - ${PWD}/.cocoapods-cache
 
 disabled_rules:
   - todo

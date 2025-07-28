@@ -143,13 +143,6 @@ export interface TweaksConfig {
    */
   localDynamicDashWindowUpdateInterval?: number;
   /**
-   * Specifies whether default positioning values should be assumed when parsing TTML regions in case of
-   * unsupported TTML features. Default is true
-   *
-   * @remarks Platform: Android
-   */
-  shouldApplyTtmlRegionWorkaround?: boolean;
-  /**
    * Specifies whether a DRM session should be used for clear tracks of type video and audio. Using
    * DRM sessions for clear content avoids the recreation of decoders when transitioning between clear
    * and encrypted sections of content. Default is false.
