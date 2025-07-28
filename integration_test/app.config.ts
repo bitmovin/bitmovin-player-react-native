@@ -14,11 +14,11 @@ if (!fs.existsSync(envPath)) {
 // Load environment variables from .env file
 dotenv.config({ path: envPath });
 
-const BITMOVIN_PLAYER_LICENSE_KEY = process.env.BITMOVIN_PLAYER_LICENSE_KEY;
+const BITMOVIN_PLAYER_LICENSE_KEY = process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY;
 
 if (!BITMOVIN_PLAYER_LICENSE_KEY) {
   throw new Error(
-    'BITMOVIN_PLAYER_LICENSE_KEY is required. Please set it in your .env file.'
+    'EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY is required. Please set it in your .env file.'
   );
 }
 
