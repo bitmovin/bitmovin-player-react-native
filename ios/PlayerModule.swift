@@ -49,8 +49,8 @@ public class PlayerModule: Module {
         AsyncFunction("setPlaybackSpeed") { [weak self] (nativeId: String, playbackSpeed: Float) in
             self?.players[nativeId]?.playbackSpeed = playbackSpeed
         }.runOnQueue(.main)
-        AsyncFunction("setMaxSelectableBitrate") { [weak self] (nativeId: String, maxBitrate: Int) in
-            self?.players[nativeId]?.maxSelectableBitrate = UInt(maxBitrate)
+        AsyncFunction("setMaxSelectableBitrate") { [weak self] (nativeId: String, maxSelectableBitrate: Int) in
+            self?.players[nativeId]?.maxSelectableBitrate = UInt(maxSelectableBitrate)
         }.runOnQueue(.main)
         AsyncFunction("getVolume") { [weak self] (nativeId: String) -> Int? in
             self?.players[nativeId]?.volume
