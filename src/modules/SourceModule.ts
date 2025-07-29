@@ -1,5 +1,6 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
 import { LoadingState, SourceRemoteControlConfig } from '../source';
+import { Thumbnail } from '../thumbnail';
 
 export type SourceModuleEvents = Record<string, any>;
 
@@ -50,6 +51,24 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
    * Returns the current loading state of the source with the given nativeId.
    */
   loadingState(nativeId: string): Promise<LoadingState | null>;
+
+  /**
+   * Returns the metadata of the source with the given nativeId.
+   */
+  getMetadata(nativeId: string): Promise<Record<string, any> | null>;
+
+  /**
+   * Sets the metadata of the source with the given nativeId.
+   */
+  setMetadata(
+    nativeId: string,
+    metadata: Record<string, any> | null
+  ): Promise<void>;
+
+  /**
+   * Returns a thumbnail for the specified playback time.
+   */
+  getThumbnail(nativeId: string, time: number): Promise<Thumbnail | null>;
 }
 
 export default requireNativeModule<SourceModule>('SourceModule');

@@ -16,13 +16,17 @@ class BufferModule : Module() {
         }
 
         AsyncFunction("getLevel") { playerId: String, type: String ->
-            // Access PlayerModule to retrieve player
             val player = appContext.registry.getModule<PlayerModule>()?.getPlayerOrNull(playerId)
                 ?: return@AsyncFunction null
 
             val bufferType = type.toBufferTypeOrThrow()
-            val level = player.buffer.getLevel(bufferType, MediaType.Video)
-            level.toJson()
+            val audioLevel = player.buffer.getLevel(bufferType, MediaType.Audio)
+            val videoLevel = player.buffer.getLevel(bufferType, MediaType.Video)
+
+            return@AsyncFunction mapOf(
+                "audio" to audioLevel.toJson(),
+                "video" to videoLevel.toJson()
+            )
         }
 
         AsyncFunction("setTargetLevel") { playerId: String, type: String, value: Double ->

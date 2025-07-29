@@ -26,7 +26,7 @@ public class SourceModule: Module {
                 config: config,
                 sourceRemoteControlConfig: sourceRemoteControlConfig
             )
-        }
+        }.runOnQueue(.main)
         AsyncFunction("initializeWithAnalyticsConfig") { [weak self] (nativeId: String, drmNativeId: String?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?, analyticsSourceMetadata: [String: Any]?) in // swiftlint:disable:this line_length
             self?.createSource(
                 nativeId: nativeId,
@@ -35,22 +35,31 @@ public class SourceModule: Module {
                 sourceRemoteControlConfig: sourceRemoteControlConfig,
                 analyticsSourceMetadata: analyticsSourceMetadata
             )
-        }
+        }.runOnQueue(.main)
         AsyncFunction("destroy") { [weak self] (nativeId: String) in
             self?.destroySource(nativeId: nativeId)
-        }
+        }.runOnQueue(.main)
         AsyncFunction("isAttachedToPlayer") { [weak self] (nativeId: String) -> Bool? in
             self?.sources[nativeId]?.isAttachedToPlayer
-        }
+        }.runOnQueue(.main)
         AsyncFunction("isActive") { [weak self] (nativeId: String) -> Bool? in
             self?.sources[nativeId]?.isActive
-        }
+        }.runOnQueue(.main)
         AsyncFunction("duration") { [weak self] (nativeId: String) -> Double? in
             self?.sources[nativeId]?.duration
-        }
+        }.runOnQueue(.main)
         AsyncFunction("loadingState") { [weak self] (nativeId: String) -> Int? in
             self?.sources[nativeId]?.loadingState.rawValue
-        }
+        }.runOnQueue(.main)
+        AsyncFunction("getMetadata") { [weak self] (nativeId: String) -> [String: Any]? in
+            self?.getSourceMetadata(nativeId: nativeId)
+        }.runOnQueue(.main)
+        AsyncFunction("setMetadata") { [weak self] (nativeId: String, metadata: [String: Any]?) in
+            self?.setSourceMetadata(nativeId: nativeId, metadata: metadata)
+        }.runOnQueue(.main)
+        AsyncFunction("getThumbnail") { [weak self] (nativeId: String, time: Double) -> [String: Any]? in
+            self?.getSourceThumbnail(nativeId: nativeId, time: time)
+        }.runOnQueue(.main)
     }
 
     // MARK: - Public methods
@@ -70,6 +79,26 @@ public class SourceModule: Module {
     }
 
     // MARK: - Private methods
+    private func getSourceMetadata(nativeId: String) -> [String: Any]? {
+        sources[nativeId]?.metadata
+    }
+
+    private func setSourceMetadata(nativeId: String, metadata: [String: Any]?) {
+        guard let metadata else {
+            sources[nativeId]?.metadata = nil
+            return
+        }
+        let metadataObjects = metadata as [String: AnyObject]
+        sources[nativeId]?.metadata = metadataObjects
+    }
+
+    private func getSourceThumbnail(nativeId: String, time: Double) -> [String: Any]? {
+        guard let thumbnail = sources[nativeId]?.thumbnail(forTime: time) else {
+            return nil
+        }
+        return RCTConvert.toJson(thumbnail: thumbnail)
+    }
+
     private func createSource(
         nativeId: String,
         drmNativeId: String?,

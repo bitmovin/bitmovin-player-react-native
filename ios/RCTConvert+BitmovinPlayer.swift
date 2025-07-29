@@ -892,7 +892,7 @@ extension RCTConvert {
         return adaptationConfig
     }
 
-    static func toJson(thumbnail: Thumbnail?) -> [String: Any?]? {
+    static func toJson(thumbnail: Thumbnail?) -> [String: Any]? {
         guard let thumbnail else {
             return nil
         }

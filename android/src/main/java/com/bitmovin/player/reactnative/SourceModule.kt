@@ -3,6 +3,7 @@ package com.bitmovin.player.reactnative
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
+import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toSourceConfig
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
@@ -56,6 +57,18 @@ class SourceModule : Module() {
 
         AsyncFunction("loadingState") { nativeId: String ->
             sources[nativeId]?.loadingState?.name
+        }
+
+        AsyncFunction("getMetadata") { nativeId: String ->
+            sources[nativeId]?.config?.metadata
+        }
+
+        AsyncFunction("setMetadata") { nativeId: String, metadata: Map<String, Any>? ->
+            sources[nativeId]?.config?.metadata = metadata?.mapValues { it.value.toString() }
+        }
+
+        AsyncFunction("getThumbnail") { nativeId: String, time: Double ->
+            sources[nativeId]?.getThumbnail(time)?.toJson()
         }
     }
 
