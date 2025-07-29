@@ -1,24 +1,28 @@
 package com.bitmovin.player.reactnative
 
 import android.app.Activity
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import expo.modules.core.interfaces.ReactActivityLifecycleListener
+import java.util.concurrent.Executors
 
 class ActivityLifecycleListener : ReactActivityLifecycleListener {
     override fun onCreate(activity: Activity, savedInstanceState: Bundle?) {
-        maybeInitializeCastContext()
+        maybeInitializeCastContext(activity)
     }
 
-    private fun maybeInitializeCastContext() {
+    private fun maybeInitializeCastContext(context: Context) {
         // Only execute Google Cast code if the CastContext class is available
         try {
             val castContextClass = Class.forName("com.google.android.gms.cast.framework.CastContext")
             val getSharedInstanceMethod = castContextClass.getMethod(
                 "getSharedInstance",
-                Any::class.java,
-                Runnable::class.java,
+                Context::class.java,
+                java.util.concurrent.Executor::class.java,
             )
-            getSharedInstanceMethod.invoke(null, this, Runnable { })
-        } catch (_: Exception) { }
+            val executor = Executors.newSingleThreadExecutor()
+            getSharedInstanceMethod.invoke(null, context, executor)
+        } catch (_: Exception) {}
     }
 }
