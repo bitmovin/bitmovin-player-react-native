@@ -98,9 +98,11 @@ public class SourceModule: Module {
         }
         sources[nativeId] = source
         // Store cast source config if provided
-        if sourceRemoteControlConfig != nil {
-            castSourceConfigs[nativeId] = sourceConfig
+#if os(iOS)
+        if let remoteConfig = RCTConvert.sourceRemoteControlConfig(sourceRemoteControlConfig) {
+            castSourceConfigs[nativeId] = remoteConfig.castSourceConfig
         }
+#endif
     }
 
     /**

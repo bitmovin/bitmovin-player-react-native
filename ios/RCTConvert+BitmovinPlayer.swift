@@ -391,8 +391,8 @@ extension RCTConvert {
             return (nil, nil)
         }
         return (
-            fairplay: RCTConvert.fairplayConfig(json["fairplay"]),
-            widevine: RCTConvert.widevineConfig(json["widevine"])
+            fairplay: json["fairplay"].flatMap(RCTConvert.fairplayConfig),
+            widevine: json["widevine"].flatMap(RCTConvert.widevineConfig)
         )
     }
 
@@ -960,10 +960,11 @@ extension RCTConvert {
               let castSourceConfigJson = json["castSourceConfig"] as? [String: Any?] else {
             return nil
         }
+
         return SourceRemoteControlConfig(
             castSourceConfig: RCTConvert.sourceConfig(
-                json["castSourceConfig"],
-                drmConfig: RCTConvert.drmConfig(castSourceConfigJson["drmConfig"]).widevine
+                castSourceConfigJson,
+                drmConfig: castSourceConfigJson["drmConfig"].flatMap(RCTConvert.drmConfig)?.widevine
             )
         )
     }
