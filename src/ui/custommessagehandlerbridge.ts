@@ -1,10 +1,8 @@
-import { NativeModules } from 'react-native';
-import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
+import { EventSubscription } from 'expo-modules-core';
 import { CustomMessageHandler } from './custommessagehandler';
 import { CustomMessageSender } from './custommessagesender';
-
-const Uuid = NativeModules.UuidModule;
-const CustomMessageHandlerModule = NativeModules.CustomMessageHandlerModule;
+import UuidModule from '../modules/UuidModule';
+import CustomMessageHandlerModule from './customMessageHandlerModule';
 
 /**
  * Takes care of JS/Native communication for a CustomMessageHandler.
@@ -14,13 +12,36 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
   private customMessageHandler?: CustomMessageHandler;
   private isDestroyed: boolean;
 
+  private onReceivedSynchronousMessageSubscription?: EventSubscription;
+  private onReceivedAsynchronousMessageSubscription?: EventSubscription;
+
   constructor(nativeId?: string) {
-    this.nativeId = nativeId ?? Uuid.generate();
+    this.nativeId = nativeId ?? UuidModule.generate();
     this.isDestroyed = false;
-    BatchedBridge.registerCallableModule(
-      `CustomMessageBridge-${this.nativeId}`,
-      this
-    );
+
+    // Set up event listeners for synchronous and asynchronous messages
+    this.onReceivedSynchronousMessageSubscription =
+      CustomMessageHandlerModule.addListener(
+        'onReceivedSynchronousMessage',
+        ({ nativeId, id, message, data }) => {
+          if (nativeId !== this.nativeId) {
+            return;
+          }
+          this.receivedSynchronousMessage(id, message, data);
+        }
+      );
+
+    this.onReceivedAsynchronousMessageSubscription =
+      CustomMessageHandlerModule.addListener(
+        'onReceivedAsynchronousMessage',
+        ({ nativeId, message, data }) => {
+          if (nativeId !== this.nativeId) {
+            return;
+          }
+          this.receivedAsynchronousMessage(message, data);
+        }
+      );
+
     CustomMessageHandlerModule.registerHandler(this.nativeId);
   }
 
@@ -35,32 +56,38 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
   destroy() {
     if (!this.isDestroyed) {
       CustomMessageHandlerModule.destroy(this.nativeId);
+      this.onReceivedSynchronousMessageSubscription?.remove();
+      this.onReceivedAsynchronousMessageSubscription?.remove();
+      this.onReceivedSynchronousMessageSubscription = undefined;
+      this.onReceivedAsynchronousMessageSubscription = undefined;
       this.isDestroyed = true;
     }
   }
 
-  // noinspection JSUnusedGlobalSymbols
   /**
    * Called by native code, when the UI sends a synchronous message.
    * @internal
    */
-  receivedSynchronousMessage(message: string, data: string | undefined): void {
+  private receivedSynchronousMessage(
+    id: number,
+    message: string,
+    data: string | undefined
+  ): void {
     const result = this.customMessageHandler?.receivedSynchronousMessage(
       message,
       data
     );
-    CustomMessageHandlerModule.onReceivedSynchronousMessageResult(
-      this.nativeId,
-      result
-    );
+    CustomMessageHandlerModule.onReceivedSynchronousMessageResult(id, result);
   }
 
-  // noinspection JSUnusedGlobalSymbols
   /**
    * Called by native code, when the UI sends an asynchronous message.
    * @internal
    */
-  receivedAsynchronousMessage(message: string, data: string | undefined): void {
+  private receivedAsynchronousMessage(
+    message: string,
+    data: string | undefined
+  ): void {
     this.customMessageHandler?.receivedAsynchronousMessage(message, data);
   }
 

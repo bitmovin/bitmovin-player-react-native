@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "bitmovin-player-react-native": ["../src/index"],
+      "bitmovin-player-react-native/*": ["../src/*"]
+    }
+  }
+}

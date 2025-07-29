@@ -1,66 +1,38 @@
 import BitmovinCollector
 import BitmovinPlayer
+import ExpoModulesCore
 
-@objc(PlayerAnalyticsModule)
-public class PlayerAnalyticsModule: NSObject, RCTBridgeModule {
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    @objc public var bridge: RCTBridge!
+/**
+ * Expo module for PlayerAnalytics management.
+ * Provides analytics functionality for player instances.
+ */
+public class PlayerAnalyticsModule: Module {
+    public func definition() -> ModuleDefinition {
+        Name("PlayerAnalyticsModule")
 
-    @objc var playerModule: PlayerModule? {
-        bridge.module(for: PlayerModule.self) as? PlayerModule
-    }
-
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    public static func moduleName() -> String! {
-        "PlayerAnalyticsModule"
-    }
-
-    public static func requiresMainQueueSetup() -> Bool {
-        true
-    }
-
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    public var methodQueue: DispatchQueue! {
-        bridge.uiManager.methodQueue
-    }
-
-    /**
-     Sends a sample with the provided custom data.
-     Does not change the configured custom data of the collector or source.
-     - Parameter playerId: Native Id of the player instance.
-     - Parameter json: Custom data config json.
-     */
-    @objc(sendCustomDataEvent:json:)
-    func sendCustomDataEvent(_ playerId: NativeId, json: Any?) {
-        bridge.uiManager.addUIBlock { [weak self] _, _ in
+        AsyncFunction("sendCustomDataEvent") { [weak self] (playerId: String, json: [String: Any]) in
             guard
-                let playerAnalytics = self?.playerModule?.retrieve(playerId)?.analytics,
+                let playerExpoModule = self?.appContext?.moduleRegistry.get(PlayerModule.self)
+                    as? PlayerModule,
+                let player = playerExpoModule.retrieve(playerId),
+                let playerAnalytics = player.analytics,
                 let customData = RCTConvert.analyticsCustomData(json)
             else {
                 return
             }
             playerAnalytics.sendCustomDataEvent(customData: customData)
-        }
-    }
+        }.runOnQueue(.main)
 
-    /**
-     Gets the current user Id for a `BitmovinPlayerCollector` instance.
-     - Parameter playerId: Native Id of the the player instance.
-     - Parameter resolver: JS promise resolver.
-     - Parameter rejecter: JS promise rejecter.
-     */
-    @objc(getUserId:resolver:rejecter:)
-    func getUserId(
-        _ playerId: NativeId,
-        resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock
-    ) {
-        bridge.uiManager.addUIBlock { [weak self] _, _ in
-            guard let playerAnalytics = self?.playerModule?.retrieve(playerId)?.analytics else {
-                reject("[PlayerAnalyticsModule]", "Could not find player with ID (\(playerId))", nil)
-                return
+        AsyncFunction("getUserId") { [weak self] (playerId: String) -> String? in
+            guard
+                let playerExpoModule = self?.appContext?.moduleRegistry.get(PlayerModule.self)
+                    as? PlayerModule,
+                let player = playerExpoModule.retrieve(playerId),
+                let playerAnalytics = player.analytics
+            else {
+                return nil
             }
-            resolve(playerAnalytics.userId)
-        }
+            return playerAnalytics.userId
+        }.runOnQueue(.main)
     }
 }

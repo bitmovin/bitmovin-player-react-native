@@ -52,15 +52,21 @@ runs:
       shell: bash
       run: yarn install --frozen-lockfile
 
-    - name: Install node_modules (example/)
+    - name: Install node_modules (example/) and generate native projects
       if: ${{ inputs.subprojects == 'true' }}
       shell: bash
-      run: yarn install --frozen-lockfile --cwd example
+      run: |
+        yarn install --cwd example
+        cp example/.env.example example/.env
+        yarn --cwd example prebuild --clean
 
     - name: Install node_modules (integration_test/)
       if: ${{ inputs.subprojects == 'true' }}
       shell: bash
-      run: yarn install --frozen-lockfile --cwd integration_test
+      run: |
+        yarn install --cwd integration_test
+        cp integration_test/.env.example integration_test/.env
+        yarn --cwd integration_test prebuild --clean
 
     - uses: maxim-lobanov/setup-xcode@v1
       if: ${{ inputs.ios == 'true' }}

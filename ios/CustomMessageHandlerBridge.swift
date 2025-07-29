@@ -1,4 +1,5 @@
 import BitmovinPlayer
+import ExpoModulesCore
 
 internal class CustomMessageHandlerBridge: NSObject {
 #if os(iOS)
@@ -10,18 +11,15 @@ internal class CustomMessageHandlerBridge: NSObject {
 #endif
 
     private let nativeId: NativeId
-    private let bridge: RCTBridge
+    private weak var delegate: CustomMessageHandlerBridgeDelegate?
 
-    private var currentSynchronousResult: String?
-
-    init(_ nativeId: NativeId, bridge: RCTBridge) {
+    init(_ nativeId: NativeId, delegate: CustomMessageHandlerBridgeDelegate?) {
         self.nativeId = nativeId
-        self.bridge = bridge
-        super.init()
+        self.delegate = delegate
     }
 
     func receivedSynchronousMessage(_ message: String, withData data: String?) -> String? {
-        bridge[CustomMessageHandlerModule.self]?.receivedSynchronousMessage(
+        delegate?.receivedSynchronousMessage(
             nativeId: nativeId,
             message: message,
             withData: data
@@ -29,7 +27,7 @@ internal class CustomMessageHandlerBridge: NSObject {
     }
 
     func receivedAsynchronousMessage(_ message: String, withData data: String?) {
-        bridge[CustomMessageHandlerModule.self]?.receivedAsynchronousMessage(
+        delegate?.receivedAsynchronousMessage(
             nativeId: nativeId,
             message: message,
             withData: data
@@ -41,18 +39,13 @@ internal class CustomMessageHandlerBridge: NSObject {
         customMessageHandler.sendMessage(message, withData: data)
 #endif
     }
-
-    func pushSynchronousResult(_ result: String?) {
-        currentSynchronousResult = result
-    }
-
-    func popSynchronousResult() -> String? {
-        let result = currentSynchronousResult
-        currentSynchronousResult = nil
-        return result
-    }
 }
 
 #if os(iOS)
 extension CustomMessageHandlerBridge: CustomMessageHandlerDelegate {}
 #endif
+
+internal protocol CustomMessageHandlerBridgeDelegate: AnyObject {
+    func receivedSynchronousMessage(nativeId: NativeId, message: String, withData data: String?) -> String?
+    func receivedAsynchronousMessage(nativeId: NativeId, message: String, withData data: String?)
+}

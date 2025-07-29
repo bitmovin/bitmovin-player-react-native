@@ -2,6 +2,7 @@ excluded:
   # folders that are excluded from linting, external dependencies or generated files
   - ${PWD}/node_modules
   - ${PWD}/example/ios/Pods
+  - ${PWD}/example/ios
   - ${PWD}/example/node_modules
   - ${PWD}/integration_test/ios/Pods
   - ${PWD}/integration_test/node_modules

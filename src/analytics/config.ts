@@ -44,17 +44,17 @@ export interface SourceMetadata extends CustomDataConfig {
   /**
    * ID of the video in the CMS system
    */
-  videoId?: String;
+  videoId?: string;
 
   /**
    * Human readable title of the video asset currently playing
    */
-  title?: String;
+  title?: string;
 
   /**
    * Breadcrumb path to show where in the app the user is
    */
-  path?: String;
+  path?: string;
 
   /**
    * Flag to see if stream is live before stream metadata is available
@@ -64,7 +64,7 @@ export interface SourceMetadata extends CustomDataConfig {
   /**
    * CDN Provider that the video playback session is using
    */
-  cdnProvider?: String;
+  cdnProvider?: string;
 }
 
 /**

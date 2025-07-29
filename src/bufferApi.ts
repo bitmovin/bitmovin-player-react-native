@@ -1,6 +1,4 @@
-import { NativeModules } from 'react-native';
-
-const BufferModule = NativeModules.BufferModule;
+import BufferModule from './modules/BufferModule';
 
 /**
  * Represents different types of media.

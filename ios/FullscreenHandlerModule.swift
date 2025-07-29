@@ -1,79 +1,95 @@
 import BitmovinPlayer
+import ExpoModulesCore
 
-@objc(FullscreenHandlerModule)
-public class FullscreenHandlerModule: NSObject, RCTBridgeModule {
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    @objc public var bridge: RCTBridge!
-
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    public static func moduleName() -> String! {
-        "FullscreenHandlerModule"
-    }
-
-    public static func requiresMainQueueSetup() -> Bool {
-        true
-    }
-
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    public var methodQueue: DispatchQueue! {
-        bridge.uiManager.methodQueue
-    }
-
-    /// In-memory mapping from `nativeId`s to `FullscreenHandler` instances.
+/**
+ * Expo module for FullscreenHandler management with bidirectional communication.
+ * Handles synchronous fullscreen state changes between native code and JavaScript.
+ */
+public class FullscreenHandlerModule: Module {
+    /// In-memory mapping from `nativeId`s to `FullscreenHandlerBridge` instances.
     private var fullscreenHandlers: Registry<FullscreenHandlerBridge> = [:]
 
-    /// Dispatch group used for blocking thread while waiting for state change
-    private let fullscreenChangeDispatchGroup = DispatchGroup()
+    /// ResultWaiter used for blocking thread while waiting for fullscreen state change
+    private let waiter = ResultWaiter<Bool>()
 
-    /**
-     Fetches the `FullscreenHandlerBridge` instance associated with `nativeId` from internal fullscreenHandlers.
-     - Parameter nativeId: `FullscreenHandlerBridge` instance ID.
-     - Returns: The associated `FullscreenHandlerBridge` instance or `nil`.
-     */
-    @objc
+    public func definition() -> ModuleDefinition {
+        Name("FullscreenHandlerModule")
+
+        OnDestroy {
+            fullscreenHandlers.removeAll()
+            waiter.removeAll()
+        }
+
+        Events("onEnterFullscreen", "onExitFullscreen")
+
+        AsyncFunction("registerHandler") { (nativeId: NativeId) in
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.fullscreenHandlers[nativeId] == nil else {
+                    return
+                }
+                self.fullscreenHandlers[nativeId] = FullscreenHandlerBridge(
+                    nativeId,
+                    moduleRegistry: appContext?.moduleRegistry
+                )
+            }
+        }.runOnQueue(.main)
+
+        AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
+            self?.fullscreenHandlers.removeValue(forKey: nativeId)
+        }.runOnQueue(.main)
+
+        AsyncFunction("notifyFullscreenChanged") { [weak self] (id: Int, isFullscreenEnabled: Bool) in
+            self?.waiter.complete(id: id, with: isFullscreenEnabled)
+        }
+
+        AsyncFunction("setIsFullscreenActive") { [weak self] (nativeId: NativeId, isFullscreen: Bool) in
+            self?.fullscreenHandlers[nativeId]?.isFullscreenValueBox.update(isFullscreen)
+        }.runOnQueue(.main)
+    }
+
     func retrieve(_ nativeId: NativeId) -> FullscreenHandlerBridge? {
         fullscreenHandlers[nativeId]
     }
 
     /**
-     Removes the `FullscreenHandlerBridge` instance associated with `nativeId` from `fullscreenHandlers`.
-     - Parameter nativeId Instance to be disposed.
+     * Handles fullscreen enter request from native code.
+     * Called by FullscreenHandlerBridge when fullscreen should be entered.
      */
-    @objc(destroy:)
-    func destroy(_ nativeId: NativeId) {
-        fullscreenHandlers.removeValue(forKey: nativeId)
-    }
-
-    @MainActor
-    @objc(onFullscreenChanged:isFullscreenEnabled:)
-    func onFullscreenChanged(_ nativeId: NativeId, isFullscreenEnabled: Bool) -> Any? {
-        fullscreenHandlers[nativeId]?.isFullscreen = isFullscreenEnabled
-        fullscreenChangeDispatchGroup.leave()
-        return nil
-    }
-
-    @MainActor
-    @objc(registerHandler:)
-    func registerHandler(_ nativeId: NativeId) {
-        guard fullscreenHandlers[nativeId] == nil else { return }
-        fullscreenHandlers[nativeId] = FullscreenHandlerBridge(nativeId, bridge: bridge)
-    }
-
-    @MainActor
-    @objc(setIsFullscreenActive:isFullscreen:)
-    func setIsFullscreenActive(_ nativeId: NativeId, isFullscreen: Bool) {
-        fullscreenHandlers[nativeId]?.isFullscreen = isFullscreen
-    }
-
     func onFullscreenRequested(nativeId: NativeId) {
-        fullscreenChangeDispatchGroup.enter()
-        bridge.enqueueJSCall("FullscreenBridge-\(nativeId)", method: "enterFullscreen", args: []) {}
-        fullscreenChangeDispatchGroup.wait()
+        guard let handler = retrieve(nativeId) else {
+            return
+        }
+
+        let (id, wait) = waiter.make(timeout: 0.25)
+
+        // Send event to JavaScript
+        sendEvent("onEnterFullscreen", [
+            "nativeId": nativeId,
+            "id": id
+        ])
+
+        guard let result = wait() else {
+            return
+        }
+        handler.isFullscreenValueBox.update(result)
     }
 
     func onFullscreenExitRequested(nativeId: NativeId) {
-        fullscreenChangeDispatchGroup.enter()
-        bridge.enqueueJSCall("FullscreenBridge-\(nativeId)", method: "exitFullscreen", args: []) {}
-        fullscreenChangeDispatchGroup.wait()
+        guard let handler = retrieve(nativeId) else {
+            return
+        }
+
+        let (id, wait) = waiter.make(timeout: 0.25)
+
+        // Send event to JavaScript
+        sendEvent("onExitFullscreen", [
+            "nativeId": nativeId,
+            "id": id
+        ])
+
+        guard let result = wait() else {
+            return
+        }
+        handler.isFullscreenValueBox.update(result)
     }
 }

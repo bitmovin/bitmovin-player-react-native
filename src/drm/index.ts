@@ -1,13 +1,12 @@
-import { NativeModules, Platform } from 'react-native';
-import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
+import { Platform } from 'react-native';
+import { EventSubscription } from 'expo-modules-core';
 import NativeInstance, { NativeInstanceConfig } from '../nativeInstance';
 import { FairplayConfig } from './fairplayConfig';
 import { WidevineConfig } from './widevineConfig';
+import DrmModule from './drmModule';
 
 // Export config types from DRM module.
 export { FairplayConfig, WidevineConfig };
-
-const DrmModule = NativeModules.DrmModule;
 
 /**
  * Represents the general Streaming DRM config.
@@ -16,13 +15,13 @@ export interface DrmConfig extends NativeInstanceConfig {
   /**
    * FairPlay specific configuration.
    *
-   * @platform iOS
+   * @remarks Platform: iOS
    */
   fairplay?: FairplayConfig;
   /**
    * Widevine specific configuration.
    *
-   * @platform Android, iOS (only for casting).
+   * @remarks Platform: Android, iOS (only for casting).
    */
   widevine?: WidevineConfig;
 }
@@ -41,16 +40,20 @@ export class Drm extends NativeInstance<DrmConfig> {
    */
   isDestroyed = false;
 
+  private eventSubscriptions: EventSubscription[] = [];
+
   /**
    * Allocates the DRM config instance and its resources natively.
    */
-  initialize = () => {
+  initialize = async () => {
     if (!this.isInitialized) {
-      // Register this object as a callable module so it's possible to
-      // call functions on it from native code, e.g `onPrepareMessage`.
-      BatchedBridge.registerCallableModule(`DRM-${this.nativeId}`, this);
-      // Create native configuration object.
-      DrmModule.initWithConfig(this.nativeId, this.config);
+      // Set up event listeners for DRM preparation callbacks
+      this.setupEventListeners();
+
+      // Create native configuration object using Expo module.
+      if (this.config) {
+        await DrmModule.initializeWithConfig(this.nativeId, this.config);
+      }
       this.isInitialized = true;
     }
   };
@@ -58,12 +61,84 @@ export class Drm extends NativeInstance<DrmConfig> {
   /**
    * Destroys the native DRM config and releases all of its allocated resources.
    */
-  destroy = () => {
+  destroy = async () => {
     if (!this.isDestroyed) {
-      DrmModule.destroy(this.nativeId);
+      await DrmModule.destroy(this.nativeId);
+      // Clean up event subscriptions
+      this.eventSubscriptions.forEach((subscription) => subscription.remove());
+      this.eventSubscriptions = [];
       this.isDestroyed = true;
     }
   };
+
+  /**
+   * Sets up event listeners for all DRM preparation callbacks
+   */
+  private setupEventListeners() {
+    // iOS-only events
+    this.eventSubscriptions.push(
+      DrmModule.addListener(
+        'onPrepareCertificate',
+        ({ nativeId, id, certificate }) => {
+          if (nativeId !== this.nativeId) return;
+          this.onPrepareCertificate(id, certificate);
+        }
+      )
+    );
+
+    this.eventSubscriptions.push(
+      DrmModule.addListener(
+        'onPrepareSyncMessage',
+        ({ nativeId, id, syncMessage, assetId }) => {
+          if (nativeId !== this.nativeId) return;
+          this.onPrepareSyncMessage(id, syncMessage, assetId);
+        }
+      )
+    );
+
+    this.eventSubscriptions.push(
+      DrmModule.addListener(
+        'onPrepareLicenseServerUrl',
+        ({ nativeId, id, licenseServerUrl }) => {
+          if (nativeId !== this.nativeId) return;
+          this.onPrepareLicenseServerUrl(id, licenseServerUrl);
+        }
+      )
+    );
+
+    this.eventSubscriptions.push(
+      DrmModule.addListener(
+        'onPrepareContentId',
+        ({ nativeId, id, contentId }) => {
+          if (nativeId !== this.nativeId) return;
+          this.onPrepareContentId(id, contentId);
+        }
+      )
+    );
+
+    // Cross-platform events
+    this.eventSubscriptions.push(
+      DrmModule.addListener(
+        'onPrepareMessage',
+        ({ nativeId, id, data, message, assetId }) => {
+          if (nativeId !== this.nativeId) return;
+          // Android sends 'data', iOS sends 'message'
+          this.onPrepareMessage(id, data || message, assetId);
+        }
+      )
+    );
+
+    this.eventSubscriptions.push(
+      DrmModule.addListener(
+        'onPrepareLicense',
+        ({ nativeId, id, data, license }) => {
+          if (nativeId !== this.nativeId) return;
+          // Android sends 'data', iOS sends 'license'
+          this.onPrepareLicense(id, data || license);
+        }
+      )
+    );
+  }
 
   /**
    * iOS only.
@@ -75,12 +150,10 @@ export class Drm extends NativeInstance<DrmConfig> {
    *
    * @param certificate - Base64 encoded certificate data.
    */
-  onPrepareCertificate = (certificate: string) => {
+  private onPrepareCertificate = (id: string, certificate: string) => {
     if (this.config?.fairplay?.prepareCertificate) {
-      DrmModule.setPreparedCertificate(
-        this.nativeId,
-        this.config?.fairplay?.prepareCertificate?.(certificate)
-      );
+      const result = this.config?.fairplay?.prepareCertificate?.(certificate);
+      DrmModule.setPreparedCertificate(id, result);
     }
   };
 
@@ -93,16 +166,23 @@ export class Drm extends NativeInstance<DrmConfig> {
    * @param message - Base64 encoded message data.
    * @param assetId - Optional asset ID. Only sent by iOS.
    */
-  onPrepareMessage = (message: string, assetId?: string) => {
+  private onPrepareMessage = (
+    id: string,
+    message?: string,
+    assetId?: string
+  ) => {
+    if (!message) {
+      DrmModule.setPreparedMessage(id, undefined);
+      return;
+    }
     const config =
       Platform.OS === 'ios' ? this.config?.fairplay : this.config?.widevine;
     if (config && config.prepareMessage) {
-      DrmModule.setPreparedMessage(
-        this.nativeId,
+      const result =
         Platform.OS === 'ios'
           ? (config as FairplayConfig).prepareMessage?.(message, assetId!)
-          : (config as WidevineConfig).prepareMessage?.(message)
-      );
+          : (config as WidevineConfig).prepareMessage?.(message);
+      DrmModule.setPreparedMessage(id, result);
     }
   };
 
@@ -116,12 +196,17 @@ export class Drm extends NativeInstance<DrmConfig> {
    *
    * @param syncMessage - Base64 encoded sync SPC message data.
    */
-  onPrepareSyncMessage = (syncMessage: string, assetId: string) => {
+  private onPrepareSyncMessage = (
+    id: string,
+    syncMessage: string,
+    assetId: string
+  ) => {
     if (this.config?.fairplay?.prepareSyncMessage) {
-      DrmModule.setPreparedSyncMessage(
-        this.nativeId,
-        this.config?.fairplay?.prepareSyncMessage?.(syncMessage, assetId)
+      const result = this.config?.fairplay?.prepareSyncMessage?.(
+        syncMessage,
+        assetId
       );
+      DrmModule.setPreparedSyncMessage(id, result);
     }
   };
 
@@ -133,13 +218,17 @@ export class Drm extends NativeInstance<DrmConfig> {
    *
    * @param license - Base64 encoded license data.
    */
-  onPrepareLicense = (license: string) => {
+  private onPrepareLicense = (id: string, license?: string) => {
+    if (!license) {
+      DrmModule.setPreparedLicense(id, undefined);
+      return;
+    }
     const prepareLicense =
       Platform.OS === 'ios'
         ? this.config?.fairplay?.prepareLicense
         : this.config?.widevine?.prepareLicense;
     if (prepareLicense) {
-      DrmModule.setPreparedLicense(this.nativeId, prepareLicense(license));
+      DrmModule.setPreparedLicense(id, prepareLicense(license));
     }
   };
 
@@ -153,12 +242,14 @@ export class Drm extends NativeInstance<DrmConfig> {
    *
    * @param licenseServerUrl - The license server URL string.
    */
-  onPrepareLicenseServerUrl = (licenseServerUrl: string) => {
+  private onPrepareLicenseServerUrl = (
+    id: string,
+    licenseServerUrl: string
+  ) => {
     if (this.config?.fairplay?.prepareLicenseServerUrl) {
-      DrmModule.setPreparedLicenseServerUrl(
-        this.nativeId,
-        this.config?.fairplay?.prepareLicenseServerUrl?.(licenseServerUrl)
-      );
+      const result =
+        this.config?.fairplay?.prepareLicenseServerUrl?.(licenseServerUrl);
+      DrmModule.setPreparedLicenseServerUrl(id, result);
     }
   };
 
@@ -172,12 +263,11 @@ export class Drm extends NativeInstance<DrmConfig> {
    *
    * @param contentId - The extracted contentId string.
    */
-  onPrepareContentId = (contentId: string) => {
+  private onPrepareContentId = (id: string, contentId: string) => {
+    console.log('onPrepareContentId', contentId);
     if (this.config?.fairplay?.prepareContentId) {
-      DrmModule.setPreparedContentId(
-        this.nativeId,
-        this.config?.fairplay?.prepareContentId?.(contentId)
-      );
+      const result = this.config?.fairplay?.prepareContentId?.(contentId);
+      DrmModule.setPreparedContentId(id, result);
     }
   };
 }
