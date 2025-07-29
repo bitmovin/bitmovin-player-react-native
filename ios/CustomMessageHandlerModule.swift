@@ -22,14 +22,14 @@ public class CustomMessageHandlerModule: Module {
 
         Events("onReceivedSynchronousMessage", "onReceivedAsynchronousMessage")
 
-        AsyncFunction("registerHandler") { [weak self] (nativeId: String) in
+        AsyncFunction("registerHandler") { [weak self] (nativeId: NativeId) in
             guard self?.customMessageHandlers[nativeId] == nil else {
                 return
             }
             self?.customMessageHandlers[nativeId] = CustomMessageHandlerBridge(nativeId, delegate: self)
         }.runOnQueue(.main)
 
-        AsyncFunction("destroy") { [weak self] (nativeId: String) in
+        AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
             self?.customMessageHandlers.removeValue(forKey: nativeId)
         }.runOnQueue(.main)
 
@@ -37,12 +37,12 @@ public class CustomMessageHandlerModule: Module {
             self?.waiter.complete(id: id, with: result)
         }
 
-        AsyncFunction("sendMessage") { [weak self] (nativeId: String, message: String, data: String?) in
+        AsyncFunction("sendMessage") { [weak self] (nativeId: NativeId, message: String, data: String?) in
             self?.customMessageHandlers[nativeId]?.sendMessage(message, withData: data)
         }.runOnQueue(.main)
     }
 
-    func retrieve(_ nativeId: String) -> CustomMessageHandlerBridge? {
+    func retrieve(_ nativeId: NativeId) -> CustomMessageHandlerBridge? {
         customMessageHandlers[nativeId]
     }
 }
@@ -53,7 +53,7 @@ extension CustomMessageHandlerModule: CustomMessageHandlerBridgeDelegate {
      * Called by CustomMessageHandlerBridge when a synchronous message is received.
      */
     func receivedSynchronousMessage(
-        nativeId: String,
+        nativeId: NativeId,
         message: String,
         withData data: String?
     ) -> String? {
@@ -75,7 +75,7 @@ extension CustomMessageHandlerModule: CustomMessageHandlerBridgeDelegate {
     }
 
     func receivedAsynchronousMessage(
-        nativeId: String,
+        nativeId: NativeId,
         message: String,
         withData data: String?
     ) {

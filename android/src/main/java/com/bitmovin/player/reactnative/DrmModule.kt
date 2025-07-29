@@ -41,7 +41,7 @@ class DrmModule : Module() {
 
         Events("onPrepareMessage", "onPrepareLicense")
 
-        AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>, promise: Promise ->
+        AsyncFunction("initializeWithConfig") { nativeId: NativeId, config: Map<String, Any?>, promise: Promise ->
             if (drmConfigs.containsKey(nativeId)) {
                 promise.reject("DrmError", "NativeId already exists $nativeId", null)
                 return@AsyncFunction
@@ -60,7 +60,7 @@ class DrmModule : Module() {
             }
         }
 
-        AsyncFunction("destroy") { nativeId: String ->
+        AsyncFunction("destroy") { nativeId: NativeId ->
             drmConfigs.remove(nativeId)
         }
 
@@ -88,7 +88,7 @@ class DrmModule : Module() {
      * @param nativeId `WidevineConfig` instance ID.
      * @return The associated `WidevineConfig` instance or `null`.
      */
-    fun getConfig(nativeId: String?): WidevineConfig? {
+    fun getConfig(nativeId: NativeId?): WidevineConfig? {
         if (nativeId == null) {
             return null
         }
@@ -100,7 +100,7 @@ class DrmModule : Module() {
      * @param nativeId Instance ID.
      * @param config `DrmConfig` config object sent from JS.
      */
-    private fun buildPrepareMessageCallback(nativeId: String, config: Map<String, Any?>): PrepareMessageCallback? {
+    private fun buildPrepareMessageCallback(nativeId: NativeId, config: Map<String, Any?>): PrepareMessageCallback? {
         if ((config["widevine"] as? Map<*, *>)?.containsKey("prepareMessage") != true) {
             return null
         }
@@ -117,7 +117,7 @@ class DrmModule : Module() {
      * @param nativeId Instance ID.
      * @param config `DrmConfig` config object sent from JS.
      */
-    private fun buildPrepareLicense(nativeId: String, config: Map<String, Any?>): PrepareLicenseCallback? {
+    private fun buildPrepareLicense(nativeId: NativeId, config: Map<String, Any?>): PrepareLicenseCallback? {
         if ((config["widevine"] as? Map<*, *>)?.containsKey("prepareLicense") != true) {
             return null
         }
@@ -137,7 +137,7 @@ class DrmModule : Module() {
      * @return The preparation callback function.
      */
     private fun createPrepareCallback(
-        nativeId: String,
+        nativeId: NativeId,
         method: String,
         waiter: ResultWaiter<String>,
     ): PrepareCallback = {

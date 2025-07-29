@@ -25,7 +25,7 @@ public class NetworkModule: Module {
             "onPreprocessHttpResponse"
         )
 
-        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: String, config: [String: Any]) in
+        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: NativeId, config: [String: Any]) in
             guard
                 self?.retrieve(nativeId) == nil,
                 let networkConfig = RCTConvert.networkConfig(config)
@@ -36,7 +36,7 @@ public class NetworkModule: Module {
             self?.initConfigBlocks(nativeId, config)
         }.runOnQueue(.main)
 
-        AsyncFunction("destroy") { [weak self] (nativeId: String) in
+        AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
             self?.networkConfigs.removeValue(forKey: nativeId)
 
             // Clean up completion handlers
@@ -68,16 +68,16 @@ public class NetworkModule: Module {
         }.runOnQueue(.main)
     }
 
-    func retrieve(_ nativeId: String) -> NetworkConfig? {
+    func retrieve(_ nativeId: NativeId) -> NetworkConfig? {
         networkConfigs[nativeId]
     }
 
-    private func initConfigBlocks(_ nativeId: String, _ config: [String: Any]) {
+    private func initConfigBlocks(_ nativeId: NativeId, _ config: [String: Any]) {
         initPreprocessHttpRequest(nativeId, networkConfigJson: config)
         initPreprocessHttpResponse(nativeId, networkConfigJson: config)
     }
 
-    private func initPreprocessHttpRequest(_ nativeId: String, networkConfigJson: [String: Any]) {
+    private func initPreprocessHttpRequest(_ nativeId: NativeId, networkConfigJson: [String: Any]) {
         guard let networkConfig = retrieve(nativeId),
               networkConfigJson["preprocessHttpRequest"] != nil else {
             return
@@ -92,7 +92,7 @@ public class NetworkModule: Module {
         }
     }
 
-    private func initPreprocessHttpResponse(_ nativeId: String, networkConfigJson: [String: Any]) {
+    private func initPreprocessHttpResponse(_ nativeId: NativeId, networkConfigJson: [String: Any]) {
         guard let networkConfig = retrieve(nativeId),
               networkConfigJson["preprocessHttpResponse"] != nil else {
             return
@@ -109,7 +109,7 @@ public class NetworkModule: Module {
     }
 
     internal func preprocessHttpRequestFromJS(
-        nativeId: String,
+        nativeId: NativeId,
         type: HttpRequestType,
         request: HttpRequest,
         completionHandler: @escaping (
@@ -127,7 +127,7 @@ public class NetworkModule: Module {
     }
 
     private func preprocessHttpResponseFromJS(
-        nativeId: String,
+        nativeId: NativeId,
         type: HttpRequestType,
         response: HttpResponse,
         completionHandler: @escaping (

@@ -30,7 +30,7 @@ class CustomMessageHandlerModule : Module() {
 
         Events("onReceivedSynchronousMessage", "onReceivedAsynchronousMessage")
 
-        AsyncFunction("registerHandler") { nativeId: String ->
+        AsyncFunction("registerHandler") { nativeId: NativeId ->
             val customMessageHandler = customMessageHandlers[nativeId] ?: CustomMessageHandlerBridge(
                 nativeId,
                 this@CustomMessageHandlerModule,
@@ -38,7 +38,7 @@ class CustomMessageHandlerModule : Module() {
             customMessageHandlers[nativeId] = customMessageHandler
         }
 
-        AsyncFunction("destroy") { nativeId: String ->
+        AsyncFunction("destroy") { nativeId: NativeId ->
             customMessageHandlers.remove(nativeId)
         }
 
@@ -46,14 +46,14 @@ class CustomMessageHandlerModule : Module() {
             synchronousMessageWaiter.complete(id, result)
         }
 
-        AsyncFunction("sendMessage") { nativeId: String, message: String, data: String? ->
+        AsyncFunction("sendMessage") { nativeId: NativeId, message: String, data: String? ->
             customMessageHandlers[nativeId]?.sendMessage(message, data)
         }
     }
 
-    fun getInstance(nativeId: String?): CustomMessageHandlerBridge? = customMessageHandlers[nativeId]
+    fun getInstance(nativeId: NativeId?): CustomMessageHandlerBridge? = customMessageHandlers[nativeId]
 
-    fun receivedSynchronousMessage(nativeId: String, message: String, data: String?): String? {
+    fun receivedSynchronousMessage(nativeId: NativeId, message: String, data: String?): String? {
         val (id, wait) = synchronousMessageWaiter.make(5000) // 5 second timeout
         
         // Send event to TypeScript using Expo module event system
@@ -70,7 +70,7 @@ class CustomMessageHandlerModule : Module() {
         return wait()
     }
 
-    fun receivedAsynchronousMessage(nativeId: String, message: String, data: String?) {
+    fun receivedAsynchronousMessage(nativeId: NativeId, message: String, data: String?) {
         // Send event to TypeScript using Expo module event system
         sendEvent(
             "onReceivedAsynchronousMessage",

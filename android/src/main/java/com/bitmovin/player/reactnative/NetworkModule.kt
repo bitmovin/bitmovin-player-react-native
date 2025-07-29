@@ -43,7 +43,7 @@ class NetworkModule : Module() {
 
         Events("onPreprocessHttpRequest", "onPreprocessHttpResponse")
 
-        AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>, promise: Promise ->
+        AsyncFunction("initializeWithConfig") { nativeId: NativeId, config: Map<String, Any?>, promise: Promise ->
             if (networkConfigs.containsKey(nativeId)) {
                 promise.resolve(null)
                 return@AsyncFunction
@@ -59,7 +59,7 @@ class NetworkModule : Module() {
             }
         }
 
-        AsyncFunction("destroy") { nativeId: String ->
+        AsyncFunction("destroy") { nativeId: NativeId ->
             networkConfigs.remove(nativeId)
 
             // Clean up completion handlers
@@ -90,14 +90,14 @@ class NetworkModule : Module() {
      * Retrieves the NetworkConfig instance for the given nativeId.
      * This method maintains the same static access pattern as the legacy module.
      */
-    fun getConfig(nativeId: String?): NetworkConfig? = nativeId?.let { networkConfigs[it] }
+    fun getConfig(nativeId: NativeId?): NetworkConfig? = nativeId?.let { networkConfigs[it] }
 
-    private fun initConfigBlocks(nativeId: String, config: Map<String, Any?>) {
+    private fun initConfigBlocks(nativeId: NativeId, config: Map<String, Any?>) {
         initPreprocessHttpRequest(nativeId, config)
         initPreprocessHttpResponse(nativeId, config)
     }
 
-    private fun initPreprocessHttpRequest(nativeId: String, networkConfigJson: Map<String, Any?>) {
+    private fun initPreprocessHttpRequest(nativeId: NativeId, networkConfigJson: Map<String, Any?>) {
         val networkConfig = getConfig(nativeId) ?: return
         if (!networkConfigJson.containsKey("preprocessHttpRequest")) return
 
@@ -106,7 +106,7 @@ class NetworkModule : Module() {
         }
     }
 
-    private fun initPreprocessHttpResponse(nativeId: String, networkConfigJson: Map<String, Any?>) {
+    private fun initPreprocessHttpResponse(nativeId: NativeId, networkConfigJson: Map<String, Any?>) {
         val networkConfig = getConfig(nativeId) ?: return
         if (!networkConfigJson.containsKey("preprocessHttpResponse")) return
 
@@ -116,7 +116,7 @@ class NetworkModule : Module() {
     }
 
     private fun preprocessHttpRequestFromJS(
-        nativeId: String,
+        nativeId: NativeId,
         type: HttpRequestType,
         request: HttpRequest,
     ): Future<HttpRequest> {
@@ -146,7 +146,7 @@ class NetworkModule : Module() {
     }
 
     private fun preprocessHttpResponseFromJS(
-        nativeId: String,
+        nativeId: NativeId,
         type: HttpRequestType,
         response: HttpResponse,
     ): Future<HttpResponse> {

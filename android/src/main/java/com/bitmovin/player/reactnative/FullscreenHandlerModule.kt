@@ -29,13 +29,13 @@ class FullscreenHandlerModule : Module() {
 
         Events("onEnterFullscreen", "onExitFullscreen")
 
-        AsyncFunction("registerHandler") { nativeId: String ->
+        AsyncFunction("registerHandler") { nativeId: NativeId ->
             if (fullscreenHandlers[nativeId] == null) {
                 fullscreenHandlers[nativeId] = FullscreenHandlerBridge(nativeId, this@FullscreenHandlerModule)
             }
         }
 
-        AsyncFunction("destroy") { nativeId: String ->
+        AsyncFunction("destroy") { nativeId: NativeId ->
             fullscreenHandlers.remove(nativeId)
         }
 
@@ -43,7 +43,7 @@ class FullscreenHandlerModule : Module() {
             waiter.complete(id, isFullscreenEnabled)
         }
 
-        AsyncFunction("setIsFullscreenActive") { nativeId: String, isFullscreenActive: Boolean ->
+        AsyncFunction("setIsFullscreenActive") { nativeId: NativeId, isFullscreenActive: Boolean ->
             fullscreenHandlers[nativeId]?.isFullscreen = isFullscreenActive
         }
     }
@@ -52,13 +52,13 @@ class FullscreenHandlerModule : Module() {
      * Retrieves the FullscreenHandlerBridge instance for the given nativeId.
      * This method maintains the same static access pattern as the legacy module.
      */
-    fun getInstance(nativeId: String?): FullscreenHandlerBridge? = fullscreenHandlers[nativeId]
+    fun getInstance(nativeId: NativeId?): FullscreenHandlerBridge? = fullscreenHandlers[nativeId]
 
     /**
      * Handles fullscreen enter request from native code.
      * Called by FullscreenHandlerBridge when fullscreen should be entered.
      */
-    fun requestEnterFullscreen(nativeId: String) {
+    fun requestEnterFullscreen(nativeId: NativeId) {
         val handler = getInstance(nativeId) ?: return
 
         val (id, wait) = waiter.make(250) // 250ms timeout
@@ -80,7 +80,7 @@ class FullscreenHandlerModule : Module() {
      * Handles fullscreen exit request from native code.
      * Called by FullscreenHandlerBridge when fullscreen should be exited.
      */
-    fun requestExitFullscreen(nativeId: String) {
+    fun requestExitFullscreen(nativeId: NativeId) {
         val handler = getInstance(nativeId) ?: return
 
         val (id, wait) = waiter.make(250) // 250ms timeout

@@ -31,7 +31,7 @@ class OfflineModule : Module() {
             offlineContentManagerBridges.clear()
         }
 
-        AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>?, drmNativeId: String? ->
+        AsyncFunction("initializeWithConfig") { nativeId: NativeId, config: Map<String, Any?>?, drmNativeId: NativeId? ->
             if (offlineContentManagerBridges.containsKey(nativeId)) {
                 throw OfflineException.ManagerAlreadyExists(nativeId)
             }
@@ -61,7 +61,7 @@ class OfflineModule : Module() {
         /**
          * Gets the current state of the `OfflineContentManager`
          */
-        AsyncFunction("getState") { nativeId: String ->
+        AsyncFunction("getState") { nativeId: NativeId ->
             getOfflineContentManagerBridge(nativeId).state.name
         }
 
@@ -69,7 +69,7 @@ class OfflineModule : Module() {
          * Starts the `OfflineContentManager`'s asynchronous process of fetching the `OfflineContentOptions`.
          * When the options are loaded a device event will be fired where the event type is `BitmovinOfflineEvent` * and the data has an event type of `onOptionsAvailable`.
          */
-        AsyncFunction("getOptions") { nativeId: String ->
+        AsyncFunction("getOptions") { nativeId: NativeId ->
             getOfflineContentManagerBridge(nativeId).getOptions()
         }
 
@@ -77,7 +77,7 @@ class OfflineModule : Module() {
          * Enqueues downloads according to the `OfflineDownloadRequest`.
          * The promise will reject in the event of null or invalid request parameters.
          */
-        AsyncFunction("download") { nativeId: String, request: Map<String, Any?> ->
+        AsyncFunction("download") { nativeId: NativeId, request: Map<String, Any?> ->
             val bridge = getOfflineContentManagerBridge(nativeId)
 
             when (bridge.state) {
@@ -102,35 +102,35 @@ class OfflineModule : Module() {
         /**
          * Resumes all suspended actions.
          */
-        AsyncFunction("resume") { nativeId: String ->
+        AsyncFunction("resume") { nativeId: NativeId ->
             getOfflineContentManagerBridge(nativeId).resume()
         }
 
         /**
          * Suspends all active actions.
          */
-        AsyncFunction("suspend") { nativeId: String ->
+        AsyncFunction("suspend") { nativeId: NativeId ->
             getOfflineContentManagerBridge(nativeId).suspend()
         }
 
         /**
          * Cancels and deletes the current download.
          */
-        AsyncFunction("cancelDownload") { nativeId: String ->
+        AsyncFunction("cancelDownload") { nativeId: NativeId ->
             getOfflineContentManagerBridge(nativeId).cancelDownload()
         }
 
         /**
          * Resolve `nativeId`'s current `usedStorage`.
          */
-        AsyncFunction("usedStorage") { nativeId: String ->
+        AsyncFunction("usedStorage") { nativeId: NativeId ->
             getOfflineContentManagerBridge(nativeId).offlineContentManager.usedStorage.toDouble()
         }
 
         /**
          * Deletes everything related to the related content ID.
          */
-        AsyncFunction("deleteAll") { nativeId: String ->
+        AsyncFunction("deleteAll") { nativeId: NativeId ->
             getOfflineContentManagerBridge(nativeId).deleteAll()
         }
 
@@ -138,7 +138,7 @@ class OfflineModule : Module() {
          * Downloads the offline license.
          * When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` * and the data has an event type of `onDrmLicenseUpdated`.
          */
-        AsyncFunction("downloadLicense") { nativeId: String ->
+        AsyncFunction("downloadLicense") { nativeId: NativeId ->
             getOfflineContentManagerBridge(nativeId).downloadLicense()
         }
 
@@ -146,7 +146,7 @@ class OfflineModule : Module() {
          * Releases the currently held offline license.
          * When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` * and the data has an event type of `onDrmLicenseUpdated`.
          */
-        AsyncFunction("releaseLicense") { nativeId: String ->
+        AsyncFunction("releaseLicense") { nativeId: NativeId ->
             getOfflineContentManagerBridge(nativeId).releaseLicense()
         }
 
@@ -154,7 +154,7 @@ class OfflineModule : Module() {
          * Renews the already downloaded DRM license.
          * When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` * and the data has an event type of `onDrmLicenseUpdated`.
          */
-        AsyncFunction("renewOfflineLicense") { nativeId: String ->
+        AsyncFunction("renewOfflineLicense") { nativeId: NativeId ->
             getOfflineContentManagerBridge(nativeId).renewOfflineLicense()
         }
 
@@ -163,7 +163,7 @@ class OfflineModule : Module() {
          * IMPORTANT: Call this when the component, in which it was created, is destroyed.
          * The `OfflineManager` should not be used after calling this method.
          */
-        AsyncFunction("release") { nativeId: String ->
+        AsyncFunction("release") { nativeId: NativeId ->
             val bridge = getOfflineContentManagerBridge(nativeId)
             bridge.release()
             offlineContentManagerBridges.remove(nativeId)
@@ -173,7 +173,7 @@ class OfflineModule : Module() {
     /**
      * Helper function to get OfflineContentManagerBridge with proper error handling
      */
-    fun getOfflineContentManagerBridge(nativeId: String): OfflineContentManagerBridge {
+    fun getOfflineContentManagerBridge(nativeId: NativeId): OfflineContentManagerBridge {
         return offlineContentManagerBridges[nativeId] ?: throw OfflineException.ManagerNotFound(nativeId)
     }
 }
@@ -181,10 +181,10 @@ class OfflineModule : Module() {
 // MARK: - Exception Definitions
 
 sealed class OfflineException(message: String) : CodedException(message) {
-    class ManagerAlreadyExists(nativeId: String) : OfflineException(
+    class ManagerAlreadyExists(nativeId: NativeId) : OfflineException(
         "Content manager bridge id already exists: $nativeId",
     )
-    class ManagerNotFound(nativeId: String) : OfflineException("No offline content manager bridge for id $nativeId")
+    class ManagerNotFound(nativeId: NativeId) : OfflineException("No offline content manager bridge for id $nativeId")
     class InvalidIdentifier : OfflineException("Invalid identifier")
     class InvalidSourceConfig : OfflineException("Invalid source config")
     class InvalidRequest : OfflineException("Invalid download request")

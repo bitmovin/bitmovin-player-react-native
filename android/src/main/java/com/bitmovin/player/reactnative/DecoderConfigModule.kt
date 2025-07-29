@@ -39,7 +39,7 @@ class DecoderConfigModule : Module() {
         /**
          * Creates a new `DecoderConfig` instance inside the internal decoder configs using the provided `config` object.
          */
-        AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?> ->
+        AsyncFunction("initializeWithConfig") { nativeId: NativeId, config: Map<String, Any?> ->
             if (decoderConfigs.containsKey(nativeId)) {
                 return@AsyncFunction
             }
@@ -65,7 +65,7 @@ class DecoderConfigModule : Module() {
         /**
          * Completes the decoder priority provider override process
          */
-        AsyncFunction("overrideDecoderPriorityProviderComplete") { nativeId: String,
+        AsyncFunction("overrideDecoderPriorityProviderComplete") { nativeId: NativeId,
             response: List<Map<String, Any?>>, ->
             val completer = overrideDecoderPriorityProviderCompleters[nativeId]
                 ?: throw DecoderConfigException.NoCompleterFound(nativeId)
@@ -78,7 +78,7 @@ class DecoderConfigModule : Module() {
         /**
          * Destroys the `DecoderConfig` instance referenced by `nativeId`
          */
-        AsyncFunction("destroy") { nativeId: String ->
+        AsyncFunction("destroy") { nativeId: NativeId ->
             decoderConfigs.remove(nativeId)
             // Remove all completers that start with this nativeId
             overrideDecoderPriorityProviderCompleters.keys.filter { it.startsWith(nativeId) }.forEach {
@@ -91,7 +91,7 @@ class DecoderConfigModule : Module() {
      * Helper function to handle decoder priority provider override
      */
     private fun overrideDecoderPriorityProvider(
-        nativeId: String,
+        nativeId: NativeId,
         context: DecoderPriorityProvider.DecoderContext,
         preferredDecoders: List<MediaCodecInfo>,
     ): List<MediaCodecInfo> {
@@ -114,13 +114,13 @@ class DecoderConfigModule : Module() {
     val decoderConfig: DecoderConfig?
         get() = decoderConfigs.values.firstOrNull()
 
-    fun getDecoderConfig(nativeId: String): DecoderConfig? = decoderConfigs[nativeId]
+    fun getDecoderConfig(nativeId: NativeId): DecoderConfig? = decoderConfigs[nativeId]
 }
 
 // MARK: - Exception Definitions
 
 sealed class DecoderConfigException(message: String) : CodedException(message) {
-    class NoCompleterFound(nativeId: String) : DecoderConfigException(
+    class NoCompleterFound(nativeId: NativeId) : DecoderConfigException(
         "No completer found for decoder config: $nativeId",
     )
 }

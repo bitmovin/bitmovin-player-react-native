@@ -22,7 +22,7 @@ public class FullscreenHandlerModule: Module {
 
         Events("onEnterFullscreen", "onExitFullscreen")
 
-        AsyncFunction("registerHandler") { (nativeId: String) in
+        AsyncFunction("registerHandler") { (nativeId: NativeId) in
             DispatchQueue.main.async { [weak self] in
                 guard let self, self.fullscreenHandlers[nativeId] == nil else {
                     return
@@ -34,7 +34,7 @@ public class FullscreenHandlerModule: Module {
             }
         }.runOnQueue(.main)
 
-        AsyncFunction("destroy") { [weak self] (nativeId: String) in
+        AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
             self?.fullscreenHandlers.removeValue(forKey: nativeId)
         }.runOnQueue(.main)
 
@@ -42,12 +42,12 @@ public class FullscreenHandlerModule: Module {
             self?.waiter.complete(id: id, with: isFullscreenEnabled)
         }
 
-        AsyncFunction("setIsFullscreenActive") { [weak self] (nativeId: String, isFullscreen: Bool) in
+        AsyncFunction("setIsFullscreenActive") { [weak self] (nativeId: NativeId, isFullscreen: Bool) in
             self?.fullscreenHandlers[nativeId]?.isFullscreenValueBox.update(isFullscreen)
         }.runOnQueue(.main)
     }
 
-    func retrieve(_ nativeId: String) -> FullscreenHandlerBridge? {
+    func retrieve(_ nativeId: NativeId) -> FullscreenHandlerBridge? {
         fullscreenHandlers[nativeId]
     }
 
@@ -55,7 +55,7 @@ public class FullscreenHandlerModule: Module {
      * Handles fullscreen enter request from native code.
      * Called by FullscreenHandlerBridge when fullscreen should be entered.
      */
-    func onFullscreenRequested(nativeId: String) {
+    func onFullscreenRequested(nativeId: NativeId) {
         guard let handler = retrieve(nativeId) else {
             return
         }
@@ -74,7 +74,7 @@ public class FullscreenHandlerModule: Module {
         handler.isFullscreenValueBox.update(result)
     }
 
-    func onFullscreenExitRequested(nativeId: String) {
+    func onFullscreenExitRequested(nativeId: NativeId) {
         guard let handler = retrieve(nativeId) else {
             return
         }

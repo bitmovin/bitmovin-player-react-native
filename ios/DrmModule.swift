@@ -21,10 +21,10 @@ public class DrmModule: Module {
             "onPrepareLicenseServerUrl",
             "onPrepareContentId"
         )
-        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: String, config: [String: Any]) in
+        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: NativeId, config: [String: Any]) in
             self?.initializeWithConfig(nativeId: nativeId, config: config)
         }
-        AsyncFunction("destroy") { [weak self] (nativeId: String) in
+        AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
             self?.destroy(nativeId: nativeId)
         }
         AsyncFunction("setPreparedCertificate") { [weak self] (id: Int, certificate: String?) in
@@ -47,22 +47,22 @@ public class DrmModule: Module {
         }
     }
 
-    private func initializeWithConfig(nativeId: String, config: [String: Any]) {
+    private func initializeWithConfig(nativeId: NativeId, config: [String: Any]) {
         if self.drmConfigs[nativeId] == nil, let fairplayConfig = RCTConvert.drmConfig(config).fairplay {
             self.drmConfigs[nativeId] = fairplayConfig
             self.initConfigBlocks(nativeId, config)
         }
     }
 
-    private func destroy(nativeId: String) {
+    private func destroy(nativeId: NativeId) {
         self.drmConfigs.removeValue(forKey: nativeId)
     }
 
-    func retrieve(_ nativeId: String) -> FairplayConfig? {
+    func retrieve(_ nativeId: NativeId) -> FairplayConfig? {
         drmConfigs[nativeId]
     }
 
-    private func initConfigBlocks(_ nativeId: String, _ config: [String: Any]) {
+    private func initConfigBlocks(_ nativeId: NativeId, _ config: [String: Any]) {
         if let fairplayJson = config["fairplay"] as? [String: Any] {
             initPrepareCertificate(nativeId, fairplayJson: fairplayJson)
             initPrepareMessage(nativeId, fairplayJson: fairplayJson)
@@ -73,7 +73,7 @@ public class DrmModule: Module {
         }
     }
 
-    private func initPrepareCertificate(_ nativeId: String, fairplayJson: [String: Any]) {
+    private func initPrepareCertificate(_ nativeId: NativeId, fairplayJson: [String: Any]) {
         if fairplayJson["prepareCertificate"] != nil, let fairplayConfig = drmConfigs[nativeId] {
             fairplayConfig.prepareCertificate = { [weak self] data in
                 self?.prepareCertificateFromJS(nativeId, data) ?? data
@@ -81,7 +81,7 @@ public class DrmModule: Module {
         }
     }
 
-    private func initPrepareMessage(_ nativeId: String, fairplayJson: [String: Any]) {
+    private func initPrepareMessage(_ nativeId: NativeId, fairplayJson: [String: Any]) {
         if fairplayJson["prepareMessage"] != nil, let fairplayConfig = drmConfigs[nativeId] {
             fairplayConfig.prepareMessage = { [weak self] spcData, assetId in
                 self?.prepareMessageFromJS(nativeId, spcData, assetId) ?? spcData
@@ -89,7 +89,7 @@ public class DrmModule: Module {
         }
     }
 
-    private func initPrepareSyncMessage(_ nativeId: String, fairplayJson: [String: Any]) {
+    private func initPrepareSyncMessage(_ nativeId: NativeId, fairplayJson: [String: Any]) {
         if fairplayJson["prepareSyncMessage"] != nil, let fairplayConfig = drmConfigs[nativeId] {
             fairplayConfig.prepareSyncMessage = { [weak self] syncSpcData, assetId in
                 self?.prepareSyncMessageFromJS(nativeId, syncSpcData, assetId) ?? syncSpcData
@@ -97,7 +97,7 @@ public class DrmModule: Module {
         }
     }
 
-    private func initPrepareLicense(_ nativeId: String, fairplayJson: [String: Any]) {
+    private func initPrepareLicense(_ nativeId: NativeId, fairplayJson: [String: Any]) {
         if fairplayJson["prepareLicense"] != nil, let fairplayConfig = drmConfigs[nativeId] {
             fairplayConfig.prepareLicense = { [weak self] data in
                 self?.prepareLicenseFromJS(nativeId, data) ?? data
@@ -105,7 +105,7 @@ public class DrmModule: Module {
         }
     }
 
-    private func initPrepareLicenseServerUrl(_ nativeId: String, fairplayJson: [String: Any]) {
+    private func initPrepareLicenseServerUrl(_ nativeId: NativeId, fairplayJson: [String: Any]) {
         if fairplayJson["prepareLicenseServerUrl"] != nil, let fairplayConfig = drmConfigs[nativeId] {
             fairplayConfig.prepareLicenseServerUrl = { [weak self] url in
                 self?.prepareLicenseServerUrlFromJS(nativeId, url) ?? url
@@ -113,7 +113,7 @@ public class DrmModule: Module {
         }
     }
 
-    private func initPrepareContentId(_ nativeId: String, fairplayJson: [String: Any]) {
+    private func initPrepareContentId(_ nativeId: NativeId, fairplayJson: [String: Any]) {
         if fairplayJson["prepareContentId"] != nil, let fairplayConfig = drmConfigs[nativeId] {
             fairplayConfig.prepareContentId = { [weak self] contentId in
                 self?.prepareContentIdFromJS(nativeId, contentId) ?? contentId
@@ -121,7 +121,7 @@ public class DrmModule: Module {
         }
     }
 
-    private func prepareCertificateFromJS(_ nativeId: String, _ data: Data) -> Data {
+    private func prepareCertificateFromJS(_ nativeId: NativeId, _ data: Data) -> Data {
         let (id, wait) = waiter.make(timeout: 0.25)
         sendEvent("onPrepareCertificate", [
             "nativeId": nativeId,
@@ -132,7 +132,7 @@ public class DrmModule: Module {
         return Data(base64Encoded: result) ?? data
     }
 
-    private func prepareMessageFromJS(_ nativeId: String, _ data: Data, _ assetId: String) -> Data {
+    private func prepareMessageFromJS(_ nativeId: NativeId, _ data: Data, _ assetId: String) -> Data {
         let (id, wait) = waiter.make(timeout: 0.25)
         sendEvent("onPrepareMessage", [
             "nativeId": nativeId,
@@ -144,7 +144,7 @@ public class DrmModule: Module {
         return Data(base64Encoded: result) ?? data
     }
 
-    private func prepareSyncMessageFromJS(_ nativeId: String, _ data: Data, _ assetId: String) -> Data {
+    private func prepareSyncMessageFromJS(_ nativeId: NativeId, _ data: Data, _ assetId: String) -> Data {
         let (id, wait) = waiter.make(timeout: 0.25)
         sendEvent("onPrepareSyncMessage", [
             "nativeId": nativeId,
@@ -156,7 +156,7 @@ public class DrmModule: Module {
         return Data(base64Encoded: result) ?? data
     }
 
-    private func prepareLicenseFromJS(_ nativeId: String, _ data: Data) -> Data {
+    private func prepareLicenseFromJS(_ nativeId: NativeId, _ data: Data) -> Data {
         let (id, wait) = waiter.make(timeout: 0.25)
         sendEvent("onPrepareLicense", [
             "nativeId": nativeId,
@@ -167,7 +167,7 @@ public class DrmModule: Module {
         return Data(base64Encoded: result) ?? data
     }
 
-    private func prepareLicenseServerUrlFromJS(_ nativeId: String, _ url: String) -> String {
+    private func prepareLicenseServerUrlFromJS(_ nativeId: NativeId, _ url: String) -> String {
         let (id, wait) = waiter.make(timeout: 0.25)
         sendEvent("onPrepareLicenseServerUrl", [
             "nativeId": nativeId,
@@ -177,7 +177,7 @@ public class DrmModule: Module {
         return wait() ?? url
     }
 
-    private func prepareContentIdFromJS(_ nativeId: String, _ contentId: String) -> String {
+    private func prepareContentIdFromJS(_ nativeId: NativeId, _ contentId: String) -> String {
         let (id, wait) = waiter.make(timeout: 0.25)
         sendEvent("onPrepareContentId", [
             "nativeId": nativeId,

@@ -28,53 +28,53 @@ class SourceModule : Module() {
             sources.clear()
         }
 
-        AsyncFunction("initializeWithConfig") { nativeId: String, drmNativeId: String?,
+        AsyncFunction("initializeWithConfig") { nativeId: NativeId, drmNativeId: NativeId?,
             config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?, ->
             initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, null)
         }
 
-        AsyncFunction("initializeWithAnalyticsConfig") { nativeId: String, drmNativeId: String?,
+        AsyncFunction("initializeWithAnalyticsConfig") { nativeId: NativeId, drmNativeId: NativeId?,
             config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?,
             analyticsSourceMetadata: Map<String, Any>?, ->
             initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, analyticsSourceMetadata)
         }
 
-        AsyncFunction("destroy") { nativeId: String ->
+        AsyncFunction("destroy") { nativeId: NativeId ->
             sources.remove(nativeId)
         }
 
-        AsyncFunction("isAttachedToPlayer") { nativeId: String ->
+        AsyncFunction("isAttachedToPlayer") { nativeId: NativeId ->
             sources[nativeId]?.isAttachedToPlayer
         }
 
-        AsyncFunction("isActive") { nativeId: String ->
+        AsyncFunction("isActive") { nativeId: NativeId ->
             sources[nativeId]?.isActive
         }
 
-        AsyncFunction("duration") { nativeId: String ->
+        AsyncFunction("duration") { nativeId: NativeId ->
             sources[nativeId]?.duration
         }
 
-        AsyncFunction("loadingState") { nativeId: String ->
+        AsyncFunction("loadingState") { nativeId: NativeId ->
             sources[nativeId]?.loadingState?.name
         }
 
-        AsyncFunction("getMetadata") { nativeId: String ->
+        AsyncFunction("getMetadata") { nativeId: NativeId ->
             sources[nativeId]?.config?.metadata
         }
 
-        AsyncFunction("setMetadata") { nativeId: String, metadata: Map<String, Any>? ->
+        AsyncFunction("setMetadata") { nativeId: NativeId, metadata: Map<String, Any>? ->
             sources[nativeId]?.config?.metadata = metadata?.mapValues { it.value.toString() }
         }
 
-        AsyncFunction("getThumbnail") { nativeId: String, time: Double ->
+        AsyncFunction("getThumbnail") { nativeId: NativeId, time: Double ->
             sources[nativeId]?.getThumbnail(time)?.toJson()
         }
     }
 
     private fun initializeSource(
-        nativeId: String,
-        drmNativeId: String?,
+        nativeId: NativeId,
+        drmNativeId: NativeId?,
         config: Map<String, Any>?,
         sourceRemoteControlConfig: Map<String, Any>?,
         analyticsSourceMetadata: Map<String, Any>?,

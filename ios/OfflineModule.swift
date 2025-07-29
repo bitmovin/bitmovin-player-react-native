@@ -19,12 +19,12 @@ public class OfflineModule: Module {
             self.offlineContentManagerBridges.removeAll()
             #endif
         }
-        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: String, config: [String: Any?]?, drmNativeId: String?) in // swiftlint:disable:this line_length
+        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: NativeId, config: [String: Any?]?, drmNativeId: NativeId?) in // swiftlint:disable:this line_length
             #if os(iOS)
             self?.createOfflineManager(nativeId: nativeId, config: config, drmNativeId: drmNativeId)
             #endif
         }.runOnQueue(.main)
-        AsyncFunction("getState") { [weak self] (nativeId: String) -> String? in
+        AsyncFunction("getState") { [weak self] (nativeId: NativeId) -> String? in
             #if os(iOS)
             let offlineState = self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.offlineState
             return RCTConvert.toJson(offlineState: offlineState)
@@ -32,55 +32,55 @@ public class OfflineModule: Module {
             return nil
             #endif
         }.runOnQueue(.main)
-        AsyncFunction("getOptions") { [weak self] (nativeId: String) in
+        AsyncFunction("getOptions") { [weak self] (nativeId: NativeId) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.fetchAvailableTracks()
             #endif
         }.runOnQueue(.main)
-        AsyncFunction("usedStorage") { [weak self] (nativeId: String) -> Int? in
+        AsyncFunction("usedStorage") { [weak self] (nativeId: NativeId) -> Int? in
             #if os(iOS)
             return self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.usedStorage
             #else
             return nil
             #endif
         }.runOnQueue(.main)
-        AsyncFunction("deleteAll") { [weak self] (nativeId: String) in
+        AsyncFunction("deleteAll") { [weak self] (nativeId: NativeId) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.deleteOfflineData()
             #endif
         }.runOnQueue(.main)
-        AsyncFunction("release") { [weak self] (nativeId: String) in
+        AsyncFunction("release") { [weak self] (nativeId: NativeId) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.release()
             self?.offlineContentManagerBridges[nativeId] = nil
             #endif
         }.runOnQueue(.main)
-        AsyncFunction("download") { [weak self] (nativeId: String, request: [String: Any?]?) in
+        AsyncFunction("download") { [weak self] (nativeId: NativeId, request: [String: Any?]?) in
             #if os(iOS)
             self?.download(nativeId: nativeId, request: request)
             #endif
         }.runOnQueue(.main)
-        AsyncFunction("resume") { [weak self] (nativeId: String) in
+        AsyncFunction("resume") { [weak self] (nativeId: NativeId) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.resumeDownload()
             #endif
         }.runOnQueue(.main)
-        AsyncFunction("suspend") { [weak self] (nativeId: String) in
+        AsyncFunction("suspend") { [weak self] (nativeId: NativeId) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.suspendDownload()
             #endif
         }.runOnQueue(.main)
-        AsyncFunction("cancelDownload") { [weak self] (nativeId: String) in
+        AsyncFunction("cancelDownload") { [weak self] (nativeId: NativeId) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.cancelDownload()
             #endif
         }.runOnQueue(.main)
-        AsyncFunction("downloadLicense") { [weak self] (nativeId: String) in
+        AsyncFunction("downloadLicense") { [weak self] (nativeId: NativeId) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.syncOfflineDrmLicenseInformation()
             #endif
         }.runOnQueue(.main)
-        AsyncFunction("renewOfflineLicense") { [weak self] (nativeId: String) in
+        AsyncFunction("renewOfflineLicense") { [weak self] (nativeId: NativeId) in
             #if os(iOS)
             self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.renewOfflineLicense()
             #endif
@@ -91,7 +91,7 @@ public class OfflineModule: Module {
     }
 
     #if os(iOS)
-    private func createOfflineManager(nativeId: String, config: [String: Any?]?, drmNativeId: String?) {
+    private func createOfflineManager(nativeId: NativeId, config: [String: Any?]?, drmNativeId: NativeId?) {
         if self.offlineContentManagerBridges[nativeId] != nil {
             return
         }
@@ -116,7 +116,7 @@ public class OfflineModule: Module {
         } catch {}
     }
 
-    private func download(nativeId: String, request: [String: Any?]?) {
+    private func download(nativeId: NativeId, request: [String: Any?]?) {
         guard let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId], let request else {
             return
         }
