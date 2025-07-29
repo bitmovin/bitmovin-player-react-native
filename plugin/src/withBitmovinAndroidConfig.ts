@@ -180,10 +180,14 @@ const withBitmovinAndroidConfig: ConfigPlugin<{
       typeof features.googleCastSDK.android === 'string'
         ? features.googleCastSDK.android
         : features.googleCastSDK.android.version;
+    if (!castSdkVersion) {
+      throw new Error(
+        'Google Cast SDK version is not specified in feature flags.'
+      );
+    }
     dependencies.push(
       `com.google.android.gms:play-services-cast-framework:${castSdkVersion}`
     );
-    dependencies.push('androidx.mediarouter:mediarouter:1.3.1');
   }
 
   config = withAppGradleDependencies(config, { dependencies });
