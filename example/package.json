@@ -43,7 +43,6 @@
     "expo-system-ui": "~5.0.10",
     "react": "19.0.0",
     "react-native": "npm:react-native-tvos@0.79.5-0",
-    "react-native-modal": "13.0.1",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-system-navigation-bar": "^2.6.4"
