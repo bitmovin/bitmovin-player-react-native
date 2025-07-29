@@ -8,7 +8,6 @@ import ExpoModulesCore
 public class NetworkModule: Module {
     /// In-memory mapping from `nativeId`s to `NetworkConfig` instances.
     private var networkConfigs: Registry<NetworkConfig> = [:]
-    private var preprocessHttpRequestDelegateBridges: Registry<PreprocessHttpRequestDelegate> = [:]
     private var preprocessHttpRequestCompletionHandlers: Registry<(_ request: HttpRequest) -> Void> = [:]
     private var preprocessHttpResponseCompletionHandlers: Registry<(_ response: HttpResponse) -> Void> = [:]
 
@@ -17,10 +16,14 @@ public class NetworkModule: Module {
 
         OnDestroy {
             networkConfigs.removeAll()
-            preprocessHttpRequestDelegateBridges.removeAll()
             preprocessHttpRequestCompletionHandlers.removeAll()
             preprocessHttpResponseCompletionHandlers.removeAll()
         }
+
+        Events(
+            "onPreprocessHttpRequest",
+            "onPreprocessHttpResponse"
+        )
 
         AsyncFunction("initializeWithConfig") { [weak self] (nativeId: String, config: [String: Any]) in
             guard
@@ -40,7 +43,6 @@ public class NetworkModule: Module {
             self?.preprocessHttpRequestCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
                 self?.preprocessHttpRequestCompletionHandlers.removeValue(forKey: $0)
             }
-            self?.preprocessHttpRequestDelegateBridges.removeValue(forKey: nativeId)
             self?.preprocessHttpResponseCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
                 self?.preprocessHttpResponseCompletionHandlers.removeValue(forKey: $0)
             }
@@ -80,11 +82,14 @@ public class NetworkModule: Module {
               networkConfigJson["preprocessHttpRequest"] != nil else {
             return
         }
-        preprocessHttpRequestDelegateBridges[nativeId] = PreprocessHttpRequestDelegateBridge(
-            nativeId,
-            networkExpoModule: self
-        )
-        networkConfig.preprocessHttpRequestDelegate = preprocessHttpRequestDelegateBridges[nativeId]
+        networkConfig.preprocessHttpRequest = { [weak self] type, request, completionHandler in
+            self?.preprocessHttpRequestFromJS(
+                nativeId: nativeId,
+                type: type,
+                request: request,
+                completionHandler: completionHandler
+            )
+        }
     }
 
     private func initPreprocessHttpResponse(_ nativeId: String, networkConfigJson: [String: Any]) {
@@ -105,18 +110,18 @@ public class NetworkModule: Module {
 
     internal func preprocessHttpRequestFromJS(
         nativeId: String,
-        type: String,
+        type: HttpRequestType,
         request: HttpRequest,
         completionHandler: @escaping (
             _ request: HttpRequest
         ) -> Void
     ) {
-        let requestId = "\(nativeId)@\(ObjectIdentifier(request).hashValue)"
+        let requestId = "\(nativeId)-\(UUID().uuidString)"
         preprocessHttpRequestCompletionHandlers[requestId] = completionHandler
         sendEvent("onPreprocessHttpRequest", [
             "nativeId": nativeId,
             "requestId": requestId,
-            "type": type,
+            "type": RCTConvert.toJson(httpRequestType: type),
             "request": RCTConvert.toJson(httpRequest: request)
         ])
     }
@@ -129,7 +134,7 @@ public class NetworkModule: Module {
             _ response: HttpResponse
         ) -> Void
     ) {
-        let responseId = "\(nativeId)@\(ObjectIdentifier(response).hashValue)"
+        let responseId = "\(nativeId)-\(UUID().uuidString)"
         preprocessHttpResponseCompletionHandlers[responseId] = completionHandler
         sendEvent("onPreprocessHttpResponse", [
             "nativeId": nativeId,
