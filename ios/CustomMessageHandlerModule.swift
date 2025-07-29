@@ -1,80 +1,77 @@
 import BitmovinPlayer
+import ExpoModulesCore
 
-@objc(CustomMessageHandlerModule)
-public class CustomMessageHandlerModule: NSObject, RCTBridgeModule {
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    @objc public var bridge: RCTBridge!
-
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    public static func moduleName() -> String! {
-        "CustomMessageHandlerModule"
-    }
-
-    public static func requiresMainQueueSetup() -> Bool {
-        true
-    }
-
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    public var methodQueue: DispatchQueue! {
-        bridge.uiManager.methodQueue
-    }
-
+/**
+ * Expo module for CustomMessageHandler management with bidirectional communication.
+ * Handles synchronous and asynchronous message handling between native code and JavaScript.
+ */
+public class CustomMessageHandlerModule: Module {
     /// In-memory mapping from `nativeId`s to `CustomMessageHandlerBridge` instances.
     private var customMessageHandlers: Registry<CustomMessageHandlerBridge> = [:]
 
-    /// Dispatch group used for blocking thread while waiting for state change
-    private let customMessageHandlerDispatchGroup = DispatchGroup()
+    /// ResultWaiter used for blocking thread while waiting for synchronous message results
+    private let waiter = ResultWaiter<String?>()
 
-    /**
-     Fetches the `CustomMessageHandlerBridge` instance associated with `nativeId` from internal customMessageHandlers.
-     - Parameter nativeId: `CustomMessageHandlerBridge` instance ID.
-     - Returns: The associated `CustomMessageHandlerBridge` instance or `nil`.
-     */
-    @objc
+    public func definition() -> ModuleDefinition {
+        Name("CustomMessageHandlerModule")
+
+        OnDestroy {
+            customMessageHandlers.removeAll()
+            waiter.removeAll()
+        }
+
+        Events("onReceivedSynchronousMessage", "onReceivedAsynchronousMessage")
+
+        AsyncFunction("registerHandler") { [weak self] (nativeId: NativeId) in
+            guard self?.customMessageHandlers[nativeId] == nil else {
+                return
+            }
+            self?.customMessageHandlers[nativeId] = CustomMessageHandlerBridge(nativeId, delegate: self)
+        }.runOnQueue(.main)
+
+        AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
+            self?.customMessageHandlers.removeValue(forKey: nativeId)
+        }.runOnQueue(.main)
+
+        AsyncFunction("onReceivedSynchronousMessageResult") { [weak self] (id: Int, result: String?) in
+            self?.waiter.complete(id: id, with: result)
+        }
+
+        AsyncFunction("sendMessage") { [weak self] (nativeId: NativeId, message: String, data: String?) in
+            self?.customMessageHandlers[nativeId]?.sendMessage(message, withData: data)
+        }.runOnQueue(.main)
+    }
+
     func retrieve(_ nativeId: NativeId) -> CustomMessageHandlerBridge? {
         customMessageHandlers[nativeId]
     }
+}
 
+extension CustomMessageHandlerModule: CustomMessageHandlerBridgeDelegate {
     /**
-     Removes the `CustomMessageHandlerBridge` instance associated with `nativeId` from `customMessageHandlers`.
-     - Parameter nativeId Instance to be disposed.
+     * Handles synchronous message received from native code.
+     * Called by CustomMessageHandlerBridge when a synchronous message is received.
      */
-    @objc(destroy:)
-    func destroy(_ nativeId: NativeId) {
-        customMessageHandlers.removeValue(forKey: nativeId)
-    }
-
-    @objc(registerHandler:)
-    func registerHandler(_ nativeId: NativeId) {
-        guard customMessageHandlers[nativeId] == nil else { return }
-        customMessageHandlers[nativeId] = CustomMessageHandlerBridge(nativeId, bridge: bridge)
-    }
-
-    @objc(onReceivedSynchronousMessageResult:result:)
-    func onReceivedSynchronousMessageResult(_ nativeId: NativeId, result: String?) -> Any? {
-        customMessageHandlers[nativeId]?.pushSynchronousResult(result)
-        customMessageHandlerDispatchGroup.leave()
-        return nil
-    }
-
-    @objc(sendMessage:message:data:)
-    func sendMessage(nativeId: NativeId, message: String, data: String?) {
-        customMessageHandlers[nativeId]?.sendMessage(message, withData: data)
-    }
-
     func receivedSynchronousMessage(
         nativeId: NativeId,
         message: String,
         withData data: String?
     ) -> String? {
-        customMessageHandlerDispatchGroup.enter()
-        bridge.enqueueJSCall(
-            "CustomMessageBridge-\(nativeId)",
-            method: "receivedSynchronousMessage",
-            args: [message, data]
-        ) {}
-        customMessageHandlerDispatchGroup.wait()
-        return customMessageHandlers[nativeId]?.popSynchronousResult()
+        guard customMessageHandlers[nativeId] != nil else {
+            return nil
+        }
+
+        let (id, wait) = waiter.make(timeout: 0.25)
+
+        // Send event to JavaScript
+        sendEvent("onReceivedSynchronousMessage", [
+            "nativeId": nativeId,
+            "id": id,
+            "message": message,
+            "data": data
+        ])
+
+        return wait() ?? ""
     }
 
     func receivedAsynchronousMessage(
@@ -82,10 +79,11 @@ public class CustomMessageHandlerModule: NSObject, RCTBridgeModule {
         message: String,
         withData data: String?
     ) {
-        bridge.enqueueJSCall(
-            "CustomMessageBridge-\(nativeId)",
-            method: "receivedAsynchronousMessage",
-            args: [message, data]
-        ) {}
+        // Send event to JavaScript
+        sendEvent("onReceivedAsynchronousMessage", [
+            "nativeId": nativeId,
+            "message": message,
+            "data": data
+        ])
     }
 }

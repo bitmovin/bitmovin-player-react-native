@@ -1,9 +1,7 @@
-import { NativeModules } from 'react-native';
-import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
+import { EventSubscription } from 'expo-modules-core';
 import { FullscreenHandler } from './fullscreenhandler';
-
-const Uuid = NativeModules.UuidModule;
-const FullscreenHandlerModule = NativeModules.FullscreenHandlerModule;
+import UuidModule from '../modules/UuidModule';
+import FullscreenHandlerModule from './fullscreenHandlerModule';
 
 /**
  * Takes care of JS/Native communication for a FullscreenHandler.
@@ -13,12 +11,30 @@ export class FullscreenHandlerBridge {
   fullscreenHandler?: FullscreenHandler;
   isDestroyed: boolean;
 
+  private onEnterFullScreenSubscription?: EventSubscription;
+  private onExitFullScreenSubscription?: EventSubscription;
+
   constructor(nativeId?: string) {
-    this.nativeId = nativeId ?? Uuid.generate();
+    this.nativeId = nativeId ?? UuidModule.generate();
     this.isDestroyed = false;
-    BatchedBridge.registerCallableModule(
-      `FullscreenBridge-${this.nativeId}`,
-      this
+
+    this.onEnterFullScreenSubscription = FullscreenHandlerModule.addListener(
+      'onEnterFullscreen',
+      ({ nativeId, id }) => {
+        if (nativeId !== this.nativeId) {
+          return;
+        }
+        this.enterFullscreen(id);
+      }
+    );
+    this.onExitFullScreenSubscription = FullscreenHandlerModule.addListener(
+      'onExitFullscreen',
+      ({ nativeId, id }) => {
+        if (nativeId !== this.nativeId) {
+          return;
+        }
+        this.exitFullscreen(id);
+      }
     );
     FullscreenHandlerModule.registerHandler(this.nativeId);
   }
@@ -43,6 +59,10 @@ export class FullscreenHandlerBridge {
   destroy() {
     if (!this.isDestroyed) {
       FullscreenHandlerModule.destroy(this.nativeId);
+      this.onEnterFullScreenSubscription?.remove();
+      this.onExitFullScreenSubscription?.remove();
+      this.onEnterFullScreenSubscription = undefined;
+      this.onExitFullScreenSubscription = undefined;
       this.isDestroyed = true;
     }
   }
@@ -51,10 +71,10 @@ export class FullscreenHandlerBridge {
   /**
    * Called by native code, when the UI should enter fullscreen.
    */
-  enterFullscreen(): void {
+  private enterFullscreen(id: number): void {
     this.fullscreenHandler?.enterFullscreen();
-    FullscreenHandlerModule.onFullscreenChanged(
-      this.nativeId,
+    FullscreenHandlerModule.notifyFullscreenChanged(
+      id,
       this.fullscreenHandler?.isFullscreenActive ?? false
     );
   }
@@ -63,10 +83,10 @@ export class FullscreenHandlerBridge {
   /**
    * Called by native code, when the UI should exit fullscreen.
    */
-  exitFullscreen(): void {
+  private exitFullscreen(id: number): void {
     this.fullscreenHandler?.exitFullscreen();
-    FullscreenHandlerModule.onFullscreenChanged(
-      this.nativeId,
+    FullscreenHandlerModule.notifyFullscreenChanged(
+      id,
       this.fullscreenHandler?.isFullscreenActive ?? false
     );
   }

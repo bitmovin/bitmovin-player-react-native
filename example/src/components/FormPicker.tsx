@@ -1,51 +1,55 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, Platform, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Platform, StyleSheet, Modal } from 'react-native';
 import { Picker as RNPicker } from '@react-native-picker/picker';
-import Modal from 'react-native-modal';
 import FormInput from './FormInput';
 
-export interface FormPickerProps {
+export interface FormPickerProps<T = any> {
   title: string;
-  options?: {
-    label: string;
-    value: string;
-  }[];
-  selected?: string;
-  onChange?: (value: string) => void;
+  options: { label: string; value: T }[];
+  selected?: T;
+  onChange?: (value: T, index: number) => void;
 }
 
-const Picker: React.FC<Omit<FormPickerProps, 'title'>> = ({
+function PickerInner<T>({
   options,
   selected,
   onChange,
-}) => {
-  const onValueChange = useCallback(
-    (index: number) => {
-      const value = options?.[index]?.value;
-      if (value) {
-        onChange?.(value);
-      }
-    },
-    [options, onChange]
-  );
+}: Omit<FormPickerProps<T>, 'title'>) {
   return (
-    <RNPicker
-      mode="dropdown"
-      style={Platform.OS === 'ios' ? styles.iosPicker : styles.androidPicker}
-      selectedValue={selected}
-      onValueChange={(_, index) => onValueChange(index)}
+    <View
+      style={
+        Platform.OS === 'ios'
+          ? styles.iosPickerContainer
+          : styles.androidPickerContainer
+      }
     >
-      {options?.map((option, index) => (
-        <RNPicker.Item key={index} label={option.label} value={option.value} />
-      ))}
-    </RNPicker>
+      <RNPicker
+        mode="dropdown"
+        selectedValue={selected}
+        onValueChange={(itemValue, itemIndex) =>
+          onChange?.(itemValue as T, itemIndex)
+        }
+        style={styles.picker}
+        dropdownIconColor="#000"
+      >
+        {options?.map((o, idx) => (
+          <RNPicker.Item
+            key={`${String(o.value)}-${idx}`}
+            label={o.label}
+            value={o.value}
+            color="#000"
+          />
+        ))}
+      </RNPicker>
+    </View>
   );
-};
+}
 
-const FormPicker: React.FC<FormPickerProps> = (props) => {
+export default function FormPicker<T = any>(props: FormPickerProps<T>) {
   const [isPickerVisible, setVisiblePicker] = useState(false);
   const selectedLabel =
     props.options?.find((opt) => opt.value === props.selected)?.label ?? '';
+
   return Platform.OS === 'ios' ? (
     <>
       <FormInput
@@ -55,43 +59,67 @@ const FormPicker: React.FC<FormPickerProps> = (props) => {
         onPress={() => setVisiblePicker(true)}
       />
       <Modal
-        isVisible={isPickerVisible}
-        onBackdropPress={() => setVisiblePicker(false)}
+        visible={isPickerVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setVisiblePicker(false)}
+        onDismiss={() => setVisiblePicker(false)}
       >
-        <Picker {...props} />
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modal}>
+            <PickerInner {...props} />
+          </View>
+        </View>
       </Modal>
     </>
   ) : (
     <View style={styles.androidInput}>
       <Text style={styles.inputTitle}>{props.title}</Text>
-      <Picker {...props} />
+      <PickerInner {...props} />
     </View>
   );
-};
-
-export default FormPicker;
+}
 
 const styles = StyleSheet.create({
-  iosPicker: {
-    color: 'black',
-    borderRadius: 15,
-    backgroundColor: 'white',
+  iosPickerContainer: {
+    borderRadius: 12,
+    backgroundColor: '#fff',
   },
   androidInput: {
     maxWidth: 500,
     alignSelf: 'stretch',
   },
-  androidPicker: {
-    color: 'white',
-    height: 40,
-    padding: 10,
+  androidPickerContainer: {
     marginTop: 10,
-    backgroundColor: 'black',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 6,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+    minHeight: 52,
+    paddingVertical: 4,
+    justifyContent: 'center',
+  },
+  picker: {
+    width: '100%',
+    backgroundColor: '#fff',
+    color: '#000',
   },
   inputTitle: {
-    color: 'black',
+    color: '#000',
     marginTop: 20,
     marginLeft: 10,
     fontWeight: '500',
+  },
+  modal: {
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    padding: 8,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 16,
   },
 });

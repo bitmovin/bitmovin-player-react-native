@@ -1,8 +1,7 @@
-const prettierConfig = require('./prettier.config');
 module.exports = {
-  root: true,
-  extends: ['@react-native-community', 'prettier'],
+  extends: ['expo', 'prettier'],
+  plugins: ['prettier'],
   rules: {
-    'prettier/prettier': ['error', prettierConfig],
+    'prettier/prettier': 'error',
   },
 };

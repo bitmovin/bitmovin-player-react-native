@@ -1,4 +1,3 @@
-import { NativeSyntheticEvent } from 'react-native';
 import {
   AdBreakFinishedEvent,
   AdBreakStartedEvent,
@@ -68,317 +67,337 @@ import {
 } from '../../events';
 
 /**
- * Type that defines all event props supported by `PlayerView` and `NativePlayerView`.
- * Used to generate the specific events interface for each component.
+ * Event props for `NativePlayerView`.
  */
-interface NativeEventProps {
+export type NativePlayerViewEvents = {
   /**
    * Event emitted when an ad break has finished.
    */
-  onBmpAdBreakFinished: AdBreakFinishedEvent;
+  onBmpAdBreakFinished?: (event: { nativeEvent: AdBreakFinishedEvent }) => void;
   /**
    * Event emitted when an ad break has started.
    */
-  onBmpAdBreakStarted: AdBreakStartedEvent;
+  onBmpAdBreakStarted?: (event: { nativeEvent: AdBreakStartedEvent }) => void;
   /**
    * Event emitted when an ad has been clicked.
    */
-  onBmpAdClicked: AdClickedEvent;
+  onBmpAdClicked?: (event: { nativeEvent: AdClickedEvent }) => void;
   /**
    * Event emitted when an ad error has occurred.
    */
-  onBmpAdError: AdErrorEvent;
+  onBmpAdError?: (event: { nativeEvent: AdErrorEvent }) => void;
   /**
    * Event emitted when an ad has finished.
    */
-  onBmpAdFinished: AdFinishedEvent;
+  onBmpAdFinished?: (event: { nativeEvent: AdFinishedEvent }) => void;
   /**
    * Event emitted when an ad manifest starts loading.
    */
-  onBmpAdManifestLoad: AdManifestLoadEvent;
+  onBmpAdManifestLoad?: (event: { nativeEvent: AdManifestLoadEvent }) => void;
   /**
    * Event emitted when an ad manifest has been loaded.
    */
-  onBmpAdManifestLoaded: AdManifestLoadedEvent;
+  onBmpAdManifestLoaded?: (event: {
+    nativeEvent: AdManifestLoadedEvent;
+  }) => void;
   /**
    * Event emitted when an ad quartile has been reached.
    */
-  onBmpAdQuartile: AdQuartileEvent;
+  onBmpAdQuartile?: (event: { nativeEvent: AdQuartileEvent }) => void;
   /**
    * Event emitted when an ad has been scheduled.
    */
-  onBmpAdScheduled: AdScheduledEvent;
+  onBmpAdScheduled?: (event: { nativeEvent: AdScheduledEvent }) => void;
   /**
    * Event emitted when an ad has been skipped.
    */
-  onBmpAdSkipped: AdSkippedEvent;
+  onBmpAdSkipped?: (event: { nativeEvent: AdSkippedEvent }) => void;
   /**
    * Event emitted when an ad has started.
    */
-  onBmpAdStarted: AdStartedEvent;
+  onBmpAdStarted?: (event: { nativeEvent: AdStartedEvent }) => void;
   /**
    * Event emitted when casting to a cast-compatible device is available.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
-  onBmpCastAvailable: CastAvailableEvent;
+  onBmpCastAvailable?: (event: { nativeEvent: CastAvailableEvent }) => void;
   /**
    * Event emitted when the playback on a cast-compatible device was paused.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
-  onBmpCastPaused: CastPausedEvent;
+  onBmpCastPaused?: (event: { nativeEvent: CastPausedEvent }) => void;
   /**
    * Event emitted when the playback on a cast-compatible device has finished.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
-  onBmpCastPlaybackFinished: CastPlaybackFinishedEvent;
+  onBmpCastPlaybackFinished?: (event: {
+    nativeEvent: CastPlaybackFinishedEvent;
+  }) => void;
   /**
    * Event emitted when playback on a cast-compatible device has started.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
-  onBmpCastPlaying: CastPlayingEvent;
+  onBmpCastPlaying?: (event: { nativeEvent: CastPlayingEvent }) => void;
   /**
    * Event emitted when the cast app is launched successfully.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
-  onBmpCastStarted: CastStartedEvent;
+  onBmpCastStarted?: (event: { nativeEvent: CastStartedEvent }) => void;
   /**
    * Event emitted when casting is initiated, but the user still needs to choose which device should be used.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
-  onBmpCastStart: CastStartEvent;
+  onBmpCastStart?: (event: { nativeEvent: CastStartEvent }) => void;
   /**
    * Event emitted when casting to a cast-compatible device is stopped.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
-  onBmpCastStopped: CastStoppedEvent;
+  onBmpCastStopped?: (event: { nativeEvent: CastStoppedEvent }) => void;
   /**
    * Event emitted when the time update from the currently used cast-compatible device is received.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
-  onBmpCastTimeUpdated: CastTimeUpdatedEvent;
+  onBmpCastTimeUpdated?: (event: { nativeEvent: CastTimeUpdatedEvent }) => void;
   /**
    * Event emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
    * playback.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
-  onBmpCastWaitingForDevice: CastWaitingForDeviceEvent;
+  onBmpCastWaitingForDevice?: (event: {
+    nativeEvent: CastWaitingForDeviceEvent;
+  }) => void;
   /**
    * Event emitted when a subtitle entry transitions into the active status.
    */
-  onBmpCueEnter: CueEnterEvent;
+  onBmpCueEnter?: (event: { nativeEvent: CueEnterEvent }) => void;
   /**
    * Event emitted when an active subtitle entry transitions into the inactive status.
    */
-  onBmpCueExit: CueExitEvent;
+  onBmpCueExit?: (event: { nativeEvent: CueExitEvent }) => void;
   /**
    * Event emitted when the player is destroyed.
    */
-  onBmpDestroy: DestroyEvent;
+  onBmpDestroy?: (event: { nativeEvent: DestroyEvent }) => void;
   /**
    * Emitted when a download was finished.
    */
-  onBmpDownloadFinished: DownloadFinishedEvent;
+  onBmpDownloadFinished?: (event: {
+    nativeEvent: DownloadFinishedEvent;
+  }) => void;
   /**
    * All events emitted by the player.
    */
-  onBmpEvent: Event;
+  onBmpEvent?: (event: { nativeEvent: Event }) => void;
   /**
    * Event emitted when fullscreen mode has been enabled.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
-  onBmpFullscreenEnabled: FullscreenEnabledEvent;
+  onBmpFullscreenEnabled?: (event: {
+    nativeEvent: FullscreenEnabledEvent;
+  }) => void;
   /**
    * Event emitted when fullscreen mode has been disabled.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
-  onBmpFullscreenDisabled: FullscreenDisabledEvent;
+  onBmpFullscreenDisabled?: (event: {
+    nativeEvent: FullscreenDisabledEvent;
+  }) => void;
   /**
    * Event emitted when fullscreen mode has been entered.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
-  onBmpFullscreenEnter: FullscreenEnterEvent;
+  onBmpFullscreenEnter?: (event: { nativeEvent: FullscreenEnterEvent }) => void;
   /**
    * Event emitted when fullscreen mode has been exited.
    *
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
-  onBmpFullscreenExit: FullscreenExitEvent;
+  onBmpFullscreenExit?: (event: { nativeEvent: FullscreenExitEvent }) => void;
   /**
    * Event emitted when the player has been muted.
    */
-  onBmpMuted: MutedEvent;
+  onBmpMuted?: (event: { nativeEvent: MutedEvent }) => void;
   /**
    * Event emitted when the player has been paused.
    */
-  onBmpPaused: PausedEvent;
+  onBmpPaused?: (event: { nativeEvent: PausedEvent }) => void;
   /**
    * Event mitted when the availability of the Picture in Picture mode changed.
    */
-  onBmpPictureInPictureAvailabilityChanged: PictureInPictureAvailabilityChangedEvent;
+  onBmpPictureInPictureAvailabilityChanged?: (event: {
+    nativeEvent: PictureInPictureAvailabilityChangedEvent;
+  }) => void;
   /**
    * Event emitted when the player enters Picture in Picture mode.
    */
-  onBmpPictureInPictureEnter: PictureInPictureEnterEvent;
+  onBmpPictureInPictureEnter?: (event: {
+    nativeEvent: PictureInPictureEnterEvent;
+  }) => void;
   /**
    * Event emitted when the player entered Picture in Picture mode.
    *
-   * @platform iOS
+   * @remarks Platform: iOS
    */
-  onBmpPictureInPictureEntered: PictureInPictureEnteredEvent;
+  onBmpPictureInPictureEntered?: (event: {
+    nativeEvent: PictureInPictureEnteredEvent;
+  }) => void;
   /**
    * Event emitted when the player exits Picture in Picture mode.
    */
-  onBmpPictureInPictureExit: PictureInPictureExitEvent;
+  onBmpPictureInPictureExit?: (event: {
+    nativeEvent: PictureInPictureExitEvent;
+  }) => void;
   /**
    * Event emitted when the player exited Picture in Picture mode.
    *
-   * @platform iOS
+   * @remarks Platform: iOS
    */
-  onBmpPictureInPictureExited: PictureInPictureExitedEvent;
+  onBmpPictureInPictureExited?: (event: {
+    nativeEvent: PictureInPictureExitedEvent;
+  }) => void;
   /**
    * Event emitted when the player received an intention to start/resume playback.
    */
-  onBmpPlay: PlayEvent;
+  onBmpPlay?: (event: { nativeEvent: PlayEvent }) => void;
   /**
    * Event emitted when the playback of the current media has finished.
    */
-  onBmpPlaybackFinished: PlaybackFinishedEvent;
+  onBmpPlaybackFinished?: (event: {
+    nativeEvent: PlaybackFinishedEvent;
+  }) => void;
   /**
    * Emitted when the player transitions from one playback speed to another.
-   * @platform iOS, tvOS
+   * @remarks Platform: iOS, tvOS
    */
-  onBmpPlaybackSpeedChanged: PlaybackSpeedChangedEvent;
+  onBmpPlaybackSpeedChanged?: (event: {
+    nativeEvent: PlaybackSpeedChangedEvent;
+  }) => void;
   /**
    * Event emitted when a source is loaded into the player.
    * Seeking and time shifting are allowed as soon as this event is seen.
    */
-  onBmpPlayerActive: PlayerActiveEvent;
+  onBmpPlayerActive?: (event: { nativeEvent: PlayerActiveEvent }) => void;
   /**
    * Event Emitted when a player error occurred.
    */
-  onBmpPlayerError: PlayerErrorEvent;
+  onBmpPlayerError?: (event: { nativeEvent: PlayerErrorEvent }) => void;
   /**
    * Event emitted when a player warning occurred.
    */
-  onBmpPlayerWarning: PlayerWarningEvent;
+  onBmpPlayerWarning?: (event: { nativeEvent: PlayerWarningEvent }) => void;
   /**
    * Emitted when playback has started.
    */
-  onBmpPlaying: PlayingEvent;
+  onBmpPlaying?: (event: { nativeEvent: PlayingEvent }) => void;
   /**
    * Emitted when the player is ready for immediate playback, because initial audio/video
    * has been downloaded.
    */
-  onBmpReady: ReadyEvent;
+  onBmpReady?: (event: { nativeEvent: ReadyEvent }) => void;
   /**
    * Event emitted when the player is about to seek to a new position.
    * Only applies to VoD streams.
    */
-  onBmpSeek: SeekEvent;
+  onBmpSeek?: (event: { nativeEvent: SeekEvent }) => void;
   /**
    * Event emitted when seeking has finished and data to continue playback is available.
    * Only applies to VoD streams.
    */
-  onBmpSeeked: SeekedEvent;
+  onBmpSeeked?: (event: { nativeEvent: SeekedEvent }) => void;
   /**
    * Event mitted when the player starts time shifting.
    * Only applies to live streams.
    */
-  onBmpTimeShift: TimeShiftEvent;
+  onBmpTimeShift?: (event: { nativeEvent: TimeShiftEvent }) => void;
   /**
    * Event emitted when time shifting has finished and data is available to continue playback.
    * Only applies to live streams.
    */
-  onBmpTimeShifted: TimeShiftedEvent;
+  onBmpTimeShifted?: (event: { nativeEvent: TimeShiftedEvent }) => void;
   /**
    * Event emitted when the player begins to stall and to buffer due to an empty buffer.
    */
-  onBmpStallStarted: StallStartedEvent;
+  onBmpStallStarted?: (event: { nativeEvent: StallStartedEvent }) => void;
   /**
    * Event emitted when the player ends stalling, due to enough data in the buffer.
    */
-  onBmpStallEnded: StallEndedEvent;
+  onBmpStallEnded?: (event: { nativeEvent: StallEndedEvent }) => void;
   /**
    * Event emitted when a source error occurred.
    */
-  onBmpSourceError: SourceErrorEvent;
+  onBmpSourceError?: (event: { nativeEvent: SourceErrorEvent }) => void;
   /**
    * Event emitted when a new source loading has started.
    */
-  onBmpSourceLoad: SourceLoadEvent;
+  onBmpSourceLoad?: (event: { nativeEvent: SourceLoadEvent }) => void;
   /**
    * Event emitted when a new source is loaded.
    * This does not mean that the source is immediately ready for playback.
    * `ReadyEvent` indicates the player is ready for immediate playback.
    */
-  onBmpSourceLoaded: SourceLoadedEvent;
+  onBmpSourceLoaded?: (event: { nativeEvent: SourceLoadedEvent }) => void;
   /**
    * Event emitted when the current source has been unloaded.
    */
-  onBmpSourceUnloaded: SourceUnloadedEvent;
+  onBmpSourceUnloaded?: (event: { nativeEvent: SourceUnloadedEvent }) => void;
   /**
    * Event emitted when a source warning occurred.
    */
-  onBmpSourceWarning: SourceWarningEvent;
+  onBmpSourceWarning?: (event: { nativeEvent: SourceWarningEvent }) => void;
   /**
    * Event emitted when a new audio track is added to the player.
    */
-  onBmpAudioAdded: AudioAddedEvent;
+  onBmpAudioAdded?: (event: { nativeEvent: AudioAddedEvent }) => void;
   /**
    * Event emitted when the player's selected audio track has changed.
    */
-  onBmpAudioChanged: AudioChangedEvent;
+  onBmpAudioChanged?: (event: { nativeEvent: AudioChangedEvent }) => void;
   /**
    * Event emitted when an audio track is removed from the player.
    */
-  onBmpAudioRemoved: AudioRemovedEvent;
+  onBmpAudioRemoved?: (event: { nativeEvent: AudioRemovedEvent }) => void;
   /**
    * Event emitted when a new subtitle track is added to the player.
    */
-  onBmpSubtitleAdded: SubtitleAddedEvent;
+  onBmpSubtitleAdded?: (event: { nativeEvent: SubtitleAddedEvent }) => void;
   /**
    * Event emitted when the player's selected subtitle track has changed.
    */
-  onBmpSubtitleChanged: SubtitleChangedEvent;
+  onBmpSubtitleChanged?: (event: { nativeEvent: SubtitleChangedEvent }) => void;
   /**
    * Event emitted when a subtitle track is removed from the player.
    */
-  onBmpSubtitleRemoved: SubtitleRemovedEvent;
+  onBmpSubtitleRemoved?: (event: { nativeEvent: SubtitleRemovedEvent }) => void;
   /**
    * Event emitted when the current playback time has changed.
    */
-  onBmpTimeChanged: TimeChangedEvent;
+  onBmpTimeChanged?: (event: { nativeEvent: TimeChangedEvent }) => void;
   /**
    * Emitted when the player is unmuted.
    */
-  onBmpUnmuted: UnmutedEvent;
+  onBmpUnmuted?: (event: { nativeEvent: UnmutedEvent }) => void;
   /**
    * Emitted when current video download quality has changed.
    */
-  onBmpVideoDownloadQualityChanged: VideoDownloadQualityChangedEvent;
+  onBmpVideoDownloadQualityChanged?: (event: {
+    nativeEvent: VideoDownloadQualityChangedEvent;
+  }) => void;
   /**
    * Emitted when the current video playback quality has changed.
    */
-  onBmpVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
-}
-
-/**
- * Event props for `NativePlayerView`.
- */
-export type NativePlayerViewEvents = {
-  [Prop in keyof NativeEventProps]?: (
-    nativeEvent: NativeSyntheticEvent<NativeEventProps[Prop]>
-  ) => void;
+  onBmpVideoPlaybackQualityChanged?: (event: {
+    nativeEvent: VideoPlaybackQualityChangedEvent;
+  }) => void;
 };

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Platform, StyleSheet, View, ViewProps } from 'react-native';
+import type { JSX } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
