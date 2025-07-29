@@ -15,6 +15,11 @@ public class CustomMessageHandlerModule: Module {
     public func definition() -> ModuleDefinition {
         Name("CustomMessageHandlerModule")
 
+        OnDestroy {
+            customMessageHandlers.removeAll()
+            waiter.removeAll()
+        }
+
         Events("onReceivedSynchronousMessage", "onReceivedAsynchronousMessage")
 
         AsyncFunction("registerHandler") { [weak self] (nativeId: String) in

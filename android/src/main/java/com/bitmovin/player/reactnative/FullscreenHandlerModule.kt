@@ -22,6 +22,11 @@ class FullscreenHandlerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("FullscreenHandlerModule")
 
+        OnDestroy {
+            fullscreenHandlers.clear()
+            waiter.clear()
+        }
+
         Events("onEnterFullscreen", "onExitFullscreen")
 
         AsyncFunction("registerHandler") { nativeId: String ->

@@ -35,6 +35,12 @@ class NetworkModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("NetworkModule")
 
+        OnDestroy {
+            networkConfigs.clear()
+            preprocessHttpRequestCompleters.clear()
+            preprocessHttpResponseCompleters.clear()
+        }
+
         Events("onPreprocessHttpRequest", "onPreprocessHttpResponse")
 
         AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>, promise: Promise ->

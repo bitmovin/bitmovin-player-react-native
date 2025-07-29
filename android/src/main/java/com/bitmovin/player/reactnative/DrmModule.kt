@@ -34,6 +34,11 @@ class DrmModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("DrmModule")
 
+        OnDestroy {
+            drmConfigs.clear()
+            waiter.clear()
+        }
+
         Events("onPrepareMessage", "onPrepareLicense")
 
         AsyncFunction("initializeWithConfig") { nativeId: String, config: Map<String, Any?>, promise: Promise ->

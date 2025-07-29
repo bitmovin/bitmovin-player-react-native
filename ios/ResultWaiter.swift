@@ -8,55 +8,59 @@ import Foundation
 ///     let answer = wait() ?? false   // falls back on timeout
 ///
 internal final class ResultWaiter<Value> {
-  // MARK: – private backing storage
-  private struct Entry {
-    let semaphore: DispatchSemaphore
-    var value: Value?
-  }
-
-  private let queue = DispatchQueue(label: "ResultWaiter.storage", attributes: .concurrent)
-  private var next: Int32 = 0
-  private var table: [Int: Entry] = [:]
-
-  /// Registers a new waiter and returns (id, waitClosure).
-  /// `wait()` returns `nil` if the timeout elapses first.
-  func make(timeout: TimeInterval) -> (id: Int, wait: () -> Value?) {
-    let sema   = DispatchSemaphore(value: 0)
-    let id     = Int(OSAtomicIncrement32(&next))
-
-    // store entry
-    queue.async(flags: .barrier) { self.table[id] = Entry(semaphore: sema, value: nil) }
-
-    // closure that the caller will execute later
-    let waitClosure = { [weak self] () -> Value? in
-      _ = sema.wait(timeout: .now() + timeout)   // block caller’s thread
-      guard let self else { return nil }
-      defer { self.remove(id) }                  // clean-up once we’re done
-      return self.value(for: id)
+    // MARK: – private backing storage
+    private struct Entry {
+        let semaphore: DispatchSemaphore
+        var value: Value?
     }
 
-    return (id, waitClosure)
-  }
+    private let queue = DispatchQueue(label: "ResultWaiter.storage", attributes: .concurrent)
+    private var next: Int32 = 0
+    private var table: [Int: Entry] = [:]
 
-  /// Completes the waiter with `value`; no-ops if the ID is unknown.
-  func complete(id: Int, with value: Value) {
-    queue.async(flags: .barrier) {
-      guard var entry = self.table[id] else { return }
-      entry.value = value
-      self.table[id] = entry
-      entry.semaphore.signal()
+    /// Registers a new waiter and returns (id, waitClosure).
+    /// `wait()` returns `nil` if the timeout elapses first.
+    func make(timeout: TimeInterval) -> (id: Int, wait: () -> Value?) {
+        let sema   = DispatchSemaphore(value: 0)
+        let id     = Int(OSAtomicIncrement32(&next))
+
+        // store entry
+        queue.async(flags: .barrier) { self.table[id] = Entry(semaphore: sema, value: nil) }
+
+        // closure that the caller will execute later
+        let waitClosure = { [weak self] () -> Value? in
+            _ = sema.wait(timeout: .now() + timeout)   // block caller’s thread
+            guard let self else { return nil }
+            defer { self.remove(id) }                  // clean-up once we’re done
+            return self.value(for: id)
+        }
+
+        return (id, waitClosure)
     }
-  }
 
-  // MARK: – helpers ----------------------------------------------------------
+    /// Completes the waiter with `value`; no-ops if the ID is unknown.
+    func complete(id: Int, with value: Value) {
+        queue.async(flags: .barrier) {
+            guard var entry = self.table[id] else { return }
+            entry.value = value
+            self.table[id] = entry
+            entry.semaphore.signal()
+        }
+    }
 
-  private func value(for id: Int) -> Value? {
-    var value: Value?
-    queue.sync { value = self.table[id]?.value }
-    return value
-  }
+    func removeAll() {
+        queue.async(flags: .barrier) { self.table.removeAll() }
+    }
 
-  private func remove(_ id: Int) {
-    queue.async(flags: .barrier) { self.table[id] = nil }
-  }
+    // MARK: – helpers ----------------------------------------------------------
+
+    private func value(for id: Int) -> Value? {
+        var value: Value?
+        queue.sync { value = self.table[id]?.value }
+        return value
+    }
+
+    private func remove(_ id: Int) {
+        queue.async(flags: .barrier) { self.table[id] = nil }
+    }
 }

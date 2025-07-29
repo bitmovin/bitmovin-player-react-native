@@ -8,6 +8,11 @@ public class DrmModule: Module {
     public func definition() -> ModuleDefinition {
         Name("DrmModule")
 
+        OnDestroy {
+            drmConfigs.removeAll()
+            waiter.removeAll()
+        }
+
         Events(
             "onPrepareCertificate",
             "onPrepareMessage",

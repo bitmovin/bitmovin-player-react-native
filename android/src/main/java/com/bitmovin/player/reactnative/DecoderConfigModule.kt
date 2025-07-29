@@ -32,7 +32,6 @@ class DecoderConfigModule : Module() {
         }
 
         OnDestroy {
-            // Clean up decoder configs
             decoderConfigs.clear()
             overrideDecoderPriorityProviderCompleters.clear()
         }

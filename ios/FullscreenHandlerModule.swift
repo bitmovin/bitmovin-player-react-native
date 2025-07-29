@@ -15,6 +15,11 @@ public class FullscreenHandlerModule: Module {
     public func definition() -> ModuleDefinition {
         Name("FullscreenHandlerModule")
 
+        OnDestroy {
+            fullscreenHandlers.removeAll()
+            waiter.removeAll()
+        }
+
         Events("onEnterFullscreen", "onExitFullscreen")
 
         AsyncFunction("registerHandler") { (nativeId: String) in

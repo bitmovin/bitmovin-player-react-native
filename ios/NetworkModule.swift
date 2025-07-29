@@ -15,6 +15,13 @@ public class NetworkModule: Module {
     public func definition() -> ModuleDefinition {
         Name("NetworkModule")
 
+        OnDestroy {
+            networkConfigs.removeAll()
+            preprocessHttpRequestDelegateBridges.removeAll()
+            preprocessHttpRequestCompletionHandlers.removeAll()
+            preprocessHttpResponseCompletionHandlers.removeAll()
+        }
+
         AsyncFunction("initializeWithConfig") { [weak self] (nativeId: String, config: [String: Any]) in
             guard
                 self?.retrieve(nativeId) == nil,

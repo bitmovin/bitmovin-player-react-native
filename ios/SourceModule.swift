@@ -13,7 +13,6 @@ public class SourceModule: Module {
             // Module initialization
         }
         OnDestroy {
-            // Clean up sources
             sources.removeAll()
             castSourceConfigs.removeAll()
         }

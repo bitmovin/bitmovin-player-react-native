@@ -51,4 +51,8 @@ class ResultWaiter<T> {
             it.latch.countDown()
         }
     }
+
+    fun clear() {
+        table.clear()
+    }
 }

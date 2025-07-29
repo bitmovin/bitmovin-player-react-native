@@ -23,6 +23,11 @@ class CustomMessageHandlerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("CustomMessageHandlerModule")
 
+        OnDestroy {
+            customMessageHandlers.clear()
+            synchronousMessageWaiter.clear()
+        }
+
         Events("onReceivedSynchronousMessage", "onReceivedAsynchronousMessage")
 
         AsyncFunction("registerHandler") { nativeId: String ->
