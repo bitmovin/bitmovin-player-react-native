@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Platform, StyleSheet, View, ViewProps } from 'react-native';
+import type { JSX } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -73,9 +74,9 @@ export default function BasicPictureInPicture({
 
   useEffect(() => {
     navigation.setOptions({
-      headerShown: !renderOnlyPlayerView,
+      headerShown: !Platform.isTV && !renderOnlyPlayerView,
       // eslint-disable-next-line react/no-unstable-nested-components
-      headerRight: () => (
+      headerRight: () => Platform.isTV ? undefined : (
         <Button
           title={isInPictureInPicture ? 'Exit PiP' : 'Enter PiP'}
           onPress={() =>

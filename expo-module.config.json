@@ -1,0 +1,40 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": [
+      "UuidModule",
+      "DebugModule",
+      "AudioSessionModule",
+      "BitmovinCastManagerModule",
+      "PlayerModule",
+      "SourceModule",
+      "BufferModule",
+      "NetworkModule",
+      "CustomMessageHandlerModule",
+      "DrmModule",
+      "FullscreenHandlerModule",
+      "PlayerAnalyticsModule",
+      "OfflineModule",
+      "RNPlayerViewManager"
+    ],
+    "appDelegateSubscribers": ["AppLifecycleDelegate"]
+  },
+  "android": {
+    "modules": [
+      "com.bitmovin.player.reactnative.UuidModule",
+      "com.bitmovin.player.reactnative.DebugModule",
+      "com.bitmovin.player.reactnative.BitmovinCastManagerModule",
+      "com.bitmovin.player.reactnative.PlayerModule",
+      "com.bitmovin.player.reactnative.SourceModule",
+      "com.bitmovin.player.reactnative.BufferModule",
+      "com.bitmovin.player.reactnative.NetworkModule",
+      "com.bitmovin.player.reactnative.CustomMessageHandlerModule",
+      "com.bitmovin.player.reactnative.DrmModule",
+      "com.bitmovin.player.reactnative.FullscreenHandlerModule",
+      "com.bitmovin.player.reactnative.PlayerAnalyticsModule",
+      "com.bitmovin.player.reactnative.OfflineModule",
+      "com.bitmovin.player.reactnative.DecoderConfigModule",
+      "com.bitmovin.player.reactnative.RNPlayerViewManager"
+    ]
+  }
+}

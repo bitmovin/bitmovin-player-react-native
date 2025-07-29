@@ -28,9 +28,6 @@ concurrency:
   group: ci-android-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-env:
-  NO_FLIPPER: 1
-
 jobs:
   code-style-android:
     name: Code style Android
@@ -45,8 +42,7 @@ jobs:
           java: true
 
       - name: Check code style
-        run: ./gradlew ktlintCheck
-        working-directory: android
+        run: yarn lint:android
 
   test-build-android:
     name: Build Android
@@ -63,9 +59,27 @@ jobs:
           subprojects: true
 
       - name: Build Android example
-        run: ./gradlew assembleDebug --build-cache
-        working-directory: example/android
+        run: yarn example build:android --build-cache
 
       - name: Build Android integration test host app
-        run: ./gradlew assembleDebug --build-cache
-        working-directory: integration_test/android
+        run: yarn integration-test build:android --build-cache
+
+  test-build-android-tv:
+    name: Build Android TV
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          java: true
+          node: true
+          subprojects: true
+
+      - name: Prebuild Android TV example
+        run: yarn example prebuild:tv --clean
+
+      - name: Build Android TV example
+        run: yarn example build:android-tv --build-cache

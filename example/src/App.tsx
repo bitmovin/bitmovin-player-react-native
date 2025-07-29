@@ -17,11 +17,15 @@ import CustomPlayback from './screens/CustomPlayback';
 import BasicPictureInPicture from './screens/BasicPictureInPicture';
 import CustomHtmlUi from './screens/CustomHtmlUi';
 import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
-import LandscapeFullscreenHandling from './screens/LandscapeFullscreenHandling';
+// Import LandscapeFullscreenHandling only on non-TV platforms
+const LandscapeFullscreenHandling = Platform.isTV 
+  ? () => null 
+  : require('./screens/LandscapeFullscreenHandling').default;
 import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
 import BackgroundPlayback from './screens/BackgroundPlayback';
+import * as Device from 'expo-device';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -68,6 +72,7 @@ const RootStack = createNativeStackNavigator<RootStackParamsList>();
 
 const isTVOS = Platform.OS === 'ios' && Platform.isTV;
 const isAndroidTV = Platform.OS === 'android' && Platform.isTV;
+const isIOSSimulator = Device.osName === 'iOS' && Device.isDevice === false;
 
 export default function App() {
   useEffect(() => {
@@ -134,10 +139,12 @@ export default function App() {
       routeName: 'CustomHtmlUi',
     });
 
-    stackParams.data.push({
-      title: 'Offline playback',
-      routeName: 'OfflinePlayback',
-    });
+    if (!isIOSSimulator) {
+      stackParams.data.push({
+        title: 'Offline playback',
+        routeName: 'OfflinePlayback',
+      });
+    }
   }
 
   if (!Platform.isTV) {
@@ -176,14 +183,14 @@ export default function App() {
           options={({ navigation }) => ({
             title: 'Examples',
             // eslint-disable-next-line react/no-unstable-nested-components
-            headerRight: () => (
+            headerRight: !Platform.isTV ? () => (
               <Button
                 title="Custom"
                 onPress={() => {
                   navigation.navigate('CustomPlaybackForm');
                 }}
               />
-            ),
+            ) : undefined,
           })}
           initialParams={stackParams}
         />
@@ -231,16 +238,20 @@ export default function App() {
             options={{ title: 'Offline Playback' }}
           />
         )}
-        <RootStack.Screen
-          name="CustomPlaybackForm"
-          component={CustomPlaybackForm}
-          options={{ title: 'Custom playback' }}
-        />
-        <RootStack.Screen
-          name="CustomPlayback"
-          component={CustomPlayback}
-          options={{ title: 'Custom playback' }}
-        />
+        {!Platform.isTV && (
+          <RootStack.Screen
+            name="CustomPlaybackForm"
+            component={CustomPlaybackForm}
+            options={{ title: 'Custom playback' }}
+          />
+        )}
+        {!Platform.isTV && (
+          <RootStack.Screen
+            name="CustomPlayback"
+            component={CustomPlayback}
+            options={{ title: 'Custom playback' }}
+          />
+        )}
         <RootStack.Screen
           name="BasicPictureInPicture"
           component={BasicPictureInPicture}

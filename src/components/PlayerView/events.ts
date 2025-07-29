@@ -67,318 +67,316 @@ import {
 } from '../../events';
 
 /**
- * Type that defines all event props supported by `PlayerView` and `NativePlayerView`.
- * Used to generate the specific events interface for each component.
- */
-interface EventProps {
-  /**
-   * Event emitted when an ad break has finished.
-   */
-  onAdBreakFinished: AdBreakFinishedEvent;
-  /**
-   * Event emitted when an ad break has started.
-   */
-  onAdBreakStarted: AdBreakStartedEvent;
-  /**
-   * Event emitted when an ad has been clicked.
-   */
-  onAdClicked: AdClickedEvent;
-  /**
-   * Event emitted when an ad error has occurred.
-   */
-  onAdError: AdErrorEvent;
-  /**
-   * Event emitted when an ad has finished.
-   */
-  onAdFinished: AdFinishedEvent;
-  /**
-   * Event emitted when an ad manifest starts loading.
-   */
-  onAdManifestLoad: AdManifestLoadEvent;
-  /**
-   * Event emitted when an ad manifest has been loaded.
-   */
-  onAdManifestLoaded: AdManifestLoadedEvent;
-  /**
-   * Event emitted when an ad quartile has been reached.
-   */
-  onAdQuartile: AdQuartileEvent;
-  /**
-   * Event emitted when an ad has been scheduled.
-   */
-  onAdScheduled: AdScheduledEvent;
-  /**
-   * Event emitted when an ad has been skipped.
-   */
-  onAdSkipped: AdSkippedEvent;
-  /**
-   * Event emitted when an ad has started.
-   */
-  onAdStarted: AdStartedEvent;
-  /**
-   * Event emitted when casting to a cast-compatible device is available.
-   *
-   * @platform iOS, Android
-   */
-  onCastAvailable: CastAvailableEvent;
-  /**
-   * Event emitted when the playback on a cast-compatible device was paused.
-   *
-   * @platform iOS, Android
-   */
-  onCastPaused: CastPausedEvent;
-  /**
-   * Event emitted when the playback on a cast-compatible device has finished.
-   *
-   * @platform iOS, Android
-   */
-  onCastPlaybackFinished: CastPlaybackFinishedEvent;
-  /**
-   * Event emitted when playback on a cast-compatible device has started.
-   *
-   * @platform iOS, Android
-   */
-  onCastPlaying: CastPlayingEvent;
-  /**
-   * Event emitted when the cast app is launched successfully.
-   *
-   * @platform iOS, Android
-   */
-  onCastStarted: CastStartedEvent;
-  /**
-   * Event emitted when casting is initiated, but the user still needs to choose which device should be used.
-   *
-   * @platform iOS, Android
-   */
-  onCastStart: CastStartEvent;
-  /**
-   * Event emitted when casting to a cast-compatible device is stopped.
-   *
-   * @platform iOS, Android
-   */
-  onCastStopped: CastStoppedEvent;
-  /**
-   * Event emitted when the time update from the currently used cast-compatible device is received.
-   *
-   * @platform iOS, Android
-   */
-  onCastTimeUpdated: CastTimeUpdatedEvent;
-  /**
-   * Event emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
-   * playback.
-   *
-   * @platform iOS, Android
-   */
-  onCastWaitingForDevice: CastWaitingForDeviceEvent;
-  /**
-   * Event emitted when a subtitle entry transitions into the active status.
-   */
-  onCueEnter: CueEnterEvent;
-  /**
-   * Event emitted when an active subtitle entry transitions into the inactive status.
-   */
-  onCueExit: CueExitEvent;
-  /**
-   * Event emitted when the player is destroyed.
-   */
-  onDestroy: DestroyEvent;
-  /**
-   * Emitted when a download was finished.
-   */
-  onDownloadFinished: DownloadFinishedEvent;
-  /**
-   * All events emitted by the player.
-   */
-  onEvent: Event;
-  /**
-   * Event emitted when fullscreen mode has been enabled.
-   *
-   * @platform iOS, Android
-   */
-  onFullscreenEnabled: FullscreenEnabledEvent;
-  /**
-   * Event emitted when fullscreen mode has been disabled.
-   *
-   * @platform iOS, Android
-   */
-  onFullscreenDisabled: FullscreenDisabledEvent;
-  /**
-   * Event emitted when fullscreen mode has been entered.
-   *
-   * @platform iOS, Android
-   */
-  onFullscreenEnter: FullscreenEnterEvent;
-  /**
-   * Event emitted when fullscreen mode has been exited.
-   *
-   * @platform iOS, Android
-   */
-  onFullscreenExit: FullscreenExitEvent;
-  /**
-   * Event emitted when the player has been muted.
-   */
-  onMuted: MutedEvent;
-  /**
-   * Event emitted when the player has been paused.
-   */
-  onPaused: PausedEvent;
-  /**
-   * Event mitted when the availability of the Picture in Picture mode changed.
-   */
-  onPictureInPictureAvailabilityChanged: PictureInPictureAvailabilityChangedEvent;
-  /**
-   * Event emitted when the player enters Picture in Picture mode.
-   */
-  onPictureInPictureEnter: PictureInPictureEnterEvent;
-  /**
-   * Event emitted when the player entered Picture in Picture mode.
-   *
-   * @platform iOS
-   */
-  onPictureInPictureEntered: PictureInPictureEnteredEvent;
-  /**
-   * Event emitted when the player exits Picture in Picture mode.
-   */
-  onPictureInPictureExit: PictureInPictureExitEvent;
-  /**
-   * Event emitted when the player exited Picture in Picture mode.
-   *
-   * @platform iOS
-   */
-  onPictureInPictureExited: PictureInPictureExitedEvent;
-  /**
-   * Event emitted when the player received an intention to start/resume playback.
-   */
-  onPlay: PlayEvent;
-  /**
-   * Event emitted when the playback of the current media has finished.
-   */
-  onPlaybackFinished: PlaybackFinishedEvent;
-  /**
-   * Emitted when the player transitions from one playback speed to another.
-   * @platform iOS, tvOS
-   */
-  onPlaybackSpeedChanged: PlaybackSpeedChangedEvent;
-  /**
-   * Event emitted when a source is loaded into the player.
-   * Seeking and time shifting are allowed as soon as this event is seen.
-   */
-  onPlayerActive: PlayerActiveEvent;
-  /**
-   * Event Emitted when a player error occurred.
-   */
-  onPlayerError: PlayerErrorEvent;
-  /**
-   * Event emitted when a player warning occurred.
-   */
-  onPlayerWarning: PlayerWarningEvent;
-  /**
-   * Emitted when playback has started.
-   */
-  onPlaying: PlayingEvent;
-  /**
-   * Emitted when the player is ready for immediate playback, because initial audio/video
-   * has been downloaded.
-   */
-  onReady: ReadyEvent;
-  /**
-   * Event emitted when the player is about to seek to a new position.
-   * Only applies to VoD streams.
-   */
-  onSeek: SeekEvent;
-  /**
-   * Event emitted when seeking has finished and data to continue playback is available.
-   * Only applies to VoD streams.
-   */
-  onSeeked: SeekedEvent;
-  /**
-   * Event mitted when the player starts time shifting.
-   * Only applies to live streams.
-   */
-  onTimeShift: TimeShiftEvent;
-  /**
-   * Event emitted when time shifting has finished and data is available to continue playback.
-   * Only applies to live streams.
-   */
-  onTimeShifted: TimeShiftedEvent;
-  /**
-   * Event emitted when the player begins to stall and to buffer due to an empty buffer.
-   */
-  onStallStarted: StallStartedEvent;
-  /**
-   * Event emitted when the player ends stalling, due to enough data in the buffer.
-   */
-  onStallEnded: StallEndedEvent;
-  /**
-   * Event emitted when a source error occurred.
-   */
-  onSourceError: SourceErrorEvent;
-  /**
-   * Event emitted when a new source loading has started.
-   */
-  onSourceLoad: SourceLoadEvent;
-  /**
-   * Event emitted when a new source is loaded.
-   * This does not mean that the source is immediately ready for playback.
-   * `ReadyEvent` indicates the player is ready for immediate playback.
-   */
-  onSourceLoaded: SourceLoadedEvent;
-  /**
-   * Event emitted when the current source has been unloaded.
-   */
-  onSourceUnloaded: SourceUnloadedEvent;
-  /**
-   * Event emitted when a source warning occurred.
-   */
-  onSourceWarning: SourceWarningEvent;
-  /**
-   * Event emitted when a new audio track is added to the player.
-   */
-  onAudioAdded: AudioAddedEvent;
-  /**
-   * Event emitted when the player's selected audio track has changed.
-   */
-  onAudioChanged: AudioChangedEvent;
-  /**
-   * Event emitted when an audio track is removed from the player.
-   */
-  onAudioRemoved: AudioRemovedEvent;
-  /**
-   * Event emitted when a new subtitle track is added to the player.
-   */
-  onSubtitleAdded: SubtitleAddedEvent;
-  /**
-   * Event emitted when the player's selected subtitle track has changed.
-   */
-  onSubtitleChanged: SubtitleChangedEvent;
-  /**
-   * Event emitted when a subtitle track is removed from the player.
-   */
-  onSubtitleRemoved: SubtitleRemovedEvent;
-  /**
-   * Event emitted when the current playback time has changed.
-   */
-  onTimeChanged: TimeChangedEvent;
-  /**
-   * Emitted when the player is unmuted.
-   */
-  onUnmuted: UnmutedEvent;
-  /**
-   * Emitted when current video download quality has changed.
-   */
-  onVideoDownloadQualityChanged: VideoDownloadQualityChangedEvent;
-  /**
-   * Emitted when the current video playback quality has changed.
-   */
-  onVideoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
-}
-
-/**
  * Event props for `PlayerView`.
  *
  * Note the events of `PlayerView` are simply a proxy over
  * the events from `NativePlayerView` just removing RN's bubbling data.
  */
 export type PlayerViewEvents = {
-  [Prop in keyof EventProps]?: (event: EventProps[Prop]) => void;
+  /**
+   * Event emitted when an ad break has finished.
+   */
+  onAdBreakFinished?: (event: AdBreakFinishedEvent) => void;
+  /**
+   * Event emitted when an ad break has started.
+   */
+  onAdBreakStarted?: (event: AdBreakStartedEvent) => void;
+  /**
+   * Event emitted when an ad has been clicked.
+   */
+  onAdClicked?: (event: AdClickedEvent) => void;
+  /**
+   * Event emitted when an ad error has occurred.
+   */
+  onAdError?: (event: AdErrorEvent) => void;
+  /**
+   * Event emitted when an ad has finished.
+   */
+  onAdFinished?: (event: AdFinishedEvent) => void;
+  /**
+   * Event emitted when an ad manifest starts loading.
+   */
+  onAdManifestLoad?: (event: AdManifestLoadEvent) => void;
+  /**
+   * Event emitted when an ad manifest has been loaded.
+   */
+  onAdManifestLoaded?: (event: AdManifestLoadedEvent) => void;
+  /**
+   * Event emitted when an ad quartile has been reached.
+   */
+  onAdQuartile?: (event: AdQuartileEvent) => void;
+  /**
+   * Event emitted when an ad has been scheduled.
+   */
+  onAdScheduled?: (event: AdScheduledEvent) => void;
+  /**
+   * Event emitted when an ad has been skipped.
+   */
+  onAdSkipped?: (event: AdSkippedEvent) => void;
+  /**
+   * Event emitted when an ad has started.
+   */
+  onAdStarted?: (event: AdStartedEvent) => void;
+  /**
+   * Event emitted when casting to a cast-compatible device is available.
+   *
+   * @remarks Platform: iOS, Android
+   */
+  onCastAvailable?: (event: CastAvailableEvent) => void;
+  /**
+   * Event emitted when the playback on a cast-compatible device was paused.
+   *
+   * @remarks Platform: iOS, Android
+   */
+  onCastPaused?: (event: CastPausedEvent) => void;
+  /**
+   * Event emitted when the playback on a cast-compatible device has finished.
+   *
+   * @remarks Platform: iOS, Android
+   */
+  onCastPlaybackFinished?: (event: CastPlaybackFinishedEvent) => void;
+  /**
+   * Event emitted when playback on a cast-compatible device has started.
+   *
+   * @remarks Platform: iOS, Android
+   */
+  onCastPlaying?: (event: CastPlayingEvent) => void;
+  /**
+   * Event emitted when the cast app is launched successfully.
+   *
+   * @remarks Platform: iOS, Android
+   */
+  onCastStarted?: (event: CastStartedEvent) => void;
+  /**
+   * Event emitted when casting is initiated, but the user still needs to choose which device should be used.
+   *
+   * @remarks Platform: iOS, Android
+   */
+  onCastStart?: (event: CastStartEvent) => void;
+  /**
+   * Event emitted when casting to a cast-compatible device is stopped.
+   *
+   * @remarks Platform: iOS, Android
+   */
+  onCastStopped?: (event: CastStoppedEvent) => void;
+  /**
+   * Event emitted when the time update from the currently used cast-compatible device is received.
+   *
+   * @remarks Platform: iOS, Android
+   */
+  onCastTimeUpdated?: (event: CastTimeUpdatedEvent) => void;
+  /**
+   * Event emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
+   * playback.
+   *
+   * @remarks Platform: iOS, Android
+   */
+  onCastWaitingForDevice?: (event: CastWaitingForDeviceEvent) => void;
+  /**
+   * Event emitted when a subtitle entry transitions into the active status.
+   */
+  onCueEnter?: (event: CueEnterEvent) => void;
+  /**
+   * Event emitted when an active subtitle entry transitions into the inactive status.
+   */
+  onCueExit?: (event: CueExitEvent) => void;
+  /**
+   * Event emitted when the player is destroyed.
+   */
+  onDestroy?: (event: DestroyEvent) => void;
+  /**
+   * Emitted when a download was finished.
+   */
+  onDownloadFinished?: (event: DownloadFinishedEvent) => void;
+  /**
+   * All events emitted by the player.
+   */
+  onEvent?: (event: Event) => void;
+  /**
+   * Event emitted when fullscreen mode has been enabled.
+   *
+   * @remarks Platform: iOS, Android
+   */
+  onFullscreenEnabled?: (event: FullscreenEnabledEvent) => void;
+  /**
+   * Event emitted when fullscreen mode has been disabled.
+   *
+   * @remarks Platform: iOS, Android
+   */
+  onFullscreenDisabled?: (event: FullscreenDisabledEvent) => void;
+  /**
+   * Event emitted when fullscreen mode has been entered.
+   *
+   * @remarks Platform: iOS, Android
+   */
+  onFullscreenEnter?: (event: FullscreenEnterEvent) => void;
+  /**
+   * Event emitted when fullscreen mode has been exited.
+   *
+   * @remarks Platform: iOS, Android
+   */
+  onFullscreenExit?: (event: FullscreenExitEvent) => void;
+  /**
+   * Event emitted when the player has been muted.
+   */
+  onMuted?: (event: MutedEvent) => void;
+  /**
+   * Event emitted when the player has been paused.
+   */
+  onPaused?: (event: PausedEvent) => void;
+  /**
+   * Event mitted when the availability of the Picture in Picture mode changed.
+   */
+  onPictureInPictureAvailabilityChanged?: (
+    event: PictureInPictureAvailabilityChangedEvent
+  ) => void;
+  /**
+   * Event emitted when the player enters Picture in Picture mode.
+   */
+  onPictureInPictureEnter?: (event: PictureInPictureEnterEvent) => void;
+  /**
+   * Event emitted when the player entered Picture in Picture mode.
+   *
+   * @remarks Platform: iOS
+   */
+  onPictureInPictureEntered?: (event: PictureInPictureEnteredEvent) => void;
+  /**
+   * Event emitted when the player exits Picture in Picture mode.
+   */
+  onPictureInPictureExit?: (event: PictureInPictureExitEvent) => void;
+  /**
+   * Event emitted when the player exited Picture in Picture mode.
+   *
+   * @remarks Platform: iOS
+   */
+  onPictureInPictureExited?: (event: PictureInPictureExitedEvent) => void;
+  /**
+   * Event emitted when the player received an intention to start/resume playback.
+   */
+  onPlay?: (event: PlayEvent) => void;
+  /**
+   * Event emitted when the playback of the current media has finished.
+   */
+  onPlaybackFinished?: (event: PlaybackFinishedEvent) => void;
+  /**
+   * Emitted when the player transitions from one playback speed to another.
+   * @remarks Platform: iOS, tvOS
+   */
+  onPlaybackSpeedChanged?: (event: PlaybackSpeedChangedEvent) => void;
+  /**
+   * Event emitted when a source is loaded into the player.
+   * Seeking and time shifting are allowed as soon as this event is seen.
+   */
+  onPlayerActive?: (event: PlayerActiveEvent) => void;
+  /**
+   * Event Emitted when a player error occurred.
+   */
+  onPlayerError?: (event: PlayerErrorEvent) => void;
+  /**
+   * Event emitted when a player warning occurred.
+   */
+  onPlayerWarning?: (event: PlayerWarningEvent) => void;
+  /**
+   * Emitted when playback has started.
+   */
+  onPlaying?: (event: PlayingEvent) => void;
+  /**
+   * Emitted when the player is ready for immediate playback, because initial audio/video
+   * has been downloaded.
+   */
+  onReady?: (event: ReadyEvent) => void;
+  /**
+   * Event emitted when the player is about to seek to a new position.
+   * Only applies to VoD streams.
+   */
+  onSeek?: (event: SeekEvent) => void;
+  /**
+   * Event emitted when seeking has finished and data to continue playback is available.
+   * Only applies to VoD streams.
+   */
+  onSeeked?: (event: SeekedEvent) => void;
+  /**
+   * Event mitted when the player starts time shifting.
+   * Only applies to live streams.
+   */
+  onTimeShift?: (event: TimeShiftEvent) => void;
+  /**
+   * Event emitted when time shifting has finished and data is available to continue playback.
+   * Only applies to live streams.
+   */
+  onTimeShifted?: (event: TimeShiftedEvent) => void;
+  /**
+   * Event emitted when the player begins to stall and to buffer due to an empty buffer.
+   */
+  onStallStarted?: (event: StallStartedEvent) => void;
+  /**
+   * Event emitted when the player ends stalling, due to enough data in the buffer.
+   */
+  onStallEnded?: (event: StallEndedEvent) => void;
+  /**
+   * Event emitted when a source error occurred.
+   */
+  onSourceError?: (event: SourceErrorEvent) => void;
+  /**
+   * Event emitted when a new source loading has started.
+   */
+  onSourceLoad?: (event: SourceLoadEvent) => void;
+  /**
+   * Event emitted when a new source is loaded.
+   * This does not mean that the source is immediately ready for playback.
+   * `ReadyEvent` indicates the player is ready for immediate playback.
+   */
+  onSourceLoaded?: (event: SourceLoadedEvent) => void;
+  /**
+   * Event emitted when the current source has been unloaded.
+   */
+  onSourceUnloaded?: (event: SourceUnloadedEvent) => void;
+  /**
+   * Event emitted when a source warning occurred.
+   */
+  onSourceWarning?: (event: SourceWarningEvent) => void;
+  /**
+   * Event emitted when a new audio track is added to the player.
+   */
+  onAudioAdded?: (event: AudioAddedEvent) => void;
+  /**
+   * Event emitted when the player's selected audio track has changed.
+   */
+  onAudioChanged?: (event: AudioChangedEvent) => void;
+  /**
+   * Event emitted when an audio track is removed from the player.
+   */
+  onAudioRemoved?: (event: AudioRemovedEvent) => void;
+  /**
+   * Event emitted when a new subtitle track is added to the player.
+   */
+  onSubtitleAdded?: (event: SubtitleAddedEvent) => void;
+  /**
+   * Event emitted when the player's selected subtitle track has changed.
+   */
+  onSubtitleChanged?: (event: SubtitleChangedEvent) => void;
+  /**
+   * Event emitted when a subtitle track is removed from the player.
+   */
+  onSubtitleRemoved?: (event: SubtitleRemovedEvent) => void;
+  /**
+   * Event emitted when the current playback time has changed.
+   */
+  onTimeChanged?: (event: TimeChangedEvent) => void;
+  /**
+   * Emitted when the player is unmuted.
+   */
+  onUnmuted?: (event: UnmutedEvent) => void;
+  /**
+   * Emitted when current video download quality has changed.
+   */
+  onVideoDownloadQualityChanged?: (
+    event: VideoDownloadQualityChangedEvent
+  ) => void;
+  /**
+   * Emitted when the current video playback quality has changed.
+   */
+  onVideoPlaybackQualityChanged?: (
+    event: VideoPlaybackQualityChangedEvent
+  ) => void;
 };
