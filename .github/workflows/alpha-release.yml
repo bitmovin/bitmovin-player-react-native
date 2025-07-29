@@ -68,7 +68,7 @@ jobs:
       - name: Commit version bump
         run: |
           git add .
-          git commit -m "chore(release): alpha release ${{ env.FINAL_VERSION }}"
+          git commit --no-verify -m "chore(release): alpha release ${{ env.FINAL_VERSION }}"
 
       - name: Create Git Tag
         run: |

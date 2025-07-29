@@ -87,7 +87,7 @@ jobs:
       - name: Commit version bump
         run: |
           git add RNBitmovinPlayer.podspec android/build.gradle example/ios/Podfile.lock integration_test/ios/Podfile.lock
-          git commit -m "chore(${{ inputs.sdk_name }}): update ${{ inputs.sdk_name }} player version to ${{ inputs.version_number }}"
+          git commit --no-verify -m "chore(${{ inputs.sdk_name }}): update ${{ inputs.sdk_name }} player version to ${{ inputs.version_number }}"
           git push origin ${{ steps.branching.outputs.branch_name }}
 
       - name: Create PR
