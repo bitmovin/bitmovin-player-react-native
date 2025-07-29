@@ -15,28 +15,38 @@ if [ ! -d ".git/hooks" ]; then
     mkdir -p .git/hooks
 fi
 
-# Create the pre-commit hook
-cat > .git/hooks/pre-commit << 'EOF'
-#!/bin/sh
-# Pre-commit hook to run lint-staged
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PRE_COMMIT_SOURCE="$SCRIPT_DIR/pre-commit.sh"
 
-# Load common paths where Node.js might be installed
-export PATH="/usr/local/bin:/opt/homebrew/bin:$HOME/.nvm/current/bin:$HOME/.volta/bin:$HOME/.fnm/current/bin:$PATH"
-
-# Try to find npx
-NPX=$(command -v npx)
-if [ -z "$NPX" ]; then
-  echo "Error: npx not found in PATH"
-  exit 1
+# Check if the pre-commit.sh template exists
+if [ ! -f "$PRE_COMMIT_SOURCE" ]; then
+    echo "Error: pre-commit.sh template not found at $PRE_COMMIT_SOURCE"
+    exit 1
 fi
 
-$NPX lint-staged
-EOF
+# Check if pre-commit hook already exists and compare content
+HOOK_PATH=".git/hooks/pre-commit"
+NEEDS_UPDATE=true
 
-# Make it executable
-chmod +x .git/hooks/pre-commit
+if [ -f "$HOOK_PATH" ]; then
+    # Compare the existing hook with the template
+    if cmp -s "$PRE_COMMIT_SOURCE" "$HOOK_PATH"; then
+        NEEDS_UPDATE=false
+        echo "✅ Pre-commit hook is already up to date"
+    else
+        echo "📝 Pre-commit hook exists but differs from template, updating..."
+    fi
+else
+    echo "📦 Installing pre-commit hook..."
+fi
 
-echo "✅ Pre-commit hooks installed successfully!"
+# Install or update the hook if needed
+if [ "$NEEDS_UPDATE" = true ]; then
+    cp "$PRE_COMMIT_SOURCE" "$HOOK_PATH"
+    chmod +x "$HOOK_PATH"
+    echo "✅ Pre-commit hook installed successfully!"
+fi
 echo ""
 echo "The pre-commit hook will now run automatically on every commit and will:"
 echo "  - Run ESLint (quiet mode) on TypeScript/JavaScript files"
