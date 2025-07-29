@@ -1,0 +1,85 @@
+name: Manual Alpha Release
+
+run-name: Alpha release for v${{ github.event.inputs.version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The base semantic version for the alpha release (e.g., 1.0.0)'
+        required: true
+
+env:
+  LC_ALL: en_US.UTF-8
+  LANG: en_US.UTF-8
+
+concurrency:
+  group: alpha-release-${{ github.event.inputs.version }}
+  cancel-in-progress: true
+
+jobs:
+  publish-alpha:
+    name: Publish Alpha Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to create commits and tags
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch all history for all tags and branches for version calculation
+          fetch-depth: 0
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
+
+      - name: Setup Git User
+        run: |
+          git config --global user.name "Bitmovin Release Automation"
+          git config --global user.email "support@bitmovin.com"
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node: true
+
+      - name: Determine Alpha Version
+        id: versioner
+        run: |
+          BASE_VERSION="${{ github.event.inputs.version }}"
+          # Find the latest alpha tag for this base version to increment it
+          LATEST_ALPHA_TAG=$(git tag --list "v${BASE_VERSION}-alpha.*" | sort -V | tail -n 1)
+          if [[ -z "$LATEST_ALPHA_TAG" ]]; then
+            # No alpha tag exists yet, start with .0
+            NEXT_VERSION="${BASE_VERSION}-alpha.0"
+          else
+            # Increment the existing alpha tag
+            LATEST_ALPHA_VERSION=$(echo $LATEST_ALPHA_TAG | sed 's/v//')
+            # Use awk to increment the last part of the version
+            NEXT_VERSION=$(echo $LATEST_ALPHA_VERSION | awk -F. -v OFS=. '{$NF++;print}')
+          fi
+          echo "FINAL_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
+
+      - name: Update Package Version
+        run: |
+          npm version ${{ env.FINAL_VERSION }} --no-git-tag-version --allow-same-version
+
+      - name: Build TypeScript files
+        run: yarn build
+
+      - name: Commit version bump
+        run: |
+          git add .
+          git commit -m "chore(release): alpha release ${{ env.FINAL_VERSION }}"
+
+      - name: Create Git Tag
+        run: |
+          git tag v${{ env.FINAL_VERSION }}
+
+      - name: Publish to NPM with alpha tag
+        run: npm publish --tag alpha
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Push changes to repository
+        run: |
+          git push
+          git push origin v${{ env.FINAL_VERSION }}
