@@ -31,7 +31,9 @@ export default function SimplePicker<T = any>({
 }: SimplePickerProps<T>) {
   const [isVisible, setIsVisible] = useState(false);
 
-  const selectedOption = options.find(option => option.value === selectedValue);
+  const selectedOption = options.find(
+    (option) => option.value === selectedValue
+  );
   const displayText = selectedOption?.label || placeholder;
 
   const handleSelect = (option: SimplePickerOption<T>, index: number) => {
@@ -39,9 +41,15 @@ export default function SimplePicker<T = any>({
     onValueChange?.(option.value, index);
   };
 
-  const renderOption = ({ item, index }: { item: SimplePickerOption<T>; index: number }) => {
+  const renderOption = ({
+    item,
+    index,
+  }: {
+    item: SimplePickerOption<T>;
+    index: number;
+  }) => {
     const isSelected = item.value === selectedValue;
-    
+
     return (
       <TouchableOpacity
         style={[
@@ -89,9 +97,19 @@ export default function SimplePicker<T = any>({
         onRequestClose={() => setIsVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, Platform.isTV && styles.tvModalContent]}>
+          <View
+            style={[
+              styles.modalContent,
+              Platform.isTV && styles.tvModalContent,
+            ]}
+          >
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, Platform.isTV && styles.tvModalTitle]}>
+              <Text
+                style={[
+                  styles.modalTitle,
+                  Platform.isTV && styles.tvModalTitle,
+                ]}
+              >
                 Select an option
               </Text>
               <TouchableOpacity
@@ -101,7 +119,7 @@ export default function SimplePicker<T = any>({
                 <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
             </View>
-            
+
             <FlatList
               data={options}
               keyExtractor={(item, index) => `${String(item.value)}-${index}`}

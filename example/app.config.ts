@@ -56,19 +56,19 @@ const config: ExpoConfig = {
   },
   plugins: [
     [
-      "@react-native-tvos/config-tv",
+      '@react-native-tvos/config-tv',
       {
-        "androidTVBanner": "./assets/android-tv-banner.png",
-        "appleTVImages": {
-          "icon": "./assets/tvos-1280x768.png",
-          "iconSmall": "./assets/icon-tvos.png",
-          "iconSmall2x": "./assets/icon-tvos@2x.png",
-          "topShelf": "./assets/TopShelf.png",
-          "topShelf2x": "./assets/TopShelf@2x.png",
-          "topShelfWide": "./assets/TopShelfWide.png",
-          "topShelfWide2x": "./assets/TopShelfWide@2x.png"
-        }
-      }
+        androidTVBanner: './assets/android-tv-banner.png',
+        appleTVImages: {
+          icon: './assets/tvos-1280x768.png',
+          iconSmall: './assets/icon-tvos.png',
+          iconSmall2x: './assets/icon-tvos@2x.png',
+          topShelf: './assets/TopShelf.png',
+          topShelf2x: './assets/TopShelf@2x.png',
+          topShelfWide: './assets/TopShelfWide.png',
+          topShelfWide2x: './assets/TopShelfWide@2x.png',
+        },
+      },
     ],
     [
       'expo-build-properties',

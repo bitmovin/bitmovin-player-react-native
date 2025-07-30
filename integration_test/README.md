@@ -51,7 +51,6 @@ This integration test app is built as an Expo application using:
 - **Bitmovin Player SDK**: Via Expo Modules architecture
 - **Environment Configuration**: Secure license key management via dotenv
 
-
 ## Test Coverage
 
 The integration tests are located in the [`tests`](./tests) directory. Each file in this directory corresponds to a feature or a set of related features being tested. Please refer to the contents of this directory for an up-to-date list of what is covered.

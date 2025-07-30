@@ -76,14 +76,15 @@ export default function BasicPictureInPicture({
     navigation.setOptions({
       headerShown: !Platform.isTV && !renderOnlyPlayerView,
       // eslint-disable-next-line react/no-unstable-nested-components
-      headerRight: () => Platform.isTV ? undefined : (
-        <Button
-          title={isInPictureInPicture ? 'Exit PiP' : 'Enter PiP'}
-          onPress={() =>
-            setIsPictureInPictureRequested(() => !isInPictureInPicture)
-          }
-        />
-      ),
+      headerRight: () =>
+        Platform.isTV ? undefined : (
+          <Button
+            title={isInPictureInPicture ? 'Exit PiP' : 'Enter PiP'}
+            onPress={() =>
+              setIsPictureInPictureRequested(() => !isInPictureInPicture)
+            }
+          />
+        ),
     });
   }, [navigation, isInPictureInPicture, renderOnlyPlayerView]);
 

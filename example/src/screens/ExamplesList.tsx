@@ -9,9 +9,7 @@ import {
   View,
 } from 'react-native';
 import type { RootStackParamsList } from '../App';
-import {
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ExampleItemProps {
   title: string;
@@ -37,7 +35,9 @@ const ExamplesList: React.FC<ExamplesListProps> = ({ route, navigation }) => {
     <FlatList
       data={route.params.data}
       style={styles.examplesList}
-      contentContainerStyle={{ paddingBottom: Platform.isTV ? 0 : insets.bottom }}
+      contentContainerStyle={{
+        paddingBottom: Platform.isTV ? 0 : insets.bottom,
+      }}
       keyExtractor={({ routeName }) => routeName}
       renderItem={({ item }) => (
         <ExampleItem

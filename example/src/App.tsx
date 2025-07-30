@@ -18,8 +18,8 @@ import BasicPictureInPicture from './screens/BasicPictureInPicture';
 import CustomHtmlUi from './screens/CustomHtmlUi';
 import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 // Import LandscapeFullscreenHandling only on non-TV platforms
-const LandscapeFullscreenHandling = Platform.isTV 
-  ? () => null 
+const LandscapeFullscreenHandling = Platform.isTV
+  ? () => null
   : require('./screens/LandscapeFullscreenHandling').default;
 import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
@@ -183,14 +183,16 @@ export default function App() {
           options={({ navigation }) => ({
             title: 'Examples',
             // eslint-disable-next-line react/no-unstable-nested-components
-            headerRight: !Platform.isTV ? () => (
-              <Button
-                title="Custom"
-                onPress={() => {
-                  navigation.navigate('CustomPlaybackForm');
-                }}
-              />
-            ) : undefined,
+            headerRight: !Platform.isTV
+              ? () => (
+                  <Button
+                    title="Custom"
+                    onPress={() => {
+                      navigation.navigate('CustomPlaybackForm');
+                    }}
+                  />
+                )
+              : undefined,
           })}
           initialParams={stackParams}
         />

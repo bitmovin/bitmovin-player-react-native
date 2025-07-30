@@ -15,10 +15,12 @@ export default function FormPicker<T = any>({
   selected,
   onChange,
 }: FormPickerProps<T>) {
-  const simplePickerOptions: SimplePickerOption<T>[] = options.map(option => ({
-    label: option.label,
-    value: option.value,
-  }));
+  const simplePickerOptions: SimplePickerOption<T>[] = options.map(
+    (option) => ({
+      label: option.label,
+      value: option.value,
+    })
+  );
 
   return (
     <View style={styles.container}>
