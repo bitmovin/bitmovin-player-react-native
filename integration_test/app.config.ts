@@ -38,14 +38,14 @@ const config: ExpoConfig = {
   assetBundlePatterns: ['**/*'],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.bitmovin.integrationtestnew',
+    bundleIdentifier: 'com.bitmovin.player.reactnative.integrationtests',
   },
   android: {
     adaptiveIcon: {
       foregroundImage: './assets/images/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },
-    package: 'com.bitmovin.integrationtestnew',
+    package: 'com.bitmovin.player.reactnative.integrationtests',
   },
   plugins: [
     '@react-native-tvos/config-tv',
