@@ -72,7 +72,7 @@ jobs:
           path: |
             .cocoapods-cache
             example/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}
+          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
           restore-keys: pods-
 
       - name: Install pods
