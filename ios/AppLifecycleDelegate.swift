@@ -8,7 +8,10 @@ public class AppLifecycleDelegate: ExpoAppDelegateSubscriber {
     ) -> Bool {
         // TODO: Add support for OfflineConfig via config plugin
 #if os(iOS)
-        OfflineManager.initializeOfflineManager()
+        if let offlineSupportEnabled = Bundle.main.infoDictionary?["BitmovinPlayerOfflineSupportEnabled"] as? Bool,
+           offlineSupportEnabled {
+            OfflineManager.initializeOfflineManager()
+        }
 #endif
         return true
     }
