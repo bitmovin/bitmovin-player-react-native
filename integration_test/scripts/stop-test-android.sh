@@ -9,7 +9,7 @@ EMULATOR_ID="$(adb devices | grep -v List | grep device | grep emulator | head -
 
 # Force stop the test app if emulator is available
 if [ -n "$EMULATOR_ID" ]; then
-    adb -s "$EMULATOR_ID" shell am force-stop com.bitmovin.player.reactnative.integrationtest
+    adb -s "$EMULATOR_ID" shell am force-stop com.bitmovin.player.reactnative.integrationtests
 fi
 
 exit 0
