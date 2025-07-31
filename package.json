@@ -1,6 +1,6 @@
 {
   "name": "bitmovin-player-react-native",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "description": "Official React Native bindings for Bitmovin's mobile Player SDKs.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
