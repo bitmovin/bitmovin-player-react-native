@@ -51,9 +51,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
-    "@expo/cli": "^0.24.3",
+    "@expo/cli": "^0.24.20",
     "@expo/config-types": "^53.0.5",
-    "@types/lodash.omit": "^4.5.9",
     "@types/react": "~19.0.10",
     "dotenv": "^17.2.0",
     "eslint": "^8.57.0",
@@ -73,6 +72,13 @@
     },
     "autolinking": {
       "nativeModulesDir": ".."
+    },
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "@react-native-tvos/config-tv"
+        ]
+      }
     }
   }
 }
