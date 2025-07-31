@@ -1,7 +1,7 @@
 import { EventSubscription } from 'expo-modules-core';
 import { CustomMessageHandler } from './custommessagehandler';
 import { CustomMessageSender } from './custommessagesender';
-import UuidModule from '../modules/UuidModule';
+import * as Crypto from 'expo-crypto';
 import CustomMessageHandlerModule from './customMessageHandlerModule';
 
 /**
@@ -16,7 +16,7 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
   private onReceivedAsynchronousMessageSubscription?: EventSubscription;
 
   constructor(nativeId?: string) {
-    this.nativeId = nativeId ?? UuidModule.generate();
+    this.nativeId = nativeId ?? Crypto.randomUUID();
     this.isDestroyed = false;
 
     // Set up event listeners for synchronous and asynchronous messages

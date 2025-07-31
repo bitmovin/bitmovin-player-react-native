@@ -1,6 +1,6 @@
 import { EventSubscription } from 'expo-modules-core';
 import { FullscreenHandler } from './fullscreenhandler';
-import UuidModule from '../modules/UuidModule';
+import * as Crypto from 'expo-crypto';
 import FullscreenHandlerModule from './fullscreenHandlerModule';
 
 /**
@@ -15,7 +15,7 @@ export class FullscreenHandlerBridge {
   private onExitFullScreenSubscription?: EventSubscription;
 
   constructor(nativeId?: string) {
-    this.nativeId = nativeId ?? UuidModule.generate();
+    this.nativeId = nativeId ?? Crypto.randomUUID();
     this.isDestroyed = false;
 
     this.onEnterFullScreenSubscription = FullscreenHandlerModule.addListener(

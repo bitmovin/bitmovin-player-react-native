@@ -2,7 +2,6 @@
   "platforms": ["apple", "android"],
   "apple": {
     "modules": [
-      "UuidModule",
       "DebugModule",
       "AudioSessionModule",
       "BitmovinCastManagerModule",
@@ -21,7 +20,6 @@
   },
   "android": {
     "modules": [
-      "com.bitmovin.player.reactnative.UuidModule",
       "com.bitmovin.player.reactnative.DebugModule",
       "com.bitmovin.player.reactnative.BitmovinCastManagerModule",
       "com.bitmovin.player.reactnative.PlayerModule",

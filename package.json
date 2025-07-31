@@ -8,6 +8,7 @@
     "build": "yarn build:module && yarn build:plugin",
     "build:module": "EXPO_NONINTERACTIVE=true expo-module build",
     "build:plugin": "EXPO_NONINTERACTIVE=true expo-module build plugin",
+    "postinstall": "node scripts/check-dependencies.js",
     "dev:plugin": "expo-module build plugin",
     "clean": "expo-module clean",
     "lint": "expo-module lint",
@@ -56,6 +57,7 @@
   "homepage": "https://bitmovin.com/video-player/react-native-sdk",
   "dependencies": {
     "@expo/config-plugins": "~10.1.2",
+    "expo-crypto": "~14.1.5",
     "expo-keep-awake": "~14.1.4"
   },
   "devDependencies": {
@@ -76,6 +78,7 @@
   },
   "peerDependencies": {
     "expo": ">=53.0.0",
+    "expo-crypto": ">=14.0.0",
     "react": "*",
     "react-native": "*"
   },

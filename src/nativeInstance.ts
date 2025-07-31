@@ -1,6 +1,4 @@
-import UuidModule from './modules/UuidModule';
-
-const Uuid = UuidModule;
+import * as Crypto from 'expo-crypto';
 
 export interface NativeInstanceConfig {
   /**
@@ -37,7 +35,7 @@ export default abstract class NativeInstance<
    */
   constructor(config?: Config) {
     this.config = config;
-    this.nativeId = config?.nativeId ?? Uuid.generate();
+    this.nativeId = config?.nativeId ?? Crypto.randomUUID();
   }
 
   /**
