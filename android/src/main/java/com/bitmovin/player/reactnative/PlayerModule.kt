@@ -16,11 +16,6 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 class PlayerModule : Module() {
-    /**
-     * In-memory mapping from [NativeId]s to [Player] instances.
-     * This must match the Registry pattern from legacy PlayerModule
-     */
-    private val players: Registry<Player> = mutableMapOf()
 
     val mediaSessionPlaybackManager by lazy { MediaSessionPlaybackManager(appContext) }
 
@@ -33,68 +28,68 @@ class PlayerModule : Module() {
 
         OnDestroy {
             // Clean up all players when module is destroyed
-            players.values.forEach { player ->
+            PlayerRegistry.getAllPlayers().forEach { player ->
                 try {
                     player.destroy()
                 } catch (e: Exception) {
                     // Log but don't crash on cleanup
                 }
             }
-            players.clear()
+            PlayerRegistry.clear()
         }
 
         AsyncFunction("play") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.play()
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("pause") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.pause()
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("mute") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.mute()
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("unmute") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.unmute()
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("seek") { nativeId: NativeId, time: Double ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.seek(time)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("timeShift") { nativeId: NativeId, offset: Double ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.timeShift(offset)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("destroy") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             if (player != null) {
                 // Note: MediaSession cleanup would need to be handled here
                 // For now, just destroy the player and remove from registry
                 player.destroy()
-                players.remove(nativeId)
+                PlayerRegistry.unregister(nativeId)
             }
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("setVolume") { nativeId: NativeId, volume: Double ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.volume = volume.toInt()
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("getVolume") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.volume?.toDouble()
         }
 
         AsyncFunction("currentTime") { nativeId: NativeId, mode: String? ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction when {
                 player == null -> null
                 mode == "relative" -> player.currentTime + player.playbackTimeOffsetToRelativeTime
@@ -104,62 +99,62 @@ class PlayerModule : Module() {
         }
 
         AsyncFunction("isPlaying") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.isPlaying
         }
 
         AsyncFunction("isPaused") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.isPaused
         }
 
         AsyncFunction("duration") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.duration
         }
 
         AsyncFunction("isMuted") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.isMuted
         }
 
         AsyncFunction("unload") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.unload()
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("getTimeShift") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.timeShift
         }
 
         AsyncFunction("isLive") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.isLive
         }
 
         AsyncFunction("getMaxTimeShift") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.maxTimeShift
         }
 
         AsyncFunction("getPlaybackSpeed") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.playbackSpeed?.toDouble()
         }
 
         AsyncFunction("setPlaybackSpeed") { nativeId: NativeId, playbackSpeed: Double ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.playbackSpeed = playbackSpeed.toFloat()
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("isAd") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.isAd
         }
 
         AsyncFunction("setMaxSelectableBitrate") { nativeId: NativeId, maxBitrate: Double ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.setMaxSelectableVideoBitrate(maxBitrate.toInt())
         }.runOnQueue(Queues.MAIN)
 
@@ -174,27 +169,27 @@ class PlayerModule : Module() {
         }
 
         AsyncFunction("isCastAvailable") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.isCastAvailable
         }
 
         AsyncFunction("isCasting") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.isCasting
         }
 
         AsyncFunction("castVideo") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.castVideo()
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("castStop") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.castStop()
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("skipAd") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.skipAd()
         }.runOnQueue(Queues.MAIN)
 
@@ -204,57 +199,57 @@ class PlayerModule : Module() {
         }
 
         AsyncFunction("getAudioTrack") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.source?.selectedAudioTrack?.toJson()
         }
 
         AsyncFunction("getAvailableAudioTracks") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.source?.availableAudioTracks?.map { it.toJson() } ?: emptyList()
         }
 
         AsyncFunction("setAudioTrack") { nativeId: NativeId, trackIdentifier: String ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.source?.setAudioTrack(trackIdentifier)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("getSubtitleTrack") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.source?.selectedSubtitleTrack?.toJson()
         }
 
         AsyncFunction("getAvailableSubtitles") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.source?.availableSubtitleTracks?.map { it.toJson() } ?: emptyList()
         }
 
         AsyncFunction("setSubtitleTrack") { nativeId: NativeId, trackIdentifier: String? ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.source?.setSubtitleTrack(trackIdentifier)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("getVideoQuality") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.videoQuality?.toJson()
         }
 
         AsyncFunction("getAvailableVideoQualities") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.availableVideoQualities?.map { it.toJson() } ?: emptyList()
         }
 
         AsyncFunction("setVideoQuality") { nativeId: NativeId, qualityId: String ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             player?.source?.setVideoQuality(qualityId)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("getThumbnail") { nativeId: NativeId, time: Double ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.getThumbnail(time)?.toJson()
         }
         AsyncFunction("loadOfflineContent") { nativeId: NativeId, offlineContentManagerBridgeId: String,
             options: Map<String, Any>?, ->
-            val player = players[nativeId] ?: return@AsyncFunction
+            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
             val offlineContentManagerBridge = appContext.registry.getModule<OfflineModule>()
                 ?.getOfflineContentManagerBridge(offlineContentManagerBridgeId)
 
@@ -264,7 +259,7 @@ class PlayerModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("scheduleAd") { nativeId: NativeId, adItemJson: Map<String, Any> ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             val adItem = adItemJson.toAdItem()
             if (player != null && adItem != null) {
                 player.scheduleAd(adItem)
@@ -282,7 +277,7 @@ class PlayerModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("loadSource") { nativeId: NativeId, sourceNativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             val source = appContext.registry.getModule<SourceModule>()?.getSourceOrNull(sourceNativeId)
             if (player != null && source != null) {
                 player.load(source)
@@ -290,7 +285,7 @@ class PlayerModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("source") { nativeId: NativeId ->
-            val player = players[nativeId]
+            val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.source?.toJson()
         }
     }
@@ -302,7 +297,7 @@ class PlayerModule : Module() {
         decoderNativeId: NativeId?,
         analyticsConfigJson: Map<String, Any>?,
     ) {
-        if (players.containsKey(nativeId)) {
+        if (PlayerRegistry.hasPlayer(nativeId)) {
             // Player already exists for this nativeId
             return
         }
@@ -340,7 +335,7 @@ class PlayerModule : Module() {
         } else {
             Player.create(applicationContext, playerConfig)
         }
-        players[nativeId] = player
+        PlayerRegistry.register(player, nativeId)
 
         if (enableMediaSession) {
             mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
@@ -348,5 +343,5 @@ class PlayerModule : Module() {
     }
 
     // CRITICAL: This method must remain available for cross-module access
-    fun getPlayerOrNull(nativeId: NativeId): Player? = players[nativeId]
+    fun getPlayerOrNull(nativeId: NativeId): Player? = PlayerRegistry.getPlayer(nativeId)
 }
