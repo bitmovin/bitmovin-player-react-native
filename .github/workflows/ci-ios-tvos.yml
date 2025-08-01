@@ -10,8 +10,6 @@ on:
       - 'ios/**'
       - 'ios/RNBitmovinPlayer.podspec'
       - '.swiftlint.yml'
-      - 'Brewfile.lock.json'
-      - 'example/ios/**'
       - 'example/package.json'
       - 'example/yarn.lock'
 
@@ -25,8 +23,6 @@ on:
       - 'ios/**'
       - 'ios/RNBitmovinPlayer.podspec'
       - '.swiftlint.yml'
-      - 'Brewfile.lock.json'
-      - 'example/ios/**'
       - 'example/package.json'
       - 'example/yarn.lock'
 

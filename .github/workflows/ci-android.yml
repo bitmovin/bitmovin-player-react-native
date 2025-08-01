@@ -8,7 +8,6 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - 'android/**'
-      - 'example/android/**'
       - 'example/package.json'
       - 'example/yarn.lock'
 
@@ -20,7 +19,6 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - 'android/**'
-      - 'example/android/**'
       - 'example/package.json'
       - 'example/yarn.lock'
 
