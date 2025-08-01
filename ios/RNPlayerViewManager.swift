@@ -32,6 +32,9 @@ public class RNPlayerViewManager: RCTViewManager {
                 return
             }
             let playerViewConfig = RCTConvert.rnPlayerViewConfig(view.config)
+            if let hideAdContainer = playerViewConfig?.hideAdContainer {
+                view.hideAdContainer = hideAdContainer
+            }
 
             if let userInterfaceConfig = maybeCreateUserInterfaceConfig(
                 styleConfig: player.config.styleConfig,

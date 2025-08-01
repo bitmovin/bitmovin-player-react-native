@@ -39,6 +39,8 @@ export interface PlayerViewConfig {
    * @platform Android
    */
   surfaceType?: SurfaceType;
+
+  hideAdContainer?: boolean;
 }
 
 /**

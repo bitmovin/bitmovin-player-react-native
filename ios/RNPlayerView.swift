@@ -70,6 +70,19 @@ public class RNPlayerView: UIView {
     @objc var onBmpCueExit: RCTBubblingEventBlock?
     @objc var config: [String: Any]?
 
+    private lazy var fakeAdContainer: UIView = {
+        let view = UIView(frame: .zero)
+        view.isHidden = false
+        view.backgroundColor = .clear
+        view.clipsToBounds = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.alpha = 0
+        addSubview(view)
+        return view
+    }()
+
+    var hideAdContainer = false
+
     /// The `PlayerView` subview.
     var playerView: PlayerView? {
         willSet {
@@ -80,6 +93,9 @@ public class RNPlayerView: UIView {
         }
         didSet {
             if let playerView {
+                if hideAdContainer {
+                    playerView.player?.registerAdContainer(fakeAdContainer)
+                }
                 addSubview(playerView)
             }
         }

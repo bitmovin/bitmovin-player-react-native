@@ -1244,7 +1244,8 @@ extension RCTConvert {
         return RNPlayerViewConfig(
             uiConfig: rnUiConfig(json["uiConfig"]),
             pictureInPictureConfig: pictureInPictureConfig(json["pictureInPictureConfig"]),
-            hideFirstFrame: json["hideFirstFrame"] as? Bool
+            hideFirstFrame: json["hideFirstFrame"] as? Bool,
+            hideAdContainer: json["hideAdContainer"] as? Bool
         )
     }
 
@@ -1396,6 +1397,8 @@ internal struct RNPlayerViewConfig {
      * `AdvertisingConfig` to schedule ads and not the `scheduleAd` API call.
      */
     var hideFirstFrame: Bool?
+
+    var hideAdContainer: Bool?
 }
 
 /**
