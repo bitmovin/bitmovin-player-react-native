@@ -45,7 +45,7 @@ export class PlainEventExpectation extends SingleEventExpectation {
 
 // To expect an event of a given type with a certain condition to occur.
 export class FilteredEventExpectation<
-  E extends Event
+  E extends Event,
 > extends PlainEventExpectation {
   readonly filter: (event: E) => boolean;
 

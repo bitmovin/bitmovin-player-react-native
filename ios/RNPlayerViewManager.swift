@@ -1,216 +1,102 @@
-import BitmovinPlayer
-import Foundation
+import ExpoModulesCore
 
-@objc(RNPlayerViewManager)
-public class RNPlayerViewManager: RCTViewManager {
-    /// Initialize module on main thread.
-    override public static func requiresMainQueueSetup() -> Bool {
-        true
-    }
+public class RNPlayerViewManager: Module {
+    // swiftlint:disable:next function_body_length
+    public func definition() -> ModuleDefinition {
+        Name("RNPlayerViewManager")
 
-    /// `UIView` factory function. It gets called for each `<NativePlayerView />` component
-    /// from React.
-    override public func view() -> UIView! { // swiftlint:disable:this implicitly_unwrapped_optional
-        RNPlayerView()
-    }
-
-    private var customMessageHandlerBridgeId: NativeId?
-
-    /**
-     Sets the `Player` instance for the view with `viewId` inside RN's `UIManager` registry.
-     - Parameter viewId: `RNPlayerView` id inside `UIManager`'s registry.
-     - Parameter playerId: `Player` instance id inside `PlayerModule`'s registry.
-     */
-    @objc
-    func attachPlayer(_ viewId: NSNumber, playerId: NativeId, playerConfig: NSDictionary?) {
-        bridge.uiManager.addUIBlock { [weak self] _, views in
-            guard
-                let self,
-                let view = views?[viewId] as? RNPlayerView,
-                let player = self.getPlayerModule()?.retrieve(playerId)
-            else {
-                return
-            }
-            let playerViewConfig = RCTConvert.rnPlayerViewConfig(view.config)
-
-            if let userInterfaceConfig = maybeCreateUserInterfaceConfig(
-                styleConfig: player.config.styleConfig,
-                playerViewConfig: playerViewConfig
-            ) {
-              player.config.styleConfig.userInterfaceConfig = userInterfaceConfig
-            }
-
-            let previousPictureInPictureAvailableValue: Bool
-            if let playerView = view.playerView {
-                playerView.player = player
-                previousPictureInPictureAvailableValue = playerView.isPictureInPictureAvailable
-            } else {
-                view.playerView = PlayerView(
-                    player: player,
-                    frame: view.bounds,
-                    playerViewConfig: playerViewConfig?.playerViewConfig ?? PlayerViewConfig()
+        View(RNPlayerView.self) {
+            Prop("config") { (view: RNPlayerView, playerInfo: [String: Any]?) in
+                let playerId = playerInfo?["playerId"] as? NativeId
+                let playerViewConfigWrapper = RCTConvert
+                    .rnPlayerViewConfig(playerInfo?["playerViewConfig"] as? [String: Any])
+                let customMessageHandlerBridgeId = playerInfo?["customMessageHandlerBridgeId"] as? NativeId
+                view.attachPlayer(
+                    playerId: playerId,
+                    playerViewConfigWrapper: playerViewConfigWrapper,
+                    customMessageHandlerBridgeId: customMessageHandlerBridgeId
                 )
-                previousPictureInPictureAvailableValue = false
             }
-            player.add(listener: view)
-            view.playerView?.add(listener: view)
+            Prop("scalingMode") { (view: RNPlayerView, scalingMode: String?) in
+                view.setScalingMode(scalingMode: scalingMode)
+            }
+            Prop("isFullscreenRequested") { (view: RNPlayerView, isFullscreenRequested: Bool) in
+                view.setFullscreenRequested(isFullscreen: isFullscreenRequested)
+            }
+            Prop("isPictureInPictureRequested") { (view: RNPlayerView, isPictureInPictureRequested: Bool) in
+                view.setPictureInPicture(enterPictureInPicture: isPictureInPictureRequested)
+            }
+            Prop("fullscreenBridgeId") { (view: RNPlayerView, fullscreenBridgeId: String) in
+                view.attachFullscreenBridge(fullscreenBridgeId: fullscreenBridgeId)
+            }
 
-            self.maybeEmitPictureInPictureAvailabilityEvent(
-                for: view,
-                previousState: previousPictureInPictureAvailableValue
+            Events(
+                "onBmpEvent",
+                "onBmpPlayerActive",
+                "onBmpPlayerError",
+                "onBmpPlayerWarning",
+                "onBmpDestroy",
+                "onBmpMuted",
+                "onBmpUnmuted",
+                "onBmpReady",
+                "onBmpPaused",
+                "onBmpPlay",
+                "onBmpPlaying",
+                "onBmpPlaybackFinished",
+                "onBmpSeek",
+                "onBmpSeeked",
+                "onBmpTimeShift",
+                "onBmpTimeShifted",
+                "onBmpStallStarted",
+                "onBmpStallEnded",
+                "onBmpTimeChanged",
+                "onBmpSourceLoad",
+                "onBmpSourceLoaded",
+                "onBmpSourceUnloaded",
+                "onBmpSourceError",
+                "onBmpSourceWarning",
+                "onBmpAudioAdded",
+                "onBmpAudioRemoved",
+                "onBmpAudioChanged",
+                "onBmpSubtitleAdded",
+                "onBmpSubtitleRemoved",
+                "onBmpSubtitleChanged",
+                "onBmpDownloadFinished",
+                "onBmpPictureInPictureEnter",
+                "onBmpPictureInPictureEntered",
+                "onBmpPictureInPictureExit",
+                "onBmpPictureInPictureExited",
+                "onBmpAdBreakFinished",
+                "onBmpAdBreakStarted",
+                "onBmpAdClicked",
+                "onBmpAdError",
+                "onBmpAdFinished",
+                "onBmpAdManifestLoad",
+                "onBmpAdManifestLoaded",
+                "onBmpAdQuartile",
+                "onBmpAdScheduled",
+                "onBmpAdSkipped",
+                "onBmpAdStarted",
+                "onBmpVideoDownloadQualityChanged",
+                "onBmpVideoPlaybackQualityChanged",
+                "onBmpFullscreenEnabled",
+                "onBmpFullscreenDisabled",
+                "onBmpFullscreenEnter",
+                "onBmpFullscreenExit",
+                "onBmpCastAvailable",
+                "onBmpCastPaused",
+                "onBmpCastPlaybackFinished",
+                "onBmpCastPlaying",
+                "onBmpCastStarted",
+                "onBmpCastStart",
+                "onBmpCastStopped",
+                "onBmpCastTimeUpdated",
+                "onBmpCastWaitingForDevice",
+                "onBmpPictureInPictureAvailabilityChanged",
+                "onBmpPlaybackSpeedChanged",
+                "onBmpCueEnter",
+                "onBmpCueExit"
             )
         }
-    }
-
-    private func maybeCreateUserInterfaceConfig(
-        styleConfig: StyleConfig,
-        playerViewConfig: RNPlayerViewConfig?
-    ) -> UserInterfaceConfig? {
-#if os(iOS)
-        if styleConfig.userInterfaceType == .bitmovin {
-            let bitmovinUserInterfaceConfig = styleConfig
-                .userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
-
-            if let uiConfig = playerViewConfig?.uiConfig {
-                bitmovinUserInterfaceConfig
-                    .playbackSpeedSelectionEnabled = uiConfig.playbackSpeedSelectionEnabled
-                bitmovinUserInterfaceConfig.uiManagerFactoryFunction = uiConfig.uiManagerFactoryFunction
-            }
-            if let hideFirstFrame = playerViewConfig?.hideFirstFrame {
-                bitmovinUserInterfaceConfig.hideFirstFrame = hideFirstFrame
-            }
-
-            if let customMessageHandlerBridgeId = self.customMessageHandlerBridgeId,
-               let customMessageHandlerBridge = self.bridge[CustomMessageHandlerModule.self]?
-                .retrieve(customMessageHandlerBridgeId) {
-                bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
-            }
-
-            return bitmovinUserInterfaceConfig
-        }
-#endif
-        if styleConfig.userInterfaceType == .system {
-            let systemUserInterfaceConfig = styleConfig
-                .userInterfaceConfig as? SystemUserInterfaceConfig ?? SystemUserInterfaceConfig()
-
-            if let hideFirstFrame = playerViewConfig?.hideFirstFrame {
-                systemUserInterfaceConfig.hideFirstFrame = hideFirstFrame
-            }
-
-            return systemUserInterfaceConfig
-        }
-
-        return nil
-    }
-
-    @objc
-    func attachFullscreenBridge(_ viewId: NSNumber, fullscreenBridgeId: NativeId) {
-        bridge.uiManager.addUIBlock { [weak self] _, views in
-            guard
-                let view = views?[viewId] as? RNPlayerView,
-                let fullscreenBridge = self?.getFullscreenHandlerModule()?.retrieve(fullscreenBridgeId)
-            else {
-                return
-            }
-            guard let playerView = view.playerView else {
-                return
-            }
-
-            playerView.fullscreenHandler = fullscreenBridge
-        }
-    }
-
-    @objc
-    func setCustomMessageHandlerBridgeId(_ viewId: NSNumber, customMessageHandlerBridgeId: NativeId) {
-        self.customMessageHandlerBridgeId = customMessageHandlerBridgeId
-    }
-
-    @objc
-    func setFullscreen(_ viewId: NSNumber, isFullscreen: Bool) {
-        bridge.uiManager.addUIBlock { [weak self] _, views in
-            guard
-                let self,
-                let view = views?[viewId] as? RNPlayerView,
-                let playerView = view.playerView else {
-                return
-            }
-            guard playerView.isFullscreen != isFullscreen else {
-                return
-            }
-            if isFullscreen {
-                playerView.enterFullscreen()
-            } else {
-                playerView.exitFullscreen()
-            }
-        }
-    }
-
-    @objc
-    func setPictureInPicture(_ viewId: NSNumber, enterPictureInPicture: Bool) {
-        bridge.uiManager.addUIBlock { [weak self] _, views in
-            guard
-                let self,
-                let view = views?[viewId] as? RNPlayerView,
-                let playerView = view.playerView else {
-                return
-            }
-            guard playerView.isPictureInPicture != enterPictureInPicture else {
-                return
-            }
-            if enterPictureInPicture {
-                playerView.enterPictureInPicture()
-            } else {
-                playerView.exitPictureInPicture()
-            }
-        }
-    }
-
-    @objc
-    func setScalingMode(_ viewId: NSNumber, scalingMode: String) {
-        bridge.uiManager.addUIBlock { [weak self] _, views in
-            guard
-                let self,
-                let view = views?[viewId] as? RNPlayerView
-            else {
-                return
-            }
-            guard let playerView = view.playerView else {
-                return
-            }
-            switch scalingMode {
-            case "Zoom":
-                playerView.scalingMode = .zoom
-            case "Stretch":
-                playerView.scalingMode = .stretch
-            case "Fit":
-                playerView.scalingMode = .fit
-            default:
-                break
-            }
-        }
-    }
-
-    /// Fetches the initialized `PlayerModule` instance on RN's bridge object.
-    private func getPlayerModule() -> PlayerModule? {
-        bridge.module(for: PlayerModule.self) as? PlayerModule
-    }
-
-    /// Fetches the initialized `FullscreenHandlerModule` instance on RN's bridge object.
-    private func getFullscreenHandlerModule() -> FullscreenHandlerModule? {
-        bridge.module(for: FullscreenHandlerModule.self) as? FullscreenHandlerModule
-    }
-
-    @MainActor
-    private func maybeEmitPictureInPictureAvailabilityEvent(for view: RNPlayerView, previousState: Bool) {
-        guard let playerView = view.playerView,
-              playerView.isPictureInPictureAvailable != previousState else {
-            return
-        }
-        let event: [AnyHashable: Any] = [
-            "isPictureInPictureAvailable": playerView.isPictureInPictureAvailable,
-            "name": "onPictureInPictureAvailabilityChanged",
-            "timestamp": Date().timeIntervalSince1970
-        ]
-        view.onBmpPictureInPictureAvailabilityChanged?(event)
     }
 }

@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative.offline
 
+import android.content.Context
 import com.bitmovin.player.api.deficiency.ErrorEvent
 import com.bitmovin.player.api.offline.OfflineContentManager
 import com.bitmovin.player.api.offline.OfflineContentManagerListener
@@ -9,15 +10,13 @@ import com.bitmovin.player.api.offline.options.OfflineOptionEntryAction
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.reactnative.NativeId
+import com.bitmovin.player.reactnative.OfflineModule
 import com.bitmovin.player.reactnative.converter.toJson
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.WritableMap
-import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 
 class OfflineContentManagerBridge(
     private val nativeId: NativeId,
-    private val context: ReactApplicationContext,
+    context: Context,
+    private val offlineModule: OfflineModule,
     private val identifier: String,
     source: SourceConfig,
     location: String,
@@ -58,8 +57,7 @@ class OfflineContentManagerBridge(
      */
     fun process(request: OfflineDownloadRequest) {
         if (contentOptions != null) {
-            val sortedVideoOptions = contentOptions!!.videoOptions
-                .sortedBy { option -> option.bitrate }
+            val sortedVideoOptions = contentOptions!!.videoOptions.sortedBy { option -> option.bitrate }
             if (request.minimumBitrate == null) {
                 sortedVideoOptions.lastOrNull()
             } else {
@@ -135,8 +133,7 @@ class OfflineContentManagerBridge(
         options?.videoOptions?.let { allOptions.addAll(it) }
         options?.audioOptions?.let { allOptions.addAll(it) }
         options?.textOptions?.let { allOptions.addAll(it) }
-        val trackableStates =
-            listOf(OfflineOptionEntryState.Suspended, OfflineOptionEntryState.Downloading)
+        val trackableStates = listOf(OfflineOptionEntryState.Suspended, OfflineOptionEntryState.Downloading)
 
         var state = allOptions.firstOrNull { trackableStates.contains(it.state) }?.state
 
@@ -147,86 +144,57 @@ class OfflineContentManagerBridge(
         return state ?: OfflineOptionEntryState.NotDownloaded
     }
 
-    /**
-     * Called when a process call has completed.
-     */
     override fun onCompleted(source: SourceConfig, options: OfflineContentOptions) {
         this.contentOptions = options
         sendEvent(
             OfflineEventType.ON_COMPLETED,
-            Arguments.createMap().apply {
-                putMap("options", options.toJson())
-            },
+            mapOf("options" to options.toJson()),
         )
     }
 
-    /**
-     * Called when an error occurs.
-     */
     override fun onError(source: SourceConfig, event: ErrorEvent) {
         sendEvent(
             OfflineEventType.ON_ERROR,
-            Arguments.createMap().apply {
-                putInt("code", event.code.value)
-                putString("message", event.message)
-            },
+            mapOf(
+                "code" to event.code.value,
+                "message" to event.message,
+            ),
         )
     }
 
-    /**
-     * Called when the progress for a process call changes.
-     */
     override fun onProgress(source: SourceConfig, progress: Float) {
         sendEvent(
             OfflineEventType.ON_PROGRESS,
-            Arguments.createMap().apply {
-                putDouble("progress", progress.toDouble())
-            },
+            mapOf("progress" to progress.toDouble()),
         )
     }
 
-    /**
-     * Called after a getOptions or when am OfflineOptionEntry has been updated during a process call.
-     */
     override fun onOptionsAvailable(source: SourceConfig, options: OfflineContentOptions) {
         this.contentOptions = options
         sendEvent(
             OfflineEventType.ON_OPTIONS_AVAILABLE,
-            Arguments.createMap().apply {
-                putMap("options", options.toJson())
-            },
+            mapOf("options" to options.toJson()),
         )
     }
 
-    /**
-     * Called when the DRM license was updated.
-     */
     override fun onDrmLicenseUpdated(source: SourceConfig) {
         sendEvent(OfflineEventType.ON_DRM_LICENSE_UPDATED)
     }
 
-    /**
-     * Called when all actions have been suspended.
-     */
     override fun onSuspended(source: SourceConfig) {
         sendEvent(OfflineEventType.ON_SUSPENDED)
     }
 
-    /**
-     * Called when all actions have been resumed.
-     */
     override fun onResumed(source: SourceConfig) {
         sendEvent(OfflineEventType.ON_RESUMED)
     }
 
-    private fun sendEvent(eventType: OfflineEventType, event: WritableMap = Arguments.createMap()) {
-        event.putString("nativeId", nativeId)
-        event.putString("identifier", identifier)
-        event.putString("eventType", eventType.eventName)
-        event.putString("state", aggregateState(contentOptions).name)
-        context.rtcDeviceEventEmitter.emit("BitmovinOfflineEvent", event)
+    private fun sendEvent(eventType: OfflineEventType, event: Map<String, Any> = mapOf()) {
+        val mutableEvent = event.toMutableMap()
+        mutableEvent["nativeId"] = nativeId
+        mutableEvent["identifier"] = identifier
+        mutableEvent["eventType"] = eventType.eventName
+        mutableEvent["state"] = aggregateState(contentOptions).name
+        offlineModule.sendEvent("onBitmovinOfflineEvent", mutableEvent)
     }
 }
-
-val ReactApplicationContext.rtcDeviceEventEmitter: RCTDeviceEventEmitter
-    get() = getJSModule(RCTDeviceEventEmitter::class.java)

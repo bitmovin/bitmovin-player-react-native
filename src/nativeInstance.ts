@@ -1,6 +1,4 @@
-import { NativeModules } from 'react-native';
-
-const Uuid = NativeModules.UuidModule;
+import * as Crypto from 'expo-crypto';
 
 export interface NativeInstanceConfig {
   /**
@@ -20,7 +18,7 @@ export interface NativeInstanceConfig {
 }
 
 export default abstract class NativeInstance<
-  Config extends NativeInstanceConfig
+  Config extends NativeInstanceConfig,
 > {
   /**
    * Optionally user-defined string `id` for the native instance, or UUIDv4.
@@ -37,7 +35,7 @@ export default abstract class NativeInstance<
    */
   constructor(config?: Config) {
     this.config = config;
-    this.nativeId = config?.nativeId ?? Uuid.generate();
+    this.nativeId = config?.nativeId ?? Crypto.randomUUID();
   }
 
   /**

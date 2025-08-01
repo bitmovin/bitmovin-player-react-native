@@ -1,6 +1,6 @@
-import { NativeModules } from 'react-native';
-import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
+import { EventSubscription } from 'expo-modules-core';
 import NativeInstance from '../nativeInstance';
+import NetworkModule from './networkModule';
 import {
   HttpRequestType,
   HttpRequest,
@@ -8,10 +8,7 @@ import {
   NetworkConfig,
 } from './networkConfig';
 
-// Export config types from Network module.
 export { HttpRequestType, HttpRequest, HttpResponse, NetworkConfig };
-
-const NetworkModule = NativeModules.NetworkModule;
 
 /**
  * Represents a native Network configuration object.
@@ -27,16 +24,42 @@ export class Network extends NativeInstance<NetworkConfig> {
    */
   isDestroyed = false;
 
+  private onPreprocessHttpRequestSubscription?: EventSubscription;
+  private onPreprocessHttpResponseSubscription?: EventSubscription;
+
   /**
    * Allocates the Network config instance and its resources natively.
    */
-  initialize = () => {
+  initialize = async () => {
     if (!this.isInitialized) {
-      // Register this object as a callable module so it's possible to
-      // call functions on it from native code, e.g `onPreprocessHttpResponse`.
-      BatchedBridge.registerCallableModule(`Network-${this.nativeId}`, this);
-      // Create native configuration object.
-      NetworkModule.initWithConfig(this.nativeId, this.config);
+      console.log('Initializing Network config:', this.nativeId);
+      // Set up event listeners for HTTP request/response preprocessing
+      this.onPreprocessHttpRequestSubscription = NetworkModule.addListener(
+        'onPreprocessHttpRequest',
+        ({ nativeId, requestId, type, request }) => {
+          console.log(`Received HTTP Request [${type}]:`, request);
+          if (nativeId !== this.nativeId) {
+            return;
+          }
+          this.onPreprocessHttpRequest(requestId, type, request);
+        }
+      );
+
+      this.onPreprocessHttpResponseSubscription = NetworkModule.addListener(
+        'onPreprocessHttpResponse',
+        ({ nativeId, responseId, type, response }) => {
+          console.log(`Received HTTP Response [${type}]:`, response);
+          if (nativeId !== this.nativeId) {
+            return;
+          }
+          this.onPreprocessHttpResponse(responseId, type, response);
+        }
+      );
+
+      // Create native configuration object using Expo module
+      if (this.config) {
+        await NetworkModule.initializeWithConfig(this.nativeId, this.config);
+      }
       this.isInitialized = true;
     }
   };
@@ -44,9 +67,13 @@ export class Network extends NativeInstance<NetworkConfig> {
   /**
    * Destroys the native Network config and releases all of its allocated resources.
    */
-  destroy = () => {
+  destroy = async () => {
     if (!this.isDestroyed) {
-      NetworkModule.destroy(this.nativeId);
+      await NetworkModule.destroy(this.nativeId);
+      this.onPreprocessHttpRequestSubscription?.remove();
+      this.onPreprocessHttpResponseSubscription?.remove();
+      this.onPreprocessHttpRequestSubscription = undefined;
+      this.onPreprocessHttpResponseSubscription = undefined;
       this.isDestroyed = true;
     }
   };
@@ -61,7 +88,7 @@ export class Network extends NativeInstance<NetworkConfig> {
    * @param type Type of the request to be made.
    * @param request The HTTP request to process.
    */
-  onPreprocessHttpRequest = (
+  private onPreprocessHttpRequest = (
     requestId: string,
     type: HttpRequestType,
     request: HttpRequest
@@ -86,7 +113,7 @@ export class Network extends NativeInstance<NetworkConfig> {
    * @param type Type of the request to be made.
    * @param response The HTTP response to process.
    */
-  onPreprocessHttpResponse = (
+  private onPreprocessHttpResponse = (
     responseId: string,
     type: HttpRequestType,
     response: HttpResponse

@@ -9,5 +9,15 @@
   "includeVersion": true,
   "entryPoints": ["./src"],
   "exclude": ["./example/**/*", "./integration_test/**/*"],
-  "treatWarningsAsErrors": true
+  "treatWarningsAsErrors": true,
+  "blockTags": [
+    "@platform",
+    "@remarks",
+    "@see",
+    "@param",
+    "@returns",
+    "@example",
+    "@deprecated",
+    "@defaultValue"
+  ]
 }

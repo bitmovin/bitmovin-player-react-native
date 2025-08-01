@@ -3,7 +3,7 @@ import { NativeInstanceConfig } from '../nativeInstance';
 /**
  * Configures the playback behaviour of the player.
  *
- * @platform Android
+ * @remarks Platform: Android
  */
 export interface DecoderConfig extends NativeInstanceConfig {
   /**
@@ -77,7 +77,7 @@ export interface DecoderConfig extends NativeInstanceConfig {
  * Can be set on the `DecoderConfig.decoderPriorityProvider` to override the default decoder selection logic.
  * See {@link DecoderConfig#decoderPriorityProvider} for more details
  *
- * @platform Android
+ * @remarks Platform: Android
  * */
 export interface DecoderPriorityProvider {
   overrideDecodersPriority: (
@@ -93,7 +93,7 @@ export interface DecoderContext {
 }
 
 export interface MediaCodecInfo {
-  name: String;
+  name: string;
   isSoftware: boolean;
 }
 

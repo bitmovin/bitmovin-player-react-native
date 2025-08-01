@@ -1,7 +1,5 @@
-import { NativeModules } from 'react-native';
 import { CustomDataConfig } from './config';
-
-const PlayerAnalyticsModule = NativeModules.PlayerAnalyticsModule;
+import PlayerAnalyticsModule from './playerAnalyticsModule';
 
 /**
  * Provides the means to control the analytics collected by a `Player`.
@@ -21,8 +19,8 @@ export class AnalyticsApi {
    * Sends a sample with the provided custom data.
    * Does not change the configured custom data of the collector or source.
    */
-  sendCustomDataEvent = (customData: CustomDataConfig) => {
-    PlayerAnalyticsModule.sendCustomDataEvent(this.playerId, customData);
+  sendCustomDataEvent = async (customData: CustomDataConfig) => {
+    await PlayerAnalyticsModule.sendCustomDataEvent(this.playerId, customData);
   };
 
   /**
@@ -30,7 +28,7 @@ export class AnalyticsApi {
    *
    * @returns The current user id.
    */
-  getUserId = async (): Promise<string> => {
+  getUserId = async (): Promise<string | null> => {
     return PlayerAnalyticsModule.getUserId(this.playerId);
   };
 }
