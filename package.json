@@ -32,7 +32,7 @@
     "brew": "[ \"$(uname)\" != Darwin ] || brew bundle install",
     "docs": "typedoc",
     "pods": "yarn example pods #&& yarn integration-test pods",
-    "bootstrap": "yarn brew && yarn build && yarn example bootstrap && yarn integration-test bootstrap && yarn setup-hooks",
+    "bootstrap": "yarn install && yarn brew && yarn build && yarn example bootstrap && yarn integration-test bootstrap && yarn setup-hooks",
     "integration-test": "yarn --cwd integration_test"
   },
   "keywords": [
