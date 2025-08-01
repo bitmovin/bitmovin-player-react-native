@@ -93,10 +93,10 @@ export function PlayerView({
   }, [player, fullscreenBridge, customMessageHandlerBridge]);
 
   useEffect(() => {
-    if (viewRef) {
+    if (isPlayerInitialized && viewRef) {
       viewRef.current = nativeView.current;
     }
-  }, [viewRef, nativeView]);
+  }, [isPlayerInitialized, viewRef, nativeView]);
 
   if (!isPlayerInitialized) {
     return null;
