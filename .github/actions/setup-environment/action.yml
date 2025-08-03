@@ -71,7 +71,7 @@ runs:
     - uses: maxim-lobanov/setup-xcode@v1
       if: ${{ inputs.ios == 'true' }}
       with:
-        xcode-version: '15.4'
+        xcode-version: '16.4'
 
     - name: Install dependencies
       if: ${{ inputs.ios == 'true' || inputs.brew == 'true' }}
