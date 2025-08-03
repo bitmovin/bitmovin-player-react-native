@@ -6,8 +6,8 @@ set -e
 
 ARGS=$@
 
-xcodebuild -workspace ios/IntegrationTest.xcworkspace \
-    -scheme IntegrationTest \
+xcodebuild -workspace ios/BitmovinPlayerReactNativeExample.xcworkspace \
+    -scheme BitmovinPlayerReactNativeExample \
     -configuration Debug \
     -destination 'generic/platform=iOS Simulator' \
     -quiet | xcbeautify -qq --disable-logging $ARGS
