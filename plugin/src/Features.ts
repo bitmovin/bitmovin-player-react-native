@@ -1,4 +1,4 @@
-export default interface FeatureFlags {
+export default interface Features {
   airPlay?: boolean;
   backgroundPlayback?: boolean;
   googleCastSDK?: {

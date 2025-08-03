@@ -24,12 +24,18 @@ To play back a custom video asset, it is possible to set up a simple playback se
 
 ## Getting started
 
-To get started with the project, run `yarn bootstrap` in the library's root directory (not `example/`). This will install dependencies for both the library and the example application (as well as native dependencies):
+To get started with the project, run `yarn bootstrap` in the library's root directory (not `example/`). This command handles all setup steps automatically, including installing dependencies for both the library and the example application, generating native projects, and installing native dependencies:
 
 ```sh
 cd bitmovin-player-react-native # Go to library's root directory
-yarn bootstrap # Install all dependencies
+yarn bootstrap # Handles all setup: installs deps, prebuilds native projects, installs pods
 ```
+
+The `yarn bootstrap` command executes the following steps:
+1. Installs root project dependencies
+2. Installs example app dependencies
+3. Generates native iOS and Android projects using Expo prebuild
+4. Installs CocoaPods dependencies for iOS (macOS only)
 
 Note that Windows users should instead run:
 
@@ -37,6 +43,7 @@ Note that Windows users should instead run:
 cd bitmovin-player-react-native # Go to library's root directory
 yarn install # Install root project dependencies
 yarn example install # Install example folder dependencies
+yarn example prebuild # Generate native projects
 ```
 
 ## Development Setup

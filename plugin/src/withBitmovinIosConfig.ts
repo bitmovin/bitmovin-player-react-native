@@ -3,13 +3,13 @@ import {
   withInfoPlist,
   withPodfileProperties,
 } from 'expo/config-plugins';
-import FeatureFlags from './FeatureFlags';
+import Features from './Features';
 
 const isTV = !!process.env.EXPO_TV;
 
 const withBitmovinIosConfig: ConfigPlugin<{
   playerLicenseKey: string;
-  features: FeatureFlags;
+  features: Features;
 }> = (config, { playerLicenseKey, features }) => {
   const offlineFeatureConfig =
     typeof features.offline === 'object'

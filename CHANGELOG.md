@@ -1,5 +1,22 @@
 # Changelog
 
+## [Unreleased]
+
+### Breaking Change
+
+- Introduction of Expo SDK support. Upgrading requires following the [Migration Guide](https://developer.bitmovin.com/playback/docs/react-native-migrating-to-v1).
+
+### Added
+
+- Expo Config Plugin to manage native configuration from `app.config.ts`.
+- Automatic configuration for Google Cast, Offline, Picture-in-Picture, AirPlay, and Background Playback through Expo plugin.
+
+### Changed
+
+- Minimum iOS/tvOS version is now 15.1+ (was 14.0+).
+- Minimum Android SDK version is now 24 (was 21).
+- Native setup is now automated through Expo SDK - manual configuration is no longer required for v1.0.0+.
+
 ## [0.44.0] - 2025-07-25
 
 ### Changed

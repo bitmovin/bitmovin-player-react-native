@@ -1,9 +1,9 @@
 import { ConfigPlugin } from 'expo/config-plugins';
 import withBitmovinIosConfig from './withBitmovinIosConfig';
-import FeatureFlags from './FeatureFlags';
+import Features from './Features';
 import withBitmovinAndroidConfig from './withBitmovinAndroidConfig';
 
-const defaultFeatureFlags: FeatureFlags = {
+const defaultFeatureFlags: Features = {
   airPlay: false,
   backgroundPlayback: false,
   googleCastSDK: undefined,
@@ -41,7 +41,7 @@ const defaultFeatureFlags: FeatureFlags = {
  */
 const withBitmovinConfig: ConfigPlugin<{
   playerLicenseKey: string;
-  featureFlags: FeatureFlags;
+  featureFlags: Features;
 }> = (config, { playerLicenseKey, featureFlags }) => {
   const features = { ...defaultFeatureFlags, ...(featureFlags || {}) };
   config = withBitmovinIosConfig(config, { playerLicenseKey, features });

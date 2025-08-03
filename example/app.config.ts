@@ -85,7 +85,7 @@ const config: ExpoConfig = {
       '../app.plugin.js',
       {
         playerLicenseKey: BITMOVIN_PLAYER_LICENSE_KEY,
-        featureFlags: {
+        features: {
           airPlay: true,
           backgroundPlayback: true,
           googleCastSDK: { android: '21.3.0', ios: '4.8.1.2' },

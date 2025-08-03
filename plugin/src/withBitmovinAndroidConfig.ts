@@ -4,14 +4,14 @@ import {
   withAndroidManifest,
   withGradleProperties,
 } from 'expo/config-plugins';
-import FeatureFlags from './FeatureFlags';
+import Features from './Features';
 import withAppGradleDependencies from './withAppGradleDependencies';
 
 type ManifestActivity = AndroidConfig.Manifest.ManifestActivity;
 
 const withBitmovinAndroidConfig: ConfigPlugin<{
   playerLicenseKey: string;
-  features: FeatureFlags;
+  features: Features;
 }> = (config, { playerLicenseKey, features }) => {
   const offlineFeatureConfig =
     typeof features.offline === 'object'
