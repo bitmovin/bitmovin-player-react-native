@@ -8,6 +8,7 @@
 
 ### Added
 
+- React Native New Architecture Support
 - Expo Config Plugin to manage native configuration from `app.config.ts`.
 - Automatic configuration for Google Cast, Offline, Picture-in-Picture, AirPlay, and Background Playback through Expo plugin.
 
