@@ -61,31 +61,6 @@ jobs:
           subprojects: true
           ios: true
 
-      - name: Restore Pods cache
-        id: pods-cache-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
-          restore-keys: pods-
-
-      - name: Install pods
-        run: yarn pods
-        env:
-          CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
-
-      - name: Save Pods cache
-        if: steps.pods-cache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-            integration_test/ios/Pods
-          key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
-
       - name: Build iOS example
         run: yarn example build:ios --renderer github-actions
         env:
@@ -109,31 +84,6 @@ jobs:
           node: true
           subprojects: true
           ios: true
-
-      - name: Restore Pods cache
-        id: pods-cache-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
-          restore-keys: pods-
-
-      - name: Install pods
-        run: yarn example pods
-        env:
-          CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
-
-      - name: Save Pods cache
-        if: steps.pods-cache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-            integration_test/ios/Pods
-          key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
 
       - name: Prebuild tvOS example
         run: yarn example prebuild:tv --clean

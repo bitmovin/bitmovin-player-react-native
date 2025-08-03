@@ -50,34 +50,11 @@ jobs:
           brew: true
           subprojects: true
 
-      - name: Restore Pods cache
-        if: ${{ inputs.sdk_name == 'ios' }}
-        id: pods-cache-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
-          restore-keys: pods-
-
       - name: Bump iOS player SDK version
         if: ${{ inputs.sdk_name == 'ios' }}
         run: |
           sed -i '' 's/s.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' ios/RNBitmovinPlayer.podspec
           yarn bootstrap
-        env:
-          CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
-
-      - name: Save Pods cache
-        if: ${{ inputs.sdk_name == 'ios' && steps.pods-cache-restore.outputs.cache-hit != 'true' }}
-        uses: actions/cache/save@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-            integration_test/ios/Pods
-          key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
 
       - name: Bump Android player SDK version
         if: ${{ inputs.sdk_name == 'android' }}
