@@ -47,7 +47,8 @@ To edit the Kotlin files, open Android Studio via `yarn example open:android` an
 
 ## Development setup
 
-See the relevant [`example/README`](example/README.md#development-setup) section.
+For the Example app, see the relevant [`example/README`](example/README.md#development-setup) section.
+For the integration tests, see the relevant [`integration_test/README`](README.md#2-environment-configuration) section.
 
 ## TypeScript Code Style
 
