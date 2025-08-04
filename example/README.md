@@ -126,3 +126,9 @@ This example app is built as an Expo application using:
 - **Expo SDK**: Modern React Native development with prebuild workflow
 - **Bitmovin Player React Native SDK**: Directly from the root project
 - **Environment Configuration**: Secure license key management via dotenv
+
+# Troubleshooting
+
+- Run `yarn example prebuild --clean`, `yarn example prebuild:tv --clean` or `yarn integration-test prebuild --clean` if you encounter native build issues
+- Check `example/.env` and `integration_test/.env` file configurations for missing environment variables
+- Ensure autolinking is working: parent package should be resolved automatically
