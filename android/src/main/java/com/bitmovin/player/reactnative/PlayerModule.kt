@@ -1,7 +1,10 @@
 package com.bitmovin.player.reactnative
 
 import android.util.Log
+import android.view.ViewGroup // added for IMA
+import androidx.core.view.get // added for IMA
 import com.bitmovin.analytics.api.DefaultMetadata
+import com.bitmovin.media3.ui.PlayerView // added for IMA
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.analytics.create
@@ -32,6 +35,8 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      * JS exported module name.
      */
     override fun getName() = MODULE_NAME
+
+    private var adsWrapper: IMAAdsWrapper? = null // added for IMA
 
     /**
      * Fetches the `Player` instance associated with [nativeId] from the internal players.
@@ -126,7 +131,31 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         if (enableMediaSession) {
             mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
         }
+
+            /* --- Added for IMA --- */
+        val playerView = PlayerView(reactApplicationContext)[0]
+        adsWrapper = IMAAdsWrapper(
+            reactApplicationContext,
+            getPlayerOrNull(nativeId),
+            playerView as ViewGroup? as ViewGroup,
+        )
+        /* --- Added for IMA --- */
     }
+
+    /* --- Added for IMA --- */
+    /**
+     * Uses IMAAdsWrapper to load the stream from the IMA SDK
+     * @param assetId AssetID of live stream
+     * @param fallbackUrl URL to load as a backup to SDK provided stream
+     * */
+    @ReactMethod
+    fun loadDaiStream(assetId: String, fallbackUrl: String, promise: Promise) {
+        promise.unit.resolveOnUiThread {
+            adsWrapper?.setFallbackUrl(fallbackUrl)
+            adsWrapper?.requestAndLoadStream(assetId)
+        }
+    }
+    /* --- Added for IMA --- */
 
     /**
      * Load the source of the given [nativeId] with `config` options from JS.
@@ -175,12 +204,16 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
 
     /**
      * Call `.play()` on [nativeId]'s player.
+     * Invoke callback for IMA SDK
      * @param nativeId Target player Id.
      */
     @ReactMethod
     fun play(nativeId: NativeId, promise: Promise) {
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
             play()
+            /* --- Added for IMA --- */
+            adsWrapper?.playerCallbacks?.forEach { it.onResume() }
+            /* --- Added for IMA --- */
         }
     }
 
@@ -192,6 +225,9 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     fun pause(nativeId: NativeId, promise: Promise) {
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
             pause()
+            /* --- Added for IMA --- */
+            adsWrapper?.playerCallbacks?.forEach { it.onPause() }
+            /* --- Added for IMA --- */
         }
     }
 

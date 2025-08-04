@@ -127,6 +127,11 @@ export class Player extends NativeInstance<PlayerConfig> {
     PlayerModule.loadSource(this.nativeId, source.nativeId);
   };
 
+  loadDaiStream = (assetId: string, fallbackUrl: string) => {
+    PlayerModule.loadDaiStream(assetId, fallbackUrl);
+    // TODO: get somehow a source object from the native side once player loading starts based on SourceConfig
+  };
+
   /**
    * Unloads all {@link Source}s from the player.
    */
