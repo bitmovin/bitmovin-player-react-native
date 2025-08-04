@@ -2,247 +2,193 @@ package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.reactnative.converter.toSourceConfig
-import com.bitmovin.player.reactnative.extensions.drmModule
-import com.bitmovin.player.reactnative.extensions.getIntOrNull
-import com.bitmovin.player.reactnative.extensions.getStringArray
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
-import com.facebook.react.bridge.*
-import com.facebook.react.module.annotations.ReactModule
+import expo.modules.kotlin.exception.CodedException
+import expo.modules.kotlin.modules.Module
+import expo.modules.kotlin.modules.ModuleDefinition
 import java.security.InvalidParameterException
 
-private const val OFFLINE_MODULE = "BitmovinOfflineModule"
-
-@ReactModule(name = OFFLINE_MODULE)
-class OfflineModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
+class OfflineModule : Module() {
 
     /**
-     * In-memory mapping from `nativeId`s to `OfflineManager` instances.
+     * In-memory mapping from `nativeId`s to `OfflineContentManagerBridge` instances.
+     * This must match the Registry pattern from legacy OfflineModule
      */
     private val offlineContentManagerBridges: Registry<OfflineContentManagerBridge> = mutableMapOf()
 
-    /**
-     * JS exported module name.
-     */
-    override fun getName() = OFFLINE_MODULE
+    override fun definition() = ModuleDefinition {
+        Name("OfflineModule")
 
-    /**
-     * Fetches the `OfflineManager` instance associated with `nativeId` from the internal offline managers.
-     */
-    fun getOfflineContentManagerBridgeOrNull(
-        nativeId: NativeId,
-    ): OfflineContentManagerBridge? = offlineContentManagerBridges[nativeId]
+        Events("onBitmovinOfflineEvent")
 
-    private fun RejectPromiseOnExceptionBlock.getOfflineContentManagerBridge(
-        nativeId: NativeId,
-    ): OfflineContentManagerBridge = offlineContentManagerBridges[nativeId]
-        ?: throw IllegalArgumentException("No offline content manager bridge for id $nativeId")
+        OnCreate {
+            // Module initialization
+        }
 
-    /**
-     * Callback when a new NativeEventEmitter is created from the Typescript layer.
-     */
-    @ReactMethod
-    fun addListener(eventName: String?) {
-        // NO-OP
-    }
+        OnDestroy {
+            // Clean up offline content managers
+            offlineContentManagerBridges.clear()
+        }
 
-    /**
-     * Callback when a NativeEventEmitter is removed from the Typescript layer.
-     */
-    @ReactMethod
-    fun removeListeners(count: Int?) {
-        // NO-OP
-    }
-
-    /**
-     * Creates a new `OfflineManager` instance inside the internal offline managers using the provided `config` object.
-     * @param config `ReadableMap` object received from JS.  Should contain a sourceConfig and location.
-     */
-    @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap?, drmNativeId: NativeId?, promise: Promise) {
-        promise.unit.resolveOnUiThread {
+        AsyncFunction("initializeWithConfig") { nativeId: NativeId, config: Map<String, Any?>?, drmNativeId: NativeId? ->
             if (offlineContentManagerBridges.containsKey(nativeId)) {
-                throw InvalidParameterException("content manager bridge id already exists: $nativeId")
+                throw OfflineException.ManagerAlreadyExists(nativeId)
             }
-            val identifier = config?.getString("identifier")
-                ?.takeIf { it.isNotEmpty() } ?: throw IllegalArgumentException("invalid identifier")
 
-            val sourceConfig = config.getMap("sourceConfig")?.toSourceConfig()
-                ?: throw IllegalArgumentException("Invalid source config")
+            val identifier = config?.get("identifier") as? String
+                ?: throw OfflineException.InvalidIdentifier()
 
-            sourceConfig.drmConfig = context.drmModule?.getConfig(drmNativeId)
+            val sourceConfig = (config["sourceConfig"] as? Map<String, Any?>)?.toSourceConfig()
+                ?: throw OfflineException.InvalidSourceConfig()
+
+            // Get DRM config from DrmModule if available
+            sourceConfig.drmConfig = appContext.registry.getModule<DrmModule>()?.getConfig(drmNativeId)
+
+            val context = appContext.reactContext
+                ?: throw InvalidParameterException("ReactApplicationContext is not available")
 
             offlineContentManagerBridges[nativeId] = OfflineContentManagerBridge(
                 nativeId,
                 context,
+                this@OfflineModule,
                 identifier,
                 sourceConfig,
-                context.cacheDir.path,
+                appContext.cacheDirectory.path,
             )
         }
-    }
 
-    @ReactMethod
-    fun getState(nativeId: NativeId, promise: Promise) {
-        promise.string.resolveWithBridge(nativeId) {
-            state.name
+        /**
+         * Gets the current state of the `OfflineContentManager`
+         */
+        AsyncFunction("getState") { nativeId: NativeId ->
+            getOfflineContentManagerBridge(nativeId).state.name
         }
-    }
 
-    /**
-     * Starts the `OfflineContentManager`'s asynchronous process of fetching the `OfflineContentOptions`.
-     * When the options are loaded a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onOptionsAvailable`.
-     * @param nativeId Target offline manager.
-     */
-    @ReactMethod
-    fun getOptions(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveWithBridge(nativeId) {
-            getOptions()
+        /**
+         * Starts the `OfflineContentManager`'s asynchronous process of fetching the `OfflineContentOptions`.
+         * When the options are loaded a device event will be fired where the event type is `BitmovinOfflineEvent` * and the data has an event type of `onOptionsAvailable`.
+         */
+        AsyncFunction("getOptions") { nativeId: NativeId ->
+            getOfflineContentManagerBridge(nativeId).getOptions()
         }
-    }
 
-    /**
-     * Enqueues downloads according to the `OfflineDownloadRequest`.
-     * The promise will reject in the event of null or invalid request parameters.
-     * The promise will reject an `IllegalOperationException` when selecting an `OfflineOptionEntry` to download that is not compatible with the current state.
-     * @param nativeId Target offline manager.
-     * @param request `ReadableMap` that contains the `OfflineManager.OfflineOptionType`, id, and `OfflineOptionEntryAction` necessary to set the new action.
-     */
-    @ReactMethod
-    fun download(nativeId: NativeId, request: ReadableMap, promise: Promise) {
-        promise.unit.resolveWithBridge(nativeId) {
-            when (state) {
-                OfflineOptionEntryState.Downloaded -> throw IllegalStateException("Download already completed")
-                OfflineOptionEntryState.Downloading, OfflineOptionEntryState.Failed -> throw IllegalStateException(
-                    "Download already in progress",
-                )
-                OfflineOptionEntryState.Suspended -> throw IllegalStateException("Download is suspended")
+        /**
+         * Enqueues downloads according to the `OfflineDownloadRequest`.
+         * The promise will reject in the event of null or invalid request parameters.
+         */
+        AsyncFunction("download") { nativeId: NativeId, request: Map<String, Any?> ->
+            val bridge = getOfflineContentManagerBridge(nativeId)
+
+            when (bridge.state) {
+                OfflineOptionEntryState.Downloaded -> throw OfflineException.DownloadAlreadyCompleted()
+                OfflineOptionEntryState.Downloading, OfflineOptionEntryState.Failed ->
+                    throw OfflineException.DownloadInProgress()
+                OfflineOptionEntryState.Suspended -> throw OfflineException.DownloadSuspended()
                 else -> {}
             }
-            val minimumBitRate = request.getIntOrNull("minimumBitrate")?.also {
-                if (it < 0) throw IllegalArgumentException("Invalid download request")
+
+            val minimumBitRate = request["minimumBitrate"] as? Int
+            if (minimumBitRate != null && minimumBitRate < 0) {
+                throw OfflineException.InvalidRequest()
             }
-            val audioOptionIds = request.getStringArray("audioOptionIds")?.filterNotNull()
-            val textOptionIds = request.getStringArray("textOptionIds")?.filterNotNull()
 
-            process(OfflineDownloadRequest(minimumBitRate, audioOptionIds, textOptionIds))
+            val audioOptionIds = (request["audioOptionIds"] as? List<*>)?.filterIsInstance<String>()
+            val textOptionIds = (request["textOptionIds"] as? List<*>)?.filterIsInstance<String>()
+
+            bridge.process(OfflineDownloadRequest(minimumBitRate, audioOptionIds, textOptionIds))
         }
-    }
 
-    /**
-     * Resumes all suspended actions.
-     * @param nativeId Target offline manager.
-     */
-    @ReactMethod
-    fun resume(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveWithBridge(nativeId) {
-            resume()
+        /**
+         * Resumes all suspended actions.
+         */
+        AsyncFunction("resume") { nativeId: NativeId ->
+            getOfflineContentManagerBridge(nativeId).resume()
         }
-    }
 
-    /**
-     * Suspends all active actions.
-     * @param nativeId Target offline manager.
-     */
-    @ReactMethod
-    fun suspend(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveWithBridge(nativeId) {
-            suspend()
+        /**
+         * Suspends all active actions.
+         */
+        AsyncFunction("suspend") { nativeId: NativeId ->
+            getOfflineContentManagerBridge(nativeId).suspend()
         }
-    }
 
-    /**
-     * Cancels and deletes the current download.
-     * @param nativeId Target offline manager.
-     */
-    @ReactMethod
-    fun cancelDownload(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveWithBridge(nativeId) {
-            cancelDownload()
+        /**
+         * Cancels and deletes the current download.
+         */
+        AsyncFunction("cancelDownload") { nativeId: NativeId ->
+            getOfflineContentManagerBridge(nativeId).cancelDownload()
         }
-    }
 
-    /**
-     * Resolve `nativeId`'s current `usedStorage`.
-     * @param nativeId Target offline manager.
-     */
-    @ReactMethod
-    fun usedStorage(nativeId: NativeId, promise: Promise) {
-        promise.double.resolveWithBridge(nativeId) {
-            offlineContentManager.usedStorage.toDouble()
+        /**
+         * Resolve `nativeId`'s current `usedStorage`.
+         */
+        AsyncFunction("usedStorage") { nativeId: NativeId ->
+            getOfflineContentManagerBridge(nativeId).offlineContentManager.usedStorage.toDouble()
         }
-    }
 
-    /**
-     * Deletes everything related to the related content ID.
-     * @param nativeId Target offline manager.
-     */
-    @ReactMethod
-    fun deleteAll(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveWithBridge(nativeId) {
-            deleteAll()
+        /**
+         * Deletes everything related to the related content ID.
+         */
+        AsyncFunction("deleteAll") { nativeId: NativeId ->
+            getOfflineContentManagerBridge(nativeId).deleteAll()
         }
-    }
 
-    /**
-     * Downloads the offline license.
-     * When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onDrmLicenseUpdated`.
-     * Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onError`.
-     * @param nativeId Target offline manager.
-     */
-    @ReactMethod
-    fun downloadLicense(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveWithBridge(nativeId) {
-            downloadLicense()
+        /**
+         * Downloads the offline license.
+         * When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` * and the data has an event type of `onDrmLicenseUpdated`.
+         */
+        AsyncFunction("downloadLicense") { nativeId: NativeId ->
+            getOfflineContentManagerBridge(nativeId).downloadLicense()
         }
-    }
 
-    /**
-     * Releases the currently held offline license.
-     * When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onDrmLicenseUpdated`.
-     * Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onError`.
-     * @param nativeId Target offline manager.
-     */
-    @ReactMethod
-    fun releaseLicense(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveWithBridge(nativeId) {
-            releaseLicense()
+        /**
+         * Releases the currently held offline license.
+         * When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` * and the data has an event type of `onDrmLicenseUpdated`.
+         */
+        AsyncFunction("releaseLicense") { nativeId: NativeId ->
+            getOfflineContentManagerBridge(nativeId).releaseLicense()
         }
-    }
 
-    /**
-     * Renews the already downloaded DRM license.
-     * When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onDrmLicenseUpdated`.
-     * Errors are transmitted by a device event will be fired where the event type is `BitmovinOfflineEvent` and the data has an event type of `onError`.
-     * @param nativeId Target offline manager.
-     */
-    @ReactMethod
-    fun renewOfflineLicense(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveWithBridge(nativeId) {
-            renewOfflineLicense()
+        /**
+         * Renews the already downloaded DRM license.
+         * When finished successfully a device event will be fired where the event type is `BitmovinOfflineEvent` * and the data has an event type of `onDrmLicenseUpdated`.
+         */
+        AsyncFunction("renewOfflineLicense") { nativeId: NativeId ->
+            getOfflineContentManagerBridge(nativeId).renewOfflineLicense()
         }
-    }
 
-    /**
-     * Call `.release()` on `nativeId`'s offline manager.
-     * IMPORTANT: Call this when the component, in which it was created, is destroyed.
-     * The `OfflineManager` should not be used after calling this method.
-     * @param nativeId Target player Id.
-     */
-    @ReactMethod
-    fun release(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveWithBridge(nativeId) {
-            release()
+        /**
+         * Call `.release()` on `nativeId`'s offline manager.
+         * IMPORTANT: Call this when the component, in which it was created, is destroyed.
+         * The `OfflineManager` should not be used after calling this method.
+         */
+        AsyncFunction("release") { nativeId: NativeId ->
+            val bridge = getOfflineContentManagerBridge(nativeId)
+            bridge.release()
             offlineContentManagerBridges.remove(nativeId)
         }
     }
 
-    private inline fun <T> TPromise<T>.resolveWithBridge(
-        nativeId: NativeId,
-        crossinline block: OfflineContentManagerBridge.() -> T,
-    ) {
-        resolveOnCurrentThread {
-            getOfflineContentManagerBridge(nativeId).block()
-        }
+    /**
+     * Helper function to get OfflineContentManagerBridge with proper error handling
+     */
+    fun getOfflineContentManagerBridge(nativeId: NativeId): OfflineContentManagerBridge {
+        return offlineContentManagerBridges[nativeId] ?: throw OfflineException.ManagerNotFound(nativeId)
     }
+}
+
+// MARK: - Exception Definitions
+
+sealed class OfflineException(message: String) : CodedException(message) {
+    class ManagerAlreadyExists(nativeId: NativeId) : OfflineException(
+        "Content manager bridge id already exists: $nativeId",
+    )
+    class ManagerNotFound(nativeId: NativeId) : OfflineException("No offline content manager bridge for id $nativeId")
+    class InvalidIdentifier : OfflineException("Invalid identifier")
+    class InvalidSourceConfig : OfflineException("Invalid source config")
+    class InvalidRequest : OfflineException("Invalid download request")
+    class DownloadAlreadyCompleted : OfflineException("Download already completed")
+    class DownloadInProgress : OfflineException("Download already in progress")
+    class DownloadSuspended : OfflineException("Download is suspended")
 }

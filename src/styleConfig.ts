@@ -26,7 +26,7 @@ export interface StyleConfig {
    *   },
    * });
    * ```
-   * @platform iOS, tvOS
+   * @remarks Platform: iOS, tvOS
    */
   userInterfaceType?: UserInterfaceType;
   /**
@@ -39,7 +39,7 @@ export interface StyleConfig {
    *   },
    * });
    * ```
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   playerUiCss?: string;
   /**
@@ -52,7 +52,7 @@ export interface StyleConfig {
    *   },
    * });
    * ```
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   supplementalPlayerUiCss?: string;
   /**
@@ -65,7 +65,7 @@ export interface StyleConfig {
    *   },
    * });
    * ```
-   * @platform iOS, Android
+   * @remarks Platform: iOS, Android
    */
   playerUiJs?: string;
   /**
@@ -111,7 +111,7 @@ export enum UserInterfaceType {
   Bitmovin = 'Bitmovin',
   /**
    * Indicates that the system UI should be used.
-   * @platform iOS, tvOS
+   * @remarks Platform: iOS, tvOS
    */
   System = 'System',
   /**

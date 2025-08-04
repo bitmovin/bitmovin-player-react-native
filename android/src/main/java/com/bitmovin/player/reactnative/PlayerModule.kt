@@ -1,628 +1,347 @@
 package com.bitmovin.player.reactnative
 
-import android.util.Log
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.analytics.create
-import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toMediaControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
-import com.bitmovin.player.reactnative.extensions.mapToReactArray
-import com.facebook.react.bridge.*
-import com.facebook.react.module.annotations.ReactModule
-import java.security.InvalidParameterException
+import com.bitmovin.player.reactnative.extensions.getMap
+import expo.modules.kotlin.functions.Queues
+import expo.modules.kotlin.modules.Module
+import expo.modules.kotlin.modules.ModuleDefinition
 
-private const val MODULE_NAME = "PlayerModule"
+class PlayerModule : Module() {
 
-@ReactModule(name = MODULE_NAME)
-class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
-    /**
-     * In-memory mapping from [NativeId]s to [Player] instances.
-     */
-    private val players: Registry<Player> = mutableMapOf()
+    val mediaSessionPlaybackManager by lazy { MediaSessionPlaybackManager(appContext) }
 
-    val mediaSessionPlaybackManager = MediaSessionPlaybackManager(context)
+    override fun definition() = ModuleDefinition {
+        Name("PlayerModule")
 
-    /**
-     * JS exported module name.
-     */
-    override fun getName() = MODULE_NAME
+        OnCreate {
+            // Module initialization
+        }
 
-    /**
-     * Fetches the `Player` instance associated with [nativeId] from the internal players.
-     */
-    fun getPlayerOrNull(nativeId: NativeId): Player? = players[nativeId]
+        OnDestroy {
+            // Clean up all players when module is destroyed
+            PlayerRegistry.getAllPlayers().forEach { player ->
+                try {
+                    player.destroy()
+                } catch (e: Exception) {
+                    // Log but don't crash on cleanup
+                }
+            }
+            PlayerRegistry.clear()
+        }
 
-    /**
-     * Creates a new `Player` instance inside the internal players using the provided `config` object.
-     * @param config `PlayerConfig` object received from JS.
-     */
-    @ReactMethod
-    fun initWithConfig(
-        nativeId: NativeId,
-        config: ReadableMap?,
-        networkNativeId: NativeId?,
-        decoderNativeId: NativeId?,
-        promise: Promise,
-    ) {
-        init(
-            nativeId,
-            config,
-            networkNativeId = networkNativeId,
-            decoderNativeId = decoderNativeId,
-            analyticsConfigJson = null,
-            promise,
-        )
+        AsyncFunction("play") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.play()
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("pause") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.pause()
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("mute") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.mute()
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("unmute") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.unmute()
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("seek") { nativeId: NativeId, time: Double ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.seek(time)
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("timeShift") { nativeId: NativeId, offset: Double ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.timeShift(offset)
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("destroy") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            if (player != null) {
+                // Note: MediaSession cleanup would need to be handled here
+                // For now, just destroy the player and remove from registry
+                player.destroy()
+                PlayerRegistry.unregister(nativeId)
+            }
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("setVolume") { nativeId: NativeId, volume: Double ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.volume = volume.toInt()
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("getVolume") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.volume?.toDouble()
+        }
+
+        AsyncFunction("currentTime") { nativeId: NativeId, mode: String? ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction when {
+                player == null -> null
+                mode == "relative" -> player.currentTime + player.playbackTimeOffsetToRelativeTime
+                mode == "absolute" -> player.currentTime + player.playbackTimeOffsetToAbsoluteTime
+                else -> player.currentTime
+            }
+        }
+
+        AsyncFunction("isPlaying") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.isPlaying
+        }
+
+        AsyncFunction("isPaused") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.isPaused
+        }
+
+        AsyncFunction("duration") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.duration
+        }
+
+        AsyncFunction("isMuted") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.isMuted
+        }
+
+        AsyncFunction("unload") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.unload()
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("getTimeShift") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.timeShift
+        }
+
+        AsyncFunction("isLive") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.isLive
+        }
+
+        AsyncFunction("getMaxTimeShift") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.maxTimeShift
+        }
+
+        AsyncFunction("getPlaybackSpeed") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.playbackSpeed?.toDouble()
+        }
+
+        AsyncFunction("setPlaybackSpeed") { nativeId: NativeId, playbackSpeed: Double ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.playbackSpeed = playbackSpeed.toFloat()
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("isAd") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.isAd
+        }
+
+        AsyncFunction("setMaxSelectableBitrate") { nativeId: NativeId, maxBitrate: Double ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.setMaxSelectableVideoBitrate(maxBitrate.toInt())
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("isAirPlayActive") { _: String ->
+            // AirPlay is iOS-only, return null on Android
+            false
+        }
+
+        AsyncFunction("isAirPlayAvailable") { _: String ->
+            // AirPlay is iOS-only, return null on Android
+            false
+        }
+
+        AsyncFunction("isCastAvailable") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.isCastAvailable
+        }
+
+        AsyncFunction("isCasting") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.isCasting
+        }
+
+        AsyncFunction("castVideo") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.castVideo()
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("castStop") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.castStop()
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("skipAd") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.skipAd()
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("canPlayAtPlaybackSpeed") { _: String, _: Double ->
+            // This method is iOS-only, return false on Android
+            false
+        }
+
+        AsyncFunction("getAudioTrack") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.source?.selectedAudioTrack?.toJson()
+        }
+
+        AsyncFunction("getAvailableAudioTracks") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.source?.availableAudioTracks?.map { it.toJson() } ?: emptyList()
+        }
+
+        AsyncFunction("setAudioTrack") { nativeId: NativeId, trackIdentifier: String ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.source?.setAudioTrack(trackIdentifier)
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("getSubtitleTrack") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.source?.selectedSubtitleTrack?.toJson()
+        }
+
+        AsyncFunction("getAvailableSubtitles") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.source?.availableSubtitleTracks?.map { it.toJson() } ?: emptyList()
+        }
+
+        AsyncFunction("setSubtitleTrack") { nativeId: NativeId, trackIdentifier: String? ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.source?.setSubtitleTrack(trackIdentifier)
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("getVideoQuality") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.videoQuality?.toJson()
+        }
+
+        AsyncFunction("getAvailableVideoQualities") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.availableVideoQualities?.map { it.toJson() } ?: emptyList()
+        }
+
+        AsyncFunction("setVideoQuality") { nativeId: NativeId, qualityId: String ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            player?.source?.setVideoQuality(qualityId)
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("getThumbnail") { nativeId: NativeId, time: Double ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.getThumbnail(time)?.toJson()
+        }
+        AsyncFunction("loadOfflineContent") { nativeId: NativeId, offlineContentManagerBridgeId: String,
+            options: Map<String, Any>?, ->
+            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
+            val offlineContentManagerBridge = appContext.registry.getModule<OfflineModule>()
+                ?.getOfflineContentManagerBridge(offlineContentManagerBridgeId)
+
+            offlineContentManagerBridge?.offlineContentManager?.offlineSourceConfig?.let {
+                player.load(it)
+            }
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("scheduleAd") { nativeId: NativeId, adItemJson: Map<String, Any> ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            val adItem = adItemJson.toAdItem()
+            if (player != null && adItem != null) {
+                player.scheduleAd(adItem)
+            }
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("initializeWithConfig") { nativeId: NativeId, config: Map<String, Any>?,
+            networkNativeId: NativeId?, decoderNativeId: NativeId?, ->
+            initializePlayer(nativeId, config, networkNativeId, decoderNativeId, null)
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("initializeWithAnalyticsConfig") { nativeId: NativeId, analyticsConfigJson: Map<String, Any>,
+            config: Map<String, Any>?, networkNativeId: NativeId?, decoderNativeId: NativeId?, ->
+            initializePlayer(nativeId, config, networkNativeId, decoderNativeId, analyticsConfigJson)
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("loadSource") { nativeId: NativeId, sourceNativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            val source = appContext.registry.getModule<SourceModule>()?.getSourceOrNull(sourceNativeId)
+            if (player != null && source != null) {
+                player.load(source)
+            }
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("source") { nativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId)
+            return@AsyncFunction player?.source?.toJson()
+        }
     }
 
-    /**
-     * Creates a new `Player` instance inside the internal players using the provided `playerConfig` and `analyticsConfig`.
-     * @param playerConfigJson `PlayerConfig` object received from JS.
-     * @param analyticsConfigJson `AnalyticsConfig` object received from JS.
-     */
-    @ReactMethod
-    fun initWithAnalyticsConfig(
+    private fun initializePlayer(
         nativeId: NativeId,
-        playerConfigJson: ReadableMap?,
+        config: Map<String, Any>?,
         networkNativeId: NativeId?,
         decoderNativeId: NativeId?,
-        analyticsConfigJson: ReadableMap,
-        promise: Promise,
-    ) = init(
-        nativeId,
-        playerConfigJson,
-        networkNativeId,
-        decoderNativeId,
-        analyticsConfigJson,
-        promise,
-    )
-
-    private fun init(
-        nativeId: NativeId,
-        playerConfigJson: ReadableMap?,
-        networkNativeId: NativeId?,
-        decoderNativeId: NativeId?,
-        analyticsConfigJson: ReadableMap?,
-        promise: Promise,
-    ) = promise.unit.resolveOnUiThread {
-        if (players.containsKey(nativeId)) {
-            if (playerConfigJson != null || analyticsConfigJson != null) {
-                Log.w("BitmovinPlayerModule", "Cannot reconfigure an existing player")
-            }
-            return@resolveOnUiThread // key can be reused to access the same native instance (see NativeInstanceConfig)
+        analyticsConfigJson: Map<String, Any>?,
+    ) {
+        if (PlayerRegistry.hasPlayer(nativeId)) {
+            // Player already exists for this nativeId
+            return
         }
-        val playerConfig = playerConfigJson?.toPlayerConfig() ?: PlayerConfig()
-        val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
-        val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
-        val enableMediaSession = playerConfigJson?.getMap("mediaControlConfig")
+
+        val playerConfig = config?.toPlayerConfig() ?: PlayerConfig()
+        val enableMediaSession = config?.getMap("mediaControlConfig")
             ?.toMediaControlConfig()?.isEnabled ?: true
 
-        val networkConfig = networkNativeId?.let { networkModule.getConfig(it) }
-        if (networkConfig != null) {
-            playerConfig.networkConfig = networkConfig
+        val networkConfig = networkNativeId?.let { id ->
+            appContext.registry.getModule<NetworkModule>()?.getConfig(id)
+        }
+        networkConfig?.let {
+            playerConfig.networkConfig = it
         }
 
-        val decoderConfig = decoderNativeId?.let { decoderConfigModule.getConfig(it) }
+        val decoderConfig = decoderNativeId?.let {
+            appContext.registry.getModule<DecoderConfigModule>()?.getDecoderConfig(it)
+        }
         if (decoderConfig != null) {
             playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = decoderConfig)
         }
 
-        players[nativeId] = if (analyticsConfig == null) {
-            Player.create(context, playerConfig)
-        } else {
+        val applicationContext = appContext.reactContext?.applicationContext
+            ?: throw IllegalStateException("Application context is not available")
+        val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
+        val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
+
+        val player = if (analyticsConfig != null) {
             Player.create(
-                context = context,
+                context = applicationContext,
                 playerConfig = playerConfig,
                 analyticsConfig = analyticsConfig,
                 defaultMetadata = defaultMetadata ?: DefaultMetadata(),
             )
+        } else {
+            Player.create(applicationContext, playerConfig)
         }
+        PlayerRegistry.register(player, nativeId)
 
         if (enableMediaSession) {
             mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
         }
     }
 
-    /**
-     * Load the source of the given [nativeId] with `config` options from JS.
-     * @param nativeId Target player.
-     * @param sourceNativeId Target source.
-     */
-    @ReactMethod
-    fun loadSource(nativeId: NativeId, sourceNativeId: String, promise: Promise) {
-        promise.unit.resolveOnUiThread {
-            getPlayer(nativeId, this@PlayerModule).load(getSource(sourceNativeId))
-        }
-    }
-
-    /**
-     * Load the `offlineSourceConfig` for the player with [nativeId] and offline source module with `offlineModuleNativeId`.
-     * @param nativeId Target player.
-     * @param offlineContentManagerBridgeId Target offline module.
-     * @param options Source configuration options from JS.
-     */
-    @ReactMethod
-    fun loadOfflineContent(
-        nativeId: NativeId,
-        offlineContentManagerBridgeId: String,
-        options: ReadableMap?,
-        promise: Promise,
-    ) {
-        promise.unit.resolveOnUiThread {
-            offlineModule
-                .getOfflineContentManagerBridgeOrNull(offlineContentManagerBridgeId)
-                ?.offlineContentManager
-                ?.offlineSourceConfig
-                ?.let { getPlayer(nativeId).load(it) }
-        }
-    }
-
-    /**
-     * Call `.unload()` on [nativeId]'s player.
-     * @param nativeId Target player Id.
-     */
-    @ReactMethod
-    fun unload(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            unload()
-        }
-    }
-
-    /**
-     * Call `.play()` on [nativeId]'s player.
-     * @param nativeId Target player Id.
-     */
-    @ReactMethod
-    fun play(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            play()
-        }
-    }
-
-    /**
-     * Call `.pause()` on [nativeId]'s player.
-     * @param nativeId Target player Id.
-     */
-    @ReactMethod
-    fun pause(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            pause()
-        }
-    }
-
-    /**
-     * Call `.seek(time:)` on [nativeId]'s player.
-     * @param nativeId Target player Id.
-     * @param time Seek time in seconds.
-     */
-    @ReactMethod
-    fun seek(nativeId: NativeId, time: Double, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            seek(time)
-        }
-    }
-
-    /**
-     * Call `.timeShift(offset:)` on [nativeId]'s player.
-     * @param nativeId Target player Id.
-     * @param offset Offset time in seconds.
-     */
-    @ReactMethod
-    fun timeShift(nativeId: NativeId, offset: Double, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            timeShift(offset)
-        }
-    }
-
-    /**
-     * Call `.mute()` on [nativeId]'s player.
-     * @param nativeId Target player Id.
-     */
-    @ReactMethod
-    fun mute(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            mute()
-        }
-    }
-
-    /**
-     * Call `.unmute()` on [nativeId]'s player.
-     * @param nativeId Target player Id.
-     */
-    @ReactMethod
-    fun unmute(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            unmute()
-        }
-    }
-
-    /**
-     * Call `.destroy()` on [nativeId]'s player.
-     * @param nativeId Target player Id.
-     */
-    @ReactMethod
-    fun destroy(nativeId: NativeId, promise: Promise) {
-        mediaSessionPlaybackManager.destroy(nativeId)
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            destroy()
-            players.remove(nativeId)
-        }
-    }
-
-    /**
-     * Call `.setVolume(volume:)` on [nativeId]'s player.
-     * @param nativeId Target player Id.
-     * @param volume Volume level integer between 0 to 100.
-     */
-    @ReactMethod
-    fun setVolume(nativeId: NativeId, volume: Int, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            this.volume = volume
-        }
-    }
-
-    /**
-     * Resolve [nativeId]'s current volume.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun getVolume(nativeId: NativeId, promise: Promise) {
-        promise.int.resolveOnUiThreadWithPlayer(nativeId) {
-            volume
-        }
-    }
-
-    /**
-     * Resolve the source of [nativeId]'s player.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun source(nativeId: NativeId, promise: Promise) {
-        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
-            source?.toJson()
-        }
-    }
-
-    /**
-     * Resolve [nativeId]'s current playback time.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun currentTime(nativeId: NativeId, mode: String?, promise: Promise) {
-        promise.double.resolveOnUiThreadWithPlayer(nativeId) {
-            currentTime + when (mode) {
-                "relative" -> playbackTimeOffsetToRelativeTime
-                "absolute" -> playbackTimeOffsetToAbsoluteTime
-                else -> throw InvalidParameterException("Unknown mode $mode")
-            }
-        }
-    }
-
-    /**
-     * Resolve [nativeId]'s current source duration.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun duration(nativeId: NativeId, promise: Promise) {
-        promise.double.resolveOnUiThreadWithPlayer(nativeId) {
-            duration
-        }
-    }
-
-    /**
-     * Resolve [nativeId]'s current muted state.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun isMuted(nativeId: NativeId, promise: Promise) {
-        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
-            isMuted
-        }
-    }
-
-    /**
-     * Resolve [nativeId]'s current playing state.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun isPlaying(nativeId: NativeId, promise: Promise) {
-        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
-            isPlaying
-        }
-    }
-
-    /**
-     * Resolve [nativeId]'s current paused state.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun isPaused(nativeId: NativeId, promise: Promise) {
-        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
-            isPaused
-        }
-    }
-
-    /**
-     * Resolve [nativeId]'s current live state.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun isLive(nativeId: NativeId, promise: Promise) {
-        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
-            isLive
-        }
-    }
-
-    /**
-     * Resolve [nativeId]'s currently selected audio track.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun getAudioTrack(nativeId: NativeId, promise: Promise) {
-        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
-            source?.selectedAudioTrack?.toJson()
-        }
-    }
-
-    /**
-     * Resolve [nativeId]'s player available audio tracks.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun getAvailableAudioTracks(nativeId: NativeId, promise: Promise) {
-        promise.array.resolveOnUiThreadWithPlayer(nativeId) {
-            source?.availableAudioTracks?.mapToReactArray { it.toJson() } ?: Arguments.createArray()
-        }
-    }
-
-    /**
-     * Set [nativeId]'s player audio track.
-     * @param nativeId Target player Id.
-     * @param trackIdentifier The audio track identifier.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun setAudioTrack(nativeId: NativeId, trackIdentifier: String, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            source?.setAudioTrack(trackIdentifier)
-        }
-    }
-
-    /**
-     * Resolve [nativeId]'s currently selected subtitle track.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun getSubtitleTrack(nativeId: NativeId, promise: Promise) {
-        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
-            source?.selectedSubtitleTrack?.toJson()
-        }
-    }
-
-    /**
-     * Resolve [nativeId]'s player available subtitle tracks.
-     * @param nativeId Target player Id.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun getAvailableSubtitles(nativeId: NativeId, promise: Promise) {
-        promise.array.resolveOnUiThreadWithPlayer(nativeId) {
-            source?.availableSubtitleTracks?.mapToReactArray { it.toJson() } ?: Arguments.createArray()
-        }
-    }
-
-    /**
-     * Set [nativeId]'s player subtitle track.
-     * @param nativeId Target player Id.
-     * @param trackIdentifier The subtitle track identifier.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun setSubtitleTrack(nativeId: NativeId, trackIdentifier: String?, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            source?.setSubtitleTrack(trackIdentifier)
-        }
-    }
-
-    /**
-     * Schedules an `AdItem` in the [nativeId]'s associated player.
-     * @param nativeId Target player id.
-     * @param adItemJson Json representation of the `AdItem` to be scheduled.
-     */
-    @ReactMethod
-    fun scheduleAd(nativeId: NativeId, adItemJson: ReadableMap, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            scheduleAd(adItemJson.toAdItem() ?: throw IllegalArgumentException("invalid adItem"))
-        }
-    }
-
-    /**
-     * Skips the current ad in [nativeId]'s associated player.
-     * Has no effect if the current ad is not skippable or if no ad is being played back.
-     * @param nativeId Target player id.
-     */
-    @ReactMethod
-    fun skipAd(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            skipAd()
-        }
-    }
-
-    /**
-     * Returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
-     * @param nativeId Target player id.
-     */
-    @ReactMethod
-    fun isAd(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            isAd
-        }
-    }
-
-    /**
-     * The current time shift of the live stream in seconds. This value is always 0 if the active [source] is not a
-     * live stream or there is no active playback session.
-     * @param nativeId Target player id.
-     */
-    @ReactMethod
-    fun getTimeShift(nativeId: NativeId, promise: Promise) {
-        promise.double.resolveOnUiThreadWithPlayer(nativeId) {
-            timeShift
-        }
-    }
-
-    /**
-     * The limit in seconds for time shifting. This value is either negative or 0 and it is always 0 if the active
-     * [source] is not a live stream or there is no active playback session.
-     * @param nativeId Target player id.
-     */
-    @ReactMethod
-    fun getMaxTimeShift(nativeId: NativeId, promise: Promise) {
-        promise.double.resolveOnUiThreadWithPlayer(nativeId) {
-            maxTimeShift
-        }
-    }
-
-    /**
-     * Sets the max selectable bitrate for the player.
-     * @param nativeId Target player id.
-     * @param maxSelectableBitrate The desired max bitrate limit.
-     */
-    @ReactMethod
-    fun setMaxSelectableBitrate(nativeId: NativeId, maxSelectableBitrate: Int, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            setMaxSelectableVideoBitrate(
-                maxSelectableBitrate.takeUnless { it == -1 } ?: Integer.MAX_VALUE,
-            )
-        }
-    }
-
-    /**
-     * Returns the thumbnail image for the active `Source` at a certain time.
-     * @param nativeId Target player id.
-     * @param time Playback time for the thumbnail.
-     */
-    @ReactMethod
-    fun getThumbnail(nativeId: NativeId, time: Double, promise: Promise) {
-        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
-            source?.getThumbnail(time)?.toJson()
-        }
-    }
-
-    /**
-     * Initiates casting the current video to a cast-compatible remote device. The user has to choose to which device it
-     * should be sent.
-     */
-    @ReactMethod
-    fun castVideo(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            castVideo()
-        }
-    }
-
-    /**
-     * Stops casting the current video. Has no effect if [isCasting] is false.
-     */
-    @ReactMethod
-    fun castStop(nativeId: NativeId, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            castStop()
-        }
-    }
-
-    /**
-     * Whether casting to a cast-compatible remote device is available. [PlayerEvent.CastAvailable] signals when
-     * casting becomes available.
-     */
-    @ReactMethod
-    fun isCastAvailable(nativeId: NativeId, promise: Promise) {
-        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
-            isCastAvailable
-        }
-    }
-
-    /**
-     * Whether video is currently being casted to a remote device and not played locally.
-     */
-    @ReactMethod
-    fun isCasting(nativeId: NativeId, promise: Promise) {
-        promise.bool.resolveOnUiThreadWithPlayer(nativeId) {
-            isCasting
-        }
-    }
-
-    /**
-     * Resolve [nativeId]'s current video quality.
-     */
-    @ReactMethod
-    fun getVideoQuality(nativeId: NativeId, promise: Promise) {
-        promise.map.nullable.resolveOnUiThreadWithPlayer(nativeId) {
-            source?.selectedVideoQuality?.toJson()
-        }
-    }
-
-    /**
-     * Resolve [nativeId]'s current available video qualities.
-     */
-    @ReactMethod
-    fun getAvailableVideoQualities(nativeId: NativeId, promise: Promise) {
-        promise.array.resolveOnUiThreadWithPlayer(nativeId) {
-            source?.availableVideoQualities?.mapToReactArray { it.toJson() } ?: Arguments.createArray()
-        }
-    }
-
-    /**
-     * Set [nativeId]'s player video quality.
-     * NOTE: ONLY available on Android. No effect on iOS and tvOS devices.
-     * @param nativeId Target player Id.
-     * @param qualityId The videoQualityId identifier. A list of currently available VideoQualitys can be retrieved via availableVideoQualities. To use automatic quality selection, Quality.AUTO_ID can be passed as qualityId.
-     * @param promise JS promise object.
-     */
-    @ReactMethod
-    fun setVideoQuality(nativeId: NativeId, qualityId: String, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            source?.setVideoQuality(qualityId)
-        }
-    }
-
-    /**
-     * Resolve [nativeId]'s current playback speed.
-     */
-    @ReactMethod
-    fun getPlaybackSpeed(nativeId: NativeId, promise: Promise) {
-        promise.float.resolveOnUiThreadWithPlayer(nativeId) {
-            playbackSpeed
-        }
-    }
-
-    /**
-     * Sets playback speed for the player.
-     */
-    @ReactMethod
-    fun setPlaybackSpeed(nativeId: NativeId, playbackSpeed: Float, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
-            this.playbackSpeed = playbackSpeed
-        }
-    }
-
-    private inline fun <T> TPromise<T>.resolveOnUiThreadWithPlayer(
-        nativeId: NativeId,
-        crossinline block: Player.() -> T,
-    ) = resolveOnUiThread { getPlayer(nativeId, this@PlayerModule).block() }
+    // CRITICAL: This method must remain available for cross-module access
+    fun getPlayerOrNull(nativeId: NativeId): Player? = PlayerRegistry.getPlayer(nativeId)
 }

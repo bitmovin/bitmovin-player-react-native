@@ -22,6 +22,10 @@ inputs:
     description: Setup Java and Gradle cache
     default: false
     required: false
+  tv:
+    description: Prebuild TV projects
+    default: false
+    required: false
 
 runs:
   using: composite
@@ -55,17 +59,40 @@ runs:
     - name: Install node_modules (example/)
       if: ${{ inputs.subprojects == 'true' }}
       shell: bash
-      run: yarn install --frozen-lockfile --cwd example
+      run: |
+        yarn install --cwd example
+        cp example/.env.example example/.env
+
+    - name: Generate native projects for mobile platforms
+      if: ${{ inputs.subprojects == 'true' && inputs.tv == 'false' }}
+      shell: bash
+      run: |
+        yarn example prebuild --clean
+      env:
+        NSUnbufferedIO: YES
+
+    - name: Generate native projects for TV platforms
+      if: ${{ inputs.subprojects == 'true' && inputs.tv == 'true' }}
+      shell: bash
+      run: |
+        yarn example prebuild:tv --clean
+      env:
+        NSUnbufferedIO: YES
 
     - name: Install node_modules (integration_test/)
       if: ${{ inputs.subprojects == 'true' }}
       shell: bash
-      run: yarn install --frozen-lockfile --cwd integration_test
+      run: |
+        yarn install --cwd integration_test
+        cp integration_test/.env.example integration_test/.env
+        yarn integration-test prebuild --clean
+      env:
+        NSUnbufferedIO: YES
 
     - uses: maxim-lobanov/setup-xcode@v1
       if: ${{ inputs.ios == 'true' }}
       with:
-        xcode-version: '15.4'
+        xcode-version: '16.4'
 
     - name: Install dependencies
       if: ${{ inputs.ios == 'true' || inputs.brew == 'true' }}

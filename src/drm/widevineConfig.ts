@@ -1,6 +1,6 @@
 /**
  * Represents a Widevine Streaming DRM config.
- * @platform Android, iOS (only for casting).
+ * @remarks Platform: Android, iOS (only for casting).
  */
 export interface WidevineConfig {
   /**
@@ -19,7 +19,7 @@ export interface WidevineConfig {
    * Note that both the passed `message` data and this block return value should be a Base64 string.
    * So use whatever solution suits you best to handle Base64 in React Native.
    *
-   * @platform Android
+   * @remarks Platform: Android
    *
    * @param message - Base64 encoded message data.
    * @returns The processed Base64 encoded message.
@@ -33,7 +33,7 @@ export interface WidevineConfig {
    * Note that both the passed `license` data and this block return value should be a Base64 string.
    * So use whatever solution suits you best to handle Base64 in React Native.
    *
-   * @platform Android
+   * @remarks Platform: Android
    *
    * @param license - Base64 encoded license data.
    * @returns The processed Base64 encoded license.
@@ -42,7 +42,7 @@ export interface WidevineConfig {
   /**
    * Set widevine's preferred security level.
    *
-   * @platform Android
+   * @remarks Platform: Android
    */
   preferredSecurityLevel?: string;
   /**
@@ -51,7 +51,7 @@ export interface WidevineConfig {
    * as the same DRM scheme information.
    * Default: `false`
    *
-   * @platform Android
+   * @remarks Platform: Android
    */
   shouldKeepDrmSessionsAlive?: boolean;
 }

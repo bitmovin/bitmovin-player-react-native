@@ -17,9 +17,6 @@ on:
         required: true
         type: string
 
-env:
-  NO_FLIPPER: 1
-
 jobs:
   update:
     name: Update SDK version
@@ -51,32 +48,13 @@ jobs:
         with:
           node: true
           brew: true
-
-      - name: Restore Pods cache
-        id: pods-cache-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
-          restore-keys: pods-
+          subprojects: true
 
       - name: Bump iOS player SDK version
         if: ${{ inputs.sdk_name == 'ios' }}
         run: |
-          sed -i '' 's/s.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' RNBitmovinPlayer.podspec
+          sed -i '' 's/s.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' ios/RNBitmovinPlayer.podspec
           yarn bootstrap
-
-      - name: Save Pods cache
-        if: ${{ inputs.sdk_name == 'ios' && steps.pods-cache-restore.outputs.cache-hit != 'true' }}
-        uses: actions/cache/save@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-            integration_test/ios/Pods
-          key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
 
       - name: Bump Android player SDK version
         if: ${{ inputs.sdk_name == 'android' }}
@@ -86,7 +64,7 @@ jobs:
 
       - name: Commit version bump
         run: |
-          git add RNBitmovinPlayer.podspec android/build.gradle example/ios/Podfile.lock integration_test/ios/Podfile.lock
+          git add ios/RNBitmovinPlayer.podspec android/build.gradle
           git commit --no-verify -m "chore(${{ inputs.sdk_name }}): update ${{ inputs.sdk_name }} player version to ${{ inputs.version_number }}"
           git push origin ${{ steps.branching.outputs.branch_name }}
 

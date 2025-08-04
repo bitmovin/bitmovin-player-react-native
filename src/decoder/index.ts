@@ -1,18 +1,12 @@
-import { NativeModules } from 'react-native';
-import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
+import { EventSubscription } from 'expo-modules-core';
 import { DecoderConfig, DecoderContext, MediaCodecInfo } from './decoderConfig';
 import NativeInstance from '../nativeInstance';
-
-const DecoderConfigModule = NativeModules.DecoderConfigModule;
+import DecoderConfigModule from './decoderConfigModule';
 
 /**
  * Takes care of JS/Native communication for a `DecoderConfig`.
  */
 export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
-  constructor(decoderConfig: DecoderConfig) {
-    super(decoderConfig);
-  }
-
   /**
    * Whether this object's native instance has been created.
    */
@@ -22,14 +16,35 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
    */
   isDestroyed = false;
 
+  private onOverrideDecodersPrioritySubscription?: EventSubscription;
+
   initialize() {
     if (!this.isInitialized) {
-      BatchedBridge.registerCallableModule(
-        `DecoderConfigBridge-${this.nativeId}`,
-        this
-      );
+      // Set up event listener for decoder priority override
+      this.onOverrideDecodersPrioritySubscription =
+        DecoderConfigModule.addListener(
+          'onOverrideDecodersPriority',
+          ({
+            nativeId,
+            context,
+            preferredDecoders,
+          }: {
+            nativeId: string;
+            context: DecoderContext;
+            preferredDecoders: MediaCodecInfo[];
+          }) => {
+            if (nativeId !== this.nativeId) {
+              return;
+            }
+            this.overrideDecodersPriority(context, preferredDecoders);
+          }
+        );
+
       // Create native configuration object.
-      DecoderConfigModule.initWithConfig(this.nativeId, this.config);
+      DecoderConfigModule.initializeWithConfig(
+        this.nativeId,
+        this.config || {}
+      );
       this.isInitialized = true;
     }
   }
@@ -40,17 +55,18 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
   destroy() {
     if (!this.isDestroyed) {
       DecoderConfigModule.destroy(this.nativeId);
+      this.onOverrideDecodersPrioritySubscription?.remove();
+      this.onOverrideDecodersPrioritySubscription = undefined;
       this.isDestroyed = true;
     }
   }
 
-  // noinspection JSUnusedGlobalSymbols
   /**
    * Called by native code, when the decoder priority should be evaluated.
    */
-  overrideDecodersPriority(
+  private overrideDecodersPriority(
     context: DecoderContext,
-    preferredDecoders: [MediaCodecInfo]
+    preferredDecoders: MediaCodecInfo[]
   ): void {
     const orderedPriority =
       this.config?.decoderPriorityProvider?.overrideDecodersPriority(

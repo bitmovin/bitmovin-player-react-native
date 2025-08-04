@@ -1,97 +1,53 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, Platform, StyleSheet } from 'react-native';
-import { Picker as RNPicker } from '@react-native-picker/picker';
-import Modal from 'react-native-modal';
-import FormInput from './FormInput';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import SimplePicker, { SimplePickerOption } from './SimplePicker';
 
-export interface FormPickerProps {
+export interface FormPickerProps<T = any> {
   title: string;
-  options?: {
-    label: string;
-    value: string;
-  }[];
-  selected?: string;
-  onChange?: (value: string) => void;
+  options: { label: string; value: T }[];
+  selected?: T;
+  onChange?: (value: T, index: number) => void;
 }
 
-const Picker: React.FC<Omit<FormPickerProps, 'title'>> = ({
+export default function FormPicker<T = any>({
+  title,
   options,
   selected,
   onChange,
-}) => {
-  const onValueChange = useCallback(
-    (index: number) => {
-      const value = options?.[index]?.value;
-      if (value) {
-        onChange?.(value);
-      }
-    },
-    [options, onChange]
+}: FormPickerProps<T>) {
+  const simplePickerOptions: SimplePickerOption<T>[] = options.map(
+    (option) => ({
+      label: option.label,
+      value: option.value,
+    })
   );
-  return (
-    <RNPicker
-      mode="dropdown"
-      style={Platform.OS === 'ios' ? styles.iosPicker : styles.androidPicker}
-      selectedValue={selected}
-      onValueChange={(_, index) => onValueChange(index)}
-    >
-      {options?.map((option, index) => (
-        <RNPicker.Item key={index} label={option.label} value={option.value} />
-      ))}
-    </RNPicker>
-  );
-};
 
-const FormPicker: React.FC<FormPickerProps> = (props) => {
-  const [isPickerVisible, setVisiblePicker] = useState(false);
-  const selectedLabel =
-    props.options?.find((opt) => opt.value === props.selected)?.label ?? '';
-  return Platform.OS === 'ios' ? (
-    <>
-      <FormInput
-        editable={false}
-        title={props.title}
-        value={selectedLabel}
-        onPress={() => setVisiblePicker(true)}
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>{title}</Text>
+      <SimplePicker
+        options={simplePickerOptions}
+        selectedValue={selected}
+        onValueChange={onChange}
+        placeholder={`Select ${title.toLowerCase()}`}
+        style={styles.picker}
       />
-      <Modal
-        isVisible={isPickerVisible}
-        onBackdropPress={() => setVisiblePicker(false)}
-      >
-        <Picker {...props} />
-      </Modal>
-    </>
-  ) : (
-    <View style={styles.androidInput}>
-      <Text style={styles.inputTitle}>{props.title}</Text>
-      <Picker {...props} />
     </View>
   );
-};
-
-export default FormPicker;
+}
 
 const styles = StyleSheet.create({
-  iosPicker: {
-    color: 'black',
-    borderRadius: 15,
-    backgroundColor: 'white',
-  },
-  androidInput: {
+  container: {
     maxWidth: 500,
     alignSelf: 'stretch',
-  },
-  androidPicker: {
-    color: 'white',
-    height: 40,
-    padding: 10,
-    marginTop: 10,
-    backgroundColor: 'black',
-  },
-  inputTitle: {
-    color: 'black',
     marginTop: 20,
-    marginLeft: 10,
-    fontWeight: '500',
   },
+  title: {
+    color: '#000',
+    marginLeft: 10,
+    marginBottom: 10,
+    fontWeight: '500',
+    fontSize: 16,
+  },
+  picker: {},
 });
