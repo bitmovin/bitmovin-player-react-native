@@ -61,6 +61,7 @@ jobs:
         run: |
           sed -i'.bak' "s/\[Unreleased\]/\[${{ inputs.version_number }}\]/g" CHANGELOG.md
           awk 'BEGIN {count=0} /## \[/ {count++; if (count == 2) exit} {print}' CHANGELOG.md
+          rm -f CHANGELOG.md.bak
 
       - name: Bump package.json version
         run: |
