@@ -18,7 +18,6 @@ on:
 env:
   LC_ALL: en_US.UTF-8
   LANG: en_US.UTF-8
-  NO_FLIPPER: 1
 
 concurrency:
   group: start-release-train-${{ inputs.version_number }}
@@ -44,16 +43,6 @@ jobs:
         with:
           node: true
 
-      - name: Restore Pods cache
-        id: pods-cache-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
-          restore-keys: pods-
-
       - name: Set Release Branch name
         id: branching
         run: |
@@ -77,28 +66,11 @@ jobs:
         run: |
           yarn version --new-version ${{ inputs.version_number }} --no-git-tag-version
 
-      - name: Install pods to update Podfile.lock
-        run: |
-          yarn bootstrap
-        env:
-          CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
-          NO_FLIPPER: 1
-
-      - name: Save Pods cache
-        if: steps.pods-cache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-            integration_test/ios/Pods
-          key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
-
       - name: Commit changelog version bump
         if: ${{ !inputs.dry_run }}
         run: |
-          git add CHANGELOG.md package.json example/ios/Podfile.lock integration_test/ios/Podfile.lock
-          git commit -m "prepare release ${{ inputs.version_number }}"
+          git add CHANGELOG.md package.json
+          git commit --no-verify -m "prepare release ${{ inputs.version_number }}"
           git push origin ${{ steps.branching.outputs.branch_name }}
 
       - name: Create PR

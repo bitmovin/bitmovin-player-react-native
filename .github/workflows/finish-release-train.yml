@@ -49,7 +49,7 @@ jobs:
       - name: Commit changelog version bump
         run: |
           git add CHANGELOG.md
-          git commit -m "bump changelog date to today"
+          git commit --no-verify -m "bump changelog date to today"
           git push origin ${{ github.ref }}
 
   create_pr:

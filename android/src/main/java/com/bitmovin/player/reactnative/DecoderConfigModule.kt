@@ -1,60 +1,95 @@
 package com.bitmovin.player.reactnative
 
 import androidx.concurrent.futures.CallbackToFutureAdapter
+import androidx.core.os.bundleOf
 import com.bitmovin.player.api.decoder.DecoderConfig
 import com.bitmovin.player.api.decoder.DecoderPriorityProvider
 import com.bitmovin.player.api.decoder.MediaCodecInfo
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toMediaCodecInfoList
-import com.facebook.react.bridge.*
-import com.facebook.react.module.annotations.ReactModule
+import expo.modules.kotlin.exception.CodedException
+import expo.modules.kotlin.modules.Module
+import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.concurrent.ConcurrentHashMap
 
-private const val MODULE_NAME = "DecoderConfigModule"
-
-@ReactModule(name = MODULE_NAME)
-class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
-    override fun getName() = MODULE_NAME
+class DecoderConfigModule : Module() {
 
     /**
      * In-memory mapping from `nativeId`s to `DecoderConfig` instances.
+     * This must match the Registry pattern from legacy DecoderConfigModule
      */
     private val decoderConfigs: Registry<DecoderConfig> = mutableMapOf()
     private val overrideDecoderPriorityProviderCompleters =
-        ConcurrentHashMap<NativeId, CallbackToFutureAdapter.Completer<List<MediaCodecInfo>>>()
+        ConcurrentHashMap<String, CallbackToFutureAdapter.Completer<List<MediaCodecInfo>>>()
 
-    fun getConfig(nativeId: NativeId?): DecoderConfig? = nativeId?.let { decoderConfigs[it] }
+    override fun definition() = ModuleDefinition {
+        Name("DecoderConfigModule")
 
-    @ReactMethod
-    fun initWithConfig(nativeId: NativeId, config: ReadableMap, promise: Promise) {
-        if (decoderConfigs.containsKey(nativeId)) {
-            return
-        }
-        if (config.getMap("playbackConfig")?.hasKey("decoderConfig") == false) {
-            return
+        Events("onOverrideDecodersPriority")
+
+        OnCreate {
+            // Module initialization
         }
 
-        val decoderConfig = DecoderConfig(
-            decoderPriorityProvider = object : DecoderPriorityProvider {
-                override fun overrideDecodersPriority(
-                    context: DecoderPriorityProvider.DecoderContext,
-                    preferredDecoders: List<MediaCodecInfo>,
-                ): List<MediaCodecInfo> {
-                    return overrideDecoderPriorityProvider(nativeId, context, preferredDecoders)
-                }
-            },
-        )
-        decoderConfigs[nativeId] = decoderConfig
+        OnDestroy {
+            decoderConfigs.clear()
+            overrideDecoderPriorityProviderCompleters.clear()
+        }
+
+        /**
+         * Creates a new `DecoderConfig` instance inside the internal decoder configs using the provided `config` object.
+         */
+        AsyncFunction("initializeWithConfig") { nativeId: NativeId, config: Map<String, Any?> ->
+            if (decoderConfigs.containsKey(nativeId)) {
+                return@AsyncFunction
+            }
+
+            val playbackConfig = config["playbackConfig"] as? Map<String, Any?>
+            if (playbackConfig?.containsKey("decoderConfig") != true) {
+                return@AsyncFunction
+            }
+
+            val decoderConfig = DecoderConfig(
+                decoderPriorityProvider = object : DecoderPriorityProvider {
+                    override fun overrideDecodersPriority(
+                        context: DecoderPriorityProvider.DecoderContext,
+                        preferredDecoders: List<MediaCodecInfo>,
+                    ): List<MediaCodecInfo> {
+                        return overrideDecoderPriorityProvider(nativeId, context, preferredDecoders)
+                    }
+                },
+            )
+            decoderConfigs[nativeId] = decoderConfig
+        }
+
+        /**
+         * Completes the decoder priority provider override process
+         */
+        AsyncFunction("overrideDecoderPriorityProviderComplete") { nativeId: NativeId,
+            response: List<Map<String, Any?>>, ->
+            val completer = overrideDecoderPriorityProviderCompleters[nativeId]
+                ?: throw DecoderConfigException.NoCompleterFound(nativeId)
+
+            val mediaCodecInfoList = response.toMediaCodecInfoList()
+            completer.set(mediaCodecInfoList)
+            overrideDecoderPriorityProviderCompleters.remove(nativeId)
+        }
+
+        /**
+         * Destroys the `DecoderConfig` instance referenced by `nativeId`
+         */
+        AsyncFunction("destroy") { nativeId: NativeId ->
+            decoderConfigs.remove(nativeId)
+            // Remove all completers that start with this nativeId
+            overrideDecoderPriorityProviderCompleters.keys.filter { it.startsWith(nativeId) }.forEach {
+                overrideDecoderPriorityProviderCompleters.remove(it)
+            }
+        }
     }
 
-    @ReactMethod
-    fun destroy(nativeId: NativeId) {
-        decoderConfigs.remove(nativeId)
-        overrideDecoderPriorityProviderCompleters.keys.filter { it.startsWith(nativeId) }.forEach {
-            overrideDecoderPriorityProviderCompleters.remove(it)
-        }
-    }
-
+    /**
+     * Helper function to handle decoder priority provider override
+     */
     private fun overrideDecoderPriorityProvider(
         nativeId: NativeId,
         context: DecoderPriorityProvider.DecoderContext,
@@ -62,20 +97,30 @@ class DecoderConfigModule(context: ReactApplicationContext) : BitmovinBaseModule
     ): List<MediaCodecInfo> {
         return CallbackToFutureAdapter.getFuture { completer ->
             overrideDecoderPriorityProviderCompleters[nativeId] = completer
-            val args = Arguments.createArray()
-            args.pushMap(context.toJson())
-            args.pushArray(preferredDecoders.toJson())
-            this@DecoderConfigModule.context.catalystInstance.callFunction(
-                "DecoderConfigBridge-$nativeId",
-                "overrideDecodersPriority",
-                args as NativeArray,
+            // Send event to TypeScript with decoder context and preferred decoders
+            sendEvent(
+                "onOverrideDecodersPriority",
+                bundleOf(
+                    "nativeId" to nativeId,
+                    "context" to context.toJson(),
+                    "preferredDecoders" to preferredDecoders.map { it.toJson() },
+                ),
             )
+
+            "overrideDecoderPriorityProvider"
         }.get()
     }
 
-    @ReactMethod
-    fun overrideDecoderPriorityProviderComplete(nativeId: NativeId, response: ReadableArray) {
-        overrideDecoderPriorityProviderCompleters[nativeId]?.set(response.toMediaCodecInfoList())
-        overrideDecoderPriorityProviderCompleters.remove(nativeId)
-    }
+    val decoderConfig: DecoderConfig?
+        get() = decoderConfigs.values.firstOrNull()
+
+    fun getDecoderConfig(nativeId: NativeId): DecoderConfig? = decoderConfigs[nativeId]
+}
+
+// MARK: - Exception Definitions
+
+sealed class DecoderConfigException(message: String) : CodedException(message) {
+    class NoCompleterFound(nativeId: NativeId) : DecoderConfigException(
+        "No completer found for decoder config: $nativeId",
+    )
 }

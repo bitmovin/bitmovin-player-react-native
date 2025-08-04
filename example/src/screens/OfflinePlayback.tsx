@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -19,6 +20,19 @@ import {
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import OfflineManagementView from '../components/OfflineManagementView';
+import * as Notifications from 'expo-notifications';
+
+export async function requestNotificationPermissionAsync() {
+  if (Platform.OS === 'android') {
+    const settings = await Notifications.getPermissionsAsync();
+    if (settings.status !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      return status === 'granted';
+    }
+    return true;
+  }
+  return true;
+}
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
@@ -93,6 +107,10 @@ export default function OfflinePlayback() {
       isCastEnabled: false,
     },
   });
+
+  useFocusEffect(useCallback(() => {
+    requestNotificationPermissionAsync();
+  }, []));
 
   useFocusEffect(useCallback(() => () => player.destroy(), [player]));
 
@@ -177,18 +195,19 @@ export default function OfflinePlayback() {
             }}
           />
         )}
-        {downloadState === OfflineState.Downloaded && !isLoadedSourceOffline && (
-          <Action
-            text={'Load offline content'}
-            onPress={() => {
-              if (offlineContentManager != null) {
-                onEvent('Loading the offline video');
-                player.loadOfflineContent(offlineContentManager);
-                setIsLoadedSourceOffline(true);
-              }
-            }}
-          />
-        )}
+        {downloadState === OfflineState.Downloaded &&
+          !isLoadedSourceOffline && (
+            <Action
+              text={'Load offline content'}
+              onPress={() => {
+                if (offlineContentManager != null) {
+                  onEvent('Loading the offline video');
+                  player.loadOfflineContent(offlineContentManager);
+                  setIsLoadedSourceOffline(true);
+                }
+              }}
+            />
+          )}
         {downloadState === OfflineState.NotDownloaded && (
           <Action
             text={'Download'}

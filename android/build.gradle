@@ -1,8 +1,15 @@
+import groovy.json.JsonSlurper
+
+// Read version from package.json
+def packageJsonFile = new File("$rootDir/../package.json")
+def packageJson = new JsonSlurper().parseText(packageJsonFile.text)
+def packageVersion = packageJson.version
+
 buildscript {
     // Buildscript is evaluated before everything else so we can't use getExtOrDefault
     def kotlin_version = rootProject.ext.has("kotlinVersion") ? rootProject.ext.get("kotlinVersion") : project.properties["BitmovinPlayerReactNative_kotlinVersion"]
     def ktlint_version = rootProject.ext.has("ktlintVersion") ? rootProject.ext.get("ktlintVersion") : project.properties["BitmovinPlayerReactNative_ktlintVersion"]
-    def android_tools_version = rootProject.ext.has("androidToolsVersion") ? rootProject.ext.get("androidToolsVersion") : project.properties["BitmovinPlayerReactNative_androidToolsVersion"]
+    def android_plugin_version = rootProject.ext.has("androidPluginVersion") ? rootProject.ext.get("androidPluginVersion") : project.properties["BitmovinPlayerReactNative_androidPluginVersion"]
 
     repositories {
         google()
@@ -12,99 +19,95 @@ buildscript {
         }
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:$android_tools_version"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "com.android.tools.build:gradle:$android_plugin_version"
         classpath "org.jlleitschuh.gradle:ktlint-gradle:$ktlint_version"
     }
 }
 
-def isNewArchitectureEnabled() {
-    return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
-}
-
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
 apply plugin: 'org.jlleitschuh.gradle.ktlint'
 
-if (isNewArchitectureEnabled()) {
-    apply plugin: "com.facebook.react"
-}
+group = 'com.bitmovin.player.reactnative'
+version = packageVersion
 
-def getExtOrDefault(name) {
-    return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["BitmovinPlayerReactNative_" + name]
-}
+def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+apply from: expoModulesCorePlugin
+applyKotlinExpoModulesCorePlugin()
+useCoreDependencies()
+useExpoPublishing()
 
-def getExtOrIntegerDefault(name) {
-    return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["BitmovinPlayerReactNative_" + name]).toInteger()
-}
-
-def supportsNamespace() {
-    def parsed = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')
-    def major = parsed[0].toInteger()
-    def minor = parsed[1].toInteger()
-
-    // Namespace support was added in 7.3.0
-    return (major == 7 && minor >= 3) || major >= 8
+// If you want to use the managed Android SDK versions from expo-modules-core, set this to true.
+// The Android SDK versions will be bumped from time to time in SDK releases and may introduce breaking changes in your module code.
+// Most of the time, you may like to manage the Android SDK versions yourself.
+def useManagedAndroidSdkVersions = false
+if (useManagedAndroidSdkVersions) {
+  useDefaultAndroidSdkVersions()
+} else {
+  buildscript {
+    // Simple helper that allows the root project to override versions declared by this library.
+    ext.safeExtGet = { prop, fallback ->
+      rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+    }
+  }
+  project.android {
+    compileSdkVersion safeExtGet("compileSdkVersion", 34)
+    defaultConfig {
+      minSdkVersion safeExtGet("minSdkVersion", 24)
+      targetSdkVersion safeExtGet("targetSdkVersion", 35)
+    }
+  }
 }
 
 android {
-    if (supportsNamespace()) {
-        namespace "com.bitmovin.player.reactnative"
+  namespace "com.bitmovin.player.reactnative"
+  
+  defaultConfig {
+    versionCode 1
+    versionName packageVersion
+  }
 
-        sourceSets {
-            main {
-                manifest.srcFile "src/main/AndroidManifestNew.xml"
-            }
-        }
+  buildTypes {
+    release {
+      minifyEnabled false
     }
+  }
 
-    compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
+  lintOptions {
+    disable "GradleCompatible"
+    abortOnError false
+  }
 
-    defaultConfig {
-        minSdkVersion getExtOrIntegerDefault("minSdkVersion")
-        targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
 
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-        }
-    }
-
-    lintOptions {
-        disable "GradleCompatible"
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    buildFeatures {
-        buildConfig true
-    }
+  buildFeatures {
+    buildConfig true
+  }
 }
 
 repositories {
-    google()
-    mavenCentral()
+  google()
+  mavenCentral()
+  maven {
+    url "https://artifacts.bitmovin.com/artifactory/public-releases"
+  }
 }
 
-def kotlin_version = getExtOrDefault("kotlinVersion")
-
 dependencies {
-    // For < 0.71, this will be from the local maven repo
-    // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
-    //noinspection GradleDynamicVersion
-    implementation 'com.facebook.react:react-native:+' // From node_modules
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation "androidx.concurrent:concurrent-futures:1.1.0"
-    implementation "androidx.concurrent:concurrent-futures-ktx:1.1.0"
+  // React Native (needed for hybrid bridge modules)
+  //noinspection GradleDynamicVersion
+  implementation 'com.facebook.react:react-native:+' // From node_modules
+  
+  implementation "androidx.concurrent:concurrent-futures:1.1.0"
+  implementation "androidx.concurrent:concurrent-futures-ktx:1.1.0"
 
-    // Bitmovin
-    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.35.1'
-    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
-    implementation 'com.bitmovin.player:player:3.118.0+jason'
-    implementation 'com.bitmovin.player:player-media-session:3.118.0+jason'
+  // Google IMA
+  implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.35.1'
+
+  // Bitmovin
+  implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
+  implementation 'com.bitmovin.player:player:3.119.0+jason'
+  implementation 'com.bitmovin.player:player-media-session:3.119.0+jason'
 }

@@ -1,33 +1,12 @@
 import BitmovinPlayer
+import ExpoModulesCore
 
-@objc(DebugModule)
-public class DebugModule: NSObject, RCTBridgeModule {
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    @objc public var bridge: RCTBridge!
+public class DebugModule: Module {
+    public func definition() -> ModuleDefinition {
+        Name("DebugModule")
 
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    public static func moduleName() -> String! {
-        "DebugModule"
-    }
-
-    /// Module requires main thread initialization.
-    public static func requiresMainQueueSetup() -> Bool {
-        true
-    }
-
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    public var methodQueue: DispatchQueue! {
-        bridge.uiManager.methodQueue
-    }
-}
-
-extension DebugModule {
-    /// Enable/disable verbose logging for the console logger.
-    /// - Parameter enabled: Whether to set verbose logging as enabled or disabled.
-    @objc(setDebugLoggingEnabled:)
-    func setDebugLoggingEnabled(enabled: Bool) {
-        bridge.uiManager.addUIBlock { [weak self] _, _ in
+        AsyncFunction("setDebugLoggingEnabled") { (enabled: Bool) in
             DebugConfig.logging.logger?.level = enabled ? .verbose : .warning
-        }
+        }.runOnQueue(.main)
     }
 }
