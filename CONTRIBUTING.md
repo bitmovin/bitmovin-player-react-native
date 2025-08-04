@@ -41,17 +41,13 @@ To build and run the example app on iOS:
 yarn example ios
 ```
 
-To edit the Swift/Objective-C files, open `example/ios/BitmovinPlayerReactNativeExample.xcworkspace` in Xcode and find the source files at `Pods > Development Pods > RNBitmovinPlayer`.
+To edit the Swift/Objective-C files, open Xcode via `yarn example open:ios` and find the source files at `Pods > Development Pods > RNBitmovinPlayer`.
 
-To edit the Kotlin files, open `example/android` in Android Studio and find the source files at `bitmovin-player-react-native` under `Android`.
+To edit the Kotlin files, open Android Studio via `yarn example open:android` and find the source files at `bitmovin-player-react-native` under `Android`.
 
-## For iOS/tvOS on-device development
+## Development setup
 
-To build the example project for an iOS or tvOS device, you need to create a file at `example/ios/Developer.xcconfig`. In this file, add your development team like this:
-
-```yml
-DEVELOPMENT_TEAM = YOUR_TEAM_ID
-```
+See the relevant [`example/README`](example/README.md#development-setup) section.
 
 ## TypeScript Code Style
 
