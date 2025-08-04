@@ -86,7 +86,7 @@ jobs:
       - name: Set update branch name
         id: branching
         run: |
-          branch_name="update_${{ inputs.sdk_name }}_player_to_${{ inputs.version_number }}"
+          branch_name="update_${{ inputs.sdk_name }}_player_to_${{ inputs.version_number }}_v0"
           echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
 
       - name: Create update branch
