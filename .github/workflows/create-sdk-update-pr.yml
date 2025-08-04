@@ -150,6 +150,6 @@ jobs:
       - name: Create PR
         run: |
           gh pr create \
-          --base "${{ github.ref }}" \
+          --base "development-v0" \
           --title "Update ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player to ${{ inputs.version_number }} on v0.x.x" \
           --body "Automated ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player version update to ${{ inputs.version_number }} on v0.x.x"
