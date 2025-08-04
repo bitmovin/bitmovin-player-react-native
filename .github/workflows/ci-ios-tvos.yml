@@ -48,7 +48,7 @@ jobs:
         run: yarn lint:ios
 
   test-build-ios:
-    name: Build iOS
+    name: Build iOS Example App
     runs-on: macOS-15
     steps:
       - name: Checkout
@@ -66,13 +66,8 @@ jobs:
         env:
           NSUnbufferedIO: YES
 
-      - name: Build iOS integration test host app
-        run: yarn integration-test build:ios --renderer github-actions
-        env:
-          NSUnbufferedIO: YES
-
-  test-build-tvos:
-    name: Build tvOS
+  test-build-ios-integration-tests:
+    name: Build iOS Integration Tests
     runs-on: macOS-15
     steps:
       - name: Checkout
@@ -85,10 +80,25 @@ jobs:
           subprojects: true
           ios: true
 
-      - name: Prebuild tvOS example
-        run: yarn example prebuild:tv --clean
+      - name: Build iOS integration test host app
+        run: yarn integration-test build:ios --renderer github-actions
         env:
           NSUnbufferedIO: YES
+
+  test-build-tvos:
+    name: Build tvOS Example App
+    runs-on: macOS-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node: true
+          subprojects: true
+          ios: true
+          tv: true
 
       - name: Build tvOS example
         run: yarn example build:tvos --renderer github-actions
