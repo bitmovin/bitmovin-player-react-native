@@ -20,7 +20,7 @@ on:
 jobs:
   update:
     name: Update SDK version on v1
-    runs-on: macos-14
+    runs-on: macos-15
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
