@@ -74,3 +74,82 @@ jobs:
           --base "${{ github.ref }}" \
           --title "Update ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player to ${{ inputs.version_number }}" \
           --body "Automated ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player version update to ${{ inputs.version_number }}"
+
+  update-v0:
+    name: Update SDK version
+    runs-on: macos-14
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: 'development-v0'
+
+      - name: Setup git user
+        run: |
+          git config --global user.name "Update Bot"
+          git config --global user.email "update-bot@bitmovin.com"
+
+      - name: Set update branch name
+        id: branching
+        run: |
+          branch_name="update_${{ inputs.sdk_name }}_player_to_${{ inputs.version_number }}"
+          echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
+
+      - name: Create update branch
+        run: |
+          git push origin --delete ${{ steps.branching.outputs.branch_name }} || true
+          git checkout -b ${{ steps.branching.outputs.branch_name }}
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node: true
+          brew: true
+
+      - name: Restore Pods cache
+        if: ${{ inputs.sdk_name == 'ios' }}
+        id: pods-cache-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            .cocoapods-cache
+            example/ios/Pods
+          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
+          restore-keys: pods-
+
+      - name: Bump iOS player SDK version
+        if: ${{ inputs.sdk_name == 'ios' }}
+        run: |
+          sed -i '' 's/s.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' RNBitmovinPlayer.podspec
+          yarn bootstrap
+
+      - name: Save Pods cache
+        if: ${{ inputs.sdk_name == 'ios' && steps.pods-cache-restore.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            .cocoapods-cache
+            example/ios/Pods
+            integration_test/ios/Pods
+          key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
+
+      - name: Bump Android player SDK version
+        if: ${{ inputs.sdk_name == 'android' }}
+        run: |
+          sed -i '' "s/com.bitmovin.player:player:.*/com.bitmovin.player:player:${{ inputs.version_number }}'/g" android/build.gradle
+          sed -i '' "s/com.bitmovin.player:player-media-session:.*/com.bitmovin.player:player-media-session:${{ inputs.version_number }}'/g" android/build.gradle
+
+      - name: Commit version bump
+        run: |
+          git add RNBitmovinPlayer.podspec android/build.gradle example/ios/Podfile.lock integration_test/ios/Podfile.lock
+          git commit --no-verify -m "chore(${{ inputs.sdk_name }}): update ${{ inputs.sdk_name }} player version to ${{ inputs.version_number }}"
+          git push origin ${{ steps.branching.outputs.branch_name }}
+
+      - name: Create PR
+        run: |
+          gh pr create \
+          --base "${{ github.ref }}" \
+          --title "Update ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player to ${{ inputs.version_number }} on v0.x.x" \
+          --body "Automated ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player version update to ${{ inputs.version_number }} on v0.x.x"
