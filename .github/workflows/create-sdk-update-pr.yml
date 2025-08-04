@@ -19,7 +19,7 @@ on:
 
 jobs:
   update:
-    name: Update SDK version
+    name: Update SDK version on v1
     runs-on: macos-14
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -68,7 +68,7 @@ jobs:
           --body "Automated ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player version update to ${{ inputs.version_number }}"
 
   update-v0:
-    name: Update SDK version
+    name: Update SDK version on v0
     runs-on: macos-14
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
