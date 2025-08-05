@@ -128,7 +128,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   loadDaiStream = (assetId: string, fallbackUrl: string) => {
-    PlayerModule.loadDaiStream(assetId, fallbackUrl);
+    PlayerModule.loadDaiStream(this.nativeId, assetId, fallbackUrl);
     // TODO: get somehow a source object from the native side once player loading starts based on SourceConfig
   };
 

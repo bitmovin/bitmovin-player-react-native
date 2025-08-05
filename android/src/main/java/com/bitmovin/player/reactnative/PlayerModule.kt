@@ -4,7 +4,6 @@ import android.util.Log
 import android.view.ViewGroup // added for IMA
 import androidx.core.view.get // added for IMA
 import com.bitmovin.analytics.api.DefaultMetadata
-import com.bitmovin.media3.ui.PlayerView // added for IMA
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.analytics.create
@@ -36,7 +35,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      */
     override fun getName() = MODULE_NAME
 
-    private var adsWrapper: IMAAdsWrapper? = null // added for IMA
+    private val adsWrappers: Registry<IMAAdsWrapper> = mutableMapOf() // added for IMA
 
     /**
      * Fetches the `Player` instance associated with [nativeId] from the internal players.
@@ -117,7 +116,7 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
             playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = decoderConfig)
         }
 
-        players[nativeId] = if (analyticsConfig == null) {
+        val player = if (analyticsConfig == null) {
             Player.create(context, playerConfig)
         } else {
             Player.create(
@@ -127,19 +126,27 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
                 defaultMetadata = defaultMetadata ?: DefaultMetadata(),
             )
         }
+        players[nativeId] = player
 
         if (enableMediaSession) {
             mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
         }
 
-            /* --- Added for IMA --- */
-        val playerView = PlayerView(reactApplicationContext)[0]
-        adsWrapper = IMAAdsWrapper(
+        /* --- Added for IMA --- */
+        adsWrappers[nativeId] = IMAAdsWrapper(
             reactApplicationContext,
-            getPlayerOrNull(nativeId),
-            playerView as ViewGroup? as ViewGroup,
+            player,
         )
         /* --- Added for IMA --- */
+    }
+
+    fun assignAdContainer(
+        nativeId: NativeId,
+        adUiContainer: ViewGroup,
+    ) {
+        val adsWrapper = adsWrappers[nativeId]
+            ?: throw IllegalStateException("IMAAdsWrapper not found for Player with id $nativeId")
+        adsWrapper.setAdUiContainer(adUiContainer)
     }
 
     /* --- Added for IMA --- */
@@ -149,10 +156,12 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
      * @param fallbackUrl URL to load as a backup to SDK provided stream
      * */
     @ReactMethod
-    fun loadDaiStream(assetId: String, fallbackUrl: String, promise: Promise) {
+    fun loadDaiStream(nativeId: NativeId, assetId: String, fallbackUrl: String, promise: Promise) {
         promise.unit.resolveOnUiThread {
-            adsWrapper?.setFallbackUrl(fallbackUrl)
-            adsWrapper?.requestAndLoadStream(assetId)
+            val adsWrapper = adsWrappers[nativeId]
+                ?: throw IllegalStateException("IMAAdsWrapper not found for Player with id $nativeId")
+            adsWrapper.setFallbackUrl(fallbackUrl)
+            adsWrapper.requestAndLoadStream(assetId)
         }
     }
     /* --- Added for IMA --- */
@@ -212,7 +221,9 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
             play()
             /* --- Added for IMA --- */
-            adsWrapper?.playerCallbacks?.forEach { it.onResume() }
+            adsWrappers[nativeId]?.playerCallbacks?.forEach {
+                it.onResume()
+            }
             /* --- Added for IMA --- */
         }
     }
@@ -226,7 +237,9 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
             pause()
             /* --- Added for IMA --- */
-            adsWrapper?.playerCallbacks?.forEach { it.onPause() }
+            adsWrappers[nativeId]?.playerCallbacks?.forEach {
+                it.onPause()
+            }
             /* --- Added for IMA --- */
         }
     }
@@ -299,6 +312,10 @@ class PlayerModule(context: ReactApplicationContext) : BitmovinBaseModule(contex
     fun setVolume(nativeId: NativeId, volume: Int, promise: Promise) {
         promise.unit.resolveOnUiThreadWithPlayer(nativeId) {
             this.volume = volume
+
+            adsWrappers[nativeId]?.playerCallbacks?.forEach {
+                it.onVolumeChanged(volume)
+            }
         }
     }
 

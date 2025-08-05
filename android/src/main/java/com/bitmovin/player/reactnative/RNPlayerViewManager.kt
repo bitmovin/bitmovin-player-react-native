@@ -3,6 +3,7 @@ package com.bitmovin.player.reactnative
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.SubtitleView
@@ -243,7 +244,10 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
      */
     private fun attachPlayer(view: RNPlayerView, playerId: NativeId, playerConfig: ReadableMap?) {
         handler.postAndLogException {
-            val player = playerId.let { context.playerModule?.getPlayerOrNull(it) }
+            val playerModule = context.playerModule ?: throw IllegalStateException(
+                "PlayerModule is not available. Make sure to register it in your ReactPackage.",
+            )
+            val player = playerId.let { playerModule.getPlayerOrNull(it) }
                 ?: throw InvalidParameterException("Cannot create a PlayerView, invalid playerId was passed: $playerId")
             val playbackConfig = playerConfig?.getMap("playbackConfig")
             val isPictureInPictureEnabled = view.config?.pictureInPictureConfig?.isEnabled == true ||
@@ -255,6 +259,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
 
             if (view.playerView != null) {
                 view.player = player
+                playerModule.assignAdContainer(playerId, view.playerView as ViewGroup)
             } else {
                 // PlayerView has to be initialized with Activity context
                 val currentActivity = context.currentActivity
@@ -275,6 +280,7 @@ class RNPlayerViewManager(private val context: ReactApplicationContext) : Simple
                 if (isPictureInPictureEnabled) {
                     playerView.setPictureInPictureHandler(RNPictureInPictureHandler(currentActivity, player))
                 }
+                playerModule.assignAdContainer(playerId, playerView as ViewGroup)
                 view.setPlayerView(playerView)
                 attachCustomMessageHandlerBridge(view)
             }
