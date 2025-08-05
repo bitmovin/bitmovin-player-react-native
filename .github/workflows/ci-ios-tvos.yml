@@ -16,7 +16,7 @@ on:
       - 'example/yarn.lock'
 
   push:
-    branches: [development]
+    branches: [development, development-v0]
     paths:
       - '.github/workflows/ci-ios-tvos.yml'
       - '.github/actions/**'
