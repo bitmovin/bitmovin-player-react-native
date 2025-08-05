@@ -191,21 +191,7 @@ jobs:
 
       # Build iOS example with optimized settings
       - name: Build iOS example
-        run: |
-          set -o pipefail
-          cd example/ios
-          xcodebuild \
-            -workspace BitmovinPlayerReactNativeExample.xcworkspace \
-            -scheme BitmovinPlayerReactNativeExample \
-            -configuration Release \
-            -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
-            -derivedDataPath ~/Library/Developer/Xcode/DerivedData \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            SWIFT_COMPILATION_MODE=wholemodule \
-            DEBUG_INFORMATION_FORMAT=dwarf \
-            ENABLE_TESTABILITY=NO \
-            | xcbeautify -q --renderer github-actions
+        run: yarn example build:ios --renderer github-actions
         env:
           NSUnbufferedIO: YES
 
@@ -274,23 +260,9 @@ jobs:
           yarn install --cwd integration_test
           cp integration_test/.env.example integration_test/.env
 
-      # Build iOS integration test host app with optimized settings
+      # Build iOS integration test host app
       - name: Build iOS integration test host app
-        run: |
-          set -o pipefail
-          cd integration_test/ios
-          xcodebuild \
-            -workspace BitmovinPlayerReactNativeIntegrationTest.xcworkspace \
-            -scheme BitmovinPlayerReactNativeIntegrationTest \
-            -configuration Release \
-            -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
-            -derivedDataPath ~/Library/Developer/Xcode/DerivedData \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            SWIFT_COMPILATION_MODE=wholemodule \
-            DEBUG_INFORMATION_FORMAT=dwarf \
-            ENABLE_TESTABILITY=NO \
-            | xcbeautify -q --renderer github-actions
+        run: yarn integration-test build:ios --renderer github-actions
         env:
           NSUnbufferedIO: YES
 
@@ -382,22 +354,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-derived-tvos-
 
-      # Build tvOS example with optimized settings
+      # Build tvOS example
       - name: Build tvOS example
-        run: |
-          set -o pipefail
-          cd example/ios
-          xcodebuild \
-            -workspace BitmovinPlayerReactNativeExample.xcworkspace \
-            -scheme BitmovinPlayerReactNativeExample-tvOS \
-            -configuration Release \
-            -sdk appletvsimulator \
-            -destination 'platform=tvOS Simulator,name=Apple TV' \
-            -derivedDataPath ~/Library/Developer/Xcode/DerivedData \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            SWIFT_COMPILATION_MODE=wholemodule \
-            DEBUG_INFORMATION_FORMAT=dwarf \
-            ENABLE_TESTABILITY=NO \
-            | xcbeautify -q --renderer github-actions
+        run: yarn example build:tvos --renderer github-actions
         env:
           NSUnbufferedIO: YES
