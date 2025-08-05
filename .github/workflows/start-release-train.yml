@@ -105,7 +105,7 @@ jobs:
         if: ${{ !inputs.dry_run }}
         run: |
           gh pr create \
-          --base "main" \
+          --base "support/v0" \
           --title "Release ${{ inputs.version_number }}" \
           --body "Release ${{ inputs.version_number }}. Please review and merge this PR to continue the release process." \
           --reviewer "${{ github.actor }}"
