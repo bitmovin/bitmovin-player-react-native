@@ -31,76 +31,373 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  code-style-ios:
-    name: Code style iOS
+  # Combined job for prebuild and code style check
+  prebuild-and-lint:
+    name: Prebuild & Code Style Check
     runs-on: macOS-15
+    outputs:
+      expo-cache-hit: ${{ steps.expo-cache.outputs.cache-hit }}
+      pods-cache-hit: ${{ steps.pods-cache.outputs.cache-hit }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
+      # Cache Homebrew dependencies
+      - name: Cache Homebrew
+        uses: actions/cache@v4
         with:
-          ios: true
-          node: true
+          path: |
+            ~/Library/Caches/Homebrew
+            /opt/homebrew/Cellar/swiftlint
+            /opt/homebrew/Cellar/xcbeautify
+          key: ${{ runner.os }}-brew-${{ hashFiles('Brewfile') }}
+          restore-keys: |
+            ${{ runner.os }}-brew-
 
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment-no-prebuild
+        with:
+          node: true
+          ios: true
+
+      # Run code style check early while other setup continues
       - name: Check code style
         run: yarn lint:ios
 
+      # Cache Expo Prebuild artifacts
+      - name: Cache Expo Prebuild
+        id: expo-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            example/ios
+            integration_test/ios
+          key: ${{ runner.os }}-expo-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'example/package.json', 'plugin/**', 'ios/**') }}
+          restore-keys: |
+            ${{ runner.os }}-expo-prebuild-
+
+      # Install subproject dependencies
+      - name: Install subproject dependencies
+        run: |
+          yarn install --cwd example
+          cp example/.env.example example/.env
+          yarn install --cwd integration_test
+          cp integration_test/.env.example integration_test/.env
+
+      # Conditional prebuild - only if cache miss
+      - name: Check if prebuild needed
+        id: check-prebuild
+        run: |
+          if [ "${{ steps.expo-cache.outputs.cache-hit }}" == "true" ] && [ -d "example/ios" ] && [ -d "integration_test/ios" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "✅ Using cached prebuild artifacts"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "🔨 Prebuild needed - cache miss or directories missing"
+          fi
+
+      - name: Generate native projects
+        if: steps.check-prebuild.outputs.skip == 'false'
+        run: |
+          yarn example prebuild --clean
+          yarn integration-test prebuild --clean
+        env:
+          NSUnbufferedIO: YES
+
+      # Cache CocoaPods
+      - name: Cache CocoaPods
+        id: pods-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            example/ios/Pods
+            integration_test/ios/Pods
+            ~/Library/Caches/CocoaPods
+          key: ${{ runner.os }}-pods-${{ hashFiles('example/ios/Podfile.lock', 'integration_test/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      # Conditional pod install
+      - name: Install CocoaPods if needed
+        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.expo-cache.outputs.cache-hit != 'true'
+        run: |
+          cd example/ios && pod install --repo-update
+          cd ../../integration_test/ios && pod install --repo-update
+
   test-build-ios:
     name: Build iOS Example App
+    needs: prebuild-and-lint
     runs-on: macOS-15
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Restore Homebrew cache
+      - name: Restore Homebrew Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /opt/homebrew/Cellar/swiftlint
+            /opt/homebrew/Cellar/xcbeautify
+          key: ${{ runner.os }}-brew-${{ hashFiles('Brewfile') }}
+          restore-keys: |
+            ${{ runner.os }}-brew-
+
       - name: Setup Environment
-        uses: ./.github/actions/setup-environment
+        uses: ./.github/actions/setup-environment-no-prebuild
         with:
           node: true
-          subprojects: true
           ios: true
 
+      # Restore Expo prebuild cache
+      - name: Restore Expo Prebuild
+        uses: actions/cache@v4
+        with:
+          path: |
+            example/ios
+            integration_test/ios
+          key: ${{ runner.os }}-expo-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'example/package.json', 'plugin/**', 'ios/**') }}
+          restore-keys: |
+            ${{ runner.os }}-expo-prebuild-
+
+      # Restore CocoaPods cache
+      - name: Restore CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            example/ios/Pods
+            integration_test/ios/Pods
+            ~/Library/Caches/CocoaPods
+          key: ${{ runner.os }}-pods-${{ hashFiles('example/ios/Podfile.lock', 'integration_test/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      # Cache Xcode Derived Data
+      - name: Cache Xcode Derived Data
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-xcode-derived-ios-example-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-derived-ios-example-
+
+      # Install example dependencies
+      - name: Install example dependencies
+        run: |
+          yarn install --cwd example
+          cp example/.env.example example/.env
+
+      # Build iOS example with optimized settings
       - name: Build iOS example
-        run: yarn example build:ios --renderer github-actions
+        run: |
+          set -o pipefail
+          cd example/ios
+          xcodebuild \
+            -workspace BitmovinPlayerReactNativeExample.xcworkspace \
+            -scheme BitmovinPlayerReactNativeExample \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -derivedDataPath ~/Library/Developer/Xcode/DerivedData \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            SWIFT_COMPILATION_MODE=wholemodule \
+            DEBUG_INFORMATION_FORMAT=dwarf \
+            ENABLE_TESTABILITY=NO \
+            | xcbeautify -q --renderer github-actions
         env:
           NSUnbufferedIO: YES
 
   test-build-ios-integration-tests:
     name: Build iOS Integration Tests
+    needs: prebuild-and-lint
     runs-on: macOS-15
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Restore Homebrew cache
+      - name: Restore Homebrew Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /opt/homebrew/Cellar/swiftlint
+            /opt/homebrew/Cellar/xcbeautify
+          key: ${{ runner.os }}-brew-${{ hashFiles('Brewfile') }}
+          restore-keys: |
+            ${{ runner.os }}-brew-
+
       - name: Setup Environment
-        uses: ./.github/actions/setup-environment
+        uses: ./.github/actions/setup-environment-no-prebuild
         with:
           node: true
-          subprojects: true
           ios: true
 
+      # Restore Expo prebuild cache
+      - name: Restore Expo Prebuild
+        uses: actions/cache@v4
+        with:
+          path: |
+            example/ios
+            integration_test/ios
+          key: ${{ runner.os }}-expo-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'example/package.json', 'plugin/**', 'ios/**') }}
+          restore-keys: |
+            ${{ runner.os }}-expo-prebuild-
+
+      # Restore CocoaPods cache
+      - name: Restore CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            example/ios/Pods
+            integration_test/ios/Pods
+            ~/Library/Caches/CocoaPods
+          key: ${{ runner.os }}-pods-${{ hashFiles('example/ios/Podfile.lock', 'integration_test/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      # Cache Xcode Derived Data
+      - name: Cache Xcode Derived Data
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-xcode-derived-ios-integration-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-derived-ios-integration-
+
+      # Install integration test dependencies
+      - name: Install integration test dependencies
+        run: |
+          yarn install --cwd integration_test
+          cp integration_test/.env.example integration_test/.env
+
+      # Build iOS integration test host app with optimized settings
       - name: Build iOS integration test host app
-        run: yarn integration-test build:ios --renderer github-actions
+        run: |
+          set -o pipefail
+          cd integration_test/ios
+          xcodebuild \
+            -workspace BitmovinPlayerReactNativeIntegrationTest.xcworkspace \
+            -scheme BitmovinPlayerReactNativeIntegrationTest \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -derivedDataPath ~/Library/Developer/Xcode/DerivedData \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            SWIFT_COMPILATION_MODE=wholemodule \
+            DEBUG_INFORMATION_FORMAT=dwarf \
+            ENABLE_TESTABILITY=NO \
+            | xcbeautify -q --renderer github-actions
         env:
           NSUnbufferedIO: YES
 
   test-build-tvos:
     name: Build tvOS Example App
     runs-on: macOS-15
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Cache Homebrew dependencies
+      - name: Cache Homebrew
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /opt/homebrew/Cellar/swiftlint
+            /opt/homebrew/Cellar/xcbeautify
+          key: ${{ runner.os }}-brew-${{ hashFiles('Brewfile') }}
+          restore-keys: |
+            ${{ runner.os }}-brew-
+
       - name: Setup Environment
-        uses: ./.github/actions/setup-environment
+        uses: ./.github/actions/setup-environment-no-prebuild
         with:
           node: true
-          subprojects: true
           ios: true
-          tv: true
 
+      # Cache Expo Prebuild for tvOS
+      - name: Cache Expo Prebuild tvOS
+        id: expo-cache-tv
+        uses: actions/cache@v4
+        with:
+          path: |
+            example/ios
+          key: ${{ runner.os }}-expo-prebuild-tv-${{ hashFiles('example/yarn.lock', 'example/app.json', 'example/package.json', 'plugin/**', 'ios/**') }}
+          restore-keys: |
+            ${{ runner.os }}-expo-prebuild-tv-
+
+      # Install example dependencies
+      - name: Install example dependencies
+        run: |
+          yarn install --cwd example
+          cp example/.env.example example/.env
+
+      # Check if tvOS prebuild needed
+      - name: Check if tvOS prebuild needed
+        id: check-prebuild-tv
+        run: |
+          if [ "${{ steps.expo-cache-tv.outputs.cache-hit }}" == "true" ] && [ -d "example/ios" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "✅ Using cached tvOS prebuild artifacts"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "🔨 tvOS prebuild needed - cache miss or directory missing"
+          fi
+
+      # Generate tvOS native project
+      - name: Generate tvOS native project
+        if: steps.check-prebuild-tv.outputs.skip == 'false'
+        run: yarn example prebuild:tv --clean
+        env:
+          NSUnbufferedIO: YES
+
+      # Cache CocoaPods for tvOS
+      - name: Cache CocoaPods tvOS
+        id: pods-cache-tv
+        uses: actions/cache@v4
+        with:
+          path: |
+            example/ios/Pods
+            ~/Library/Caches/CocoaPods
+          key: ${{ runner.os }}-pods-tv-${{ hashFiles('example/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-tv-
+
+      # Install CocoaPods for tvOS if needed
+      - name: Install CocoaPods for tvOS if needed
+        if: steps.pods-cache-tv.outputs.cache-hit != 'true' || steps.expo-cache-tv.outputs.cache-hit != 'true'
+        run: cd example/ios && pod install --repo-update
+
+      # Cache Xcode Derived Data for tvOS
+      - name: Cache Xcode Derived Data tvOS
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-xcode-derived-tvos-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-derived-tvos-
+
+      # Build tvOS example with optimized settings
       - name: Build tvOS example
-        run: yarn example build:tvos --renderer github-actions
+        run: |
+          set -o pipefail
+          cd example/ios
+          xcodebuild \
+            -workspace BitmovinPlayerReactNativeExample.xcworkspace \
+            -scheme BitmovinPlayerReactNativeExample-tvOS \
+            -configuration Release \
+            -sdk appletvsimulator \
+            -destination 'platform=tvOS Simulator,name=Apple TV' \
+            -derivedDataPath ~/Library/Developer/Xcode/DerivedData \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            SWIFT_COMPILATION_MODE=wholemodule \
+            DEBUG_INFORMATION_FORMAT=dwarf \
+            ENABLE_TESTABILITY=NO \
+            | xcbeautify -q --renderer github-actions
         env:
           NSUnbufferedIO: YES
