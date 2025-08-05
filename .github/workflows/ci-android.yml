@@ -89,9 +89,9 @@ jobs:
         id: build
         run: |
           START_TIME=$(date +%s)
-          yarn example build:android \
-            --gradle-args="--build-cache --parallel --max-workers=4 --no-daemon" \
-            --gradle-user-home=${{ github.workspace }}/.gradle-ci
+          cd example/android
+          ./gradlew assembleDebug --quiet --console=plain --warning-mode=none \
+            --build-cache --parallel --max-workers=4 --no-daemon
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
 
@@ -151,9 +151,9 @@ jobs:
         id: build
         run: |
           START_TIME=$(date +%s)
-          yarn integration-test build:android \
-            --gradle-args="--build-cache --parallel --max-workers=4 --no-daemon" \
-            --gradle-user-home=${{ github.workspace }}/.gradle-ci
+          cd integration_test/android
+          ./gradlew assembleDebug --quiet --console=plain --warning-mode=none \
+            --build-cache --parallel --max-workers=4 --no-daemon
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
 
@@ -214,9 +214,9 @@ jobs:
         id: build
         run: |
           START_TIME=$(date +%s)
-          yarn example build:android-tv \
-            --gradle-args="--build-cache --parallel --max-workers=4 --no-daemon" \
-            --gradle-user-home=${{ github.workspace }}/.gradle-ci
+          cd example/android
+          ./gradlew assembleDebug --quiet --console=plain --warning-mode=none \
+            --build-cache --parallel --max-workers=4 --no-daemon
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
 
