@@ -66,20 +66,17 @@ const playerViewConfig: PlayerViewConfig = {
 export default function BasicAds() {
   useTVGestures();
 
-  const player = usePlayer({ advertisingConfig, remoteControlConfig });
+  const player = usePlayer({ remoteControlConfig });
+
+  const fallbackUrl = Platform.OS === 'ios'
+            ? 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
+            : 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd';
+
+  const daiAdTagId = 'c-rArva4ShKVIAkNfy6HUQ';
 
   useFocusEffect(
     useCallback(() => {
-      player.load({
-        url:
-          Platform.OS === 'ios'
-            ? 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
-            : 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
-        type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
-        title: 'Art of Motion',
-        poster:
-          'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/poster.jpg',
-      });
+      player.loadDaiStream(daiAdTagId, fallbackUrl)
       return () => {
         player.destroy();
       };
