@@ -9,6 +9,9 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
     /// In-memory mapping from `nativeId`s to `Player` instances.
     private var players: Registry<Player> = [:]
 
+    /// In-memory mapping from `nativeId`s to `IMAAdsWrapper` instances.
+    private var adsWrappers: Registry<IMAAdsWrapper> = [:]
+
     // swiftlint:disable:next implicitly_unwrapped_optional
     public static func moduleName() -> String! {
         "PlayerModule"
@@ -67,7 +70,11 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
                let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
                 playerConfig.networkConfig = networkConfig
             }
-            self?.players[nativeId] = PlayerFactory.create(playerConfig: playerConfig)
+            let player = PlayerFactory.create(playerConfig: playerConfig)
+            self?.players[nativeId] = player
+
+            // Create IMAAdsWrapper for IMA DAI support
+            self?.adsWrappers[nativeId] = IMAAdsWrapper(player: player)
         }
     }
 
@@ -102,11 +109,16 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
                 playerConfig.networkConfig = networkConfig
             }
             let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfigJson)
-            self?.players[nativeId] = PlayerFactory.create(
+            let player = PlayerFactory.create(
                 playerConfig: playerConfig,
                 analyticsConfig: analyticsConfig,
                 defaultMetadata: defaultMetadata ?? DefaultMetadata()
             )
+
+            self?.players[nativeId] = player
+
+            // Create IMAAdsWrapper for IMA DAI support
+            self?.adsWrappers[nativeId] = IMAAdsWrapper(player: player)
         }
     }
 
@@ -125,6 +137,33 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
                 return
             }
             player.load(source: source)
+        }
+    }
+
+    func assignAdContainer(_ nativeId: NativeId, adUiContainer: UIView) {
+        guard let adsWrapper = adsWrappers[nativeId] else {
+            print("IMAAdsWrapper not found for Player with id \(nativeId)")
+            return
+        }
+        adsWrapper.setAdUiContainer(adUiContainer)
+    }
+
+    @objc(loadDaiStream:assetId:fallbackUrl:resolver:rejecter:)
+    func loadDaiStream(
+        _ nativeId: NativeId,
+        assetId: String,
+        fallbackUrl: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        bridge.uiManager.addUIBlock { [weak self] _, _ in
+            guard let adsWrapper = self?.adsWrappers[nativeId] else {
+                reject("PlayerModule", "IMAAdsWrapper not found for Player with id \(nativeId)", nil)
+                return
+            }
+            adsWrapper.setFallbackUrl(fallbackUrl)
+            adsWrapper.requestAndLoadStream(assetId)
+            resolve(nil)
         }
     }
 
@@ -245,6 +284,8 @@ public class PlayerModule: NSObject, RCTBridgeModule { // swiftlint:disable:this
                 // Remove destroyed player from the players
                 self?.players[nativeId] = nil
             }
+            // Remove IMAAdsWrapper
+            self?.adsWrappers[nativeId] = nil
         }
     }
 

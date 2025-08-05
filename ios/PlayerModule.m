@@ -5,6 +5,12 @@
 RCT_EXTERN_METHOD(initWithConfig:(NSString *)nativeId config:(nullable id)config networkNativeId:(nullable NSString *)networkNativeId decoderNativeId:(nullable NSString *)decoderNativeId)
 RCT_EXTERN_METHOD(initWithAnalyticsConfig:(NSString *)nativeId config:(nullable id)config networkNativeId:(nullable NSString *)networkNativeId analyticsConfig:(nullable id)analyticsConfig decoderNativeId:(nullable NSString *)decoderNativeId)
 RCT_EXTERN_METHOD(loadSource:(NSString *)nativeId sourceNativeId:(NSString *)sourceNativeId)
+RCT_EXTERN_METHOD(
+    loadDaiStream:(NSString *)nativeId
+    assetId:(NSString *)assetId
+    fallbackUrl:(NSString *)fallbackUrl
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(loadOfflineContent:(NSString *)nativeId offlineContentManagerBridgeId:(NSString *)offlineContentManagerBridgeId options:(nullable id)options)
 RCT_EXTERN_METHOD(unload:(NSString *)nativeId)
 RCT_EXTERN_METHOD(play:(NSString *)nativeId)

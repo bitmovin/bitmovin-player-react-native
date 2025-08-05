@@ -1,4 +1,5 @@
 import BitmovinPlayer
+import Combine
 
 @objc(RNPlayerView)
 public class RNPlayerView: UIView {
@@ -85,11 +86,22 @@ public class RNPlayerView: UIView {
         }
     }
 
+    private let onWindowChangedSubject = PassthroughSubject<UIWindow?, Never>()
+    var onWindowChanged: AnyPublisher<UIWindow?, Never> {
+        onWindowChangedSubject
+            .eraseToAnyPublisher()
+    }
+
     init() {
         super.init(frame: .zero)
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
+    }
+
+    override public func didMoveToWindow() {
+        super.didMoveToWindow()
+        onWindowChangedSubject.send(window)
     }
 }

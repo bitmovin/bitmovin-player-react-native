@@ -1,4 +1,5 @@
 import BitmovinPlayer
+import Combine
 import Foundation
 
 @objc(RNPlayerViewManager)
@@ -15,6 +16,8 @@ public class RNPlayerViewManager: RCTViewManager {
     }
 
     private var customMessageHandlerBridgeId: NativeId?
+
+    private var cancellables = Set<AnyCancellable>()
 
     /**
      Sets the `Player` instance for the view with `viewId` inside RN's `UIManager` registry.
@@ -54,6 +57,19 @@ public class RNPlayerViewManager: RCTViewManager {
             }
             player.add(listener: view)
             view.playerView?.add(listener: view)
+
+            // Assign ad container for IMA DAI
+            if let playerModule = self.getPlayerModule(),
+               let playerView = view.playerView {
+                playerModule.assignAdContainer(playerId, adUiContainer: playerView)
+                // Listen for window changes to re-assign ad container if necessary
+                view.onWindowChanged
+                    .filter { $0 != nil }
+                    .sink { [weak self] _ in
+                        playerModule.assignAdContainer(playerId, adUiContainer: playerView)
+                    }
+                    .store(in: &cancellables)
+            }
 
             self.maybeEmitPictureInPictureAvailabilityEvent(
                 for: view,
