@@ -31,9 +31,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Combined job for prebuild and code style check
+  # Combined job for iOS prebuild and code style check
   prebuild-and-lint:
-    name: Prebuild & Code Style Check
+    name: Prebuild iOS & Code Style Check
     runs-on: macOS-15
     outputs:
       expo-cache-hit: ${{ steps.expo-cache.outputs.cache-hit }}
@@ -64,7 +64,7 @@ jobs:
       - name: Check code style
         run: yarn lint:ios
 
-      # Cache Expo Prebuild artifacts
+      # Cache Expo Prebuild artifacts for iOS
       - name: Cache Expo Prebuild
         id: expo-cache
         uses: actions/cache@v4
@@ -268,14 +268,15 @@ jobs:
 
   test-build-tvos:
     name: Build tvOS Example App
+    needs: prebuild-and-lint
     runs-on: macOS-15
     timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Cache Homebrew dependencies
-      - name: Cache Homebrew
+      # Restore Homebrew cache (shared with iOS)
+      - name: Restore Homebrew Cache
         uses: actions/cache@v4
         with:
           path: |
@@ -286,24 +287,25 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-brew-
 
+      # Lightweight environment setup (Homebrew already cached)
       - name: Setup Environment
         uses: ./.github/actions/setup-environment-no-prebuild
         with:
           node: true
           ios: true
 
-      # Cache Expo Prebuild for tvOS
+      # Cache Expo Prebuild for tvOS (separate from iOS since they conflict)
       - name: Cache Expo Prebuild tvOS
         id: expo-cache-tv
         uses: actions/cache@v4
         with:
           path: |
             example/ios
-          key: ${{ runner.os }}-expo-prebuild-tv-${{ hashFiles('example/yarn.lock', 'example/app.json', 'example/package.json', 'plugin/**', 'ios/**') }}
+          key: ${{ runner.os }}-expo-prebuild-tv-${{ hashFiles('example/yarn.lock', 'example/app.config.ts', 'example/package.json', 'plugin/**', 'ios/**') }}
           restore-keys: |
             ${{ runner.os }}-expo-prebuild-tv-
 
-      # Install example dependencies
+      # Install example dependencies (lightweight since node modules cached)
       - name: Install example dependencies
         run: |
           yarn install --cwd example
