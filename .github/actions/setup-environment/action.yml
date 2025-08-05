@@ -67,7 +67,7 @@ runs:
       if: ${{ inputs.subprojects == 'true' && inputs.tv == 'false' }}
       shell: bash
       run: |
-        yarn example prebuild --clean
+        .github/scripts/smart-prebuild.sh example mobile
       env:
         NSUnbufferedIO: YES
 
@@ -75,7 +75,7 @@ runs:
       if: ${{ inputs.subprojects == 'true' && inputs.tv == 'true' }}
       shell: bash
       run: |
-        yarn example prebuild:tv --clean
+        .github/scripts/smart-prebuild.sh example tv
       env:
         NSUnbufferedIO: YES
 
@@ -85,9 +85,15 @@ runs:
       run: |
         yarn install --cwd integration_test
         cp integration_test/.env.example integration_test/.env
-        yarn integration-test prebuild --clean
+        .github/scripts/smart-prebuild.sh integration-test mobile
       env:
         NSUnbufferedIO: YES
+
+    - name: Setup Gradle CI properties
+      if: ${{ inputs.java == 'true' && inputs.subprojects == 'true' }}
+      shell: bash
+      run: |
+        .github/scripts/setup-gradle-properties.sh
 
     - uses: maxim-lobanov/setup-xcode@v1
       if: ${{ inputs.ios == 'true' }}

@@ -26,6 +26,11 @@ concurrency:
   group: ci-android-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  # Gradle optimization for CI
+  GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+UseParallelGC -Dorg.gradle.daemon=false"
+  GRADLE_USER_HOME: ${{ github.workspace }}/.gradle-ci
+
 jobs:
   code-style-android:
     name: Code style Android
@@ -56,8 +61,52 @@ jobs:
           node: true
           subprojects: true
 
+      - name: Setup Gradle Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ${{ github.workspace }}/.gradle-ci
+            example/android/.gradle
+            example/android/app/build
+            example/android/build
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'example/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Cache Android Prebuild
+        id: android-prebuild-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            example/android
+          key: ${{ runner.os }}-android-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'android/**') }}
+          restore-keys: |
+            ${{ runner.os }}-android-prebuild-
+
       - name: Build Android example
-        run: yarn example build:android --build-cache
+        id: build
+        run: |
+          START_TIME=$(date +%s)
+          yarn example build:android \
+            --gradle-args="--build-cache --parallel --max-workers=4 --no-daemon" \
+            --gradle-user-home=${{ github.workspace }}/.gradle-ci
+          END_TIME=$(date +%s)
+          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
+
+      - name: Report build time
+        run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
+
+      - name: Upload build cache artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-example-build-cache
+          path: |
+            ~/.gradle/caches/build-cache-*
+            example/android/app/build/intermediates
+          retention-days: 1
   
   test-build-android-integration-tests:
     name: Build Android Integration Tests
@@ -73,8 +122,53 @@ jobs:
           node: true
           subprojects: true
 
+      - name: Setup Gradle Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ${{ github.workspace }}/.gradle-ci
+            integration_test/android/.gradle
+            integration_test/android/app/build
+            integration_test/android/build
+          key: ${{ runner.os }}-gradle-integration-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'integration_test/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-integration-
+            ${{ runner.os }}-gradle-
+
+      - name: Cache Android Integration Prebuild
+        id: android-integration-prebuild-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            integration_test/android
+          key: ${{ runner.os }}-android-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.json', 'plugin/**', 'android/**') }}
+          restore-keys: |
+            ${{ runner.os }}-android-integration-prebuild-
+
       - name: Build Android integration test host app
-        run: yarn integration-test build:android --build-cache
+        id: build
+        run: |
+          START_TIME=$(date +%s)
+          yarn integration-test build:android \
+            --gradle-args="--build-cache --parallel --max-workers=4 --no-daemon" \
+            --gradle-user-home=${{ github.workspace }}/.gradle-ci
+          END_TIME=$(date +%s)
+          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
+
+      - name: Report build time
+        run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
+
+      - name: Upload build cache artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-integration-build-cache
+          path: |
+            ~/.gradle/caches/build-cache-*
+            integration_test/android/app/build/intermediates
+          retention-days: 1
 
   test-build-android-tv:
     name: Build Android TV Example App
@@ -91,5 +185,50 @@ jobs:
           subprojects: true
           tv: true
 
+      - name: Setup Gradle Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ${{ github.workspace }}/.gradle-ci
+            example/android/.gradle
+            example/android/app/build
+            example/android/build
+          key: ${{ runner.os }}-gradle-tv-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'example/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-tv-
+            ${{ runner.os }}-gradle-
+
+      - name: Cache Android TV Prebuild
+        id: android-tv-prebuild-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            example/android
+          key: ${{ runner.os }}-android-tv-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'android/**') }}
+          restore-keys: |
+            ${{ runner.os }}-android-tv-prebuild-
+
       - name: Build Android TV example
-        run: yarn example build:android-tv --build-cache
+        id: build
+        run: |
+          START_TIME=$(date +%s)
+          yarn example build:android-tv \
+            --gradle-args="--build-cache --parallel --max-workers=4 --no-daemon" \
+            --gradle-user-home=${{ github.workspace }}/.gradle-ci
+          END_TIME=$(date +%s)
+          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
+
+      - name: Report build time
+        run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
+
+      - name: Upload build cache artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-tv-build-cache
+          path: |
+            ~/.gradle/caches/build-cache-*
+            example/android/app/build/intermediates
+          retention-days: 1
