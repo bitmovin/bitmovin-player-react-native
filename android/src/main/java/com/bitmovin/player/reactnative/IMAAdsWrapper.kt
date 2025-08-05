@@ -77,7 +77,10 @@ class IMAAdsWrapper(
         val displayContainer =
             ImaSdkFactory.createStreamDisplayContainer(adUiContainer, videoStreamPlayer)
 
-        adsLoader = sdkFactory.createAdsLoader(context, settings, displayContainer)
+        val adsLoader = sdkFactory.createAdsLoader(context, settings, displayContainer)
+        adsLoader.addAdErrorListener(this)
+        adsLoader.addAdsLoadedListener(this)
+        this.adsLoader = adsLoader
 
         pendingRequestedAssetId?.let { assetId ->
             pendingRequestedAssetId = null
