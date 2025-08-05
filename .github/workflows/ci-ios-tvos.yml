@@ -275,7 +275,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Restore Homebrew cache (shared with iOS)
       - name: Restore Homebrew Cache
         uses: actions/cache@v4
         with:
@@ -287,14 +286,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-brew-
 
-      # Lightweight environment setup (Homebrew already cached)
       - name: Setup Environment
         uses: ./.github/actions/setup-environment-no-prebuild
         with:
           node: true
           ios: true
 
-      # Cache Expo Prebuild for tvOS (separate from iOS since they conflict)
       - name: Cache Expo Prebuild tvOS
         id: expo-cache-tv
         uses: actions/cache@v4
@@ -305,13 +302,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-expo-prebuild-tv-
 
-      # Install example dependencies (lightweight since node modules cached)
       - name: Install example dependencies
         run: |
           yarn install --cwd example
           cp example/.env.example example/.env
 
-      # Check if tvOS prebuild needed
       - name: Check if tvOS prebuild needed
         id: check-prebuild-tv
         run: |
@@ -323,14 +318,12 @@ jobs:
             echo "🔨 tvOS prebuild needed - cache miss or directory missing"
           fi
 
-      # Generate tvOS native project
       - name: Generate tvOS native project
         if: steps.check-prebuild-tv.outputs.skip == 'false'
         run: yarn example prebuild:tv --clean
         env:
           NSUnbufferedIO: YES
 
-      # Cache CocoaPods for tvOS
       - name: Cache CocoaPods tvOS
         id: pods-cache-tv
         uses: actions/cache@v4
@@ -342,12 +335,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pods-tv-
 
-      # Install CocoaPods for tvOS if needed
       - name: Install CocoaPods for tvOS if needed
         if: steps.pods-cache-tv.outputs.cache-hit != 'true' || steps.expo-cache-tv.outputs.cache-hit != 'true'
         run: cd example/ios && pod install --repo-update
 
-      # Cache Xcode Derived Data for tvOS
       - name: Cache Xcode Derived Data tvOS
         uses: actions/cache@v4
         with:
@@ -356,7 +347,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-derived-tvos-
 
-      # Build tvOS example
       - name: Build tvOS example
         run: yarn example build:tvos --renderer github-actions
         env:
