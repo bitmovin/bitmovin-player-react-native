@@ -51,7 +51,7 @@ export interface FairplayConfig {
    * Note that both the passed `syncMessage` data and this block return value should be a Base64
    * string. So use whatever solution suits you best to handle Base64 in React Native.
    *
-   * @param message - Base64 encoded message data.
+   * @param syncMessage - Base64 encoded message data.
    * @param assetId - Asset ID.
    * @returns The processed Base64 encoded sync message.
    */

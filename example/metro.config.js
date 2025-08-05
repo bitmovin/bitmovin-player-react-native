@@ -1,49 +1,34 @@
-const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
+// Learn more https://docs.expo.io/guides/customizing-metro
+const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
-const exclusionList = require('metro-config/src/defaults/exclusionList');
-const escape = require('escape-string-regexp');
-const pak = require('../package.json');
 
-const root = path.resolve(__dirname, '..');
+const config = getDefaultConfig(__dirname);
 
-const modules = Object.keys({
-  ...pak.peerDependencies,
-});
+// npm v7+ will install ../node_modules/react and ../node_modules/react-native because of peerDependencies.
+// To prevent the incompatible react-native between ./node_modules/react-native and ../node_modules/react-native,
+// excludes the one from the parent folder when bundling.
+config.resolver.blockList = [
+  ...Array.from(config.resolver.blockList ?? []),
+  new RegExp(path.resolve('..', 'node_modules', 'react')),
+  new RegExp(path.resolve('..', 'node_modules', 'react-native')),
+];
 
-/**
- * Metro configuration
- * https://facebook.github.io/metro/docs/configuration
- *
- * @type {import('metro-config').MetroConfig}
- */
-const config = {
-  projectRoot: __dirname,
-  watchFolders: [root],
+config.resolver.nodeModulesPaths = [
+  path.resolve(__dirname, './node_modules'),
+  path.resolve(__dirname, '../node_modules'),
+];
 
-  // We need to make sure that only one version is loaded for peerDependencies
-  // So we exclusionList them at the root, and alias them to the versions in example's node_modules
-  resolver: {
-    blockList: exclusionList(
-      modules.map(
-        (m) =>
-          new RegExp(`^${escape(path.join(root, 'node_modules', m))}\\/.*$`)
-      )
-    ),
-
-    extraNodeModules: modules.reduce((acc, name) => {
-      acc[name] = path.join(__dirname, 'node_modules', name);
-      return acc;
-    }, {}),
-  },
-
-  transformer: {
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: false,
-        inlineRequires: true,
-      },
-    }),
-  },
+config.resolver.extraNodeModules = {
+  'bitmovin-player-react-native': '..',
 };
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+config.watchFolders = [path.resolve(__dirname, '..')];
+
+config.transformer.getTransformOptions = async () => ({
+  transform: {
+    experimentalImportSupport: false,
+    inlineRequires: true,
+  },
+});
+
+module.exports = config;

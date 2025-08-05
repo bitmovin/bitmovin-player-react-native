@@ -18,7 +18,6 @@ on:
 env:
   LC_ALL: en_US.UTF-8
   LANG: en_US.UTF-8
-  NO_FLIPPER: 1
 
 concurrency:
   group: start-release-train-${{ inputs.version_number }}
@@ -27,7 +26,7 @@ concurrency:
 jobs:
   create_release_pr:
     name: Create release branch and bump version
-    runs-on: macos-14
+    runs-on: macos-15
     outputs:
       branch_name: ${{ steps.branching.outputs.branch_name }}
     steps:
@@ -43,16 +42,6 @@ jobs:
         uses: ./.github/actions/setup-environment
         with:
           node: true
-
-      - name: Restore Pods cache
-        id: pods-cache-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-          key: pods-${{ hashFiles('example/ios/Podfile.lock') }}-${{ hashFiles('integration_test/ios/Podfile.lock') }}
-          restore-keys: pods-
 
       - name: Set Release Branch name
         id: branching
@@ -72,32 +61,16 @@ jobs:
         run: |
           sed -i'.bak' "s/\[Unreleased\]/\[${{ inputs.version_number }}\]/g" CHANGELOG.md
           awk 'BEGIN {count=0} /## \[/ {count++; if (count == 2) exit} {print}' CHANGELOG.md
+          rm -f CHANGELOG.md.bak
 
       - name: Bump package.json version
         run: |
           yarn version --new-version ${{ inputs.version_number }} --no-git-tag-version
 
-      - name: Install pods to update Podfile.lock
-        run: |
-          yarn bootstrap
-        env:
-          CP_HOME_DIR: ${{ github.workspace }}/.cocoapods-cache
-          NO_FLIPPER: 1
-
-      - name: Save Pods cache
-        if: steps.pods-cache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
-        with:
-          path: |
-            .cocoapods-cache
-            example/ios/Pods
-            integration_test/ios/Pods
-          key: ${{ steps.pods-cache-restore.outputs.cache-primary-key }}
-
       - name: Commit changelog version bump
         if: ${{ !inputs.dry_run }}
         run: |
-          git add CHANGELOG.md package.json example/ios/Podfile.lock integration_test/ios/Podfile.lock
+          git add CHANGELOG.md package.json
           git commit --no-verify -m "prepare release ${{ inputs.version_number }}"
           git push origin ${{ steps.branching.outputs.branch_name }}
 

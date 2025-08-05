@@ -27,7 +27,7 @@ export type HttpRequestBody = string;
 
 /** Represents an HTTP request. */
 export interface HttpRequest {
-  /** The {@link HttpRequestBody} to send to the server. */
+  /** The HTTP request body to send to the server. */
   body?: HttpRequestBody;
   /**
    * The HTTP Headers of the request.
@@ -47,7 +47,7 @@ export type HttpResponseBody = string;
 
 /** Represents an HTTP response. */
 export interface HttpResponse {
-  /** The {@link HttpRequestBody} of the response. */
+  /** The HTTP response body of the response. */
   body?: HttpResponseBody;
   /**
    * The HTTP Headers of the response.
@@ -77,7 +77,7 @@ export interface NetworkConfig extends NativeInstanceConfig {
    *          - If the promise resolves, the player will use the processed request.
    *          - If the promise rejects, the player will fall back to using the original request.
    *
-   * @examples
+   * @example
    * ```
    *  const requestCallback = (type: HttpRequestType, request: HttpRequest) => {
    *    // Access current properties

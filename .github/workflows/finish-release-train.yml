@@ -8,6 +8,7 @@ on:
       - closed
     branches:
       - main
+      - support/v0
 
 env:
   LC_ALL: en_US.UTF-8
@@ -60,6 +61,18 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Create PR
+        if: ${{ github.event.pull_request.merged == true && startsWith(github.head_ref, 'support/v0') }}
+        run: |
+          gh pr create \
+          --base "development-v0" \
+          --head "support/v0" \
+          --title "Finish release ${{ needs.prepare.outputs.version_number }}" \
+          --body "Finish release ${{ needs.prepare.outputs.version_number }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Create PR
+        if: ${{ github.event.pull_request.merged == true && !startsWith(github.head_ref, 'support/v0') }}
         run: |
           gh pr create \
           --base "development" \

@@ -24,12 +24,18 @@ To play back a custom video asset, it is possible to set up a simple playback se
 
 ## Getting started
 
-To get started with the project, run `yarn bootstrap` in the library's root directory (not `example/`). This will install dependencies for both the library and the example application (as well as native dependencies):
+To get started with the project, run `yarn bootstrap` in the library's root directory (not `example/`). This command handles all setup steps automatically, including installing dependencies for both the library and the example application, generating native projects, and installing native dependencies:
 
 ```sh
 cd bitmovin-player-react-native # Go to library's root directory
-yarn bootstrap # Install all dependencies
+yarn bootstrap # Handles all setup: installs deps, prebuilds native projects, installs pods
 ```
+
+The `yarn bootstrap` command executes the following steps:
+1. Installs root project dependencies
+2. Installs example app dependencies
+3. Generates native iOS and Android projects using Expo prebuild
+4. Installs CocoaPods dependencies for iOS (macOS only)
 
 Note that Windows users should instead run:
 
@@ -37,41 +43,31 @@ Note that Windows users should instead run:
 cd bitmovin-player-react-native # Go to library's root directory
 yarn install # Install root project dependencies
 yarn example install # Install example folder dependencies
+yarn example prebuild # Generate native projects
 ```
 
-## Configuring your license key
+## Development Setup
 
-Before running the application, make sure to set up your Bitmovin's license key in the native metadata file of each platform:
+To run the example app for local development, you need to provide a Bitmovin Player license key. This project uses a local `.env` file and a dynamic `app.config.ts` to manage these secrets.
 
-**iOS**
+1. **Create a local environment file:**
+   From the root of the repository, copy the example `.env` template:
 
-Edit the license key in `example/ios/BitmovinPlayerReactNativeExample/Info.plist`:
+   ```bash
+   cp example/.env.example example/.env
+   ```
 
-```xml
-<key>BitmovinPlayerLicenseKey</key>
-<string>ENTER_LICENSE_KEY</string>
-```
+2. **Add your credentials:**
+   Open `example/.env` and replace the placeholder values.
+   - The `BITMOVIN_PLAYER_LICENSE_KEY` is required.
+   - The `BITMOVIN_ANALYTICS_LICENSE_KEY` is optional. It is used in the "Basic Analytics" screen.
+   - The `APPLE_DEVELOPMENT_TEAM_ID` is optional and only needed if you want to build the app on a physical iOS or tvOS device. You can find your Apple Team ID on the [Apple Developer website](https://developer.apple.com/account/) under "Membership details".
 
-**tvOS**
+These values are loaded automatically by `example/app.config.ts` during the prebuild process and are not committed to version control. **This method is for internal development only.**
 
-Edit the license key in `example/ios/BitmovinPlayerReactNativeExample-tvOS/Info.plist`:
+### Alternative: Programmatic License Key
 
-```xml
-<key>BitmovinPlayerLicenseKey</key>
-<string>ENTER_LICENSE_KEY</string>
-```
-
-**Android**
-
-Edit the license key in `example/android/app/src/main/AndroidManifest.xml`:
-
-```xml
-<meta-data android:name="BITMOVIN_PLAYER_LICENSE_KEY" android:value="<ENTER_LICENSE_KEY>" />
-```
-
-**Programmatically**
-
-Alternatively you can provide your license key programmatically via the config object of `usePlayer`. Providing it this way removes the need for the step above, but keep in mind that at least one of them is necessary to successfully run the examples.
+Alternatively you can provide your license key programmatically via the config object of `usePlayer`. This method can be used alongside the `.env` configuration.
 
 ```ts
 const player = usePlayer({
@@ -82,44 +78,36 @@ const player = usePlayer({
 
 ### Add the Package Name and Bundle Identifiers as an Allowed Domain
 
-Add the following package names and bundle identifiers of the example applications ending as an allowed domain on [https://bitmovin.com/dashboard](https://bitmovin.com/dashboard), under `Player -> Licenses` and also under `Analytics -> Licenses`.
+Add the following package name/bundle identifier `com.bitmovin.player.reactnative.example` of the example application as an allowed domain on [https://bitmovin.com/dashboard](https://bitmovin.com/dashboard), under `Player -> Licenses` and also under `Analytics -> Licenses`.
 
-#### Android example application Package Name
+### Re-generate the native iOS and Android applications
 
-```
-com.bitmovin.player.reactnative.example
-```
+When changing `example/.env` or `example/app.config.ts` you will need to re-generate the native iOS and Android applications to pick those changes up.
 
-#### iOS example application Bundle Identifier
-
-```
-com.bitmovin.PlayerReactNative-Example
-```
-
-#### tvOS example application Bundle Identifier
-
-```
-com.bitmovin.PlayerReactNativeExample-tvOS
-```
+The example application uses Expo Continuous Native Generation ([CNG](https://docs.expo.dev/workflow/continuous-native-generation/)) and the native apps can be re-generated using `yarn example prebuild`.
+See `yarn example prebuild -h` for all options.
 
 ## Running the application
 
 **Terminal**
 
 ```sh
-yarn example ios # Run examples on iOS
-yarn example android # Run examples on Android
-```
+# If TV examples were ran last time
+yarn example prebiuld --clean
 
-Hint: You can provide a specific simulator by name when using `--simulator` flag. `xcrun simctl list devices available` provides you with a list of available devices in your environment.
+yarn example ios # Run examples on iOS simulator, see yarn example ios -h for more options
+yarn example android # Run examples on Android, see yarn example android -h for more options
 
-```sh
-yarn example ios --simulator="iPhone 15 Pro"
+# Before running TV examples
+yarn example prebuild:tv --clean
+
+yarn example tvos # Run examples on tvOS simulator, see yarn example tvos -h for more options
+yarn example android-tv # Run examples on Android TV, see yarn example android-tv -h for more options
 ```
 
 **IDE**
 
-You can also open the iOS project using Xcode by typing `xed example/ios` on terminal, or `studio example/android` to open the android project in Android Studio (make sure to setup its binaries first).
+You can also open the iOS project using Xcode by running `yarn example open:ios` on terminal, or `yarn example open:android` to open the Android project in Android Studio.
 
 ### Running the bundler only
 
@@ -130,3 +118,17 @@ To start the metro bundler, run the following command on the library's root (alw
 ```sh
 yarn example start # Starts bundler on the example folder
 ```
+
+## Architecture
+
+This example app is built as an Expo application using:
+
+- **Expo SDK**: Modern React Native development with prebuild workflow
+- **Bitmovin Player React Native SDK**: Directly from the root project
+- **Environment Configuration**: Secure license key management via dotenv
+
+# Troubleshooting
+
+- Run `yarn example prebuild --clean`, `yarn example prebuild:tv --clean` or `yarn integration-test prebuild --clean` if you encounter native build issues
+- Check `example/.env` and `integration_test/.env` file configurations for missing environment variables
+- Ensure autolinking is working: parent package should be resolved automatically

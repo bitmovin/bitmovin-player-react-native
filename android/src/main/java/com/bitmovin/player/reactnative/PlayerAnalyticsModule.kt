@@ -3,48 +3,49 @@ package com.bitmovin.player.reactnative
 import com.bitmovin.player.api.analytics.AnalyticsApi
 import com.bitmovin.player.api.analytics.AnalyticsApi.Companion.analytics
 import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
-import com.facebook.react.bridge.*
-import com.facebook.react.module.annotations.ReactModule
+import expo.modules.kotlin.Promise
+import expo.modules.kotlin.functions.Queues
+import expo.modules.kotlin.modules.Module
+import expo.modules.kotlin.modules.ModuleDefinition
 
-private const val MODULE_NAME = "PlayerAnalyticsModule"
+/**
+ * Expo module for PlayerAnalytics management.
+ * Provides analytics functionality for player instances.
+ */
+class PlayerAnalyticsModule : Module() {
 
-@ReactModule(name = MODULE_NAME)
-class PlayerAnalyticsModule(context: ReactApplicationContext) : BitmovinBaseModule(context) {
-    /**
-     * JS exported module name.
-     */
-    override fun getName() = MODULE_NAME
+    override fun definition() = ModuleDefinition {
+        Name("PlayerAnalyticsModule")
 
-    /**
-     * Sends a sample with the provided custom data.
-     * Does not change the configured custom data of the collector or source.
-     * @param playerId Native Id of the player instance.
-     * @param json Custom data config json.
-     */
-    @ReactMethod
-    fun sendCustomDataEvent(playerId: NativeId, json: ReadableMap, promise: Promise) {
-        promise.unit.resolveOnUiThreadWithAnalytics(playerId) {
-            sendCustomDataEvent(json.toAnalyticsCustomData())
-        }
+        AsyncFunction("sendCustomDataEvent") { playerId: String, json: Map<String, Any?>, promise: Promise ->
+            try {
+                val analytics = getAnalyticsForPlayer(playerId)
+                analytics.sendCustomDataEvent(json.toAnalyticsCustomData())
+                promise.resolve(null)
+            } catch (e: Exception) {
+                promise.reject("PlayerAnalyticsError", "Failed to send custom data event", e)
+            }
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("getUserId") { playerId: String, promise: Promise ->
+            try {
+                val analytics = getAnalyticsForPlayer(playerId)
+                promise.resolve(analytics.userId)
+            } catch (e: Exception) {
+                promise.reject("PlayerAnalyticsError", "Failed to get user ID", e)
+            }
+        }.runOnQueue(Queues.MAIN)
     }
 
     /**
-     * Gets the current user Id for a player instance with analytics.
-     * @param playerId Native Id of the the player instance.
-     * @param promise JS promise object.
+     * Helper method to get analytics for a player instance.
      */
-    @ReactMethod
-    fun getUserId(playerId: NativeId, promise: Promise) {
-        promise.string.resolveOnUiThreadWithAnalytics(playerId) {
-            userId
-        }
-    }
-
-    private inline fun <T> TPromise<T>.resolveOnUiThreadWithAnalytics(
-        playerId: NativeId,
-        crossinline block: AnalyticsApi.() -> T,
-    ) = resolveOnUiThread {
-        val analytics = getPlayer(playerId).analytics ?: throw IllegalStateException("Analytics is disabled")
-        analytics.block()
+    private fun getAnalyticsForPlayer(playerId: String): AnalyticsApi {
+        // Get the player from PlayerModule
+        val playerModule = appContext.registry.getModule<PlayerModule>()
+        val player = playerModule?.getPlayerOrNull(playerId) ?: throw IllegalStateException(
+            "Could not find player with ID $playerId",
+        )
+        return player.analytics ?: throw IllegalStateException("Analytics is disabled")
     }
 }

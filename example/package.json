@@ -1,41 +1,85 @@
 {
-  "private": true,
-  "name": "bitmovin-player-react-native-sample",
-  "description": "Example app showcasing Bitmovin's React Native Player SDK",
-  "version": "0.0.1",
+  "name": "bitmovin-player-react-native-example",
+  "license": "0BSD",
+  "version": "1.0.0",
+  "main": "index.ts",
   "scripts": {
-    "postinstall": "patch-package",
-    "android": "react-native run-android",
-    "ios": "react-native run-ios",
-    "start": "react-native start",
+    "bootstrap": "yarn install && yarn prebuild && yarn pods",
+    "open:android": "open -a \"Android Studio\" android",
+    "open:ios": "xed ios",
     "pods": "yarn pods-install || yarn pods-update",
-    "pods-install": "[ \"$(uname)\" != Darwin ] || NO_FLIPPER=1 yarn pod-install",
-    "pods-update": "[ \"$(uname)\" != Darwin ] || cd ios && NO_FLIPPER=1 pod update --silent"
+    "pods-install": "[ \"$(uname)\" != Darwin ] || yarn pod-install",
+    "pods-update": "[ \"$(uname)\" != Darwin ] || cd ios && pod update --silent",
+    "prebuild": "expo prebuild",
+    "prebuild:tv": "EXPO_TV=1 expo prebuild",
+    "run:android": "expo run:android",
+    "run:android-tv": "EXPO_TV=1 expo run:android",
+    "run:ios": "expo run:ios",
+    "run:tvos": "EXPO_TV=1 expo run:ios",
+    "start": "expo start",
+    "start:log": "rm -f expo.log && script -q -F expo.log bash -c 'expo start'",
+    "logs": "tail -n ${LINES:-30} expo.log",
+    "build:ios": "./scripts/build-ios.sh",
+    "build:tvos": "./scripts/build-tvos.sh",
+    "build:android": "cd android && ./gradlew assembleDebug --quiet --console=plain --warning-mode=none",
+    "build:android-tv": "EXPO_TV=1 yarn build:android",
+    "build:ts": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx,.js,.jsx --quiet",
+    "typecheck": "tsc --noEmit",
+    "android": "yarn prebuild && yarn run:android",
+    "ios": "yarn prebuild && yarn run:ios",
+    "tvos": "yarn prebuild:tv && yarn run:tvos",
+    "android-tv": "yarn prebuild:tv && yarn run:android-tv"
   },
   "dependencies": {
-    "@react-native-picker/picker": "2.6.1",
-    "@react-navigation/elements": "1.3.26",
+    "@react-native-tvos/config-tv": "^0.1.1",
+    "@react-navigation/elements": "1.3.30",
     "@react-navigation/native": "6.1.14",
     "@react-navigation/native-stack": "6.9.22",
-    "react": "18.2.0",
-    "react-native": "npm:react-native-tvos@0.73.4-0",
-    "react-native-modal": "13.0.1",
-    "react-native-orientation-locker": "1.6.0",
-    "react-native-safe-area-context": "4.9.0",
-    "react-native-screens": "3.35.0",
+    "expo": "53.0.20",
+    "expo-build-properties": "~0.14.8",
+    "expo-crypto": "~14.1.5",
+    "expo-dev-client": "~5.2.4",
+    "expo-device": "~7.1.4",
+    "expo-notifications": "~0.31.4",
+    "expo-screen-orientation": "~8.1.7",
+    "expo-system-ui": "~5.0.10",
+    "react": "19.0.0",
+    "react-native": "npm:react-native-tvos@0.79.5-0",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.11.1",
     "react-native-system-navigation-bar": "^2.6.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
-    "@babel/preset-env": "^7.20.0",
-    "@babel/runtime": "^7.20.0",
-    "@react-native/babel-preset": "0.73.18",
-    "@react-native/metro-config": "^0.73.5",
-    "babel-plugin-module-resolver": "^5.0.0",
-    "patch-package": "^8.0.0",
-    "pod-install": "^0.1.0"
+    "@babel/core": "^7.28.0",
+    "@expo/cli": "^0.24.20",
+    "@expo/config-types": "^53.0.5",
+    "@types/react": "~19.0.10",
+    "dotenv": "^17.2.0",
+    "eslint": "^8.57.0",
+    "eslint-config-expo": "~9.2.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.5.1",
+    "pod-install": "^0.3.10",
+    "prettier": "^3.6.2",
+    "typescript": "~5.8.3"
   },
-  "engines": {
-    "node": ">=18"
+  "private": true,
+  "expo": {
+    "install": {
+      "exclude": [
+        "react-native"
+      ]
+    },
+    "autolinking": {
+      "nativeModulesDir": ".."
+    },
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "@react-native-tvos/config-tv"
+        ]
+      }
+    }
   }
 }
