@@ -6,9 +6,9 @@ set -e
 
 XCBEAUTIFY_ARGS=$@
 
-xcodebuild -workspace ios/BitmovinPlayerReactNativeExample.xcworkspace \
+eval "xcodebuild -workspace ios/BitmovinPlayerReactNativeExample.xcworkspace \
     -scheme BitmovinPlayerReactNativeExample \
     -configuration Debug \
     -quiet \
     ${XCODEBUILD_ARGS} \
-    | xcbeautify -qq --disable-logging $XCBEAUTIFY_ARGS
+    | xcbeautify -qq --disable-logging $XCBEAUTIFY_ARGS"
