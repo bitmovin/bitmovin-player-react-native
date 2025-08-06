@@ -39,13 +39,13 @@ runs:
 
     - name: Set up Gradle cache
       if: ${{ inputs.java == 'true' }}
-      uses: gradle/gradle-build-action@v3
+      uses: gradle/actions/setup-gradle@v4
       with:
         cache-read-only: ${{ github.ref != 'refs/heads/development' }}
 
     - name: Setup node and npm registry
       if: ${{ inputs.node == 'true' || inputs.subprojects == 'true' }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '20'
         registry-url: 'https://registry.npmjs.org/'
