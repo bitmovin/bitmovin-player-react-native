@@ -27,7 +27,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Gradle optimization for CI
   GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+UseParallelGC -Dorg.gradle.daemon=false"
   GRADLE_USER_HOME: ${{ github.workspace }}/.gradle-ci
 
