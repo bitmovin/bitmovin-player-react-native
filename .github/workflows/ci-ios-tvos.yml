@@ -106,7 +106,7 @@ jobs:
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
           NSUnbufferedIO: YES
-          XCODEBUILD_ARGS: "-arch x86_64 -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' -parallelizeTargets ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO"
+          XCODEBUILD_ARGS: "-destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' -parallelizeTargets ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO"
 
       - name: Build iOS Integration Tests (Optimized) 
         id: ios-integration
@@ -117,7 +117,7 @@ jobs:
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
           NSUnbufferedIO: YES
-          XCODEBUILD_ARGS: "-arch x86_64 -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' -parallelizeTargets ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO"
+          XCODEBUILD_ARGS: "-destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' -parallelizeTargets ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO"
 
       - name: Build tvOS Example App (Optimized)
         id: tvos-example
@@ -130,7 +130,7 @@ jobs:
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
           NSUnbufferedIO: YES
-          XCODEBUILD_ARGS: "-arch x86_64 -destination 'platform=tvOS Simulator,name=Apple TV,OS=latest' -parallelizeTargets ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO"
+          XCODEBUILD_ARGS: "-destination 'platform=tvOS Simulator,name=Apple TV,OS=latest' -parallelizeTargets ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO"
 
       - name: Report Build Performance
         run: |
