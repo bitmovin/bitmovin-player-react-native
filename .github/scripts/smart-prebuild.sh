@@ -9,13 +9,19 @@ if [ -z "$PROJECT" ]; then
 fi
 
 ANDROID_DIR="${PROJECT}/android"
+IOS_DIR="${PROJECT}/ios"
 
-if [ -d "$ANDROID_DIR" ]; then
-  if [ -f "$ANDROID_DIR/app/build.gradle" ]; then
-    exit 0
-  else
-    rm -rf "$ANDROID_DIR"
-  fi
+if [ -d "$ANDROID_DIR" ] && [ -f "$ANDROID_DIR/app/build.gradle" ] && 
+   [ -d "$IOS_DIR" ] && [ -f "$IOS_DIR/Podfile" ]; then
+  exit 0
+fi
+
+if [ -d "$ANDROID_DIR" ] && [ ! -f "$ANDROID_DIR/app/build.gradle" ]; then
+  rm -rf "$ANDROID_DIR"
+fi
+
+if [ -d "$IOS_DIR" ] && [ ! -f "$IOS_DIR/Podfile" ]; then
+  rm -rf "$IOS_DIR"
 fi
 
 COMMAND="prebuild"
