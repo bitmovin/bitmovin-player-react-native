@@ -59,6 +59,10 @@ jobs:
     runs-on: macOS-15
     timeout-minutes: 30
     
+    env:
+      NSUnbufferedIO: YES
+      COMMON_BUILD_FLAGS: "-parallelizeTargets -jobs 4 ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO GCC_OPTIMIZATION_LEVEL=0 SWIFT_OPTIMIZATION_LEVEL=-Onone ENABLE_BITCODE=NO"
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -105,8 +109,7 @@ jobs:
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
-          NSUnbufferedIO: YES
-          XCODEBUILD_ARGS: "-destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' -parallelizeTargets -jobs 4 ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO GCC_OPTIMIZATION_LEVEL=0 SWIFT_OPTIMIZATION_LEVEL=-Onone ENABLE_BITCODE=NO"
+          XCODEBUILD_ARGS: "-destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' ${{ env.COMMON_BUILD_FLAGS }}"
 
       - name: Build iOS Integration Tests (Optimized) 
         id: ios-integration
@@ -116,8 +119,7 @@ jobs:
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
-          NSUnbufferedIO: YES
-          XCODEBUILD_ARGS: "-destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' -parallelizeTargets -jobs 4 ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO GCC_OPTIMIZATION_LEVEL=0 SWIFT_OPTIMIZATION_LEVEL=-Onone ENABLE_BITCODE=NO"
+          XCODEBUILD_ARGS: "-destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' ${{ env.COMMON_BUILD_FLAGS }}"
 
       - name: Build tvOS Example App (Optimized)
         id: tvos-example
@@ -129,8 +131,7 @@ jobs:
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
-          NSUnbufferedIO: YES
-          XCODEBUILD_ARGS: "-destination 'platform=tvOS Simulator,name=Apple TV,OS=latest' -parallelizeTargets -jobs 4 ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO GCC_OPTIMIZATION_LEVEL=0 SWIFT_OPTIMIZATION_LEVEL=-Onone ENABLE_BITCODE=NO"
+          XCODEBUILD_ARGS: "-destination 'platform=tvOS Simulator,name=Apple TV,OS=latest' ${{ env.COMMON_BUILD_FLAGS }}"
 
       - name: Report Build Performance
         run: |
