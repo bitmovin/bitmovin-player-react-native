@@ -32,14 +32,14 @@ runs:
   steps:
     - name: Set up Java
       if: ${{ inputs.java == 'true' }}
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
-        distribution: 'zulu'
+        distribution: 'temurin'
         java-version: '17'
 
     - name: Set up Gradle cache
       if: ${{ inputs.java == 'true' }}
-      uses: gradle/gradle-build-action@v2
+      uses: gradle/gradle-build-action@v3
       with:
         cache-read-only: ${{ github.ref != 'refs/heads/development' }}
 
