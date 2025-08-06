@@ -109,7 +109,7 @@ jobs:
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
-          XCODEBUILD_ARGS: "-destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' ${{ env.COMMON_BUILD_FLAGS }}"
+          XCODEBUILD_ARGS: "-destination 'generic/platform=iOS Simulator' ${{ env.COMMON_BUILD_FLAGS }}"
 
       - name: Build iOS Integration Tests (Optimized) 
         id: ios-integration
@@ -119,7 +119,7 @@ jobs:
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
-          XCODEBUILD_ARGS: "-destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' ${{ env.COMMON_BUILD_FLAGS }}"
+          XCODEBUILD_ARGS: "-destination 'generic/platform=iOS Simulator' ${{ env.COMMON_BUILD_FLAGS }}"
 
       - name: Build tvOS Example App (Optimized)
         id: tvos-example
@@ -131,7 +131,7 @@ jobs:
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
-          XCODEBUILD_ARGS: "-destination 'platform=tvOS Simulator,name=Apple TV,OS=latest' ${{ env.COMMON_BUILD_FLAGS }}"
+          XCODEBUILD_ARGS: "-destination 'generic/platform=tvOS Simulator' ${{ env.COMMON_BUILD_FLAGS }}"
 
       - name: Report Build Performance
         run: |
