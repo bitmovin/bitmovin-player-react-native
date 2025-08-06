@@ -67,7 +67,7 @@ runs:
       if: ${{ inputs.subprojects == 'true' && inputs.tv == 'false' }}
       shell: bash
       run: |
-        .github/scripts/smart-prebuild.sh example mobile
+        .github/scripts/smart-prebuild.sh example
       env:
         NSUnbufferedIO: YES
 
@@ -85,7 +85,7 @@ runs:
       run: |
         yarn install --cwd integration_test
         cp integration_test/.env.example integration_test/.env
-        .github/scripts/smart-prebuild.sh integration-test mobile
+        .github/scripts/smart-prebuild.sh integration_test
       env:
         NSUnbufferedIO: YES
 

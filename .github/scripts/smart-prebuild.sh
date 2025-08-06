@@ -3,19 +3,12 @@
 PROJECT="$1"
 PLATFORM_TYPE="$2"
 
-if [ -z "$PROJECT" ] || [ -z "$PLATFORM_TYPE" ]; then
-  echo "Usage: smart-prebuild.sh [example|integration-test] [mobile|tv]"
+if [ -z "$PROJECT" ]; then
+  echo "Usage: smart-prebuild.sh <project> [platform]"
   exit 1
 fi
 
-if [ "$PROJECT" = "example" ]; then
-  ANDROID_DIR="example/android"
-elif [ "$PROJECT" = "integration-test" ]; then
-  ANDROID_DIR="integration_test/android"
-else
-  echo "Invalid project: $PROJECT"
-  exit 1
-fi
+ANDROID_DIR="${PROJECT}/android"
 
 if [ -d "$ANDROID_DIR" ]; then
   if [ -f "$ANDROID_DIR/app/build.gradle" ]; then
@@ -25,8 +18,9 @@ if [ -d "$ANDROID_DIR" ]; then
   fi
 fi
 
-if [ "$PLATFORM_TYPE" = "tv" ]; then
-  yarn "$PROJECT" prebuild:tv --clean
-else
-  yarn "$PROJECT" prebuild --clean
+COMMAND="prebuild"
+if [ -n "$PLATFORM_TYPE" ]; then
+  COMMAND="${COMMAND}:${PLATFORM_TYPE}"
 fi
+
+yarn "$PROJECT" "$COMMAND" --clean
