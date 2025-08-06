@@ -70,9 +70,6 @@ jobs:
           subprojects: true
           ios: true
 
-      - name: Setup Xcode CI Configuration
-        run: .github/scripts/setup-xcode-ci.sh
-
       - name: Run Code Style Check
         id: lint
         run: |
@@ -104,53 +101,43 @@ jobs:
         id: ios-example
         run: |
           START_TIME=$(date +%s)
-          cd example/ios
-          xcodebuild \
-            -workspace BitmovinPlayerReactNativeExample.xcworkspace \
-            -scheme BitmovinPlayerReactNativeExample \
-            -configuration Debug \
-            -arch x86_64 \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            -quiet \
-            -parallelizeTargets \
-            ONLY_ACTIVE_ARCH=YES \
-            ARCHS=x86_64 \
-            VALID_ARCHS=x86_64 \
-            DEBUG_INFORMATION_FORMAT=dwarf \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            SWIFT_COMPILATION_MODE=wholemodule \
-            ENABLE_TESTABILITY=NO \
-            | xcbeautify --renderer github-actions --quiet
+          yarn example build:ios --renderer github-actions --quiet
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
           NSUnbufferedIO: YES
+          XCODEBUILD_ARGS: >-
+            -arch x86_64
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest'
+            -parallelizeTargets
+            ONLY_ACTIVE_ARCH=YES
+            ARCHS=x86_64
+            VALID_ARCHS=x86_64
+            DEBUG_INFORMATION_FORMAT=dwarf
+            COMPILER_INDEX_STORE_ENABLE=NO
+            SWIFT_COMPILATION_MODE=wholemodule
+            ENABLE_TESTABILITY=NO
 
       - name: Build iOS Integration Tests (Optimized) 
         id: ios-integration
         run: |
           START_TIME=$(date +%s)
-          cd integration_test/ios
-          xcodebuild \
-            -workspace IntegrationTest.xcworkspace \
-            -scheme IntegrationTest \
-            -configuration Debug \
-            -arch x86_64 \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            -quiet \
-            -parallelizeTargets \
-            ONLY_ACTIVE_ARCH=YES \
-            ARCHS=x86_64 \
-            VALID_ARCHS=x86_64 \
-            DEBUG_INFORMATION_FORMAT=dwarf \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            SWIFT_COMPILATION_MODE=wholemodule \
-            ENABLE_TESTABILITY=NO \
-            | xcbeautify --renderer github-actions --quiet
+          yarn integration-test build:ios --renderer github-actions --quiet
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
           NSUnbufferedIO: YES
+          XCODEBUILD_ARGS: >-
+            -arch x86_64
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest'
+            -parallelizeTargets
+            ONLY_ACTIVE_ARCH=YES
+            ARCHS=x86_64
+            VALID_ARCHS=x86_64
+            DEBUG_INFORMATION_FORMAT=dwarf
+            COMPILER_INDEX_STORE_ENABLE=NO
+            SWIFT_COMPILATION_MODE=wholemodule
+            ENABLE_TESTABILITY=NO
 
       - name: Build tvOS Example App (Optimized)
         id: tvos-example
@@ -158,27 +145,22 @@ jobs:
           START_TIME=$(date +%s)
           .github/scripts/smart-prebuild.sh example tv
           yarn example pods
-          cd example/ios
-          xcodebuild \
-            -workspace BitmovinPlayerReactNativeExample.xcworkspace \
-            -scheme BitmovinPlayerReactNativeExample \
-            -configuration Debug \
-            -arch x86_64 \
-            -destination 'platform=tvOS Simulator,name=Apple TV,OS=latest' \
-            -quiet \
-            -parallelizeTargets \
-            ONLY_ACTIVE_ARCH=YES \
-            ARCHS=x86_64 \
-            VALID_ARCHS=x86_64 \
-            DEBUG_INFORMATION_FORMAT=dwarf \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            SWIFT_COMPILATION_MODE=wholemodule \
-            ENABLE_TESTABILITY=NO \
-            | xcbeautify --renderer github-actions --quiet
+          yarn example build:tvos --renderer github-actions --quiet
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
           NSUnbufferedIO: YES
+          XCODEBUILD_ARGS: >-
+            -arch x86_64
+            -destination 'platform=tvOS Simulator,name=Apple TV,OS=latest'
+            -parallelizeTargets
+            ONLY_ACTIVE_ARCH=YES
+            ARCHS=x86_64
+            VALID_ARCHS=x86_64
+            DEBUG_INFORMATION_FORMAT=dwarf
+            COMPILER_INDEX_STORE_ENABLE=NO
+            SWIFT_COMPILATION_MODE=wholemodule
+            ENABLE_TESTABILITY=NO
 
       - name: Report Build Performance
         run: |
