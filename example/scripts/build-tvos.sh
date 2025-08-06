@@ -9,7 +9,6 @@ XCBEAUTIFY_ARGS=$@
 xcodebuild -workspace ios/BitmovinPlayerReactNativeExample.xcworkspace \
     -scheme BitmovinPlayerReactNativeExample \
     -configuration Debug \
-    -destination 'generic/platform=tvOS Simulator' \
     -quiet \
     ${XCODEBUILD_ARGS} \
     | xcbeautify -qq --disable-logging $XCBEAUTIFY_ARGS
