@@ -8,6 +8,7 @@ if [ -z "$PROJECT" ]; then
   exit 1
 fi
 
+YARN_PROJECT="${PROJECT//_/-}"
 ANDROID_DIR="${PROJECT}/android"
 IOS_DIR="${PROJECT}/ios"
 
@@ -29,4 +30,4 @@ if [ -n "$PLATFORM_TYPE" ]; then
   COMMAND="${COMMAND}:${PLATFORM_TYPE}"
 fi
 
-yarn "$PROJECT" "$COMMAND" --clean
+yarn "$YARN_PROJECT" "$COMMAND" --clean
