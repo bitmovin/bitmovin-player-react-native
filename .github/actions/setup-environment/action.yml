@@ -85,7 +85,7 @@ runs:
       run: |
         yarn install --cwd integration_test
         cp integration_test/.env.example integration_test/.env
-        .github/scripts/smart-prebuild.sh integration_test
+        .github/scripts/smart-prebuild.sh integration-test
       env:
         NSUnbufferedIO: YES
 
