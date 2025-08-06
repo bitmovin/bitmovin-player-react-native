@@ -9,10 +9,8 @@ if [ -z "$PROJECT" ] || [ -z "$PLATFORM_TYPE" ]; then
 fi
 
 if [ "$PROJECT" = "example" ]; then
-  PROJECT_DIR="example"
   ANDROID_DIR="example/android"
 elif [ "$PROJECT" = "integration-test" ]; then
-  PROJECT_DIR="integration_test"
   ANDROID_DIR="integration_test/android"
 else
   echo "Invalid project: $PROJECT"
@@ -27,14 +25,8 @@ if [ -d "$ANDROID_DIR" ]; then
   fi
 fi
 
-cd "$PROJECT_DIR"
-
 if [ "$PLATFORM_TYPE" = "tv" ]; then
-  if [ "$PROJECT" = "example" ]; then
-    yarn prebuild:tv --clean
-  else
-    EXPO_TV=1 yarn prebuild --clean
-  fi
+  yarn "$PROJECT" prebuild:tv --clean
 else
-  yarn prebuild --clean
+  yarn "$PROJECT" prebuild --clean
 fi
