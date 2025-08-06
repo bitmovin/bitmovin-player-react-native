@@ -111,8 +111,8 @@ jobs:
       - name: Install CocoaPods if needed
         if: steps.pods-cache.outputs.cache-hit != 'true' || steps.expo-cache.outputs.cache-hit != 'true'
         run: |
-          cd example/ios && pod install --repo-update
-          cd ../../integration_test/ios && pod install --repo-update
+          yarn example pods
+          yarn integration-test pods
 
   test-build-ios:
     name: Build iOS Example App
@@ -160,14 +160,6 @@ jobs:
           key: ${{ runner.os }}-pods-${{ hashFiles('example/ios/Podfile.lock', 'integration_test/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-
-
-      - name: Cache Xcode Derived Data
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-xcode-derived-ios-example-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-xcode-derived-ios-example-
 
       - name: Install example dependencies
         run: |
@@ -225,14 +217,6 @@ jobs:
           key: ${{ runner.os }}-pods-${{ hashFiles('example/ios/Podfile.lock', 'integration_test/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-
-
-      - name: Cache Xcode Derived Data
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-xcode-derived-ios-integration-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-xcode-derived-ios-integration-
 
       - name: Install integration test dependencies
         run: |
@@ -313,15 +297,7 @@ jobs:
 
       - name: Install CocoaPods for tvOS if needed
         if: steps.pods-cache-tv.outputs.cache-hit != 'true' || steps.expo-cache-tv.outputs.cache-hit != 'true'
-        run: cd example/ios && pod install --repo-update
-
-      - name: Cache Xcode Derived Data tvOS
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-xcode-derived-tvos-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-xcode-derived-tvos-
+        run: yarn example pods
 
       - name: Build tvOS example
         run: yarn example build:tvos --renderer github-actions
