@@ -31,7 +31,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Combined job for iOS prebuild and code style check
   prebuild-and-lint:
     name: Prebuild iOS & Code Style Check
     runs-on: macOS-15
@@ -42,7 +41,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Cache Homebrew dependencies
       - name: Cache Homebrew
         uses: actions/cache@v4
         with:
@@ -60,11 +58,9 @@ jobs:
           node: true
           ios: true
 
-      # Run code style check early while other setup continues
       - name: Check code style
         run: yarn lint:ios
 
-      # Cache Expo Prebuild artifacts for iOS
       - name: Cache Expo Prebuild
         id: expo-cache
         uses: actions/cache@v4
@@ -76,7 +72,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-expo-prebuild-
 
-      # Install subproject dependencies
       - name: Install subproject dependencies
         run: |
           yarn install --cwd example
@@ -84,16 +79,13 @@ jobs:
           yarn install --cwd integration_test
           cp integration_test/.env.example integration_test/.env
 
-      # Conditional prebuild - only if cache miss
       - name: Check if prebuild needed
         id: check-prebuild
         run: |
           if [ "${{ steps.expo-cache.outputs.cache-hit }}" == "true" ] && [ -d "example/ios" ] && [ -d "integration_test/ios" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
-            echo "✅ Using cached prebuild artifacts"
           else
             echo "skip=false" >> $GITHUB_OUTPUT
-            echo "🔨 Prebuild needed - cache miss or directories missing"
           fi
 
       - name: Generate native projects
@@ -104,7 +96,6 @@ jobs:
         env:
           NSUnbufferedIO: YES
 
-      # Cache CocoaPods
       - name: Cache CocoaPods
         id: pods-cache
         uses: actions/cache@v4
@@ -117,7 +108,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pods-
 
-      # Conditional pod install
       - name: Install CocoaPods if needed
         if: steps.pods-cache.outputs.cache-hit != 'true' || steps.expo-cache.outputs.cache-hit != 'true'
         run: |
@@ -133,7 +123,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Restore Homebrew cache
       - name: Restore Homebrew Cache
         uses: actions/cache@v4
         with:
@@ -151,7 +140,6 @@ jobs:
           node: true
           ios: true
 
-      # Restore Expo prebuild cache
       - name: Restore Expo Prebuild
         uses: actions/cache@v4
         with:
@@ -162,7 +150,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-expo-prebuild-
 
-      # Restore CocoaPods cache
       - name: Restore CocoaPods
         uses: actions/cache@v4
         with:
@@ -174,7 +161,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pods-
 
-      # Cache Xcode Derived Data
       - name: Cache Xcode Derived Data
         uses: actions/cache@v4
         with:
@@ -183,13 +169,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-derived-ios-example-
 
-      # Install example dependencies
       - name: Install example dependencies
         run: |
           yarn install --cwd example
           cp example/.env.example example/.env
 
-      # Build iOS example with optimized settings
       - name: Build iOS example
         run: yarn example build:ios --renderer github-actions
         env:
@@ -204,7 +188,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Restore Homebrew cache
       - name: Restore Homebrew Cache
         uses: actions/cache@v4
         with:
@@ -222,7 +205,6 @@ jobs:
           node: true
           ios: true
 
-      # Restore Expo prebuild cache
       - name: Restore Expo Prebuild
         uses: actions/cache@v4
         with:
@@ -233,7 +215,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-expo-prebuild-
 
-      # Restore CocoaPods cache
       - name: Restore CocoaPods
         uses: actions/cache@v4
         with:
@@ -245,7 +226,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pods-
 
-      # Cache Xcode Derived Data
       - name: Cache Xcode Derived Data
         uses: actions/cache@v4
         with:
@@ -254,13 +234,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-derived-ios-integration-
 
-      # Install integration test dependencies
       - name: Install integration test dependencies
         run: |
           yarn install --cwd integration_test
           cp integration_test/.env.example integration_test/.env
 
-      # Build iOS integration test host app
       - name: Build iOS integration test host app
         run: yarn integration-test build:ios --renderer github-actions
         env:
@@ -312,10 +290,8 @@ jobs:
         run: |
           if [ "${{ steps.expo-cache-tv.outputs.cache-hit }}" == "true" ] && [ -d "example/ios" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
-            echo "✅ Using cached tvOS prebuild artifacts"
           else
             echo "skip=false" >> $GITHUB_OUTPUT
-            echo "🔨 tvOS prebuild needed - cache miss or directory missing"
           fi
 
       - name: Generate tvOS native project
