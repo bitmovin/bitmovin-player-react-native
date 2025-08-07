@@ -131,6 +131,8 @@ jobs:
           yarn example build:tvos --renderer github-actions --quiet
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
+        env:
+          XCODEBUILD_ARGS: "-destination 'generic/platform=tvOS Simulator' ${{ env.COMMON_BUILD_FLAGS }}"
 
       - name: Report Build Performance
         run: |
