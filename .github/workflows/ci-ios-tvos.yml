@@ -5,49 +5,64 @@ on:
     branches:
       - development
     paths:
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.js'
-      - '**/*.json'
-      - '**/*.yml'
-      - '**/*.yaml'
+      # Native code directories
       - 'ios/**'
-      - 'plugin/**'
+      - 'plugin/**'  
       - 'example/ios/**'
-      - 'example/**/*.ts'
-      - 'example/**/*.tsx'
-      - 'example/**/*.js'
-      - 'example/**/*.json'
       - 'integration_test/ios/**'
-      - 'integration_test/**/*.ts'
-      - 'integration_test/**/*.tsx'
-      - 'integration_test/**/*.js'
-      - 'integration_test/**/*.json'
+      
+      # Dependencies and native build configuration
+      - 'package.json'
+      - 'yarn.lock'
+      - '**/Podfile*'
+      - '**/*.podspec'
+      - '**/*.xcodeproj/**'
+      - '**/*.xcworkspace/**'
+      - '**/Info.plist'
+      
+      # Build and CI configuration
       - '.github/workflows/ci-ios-tvos.yml'
+      - '.github/scripts/**'
       - '.github/actions/**'
+      - '**/app.config.*'
+      - '**/expo.json'
+      
+      # Native build scripts
+      - '**/build-ios.sh'
+      - '**/build-tvos.sh'
+      - 'example/scripts/**'
+      - 'integration_test/scripts/**'
+      
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - '**/*.ts'
-      - '**/*.tsx' 
-      - '**/*.js'
-      - '**/*.json'
-      - '**/*.yml'
-      - '**/*.yaml'
+      # Native code directories
       - 'ios/**'
-      - 'plugin/**'
+      - 'plugin/**'  
       - 'example/ios/**'
-      - 'example/**/*.ts'
-      - 'example/**/*.tsx'
-      - 'example/**/*.js'
-      - 'example/**/*.json'
       - 'integration_test/ios/**'
-      - 'integration_test/**/*.ts'
-      - 'integration_test/**/*.tsx'
-      - 'integration_test/**/*.js'
-      - 'integration_test/**/*.json'
+      
+      # Dependencies and native build configuration
+      - 'package.json'
+      - 'yarn.lock'
+      - '**/Podfile*'
+      - '**/*.podspec'
+      - '**/*.xcodeproj/**'
+      - '**/*.xcworkspace/**'
+      - '**/Info.plist'
+      
+      # Build and CI configuration
       - '.github/workflows/ci-ios-tvos.yml'
+      - '.github/scripts/**'
       - '.github/actions/**'
+      - '**/app.config.*'
+      - '**/expo.json'
+      
+      # Native build scripts
+      - '**/build-ios.sh'
+      - '**/build-tvos.sh'
+      - 'example/scripts/**'
+      - 'integration_test/scripts/**'
 
 concurrency:
   group: ci-ios-tvos-${{ github.event.pull_request.number || github.ref }}
