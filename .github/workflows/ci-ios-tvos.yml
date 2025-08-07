@@ -125,7 +125,8 @@ jobs:
         id: tvos-example
         run: |
           START_TIME=$(date +%s)
-          .github/scripts/smart-prebuild.sh example tv
+          rm -rf example/ios example/android
+          yarn example prebuild:tv --clean
           yarn example pods
           yarn example build:tvos --renderer github-actions --quiet
           END_TIME=$(date +%s)
