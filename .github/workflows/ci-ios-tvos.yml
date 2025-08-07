@@ -76,13 +76,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
+      - name: SwiftLint
+        uses: norio-nomura/action-swiftlint@3.2.1
         with:
-          swift: true
-
-      - name: Check iOS code style
-        run: yarn lint:ios
+          args: ios --strict --quiet
 
   ios-tvos-build:
     name: iOS & tvOS Build Suite
