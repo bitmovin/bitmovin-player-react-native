@@ -121,13 +121,15 @@ jobs:
         env:
           XCODEBUILD_ARGS: "-destination 'generic/platform=iOS Simulator' ${{ env.COMMON_BUILD_FLAGS }}"
 
-      - name: Skip tvOS Build (No Simulators Available)
+      - name: Build tvOS Example App (Optimized)
         id: tvos-example
         run: |
           START_TIME=$(date +%s)
-          echo "tvOS simulators not available on macOS-15 runners - skipping tvOS build"
+          .github/scripts/smart-prebuild.sh example tv
+          yarn example pods
+          yarn example build:tvos --renderer github-actions --quiet
           END_TIME=$(date +%s)
-          echo "duration=0" >> $GITHUB_OUTPUT
+          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
 
       - name: Report Build Performance
         run: |
