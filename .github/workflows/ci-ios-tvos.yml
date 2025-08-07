@@ -69,6 +69,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  code-style-ios:
+    name: Code style iOS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          swift: true
+
+      - name: Check iOS code style
+        run: yarn lint:ios
+
   ios-tvos-build:
     name: iOS & tvOS Build Suite
     runs-on: macOS-15
@@ -88,14 +103,6 @@ jobs:
           node: true
           subprojects: true
           ios: true
-
-      - name: Run Code Style Check
-        id: lint
-        run: |
-          START_TIME=$(date +%s)
-          yarn lint:ios
-          END_TIME=$(date +%s)
-          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
 
       - name: Setup Comprehensive Caching
         uses: actions/cache@v4
