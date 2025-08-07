@@ -188,7 +188,7 @@ public class PlayerModule: Module {
         ) { [weak self] (nativeId: NativeId, analyticsConfig: [String: Any]?, config: [String: Any]?, networkNativeId: NativeId?, _: String?) in // swiftlint:disable:this line_length
             guard !PlayerRegistry.hasPlayer(nativeId: nativeId),
                   let playerConfig = RCTConvert.playerConfig(config),
-                  let analyticsConfig = RCTConvert.analyticsConfig(analyticsConfig) else { return } // swiftlint:disable:this line_length
+                  let analyticsConfig = RCTConvert.analyticsConfig(analyticsConfig) else { return }
             #if os(iOS)
             self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
             #endif
@@ -205,7 +205,7 @@ public class PlayerModule: Module {
         }.runOnQueue(.main)
         AsyncFunction("loadSource") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) in
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self), // swiftlint:disable:this line_length
+                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
                   let source = sourceModule.retrieve(sourceNativeId) else { return }
             player.load(source: source)
         }.runOnQueue(.main)
@@ -219,7 +219,7 @@ public class PlayerModule: Module {
 
     private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {
         remoteControlConfig.prepareSource = { [weak self] _, sourceConfig in
-            guard let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self), // swiftlint:disable:this line_length
+            guard let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
                   let sourceNativeId = sourceModule.nativeId(where: { $0.sourceConfig === sourceConfig }),
                   let castSourceConfig = sourceModule.retrieveCastSourceConfig(sourceNativeId) else {
                 return nil
