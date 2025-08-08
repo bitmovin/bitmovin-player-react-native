@@ -111,7 +111,7 @@ jobs:
             ~/Library/Developer/Xcode/DerivedData
             example/ios/build
             integration_test/ios/build
-          key: ${{ runner.os }}-ios-comprehensive-${{ hashFiles('example/ios/Podfile.lock', 'integration_test/ios/Podfile.lock', 'example/yarn.lock', 'integration_test/yarn.lock') }}
+          key: ${{ runner.os }}-ios-comprehensive-${{ hashFiles('ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock', 'integration_test/ios/Podfile.lock', 'example/yarn.lock', 'integration_test/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-ios-comprehensive-
 
