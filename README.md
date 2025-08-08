@@ -73,4 +73,3 @@ As an open-source project and not a core product offering, any request, issue or
 ## Need more help?
 
 Should you need further help, please raise your request to your Bitmovin account team. We can assist in a number of ways, from providing you professional services help to putting you in touch with preferred system integrators who can work with you to achieve your goals.
-# Test trigger
