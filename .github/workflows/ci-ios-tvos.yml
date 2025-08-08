@@ -120,7 +120,7 @@ jobs:
           yarn example pods
           yarn integration-test pods
 
-      - name: Build iOS Example App (Optimized)
+      - name: Build iOS Example App
         id: ios-example
         run: |
           START_TIME=$(date +%s)
@@ -130,7 +130,7 @@ jobs:
         env:
           XCODEBUILD_ARGS: "-destination 'generic/platform=iOS Simulator' ${{ env.COMMON_BUILD_FLAGS }}"
 
-      - name: Build iOS Integration Tests (Optimized) 
+      - name: Build iOS Integration Tests 
         id: ios-integration
         run: |
           START_TIME=$(date +%s)
@@ -140,7 +140,7 @@ jobs:
         env:
           XCODEBUILD_ARGS: "-destination 'generic/platform=iOS Simulator' ${{ env.COMMON_BUILD_FLAGS }}"
 
-      - name: Build tvOS Example App (Optimized)
+      - name: Build tvOS Example App
         id: tvos-example
         run: |
           START_TIME=$(date +%s)
@@ -166,13 +166,3 @@ jobs:
           TOTAL_TIME=$((${{ steps.lint.outputs.duration }} + ${{ steps.ios-example.outputs.duration }} + ${{ steps.ios-integration.outputs.duration }} + ${{ steps.tvos-example.outputs.duration }}))
           echo "**Total Build Time: ${TOTAL_TIME}s**" >> $GITHUB_STEP_SUMMARY
 
-      - name: Upload Build Artifacts
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-tvos-build-outputs
-          path: |
-            example/ios/build
-            integration_test/ios/build
-            ~/Library/Developer/Xcode/DerivedData
-          retention-days: 1
