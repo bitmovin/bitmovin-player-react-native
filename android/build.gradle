@@ -108,6 +108,6 @@ dependencies {
 
   // Bitmovin
   implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
-  implementation 'com.bitmovin.player:player:3.119.0+jason'
-  implementation 'com.bitmovin.player:player-media-session:3.119.0+jason'
+  implementation 'com.bitmovin.player:player:3.121.0+jason
+  implementation 'com.bitmovin.player:player-media-session:3.121.0+jason
 }
