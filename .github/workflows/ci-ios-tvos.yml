@@ -72,6 +72,7 @@ jobs:
   code-style-ios:
     name: Code style iOS
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -88,7 +89,15 @@ jobs:
     
     env:
       NSUnbufferedIO: YES
-      COMMON_BUILD_FLAGS: "-parallelizeTargets -jobs 4 ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO GCC_OPTIMIZATION_LEVEL=0 SWIFT_OPTIMIZATION_LEVEL=-Onone ENABLE_BITCODE=NO"
+      # Build Configuration
+      XCODE_VERSION: '16.4'
+      IOS_DESTINATION: 'generic/platform=iOS Simulator'
+      TVOS_DESTINATION: 'generic/platform=tvOS Simulator'
+      BUILD_TIMEOUT_MINUTES: 45
+      STEP_TIMEOUT_MINUTES_STANDARD: 15
+      STEP_TIMEOUT_MINUTES_TVOS: 20
+      # Xcode Build Optimization Flags
+      XCODEBUILD_COMMON_FLAGS: "-parallelizeTargets -jobs 4 ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO GCC_OPTIMIZATION_LEVEL=0 SWIFT_OPTIMIZATION_LEVEL=-Onone ENABLE_BITCODE=NO"
     
     steps:
       - name: Checkout
@@ -108,9 +117,6 @@ jobs:
             ~/Library/Caches/CocoaPods
             example/ios/Pods
             integration_test/ios/Pods
-            ~/Library/Developer/Xcode/DerivedData
-            example/ios/build
-            integration_test/ios/build
           key: ${{ runner.os }}-ios-comprehensive-${{ hashFiles('ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock', 'integration_test/ios/Podfile.lock', 'example/yarn.lock', 'integration_test/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-ios-comprehensive-
@@ -122,47 +128,61 @@ jobs:
 
       - name: Build iOS Example App
         id: ios-example
+        timeout-minutes: 15
         run: |
           START_TIME=$(date +%s)
           yarn example build:ios --renderer github-actions --quiet
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
-          XCODEBUILD_ARGS: "-destination 'generic/platform=iOS Simulator' ${{ env.COMMON_BUILD_FLAGS }}"
+          XCODEBUILD_ARGS: "-destination '${{ env.IOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }}"
 
-      - name: Build iOS Integration Tests 
+      - name: Build iOS Integration Tests
         id: ios-integration
+        timeout-minutes: 15
         run: |
           START_TIME=$(date +%s)
           yarn integration-test build:ios --renderer github-actions --quiet
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
-          XCODEBUILD_ARGS: "-destination 'generic/platform=iOS Simulator' ${{ env.COMMON_BUILD_FLAGS }}"
+          XCODEBUILD_ARGS: "-destination '${{ env.IOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }}"
 
       - name: Build tvOS Example App
         id: tvos-example
+        timeout-minutes: 20
         run: |
           START_TIME=$(date +%s)
-          rm -rf example/ios example/android
+          # Save iOS build before tvOS prebuild
+          if [ -d "example/ios" ]; then
+            mv example/ios example/ios-backup
+          fi
+          if [ -d "example/android" ]; then
+            rm -rf example/android
+          fi
           yarn example prebuild:tv --clean
           yarn example pods
           yarn example build:tvos --renderer github-actions --quiet
+          # Restore iOS build for potential future use
+          if [ -d "example/ios-backup" ]; then
+            rm -rf example/ios
+            mv example/ios-backup example/ios
+          fi
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
         env:
-          XCODEBUILD_ARGS: "-destination 'generic/platform=tvOS Simulator' ${{ env.COMMON_BUILD_FLAGS }}"
+          XCODEBUILD_ARGS: "-destination '${{ env.TVOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }}"
 
       - name: Report Build Performance
         run: |
           echo "## 📊 iOS & tvOS Build Performance" >> $GITHUB_STEP_SUMMARY
           echo "| Component | Duration |" >> $GITHUB_STEP_SUMMARY  
           echo "|-----------|----------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Code Style Check | ${{ steps.lint.outputs.duration }}s |" >> $GITHUB_STEP_SUMMARY
           echo "| iOS Example App | ${{ steps.ios-example.outputs.duration }}s |" >> $GITHUB_STEP_SUMMARY
           echo "| iOS Integration Tests | ${{ steps.ios-integration.outputs.duration }}s |" >> $GITHUB_STEP_SUMMARY
           echo "| tvOS Example App | ${{ steps.tvos-example.outputs.duration }}s |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          TOTAL_TIME=$((${{ steps.lint.outputs.duration }} + ${{ steps.ios-example.outputs.duration }} + ${{ steps.ios-integration.outputs.duration }} + ${{ steps.tvos-example.outputs.duration }}))
+          TOTAL_TIME=$((${{ steps.ios-example.outputs.duration }} + ${{ steps.ios-integration.outputs.duration }} + ${{ steps.tvos-example.outputs.duration }}))
           echo "**Total Build Time: ${TOTAL_TIME}s**" >> $GITHUB_STEP_SUMMARY
+          echo "_Note: Code style check runs separately in parallel_" >> $GITHUB_STEP_SUMMARY
 
