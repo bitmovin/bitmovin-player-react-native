@@ -1,13 +1,14 @@
 #!/bin/bash
-# Build iOS project for simulator with formatted output
+# Build iOS integration test project for simulator with formatted output
 
 set -o pipefail
 set -e
 
-ARGS=$@
+XCBEAUTIFY_ARGS=$@
 
-xcodebuild -workspace ios/IntegrationTest.xcworkspace \
+eval "xcodebuild -workspace ios/IntegrationTest.xcworkspace \
     -scheme IntegrationTest \
     -configuration Debug \
-    -destination 'generic/platform=iOS Simulator' \
-    -quiet | xcbeautify -qq --disable-logging $ARGS
+    -quiet \
+    ${XCODEBUILD_ARGS} \
+    | xcbeautify -qq --disable-logging $XCBEAUTIFY_ARGS"
