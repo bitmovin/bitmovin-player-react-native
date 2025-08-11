@@ -46,13 +46,13 @@ jobs:
       - name: Bump iOS player SDK version
         if: ${{ inputs.sdk_name == 'ios' }}
         run: |
-          sed -i '' 's/s.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' ios/RNBitmovinPlayer.podspec
+          sed -i '' 's/s\.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' ios/RNBitmovinPlayer.podspec
 
       - name: Bump Android player SDK version
         if: ${{ inputs.sdk_name == 'android' }}
         run: |
-          sed -i '' "s/com.bitmovin.player:player:.*/com.bitmovin.player:player:${{ inputs.version_number }}/g" android/build.gradle
-          sed -i '' "s/com.bitmovin.player:player-media-session:.*/com.bitmovin.player:player-media-session:${{ inputs.version_number }}/g" android/build.gradle
+          sed -i '' "s/com.bitmovin.player:player:.*/com.bitmovin.player:player:${{ inputs.version_number }}'/g" android/build.gradle
+          sed -i '' "s/com.bitmovin.player:player-media-session:.*/com.bitmovin.player:player-media-session:${{ inputs.version_number }}'/g" android/build.gradle
 
       - name: Commit version bump
         run: |
@@ -114,7 +114,7 @@ jobs:
       - name: Bump iOS player SDK version
         if: ${{ inputs.sdk_name == 'ios' }}
         run: |
-          sed -i '' 's/s.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' RNBitmovinPlayer.podspec
+          sed -i '' 's/s\.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' RNBitmovinPlayer.podspec
           yarn bootstrap
 
       - name: Save Pods cache
@@ -130,8 +130,8 @@ jobs:
       - name: Bump Android player SDK version
         if: ${{ inputs.sdk_name == 'android' }}
         run: |
-          sed -i '' "s/com.bitmovin.player:player:.*/com.bitmovin.player:player:${{ inputs.version_number }}/g" android/build.gradle
-          sed -i '' "s/com.bitmovin.player:player-media-session:.*/com.bitmovin.player:player-media-session:${{ inputs.version_number }}/g" android/build.gradle
+          sed -i '' "s/com.bitmovin.player:player:.*/com.bitmovin.player:player:${{ inputs.version_number }}'/g" android/build.gradle
+          sed -i '' "s/com.bitmovin.player:player-media-session:.*/com.bitmovin.player:player-media-session:${{ inputs.version_number }}'/g" android/build.gradle
 
       - name: Commit version bump
         run: |
