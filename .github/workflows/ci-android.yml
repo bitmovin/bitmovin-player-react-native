@@ -90,6 +90,7 @@ jobs:
           cd example/android
           ./gradlew assembleDebug --quiet --console=plain --warning-mode=none \
             --build-cache --parallel --max-workers=4 --no-daemon \
+            --no-configuration-cache \
             -PreactNativeArchitectures=x86,x86_64
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
@@ -153,6 +154,7 @@ jobs:
           cd integration_test/android
           ./gradlew assembleDebug --quiet --console=plain --warning-mode=none \
             --build-cache --parallel --max-workers=4 --no-daemon \
+            --no-configuration-cache \
             -PreactNativeArchitectures=x86,x86_64
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
@@ -217,6 +219,7 @@ jobs:
           cd example/android
           ./gradlew assembleDebug --quiet --console=plain --warning-mode=none \
             --build-cache --parallel --max-workers=4 --no-daemon \
+            --no-configuration-cache \
             -PreactNativeArchitectures=x86,x86_64
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
