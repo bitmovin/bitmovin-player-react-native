@@ -245,7 +245,7 @@ fun String.toSourceType(): SourceType? = when (this) {
 }
 
 fun Source.toJson(): Map<String, Any> = mapOf(
-    "duration" to duration,
+    "duration" to if (duration.isInfinite() || duration.isNaN()) 0 else duration,
     "isActive" to isActive,
     "isAttachedToPlayer" to isAttachedToPlayer,
     "loadingState" to loadingState.ordinal,
