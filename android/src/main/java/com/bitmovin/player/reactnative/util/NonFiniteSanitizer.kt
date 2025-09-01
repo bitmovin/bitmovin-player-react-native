@@ -21,7 +21,7 @@ object NonFiniteSanitizer {
     }
 }
 
-private val SENTINEL_PREFIX = "BMP_"
+private const val SENTINEL_PREFIX = "BMP_"
 
 private fun Double.toSentinel(): String = when (this) {
     Double.POSITIVE_INFINITY -> "${SENTINEL_PREFIX}Infinity"
