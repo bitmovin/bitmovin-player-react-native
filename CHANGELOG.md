@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unchecked]
+
+### Fixed
+- Expo config plugin feature configurations taking no effect
+
 ## [1.0.0] - 2025-08-04
 
 ### Breaking Change

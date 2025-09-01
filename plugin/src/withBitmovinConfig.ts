@@ -3,7 +3,7 @@ import withBitmovinIosConfig from './withBitmovinIosConfig';
 import Features from './Features';
 import withBitmovinAndroidConfig from './withBitmovinAndroidConfig';
 
-const defaultFeatureFlags: Features = {
+const defaultFeatures: Features = {
   airPlay: false,
   backgroundPlayback: false,
   googleCastSDK: undefined,
@@ -27,7 +27,7 @@ const defaultFeatureFlags: Features = {
  *       'bitmovin-player-react-native',
  *       {
  *         playerLicenseKey: 'YOUR_BITMOVIN_PLAYER_LICENSE_KEY',
- *         featureFlags: {
+ *         features: {
  *           airPlay: true,
  *           backgroundPlayback: true,
  *           googleCastSDK: { android: '21.3.0', ios: '4.8.1.2' },
@@ -41,11 +41,11 @@ const defaultFeatureFlags: Features = {
  */
 const withBitmovinConfig: ConfigPlugin<{
   playerLicenseKey: string;
-  featureFlags: Features;
-}> = (config, { playerLicenseKey, featureFlags }) => {
-  const features = { ...defaultFeatureFlags, ...(featureFlags || {}) };
-  config = withBitmovinIosConfig(config, { playerLicenseKey, features });
-  config = withBitmovinAndroidConfig(config, { playerLicenseKey, features });
+  features: Features;
+}> = (config, { playerLicenseKey, features }) => {
+  const mergedFeatures = { ...defaultFeatures, ...(features || {}) };
+  config = withBitmovinIosConfig(config, { playerLicenseKey, features: mergedFeatures });
+  config = withBitmovinAndroidConfig(config, { playerLicenseKey, features: mergedFeatures });
   return config;
 };
 
