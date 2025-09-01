@@ -1,6 +1,6 @@
 import Foundation
 
-enum NonFiniteSanitizer {
+internal enum NonFiniteSanitizer {
   // Keep existing generic method for backward compatibility
   static func sanitize(_ value: Any) -> Any {
     switch value {
@@ -21,7 +21,7 @@ enum NonFiniteSanitizer {
       return value
     }
   }
-  
+
   /// Type-safe method specifically for event data dictionaries.
   /// Sanitizes event data while preserving type safety.
   static func sanitizeEventData(_ eventData: [String: Any]) -> [String: Any] {
@@ -31,7 +31,7 @@ enum NonFiniteSanitizer {
     }
     return sanitized
   }
-  
+
   /// Generic method for sanitizing dictionaries with type preservation
   static func sanitizeDictionary<Key: Hashable, Value>(_ dict: [Key: Value]) -> [Key: Any] {
     var result: [Key: Any] = [:]
@@ -40,10 +40,10 @@ enum NonFiniteSanitizer {
     }
     return result
   }
-  
+
   // Helper to convert non-finite doubles to sentinel strings
-  private static func toSentinel(_ d: Double) -> String {
-    switch d {
+  private static func toSentinel(_ value: Double) -> String {
+    switch value {
     case .infinity:
       return "Infinity"
     case -.infinity:
