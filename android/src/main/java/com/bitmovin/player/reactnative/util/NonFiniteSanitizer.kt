@@ -21,14 +21,16 @@ object NonFiniteSanitizer {
     }
 }
 
+private val SENTINEL_PREFIX = "BMP_"
+
 private fun Double.toSentinel(): String = when (this) {
-    Double.POSITIVE_INFINITY -> "Infinity"
-    Double.NEGATIVE_INFINITY -> "-Infinity"
-    else -> "NaN"
+    Double.POSITIVE_INFINITY -> "${SENTINEL_PREFIX}Infinity"
+    Double.NEGATIVE_INFINITY -> "${SENTINEL_PREFIX}-Infinity"
+    else -> "${SENTINEL_PREFIX}NaN"
 }
 
 private fun Float.toSentinel(): String = when (this) {
-    Float.POSITIVE_INFINITY -> "Infinity"
-    Float.NEGATIVE_INFINITY -> "-Infinity"
-    else -> "NaN"
+    Float.POSITIVE_INFINITY -> "${SENTINEL_PREFIX}Infinity"
+    Float.NEGATIVE_INFINITY -> "${SENTINEL_PREFIX}-Infinity"
+    else -> "${SENTINEL_PREFIX}NaN"
 }

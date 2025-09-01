@@ -30,16 +30,18 @@ internal enum NonFiniteSanitizer {
     }
 }
 
+private let sentinelPrefix = "BMP_"
+
 private extension Float {
     // Helper to convert non-finite doubles to sentinel strings
     func toSentinel() -> String {
         switch self {
         case .infinity:
-            return "Infinity"
+            return "\(sentinelPrefix)Infinity"
         case -.infinity:
-            return "-Infinity"
+            return "\(sentinelPrefix)-Infinity"
         default:
-            return "NaN"
+            return "\(sentinelPrefix)NaN"
         }
     }
 }
@@ -49,11 +51,11 @@ private extension Double {
     func toSentinel() -> String {
         switch self {
         case .infinity:
-            return "Infinity"
+            return "\(sentinelPrefix)Infinity"
         case -.infinity:
-            return "-Infinity"
+            return "\(sentinelPrefix)-Infinity"
         default:
-            return "NaN"
+            return "\(sentinelPrefix)NaN"
         }
     }
 }
