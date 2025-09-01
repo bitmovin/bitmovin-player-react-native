@@ -1,55 +1,59 @@
 import Foundation
 
 internal enum NonFiniteSanitizer {
-  // Keep existing generic method for backward compatibility
-  static func sanitize(_ value: Any) -> Any {
-    switch value {
-    case let doubleValue as Double:
-      if doubleValue.isFinite { return doubleValue }
-      return toSentinel(doubleValue)
-    case let floatValue as Float:
-      let doubleValue = Double(floatValue)
-      if doubleValue.isFinite { return doubleValue }
-      return toSentinel(doubleValue)
-    case let dict as [AnyHashable: Any]:
-      var out: [AnyHashable: Any] = [:]
-      for (key, value) in dict { out[key] = sanitize(value) }
-      return out
-    case let array as [Any]:
-      return array.map { sanitize($0) }
-    default:
-      return value
+    /// Type-safe method specifically for event data dictionaries.
+    /// Sanitizes event data while preserving type safety.
+    static func sanitizeEventData(_ eventData: [String: Any]) -> [String: Any] {
+        eventData.reduce(into: [:]) {
+            $0[$1.key] = sanitize($1.value)
+        }
     }
-  }
 
-  /// Type-safe method specifically for event data dictionaries.
-  /// Sanitizes event data while preserving type safety.
-  static func sanitizeEventData(_ eventData: [String: Any]) -> [String: Any] {
-    var sanitized: [String: Any] = [:]
-    for (key, value) in eventData {
-      sanitized[key] = sanitize(value)
+    // Keep existing generic method for backward compatibility
+    private static func sanitize(_ value: Any) -> Any {
+        switch value {
+        case let doubleValue as Double:
+            guard doubleValue.isInfinite else { return doubleValue }
+            return doubleValue.toSentinel()
+        case let floatValue as Float:
+            guard floatValue.isInfinite else { return floatValue }
+            return floatValue.toSentinel()
+        case let dict as [AnyHashable: Any]:
+            return dict.reduce(into: [:]) {
+                $0[$1.key] = sanitize($1.value)
+            }
+        case let array as [Any]:
+            return array.map { sanitize($0) }
+        default:
+            return value
+        }
     }
-    return sanitized
-  }
+}
 
-  /// Generic method for sanitizing dictionaries with type preservation
-  static func sanitizeDictionary<Key: Hashable, Value>(_ dict: [Key: Value]) -> [Key: Any] {
-    var result: [Key: Any] = [:]
-    for (key, value) in dict {
-      result[key] = sanitize(value)
+private extension Float {
+    // Helper to convert non-finite doubles to sentinel strings
+    func toSentinel() -> String {
+        switch self {
+        case .infinity:
+            return "Infinity"
+        case -.infinity:
+            return "-Infinity"
+        default:
+            return "NaN"
+        }
     }
-    return result
-  }
+}
 
-  // Helper to convert non-finite doubles to sentinel strings
-  private static func toSentinel(_ value: Double) -> String {
-    switch value {
-    case .infinity:
-      return "Infinity"
-    case -.infinity:
-      return "-Infinity"
-    default:
-      return "NaN"
+private extension Double {
+    // Helper to convert non-finite doubles to sentinel strings
+    func toSentinel() -> String {
+        switch self {
+        case .infinity:
+            return "Infinity"
+        case -.infinity:
+            return "-Infinity"
+        default:
+            return "NaN"
+        }
     }
-  }
 }
