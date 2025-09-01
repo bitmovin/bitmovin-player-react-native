@@ -13,7 +13,7 @@ internal enum NonFiniteSanitizer {
       return toSentinel(doubleValue)
     case let dict as [AnyHashable: Any]:
       var out: [AnyHashable: Any] = [:]
-      for (ket, value) in dict { out[ket] = sanitize(value) }
+      for (key, value) in dict { out[key] = sanitize(value) }
       return out
     case let array as [Any]:
       return array.map { sanitize($0) }
