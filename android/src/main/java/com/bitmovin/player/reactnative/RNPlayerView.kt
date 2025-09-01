@@ -22,6 +22,7 @@ import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toUserInterfaceType
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
+import com.bitmovin.player.reactnative.util.NonFiniteSanitizer
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
 import expo.modules.kotlin.viewevent.ViewEventCallback
@@ -615,8 +616,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     private fun onEvent(dispatcher: ViewEventCallback<Map<String, Any>>, eventData: Map<String, Any>) {
-        dispatcher(eventData)
-        onBmpEvent(eventData)
+        val sanitized = NonFiniteSanitizer.sanitizeEventData(eventData)
+        dispatcher(sanitized)
+        onBmpEvent(sanitized)
     }
 
     fun setFullscreen(isFullscreen: Boolean) {
