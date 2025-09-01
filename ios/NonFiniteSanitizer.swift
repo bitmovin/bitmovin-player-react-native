@@ -4,19 +4,19 @@ enum NonFiniteSanitizer {
   // Keep existing generic method for backward compatibility
   static func sanitize(_ value: Any) -> Any {
     switch value {
-    case let d as Double:
-      if d.isFinite { return d }
-      return toSentinel(d)
-    case let f as Float:
-      let d = Double(f)
-      if d.isFinite { return d }
-      return toSentinel(d)
+    case let doubleValue as Double:
+      if doubleValue.isFinite { return doubleValue }
+      return toSentinel(doubleValue)
+    case let floatValue as Float:
+      let doubleValue = Double(floatValue)
+      if doubleValue.isFinite { return doubleValue }
+      return toSentinel(doubleValue)
     case let dict as [AnyHashable: Any]:
       var out: [AnyHashable: Any] = [:]
-      for (k, v) in dict { out[k] = sanitize(v) }
+      for (ket, value) in dict { out[ket] = sanitize(value) }
       return out
-    case let arr as [Any]:
-      return arr.map { sanitize($0) }
+    case let array as [Any]:
+      return array.map { sanitize($0) }
     default:
       return value
     }
