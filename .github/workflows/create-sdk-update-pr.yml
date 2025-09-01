@@ -54,6 +54,9 @@ jobs:
           sed -i '' "s/com.bitmovin.player:player:.*/com.bitmovin.player:player:${{ inputs.version_number }}'/g" android/build.gradle
           sed -i '' "s/com.bitmovin.player:player-media-session:.*/com.bitmovin.player:player-media-session:${{ inputs.version_number }}'/g" android/build.gradle
 
+      - name: Update Changelog entry
+        run: python3 ${{ inputs.version_number }} ${{ inputs.sdk_name }}
+
       - name: Commit version bump
         run: |
           git add ios/RNBitmovinPlayer.podspec android/build.gradle
@@ -132,6 +135,9 @@ jobs:
         run: |
           sed -i '' "s/com.bitmovin.player:player:.*/com.bitmovin.player:player:${{ inputs.version_number }}'/g" android/build.gradle
           sed -i '' "s/com.bitmovin.player:player-media-session:.*/com.bitmovin.player:player-media-session:${{ inputs.version_number }}'/g" android/build.gradle
+
+      - name: Update Changelog entry
+        run: python3 ${{ inputs.version_number }} ${{ inputs.sdk_name }}
 
       - name: Commit version bump
         run: |
