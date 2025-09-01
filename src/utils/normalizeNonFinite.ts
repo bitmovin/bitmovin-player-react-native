@@ -6,7 +6,9 @@ export function normalizeNonFinite<T>(input: T): T {
     if (v === `${sentinelPrefix}NaN`) return NaN;
     if (Array.isArray(v)) return v.map(walk);
     if (v && typeof v === 'object') {
-      for (const k of Object.keys(v)) (v as any)[k] = walk((v as any)[k]);
+      const out: any = {};
+      for (const k of Object.keys(v)) out[k] = walk((v as any)[k]);
+      return out;
     }
     return v;
   }
