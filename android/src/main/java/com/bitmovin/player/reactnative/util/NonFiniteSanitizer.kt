@@ -19,13 +19,9 @@ object NonFiniteSanitizer {
    * Type-safe method specifically for event data maps.
    * Sanitizes event data while preserving type safety and handling null filtering.
    */
-  fun sanitizeEventData(eventData: Map<String, Any>): Map<String, Any> {
-    val sanitized = mutableMapOf<String, Any>()
-    for ((key, value) in eventData) {
-      sanitize(value)?.let { sanitized[key] = it }
-    }
-    return sanitized
-  }
+  fun sanitizeEventData(
+      eventData: Map<String, Any>
+  ): Map<String, Any> = eventData.mapValues { sanitize(it) ?: it  }
 
   private fun toSentinel(d: Double): String = when {
     d == Double.POSITIVE_INFINITY -> "Infinity"
