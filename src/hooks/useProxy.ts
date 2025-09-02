@@ -1,6 +1,7 @@
 import { RefObject, useCallback } from 'react';
 import { Event } from '../events';
 import { findNodeHandle } from 'react-native';
+import { normalizeNonFinite } from '../utils/normalizeNonFinite';
 
 /**
  * A function that takes a generic event as argument.
@@ -26,7 +27,8 @@ export function useProxy(
           return;
         }
         const { target, ...eventWithoutTarget } = event.nativeEvent as any;
-        callback?.(eventWithoutTarget as E);
+        const sanitized = normalizeNonFinite(eventWithoutTarget);
+        callback?.(sanitized as E);
       },
     [viewRef]
   );
