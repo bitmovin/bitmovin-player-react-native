@@ -73,12 +73,13 @@ const RootStack = createNativeStackNavigator<RootStackParamsList>();
 const isTVOS = Platform.OS === 'ios' && Platform.isTV;
 const isAndroidTV = Platform.OS === 'android' && Platform.isTV;
 const isIOSSimulator = Device.osName === 'iOS' && Device.isDevice === false;
+const isTVOSSimulator = Device.osName === 'tvOS' && Device.isDevice === false;
 
 export default function App() {
   useEffect(() => {
     // iOS audio session category must be set to `playback` first, otherwise playback
     // will have no audio when the device is silenced.
-    // This is also required to make Picture in Picture work on iOS.
+    // This is also required to make Picture in Picture work on iOS and tvOS.
     //
     // Usually it's desireable to set the audio's category only once during your app's main component
     // initialization. This way you can guarantee that your app's audio category is properly
@@ -106,10 +107,6 @@ export default function App() {
       {
         title: 'Subtitle and captions',
         routeName: 'SubtitlePlayback' as keyof RootStackParamsList,
-      },
-      {
-        title: 'Basic Picture in Picture',
-        routeName: 'BasicPictureInPicture' as keyof RootStackParamsList,
       },
       {
         title: 'Basic Ads',
@@ -145,6 +142,13 @@ export default function App() {
         routeName: 'OfflinePlayback',
       });
     }
+  }
+
+  if (!isTVOSSimulator && !isIOSSimulator) {
+    stackParams.data.push({
+      title: 'Basic Picture in Picture',
+      routeName: 'BasicPictureInPicture' as keyof RootStackParamsList,
+    });
   }
 
   if (!Platform.isTV) {
@@ -254,15 +258,17 @@ export default function App() {
             options={{ title: 'Custom playback' }}
           />
         )}
-        <RootStack.Screen
-          name="BasicPictureInPicture"
-          component={BasicPictureInPicture}
-          options={{
-            title: 'Basic Picture in Picture',
-            // eslint-disable-next-line react/no-unstable-nested-components
-            headerRight: () => <Button title="Enter PiP" />,
-          }}
-        />
+        {!isTVOSSimulator && (
+          <RootStack.Screen
+            name="BasicPictureInPicture"
+            component={BasicPictureInPicture}
+            options={{
+              title: 'Basic Picture in Picture',
+              // eslint-disable-next-line react/no-unstable-nested-components
+              headerRight: () => <Button title="Enter PiP" />,
+            }}
+          />
+        )}
         {!isTVOS && (
           <RootStack.Screen
             name="CustomHtmlUi"

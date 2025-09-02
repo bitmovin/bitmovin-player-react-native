@@ -3,7 +3,9 @@
 ## [Unreleased]
 
 ### Fixed
+
 - Crash when using `react-native-reanimated` along with `bitmovin-player-react-native` and playing a live stream
+- Example application crash on tvOS simulator
 
 ## [1.0.0] - 2025-08-04
 
