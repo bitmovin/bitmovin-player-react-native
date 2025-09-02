@@ -107,7 +107,7 @@ jobs:
             ~/.gradle/caches/build-cache-*
             example/android/app/build/intermediates
           retention-days: 1
-  
+
   test-build-android-integration-tests:
     name: Build Android Integration Tests
     runs-on: ubuntu-latest

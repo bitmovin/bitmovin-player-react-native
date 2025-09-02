@@ -18,7 +18,7 @@ const defaultFeatureFlags: Features = {
  * @param config - The Expo config object.
  * @param options - An object containing the player license key and feature flags.
  * @returns The modified Expo config object with Bitmovin Player configurations.
- * 
+ *
  * @example
  * // app.config.js
  * module.exports = {
