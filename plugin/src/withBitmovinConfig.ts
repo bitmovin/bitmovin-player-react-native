@@ -12,7 +12,7 @@ const defaultFeatures: Features = {
 };
 
 export interface BitmovinConfigOptions {
-  playerLicenseKey: string;
+  playerLicenseKey?: string;
   features?: Features;
 }
 
