@@ -1,7 +1,7 @@
 """Update the Unreleased → Changed section in CHANGELOG.md with a new SDK version entry.
 
 Usage:
-    python update_changelog.py <version> <android|ios>
+    python3 update_player_sdk_update_changelog.py <version> <android|ios>
 
 Notes:
 - Keeps the same CLI interface as before.
@@ -23,7 +23,7 @@ HEADER_UNRELEASED = "## [Unreleased]"
 SUBHEADER_CHANGED = "### Changed"
 
 # CLI / messages
-MESSAGE_USAGE = "Usage: python update_changelog.py <version> <platform>"
+MESSAGE_USAGE = "Usage: python3 update_player_sdk_update_changelog.py.py <version> <platform>"
 ERROR_INVALID_PLATFORM = "Error: Invalid platform. Must be 'android' or 'ios'."
 ERROR_INVALID_VERSION = (
     "Error: Invalid version. Must be SemVer, e.g. 1.2.3, 1.2.3-beta.1, or 1.2.3+build."
