@@ -1,10 +1,9 @@
-"""Update the Unreleased → Changed section in CHANGELOG.md with a new SDK version entry.
+"""Update the Unreleased → Changed section in CHANGELOG.md with a new Player SDK version entry.
 
 Usage:
     python3 update_player_sdk_update_changelog.py <version> <android|ios>
 
 Notes:
-- Keeps the same CLI interface as before.
 - More robust handling of line endings (LF/CRLF), whitespace, and semver (incl. pre-release/build).
 - Idempotently replaces existing SDK update line for the given platform or inserts at the top of the Changed list.
 """
@@ -39,7 +38,7 @@ PLATFORM_IOS = "ios"
 PLATFORMS = {PLATFORM_ANDROID: "Android", PLATFORM_IOS: "iOS"}
 
 # SemVer: MAJOR.MINOR.PATCH with optional -pre-release and +build metadata
-SEMVER_RE = r"[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?"
+SEMVER_RE = r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?"
 
 # Entry line template pieces
 ENTRY_LINE_PREFIX = "- Update Bitmovin's native {platform} SDK version to `"
