@@ -237,7 +237,7 @@ private extension Event {
                 result[key] = pair.value
             }
         }
-        return stringKeyedPayload
+        return NonFiniteSanitizer.sanitizeEventData(stringKeyedPayload)
     }
 }
 
