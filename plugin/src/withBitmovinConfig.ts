@@ -11,6 +11,11 @@ const defaultFeatures: Features = {
   pictureInPicture: false,
 };
 
+export interface BitmovinConfigOptions {
+  playerLicenseKey: string;
+  features?: Features;
+}
+
 /**
  * Expo Config Plugin for Bitmovin Player.
  * This plugin configures the Bitmovin Player for both iOS and Android platforms.
@@ -39,10 +44,8 @@ const defaultFeatures: Features = {
  *   ]
  * };
  */
-const withBitmovinConfig: ConfigPlugin<{
-  playerLicenseKey: string;
-  features: Features;
-}> = (config, { playerLicenseKey, features }) => {
+const withBitmovinConfig: ConfigPlugin<BitmovinConfigOptions> = (config, options) => {
+  const { playerLicenseKey, features } = options;
   const mergedFeatures = { ...defaultFeatures, ...(features || {}) };
   config = withBitmovinIosConfig(config, { playerLicenseKey, features: mergedFeatures });
   config = withBitmovinAndroidConfig(config, { playerLicenseKey, features: mergedFeatures });
