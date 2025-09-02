@@ -54,9 +54,12 @@ jobs:
           sed -i '' "s/com.bitmovin.player:player:.*/com.bitmovin.player:player:${{ inputs.version_number }}'/g" android/build.gradle
           sed -i '' "s/com.bitmovin.player:player-media-session:.*/com.bitmovin.player:player-media-session:${{ inputs.version_number }}'/g" android/build.gradle
 
+      - name: Update Changelog entry
+        run: python3 .github/scripts/update_player_sdk_update_changelog.py ${{ inputs.version_number }} ${{ inputs.sdk_name }}
+
       - name: Commit version bump
         run: |
-          git add ios/RNBitmovinPlayer.podspec android/build.gradle
+          git add ios/RNBitmovinPlayer.podspec android/build.gradle CHANGELOG.md
           git commit --no-verify -m "chore(${{ inputs.sdk_name }}): update ${{ inputs.sdk_name }} player version to ${{ inputs.version_number }}"
           git push origin ${{ steps.branching.outputs.branch_name }}
 
@@ -133,9 +136,12 @@ jobs:
           sed -i '' "s/com.bitmovin.player:player:.*/com.bitmovin.player:player:${{ inputs.version_number }}'/g" android/build.gradle
           sed -i '' "s/com.bitmovin.player:player-media-session:.*/com.bitmovin.player:player-media-session:${{ inputs.version_number }}'/g" android/build.gradle
 
+      - name: Update Changelog entry
+        run: python3 .github/scripts/update_player_sdk_update_changelog.py ${{ inputs.version_number }} ${{ inputs.sdk_name }}
+
       - name: Commit version bump
         run: |
-          git add RNBitmovinPlayer.podspec android/build.gradle example/ios/Podfile.lock integration_test/ios/Podfile.lock
+          git add RNBitmovinPlayer.podspec android/build.gradle example/ios/Podfile.lock integration_test/ios/Podfile.lock CHANGELOG.md
           git commit --no-verify -m "chore(${{ inputs.sdk_name }}): update ${{ inputs.sdk_name }} player version to ${{ inputs.version_number }}"
           git push origin ${{ steps.branching.outputs.branch_name }}
 

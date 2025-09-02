@@ -6,7 +6,7 @@ on:
       - development
     paths:
       - 'ios/**'
-      - 'plugin/**'  
+      - 'plugin/**'
       - 'example/ios/**'
       - 'integration_test/ios/**'
       - 'package.json'
@@ -25,12 +25,12 @@ on:
       - '**/build-tvos.sh'
       - 'example/scripts/**'
       - 'integration_test/scripts/**'
-      
+
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
       - 'ios/**'
-      - 'plugin/**'  
+      - 'plugin/**'
       - 'example/ios/**'
       - 'integration_test/ios/**'
       - 'package.json'
@@ -58,7 +58,7 @@ env:
   NSUnbufferedIO: YES
   IOS_DESTINATION: 'generic/platform=iOS Simulator'
   TVOS_DESTINATION: 'generic/platform=tvOS Simulator'
-  XCODEBUILD_COMMON_FLAGS: "-parallelizeTargets -jobs 4 ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO GCC_OPTIMIZATION_LEVEL=0 SWIFT_OPTIMIZATION_LEVEL=-Onone ENABLE_BITCODE=NO"
+  XCODEBUILD_COMMON_FLAGS: '-parallelizeTargets -jobs 4 ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO GCC_OPTIMIZATION_LEVEL=0 SWIFT_OPTIMIZATION_LEVEL=-Onone ENABLE_BITCODE=NO'
 
 jobs:
   code-style-ios:
@@ -218,4 +218,3 @@ jobs:
           echo "✅ Build completed in $((END_TIME - START_TIME)) seconds"
         env:
           XCODEBUILD_ARGS: "-destination '${{ env.TVOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }}"
-

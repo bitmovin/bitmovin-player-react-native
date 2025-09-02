@@ -108,9 +108,11 @@ export default function OfflinePlayback() {
     },
   });
 
-  useFocusEffect(useCallback(() => {
-    requestNotificationPermissionAsync();
-  }, []));
+  useFocusEffect(
+    useCallback(() => {
+      requestNotificationPermissionAsync();
+    }, [])
+  );
 
   useFocusEffect(useCallback(() => () => player.destroy(), [player]));
 

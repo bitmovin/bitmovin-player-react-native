@@ -32,6 +32,7 @@ yarn bootstrap # Handles all setup: installs deps, prebuilds native projects, in
 ```
 
 The `yarn bootstrap` command executes the following steps:
+
 1. Installs root project dependencies
 2. Installs example app dependencies
 3. Generates native iOS and Android projects using Expo prebuild
