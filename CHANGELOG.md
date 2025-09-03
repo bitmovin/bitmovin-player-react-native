@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unchecked]
+## [Unreleased]
 
 ### Changed
 
