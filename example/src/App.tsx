@@ -258,7 +258,7 @@ export default function App() {
             options={{ title: 'Custom playback' }}
           />
         )}
-        {!isTVOSSimulator && (
+        {!isTVOSSimulator && !isIOSSimulator && (
           <RootStack.Screen
             name="BasicPictureInPicture"
             component={BasicPictureInPicture}
