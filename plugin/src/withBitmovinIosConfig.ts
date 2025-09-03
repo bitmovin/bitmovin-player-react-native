@@ -3,14 +3,12 @@ import {
   withInfoPlist,
   withPodfileProperties,
 } from 'expo/config-plugins';
-import Features from './Features';
+import { BitmovinConfigOptions } from './withBitmovinConfig';
 
 const isTV = !!process.env.EXPO_TV;
 
-const withBitmovinIosConfig: ConfigPlugin<{
-  playerLicenseKey: string;
-  features: Features;
-}> = (config, { playerLicenseKey, features }) => {
+const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (config, options) => {
+  const { playerLicenseKey = '', features = {} } = options || {};
   const offlineFeatureConfig =
     typeof features.offline === 'object'
       ? features.offline
@@ -28,7 +26,9 @@ const withBitmovinIosConfig: ConfigPlugin<{
     : null;
 
   config = withInfoPlist(config, (config) => {
-    config.modResults['BitmovinPlayerLicenseKey'] = playerLicenseKey;
+    if (playerLicenseKey) {
+      config.modResults['BitmovinPlayerLicenseKey'] = playerLicenseKey;
+    }
     if (
       features.backgroundPlayback ||
       features.airPlay ||

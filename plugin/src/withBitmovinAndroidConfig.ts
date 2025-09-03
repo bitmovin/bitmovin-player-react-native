@@ -4,15 +4,13 @@ import {
   withAndroidManifest,
   withGradleProperties,
 } from 'expo/config-plugins';
-import Features from './Features';
 import withAppGradleDependencies from './withAppGradleDependencies';
+import { BitmovinConfigOptions } from './withBitmovinConfig';
 
 type ManifestActivity = AndroidConfig.Manifest.ManifestActivity;
 
-const withBitmovinAndroidConfig: ConfigPlugin<{
-  playerLicenseKey: string;
-  features: Features;
-}> = (config, { playerLicenseKey, features }) => {
+const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (config, options) => {
+  const { playerLicenseKey = '', features = {} } = options || {};
   const offlineFeatureConfig =
     typeof features.offline === 'object'
       ? features.offline
@@ -50,11 +48,13 @@ const withBitmovinAndroidConfig: ConfigPlugin<{
       config.modResults
     );
 
-    AndroidConfig.Manifest.addMetaDataItemToMainApplication(
-      mainApplication,
-      'BITMOVIN_PLAYER_LICENSE_KEY',
-      playerLicenseKey
-    );
+    if (playerLicenseKey) {
+      AndroidConfig.Manifest.addMetaDataItemToMainApplication(
+        mainApplication,
+        'BITMOVIN_PLAYER_LICENSE_KEY',
+        playerLicenseKey
+      );
+    }
 
     config.modResults.manifest['uses-permission'] =
       config.modResults.manifest['uses-permission'] || [];
