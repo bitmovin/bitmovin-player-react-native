@@ -1,55 +1,83 @@
 name: CI (iOS & tvOS)
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/ci-ios-tvos.yml'
-      - '.github/actions/**'
-      - 'package.json'
-      - 'yarn.lock'
-      - 'ios/**'
-      - 'ios/RNBitmovinPlayer.podspec'
-      - '.swiftlint.yml'
-      - 'example/package.json'
-      - 'example/yarn.lock'
-
   push:
-    branches: [development]
+    branches:
+      - development
     paths:
-      - '.github/workflows/ci-ios-tvos.yml'
-      - '.github/actions/**'
+      - 'ios/**'
+      - 'plugin/**'
+      - 'example/ios/**'
+      - 'integration_test/ios/**'
       - 'package.json'
       - 'yarn.lock'
+      - '**/Podfile*'
+      - '**/*.podspec'
+      - '**/*.xcodeproj/**'
+      - '**/*.xcworkspace/**'
+      - '**/Info.plist'
+      - '.github/workflows/ci-ios-tvos.yml'
+      - '.github/scripts/**'
+      - '.github/actions/**'
+      - '**/app.config.*'
+      - '**/expo.json'
+      - '**/build-ios.sh'
+      - '**/build-tvos.sh'
+      - 'example/scripts/**'
+      - 'integration_test/scripts/**'
+
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
       - 'ios/**'
-      - 'ios/RNBitmovinPlayer.podspec'
-      - '.swiftlint.yml'
-      - 'example/package.json'
-      - 'example/yarn.lock'
+      - 'plugin/**'
+      - 'example/ios/**'
+      - 'integration_test/ios/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '**/Podfile*'
+      - '**/*.podspec'
+      - '**/*.xcodeproj/**'
+      - '**/*.xcworkspace/**'
+      - '**/Info.plist'
+      - '.github/workflows/ci-ios-tvos.yml'
+      - '.github/scripts/**'
+      - '.github/actions/**'
+      - '**/app.config.*'
+      - '**/expo.json'
+      - '**/build-ios.sh'
+      - '**/build-tvos.sh'
+      - 'example/scripts/**'
+      - 'integration_test/scripts/**'
 
 concurrency:
   group: ci-ios-tvos-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  NSUnbufferedIO: YES
+  IOS_DESTINATION: 'generic/platform=iOS Simulator'
+  TVOS_DESTINATION: 'generic/platform=tvOS Simulator'
+  XCODEBUILD_COMMON_FLAGS: '-parallelizeTargets -jobs 4 ONLY_ACTIVE_ARCH=YES ARCHS=x86_64 VALID_ARCHS=x86_64 DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO SWIFT_COMPILATION_MODE=wholemodule ENABLE_TESTABILITY=NO GCC_OPTIMIZATION_LEVEL=0 SWIFT_OPTIMIZATION_LEVEL=-Onone ENABLE_BITCODE=NO'
+
 jobs:
   code-style-ios:
     name: Code style iOS
-    runs-on: macOS-15
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
+      - name: SwiftLint
+        uses: norio-nomura/action-swiftlint@3.2.1
         with:
-          ios: true
-          node: true
+          args: ios --strict --quiet
 
-      - name: Check code style
-        run: yarn lint:ios
-
-  test-build-ios:
+  ios-example-build:
     name: Build iOS Example App
     runs-on: macOS-15
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,14 +89,44 @@ jobs:
           subprojects: true
           ios: true
 
-      - name: Build iOS example
-        run: yarn example build:ios --renderer github-actions
-        env:
-          NSUnbufferedIO: YES
+      - name: Cache iOS Example Prebuild
+        id: ios-example-prebuild-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            example/ios
+          key: ${{ runner.os }}-ios-example-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'ios/**') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-example-prebuild-
 
-  test-build-ios-integration-tests:
+      - name: Cache CocoaPods Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            example/ios/Pods
+          key: ${{ runner.os }}-ios-example-pods-${{ hashFiles('ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-example-pods-
+
+      - name: Install CocoaPods Dependencies
+        run: yarn example pods
+
+      - name: Build iOS Example App
+        id: build
+        run: |
+          START_TIME=$(date +%s)
+          yarn example build:ios --renderer github-actions --quiet
+          END_TIME=$(date +%s)
+          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
+          echo "✅ Build completed in $((END_TIME - START_TIME)) seconds"
+        env:
+          XCODEBUILD_ARGS: "-destination '${{ env.IOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }}"
+
+  ios-integration-build:
     name: Build iOS Integration Tests
     runs-on: macOS-15
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -80,14 +138,44 @@ jobs:
           subprojects: true
           ios: true
 
-      - name: Build iOS integration test host app
-        run: yarn integration-test build:ios --renderer github-actions
-        env:
-          NSUnbufferedIO: YES
+      - name: Cache iOS Integration Prebuild
+        id: ios-integration-prebuild-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            integration_test/ios
+          key: ${{ runner.os }}-ios-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.json', 'plugin/**', 'ios/**') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-integration-prebuild-
 
-  test-build-tvos:
+      - name: Cache CocoaPods Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            integration_test/ios/Pods
+          key: ${{ runner.os }}-ios-integration-pods-${{ hashFiles('ios/RNBitmovinPlayer.podspec', 'integration_test/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-integration-pods-
+
+      - name: Install CocoaPods Dependencies
+        run: yarn integration-test pods
+
+      - name: Build iOS Integration Tests
+        id: build
+        run: |
+          START_TIME=$(date +%s)
+          yarn integration-test build:ios --renderer github-actions --quiet
+          END_TIME=$(date +%s)
+          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
+          echo "✅ Build completed in $((END_TIME - START_TIME)) seconds"
+        env:
+          XCODEBUILD_ARGS: "-destination '${{ env.IOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }}"
+
+  tvos-example-build:
     name: Build tvOS Example App
     runs-on: macOS-15
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -100,7 +188,33 @@ jobs:
           ios: true
           tv: true
 
-      - name: Build tvOS example
-        run: yarn example build:tvos --renderer github-actions
+      - name: Cache tvOS Prebuild
+        id: tvos-prebuild-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            example/ios
+          key: ${{ runner.os }}-tvos-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'ios/**') }}
+          restore-keys: |
+            ${{ runner.os }}-tvos-prebuild-
+
+      - name: Cache CocoaPods Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            example/ios/Pods
+          key: ${{ runner.os }}-tvos-pods-${{ hashFiles('ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-tvos-pods-
+
+      - name: Build tvOS Example App
+        id: build
+        run: |
+          START_TIME=$(date +%s)
+          yarn example build:tvos --renderer github-actions --quiet
+          END_TIME=$(date +%s)
+          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
+          echo "✅ Build completed in $((END_TIME - START_TIME)) seconds"
         env:
-          NSUnbufferedIO: YES
+          XCODEBUILD_ARGS: "-destination '${{ env.TVOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }}"

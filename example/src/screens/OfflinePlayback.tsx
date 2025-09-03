@@ -20,10 +20,11 @@ import {
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import OfflineManagementView from '../components/OfflineManagementView';
-import * as Notifications from 'expo-notifications';
 
 export async function requestNotificationPermissionAsync() {
   if (Platform.OS === 'android') {
+    // Importing expo-notifications only on Android to avoid crash on tvOS simulator.
+    const Notifications = require('expo-notifications');
     const settings = await Notifications.getPermissionsAsync();
     if (settings.status !== 'granted') {
       const { status } = await Notifications.requestPermissionsAsync();
@@ -108,9 +109,11 @@ export default function OfflinePlayback() {
     },
   });
 
-  useFocusEffect(useCallback(() => {
-    requestNotificationPermissionAsync();
-  }, []));
+  useFocusEffect(
+    useCallback(() => {
+      requestNotificationPermissionAsync();
+    }, [])
+  );
 
   useFocusEffect(useCallback(() => () => player.destroy(), [player]));
 
