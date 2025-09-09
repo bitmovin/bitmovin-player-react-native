@@ -3,8 +3,8 @@
 # Setup git pre-commit hooks for the project
 echo "Setting up pre-commit hooks..."
 
-# Check if .git directory exists
-if [ ! -d ".git" ]; then
+# Check if .git directory or file exists (supports both regular repos and worktrees)
+if [ ! -d ".git" ] && [ ! -f ".git" ]; then
     echo "Error: Not a git repository. Please run this from the root of the project."
     exit 1
 fi
