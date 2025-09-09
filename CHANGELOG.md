@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Update Bitmovin's native iOS SDK version to `3.95.0`
 - Update Bitmovin's native Android SDK version to `3.125.0+jason`
 
 ## [1.1.0] - 2025-09-03
