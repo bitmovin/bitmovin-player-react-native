@@ -147,6 +147,13 @@ extension IMAAdsWrapper: IMAStreamManagerDelegate {
         case .AD_PERIOD_ENDED:
             // TODO: emit event?
             break
+        case .TAPPED:
+            guard let player else { return }
+            if player.isPlaying {
+                player.pause()
+            } else {
+                player.play()
+            }
         default:
             break
         }

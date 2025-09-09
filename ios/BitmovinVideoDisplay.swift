@@ -45,6 +45,20 @@ internal class BitmovinVideoDisplay: NSObject, IMAVideoDisplay {
             }
             .store(in: &cancellables)
 
+        player.events.on(PausedEvent.self)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.delegate?.videoDisplayDidPause(self)
+            }
+            .store(in: &cancellables)
+
+        player.events.on(PlayEvent.self)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.delegate?.videoDisplayDidResume(self)
+            }
+            .store(in: &cancellables)
+
         player.events.on(StallStartedEvent.self)
             .sink { [weak self] _ in
                 guard let self else { return }
