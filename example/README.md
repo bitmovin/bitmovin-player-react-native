@@ -94,7 +94,7 @@ See `yarn example prebuild -h` for all options.
 
 ```sh
 # If TV examples were ran last time
-yarn example prebiuld --clean
+yarn example prebuild --clean
 
 yarn example ios # Run examples on iOS simulator, see yarn example ios -h for more options
 yarn example android # Run examples on Android, see yarn example android -h for more options
