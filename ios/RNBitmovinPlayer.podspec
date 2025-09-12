@@ -29,8 +29,8 @@ Pod::Spec.new do |s|
 
   s.dependency 'ExpoModulesCore'
   s.dependency "BitmovinPlayer", "3.95.0"
-  s.ios.dependency "GoogleAds-IMA-iOS-SDK", "3.23.0"
-  s.tvos.dependency "GoogleAds-IMA-tvOS-SDK", "4.13.0"
+  s.ios.dependency "GoogleAds-IMA-iOS-SDK", "3.26.1"
+  s.tvos.dependency "GoogleAds-IMA-tvOS-SDK", "4.15.1"
 
   if podfile_properties['BITMOVIN_GOOGLE_CAST_SDK_VERSION'].to_s != ''
     s.ios.dependency "google-cast-sdk", podfile_properties['BITMOVIN_GOOGLE_CAST_SDK_VERSION'].to_s
