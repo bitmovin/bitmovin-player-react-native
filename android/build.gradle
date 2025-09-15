@@ -104,7 +104,7 @@ dependencies {
   implementation "androidx.concurrent:concurrent-futures-ktx:1.1.0"
 
   // Google IMA
-  implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.35.1'
+  implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.37.0'
 
   // Bitmovin
   implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
