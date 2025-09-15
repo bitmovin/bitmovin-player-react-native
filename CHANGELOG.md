@@ -4,7 +4,7 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `3.95.0`
+- Update Bitmovin's native iOS SDK version to `3.96.0`
 - Update Bitmovin's native Android SDK version to `3.126.0+jason`
 - Update IMA SDK dependency on iOS to `3.26.1`
 - Update IMA SDK dependency on tvOS to `4.15.1`
