@@ -1,12 +1,12 @@
 PODS:
-  - BitmovinAnalyticsCollector/BitmovinPlayer (3.14.0):
+  - BitmovinAnalyticsCollector/BitmovinPlayer (3.15.0):
     - BitmovinAnalyticsCollector/Core
     - BitmovinPlayerCore (~> 3.48)
-  - BitmovinAnalyticsCollector/Core (3.14.0)
-  - BitmovinPlayer (3.96.0):
+  - BitmovinAnalyticsCollector/Core (3.15.0)
+  - BitmovinPlayer (3.97.0):
     - BitmovinAnalyticsCollector/BitmovinPlayer (~> 3.0)
-    - BitmovinPlayerCore (= 3.96.0)
-  - BitmovinPlayerCore (3.96.0)
+    - BitmovinPlayerCore (= 3.97.0)
+  - BitmovinPlayerCore (3.97.0)
   - boost (1.83.0)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.73.4-0)
@@ -1041,7 +1041,7 @@ PODS:
     - React-logger (= 0.73.4-0)
     - React-perflogger (= 0.73.4-0)
   - RNBitmovinPlayer (0.44.1-alpha.0):
-    - BitmovinPlayer (= 3.96.0)
+    - BitmovinPlayer (= 3.97.0)
     - GoogleAds-IMA-iOS-SDK (= 3.23.0)
     - GoogleAds-IMA-tvOS-SDK (= 4.13.0)
     - React-Core
@@ -1214,9 +1214,9 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  BitmovinAnalyticsCollector: b1ac53954340e9f9c902c88235a981ef54923e01
-  BitmovinPlayer: 7770c3bead8c055ffc41c146c2d3b931d045a81a
-  BitmovinPlayerCore: 7b18ec6d0321923295e3fcadd98cfafb53ab5223
+  BitmovinAnalyticsCollector: 77590cf344babafb14dcbc214f14bdd39350f451
+  BitmovinPlayer: 2524f60a7785e2d4560fd30aedcbbe3cfb24dfb2
+  BitmovinPlayerCore: 559effdbb7d66702c57d0ced13895a70e02307a2
   boost: 88202336c3ba1e7a264a83c0c888784b0f360c28
   DoubleConversion: 74cb0ce4de271b23e772567504735c87134edf0a
   FBLazyVector: 33a271a7e8de0bd321e47356d8bc3b2d5fb9ddba
@@ -1266,7 +1266,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 20b2202e3396589a71069d12ae9f328949c7c7b8
   React-utils: 0307d396f233e47a167b5aaf045b0e4e1dc19d74
   ReactCommon: 17891ca337bfa5a7263649b09f27a8c664537bf2
-  RNBitmovinPlayer: 45a20ab63b520b787047c1db11260fe363b9c697
+  RNBitmovinPlayer: 0f27a54145271d0b4b183bbd940145ec804e6ba1
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: ab50eb8f7fcf1b36aad1801b5687b66b2c0aa000
 
