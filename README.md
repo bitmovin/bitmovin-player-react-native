@@ -1,5 +1,9 @@
 # Bitmovin Player React Native
 
+> [!WARNING]
+> Please note that version `0.x` of the Bitmovin Player React Native will no longer receive updates. We strongly recommend upgrading to the latest `1.x` version to take advantage of new features, improvements, and ongoing support.
+> For detailed instructions on how to migrate, please refer to our [migration guide](https://developer.bitmovin.com/playback/docs/react-native-migrating-to-v1).
+
 This is an open-source project created to enable customers to integrate the Bitmovin mobile Player SDKs into React Native projects. It has been created to provide customers with a starting point, which can be built upon through active collaboration and contributions. We look forward to seeing this library expand and grow.
 
 [![CI (TypeScript)](https://github.com/bitmovin/bitmovin-player-react-native/actions/workflows/ci-typescript.yml/badge.svg)](https://github.com/bitmovin/bitmovin-player-react-native/actions/workflows/ci-typescript.yml)
