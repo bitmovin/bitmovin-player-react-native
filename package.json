@@ -94,6 +94,6 @@
       "./scripts/format-android.sh",
       "./scripts/lint-android.sh"
     ],
-    "*.(ts|tsx|js|jsx|md|json|yml|yaml)": "prettier --write"
+    "*.(ts|tsx|js|jsx|md|json|yml|yaml)": "prettier --write --no-error-on-unmatched-pattern"
   }
 }

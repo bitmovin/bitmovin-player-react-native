@@ -9,3 +9,4 @@ integration_test/android/
 integration_test/ios/
 integration_test/ios/Pods/
 .github/*.md
+CLAUDE.md
