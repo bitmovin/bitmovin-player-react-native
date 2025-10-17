@@ -1,18 +1,16 @@
 #!/bin/bash
 
+set -euo pipefail
+
 # Setup git pre-commit hooks for the project
 echo "Setting up pre-commit hooks..."
 
-# Check if .git directory or file exists (supports both regular repos and worktrees)
-if [ ! -e ".git" ]; then
-    echo "Error: Not a git repository. Please run this from the root of the project."
-    exit 1
-fi
+HOOK_DIR=$(git rev-parse --git-path hooks)
 
 # Check if hooks directory exists
-if [ ! -d ".git/hooks" ]; then
-    echo "Creating .git/hooks directory..."
-    mkdir -p .git/hooks
+if [ ! -d "$HOOK_DIR" ]; then
+    echo "Creating $HOOK_DIR directory..."
+    mkdir -p "$HOOK_DIR"
 fi
 
 # Get the directory where this script is located
@@ -26,7 +24,7 @@ if [ ! -f "$PRE_COMMIT_SOURCE" ]; then
 fi
 
 # Check if pre-commit hook already exists and compare content
-HOOK_PATH=".git/hooks/pre-commit"
+HOOK_PATH="$HOOK_DIR/pre-commit"
 NEEDS_UPDATE=true
 
 if [ -f "$HOOK_PATH" ]; then
