@@ -1,6 +1,6 @@
 {
   "name": "bitmovin-player-react-native",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Official React Native bindings for Bitmovin's mobile Player SDKs.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -94,6 +94,6 @@
       "./scripts/format-android.sh",
       "./scripts/lint-android.sh"
     ],
-    "*.(ts|tsx|js|jsx|md|json|yml|yaml)": "prettier --write"
+    "*.(ts|tsx|js|jsx|md|json|yml|yaml)": "prettier --write --no-error-on-unmatched-pattern"
   }
 }

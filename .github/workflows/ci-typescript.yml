@@ -97,6 +97,12 @@ jobs:
       - name: Typecheck TypeScript
         run: yarn typecheck:all
 
+      - name: Build TypeScript (Module)
+        run: yarn build:module
+
+      - name: Build TypeScript (Plugin)
+        run: yarn build:plugin
+
   test-build-docs:
     name: Build API docs
     runs-on: ubuntu-latest
