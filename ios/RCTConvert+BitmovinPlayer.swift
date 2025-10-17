@@ -196,7 +196,7 @@ extension RCTConvert {
             return nil
         }
         var request = HttpRequest(url: url, method: method)
-        request.headers = NSMutableDictionary(dictionary: headers)
+        request.headers = headers
 
         if let bodyBase64EncodedString = json["body"] as? String {
             request.body = Data(base64Encoded: bodyBase64EncodedString)
