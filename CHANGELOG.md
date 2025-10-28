@@ -6,6 +6,10 @@
 
 - Update Bitmovin's native Android SDK version to `3.129.0+jason`
 
+### Fixed
+
+- Android: `AudioTrack.qualities` API returning empty list when no audio qualities are available
+
 ## [1.2.0] - 2025-10-17
 
 ### Changed
