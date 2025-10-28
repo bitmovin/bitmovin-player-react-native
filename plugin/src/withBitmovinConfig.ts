@@ -44,11 +44,20 @@ export interface BitmovinConfigOptions {
  *   ]
  * };
  */
-const withBitmovinConfig: ConfigPlugin<BitmovinConfigOptions> = (config, options) => {
+const withBitmovinConfig: ConfigPlugin<BitmovinConfigOptions> = (
+  config,
+  options
+) => {
   const { playerLicenseKey, features } = options;
   const mergedFeatures = { ...defaultFeatures, ...(features || {}) };
-  config = withBitmovinIosConfig(config, { playerLicenseKey, features: mergedFeatures });
-  config = withBitmovinAndroidConfig(config, { playerLicenseKey, features: mergedFeatures });
+  config = withBitmovinIosConfig(config, {
+    playerLicenseKey,
+    features: mergedFeatures,
+  });
+  config = withBitmovinAndroidConfig(config, {
+    playerLicenseKey,
+    features: mergedFeatures,
+  });
   return config;
 };
 

@@ -7,7 +7,10 @@ import { BitmovinConfigOptions } from './withBitmovinConfig';
 
 const isTV = !!process.env.EXPO_TV;
 
-const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (config, options) => {
+const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
+  config,
+  options
+) => {
   const { playerLicenseKey = '', features = {} } = options || {};
   const offlineFeatureConfig =
     typeof features.offline === 'object'
