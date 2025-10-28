@@ -2,6 +2,8 @@ import BitmovinPlayer
 import ExpoModulesCore
 
 public class PlayerModule: Module {
+    private let imaSettingsWaiter = ResultWaiter<[String: Any]>()
+
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("PlayerModule")
@@ -14,7 +16,9 @@ public class PlayerModule: Module {
                 PlayerRegistry.getAllPlayers().forEach { $0.destroy() }
                 PlayerRegistry.clear()
             }
+            imaSettingsWaiter.removeAll()
         }
+        Events("onImaBeforeInitialization")
         AsyncFunction("play") { (nativeId: NativeId) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.play()
         }.runOnQueue(.main)
@@ -169,6 +173,9 @@ public class PlayerModule: Module {
         AsyncFunction("skipAd") { (nativeId: NativeId) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.skipAd()
         }.runOnQueue(.main)
+        AsyncFunction("setPreparedImaSettings") { [weak self] (id: Int, settings: [String: Any]?) in
+            self?.imaSettingsWaiter.complete(id: id, with: settings ?? [:])
+        }
         AsyncFunction(
             "initializeWithConfig"
         ) { [weak self] (nativeId: NativeId, config: [String: Any]?, networkNativeId: NativeId?, _: String?) in // swiftlint:disable:this line_length
@@ -180,6 +187,7 @@ public class PlayerModule: Module {
             if let networkNativeId, let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
                 playerConfig.networkConfig = networkConfig
             }
+            self?.setupImaBeforeInitialization(nativeId: nativeId, config: config, playerConfig: playerConfig)
             let player = PlayerFactory.create(playerConfig: playerConfig)
             PlayerRegistry.register(player: player, nativeId: nativeId)
         }.runOnQueue(.main)
@@ -195,6 +203,7 @@ public class PlayerModule: Module {
             if let networkNativeId, let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
                 playerConfig.networkConfig = networkConfig
             }
+            self?.setupImaBeforeInitialization(nativeId: nativeId, config: config, playerConfig: playerConfig)
             let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfig)
             let player = PlayerFactory.create(
                 playerConfig: playerConfig,
@@ -234,5 +243,35 @@ public class PlayerModule: Module {
             return nil
         }
         return networkModule.retrieve(nativeId)
+    }
+
+    private func setupImaBeforeInitialization(
+        nativeId: NativeId,
+        config: [String: Any]?,
+        playerConfig: PlayerConfig
+    ) {
+        guard
+            let advertisingJson = config?["advertisingConfig"] as? [String: Any],
+            let imaJson = advertisingJson["ima"] as? [String: Any],
+            imaJson["beforeInitialization"] != nil
+        else {
+            return
+        }
+
+        playerConfig.advertisingConfig.beforeInitialization = { [weak self] settings in
+            guard let self else { return }
+            let (id, wait) = imaSettingsWaiter.make(timeout: 0.25)
+            let payload = RCTConvert.imaSettingsDictionary(settings)
+            self.sendEvent(
+                "onImaBeforeInitialization",
+                [
+                    "nativeId": nativeId,
+                    "id": id,
+                    "settings": payload
+                ]
+            )
+            guard let updated = wait() else { return }
+            RCTConvert.applyImaSettings(settings, from: updated)
+        }
     }
 }

@@ -247,6 +247,53 @@ extension RCTConvert {
         return AdvertisingConfig(schedule: schedule.compactMap { RCTConvert.adItem($0) })
     }
 
+    static func imaSettingsDictionary(_ settings: ImaSettings) -> [String: Any] {
+        var map: [String: Any] = [
+            "language": settings.language,
+            "maxRedirects": Int(settings.maxRedirects),
+            "enableBackgroundPlayback": settings.enableBackgroundPlayback,
+            "disableNowPlayingInfo": settings.disableNowPlayingInfo
+        ]
+        map["ppid"] = settings.ppid
+        map["playerVersion"] = settings.playerVersion
+        map["sessionId"] = settings.sessionId
+#if !os(tvOS)
+        map["sameAppKeyEnabled"] = settings.sameAppKeyEnabled
+#endif
+        return map
+    }
+
+    static func applyImaSettings(_ settings: ImaSettings, from json: [String: Any]) {
+        if let ppid = json["ppid"] as? String {
+            settings.ppid = ppid
+        }
+        if let language = json["language"] as? String {
+            settings.language = language
+        }
+        if let redirects = json["maxRedirects"] as? NSNumber {
+            settings.maxRedirects = UInt(truncating: redirects)
+        } else if let redirectsInt = json["maxRedirects"] as? Int {
+            settings.maxRedirects = UInt(redirectsInt)
+        }
+        if let enableBackgroundPlayback = json["enableBackgroundPlayback"] as? Bool {
+            settings.enableBackgroundPlayback = enableBackgroundPlayback
+        }
+        if let disableNowPlayingInfo = json["disableNowPlayingInfo"] as? Bool {
+            settings.disableNowPlayingInfo = disableNowPlayingInfo
+        }
+        if let playerVersion = json["playerVersion"] as? String {
+            settings.playerVersion = playerVersion
+        }
+        if let sessionId = json["sessionId"] as? String {
+            settings.sessionId = sessionId
+        }
+#if !os(tvOS)
+        if let sameAppKeyEnabled = json["sameAppKeyEnabled"] as? Bool {
+            settings.sameAppKeyEnabled = sameAppKeyEnabled
+        }
+#endif
+    }
+
     static func adItem(_ json: Any?) -> AdItem? {
         guard
             let json = json as? [String: Any?],
