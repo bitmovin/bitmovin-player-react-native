@@ -38,38 +38,39 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
       return config;
     }
 
-    const androidBlockStart = config.modResults.contents.search(/^android \{$/m);
+    const androidBlockStart =
+      config.modResults.contents.search(/^android \{$/m);
     if (androidBlockStart === -1) {
       WarningAggregator.addWarningAndroid(
-          'withAppGradleDependencies',
-          `Cannot configure app/build.gradle as no android block start was found`
+        'withAppGradleDependencies',
+        `Cannot configure app/build.gradle as no android block start was found`
       );
       return config;
     }
-    const fromAndroid = config.modResults.contents.substring(
-      androidBlockStart
-    );
+    const fromAndroid = config.modResults.contents.substring(androidBlockStart);
     const androidBlockEnd = fromAndroid.search(/^\}$/m);
     if (androidBlockEnd === -1) {
       WarningAggregator.addWarningAndroid(
-          'withAppGradleDependencies',
-          `Cannot configure app/build.gradle as no android block end was found`
+        'withAppGradleDependencies',
+        `Cannot configure app/build.gradle as no android block end was found`
       );
       return config;
     }
     const androidPosition = androidBlockStart + androidBlockEnd;
-    const compileOptions = []
-      compileOptions.push(`${combinedProps.spacing}compileOptions {`)
-      compileOptions.push('\n');
-      compileOptions.push(`${combinedProps.spacing}setCoreLibraryDesugaringEnabled(true)`)
-      compileOptions.push('\n');
-      compileOptions.push(`${combinedProps.spacing}}`)
-      compileOptions.push('\n');
-      config.modResults.contents = [
-          config.modResults.contents.slice(0, androidPosition),
-          ... compileOptions,
-          config.modResults.contents.slice(androidPosition),
-      ].join('');
+    const compileOptions = [];
+    compileOptions.push(`${combinedProps.spacing}compileOptions {`);
+    compileOptions.push('\n');
+    compileOptions.push(
+      `${combinedProps.spacing}setCoreLibraryDesugaringEnabled(true)`
+    );
+    compileOptions.push('\n');
+    compileOptions.push(`${combinedProps.spacing}}`);
+    compileOptions.push('\n');
+    config.modResults.contents = [
+      config.modResults.contents.slice(0, androidPosition),
+      ...compileOptions,
+      config.modResults.contents.slice(androidPosition),
+    ].join('');
 
     const dependenciesBlockStart =
       config.modResults.contents.search(/^dependencies \{$/m);
@@ -94,7 +95,9 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
     const position = dependenciesBlockStart + dependenciesBlockEnd;
     let insertedDependencies: string[] = [];
     insertedDependencies.push('\n');
-    insertedDependencies.push(`${combinedProps.spacing}coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'`)
+    insertedDependencies.push(
+      `${combinedProps.spacing}coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'`
+    );
     insertedDependencies.push('\n');
     filteredDependencies.forEach((dependency) => {
       insertedDependencies.push(
