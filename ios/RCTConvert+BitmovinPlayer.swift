@@ -252,11 +252,10 @@ extension RCTConvert {
             "language": settings.language,
             "maxRedirects": Int(settings.maxRedirects),
             "enableBackgroundPlayback": settings.enableBackgroundPlayback,
-            "disableNowPlayingInfo": settings.disableNowPlayingInfo
+            "ppid": settings.ppid,
+            "playerVersion": settings.playerVersion,
+            "sessionId": settings.sessionId
         ]
-        map["ppid"] = settings.ppid
-        map["playerVersion"] = settings.playerVersion
-        map["sessionId"] = settings.sessionId
 #if !os(tvOS)
         map["sameAppKeyEnabled"] = settings.sameAppKeyEnabled
 #endif
@@ -271,15 +270,10 @@ extension RCTConvert {
             settings.language = language
         }
         if let redirects = json["maxRedirects"] as? NSNumber {
-            settings.maxRedirects = UInt(truncating: redirects)
-        } else if let redirectsInt = json["maxRedirects"] as? Int {
-            settings.maxRedirects = UInt(redirectsInt)
+            settings.maxRedirects = redirects.uintValue
         }
         if let enableBackgroundPlayback = json["enableBackgroundPlayback"] as? Bool {
             settings.enableBackgroundPlayback = enableBackgroundPlayback
-        }
-        if let disableNowPlayingInfo = json["disableNowPlayingInfo"] as? Bool {
-            settings.disableNowPlayingInfo = disableNowPlayingInfo
         }
         if let playerVersion = json["playerVersion"] as? String {
             settings.playerVersion = playerVersion
