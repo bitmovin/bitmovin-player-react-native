@@ -1,6 +1,7 @@
 import BitmovinPlayer
 import ExpoModulesCore
 
+// swiftlint:disable:next type_body_length
 public class PlayerModule: Module {
     private let imaSettingsWaiter = ResultWaiter<[String: Any]>()
 
