@@ -228,7 +228,7 @@ export class Player extends NativeInstance<PlayerConfig> {
         } catch {
           prepared = cloned;
         }
-        PlayerModule.setPreparedImaSettings(id, prepared).catch(() => {});
+        PlayerModule.setPreparedImaSettings(id, prepared);
       }
     );
   };
