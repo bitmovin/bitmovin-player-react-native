@@ -1,6 +1,17 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
+import { ImaSettings } from '../advertising';
 
-export type PlayerModuleEvents = Record<string, any>;
+export type PlayerModuleEvents = {
+  onImaBeforeInitialization: ({
+    nativeId,
+    id,
+    settings,
+  }: {
+    nativeId: string;
+    id: number;
+    settings: ImaSettings;
+  }) => void;
+};
 
 declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
   /**
@@ -147,6 +158,11 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
    * Skip current ad for nativeId's player.
    */
   skipAd(nativeId: string): Promise<void>;
+
+  /**
+   * Applies the JS-updated IMA settings for a before-initialization callback.
+   */
+  setPreparedImaSettings(id: number, settings: ImaSettings): Promise<void>;
 
   /**
    * Check if player can play at specified playback speed (iOS only).

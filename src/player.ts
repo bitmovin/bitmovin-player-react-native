@@ -1,3 +1,4 @@
+import { EventSubscription } from 'expo-modules-core';
 import { Platform } from 'react-native';
 import PlayerModule from './modules/PlayerModule';
 import NativeInstance from './nativeInstance';
@@ -8,7 +9,7 @@ import { OfflineContentManager, OfflineSourceOptions } from './offline';
 import { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/player';
 import { PlayerConfig } from './playerConfig';
-import { AdItem } from './advertising';
+import { AdItem, ImaSettings } from './advertising';
 import { BufferApi } from './bufferApi';
 import { VideoQuality } from './media';
 import { Network } from './network';
@@ -50,11 +51,13 @@ export class Player extends NativeInstance<PlayerConfig> {
   private network?: Network;
 
   private decoderConfig?: DecoderConfigBridge;
+  private onImaBeforeInitializationSubscription?: EventSubscription;
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
   initialize = async (): Promise<void> => {
     if (!this.isInitialized) {
+      this.ensureImaBeforeInitializationListener();
       if (this.config?.networkConfig) {
         this.network = new Network(this.config.networkConfig);
         await this.network.initialize();
@@ -93,6 +96,8 @@ export class Player extends NativeInstance<PlayerConfig> {
       this.source?.destroy();
       this.network?.destroy();
       this.decoderConfig?.destroy();
+      this.onImaBeforeInitializationSubscription?.remove();
+      this.onImaBeforeInitializationSubscription = undefined;
       this.isDestroyed = true;
     }
   };
@@ -196,6 +201,36 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   setVolume = (volume: number) => {
     PlayerModule.setVolume(this.nativeId, volume);
+  };
+
+  private ensureImaBeforeInitializationListener = () => {
+    const callback = this.config?.advertisingConfig?.ima?.beforeInitialization;
+    if (!callback) {
+      return;
+    }
+    if (this.onImaBeforeInitializationSubscription) {
+      return;
+    }
+    this.onImaBeforeInitializationSubscription = PlayerModule.addListener(
+      'onImaBeforeInitialization',
+      ({ nativeId, id, settings }) => {
+        if (nativeId !== this.nativeId) {
+          return;
+        }
+        const cloned: ImaSettings = { ...settings };
+        let prepared = cloned;
+        try {
+          const result = callback(cloned);
+          prepared =
+            result && typeof result === 'object'
+              ? { ...cloned, ...result }
+              : cloned;
+        } catch {
+          prepared = cloned;
+        }
+        PlayerModule.setPreparedImaSettings(id, prepared);
+      }
+    );
   };
 
   /**

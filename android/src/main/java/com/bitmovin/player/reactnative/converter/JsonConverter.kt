@@ -82,6 +82,7 @@ import com.bitmovin.player.reactnative.extensions.withInt
 import com.bitmovin.player.reactnative.extensions.withMap
 import com.bitmovin.player.reactnative.extensions.withString
 import com.bitmovin.player.reactnative.extensions.withStringArray
+import com.google.ads.interactivemedia.v3.api.ImaSdkSettings
 import java.util.UUID
 
 /**
@@ -188,9 +189,25 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
 }
 
 fun Map<String, Any?>.toAdvertisingConfig(): AdvertisingConfig? {
-    return AdvertisingConfig(
-        getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: return null,
-    )
+    val schedule = getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: emptyList()
+    return AdvertisingConfig(schedule)
+}
+
+fun ImaSdkSettings.toMap(): Map<String, Any?> =
+    mutableMapOf<String, Any?>().apply {
+        put("ppid", ppid)
+        put("language", language)
+        put("maxRedirects", maxRedirects)
+        put("playerVersion", playerVersion)
+        put("sessionId", sessionId)
+    }
+
+fun Map<String, Any?>.applyOnImaSettings(settings: ImaSdkSettings) {
+    withString("ppid") { settings.ppid = it }
+    withString("language") { settings.language = it }
+    withInt("maxRedirects") { settings.maxRedirects = it }
+    withString("playerVersion") { settings.playerVersion = it }
+    withString("sessionId") { settings.sessionId = it }
 }
 
 fun Map<String, Any?>.toAdItem(): AdItem? {

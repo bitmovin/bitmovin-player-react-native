@@ -1,13 +1,18 @@
 package com.bitmovin.player.reactnative
 
+import androidx.core.os.bundleOf
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
+import com.bitmovin.player.api.advertising.AdvertisingConfig
+import com.bitmovin.player.api.advertising.BeforeInitializationCallback
 import com.bitmovin.player.api.analytics.create
+import com.bitmovin.player.reactnative.converter.applyOnImaSettings
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.converter.toMap
 import com.bitmovin.player.reactnative.converter.toMediaControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.getMap
@@ -18,6 +23,7 @@ import expo.modules.kotlin.modules.ModuleDefinition
 class PlayerModule : Module() {
 
     val mediaSessionPlaybackManager by lazy { MediaSessionPlaybackManager(appContext) }
+    private val imaSettingsWaiter = ResultWaiter<Map<String, Any?>>()
 
     override fun definition() = ModuleDefinition {
         Name("PlayerModule")
@@ -35,8 +41,11 @@ class PlayerModule : Module() {
                     // Log but don't crash on cleanup
                 }
             }
+            imaSettingsWaiter.clear()
             PlayerRegistry.clear()
         }
+
+        Events("onImaBeforeInitialization")
 
         AsyncFunction("play") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
@@ -266,6 +275,10 @@ class PlayerModule : Module() {
             }
         }.runOnQueue(Queues.MAIN)
 
+        AsyncFunction("setPreparedImaSettings") { id: Int, settings: Map<String, Any?>? ->
+            imaSettingsWaiter.complete(id, settings ?: emptyMap())
+        }
+
         AsyncFunction("initializeWithConfig") { nativeId: NativeId, config: Map<String, Any>?,
             networkNativeId: NativeId?, decoderNativeId: NativeId?, ->
             initializePlayer(nativeId, config, networkNativeId, decoderNativeId, null)
@@ -303,6 +316,9 @@ class PlayerModule : Module() {
         }
 
         val playerConfig = config?.toPlayerConfig() ?: PlayerConfig()
+        @Suppress("UNCHECKED_CAST")
+        val configJson = config as? Map<String, Any?>
+        setupImaBeforeInitialization(nativeId, configJson, playerConfig)
         val enableMediaSession = config?.getMap("mediaControlConfig")
             ?.toMediaControlConfig()?.isEnabled ?: true
 
@@ -341,6 +357,37 @@ class PlayerModule : Module() {
             mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
         }
     }
+
+    private fun setupImaBeforeInitialization(
+        nativeId: NativeId,
+        configJson: Map<String, Any?>?,
+        playerConfig: PlayerConfig,
+    ) {
+        val advertisingConfigJson = configJson?.getMap("advertisingConfig") ?: return
+        val imaJson = advertisingConfigJson.getMap("ima") ?: return
+        if (!imaJson.containsKey("beforeInitialization")) {
+            return
+        }
+        val advertisingConfig = playerConfig.advertisingConfig ?: AdvertisingConfig()
+        val callback = createBeforeInitializationCallback(nativeId)
+        val updatedIma = advertisingConfig.ima.copy(beforeInitialization = callback)
+        playerConfig.advertisingConfig = advertisingConfig.copy(ima = updatedIma)
+    }
+
+    private fun createBeforeInitializationCallback(nativeId: NativeId): BeforeInitializationCallback =
+        BeforeInitializationCallback { settings ->
+            val (id, wait) = imaSettingsWaiter.make(250)
+            val payload = settings.toMap()
+            sendEvent(
+                "onImaBeforeInitialization",
+                bundleOf(
+                    "nativeId" to nativeId,
+                    "id" to id,
+                    "settings" to payload,
+                ),
+            )
+            wait()?.applyOnImaSettings(settings)
+        }
 
     // CRITICAL: This method must remain available for cross-module access
     fun getPlayerOrNull(nativeId: NativeId): Player? = PlayerRegistry.getPlayer(nativeId)
