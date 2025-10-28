@@ -202,11 +202,11 @@ fun ImaSdkSettings.toMap(): Map<String, Any?> =
     }
 
 fun Map<String, Any?>.applyOnImaSettings(settings: ImaSdkSettings) {
-    getString("ppid")?.let { settings.ppid = it }
-    getString("language")?.let { settings.language = it }
-    getString("maxRedirects")?.toInt()?.let { settings.maxRedirects = it }
-    getString("playerVersion")?.let { settings.playerVersion = it }
-    getString("sessionId")?.let { settings.sessionId = it }
+    withString("ppid") { settings.ppid = it }
+    withString("language") { settings.language = it }
+    withInt("maxRedirects") { settings.maxRedirects = it }
+    withString("playerVersion") { settings.playerVersion = it }
+    withString("sessionId") { settings.sessionId = it }
 }
 
 fun Map<String, Any?>.toAdItem(): AdItem? {
