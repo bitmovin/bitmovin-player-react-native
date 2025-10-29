@@ -27,7 +27,7 @@ export interface BufferConfig {
    *
    * Default is `5` seconds.
    *
-   * @remarks Platform: Android
+   * @platform Android
    */
   restartThreshold?: number;
   /**
@@ -36,7 +36,7 @@ export interface BufferConfig {
    *
    * Default is `2.5` seconds.
    *
-   * @remarks Platform: Android
+   * @platform Android
    */
   startupThreshold?: number;
 }

@@ -120,56 +120,56 @@ export type PlayerViewEvents = {
   /**
    * Event emitted when casting to a cast-compatible device is available.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   onCastAvailable?: (event: CastAvailableEvent) => void;
   /**
    * Event emitted when the playback on a cast-compatible device was paused.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   onCastPaused?: (event: CastPausedEvent) => void;
   /**
    * Event emitted when the playback on a cast-compatible device has finished.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   onCastPlaybackFinished?: (event: CastPlaybackFinishedEvent) => void;
   /**
    * Event emitted when playback on a cast-compatible device has started.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   onCastPlaying?: (event: CastPlayingEvent) => void;
   /**
    * Event emitted when the cast app is launched successfully.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   onCastStarted?: (event: CastStartedEvent) => void;
   /**
    * Event emitted when casting is initiated, but the user still needs to choose which device should be used.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   onCastStart?: (event: CastStartEvent) => void;
   /**
    * Event emitted when casting to a cast-compatible device is stopped.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   onCastStopped?: (event: CastStoppedEvent) => void;
   /**
    * Event emitted when the time update from the currently used cast-compatible device is received.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   onCastTimeUpdated?: (event: CastTimeUpdatedEvent) => void;
   /**
    * Event emitted when a cast-compatible device has been chosen and the player is waiting for the device to get ready for
    * playback.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   onCastWaitingForDevice?: (event: CastWaitingForDeviceEvent) => void;
   /**
@@ -195,25 +195,25 @@ export type PlayerViewEvents = {
   /**
    * Event emitted when fullscreen mode has been enabled.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   onFullscreenEnabled?: (event: FullscreenEnabledEvent) => void;
   /**
    * Event emitted when fullscreen mode has been disabled.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   onFullscreenDisabled?: (event: FullscreenDisabledEvent) => void;
   /**
    * Event emitted when fullscreen mode has been entered.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   onFullscreenEnter?: (event: FullscreenEnterEvent) => void;
   /**
    * Event emitted when fullscreen mode has been exited.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   onFullscreenExit?: (event: FullscreenExitEvent) => void;
   /**
@@ -237,7 +237,7 @@ export type PlayerViewEvents = {
   /**
    * Event emitted when the player entered Picture in Picture mode.
    *
-   * @remarks Platform: iOS
+   * @platform iOS
    */
   onPictureInPictureEntered?: (event: PictureInPictureEnteredEvent) => void;
   /**
@@ -247,7 +247,7 @@ export type PlayerViewEvents = {
   /**
    * Event emitted when the player exited Picture in Picture mode.
    *
-   * @remarks Platform: iOS
+   * @platform iOS
    */
   onPictureInPictureExited?: (event: PictureInPictureExitedEvent) => void;
   /**
@@ -260,7 +260,7 @@ export type PlayerViewEvents = {
   onPlaybackFinished?: (event: PlaybackFinishedEvent) => void;
   /**
    * Emitted when the player transitions from one playback speed to another.
-   * @remarks Platform: iOS, tvOS
+   * @platform iOS, tvOS
    */
   onPlaybackSpeedChanged?: (event: PlaybackSpeedChangedEvent) => void;
   /**

@@ -36,7 +36,7 @@ export interface PlayerViewConfig {
    *
    * Default is {@link SurfaceType.SurfaceView}.
    *
-   * @remarks Platform: Android
+   * @platform Android
    */
   surfaceType?: SurfaceType;
 }
@@ -67,7 +67,7 @@ export interface WebUiConfig extends UiConfig {
    * By default this is enabled only for the TV UI variant, as it's needed there to
    * initiate spatial navigation using the remote control.
    *
-   * @remarks Platform: Android
+   * @platform Android
    */
   focusUiOnInitialization?: boolean;
 }

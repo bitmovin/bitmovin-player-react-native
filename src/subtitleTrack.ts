@@ -3,7 +3,7 @@ import { SubtitleFormat } from './subtitleFormat';
 
 /**
  * Describes a subtitle track.
- * @remarks Platform: Android, iOS, tvOS
+ * @platform Android, iOS, tvOS
  */
 export interface SubtitleTrack {
   /**

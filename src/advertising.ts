@@ -83,7 +83,7 @@ export interface AdItem {
    *
    * Default value is 0.0
    *
-   * @remarks Platform: Android
+   * @platform Android
    */
   preloadOffset?: number;
 }
@@ -134,7 +134,7 @@ export interface ImaSettings {
   /**
    * Enables background audio playback. Defaults to `false`.
    *
-   * @remarks Platform: iOS, tvOS
+   * @platform iOS, tvOS
    */
   enableBackgroundPlayback?: boolean;
   /**
@@ -148,7 +148,7 @@ export interface ImaSettings {
   /**
    * Controls Same App Key usage.
    *
-   * @remarks Platform: iOS
+   * @platform iOS
    */
   sameAppKeyEnabled?: boolean;
 }

@@ -13,7 +13,7 @@ import AudioSessionModule from './modules/AudioSessionModule';
  * - `record`: The category for recording audio while also silencing playback audio.
  * - `soloAmbient`: The default audio session category.
  *
- * @remarks Platform: iOS
+ * @platform iOS
  * @see https://developer.apple.com/documentation/avfaudio/avaudiosession/category
  */
 export type AudioSessionCategory =
@@ -27,14 +27,14 @@ export type AudioSessionCategory =
 /**
  * An object that communicates to the system how you intend to use audio in your app.
  *
- * @remarks Platform: iOS
+ * @platform iOS
  * @see https://developer.apple.com/documentation/avfaudio/avaudiosession
  */
 export const AudioSession = {
   /**
    * Sets the audio session's category.
    *
-   * @remarks Platform: iOS
+   * @platform iOS
    * @see https://developer.apple.com/documentation/avfaudio/avaudiosession/1616583-setcategory
    */
   setCategory: async (category: AudioSessionCategory): Promise<void> => {

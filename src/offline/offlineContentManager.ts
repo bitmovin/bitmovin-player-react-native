@@ -45,7 +45,7 @@ const handleBitmovinNativeOfflineEvent = (
  * without an active network connection. An OfflineContentManager instance can be created via
  * the constructor and will be idle until initialized.
  *
- * @remarks Platform: Android, iOS
+ * @platform Android, iOS
  */
 export class OfflineContentManager extends NativeInstance<OfflineContentConfig> {
   isInitialized = false;
@@ -193,7 +193,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    *
-   * @remarks Platform: Android
+   * @platform Android
    */
   releaseLicense = async (): Promise<void> => {
     return OfflineModule.releaseLicense(this.nativeId);
