@@ -13,7 +13,7 @@
   - `ImaSettings.playerVersion` property to set a custom player version string sent with ad requests.
   - `ImaSettings.sessionId` property to set a custom session ID sent with ad requests.
   - `ImaSettings.sameAppKeyEnabled` property to enable Same App Key feature for ad requests on iOS.
-- Android: `AudioTrack.qualities.channelCount`, providing the channel count associated with the `AudioTrack`
+- Android: `AudioQuality.channelCount`, providing the channel count associated with `AudioQuality`.
 
 ### Changed
 
