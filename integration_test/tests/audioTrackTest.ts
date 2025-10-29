@@ -34,6 +34,7 @@ export default (spec: TestScope) => {
               expect(quality.averageBitrate).toBeDefined();
               expect(quality.peakBitrate).toBeDefined();
               expect(quality.codec).toBeDefined();
+              expect(quality.channelCount).toBeDefined();
             });
           });
         });

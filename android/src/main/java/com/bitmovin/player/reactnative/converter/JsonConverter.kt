@@ -656,6 +656,7 @@ fun AudioQuality.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "averageBitrate" to averageBitrate,
     "peakBitrate" to peakBitrate,
     "codec" to codec,
+    "channelCount" to channelCount,
 ).filterNotNullValues()
 
 fun OfflineOptionEntry.toJson(): Map<String, Any> = mapOf(
