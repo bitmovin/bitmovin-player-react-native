@@ -1,3 +1,4 @@
+import { EventSubscription } from 'expo-modules-core';
 import { Platform } from 'react-native';
 import PlayerModule from './modules/PlayerModule';
 import NativeInstance from './nativeInstance';
@@ -8,7 +9,7 @@ import { OfflineContentManager, OfflineSourceOptions } from './offline';
 import { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/player';
 import { PlayerConfig } from './playerConfig';
-import { AdItem } from './advertising';
+import { AdItem, ImaSettings } from './advertising';
 import { BufferApi } from './bufferApi';
 import { VideoQuality } from './media';
 import { Network } from './network';
@@ -50,11 +51,13 @@ export class Player extends NativeInstance<PlayerConfig> {
   private network?: Network;
 
   private decoderConfig?: DecoderConfigBridge;
+  private onImaBeforeInitializationSubscription?: EventSubscription;
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
   initialize = async (): Promise<void> => {
     if (!this.isInitialized) {
+      this.ensureImaBeforeInitializationListener();
       if (this.config?.networkConfig) {
         this.network = new Network(this.config.networkConfig);
         await this.network.initialize();
@@ -93,6 +96,8 @@ export class Player extends NativeInstance<PlayerConfig> {
       this.source?.destroy();
       this.network?.destroy();
       this.decoderConfig?.destroy();
+      this.onImaBeforeInitializationSubscription?.remove();
+      this.onImaBeforeInitializationSubscription = undefined;
       this.isDestroyed = true;
     }
   };
@@ -198,6 +203,36 @@ export class Player extends NativeInstance<PlayerConfig> {
     PlayerModule.setVolume(this.nativeId, volume);
   };
 
+  private ensureImaBeforeInitializationListener = () => {
+    const callback = this.config?.advertisingConfig?.ima?.beforeInitialization;
+    if (!callback) {
+      return;
+    }
+    if (this.onImaBeforeInitializationSubscription) {
+      return;
+    }
+    this.onImaBeforeInitializationSubscription = PlayerModule.addListener(
+      'onImaBeforeInitialization',
+      ({ nativeId, id, settings }) => {
+        if (nativeId !== this.nativeId) {
+          return;
+        }
+        const cloned: ImaSettings = { ...settings };
+        let prepared = cloned;
+        try {
+          const result = callback(cloned);
+          prepared =
+            result && typeof result === 'object'
+              ? { ...cloned, ...result }
+              : cloned;
+        } catch {
+          prepared = cloned;
+        }
+        PlayerModule.setPreparedImaSettings(id, prepared);
+      }
+    );
+  };
+
   /**
    * @returns The player's current volume level.
    */
@@ -257,7 +292,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * @remarks Only available for iOS devices.
+   * @platform iOS
    * @returns `true` when media is played externally using AirPlay.
    */
   isAirPlayActive = async (): Promise<boolean> => {
@@ -271,7 +306,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * @remarks Only available for iOS devices.
+   * @platform iOS
    * @returns `true` when AirPlay is available.
    */
   isAirPlayAvailable = async (): Promise<boolean> => {
@@ -336,7 +371,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * @param adItem - Ad to be scheduled for playback.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   scheduleAd = (adItem: AdItem) => {
     PlayerModule.scheduleAd(this.nativeId, adItem);
@@ -346,7 +381,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Skips the current ad.
    * Has no effect if the current ad is not skippable or if no ad is being played back.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   skipAd = () => {
     PlayerModule.skipAd(this.nativeId);
@@ -354,7 +389,7 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * @returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   isAd = async (): Promise<boolean> => {
     return (await PlayerModule.isAd(this.nativeId)) ?? false;
@@ -404,7 +439,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Whether casting to a cast-compatible remote device is available. {@link CastAvailableEvent} signals when
    * casting becomes available.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   isCastAvailable = async (): Promise<boolean> => {
     return (await PlayerModule.isCastAvailable(this.nativeId)) ?? false;
@@ -413,7 +448,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Whether video is currently being casted to a remote device and not played locally.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   isCasting = async (): Promise<boolean> => {
     return (await PlayerModule.isCasting(this.nativeId)) ?? false;
@@ -423,7 +458,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Initiates casting the current video to a cast-compatible remote device. The user has to choose to which device it
    * should be sent.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   castVideo = () => {
     PlayerModule.castVideo(this.nativeId);
@@ -432,7 +467,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Stops casting the current video. Has no effect if {@link Player.isCasting} is `false`.
    *
-   * @remarks Platform: iOS, Android
+   * @platform iOS, Android
    */
   castStop = () => {
     PlayerModule.castStop(this.nativeId);
@@ -456,7 +491,7 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Sets the video quality.
-   * @remarks Platform: Android
+   * @platform Android
    *
    * @param qualityId value obtained from {@link VideoQuality}'s `id` property, which can be obtained via `Player.getAvailableVideoQualities()` to select a specific quality. To use automatic quality selection, 'auto' can be passed here.
    */
@@ -502,7 +537,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Checks the possibility to play the media at specified playback speed.
    * @param playbackSpeed - The playback speed to check.
    * @returns `true` if it's possible to play the media at the specified playback speed, otherwise `false`. On Android it always returns `undefined`.
-   * @remarks Platform: iOS, tvOS
+   * @platform iOS, tvOS
    */
   canPlayAtPlaybackSpeed = async (
     playbackSpeed: number

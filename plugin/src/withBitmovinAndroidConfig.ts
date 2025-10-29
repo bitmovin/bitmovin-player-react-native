@@ -9,7 +9,10 @@ import { BitmovinConfigOptions } from './withBitmovinConfig';
 
 type ManifestActivity = AndroidConfig.Manifest.ManifestActivity;
 
-const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (config, options) => {
+const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
+  config,
+  options
+) => {
   const { playerLicenseKey = '', features = {} } = options || {};
   const offlineFeatureConfig =
     typeof features.offline === 'object'

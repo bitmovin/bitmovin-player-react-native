@@ -346,63 +346,63 @@ export interface SubtitleChangedEvent extends Event {
 /**
  * Emitted when the player enters Picture in Picture mode.
  *
- * @remarks Platform: iOS, Android
+ * @platform iOS, Android
  */
 export type PictureInPictureEnterEvent = Event;
 
 /**
  * Emitted when the player exits Picture in Picture mode.
  *
- * @remarks Platform: iOS, Android
+ * @platform iOS, Android
  */
 export type PictureInPictureExitEvent = Event;
 
 /**
  * Emitted when the player has finished entering Picture in Picture mode on iOS.
  *
- * @remarks Platform: iOS
+ * @platform iOS
  */
 export type PictureInPictureEnteredEvent = Event;
 
 /**
  * Emitted when the player has finished exiting Picture in Picture mode on iOS.
  *
- * @remarks Platform: iOS
+ * @platform iOS
  */
 export type PictureInPictureExitedEvent = Event;
 
 /**
  * Emitted when the fullscreen functionality has been enabled.
  *
- * @remarks Platform: iOS, Android
+ * @platform iOS, Android
  */
 export type FullscreenEnabledEvent = Event;
 
 /**
  * Emitted when the fullscreen functionality has been disabled.
  *
- * @remarks Platform: iOS, Android
+ * @platform iOS, Android
  */
 export type FullscreenDisabledEvent = Event;
 
 /**
  * Emitted when the player enters fullscreen mode.
  *
- * @remarks Platform: iOS, Android
+ * @platform iOS, Android
  */
 export type FullscreenEnterEvent = Event;
 
 /**
  * Emitted when the player exits fullscreen mode.
  *
- * @remarks Platform: iOS, Android
+ * @platform iOS, Android
  */
 export type FullscreenExitEvent = Event;
 
 /**
  * Emitted when the availability of the Picture in Picture mode changed on Android.
  *
- * @remarks Platform: Android
+ * @platform Android
  */
 export interface PictureInPictureAvailabilityChangedEvent extends Event {
   /**
@@ -710,7 +710,7 @@ export interface DownloadFinishedEvent extends Event {
 
 /**
  * Emitted when the player transitions from one playback speed to another.
- * @remarks Platform: iOS, tvOS
+ * @platform iOS, tvOS
  */
 export interface PlaybackSpeedChangedEvent extends Event {
   /**

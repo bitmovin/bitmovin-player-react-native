@@ -83,7 +83,7 @@ export interface AdItem {
    *
    * Default value is 0.0
    *
-   * @remarks Platform: Android
+   * @platform Android
    */
   preloadOffset?: number;
 }
@@ -96,6 +96,61 @@ export interface AdvertisingConfig {
    * The ad items that are scheduled when a new playback session is started via `Player.load()`.
    */
   schedule: AdItem[];
+  /**
+   * Configuration to customize Google IMA SDK integration.
+   */
+  ima?: ImaAdvertisingConfig;
+}
+
+/**
+ * Configuration options applied to Google IMA SDK before initialization.
+ */
+export interface ImaAdvertisingConfig {
+  /**
+   * Invoked before the IMA SDK initializes, allowing mutation of the SDK settings.
+   *
+   * @param settings - Current IMA settings received from the native SDK.
+   * @returns The settings object to apply. If omitted, the (mutated) `settings` argument is used.
+   */
+  beforeInitialization?: (settings: ImaSettings) => ImaSettings | void;
+}
+
+/**
+ * Represents Google IMA SDK wide settings.
+ */
+export interface ImaSettings {
+  /**
+   * Publisher Provided Identification (PPID) sent with ad requests.
+   */
+  ppid?: string;
+  /**
+   * Language identifier in IETF BCP 47 format.
+   */
+  language: string;
+  /**
+   * Maximum allowed wrapper redirects. Default is `4`.
+   */
+  maxRedirects: number;
+  /**
+   * Enables background audio playback. Defaults to `false`.
+   *
+   * @platform iOS, tvOS
+   */
+  enableBackgroundPlayback?: boolean;
+  /**
+   * Player version identifier reported to IMA.
+   */
+  playerVersion?: string;
+  /**
+   * Session identifier used for frequency capping.
+   */
+  sessionId?: string;
+  /**
+   * Controls Same App Key usage.
+   *
+   * @platform iOS
+   */
+  sameAppKeyEnabled?: boolean;
 }
 
 /**

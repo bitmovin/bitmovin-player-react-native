@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.3.0]
+
+### Added
+
+- `AdvertisingConfig.ima` namespace with type `ImaAdvertisingConfig`
+- `ImaAdvertisingConfig.beforeInitialization` API to allow customization of IMA SDK behavior via `ImaSettings`
+  - `ImaSettings.ppid` property to allow setting Publisher Provided Identification (PPID) sent with ad requests.
+  - `ImaSettings.language` property to set the language for ad UI elements via IETF BCP 47 language tag.
+  - `ImaSettings.maxRedirects` property to set the maximum number of redirects the IMA SDK will follow when loading ads.
+  - `ImaSettings.enableBackgroundPlayback` property to allow ads to continue playing when the app goes into the background on iOS and tvOS.
+  - `ImaSettings.playerVersion` property to set a custom player version string sent with ad requests.
+  - `ImaSettings.sessionId` property to set a custom session ID sent with ad requests.
+  - `ImaSettings.sameAppKeyEnabled` property to enable Same App Key feature for ad requests on iOS.
+- Android: `AudioQuality.channelCount`, providing the channel count associated with `AudioQuality`.
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.131.0+jason`
+
+### Fixed
+
+- Android: `AudioTrack.qualities` API returning empty list when no audio qualities are available
+
 ## [1.2.0] - 2025-10-17
 
 ### Changed

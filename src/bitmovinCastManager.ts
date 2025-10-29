@@ -3,7 +3,7 @@ import BitmovinCastManagerModule from './modules/BitmovinCastManagerModule';
 
 /**
  * The options to be used for initializing `BitmovinCastManager`
- * @remarks Platform: Android, iOS
+ * @platform Android, iOS
  */
 export interface BitmovinCastManagerOptions {
   /**
@@ -23,7 +23,7 @@ export interface BitmovinCastManagerOptions {
  * The `BitmovinCastManager` needs to be initialized by calling `BitmovinCastManager.initialize`
  * before `Player` creation to enable casting features.
  *
- * @remarks Platform: Android, iOS
+ * @platform Android, iOS
  */
 export const BitmovinCastManager = {
   /**
@@ -63,7 +63,7 @@ export const BitmovinCastManager = {
    * Make sure to call this method on every Android Activity switch.
    *
    * @returns A promise that resolves when the context was updated successfully
-   * @remarks Platform: Android
+   * @platform Android
    */
   updateContext: async (): Promise<void> => {
     if (Platform.OS === 'ios') {

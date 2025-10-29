@@ -39,6 +39,7 @@ import com.bitmovin.player.api.media.AdaptationConfig
 import com.bitmovin.player.api.media.MediaTrackRole
 import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.media.audio.AudioTrack
+import com.bitmovin.player.api.media.audio.quality.AudioQuality
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
@@ -81,6 +82,7 @@ import com.bitmovin.player.reactnative.extensions.withInt
 import com.bitmovin.player.reactnative.extensions.withMap
 import com.bitmovin.player.reactnative.extensions.withString
 import com.bitmovin.player.reactnative.extensions.withStringArray
+import com.google.ads.interactivemedia.v3.api.ImaSdkSettings
 import java.util.UUID
 
 /**
@@ -187,9 +189,25 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
 }
 
 fun Map<String, Any?>.toAdvertisingConfig(): AdvertisingConfig? {
-    return AdvertisingConfig(
-        getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: return null,
-    )
+    val schedule = getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: emptyList()
+    return AdvertisingConfig(schedule)
+}
+
+fun ImaSdkSettings.toMap(): Map<String, Any?> =
+    mutableMapOf<String, Any?>().apply {
+        put("ppid", ppid)
+        put("language", language)
+        put("maxRedirects", maxRedirects)
+        put("playerVersion", playerVersion)
+        put("sessionId", sessionId)
+    }
+
+fun Map<String, Any?>.applyOnImaSettings(settings: ImaSdkSettings) {
+    withString("ppid") { settings.ppid = it }
+    withString("language") { settings.language = it }
+    withInt("maxRedirects") { settings.maxRedirects = it }
+    withString("playerVersion") { settings.playerVersion = it }
+    withString("sessionId") { settings.sessionId = it }
 }
 
 fun Map<String, Any?>.toAdItem(): AdItem? {
@@ -487,6 +505,7 @@ fun AudioTrack.toJson(): Map<String, Any> = mapOf(
     "identifier" to id,
     "language" to language,
     "roles" to roles.map { it.toJson() },
+    "qualities" to qualities?.map { it.toJson() },
 ).filterNotNullValues()
 
 fun Map<String, Any?>.toSubtitleTrack(): SubtitleTrack? {
@@ -628,6 +647,16 @@ fun VideoQuality.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "frameRate" to frameRate.toDouble(),
     "height" to height,
     "width" to width,
+).filterNotNullValues()
+
+fun AudioQuality.toJson(): Map<String, Any> = mapOf<String, Any?>(
+    "id" to id,
+    "label" to label,
+    "bitrate" to bitrate,
+    "averageBitrate" to averageBitrate,
+    "peakBitrate" to peakBitrate,
+    "codec" to codec,
+    "channelCount" to channelCount,
 ).filterNotNullValues()
 
 fun OfflineOptionEntry.toJson(): Map<String, Any> = mapOf(

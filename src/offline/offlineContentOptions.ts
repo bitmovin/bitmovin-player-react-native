@@ -1,6 +1,6 @@
 /**
  * Superclass of entries which can be selected to download for offline playback
- * @remarks Platform: Android, iOS
+ * @platform Android, iOS
  */
 export interface OfflineContentOptionEntry {
   /**
@@ -15,7 +15,7 @@ export interface OfflineContentOptionEntry {
 
 /**
  * Represents the downloadable options provided via the `onOptionsAvailable` callback on `OfflineContentManagerListener`
- * @remarks Platform: Android, iOS
+ * @platform Android, iOS
  */
 export interface OfflineContentOptions {
   /**

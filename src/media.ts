@@ -82,4 +82,8 @@ export interface AudioQuality {
    * The codec of the media quality.
    */
   codec?: string;
+  /**
+   * The number of audio channels or -1 if unknown.
+   */
+  channelCount?: number;
 }

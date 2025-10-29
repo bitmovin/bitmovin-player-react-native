@@ -136,7 +136,7 @@ export interface SourceConfig extends NativeInstanceConfig {
 
 /**
  * The remote control config for a source.
- * @remarks Platform: iOS
+ * @platform iOS
  */
 export interface SourceRemoteControlConfig {
   /**
@@ -161,7 +161,7 @@ export class Source extends NativeInstance<SourceConfig> {
    * The remote control config for this source.
    * This is only supported on iOS.
    *
-   * @remarks Platform: iOS
+   * @platform iOS
    */
   remoteControl: SourceRemoteControlConfig | null = null;
   /**
