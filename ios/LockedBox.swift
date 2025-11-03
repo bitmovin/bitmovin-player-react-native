@@ -18,4 +18,10 @@ internal class LockedBox<T> {
             self._value = value
         }
     }
+
+    func update(_ updateBlock: (inout T) -> Void) {
+        lock.withLock {
+            updateBlock(&self._value)
+        }
+    }
 }

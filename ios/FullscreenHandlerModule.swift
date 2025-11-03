@@ -12,6 +12,8 @@ public class FullscreenHandlerModule: Module {
     /// ResultWaiter used for blocking thread while waiting for fullscreen state change
     private let waiter = ResultWaiter<Bool>()
 
+    private var fullscreenActiveUpdateBuffer = LockedBox(value: [NativeId: Bool]())
+
     public func definition() -> ModuleDefinition {
         Name("FullscreenHandlerModule")
 
@@ -24,13 +26,21 @@ public class FullscreenHandlerModule: Module {
 
         AsyncFunction("registerHandler") { (nativeId: NativeId) in
             DispatchQueue.main.async { [weak self] in
-                guard let self, self.fullscreenHandlers[nativeId] == nil else {
+                guard let self, fullscreenHandlers[nativeId] == nil else {
                     return
                 }
-                self.fullscreenHandlers[nativeId] = FullscreenHandlerBridge(
+                let handler = FullscreenHandlerBridge(
                     nativeId,
                     moduleRegistry: appContext?.moduleRegistry
                 )
+                if let isFullscreen = fullscreenActiveUpdateBuffer.value[nativeId] {
+                    // Apply buffered value
+                    handler.isFullscreenValueBox.update(isFullscreen)
+                    fullscreenActiveUpdateBuffer.update { value in
+                        value.removeValue(forKey: nativeId)
+                    }
+                }
+                fullscreenHandlers[nativeId] = handler
             }
         }.runOnQueue(.main)
 
@@ -43,7 +53,14 @@ public class FullscreenHandlerModule: Module {
         }
 
         AsyncFunction("setIsFullscreenActive") { [weak self] (nativeId: NativeId, isFullscreen: Bool) in
-            self?.fullscreenHandlers[nativeId]?.isFullscreenValueBox.update(isFullscreen)
+            guard let handler = self?.fullscreenHandlers[nativeId] else {
+                // Buffer the value until the handler is registered
+                self?.fullscreenActiveUpdateBuffer.update { value in
+                    value[nativeId] = isFullscreen
+                }
+                return
+            }
+            handler.isFullscreenValueBox.update(isFullscreen)
         }.runOnQueue(.main)
     }
 
