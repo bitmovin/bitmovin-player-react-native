@@ -20,6 +20,9 @@ public class FullscreenHandlerModule: Module {
         OnDestroy {
             fullscreenHandlers.removeAll()
             waiter.removeAll()
+            fullscreenActiveUpdateBuffer.update { value in
+                value.removeAll()
+            }
         }
 
         Events("onEnterFullscreen", "onExitFullscreen")
@@ -46,6 +49,9 @@ public class FullscreenHandlerModule: Module {
 
         AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
             self?.fullscreenHandlers.removeValue(forKey: nativeId)
+            self?.fullscreenActiveUpdateBuffer.update { value in
+                value.removeValue(forKey: nativeId)
+            }
         }.runOnQueue(.main)
 
         AsyncFunction("notifyFullscreenChanged") { [weak self] (id: Int, isFullscreenEnabled: Bool) in

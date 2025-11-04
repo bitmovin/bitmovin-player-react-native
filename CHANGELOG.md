@@ -2,6 +2,12 @@
 
 ## [1.3.0] - 2025-10-29
 
+### Fixed
+
+- iOS: race condition causing invalid initial state for full screen button on `PlayerView`
+
+## [1.3.0] - 2025-10-29
+
 ### Added
 
 - `AdvertisingConfig.ima` namespace with type `ImaAdvertisingConfig`
