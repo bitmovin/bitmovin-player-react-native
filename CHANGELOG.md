@@ -1,12 +1,12 @@
 # Changelog
 
-## [1.3.0] - 2025-10-29
+## [Unreleased]
 
 ### Fixed
 
 - iOS: race condition causing invalid initial state for full screen button on `PlayerView`
 
-## [Unreleased]
+## [1.3.0] - 2025-10-29
 
 ### Added
 
