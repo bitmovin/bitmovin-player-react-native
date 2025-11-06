@@ -6,8 +6,6 @@
 
 - Update Bitmovin's native Android SDK version to `3.132.1+jason`
 
-## [1.3.0] - 2025-10-29
-
 ### Fixed
 
 - iOS: race condition causing invalid initial state for full screen button on `PlayerView`
