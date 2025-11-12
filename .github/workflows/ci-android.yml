@@ -5,22 +5,49 @@ on:
     paths:
       - '.github/workflows/ci-android.yml'
       - '.github/actions/**'
+      - '.github/scripts/**'
       - 'package.json'
       - 'yarn.lock'
+      - 'plugin/**'
       - 'android/**'
+      - 'example/android/**'
+      - 'example/scripts/**'
       - 'example/package.json'
       - 'example/yarn.lock'
+      - 'integration_test/android/**'
+      - 'integration_test/scripts/**'
+      - 'integration_test/package.json'
+      - 'integration_test/yarn.lock'
+      - '**/app.config.*'
+      - '**/expo.json'
+      - '**/*.gradle*'
+      - '**/gradle-wrapper.properties'
+      - '**/gradle/**'
 
   push:
-    branches: [development, development-v0]
+    branches: 
+      - development
     paths:
       - '.github/workflows/ci-android.yml'
       - '.github/actions/**'
+      - '.github/scripts/**'
       - 'package.json'
       - 'yarn.lock'
+      - 'plugin/**'
       - 'android/**'
+      - 'example/android/**'
+      - 'example/scripts/**'
       - 'example/package.json'
       - 'example/yarn.lock'
+      - 'integration_test/android/**'
+      - 'integration_test/scripts/**'
+      - 'integration_test/package.json'
+      - 'integration_test/yarn.lock'
+      - '**/app.config.*'
+      - '**/expo.json'
+      - '**/*.gradle*'
+      - '**/gradle-wrapper.properties'
+      - '**/gradle/**'
 
 concurrency:
   group: ci-android-${{ github.event.pull_request.number || github.ref }}
@@ -52,12 +79,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
+      - name: Cache Android Prebuild
+        id: android-prebuild-cache
+        uses: actions/cache@v4
         with:
-          java: true
-          node: true
-          subprojects: true
+          path: |
+            example/android
+          key: ${{ runner.os }}-android-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'android/**') }}
+          restore-keys: |
+            ${{ runner.os }}-android-prebuild-
 
       - name: Setup Gradle Build Cache
         uses: actions/cache@v4
@@ -73,15 +103,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Cache Android Prebuild
-        id: android-prebuild-cache
-        uses: actions/cache@v4
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          path: |
-            example/android
-          key: ${{ runner.os }}-android-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'android/**') }}
-          restore-keys: |
-            ${{ runner.os }}-android-prebuild-
+          java: true
+          node: true
+          subprojects: true
+          skip-prebuild: true
+
+      - name: Prebuild Android Example (on cache miss)
+        if: ${{ steps.android-prebuild-cache.outputs.cache-hit != 'true' }}
+        run: .github/scripts/smart-prebuild.sh example
 
       - name: Build Android example
         id: build
@@ -115,12 +147,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
+      - name: Cache Android Integration Prebuild
+        id: android-integration-prebuild-cache
+        uses: actions/cache@v4
         with:
-          java: true
-          node: true
-          subprojects: true
+          path: |
+            integration_test/android
+          key: ${{ runner.os }}-android-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.json', 'plugin/**', 'android/**') }}
+          restore-keys: |
+            ${{ runner.os }}-android-integration-prebuild-
 
       - name: Setup Gradle Build Cache
         uses: actions/cache@v4
@@ -137,15 +172,17 @@ jobs:
             ${{ runner.os }}-gradle-integration-
             ${{ runner.os }}-gradle-
 
-      - name: Cache Android Integration Prebuild
-        id: android-integration-prebuild-cache
-        uses: actions/cache@v4
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          path: |
-            integration_test/android
-          key: ${{ runner.os }}-android-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.json', 'plugin/**', 'android/**') }}
-          restore-keys: |
-            ${{ runner.os }}-android-integration-prebuild-
+          java: true
+          node: true
+          subprojects: true
+          skip-prebuild: true
+
+      - name: Prebuild Android Integration (on cache miss)
+        if: ${{ steps.android-integration-prebuild-cache.outputs.cache-hit != 'true' }}
+        run: .github/scripts/smart-prebuild.sh integration-test
 
       - name: Build Android integration test host app
         id: build
@@ -179,13 +216,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
+      - name: Cache Android TV Prebuild
+        id: android-tv-prebuild-cache
+        uses: actions/cache@v4
         with:
-          java: true
-          node: true
-          subprojects: true
-          tv: true
+          path: |
+            example/android
+          key: ${{ runner.os }}-android-tv-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'android/**') }}
+          restore-keys: |
+            ${{ runner.os }}-android-tv-prebuild-
 
       - name: Setup Gradle Build Cache
         uses: actions/cache@v4
@@ -202,15 +241,18 @@ jobs:
             ${{ runner.os }}-gradle-tv-
             ${{ runner.os }}-gradle-
 
-      - name: Cache Android TV Prebuild
-        id: android-tv-prebuild-cache
-        uses: actions/cache@v4
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          path: |
-            example/android
-          key: ${{ runner.os }}-android-tv-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'android/**') }}
-          restore-keys: |
-            ${{ runner.os }}-android-tv-prebuild-
+          java: true
+          node: true
+          subprojects: true
+          tv: true
+          skip-prebuild: true
+
+      - name: Prebuild Android TV Example (on cache miss)
+        if: ${{ steps.android-tv-prebuild-cache.outputs.cache-hit != 'true' }}
+        run: .github/scripts/smart-prebuild.sh example tv
 
       - name: Build Android TV example
         id: build

@@ -26,6 +26,10 @@ inputs:
     description: Prebuild TV projects
     default: false
     required: false
+  skip-prebuild:
+    description: Skip smart prebuild steps (useful when restoring from cache first)
+    default: false
+    required: false
 
 runs:
   using: composite
@@ -64,7 +68,7 @@ runs:
         cp example/.env.example example/.env
 
     - name: Generate native projects for mobile platforms
-      if: ${{ inputs.subprojects == 'true' && inputs.tv == 'false' }}
+      if: ${{ inputs.subprojects == 'true' && inputs.tv == 'false' && inputs['skip-prebuild'] != 'true' }}
       shell: bash
       run: |
         .github/scripts/smart-prebuild.sh example
@@ -72,7 +76,7 @@ runs:
         NSUnbufferedIO: YES
 
     - name: Generate native projects for TV platforms
-      if: ${{ inputs.subprojects == 'true' && inputs.tv == 'true' }}
+      if: ${{ inputs.subprojects == 'true' && inputs.tv == 'true' && inputs['skip-prebuild'] != 'true' }}
       shell: bash
       run: |
         .github/scripts/smart-prebuild.sh example tv
@@ -85,7 +89,9 @@ runs:
       run: |
         yarn install --cwd integration_test
         cp integration_test/.env.example integration_test/.env
-        .github/scripts/smart-prebuild.sh integration-test
+        if [ "${{ inputs['skip-prebuild'] }}" != "true" ]; then
+          .github/scripts/smart-prebuild.sh integration-test
+        fi
       env:
         NSUnbufferedIO: YES
 

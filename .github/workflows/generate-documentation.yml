@@ -38,7 +38,7 @@ jobs:
         uses: ./.github/actions/setup-environment
         with:
           node: true
-          subprojects: true
+          skip-prebuild: true
 
       - name: Detect version using jq
         run: |
