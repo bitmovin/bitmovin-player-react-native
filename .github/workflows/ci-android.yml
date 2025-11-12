@@ -11,18 +11,19 @@ on:
       - 'plugin/**'
       - 'android/**'
       - 'example/android/**'
-      - 'example/scripts/**'
       - 'example/package.json'
       - 'example/yarn.lock'
       - 'integration_test/android/**'
-      - 'integration_test/scripts/**'
+      - 'integration_test/scripts/build-android.sh'
       - 'integration_test/package.json'
       - 'integration_test/yarn.lock'
       - '**/app.config.*'
       - '**/expo.json'
       - '**/*.gradle*'
+      - '**/gradle.properties'
       - '**/gradle-wrapper.properties'
       - '**/gradle/**'
+      - '**/gradlew*'
 
   push:
     branches: 
@@ -36,18 +37,19 @@ on:
       - 'plugin/**'
       - 'android/**'
       - 'example/android/**'
-      - 'example/scripts/**'
       - 'example/package.json'
       - 'example/yarn.lock'
       - 'integration_test/android/**'
-      - 'integration_test/scripts/**'
+      - 'integration_test/scripts/build-android.sh'
       - 'integration_test/package.json'
       - 'integration_test/yarn.lock'
       - '**/app.config.*'
       - '**/expo.json'
       - '**/*.gradle*'
+      - '**/gradle.properties'
       - '**/gradle-wrapper.properties'
       - '**/gradle/**'
+      - '**/gradlew*'
 
 concurrency:
   group: ci-android-${{ github.event.pull_request.number || github.ref }}
