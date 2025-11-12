@@ -114,7 +114,7 @@ jobs:
         uses: ./.github/actions/setup-environment
         with:
           node: true
-          subprojects: true
+          skip-prebuild: true
 
       - name: Build docs
         run: yarn docs
