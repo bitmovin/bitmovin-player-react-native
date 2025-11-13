@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Android: `player.setSubtitleTrack()` now correctly disables subtitles
+
 ## [1.4.0] - 2025-11-06
 
 ### Changed
