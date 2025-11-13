@@ -216,5 +216,52 @@ export default (spec: TestScope) => {
         );
       });
     });
+
+    spec.it(
+      'disables subtitles when calling setSubtitleTrack with undefined',
+      async () => {
+        await startPlayerTest({}, async () => {
+          await loadSourceConfig(Sources.sintel);
+
+          const subtitleTracks = await callPlayer((player) =>
+            player.getAvailableSubtitles()
+          );
+          const subtitleTrack = subtitleTracks[1];
+
+          await callPlayerAndExpectEvent(
+            (player) => {
+              player.setSubtitleTrack(subtitleTrack.identifier);
+            },
+            EventType.SubtitleChanged
+          );
+
+          const selectedSubtitle = await callPlayer((player) =>
+            player.getSubtitleTrack()
+          );
+          expect(
+            selectedSubtitle,
+            'Subtitle track should be selected before disabling'
+          ).toNotBeNull();
+          expect(
+            selectedSubtitle?.identifier,
+            'Selected subtitle identifier should match the requested track'
+          ).toBe(subtitleTrack.identifier);
+
+          await callPlayerAndExpectEvent(
+            (player) => {
+              player.setSubtitleTrack(undefined);
+            },
+            EventType.SubtitleChanged
+          );
+          const disabledSubtitle = await callPlayer((player) =>
+            player.getSubtitleTrack()
+          );
+          expect(
+            disabledSubtitle,
+            'Subtitles should be disabled after passing undefined'
+          ).toBeNull();
+        });
+      }
+    );
   });
 };

@@ -358,11 +358,12 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Sets the subtitle track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableSubtitles.
-   *
+   * Pass `undefined` to disable subtitles.
+   * 
    * @param trackIdentifier - The {@link SubtitleTrack.identifier} to be set.
    */
   setSubtitleTrack = async (trackIdentifier?: string): Promise<void> => {
-    return PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier ?? '');
+    return PlayerModule.setSubtitleTrack(this.nativeId, trackIdentifier ?? null);
   };
 
   /**
