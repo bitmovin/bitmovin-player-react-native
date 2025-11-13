@@ -8,7 +8,11 @@ on:
       - 'ios/**'
       - 'plugin/**'
       - 'example/ios/**'
+      - 'example/package.json'
+      - 'example/yarn.lock'
       - 'integration_test/ios/**'
+      - 'integration_test/package.json'
+      - 'integration_test/yarn.lock'
       - 'package.json'
       - 'yarn.lock'
       - '**/Podfile*'
@@ -32,7 +36,11 @@ on:
       - 'ios/**'
       - 'plugin/**'
       - 'example/ios/**'
+      - 'example/package.json'
+      - 'example/yarn.lock'
       - 'integration_test/ios/**'
+      - 'integration_test/package.json'
+      - 'integration_test/yarn.lock'
       - 'package.json'
       - 'yarn.lock'
       - '**/Podfile*'
@@ -67,7 +75,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: SwiftLint
         uses: norio-nomura/action-swiftlint@3.2.1
@@ -80,14 +88,7 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
-        with:
-          node: true
-          subprojects: true
-          ios: true
+        uses: actions/checkout@v5
 
       - name: Cache iOS Example Prebuild
         id: ios-example-prebuild-cache
@@ -98,6 +99,18 @@ jobs:
           key: ${{ runner.os }}-ios-example-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'ios/**') }}
           restore-keys: |
             ${{ runner.os }}-ios-example-prebuild-
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node: true
+          subprojects: true
+          ios: true
+          skip-prebuild: true
+
+      - name: Prebuild iOS Example (on cache miss)
+        if: ${{ steps.ios-example-prebuild-cache.outputs.cache-hit != 'true' }}
+        run: .github/scripts/smart-prebuild.sh example
 
       - name: Cache CocoaPods Dependencies
         uses: actions/cache@v4
@@ -129,14 +142,7 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
-        with:
-          node: true
-          subprojects: true
-          ios: true
+        uses: actions/checkout@v5
 
       - name: Cache iOS Integration Prebuild
         id: ios-integration-prebuild-cache
@@ -147,6 +153,18 @@ jobs:
           key: ${{ runner.os }}-ios-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.json', 'plugin/**', 'ios/**') }}
           restore-keys: |
             ${{ runner.os }}-ios-integration-prebuild-
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node: true
+          subprojects: true
+          ios: true
+          skip-prebuild: true
+
+      - name: Prebuild iOS Integration (on cache miss)
+        if: ${{ steps.ios-integration-prebuild-cache.outputs.cache-hit != 'true' }}
+        run: .github/scripts/smart-prebuild.sh integration-test
 
       - name: Cache CocoaPods Dependencies
         uses: actions/cache@v4
@@ -178,15 +196,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
-        with:
-          node: true
-          subprojects: true
-          ios: true
-          tv: true
+        uses: actions/checkout@v5
 
       - name: Cache tvOS Prebuild
         id: tvos-prebuild-cache
@@ -198,6 +208,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-tvos-prebuild-
 
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node: true
+          subprojects: true
+          ios: true
+          tv: true
+          skip-prebuild: true
+
+      - name: Prebuild tvOS Example (on cache miss)
+        if: ${{ steps.tvos-prebuild-cache.outputs.cache-hit != 'true' }}
+        run: .github/scripts/smart-prebuild.sh example tv
+
       - name: Cache CocoaPods Dependencies
         uses: actions/cache@v4
         with:
@@ -207,6 +230,9 @@ jobs:
           key: ${{ runner.os }}-tvos-pods-${{ hashFiles('ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-tvos-pods-
+
+      - name: Install CocoaPods Dependencies
+        run: yarn example pods
 
       - name: Build tvOS Example App
         id: build
