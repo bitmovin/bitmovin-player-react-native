@@ -29,7 +29,8 @@
     "build:android": "./scripts/build-android.sh",
     "build:ts": "tsc --noEmit",
     "lint": "eslint src playertesting tests --ext .ts,.tsx,.js,.jsx --quiet",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@expo/config-types": "^53.0.0",
@@ -51,7 +52,7 @@
     "@types/react": "~19.0.10",
     "@types/react-native": "~0.70.6",
     "babel-plugin-module-resolver": "^5.0.0",
-    "cavy-cli": "^3.0.0",
+    "cavy-cli": "github:bitmovin-engineering/cavy-cli#master",
     "dotenv": "^17.2.0",
     "eslint": "^8.57.0",
     "eslint-config-expo": "~9.2.0",
