@@ -52,7 +52,7 @@
     "@types/react": "~19.0.10",
     "@types/react-native": "~0.70.6",
     "babel-plugin-module-resolver": "^5.0.0",
-    "cavy-cli": "github:bitmovin-engineering/cavy-cli#master",
+    "cavy-cli": "github:bitmovin-engineering/cavy-cli#a288754",
     "dotenv": "^17.2.0",
     "eslint": "^8.57.0",
     "eslint-config-expo": "~9.2.0",

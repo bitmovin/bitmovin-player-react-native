@@ -9,7 +9,7 @@ SIMULATOR_NAME=$(xcrun simctl list devices available -e -j | \
 
 if [ -n "$SIMULATOR_NAME" ] && [ "$SIMULATOR_NAME" != "null" ]; then
     echo "Running tests on iOS simulator: $SIMULATOR_NAME"
-    yarn cavy run-ios --simulator "$SIMULATOR_NAME" --terminal "terminal" $ARGS
+    yarn cavy run-ios --no-screenshots --keep-alive-timeout=300 --terminal="terminal" --simulator "$SIMULATOR_NAME" $ARGS
 else
     echo "No iPhone simulator available"
     exit 1
