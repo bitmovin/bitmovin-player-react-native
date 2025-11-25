@@ -17,6 +17,7 @@ enum class UserInterfaceType {
  */
 data class PictureInPictureConfig(
     val isEnabled: Boolean = false,
+    val shouldEnterOnBackground: Boolean = true,
 )
 
 /**

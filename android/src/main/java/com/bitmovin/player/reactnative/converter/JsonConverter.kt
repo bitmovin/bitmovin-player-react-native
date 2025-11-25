@@ -682,6 +682,7 @@ fun Thumbnail.toJson(): Map<String, Any> = mapOf(
 
 fun Map<String, Any?>.toPictureInPictureConfig(): PictureInPictureConfig = PictureInPictureConfig(
     isEnabled = getBooleanOrNull("isEnabled") ?: false,
+    shouldEnterOnBackground = getBooleanOrNull("shouldEnterOnBackground") ?: true,
 )
 
 fun Map<String, Any?>.toPlayerViewConfig(): PlayerViewConfig = PlayerViewConfig(
