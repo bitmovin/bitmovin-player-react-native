@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -129,7 +130,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             playerView?.onStop()
         }
 
-        override fun onDestroy(owner: LifecycleOwner) = dispose()
+        override fun onDestroy(owner: LifecycleOwner) {
+            playerView?.onDestroy()
+        }
 
         // When background playback is enabled,
         // remove player from view so it does not get paused when entering background
@@ -150,7 +153,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     private val activityLifecycle: Lifecycle? =
-        (appContext.activityProvider?.currentActivity as? LifecycleOwner)?.lifecycle
+        (appContext.currentActivity as? LifecycleOwner)?.lifecycle
+
+    private val globalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener =
+        ViewTreeObserver.OnGlobalLayoutListener {
+            requestLayout()
+        }
 
     init {
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
@@ -158,19 +166,21 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         // to suddenly not show the video anymore because SurfaceView was not laid out properly.
         // Bitmovin player issue: https://github.com/bitmovin/bitmovin-player-react-native/issues/180
         // React Native layout issue: https://github.com/facebook/react-native/issues/17968
-        viewTreeObserver.addOnGlobalLayoutListener { requestLayout() }
+        viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
 
         activityLifecycle?.addObserver(activityLifecycleObserver)
     }
 
     fun dispose() {
-        activityLifecycle?.removeObserver(activityLifecycleObserver)
-        playerView?.onDestroy()
+        playerView?.player = null
         playerView = null
         playerContainer?.let { container ->
             (container.parent as? ViewGroup)?.removeView(container)
         }
         playerContainer = null
+
+        activityLifecycle?.removeObserver(activityLifecycleObserver)
+        viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
     }
 
     private fun setPlayerView(playerView: PlayerView) {

@@ -110,6 +110,10 @@ class RNPlayerViewManager : Module() {
                 "onBmpCueEnter",
                 "onBmpCueExit",
             )
+
+            OnViewDestroys { playerView ->
+                playerView.dispose()
+            }
         }
     }
 }
