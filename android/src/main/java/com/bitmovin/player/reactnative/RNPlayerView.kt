@@ -172,8 +172,21 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun dispose() {
-        playerView?.player = null
+        playerView?.let { view ->
+            view.player?.let {
+                detachPlayerListeners(it)
+            }
+            view.setPictureInPictureHandler(null)
+            // onDestroy already sets the player to null
+            view.onDestroy()
+        }
         playerView = null
+        subtitleView?.let { view ->
+            view.setPlayer(null)
+            (view.parent as? ViewGroup)?.removeView(view)
+        }
+        subtitleView = null
+
         playerContainer?.let { container ->
             (container.parent as? ViewGroup)?.removeView(container)
         }
@@ -181,6 +194,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
         activityLifecycle?.removeObserver(activityLifecycleObserver)
         viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
+
+        // cleanup all children
+        removeAllViews()
     }
 
     private fun setPlayerView(playerView: PlayerView) {
@@ -310,6 +326,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
     private fun setSubtitleView(subtitleView: SubtitleView) {
         this.subtitleView?.let { currentSubtitleView ->
+            currentSubtitleView.setPlayer(null)
             (currentSubtitleView.parent as? ViewGroup)?.removeView(currentSubtitleView)
         }
         this.subtitleView = subtitleView
