@@ -177,6 +177,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 detachPlayerListeners(it)
             }
             view.setPictureInPictureHandler(null)
+            view.setCustomMessageHandler(null)
             // onDestroy already sets the player to null
             view.onDestroy()
         }
