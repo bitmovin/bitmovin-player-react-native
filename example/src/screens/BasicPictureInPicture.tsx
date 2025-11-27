@@ -9,7 +9,7 @@ import {
   SourceType,
   PictureInPictureEnterEvent,
   PictureInPictureExitEvent,
-  PlayerViewConfig,
+  PlayerViewConfig, PictureInPictureAction,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -42,6 +42,8 @@ export default function BasicPictureInPicture({
       shouldEnterOnBackground: true,
     },
   };
+
+  const pictureInPictureActions = [PictureInPictureAction.TogglePlayback]
 
   const player = usePlayer({
     remoteControlConfig: {
@@ -129,6 +131,7 @@ export default function BasicPictureInPicture({
         onPictureInPictureEntered={onEvent}
         onPictureInPictureExit={onPictureInPictureExitEvent}
         onPictureInPictureExited={onEvent}
+        pictureInPictureActions={pictureInPictureActions}
       />
     </ContainerView>
   );
