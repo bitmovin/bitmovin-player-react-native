@@ -26,7 +26,7 @@ on:
       - '**/gradlew*'
 
   push:
-    branches: 
+    branches:
       - development
     paths:
       - '.github/workflows/ci-android.yml'
