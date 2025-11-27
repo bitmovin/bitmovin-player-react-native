@@ -106,6 +106,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private val onBmpPictureInPictureEnter by EventDispatcher()
     private val onBmpPictureInPictureExit by EventDispatcher()
 
+    private var pictureInPictureConfig: PictureInPictureConfig = PictureInPictureConfig()
+
     private var playerInMediaSessionService: Player? = null
 
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
@@ -273,8 +275,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 LayoutParams.MATCH_PARENT,
             )
 
-            val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer ||
-                playerViewConfigWrapper?.pictureInPictureConfig?.isEnabled == true
+            this.pictureInPictureConfig = playerViewConfigWrapper?.pictureInPictureConfig ?: PictureInPictureConfig()
+            val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || pictureInPictureConfig.isEnabled
             if (isPictureInPictureEnabled) {
                 newPlayerView.setPictureInPictureHandler(RNPictureInPictureHandler(currentActivity, player))
             }
@@ -296,6 +298,32 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                     playerView?.setCustomMessageHandler(customMessageHandlerBridge.customMessageHandler)
                 }
         }
+    }
+
+    internal fun shouldEnterPictureInPictureOnBackground() = pictureInPictureConfig.let {
+        it.isEnabled && it.shouldEnterOnBackground
+    }
+
+    internal fun requestPictureInPictureOnBackgroundTransition(): Boolean {
+        if (!shouldEnterPictureInPictureOnBackground()) {
+            return false
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return false
+        }
+        val activity = appContext.activityProvider?.currentActivity ?: return false
+        if (activity.isFinishing || activity.isChangingConfigurations) {
+            return false
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && activity.isInPictureInPictureMode) {
+            return false
+        }
+        val playerView = playerView ?: return false
+        if (!playerView.isPictureInPictureAvailable || playerView.isPictureInPicture) {
+            return false
+        }
+        playerView.enterPictureInPicture()
+        return true
     }
 
     private fun setSubtitleView(subtitleView: SubtitleView) {

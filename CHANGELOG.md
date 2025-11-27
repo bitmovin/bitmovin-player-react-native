@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Android: `PictureInPictureConfig.shouldEnterOnBackground` now automatically requests Picture in Picture when the app is backgrounded, matching iOS behavior
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to `3.99.0`

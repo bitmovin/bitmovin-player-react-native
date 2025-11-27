@@ -7,6 +7,8 @@ import android.util.Log
 import android.util.Rational
 import androidx.annotation.RequiresApi
 import com.bitmovin.player.api.Player
+import com.bitmovin.player.api.event.PlayerEvent
+import com.bitmovin.player.api.event.on
 import com.bitmovin.player.ui.DefaultPictureInPictureHandler
 
 private const val TAG = "RNPiPHandler"
@@ -25,6 +27,31 @@ class RNPictureInPictureHandler(
     override val isPictureInPicture: Boolean
         get() = _isPictureInPicture
 
+    init {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            activity.setPictureInPictureParams(buildPictureInPictureParams())
+
+            player.on<PlayerEvent.VideoPlaybackQualityChanged> {
+                activity.setPictureInPictureParams(buildPictureInPictureParams())
+            }
+        }
+    }
+
+    private fun getPiPAspectRation() = player.playbackVideoData
+        ?.let { Rational(it.width, it.height) }
+        ?: Rational(16, 9)
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun buildPictureInPictureParams() = PictureInPictureParams.Builder()
+        .setAspectRatio(getPiPAspectRation())
+        .apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                setAutoEnterEnabled(true)
+            }
+        }
+        .build()
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun enterPictureInPicture() {
         if (!isPictureInPictureAvailable) {
@@ -36,17 +63,7 @@ class RNPictureInPictureHandler(
             return
         }
 
-        // The default implementation doesn't properly handle the case where source isn't loaded yet.
-        // To work around it we just use a 16:9 aspect ratio if we cannot calculate it from `playbackVideoData`.
-        val aspectRatio =
-            player.playbackVideoData
-                ?.let { Rational(it.width, it.height) }
-                ?: Rational(16, 9)
-
-        val params =
-            PictureInPictureParams.Builder()
-                .setAspectRatio(aspectRatio)
-                .build()
+        val params = buildPictureInPictureParams()
 
         activity.enterPictureInPictureMode(params)
         _isPictureInPicture = true
