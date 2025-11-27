@@ -32,6 +32,7 @@ import expo.modules.kotlin.views.ExpoView
 class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
     var playerView: PlayerView? = null
         private set
+    private var pictureInPictureHandler: RNPictureInPictureHandler? = null
     private var subtitleView: SubtitleView? = null
     private var playerContainer: FrameLayout? = null
     var enableBackgroundPlayback: Boolean = false
@@ -167,6 +168,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         activityLifecycle?.removeObserver(activityLifecycleObserver)
         playerView?.onDestroy()
         playerView = null
+        pictureInPictureHandler?.dispose()
+        pictureInPictureHandler = null
         playerContainer?.let { container ->
             (container.parent as? ViewGroup)?.removeView(container)
         }
@@ -274,9 +277,11 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             )
 
             val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer ||
-                playerViewConfigWrapper?.pictureInPictureConfig?.isEnabled == true
+                    playerViewConfigWrapper?.pictureInPictureConfig?.isEnabled == true
+
             if (isPictureInPictureEnabled) {
-                newPlayerView.setPictureInPictureHandler(RNPictureInPictureHandler(currentActivity, player))
+                pictureInPictureHandler = RNPictureInPictureHandler(currentActivity, player)
+                newPlayerView.setPictureInPictureHandler(pictureInPictureHandler!!)
             }
             setPlayerView(newPlayerView)
             attachPlayerViewListeners(newPlayerView)
@@ -668,6 +673,10 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 }
             }
         }
+    }
+
+    fun updatePictureInPictureActions(pictureInPictureActions: List<PictureInPictureAction>) {
+        pictureInPictureHandler?.updateActions(pictureInPictureActions)
     }
 
     /**

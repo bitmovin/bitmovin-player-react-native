@@ -16,6 +16,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bitmovin.player.api.Player
+import com.bitmovin.player.reactnative.PictureInPictureAction
 import com.bitmovin.player.reactnative.R
 import com.bitmovin.player.ui.DefaultPictureInPictureHandler
 
@@ -58,9 +59,24 @@ class RNPictureInPictureHandler(
             updatePictureInPictureActions()
         }
     }
+    private var actions: List<PictureInPictureAction> = emptyList()
+
+    init {
+        ActivityCompat.registerReceiver(
+            activity,
+            pictureInPictureActionReceiver,
+            pictureInPictureActionFilter,
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+    }
 
     override val isPictureInPicture: Boolean
         get() = _isPictureInPicture
+
+    fun updateActions(actions: List<PictureInPictureAction>) {
+        this.actions = actions
+        updatePictureInPictureActions()
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun enterPictureInPicture() {
@@ -73,20 +89,12 @@ class RNPictureInPictureHandler(
             return
         }
 
-        ActivityCompat.registerReceiver(
-            activity,
-            pictureInPictureActionReceiver,
-            pictureInPictureActionFilter,
-            ContextCompat.RECEIVER_NOT_EXPORTED,
-        )
-
         activity.enterPictureInPictureMode(buildPictureInPictureParams())
         _isPictureInPicture = true
     }
 
     override fun exitPictureInPicture() {
         super.exitPictureInPicture()
-        activity.unregisterReceiver(pictureInPictureActionReceiver)
         _isPictureInPicture = false
     }
 
@@ -105,24 +113,11 @@ class RNPictureInPictureHandler(
     }
 
     private fun updatePictureInPictureActions() {
-        if (!isPictureInPicture || Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return
         }
 
         activity.setPictureInPictureParams(buildPictureInPictureParams())
-    }
-
-    private fun togglePlayback() {
-        if (player.isPlaying) {
-            player.pause()
-        } else {
-            player.play()
-        }
-    }
-
-    private fun seek(offset: Double) {
-        val targetTime = (player.currentTime + offset).coerceAtLeast(0.0)
-        player.seek(targetTime)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -157,7 +152,30 @@ class RNPictureInPictureHandler(
             REQUEST_CODE_SEEK_FORWARD,
         )
 
-        return listOf(seekBackwardAction, playPauseAction, seekForwardAction)
+        return buildList {
+            if (actions.contains(PictureInPictureAction.Seek)) {
+                add(seekBackwardAction)
+            }
+            if (actions.contains(PictureInPictureAction.TogglePlayback)) {
+                add(playPauseAction)
+            }
+            if (actions.contains(PictureInPictureAction.Seek)) {
+                add(seekForwardAction)
+            }
+        }
+    }
+
+    private fun togglePlayback() {
+        if (player.isPlaying) {
+            player.pause()
+        } else {
+            player.play()
+        }
+    }
+
+    private fun seek(offset: Double) {
+        val targetTime = (player.currentTime + offset).coerceAtLeast(0.0)
+        player.seek(targetTime)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -176,5 +194,9 @@ class RNPictureInPictureHandler(
         )
 
         return RemoteAction(icon, title, title, pendingIntent)
+    }
+
+    fun dispose() {
+        activity.unregisterReceiver(pictureInPictureActionReceiver)
     }
 }

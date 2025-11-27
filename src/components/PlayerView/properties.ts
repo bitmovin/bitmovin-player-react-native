@@ -4,6 +4,7 @@ import { FullscreenHandler, CustomMessageHandler } from '../../ui';
 import { ScalingMode } from '../../styleConfig';
 import { ViewStyle } from 'react-native';
 import { PlayerViewConfig } from './playerViewConfig';
+import { MediaControlConfig } from '../../mediaControlConfig';
 
 /**
  * Base `PlayerView` component props.
@@ -53,6 +54,18 @@ export interface BasePlayerViewProps {
    * The value must not be altered after setting it initially.
    */
   config?: PlayerViewConfig;
+
+  /**
+   * PiP actions that should be displayed when the PiP is active.
+   *
+   * Limitations:
+   * - On Android if an empty list is passed and {@link MediaControlConfig.isEnabled} is set to true
+   * play, pause, next, and previous controls will appear, due to the default Android PiP implementation:
+   * https://developer.android.com/develop/ui/views/picture-in-picture#add_controls
+   * Set {@link MediaControlConfig.isEnabled} to false if this is
+   * not the desired behaviour.
+   */
+  pictureInPictureActions?: PictureInPictureAction[];
 }
 
 /**
@@ -65,4 +78,15 @@ export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
    * and render audio/video inside the {@link PlayerView}.
    */
   player: Player;
+}
+
+export enum PictureInPictureAction {
+  /**
+   * PiP window shows Play/Pause button depending on the player state.
+   */
+  TogglePlayback = 'TogglePlayback',
+  /**
+   * PiP window shows seek forward and seek backward buttons. The player seeks by 10s when the buttons are pressed.
+   */
+  Seek = 'Seek',
 }

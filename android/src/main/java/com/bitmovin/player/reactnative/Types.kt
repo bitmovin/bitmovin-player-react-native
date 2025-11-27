@@ -19,6 +19,11 @@ data class PictureInPictureConfig(
     val isEnabled: Boolean = false,
 )
 
+enum class PictureInPictureAction {
+    TogglePlayback,
+    Seek;
+}
+
 /**
  * Wrapper for React Native player view configuration.
  */

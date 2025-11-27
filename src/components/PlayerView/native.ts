@@ -3,6 +3,7 @@ import { NativePlayerViewEvents } from './nativeEvents';
 import { ViewStyle } from 'react-native';
 import { ScalingMode } from '../../styleConfig';
 import { PlayerViewConfig } from './playerViewConfig';
+import { PictureInPictureAction } from './properties';
 
 export interface NativePlayerViewConfig {
   playerViewConfig?: PlayerViewConfig;
@@ -25,6 +26,7 @@ export interface NativePlayerViewProps extends NativePlayerViewEvents {
   style?: ViewStyle;
   config: NativePlayerViewConfig;
   fullscreenBridgeId?: string;
+  pictureInPictureActions?: PictureInPictureAction[];
 }
 
 /**

@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative.converter
 
 import android.util.Base64
+import android.util.Log
 import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
@@ -60,6 +61,7 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.api.ui.SurfaceType
 import com.bitmovin.player.api.ui.UiConfig
+import com.bitmovin.player.reactnative.PictureInPictureAction
 import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
@@ -72,6 +74,7 @@ import com.bitmovin.player.reactnative.extensions.getInt
 import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.getString
+import com.bitmovin.player.reactnative.extensions.getStringArray
 import com.bitmovin.player.reactnative.extensions.toBase64DataUri
 import com.bitmovin.player.reactnative.extensions.toMap
 import com.bitmovin.player.reactnative.extensions.toMapList
@@ -683,6 +686,12 @@ fun Thumbnail.toJson(): Map<String, Any> = mapOf(
 fun Map<String, Any?>.toPictureInPictureConfig(): PictureInPictureConfig = PictureInPictureConfig(
     isEnabled = getBooleanOrNull("isEnabled") ?: false,
 )
+
+fun List<String>.toPictureInPictureActions(): List<PictureInPictureAction> = mapNotNull {
+    runCatching {
+        PictureInPictureAction.valueOf(it)
+    }.getOrNull()
+}
 
 fun Map<String, Any?>.toPlayerViewConfig(): PlayerViewConfig = PlayerViewConfig(
     uiConfig = getMap("uiConfig")?.toUiConfig() ?: UiConfig.WebUi(),
