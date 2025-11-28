@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
+import android.util.DisplayMetrics
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.WindowManager
@@ -239,8 +240,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
         // Add container to the ExpoView with correct layout parameters
         val containerLayoutParams = generateDefaultLayoutParams()
-        containerLayoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-        containerLayoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+        containerLayoutParams.width = LayoutParams.MATCH_PARENT
+        containerLayoutParams.height = LayoutParams.MATCH_PARENT
         addView(newContainer, 0, containerLayoutParams)
 
         this.playerView = playerView
@@ -410,7 +411,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                         pipHeight = windowBounds.height()
                     } else {
                         // Use deprecated Display.getSize() for older APIs
-                        val displayMetrics = android.util.DisplayMetrics()
+                        val displayMetrics = DisplayMetrics()
                         @Suppress("DEPRECATION")
                         windowManager.defaultDisplay.getMetrics(displayMetrics)
                         pipWidth = displayMetrics.widthPixels
@@ -482,16 +483,16 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             post {
                 // Reset ExpoView to full size
                 layoutParams?.let { currentParams ->
-                    currentParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                    currentParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                    currentParams.width = LayoutParams.MATCH_PARENT
+                    currentParams.height = LayoutParams.MATCH_PARENT
                     layoutParams = currentParams
                 }
 
                 // Reset intermediate container to full size
                 playerContainer?.let { container ->
                     container.layoutParams?.let { containerParams ->
-                        containerParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                        containerParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                        containerParams.width = LayoutParams.MATCH_PARENT
+                        containerParams.height = LayoutParams.MATCH_PARENT
                         container.layoutParams = containerParams
                     }
                 }
