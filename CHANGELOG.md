@@ -6,6 +6,10 @@
 
 - Update Bitmovin's native iOS SDK version to `3.100.0`
 
+### Fixed
+
+- Android: Improve lifecycle handling to free resources
+
 ## [1.4.0] - 2025-11-06
 
 ### Changed
