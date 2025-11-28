@@ -10,12 +10,14 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.on
 import com.bitmovin.player.ui.DefaultPictureInPictureHandler
+import com.bitmovin.player.reactnative.PictureInPictureConfig
 
 private const val TAG = "RNPiPHandler"
 
 class RNPictureInPictureHandler(
     private val activity: Activity,
     private val player: Player,
+    private val pictureInPictureConfig: PictureInPictureConfig,
 ) : DefaultPictureInPictureHandler(activity, player) {
     // Current PiP implementation on the native side requires playerView.exitPictureInPicture() to be called
     // for `PictureInPictureExit` event to be emitted.
@@ -46,7 +48,10 @@ class RNPictureInPictureHandler(
     private fun buildPictureInPictureParams() = PictureInPictureParams.Builder()
         .setAspectRatio(getPiPAspectRation())
         .apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                pictureInPictureConfig.isEnabled &&
+                pictureInPictureConfig.shouldEnterOnBackground
+            ) {
                 setAutoEnterEnabled(true)
             }
         }

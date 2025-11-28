@@ -278,7 +278,13 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             this.pictureInPictureConfig = playerViewConfigWrapper?.pictureInPictureConfig ?: PictureInPictureConfig()
             val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || pictureInPictureConfig.isEnabled
             if (isPictureInPictureEnabled) {
-                newPlayerView.setPictureInPictureHandler(RNPictureInPictureHandler(currentActivity, player))
+                newPlayerView.setPictureInPictureHandler(
+                    RNPictureInPictureHandler(
+                        currentActivity,
+                        player,
+                        pictureInPictureConfig,
+                    ),
+                )
             }
             setPlayerView(newPlayerView)
             attachPlayerViewListeners(newPlayerView)
