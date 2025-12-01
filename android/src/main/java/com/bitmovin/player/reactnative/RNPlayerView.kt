@@ -134,7 +134,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
 
         override fun onDestroy(owner: LifecycleOwner) {
-            playerView?.onDestroy()
+            dispose()
         }
 
         // When background playback is enabled,
