@@ -220,6 +220,10 @@ public class RNPlayerView: ExpoView {
         }
         playerView.scalingMode = nativeScalingMode
     }
+
+    internal func setPictureInPictureActions(actions: [RNPictureInPictureAction]) {
+        self.playerView?.pictureInPicture.showSkipControls = actions.contains(RNPictureInPictureAction.seek)
+    }
 }
 
 private extension RNPlayerView {

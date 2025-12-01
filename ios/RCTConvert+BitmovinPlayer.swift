@@ -1029,6 +1029,23 @@ extension RCTConvert {
         return pictureInPictureConfig
     }
 
+    static func pictureInPictureActions(_ json: Any?) -> [RNPictureInPictureAction] {
+        guard let array = json as? [String] else {
+            return []
+        }
+
+        return array.compactMap { item in
+            switch item {
+            case "TogglePlayback":
+                return .togglePlayback
+            case "Seek":
+                return .seek
+            default:
+                return nil
+            }
+        }
+    }
+
     static func rnPlayerViewConfig(_ json: Any?) -> RNPlayerViewConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -1182,4 +1199,9 @@ internal struct RNUiConfig {
 internal struct RNBufferLevels {
     let audio: BufferLevel
     let video: BufferLevel
+}
+
+internal enum RNPictureInPictureAction {
+    case togglePlayback
+    case seek
 }

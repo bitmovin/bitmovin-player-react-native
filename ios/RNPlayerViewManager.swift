@@ -29,6 +29,9 @@ public class RNPlayerViewManager: Module {
             Prop("fullscreenBridgeId") { (view: RNPlayerView, fullscreenBridgeId: String) in
                 view.attachFullscreenBridge(fullscreenBridgeId: fullscreenBridgeId)
             }
+            Prop("pictureInPictureActions") { (view: RNPlayerView, pictureInPictureActions: [String]) in
+                view.setPictureInPictureActions(actions: RCTConvert.pictureInPictureActions(pictureInPictureActions))
+            }
 
             Events(
                 "onBmpEvent",
