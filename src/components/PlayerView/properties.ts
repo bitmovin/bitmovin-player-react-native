@@ -1,4 +1,4 @@
-import type { RefObject} from 'react';
+import type { RefObject } from 'react';
 import { PlayerViewEvents } from './events';
 import { Player } from '../../player';
 import { FullscreenHandler, CustomMessageHandler } from '../../ui';

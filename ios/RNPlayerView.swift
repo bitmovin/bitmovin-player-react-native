@@ -222,7 +222,7 @@ public class RNPlayerView: ExpoView {
     }
 
     internal func setPictureInPictureActions(actions: [RNPictureInPictureAction]?) {
-        guard let actions = actions else {
+        guard let actions else {
             return
         }
         self.playerView?.pictureInPicture.showSkipControls = actions.contains(RNPictureInPictureAction.seek)
