@@ -48,9 +48,7 @@ export type NativePlayerViewRef = ComponentRef<typeof NativePlayerView> & {
    * const playerViewRef = useRef<NativePlayerViewRef>(null);
    * ...
    * useEffect(() => {
-   *   playerViewRef.current?.updatePictureInPictureActions(
-   *     pictureInPictureActions,
-   *   );
+   *   playerViewRef.current?.updatePictureInPictureActions(pictureInPictureActions);
    * }, [pictureInPictureActions]);
    * ...
    * return (<PlayerView
