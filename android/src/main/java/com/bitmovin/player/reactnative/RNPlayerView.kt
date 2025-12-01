@@ -168,8 +168,10 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         activityLifecycle?.removeObserver(activityLifecycleObserver)
         playerView?.onDestroy()
         playerView = null
-        pictureInPictureHandler?.dispose()
-        pictureInPictureHandler = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            pictureInPictureHandler?.dispose()
+            pictureInPictureHandler = null
+        }
         playerContainer?.let { container ->
             (container.parent as? ViewGroup)?.removeView(container)
         }
@@ -279,7 +281,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer ||
                     playerViewConfigWrapper?.pictureInPictureConfig?.isEnabled == true
 
-            if (isPictureInPictureEnabled) {
+            if (isPictureInPictureEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 pictureInPictureHandler = RNPictureInPictureHandler(currentActivity, player)
                 newPlayerView.setPictureInPictureHandler(pictureInPictureHandler!!)
             }
@@ -676,7 +678,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun updatePictureInPictureActions(pictureInPictureActions: List<PictureInPictureAction>) {
-        pictureInPictureHandler?.updateActions(pictureInPictureActions)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            pictureInPictureHandler?.updateActions(pictureInPictureActions)
+        }
     }
 
     /**
