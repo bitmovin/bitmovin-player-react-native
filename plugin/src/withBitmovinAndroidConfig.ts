@@ -3,11 +3,22 @@ import {
   ConfigPlugin,
   withAndroidManifest,
   withGradleProperties,
+  withMainActivity,
 } from 'expo/config-plugins';
+import { addImports } from '@expo/config-plugins/build/android/codeMod';
+import {
+  mergeContents,
+  removeContents,
+} from '@expo/config-plugins/build/utils/generateCode';
 import withAppGradleDependencies from './withAppGradleDependencies';
 import { BitmovinConfigOptions } from './withBitmovinConfig';
 
 type ManifestActivity = AndroidConfig.Manifest.ManifestActivity;
+
+type MainActivityLanguage = 'java' | 'kt';
+
+const BITMOVIN_PIP_ON_PAUSE_TAG =
+  'bitmovin-player-react-native-main-activity-onPause';
 
 const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
   config,
@@ -171,6 +182,27 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
     return config;
   });
 
+  config = withMainActivity(config, (config) => {
+    const language = config.modResults.language;
+
+    if (language !== 'java' && language !== 'kt') {
+      return config;
+    }
+
+    if (features.pictureInPicture) {
+      config.modResults.contents = ensurePictureInPictureOnPause(
+        config.modResults.contents,
+        language
+      );
+    } else {
+      config.modResults.contents = removePictureInPictureOnPause(
+        config.modResults.contents
+      );
+    }
+
+    return config;
+  });
+
   const dependencies: string[] = [];
   if (features.offline) {
     dependencies.push(
@@ -225,3 +257,74 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
 };
 
 export default withBitmovinAndroidConfig;
+
+function ensurePictureInPictureOnPause(
+  mainActivity: string,
+  language: MainActivityLanguage
+): string {
+  const isJava = language === 'java';
+  const snippet = isJava
+    ? getJavaPictureInPictureOnPause()
+    : getKotlinPictureInPictureOnPause();
+  const anchor = /^}/m; // match the class-closing brace (no indentation)
+
+  let contents = addImports(mainActivity, ['android.os.Build'], isJava);
+  contents = removePictureInPictureOnPause(contents);
+
+  return mergeContents({
+    src: contents,
+    newSrc: snippet,
+    anchor,
+    offset: 0,
+    comment: '//',
+    tag: BITMOVIN_PIP_ON_PAUSE_TAG,
+  }).contents;
+}
+
+function removePictureInPictureOnPause(mainActivity: string): string {
+  return removeContents({
+    src: mainActivity,
+    tag: BITMOVIN_PIP_ON_PAUSE_TAG,
+  }).contents;
+}
+
+function getKotlinPictureInPictureOnPause(): string {
+  return [
+    '    override fun onPause() {',
+    '        // If called while in PiP mode, do not effectively pause RN',
+    '        super.onPause()',
+    '',
+    '        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {',
+    '            if (isInPictureInPictureMode) {',
+    '                // RN would normally go "paused" here and stop reliably updating UI.',
+    '                // Calling onResume() keeps the React Native instance in an active state',
+    '                // so JS/UI updates can still be committed while in PiP.',
+    '                this.onResume()',
+    '            } else {',
+    '                // Normal paused behaviour for non-PiP cases',
+    '            }',
+    '        }',
+    '    }',
+  ].join('\n');
+}
+
+function getJavaPictureInPictureOnPause(): string {
+  return [
+    '  @Override',
+    '  public void onPause() {',
+    '    // If called while in PiP mode, do not effectively pause RN',
+    '    super.onPause();',
+    '',
+    '    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {',
+    '      if (isInPictureInPictureMode()) {',
+    '        // RN would normally go "paused" here and stop reliably updating UI.',
+    '        // Calling onResume() keeps the React Native instance in an active state',
+    '        // so JS/UI updates can still be committed while in PiP.',
+    '        this.onResume();',
+    '      } else {',
+    '        // Normal paused behaviour for non-PiP cases',
+    '      }',
+    '    }',
+    '  }',
+  ].join('\n');
+}
