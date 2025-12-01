@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative
 
 import android.annotation.SuppressLint
+import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
@@ -167,6 +168,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
     fun dispose() {
         activityLifecycle?.removeObserver(activityLifecycleObserver)
+        appContext.activityProvider?.currentActivity
+            ?.setPictureInPictureParams(
+                PictureInPictureParams.Builder()
+                .setAutoEnterEnabled(false)
+                .build()
+            )
         playerView?.onDestroy()
         playerView = null
         playerContainer?.let { container ->

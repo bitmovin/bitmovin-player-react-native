@@ -28,6 +28,7 @@ class RNPlayerViewManager : Module() {
         View(RNPlayerView::class) {
             OnViewDestroys { view: RNPlayerView ->
                 autoPictureInPictureViews.remove(view)
+                view.dispose()
             }
 
             Prop("config") { view: RNPlayerView, playerInfo: Map<String, Any>? ->
