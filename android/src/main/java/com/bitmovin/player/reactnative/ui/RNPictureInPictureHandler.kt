@@ -25,16 +25,24 @@ class RNPictureInPictureHandler(
     // playerView.exitPictureInPicture() the activity will already have exited the PiP mode,
     // and thus the event won't be emitted. To work around this we keep track of the PiP state ourselves.
     private var _isPictureInPicture = false
+    var autoEnterEnabledOverride = false
+        set(value) {
+            if (autoEnterEnabledOverride == value) {
+                return
+            }
+            field = value
+            updatePictureInPictureParams()
+        }
 
     override val isPictureInPicture: Boolean
         get() = _isPictureInPicture
 
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            activity.setPictureInPictureParams(buildPictureInPictureParams())
+            updatePictureInPictureParams()
 
             player.on<PlayerEvent.VideoPlaybackQualityChanged> {
-                activity.setPictureInPictureParams(buildPictureInPictureParams())
+                updatePictureInPictureParams()
             }
         }
     }
@@ -45,17 +53,22 @@ class RNPictureInPictureHandler(
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun buildPictureInPictureParams() = PictureInPictureParams.Builder()
-        .setAspectRatio(getPiPAspectRation())
-        .apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-                pictureInPictureConfig.isEnabled &&
-                pictureInPictureConfig.shouldEnterOnBackground
-            ) {
-                setAutoEnterEnabled(true)
+    private fun buildPictureInPictureParams(autoEnterEnabled: Boolean = autoEnterEnabledOverride) =
+        PictureInPictureParams.Builder()
+            .setAspectRatio(getPiPAspectRation())
+            .apply {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    setAutoEnterEnabled(autoEnterEnabled)
+                }
             }
+            .build()
+
+    private fun updatePictureInPictureParams() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return
         }
-        .build()
+        activity.setPictureInPictureParams(buildPictureInPictureParams())
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun enterPictureInPicture() {
