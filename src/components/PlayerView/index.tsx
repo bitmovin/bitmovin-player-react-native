@@ -1,7 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
-import { NativePlayerView, NativePlayerViewConfig } from './native';
+import {
+  NativePlayerView,
+  NativePlayerViewConfig,
+  NativePlayerViewRef,
+} from './native';
 import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
@@ -38,7 +42,9 @@ export function PlayerView({
   // Keep the device awake while the PlayerView is mounted
   useKeepAwake();
 
-  const nativeView = useRef(viewRef?.current || null);
+  const nativeView = useRef<NativePlayerViewRef | null>(
+    viewRef?.current ?? null
+  );
 
   // Native events proxy helper.
   const proxy = useProxy(nativeView);

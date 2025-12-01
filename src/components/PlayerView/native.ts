@@ -1,9 +1,10 @@
 import { requireNativeViewManager } from 'expo-modules-core';
+import type { ViewStyle } from 'react-native';
 import { NativePlayerViewEvents } from './nativeEvents';
-import { ViewStyle } from 'react-native';
 import { ScalingMode } from '../../styleConfig';
 import { PlayerViewConfig } from './playerViewConfig';
-import { PictureInPictureAction } from './properties';
+import { ComponentRef, RefObject } from "react";
+import { PictureInPictureAction } from "./properties";
 
 export interface NativePlayerViewConfig {
   playerViewConfig?: PlayerViewConfig;
@@ -19,7 +20,7 @@ export interface NativePlayerViewConfig {
  * Mostly maps the event props defined in native code.
  */
 export interface NativePlayerViewProps extends NativePlayerViewEvents {
-  ref?: React.RefObject<null>;
+  ref?: RefObject<any>;
   isFullscreenRequested?: boolean;
   scalingMode?: ScalingMode;
   isPictureInPictureRequested?: boolean;
@@ -35,3 +36,28 @@ export interface NativePlayerViewProps extends NativePlayerViewEvents {
 export const NativePlayerView = requireNativeViewManager<NativePlayerViewProps>(
   'RNPlayerViewManager'
 );
+
+export type NativePlayerViewRef = ComponentRef<typeof NativePlayerView> & {
+  /**
+   * Update PiP actions that should be displayed on the PiP window.
+   * See {@link BasePlayerViewProps.pictureInPictureActions} for more details
+   *
+   * @example
+   * Sample usage:
+   * ```ts
+   * const playerViewRef = useRef<NativePlayerViewRef>(null);
+   * ...
+   * useEffect(() => {
+   *   playerViewRef.current?.updatePictureInPictureActions(
+   *     pictureInPictureActions,
+   *   );
+   * }, [pictureInPictureActions]);
+   * ...
+   * return (<PlayerView
+   *         viewRef={playerViewRef} />)
+   * ```
+   */
+  updatePictureInPictureActions: (
+    actions: PictureInPictureAction[]
+  ) => Promise<void>;
+};

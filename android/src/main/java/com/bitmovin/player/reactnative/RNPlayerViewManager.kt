@@ -53,6 +53,10 @@ class RNPlayerViewManager : Module() {
                 view.updatePictureInPictureActions(pictureInPictureActions.toPictureInPictureActions())
             }
 
+            AsyncFunction("updatePictureInPictureActions") { view: RNPlayerView, pictureInPictureActions: List<String> ->
+                view.updatePictureInPictureActions(pictureInPictureActions.toPictureInPictureActions())
+            }
+
             Events(
                 "onBmpEvent",
                 "onBmpPlayerError",

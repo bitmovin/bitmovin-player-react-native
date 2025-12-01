@@ -1,3 +1,4 @@
+import type { RefObject} from 'react';
 import { PlayerViewEvents } from './events';
 import { Player } from '../../player';
 import { FullscreenHandler, CustomMessageHandler } from '../../ui';
@@ -5,13 +6,13 @@ import { ScalingMode } from '../../styleConfig';
 import { ViewStyle } from 'react-native';
 import { PlayerViewConfig } from './playerViewConfig';
 import { MediaControlConfig } from '../../mediaControlConfig';
+import type { NativePlayerViewRef } from './native';
 
 /**
  * Base `PlayerView` component props.
  * Used to establish common props between `NativePlayerView` and {@link PlayerView}.
  */
 export interface BasePlayerViewProps {
-  ref?: React.RefObject<null>;
   /**
    * The {@link FullscreenHandler} that is used by the {@link PlayerView} to control the fullscreen mode.
    */
@@ -56,7 +57,8 @@ export interface BasePlayerViewProps {
   config?: PlayerViewConfig;
 
   /**
-   * PiP actions that should be displayed when the PiP is active.
+   * PiP actions that should be displayed on the PiP window.
+   * To update the PiP actions while the app is in PiP mode use {@link NativePlayerViewRef.updatePictureInPictureActions}.
    *
    * Limitations:
    * - On Android if an empty list is passed and {@link MediaControlConfig.isEnabled} is set to true
@@ -78,7 +80,7 @@ export interface BasePlayerViewProps {
  * {@link PlayerView} component props.
  */
 export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
-  viewRef?: React.MutableRefObject<null>;
+  viewRef?: RefObject<NativePlayerViewRef | null>;
   /**
    * {@link Player} instance (generally returned from {@link usePlayer} hook) that will control
    * and render audio/video inside the {@link PlayerView}.
