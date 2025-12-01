@@ -1029,9 +1029,9 @@ extension RCTConvert {
         return pictureInPictureConfig
     }
 
-    static func pictureInPictureActions(_ json: Any?) -> [RNPictureInPictureAction] {
+    static func pictureInPictureActions(_ json: Any?) -> [RNPictureInPictureAction]? {
         guard let array = json as? [String] else {
-            return []
+            return nil
         }
 
         return array.compactMap { item in

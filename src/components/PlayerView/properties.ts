@@ -64,6 +64,12 @@ export interface BasePlayerViewProps {
    * https://developer.android.com/develop/ui/views/picture-in-picture#add_controls
    * Set {@link MediaControlConfig.isEnabled} to false if this is
    * not the desired behaviour.
+   * - on iOS/tvOS if {@link PictureInPictureAction.TogglePlayback} is not specified also other actions are
+   * disabled due to OS limitations.
+   *
+   * Default value is unspecified, which translates to:
+   * - Android: No actions, unless {@link MediaControlConfig.isEnabled} is set to true
+   * - iOS: All actions enabled
    */
   pictureInPictureActions?: PictureInPictureAction[];
 }
