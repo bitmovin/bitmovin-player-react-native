@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+
+- `PictureInPictureConfig.pictureInPictureActions` to configure Picture-in-picture actions
+  - `PictureInPictureAction.TogglePlayback` to add a play/pause action
+  - `PictureInPictureAction.Seek` to add seek forward and seek backward for 10 seconds actions
+- `PlayerViewRef.updatePictureInPictureActions` to update Picture-in-picture actions dynamically
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to `3.101.0`
