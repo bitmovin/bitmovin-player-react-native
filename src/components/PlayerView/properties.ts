@@ -5,7 +5,7 @@ import { FullscreenHandler, CustomMessageHandler } from '../../ui';
 import { ScalingMode } from '../../styleConfig';
 import { ViewStyle } from 'react-native';
 import { PlayerViewConfig } from './playerViewConfig';
-import type { PlayerViewRef } from './native';
+import { PlayerViewRef } from './playerViewRef';
 
 /**
  * Base `PlayerView` component props.

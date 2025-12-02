@@ -1,15 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
-import {
-  NativePlayerView,
-  NativePlayerViewConfig,
-  PlayerViewRef,
-} from './native';
+import { NativePlayerView, NativePlayerViewConfig } from './native';
 import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
 import { PlayerViewProps } from './properties';
+import { PlayerViewRef } from './playerViewRef';
 
 /**
  * Base style that initializes the native view frame when no width/height prop has been set.

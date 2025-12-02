@@ -3,8 +3,7 @@ import type { ViewStyle } from 'react-native';
 import { NativePlayerViewEvents } from './nativeEvents';
 import { ScalingMode } from '../../styleConfig';
 import { PlayerViewConfig } from './playerViewConfig';
-import { ComponentRef, RefObject } from 'react';
-import { PictureInPictureAction } from './pictureInPictureConfig';
+import { RefObject } from 'react';
 
 export interface NativePlayerViewConfig {
   playerViewConfig?: PlayerViewConfig;
@@ -35,26 +34,3 @@ export interface NativePlayerViewProps extends NativePlayerViewEvents {
 export const NativePlayerView = requireNativeViewManager<NativePlayerViewProps>(
   'RNPlayerViewManager'
 );
-
-export interface PlayerViewRef extends ComponentRef<typeof NativePlayerView> {
-  /**
-   * Update PiP actions that should be displayed on the PiP window.
-   * See {@link PictureInPictureConfig.pictureInPictureActions} for more details
-   *
-   * @example
-   * Sample usage:
-   * ```ts
-   * const playerViewRef = useRef<NativePlayerViewRef>(null);
-   * ...
-   * useEffect(() => {
-   *   playerViewRef.current?.updatePictureInPictureActions(pictureInPictureActions);
-   * }, [pictureInPictureActions]);
-   * ...
-   * return (<PlayerView
-   *         viewRef={playerViewRef} />)
-   * ```
-   */
-  updatePictureInPictureActions: (
-    actions: PictureInPictureAction[]
-  ) => Promise<void>;
-}
