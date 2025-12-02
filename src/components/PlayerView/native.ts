@@ -4,7 +4,7 @@ import { NativePlayerViewEvents } from './nativeEvents';
 import { ScalingMode } from '../../styleConfig';
 import { PlayerViewConfig } from './playerViewConfig';
 import { ComponentRef, RefObject } from 'react';
-import { PictureInPictureAction } from "./pictureInPictureConfig";
+import { PictureInPictureAction } from './pictureInPictureConfig';
 
 export interface NativePlayerViewConfig {
   playerViewConfig?: PlayerViewConfig;

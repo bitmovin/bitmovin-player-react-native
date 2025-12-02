@@ -1026,7 +1026,7 @@ extension RCTConvert {
             pictureInPictureConfig.shouldEnterOnBackground = shouldEnterOnBackground
         }
 #endif
-        if let pictureInPictureActions = pictureInPictureActions(json["pictureInPictureActions"] ?? nil) {
+        if let pictureInPictureActions = pictureInPictureActions(json["pictureInPictureActions"]) {
             pictureInPictureConfig.showSkipControls = pictureInPictureActions.contains(RNPictureInPictureAction.seek)
         }
         return pictureInPictureConfig
