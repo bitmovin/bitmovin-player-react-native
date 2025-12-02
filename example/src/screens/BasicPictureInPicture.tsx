@@ -1,5 +1,18 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Platform, StyleSheet, View, ViewProps } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from 'react';
+import {
+  AppState,
+  Button,
+  Platform,
+  StyleSheet,
+  View,
+  ViewProps,
+} from 'react-native';
 import type { JSX } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -33,15 +46,59 @@ export default function BasicPictureInPicture({
   const [isPictureInPictureRequested, setIsPictureInPictureRequested] =
     useState(false);
   const [isInPictureInPicture, setIsInPictureInPicture] = useState(false);
+  const config: PlayerViewConfig = useMemo(
+    () => ({
+      pictureInPictureConfig: {
+        // Enable picture in picture UI option on player controls.
+        isEnabled: true,
+        // Enable entering picture in picture mode when transitioning the application to the background
+        shouldEnterOnBackground: true,
+      },
+    }),
+    []
+  );
 
-  const config: PlayerViewConfig = {
-    pictureInPictureConfig: {
-      // Enable picture in picture UI option on player controls.
-      isEnabled: true,
-      // Enable entering picture in picture mode when transitioning the application to the background
-      shouldEnterOnBackground: true,
-    },
-  };
+  const shouldEnterPiPOnBackground =
+    Platform.OS === 'android' &&
+    config.pictureInPictureConfig?.shouldEnterOnBackground === true;
+
+  useEffect(() => {
+    if (!shouldEnterPiPOnBackground) {
+      return;
+    }
+
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'background' || nextState === 'inactive') {
+        setIsPictureInPictureRequested(true);
+      } else if (nextState === 'active' && !isInPictureInPicture) {
+        setIsPictureInPictureRequested(false);
+      }
+    });
+
+    return () => subscription.remove();
+  }, [shouldEnterPiPOnBackground, isInPictureInPicture]);
+
+  // Since PiP on Android is basically just the whole activity fitted in a small
+  // floating window, we only want to render the player and hide any other UI.
+  const renderOnlyPlayerView =
+    Platform.OS === 'android' &&
+    (isInPictureInPicture || isPictureInPictureRequested);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: !Platform.isTV && !renderOnlyPlayerView,
+      // eslint-disable-next-line react/no-unstable-nested-components
+      headerRight: () =>
+        Platform.isTV ? undefined : (
+          <Button
+            title={isInPictureInPicture ? 'Exit PiP' : 'Enter PiP'}
+            onPress={() =>
+              setIsPictureInPictureRequested(() => !isInPictureInPicture)
+            }
+          />
+        ),
+    });
+  }, [navigation, isInPictureInPicture, renderOnlyPlayerView]);
 
   const player = usePlayer({
     remoteControlConfig: {
@@ -67,26 +124,6 @@ export default function BasicPictureInPicture({
       };
     }, [player])
   );
-
-  // Since PiP on Android is basically just the whole activity fitted in a small
-  // floating window, we only want to render the player and hide any other UI.
-  let renderOnlyPlayerView = Platform.OS === 'android' && isInPictureInPicture;
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: !Platform.isTV && !renderOnlyPlayerView,
-      // eslint-disable-next-line react/no-unstable-nested-components
-      headerRight: () =>
-        Platform.isTV ? undefined : (
-          <Button
-            title={isInPictureInPicture ? 'Exit PiP' : 'Enter PiP'}
-            onPress={() =>
-              setIsPictureInPictureRequested(() => !isInPictureInPicture)
-            }
-          />
-        ),
-    });
-  }, [navigation, isInPictureInPicture, renderOnlyPlayerView]);
 
   const onEvent = useCallback((event: Event) => {
     prettyPrint(`[${event.name}]`, event);
@@ -135,14 +172,12 @@ export default function BasicPictureInPicture({
 }
 
 function SafeAreaContainer(props: ViewProps): JSX.Element {
-  return <SafeAreaView edges={['bottom', 'left', 'right']} {...props} />;
+  return <SafeAreaView edges={['top', 'bottom', 'left', 'right']} {...props} />;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: 'white',
     padding: Platform.isTV ? 0 : 10,
   },
