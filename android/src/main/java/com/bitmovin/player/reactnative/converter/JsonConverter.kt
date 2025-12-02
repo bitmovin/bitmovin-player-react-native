@@ -67,6 +67,7 @@ import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.RNStyleConfigWrapper
 import com.bitmovin.player.reactnative.UserInterfaceType
+import com.bitmovin.player.reactnative.converter.toPictureInPictureActions
 import com.bitmovin.player.reactnative.extensions.getArray
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getDoubleOrNull
@@ -685,6 +686,10 @@ fun Thumbnail.toJson(): Map<String, Any> = mapOf(
 
 fun Map<String, Any?>.toPictureInPictureConfig(): PictureInPictureConfig = PictureInPictureConfig(
     isEnabled = getBooleanOrNull("isEnabled") ?: false,
+    pictureInPictureActions = getStringArray("pictureInPictureActions")
+        ?.filterNotNull()
+        ?.toPictureInPictureActions()
+        ?: emptyList(),
 )
 
 fun List<String>.toPictureInPictureActions(): List<PictureInPictureAction> = mapNotNull {

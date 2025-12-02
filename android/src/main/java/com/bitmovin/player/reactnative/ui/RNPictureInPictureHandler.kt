@@ -8,6 +8,7 @@ import android.util.Rational
 import androidx.annotation.RequiresApi
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.reactnative.PictureInPictureAction
+import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.ui.DefaultPictureInPictureHandler
 
 private const val TAG = "RNPiPHandler"
@@ -16,10 +17,12 @@ private const val TAG = "RNPiPHandler"
 class RNPictureInPictureHandler(
     private val activity: Activity,
     private val player: Player,
+    pictureInPictureConfig: PictureInPictureConfig,
 ) : DefaultPictureInPictureHandler(activity, player) {
     private val pictureInPictureActionHandler = DefaultPictureInPictureActionHandler(
         activity,
         player,
+        pictureInPictureConfig,
         ::updatePictureInPictureActions,
     )
 
@@ -34,7 +37,7 @@ class RNPictureInPictureHandler(
         get() = _isPictureInPicture
 
     fun updateActions(actions: List<PictureInPictureAction>) {
-        pictureInPictureActionHandler.updateAvailablePictureInPictureActions(actions)
+        pictureInPictureActionHandler.updatePictureInPictureActions(actions)
     }
 
     override fun enterPictureInPicture() {

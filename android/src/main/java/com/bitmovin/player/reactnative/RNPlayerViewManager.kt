@@ -49,10 +49,6 @@ class RNPlayerViewManager : Module() {
                 view.attachFullscreenBridge(fullscreenBridgeId)
             }
 
-            Prop("pictureInPictureActions") { view: RNPlayerView, pictureInPictureActions: List<String> ->
-                view.updatePictureInPictureActions(pictureInPictureActions.toPictureInPictureActions())
-            }
-
             AsyncFunction("updatePictureInPictureActions") { view: RNPlayerView, pictureInPictureActions: List<String> ->
                 view.updatePictureInPictureActions(pictureInPictureActions.toPictureInPictureActions())
             }

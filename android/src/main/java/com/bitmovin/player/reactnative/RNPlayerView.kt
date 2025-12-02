@@ -278,11 +278,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 LayoutParams.MATCH_PARENT,
             )
 
+            val pictureInPictureConfig = playerViewConfigWrapper?.pictureInPictureConfig
             val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer ||
-                    playerViewConfigWrapper?.pictureInPictureConfig?.isEnabled == true
+                    pictureInPictureConfig?.isEnabled == true
 
             if (isPictureInPictureEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                pictureInPictureHandler = RNPictureInPictureHandler(currentActivity, player)
+                pictureInPictureHandler = RNPictureInPictureHandler(currentActivity, player, pictureInPictureConfig!!)
                 newPlayerView.setPictureInPictureHandler(pictureInPictureHandler!!)
             }
             setPlayerView(newPlayerView)

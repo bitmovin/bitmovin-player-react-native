@@ -14,6 +14,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.reactnative.PictureInPictureAction
+import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.R
 
 private const val SEEK_INTERVAL_SECONDS = 10.0
@@ -28,7 +29,7 @@ private const val ACTION_SEEK_BACKWARD =
     "com.bitmovin.player.reactnative.ui.pictureinpicture.SEEK_BACKWARD"
 
 internal interface PictureInPictureActionHandler {
-    fun updateAvailablePictureInPictureActions(actions: List<PictureInPictureAction>)
+    fun updatePictureInPictureActions(actions: List<PictureInPictureAction>)
     fun buildRemoteActions(): List<RemoteAction>
     fun dispose()
 }
@@ -37,6 +38,7 @@ internal interface PictureInPictureActionHandler {
 internal class DefaultPictureInPictureActionHandler(
     private val activity: Activity,
     private val player: Player,
+    pictureInPictureConfig: PictureInPictureConfig,
     private val updatePictureInPictureParams: () -> Unit,
 ) : PictureInPictureActionHandler {
     private val pictureInPictureActionFilter = IntentFilter().apply {
@@ -56,7 +58,7 @@ internal class DefaultPictureInPictureActionHandler(
             updatePictureInPictureParams()
         }
     }
-    private var pictureInPictureActions: List<PictureInPictureAction> = emptyList()
+    private var pictureInPictureActions: List<PictureInPictureAction> = pictureInPictureConfig.pictureInPictureActions
 
     init {
         ActivityCompat.registerReceiver(
@@ -67,7 +69,7 @@ internal class DefaultPictureInPictureActionHandler(
         )
     }
 
-    override fun updateAvailablePictureInPictureActions(actions: List<PictureInPictureAction>) {
+    override fun updatePictureInPictureActions(actions: List<PictureInPictureAction>) {
         this.pictureInPictureActions = actions
         updatePictureInPictureParams()
     }
