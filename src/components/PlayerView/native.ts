@@ -4,7 +4,7 @@ import { NativePlayerViewEvents } from './nativeEvents';
 import { ScalingMode } from '../../styleConfig';
 import { PlayerViewConfig } from './playerViewConfig';
 import { ComponentRef, RefObject } from 'react';
-import { PictureInPictureAction } from './properties';
+import { PictureInPictureAction } from "./pictureInPictureConfig";
 
 export interface NativePlayerViewConfig {
   playerViewConfig?: PlayerViewConfig;
@@ -27,7 +27,6 @@ export interface NativePlayerViewProps extends NativePlayerViewEvents {
   style?: ViewStyle;
   config: NativePlayerViewConfig;
   fullscreenBridgeId?: string;
-  pictureInPictureActions?: PictureInPictureAction[];
 }
 
 /**
@@ -40,7 +39,7 @@ export const NativePlayerView = requireNativeViewManager<NativePlayerViewProps>(
 export type NativePlayerViewRef = ComponentRef<typeof NativePlayerView> & {
   /**
    * Update PiP actions that should be displayed on the PiP window.
-   * See {@link BasePlayerViewProps.pictureInPictureActions} for more details
+   * See {@link PictureInPictureConfig.pictureInPictureActions} for more details
    *
    * @example
    * Sample usage:

@@ -36,7 +36,6 @@ export function PlayerView({
   isFullscreenRequested = false,
   scalingMode,
   isPictureInPictureRequested = false,
-  pictureInPictureActions,
   ...props
 }: PlayerViewProps) {
   // Keep the device awake while the PlayerView is mounted
@@ -114,7 +113,6 @@ export function PlayerView({
       ref={nativeView}
       style={nativeViewStyle}
       config={nativePlayerViewConfig}
-      pictureInPictureActions={pictureInPictureActions}
       isFullscreenRequested={isFullscreenRequested}
       isPictureInPictureRequested={isPictureInPictureRequested}
       scalingMode={scalingMode}
