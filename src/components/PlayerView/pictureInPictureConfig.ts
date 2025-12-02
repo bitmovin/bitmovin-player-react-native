@@ -22,7 +22,7 @@ export interface PictureInPictureConfig {
 
   /**
    * PiP actions that should be displayed on the PiP window.
-   * To update the PiP actions use {@link NativePlayerViewRef.updatePictureInPictureActions}.
+   * To update the PiP actions use {@link PlayerViewRef.updatePictureInPictureActions}.
    *
    * Limitations:
    * - On Android if an empty list is passed and {@link MediaControlConfig.isEnabled} is set to true

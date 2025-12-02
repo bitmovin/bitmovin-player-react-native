@@ -4,7 +4,7 @@ import { useKeepAwake } from 'expo-keep-awake';
 import {
   NativePlayerView,
   NativePlayerViewConfig,
-  NativePlayerViewRef,
+  PlayerViewRef,
 } from './native';
 import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
@@ -41,9 +41,7 @@ export function PlayerView({
   // Keep the device awake while the PlayerView is mounted
   useKeepAwake();
 
-  const nativeView = useRef<NativePlayerViewRef | null>(
-    viewRef?.current ?? null
-  );
+  const nativeView = useRef<PlayerViewRef | null>(viewRef?.current ?? null);
 
   // Native events proxy helper.
   const proxy = useProxy(nativeView);

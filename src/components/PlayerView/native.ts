@@ -36,7 +36,7 @@ export const NativePlayerView = requireNativeViewManager<NativePlayerViewProps>(
   'RNPlayerViewManager'
 );
 
-export type NativePlayerViewRef = ComponentRef<typeof NativePlayerView> & {
+export type PlayerViewRef = ComponentRef<typeof NativePlayerView> & {
   /**
    * Update PiP actions that should be displayed on the PiP window.
    * See {@link PictureInPictureConfig.pictureInPictureActions} for more details
