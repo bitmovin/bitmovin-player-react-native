@@ -338,6 +338,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         if (!playerView.isPictureInPictureAvailable || playerView.isPictureInPicture) {
             return false
         }
+        if (pictureInPictureHandler?.autoEnterEnabledOverride != true) return false
         playerView.enterPictureInPicture()
         return true
     }

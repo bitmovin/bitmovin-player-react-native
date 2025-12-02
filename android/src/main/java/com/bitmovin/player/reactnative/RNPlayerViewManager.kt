@@ -22,7 +22,6 @@ class RNPlayerViewManager : Module() {
             OnUserLeavesActivity {
                 requestAutoPictureInPicture()
             }
-
         }
 
         View(RNPlayerView::class) {
@@ -142,5 +141,5 @@ class RNPlayerViewManager : Module() {
     }
 
     private fun requestAutoPictureInPicture() = autoPictureInPictureViews
-        .first { it.requestPictureInPictureOnBackgroundTransition() }
+        .firstOrNull { it.requestPictureInPictureOnBackgroundTransition() }
 }
