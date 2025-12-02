@@ -1,16 +1,16 @@
+import type { JSX } from 'react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Platform, StyleSheet, View, ViewProps } from 'react-native';
-import type { JSX } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
-  usePlayer,
-  PlayerView,
-  SourceType,
+  PictureInPictureAction,
   PictureInPictureEnterEvent,
   PictureInPictureExitEvent,
+  PlayerView,
   PlayerViewConfig,
-  PictureInPictureAction,
+  SourceType,
+  usePlayer,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -41,10 +41,12 @@ export default function BasicPictureInPicture({
       isEnabled: true,
       // Enable entering picture in picture mode when transitioning the application to the background
       shouldEnterOnBackground: true,
+      pictureInPictureActions: [
+        PictureInPictureAction.TogglePlayback,
+        PictureInPictureAction.Seek,
+      ],
     },
   };
-
-  const pictureInPictureActions = [PictureInPictureAction.TogglePlayback];
 
   const player = usePlayer({
     remoteControlConfig: {
@@ -132,7 +134,6 @@ export default function BasicPictureInPicture({
         onPictureInPictureEntered={onEvent}
         onPictureInPictureExit={onPictureInPictureExitEvent}
         onPictureInPictureExited={onEvent}
-        pictureInPictureActions={pictureInPictureActions}
       />
     </ContainerView>
   );
