@@ -17,6 +17,7 @@ export * from './remoteControlConfig';
 export * from './bitmovinCastManager';
 export * from './audioTrack';
 export * from './media';
+export * from './metadata';
 export * from './tweaksConfig';
 export * from './bufferConfig';
 export * from './playbackConfig';

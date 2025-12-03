@@ -11,6 +11,7 @@ import { VideoQuality } from './media';
 import { AudioTrack } from './audioTrack';
 import { LoadingState } from './source';
 import { HttpRequestType } from './network/networkConfig';
+import { Metadata } from './metadata';
 
 /**
  * Base event type for all events.
@@ -765,4 +766,24 @@ export interface CueExitEvent extends Event {
    * Data URI for image data of this subtitle.
    */
   image?: string;
+}
+
+/**
+ * Emitted when metadata is parsed from the stream.
+ */
+export interface MetadataParsedEvent extends Event {
+  /**
+   * The parsed metadata container with entries.
+   */
+ metadata: Metadata;
+}
+
+/**
+ * Emitted when metadata is encountered during playback.
+ */
+export interface MetadataEvent extends Event {
+  /**
+   * The metadata container with entries.
+   */
+  metadata: Metadata;
 }
