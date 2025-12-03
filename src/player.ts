@@ -362,7 +362,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * @param trackIdentifier - The {@link SubtitleTrack.identifier} to be set.
    */
-  setSubtitleTrack = async (trackIdentifier?: string): Promise<void> => {
+  setSubtitleTrack = async (trackIdentifier: string | undefined): Promise<void> => {
     return PlayerModule.setSubtitleTrack(
       this.nativeId,
       trackIdentifier ?? null
