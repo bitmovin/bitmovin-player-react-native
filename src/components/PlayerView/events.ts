@@ -65,7 +65,7 @@ import {
   CueEnterEvent,
   CueExitEvent,
   MetadataParsedEvent,
-  MetadataEvent
+  MetadataEvent,
 } from '../../events';
 
 /**
