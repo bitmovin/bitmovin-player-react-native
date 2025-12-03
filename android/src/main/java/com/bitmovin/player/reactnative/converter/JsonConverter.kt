@@ -44,6 +44,7 @@ import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
+import com.bitmovin.player.api.metadata.daterange.DateRangeMetadata
 import com.bitmovin.player.api.metadata.scte.ScteMessage
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
@@ -907,10 +908,22 @@ fun com.bitmovin.player.api.metadata.Metadata.toJson(type: String): Map<String, 
 
 fun com.bitmovin.player.api.metadata.Metadata.Entry.toJson(): Map<String, Any> {
     return when (this) {
+        is DateRangeMetadata -> this.toJson()
         is ScteMessage -> this.toJson()
         else -> mapOf("metadataType" to "NONE")
     }
 }
+
+fun DateRangeMetadata.toJson(): Map<String, Any> = mapOf(
+    "metadataType" to "DATERANGE",
+    "id" to id,
+    "startDate" to startDate * 1000, // TypeScript/JS conventionally use milliseconds for Dates. See `Date.now()`.
+    "endOnNext" to endOnNext,
+    "clientAttributes" to clientAttributes,
+    "classLabel" to classLabel,
+    "duration" to duration,
+    "plannedDuration" to plannedDuration,
+).filterNotNullValues()
 
 fun ScteMessage.toJson(): Map<String, Any> = mapOf(
     "metadataType" to "SCTE",

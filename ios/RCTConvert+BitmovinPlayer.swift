@@ -1152,6 +1152,11 @@ extension RCTConvert {
 
         var entriesArray: [[String: Any]] = []
 
+        // DateRangeMetadata is already a container
+        if let dateRangeMetadata = metadata as? DaterangeMetadata {
+            entriesArray.append(toJson(dateRangeMetadata: dateRangeMetadata))
+        }
+
         for entry in metadata.entries {
             switch type {
             case .scte:
@@ -1166,6 +1171,8 @@ extension RCTConvert {
         let startTime: Double
         if let scteMetadata = metadata as? ScteMetadata {
             startTime = scteMetadata.startTime
+        } else if let dateRangeMetadata = metadata as? DaterangeMetadata {
+            startTime = dateRangeMetadata.startDate.timeIntervalSince1970
         } else {
             startTime = 0
         }
@@ -1175,6 +1182,31 @@ extension RCTConvert {
             "startTime": startTime,
             "entries": entriesArray
         ]
+    }
+
+    static func toJson(date: Date) -> Int {
+        // TypeScript and JavaScript conventionally use milliseconds for Dates. See `Date.now()`.
+        Int(date.timeIntervalSince1970 * 1000)
+    }
+
+    static func toJson(dateRangeMetadata: DaterangeMetadata) -> [String: Any] {
+        var json: [String: Any] = [
+            "metadataType": "DATERANGE",
+            "id": dateRangeMetadata.identifier,
+            "startDate": toJson(date: dateRangeMetadata.startDate)
+        ]
+
+        if let classLabel = dateRangeMetadata.classLabel {
+            json["classLabel"] = classLabel
+        }
+        if let endDate = dateRangeMetadata.endDate {
+            json["endDate"] = toJson(date: endDate)
+        }
+        if !dateRangeMetadata.cueingOptions.isEmpty {
+            json["cueingOptions"] = dateRangeMetadata.cueingOptions
+        }
+
+        return json
     }
 
     static func toJson(scteMetadataEntry: ScteMetadataEntry) -> [String: Any] {
