@@ -560,7 +560,8 @@ extension RCTConvert {
     }
 
     static func subtitleTrackJson(_ subtitleTrack: SubtitleTrack?) -> [String: Any]? {
-        guard let subtitleTrack else {
+        guard let subtitleTrack,
+              subtitleTrack.identifier.lowercased() != "off" else {
             return nil
         }
         var subtitleTrackDict: [String: Any] = [

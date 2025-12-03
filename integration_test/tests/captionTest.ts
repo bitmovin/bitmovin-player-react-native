@@ -223,10 +223,15 @@ export default (spec: TestScope) => {
         await startPlayerTest({}, async () => {
           await loadSourceConfig(Sources.sintel);
 
+          const initialSelectedSubtitle = await callPlayer((player) =>
+            player.getSubtitleTrack()
+          );
+
           const subtitleTracks = await callPlayer((player) =>
             player.getAvailableSubtitles()
           );
-          const subtitleTrack = subtitleTracks[1];
+          const subtitleTrack = subtitleTracks.find((track) => track.identifier !== initialSelectedSubtitle?.identifier)!;
+          expect(subtitleTrack).toNotBeNull();
 
           await callPlayerAndExpectEvent(
             (player) => {
