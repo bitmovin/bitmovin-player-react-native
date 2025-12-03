@@ -21,12 +21,12 @@ export interface PictureInPictureConfig {
   shouldEnterOnBackground?: boolean;
 
   /**
-   * PiP actions that should be displayed on the PiP window.
-   * To update the PiP actions use {@link PlayerViewRef.updatePictureInPictureActions}.
+   * Picture in Picture actions that should be displayed on the Picture in Picture window.
+   * To update the Picture in Picture actions use {@link PlayerViewRef.updatePictureInPictureActions}.
    *
    * Limitations:
    * - On Android if an empty list is passed and {@link MediaControlConfig.isEnabled} is set to true
-   * play, pause, next, and previous controls will appear, due to the default Android PiP implementation:
+   * play, pause, next, and previous controls will appear, due to the default Android Picture in Picture implementation:
    * https://developer.android.com/develop/ui/views/picture-in-picture#add_controls
    * Set {@link MediaControlConfig.isEnabled} to false if this is
    * not the desired behaviour.
@@ -42,11 +42,12 @@ export interface PictureInPictureConfig {
 
 export enum PictureInPictureAction {
   /**
-   * PiP window shows Play/Pause button depending on the player state.
+   * Picture in Picture window shows Play/Pause button depending on the player state.
    */
   TogglePlayback = 'TogglePlayback',
   /**
-   * PiP window shows seek forward and seek backward buttons. The player seeks by 10s when the buttons are pressed.
+   * Picture in Picture window shows seek forward and seek backward buttons.
+   * The player seeks by 10s when the buttons are pressed.
    */
   Seek = 'Seek',
 }

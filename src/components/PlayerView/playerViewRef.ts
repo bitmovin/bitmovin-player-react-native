@@ -4,7 +4,7 @@ import { NativePlayerView } from './native';
 
 export interface PlayerViewRef extends ComponentRef<typeof NativePlayerView> {
   /**
-   * Update PiP actions that should be displayed on the PiP window.
+   * Update Picture in Picture actions that should be displayed on the Picture in Picture window.
    * See {@link PictureInPictureConfig.pictureInPictureActions} for more details
    *
    * @example

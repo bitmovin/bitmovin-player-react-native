@@ -4,10 +4,10 @@
 
 ### Added
 
-- `PictureInPictureConfig.pictureInPictureActions` to configure Picture-in-picture actions
+- `PictureInPictureConfig.pictureInPictureActions` to configure Picture in Picture actions
   - `PictureInPictureAction.TogglePlayback` to add a play/pause action
   - `PictureInPictureAction.Seek` to add seek forward and seek backward for 10 seconds actions
-- `PlayerViewRef.updatePictureInPictureActions` to update Picture-in-picture actions dynamically
+- `PlayerViewRef.updatePictureInPictureActions` to update Picture in Picture actions dynamically
 
 ### Changed
 
