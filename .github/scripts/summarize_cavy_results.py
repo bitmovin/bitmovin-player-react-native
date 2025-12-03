@@ -4,6 +4,7 @@ import argparse
 import os
 import sys
 import xml.etree.ElementTree as ET
+from typing import Dict, List, Optional, Tuple
 
 
 def load_results(path: str):
@@ -30,10 +31,33 @@ def load_results(path: str):
     return {"tests": tests, "failures": failed, "passed": passed, "cases": cases}
 
 
+def build_test_index(root: str) -> Dict[str, Tuple[str, int]]:
+    index: Dict[str, Tuple[str, int]] = {}
+    for dirpath, _, filenames in os.walk(root):
+        for fname in filenames:
+            if not fname.endswith(".ts"):
+                continue
+            fpath = os.path.join(dirpath, fname)
+            with open(fpath, "r", encoding="utf-8") as fh:
+                for lineno, line in enumerate(fh, start=1):
+                    line = line.strip()
+                    if line.startswith("spec.it("):
+                        # crude parse: spec.it('<name>'
+                        parts = line.split("spec.it(", 1)[1]
+                        if parts.startswith("'") or parts.startswith('"'):
+                            quote = parts[0]
+                            end = parts.find(quote, 1)
+                            if end != -1:
+                                name = parts[1:end]
+                                index[name] = (fpath, lineno)
+    return index
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--android", dest="android_path", default=None)
     parser.add_argument("--ios", dest="ios_path", default=None)
+    parser.add_argument("--tests-root", dest="tests_root", default="integration_test/tests")
     args = parser.parse_args()
 
     platforms = [
@@ -44,6 +68,7 @@ def main():
     summary_lines = ["## Integration Test Results"]
     overall_fail = False
     overall_totals = {"tests": 0, "passed": 0, "failures": 0}
+    test_index = build_test_index(args.tests_root)
 
     for name, path, status in platforms:
         if not path:
@@ -74,7 +99,8 @@ def main():
             test_name = f"{case['classname']}.{case['name']}" if case["classname"] else case["name"]
             if case["failure"]:
                 summary_lines.append(f"| {test_name} | ❌ Failed |")
-                print(f"::error file={path},line=1,col=0::{name} {test_name}: {case['failure']}")
+                file_path, line = test_index.get(case["name"], (path, 1))
+                print(f"::error file={file_path},line={line},col=0::{name} {test_name}: {case['failure']}")
             else:
                 summary_lines.append(f"| {test_name} | ✅ Passed |")
         summary_lines.append("")
