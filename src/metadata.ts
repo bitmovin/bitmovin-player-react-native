@@ -99,8 +99,7 @@ export interface ScteMetadataEntry extends BaseMetadataEntry {
 /**
  * Union type representing all supported timed metadata entry kinds.
  */
-export type MetadataEntry = DateRangeMetadataEntry
-  | ScteMetadataEntry;
+export type MetadataEntry = DateRangeMetadataEntry | ScteMetadataEntry;
 
 /**
  * A collection of timed metadata entries.
