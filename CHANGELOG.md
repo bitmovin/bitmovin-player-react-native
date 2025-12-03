@@ -6,6 +6,10 @@
 
 - Update Bitmovin's native iOS SDK version to `3.101.0`
 
+### Fixed
+
+- Android: `player.setSubtitleTrack()` now correctly disables subtitles
+
 ## [1.4.0] - 2025-11-06
 
 ### Changed
@@ -15,7 +19,6 @@
 
 ### Fixed
 
-- Android: `player.setSubtitleTrack()` now correctly disables subtitles
 - iOS: race condition causing invalid initial state for full screen button on `PlayerView`
 
 ## [1.3.0] - 2025-10-29
