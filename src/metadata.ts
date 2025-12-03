@@ -27,11 +27,11 @@ export interface DateRangeMetadataEntry extends BaseMetadataEntry {
    */
   classLabel?: string;
   /**
-   * The start date of the date range, in milliseconds.
+   * The start date of the date range in milliseconds.
    */
   startDate: number;
   /**
-   * The end date of the date range, in milliseconds.
+   * The end date of the date range in milliseconds.
    *
    * If the metadata represents an instantaneous event, `endDate` should be equal
    * to {@link startDate}.
