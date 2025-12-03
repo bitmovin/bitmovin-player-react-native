@@ -1204,7 +1204,7 @@ internal struct RNBufferLevels {
     let video: BufferLevel
 }
 
-internal enum RNPictureInPictureAction {
-    case togglePlayback
-    case seek
+internal enum RNPictureInPictureAction: String {
+    case togglePlayback = "TogglePlayback"
+    case seek = "Seek"
 }
