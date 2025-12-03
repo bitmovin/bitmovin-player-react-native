@@ -231,7 +231,7 @@ extension RCTConvert {
     }
 
     static func networkConfig(_ json: Any?) -> NetworkConfig? {
-        guard let json = json as? [String: Any?] else {
+        guard json is [String: Any?] else {
             return nil
         }
         return NetworkConfig()
@@ -1128,6 +1128,58 @@ extension RCTConvert {
             nowPlayingConfig.isNowPlayingInfoEnabled = isEnabled
         }
         return nowPlayingConfig
+    }
+
+    static func metadataTypeString(_ type: MetadataType) -> String {
+        switch type {
+        case .ID3: return "ID3"
+        case .scte: return "SCTE"
+        case .daterange: return "DATERANGE"
+        case .EMSG: return "EMSG"
+        case .none: return "NONE"
+        @unknown default: return "NONE"
+        }
+    }
+
+    static func toJson(metadata: Metadata?, type: MetadataType) -> [String: Any]? {
+        guard let metadata else { return nil }
+
+        var entriesArray: [[String: Any]] = []
+
+        for entry in metadata.entries {
+            switch type {
+            case .scte:
+                if let scteEntry = entry as? ScteMetadataEntry {
+                    entriesArray.append(toJson(scteMetadataEntry: scteEntry))
+                }
+            default:
+                break
+            }
+        }
+
+        let startTime: Double
+        if let scteMetadata = metadata as? ScteMetadata {
+            startTime = scteMetadata.startTime
+        } else {
+            startTime = 0
+        }
+
+        return [
+            "metadataType": metadataTypeString(type),
+            "startTime": startTime,
+            "entries": entriesArray
+        ]
+    }
+
+    static func toJson(scteMetadataEntry: ScteMetadataEntry) -> [String: Any] {
+        var json: [String: Any] = [
+            "metadataType": "SCTE",
+            "key": scteMetadataEntry.key
+        ]
+        if let value = scteMetadataEntry.value {
+            json["value"] = value
+        }
+        return json
     }
 }
 /**
