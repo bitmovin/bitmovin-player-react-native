@@ -40,6 +40,9 @@ export type MetadataEntry = ScteMetadataEntry;
  */
 export interface Metadata<T extends BaseMetadataEntry = MetadataEntry> {
   metadataType: MetadataType;
+  /**
+   * The playback time in seconds when this metadata should trigger, relative to the playback session.
+   */
   startTime: number;
   entries: T[];
 }
