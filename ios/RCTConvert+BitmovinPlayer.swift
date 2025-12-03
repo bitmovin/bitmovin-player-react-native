@@ -1132,12 +1132,18 @@ extension RCTConvert {
 
     static func metadataTypeString(_ type: MetadataType) -> String {
         switch type {
-        case .ID3: return "ID3"
-        case .scte: return "SCTE"
-        case .daterange: return "DATERANGE"
-        case .EMSG: return "EMSG"
-        case .none: return "NONE"
-        @unknown default: return "NONE"
+        case .ID3:
+            return "ID3"
+        case .scte:
+            return "SCTE"
+        case .daterange:
+            return "DATERANGE"
+        case .EMSG:
+            return "EMSG"
+        case .none:
+            return "NONE"
+        @unknown default:
+            return "NONE"
         }
     }
 
