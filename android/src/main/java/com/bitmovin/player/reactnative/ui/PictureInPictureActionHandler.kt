@@ -50,8 +50,8 @@ internal class DefaultPictureInPictureActionHandler(
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 ACTION_PLAY_PAUSE -> togglePlayback()
-                ACTION_SEEK_FORWARD -> seek(SEEK_INTERVAL_SECONDS)
-                ACTION_SEEK_BACKWARD -> seek(-SEEK_INTERVAL_SECONDS)
+                ACTION_SEEK_FORWARD -> seekOrTimeshift(SEEK_INTERVAL_SECONDS)
+                ACTION_SEEK_BACKWARD -> seekOrTimeshift(-SEEK_INTERVAL_SECONDS)
                 else -> return
             }
 
@@ -126,9 +126,12 @@ internal class DefaultPictureInPictureActionHandler(
         }
     }
 
-    private fun seek(offset: Double) {
-        val targetTime = (player.currentTime + offset).coerceAtLeast(0.0)
-        player.seek(targetTime)
+    private fun seekOrTimeshift(offset: Double) {
+        if (player.isLive) {
+            player.timeShift(player.timeShift + offset)
+        } else {
+            player.seek(player.currentTime + offset)
+        }
     }
 
     private fun createRemoteAction(
