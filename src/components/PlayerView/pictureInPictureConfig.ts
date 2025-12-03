@@ -33,7 +33,7 @@ export interface PictureInPictureConfig {
    * - on iOS/tvOS if {@link PictureInPictureAction.TogglePlayback} is not specified also other actions are
    * disabled due to OS limitations.
    *
-   * Default value is unspecified, which translates to:
+   * Default value is `undefined`, which translates to:
    * - Android: No actions, unless {@link MediaControlConfig.isEnabled} is set to true
    * - iOS: All actions enabled
    */
