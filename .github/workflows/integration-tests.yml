@@ -28,15 +28,58 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Cache Android Integration Prebuild
+        id: android-integration-prebuild-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            integration_test/android
+          key: ${{ runner.os }}-android-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.json', 'plugin/**', 'android/**') }}
+          restore-keys: |
+            ${{ runner.os }}-android-integration-prebuild-
+
+      - name: Cache Android SDK image
+        uses: actions/cache@v4
+        with:
+          path: |
+            /usr/local/lib/android/sdk/platforms/android-34
+            /usr/local/lib/android/sdk/system-images/android-34/google_apis/x86_64
+            /usr/local/lib/android/sdk/platform-tools
+            /home/runner/.android/avd/bitmovin-ci-x86.avd
+            /home/runner/.android/avd/bitmovin-ci-x86.ini
+          key: ${{ runner.os }}-android-sdk-34-googleapis-x86_64-v1
+          restore-keys: |
+            ${{ runner.os }}-android-sdk-34-googleapis-x86_64-
+
+      - name: Cache Gradle Build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ${{ github.workspace }}/.gradle-ci
+            integration_test/android/.gradle
+            integration_test/android/app/build
+            integration_test/android/build
+          key: ${{ runner.os }}-gradle-integration-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'integration_test/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-integration-
+            ${{ runner.os }}-gradle-
+
       - name: Setup environment
         uses: ./.github/actions/setup-environment
         with:
           node: true
           subprojects: true
           java: true
+          skip-prebuild: true
 
       - name: Configure integration test env
         run: echo "EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY=${EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY}" > integration_test/.env
+
+      - name: Prebuild Android integration (on cache miss)
+        if: ${{ steps.android-integration-prebuild-cache.outputs.cache-hit != 'true' }}
+        run: .github/scripts/smart-prebuild.sh integration-test
 
       - name: Prepare Android emulator
         run: |
@@ -85,15 +128,43 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Cache iOS Integration Prebuild
+        id: ios-integration-prebuild-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            integration_test/ios
+          key: ${{ runner.os }}-ios-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.json', 'plugin/**', 'ios/**') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-integration-prebuild-
+
       - name: Setup environment
         uses: ./.github/actions/setup-environment
         with:
           node: true
           subprojects: true
           ios: true
+          skip-prebuild: true
 
       - name: Configure integration test env
         run: echo "EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY=${EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY}" > integration_test/.env
+
+      - name: Prebuild iOS integration (on cache miss)
+        if: ${{ steps.ios-integration-prebuild-cache.outputs.cache-hit != 'true' }}
+        run: .github/scripts/smart-prebuild.sh integration-test
+
+      - name: Cache CocoaPods Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            integration_test/ios/Pods
+          key: ${{ runner.os }}-ios-integration-pods-${{ hashFiles('ios/RNBitmovinPlayer.podspec', 'integration_test/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-integration-pods-
+
+      - name: Install CocoaPods Dependencies
+        run: yarn integration-test pods
 
       - name: Prepare iOS simulator
         run: |
