@@ -1186,7 +1186,7 @@ extension RCTConvert {
 
     static func toJson(date: Date) -> Int {
         // TypeScript and JavaScript conventionally use milliseconds for Dates. See `Date.now()`.
-        Int(date.timeIntervalSince1970 * 1000)
+        Int(date.timeIntervalSince1970 * 1_000)
     }
 
     static func toJson(dateRangeMetadata: DaterangeMetadata) -> [String: Any] {
