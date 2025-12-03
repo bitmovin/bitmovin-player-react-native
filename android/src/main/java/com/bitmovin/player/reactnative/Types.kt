@@ -17,7 +17,6 @@ enum class UserInterfaceType {
  */
 data class PictureInPictureConfig(
     val isEnabled: Boolean = false,
-    val pictureInPictureActions: List<PictureInPictureAction>,
 )
 
 enum class PictureInPictureAction {

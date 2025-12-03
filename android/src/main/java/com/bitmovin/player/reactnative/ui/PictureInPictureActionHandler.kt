@@ -38,7 +38,6 @@ internal interface PictureInPictureActionHandler {
 internal class DefaultPictureInPictureActionHandler(
     private val activity: Activity,
     private val player: Player,
-    pictureInPictureConfig: PictureInPictureConfig,
     private val updatePictureInPictureParams: () -> Unit,
 ) : PictureInPictureActionHandler {
     private val pictureInPictureActionFilter = IntentFilter().apply {
@@ -58,7 +57,7 @@ internal class DefaultPictureInPictureActionHandler(
             updatePictureInPictureParams()
         }
     }
-    private var pictureInPictureActions: List<PictureInPictureAction> = pictureInPictureConfig.pictureInPictureActions
+    private var pictureInPictureActions: List<PictureInPictureAction> = emptyList()
 
     init {
         ActivityCompat.registerReceiver(

@@ -221,7 +221,7 @@ public class RNPlayerView: ExpoView {
         playerView.scalingMode = nativeScalingMode
     }
 
-    internal func setPictureInPictureActions(actions: [RNPictureInPictureAction]?) {
+    internal func updatePictureInPictureActions(actions: [RNPictureInPictureAction]?) {
         guard let actions else {
             return
         }
