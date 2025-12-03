@@ -95,7 +95,9 @@ public class RNPlayerViewManager: Module {
                 "onBmpPictureInPictureAvailabilityChanged",
                 "onBmpPlaybackSpeedChanged",
                 "onBmpCueEnter",
-                "onBmpCueExit"
+                "onBmpCueExit",
+                "onBmpMetadata",
+                "onBmpMetadataParsed"
             )
         }
     }

@@ -106,6 +106,8 @@ public class RNPlayerView: ExpoView {
     let onBmpPlaybackSpeedChanged = EventDispatcher()
     let onBmpCueEnter = EventDispatcher()
     let onBmpCueExit = EventDispatcher()
+    let onBmpMetadata = EventDispatcher()
+    let onBmpMetadataParsed = EventDispatcher()
 
     required init(appContext: AppContext? = nil) {
         super.init(appContext: appContext)
@@ -424,6 +426,14 @@ extension RNPlayerView: PlayerListener {
 
     public func onCueExit(_ event: CueExitEvent, player: Player) {
         onBmpCueExit(event.eventPayload())
+    }
+
+    public func onMetadata(_ event: MetadataEvent, player: Player) {
+        onBmpMetadata(event.eventPayload())
+    }
+
+    public func onMetadataParsed(_ event: MetadataParsedEvent, player: Player) {
+        onBmpMetadataParsed(event.eventPayload())
     }
 
 #if os(iOS)
