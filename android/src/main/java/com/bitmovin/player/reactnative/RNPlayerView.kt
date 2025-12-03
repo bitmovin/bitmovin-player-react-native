@@ -97,6 +97,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private val onBmpPlaybackSpeedChanged by EventDispatcher()
     private val onBmpCueEnter by EventDispatcher()
     private val onBmpCueExit by EventDispatcher()
+    private val onBmpMetadata by EventDispatcher()
+    private val onBmpMetadataParsed by EventDispatcher()
 
     private val onBmpFullscreenEnabled by EventDispatcher()
     private val onBmpFullscreenDisabled by EventDispatcher()
@@ -612,6 +614,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             player.on<PlayerEvent.CastWaitingForDevice> { onEvent(onBmpCastWaitingForDevice, it.toJson()) },
             player.on<PlayerEvent.CueEnter> { onEvent(onBmpCueEnter, it.toJson()) },
             player.on<PlayerEvent.CueExit> { onEvent(onBmpCueExit, it.toJson()) },
+            player.on<PlayerEvent.Metadata> { onEvent(onBmpMetadata, it.toJson()) },
+            player.on<SourceEvent.MetadataParsed> { onEvent(onBmpMetadataParsed, it.toJson()) },
         )
     }
 
