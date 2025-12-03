@@ -1051,10 +1051,12 @@ extension RCTConvert {
 
     private static func tweaksConfig(pictureInPictureConfigJson: Any?) -> PlayerViewTweaksConfig? {
         let tweaksConfig = PlayerViewTweaksConfig()
+#if !os(tvOS)
         if let json = pictureInPictureConfigJson as? [String: Any?],
            let pictureInPictureActions = pictureInPictureActions(json["pictureInPictureActions"] as Any?) {
             tweaksConfig.hideTransportControlsInPictureInPicture = !pictureInPictureActions.contains(.togglePlayback)
         }
+#endif
         return tweaksConfig
     }
 
