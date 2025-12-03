@@ -775,7 +775,7 @@ export interface MetadataParsedEvent extends Event {
   /**
    * The parsed metadata container with entries.
    */
- metadata: Metadata;
+  metadata: Metadata;
 }
 
 /**
