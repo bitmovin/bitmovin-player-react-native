@@ -16,7 +16,7 @@ export interface BaseMetadataEntry {
 /**
  * Describes metadata associated with HLS `#EXT-X-SCTE35` tags.
  * 
- * @note On iOS, {@link TweaksConfig.isNativeHlsParsingEnabled} must be enabled to parse this type of metadata.
+ * Note: On iOS, {@link TweaksConfig.isNativeHlsParsingEnabled} must be enabled to parse this type of metadata.
  */
 export interface ScteMetadataEntry extends BaseMetadataEntry {
   metadataType: MetadataType.SCTE;
