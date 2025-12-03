@@ -21,7 +21,65 @@ env:
   EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
 
 jobs:
-  integration-tests:
+  android:
+    if: ${{ github.event.inputs.platform != 'ios' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node: true
+          subprojects: true
+          java: true
+
+      - name: Configure integration test env
+        run: echo "EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY=${EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY}" > integration_test/.env
+
+      - name: Prepare Android emulator
+        run: |
+          export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}
+          export ANDROID_HOME=$ANDROID_SDK_ROOT
+          export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH"
+          SYSTEM_IMAGE="system-images;android-34;google_apis;x86_64"
+          AVD_NAME="bitmovin-ci-x86"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platform-tools" "platforms;android-34" "$SYSTEM_IMAGE"
+          if ! "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" list avd | grep -q "^Name: ${AVD_NAME}$"; then
+            echo "no" | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n "$AVD_NAME" -k "$SYSTEM_IMAGE" -d pixel_7 --abi x86_64
+          fi
+          nohup "$ANDROID_HOME/emulator/emulator" -avd "$AVD_NAME" -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -camera-front none >/tmp/emulator.log 2>&1 &
+          adb wait-for-device
+          adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
+
+      - name: Run Android integration tests
+        id: android-tests
+        continue-on-error: true
+        run: |
+          set +e
+          yarn integration-test test:android --xml
+          STATUS=$?
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          exit $STATUS
+
+      - name: Collect Android results
+        run: |
+          if [ -f integration_test/cavy_results.xml ]; then
+            mv integration_test/cavy_results.xml integration_test/cavy_results_android.xml
+          fi
+
+      - name: Summarize Android results
+        if: always()
+        env:
+          ANDROID_STATUS: ${{ steps.android-tests.outputs.status || '0' }}
+        run: |
+          python .github/scripts/summarize_cavy_results.py \
+            --android integration_test/cavy_results_android.xml
+
+  ios:
+    if: ${{ github.event.inputs.platform != 'android' }}
     runs-on: macOS-15
     timeout-minutes: 90
     steps:
@@ -33,30 +91,11 @@ jobs:
           node: true
           subprojects: true
           ios: true
-          java: true
 
       - name: Configure integration test env
         run: echo "EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY=${EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY}" > integration_test/.env
 
-      - name: Prepare Android emulator
-        if: ${{ inputs.platform != 'ios' }}
-        run: |
-          export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}
-          export ANDROID_HOME=$ANDROID_SDK_ROOT
-          export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH"
-          SYSTEM_IMAGE="system-images;android-34;google_apis;arm64-v8a"
-          AVD_NAME="bitmovin-ci-arm64"
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platform-tools" "platforms;android-34" "$SYSTEM_IMAGE"
-          if ! "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" list avd | grep -q "^Name: ${AVD_NAME}$"; then
-            echo "no" | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n "$AVD_NAME" -k "$SYSTEM_IMAGE" -d pixel_7 --abi arm64-v8a
-          fi
-          nohup "$ANDROID_HOME/emulator/emulator" -avd "$AVD_NAME" -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -camera-front none >/tmp/emulator.log 2>&1 &
-          adb wait-for-device
-          adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
-
       - name: Prepare iOS simulator
-        if: ${{ inputs.platform != 'android' }}
         run: |
           RUNTIME=$(xcrun simctl list runtimes -j | jq -r '.runtimes | map(select(.platform=="iOS" and .isAvailable==true)) | sort_by(.version) | reverse | .[0].identifier')
           DEVICE=$(xcrun simctl list devicetypes -j | jq -r '.devicetypes | map(select(.name | test("^iPhone"))) | .[0].identifier')
@@ -67,26 +106,7 @@ jobs:
           xcrun simctl boot "$EXISTING" || true
           xcrun simctl bootstatus "$EXISTING" -b
 
-      - name: Run Android integration tests
-        if: ${{ inputs.platform != 'ios' }}
-        id: android-tests
-        continue-on-error: true
-        run: |
-          set +e
-          yarn integration-test test:android --xml
-          STATUS=$?
-          echo "status=$STATUS" >> $GITHUB_OUTPUT
-          exit $STATUS
-
-      - name: Collect Android results
-        if: ${{ inputs.platform != 'ios' }}
-        run: |
-          if [ -f integration_test/cavy_results.xml ]; then
-            mv integration_test/cavy_results.xml integration_test/cavy_results_android.xml
-          fi
-
       - name: Run iOS integration tests
-        if: ${{ inputs.platform != 'android' }}
         id: ios-tests
         continue-on-error: true
         run: |
@@ -97,18 +117,15 @@ jobs:
           exit $STATUS
 
       - name: Collect iOS results
-        if: ${{ inputs.platform != 'android' }}
         run: |
           if [ -f integration_test/cavy_results.xml ]; then
             mv integration_test/cavy_results.xml integration_test/cavy_results_ios.xml
           fi
 
-      - name: Summarize results
+      - name: Summarize iOS results
         if: always()
         env:
-          ANDROID_STATUS: ${{ steps.android-tests.outputs.status || '0' }}
           IOS_STATUS: ${{ steps.ios-tests.outputs.status || '0' }}
         run: |
           python .github/scripts/summarize_cavy_results.py \
-            --android integration_test/cavy_results_android.xml \
             --ios integration_test/cavy_results_ios.xml
