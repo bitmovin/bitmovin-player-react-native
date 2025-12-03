@@ -1025,8 +1025,8 @@ extension RCTConvert {
            let shouldEnterOnBackground = json["shouldEnterOnBackground"] as? Bool {
             pictureInPictureConfig.shouldEnterOnBackground = shouldEnterOnBackground
         }
-        if let pictureInPictureActions = pictureInPictureActions(json["pictureInPictureActions"]) {
-            pictureInPictureConfig.showSkipControls = pictureInPictureActions.contains(RNPictureInPictureAction.seek)
+        if let pictureInPictureActions = pictureInPictureActions(json["pictureInPictureActions"] as Any?) {
+            pictureInPictureConfig.showSkipControls = pictureInPictureActions.contains(.seek)
         }
 #endif
         return pictureInPictureConfig
@@ -1049,6 +1049,15 @@ extension RCTConvert {
         }
     }
 
+    private static func tweaksConfig(pictureInPictureConfigJson: Any?) -> PlayerViewTweaksConfig? {
+        let tweaksConfig = PlayerViewTweaksConfig()
+        if let json = pictureInPictureConfigJson as? [String: Any?],
+           let pictureInPictureActions = pictureInPictureActions(json["pictureInPictureActions"] as Any?) {
+            tweaksConfig.hideTransportControlsInPictureInPicture = !pictureInPictureActions.contains(.togglePlayback)
+        }
+        return tweaksConfig
+    }
+
     static func rnPlayerViewConfig(_ json: Any?) -> RNPlayerViewConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -1057,6 +1066,7 @@ extension RCTConvert {
         return RNPlayerViewConfig(
             uiConfig: json["uiConfig"].flatMap(rnUiConfig),
             pictureInPictureConfig: json["pictureInPictureConfig"].flatMap(pictureInPictureConfig),
+            tweaksConfig: json["pictureInPictureConfig"].flatMap(tweaksConfig(pictureInPictureConfigJson:)),
             hideFirstFrame: json["hideFirstFrame"] as? Bool
         )
     }
@@ -1165,12 +1175,20 @@ internal struct RNPlayerViewConfig {
     let pictureInPictureConfig: PictureInPictureConfig?
 
     /**
+     * PlayerView tweaks config
+     */
+    let tweaksConfig: PlayerViewTweaksConfig?
+
+    /**
      * PlayerView config considering all properties
      */
     var playerViewConfig: PlayerViewConfig {
         let config = PlayerViewConfig()
         if let pictureInPictureConfig {
             config.pictureInPictureConfig = pictureInPictureConfig
+        }
+        if let tweaksConfig {
+            config.tweaksConfig = tweaksConfig
         }
         return config
     }
