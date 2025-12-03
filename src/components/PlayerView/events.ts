@@ -64,6 +64,8 @@ import {
   PlaybackSpeedChangedEvent,
   CueEnterEvent,
   CueExitEvent,
+  MetadataParsedEvent,
+  MetadataEvent
 } from '../../events';
 
 /**
@@ -216,6 +218,14 @@ export type PlayerViewEvents = {
    * @platform iOS, Android
    */
   onFullscreenExit?: (event: FullscreenExitEvent) => void;
+  /**
+   * Emitted when metadata is encountered during playback.
+   */
+  onMetadata?: (event: MetadataEvent) => void;
+  /**
+   * Emitted when metadata is first seen and parsed.
+   */
+  onMetadataParsed?: (event: MetadataParsedEvent) => void;
   /**
    * Event emitted when the player has been muted.
    */

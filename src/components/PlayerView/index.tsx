@@ -133,6 +133,8 @@ export function PlayerView({
       onBmpCastWaitingForDevice={proxy(props.onCastWaitingForDevice)}
       onBmpCueEnter={proxy(props.onCueEnter)}
       onBmpCueExit={proxy(props.onCueExit)}
+      onBmpMetadata={proxy(props.onMetadata)}
+      onBmpMetadataParsed={proxy(props.onMetadataParsed)}
       onBmpDestroy={proxy(props.onDestroy)}
       onBmpEvent={proxy(props.onEvent)}
       onBmpFullscreenEnabled={proxy(props.onFullscreenEnabled)}
