@@ -1037,16 +1037,7 @@ extension RCTConvert {
             return nil
         }
 
-        return array.compactMap { item in
-            switch item {
-            case "TogglePlayback":
-                return .togglePlayback
-            case "Seek":
-                return .seek
-            default:
-                return nil
-            }
-        }
+        return array.compactMap(RNPictureInPictureAction.init(rawValue:))
     }
 
     static func rnPlayerViewConfig(_ json: Any?) -> RNPlayerViewConfig? {
