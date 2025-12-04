@@ -5,7 +5,7 @@
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.134.0+jason`
-- Update Bitmovin's native iOS SDK version to `3.101.0`
+- Update Bitmovin's native iOS SDK version to `3.102.0`
 - When no subtitle is selected on iOS/tvOS, it returns `null` instead of a track with identifier `off` to align with the Android Player SDK behavior
 - `SubtitleChangedEvent`'s properties of `oldSubtitleTrack` and `newSubtitleTrack` are now optional to align with the native Player SDKs
 
