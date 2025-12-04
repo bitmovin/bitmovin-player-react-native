@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
 import { NativePlayerView, NativePlayerViewConfig } from './native';
@@ -197,7 +197,7 @@ export function PlayerView({
   );
 }
 
-interface InternalPlayerViewRef extends PlayerViewRef {
+type InternalPlayerViewRef = PlayerViewRef & {
   /**
    * Update Picture in Picture actions that should be displayed on the Picture in Picture window.
    * Ideally we would just pass the props to the `NativePlayerView`, but due to a React Native limitation,
@@ -206,4 +206,4 @@ interface InternalPlayerViewRef extends PlayerViewRef {
   updatePictureInPictureActions: (
     actions: PictureInPictureAction[]
   ) => Promise<void>;
-}
+};

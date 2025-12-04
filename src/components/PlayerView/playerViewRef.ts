@@ -1,4 +1,4 @@
 import { ComponentRef } from 'react';
 import { NativePlayerView } from './native';
 
-export interface PlayerViewRef extends ComponentRef<typeof NativePlayerView> {}
+export type PlayerViewRef = ComponentRef<typeof NativePlayerView>;
