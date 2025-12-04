@@ -23,7 +23,7 @@ env:
 jobs:
   android:
     if: ${{ github.event.inputs.platform != 'ios' }}
-    runs-on: ubuntu-latest
+    runs-on: macOS-15
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v6
@@ -68,23 +68,18 @@ jobs:
         if: ${{ steps.android-integration-prebuild-cache.outputs.cache-hit != 'true' }}
         run: .github/scripts/smart-prebuild.sh integration-test
 
-      - name: Ensure KVM permissions
-        run: |
-          if [ -e /dev/kvm ]; then
-            sudo chown root:kvm /dev/kvm
-            sudo chmod 660 /dev/kvm
-          fi
-
       - name: Run Android integration tests
         id: android-tests
         continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
-          arch: x86_64
+          arch: arm64-v8a
           target: google_apis
+          force-avd-creation: true
+          disable-animations: true
           emulator-options: -no-window -no-snapshot -no-audio -no-boot-anim -gpu swiftshader_indirect
-          emulator-boot-timeout: 420
+          emulator-boot-timeout: 600
           script: |
             yarn integration-test test:android --xml
         env:
