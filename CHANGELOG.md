@@ -10,7 +10,7 @@
 
 ### Fixed
 
-- Android: `player.setSubtitleTrack()` now correctly disables subtitles
+- Android: `player.setSubtitleTrack()` now correctly disables subtitles when passing `undefined` as a parameter. Calling `player.setSubtitleTrack()` without a parameter is no longer supported
 
 ## [1.4.0] - 2025-11-06
 
