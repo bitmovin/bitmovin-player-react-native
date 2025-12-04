@@ -67,7 +67,6 @@ def main():
 
     summary_lines = ["## Integration Test Results"]
     overall_fail = False
-    overall_totals = {"tests": 0, "passed": 0, "failures": 0}
     test_index = build_test_index(args.tests_root)
 
     for name, path, status in platforms:
@@ -80,9 +79,6 @@ def main():
             summary_lines.append(f"- {name}: no results file found")
             overall_fail = overall_fail or (status not in (None, "", "0"))
             continue
-        overall_totals["tests"] += data["tests"]
-        overall_totals["passed"] += data["passed"]
-        overall_totals["failures"] += data["failures"]
 
         # Summary table per platform
         summary_lines.append(f"### {name} Summary")
@@ -106,14 +102,6 @@ def main():
         summary_lines.append("")
 
         overall_fail = overall_fail or data["failures"] > 0 or (status not in (None, "", "0"))
-
-    # Overall table (only if we saw any data)
-    if overall_totals["tests"] > 0:
-        summary_lines.insert(1, "")
-        summary_lines.insert(1, f"| {overall_totals['tests']} | {overall_totals['passed']} | {overall_totals['failures']} |")
-        summary_lines.insert(1, "| Tests | Passed | Failed |")
-        summary_lines.insert(1, "| --- | --- | --- |")
-        summary_lines.insert(1, "### Overall Summary")
 
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_path:
