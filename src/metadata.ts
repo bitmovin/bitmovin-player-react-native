@@ -51,23 +51,6 @@ export interface AvMetadataItemEntry extends BaseMetadataEntry {
   metadataType: MetadataType.ID3;
   /**
   * Platform discriminator for TypeScript type narrowing.
-  *
-  * This field enables automatic type narrowing in discriminated unions,
-  * allowing TypeScript to infer platform-specific properties without
-  * manual type assertions.
-  * 
-  * @example
-  * ```ts
-  * function processMetadata(entry: Id3MetadataEntry) {
-  *   if (entry.platform === 'android') {
-  *     // TypeScript narrows to AndroidId3Frame
-  *     console.log(entry.frameType); // Type-safe
-  *   } else {
-  *     // TypeScript narrows to AvMetadataItemEntry (iOS)
-  *     console.log(entry.keySpace);  // Type-safe
-  *   }
-  * }
-  * ```
   */
   platform: 'ios';
   /**
@@ -123,23 +106,6 @@ interface AndroidId3FrameBase extends BaseMetadataEntry {
   metadataType: MetadataType.ID3;
   /**
   * Platform discriminator for TypeScript type narrowing.
-  *
-  * This field enables automatic type narrowing in discriminated unions,
-  * allowing TypeScript to infer platform-specific properties without
-  * manual type assertions.
-  * 
-  * @example
-  * ```ts
-  * function processMetadata(entry: Id3MetadataEntry) {
-  *   if (entry.platform === 'android') {
-  *     // TypeScript narrows to AndroidId3Frame
-  *     console.log(entry.frameType); // Type-safe
-  *   } else {
-  *     // TypeScript narrows to AvMetadataItemEntry (iOS)
-  *     console.log(entry.keySpace);  // Type-safe
-  *   }
-  * }
-  * ```
   */
   platform: 'android';
   id: string;
@@ -275,6 +241,26 @@ export type AndroidId3Frame =
   | AndroidChapterFrame
   | AndroidChapterTocFrame;
 
+/**
+ * Describes metadata associated with ID3 tags.
+ * 
+ * This is a discriminated union of iOS and Android ID3 representations.
+ * The `platform` field acts as the discriminator, allowing TypeScript to
+ * automatically narrow to the correct platform-specific type.
+ *
+ * @example
+ * ```ts
+ * function processMetadata(entry: Id3MetadataEntry) {
+ *   if (entry.platform === 'android') {
+ *     // TypeScript narrows to AndroidId3Frame
+ *     console.log(entry.frameType); // Type-safe
+ *   } else {
+ *     // TypeScript narrows to AvMetadataItemEntry (iOS)
+ *     console.log(entry.keySpace);  // Type-safe
+ *   }
+ * }
+ * ```
+ */
 export type Id3MetadataEntry = AvMetadataItemEntry | AndroidId3Frame;
 
 /**
