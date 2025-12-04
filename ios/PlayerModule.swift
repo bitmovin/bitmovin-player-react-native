@@ -111,7 +111,8 @@ public class PlayerModule: Module {
         }.runOnQueue(.main)
         AsyncFunction("getAvailableSubtitles") { (nativeId: NativeId) -> [[String: Any]] in
             PlayerRegistry.getPlayer(nativeId: nativeId)?
-                .availableSubtitles.compactMap { RCTConvert.subtitleTrackJson($0) } ?? []
+                .availableSubtitles
+                .compactMap { RCTConvert.subtitleTrackJson($0) } ?? []
         }.runOnQueue(.main)
         AsyncFunction("setSubtitleTrack") { (nativeId: NativeId, trackIdentifier: String?) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.setSubtitle(trackIdentifier: trackIdentifier)
