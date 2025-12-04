@@ -7,6 +7,7 @@ import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
 import { PlayerViewProps } from './properties';
 import { PlayerViewRef } from './playerViewRef';
+import { PictureInPictureAction } from './pictureInPictureAction';
 
 /**
  * Base style that initializes the native view frame when no width/height prop has been set.
@@ -33,12 +34,13 @@ export function PlayerView({
   isFullscreenRequested = false,
   scalingMode,
   isPictureInPictureRequested = false,
+  pictureInPictureActions,
   ...props
 }: PlayerViewProps) {
   // Keep the device awake while the PlayerView is mounted
   useKeepAwake();
 
-  const nativeView = useRef<PlayerViewRef | null>(viewRef?.current ?? null);
+  const nativeView = useRef<InternalPlayerViewRef>(viewRef?.current || null);
 
   // Native events proxy helper.
   const proxy = useProxy(nativeView);
@@ -98,6 +100,14 @@ export function PlayerView({
       viewRef.current = nativeView.current;
     }
   }, [isPlayerInitialized, viewRef, nativeView]);
+
+  useEffect(() => {
+    if (isPlayerInitialized && pictureInPictureActions != null) {
+      nativeView.current?.updatePictureInPictureActions(
+        pictureInPictureActions
+      );
+    }
+  }, [isPlayerInitialized, pictureInPictureActions]);
 
   if (!isPlayerInitialized) {
     return null;
@@ -185,4 +195,15 @@ export function PlayerView({
       onBmpDownloadFinished={proxy(props.onDownloadFinished)}
     />
   );
+}
+
+interface InternalPlayerViewRef extends PlayerViewRef {
+  /**
+   * Update Picture in Picture actions that should be displayed on the Picture in Picture window.
+   * Ideally we would just pass the props to the `NativePlayerView`, but due to a React Native limitation,
+   * the props aren't passed to the native module when PiP is active on Android.
+   */
+  updatePictureInPictureActions: (
+    actions: PictureInPictureAction[]
+  ) => Promise<void>;
 }

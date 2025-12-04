@@ -30,7 +30,7 @@ public class RNPlayerViewManager: Module {
                 view.attachFullscreenBridge(fullscreenBridgeId: fullscreenBridgeId)
             }
             AsyncFunction("updatePictureInPictureActions") { (view: RNPlayerView, pictureInPictureActions: [String]) in
-                view.setPictureInPictureActions(actions: RCTConvert.pictureInPictureActions(pictureInPictureActions))
+                view.updatePictureInPictureActions(actions: RCTConvert.pictureInPictureActions(pictureInPictureActions))
             }
             Events(
                 "onBmpEvent",

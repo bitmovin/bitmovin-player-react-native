@@ -1037,16 +1037,7 @@ extension RCTConvert {
             return nil
         }
 
-        return array.compactMap { item in
-            switch item {
-            case "TogglePlayback":
-                return .togglePlayback
-            case "Seek":
-                return .seek
-            default:
-                return nil
-            }
-        }
+        return array.compactMap(RNPictureInPictureAction.init(rawValue:))
     }
 
     private static func tweaksConfig(pictureInPictureConfigJson: Any?) -> PlayerViewTweaksConfig? {
@@ -1224,7 +1215,7 @@ internal struct RNBufferLevels {
     let video: BufferLevel
 }
 
-internal enum RNPictureInPictureAction {
-    case togglePlayback
-    case seek
+internal enum RNPictureInPictureAction: String {
+    case togglePlayback = "TogglePlayback"
+    case seek = "Seek"
 }
