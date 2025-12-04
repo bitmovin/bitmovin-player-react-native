@@ -1189,7 +1189,7 @@ extension RCTConvert {
         return formatter
     }()
 
-    static func toJson(avMetadataItem: AVMetadataItem, metadataType: MetadataType) -> [String: Any] {
+    static func toJson(avMetadataItem: AVMetadataItem, metadataType: MetadataType) -> [String: Any] { // swiftlint:disable:this cyclomatic_complexity line_length
         var json: [String: Any] = [
             "metadataType": metadataTypeString(metadataType),
             "platform": "ios"
