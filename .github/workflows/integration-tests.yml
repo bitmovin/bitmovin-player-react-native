@@ -101,13 +101,7 @@ jobs:
           cores: 2
           script: |
             adb wait-for-device
-            for i in $(seq 1 60); do
-              if adb shell pm list packages >/dev/null 2>&1; then
-                break
-              fi
-              echo "Waiting for package manager... ($i/60)"
-              sleep 5
-            done
+            for i in $(seq 1 60); do if adb shell pm list packages >/dev/null 2>&1; then break; fi; echo "Waiting for package manager... ($i/60)"; sleep 5; done
             yarn integration-test test:android --xml
         env:
           EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
