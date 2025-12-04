@@ -27,7 +27,7 @@ class RNPictureInPictureHandler(
     private var _isPictureInPicture = false
     var autoEnterEnabledOverride = false
         set(value) {
-            if (autoEnterEnabledOverride == value) {
+            if (field == value) {
                 return
             }
             field = value
