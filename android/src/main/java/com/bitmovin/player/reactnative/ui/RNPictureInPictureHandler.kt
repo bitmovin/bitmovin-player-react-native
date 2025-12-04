@@ -25,7 +25,7 @@ class RNPictureInPictureHandler(
     // playerView.exitPictureInPicture() the activity will already have exited the PiP mode,
     // and thus the event won't be emitted. To work around this we keep track of the PiP state ourselves.
     private var _isPictureInPicture = false
-    var autoEnterEnabledOverride = false
+    var playerIsPlaying = false
         set(value) {
             if (field == value) {
                 return
@@ -53,7 +53,9 @@ class RNPictureInPictureHandler(
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun buildPictureInPictureParams(autoEnterEnabled: Boolean = autoEnterEnabledOverride) =
+    private fun buildPictureInPictureParams(
+        autoEnterEnabled: Boolean = pictureInPictureConfig.isAutoPipEnabled && playerIsPlaying
+    ) =
         PictureInPictureParams.Builder()
             .setAspectRatio(getPiPAspectRation())
             .apply {
@@ -92,3 +94,6 @@ class RNPictureInPictureHandler(
         _isPictureInPicture = false
     }
 }
+
+
+private val PictureInPictureConfig.isAutoPipEnabled get() = isEnabled && shouldEnterOnBackground

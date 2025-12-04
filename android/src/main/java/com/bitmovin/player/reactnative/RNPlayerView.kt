@@ -17,7 +17,6 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
-import com.bitmovin.player.api.ui.PictureInPictureHandler
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.UiConfig
@@ -338,7 +337,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         if (!playerView.isPictureInPictureAvailable || playerView.isPictureInPicture) {
             return false
         }
-        if (pictureInPictureHandler?.autoEnterEnabledOverride != true) return false
+        if (pictureInPictureHandler?.playerIsPlaying != true) return false
         playerView.enterPictureInPicture()
         return true
     }
@@ -590,43 +589,43 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         playerEventSubscriptions.clear()
     }
 
-    private fun updateAutoPiPOverride(autoEnterEnabled: Boolean) {
-        pictureInPictureHandler?.autoEnterEnabledOverride = autoEnterEnabled
+    private fun updatePiPHanlderPlayingState(playing: Boolean) {
+        pictureInPictureHandler?.playerIsPlaying = playing
     }
 
     private fun attachPlayerListeners(player: Player) {
         playerEventSubscriptions = mutableListOf(
             player.on<PlayerEvent.Active> { onEvent(onBmpPlayerActive, it.toJson()) },
             player.on<PlayerEvent.Inactive> {
-                updateAutoPiPOverride(false)
+                updatePiPHanlderPlayingState(false)
                 onEvent(onBmpPlayerInactive, it.toJson())
             },
             player.on<PlayerEvent.Error> {
-                updateAutoPiPOverride(false)
+                updatePiPHanlderPlayingState(false)
                 onEvent(onBmpPlayerError, it.toJson())
             },
             player.on<PlayerEvent.Warning> { onEvent(onBmpPlayerWarning, it.toJson()) },
             player.on<PlayerEvent.Destroy> {
-                updateAutoPiPOverride(false)
+                updatePiPHanlderPlayingState(false)
                 onEvent(onBmpDestroy, it.toJson())
             },
             player.on<PlayerEvent.Muted> { onEvent(onBmpMuted, it.toJson()) },
             player.on<PlayerEvent.Unmuted> { onEvent(onBmpUnmuted, it.toJson()) },
             player.on<PlayerEvent.Ready> { onEvent(onBmpReady, it.toJson()) },
             player.on<PlayerEvent.Paused> {
-                updateAutoPiPOverride(false)
+                updatePiPHanlderPlayingState(false)
                 onEvent(onBmpPaused, it.toJson())
             },
             player.on<PlayerEvent.Play> {
-                updateAutoPiPOverride(true)
+                updatePiPHanlderPlayingState(true)
                 onEvent(onBmpPlay, it.toJson())
             },
             player.on<PlayerEvent.Playing> {
-                updateAutoPiPOverride(true)
+                updatePiPHanlderPlayingState(true)
                 onEvent(onBmpPlaying, it.toJson())
             },
             player.on<PlayerEvent.PlaybackFinished> {
-                updateAutoPiPOverride(false)
+                updatePiPHanlderPlayingState(false)
                 onEvent(onBmpPlaybackFinished, it.toJson())
             },
             player.on<PlayerEvent.Seek> { onEvent(onBmpSeek, it.toJson()) },
@@ -649,11 +648,11 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             player.on<SourceEvent.SubtitleTrackRemoved> { onEvent(onBmpSubtitleRemoved, it.toJson()) },
             player.on<SourceEvent.DownloadFinished> { onEvent(onBmpDownloadFinished, it.toJson()) },
             player.on<PlayerEvent.AdBreakFinished> {
-                updateAutoPiPOverride(false)
+                updatePiPHanlderPlayingState(false)
                 onEvent(onBmpAdBreakFinished, it.toJson())
             },
             player.on<PlayerEvent.AdBreakStarted> {
-                updateAutoPiPOverride(true)
+                updatePiPHanlderPlayingState(true)
                 onEvent(onBmpAdBreakStarted, it.toJson())
             },
             player.on<PlayerEvent.AdClicked> { onEvent(onBmpAdClicked, it.toJson()) },
