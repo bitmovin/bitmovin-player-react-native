@@ -52,6 +52,12 @@ export default function BasicPictureInPicture({
     []
   );
 
+    const player = usePlayer({
+        remoteControlConfig: {
+            isCastEnabled: false,
+        },
+    });
+
   const shouldEnterPiPOnBackground =
     Platform.OS === 'android' &&
     config.pictureInPictureConfig?.shouldEnterOnBackground === true &&
@@ -72,12 +78,6 @@ export default function BasicPictureInPicture({
 
     return () => subscription.remove();
   }, [shouldEnterPiPOnBackground, isInPictureInPicture]);
-
-  const player = usePlayer({
-    remoteControlConfig: {
-      isCastEnabled: false,
-    },
-  });
 
   useFocusEffect(
     useCallback(() => {
