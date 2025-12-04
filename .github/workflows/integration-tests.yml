@@ -25,6 +25,9 @@ jobs:
     if: ${{ github.event.inputs.platform != 'ios' }}
     runs-on: macOS-15
     timeout-minutes: 90
+    env:
+      ANDROID_SDK_ROOT: /Users/runner/Library/Android/sdk
+      ANDROID_HOME: /Users/runner/Library/Android/sdk
     steps:
       - uses: actions/checkout@v6
 
@@ -68,6 +71,12 @@ jobs:
         if: ${{ steps.android-integration-prebuild-cache.outputs.cache-hit != 'true' }}
         run: .github/scripts/smart-prebuild.sh integration-test
 
+      - name: Start adb server
+        run: |
+          "$ANDROID_HOME/platform-tools/adb" kill-server || true
+          "$ANDROID_HOME/platform-tools/adb" start-server
+          "$ANDROID_HOME/platform-tools/adb" devices
+
       - name: Run Android integration tests
         id: android-tests
         continue-on-error: true
@@ -78,8 +87,11 @@ jobs:
           target: google_apis
           force-avd-creation: true
           disable-animations: true
-          emulator-options: -no-window -no-snapshot -no-audio -no-boot-anim -gpu swiftshader_indirect
-          emulator-boot-timeout: 600
+          emulator-options: -no-window -no-snapshot -no-audio -no-boot-anim -gpu swiftshader_indirect -no-metrics
+          emulator-boot-timeout: 900
+          channel: canary
+          ram-size: 3072M
+          cores: 3
           script: |
             yarn integration-test test:android --xml
         env:
