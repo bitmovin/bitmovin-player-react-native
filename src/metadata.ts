@@ -36,8 +36,6 @@ export interface DateRangeMetadataEntry extends BaseMetadataEntry {
    * If the metadata represents an instantaneous event, `endDate` should be equal
    * to {@link startDate}.
    * An omitted `endDate` indicates an open-ended range.
-   *
-   * @platform iOS, tvOS
    */
   endDate?: number;
   /**

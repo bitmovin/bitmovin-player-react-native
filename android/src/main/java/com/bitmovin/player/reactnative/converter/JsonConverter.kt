@@ -914,16 +914,21 @@ fun com.bitmovin.player.api.metadata.Metadata.Entry.toJson(): Map<String, Any> {
     }
 }
 
-fun DateRangeMetadata.toJson(): Map<String, Any> = mapOf(
-    "metadataType" to "DATERANGE",
-    "id" to id,
-    "startDate" to startDate * 1000, // TypeScript/JS conventionally use milliseconds for Dates. See `Date.now()`.
-    "endOnNext" to endOnNext,
-    "clientAttributes" to clientAttributes,
-    "classLabel" to classLabel,
-    "duration" to duration,
-    "plannedDuration" to plannedDuration,
-).filterNotNullValues()
+fun DateRangeMetadata.toJson(): Map<String, Any> {
+    val endSeconds = (duration ?: plannedDuration)?.let { startDate + it }
+
+    return mapOf(
+        "metadataType" to "DATERANGE",
+        "id" to id,
+        "startDate" to startDate * 1000, // TypeScript/JS conventionally use milliseconds for Dates. See `Date.now()`.
+        "endDate" to endSeconds?.times(1000),
+        "endOnNext" to endOnNext,
+        "clientAttributes" to clientAttributes,
+        "classLabel" to classLabel,
+        "duration" to duration,
+        "plannedDuration" to plannedDuration,
+    ).filterNotNullValues()
+}
 
 fun ScteMessage.toJson(): Map<String, Any> = mapOf(
     "metadataType" to "SCTE",
