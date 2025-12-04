@@ -938,7 +938,7 @@ private fun Id3Frame.toJson(): Map<String, Any> {
         }
         is BinaryFrame -> {
             base["frameType"] = "binary"
-            base["data"] = Base64.encodeToString(data, Base64.NO_WRAP)
+            base["data"] = data.toBase64String()
         }
         is CommentFrame -> {
             base["frameType"] = "comment"
@@ -956,19 +956,19 @@ private fun Id3Frame.toJson(): Map<String, Any> {
             base["mimeType"] = mimeType
             description?.let { base["description"] = it }
             base["pictureType"] = pictureType
-            base["pictureData"] = Base64.encodeToString(pictureData, Base64.NO_WRAP)
+            base["pictureData"] = pictureData.toBase64String()
         }
         is GeobFrame -> {
             base["frameType"] = "geob"
             base["mimeType"] = mimeType
             base["filename"] = filename
             base["description"] = description
-            base["data"] = Base64.encodeToString(data, Base64.NO_WRAP)
+            base["data"] = data.toBase64String()
         }
         is PrivFrame -> {
             base["frameType"] = "priv"
             base["owner"] = owner
-            base["privateData"] = Base64.encodeToString(privateData, Base64.NO_WRAP)
+            base["privateData"] = privateData.toBase64String()
         }
         is ChapterFrame -> {
             base["frameType"] = "chapter"
