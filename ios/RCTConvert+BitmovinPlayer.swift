@@ -1170,8 +1170,7 @@ extension RCTConvert {
         let startTime: Double
         if let id3Metadata = metadata as? Id3Metadata {
             startTime = id3Metadata.startTime
-        }
-        else if let scteMetadata = metadata as? ScteMetadata {
+        } else if let scteMetadata = metadata as? ScteMetadata {
             startTime = scteMetadata.startTime
         } else {
             startTime = 0
