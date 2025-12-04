@@ -589,43 +589,32 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         playerEventSubscriptions.clear()
     }
 
-    private fun updatePiPHanlderPlayingState(playing: Boolean) {
-        pictureInPictureHandler?.playerIsPlaying = playing
-    }
-
     private fun attachPlayerListeners(player: Player) {
         playerEventSubscriptions = mutableListOf(
             player.on<PlayerEvent.Active> { onEvent(onBmpPlayerActive, it.toJson()) },
             player.on<PlayerEvent.Inactive> {
-                updatePiPHanlderPlayingState(false)
                 onEvent(onBmpPlayerInactive, it.toJson())
             },
             player.on<PlayerEvent.Error> {
-                updatePiPHanlderPlayingState(false)
                 onEvent(onBmpPlayerError, it.toJson())
             },
             player.on<PlayerEvent.Warning> { onEvent(onBmpPlayerWarning, it.toJson()) },
             player.on<PlayerEvent.Destroy> {
-                updatePiPHanlderPlayingState(false)
                 onEvent(onBmpDestroy, it.toJson())
             },
             player.on<PlayerEvent.Muted> { onEvent(onBmpMuted, it.toJson()) },
             player.on<PlayerEvent.Unmuted> { onEvent(onBmpUnmuted, it.toJson()) },
             player.on<PlayerEvent.Ready> { onEvent(onBmpReady, it.toJson()) },
             player.on<PlayerEvent.Paused> {
-                updatePiPHanlderPlayingState(false)
                 onEvent(onBmpPaused, it.toJson())
             },
             player.on<PlayerEvent.Play> {
-                updatePiPHanlderPlayingState(true)
                 onEvent(onBmpPlay, it.toJson())
             },
             player.on<PlayerEvent.Playing> {
-                updatePiPHanlderPlayingState(true)
                 onEvent(onBmpPlaying, it.toJson())
             },
             player.on<PlayerEvent.PlaybackFinished> {
-                updatePiPHanlderPlayingState(false)
                 onEvent(onBmpPlaybackFinished, it.toJson())
             },
             player.on<PlayerEvent.Seek> { onEvent(onBmpSeek, it.toJson()) },
@@ -648,11 +637,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             player.on<SourceEvent.SubtitleTrackRemoved> { onEvent(onBmpSubtitleRemoved, it.toJson()) },
             player.on<SourceEvent.DownloadFinished> { onEvent(onBmpDownloadFinished, it.toJson()) },
             player.on<PlayerEvent.AdBreakFinished> {
-                updatePiPHanlderPlayingState(false)
                 onEvent(onBmpAdBreakFinished, it.toJson())
             },
             player.on<PlayerEvent.AdBreakStarted> {
-                updatePiPHanlderPlayingState(true)
                 onEvent(onBmpAdBreakStarted, it.toJson())
             },
             player.on<PlayerEvent.AdClicked> { onEvent(onBmpAdClicked, it.toJson()) },

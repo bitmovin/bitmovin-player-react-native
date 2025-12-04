@@ -26,7 +26,7 @@ class RNPictureInPictureHandler(
     // and thus the event won't be emitted. To work around this we keep track of the PiP state ourselves.
     private var _isPictureInPicture = false
     var playerIsPlaying = false
-        set(value) {
+        private set(value) {
             if (field == value) {
                 return
             }
@@ -38,6 +38,8 @@ class RNPictureInPictureHandler(
         get() = _isPictureInPicture
 
     init {
+        playerIsPlaying = player.isPlaying
+        subscribeToPlayerPlaybackEvents()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             updatePictureInPictureParams()
 
@@ -45,6 +47,26 @@ class RNPictureInPictureHandler(
                 updatePictureInPictureParams()
             }
         }
+    }
+
+    private val setPlayerIsPlaying: (PlayerEvent) -> Unit = {
+        playerIsPlaying = true
+    }
+
+    private val setPlayerIsNotPlaying: (PlayerEvent) -> Unit = {
+        playerIsPlaying = true
+    }
+
+    private fun subscribeToPlayerPlaybackEvents() {
+        player.on<PlayerEvent.Play>(setPlayerIsPlaying)
+        player.on<PlayerEvent.Playing>(setPlayerIsPlaying)
+        player.on<PlayerEvent.AdBreakStarted>(setPlayerIsPlaying)
+        player.on<PlayerEvent.Paused>(setPlayerIsNotPlaying)
+        player.on<PlayerEvent.PlaybackFinished>(setPlayerIsNotPlaying)
+        player.on<PlayerEvent.Inactive>(setPlayerIsNotPlaying)
+        player.on<PlayerEvent.Destroy>(setPlayerIsNotPlaying)
+        player.on<PlayerEvent.Error>(setPlayerIsNotPlaying)
+        player.on<PlayerEvent.AdBreakFinished>(setPlayerIsNotPlaying)
     }
 
     private fun getPiPAspectRation() = player.playbackVideoData
