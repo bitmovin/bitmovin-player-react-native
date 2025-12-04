@@ -1153,11 +1153,9 @@ extension RCTConvert {
         var entriesArray: [[String: Any]] = []
 
         for entry in metadata.entries {
-            switch type {
-            case .scte:
-                if let scteEntry = entry as? ScteMetadataEntry {
-                    entriesArray.append(toJson(scteMetadataEntry: scteEntry))
-                }
+            switch entry {
+            case let scteEntry as ScteMetadataEntry where type == .scte:
+                entriesArray.append(toJson(scteMetadataEntry: scteEntry))
             default:
                 break
             }
