@@ -25,6 +25,9 @@ class RNPictureInPictureHandler(
     // playerView.exitPictureInPicture() the activity will already have exited the PiP mode,
     // and thus the event won't be emitted. To work around this we keep track of the PiP state ourselves.
     private var _isPictureInPicture = false
+    override val isPictureInPicture: Boolean
+        get() = _isPictureInPicture
+
     var playerIsPlaying = false
         private set(value) {
             if (field == value) {
@@ -33,9 +36,6 @@ class RNPictureInPictureHandler(
             field = value
             updatePictureInPictureParams()
         }
-
-    override val isPictureInPicture: Boolean
-        get() = _isPictureInPicture
 
     init {
         playerIsPlaying = player.isPlaying
