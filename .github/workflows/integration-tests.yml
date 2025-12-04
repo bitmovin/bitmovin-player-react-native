@@ -38,19 +38,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-android-integration-prebuild-
 
-      - name: Cache Android SDK image
-        uses: actions/cache@v4
-        with:
-          path: |
-            /usr/local/lib/android/sdk/platforms/android-34
-            /usr/local/lib/android/sdk/system-images/android-34/google_apis/x86_64
-            /usr/local/lib/android/sdk/platform-tools
-            /home/runner/.android/avd/bitmovin-ci-x86.avd
-            /home/runner/.android/avd/bitmovin-ci-x86.ini
-          key: ${{ runner.os }}-android-sdk-34-googleapis-x86_64-v1
-          restore-keys: |
-            ${{ runner.os }}-android-sdk-34-googleapis-x86_64-
-
       - name: Cache Gradle Build
         uses: actions/cache@v4
         with:
@@ -81,31 +68,27 @@ jobs:
         if: ${{ steps.android-integration-prebuild-cache.outputs.cache-hit != 'true' }}
         run: .github/scripts/smart-prebuild.sh integration-test
 
-      - name: Prepare Android emulator
+      - name: Ensure KVM permissions
         run: |
-          export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}
-          export ANDROID_HOME=$ANDROID_SDK_ROOT
-          export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH"
-          SYSTEM_IMAGE="system-images;android-34;google_apis;x86_64"
-          AVD_NAME="bitmovin-ci-x86"
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platform-tools" "platforms;android-34" "$SYSTEM_IMAGE"
-          if ! "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" list avd | grep -q "^Name: ${AVD_NAME}$"; then
-            echo "no" | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n "$AVD_NAME" -k "$SYSTEM_IMAGE" -d pixel_7 --abi x86_64
+          if [ -e /dev/kvm ]; then
+            sudo chown root:kvm /dev/kvm
+            sudo chmod 660 /dev/kvm
           fi
-          nohup "$ANDROID_HOME/emulator/emulator" -avd "$AVD_NAME" -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -camera-front none >/tmp/emulator.log 2>&1 &
-          adb wait-for-device
-          adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
 
       - name: Run Android integration tests
         id: android-tests
         continue-on-error: true
-        run: |
-          set +e
-          yarn integration-test test:android --xml
-          STATUS=$?
-          echo "status=$STATUS" >> $GITHUB_OUTPUT
-          exit $STATUS
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          emulator-options: -no-window -no-snapshot -no-audio -no-boot-anim -gpu swiftshader_indirect
+          emulator-boot-timeout: 420
+          script: |
+            yarn integration-test test:android --xml
+        env:
+          EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
 
       - name: Collect Android results
         run: |
