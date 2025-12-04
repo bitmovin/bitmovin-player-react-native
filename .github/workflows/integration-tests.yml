@@ -85,7 +85,6 @@ jobs:
 
       - name: Run Android integration tests
         id: android-tests
-        continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
@@ -99,12 +98,13 @@ jobs:
           channel: stable
           ram-size: 2048M
           cores: 2
-          script: |
-            adb wait-for-device
-            for i in $(seq 1 60); do if adb shell pm list packages >/dev/null 2>&1; then break; fi; echo "Waiting for package manager... ($i/60)"; sleep 5; done
-            yarn integration-test test:android --xml
+        script: |
+          adb wait-for-device
+          for i in $(seq 1 60); do if adb shell pm list packages >/dev/null 2>&1; then break; fi; echo "Waiting for package manager... ($i/60)"; sleep 5; done
+          yarn integration-test test:android --xml
         env:
           EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
+          ORG_GRADLE_PROJECT_org.gradle.unsafe.configuration-cache: 'false'
 
       - name: Collect Android results
         run: |
