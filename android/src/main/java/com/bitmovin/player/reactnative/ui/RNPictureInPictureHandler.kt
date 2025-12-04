@@ -88,7 +88,7 @@ class RNPictureInPictureHandler(
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun buildPictureInPictureParams(
-        autoEnterEnabled: Boolean = pictureInPictureConfig.isAutoPipEnabled && playerIsPlaying
+        autoEnterEnabled: Boolean = pictureInPictureConfig.isAutoPipEnabled && playerIsPlaying,
     ) =
         PictureInPictureParams.Builder()
             .setAspectRatio(getPiPAspectRation())
@@ -130,6 +130,13 @@ class RNPictureInPictureHandler(
 
     fun dispose() {
         unsubscribeToPlayerPlaybackEvents()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            activity.setPictureInPictureParams(
+                PictureInPictureParams.Builder()
+                    .setAutoEnterEnabled(false)
+                    .build(),
+            )
+        }
     }
 }
 

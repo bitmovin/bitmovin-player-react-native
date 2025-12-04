@@ -169,14 +169,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
     fun dispose() {
         activityLifecycle?.removeObserver(activityLifecycleObserver)
-        appContext.activityProvider?.currentActivity
-            ?.setPictureInPictureParams(
-                PictureInPictureParams.Builder()
-                    .setAutoEnterEnabled(false)
-                    .build(),
-            )
         playerView?.onDestroy()
         playerView = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            pictureInPictureHandler?.dispose()
+            pictureInPictureHandler = null
+        }
         playerContainer?.let { container ->
             (container.parent as? ViewGroup)?.removeView(container)
         }
