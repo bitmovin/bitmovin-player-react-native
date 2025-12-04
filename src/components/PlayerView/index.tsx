@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { RefObject, useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
 import { NativePlayerView, NativePlayerViewConfig } from './native';
@@ -6,7 +6,6 @@ import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
 import { PlayerViewProps } from './properties';
-import { PlayerViewRef } from './playerViewRef';
 import { PictureInPictureAction } from './pictureInPictureAction';
 
 /**
@@ -197,7 +196,7 @@ export function PlayerView({
   );
 }
 
-type InternalPlayerViewRef = PlayerViewRef & {
+interface InternalPlayerViewRef extends RefObject<any> {
   /**
    * Update Picture in Picture actions that should be displayed on the Picture in Picture window.
    * Ideally we would just pass the props to the `NativePlayerView`, but due to a React Native limitation,
@@ -206,4 +205,4 @@ type InternalPlayerViewRef = PlayerViewRef & {
   updatePictureInPictureActions: (
     actions: PictureInPictureAction[]
   ) => Promise<void>;
-};
+}

@@ -4,7 +4,6 @@ import { FullscreenHandler, CustomMessageHandler } from '../../ui';
 import { ScalingMode } from '../../styleConfig';
 import { ViewStyle } from 'react-native';
 import { PlayerViewConfig } from './playerViewConfig';
-import { PlayerViewRef } from './playerViewRef';
 import { PictureInPictureAction } from './pictureInPictureAction';
 import { RefObject } from 'react';
 
@@ -80,7 +79,7 @@ export interface BasePlayerViewProps {
  * {@link PlayerView} component props.
  */
 export interface PlayerViewProps extends BasePlayerViewProps, PlayerViewEvents {
-  viewRef?: RefObject<PlayerViewRef | null>;
+  viewRef?: RefObject<any>;
   /**
    * {@link Player} instance (generally returned from {@link usePlayer} hook) that will control
    * and render audio/video inside the {@link PlayerView}.
