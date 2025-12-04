@@ -44,6 +44,16 @@ import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
+import com.bitmovin.player.api.metadata.id3.ApicFrame
+import com.bitmovin.player.api.metadata.id3.BinaryFrame
+import com.bitmovin.player.api.metadata.id3.ChapterFrame
+import com.bitmovin.player.api.metadata.id3.ChapterTocFrame
+import com.bitmovin.player.api.metadata.id3.CommentFrame
+import com.bitmovin.player.api.metadata.id3.GeobFrame
+import com.bitmovin.player.api.metadata.id3.Id3Frame
+import com.bitmovin.player.api.metadata.id3.PrivFrame
+import com.bitmovin.player.api.metadata.id3.TextInformationFrame
+import com.bitmovin.player.api.metadata.id3.UrlLinkFrame
 import com.bitmovin.player.api.metadata.scte.ScteMessage
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
@@ -907,9 +917,81 @@ fun com.bitmovin.player.api.metadata.Metadata.toJson(type: String): Map<String, 
 
 fun com.bitmovin.player.api.metadata.Metadata.Entry.toJson(): Map<String, Any> {
     return when (this) {
+        is Id3Frame -> this.toJson()
         is ScteMessage -> this.toJson()
         else -> mapOf("metadataType" to "NONE")
     }
+}
+
+private fun Id3Frame.toJson(): Map<String, Any> {
+    val base = mutableMapOf<String, Any>(
+        "metadataType" to "ID3",
+        "platform" to "android",
+        "id" to id
+    )
+
+    when (this) {
+        is TextInformationFrame -> {
+            base["frameType"] = "text"
+            base["value"] = value
+            description?.let { base["description"] = it }
+        }
+        is BinaryFrame -> {
+            base["frameType"] = "binary"
+            base["data"] = Base64.encodeToString(data, Base64.NO_WRAP)
+        }
+        is CommentFrame -> {
+            base["frameType"] = "comment"
+            base["language"] = language
+            base["description"] = description
+            base["text"] = text
+        }
+        is UrlLinkFrame -> {
+            base["frameType"] = "url"
+            base["url"] = url
+            description?.let { base["description"] = it }
+        }
+        is ApicFrame -> {
+            base["frameType"] = "apic"
+            base["mimeType"] = mimeType
+            description?.let { base["description"] = it }
+            base["pictureType"] = pictureType
+            base["pictureData"] = Base64.encodeToString(pictureData, Base64.NO_WRAP)
+        }
+        is GeobFrame -> {
+            base["frameType"] = "geob"
+            base["mimeType"] = mimeType
+            base["filename"] = filename
+            base["description"] = description
+            base["data"] = Base64.encodeToString(data, Base64.NO_WRAP)
+        }
+        is PrivFrame -> {
+            base["frameType"] = "priv"
+            base["owner"] = owner
+            base["privateData"] = Base64.encodeToString(privateData, Base64.NO_WRAP)
+        }
+        is ChapterFrame -> {
+            base["frameType"] = "chapter"
+            base["chapterId"] = chapterId
+            base["startTimeMs"] = startTimeMs
+            base["endTimeMs"] = endTimeMs
+            base["startOffset"] = startOffset
+            base["endOffset"] = endOffset
+            base["subFrames"] = subFrames.map { it.toJson() }
+        }
+        is ChapterTocFrame -> {
+            base["frameType"] = "chapterToc"
+            base["elementId"] = elementId
+            base["isRoot"] = isRoot
+            base["isOrdered"] = isOrdered
+            base["children"] = children
+            base["subFrames"] = (0 until subFrameCount)
+                .mapNotNull { getSubFrame(it) }
+                .map { it.toJson() }
+        }
+    }
+
+    return base.filterNotNullValues()
 }
 
 fun ScteMessage.toJson(): Map<String, Any> = mapOf(
