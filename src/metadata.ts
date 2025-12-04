@@ -123,7 +123,7 @@ export interface AndroidTextInformationFrame extends AndroidId3FrameBase {
 }
 
 /**
- * Encapsulates unrecognized or custom frame types that don't have a specific implementation.
+ * Encapsulates raw binary data.
  *
  * @platform Android
  */
@@ -206,7 +206,9 @@ export interface AndroidChapterFrame extends AndroidId3FrameBase {
   chapterId: string;
   startTimeMs: number;
   endTimeMs: number;
+  /** The byte offset of the start of the chapter, or `-1` if not set. */
   startOffset: number;
+  /** The byte offset of the end of the chapter, or `-1` if not set. */
   endOffset: number;
   subFrames: AndroidId3Frame[];
 }
