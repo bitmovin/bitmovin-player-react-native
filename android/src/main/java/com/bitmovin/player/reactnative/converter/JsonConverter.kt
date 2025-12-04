@@ -894,9 +894,9 @@ fun String.toMetadataTypeString(): String = when (this) {
 }
 
 fun com.bitmovin.player.api.metadata.Metadata.toJson(type: String): Map<String, Any> {
-    val entriesArray = MutableList(length()) { i ->
-        get(i)?.toJson()
-    }
+    val entriesArray = (0 until length())
+        .mapNotNull { get(it) }
+        .map { it.toJson() }
 
     return mapOf(
         "metadataType" to type.toMetadataTypeString(),
