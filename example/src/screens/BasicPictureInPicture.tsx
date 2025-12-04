@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AppState,
   Button,
@@ -60,7 +54,8 @@ export default function BasicPictureInPicture({
 
   const shouldEnterPiPOnBackground =
     Platform.OS === 'android' &&
-    config.pictureInPictureConfig?.shouldEnterOnBackground === true;
+    config.pictureInPictureConfig?.shouldEnterOnBackground === true &&
+    player?.isPlaying() === true;
 
   useEffect(() => {
     if (!shouldEnterPiPOnBackground) {
@@ -77,28 +72,6 @@ export default function BasicPictureInPicture({
 
     return () => subscription.remove();
   }, [shouldEnterPiPOnBackground, isInPictureInPicture]);
-
-  // Since PiP on Android is basically just the whole activity fitted in a small
-  // floating window, we only want to render the player and hide any other UI.
-  const renderOnlyPlayerView =
-    Platform.OS === 'android' &&
-    (isInPictureInPicture || isPictureInPictureRequested);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: !Platform.isTV && !renderOnlyPlayerView,
-      // eslint-disable-next-line react/no-unstable-nested-components
-      headerRight: () =>
-        Platform.isTV ? undefined : (
-          <Button
-            title={isInPictureInPicture ? 'Exit PiP' : 'Enter PiP'}
-            onPress={() =>
-              setIsPictureInPictureRequested(() => !isInPictureInPicture)
-            }
-          />
-        ),
-    });
-  }, [navigation, isInPictureInPicture, renderOnlyPlayerView]);
 
   const player = usePlayer({
     remoteControlConfig: {
@@ -124,6 +97,24 @@ export default function BasicPictureInPicture({
       };
     }, [player])
   );
+
+  // Since PiP on Android is basically just the whole activity fitted in a small
+  // floating window, we only want to render the player and hide any other UI.
+  const renderOnlyPlayerView =
+    Platform.OS === 'android' &&
+    (isInPictureInPicture || isPictureInPictureRequested);
+
+  const showCustomHeader = !Platform.isTV && !renderOnlyPlayerView;
+
+  const handleTogglePiP = useCallback(() => {
+    setIsPictureInPictureRequested(!isInPictureInPicture);
+  }, [isInPictureInPicture]);
+
+  const handleGoBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  }, [navigation]);
 
   const onEvent = useCallback((event: Event) => {
     prettyPrint(`[${event.name}]`, event);
@@ -156,17 +147,28 @@ export default function BasicPictureInPicture({
           : styles.container
       }
     >
-      <PlayerView
-        player={player}
-        style={styles.player}
-        isPictureInPictureRequested={isPictureInPictureRequested}
-        config={config}
-        onPictureInPictureAvailabilityChanged={onEvent}
-        onPictureInPictureEnter={onPictureInPictureEnterEvent}
-        onPictureInPictureEntered={onEvent}
-        onPictureInPictureExit={onPictureInPictureExitEvent}
-        onPictureInPictureExited={onEvent}
-      />
+      {showCustomHeader && (
+        <View style={styles.header}>
+          <Button title="Back" onPress={handleGoBack} />
+          <Button
+            title={isInPictureInPicture ? 'Exit PiP' : 'Enter PiP'}
+            onPress={handleTogglePiP}
+          />
+        </View>
+      )}
+      <View style={styles.playerWrapper}>
+        <PlayerView
+          player={player}
+          style={styles.player}
+          isPictureInPictureRequested={isPictureInPictureRequested}
+          config={config}
+          onPictureInPictureAvailabilityChanged={onEvent}
+          onPictureInPictureEnter={onPictureInPictureEnterEvent}
+          onPictureInPictureEntered={onEvent}
+          onPictureInPictureExit={onPictureInPictureExitEvent}
+          onPictureInPictureExited={onEvent}
+        />
+      </View>
     </ContainerView>
   );
 }
@@ -180,6 +182,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'white',
     padding: Platform.isTV ? 0 : 10,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Platform.isTV ? 0 : 10,
+  },
+  playerWrapper: {
+    flex: 1,
   },
   player: {
     flex: 1,
