@@ -1,7 +1,6 @@
 package com.bitmovin.player.reactnative.converter
 
 import android.util.Base64
-import android.util.Log
 import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
