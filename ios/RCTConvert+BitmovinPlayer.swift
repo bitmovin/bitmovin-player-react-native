@@ -1201,6 +1201,7 @@ extension RCTConvert {
         }
         if let endDate = dateRangeMetadata.endDate {
             json["endDate"] = toJson(date: endDate)
+            json["duration"] = endDate.timeIntervalSince1970 - dateRangeMetadata.startDate.timeIntervalSince1970
         }
         if !dateRangeMetadata.cueingOptions.isEmpty {
             json["cueingOptions"] = dateRangeMetadata.cueingOptions

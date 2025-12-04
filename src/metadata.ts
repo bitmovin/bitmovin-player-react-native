@@ -40,8 +40,6 @@ export interface DateRangeMetadataEntry extends BaseMetadataEntry {
   endDate?: number;
   /**
    * The declared duration of the range.
-   *
-   * @platform Android
    */
   duration?: number;
   /**
