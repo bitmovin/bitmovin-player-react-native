@@ -36,7 +36,7 @@ export interface IOSMetadataValue {
   dateValue?: string;
   /**
    * Provides the value as Base64-encoded data, or `undefined` when the value cannot be represented as data.
-   * 
+   *
    * Use this accessor to retrieve encapsulated artwork, thumbnails, proprietary frames, or any encoded value.
    */
   dataValue?: string;
@@ -44,14 +44,14 @@ export interface IOSMetadataValue {
 
 /**
  * iOS representation of ID3 and generic metadata items.
- * 
+ *
  * @platform iOS, tvOS
  */
 export interface AvMetadataItemEntry extends BaseMetadataEntry {
   metadataType: MetadataType.ID3;
   /**
-  * Platform discriminator for TypeScript type narrowing.
-  */
+   * Platform discriminator for TypeScript type narrowing.
+   */
   platform: 'ios';
   /**
    * The keyspace of the metadata item's key. For example, "org.id3".
@@ -99,21 +99,21 @@ export interface AvMetadataItemEntry extends BaseMetadataEntry {
 
 /**
  * Base interface for all Android ID3 frames.
- * 
+ *
  * @platform Android
  */
 interface AndroidId3FrameBase extends BaseMetadataEntry {
   metadataType: MetadataType.ID3;
   /**
-  * Platform discriminator for TypeScript type narrowing.
-  */
+   * Platform discriminator for TypeScript type narrowing.
+   */
   platform: 'android';
   id: string;
 }
 
 /**
  * Stores text-based metadata.
- * 
+ *
  * @platform Android
  */
 export interface AndroidTextInformationFrame extends AndroidId3FrameBase {
@@ -124,7 +124,7 @@ export interface AndroidTextInformationFrame extends AndroidId3FrameBase {
 
 /**
  * Encapsulates unrecognized or custom frame types that don't have a specific implementation.
- * 
+ *
  * @platform Android
  */
 export interface AndroidBinaryFrame extends AndroidId3FrameBase {
@@ -135,7 +135,7 @@ export interface AndroidBinaryFrame extends AndroidId3FrameBase {
 
 /**
  * Encapsulates an attached picture.
- * 
+ *
  * @platform Android
  */
 export interface AndroidApicFrame extends AndroidId3FrameBase {
@@ -149,7 +149,7 @@ export interface AndroidApicFrame extends AndroidId3FrameBase {
 
 /**
  * Stores an external resource via URL.
- * 
+ *
  * @platform Android
  */
 export interface AndroidUrlLinkFrame extends AndroidId3FrameBase {
@@ -160,7 +160,7 @@ export interface AndroidUrlLinkFrame extends AndroidId3FrameBase {
 
 /**
  * Stores user comments or notes.
- * 
+ *
  * @platform Android
  */
 export interface AndroidCommentFrame extends AndroidId3FrameBase {
@@ -172,7 +172,7 @@ export interface AndroidCommentFrame extends AndroidId3FrameBase {
 
 /**
  * Encapsulates application-specific proprietary data owned by a registered owner.
- * 
+ *
  * @platform Android
  */
 export interface AndroidPrivFrame extends AndroidId3FrameBase {
@@ -184,7 +184,7 @@ export interface AndroidPrivFrame extends AndroidId3FrameBase {
 
 /**
  * Encapsulates arbitrary binary objects with metadata.
- * 
+ *
  * @platform Android
  */
 export interface AndroidGeobFrame extends AndroidId3FrameBase {
@@ -198,7 +198,7 @@ export interface AndroidGeobFrame extends AndroidId3FrameBase {
 
 /**
  * Defines a content chapter.
- * 
+ *
  * @platform Android
  */
 export interface AndroidChapterFrame extends AndroidId3FrameBase {
@@ -213,7 +213,7 @@ export interface AndroidChapterFrame extends AndroidId3FrameBase {
 
 /**
  * Defines hierarchical chapter structure.
- * 
+ *
  * @platform Android
  */
 export interface AndroidChapterTocFrame extends AndroidId3FrameBase {
@@ -227,7 +227,7 @@ export interface AndroidChapterTocFrame extends AndroidId3FrameBase {
 
 /**
  * Android representation of ID3 metadata items.
- * 
+ *
  * @platform Android
  */
 export type AndroidId3Frame =
@@ -243,7 +243,7 @@ export type AndroidId3Frame =
 
 /**
  * Describes metadata associated with ID3 tags.
- * 
+ *
  * This is a discriminated union of iOS and Android ID3 representations.
  * The `platform` field acts as the discriminator, allowing TypeScript to
  * automatically narrow to the correct platform-specific type.
