@@ -69,6 +69,18 @@ class RNPictureInPictureHandler(
         player.on<PlayerEvent.AdBreakFinished>(setPlayerIsNotPlaying)
     }
 
+    private fun unsubscribeToPlayerPlaybackEvents() {
+        player.off<PlayerEvent.Play>(setPlayerIsPlaying)
+        player.off<PlayerEvent.Playing>(setPlayerIsPlaying)
+        player.off<PlayerEvent.AdBreakStarted>(setPlayerIsPlaying)
+        player.off<PlayerEvent.Paused>(setPlayerIsNotPlaying)
+        player.off<PlayerEvent.PlaybackFinished>(setPlayerIsNotPlaying)
+        player.off<PlayerEvent.Inactive>(setPlayerIsNotPlaying)
+        player.off<PlayerEvent.Destroy>(setPlayerIsNotPlaying)
+        player.off<PlayerEvent.Error>(setPlayerIsNotPlaying)
+        player.off<PlayerEvent.AdBreakFinished>(setPlayerIsNotPlaying)
+    }
+
     private fun getPiPAspectRation() = player.playbackVideoData
         ?.let { Rational(it.width, it.height) }
         ?: Rational(16, 9)
@@ -114,6 +126,10 @@ class RNPictureInPictureHandler(
     override fun exitPictureInPicture() {
         super.exitPictureInPicture()
         _isPictureInPicture = false
+    }
+
+    fun dispose() {
+        unsubscribeToPlayerPlaybackEvents()
     }
 }
 
