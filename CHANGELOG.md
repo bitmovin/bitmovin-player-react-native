@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- `pictureInPictureActions` property on `<PlayerView>` to configure Picture in Picture actions
+  - `PictureInPictureAction.TogglePlayback` to add a play/pause action
+  - `PictureInPictureAction.Seek` to add seek forward and seek backward for 10 seconds actions
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.134.0+jason`
