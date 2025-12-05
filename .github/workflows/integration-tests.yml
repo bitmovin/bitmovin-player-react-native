@@ -83,6 +83,35 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Cache Android AVD
+        id: android-avd-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: ${{ runner.os }}-avd-android-30-google_apis-x86_64
+          restore-keys: |
+            ${{ runner.os }}-avd-
+
+      - name: Create AVD snapshot (on cache miss)
+        if: ${{ steps.android-avd-cache.outputs.cache-hit != 'true' }}
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          target: google_apis
+          avd-name: integration-avd
+          force-avd-creation: false
+          disable-animations: false
+          disable-linux-hw-accel: false
+          emulator-options: -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim -no-metrics
+          emulator-boot-timeout: 900
+          channel: stable
+          ram-size: 2048M
+          cores: 2
+          script: echo "AVD snapshot created"
+
       - name: Run Android integration tests
         id: android-tests
         uses: reactivecircus/android-emulator-runner@v2
@@ -90,10 +119,11 @@ jobs:
           api-level: 30
           arch: x86_64
           target: google_apis
-          force-avd-creation: true
+          avd-name: integration-avd
+          force-avd-creation: false
           disable-animations: true
           disable-linux-hw-accel: false
-          emulator-options: -no-window -no-snapshot -no-audio -no-boot-anim -no-metrics -gpu swiftshader_indirect
+          emulator-options: -no-window -no-snapshot-save -no-audio -no-boot-anim -no-metrics -gpu swiftshader_indirect
           emulator-boot-timeout: 900
           channel: stable
           ram-size: 2048M
