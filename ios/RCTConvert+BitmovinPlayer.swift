@@ -1155,7 +1155,7 @@ extension RCTConvert {
         for entry in metadata.entries {
             switch entry {
             case let id3Entry as AVMetadataItem where type == .ID3:
-                entriesArray.append(toJson(avMetadataItem: avItem, metadataType: type))
+                entriesArray.append(toJson(avMetadataItem: id3Entry, metadataType: type))
             case let scteEntry as ScteMetadataEntry where type == .scte:
                 entriesArray.append(toJson(scteMetadataEntry: scteEntry))
             default:
