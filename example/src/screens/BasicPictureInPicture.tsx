@@ -52,17 +52,14 @@ export default function BasicPictureInPicture({
     PictureInPictureAction.Seek,
   ];
 
-  const config: PlayerViewConfig = useMemo(
-    () => ({
-      pictureInPictureConfig: {
-        // Enable picture in picture UI option on player controls.
-        isEnabled: true,
-        // Enable entering picture in picture mode when transitioning the application to the background
-        shouldEnterOnBackground: true,
-      },
-    }),
-    []
-  );
+  const config: PlayerViewConfig = {
+    pictureInPictureConfig: {
+      // Enable picture in picture UI option on player controls.
+      isEnabled: true,
+      // Enable entering picture in picture mode when transitioning the application to the background
+      shouldEnterOnBackground: true,
+    },
+  };
 
   const player = usePlayer({
     remoteControlConfig: {
