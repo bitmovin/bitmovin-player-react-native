@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative
 
+import android.os.Build
 import android.util.Log
 import com.bitmovin.player.reactnative.converter.toPictureInPictureActions
 import com.bitmovin.player.reactnative.converter.toRNPlayerViewConfigWrapper
@@ -8,12 +9,29 @@ import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.extensions.getString
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import java.util.Collections
+import java.util.WeakHashMap
 
 class RNPlayerViewManager : Module() {
+    // Weak Set
+    private val autoPictureInPictureViews = Collections.newSetFromMap(WeakHashMap<RNPlayerView, Boolean>())
+
     override fun definition() = ModuleDefinition {
         Name("RNPlayerViewManager")
 
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            // On version S or above this is handled with the PiP Parameters in the `PictureInPictureHandler`
+            OnUserLeavesActivity {
+                requestAutoPictureInPicture()
+            }
+        }
+
         View(RNPlayerView::class) {
+            OnViewDestroys { view: RNPlayerView ->
+                autoPictureInPictureViews.remove(view)
+                view.dispose()
+            }
+
             Prop("config") { view: RNPlayerView, playerInfo: Map<String, Any>? ->
                 val playerId = playerInfo?.get("playerId") as? String
                     ?: throw IllegalArgumentException("Player info must contain 'playerId' field")
@@ -31,6 +49,7 @@ class RNPlayerViewManager : Module() {
                     isPictureInPictureEnabledOnPlayer,
                     userInterfaceTypeName,
                 )
+                updateAutoPictureInPictureRegistration(view)
             }
 
             Prop("scalingMode") { view: RNPlayerView, scalingMode: String? ->
@@ -116,10 +135,17 @@ class RNPlayerViewManager : Module() {
                 "onBmpCueEnter",
                 "onBmpCueExit",
             )
-
-            OnViewDestroys { playerView ->
-                playerView.dispose()
-            }
         }
     }
+
+    private fun updateAutoPictureInPictureRegistration(view: RNPlayerView) {
+        if (view.shouldEnterPictureInPictureOnBackground()) {
+            autoPictureInPictureViews.add(view)
+        } else {
+            autoPictureInPictureViews.remove(view)
+        }
+    }
+
+    private fun requestAutoPictureInPicture() = autoPictureInPictureViews
+        .firstOrNull { it.requestPictureInPictureOnBackgroundTransition() }
 }
