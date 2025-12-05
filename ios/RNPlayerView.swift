@@ -543,6 +543,7 @@ private extension RNPlayerView {
                 bitmovinUserInterfaceConfig
                     .playbackSpeedSelectionEnabled = uiConfig.playbackSpeedSelectionEnabled
                 bitmovinUserInterfaceConfig.uiManagerFactoryFunction = uiConfig.uiManagerFactoryFunction
+                bitmovinUserInterfaceConfig.enableWebViewInspecting = uiConfig.enableWebViewInspecting
             }
             if let hideFirstFrame = playerViewConfig?.hideFirstFrame {
                 bitmovinUserInterfaceConfig.hideFirstFrame = hideFirstFrame
