@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.135.0+jason`
+
 ## [1.5.0] - 2025-12-05
 
 ### Added
