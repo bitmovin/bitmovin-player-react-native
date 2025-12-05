@@ -180,7 +180,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 detachPlayerListeners(it)
             }
             view.setPictureInPictureHandler(null)
-            view.setCustomMessageHandler(null)
             // keep the player alive (before calling PlayerView.onDestroy,
             // as this would internally destroy the player)
             // this is important, as react native has a different lifecycle handling and is able to
