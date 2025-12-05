@@ -228,7 +228,7 @@ public class RNPlayerView: ExpoView {
         guard let playerView else { return }
 #if os(iOS)
         playerView.pictureInPicture.showSkipControls = actions.contains(.seek)
-        playerView.tweaks.hideTransportControlsInPictureInPicture = !actions.contains(.togglePlayback)
+        playerView.tweaks.hidePlaybackControlsInPictureInPicture = !actions.contains(.togglePlayback)
 #endif
     }
 }
