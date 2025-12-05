@@ -59,17 +59,17 @@ export interface DateRangeMetadataEntry extends BaseMetadataEntry {
   classLabel?: string;
   /**
    * Time range of the entry relative to Unix Epoch.
-   * 
+   *
    * If the metadata represents an instantaneous event, {@link AbsoluteTimeRange.end} should be equal
    * to {@link AbsoluteTimeRange.start}.
    * An omitted {@link AbsoluteTimeRange.end} indicates an open-ended range.
-   * 
+   *
    * @platform iOS, tvOS
    */
   absoluteTimeRange?: AbsoluteTimeRange;
   /**
    * Time range of the entry relative to the beginning of the playback.
-   * 
+   *
    * @platform Android
    */
   relativeTimeRange?: RelativeTimeRange;
