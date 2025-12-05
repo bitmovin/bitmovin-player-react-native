@@ -1060,6 +1060,7 @@ extension RCTConvert {
 
         return RNUiConfig(
             playbackSpeedSelectionEnabled: json["playbackSpeedSelectionEnabled"] as? Bool ?? true,
+            enableWebViewInspecting: json["enableWebViewInspecting"] as? Bool ?? false,
             uiManagerFactoryFunction: uiManagerFactoryFunction ?? defaultUiManagerFactoryFunction
         )
     }
@@ -1179,6 +1180,7 @@ internal struct RNPlayerViewConfig {
  */
 internal struct RNUiConfig {
     let playbackSpeedSelectionEnabled: Bool
+    let enableWebViewInspecting: Bool
     let uiManagerFactoryFunction: String
 }
 

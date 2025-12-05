@@ -8,6 +8,7 @@
   - `PictureInPictureAction.TogglePlayback` to add a play/pause action
   - `PictureInPictureAction.Seek` to add seek forward and seek backward for 10 seconds actions
 - Android: `PictureInPictureConfig.shouldEnterOnBackground` now automatically requests Picture in Picture when the app is backgrounded, matching iOS behavior
+- `PlayerViewConfig.uiConfig.enableWebViewInspecting` to allow inspection of the Player UI WebView on iOS
 
 ### Changed
 
