@@ -1207,11 +1207,10 @@ extension RCTConvert {
             json["cueingOptions"] = dateRangeMetadata.cueingOptions
         }
 
-        var attributesArray: [[String: Any]] = []
-        for entry in dateRangeMetadata.entries {
+        let attributesArray = dateRangeMetadata.entries.reduce(into: [[String: Any]]()) { result, entry in
             switch entry {
             case let avMetadataItem as AVMetadataItem:
-                attributesArray.append(
+                result.append(
                     toJson(
                         avMetadataItem: avMetadataItem,
                         metadataType: .daterange,
@@ -1220,7 +1219,7 @@ extension RCTConvert {
                     )
                 )
             default:
-                break
+                return
             }
         }
         if !attributesArray.isEmpty {
