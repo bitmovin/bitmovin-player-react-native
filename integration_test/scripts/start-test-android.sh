@@ -26,7 +26,7 @@ fi
 # Run cavy with the emulator
 if [ -n "$EMULATOR_ID" ]; then
     echo "Running tests on emulator: $EMULATOR_ID"
-    ANDROID_SERIAL="$EMULATOR_ID" yarn cavy run-android --no-screenshots --keep-alive-timeout=300 --boot-timeout=5 --terminal="terminal" --deviceId "$EMULATOR_ID" $ARGS
+    ANDROID_SERIAL="$EMULATOR_ID" yarn cavy run-android --no-screenshots --keep-alive-timeout=300 --boot-timeout 5 --terminal="terminal" --device "$EMULATOR_ID" $ARGS
 else
     echo "Failed to start or find Android emulator"
     exit 1
