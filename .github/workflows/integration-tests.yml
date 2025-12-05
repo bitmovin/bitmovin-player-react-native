@@ -141,9 +141,10 @@ jobs:
           ram-size: 2048M
           cores: 2
           script: |
+            yarn integration-test start -- --port 8081 --reset-cache > /tmp/metro.log 2>&1 &
+            for i in $(seq 1 60); do nc -z localhost 8081 && break; sleep 2; done
             adb wait-for-device
             for i in $(seq 1 60); do if adb shell pm list packages >/dev/null 2>&1; then break; fi; echo "Waiting for package manager... ($i/60)"; sleep 5; done
-            adb reverse tcp:8081 tcp:8081
             yarn integration-test test:android --xml
         env:
           EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
