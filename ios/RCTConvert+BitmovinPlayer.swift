@@ -1291,6 +1291,8 @@ extension RCTConvert {
             return nil
         }
 
+        // Types are fetched from web and apple sources like `CMMetadata.h` (like `kCMMetadataBaseDataType_RawData`).
+
         if type.contains("date") || type.contains("time") {
             // Only return if we actually got a date string, otherwise continue
             if let date = avMetadataItem.dateValue {
