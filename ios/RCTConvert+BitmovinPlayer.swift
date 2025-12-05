@@ -1260,17 +1260,11 @@ extension RCTConvert {
             json["platform"] = "ios"
         }
 
-        let startTime = avMetadataItem.time.safeSeconds
-        let duration = avMetadataItem.duration.safeSeconds
-        if let startTime {
-            json["startTime"] = startTime
-        }
-        if let duration {
-            json["duration"] = duration
-        }
-        if let startTime, let duration {
-            json["endTime"] = startTime + duration
-        }
+        let startTime = avMetadataItem.time
+        let duration = avMetadataItem.duration
+        json["startTime"] = CMTimeGetSeconds(startTime)
+        json["duration"] = CMTimeGetSeconds(duration)
+        json["endTime"] = startTime + duration
 
         if let identifier = avMetadataItem.key as? String {
             if let value = singleValueString(avMetadataItem: avMetadataItem) {
@@ -1300,7 +1294,7 @@ extension RCTConvert {
         }
 
         if ["int", "float", "double", "number", "duration"].contains(where: type.contains) {
-            if let num = avMetadataItem.numberValue?.safeNumber {
+            if let num = avMetadataItem.numberValue {
                 return String(describing: num)
             }
         }
@@ -1324,7 +1318,7 @@ extension RCTConvert {
         if let stringValue = avMetadataItem.stringValue {
             valueJson["stringValue"] = stringValue
         }
-        if let numberValue = avMetadataItem.numberValue?.safeNumber {
+        if let numberValue = avMetadataItem.numberValue {
             valueJson["numberValue"] = numberValue
         }
         if let dateValue = avMetadataItem.dateValue {
