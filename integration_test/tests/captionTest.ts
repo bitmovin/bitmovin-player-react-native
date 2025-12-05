@@ -230,15 +230,14 @@ export default (spec: TestScope) => {
           const subtitleTracks = await callPlayer((player) =>
             player.getAvailableSubtitles()
           );
-          const subtitleTrack = subtitleTracks.find((track) => track.identifier !== initialSelectedSubtitle?.identifier)!;
+          const subtitleTrack = subtitleTracks.find(
+            (track) => track.identifier !== initialSelectedSubtitle?.identifier
+          )!;
           expect(subtitleTrack).toNotBeNull();
 
-          await callPlayerAndExpectEvent(
-            (player) => {
-              player.setSubtitleTrack(subtitleTrack.identifier);
-            },
-            EventType.SubtitleChanged
-          );
+          await callPlayerAndExpectEvent((player) => {
+            player.setSubtitleTrack(subtitleTrack.identifier);
+          }, EventType.SubtitleChanged);
 
           const selectedSubtitle = await callPlayer((player) =>
             player.getSubtitleTrack()
@@ -252,12 +251,9 @@ export default (spec: TestScope) => {
             'Selected subtitle identifier should match the requested track'
           ).toBe(subtitleTrack.identifier);
 
-          await callPlayerAndExpectEvent(
-            (player) => {
-              player.setSubtitleTrack(undefined);
-            },
-            EventType.SubtitleChanged
-          );
+          await callPlayerAndExpectEvent((player) => {
+            player.setSubtitleTrack(undefined);
+          }, EventType.SubtitleChanged);
           const disabledSubtitle = await callPlayer((player) =>
             player.getSubtitleTrack()
           );

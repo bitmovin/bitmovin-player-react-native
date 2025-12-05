@@ -24,7 +24,7 @@ class RNPictureInPictureHandler(
     private val pictureInPictureActionHandler = DefaultPictureInPictureActionHandler(
         activity,
         player,
-        ::updatePictureInPictureActions,
+        ::updatePictureInPictureParams,
     )
 
     // Current PiP implementation on the native side requires playerView.exitPictureInPicture() to be called
@@ -50,7 +50,7 @@ class RNPictureInPictureHandler(
     }
 
     private val setPlayerIsNotPlaying: (PlayerEvent) -> Unit = {
-        playerIsPlaying = true
+        playerIsPlaying = false
     }
 
     init {
@@ -73,6 +73,7 @@ class RNPictureInPictureHandler(
         player.on<PlayerEvent.Destroy>(setPlayerIsNotPlaying)
         player.on<PlayerEvent.Error>(setPlayerIsNotPlaying)
         player.on<PlayerEvent.AdBreakFinished>(setPlayerIsNotPlaying)
+
     }
 
     private fun unsubscribeToPlayerPlaybackEvents() {
@@ -128,10 +129,6 @@ class RNPictureInPictureHandler(
         .build()
 
     private fun updatePictureInPictureParams() {
-        activity.setPictureInPictureParams(buildPictureInPictureParams())
-    }
-
-    private fun updatePictureInPictureActions() {
         activity.setPictureInPictureParams(buildPictureInPictureParams())
     }
 

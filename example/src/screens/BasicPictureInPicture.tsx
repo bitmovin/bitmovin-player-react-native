@@ -1,5 +1,10 @@
 import type { JSX } from 'react';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
   AppState,
   Button,
@@ -41,7 +46,7 @@ export default function BasicPictureInPicture({
   const [isPictureInPictureRequested, setIsPictureInPictureRequested] =
     useState(false);
   const [isInPictureInPicture, setIsInPictureInPicture] = useState(false);
-
+  const [isEnteringBackground, setIsEnteringBackground] = useState(false);
   const pictureInPictureActions = [
     PictureInPictureAction.TogglePlayback,
     PictureInPictureAction.Seek,
@@ -71,26 +76,17 @@ export default function BasicPictureInPicture({
     },
   });
 
-  const shouldEnterPiPOnBackground =
-    Platform.OS === 'android' &&
-    config.pictureInPictureConfig?.shouldEnterOnBackground === true &&
-    player?.isPlaying() === true;
-
   useEffect(() => {
-    if (!shouldEnterPiPOnBackground) {
-      return;
-    }
-
     const subscription = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'background' || nextState === 'inactive') {
-        setIsPictureInPictureRequested(true);
-      } else if (nextState === 'active' && !isInPictureInPicture) {
-        setIsPictureInPictureRequested(false);
+        setIsEnteringBackground(true);
+      } else if (nextState === 'active') {
+        setIsEnteringBackground(false);
       }
     });
 
     return () => subscription.remove();
-  }, [shouldEnterPiPOnBackground, isInPictureInPicture]);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -115,7 +111,11 @@ export default function BasicPictureInPicture({
   // floating window, we only want to render the player and hide any other UI.
   const renderOnlyPlayerView =
     Platform.OS === 'android' &&
-    (isInPictureInPicture || isPictureInPictureRequested);
+    (isInPictureInPicture ||
+      isPictureInPictureRequested ||
+      // The UI should be updated before entering Picture in Picture mode
+      // because JS execution is unreliable while the app is in the background.
+      isEnteringBackground);
 
   const showCustomHeader = !Platform.isTV && !renderOnlyPlayerView;
 
