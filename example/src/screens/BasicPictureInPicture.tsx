@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AppState,
@@ -7,8 +8,6 @@ import {
   View,
   ViewProps,
 } from 'react-native';
-import type { JSX } from 'react';
-
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -42,6 +41,12 @@ export default function BasicPictureInPicture({
   const [isPictureInPictureRequested, setIsPictureInPictureRequested] =
     useState(false);
   const [isInPictureInPicture, setIsInPictureInPicture] = useState(false);
+
+  const pictureInPictureActions = [
+    PictureInPictureAction.TogglePlayback,
+    PictureInPictureAction.Seek,
+  ];
+
   const config: PlayerViewConfig = useMemo(
     () => ({
       pictureInPictureConfig: {
@@ -53,11 +58,6 @@ export default function BasicPictureInPicture({
     }),
     []
   );
-
-  const pictureInPictureActions = [
-    PictureInPictureAction.TogglePlayback,
-    PictureInPictureAction.Seek,
-  ];
 
   const player = usePlayer({
     remoteControlConfig: {
