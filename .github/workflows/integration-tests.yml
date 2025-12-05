@@ -104,7 +104,9 @@ jobs:
             yarn integration-test test:android --xml
         env:
           EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
+          ORG_GRADLE_PROJECT_org.gradle.configuration-cache: 'false'
           ORG_GRADLE_PROJECT_org.gradle.unsafe.configuration-cache: 'false'
+          GRADLE_OPTS: '-Dorg.gradle.configuration-cache=false'
 
       - name: Collect Android results
         run: |
