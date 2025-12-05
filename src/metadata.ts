@@ -100,7 +100,7 @@ export interface DateRangeMetadataEntry extends BaseMetadataEntry {
    * When multiple values are provided, the first takes precedence (e.g., `"PRE,POST"` -> `"PRE"`).
    * `"PRE"` and `"POST"` are re-playable unless `"ONCE"` is included.
    *
-   * Note: Applies only to HLS Interstitial opportunities (pre-, mid-, post-roll).
+   * @remarks Applies only to HLS Interstitial opportunities (pre-, mid-, post-roll).
    *
    * @platform iOS, tvOS
    */
