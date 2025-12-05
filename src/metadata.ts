@@ -23,7 +23,7 @@ export interface AbsoluteTimeRange {
   /**
    * The start date of the range.
    */
-  start: Milliseconds;
+  start?: Milliseconds;
   /**
    * The end date of the range.
    */
@@ -37,7 +37,7 @@ export interface RelativeTimeRange {
   /**
    * The start time of the range.
    */
-  start: Seconds;
+  start?: Seconds;
   /**
    * The end time of the range.
    */
