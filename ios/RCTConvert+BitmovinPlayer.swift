@@ -560,7 +560,8 @@ extension RCTConvert {
     }
 
     static func subtitleTrackJson(_ subtitleTrack: SubtitleTrack?) -> [String: Any]? {
-        guard let subtitleTrack else {
+        guard let subtitleTrack,
+              subtitleTrack.identifier.lowercased() != "off" else {
             return nil
         }
         var subtitleTrackDict: [String: Any] = [
@@ -1029,6 +1030,14 @@ extension RCTConvert {
         return pictureInPictureConfig
     }
 
+    static func pictureInPictureActions(_ json: Any?) -> [RNPictureInPictureAction]? {
+        guard let array = json as? [String] else {
+            return nil
+        }
+
+        return array.compactMap(RNPictureInPictureAction.init(rawValue:))
+    }
+
     static func rnPlayerViewConfig(_ json: Any?) -> RNPlayerViewConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -1182,4 +1191,9 @@ internal struct RNUiConfig {
 internal struct RNBufferLevels {
     let audio: BufferLevel
     let video: BufferLevel
+}
+
+internal enum RNPictureInPictureAction: String {
+    case togglePlayback = "TogglePlayback"
+    case seek = "Seek"
 }

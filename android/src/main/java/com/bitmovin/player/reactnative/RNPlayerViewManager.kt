@@ -1,6 +1,8 @@
 package com.bitmovin.player.reactnative
 
 import android.os.Build
+import android.util.Log
+import com.bitmovin.player.reactnative.converter.toPictureInPictureActions
 import com.bitmovin.player.reactnative.converter.toRNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getMap
@@ -64,6 +66,10 @@ class RNPlayerViewManager : Module() {
 
             Prop("fullscreenBridgeId") { view: RNPlayerView, fullscreenBridgeId: String ->
                 view.attachFullscreenBridge(fullscreenBridgeId)
+            }
+
+            AsyncFunction("updatePictureInPictureActions") { view: RNPlayerView, pictureInPictureActions: List<String> ->
+                view.updatePictureInPictureActions(pictureInPictureActions.toPictureInPictureActions())
             }
 
             Events(

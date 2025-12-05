@@ -9,16 +9,24 @@ import androidx.annotation.RequiresApi
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.on
+import com.bitmovin.player.reactnative.PictureInPictureAction
 import com.bitmovin.player.ui.DefaultPictureInPictureHandler
 import com.bitmovin.player.reactnative.PictureInPictureConfig
 
 private const val TAG = "RNPiPHandler"
 
+@RequiresApi(Build.VERSION_CODES.O)
 class RNPictureInPictureHandler(
     private val activity: Activity,
     private val player: Player,
     private val pictureInPictureConfig: PictureInPictureConfig,
 ) : DefaultPictureInPictureHandler(activity, player) {
+    private val pictureInPictureActionHandler = DefaultPictureInPictureActionHandler(
+        activity,
+        player,
+        ::updatePictureInPictureActions,
+    )
+
     // Current PiP implementation on the native side requires playerView.exitPictureInPicture() to be called
     // for `PictureInPictureExit` event to be emitted.
     // Additionally, the event is only emitted if `isPictureInPicture` is true. At the point in time we call
@@ -37,24 +45,22 @@ class RNPictureInPictureHandler(
             updatePictureInPictureParams()
         }
 
-    init {
-        playerIsPlaying = player.isPlaying
-        subscribeToPlayerPlaybackEvents()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            updatePictureInPictureParams()
-
-            player.on<PlayerEvent.VideoPlaybackQualityChanged> {
-                updatePictureInPictureParams()
-            }
-        }
-    }
-
     private val setPlayerIsPlaying: (PlayerEvent) -> Unit = {
         playerIsPlaying = true
     }
 
     private val setPlayerIsNotPlaying: (PlayerEvent) -> Unit = {
         playerIsPlaying = true
+    }
+
+    init {
+        playerIsPlaying = player.isPlaying
+        subscribeToPlayerPlaybackEvents()
+        updatePictureInPictureParams()
+
+        player.on<PlayerEvent.VideoPlaybackQualityChanged> {
+            updatePictureInPictureParams()
+        }
     }
 
     private fun subscribeToPlayerPlaybackEvents() {
@@ -85,28 +91,10 @@ class RNPictureInPictureHandler(
         ?.let { Rational(it.width, it.height) }
         ?: Rational(16, 9)
 
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun buildPictureInPictureParams(
-        autoEnterEnabled: Boolean = pictureInPictureConfig.isAutoPipEnabled && playerIsPlaying,
-    ) =
-        PictureInPictureParams.Builder()
-            .setAspectRatio(getPiPAspectRation())
-            .apply {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    setAutoEnterEnabled(autoEnterEnabled)
-                }
-            }
-            .build()
-
-    private fun updatePictureInPictureParams() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return
-        }
-        activity.setPictureInPictureParams(buildPictureInPictureParams())
+    fun updateActions(actions: List<PictureInPictureAction>) {
+        pictureInPictureActionHandler.updatePictureInPictureActions(actions)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun enterPictureInPicture() {
         if (!isPictureInPictureAvailable) {
             Log.w(TAG, "Calling enterPictureInPicture without PiP support.")
@@ -117,9 +105,7 @@ class RNPictureInPictureHandler(
             return
         }
 
-        val params = buildPictureInPictureParams()
-
-        activity.enterPictureInPictureMode(params)
+        activity.enterPictureInPictureMode(buildPictureInPictureParams())
         _isPictureInPicture = true
     }
 
@@ -128,7 +114,29 @@ class RNPictureInPictureHandler(
         _isPictureInPicture = false
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun buildPictureInPictureParams(
+        autoEnterEnabled: Boolean = pictureInPictureConfig.isAutoPipEnabled && playerIsPlaying,
+    ) = PictureInPictureParams.Builder()
+        .setAspectRatio(getPiPAspectRation())
+        .setActions(pictureInPictureActionHandler.buildRemoteActions())
+        .apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                setAutoEnterEnabled(autoEnterEnabled)
+            }
+        }
+        .build()
+
+    private fun updatePictureInPictureParams() {
+        activity.setPictureInPictureParams(buildPictureInPictureParams())
+    }
+
+    private fun updatePictureInPictureActions() {
+        activity.setPictureInPictureParams(buildPictureInPictureParams())
+    }
+
     fun dispose() {
+        pictureInPictureActionHandler.dispose()
         unsubscribeToPlayerPlaybackEvents()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             activity.setPictureInPictureParams(

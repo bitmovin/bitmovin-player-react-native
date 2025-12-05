@@ -5,7 +5,9 @@ import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
+import android.util.DisplayMetrics
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -15,8 +17,10 @@ import com.bitmovin.player.PlayerView
 import com.bitmovin.player.SubtitleView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
+import com.bitmovin.player.api.event.EventListener
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
+import com.bitmovin.player.api.event.on
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.UiConfig
@@ -33,6 +37,7 @@ import expo.modules.kotlin.views.ExpoView
 class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
     var playerView: PlayerView? = null
         private set
+    private var pictureInPictureHandler: RNPictureInPictureHandler? = null
     private var subtitleView: SubtitleView? = null
     private var playerContainer: FrameLayout? = null
     var enableBackgroundPlayback: Boolean = false
@@ -107,7 +112,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private val onBmpPictureInPictureEnter by EventDispatcher()
     private val onBmpPictureInPictureExit by EventDispatcher()
 
-    private var pictureInPictureHandler: RNPictureInPictureHandler? = null
     private var pictureInPictureConfig: PictureInPictureConfig = PictureInPictureConfig()
 
     private var playerInMediaSessionService: Player? = null
@@ -133,7 +137,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             playerView?.onStop()
         }
 
-        override fun onDestroy(owner: LifecycleOwner) = dispose()
+        override fun onDestroy(owner: LifecycleOwner) {
+            dispose()
+        }
 
         // When background playback is enabled,
         // remove player from view so it does not get paused when entering background
@@ -154,7 +160,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     private val activityLifecycle: Lifecycle? =
-        (appContext.activityProvider?.currentActivity as? LifecycleOwner)?.lifecycle
+        (appContext.currentActivity as? LifecycleOwner)?.lifecycle
+
+    private val globalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener =
+        ViewTreeObserver.OnGlobalLayoutListener {
+            requestLayout()
+        }
 
     init {
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
@@ -162,23 +173,47 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         // to suddenly not show the video anymore because SurfaceView was not laid out properly.
         // Bitmovin player issue: https://github.com/bitmovin/bitmovin-player-react-native/issues/180
         // React Native layout issue: https://github.com/facebook/react-native/issues/17968
-        viewTreeObserver.addOnGlobalLayoutListener { requestLayout() }
+        viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
 
         activityLifecycle?.addObserver(activityLifecycleObserver)
     }
 
     fun dispose() {
-        activityLifecycle?.removeObserver(activityLifecycleObserver)
-        playerView?.onDestroy()
+        playerView?.let { view ->
+            view.player?.let {
+                detachPlayerListeners(it)
+            }
+            view.setPictureInPictureHandler(null)
+            // keep the player alive (before calling PlayerView.onDestroy,
+            // as this would internally destroy the player)
+            // this is important, as react native has a different lifecycle handling and is able to
+            // share the player via the PlayerModule
+            view.player = null
+            view.onDestroy()
+        }
         playerView = null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             pictureInPictureHandler?.dispose()
             pictureInPictureHandler = null
         }
+        subtitleView?.let { view ->
+            view.setPlayer(null)
+            (view.parent as? ViewGroup)?.removeView(view)
+        }
+        subtitleView = null
+
         playerContainer?.let { container ->
             (container.parent as? ViewGroup)?.removeView(container)
         }
         playerContainer = null
+
+        activityLifecycle?.removeObserver(activityLifecycleObserver)
+        viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
+
+        // cleanup all children views explicitly,
+        // so that in case react native does some view caching we are 100% the child views of this view
+        // are cleaned up from the view hierarchy
+        removeAllViews()
     }
 
     private fun setPlayerView(playerView: PlayerView) {
@@ -216,8 +251,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
         // Add container to the ExpoView with correct layout parameters
         val containerLayoutParams = generateDefaultLayoutParams()
-        containerLayoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-        containerLayoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+        containerLayoutParams.width = LayoutParams.MATCH_PARENT
+        containerLayoutParams.height = LayoutParams.MATCH_PARENT
         addView(newContainer, 0, containerLayoutParams)
 
         this.playerView = playerView
@@ -266,7 +301,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             val userInterfaceType = userInterfaceTypeName?.toUserInterfaceType() ?: UserInterfaceType.Bitmovin
             val configuredPlayerViewConfig = playerViewConfigWrapper?.playerViewConfig ?: PlayerViewConfig()
 
-            val currentActivity = appContext.activityProvider?.currentActivity
+            val currentActivity = appContext.currentActivity
                 ?: throw IllegalStateException("Cannot create a PlayerView, because no activity is attached.")
             val playerViewConfig: PlayerViewConfig = if (userInterfaceType != UserInterfaceType.Bitmovin) {
                 configuredPlayerViewConfig.copy(uiConfig = UiConfig.Disabled)
@@ -283,7 +318,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
             this.pictureInPictureConfig = playerViewConfigWrapper?.pictureInPictureConfig ?: PictureInPictureConfig()
             val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || pictureInPictureConfig.isEnabled
-            pictureInPictureHandler = if (isPictureInPictureEnabled) {
+            pictureInPictureHandler = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                isPictureInPictureEnabled )
+            {
                 RNPictureInPictureHandler(
                     currentActivity,
                     player,
@@ -342,6 +379,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
     private fun setSubtitleView(subtitleView: SubtitleView) {
         this.subtitleView?.let { currentSubtitleView ->
+            currentSubtitleView.setPlayer(null)
             (currentSubtitleView.parent as? ViewGroup)?.removeView(currentSubtitleView)
         }
         this.subtitleView = subtitleView
@@ -420,7 +458,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                         pipHeight = windowBounds.height()
                     } else {
                         // Use deprecated Display.getSize() for older APIs
-                        val displayMetrics = android.util.DisplayMetrics()
+                        val displayMetrics = DisplayMetrics()
                         @Suppress("DEPRECATION")
                         windowManager.defaultDisplay.getMetrics(displayMetrics)
                         pipWidth = displayMetrics.widthPixels
@@ -492,16 +530,16 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             post {
                 // Reset ExpoView to full size
                 layoutParams?.let { currentParams ->
-                    currentParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                    currentParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                    currentParams.width = LayoutParams.MATCH_PARENT
+                    currentParams.height = LayoutParams.MATCH_PARENT
                     layoutParams = currentParams
                 }
 
                 // Reset intermediate container to full size
                 playerContainer?.let { container ->
                     container.layoutParams?.let { containerParams ->
-                        containerParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                        containerParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                        containerParams.width = LayoutParams.MATCH_PARENT
+                        containerParams.height = LayoutParams.MATCH_PARENT
                         container.layoutParams = containerParams
                     }
                 }
@@ -578,101 +616,85 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
     }
 
-    private var playerEventSubscriptions = mutableListOf<EventSubscription<*>>()
+    @Suppress("UNCHECKED_CAST")
+    private val playerEventSubscriptions: List<EventSubscription<Event>> = listOf(
+        EventSubscription<PlayerEvent.Active> { onEvent(onBmpPlayerActive, it.toJson()) },
+        EventSubscription<PlayerEvent.Inactive> { onEvent(onBmpPlayerInactive, it.toJson()) },
+        EventSubscription<PlayerEvent.Error> { onEvent(onBmpPlayerError, it.toJson()) },
+        EventSubscription<PlayerEvent.Warning> { onEvent(onBmpPlayerWarning, it.toJson()) },
+        EventSubscription<PlayerEvent.Destroy> { onEvent(onBmpDestroy, it.toJson()) },
+        EventSubscription<PlayerEvent.Muted> { onEvent(onBmpMuted, it.toJson()) },
+        EventSubscription<PlayerEvent.Unmuted> { onEvent(onBmpUnmuted, it.toJson()) },
+        EventSubscription<PlayerEvent.Ready> { onEvent(onBmpReady, it.toJson()) },
+        EventSubscription<PlayerEvent.Paused> { onEvent(onBmpPaused, it.toJson()) },
+        EventSubscription<PlayerEvent.Play> { onEvent(onBmpPlay, it.toJson()) },
+        EventSubscription<PlayerEvent.Playing> { onEvent(onBmpPlaying, it.toJson()) },
+        EventSubscription<PlayerEvent.PlaybackFinished> { onEvent(onBmpPlaybackFinished, it.toJson()) },
+        EventSubscription<PlayerEvent.Seek> { onEvent(onBmpSeek, it.toJson()) },
+        EventSubscription<PlayerEvent.Seeked> { onEvent(onBmpSeeked, it.toJson()) },
+        EventSubscription<PlayerEvent.TimeShift> { onEvent(onBmpTimeShift, it.toJson()) },
+        EventSubscription<PlayerEvent.TimeShifted> { onEvent(onBmpTimeShifted, it.toJson()) },
+        EventSubscription<PlayerEvent.StallStarted> { onEvent(onBmpStallStarted, it.toJson()) },
+        EventSubscription<PlayerEvent.StallEnded> { onEvent(onBmpStallEnded, it.toJson()) },
+        EventSubscription<PlayerEvent.TimeChanged> { onEvent(onBmpTimeChanged, it.toJson()) },
+        EventSubscription<SourceEvent.Load> { onEvent(onBmpSourceLoad, it.toJson()) },
+        EventSubscription<SourceEvent.Loaded> { onEvent(onBmpSourceLoaded, it.toJson()) },
+        EventSubscription<SourceEvent.Unloaded> { onEvent(onBmpSourceUnloaded, it.toJson()) },
+        EventSubscription<SourceEvent.Error> { onEvent(onBmpSourceError, it.toJson()) },
+        EventSubscription<SourceEvent.Warning> { onEvent(onBmpSourceWarning, it.toJson()) },
+        EventSubscription<SourceEvent.AudioTrackAdded> { onEvent(onBmpAudioAdded, it.toJson()) },
+        EventSubscription<SourceEvent.AudioTrackChanged> { onEvent(onBmpAudioChanged, it.toJson()) },
+        EventSubscription<SourceEvent.AudioTrackRemoved> { onEvent(onBmpAudioRemoved, it.toJson()) },
+        EventSubscription<SourceEvent.SubtitleTrackAdded> { onEvent(onBmpSubtitleAdded, it.toJson()) },
+        EventSubscription<SourceEvent.SubtitleTrackChanged> { onEvent(onBmpSubtitleChanged, it.toJson()) },
+        EventSubscription<SourceEvent.SubtitleTrackRemoved> { onEvent(onBmpSubtitleRemoved, it.toJson()) },
+        EventSubscription<SourceEvent.DownloadFinished> { onEvent(onBmpDownloadFinished, it.toJson()) },
+        EventSubscription<PlayerEvent.AdBreakFinished> { onEvent(onBmpAdBreakFinished, it.toJson()) },
+        EventSubscription<PlayerEvent.AdBreakStarted> { onEvent(onBmpAdBreakStarted, it.toJson()) },
+        EventSubscription<PlayerEvent.AdClicked> { onEvent(onBmpAdClicked, it.toJson()) },
+        EventSubscription<PlayerEvent.AdError> { onEvent(onBmpAdError, it.toJson()) },
+        EventSubscription<PlayerEvent.AdFinished> { onEvent(onBmpAdFinished, it.toJson()) },
+        EventSubscription<PlayerEvent.AdManifestLoad> { onEvent(onBmpAdManifestLoad, it.toJson()) },
+        EventSubscription<PlayerEvent.AdManifestLoaded> { onEvent(onBmpAdManifestLoaded, it.toJson()) },
+        EventSubscription<PlayerEvent.AdQuartile> { onEvent(onBmpAdQuartile, it.toJson()) },
+        EventSubscription<PlayerEvent.AdScheduled> { onEvent(onBmpAdScheduled, it.toJson()) },
+        EventSubscription<PlayerEvent.AdSkipped> { onEvent(onBmpAdSkipped, it.toJson()) },
+        EventSubscription<PlayerEvent.AdStarted> { onEvent(onBmpAdStarted, it.toJson()) },
+        EventSubscription<SourceEvent.VideoDownloadQualityChanged> {
+            onEvent(
+                onBmpVideoDownloadQualityChanged,
+                it.toJson(),
+            )
+        },
+        EventSubscription<PlayerEvent.VideoPlaybackQualityChanged> {
+            onEvent(
+                onBmpVideoPlaybackQualityChanged,
+                it.toJson(),
+            )
+        },
+        EventSubscription<PlayerEvent.CastAvailable> { onEvent(onBmpCastAvailable, it.toJson()) },
+        EventSubscription<PlayerEvent.CastPaused> { onEvent(onBmpCastPaused, it.toJson()) },
+        EventSubscription<PlayerEvent.CastPlaybackFinished> { onEvent(onBmpCastPlaybackFinished, it.toJson()) },
+        EventSubscription<PlayerEvent.CastPlaying> { onEvent(onBmpCastPlaying, it.toJson()) },
+        EventSubscription<PlayerEvent.CastStarted> { onEvent(onBmpCastStarted, it.toJson()) },
+        EventSubscription<PlayerEvent.CastStart> { onEvent(onBmpCastStart, it.toJson()) },
+        EventSubscription<PlayerEvent.CastStopped> { onEvent(onBmpCastStopped, it.toJson()) },
+        EventSubscription<PlayerEvent.CastTimeUpdated> { onEvent(onBmpCastTimeUpdated, it.toJson()) },
+        EventSubscription<PlayerEvent.CastWaitingForDevice> { onEvent(onBmpCastWaitingForDevice, it.toJson()) },
+        EventSubscription<PlayerEvent.CueEnter> { onEvent(onBmpCueEnter, it.toJson()) },
+        EventSubscription<PlayerEvent.CueExit> { onEvent(onBmpCueExit, it.toJson()) },
+    ) as List<EventSubscription<Event>>
 
     private fun detachPlayerListeners(player: Player) {
-        playerEventSubscriptions.forEach { listener ->
-            player.off(listener)
+        playerEventSubscriptions.forEach {
+            player.off(it.eventClass, it.eventListener)
         }
-        playerEventSubscriptions.clear()
     }
 
     private fun attachPlayerListeners(player: Player) {
-        playerEventSubscriptions = mutableListOf(
-            player.on<PlayerEvent.Active> { onEvent(onBmpPlayerActive, it.toJson()) },
-            player.on<PlayerEvent.Inactive> {
-                onEvent(onBmpPlayerInactive, it.toJson())
-            },
-            player.on<PlayerEvent.Error> {
-                onEvent(onBmpPlayerError, it.toJson())
-            },
-            player.on<PlayerEvent.Warning> { onEvent(onBmpPlayerWarning, it.toJson()) },
-            player.on<PlayerEvent.Destroy> {
-                onEvent(onBmpDestroy, it.toJson())
-            },
-            player.on<PlayerEvent.Muted> { onEvent(onBmpMuted, it.toJson()) },
-            player.on<PlayerEvent.Unmuted> { onEvent(onBmpUnmuted, it.toJson()) },
-            player.on<PlayerEvent.Ready> { onEvent(onBmpReady, it.toJson()) },
-            player.on<PlayerEvent.Paused> {
-                onEvent(onBmpPaused, it.toJson())
-            },
-            player.on<PlayerEvent.Play> {
-                onEvent(onBmpPlay, it.toJson())
-            },
-            player.on<PlayerEvent.Playing> {
-                onEvent(onBmpPlaying, it.toJson())
-            },
-            player.on<PlayerEvent.PlaybackFinished> {
-                onEvent(onBmpPlaybackFinished, it.toJson())
-            },
-            player.on<PlayerEvent.Seek> { onEvent(onBmpSeek, it.toJson()) },
-            player.on<PlayerEvent.Seeked> { onEvent(onBmpSeeked, it.toJson()) },
-            player.on<PlayerEvent.TimeShift> { onEvent(onBmpTimeShift, it.toJson()) },
-            player.on<PlayerEvent.TimeShifted> { onEvent(onBmpTimeShifted, it.toJson()) },
-            player.on<PlayerEvent.StallStarted> { onEvent(onBmpStallStarted, it.toJson()) },
-            player.on<PlayerEvent.StallEnded> { onEvent(onBmpStallEnded, it.toJson()) },
-            player.on<PlayerEvent.TimeChanged> { onEvent(onBmpTimeChanged, it.toJson()) },
-            player.on<SourceEvent.Load> { onEvent(onBmpSourceLoad, it.toJson()) },
-            player.on<SourceEvent.Loaded> { onEvent(onBmpSourceLoaded, it.toJson()) },
-            player.on<SourceEvent.Unloaded> { onEvent(onBmpSourceUnloaded, it.toJson()) },
-            player.on<SourceEvent.Error> { onEvent(onBmpSourceError, it.toJson()) },
-            player.on<SourceEvent.Warning> { onEvent(onBmpSourceWarning, it.toJson()) },
-            player.on<SourceEvent.AudioTrackAdded> { onEvent(onBmpAudioAdded, it.toJson()) },
-            player.on<SourceEvent.AudioTrackChanged> { onEvent(onBmpAudioChanged, it.toJson()) },
-            player.on<SourceEvent.AudioTrackRemoved> { onEvent(onBmpAudioRemoved, it.toJson()) },
-            player.on<SourceEvent.SubtitleTrackAdded> { onEvent(onBmpSubtitleAdded, it.toJson()) },
-            player.on<SourceEvent.SubtitleTrackChanged> { onEvent(onBmpSubtitleChanged, it.toJson()) },
-            player.on<SourceEvent.SubtitleTrackRemoved> { onEvent(onBmpSubtitleRemoved, it.toJson()) },
-            player.on<SourceEvent.DownloadFinished> { onEvent(onBmpDownloadFinished, it.toJson()) },
-            player.on<PlayerEvent.AdBreakFinished> {
-                onEvent(onBmpAdBreakFinished, it.toJson())
-            },
-            player.on<PlayerEvent.AdBreakStarted> {
-                onEvent(onBmpAdBreakStarted, it.toJson())
-            },
-            player.on<PlayerEvent.AdClicked> { onEvent(onBmpAdClicked, it.toJson()) },
-            player.on<PlayerEvent.AdError> { onEvent(onBmpAdError, it.toJson()) },
-            player.on<PlayerEvent.AdFinished> { onEvent(onBmpAdFinished, it.toJson()) },
-            player.on<PlayerEvent.AdManifestLoad> { onEvent(onBmpAdManifestLoad, it.toJson()) },
-            player.on<PlayerEvent.AdManifestLoaded> { onEvent(onBmpAdManifestLoaded, it.toJson()) },
-            player.on<PlayerEvent.AdQuartile> { onEvent(onBmpAdQuartile, it.toJson()) },
-            player.on<PlayerEvent.AdScheduled> { onEvent(onBmpAdScheduled, it.toJson()) },
-            player.on<PlayerEvent.AdSkipped> { onEvent(onBmpAdSkipped, it.toJson()) },
-            player.on<PlayerEvent.AdStarted> { onEvent(onBmpAdStarted, it.toJson()) },
-            player.on<SourceEvent.VideoDownloadQualityChanged> {
-                onEvent(
-                    onBmpVideoDownloadQualityChanged,
-                    it.toJson(),
-                )
-            },
-            player.on<PlayerEvent.VideoPlaybackQualityChanged> {
-                onEvent(
-                    onBmpVideoPlaybackQualityChanged,
-                    it.toJson(),
-                )
-            },
-            player.on<PlayerEvent.CastAvailable> { onEvent(onBmpCastAvailable, it.toJson()) },
-            player.on<PlayerEvent.CastPaused> { onEvent(onBmpCastPaused, it.toJson()) },
-            player.on<PlayerEvent.CastPlaybackFinished> { onEvent(onBmpCastPlaybackFinished, it.toJson()) },
-            player.on<PlayerEvent.CastPlaying> { onEvent(onBmpCastPlaying, it.toJson()) },
-            player.on<PlayerEvent.CastStarted> { onEvent(onBmpCastStarted, it.toJson()) },
-            player.on<PlayerEvent.CastStart> { onEvent(onBmpCastStart, it.toJson()) },
-            player.on<PlayerEvent.CastStopped> { onEvent(onBmpCastStopped, it.toJson()) },
-            player.on<PlayerEvent.CastTimeUpdated> { onEvent(onBmpCastTimeUpdated, it.toJson()) },
-            player.on<PlayerEvent.CastWaitingForDevice> { onEvent(onBmpCastWaitingForDevice, it.toJson()) },
-            player.on<PlayerEvent.CueEnter> { onEvent(onBmpCueEnter, it.toJson()) },
-            player.on<PlayerEvent.CueExit> { onEvent(onBmpCueExit, it.toJson()) },
-        )
+        playerEventSubscriptions.forEach {
+            player.on(it.eventClass, it.eventListener)
+        }
     }
 
     private fun onEvent(dispatcher: ViewEventCallback<Map<String, Any>>, eventData: Map<String, Any>) {
@@ -730,6 +752,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
     }
 
+    fun updatePictureInPictureActions(pictureInPictureActions: List<PictureInPictureAction>) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            pictureInPictureHandler?.updateActions(pictureInPictureActions)
+        }
+    }
+
     /**
      * Try to measure and update this view layout as much as possible to
      * avoid layout problems related to React or old layout values present
@@ -745,10 +773,4 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             layout(left, top, right, bottom)
         }
     }
-}
-
-private inline fun <reified E : Event> Player.on(noinline onEvent: (event: E) -> Unit): EventSubscription<E> {
-    val eventSubscription = EventSubscription(E::class, onEvent)
-    this.on(eventSubscription.eventClass, eventSubscription.action)
-    return eventSubscription
 }
