@@ -16,7 +16,9 @@ export interface PictureInPictureConfig {
    *
    * Default is `false`.
    *
-   * @platform iOS 14.2 and above
+   * On Android, this requests Picture in Picture as soon as the host activity is backgrounded.
+   *
+   * @platform iOS 14.2+, Android 8.0+
    */
   shouldEnterOnBackground?: boolean;
 }

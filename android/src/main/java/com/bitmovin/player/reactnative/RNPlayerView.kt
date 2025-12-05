@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative
 
 import android.annotation.SuppressLint
+import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
@@ -110,6 +111,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private val onBmpPictureInPictureAvailabilityChanged by EventDispatcher()
     private val onBmpPictureInPictureEnter by EventDispatcher()
     private val onBmpPictureInPictureExit by EventDispatcher()
+
+    private var pictureInPictureConfig: PictureInPictureConfig = PictureInPictureConfig()
 
     private var playerInMediaSessionService: Player? = null
 
@@ -313,14 +316,20 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 LayoutParams.MATCH_PARENT,
             )
 
-            val pictureInPictureConfig = playerViewConfigWrapper?.pictureInPictureConfig
-            val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer ||
-                    pictureInPictureConfig?.isEnabled == true
-
-            if (isPictureInPictureEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                pictureInPictureHandler = RNPictureInPictureHandler(currentActivity, player)
-                newPlayerView.setPictureInPictureHandler(pictureInPictureHandler!!)
+            this.pictureInPictureConfig = playerViewConfigWrapper?.pictureInPictureConfig ?: PictureInPictureConfig()
+            val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || pictureInPictureConfig.isEnabled
+            pictureInPictureHandler = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                isPictureInPictureEnabled
+            ) {
+                RNPictureInPictureHandler(
+                    currentActivity,
+                    player,
+                    pictureInPictureConfig,
+                )
+            } else {
+                null
             }
+            newPlayerView.setPictureInPictureHandler(pictureInPictureHandler)
             setPlayerView(newPlayerView)
             attachPlayerViewListeners(newPlayerView)
 
@@ -339,6 +348,33 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                     playerView?.setCustomMessageHandler(customMessageHandlerBridge.customMessageHandler)
                 }
         }
+    }
+
+    internal fun shouldEnterPictureInPictureOnBackground() = pictureInPictureConfig.let {
+        it.isEnabled && it.shouldEnterOnBackground
+    }
+
+    internal fun requestPictureInPictureOnBackgroundTransition(): Boolean {
+        if (!shouldEnterPictureInPictureOnBackground()) {
+            return false
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return false
+        }
+        val activity = appContext.activityProvider?.currentActivity ?: return false
+        if (activity.isFinishing || activity.isChangingConfigurations) {
+            return false
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && activity.isInPictureInPictureMode) {
+            return false
+        }
+        val playerView = playerView ?: return false
+        if (!playerView.isPictureInPictureAvailable || playerView.isPictureInPicture) {
+            return false
+        }
+        if (pictureInPictureHandler?.playerIsPlaying != true) return false
+        playerView.enterPictureInPicture()
+        return true
     }
 
     private fun setSubtitleView(subtitleView: SubtitleView) {

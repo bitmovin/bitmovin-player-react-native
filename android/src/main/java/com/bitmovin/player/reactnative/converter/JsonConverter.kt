@@ -685,6 +685,7 @@ fun Thumbnail.toJson(): Map<String, Any> = mapOf(
 
 fun Map<String, Any?>.toPictureInPictureConfig(): PictureInPictureConfig = PictureInPictureConfig(
     isEnabled = getBooleanOrNull("isEnabled") ?: false,
+    shouldEnterOnBackground = getBooleanOrNull("shouldEnterOnBackground") ?: false,
 )
 
 fun List<String>.toPictureInPictureActions(): List<PictureInPictureAction> = mapNotNull {
