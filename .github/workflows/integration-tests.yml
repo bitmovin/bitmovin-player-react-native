@@ -1,0 +1,11 @@
+name: Integration Tests (stub)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  stub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo
+        run: echo "Integration test stub workflow"

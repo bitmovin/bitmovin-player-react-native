@@ -1,20 +1,21 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Platform, StyleSheet, View, ViewProps } from 'react-native';
 import type { JSX } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Button, Platform, StyleSheet, View, ViewProps } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
-  usePlayer,
-  PlayerView,
-  SourceType,
   PictureInPictureEnterEvent,
   PictureInPictureExitEvent,
+  PlayerView,
   PlayerViewConfig,
+  SourceType,
+  usePlayer,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamsList } from '../App';
+import { PictureInPictureAction } from 'bitmovin-player-react-native/components/PlayerView/pictureInPictureAction';
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
@@ -33,6 +34,10 @@ export default function BasicPictureInPicture({
   const [isPictureInPictureRequested, setIsPictureInPictureRequested] =
     useState(false);
   const [isInPictureInPicture, setIsInPictureInPicture] = useState(false);
+  const pictureInPictureActions = [
+    PictureInPictureAction.TogglePlayback,
+    PictureInPictureAction.Seek,
+  ];
 
   const config: PlayerViewConfig = {
     pictureInPictureConfig: {
@@ -46,6 +51,12 @@ export default function BasicPictureInPicture({
   const player = usePlayer({
     remoteControlConfig: {
       isCastEnabled: false,
+    },
+    playbackConfig: {
+      isBackgroundPlaybackEnabled: false,
+    },
+    mediaControlConfig: {
+      isEnabled: false,
     },
   });
 
@@ -129,6 +140,7 @@ export default function BasicPictureInPicture({
         onPictureInPictureEntered={onEvent}
         onPictureInPictureExit={onPictureInPictureExitEvent}
         onPictureInPictureExited={onEvent}
+        pictureInPictureActions={pictureInPictureActions}
       />
     </ContainerView>
   );

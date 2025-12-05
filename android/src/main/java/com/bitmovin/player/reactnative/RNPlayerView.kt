@@ -36,6 +36,7 @@ import expo.modules.kotlin.views.ExpoView
 class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
     var playerView: PlayerView? = null
         private set
+    private var pictureInPictureHandler: RNPictureInPictureHandler? = null
     private var subtitleView: SubtitleView? = null
     private var playerContainer: FrameLayout? = null
     var enableBackgroundPlayback: Boolean = false
@@ -188,6 +189,10 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             view.onDestroy()
         }
         playerView = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            pictureInPictureHandler?.dispose()
+            pictureInPictureHandler = null
+        }
         subtitleView?.let { view ->
             view.setPlayer(null)
             (view.parent as? ViewGroup)?.removeView(view)
@@ -308,10 +313,13 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 LayoutParams.MATCH_PARENT,
             )
 
+            val pictureInPictureConfig = playerViewConfigWrapper?.pictureInPictureConfig
             val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer ||
-                playerViewConfigWrapper?.pictureInPictureConfig?.isEnabled == true
-            if (isPictureInPictureEnabled) {
-                newPlayerView.setPictureInPictureHandler(RNPictureInPictureHandler(currentActivity, player))
+                    pictureInPictureConfig?.isEnabled == true
+
+            if (isPictureInPictureEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                pictureInPictureHandler = RNPictureInPictureHandler(currentActivity, player)
+                newPlayerView.setPictureInPictureHandler(pictureInPictureHandler!!)
             }
             setPlayerView(newPlayerView)
             attachPlayerViewListeners(newPlayerView)
@@ -705,6 +713,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                     it.exitFullscreen()
                 }
             }
+        }
+    }
+
+    fun updatePictureInPictureActions(pictureInPictureActions: List<PictureInPictureAction>) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            pictureInPictureHandler?.updateActions(pictureInPictureActions)
         }
     }
 
