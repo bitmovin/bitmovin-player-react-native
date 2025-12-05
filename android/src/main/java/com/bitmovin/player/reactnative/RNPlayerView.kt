@@ -202,7 +202,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         activityLifecycle?.removeObserver(activityLifecycleObserver)
         viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
 
-        // cleanup all children
+        // cleanup all children views explicitly,
+        // so that in case react native does some view caching we are 100% the child views of this view
+        // are cleaned up from the view hierarchy
         removeAllViews()
     }
 
