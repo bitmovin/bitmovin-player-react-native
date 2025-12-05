@@ -44,6 +44,7 @@ import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
+import com.bitmovin.player.api.metadata.Metadata
 import com.bitmovin.player.api.metadata.daterange.DateRangeMetadata
 import com.bitmovin.player.api.metadata.scte.ScteMessage
 import com.bitmovin.player.api.network.HttpRequest
@@ -894,10 +895,10 @@ fun String.toMetadataTypeString(): String = when (this) {
     else -> "NONE"
 }
 
-fun com.bitmovin.player.api.metadata.Metadata.toJson(type: String): Map<String, Any> {
-    val entriesArray = MutableList(length()) { i ->
-        get(i)?.toJson()
-    }
+fun Metadata.toJson(type: String): Map<String, Any> {
+    val entriesArray = (0 until length())
+        .mapNotNull { get(it) }
+        .map { it.toJson() }
 
     return mapOf(
         "metadataType" to type.toMetadataTypeString(),
@@ -906,7 +907,7 @@ fun com.bitmovin.player.api.metadata.Metadata.toJson(type: String): Map<String, 
     ).filterNotNullValues()
 }
 
-fun com.bitmovin.player.api.metadata.Metadata.Entry.toJson(): Map<String, Any> {
+fun Metadata.Entry.toJson(): Map<String, Any> {
     return when (this) {
         is DateRangeMetadata -> this.toJson()
         is ScteMessage -> this.toJson()
