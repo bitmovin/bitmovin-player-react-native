@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.5.0]
+
+### Added
+
+- `pictureInPictureActions` property on `<PlayerView>` to configure Picture in Picture actions
+  - `PictureInPictureAction.TogglePlayback` to add a play/pause action
+  - `PictureInPictureAction.Seek` to add seek forward and seek backward for 10 seconds actions
+- Android: `PictureInPictureConfig.shouldEnterOnBackground` now automatically requests Picture in Picture when the app is backgrounded, matching iOS behavior
+- `PlayerViewConfig.uiConfig.enableWebViewInspecting` to allow inspection of the Player UI WebView on iOS
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.134.0+jason`
+- Update Bitmovin's native iOS SDK version to `3.102.0`
+- When no subtitle is selected on iOS/tvOS, it returns `null` instead of a track with identifier `off` to align with the Android Player SDK behavior
+- `SubtitleChangedEvent`'s properties of `oldSubtitleTrack` and `newSubtitleTrack` are now optional to align with the native Player SDKs
+
+### Fixed
+
+- Android: `player.setSubtitleTrack()` now correctly disables subtitles when passing `undefined` as a parameter. Calling `player.setSubtitleTrack()` without a parameter is no longer supported
+- Android: Improve lifecycle handling to free resources
+
 ## [1.4.0] - 2025-11-06
 
 ### Changed

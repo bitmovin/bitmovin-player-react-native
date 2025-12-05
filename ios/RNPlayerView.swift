@@ -220,6 +220,17 @@ public class RNPlayerView: ExpoView {
         }
         playerView.scalingMode = nativeScalingMode
     }
+
+    internal func updatePictureInPictureActions(actions: [RNPictureInPictureAction]?) {
+        guard let actions else {
+            return
+        }
+        guard let playerView else { return }
+#if os(iOS)
+        playerView.pictureInPicture.showSkipControls = actions.contains(.seek)
+        playerView.tweaks.hidePlaybackControlsInPictureInPicture = !actions.contains(.togglePlayback)
+#endif
+    }
 }
 
 private extension RNPlayerView {
@@ -532,6 +543,7 @@ private extension RNPlayerView {
                 bitmovinUserInterfaceConfig
                     .playbackSpeedSelectionEnabled = uiConfig.playbackSpeedSelectionEnabled
                 bitmovinUserInterfaceConfig.uiManagerFactoryFunction = uiConfig.uiManagerFactoryFunction
+                bitmovinUserInterfaceConfig.enableWebViewInspecting = uiConfig.enableWebViewInspecting
             }
             if let hideFirstFrame = playerViewConfig?.hideFirstFrame {
                 bitmovinUserInterfaceConfig.hideFirstFrame = hideFirstFrame

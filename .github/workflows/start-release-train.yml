@@ -30,7 +30,7 @@ jobs:
     outputs:
       branch_name: ${{ steps.branching.outputs.branch_name }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Git User
         run: |

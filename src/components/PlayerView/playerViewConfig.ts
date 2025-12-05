@@ -70,6 +70,14 @@ export interface WebUiConfig extends UiConfig {
    * @platform Android
    */
   focusUiOnInitialization?: boolean;
+  /**
+   * When set to true the WKWebView used for the Bitmovin Player Web UI can be inspected using the Safari Web Inspector. See [Enabling the Inspection of Web Content in Apps](https://webkit.org/blog/13936/enabling-the-inspection-of-web-content-in-apps/) for details.
+   *
+   * Please note that the React Native DevTools won't show the View, you will need to use Safari and connect its remote inspector to the Player UI WebView.
+   *
+   * @platform iOS
+   */
+  enableWebViewInspecting?: boolean;
 }
 
 export abstract class Variant {
