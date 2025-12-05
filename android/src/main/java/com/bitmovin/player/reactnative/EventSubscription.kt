@@ -2,7 +2,6 @@ package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.EventListener
-import kotlin.reflect.KClass
 
 /**
  * Data class representing an event subscription for Bitmovin Player events.
@@ -10,13 +9,14 @@ import kotlin.reflect.KClass
  * when the event is triggered.
  *
  * @param eventClass The KClass of the event to subscribe to
- * @param action The function to execute when the event is triggered
+ * @param eventListener The function to execute when the event is triggered
  */
-data class EventSubscription<E : Event> (
-    val eventClass: KClass<out E>,
-    val action: (E) -> Unit,
-) : EventListener<E> {
-    override fun onEvent(event: E) {
-        action(event)
-    }
-}
+data class EventSubscription<E : Event>(
+    val eventClass: Class<out E>,
+    val eventListener: EventListener<in E>,
+)
+
+inline fun <reified E : Event> EventSubscription(noinline action: (E) -> Unit) = EventSubscription(
+    E::class.java,
+    EventListener(action),
+)
