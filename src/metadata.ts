@@ -13,6 +13,37 @@ export interface BaseMetadataEntry {
   metadataType: MetadataType;
 }
 
+export type Milliseconds = number;
+export type Seconds = number;
+
+/**
+ * Time range expressed in milliseconds since Unix epoch.
+ */
+export interface AbsoluteTimeRange {
+  /**
+   * The start date of the range.
+   */
+  start: Milliseconds;
+  /**
+   * The end date of the range.
+   */
+  end?: Milliseconds;
+}
+
+/**
+ * Time range expressed in seconds since playback start.
+ */
+export interface RelativeTimeRange {
+  /**
+   * The start time of the range.
+   */
+  start: Seconds;
+  /**
+   * The end time of the range.
+   */
+  end?: Seconds;
+}
+
 /**
  * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
  */
@@ -27,29 +58,36 @@ export interface DateRangeMetadataEntry extends BaseMetadataEntry {
    */
   classLabel?: string;
   /**
-   * The start date of the date range in milliseconds.
+   * Time range of the entry relative to Unix Epoch.
+   * 
+   * If the metadata represents an instantaneous event, {@link AbsoluteTimeRange.end} should be equal
+   * to {@link AbsoluteTimeRange.start}.
+   * An omitted {@link AbsoluteTimeRange.end} indicates an open-ended range.
+   * 
+   * @platform iOS, tvOS
    */
-  startDate: number;
+  absoluteTimeRange?: AbsoluteTimeRange;
   /**
-   * The end date of the date range in milliseconds.
+   * Time range of the entry relative to the beginning of the playback.
+   * 
+   * @platform Android
+   */
+  relativeTimeRange?: RelativeTimeRange;
+  /**
+   * The declared duration of the range in seconds.
+   */
+  duration?: Seconds;
+  /**
+   * The planned duration of the range in seconds.
    *
-   * If the metadata represents an instantaneous event, `endDate` should be equal
-   * to {@link startDate}.
-   * An omitted `endDate` indicates an open-ended range.
-   */
-  endDate?: number;
-  /**
-   * The declared duration of the range.
-   */
-  duration?: number;
-  /**
-   * The planned duration of the range.
+   * Used for live streams where the actual end time may not be known yet.
    *
    * @platform Android
    */
-  plannedDuration?: number;
+  plannedDuration?: Seconds;
   /**
-   * Indicates whether the date range ends at the start of the next date range with the same {@link classLabel}.
+   * Indicates whether the date range ends at the start of the next date range
+   * with the same {@link classLabel}.
    *
    * @platform Android
    */
@@ -68,11 +106,9 @@ export interface DateRangeMetadataEntry extends BaseMetadataEntry {
    */
   cueingOptions?: string[];
   /**
-   * Custom client-defined attributes associated with the date range.
-   *
-   * @platform Android
+   * All the attributes associated with the date range.
    */
-  clientAttributes?: Record<string, string>;
+  attributes?: Record<string, string>;
 }
 
 /**

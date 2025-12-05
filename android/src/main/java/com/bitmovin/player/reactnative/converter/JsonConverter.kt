@@ -915,15 +915,22 @@ fun com.bitmovin.player.api.metadata.Metadata.Entry.toJson(): Map<String, Any> {
 }
 
 fun DateRangeMetadata.toJson(): Map<String, Any> {
-    val endSeconds = (duration ?: plannedDuration)?.let { startDate + it }
+    // Contrarily to iOS, in Android SDK, startDate is playback seconds
+    // relative to source beginning, not absolute wall-clock time.
+    val startTime = startDate
+    val endSeconds = (duration ?: plannedDuration)?.let { startTime + it }
+
+    val relativeTimeRange = mutableMapOf<String, Any>(
+        "start" to startTime
+    )
+    endSeconds?.let { relativeTimeRange["end"] = it }
 
     return mapOf(
         "metadataType" to "DATERANGE",
         "id" to id,
-        "startDate" to startDate * 1000, // TypeScript/JS conventionally use milliseconds for Dates. See `Date.now()`.
-        "endDate" to endSeconds?.times(1000),
+        "relativeTimeRange" to relativeTimeRange,
         "endOnNext" to endOnNext,
-        "clientAttributes" to clientAttributes,
+        "attributes" to clientAttributes,
         "classLabel" to classLabel,
         "duration" to duration,
         "plannedDuration" to plannedDuration,
