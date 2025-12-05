@@ -7,6 +7,7 @@
 - `pictureInPictureActions` property on `<PlayerView>` to configure Picture in Picture actions
   - `PictureInPictureAction.TogglePlayback` to add a play/pause action
   - `PictureInPictureAction.Seek` to add seek forward and seek backward for 10 seconds actions
+- `PlayerViewConfig.uiConfig.enableWebViewInspecting` to allow inspection of the Player UI WebView on iOS
 
 ### Changed
 
