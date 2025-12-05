@@ -90,7 +90,7 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: ${{ runner.os }}-avd-android-30-google_apis-x86_64
+          key: ${{ runner.os }}-avd-android-30-google_apis-x86_64-6G
           restore-keys: |
             ${{ runner.os }}-avd-
 
@@ -103,6 +103,7 @@ jobs:
           target: google_apis
           avd-name: integration-avd
           force-avd-creation: false
+          disk-size: 6G
           disable-animations: false
           disable-linux-hw-accel: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim -no-metrics
@@ -121,6 +122,7 @@ jobs:
           target: google_apis
           avd-name: integration-avd
           force-avd-creation: false
+          disk-size: 6G
           disable-animations: true
           disable-linux-hw-accel: false
           emulator-options: -no-window -no-snapshot-save -no-audio -no-boot-anim -no-metrics -gpu swiftshader_indirect
