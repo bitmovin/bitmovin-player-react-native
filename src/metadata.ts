@@ -9,9 +9,6 @@ export enum MetadataType {
   NONE = 'NONE',
 }
 
-export interface BaseMetadataEntry {
-  metadataType: MetadataType;
-}
 
 export type Milliseconds = number;
 export type Seconds = number;
@@ -47,7 +44,7 @@ export interface RelativeTimeRange {
 /**
  * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
  */
-export interface DateRangeMetadataEntry extends BaseMetadataEntry {
+interface BaseDateRangeMetadataEntry {
   metadataType: MetadataType.DATERANGE;
   /**
    * The unique identifier for the date range.
@@ -116,7 +113,7 @@ export interface DateRangeMetadataEntry extends BaseMetadataEntry {
  *
  * Note: On iOS, {@link TweaksConfig.isNativeHlsParsingEnabled} must be enabled to parse this type of metadata.
  */
-export interface ScteMetadataEntry extends BaseMetadataEntry {
+export interface ScteMetadataEntry {
   metadataType: MetadataType.SCTE;
   /**
    * The attribute name/key from the SCTE-35 tag.
@@ -134,13 +131,19 @@ export interface ScteMetadataEntry extends BaseMetadataEntry {
 export type MetadataEntry = DateRangeMetadataEntry | ScteMetadataEntry;
 
 /**
- * A collection of timed metadata entries.
+ * A collection of timed metadata entries of the same type.
+ *
+ * All entries in the collection share the same `metadataType`.
  */
-export interface Metadata<T extends BaseMetadataEntry = MetadataEntry> {
-  metadataType: MetadataType;
+export interface MetadataCollection<T extends MetadataEntry> {
   /**
    * The playback time in seconds when this metadata should trigger, relative to the playback session.
    */
-  startTime: number;
+  startTime?: Seconds;
+  /**
+   * The metadata entries.
+   * 
+   * The group is homogeneous: all entries share the same metadata type.
+   */
   entries: T[];
 }
