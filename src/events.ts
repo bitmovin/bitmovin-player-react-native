@@ -11,7 +11,7 @@ import { VideoQuality } from './media';
 import { AudioTrack } from './audioTrack';
 import { LoadingState } from './source';
 import { HttpRequestType } from './network/networkConfig';
-import { Metadata } from './metadata';
+import { DateRangeMetadataEntry, Id3MetadataEntry, isAndroidId3Frame, isId3MetadataEntry, MetadataCollection, MetadataEntry, MetadataType, ScteMetadataEntry } from './metadata';
 
 /**
  * Base event type for all events.
@@ -768,22 +768,48 @@ export interface CueExitEvent extends Event {
   image?: string;
 }
 
+interface MetadataEventBase<T extends MetadataEntry> extends Event {
+  /**
+   * Discriminator for the metadata type carried by this event.
+   * 
+   * All entries in {@link metadata.entries} share this value.
+   * 
+   * @remarks Use it in an `if`/`else` or `switch` to narrow the event type.
+   */
+  metadataType: T['metadataType'];// TODO: serialize from iOS/Android
+  /**
+   * Metadata entries and their trigger time.
+   *
+   * The collection is homogeneous: all entries share the same metadata type,
+   * reflected by {@link metadataType}.
+   */
+  metadata: MetadataCollection<T>;
+}
+
 /**
  * Emitted when metadata is parsed from the stream.
  */
-export interface MetadataParsedEvent extends Event {
-  /**
-   * The parsed metadata container with entries.
-   */
-  metadata: Metadata;
-}
+export type MetadataParsedEvent =
+  | (MetadataEventBase<Id3MetadataEntry> & {
+      metadataType: MetadataType.ID3;
+    })
+  | (MetadataEventBase<DateRangeMetadataEntry> & {
+      metadataType: MetadataType.DATERANGE;
+    })
+  | (MetadataEventBase<ScteMetadataEntry> & {
+      metadataType: MetadataType.SCTE;
+    });
 
 /**
  * Emitted when metadata is encountered during playback.
  */
-export interface MetadataEvent extends Event {
-  /**
-   * The metadata container with entries.
-   */
-  metadata: Metadata;
-}
+export type MetadataEvent =
+  | (MetadataEventBase<Id3MetadataEntry> & {
+      metadataType: MetadataType.ID3;
+    })
+  | (MetadataEventBase<DateRangeMetadataEntry> & {
+      metadataType: MetadataType.DATERANGE;
+    })
+  | (MetadataEventBase<ScteMetadataEntry> & {
+      metadataType: MetadataType.SCTE;
+    });

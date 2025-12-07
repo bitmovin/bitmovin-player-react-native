@@ -1,3 +1,5 @@
+import { TimeRange, Seconds, Milliseconds } from "./utils/temporal";
+
 /**
  * Enumerates all supported types of timed metadata entries.
  */
@@ -184,6 +186,29 @@ interface BaseIosMetadataItem {
  *
  * @platform iOS, tvOS
  */
+
+ /**
+  * iOS representation of ID3 metadata items.
+  *
+  * @platform iOS, tvOS
+  *
+  * @example
+  * ```ts
+  * if (entry.platform === 'ios') {
+  *   // TypeScript narrows to IosId3MetadataItemEntry
+  *   const value = entry.value;
+  *
+  *   if (typeof value === 'string') {
+  *     console.log('String value:', value);
+  *   } else if (value) {
+  *     // value is IOSMetadataValue
+  *     console.log('Number:', value.numberValue);
+  *     console.log('Date:', value.dateValue);
+  *     console.log('Data:', value.dataValue);
+  *   }
+  * }
+  * ```
+  */
 export interface IosId3MetadataItemEntry extends BaseIosMetadataItem {
   metadataType: MetadataType.ID3;
   /**
@@ -425,55 +450,17 @@ export type MetadataEntry = DateRangeMetadataEntry | Id3MetadataEntry | ScteMeta
   * }}
   * ```
   */
-export interface Metadata<T extends MetadataEntry = MetadataEntry> {// TODO: necessary?? Could provide MetadataEntry[] directly - could rename to MetadataGroup or MetadataCollection for better semantics
-  // TODO: claude: consider this omogeneous across all entries. Then I think I can get rid of `metadataType` on each entry, right (and maybe BaseMetadataEntry is also useless)? But I still want a reference to `MetadataType` here at least - is that possible? Or in general, what would be the best way to achieve this?
+export interface MetadataCollection<T extends MetadataEntry> {
   /**
-   * Discriminator indicating the type of all entries in the metadata collection.
+   * The playback time when this metadata triggers.
    */
-  metadataType: T['metadataType'];// TODO: double check it is omogeneous across all entries ! (but think so, what would be the p0oint of the event habving .type then??)
-  /**
-   * The playback time when this metadata should trigger, relative to the playback session.
-   */
-  startTime: Seconds; // TODO: remove? It is available everywhere apart from iOS's dateRange - claude: what's the best way to approach this??
+  startTime?: Seconds; // TODO: do not populate on DateRange (iOS)
   /**
    * The metadata entries.
+   * 
+   * The group is homogeneous: all entries share the same metadata type. // TODO: double check , but should be since we pass it from the event (container level)
    */
   entries: T[];
-}
-
-/**
- * Narrow to ID3 metadata entries.
- */
-export function isId3MetadataEntry(entry: MetadataEntry): entry is Id3MetadataEntry {
-  return entry.metadataType === MetadataType.ID3;
-}
-
-/**
- * Narrow to DATERANGE metadata entries.
- */
-export function isDateRangeMetadataEntry(entry: MetadataEntry): entry is DateRangeMetadataEntry {
-  return entry.metadataType === MetadataType.DATERANGE;
-}
-
-/**
- * Narrow to SCTE metadata entries.
- */
-export function isScteMetadataEntry(entry: MetadataEntry): entry is ScteMetadataEntry {
-  return entry.metadataType === MetadataType.SCTE;
-}
-
-/**
- * Narrow to iOS ID3 entries.
- */
-export function isIosId3Entry(entry: Id3MetadataEntry): entry is IosId3MetadataItemEntry {
-  return (entry as IosId3MetadataItemEntry).platform === 'ios';
-}
-
-/**
- * Narrow to Android ID3 frames.
- */
-export function isAndroidId3Entry(entry: Id3MetadataEntry): entry is AndroidId3Frame {
-  return (entry as AndroidId3Frame).platform === 'android';
 }
 
 /**
@@ -483,5 +470,5 @@ export function isAndroidId3Frame<T extends AndroidId3Frame['frameType']>(
   entry: Id3MetadataEntry,
   frameType: T,
 ): entry is Extract<AndroidId3Frame, { frameType: T }> {
-  return isAndroidId3Entry(entry) && entry.frameType === frameType;
+  return entry.platform === 'android' && entry.frameType === frameType;
 }
