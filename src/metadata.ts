@@ -9,45 +9,65 @@ export enum MetadataType {
   NONE = 'NONE',
 }
 
-export interface BaseMetadataEntry {
-  metadataType: MetadataType;
-}
-
-export type Milliseconds = number;
-export type Seconds = number;
-
-/**
- * Time range expressed in milliseconds since Unix epoch.
- */
-export interface AbsoluteTimeRange {
-  /**
-   * The start date of the range.
-   */
-  start?: Milliseconds;
-  /**
-   * The end date of the range.
-   */
-  end?: Milliseconds;
-}
-
-/**
- * Time range expressed in seconds since playback start.
- */
-export interface RelativeTimeRange {
-  /**
-   * The start time of the range.
-   */
-  start?: Seconds;
-  /**
-   * The end time of the range.
-   */
-  end?: Seconds;
-}
+export type Base64String = string;
 
 /**
  * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
  */
-export interface DateRangeMetadataEntry extends BaseMetadataEntry {
+export type DateRangeMetadataEntry =
+  | IosDateRangeMetadataEntry
+  | AndroidDateRangeMetadataEntry;
+
+/**
+ * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
+ * 
+ * @platform Android
+ */
+export interface AndroidDateRangeMetadataEntry {
+  platform: 'android';
+  metadataType: MetadataType.DATERANGE;
+  /**
+   * The unique identifier for the date range.
+   */
+  id: string;
+  /**
+   * The class associated with the date range.
+   */
+  classLabel?: string;
+  /**
+   * Time range of the entry relative to the beginning of the playback.
+   */
+  relativeTimeRange?: TimeRange<Seconds>;
+  /**
+   * The declared duration of the range.
+   */
+  duration?: Seconds;
+  /**
+   * The planned duration of the range.
+   *
+   * Used for live streams where the actual end time may not be known yet.
+   */
+  plannedDuration?: Seconds;
+  /**
+   * Indicates whether the date range ends at the start of the next date range
+   * with the same {@link classLabel}.
+   */
+  endOnNext?: boolean;
+  /**
+   * All the attributes associated with the date range.
+   * 
+   * @example "X-ASSET-URI": "https://www.example.com"
+   */
+  attributes?: Record<string, string>;
+}
+
+/**
+ * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
+ * 
+ * @platform iOS, tvOS
+ */
+export interface IosDateRangeMetadataEntry {
+  platform: 'ios';
   metadataType: MetadataType.DATERANGE;
   /**
    * The unique identifier for the date range.
@@ -60,38 +80,15 @@ export interface DateRangeMetadataEntry extends BaseMetadataEntry {
   /**
    * Time range of the entry relative to Unix Epoch.
    *
-   * If the metadata represents an instantaneous event, {@link AbsoluteTimeRange.end} should be equal
-   * to {@link AbsoluteTimeRange.start}.
-   * An omitted {@link AbsoluteTimeRange.end} indicates an open-ended range.
-   *
-   * @platform iOS, tvOS
+   * If the metadata represents an instantaneous event, {@link TimeRange.end} should be equal
+   * to {@link TimeRange.start}.
+   * An omitted {@link TimeRange.end} indicates an open-ended range.
    */
-  absoluteTimeRange?: AbsoluteTimeRange;
+  absoluteTimeRange?: TimeRange<Milliseconds>;
   /**
-   * Time range of the entry relative to the beginning of the playback.
-   *
-   * @platform Android
-   */
-  relativeTimeRange?: RelativeTimeRange;
-  /**
-   * The declared duration of the range in seconds.
+   * The declared duration of the range.
    */
   duration?: Seconds;
-  /**
-   * The planned duration of the range in seconds.
-   *
-   * Used for live streams where the actual end time may not be known yet.
-   *
-   * @platform Android
-   */
-  plannedDuration?: Seconds;
-  /**
-   * Indicates whether the date range ends at the start of the next date range
-   * with the same {@link classLabel}.
-   *
-   * @platform Android
-   */
-  endOnNext?: boolean;
   /**
    * The `CUE` attribute values from an `#EXT-X-DATERANGE` tag.
    *
@@ -101,52 +98,50 @@ export interface DateRangeMetadataEntry extends BaseMetadataEntry {
    * `"PRE"` and `"POST"` are re-playable unless `"ONCE"` is included.
    *
    * @remarks Applies only to HLS Interstitial opportunities (pre-, mid-, post-roll).
-   *
-   * @platform iOS, tvOS
    */
   cueingOptions?: string[];
   /**
    * All the attributes associated with the date range.
    */
-  attributes?: Record<string, string> | [AvMetadataItemEntry];// TODO: update docs (or else use Record<string, unknown> for both)
+  attributes?: IosDateRangeMetadataItemEntry[];
 }
 
 /**
  * Typed representations of an iOS metadata value.
  *
- * Depending on the underlying value, one or more of these fields may be present; others will be `undefined`.
+ * Depending on the underlying value, one or more of these fields may be present;
+ * others will be `undefined`.
  */
 export interface IOSMetadataValue {
   /**
-   * Provides a string representation of the value, or `undefined`
-   * if the value cannot be represented as such.
+   * A text representation of the value, if available.
    */
   stringValue?: string;
   /**
-   * Provides a numerical representation of the value, or `undefined`
-   * if the value cannot be represented as such.
+   * A numeric representation of the value, if available.
    */
   numberValue?: number;
   /**
-   * Provides the value as an ISO 8601 date string (e.g.: "2025-12-02T00:00:00Z"), or `undefined`
-   * if the value cannot be represented as such.
+   * A date/time representation of the value, formatted as an ISO 8601 string, if available.
+   * 
+   * @example "2025-12-02T00:00:00Z"
    */
   dateValue?: string;
   /**
-   * Provides the value as Base64-encoded data, or `undefined` when the value cannot be represented as data.
+   * A binary representation of the value as Base64-encoded data, if available.
    *
-   * Use this accessor to retrieve encapsulated artwork, thumbnails, proprietary frames, or any encoded value.
+   * @remarks Use this accessor to retrieve encapsulated artwork, thumbnails,
+   *          proprietary frames, or any encoded value.
    */
-  dataValue?: string;
+  dataValue?: Base64String;
 }
 
 /**
- * iOS representation of ID3 and generic metadata items.
+ * iOS representation of generic metadata items.
  *
  * @platform iOS, tvOS
  */
-export interface AvMetadataItemEntry extends BaseMetadataEntry {
-  metadataType: MetadataType.ID3;// TODO: this can also be DateRange !! or generic - how to solve??
+interface BaseIosMetadataItem {
   /**
    * Platform discriminator for TypeScript type narrowing.
    */
@@ -156,15 +151,24 @@ export interface AvMetadataItemEntry extends BaseMetadataEntry {
    */
   key?: string;
   /**
-   * Parsed representation of the metadata item's value.
+   * String representation of the metadata value.
    *
-   * If the underlying metadata item has no readable value, this property is `undefined`.
+   * The underlying value is first interpreted as the most appropriate type
+   * (date, number, text, or binary data) and then converted to a string.
+   * - Dates are formatted as ISO 8601 strings (e.g. "2025-12-02T00:00:00Z").
+   * - Binary data is encoded as a Base64 string.
+   *
+   * This will be `undefined` if the value cannot be interpreted.
    */
-  value?: string | IOSMetadataValue; // TODO: update docs
+  value?: string;
+  /**
+   * Full typed representation of the underlying value as reported by iOS.
+   */
+  rawValue?: IOSMetadataValue;
   /**
    * Time range of the entry relative to the beginning of the playback.
    */
-  relativeTimeRange?: RelativeTimeRange;
+  relativeTimeRange?: TimeRange<Seconds>;// TODO: is this seconds??
   /**
    * The duration of the metadata item.
    */
@@ -173,20 +177,50 @@ export interface AvMetadataItemEntry extends BaseMetadataEntry {
    * The IETF BCP 47 language identifier of the metadata item.
    */
   extendedLanguageTag?: string;
+}
+
+/**
+ * iOS representation of ID3 metadata items.
+ *
+ * @platform iOS, tvOS
+ */
+export interface IosId3MetadataItemEntry extends BaseIosMetadataItem {
+  metadataType: MetadataType.ID3;
   /**
    * Additional attributes attached to the metadata item.
-   * 
-   * `undefined` in case {@link metadataType} is {@link MetadataType.DATERANGE}.
    */
   extraAttributes?: Record<string, unknown>;
 }
+
+/**
+ * iOS representation of DATERANGE attributes.
+ *
+ * @platform iOS, tvOS
+ */
+export interface IosDateRangeMetadataItemEntry extends BaseIosMetadataItem {
+  platform: 'ios';
+  metadataType: MetadataType.DATERANGE;
+}
+
+// export interface AvOtherMetadataItemEntry extends BaseAvMetadataItem {
+//   metadataType: Exclude<MetadataType, MetadataType.ID3 | MetadataType.DATERANGE>;
+//   /**
+//    * Additional attributes attached to the metadata item.
+//    */
+//   extraAttributes?: Record<string, unknown>;
+// }
+
+// export type AvMetadataItemEntry =
+//   | AvId3MetadataItemEntry
+//   | AvDateRangeMetadataItemEntry;
+  // | AvOtherMetadataItemEntry;
 
 /**
  * Base interface for all Android ID3 frames.
  *
  * @platform Android
  */
-interface AndroidId3FrameBase extends BaseMetadataEntry {
+interface AndroidId3FrameBase {
   metadataType: MetadataType.ID3;
   /**
    * Platform discriminator for TypeScript type narrowing.
@@ -200,7 +234,7 @@ interface AndroidId3FrameBase extends BaseMetadataEntry {
  *
  * @platform Android
  */
-export interface AndroidTextInformationFrame extends AndroidId3FrameBase {
+interface AndroidTextInformationFrame extends AndroidId3FrameBase {
   frameType: 'text';
   description?: string;
   value: string;
@@ -211,10 +245,10 @@ export interface AndroidTextInformationFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-export interface AndroidBinaryFrame extends AndroidId3FrameBase {
+interface AndroidBinaryFrame extends AndroidId3FrameBase {
   frameType: 'binary';
   /** Base64-encoded binary data. */
-  data: string;
+  data: Base64String;
 }
 
 /**
@@ -222,13 +256,13 @@ export interface AndroidBinaryFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-export interface AndroidApicFrame extends AndroidId3FrameBase {
+interface AndroidApicFrame extends AndroidId3FrameBase {
   frameType: 'apic';
   mimeType: string;
   description?: string;
   pictureType: number;
   /** Base64-encoded image data. */
-  pictureData: string;
+  pictureData: Base64String;
 }
 
 /**
@@ -236,7 +270,7 @@ export interface AndroidApicFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-export interface AndroidUrlLinkFrame extends AndroidId3FrameBase {
+interface AndroidUrlLinkFrame extends AndroidId3FrameBase {
   frameType: 'url';
   description?: string;
   url: string;
@@ -247,7 +281,7 @@ export interface AndroidUrlLinkFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-export interface AndroidCommentFrame extends AndroidId3FrameBase {
+interface AndroidCommentFrame extends AndroidId3FrameBase {
   frameType: 'comment';
   language: string;
   description: string;
@@ -259,11 +293,11 @@ export interface AndroidCommentFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-export interface AndroidPrivFrame extends AndroidId3FrameBase {
+interface AndroidPrivFrame extends AndroidId3FrameBase {
   frameType: 'priv';
   owner: string;
   /** Base64-encoded private data. */
-  privateData: string;
+  privateData: Base64String;
 }
 
 /**
@@ -271,13 +305,13 @@ export interface AndroidPrivFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-export interface AndroidGeobFrame extends AndroidId3FrameBase {
+interface AndroidGeobFrame extends AndroidId3FrameBase {
   frameType: 'geob';
   mimeType: string;
   filename: string;
   description: string;
   /** Base64-encoded object data. */
-  data: string;
+  data: Base64String;
 }
 
 /**
@@ -285,11 +319,10 @@ export interface AndroidGeobFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-export interface AndroidChapterFrame extends AndroidId3FrameBase {
+interface AndroidChapterFrame extends AndroidId3FrameBase {
   frameType: 'chapter';
   chapterId: string;
-  startTimeMs: number;// TODO: use Milliseconds and rename properly
-  endTimeMs: number;
+  timeRange: TimeRange<Milliseconds>
   /** The byte offset of the start of the chapter, or `-1` if not set. */
   startOffset: number;
   /** The byte offset of the end of the chapter, or `-1` if not set. */
@@ -302,7 +335,7 @@ export interface AndroidChapterFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-export interface AndroidChapterTocFrame extends AndroidId3FrameBase {
+interface AndroidChapterTocFrame extends AndroidId3FrameBase {
   frameType: 'chapterToc';
   elementId: string;
   isRoot: boolean;
@@ -341,20 +374,20 @@ export type AndroidId3Frame =
  *     // TypeScript narrows to AndroidId3Frame
  *     console.log(entry.frameType); // Type-safe
  *   } else {
- *     // TypeScript narrows to AvMetadataItemEntry (iOS)
- *     console.log(entry.keySpace);  // Type-safe
+ *     // TypeScript narrows to AvMetadataItemEntry (iOS) // TODO: update type-name and field used below
+ *     console.log(entry.key);  // Type-safe
  *   }
  * }
  * ```
  */
-export type Id3MetadataEntry = AvMetadataItemEntry | AndroidId3Frame;// TODO: if AVMetadataItem becomes generic, does this need changes as well?? - maybe could use A base avItemMetadata to inherit (e.g. extraAttributes is only ID3, then use ID3 child here)
+export type Id3MetadataEntry = IosId3MetadataItemEntry | AndroidId3Frame;// TODO: if AVMetadataItem becomes generic, does this need changes as well?? - maybe could use A base avItemMetadata to inherit (e.g. extraAttributes is only ID3, then use ID3 child here)
 
 /**
  * Describes metadata associated with HLS `#EXT-X-SCTE35` tags.
  *
  * Note: On iOS, {@link TweaksConfig.isNativeHlsParsingEnabled} must be enabled to parse this type of metadata.
  */
-export interface ScteMetadataEntry extends BaseMetadataEntry {
+export interface ScteMetadataEntry {
   metadataType: MetadataType.SCTE;
   /**
    * The attribute name/key from the SCTE-35 tag.
@@ -370,15 +403,85 @@ export interface ScteMetadataEntry extends BaseMetadataEntry {
  * Union type representing all supported timed metadata entry kinds.
  */
 export type MetadataEntry = DateRangeMetadataEntry | Id3MetadataEntry | ScteMetadataEntry;
+// | NoneMetadataEntry
+// export interface NoneMetadataEntry { metadataType: MetadataType.NONE; }
+
+ /**
+  * A collection of timed metadata entries of the same type.
+  *
+  * All entries in the collection share the same `metadataType`.
+  * This is the shape of the `metadata` field in `MetadataEvent`.
+  *
+  * @example// TODO: expand and concerete use-case
+  * ```ts
+  * onMetadata={(event) => {
+  *   const { metadata } = event;
+  *   if (metadata.metadataType === MetadataType.ID3) {
+  *     // All entries are guaranteed to be ID3
+  *     metadata.entries.forEach(entry => {
+  *       // entry is Id3MetadataEntry
+  *     });
+  *   }
+  * }}
+  * ```
+  */
+export interface Metadata<T extends MetadataEntry = MetadataEntry> {// TODO: necessary?? Could provide MetadataEntry[] directly - could rename to MetadataGroup or MetadataCollection for better semantics
+  // TODO: claude: consider this omogeneous across all entries. Then I think I can get rid of `metadataType` on each entry, right (and maybe BaseMetadataEntry is also useless)? But I still want a reference to `MetadataType` here at least - is that possible? Or in general, what would be the best way to achieve this?
+  /**
+   * Discriminator indicating the type of all entries in the metadata collection.
+   */
+  metadataType: T['metadataType'];// TODO: double check it is omogeneous across all entries ! (but think so, what would be the p0oint of the event habving .type then??)
+  /**
+   * The playback time when this metadata should trigger, relative to the playback session.
+   */
+  startTime: Seconds; // TODO: remove? It is available everywhere apart from iOS's dateRange - claude: what's the best way to approach this??
+  /**
+   * The metadata entries.
+   */
+  entries: T[];
+}
 
 /**
- * A collection of timed metadata entries.
+ * Narrow to ID3 metadata entries.
  */
-export interface Metadata<T extends BaseMetadataEntry = MetadataEntry> {
-  metadataType: MetadataType;
-  /**
-   * The playback time in seconds when this metadata should trigger, relative to the playback session.
-   */
-  startTime: number;
-  entries: T[];
+export function isId3MetadataEntry(entry: MetadataEntry): entry is Id3MetadataEntry {
+  return entry.metadataType === MetadataType.ID3;
+}
+
+/**
+ * Narrow to DATERANGE metadata entries.
+ */
+export function isDateRangeMetadataEntry(entry: MetadataEntry): entry is DateRangeMetadataEntry {
+  return entry.metadataType === MetadataType.DATERANGE;
+}
+
+/**
+ * Narrow to SCTE metadata entries.
+ */
+export function isScteMetadataEntry(entry: MetadataEntry): entry is ScteMetadataEntry {
+  return entry.metadataType === MetadataType.SCTE;
+}
+
+/**
+ * Narrow to iOS ID3 entries.
+ */
+export function isIosId3Entry(entry: Id3MetadataEntry): entry is IosId3MetadataItemEntry {
+  return (entry as IosId3MetadataItemEntry).platform === 'ios';
+}
+
+/**
+ * Narrow to Android ID3 frames.
+ */
+export function isAndroidId3Entry(entry: Id3MetadataEntry): entry is AndroidId3Frame {
+  return (entry as AndroidId3Frame).platform === 'android';
+}
+
+/**
+ * Narrow to a specific Android ID3 frame type.
+ */
+export function isAndroidId3Frame<T extends AndroidId3Frame['frameType']>(
+  entry: Id3MetadataEntry,
+  frameType: T,
+): entry is Extract<AndroidId3Frame, { frameType: T }> {
+  return isAndroidId3Entry(entry) && entry.frameType === frameType;
 }
