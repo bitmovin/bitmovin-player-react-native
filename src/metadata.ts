@@ -13,6 +13,104 @@ export interface BaseMetadataEntry {
   metadataType: MetadataType;
 }
 
+export type Milliseconds = number;
+export type Seconds = number;
+
+/**
+ * Time range expressed in milliseconds since Unix epoch.
+ */
+export interface AbsoluteTimeRange {
+  /**
+   * The start date of the range.
+   */
+  start?: Milliseconds;
+  /**
+   * The end date of the range.
+   */
+  end?: Milliseconds;
+}
+
+/**
+ * Time range expressed in seconds since playback start.
+ */
+export interface RelativeTimeRange {
+  /**
+   * The start time of the range.
+   */
+  start?: Seconds;
+  /**
+   * The end time of the range.
+   */
+  end?: Seconds;
+}
+
+/**
+ * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
+ */
+export interface DateRangeMetadataEntry extends BaseMetadataEntry {
+  metadataType: MetadataType.DATERANGE;
+  /**
+   * The unique identifier for the date range.
+   */
+  id: string;
+  /**
+   * The class associated with the date range.
+   */
+  classLabel?: string;
+  /**
+   * Time range of the entry relative to Unix Epoch.
+   *
+   * If the metadata represents an instantaneous event, {@link AbsoluteTimeRange.end} should be equal
+   * to {@link AbsoluteTimeRange.start}.
+   * An omitted {@link AbsoluteTimeRange.end} indicates an open-ended range.
+   *
+   * @platform iOS, tvOS
+   */
+  absoluteTimeRange?: AbsoluteTimeRange;
+  /**
+   * Time range of the entry relative to the beginning of the playback.
+   *
+   * @platform Android
+   */
+  relativeTimeRange?: RelativeTimeRange;
+  /**
+   * The declared duration of the range in seconds.
+   */
+  duration?: Seconds;
+  /**
+   * The planned duration of the range in seconds.
+   *
+   * Used for live streams where the actual end time may not be known yet.
+   *
+   * @platform Android
+   */
+  plannedDuration?: Seconds;
+  /**
+   * Indicates whether the date range ends at the start of the next date range
+   * with the same {@link classLabel}.
+   *
+   * @platform Android
+   */
+  endOnNext?: boolean;
+  /**
+   * The `CUE` attribute values from an `#EXT-X-DATERANGE` tag.
+   *
+   * Empty array if the attribute is not present.
+   * `"PRE"` triggers before playback; `"POST"` triggers after completion; `"ONCE"` limits triggering to once.
+   * When multiple values are provided, the first takes precedence (e.g., `"PRE,POST"` -> `"PRE"`).
+   * `"PRE"` and `"POST"` are re-playable unless `"ONCE"` is included.
+   *
+   * @remarks Applies only to HLS Interstitial opportunities (pre-, mid-, post-roll).
+   *
+   * @platform iOS, tvOS
+   */
+  cueingOptions?: string[];
+  /**
+   * All the attributes associated with the date range.
+   */
+  attributes?: Record<string, string> | [AvMetadataItemEntry];// TODO: update docs (or else use Record<string, unknown> for both)
+}
+
 /**
  * Typed representations of an iOS metadata value.
  *
@@ -48,51 +146,37 @@ export interface IOSMetadataValue {
  * @platform iOS, tvOS
  */
 export interface AvMetadataItemEntry extends BaseMetadataEntry {
-  metadataType: MetadataType.ID3;
+  metadataType: MetadataType.ID3;// TODO: this can also be DateRange !! or generic - how to solve??
   /**
    * Platform discriminator for TypeScript type narrowing.
    */
   platform: 'ios';
   /**
-   * The keyspace of the metadata item's key. For example, "org.id3".
+   * The metadata key indicated by the identifier. For example, "TXXX".
    */
-  keySpace?: string;
-  /**
-   * The metadata key indicated by the identifier. For example, "id3/TXXX".
-   */
-  id?: string;
-  /**
-   * The semantic meaning of the metadata item.
-   */
-  commonKey?: string;
+  key?: string;
   /**
    * Parsed representation of the metadata item's value.
    *
    * If the underlying metadata item has no readable value, this property is `undefined`.
    */
-  value?: IOSMetadataValue;
+  value?: string | IOSMetadataValue; // TODO: update docs
   /**
-   * The data type of the metadata item's value.
+   * Time range of the entry relative to the beginning of the playback.
    */
-  dataType?: string;
+  relativeTimeRange?: RelativeTimeRange;
   /**
-   * The IETF BCP 47 (RFC 4646) language identifier of the metadata item.
+   * The duration of the metadata item.
+   */
+  duration?: Seconds;
+  /**
+   * The IETF BCP 47 language identifier of the metadata item.
    */
   extendedLanguageTag?: string;
   /**
-   * The locale identifier associated with the metadata item.
-   */
-  localeIdentifier?: string;
-  /**
-   * The playback time, in seconds, at which the metadata item becomes active.
-   */
-  startTime?: number;
-  /**
-   * The duration of the metadata item in seconds.
-   */
-  duration?: number;
-  /**
    * Additional attributes attached to the metadata item.
+   * 
+   * `undefined` in case {@link metadataType} is {@link MetadataType.DATERANGE}.
    */
   extraAttributes?: Record<string, unknown>;
 }
@@ -204,7 +288,7 @@ export interface AndroidGeobFrame extends AndroidId3FrameBase {
 export interface AndroidChapterFrame extends AndroidId3FrameBase {
   frameType: 'chapter';
   chapterId: string;
-  startTimeMs: number;
+  startTimeMs: number;// TODO: use Milliseconds and rename properly
   endTimeMs: number;
   /** The byte offset of the start of the chapter, or `-1` if not set. */
   startOffset: number;
@@ -263,7 +347,7 @@ export type AndroidId3Frame =
  * }
  * ```
  */
-export type Id3MetadataEntry = AvMetadataItemEntry | AndroidId3Frame;
+export type Id3MetadataEntry = AvMetadataItemEntry | AndroidId3Frame;// TODO: if AVMetadataItem becomes generic, does this need changes as well?? - maybe could use A base avItemMetadata to inherit (e.g. extraAttributes is only ID3, then use ID3 child here)
 
 /**
  * Describes metadata associated with HLS `#EXT-X-SCTE35` tags.
@@ -285,7 +369,7 @@ export interface ScteMetadataEntry extends BaseMetadataEntry {
 /**
  * Union type representing all supported timed metadata entry kinds.
  */
-export type MetadataEntry = Id3MetadataEntry | ScteMetadataEntry;
+export type MetadataEntry = DateRangeMetadataEntry | Id3MetadataEntry | ScteMetadataEntry;
 
 /**
  * A collection of timed metadata entries.

@@ -45,6 +45,7 @@ import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
 import com.bitmovin.player.api.metadata.Metadata
+import com.bitmovin.player.api.metadata.daterange.DateRangeMetadata
 import com.bitmovin.player.api.metadata.id3.ApicFrame
 import com.bitmovin.player.api.metadata.id3.BinaryFrame
 import com.bitmovin.player.api.metadata.id3.ChapterFrame
@@ -918,10 +919,34 @@ fun Metadata.toJson(type: String): Map<String, Any> {
 
 fun Metadata.Entry.toJson(): Map<String, Any> {
     return when (this) {
+        is DateRangeMetadata -> this.toJson()
         is Id3Frame -> this.toJson()
         is ScteMessage -> this.toJson()
         else -> mapOf("metadataType" to "NONE")
     }
+}
+
+fun DateRangeMetadata.toJson(): Map<String, Any> {
+    // Contrarily to iOS, in Android SDK, startDate is playback seconds
+    // relative to source beginning, not absolute wall-clock time.
+    val startTime = startDate
+    val endSeconds = (duration ?: plannedDuration)?.let { startTime + it }
+
+    val relativeTimeRange = mutableMapOf<String, Any>(
+        "start" to startTime
+    )
+    endSeconds?.let { relativeTimeRange["end"] = it }
+
+    return mapOf(
+        "metadataType" to "DATERANGE",
+        "id" to id,
+        "relativeTimeRange" to relativeTimeRange,
+        "endOnNext" to endOnNext,
+        "attributes" to clientAttributes,
+        "classLabel" to classLabel,
+        "duration" to duration,
+        "plannedDuration" to plannedDuration,
+    ).filterNotNullValues()
 }
 
 private fun Id3Frame.toJson(): Map<String, Any> {
