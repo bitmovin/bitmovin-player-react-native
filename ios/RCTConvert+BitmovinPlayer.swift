@@ -1193,6 +1193,7 @@ extension RCTConvert {
             "metadataType": "DATERANGE",
             "id": dateRangeMetadata.identifier,
             "absoluteTimeRange": absoluteTimeRange
+            "cueingOptions" = dateRangeMetadata.cueingOptions
         ]
 
         if let classLabel = dateRangeMetadata.classLabel {
@@ -1200,9 +1201,6 @@ extension RCTConvert {
         }
         if let endDate = dateRangeMetadata.endDate {
             json["duration"] = endDate.timeIntervalSince1970 - dateRangeMetadata.startDate.timeIntervalSince1970
-        }
-        if !dateRangeMetadata.cueingOptions.isEmpty {
-            json["cueingOptions"] = dateRangeMetadata.cueingOptions
         }
 
         let attributesArray = dateRangeMetadata.entries.reduce(into: [[String: Any]]()) { result, entry in
@@ -1220,9 +1218,7 @@ extension RCTConvert {
                 return
             }
         }
-        if !attributesArray.isEmpty {
-            json["attributes"] = attributesArray
-        }
+        json["attributes"] = attributesArray
 
         return json
     }
@@ -1257,6 +1253,7 @@ extension RCTConvert {
             json["platform"] = "ios"
         }
 
+        // TODO: check if all these are actually populated for DateRange. If not, use custom method and only print key:value as strings (like Android)
         let startTime = avMetadataItem.time.safeSeconds
         let duration = avMetadataItem.duration.safeSeconds
         if let startTime {

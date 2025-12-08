@@ -14,8 +14,12 @@ export enum MetadataType {
 export type Base64String = string;// TODO: could be branded?
 export type CueingOption = 'PRE' | 'POST' | 'ONCE';
 
-interface BaseDateRangeMetadataEntry {
+interface BaseDateRangeMetadataEntry<TPlatform extends 'ios' | 'android'> {// TODO: do the same for ID3
   metadataType: MetadataType.DATERANGE;
+  /**
+   * Platform discriminator for TypeScript type narrowing.
+   */
+  platform: TPlatform;
   /**
    * The unique identifier for the date range.
    */
@@ -35,12 +39,11 @@ interface BaseDateRangeMetadataEntry {
  * 
  * @platform Android
  */
-export interface AndroidDateRangeMetadataEntry extends BaseDateRangeMetadataEntry {
-  platform: 'android';
+export interface AndroidDateRangeMetadataEntry extends BaseDateRangeMetadataEntry<'android'> {
   /**
    * Time range of the entry relative to the beginning of the playback.
    */
-  relativeTimeRange?: TimeRange<Seconds>;
+  relativeTimeRange: TimeRange<Seconds>;
   /**
    * The planned duration of the range.
    *
@@ -51,13 +54,13 @@ export interface AndroidDateRangeMetadataEntry extends BaseDateRangeMetadataEntr
    * Indicates whether the date range ends at the start of the next date range
    * with the same {@link classLabel}.
    */
-  endOnNext?: boolean;
+  endOnNext: boolean;
   /**
    * All the attributes associated with the date range.
    * 
    * @example "X-ASSET-URI": "https://www.example.com"
    */
-  attributes?: Record<string, string>;
+  attributes: Record<string, string>;
 }
 
 /**
@@ -65,7 +68,7 @@ export interface AndroidDateRangeMetadataEntry extends BaseDateRangeMetadataEntr
  * 
  * @platform iOS, tvOS
  */
-export interface IosDateRangeMetadataEntry extends BaseDateRangeMetadataEntry {
+export interface IosDateRangeMetadataEntry extends BaseDateRangeMetadataEntry<'ios'> {
   platform: 'ios';
   /**
    * Time range of the entry relative to Unix Epoch.
@@ -74,7 +77,7 @@ export interface IosDateRangeMetadataEntry extends BaseDateRangeMetadataEntry {
    * to {@link TimeRange.start}.
    * An omitted {@link TimeRange.end} indicates an open-ended range.
    */
-  absoluteTimeRange?: TimeRange<Milliseconds>;
+  absoluteTimeRange: TimeRange<Milliseconds>;
   /**
    * The `CUE` attribute values from an `#EXT-X-DATERANGE` tag.
    *
@@ -85,11 +88,11 @@ export interface IosDateRangeMetadataEntry extends BaseDateRangeMetadataEntry {
    *
    * @remarks Applies only to HLS Interstitial opportunities (pre-, mid-, post-roll).
    */
-  cueingOptions?: CueingOption[]; // TODO: check type casting works
+  cueingOptions: CueingOption[]; // TODO: check type casting works
   /**
    * All the attributes associated with the date range.
    */
-  attributes?: BaseIosMetadataItem[];
+  attributes: BaseIosMetadataItem[];// TODO: Same property name on both platforms, incompatible types.
 }
 
 /**
@@ -185,7 +188,7 @@ export interface ScteMetadataEntry {
 /**
  * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
  */
-export type DateRangeMetadataEntry =
+export type DateRangeMetadataEntry =// TODO: document usage: split/branch (if/else, switch) on discriminator (platform) to narrow down types and get more fields
   | IosDateRangeMetadataEntry
   | AndroidDateRangeMetadataEntry;
 
