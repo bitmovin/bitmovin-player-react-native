@@ -87,11 +87,7 @@ export interface IosDateRangeMetadataEntry extends BaseDateRangeMetadataEntry<'i
    *
    * @remarks Applies only to HLS Interstitial opportunities (pre-, mid-, post-roll).
    */
-  cueingOptions: CueingOption[]; // TODO: check type casting works
-  /**
-   * All the attributes associated with the date range.
-   */
-  attributes: BaseIosMetadataItem[];// TODO: Same property name on both platforms, incompatible types.
+  cueingOptions: CueingOption[];
 }
 
 /**
@@ -127,7 +123,8 @@ export interface IosMetadataValue {
 /**
  * Describes metadata associated with HLS `#EXT-X-SCTE35` tags.
  *
- * Note: On iOS, {@link TweaksConfig.isNativeHlsParsingEnabled} must be enabled to parse this type of metadata.
+ * @remarks On iOS, {@link TweaksConfig.isNativeHlsParsingEnabled} must be enabled
+ *          to parse this type of metadata.
  */
 export interface ScteMetadataEntry {
   metadataType: MetadataType.SCTE;
@@ -143,13 +140,59 @@ export interface ScteMetadataEntry {
 
 /**
  * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
+ *
+ * This is a discriminated union over the `platform` field:
+ * 
+ * - `"ios"`: {@link IosDateRangeMetadataEntry}
+ * - `"android"`: {@link AndroidDateRangeMetadataEntry}
+ *
+ * Narrowing on `platform` gives you access to the platform-specific fields.
+ *
+ * @example
+ * ```ts
+ * function handleDateRange(entry: DateRangeMetadataEntry) {
+ *   if (entry.platform === 'ios') {
+ *     // `entry` is now an IosDateRangeMetadataEntry
+ *     const range = entry.absoluteTimeRange;
+ *     const cues = entry.cueingOptions;
+ *   } else {
+ *     // `entry` is now an AndroidDateRangeMetadataEntry
+ *     const range = entry.relativeTimeRange;
+ *     const endsOnNext = entry.endOnNext;
+ *   }
+ * }
+ * ```
  */
-export type DateRangeMetadataEntry =// TODO: document usage: split/branch (if/else, switch) on discriminator (platform) to narrow down types and get more fields
+export type DateRangeMetadataEntry =
   | IosDateRangeMetadataEntry
   | AndroidDateRangeMetadataEntry;
 
 /**
  * Union type representing all supported timed metadata entry kinds.
+ *
+ * This is a discriminated union over the `metadataType` field:
+ *
+ * - {@link MetadataType.DATERANGE}: {@link DateRangeMetadataEntry}
+ * - {@link MetadataType.SCTE}: {@link ScteMetadataEntry}
+ *
+ * Branching on `metadataType` using an `if`/`switch` statement narrows the type and
+ * gives access to entry-specific fields.
+ *
+ * @example
+ * ```ts
+ * function handleMetadata(entry: MetadataEntry) {
+ *   switch (entry.metadataType) {
+ *     case MetadataType.DATERANGE:
+ *       // `entry` is a DateRangeMetadataEntry
+ *       handleDateRange(entry: entry)
+ *       break;
+ *     case MetadataType.SCTE:
+ *       // `entry` is a ScteMetadataEntry
+ *       handleScte(entry.key, entry.value);
+ *       break;
+ *   }
+ * }
+ * ```
  */
 export type MetadataEntry = DateRangeMetadataEntry | ScteMetadataEntry;
 
