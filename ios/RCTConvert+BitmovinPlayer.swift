@@ -1166,20 +1166,21 @@ extension RCTConvert {
             }
         }
 
-        let startTime: Double
+        let startTime: Double?
         if let scteMetadata = metadata as? ScteMetadata {
             startTime = scteMetadata.startTime
-        } else if let dateRangeMetadata = metadata as? DaterangeMetadata {
-            startTime = dateRangeMetadata.startDate.timeIntervalSince1970
         } else {
-            startTime = 0
+            startTime = nil
         }
 
-        return [
+        var json: [String: Any] = [
             "metadataType": metadataTypeString(type),
-            "startTime": startTime,
             "entries": entriesArray
         ]
+        if let startTime = startTime {
+            json["startTime"] = startTime
+        }
+        return json
     }
 
     /// TypeScript and JavaScript conventionally use milliseconds for Dates. See `Date.now()`./
