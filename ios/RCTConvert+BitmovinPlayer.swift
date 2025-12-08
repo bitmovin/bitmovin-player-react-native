@@ -1193,8 +1193,8 @@ extension RCTConvert {
         var json: [String: Any] = [
             "metadataType": "DATERANGE",
             "id": dateRangeMetadata.identifier,
-            "absoluteTimeRange": absoluteTimeRange
-            "cueingOptions" = dateRangeMetadata.cueingOptions
+            "absoluteTimeRange": absoluteTimeRange,
+            "cueingOptions": dateRangeMetadata.cueingOptions
         ]
 
         if let classLabel = dateRangeMetadata.classLabel {
