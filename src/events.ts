@@ -780,7 +780,7 @@ export interface CueExitEvent extends Event {
  * Concrete events like {@link MetadataParsedEvent} and {@link MetadataEvent}
  * fix {@link metadataType} and {@link metadata} to a specific metadata entry
  * type.
- * 
+ *
  * @remarks Branching on {@link metadataType} using an `if`/`switch` statement narrows the
  *          event to the appropriate metadata subtype, giving access to entry-specific fields.
  *
