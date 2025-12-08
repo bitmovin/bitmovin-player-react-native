@@ -1203,22 +1203,7 @@ extension RCTConvert {
             json["duration"] = endDate.timeIntervalSince1970 - dateRangeMetadata.startDate.timeIntervalSince1970
         }
 
-        let attributesArray = dateRangeMetadata.entries.reduce(into: [[String: Any]]()) { result, entry in
-            switch entry {
-            case let avMetadataItem as AVMetadataItem:
-                result.append(
-                    toJson(
-                        avMetadataItem: avMetadataItem,
-                        metadataType: .daterange,
-                        includeDiscriminator: false,
-                        includeMetadataType: false
-                    )
-                )
-            default:
-                return
-            }
-        }
-        json["attributes"] = attributesArray
+        json["attributes"] = attributesJsonObject(dateRangeMetadata: dateRangeMetadata)
 
         return json
     }
@@ -1239,46 +1224,16 @@ extension RCTConvert {
         return formatter
     }()
 
-    static func toJson(
-        avMetadataItem: AVMetadataItem,
-        metadataType: MetadataType,
-        includeDiscriminator: Bool = true,
-        includeMetadataType: Bool = true,
-    ) -> [String: Any] {
-        var json: [String: Any] = [:]
-        if includeMetadataType {
-            json["metadataType"] = metadataTypeString(metadataType)
-        }
-        if includeDiscriminator {
-            json["platform"] = "ios"
-        }
-
-        // TODO: check if all these are actually populated for DateRange. If not, use custom method and only print key:value as strings (like Android)
-        let startTime = avMetadataItem.time.safeSeconds
-        let duration = avMetadataItem.duration.safeSeconds
-        if let startTime {
-            json["startTime"] = startTime
-        }
-        if let duration {
-            json["duration"] = duration
-        }
-        if let startTime, let duration {
-            json["endTime"] = startTime + duration
-        }
-
-        if let identifier = avMetadataItem.key as? String {
-            if let value = singleValueString(avMetadataItem: avMetadataItem) {
-                json[identifier] = value
-            } else if let valueJson = allValueAccessorsJson(avMetadataItem: avMetadataItem) {
-                json[identifier] = valueJson
+    static func attributesJsonObject(dateRangeMetadata: DaterangeMetadata) -> [[String: String]] {
+        dateRangeMetadata.entries.reduce(into: [[String: String]]()) { result, entry in
+            guard let avMetadataItem = entry as? AVMetadataItem,
+                  let key = avMetadataItem.key as? String,
+                  let value = singleValueString(avMetadataItem: avMetadataItem) else {
+                return
             }
-        }
 
-        if let extendedLanguageTag = avMetadataItem.extendedLanguageTag {
-            json["extendedLanguageTag"] = extendedLanguageTag
+            result.append([key: value])
         }
-
-        return json
     }
 
     static func singleValueString(avMetadataItem: AVMetadataItem) -> String? {
@@ -1312,29 +1267,6 @@ extension RCTConvert {
         // raw-data, UUID, GIF, JPEG, PNG, BMP,
         // PointF32, DimensionsF32, RectF32, AffineTransformF64, PerspectiveTransformF64, PolylineF32
         return toJson(data: avMetadataItem.dataValue)
-    }
-
-    static func allValueAccessorsJson(avMetadataItem: AVMetadataItem) -> [String: Any]? {
-        var valueJson: [String: Any] = [:]
-
-        if let stringValue = avMetadataItem.stringValue {
-            valueJson["stringValue"] = stringValue
-        }
-        if let numberValue = avMetadataItem.numberValue {
-            valueJson["numberValue"] = numberValue
-        }
-        if let dateValue = avMetadataItem.dateValue {
-            valueJson["dateValue"] = iso8601Formatter.string(from: dateValue)
-        }
-        if let dataValue = avMetadataItem.dataValue {
-            valueJson["dataValue"] = dataValue.base64EncodedString()
-        }
-
-        guard !valueJson.isEmpty else {
-            return nil
-        }
-
-        return valueJson
     }
 
     static func toJson(scteMetadataEntry: ScteMetadataEntry) -> [String: Any] {

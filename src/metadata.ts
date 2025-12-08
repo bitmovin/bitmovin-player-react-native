@@ -32,6 +32,12 @@ interface BaseDateRangeMetadataEntry<TPlatform extends 'ios' | 'android'> {// TO
    * The declared duration of the range.
    */
   duration?: Seconds;
+  /**
+   * All the attributes associated with the date range.
+   * 
+   * @example "X-ASSET-URI": "https://www.example.com"
+   */
+  attributes: Record<string, string>;
 }
 
 /**
@@ -55,12 +61,6 @@ export interface AndroidDateRangeMetadataEntry extends BaseDateRangeMetadataEntr
    * with the same {@link classLabel}.
    */
   endOnNext: boolean;
-  /**
-   * All the attributes associated with the date range.
-   * 
-   * @example "X-ASSET-URI": "https://www.example.com"
-   */
-  attributes: Record<string, string>;
 }
 
 /**
@@ -69,7 +69,6 @@ export interface AndroidDateRangeMetadataEntry extends BaseDateRangeMetadataEntr
  * @platform iOS, tvOS
  */
 export interface IosDateRangeMetadataEntry extends BaseDateRangeMetadataEntry<'ios'> {
-  platform: 'ios';
   /**
    * Time range of the entry relative to Unix Epoch.
    *
@@ -123,49 +122,6 @@ export interface IosMetadataValue {
    *          proprietary frames, or any encoded value.
    */
   dataValue?: Base64String;
-}
-
-/**
- * iOS representation of generic metadata items.
- *
- * @platform iOS, tvOS
- */
-interface BaseIosMetadataItem {
-  /**
-   * Platform discriminator for TypeScript type narrowing.
-   */
-  platform: 'ios';
-  /**
-   * The metadata key indicated by the identifier. For example, "TXXX".
-   */
-  key?: string;
-  /**
-   * String representation of the metadata value.
-   *
-   * The underlying value is first interpreted as the most appropriate type
-   * (date, number, text, or binary data) and then converted to a string.
-   * - Dates are formatted as ISO 8601 strings (e.g. "2025-12-02T00:00:00Z").
-   * - Binary data is encoded as a Base64 string.
-   *
-   * This will be `undefined` if the value cannot be interpreted.
-   */
-  value?: string;
-  /**
-   * Full typed representation of the underlying value as reported by iOS.
-   */
-  rawValue?: IosMetadataValue;
-  /**
-   * Time range of the entry relative to the beginning of the playback.
-   */
-  relativeTimeRange?: TimeRange<Seconds>;// TODO: is this seconds??
-  /**
-   * The duration of the metadata item.
-   */
-  duration?: Seconds;
-  /**
-   * The IETF BCP 47 language identifier of the metadata item.
-   */
-  extendedLanguageTag?: string;
 }
 
 /**
