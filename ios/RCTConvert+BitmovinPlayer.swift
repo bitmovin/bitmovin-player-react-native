@@ -1176,7 +1176,7 @@ extension RCTConvert {
         var json: [String: Any] = [
             "entries": entriesArray
         ]
-        if let startTime = startTime {
+        if let startTime {
             json["startTime"] = startTime
         }
         return json

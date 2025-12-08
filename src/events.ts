@@ -11,7 +11,13 @@ import { VideoQuality } from './media';
 import { AudioTrack } from './audioTrack';
 import { LoadingState } from './source';
 import { HttpRequestType } from './network/networkConfig';
-import { DateRangeMetadataEntry, MetadataCollection, MetadataEntry, MetadataType, ScteMetadataEntry } from './metadata';
+import {
+  DateRangeMetadataEntry,
+  MetadataCollection,
+  MetadataEntry,
+  MetadataType,
+  ScteMetadataEntry,
+} from './metadata';
 
 /**
  * Base event type for all events.
@@ -771,9 +777,9 @@ export interface CueExitEvent extends Event {
 interface MetadataEventBase<T extends MetadataEntry> extends Event {
   /**
    * Discriminator for the metadata type carried by this event.
-   * 
+   *
    * All entries in {@link metadata.entries} share this value.
-   * 
+   *
    * @remarks Use it in an `if`/`else` or `switch` to narrow the event type.
    */
   metadataType: T['metadataType'];
@@ -796,7 +802,6 @@ export type MetadataParsedEvent =
   | (MetadataEventBase<ScteMetadataEntry> & {
       metadataType: MetadataType.SCTE;
     });
-
 
 /**
  * Emitted when metadata is encountered during playback.

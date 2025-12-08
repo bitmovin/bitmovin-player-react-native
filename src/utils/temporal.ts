@@ -1,6 +1,6 @@
 /**
  * Branded numeric type representing a duration in milliseconds.
- * 
+ *
  * Used in the SDK to distinguish millisecond values from other units while
  * still behaving as a `number` at runtime. For public/app-level APIs, prefer
  * accepting `number` and applying this brand internally.

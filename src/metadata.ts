@@ -1,4 +1,4 @@
-import { TimeRange, Seconds, Milliseconds } from "./utils/temporal";
+import { TimeRange, Seconds, Milliseconds } from './utils/temporal';
 
 /**
  * Enumerates all supported types of timed metadata entries.
@@ -34,7 +34,7 @@ interface BaseDateRangeMetadataEntry<TPlatform extends 'ios' | 'android'> {
   duration?: Seconds;
   /**
    * All the attributes associated with the date range.
-   * 
+   *
    * @example "X-ASSET-URI": "https://www.example.com"
    */
   attributes: Record<string, string>;
@@ -42,10 +42,11 @@ interface BaseDateRangeMetadataEntry<TPlatform extends 'ios' | 'android'> {
 
 /**
  * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
- * 
+ *
  * @platform Android
  */
-export interface AndroidDateRangeMetadataEntry extends BaseDateRangeMetadataEntry<'android'> {
+export interface AndroidDateRangeMetadataEntry
+  extends BaseDateRangeMetadataEntry<'android'> {
   /**
    * Time range of the entry relative to the beginning of the playback.
    */
@@ -65,10 +66,11 @@ export interface AndroidDateRangeMetadataEntry extends BaseDateRangeMetadataEntr
 
 /**
  * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
- * 
+ *
  * @platform iOS, tvOS
  */
-export interface IosDateRangeMetadataEntry extends BaseDateRangeMetadataEntry<'ios'> {
+export interface IosDateRangeMetadataEntry
+  extends BaseDateRangeMetadataEntry<'ios'> {
   /**
    * Time range of the entry relative to Unix Epoch.
    *
@@ -107,7 +109,7 @@ export interface IosMetadataValue {
   numberValue?: number;
   /**
    * A date/time representation of the value, formatted as an ISO 8601 string, if available.
-   * 
+   *
    * @example "2025-12-02T00:00:00Z"
    */
   dateValue?: string;
@@ -142,7 +144,7 @@ export interface ScteMetadataEntry {
  * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
  *
  * This is a discriminated union over the `platform` field:
- * 
+ *
  * - `"ios"`: {@link IosDateRangeMetadataEntry}
  * - `"android"`: {@link AndroidDateRangeMetadataEntry}
  *
@@ -208,7 +210,7 @@ export interface MetadataCollection<T extends MetadataEntry> {
   startTime?: Seconds;
   /**
    * The metadata entries.
-   * 
+   *
    * The group is homogeneous: all entries share the same metadata type.
    */
   entries: T[];
