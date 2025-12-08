@@ -347,6 +347,7 @@ fun SourceEvent.toJson(): Map<String, Any> {
         }
 
         is SourceEvent.MetadataParsed -> {
+            baseMap["metadataType"] = type.toMetadataTypeString()
             baseMap["metadata"] = metadata.toJson(type)
         }
 
@@ -489,6 +490,7 @@ fun PlayerEvent.toJson(): Map<String, Any> {
         }
 
         is PlayerEvent.Metadata -> {
+            baseMap["metadataType"] = type.toMetadataTypeString()
             baseMap["metadata"] = metadata.toJson(type)
         }
 
