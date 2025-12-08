@@ -11,10 +11,10 @@ export enum MetadataType {
   NONE = 'NONE',
 }
 
-export type Base64String = string;// TODO: could be branded?
+export type Base64String = string;
 export type CueingOption = 'PRE' | 'POST' | 'ONCE';
 
-interface BaseDateRangeMetadataEntry<TPlatform extends 'ios' | 'android'> {// TODO: do the same for ID3
+interface BaseDateRangeMetadataEntry<TPlatform extends 'ios' | 'android'> {
   metadataType: MetadataType.DATERANGE;
   /**
    * Platform discriminator for TypeScript type narrowing.

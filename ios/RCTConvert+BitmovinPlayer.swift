@@ -1174,7 +1174,6 @@ extension RCTConvert {
         }
 
         var json: [String: Any] = [
-            "metadataType": metadataTypeString(type),
             "entries": entriesArray
         ]
         if let startTime = startTime {

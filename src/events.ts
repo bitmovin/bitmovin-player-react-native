@@ -776,7 +776,7 @@ interface MetadataEventBase<T extends MetadataEntry> extends Event {
    * 
    * @remarks Use it in an `if`/`else` or `switch` to narrow the event type.
    */
-  metadataType: T['metadataType'];// TODO: serialize from iOS/Android
+  metadataType: T['metadataType'];
   /**
    * Metadata entries and their trigger time.
    *

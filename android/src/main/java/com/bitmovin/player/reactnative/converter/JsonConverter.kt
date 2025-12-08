@@ -901,7 +901,6 @@ fun Metadata.toJson(type: String): Map<String, Any> {
         .map { it.toJson() }
 
     return mapOf(
-        "metadataType" to type.toMetadataTypeString(),
         "startTime" to startTime,
         "entries" to entriesArray
     ).filterNotNullValues()
