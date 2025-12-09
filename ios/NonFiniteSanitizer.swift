@@ -14,11 +14,11 @@ internal enum NonFiniteSanitizer {
     static func sanitize(_ value: Any) -> Any {
         switch value {
         case let doubleValue as Double:
-            guard !doubleValue.isFinite else { return doubleValue }
-            return doubleValue.toSentinel()
+            guard doubleValue.isFinite else { return doubleValue.toSentinel() }
+            return doubleValue
         case let floatValue as Float:
-            guard !floatValue.isFinite else { return floatValue }
-            return floatValue.toSentinel()
+            guard floatValue.isFinite else { return floatValue.toSentinel() }
+            return floatValue
         case let number as NSNumber:
             guard !number.isBoolean else { return number }
             return sanitize(number.doubleValue)
