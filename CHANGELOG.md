@@ -4,8 +4,8 @@
 
 ### Added
 
-- `MetadataParsedEvent` to signal when metadata is parsed from the stream.
-- `MetadataEvent` to signal when metadata is encountered during playback.
+- `MetadataParsedEvent` and `MetadataEvent` to signal when metadata is parsed or encountered during playback. See the new **BasicMetadata** sample in our demo app for a working demonstration.
+  - These events come with typed metadata models (ID3, HLS Date Range, EMSG, and SCTE)
 
 ### Changed
 
