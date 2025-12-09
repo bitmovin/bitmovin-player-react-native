@@ -1186,15 +1186,11 @@ extension RCTConvert {
         return json
     }
 
-    /// TypeScript and JavaScript conventionally use milliseconds for Dates. See `Date.now()`./
-    static func toJson(date: Date) -> Int {
-        Int(date.timeIntervalSince1970 * 1_000)
-    }
-
     static func toJson(dateRangeMetadata: DaterangeMetadata) -> [String: Any] {
         let absoluteTimeRange = absoluteTimeRange(dateRangeMetadata: dateRangeMetadata)
         var json: [String: Any] = [
             "metadataType": "DATERANGE",
+            "platform": "ios",
             "id": dateRangeMetadata.identifier,
             "absoluteTimeRange": absoluteTimeRange,
             "cueingOptions": dateRangeMetadata.cueingOptions
@@ -1214,10 +1210,10 @@ extension RCTConvert {
 
     static func absoluteTimeRange(dateRangeMetadata: DaterangeMetadata) -> [String: Any] {
         var json: [String: Any] = [
-            "start": toJson(date: dateRangeMetadata.startDate)
+            "start": dateRangeMetadata.startDate.timeIntervalSince1970
         ]
         if let endDate = dateRangeMetadata.endDate {
-            json["end"] = toJson(date: endDate)
+            json["end"] = endDate.timeIntervalSince1970
         }
         return json
     }

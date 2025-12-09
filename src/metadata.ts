@@ -1,4 +1,4 @@
-import { TimeRange, Seconds, Milliseconds } from './utils/temporal';
+import { TimeRange, Seconds } from './utils/temporal';
 
 /**
  * Enumerates all supported types of timed metadata entries.
@@ -78,7 +78,7 @@ export interface IosDateRangeMetadataEntry
    * to {@link TimeRange.start}.
    * An omitted {@link TimeRange.end} indicates an open-ended range.
    */
-  absoluteTimeRange: TimeRange<Milliseconds>;
+  absoluteTimeRange: TimeRange<Seconds>;
   /**
    * The `CUE` attribute values from an `#EXT-X-DATERANGE` tag.
    *

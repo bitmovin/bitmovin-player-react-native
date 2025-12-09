@@ -936,10 +936,13 @@ fun DateRangeMetadata.toJson(): Map<String, Any> {
     val relativeTimeRange = mutableMapOf<String, Any>(
         "start" to startTime
     )
-    endSeconds?.let { relativeTimeRange["end"] = it }
+    if (endSeconds != null) {
+        relativeTimeRange["end"] = endSeconds
+    }
 
     return mapOf(
         "metadataType" to "DATERANGE",
+        "platform" to "android",
         "id" to id,
         "relativeTimeRange" to relativeTimeRange,
         "endOnNext" to endOnNext,
