@@ -304,7 +304,11 @@ interface AndroidChapterTocFrame extends AndroidId3FrameBase {
 /**
  * Android representation of ID3 metadata items.
  *
+ * This is a discriminated union of Android ID3 frame types. Use {@link isAndroidId3Frame}
+ * for type-safe narrowing to specific frame types.
+ *
  * @platform Android
+ * @see {@link isAndroidId3Frame} for frame type narrowing
  */
 export type AndroidId3Frame =
   | AndroidTextInformationFrame
@@ -374,17 +378,6 @@ export type DateRangeMetadataEntry =
  * ```ts
  * function handleMetadata(entry: MetadataEntry) {
  *   switch (entry.metadataType) {
- *     case MetadataType.ID3:
- *       // `entry` is an Id3MetadataEntry
- *       if (entry.platform === 'android') {
- *         // `entry` is now an AndroidId3Frame
- *         console.log('Frame type:', entry.frameType);
- *       } else {
- *         // `entry` is now an IosId3Frame
- *         console.log('Frame ID:', entry.id, 'Value:', entry.value);
- *       }
- *       break;
- *
  *     case MetadataType.DATERANGE:
  *       // `entry` is a DateRangeMetadataEntry
  *       if (entry.platform === 'android') {
@@ -399,6 +392,25 @@ export type DateRangeMetadataEntry =
  *     case MetadataType.SCTE:
  *       // `entry` is a ScteMetadataEntry
  *       console.log('SCTE key:', entry.key, 'value:', entry.value);
+ *       break;
+ * 
+ *     case MetadataType.ID3:
+ *       // `entry` is an Id3MetadataEntry
+ *       if (entry.platform === 'android') {
+ *         // `entry` is now an AndroidId3Frame
+ *         console.log('Frame type:', entry.frameType);
+ *         // Further narrow down on the frame type
+ *         if (entry.frameType == 'apic') {
+ *           console.log('APIC frame mimeType: ', entry.mimeType)
+ *         }
+ *       } else {
+ *         // `entry` is now an IosId3Frame
+ *         console.log('Frame ID:', entry.id, 'Value:', entry.value);
+ *       }
+ *       // Or use isAndroidId3Frame to directly narrow to specific Android frame
+ *       if (isAndroidId3Frame(entry, 'text')) {
+ *         console.log('Text frame:', entry.value);
+ *       }
  *       break;
  *   }
  * }
@@ -428,7 +440,17 @@ export interface MetadataCollection<T extends MetadataEntry> {
 }
 
 /**
- * Narrow to a specific Android ID3 frame type.
+ * Type-safe narrowing helper for Android ID3 frame types.
+ *
+ * Android ID3 frames have 9 distinct frame types (text, binary, apic, url, comment,
+ * priv, geob, chapter, chapterToc), each with different fields. This helper provides
+ * type-safe access to frame-specific properties.
+ *
+ * @param entry - The ID3 metadata entry to check
+ * @param frameType - The Android frame type to narrow to
+ * @returns `true` if entry is an Android frame of the specified type
+ *
+ * @see {@link MetadataEntry} for the full type narrowing documentation
  */
 export function isAndroidId3Frame<T extends AndroidId3Frame['frameType']>(
   entry: Id3MetadataEntry,
