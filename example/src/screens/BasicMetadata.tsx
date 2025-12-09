@@ -60,7 +60,7 @@ export default function BasicMetadata() {
               console.log('Android ID3 frame:', entry.frameType);
             } else if (entry.platform === 'ios') {
               // iOS entries have interpreted/typed values.
-              console.log('iOS ID3 id/value:', entry.id, entry.value ?? entry.rawValue);// TODO: undefined??
+              console.log('iOS ID3 id/value:', entry.id, entry.value ?? entry.rawValue);
             }
           });
           break;
