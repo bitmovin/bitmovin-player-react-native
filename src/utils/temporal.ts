@@ -1,43 +1,15 @@
 /**
- * Branded numeric type representing a duration in milliseconds.
+ * Numeric type representing a duration in milliseconds.
  *
- * Used in the SDK to distinguish millisecond values from other units while
- * still behaving as a `number` at runtime. For public/app-level APIs, prefer
- * accepting `number` and applying this brand internally.
- *
- * @example
- * // ✅ Recommended: consuming as a number
- * function logDuration(value: number): void;
- * // `Milliseconds` is still compatible with `number`:
- * const timeout: Milliseconds = 1_000;
- * logDuration(timeout);
- *
- * // ❌ Discouraged: exposing the branded type in APIs
- * function setTimeoutMs(value: Milliseconds): void;
- * // Callers now have to write:
- * setTimeoutMs(1_000 as Milliseconds);
+ * Used in the SDK to distinguish millisecond values from other units.
  */
-export type Milliseconds = number & { readonly __unit: 'ms' };
+export type Milliseconds = number;
 /**
- * Branded numeric type representing a duration in seconds.
+ * Numeric type representing a duration in seconds.
  *
- * Used in the SDK to distinguish seconds values from other units while
- * still behaving as a `number` at runtime. For public/app-level APIs, prefer
- * accepting `number` and applying this brand internally.
- *
- * @example
- * // ✅ Recommended: consuming as a number
- * function logDuration(value: number): void;
- * // `Seconds` is still compatible with `number`:
- * const timeout: Seconds = 60;
- * logDuration(timeout);
- *
- * // ❌ Discouraged: exposing the branded type in APIs
- * function setTimeoutSec(value: Seconds): void;
- * // Callers now have to write:
- * setTimeoutSec(60 as Seconds);
+ * Used in the SDK to distinguish seconds values from other units.
  */
-export type Seconds = number & { readonly __unit: 's' };
+export type Seconds = number;
 
 /**
  * Represents a time range with a start and end value in the same units.
