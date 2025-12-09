@@ -1303,9 +1303,8 @@ extension RCTConvert {
             json["extendedLanguageTag"] = extendedLanguageTag
         }
 
-        if let extra = item.extraAttributes {
-            var extraAttributes: [String: Any] = [:]
-            json["extraAttributes"] = existingExtra.reduce(into: [String: Any]()) { result, entry in
+        if let extraAttributes = item.extraAttributes {
+            json["extraAttributes"] = extraAttributes.reduce(into: [String: Any]()) { result, entry in
                 result[entry.key.rawValue] = NonFiniteSanitizer.sanitize(entry.value)
             }
         }

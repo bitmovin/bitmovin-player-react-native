@@ -188,7 +188,7 @@ interface AndroidId3FrameBase {
   platform: 'android';
   /**
    * ID3 frame identifier.
-   * 
+   *
    * @example "TXXX"
    */
   id: string;
@@ -225,14 +225,14 @@ interface AndroidApicFrame extends AndroidId3FrameBase {
   frameType: 'apic';
   /**
    * MIME type of the embedded image as stored in the APIC frame.
-   * 
+   *
    * @example "image/jpeg"
    */
   mimeType: string;
   description?: string;
   /**
    * Picture type as defined by the ID3 specification.
-   * 
+   *
    * @example 3 (front cover)
    */
   pictureType: number;
@@ -266,7 +266,7 @@ interface AndroidCommentFrame extends AndroidId3FrameBase {
 
 /**
  * Encapsulates owner-specific private data.
- * 
+ *
  * The structure and semantics of the payload are defined solely by the `owner`
  * identifier and are opaque to generic parsers.
  *
@@ -276,9 +276,9 @@ interface AndroidPrivFrame extends AndroidId3FrameBase {
   frameType: 'priv';
   /**
    * Owner identifier string.
-   * 
+   *
    * Typically a reverse-DNS or application-specific identifier.
-   * 
+   *
    * @example "com.example.app"
    */
   owner: string;
@@ -299,7 +299,7 @@ interface AndroidGeobFrame extends AndroidId3FrameBase {
   frameType: 'geob';
   /**
    * MIME type of the encapsulated object.
-   * 
+   *
    * @example "application/octet-stream"
    */
   mimeType: string;
