@@ -41,14 +41,13 @@ export interface TweaksConfig {
   /**
    * If enabled, HLS playlists will be parsed and additional features and events are enabled. This includes:
    *
-   * - MetadataEvents carrying segment-specific metadata for custom HLS tags, like `#EXT-X-SCTE35`
-   * - MetadataParsedEvents carrying segment-specific metadata for custom HLS tags, like `#EXT-X-SCTE35`
+   * - {@link MetadataEvent}s carrying segment-specific metadata for custom HLS tags, like `#EXT-X-SCTE35`
+   * - {@link MetadataParsedEvent}s carrying segment-specific metadata for custom HLS tags, like `#EXT-X-SCTE35`
    * - DrmDataParsedEvents when a `#EXT-X-KEY` is found
-   * - `Player.availableVideoQualities` includes additional information
+   * - {@link Player.getAvailableVideoQualities} includes additional information
    * - Automatic retries when HLS playlist requests failed with non-2xx HTTP status code
    *
-   * Default is false.
-   *
+   * @defaultValue `false`
    * @platform iOS
    */
   isNativeHlsParsingEnabled?: boolean;
