@@ -1168,22 +1168,22 @@ extension RCTConvert {
             }
         }
 
-        let startTime: Double
+        let startTime: Double?
         if let id3Metadata = metadata as? Id3Metadata {
             startTime = id3Metadata.startTime
         } else if let scteMetadata = metadata as? ScteMetadata {
             startTime = scteMetadata.startTime
-        } else if let dateRangeMetadata = metadata as? DaterangeMetadata {
-            startTime = dateRangeMetadata.startDate.timeIntervalSince1970
         } else {
-            startTime = 0
+            startTime = nil
         }
 
-        return [
-            "metadataType": metadataTypeString(type),
-            "startTime": startTime,
+        var json: [String: Any] = [
             "entries": entriesArray
         ]
+        if let startTime {
+            json["startTime"] = startTime
+        }
+        return json
     }
 
     /// TypeScript and JavaScript conventionally use milliseconds for Dates. See `Date.now()`./
@@ -1196,7 +1196,8 @@ extension RCTConvert {
         var json: [String: Any] = [
             "metadataType": "DATERANGE",
             "id": dateRangeMetadata.identifier,
-            "absoluteTimeRange": absoluteTimeRange
+            "absoluteTimeRange": absoluteTimeRange,
+            "cueingOptions": dateRangeMetadata.cueingOptions
         ]
 
         if let classLabel = dateRangeMetadata.classLabel {
@@ -1205,23 +1206,8 @@ extension RCTConvert {
         if let endDate = dateRangeMetadata.endDate {
             json["duration"] = endDate.timeIntervalSince1970 - dateRangeMetadata.startDate.timeIntervalSince1970
         }
-        if !dateRangeMetadata.cueingOptions.isEmpty {
-            json["cueingOptions"] = dateRangeMetadata.cueingOptions
-        }
 
-        let attributesArray = dateRangeMetadata.entries.reduce(into: [[String: Any]]()) { result, entry in
-            switch entry {
-            case let avMetadataItem as AVMetadataItem:
-                result.append(
-                    toJson(avMetadataItem: avMetadataItem, metadataType: .daterange)
-                )
-            default:
-                return
-            }
-        }
-        if !attributesArray.isEmpty {
-            json["attributes"] = attributesArray
-        }
+        json["attributes"] = attributesJsonObject(dateRangeMetadata: dateRangeMetadata)
 
         return json
     }
@@ -1257,6 +1243,18 @@ extension RCTConvert {
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter
     }()
+
+    static func attributesJsonObject(dateRangeMetadata: DaterangeMetadata) -> [[String: String]] {
+        dateRangeMetadata.entries.reduce(into: [[String: String]]()) { result, entry in
+            guard let avMetadataItem = entry as? AVMetadataItem,
+                  let key = avMetadataItem.key as? String,
+                  let value = singleValueString(avMetadataItem: avMetadataItem) else {
+                return
+            }
+
+            result.append([key: value])
+        }
+    }
 
     static func toJson(avMetadataItem: AVMetadataItem, metadataType: MetadataType) -> [String: Any] {
         let includeDiscriminator = metadataType != .daterange

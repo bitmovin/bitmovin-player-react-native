@@ -1,6 +1,8 @@
 import CoreMedia
 import Foundation
 
+internal enum SafeValues {}
+
 extension CMTime {
     var safeSeconds: Double? {
         guard isNumeric else {

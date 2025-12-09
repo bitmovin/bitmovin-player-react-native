@@ -1,4 +1,4 @@
-import { TimeRange, Seconds, Milliseconds } from "./utils/temporal";
+import { TimeRange, Seconds, Milliseconds } from './utils/temporal';
 
 /**
  * Enumerates all supported types of timed metadata entries.
@@ -12,22 +12,14 @@ export enum MetadataType {
 }
 
 export type Base64String = string;
+export type CueingOption = 'PRE' | 'POST' | 'ONCE';
 
-/**
- * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
- */
-export type DateRangeMetadataEntry =
-  | IosDateRangeMetadataEntry
-  | AndroidDateRangeMetadataEntry;
-
-/**
- * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
- * 
- * @platform Android
- */
-export interface AndroidDateRangeMetadataEntry {
-  platform: 'android';
+interface BaseDateRangeMetadataEntry<TPlatform extends 'ios' | 'android'> {
   metadataType: MetadataType.DATERANGE;
+  /**
+   * Platform discriminator for TypeScript type narrowing.
+   */
+  platform: TPlatform;
   /**
    * The unique identifier for the date range.
    */
@@ -37,13 +29,28 @@ export interface AndroidDateRangeMetadataEntry {
    */
   classLabel?: string;
   /**
-   * Time range of the entry relative to the beginning of the playback.
-   */
-  relativeTimeRange?: TimeRange<Seconds>;
-  /**
    * The declared duration of the range.
    */
   duration?: Seconds;
+  /**
+   * All the attributes associated with the date range.
+   *
+   * @example "X-ASSET-URI": "https://www.example.com"
+   */
+  attributes: Record<string, string>;
+}
+
+/**
+ * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
+ *
+ * @platform Android
+ */
+export interface AndroidDateRangeMetadataEntry
+  extends BaseDateRangeMetadataEntry<'android'> {
+  /**
+   * Time range of the entry relative to the beginning of the playback.
+   */
+  relativeTimeRange: TimeRange<Seconds>;
   /**
    * The planned duration of the range.
    *
@@ -54,31 +61,16 @@ export interface AndroidDateRangeMetadataEntry {
    * Indicates whether the date range ends at the start of the next date range
    * with the same {@link classLabel}.
    */
-  endOnNext?: boolean;
-  /**
-   * All the attributes associated with the date range.
-   * 
-   * @example "X-ASSET-URI": "https://www.example.com"
-   */
-  attributes?: Record<string, string>;
+  endOnNext: boolean;
 }
 
 /**
  * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
- * 
+ *
  * @platform iOS, tvOS
  */
-export interface IosDateRangeMetadataEntry {
-  platform: 'ios';
-  metadataType: MetadataType.DATERANGE;
-  /**
-   * The unique identifier for the date range.
-   */
-  id: string;
-  /**
-   * The class associated with the date range.
-   */
-  classLabel?: string;
+export interface IosDateRangeMetadataEntry
+  extends BaseDateRangeMetadataEntry<'ios'> {
   /**
    * Time range of the entry relative to Unix Epoch.
    *
@@ -86,11 +78,7 @@ export interface IosDateRangeMetadataEntry {
    * to {@link TimeRange.start}.
    * An omitted {@link TimeRange.end} indicates an open-ended range.
    */
-  absoluteTimeRange?: TimeRange<Milliseconds>;
-  /**
-   * The declared duration of the range.
-   */
-  duration?: Seconds;
+  absoluteTimeRange: TimeRange<Milliseconds>;
   /**
    * The `CUE` attribute values from an `#EXT-X-DATERANGE` tag.
    *
@@ -101,11 +89,7 @@ export interface IosDateRangeMetadataEntry {
    *
    * @remarks Applies only to HLS Interstitial opportunities (pre-, mid-, post-roll).
    */
-  cueingOptions?: string[];
-  /**
-   * All the attributes associated with the date range.
-   */
-  attributes?: IosDateRangeMetadataItemEntry[];
+  cueingOptions: CueingOption[];
 }
 
 /**
@@ -114,7 +98,7 @@ export interface IosDateRangeMetadataEntry {
  * Depending on the underlying value, one or more of these fields may be present;
  * others will be `undefined`.
  */
-export interface IOSMetadataValue {
+export interface IosMetadataValue {
   /**
    * A text representation of the value, if available.
    */
@@ -125,7 +109,7 @@ export interface IOSMetadataValue {
   numberValue?: number;
   /**
    * A date/time representation of the value, formatted as an ISO 8601 string, if available.
-   * 
+   *
    * @example "2025-12-02T00:00:00Z"
    */
   dateValue?: string;
@@ -138,12 +122,29 @@ export interface IOSMetadataValue {
   dataValue?: Base64String;
 }
 
-/**
- * iOS representation of generic metadata items.
- *
- * @platform iOS, tvOS
- */
-interface BaseIosMetadataItem {
+ /**
+  * iOS representation of ID3 metadata items.
+  *
+  * @platform iOS, tvOS
+  *
+  * @example // TODO: check example
+  * ```ts
+  * if (entry.platform === 'ios') {
+  *   // TypeScript narrows to IosId3MetadataItem
+  *   const value = entry.value;
+  *
+  *   if (typeof value === 'string') {
+  *     console.log('String value:', value);
+  *   } else if (value) {
+  *     // value is IOSMetadataValue
+  *     console.log('Number:', value.numberValue);
+  *     console.log('Date:', value.dateValue);
+  *     console.log('Data:', value.dataValue);
+  *   }
+  * }
+  * ```
+  */
+interface IosId3MetadataItem {
   /**
    * Platform discriminator for TypeScript type narrowing.
    */
@@ -166,7 +167,7 @@ interface BaseIosMetadataItem {
   /**
    * Full typed representation of the underlying value as reported by iOS.
    */
-  rawValue?: IOSMetadataValue;
+  rawValue?: IosMetadataValue;
   /**
    * Time range of the entry relative to the beginning of the playback.
    */
@@ -179,38 +180,6 @@ interface BaseIosMetadataItem {
    * The IETF BCP 47 language identifier of the metadata item.
    */
   extendedLanguageTag?: string;
-}
-
-/**
- * iOS representation of ID3 metadata items.
- *
- * @platform iOS, tvOS
- */
-
- /**
-  * iOS representation of ID3 metadata items.
-  *
-  * @platform iOS, tvOS
-  *
-  * @example
-  * ```ts
-  * if (entry.platform === 'ios') {
-  *   // TypeScript narrows to IosId3MetadataItemEntry
-  *   const value = entry.value;
-  *
-  *   if (typeof value === 'string') {
-  *     console.log('String value:', value);
-  *   } else if (value) {
-  *     // value is IOSMetadataValue
-  *     console.log('Number:', value.numberValue);
-  *     console.log('Date:', value.dateValue);
-  *     console.log('Data:', value.dataValue);
-  *   }
-  * }
-  * ```
-  */
-export interface IosId3MetadataItemEntry extends BaseIosMetadataItem {
-  metadataType: MetadataType.ID3;
   /**
    * Additional attributes attached to the metadata item.
    */
@@ -218,34 +187,11 @@ export interface IosId3MetadataItemEntry extends BaseIosMetadataItem {
 }
 
 /**
- * iOS representation of DATERANGE attributes.
- *
- * @platform iOS, tvOS
- */
-export interface IosDateRangeMetadataItemEntry extends BaseIosMetadataItem {
-  platform: 'ios';
-  metadataType: MetadataType.DATERANGE;
-}
-
-// export interface AvOtherMetadataItemEntry extends BaseAvMetadataItem {
-//   metadataType: Exclude<MetadataType, MetadataType.ID3 | MetadataType.DATERANGE>;
-//   /**
-//    * Additional attributes attached to the metadata item.
-//    */
-//   extraAttributes?: Record<string, unknown>;
-// }
-
-// export type AvMetadataItemEntry =
-//   | AvId3MetadataItemEntry
-//   | AvDateRangeMetadataItemEntry;
-  // | AvOtherMetadataItemEntry;
-
-/**
  * Base interface for all Android ID3 frames.
  *
  * @platform Android
  */
-interface AndroidId3FrameBase {
+interface AndroidId3FrameBase {// TODO: COULD use TPlatform instead?
   metadataType: MetadataType.ID3;
   /**
    * Platform discriminator for TypeScript type narrowing.
@@ -405,12 +351,13 @@ export type AndroidId3Frame =
  * }
  * ```
  */
-export type Id3MetadataEntry = IosId3MetadataItemEntry | AndroidId3Frame;// TODO: if AVMetadataItem becomes generic, does this need changes as well?? - maybe could use A base avItemMetadata to inherit (e.g. extraAttributes is only ID3, then use ID3 child here)
+export type Id3MetadataEntry = IosId3MetadataItem | AndroidId3Frame;
 
 /**
  * Describes metadata associated with HLS `#EXT-X-SCTE35` tags.
  *
- * Note: On iOS, {@link TweaksConfig.isNativeHlsParsingEnabled} must be enabled to parse this type of metadata.
+ * @remarks On iOS, {@link TweaksConfig.isNativeHlsParsingEnabled} must be enabled
+ *          to parse this type of metadata.
  */
 export interface ScteMetadataEntry {
   metadataType: MetadataType.SCTE;
@@ -425,40 +372,77 @@ export interface ScteMetadataEntry {
 }
 
 /**
+ * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
+ *
+ * This is a discriminated union over the `platform` field:
+ *
+ * - `"ios"`: {@link IosDateRangeMetadataEntry}
+ * - `"android"`: {@link AndroidDateRangeMetadataEntry}
+ *
+ * Narrowing on `platform` gives you access to the platform-specific fields.
+ *
+ * @example // TODO: check all examples and choose where to update and keep them
+ * ```ts
+ * function handleDateRange(entry: DateRangeMetadataEntry) {
+ *   if (entry.platform === 'ios') {
+ *     // `entry` is now an IosDateRangeMetadataEntry
+ *     const range = entry.absoluteTimeRange;
+ *     const cues = entry.cueingOptions;
+ *   } else {
+ *     // `entry` is now an AndroidDateRangeMetadataEntry
+ *     const range = entry.relativeTimeRange;
+ *     const endsOnNext = entry.endOnNext;
+ *   }
+ * }
+ * ```
+ */
+export type DateRangeMetadataEntry =
+  | IosDateRangeMetadataEntry
+  | AndroidDateRangeMetadataEntry;
+
+/**
  * Union type representing all supported timed metadata entry kinds.
+ *
+ * This is a discriminated union over the `metadataType` field:
+ *
+ * - {@link MetadataType.DATERANGE}: {@link DateRangeMetadataEntry}
+ * - {@link MetadataType.SCTE}: {@link ScteMetadataEntry}
+ *
+ * Branching on `metadataType` using an `if`/`switch` statement narrows the type and
+ * gives access to entry-specific fields.
+ *
+ * @example
+ * ```ts
+ * function handleMetadata(entry: MetadataEntry) {
+ *   switch (entry.metadataType) {
+ *     case MetadataType.DATERANGE:
+ *       // `entry` is a DateRangeMetadataEntry
+ *       handleDateRange(entry: entry)
+ *       break;
+ *     case MetadataType.SCTE:
+ *       // `entry` is a ScteMetadataEntry
+ *       handleScte(entry.key, entry.value);
+ *       break;
+ *   }
+ * }
+ * ```
  */
 export type MetadataEntry = DateRangeMetadataEntry | Id3MetadataEntry | ScteMetadataEntry;
-// | NoneMetadataEntry
-// export interface NoneMetadataEntry { metadataType: MetadataType.NONE; }
 
- /**
-  * A collection of timed metadata entries of the same type.
-  *
-  * All entries in the collection share the same `metadataType`.
-  * This is the shape of the `metadata` field in `MetadataEvent`.
-  *
-  * @example// TODO: expand and concerete use-case
-  * ```ts
-  * onMetadata={(event) => {
-  *   const { metadata } = event;
-  *   if (metadata.metadataType === MetadataType.ID3) {
-  *     // All entries are guaranteed to be ID3
-  *     metadata.entries.forEach(entry => {
-  *       // entry is Id3MetadataEntry
-  *     });
-  *   }
-  * }}
-  * ```
-  */
+/**
+ * A collection of timed metadata entries of the same type.
+ *
+ * All entries in the collection share the same `metadataType`.
+ */
 export interface MetadataCollection<T extends MetadataEntry> {
   /**
-   * The playback time when this metadata triggers.
+   * The playback time when this metadata should trigger, relative to the playback session.
    */
-  startTime?: Seconds; // TODO: do not populate on DateRange (iOS)
+  startTime?: Seconds;
   /**
    * The metadata entries.
-   * 
-   * The group is homogeneous: all entries share the same metadata type. // TODO: double check , but should be since we pass it from the event (container level)
+   *
+   * The group is homogeneous: all entries share the same metadata type.
    */
   entries: T[];
 }

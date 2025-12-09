@@ -357,6 +357,7 @@ fun SourceEvent.toJson(): Map<String, Any> {
         }
 
         is SourceEvent.MetadataParsed -> {
+            baseMap["metadataType"] = type.toMetadataTypeString()
             baseMap["metadata"] = metadata.toJson(type)
         }
 
@@ -499,6 +500,7 @@ fun PlayerEvent.toJson(): Map<String, Any> {
         }
 
         is PlayerEvent.Metadata -> {
+            baseMap["metadataType"] = type.toMetadataTypeString()
             baseMap["metadata"] = metadata.toJson(type)
         }
 
@@ -911,7 +913,6 @@ fun Metadata.toJson(type: String): Map<String, Any> {
         .map { it.toJson() }
 
     return mapOf(
-        "metadataType" to type.toMetadataTypeString(),
         "startTime" to startTime,
         "entries" to entriesArray
     ).filterNotNullValues()

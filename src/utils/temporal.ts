@@ -1,12 +1,9 @@
 /**
- * Branded numeric type representing a duration or timestamp in milliseconds.
+ * Branded numeric type representing a duration in milliseconds.
  *
- * This is used in the SDK to make it clear a value is in milliseconds.
- * In the code it behaves just like a normal `number`.
- *
- * For public or app-level APIs, it's better to accept `number` and
- * apply the brand internally if needed, rather than requiring callers to
- * cast to `Milliseconds`.
+ * Used in the SDK to distinguish millisecond values from other units while
+ * still behaving as a `number` at runtime. For public/app-level APIs, prefer
+ * accepting `number` and applying this brand internally.
  *
  * @example
  * // ✅ Recommended: consuming as a number
@@ -15,21 +12,18 @@
  * const timeout: Milliseconds = 1_000;
  * logDuration(timeout);
  *
- * // ❌ Discouraged: forcing branded type on your own API
+ * // ❌ Discouraged: exposing the branded type in APIs
  * function setTimeoutMs(value: Milliseconds): void;
  * // Callers now have to write:
  * setTimeoutMs(1_000 as Milliseconds);
  */
 export type Milliseconds = number & { readonly __unit: 'ms' };
 /**
- * Branded numeric type representing a duration or timestamp in seconds.
+ * Branded numeric type representing a duration in seconds.
  *
- * This is used in the SDK to make it clear a value is in seconds.
- * In the code it behaves just like a normal `number`.
- *
- * For public or app-level APIs, it's better to accept `number` and
- * apply the brand internally if needed, rather than requiring callers to
- * cast to `Seconds`.
+ * Used in the SDK to distinguish seconds values from other units while
+ * still behaving as a `number` at runtime. For public/app-level APIs, prefer
+ * accepting `number` and applying this brand internally.
  *
  * @example
  * // ✅ Recommended: consuming as a number
@@ -38,20 +32,25 @@ export type Milliseconds = number & { readonly __unit: 'ms' };
  * const timeout: Seconds = 60;
  * logDuration(timeout);
  *
- * // ❌ Discouraged: forcing branded type on your own API
+ * // ❌ Discouraged: exposing the branded type in APIs
  * function setTimeoutSec(value: Seconds): void;
  * // Callers now have to write:
  * setTimeoutSec(60 as Seconds);
  */
 export type Seconds = number & { readonly __unit: 's' };
 
+/**
+ * Represents a time range with a start and end value in the same units.
+ *
+ * @typeParam T - Time representation, for example {@link Seconds} or {@link Milliseconds}.
+ */
 export interface TimeRange<T> {
   /**
-   * The start date of the range.
+   * The start time of the range.
    */
   start?: T;
   /**
-   * The end date of the range.
+   * The end time of the range.
    */
   end?: T;
 }
