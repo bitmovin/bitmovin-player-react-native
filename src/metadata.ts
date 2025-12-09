@@ -2,12 +2,12 @@ import { TimeRange, Seconds, Milliseconds } from './utils/temporal';
 
 /**
  * Enumerates all supported types of timed metadata entries.
- * 
+ *
  * Each {@link MetadataEntry} exposes a `metadataType` field whose value
  * comes from this enum. Branching on `metadataType` in a `switch` or `if/else`
  * statement narrows the TypeScript type to the corresponding
  * platform-specific metadata shape.
- * 
+ *
  * @see {@link MetadataEntry} for the full type narrowing documentation
  */
 export enum MetadataType {
@@ -48,17 +48,6 @@ export enum MetadataType {
    * @see {@link DateRangeMetadataEntry}
    */
   DATERANGE = 'DATERANGE',
-  /**
-   * Sentinel value indicating that no concrete metadata type applies.
-   *
-   * This is used when the metadata does not map to any of the
-   * supported categories.
-   *
-   * Note: {@link MetadataEntry} does not currently include entries with
-   * `metadataType: MetadataType.NONE`.// TODO: fix
-   * 
-   * // TODO: figure out what to do here (it is also used in andoird RN bridge when metadata is none of hte supported ones)
-   */
   NONE = 'NONE',
 }
 
@@ -67,7 +56,7 @@ export enum MetadataType {
  *
  * Use this type whenever the value is just the Base64 string itself, not a full
  * data URI string.
- * 
+ *
  * @example
  * // Correct format:
  * "SGVsbG8gV29ybGQ="
@@ -161,7 +150,7 @@ export interface IosDateRangeMetadataEntry
  * Represents Event Message metadata according to ISO 23009-1.
  *
  * This is used for both MP4 Event Message boxes (`emsg`) and DASH EventStream events.
- * 
+ *
  * @platform Android
  */
 export interface EventMessageMetadataEntry {
@@ -176,7 +165,7 @@ export interface EventMessageMetadataEntry {
   messageData: Base64Raw;
   /**
    * The message scheme URI identifying the event type.
-   * 
+   *
    * @example "urn:mpeg:dash:event:callback:2014"
    */
   schemeIdUri: string;
@@ -323,7 +312,7 @@ export interface AndroidApicFrame extends AndroidId3FrameBase {
   /**
    * Picture type as defined by the ID3 specification.
    *
-   * @example 3 (front cover)
+   * @example 3 // front cover
    */
   pictureType: number;
   /** Raw image data encoded as Base64 data with no `data:...;base64,` prefix. */
@@ -374,7 +363,7 @@ export interface AndroidPrivFrame extends AndroidId3FrameBase {
   owner: string;
   /**
    * Raw private payload encoded as Base64 data with no `data:...;base64,` prefix.
-   * 
+   *
    * Consumers should only attempt to interpret this data if they recognize
    * and understand the corresponding {@link owner} value.
    */
@@ -472,7 +461,7 @@ export type AndroidId3Frame =
  *
  * - `"ios"`: {@link IosId3Frame}
  * - `"android"`: {@link AndroidId3Frame}
- * 
+ *
  * Narrowing on `platform` gives you access to the platform-specific fields.
  */
 export type Id3MetadataEntry = IosId3Frame | AndroidId3Frame;
@@ -560,7 +549,7 @@ export type DateRangeMetadataEntry =
  *         console.log('Text frame:', entry.value);
  *       }
  *       break;
- * 
+ *
  *     case MetadataType.EMSG:
  *       // `entry` is an EventMessageMetadataEntry (Android only)
  *       console.log('EMSG data:', entry.messageData);
