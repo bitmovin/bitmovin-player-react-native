@@ -96,6 +96,33 @@ export interface IosDateRangeMetadataEntry
 }
 
 /**
+ * Represents Event Message metadata according to ISO 23009-1.
+ *
+ * This is used for both MP4 Event Message boxes (`emsg`) and DASH EventStream events.
+ * 
+ * @platform Android
+ */
+export interface EventMessageMetadataEntry {
+  metadataType: MetadataType.EMSG;
+  /** The instance identifier for this specific event occurrence. */
+  id: number;
+  /** The duration of the event in milliseconds. */
+  duration?: Milliseconds;
+  /**
+   * The message body containing the event payload, encoded as raw Base64-encoded data.
+   */
+  messageData: Base64Raw;
+  /**
+   * The message scheme URI identifying the event type.
+   * 
+   * @example "urn:mpeg:dash:event:callback:2014"
+   */
+  schemeIdUri: string;
+  /** The value for the event. */
+  value: string;
+}
+
+/**
  * Typed representations of an iOS metadata value.
  *
  * Depending on the underlying value, one or more of these fields may be present;
@@ -423,11 +450,12 @@ export type DateRangeMetadataEntry =
  * - {@link MetadataType.ID3}: {@link Id3MetadataEntry}
  * - {@link MetadataType.DATERANGE}: {@link DateRangeMetadataEntry}
  * - {@link MetadataType.SCTE}: {@link ScteMetadataEntry}
+ * - {@link MetadataType.EMSG}: {@link EventMessageMetadataEntry}
  *
  * Branching on `metadataType` using an `if`/`switch` statement narrows the type and
  * gives access to entry-specific fields.
  *
- * @example
+ * @example// TODO: add case for EventMessage, also in BasicMetadata code (android-only guarded)
  * ```ts
  * function handleMetadata(entry: MetadataEntry) {
  *   switch (entry.metadataType) {
@@ -465,12 +493,18 @@ export type DateRangeMetadataEntry =
  *         console.log('Text frame:', entry.value);
  *       }
  *       break;
+ * 
+ *     case MetadataType.EMSG:
+ *       // `entry` is an EventMessageMetadataEntry (Android only)
+ *       console.log('EMSG data:', entry.messageData);
+ *       break;
  *   }
  * }
  * ```
  */
 export type MetadataEntry =
   | DateRangeMetadataEntry
+  | EventMessageMetadataEntry
   | Id3MetadataEntry
   | ScteMetadataEntry;
 

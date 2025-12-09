@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- `MetadataParsedEvent` to signal when metadata is parsed from the stream.
+- `MetadataEvent` to signal when metadata is encountered during playback.
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to `3.100.0`

@@ -13,6 +13,7 @@ import { LoadingState } from './source';
 import { HttpRequestType } from './network/networkConfig';
 import {
   DateRangeMetadataEntry,
+  EventMessageMetadataEntry,
   Id3MetadataEntry,
   MetadataCollection,
   MetadataEntry,
@@ -815,6 +816,9 @@ export type MetadataParsedEvent =
   | (MetadataEventBase<DateRangeMetadataEntry> & {
       metadataType: MetadataType.DATERANGE;
     })
+  | (MetadataEventBase<EventMessageMetadataEntry> & {
+      metadataType: MetadataType.EMSG;
+    })
   | (MetadataEventBase<ScteMetadataEntry> & {
       metadataType: MetadataType.SCTE;
     });
@@ -828,6 +832,9 @@ export type MetadataEvent =
     })
   | (MetadataEventBase<DateRangeMetadataEntry> & {
       metadataType: MetadataType.DATERANGE;
+    })
+  | (MetadataEventBase<EventMessageMetadataEntry> & {
+      metadataType: MetadataType.EMSG;
     })
   | (MetadataEventBase<ScteMetadataEntry> & {
       metadataType: MetadataType.SCTE;
