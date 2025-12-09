@@ -1,4 +1,4 @@
-import { TimeRange, Seconds } from './utils/temporal';
+import { TimeRange, Seconds, Milliseconds } from './utils/temporal';
 
 /**
  * Enumerates all supported types of timed metadata entries.

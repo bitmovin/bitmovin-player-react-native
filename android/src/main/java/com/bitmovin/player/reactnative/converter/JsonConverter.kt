@@ -1003,8 +1003,10 @@ private fun Id3Frame.toJson(): Map<String, Any> {
         is ChapterFrame -> {
             base["frameType"] = "chapter"
             base["chapterId"] = chapterId
-            base["startTimeMs"] = startTimeMs
-            base["endTimeMs"] = endTimeMs
+            base["timeRange"] = mapOf(
+                "start" to startTimeMs,
+                "end" to endTimeMs,
+            )
             base["startOffset"] = startOffset
             base["endOffset"] = endOffset
             base["subFrames"] = subFrames.map { it.toJson() }
