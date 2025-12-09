@@ -32,7 +32,7 @@ interface BaseDateRangeMetadataEntry<TPlatform extends 'ios' | 'android'> {
    */
   classLabel?: string;
   /**
-   * The declared duration of the range.
+   * The declared duration of the range in seconds.
    */
   duration?: Seconds;
   /**
@@ -51,11 +51,11 @@ interface BaseDateRangeMetadataEntry<TPlatform extends 'ios' | 'android'> {
 export interface AndroidDateRangeMetadataEntry
   extends BaseDateRangeMetadataEntry<'android'> {
   /**
-   * Time range of the entry relative to the beginning of the playback.
+   * Time range of the entry relative to the beginning of the playback, in seconds.
    */
   relativeTimeRange: TimeRange<Seconds>;
   /**
-   * The planned duration of the range.
+   * The planned duration of the range in seconds.
    *
    * Used for live streams where the actual end time may not be known yet.
    */
@@ -75,7 +75,7 @@ export interface AndroidDateRangeMetadataEntry
 export interface IosDateRangeMetadataEntry
   extends BaseDateRangeMetadataEntry<'ios'> {
   /**
-   * Time range of the entry relative to Unix Epoch.
+   * Time range of the entry relative to Unix Epoch, in seconds.
    *
    * If the metadata represents an instantaneous event, {@link TimeRange.end} should be equal
    * to {@link TimeRange.start}.
@@ -158,11 +158,11 @@ interface IosId3Frame {
    */
   rawValue?: IosMetadataValue;
   /**
-   * Time range of the entry relative to the beginning of the playback.
+   * Time range of the entry relative to the beginning of the playback, in seconds.
    */
   relativeTimeRange?: TimeRange<Seconds>;
   /**
-   * The duration of the metadata item.
+   * The duration of the metadata item in seconds.
    */
   duration?: Seconds;
   /**
@@ -481,7 +481,7 @@ export type MetadataEntry =
  */
 export interface MetadataCollection<T extends MetadataEntry> {
   /**
-   * The playback time when this metadata should trigger, relative to the playback session.
+   * The playback time in seconds when this metadata should trigger, relative to the playback session.
    */
   startTime?: Seconds;
   /**
