@@ -1305,10 +1305,9 @@ extension RCTConvert {
 
         if let extra = item.extraAttributes {
             var extraAttributes: [String: Any] = [:]
-            for (key, value) in extra {
-                extraAttributes[key.rawValue] = NonFiniteSanitizer.sanitize(value)
+            json["extraAttributes"] = existingExtra.reduce(into: [String: Any]()) { result, entry in
+                result[entry.key.rawValue] = NonFiniteSanitizer.sanitize(entry.value)
             }
-            json["extraAttributes"] = extraAttributes
         }
     }
 
