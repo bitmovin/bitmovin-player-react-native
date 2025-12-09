@@ -63,7 +63,18 @@ export enum MetadataType {
 }
 
 /**
- * Base64-encoded raw data without a `data:...;base64,` prefix.
+ * Raw data encoded as Base64 with no `data:...;base64,` prefix.
+ *
+ * Use this type whenever the value is just the Base64 string itself, not a full
+ * data URI string.
+ * 
+ * @example
+ * // Correct format:
+ * "SGVsbG8gV29ybGQ="
+ *
+ * @example
+ * // Incorrect (includes a data URI scheme — not allowed):
+ * "data:text/plain;base64,SGVsbG8gV29ybGQ="
  */
 export type Base64Raw = string;
 export type CueingOption = 'PRE' | 'POST' | 'ONCE';
@@ -160,7 +171,7 @@ export interface EventMessageMetadataEntry {
   /** The duration of the event in milliseconds. */
   duration?: Milliseconds;
   /**
-   * The message body containing the event payload, encoded as raw Base64-encoded data.
+   * Raw event message payload encoded as Base64 with no `data:...;base64,` prefix.
    */
   messageData: Base64Raw;
   /**
@@ -195,7 +206,8 @@ export interface IosMetadataValue {
    */
   dateValue?: string;
   /**
-   * A binary representation of the value as raw Base64-encoded data, if available.
+   * A binary representation of the value as Base64 data
+   * with no `data:...;base64,` prefix, if available.
    *
    * @remarks Use this accessor to retrieve encapsulated artwork, thumbnails,
    *          proprietary frames, or any encoded value.
@@ -226,7 +238,7 @@ export interface IosId3Frame {
    * The underlying value is first interpreted as the most appropriate type
    * (date, number, text, or binary data) and then converted to a string.
    * - Dates are formatted as ISO 8601 strings (e.g. "2025-12-02T00:00:00Z").
-   * - Binary data is encoded as a Base64 string.
+   * - Binary data is encoded as a Base64 with no `data:...;base64,` prefix.
    *
    * This will be `undefined` if the value cannot be interpreted.
    */
@@ -290,7 +302,7 @@ export interface AndroidTextInformationFrame extends AndroidId3FrameBase {
  */
 export interface AndroidBinaryFrame extends AndroidId3FrameBase {
   frameType: 'binary';
-  /** Raw frame payload encoded as Base64 (no data: URI prefix). */
+  /** Raw frame payload encoded as Base64 data with no `data:...;base64,` prefix. */
   data: Base64Raw;
 }
 
@@ -314,7 +326,7 @@ export interface AndroidApicFrame extends AndroidId3FrameBase {
    * @example 3 (front cover)
    */
   pictureType: number;
-  /** Raw image data encoded as Base64 (no data: URI prefix). */
+  /** Raw image data encoded as Base64 data with no `data:...;base64,` prefix. */
   pictureData: Base64Raw;
 }
 
@@ -361,7 +373,8 @@ export interface AndroidPrivFrame extends AndroidId3FrameBase {
    */
   owner: string;
   /**
-   * Raw private payload encoded as Base64 (no data: URI prefix).
+   * Raw private payload encoded as Base64 data with no `data:...;base64,` prefix.
+   * 
    * Consumers should only attempt to interpret this data if they recognize
    * and understand the corresponding {@link owner} value.
    */
@@ -385,7 +398,7 @@ export interface AndroidGeobFrame extends AndroidId3FrameBase {
   filename: string;
   description: string;
   /**
-   * Raw object data encoded as Base64 (no data: URI prefix).
+   * Raw object encoded as Base64 data with no `data:...;base64,` prefix.
    */
   data: Base64Raw;
 }
