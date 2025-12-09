@@ -1206,10 +1206,10 @@ extension RCTConvert {
 
     static func absoluteTimeRange(dateRangeMetadata: DaterangeMetadata) -> [String: Any] {
         var json: [String: Any] = [
-            "start": date.timeIntervalSince1970
+            "start": dateRangeMetadata.startDate.timeIntervalSince1970
         ]
         if let endDate = dateRangeMetadata.endDate {
-            json["end"] = date.timeIntervalSince1970
+            json["end"] = endDate.timeIntervalSince1970
         }
         return json
     }
