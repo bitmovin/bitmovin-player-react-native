@@ -134,9 +134,11 @@ interface IosId3Frame {
    */
   platform: 'ios';
   /**
-   * The metadata key indicated by the identifier. For example, "TXXX".
+   * ID3 frame identifier.
+   * 
+   * @example "TXXX"
    */
-  key?: string;
+  id?: string;
   /**
    * String representation of the metadata value.
    *
@@ -379,7 +381,7 @@ export type DateRangeMetadataEntry =
  *         console.log('Frame type:', entry.frameType);
  *       } else {
  *         // `entry` is now an IosId3Frame
- *         console.log('Key:', entry.key, 'Value:', entry.value);
+ *         console.log('Frame ID:', entry.id, 'Value:', entry.value);
  *       }
  *       break;
  *
