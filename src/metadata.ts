@@ -11,7 +11,10 @@ export enum MetadataType {
   NONE = 'NONE',
 }
 
-export type Base64String = string;
+/**
+ * Base64-encoded raw data without a `data:...;base64,` prefix.
+ */
+export type Base64Raw = string;
 export type CueingOption = 'PRE' | 'POST' | 'ONCE';
 
 interface BaseDateRangeMetadataEntry<TPlatform extends 'ios' | 'android'> {
@@ -114,12 +117,12 @@ export interface IosMetadataValue {
    */
   dateValue?: string;
   /**
-   * A binary representation of the value as Base64-encoded data, if available.
+   * A binary representation of the value as raw Base64-encoded data, if available.
    *
    * @remarks Use this accessor to retrieve encapsulated artwork, thumbnails,
    *          proprietary frames, or any encoded value.
    */
-  dataValue?: Base64String;
+  dataValue?: Base64Raw;
 }
 
 /**
@@ -183,6 +186,11 @@ interface AndroidId3FrameBase {
    * Platform discriminator for TypeScript type narrowing.
    */
   platform: 'android';
+  /**
+   * ID3 frame identifier.
+   * 
+   * @example "TXXX"
+   */
   id: string;
 }
 
@@ -198,14 +206,14 @@ interface AndroidTextInformationFrame extends AndroidId3FrameBase {
 }
 
 /**
- * Encapsulates raw binary data.
+ * Encapsulates an ID3 frame whose payload is treated as opaque binary data.
  *
  * @platform Android
  */
 interface AndroidBinaryFrame extends AndroidId3FrameBase {
   frameType: 'binary';
-  /** Base64-encoded binary data. */
-  data: Base64String;
+  /** Raw frame payload encoded as Base64 (no data: URI prefix). */
+  data: Base64Raw;
 }
 
 /**
@@ -215,11 +223,21 @@ interface AndroidBinaryFrame extends AndroidId3FrameBase {
  */
 interface AndroidApicFrame extends AndroidId3FrameBase {
   frameType: 'apic';
+  /**
+   * MIME type of the embedded image as stored in the APIC frame.
+   * 
+   * @example "image/jpeg"
+   */
   mimeType: string;
   description?: string;
+  /**
+   * Picture type as defined by the ID3 specification.
+   * 
+   * @example 3 (front cover)
+   */
   pictureType: number;
-  /** Base64-encoded image data. */
-  pictureData: Base64String;
+  /** Raw image data encoded as Base64 (no data: URI prefix). */
+  pictureData: Base64Raw;
 }
 
 /**
@@ -242,19 +260,34 @@ interface AndroidCommentFrame extends AndroidId3FrameBase {
   frameType: 'comment';
   language: string;
   description: string;
+  /** The comment text. */
   text: string;
 }
 
 /**
- * Encapsulates application-specific proprietary data owned by a registered owner.
+ * Encapsulates owner-specific private data.
+ * 
+ * The structure and semantics of the payload are defined solely by the `owner`
+ * identifier and are opaque to generic parsers.
  *
  * @platform Android
  */
 interface AndroidPrivFrame extends AndroidId3FrameBase {
   frameType: 'priv';
+  /**
+   * Owner identifier string.
+   * 
+   * Typically a reverse-DNS or application-specific identifier.
+   * 
+   * @example "com.example.app"
+   */
   owner: string;
-  /** Base64-encoded private data. */
-  privateData: Base64String;
+  /**
+   * Raw private payload encoded as Base64 (no data: URI prefix).
+   * Consumers should only attempt to interpret this data if they recognize
+   * and understand the corresponding {@link owner} value.
+   */
+  privateData: Base64Raw;
 }
 
 /**
@@ -264,11 +297,19 @@ interface AndroidPrivFrame extends AndroidId3FrameBase {
  */
 interface AndroidGeobFrame extends AndroidId3FrameBase {
   frameType: 'geob';
+  /**
+   * MIME type of the encapsulated object.
+   * 
+   * @example "application/octet-stream"
+   */
   mimeType: string;
+  /** Original filename of the object. */
   filename: string;
   description: string;
-  /** Base64-encoded object data. */
-  data: Base64String;
+  /**
+   * Raw object data encoded as Base64 (no data: URI prefix).
+   */
+  data: Base64Raw;
 }
 
 /**
@@ -278,12 +319,17 @@ interface AndroidGeobFrame extends AndroidId3FrameBase {
  */
 interface AndroidChapterFrame extends AndroidId3FrameBase {
   frameType: 'chapter';
+  /** Identifier of the chapter element. */
   chapterId: string;
+  /** Time range of the chapter in milliseconds. */
   timeRange: TimeRange<Milliseconds>;
   /** The byte offset of the start of the chapter, or `-1` if not set. */
   startOffset: number;
   /** The byte offset of the end of the chapter, or `-1` if not set. */
   endOffset: number;
+  /**
+   * Nested ID3 subframes associated with this chapter (e.g. title, URL, etc.).
+   */
   subFrames: AndroidId3Frame[];
 }
 
@@ -294,10 +340,17 @@ interface AndroidChapterFrame extends AndroidId3FrameBase {
  */
 interface AndroidChapterTocFrame extends AndroidId3FrameBase {
   frameType: 'chapterToc';
+  /** Identifier of the table-of-contents element. */
   elementId: string;
+  /** Whether this element is the root of the chapter tree. */
   isRoot: boolean;
+  /** Whether the listed children are ordered. */
   isOrdered: boolean;
+  /** IDs of child chapter or TOC elements. */
   children: string[];
+  /**
+   * Nested ID3 subframes associated with this TOC element.
+   */
   subFrames: AndroidId3Frame[];
 }
 
@@ -393,7 +446,7 @@ export type DateRangeMetadataEntry =
  *       // `entry` is a ScteMetadataEntry
  *       console.log('SCTE key:', entry.key, 'value:', entry.value);
  *       break;
- * 
+ *
  *     case MetadataType.ID3:
  *       // `entry` is an Id3MetadataEntry
  *       if (entry.platform === 'android') {
