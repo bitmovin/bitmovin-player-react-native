@@ -1259,7 +1259,7 @@ extension RCTConvert {
     static func toJson(avMetadataItem: AVMetadataItem, metadataType: MetadataType) -> [String: Any] {
         var json: [String: Any] = [
             "metadataType": metadataTypeString(metadataType),
-            "platform": "ios" // TODO: check if can delete (use TPlatform) - If delete, update android as well!
+            "platform": "ios"
         ]
 
         addTimeInfo(from: avMetadataItem, into: &json)

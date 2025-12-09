@@ -145,6 +145,7 @@ export interface IosMetadataValue {
   * ```
   */
 interface IosId3MetadataItem {
+  metadataType: MetadataType.ID3;
   /**
    * Platform discriminator for TypeScript type narrowing.
    */
@@ -171,7 +172,7 @@ interface IosId3MetadataItem {
   /**
    * Time range of the entry relative to the beginning of the playback.
    */
-  relativeTimeRange?: TimeRange<Seconds>;// TODO: is this seconds??
+  relativeTimeRange?: TimeRange<Seconds>;
   /**
    * The duration of the metadata item.
    */
@@ -191,7 +192,7 @@ interface IosId3MetadataItem {
  *
  * @platform Android
  */
-interface AndroidId3FrameBase {// TODO: COULD use TPlatform instead?
+interface AndroidId3FrameBase {
   metadataType: MetadataType.ID3;
   /**
    * Platform discriminator for TypeScript type narrowing.
