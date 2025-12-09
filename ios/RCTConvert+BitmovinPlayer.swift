@@ -1186,6 +1186,7 @@ extension RCTConvert {
         let absoluteTimeRange = absoluteTimeRange(dateRangeMetadata: dateRangeMetadata)
         var json: [String: Any] = [
             "metadataType": "DATERANGE",
+            "platform": "ios",
             "id": dateRangeMetadata.identifier,
             "absoluteTimeRange": absoluteTimeRange,
             "cueingOptions": dateRangeMetadata.cueingOptions

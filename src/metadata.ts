@@ -164,7 +164,7 @@ export type DateRangeMetadataEntry =
  *
  * Branching on `metadataType` using an `if`/`switch` statement narrows the type and
  * gives access to entry-specific fields.
- * 
+ *
  * @example
  * ```ts
  * function handleMetadata(entry: MetadataEntry) {

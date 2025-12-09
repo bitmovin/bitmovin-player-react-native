@@ -931,6 +931,7 @@ fun DateRangeMetadata.toJson(): Map<String, Any> {
 
     return mapOf(
         "metadataType" to "DATERANGE",
+        "platform" to "android",
         "id" to id,
         "relativeTimeRange" to relativeTimeRange,
         "endOnNext" to endOnNext,
