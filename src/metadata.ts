@@ -149,21 +149,6 @@ export interface ScteMetadataEntry {
  * - `"android"`: {@link AndroidDateRangeMetadataEntry}
  *
  * Narrowing on `platform` gives you access to the platform-specific fields.
- *
- * @example
- * ```ts
- * function handleDateRange(entry: DateRangeMetadataEntry) {
- *   if (entry.platform === 'ios') {
- *     // `entry` is now an IosDateRangeMetadataEntry
- *     const range = entry.absoluteTimeRange;
- *     const cues = entry.cueingOptions;
- *   } else {
- *     // `entry` is now an AndroidDateRangeMetadataEntry
- *     const range = entry.relativeTimeRange;
- *     const endsOnNext = entry.endOnNext;
- *   }
- * }
- * ```
  */
 export type DateRangeMetadataEntry =
   | IosDateRangeMetadataEntry
@@ -179,18 +164,25 @@ export type DateRangeMetadataEntry =
  *
  * Branching on `metadataType` using an `if`/`switch` statement narrows the type and
  * gives access to entry-specific fields.
- *
+ * 
  * @example
  * ```ts
  * function handleMetadata(entry: MetadataEntry) {
  *   switch (entry.metadataType) {
  *     case MetadataType.DATERANGE:
  *       // `entry` is a DateRangeMetadataEntry
- *       handleDateRange(entry: entry)
+ *       if (entry.platform === 'android') {
+ *         // `entry` is now an AndroidDateRangeMetadataEntry
+ *         console.log('End on next:', entry.endOnNext);
+ *       } else {
+ *         // `entry` is now an IosDateRangeMetadataEntry
+ *         console.log('Cueing options:', entry.cueingOptions);
+ *       }
  *       break;
+ *
  *     case MetadataType.SCTE:
  *       // `entry` is a ScteMetadataEntry
- *       handleScte(entry.key, entry.value);
+ *       console.log('SCTE key:', entry.key, 'value:', entry.value);
  *       break;
  *   }
  * }
