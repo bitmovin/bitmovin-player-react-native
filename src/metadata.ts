@@ -2,12 +2,63 @@ import { TimeRange, Seconds, Milliseconds } from './utils/temporal';
 
 /**
  * Enumerates all supported types of timed metadata entries.
+ * 
+ * Each {@link MetadataEntry} exposes a `metadataType` field whose value
+ * comes from this enum. Branching on `metadataType` in a `switch` or `if/else`
+ * statement narrows the TypeScript type to the corresponding
+ * platform-specific metadata shape.
+ * 
+ * @see {@link MetadataEntry} for the full type narrowing documentation
  */
 export enum MetadataType {
+  /**
+   * ID3 metadata embedded in the media stream.
+   *
+   * Used for timed ID3 tags such as text frames, comments, artwork,
+   * chapters, private frames, and other ID3v2 structures.
+   *
+   * @see {@link Id3MetadataEntry}
+   */
   ID3 = 'ID3',
+  /**
+   * Event Message metadata as defined in ISO/IEC 23009-1.
+   *
+   * Represents MP4 Event Message boxes (`emsg`) or DASH `EventStream`
+   * events carrying an application- or spec-defined payload.
+   *
+   * @platform Android
+   * @see {@link EventMessageMetadataEntry}
+   */
   EMSG = 'EMSG',
+  /**
+   * SCTE-35 signaling extracted from HLS `#EXT-X-SCTE35` tags.
+   *
+   * Typically used for ad insertion, blackout signaling, or other
+   * broadcast-style cue messages.
+   *
+   * @see {@link ScteMetadataEntry}
+   */
   SCTE = 'SCTE',
+  /**
+   * HLS `#EXT-X-DATERANGE` tags representing timed opportunities or annotations.
+   *
+   * Used for in-playlist markers such as interstitial opportunities,
+   * blackout windows, content labels, or other time-bounded ranges.
+   *
+   * @see {@link DateRangeMetadataEntry}
+   */
   DATERANGE = 'DATERANGE',
+  /**
+   * Sentinel value indicating that no concrete metadata type applies.
+   *
+   * This is used when the metadata does not map to any of the
+   * supported categories.
+   *
+   * Note: {@link MetadataEntry} does not currently include entries with
+   * `metadataType: MetadataType.NONE`.// TODO: fix
+   * 
+   * // TODO: figure out what to do here (it is also used in andoird RN bridge when metadata is none of hte supported ones)
+   */
   NONE = 'NONE',
 }
 
@@ -404,9 +455,12 @@ export type AndroidId3Frame =
 /**
  * Describes metadata associated with ID3 tags.
  *
- * This is a discriminated union of iOS and Android ID3 representations.
- * The `platform` field acts as the discriminator, allowing TypeScript to
- * automatically narrow to the correct platform-specific type.
+ * This is a discriminated union over the `platform` field:
+ *
+ * - `"ios"`: {@link IosId3Frame}
+ * - `"android"`: {@link AndroidId3Frame}
+ * 
+ * Narrowing on `platform` gives you access to the platform-specific fields.
  */
 export type Id3MetadataEntry = IosId3Frame | AndroidId3Frame;
 
@@ -455,7 +509,7 @@ export type DateRangeMetadataEntry =
  * Branching on `metadataType` using an `if`/`switch` statement narrows the type and
  * gives access to entry-specific fields.
  *
- * @example// TODO: add case for EventMessage, also in BasicMetadata code (android-only guarded)
+ * @example
  * ```ts
  * function handleMetadata(entry: MetadataEntry) {
  *   switch (entry.metadataType) {
