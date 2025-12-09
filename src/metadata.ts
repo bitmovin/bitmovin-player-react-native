@@ -127,7 +127,7 @@ export interface IosMetadataValue {
   *
   * @platform iOS, tvOS
   */
-interface IosId3MetadataItem {// TODO: iOSID3Frame
+interface IosId3Frame {
   metadataType: MetadataType.ID3;
   /**
    * Platform discriminator for TypeScript type narrowing.
@@ -322,7 +322,7 @@ export type AndroidId3Frame =
  * The `platform` field acts as the discriminator, allowing TypeScript to
  * automatically narrow to the correct platform-specific type.
  */
-export type Id3MetadataEntry = IosId3MetadataItem | AndroidId3Frame;
+export type Id3MetadataEntry = IosId3Frame | AndroidId3Frame;
 
 /**
  * Describes metadata associated with HLS `#EXT-X-SCTE35` tags.
