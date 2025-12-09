@@ -122,11 +122,11 @@ export interface IosMetadataValue {
   dataValue?: Base64String;
 }
 
- /**
-  * iOS representation of ID3 metadata items.
-  *
-  * @platform iOS, tvOS
-  */
+/**
+ * iOS representation of ID3 metadata items.
+ *
+ * @platform iOS, tvOS
+ */
 interface IosId3Frame {
   metadataType: MetadataType.ID3;
   /**
@@ -135,7 +135,7 @@ interface IosId3Frame {
   platform: 'ios';
   /**
    * ID3 frame identifier.
-   * 
+   *
    * @example "TXXX"
    */
   id?: string;
@@ -279,7 +279,7 @@ interface AndroidGeobFrame extends AndroidId3FrameBase {
 interface AndroidChapterFrame extends AndroidId3FrameBase {
   frameType: 'chapter';
   chapterId: string;
-  timeRange: TimeRange<Milliseconds>
+  timeRange: TimeRange<Milliseconds>;
   /** The byte offset of the start of the chapter, or `-1` if not set. */
   startOffset: number;
   /** The byte offset of the end of the chapter, or `-1` if not set. */
@@ -404,7 +404,10 @@ export type DateRangeMetadataEntry =
  * }
  * ```
  */
-export type MetadataEntry = DateRangeMetadataEntry | Id3MetadataEntry | ScteMetadataEntry;
+export type MetadataEntry =
+  | DateRangeMetadataEntry
+  | Id3MetadataEntry
+  | ScteMetadataEntry;
 
 /**
  * A collection of timed metadata entries of the same type.
@@ -429,7 +432,7 @@ export interface MetadataCollection<T extends MetadataEntry> {
  */
 export function isAndroidId3Frame<T extends AndroidId3Frame['frameType']>(
   entry: Id3MetadataEntry,
-  frameType: T,
+  frameType: T
 ): entry is Extract<AndroidId3Frame, { frameType: T }> {
   return entry.platform === 'android' && entry.frameType === frameType;
 }
