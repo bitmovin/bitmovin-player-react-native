@@ -1293,8 +1293,9 @@ extension RCTConvert {
         json["id"] = key
         if let value = singleValueString(avMetadataItem: item) {
             json["value"] = value
-        } else if let valueJson = allValueAccessorsJson(avMetadataItem: item) {
-            json["value"] = valueJson
+        }
+        if let valueJson = allValueAccessorsJson(avMetadataItem: item) {
+            json["rawValue"] = valueJson
         }
     }
 
