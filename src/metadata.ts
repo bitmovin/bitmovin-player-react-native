@@ -126,25 +126,8 @@ export interface IosMetadataValue {
   * iOS representation of ID3 metadata items.
   *
   * @platform iOS, tvOS
-  *
-  * @example // TODO: check example
-  * ```ts
-  * if (entry.platform === 'ios') {
-  *   // TypeScript narrows to IosId3MetadataItem
-  *   const value = entry.value;
-  *
-  *   if (typeof value === 'string') {
-  *     console.log('String value:', value);
-  *   } else if (value) {
-  *     // value is IOSMetadataValue
-  *     console.log('Number:', value.numberValue);
-  *     console.log('Date:', value.dateValue);
-  *     console.log('Data:', value.dataValue);
-  *   }
-  * }
-  * ```
   */
-interface IosId3MetadataItem {
+interface IosId3MetadataItem {// TODO: iOSID3Frame
   metadataType: MetadataType.ID3;
   /**
    * Platform discriminator for TypeScript type narrowing.
@@ -338,19 +321,6 @@ export type AndroidId3Frame =
  * This is a discriminated union of iOS and Android ID3 representations.
  * The `platform` field acts as the discriminator, allowing TypeScript to
  * automatically narrow to the correct platform-specific type.
- *
- * @example
- * ```ts
- * function processMetadata(entry: Id3MetadataEntry) {
- *   if (entry.platform === 'android') {
- *     // TypeScript narrows to AndroidId3Frame
- *     console.log(entry.frameType); // Type-safe
- *   } else {
- *     // TypeScript narrows to AvMetadataItemEntry (iOS) // TODO: update type-name and field used below
- *     console.log(entry.key);  // Type-safe
- *   }
- * }
- * ```
  */
 export type Id3MetadataEntry = IosId3MetadataItem | AndroidId3Frame;
 
@@ -381,21 +351,6 @@ export interface ScteMetadataEntry {
  * - `"android"`: {@link AndroidDateRangeMetadataEntry}
  *
  * Narrowing on `platform` gives you access to the platform-specific fields.
- *
- * @example // TODO: check all examples and choose where to update and keep them
- * ```ts
- * function handleDateRange(entry: DateRangeMetadataEntry) {
- *   if (entry.platform === 'ios') {
- *     // `entry` is now an IosDateRangeMetadataEntry
- *     const range = entry.absoluteTimeRange;
- *     const cues = entry.cueingOptions;
- *   } else {
- *     // `entry` is now an AndroidDateRangeMetadataEntry
- *     const range = entry.relativeTimeRange;
- *     const endsOnNext = entry.endOnNext;
- *   }
- * }
- * ```
  */
 export type DateRangeMetadataEntry =
   | IosDateRangeMetadataEntry
@@ -406,6 +361,7 @@ export type DateRangeMetadataEntry =
  *
  * This is a discriminated union over the `metadataType` field:
  *
+ * - {@link MetadataType.ID3}: {@link Id3MetadataEntry}
  * - {@link MetadataType.DATERANGE}: {@link DateRangeMetadataEntry}
  * - {@link MetadataType.SCTE}: {@link ScteMetadataEntry}
  *
@@ -416,13 +372,31 @@ export type DateRangeMetadataEntry =
  * ```ts
  * function handleMetadata(entry: MetadataEntry) {
  *   switch (entry.metadataType) {
+ *     case MetadataType.ID3:
+ *       // `entry` is an Id3MetadataEntry
+ *       if (entry.platform === 'android') {
+ *         // `entry` is now an AndroidId3Frame
+ *         console.log('Frame type:', entry.frameType);
+ *       } else {
+ *         // `entry` is now an IosId3Frame
+ *         console.log('Key:', entry.key, 'Value:', entry.value);
+ *       }
+ *       break;
+ *
  *     case MetadataType.DATERANGE:
  *       // `entry` is a DateRangeMetadataEntry
- *       handleDateRange(entry: entry)
+ *       if (entry.platform === 'ios') {
+ *         // `entry` is now an IosDateRangeMetadataEntry
+ *         console.log('Cueing options:', entry.cueingOptions);
+ *       } else {
+ *         // `entry` is now an AndroidDateRangeMetadataEntry
+ *         console.log('End on next:', entry.endOnNext);
+ *       }
  *       break;
+ *
  *     case MetadataType.SCTE:
  *       // `entry` is a ScteMetadataEntry
- *       handleScte(entry.key, entry.value);
+ *       console.log('SCTE key:', entry.key, 'value:', entry.value);
  *       break;
  *   }
  * }
