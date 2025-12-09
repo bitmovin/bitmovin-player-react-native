@@ -130,7 +130,7 @@ export interface IosMetadataValue {
  *
  * @platform iOS, tvOS
  */
-interface IosId3Frame {
+export interface IosId3Frame {
   metadataType: MetadataType.ID3;
   /**
    * Platform discriminator for TypeScript type narrowing.
@@ -199,7 +199,7 @@ interface AndroidId3FrameBase {
  *
  * @platform Android
  */
-interface AndroidTextInformationFrame extends AndroidId3FrameBase {
+export interface AndroidTextInformationFrame extends AndroidId3FrameBase {
   frameType: 'text';
   description?: string;
   value: string;
@@ -210,7 +210,7 @@ interface AndroidTextInformationFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-interface AndroidBinaryFrame extends AndroidId3FrameBase {
+export interface AndroidBinaryFrame extends AndroidId3FrameBase {
   frameType: 'binary';
   /** Raw frame payload encoded as Base64 (no data: URI prefix). */
   data: Base64Raw;
@@ -221,7 +221,7 @@ interface AndroidBinaryFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-interface AndroidApicFrame extends AndroidId3FrameBase {
+export interface AndroidApicFrame extends AndroidId3FrameBase {
   frameType: 'apic';
   /**
    * MIME type of the embedded image as stored in the APIC frame.
@@ -245,7 +245,7 @@ interface AndroidApicFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-interface AndroidUrlLinkFrame extends AndroidId3FrameBase {
+export interface AndroidUrlLinkFrame extends AndroidId3FrameBase {
   frameType: 'url';
   description?: string;
   url: string;
@@ -256,7 +256,7 @@ interface AndroidUrlLinkFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-interface AndroidCommentFrame extends AndroidId3FrameBase {
+export interface AndroidCommentFrame extends AndroidId3FrameBase {
   frameType: 'comment';
   language: string;
   description: string;
@@ -272,7 +272,7 @@ interface AndroidCommentFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-interface AndroidPrivFrame extends AndroidId3FrameBase {
+export interface AndroidPrivFrame extends AndroidId3FrameBase {
   frameType: 'priv';
   /**
    * Owner identifier string.
@@ -295,7 +295,7 @@ interface AndroidPrivFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-interface AndroidGeobFrame extends AndroidId3FrameBase {
+export interface AndroidGeobFrame extends AndroidId3FrameBase {
   frameType: 'geob';
   /**
    * MIME type of the encapsulated object.
@@ -317,7 +317,7 @@ interface AndroidGeobFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-interface AndroidChapterFrame extends AndroidId3FrameBase {
+export interface AndroidChapterFrame extends AndroidId3FrameBase {
   frameType: 'chapter';
   /** Identifier of the chapter element. */
   chapterId: string;
@@ -338,7 +338,7 @@ interface AndroidChapterFrame extends AndroidId3FrameBase {
  *
  * @platform Android
  */
-interface AndroidChapterTocFrame extends AndroidId3FrameBase {
+export interface AndroidChapterTocFrame extends AndroidId3FrameBase {
   frameType: 'chapterToc';
   /** Identifier of the table-of-contents element. */
   elementId: string;
