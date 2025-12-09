@@ -1257,36 +1257,15 @@ extension RCTConvert {
     }
 
     static func toJson(avMetadataItem: AVMetadataItem, metadataType: MetadataType) -> [String: Any] {
-        let includeDiscriminator = metadataType != .daterange
-        let includeMetadataType = metadataType != .daterange
-        let includeExtraAttributes = metadataType != .daterange
-        let useDynamicKey = metadataType == .daterange
-
-        var json = baseJson(
-            metadataType: metadataType,
-            includeMetadataType: includeMetadataType,
-            includeDiscriminator: includeDiscriminator
-        )
+        var json: [String: Any] = [
+            "metadataType": metadataTypeString(metadataType),
+            "platform": "ios" // TODO: check if can delete (use TPlatform) - If delete, update android as well!
+        ]
 
         addTimeInfo(from: avMetadataItem, into: &json)
-        addKeyAndValue(from: avMetadataItem, useDynamicKey: useDynamicKey, into: &json)
-        addLanguageAndExtras(from: avMetadataItem, includeExtraAttributes: includeExtraAttributes, into: &json)
+        addKeyAndValue(from: avMetadataItem, into: &json)
+        addLanguageAndExtras(from: avMetadataItem, into: &json)
 
-        return json
-    }
-
-    private static func baseJson(
-        metadataType: MetadataType,
-        includeMetadataType: Bool,
-        includeDiscriminator: Bool
-    ) -> [String: Any] {
-        var json: [String: Any] = [:]
-        if includeMetadataType {
-            json["metadataType"] = metadataTypeString(metadataType)
-        }
-        if includeDiscriminator {
-            json["platform"] = "ios"
-        }
         return json
     }
 
@@ -1305,37 +1284,29 @@ extension RCTConvert {
 
     private static func addKeyAndValue(
         from item: AVMetadataItem,
-        useDynamicKey: Bool,
         into json: inout [String: Any]
     ) {
-        guard let identifier = item.key as? String else { return }
+        guard let key = item.key as? String else {
+            return
+        }
 
-        if useDynamicKey {
-            if let value = singleValueString(avMetadataItem: item) {
-                json[identifier] = value
-            } else if let valueJson = allValueAccessorsJson(avMetadataItem: item) {
-                json[identifier] = valueJson
-            }
-        } else {
-            json["key"] = identifier
-            if let value = singleValueString(avMetadataItem: item) {
-                json["value"] = value
-            } else if let valueJson = allValueAccessorsJson(avMetadataItem: item) {
-                json["value"] = valueJson
-            }
+        json["key"] = key
+        if let value = singleValueString(avMetadataItem: item) {
+            json["value"] = value
+        } else if let valueJson = allValueAccessorsJson(avMetadataItem: item) {
+            json["value"] = valueJson
         }
     }
 
     private static func addLanguageAndExtras(
         from item: AVMetadataItem,
-        includeExtraAttributes: Bool,
         into json: inout [String: Any]
     ) {
         if let extendedLanguageTag = item.extendedLanguageTag {
             json["extendedLanguageTag"] = extendedLanguageTag
         }
 
-        if includeExtraAttributes, let extra = item.extraAttributes {
+        if let extra = item.extraAttributes {
             var extraAttributes: [String: Any] = [:]
             for (key, value) in extra {
                 extraAttributes[key.rawValue] = NonFiniteSanitizer.sanitize(value)
