@@ -387,12 +387,12 @@ export type DateRangeMetadataEntry =
  *
  *     case MetadataType.DATERANGE:
  *       // `entry` is a DateRangeMetadataEntry
- *       if (entry.platform === 'ios') {
- *         // `entry` is now an IosDateRangeMetadataEntry
- *         console.log('Cueing options:', entry.cueingOptions);
- *       } else {
+ *       if (entry.platform === 'android') {
  *         // `entry` is now an AndroidDateRangeMetadataEntry
  *         console.log('End on next:', entry.endOnNext);
+ *       } else {
+ *         // `entry` is now an IosDateRangeMetadataEntry
+ *         console.log('Cueing options:', entry.cueingOptions);
  *       }
  *       break;
  *
