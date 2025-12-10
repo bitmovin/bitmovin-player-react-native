@@ -105,6 +105,10 @@ import java.util.UUID
 private fun Map<String, Any?>.filterNotNullValues(): Map<String, Any> =
     this.filterValues { it != null }.mapValues { it.value!! }
 
+private inline fun MutableMap<String, Any>.putIfNotNull(key: String, value: Any?) {
+    value?.let { put(key, it) }
+}
+
 fun Map<String, Any?>.toPlayerConfig(): PlayerConfig = PlayerConfig(key = getString("licenseKey")).apply {
     withMap("playbackConfig") { playbackConfig = it.toPlaybackConfig() }
     withMap("styleConfig") { styleConfig = it.toStyleConfig() }
@@ -944,7 +948,6 @@ fun DateRangeMetadata.toJson(): Map<String, Any> {
 
     return mapOf(
         "metadataType" to "DATERANGE",
-        "platform" to "android",
         "id" to id,
         "relativeTimeRange" to relativeTimeRange,
         "endOnNext" to endOnNext,
@@ -964,77 +967,78 @@ fun EventMessage.toJson(): Map<String, Any> = mapOf(
     "messageData" to messageData.toBase64String()
 ).filterNotNullValues()
 
-private fun Id3Frame.toJson(): Map<String, Any> {
-    val base = mutableMapOf<String, Any>(
-        "metadataType" to "ID3",
-        "platform" to "android",
-        "id" to id
-    )
+private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
+    put("metadataType", "ID3")
+    put("id", id)
 
-    when (this) {
+    when (this@toJson) {
         is TextInformationFrame -> {
-            base["frameType"] = "text"
-            base["value"] = value
-            description?.let { base["description"] = it }
+            put("frameType", "text")
+            put("value", value)
+            putIfNotNull("description", description)
         }
         is BinaryFrame -> {
-            base["frameType"] = "binary"
-            base["data"] = data.toBase64String()
+            put("frameType", "binary")
+            put("data", data.toBase64String())
         }
         is CommentFrame -> {
-            base["frameType"] = "comment"
-            base["language"] = language
-            base["description"] = description
-            base["text"] = text
+            put("frameType", "comment")
+            put("language", language)
+            putIfNotNull("description", description)
+            put("text", text)
         }
         is UrlLinkFrame -> {
-            base["frameType"] = "url"
-            base["url"] = url
-            description?.let { base["description"] = it }
+            put("frameType", "url")
+            put("url", url)
+            putIfNotNull("description", description)
         }
         is ApicFrame -> {
-            base["frameType"] = "apic"
-            base["mimeType"] = mimeType
-            description?.let { base["description"] = it }
-            base["pictureType"] = pictureType
-            base["pictureData"] = pictureData.toBase64String()
+            put("frameType", "apic")
+            put("mimeType", mimeType)
+            putIfNotNull("description", description)
+            put("pictureType", pictureType)
+            put("pictureData", pictureData.toBase64String())
         }
         is GeobFrame -> {
-            base["frameType"] = "geob"
-            base["mimeType"] = mimeType
-            base["filename"] = filename
-            base["description"] = description
-            base["data"] = data.toBase64String()
+            put("frameType", "geob")
+            put("mimeType", mimeType)
+            put("filename", filename)
+            putIfNotNull("description", description)
+            put("data", data.toBase64String())
         }
         is PrivFrame -> {
-            base["frameType"] = "priv"
-            base["owner"] = owner
-            base["privateData"] = privateData.toBase64String()
+            put("frameType", "priv")
+            put("owner", owner)
+            put("privateData", privateData.toBase64String())
         }
         is ChapterFrame -> {
-            base["frameType"] = "chapter"
-            base["chapterId"] = chapterId
-            base["timeRange"] = mapOf(
-                "start" to startTimeMs,
-                "end" to endTimeMs,
+            put("frameType", "chapter")
+            put("chapterId", chapterId)
+            put(
+                "timeRange",
+                mapOf(
+                    "start" to startTimeMs,
+                    "end" to endTimeMs,
+                ),
             )
-            base["startOffset"] = startOffset
-            base["endOffset"] = endOffset
-            base["subFrames"] = subFrames.map { it.toJson() }
+            put("startOffset", startOffset)
+            put("endOffset", endOffset)
+            put("subFrames", subFrames.map { it.toJson() })
         }
         is ChapterTocFrame -> {
-            base["frameType"] = "chapterToc"
-            base["elementId"] = elementId
-            base["isRoot"] = isRoot
-            base["isOrdered"] = isOrdered
-            base["children"] = children
-            base["subFrames"] = (0 until subFrameCount)
-                .mapNotNull { getSubFrame(it) }
-                .map { it.toJson() }
+            put("frameType", "chapterToc")
+            put("elementId", elementId)
+            put("isRoot", isRoot)
+            put("isOrdered", isOrdered)
+            put("children", children)
+            put(
+                "subFrames",
+                (0 until subFrameCount)
+                    .mapNotNull { getSubFrame(it) }
+                    .map { it.toJson() },
+            )
         }
     }
-
-    return base.filterNotNullValues()
 }
 
 fun ScteMessage.toJson(): Map<String, Any> = mapOf(
