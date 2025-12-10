@@ -960,7 +960,7 @@ fun EventMessage.toJson(): Map<String, Any> = mapOf(
     "id" to id,
     "schemeIdUri" to schemeIdUri,
     "value" to value,
-    "duration" to durationMs,
+    "duration" to durationMs?.div(1000.0),
     "messageData" to messageData.toBase64String()
 ).filterNotNullValues()
 

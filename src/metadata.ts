@@ -157,8 +157,8 @@ export interface EventMessageMetadataEntry {
   metadataType: MetadataType.EMSG;
   /** The instance identifier for this specific event occurrence. */
   id: number;
-  /** The duration of the event in milliseconds. */
-  duration?: Milliseconds;
+  /** The duration of the event in seconds. */
+  duration?: Seconds;
   /**
    * Raw event message payload encoded as Base64 with no `data:...;base64,` prefix.
    */
