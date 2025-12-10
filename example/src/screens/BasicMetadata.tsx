@@ -90,9 +90,9 @@ export default function BasicMetadata() {
           });
           break;
 
-        case MetadataType.Unrecognized:
+        case MetadataType.Unsupported:
           event.metadata.entries.forEach((entry) => {
-            console.warn('Unrecognized metadata encountered from: ', entry.platform)
+            console.warn('Unsupported metadata encountered from: ', entry.platform)
           });
           break;
         }
