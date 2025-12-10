@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import type { MetadataEntry, MetadataCollection } from '../metadata';
+import { MetadataType } from '../metadata';
 
 /**
  * Adds platform discriminator to metadata entries received from native code.
@@ -25,4 +26,30 @@ export function addPlatformToMetadata<T extends MetadataEntry>(
       platform,
     })) as T[],
   };
+}
+
+/**
+ * Adds the platform discriminator to metadata-carrying events when needed.
+ *
+ * Native payloads omit the platform field; this helper enriches only metadata
+ * events that require platform-specific discriminators (ID3 and DATERANGE).
+ */
+export function addPlatformToMetadataEvent<
+  TEvent extends {
+    metadataType?: MetadataType;
+    metadata?: MetadataCollection<MetadataEntry>;
+  },
+>(event: TEvent): TEvent {
+  if (
+    event.metadata &&
+    (event.metadataType === MetadataType.ID3 ||
+      event.metadataType === MetadataType.DATERANGE)
+  ) {
+    return {
+      ...event,
+      metadata: addPlatformToMetadata(event.metadata),
+    };
+  }
+
+  return event;
 }
