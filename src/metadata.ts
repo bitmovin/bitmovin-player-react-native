@@ -27,6 +27,8 @@ export enum MetadataType {
    * events carrying an application- or spec-defined payload.
    *
    * @platform Android
+   * @remarks This metadata type is never emitted on iOS or tvOS, as the native
+   *          player does not surface EMSG events on those platforms.
    * @see {@link EventMessageMetadataEntry}
    */
   EMSG = 'EMSG',
