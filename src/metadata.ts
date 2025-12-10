@@ -3,11 +3,6 @@ import { TimeRange, Seconds, Milliseconds } from './utils/temporal';
 /**
  * Enumerates all supported types of timed metadata entries.
  *
- * Each {@link MetadataEntry} exposes a `metadataType` field whose value
- * comes from this enum. Branching on `metadataType` in a `switch` or `if/else`
- * statement narrows the TypeScript type to the corresponding
- * platform-specific metadata shape.
- *
  * @see {@link MetadataEntry} for the full type narrowing documentation
  */
 export enum MetadataType {
