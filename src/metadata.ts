@@ -3,11 +3,6 @@ import { TimeRange, Seconds, Milliseconds } from './utils/temporal';
 /**
  * Enumerates all supported types of timed metadata entries.
  *
- * Each {@link MetadataEntry} exposes a `metadataType` field whose value
- * comes from this enum. Branching on `metadataType` in a `switch` or `if/else`
- * statement narrows the TypeScript type to the corresponding
- * platform-specific metadata shape.
- *
  * @see {@link MetadataEntry} for the full type narrowing documentation
  */
 export enum MetadataType {
@@ -169,8 +164,8 @@ export interface EventMessageMetadataEntry {
   metadataType: MetadataType.EMSG;
   /** The instance identifier for this specific event occurrence. */
   id: number;
-  /** The duration of the event in milliseconds. */
-  duration?: Milliseconds;
+  /** The duration of the event in seconds. */
+  duration?: Seconds;
   /**
    * Raw event message payload encoded as Base64 with no `data:...;base64,` prefix.
    */

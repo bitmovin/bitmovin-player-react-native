@@ -830,19 +830,4 @@ export type MetadataParsedEvent =
 /**
  * Emitted when metadata is encountered during playback.
  */
-export type MetadataEvent =
-  | (MetadataEventBase<Id3MetadataEntry> & {
-      metadataType: MetadataType.ID3;
-    })
-  | (MetadataEventBase<DateRangeMetadataEntry> & {
-      metadataType: MetadataType.DATERANGE;
-    })
-  | (MetadataEventBase<EventMessageMetadataEntry> & {
-      metadataType: MetadataType.EMSG;
-    })
-  | (MetadataEventBase<ScteMetadataEntry> & {
-      metadataType: MetadataType.SCTE;
-    })
-  | (MetadataEventBase<UnsupportedMetadataEntry> & {
-      metadataType: MetadataType.Unsupported;
-    });
+export type MetadataEvent = MetadataParsedEvent;

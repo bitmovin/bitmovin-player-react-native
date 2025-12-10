@@ -16,6 +16,11 @@ export const Sources = {
     type: SourceType.HLS,
   } as SourceConfig,
 
+  id3MetadataHls: {
+    url: 'https://cdn.bitmovin.com/content/internal/assets/metadata/media.m3u8',
+    type: SourceType.HLS,
+  } as SourceConfig,
+
   sintel: {
     url: 'https://cdn.bitmovin.com/content/internal/assets/sintel/hls/playlist.m3u8',
     type: SourceType.HLS,
