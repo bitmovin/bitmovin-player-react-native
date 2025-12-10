@@ -8,6 +8,8 @@ import {
   PlayerView,
   SourceType,
   CustomMessageHandler,
+  PlayerViewConfig,
+  WebUiConfig,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import Button from '../components/Button';
@@ -86,10 +88,17 @@ export default function CustomHtmlUi({ navigation }: CustomHtmlUiProps) {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
 
+  const viewConfig: PlayerViewConfig = {
+    uiConfig: {
+      enableWebViewInspecting: true,
+    } as WebUiConfig,
+  };
+
   return (
     <View style={styles.container}>
       <PlayerView
         player={player}
+        config={viewConfig}
         customMessageHandler={customMessageHandler}
         style={styles.player}
         onPlay={onEvent}
