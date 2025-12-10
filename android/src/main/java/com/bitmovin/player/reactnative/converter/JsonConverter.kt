@@ -961,7 +961,7 @@ fun EventMessage.toJson(): Map<String, Any> = mapOf(
     "schemeIdUri" to schemeIdUri,
     "value" to value,
     "duration" to durationMs,
-    "messageData" to Base64.encodeToString(messageData, Base64.NO_WRAP)
+    "messageData" to messageData.toBase64String()
 ).filterNotNullValues()
 
 private fun Id3Frame.toJson(): Map<String, Any> {
