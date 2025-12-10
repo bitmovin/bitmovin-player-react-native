@@ -48,7 +48,17 @@ export enum MetadataType {
    * @see {@link DateRangeMetadataEntry}
    */
   DATERANGE = 'DATERANGE',
-  NONE = 'NONE',
+  /**
+   * Sentinel type for unrecognized metadata.
+   * 
+   * This value indicates that the underlying native player reported timed metadata
+   * at some point in the stream, but the React Native SDK does not yet map it to
+   * one of the supported metadata entry types ({@link ID3}, {@link SCTE},
+   * {@link DATERANGE}, or {@link EMSG}).
+   * 
+   * @see {@link UnrecognizedMetadataEntry}
+   */
+  Unrecognized = 'NONE',
 }
 
 /**
@@ -485,6 +495,20 @@ export interface ScteMetadataEntry {
 }
 
 /**
+ * Metadata entry for unrecognized or unsupported metadata types.
+ * 
+ * This type is emitted when the native player reports timed metadata that
+ * this SDK cannot attach to one of the supported types:
+ * - iOS: metadata that is not exposed as ID3, SCTE, or DATERANGE
+ * - Android: metadata that is not exposed as ID3, SCTE, DATERANGE, or EMSG
+ */
+export interface UnrecognizedMetadataEntry {
+  metadataType: MetadataType.Unrecognized;
+  /** The platform that reported the unsupported metadata. */
+  platform: 'ios' | 'android';
+}
+
+/**
  * Represents in-playlist timed metadata from an HLS `#EXT-X-DATERANGE` tag.
  *
  * This is a discriminated union over the `platform` field:
@@ -507,6 +531,7 @@ export type DateRangeMetadataEntry =
  * - {@link MetadataType.DATERANGE}: {@link DateRangeMetadataEntry}
  * - {@link MetadataType.SCTE}: {@link ScteMetadataEntry}
  * - {@link MetadataType.EMSG}: {@link EventMessageMetadataEntry}
+ * - {@link MetadataType.Unrecognized}: {@link UnrecognizedMetadataEntry}
  *
  * Branching on `metadataType` using an `if`/`switch` statement narrows the type and
  * gives access to entry-specific fields.
@@ -554,6 +579,11 @@ export type DateRangeMetadataEntry =
  *       // `entry` is an EventMessageMetadataEntry (Android only)
  *       console.log('EMSG data:', entry.messageData);
  *       break;
+ *
+ *     case MetadataType.Unrecognized:
+ *       // `entry` is an UnrecognizedMetadataEntry
+ *       console.warn('Unrecognized metadata encountered from: ', entry.platform)
+ *       break;
  *   }
  * }
  * ```
@@ -562,7 +592,8 @@ export type MetadataEntry =
   | DateRangeMetadataEntry
   | EventMessageMetadataEntry
   | Id3MetadataEntry
-  | ScteMetadataEntry;
+  | ScteMetadataEntry
+  | UnrecognizedMetadataEntry;
 
 /**
  * A collection of timed metadata entries of the same type.

@@ -89,6 +89,12 @@ export default function BasicMetadata() {
             console.log('EMSG event value:', entry.value);
           });
           break;
+
+        case MetadataType.Unrecognized:
+          event.metadata.entries.forEach((entry) => {
+            console.warn('Unrecognized metadata encountered from: ', entry.platform)
+          });
+          break;
         }
     },
     []
