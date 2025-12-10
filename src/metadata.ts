@@ -55,7 +55,7 @@ export enum MetadataType {
    *
    * This value indicates that the underlying native player reported timed metadata
    * at some point in the stream, but the React Native SDK does not yet map it to
-   * one of the supported metadata entry types ({@link ID3}, {@link SCTE},
+   * one of the supported metadata entry types of ({@link ID3}, {@link SCTE},
    * {@link DATERANGE}, or {@link EMSG}).
    *
    * @see {@link UnsupportedMetadataEntry}
