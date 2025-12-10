@@ -50,12 +50,12 @@ export enum MetadataType {
   DATERANGE = 'DATERANGE',
   /**
    * Sentinel type for unrecognized metadata.
-   * 
+   *
    * This value indicates that the underlying native player reported timed metadata
    * at some point in the stream, but the React Native SDK does not yet map it to
    * one of the supported metadata entry types ({@link ID3}, {@link SCTE},
    * {@link DATERANGE}, or {@link EMSG}).
-   * 
+   *
    * @see {@link UnrecognizedMetadataEntry}
    */
   Unrecognized = 'NONE',
@@ -496,7 +496,7 @@ export interface ScteMetadataEntry {
 
 /**
  * Metadata entry for unrecognized or unsupported metadata types.
- * 
+ *
  * This type is emitted when the native player reports timed metadata that
  * this SDK cannot attach to one of the supported types:
  * - iOS: metadata that is not exposed as ID3, SCTE, or DATERANGE
