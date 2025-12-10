@@ -946,7 +946,6 @@ fun DateRangeMetadata.toJson(): Map<String, Any> {
 
     return mapOf(
         "metadataType" to "DATERANGE",
-        "platform" to "android",
         "id" to id,
         "relativeTimeRange" to relativeTimeRange,
         "endOnNext" to endOnNext,
@@ -959,7 +958,6 @@ fun DateRangeMetadata.toJson(): Map<String, Any> {
 
 private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
     put("metadataType", "ID3")
-    put("platform", "android") // Discriminator for MetadataEntry/Id3MetadataEntry on JS side
     put("id", id)
 
     when (this@toJson) {

@@ -6,6 +6,7 @@ import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
 import { PlayerViewProps } from './properties';
+import { addPlatformToMetadata } from '../../utils/metadataPlatform';
 
 /**
  * Base style that initializes the native view frame when no width/height prop has been set.
@@ -133,8 +134,28 @@ export function PlayerView({
       onBmpCastWaitingForDevice={proxy(props.onCastWaitingForDevice)}
       onBmpCueEnter={proxy(props.onCueEnter)}
       onBmpCueExit={proxy(props.onCueExit)}
-      onBmpMetadata={proxy(props.onMetadata)}
-      onBmpMetadataParsed={proxy(props.onMetadataParsed)}
+      onBmpMetadata={
+        props.onMetadata
+          ? (e) => {
+              const enriched = {
+                ...e.nativeEvent,
+                metadata: addPlatformToMetadata(e.nativeEvent.metadata),
+              } as typeof e.nativeEvent;
+              props.onMetadata?.(enriched);
+            }
+          : undefined
+      }
+      onBmpMetadataParsed={
+        props.onMetadataParsed
+          ? (e) => {
+              const enriched = {
+                ...e.nativeEvent,
+                metadata: addPlatformToMetadata(e.nativeEvent.metadata),
+              } as typeof e.nativeEvent;
+              props.onMetadataParsed?.(enriched);
+            }
+          : undefined
+      }
       onBmpDestroy={proxy(props.onDestroy)}
       onBmpEvent={proxy(props.onEvent)}
       onBmpFullscreenEnabled={proxy(props.onFullscreenEnabled)}
