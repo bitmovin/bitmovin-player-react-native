@@ -81,7 +81,15 @@ export default function BasicMetadata() {
           });
           break;
         }
-      }
+
+        // Note: EMSG is supported on Android only
+        case MetadataType.EMSG:
+          // All entries are EventMessageMetadataEntry here
+          event.metadata.entries.forEach((entry) => {
+            console.log('EMSG event value:', entry.value);
+          });
+          break;
+        }
     },
     []
   );

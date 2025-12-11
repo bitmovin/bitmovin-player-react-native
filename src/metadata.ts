@@ -2,17 +2,63 @@ import { TimeRange, Seconds, Milliseconds } from './utils/temporal';
 
 /**
  * Enumerates all supported types of timed metadata entries.
+ *
+ * @see {@link MetadataEntry} for the full type narrowing documentation
  */
 export enum MetadataType {
+  /**
+   * ID3 metadata embedded in the media stream.
+   *
+   * Used for timed ID3 tags such as text frames, comments, artwork,
+   * chapters, private frames, and other ID3v2 structures.
+   *
+   * @see {@link Id3MetadataEntry}
+   */
   ID3 = 'ID3',
+  /**
+   * Event Message metadata as defined in ISO/IEC 23009-1.
+   *
+   * Represents MP4 Event Message boxes (`emsg`) or DASH `EventStream`
+   * events carrying an application- or spec-defined payload.
+   *
+   * @platform Android
+   * @see {@link EventMessageMetadataEntry}
+   */
   EMSG = 'EMSG',
+  /**
+   * SCTE-35 signaling extracted from HLS `#EXT-X-SCTE35` tags.
+   *
+   * Typically used for ad insertion, blackout signaling, or other
+   * broadcast-style cue messages.
+   *
+   * @see {@link ScteMetadataEntry}
+   */
   SCTE = 'SCTE',
+  /**
+   * HLS `#EXT-X-DATERANGE` tags representing timed opportunities or annotations.
+   *
+   * Used for in-playlist markers such as interstitial opportunities,
+   * blackout windows, content labels, or other time-bounded ranges.
+   *
+   * @see {@link DateRangeMetadataEntry}
+   */
   DATERANGE = 'DATERANGE',
   NONE = 'NONE',
 }
 
 /**
- * Base64-encoded raw data without a `data:...;base64,` prefix.
+ * Raw data encoded as Base64 with no `data:...;base64,` prefix.
+ *
+ * Use this type whenever the value is just the Base64 string itself, not a full
+ * data URI string.
+ *
+ * @example
+ * // Correct format:
+ * "SGVsbG8gV29ybGQ="
+ *
+ * @example
+ * // Incorrect (includes a data URI scheme — not allowed):
+ * "data:text/plain;base64,SGVsbG8gV29ybGQ="
  */
 export type Base64Raw = string;
 export type CueingOption = 'PRE' | 'POST' | 'ONCE';
@@ -96,6 +142,33 @@ export interface IosDateRangeMetadataEntry
 }
 
 /**
+ * Represents Event Message metadata according to ISO 23009-1.
+ *
+ * This is used for both MP4 Event Message boxes (`emsg`) and DASH EventStream events.
+ *
+ * @platform Android
+ */
+export interface EventMessageMetadataEntry {
+  metadataType: MetadataType.EMSG;
+  /** The instance identifier for this specific event occurrence. */
+  id: number;
+  /** The duration of the event in seconds. */
+  duration?: Seconds;
+  /**
+   * Raw event message payload encoded as Base64 with no `data:...;base64,` prefix.
+   */
+  messageData: Base64Raw;
+  /**
+   * The message scheme URI identifying the event type.
+   *
+   * @example "urn:mpeg:dash:event:callback:2014"
+   */
+  schemeIdUri: string;
+  /** The value for the event. */
+  value: string;
+}
+
+/**
  * Typed representations of an iOS metadata value.
  *
  * Depending on the underlying value, one or more of these fields may be present;
@@ -117,7 +190,8 @@ export interface IosMetadataValue {
    */
   dateValue?: string;
   /**
-   * A binary representation of the value as raw Base64-encoded data, if available.
+   * A binary representation of the value as Base64 data
+   * with no `data:...;base64,` prefix, if available.
    *
    * @remarks Use this accessor to retrieve encapsulated artwork, thumbnails,
    *          proprietary frames, or any encoded value.
@@ -148,7 +222,7 @@ export interface IosId3Frame {
    * The underlying value is first interpreted as the most appropriate type
    * (date, number, text, or binary data) and then converted to a string.
    * - Dates are formatted as ISO 8601 strings (e.g. "2025-12-02T00:00:00Z").
-   * - Binary data is encoded as a Base64 string.
+   * - Binary data is encoded as a Base64 with no `data:...;base64,` prefix.
    *
    * This will be `undefined` if the value cannot be interpreted.
    */
@@ -212,7 +286,7 @@ export interface AndroidTextInformationFrame extends AndroidId3FrameBase {
  */
 export interface AndroidBinaryFrame extends AndroidId3FrameBase {
   frameType: 'binary';
-  /** Raw frame payload encoded as Base64 (no data: URI prefix). */
+  /** Raw frame payload encoded as Base64 data with no `data:...;base64,` prefix. */
   data: Base64Raw;
 }
 
@@ -233,10 +307,10 @@ export interface AndroidApicFrame extends AndroidId3FrameBase {
   /**
    * Picture type as defined by the ID3 specification.
    *
-   * @example 3 (front cover)
+   * @example 3 // front cover
    */
   pictureType: number;
-  /** Raw image data encoded as Base64 (no data: URI prefix). */
+  /** Raw image data encoded as Base64 data with no `data:...;base64,` prefix. */
   pictureData: Base64Raw;
 }
 
@@ -283,7 +357,8 @@ export interface AndroidPrivFrame extends AndroidId3FrameBase {
    */
   owner: string;
   /**
-   * Raw private payload encoded as Base64 (no data: URI prefix).
+   * Raw private payload encoded as Base64 data with no `data:...;base64,` prefix.
+   *
    * Consumers should only attempt to interpret this data if they recognize
    * and understand the corresponding {@link owner} value.
    */
@@ -307,7 +382,7 @@ export interface AndroidGeobFrame extends AndroidId3FrameBase {
   filename: string;
   description: string;
   /**
-   * Raw object data encoded as Base64 (no data: URI prefix).
+   * Raw object encoded as Base64 data with no `data:...;base64,` prefix.
    */
   data: Base64Raw;
 }
@@ -377,9 +452,12 @@ export type AndroidId3Frame =
 /**
  * Describes metadata associated with ID3 tags.
  *
- * This is a discriminated union of iOS and Android ID3 representations.
- * The `platform` field acts as the discriminator, allowing TypeScript to
- * automatically narrow to the correct platform-specific type.
+ * This is a discriminated union over the `platform` field:
+ *
+ * - `"ios"`: {@link IosId3Frame}
+ * - `"android"`: {@link AndroidId3Frame}
+ *
+ * Narrowing on `platform` gives you access to the platform-specific fields.
  */
 export type Id3MetadataEntry = IosId3Frame | AndroidId3Frame;
 
@@ -423,6 +501,7 @@ export type DateRangeMetadataEntry =
  * - {@link MetadataType.ID3}: {@link Id3MetadataEntry}
  * - {@link MetadataType.DATERANGE}: {@link DateRangeMetadataEntry}
  * - {@link MetadataType.SCTE}: {@link ScteMetadataEntry}
+ * - {@link MetadataType.EMSG}: {@link EventMessageMetadataEntry}
  *
  * Branching on `metadataType` using an `if`/`switch` statement narrows the type and
  * gives access to entry-specific fields.
@@ -465,12 +544,18 @@ export type DateRangeMetadataEntry =
  *         console.log('Text frame:', entry.value);
  *       }
  *       break;
+ *
+ *     case MetadataType.EMSG:
+ *       // `entry` is an EventMessageMetadataEntry (Android only)
+ *       console.log('EMSG data:', entry.messageData);
+ *       break;
  *   }
  * }
  * ```
  */
 export type MetadataEntry =
   | DateRangeMetadataEntry
+  | EventMessageMetadataEntry
   | Id3MetadataEntry
   | ScteMetadataEntry;
 

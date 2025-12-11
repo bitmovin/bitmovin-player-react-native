@@ -46,6 +46,7 @@ import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
 import com.bitmovin.player.api.metadata.Metadata
 import com.bitmovin.player.api.metadata.daterange.DateRangeMetadata
+import com.bitmovin.player.api.metadata.emsg.EventMessage
 import com.bitmovin.player.api.metadata.id3.ApicFrame
 import com.bitmovin.player.api.metadata.id3.BinaryFrame
 import com.bitmovin.player.api.metadata.id3.ChapterFrame
@@ -935,6 +936,7 @@ fun Metadata.toJson(type: String): Map<String, Any> {
 fun Metadata.Entry.toJson(): Map<String, Any> {
     return when (this) {
         is DateRangeMetadata -> this.toJson()
+        is EventMessage -> this.toJson()
         is Id3Frame -> this.toJson()
         is ScteMessage -> this.toJson()
         else -> mapOf("metadataType" to "NONE")
@@ -965,6 +967,15 @@ fun DateRangeMetadata.toJson(): Map<String, Any> {
         "plannedDuration" to plannedDuration,
     ).filterNotNullValues()
 }
+
+fun EventMessage.toJson(): Map<String, Any> = mapOf(
+    "metadataType" to "EMSG",
+    "id" to id,
+    "schemeIdUri" to schemeIdUri,
+    "value" to value,
+    "duration" to durationMs?.div(1000.0),
+    "messageData" to messageData.toBase64String()
+).filterNotNullValues()
 
 private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
     put("metadataType", "ID3")
