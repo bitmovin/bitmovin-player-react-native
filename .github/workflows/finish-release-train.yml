@@ -45,10 +45,12 @@ jobs:
           echo "version_number=$version_number" >> $GITHUB_OUTPUT
 
       - name: Update Changelog
+        if: ${{ github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/v') }}
         run: |
           sed -i "s/\[${{ steps.version_number.outputs.version_number }}\].*/\[${{ steps.version_number.outputs.version_number }}\] - $(date +'%Y-%m-%d')/g" CHANGELOG.md
 
       - name: Commit changelog version bump
+        if: ${{ github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/v') }}
         run: |
           git add CHANGELOG.md
           git commit --no-verify -m "bump changelog date to today"
