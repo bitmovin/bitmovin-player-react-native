@@ -45,6 +45,7 @@ import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
 import com.bitmovin.player.api.metadata.Metadata
+import com.bitmovin.player.api.metadata.daterange.DateRangeMetadata
 import com.bitmovin.player.api.metadata.scte.ScteMessage
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
@@ -349,6 +350,7 @@ fun SourceEvent.toJson(): Map<String, Any> {
         }
 
         is SourceEvent.MetadataParsed -> {
+            baseMap["metadataType"] = type.toMetadataTypeString()
             baseMap["metadata"] = metadata.toJson(type)
         }
 
@@ -491,6 +493,7 @@ fun PlayerEvent.toJson(): Map<String, Any> {
         }
 
         is PlayerEvent.Metadata -> {
+            baseMap["metadataType"] = type.toMetadataTypeString()
             baseMap["metadata"] = metadata.toJson(type)
         }
 
@@ -910,7 +913,6 @@ fun Metadata.toJson(type: String): Map<String, Any> {
         .map { it.toJson() }
 
     return mapOf(
-        "metadataType" to type.toMetadataTypeString(),
         "startTime" to startTime,
         "entries" to entriesArray
     ).filterNotNullValues()
@@ -918,9 +920,36 @@ fun Metadata.toJson(type: String): Map<String, Any> {
 
 fun Metadata.Entry.toJson(): Map<String, Any> {
     return when (this) {
+        is DateRangeMetadata -> this.toJson()
         is ScteMessage -> this.toJson()
         else -> mapOf("metadataType" to "NONE")
     }
+}
+
+fun DateRangeMetadata.toJson(): Map<String, Any> {
+    // Contrarily to iOS, in Android SDK, startDate is playback seconds
+    // relative to source beginning, not absolute wall-clock time.
+    val startTime = startDate
+    val endSeconds = (duration ?: plannedDuration)?.let { startTime + it }
+
+    val relativeTimeRange = mutableMapOf<String, Any>(
+        "start" to startTime
+    )
+    if (endSeconds != null) {
+        relativeTimeRange["end"] = endSeconds
+    }
+
+    return mapOf(
+        "metadataType" to "DATERANGE",
+        "platform" to "android",
+        "id" to id,
+        "relativeTimeRange" to relativeTimeRange,
+        "endOnNext" to endOnNext,
+        "attributes" to clientAttributes,
+        "classLabel" to classLabel,
+        "duration" to duration,
+        "plannedDuration" to plannedDuration,
+    ).filterNotNullValues()
 }
 
 fun ScteMessage.toJson(): Map<String, Any> = mapOf(

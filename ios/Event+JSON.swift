@@ -450,6 +450,7 @@ extension MetadataEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
         toEventJSON {
             [
+                "metadataType": RCTConvert.metadataTypeString(metadataType),
                 "metadata": RCTConvert.toJson(metadata: metadata, type: metadataType)
             ]
         }
@@ -460,6 +461,7 @@ extension MetadataParsedEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
         toEventJSON {
             [
+                "metadataType": RCTConvert.metadataTypeString(metadataType),
                 "metadata": RCTConvert.toJson(metadata: metadata, type: metadataType)
             ]
         }

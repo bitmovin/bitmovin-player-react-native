@@ -11,7 +11,13 @@ import { VideoQuality } from './media';
 import { AudioTrack } from './audioTrack';
 import { LoadingState } from './source';
 import { HttpRequestType } from './network/networkConfig';
-import { Metadata } from './metadata';
+import {
+  DateRangeMetadataEntry,
+  MetadataCollection,
+  MetadataEntry,
+  MetadataType,
+  ScteMetadataEntry,
+} from './metadata';
 
 /**
  * Base event type for all events.
@@ -769,21 +775,53 @@ export interface CueExitEvent extends Event {
 }
 
 /**
+ * Base event type for events that carry timed metadata.
+ *
+ * Concrete events like {@link MetadataParsedEvent} and {@link MetadataEvent}
+ * fix {@link metadataType} and {@link metadata} to a specific metadata entry
+ * type.
+ *
+ * @remarks Branching on {@link metadataType} using an `if`/`switch` statement narrows the
+ *          event to the appropriate metadata subtype, giving access to entry-specific fields.
+ *
+ * @typeParam T - The metadata entry type carried by this event
+ */
+export interface MetadataEventBase<T extends MetadataEntry> extends Event {
+  /**
+   * Discriminator for the metadata type carried by this event.
+   *
+   * All entries in {@link MetadataCollection.entries} share this value.
+   *
+   * @remarks Use it in an `if`/`else` or `switch` to narrow the event type.
+   */
+  metadataType: T['metadataType'];
+  /**
+   * Metadata entries and their trigger time.
+   *
+   * The collection is homogeneous: all entries share the same metadata type,
+   * reflected by {@link metadataType}.
+   */
+  metadata: MetadataCollection<T>;
+}
+
+/**
  * Emitted when metadata is parsed from the stream.
  */
-export interface MetadataParsedEvent extends Event {
-  /**
-   * The parsed metadata container with entries.
-   */
-  metadata: Metadata;
-}
+export type MetadataParsedEvent =
+  | (MetadataEventBase<DateRangeMetadataEntry> & {
+      metadataType: MetadataType.DATERANGE;
+    })
+  | (MetadataEventBase<ScteMetadataEntry> & {
+      metadataType: MetadataType.SCTE;
+    });
 
 /**
  * Emitted when metadata is encountered during playback.
  */
-export interface MetadataEvent extends Event {
-  /**
-   * The metadata container with entries.
-   */
-  metadata: Metadata;
-}
+export type MetadataEvent =
+  | (MetadataEventBase<DateRangeMetadataEntry> & {
+      metadataType: MetadataType.DATERANGE;
+    })
+  | (MetadataEventBase<ScteMetadataEntry> & {
+      metadataType: MetadataType.SCTE;
+    });
