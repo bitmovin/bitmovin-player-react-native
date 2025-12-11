@@ -9,6 +9,7 @@ on:
     branches:
       - main
       - support/v0
+  workflow_dispatch:
 
 env:
   LC_ALL: en_US.UTF-8
@@ -20,7 +21,7 @@ concurrency:
 
 jobs:
   prepare:
-    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/v')
+    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     name: Prepare Release
     outputs:
