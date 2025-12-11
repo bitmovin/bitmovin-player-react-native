@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative.converter
 
 import android.util.Base64
+import android.util.Log
 import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
@@ -939,7 +940,19 @@ fun Metadata.Entry.toJson(): Map<String, Any> {
         is EventMessage -> this.toJson()
         is Id3Frame -> this.toJson()
         is ScteMessage -> this.toJson()
-        else -> mapOf("metadataType" to "NONE")
+        else -> {
+            // The Android SDK never emits unrecognized metadata, it filters out unknown
+            // metadata types before emitting the event.
+            Log.w(
+                "JsonConverter",
+                "Unsupported metadata entry type: ${this::class.simpleName}. " +
+                        "This metadata type is supported on native, but not yet on the React Native SDK"
+            )
+            mapOf(
+                "metadataType" to "NONE",
+                "platform" to "android",
+            )
+        }
     }
 }
 

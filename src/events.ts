@@ -19,6 +19,7 @@ import {
   MetadataEntry,
   MetadataType,
   ScteMetadataEntry,
+  UnsupportedMetadataEntry,
 } from './metadata';
 
 /**
@@ -821,6 +822,9 @@ export type MetadataParsedEvent =
     })
   | (MetadataEventBase<ScteMetadataEntry> & {
       metadataType: MetadataType.SCTE;
+    })
+  | (MetadataEventBase<UnsupportedMetadataEntry> & {
+      metadataType: MetadataType.Unsupported;
     });
 
 /**

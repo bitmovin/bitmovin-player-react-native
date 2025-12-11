@@ -1149,7 +1149,9 @@ extension RCTConvert {
         case .daterange:
             return "DATERANGE"
         case .EMSG:
-            return "EMSG"
+            // EMSG type exists, but has no business logic in the native SDK.
+            // It is effectively treated the same way as "NONE".
+            return "NONE"
         case .none:
             return "NONE"
         @unknown default:
