@@ -231,7 +231,7 @@ extension RCTConvert {
     }
 
     static func networkConfig(_ json: Any?) -> NetworkConfig? {
-        guard let json = json as? [String: Any?] else {
+        guard json is [String: Any?] else {
             return nil
         }
         return NetworkConfig()
@@ -1138,6 +1138,254 @@ extension RCTConvert {
             nowPlayingConfig.isNowPlayingInfoEnabled = isEnabled
         }
         return nowPlayingConfig
+    }
+
+    static func metadataTypeString(_ type: MetadataType) -> String {
+        switch type {
+        case .ID3:
+            return "ID3"
+        case .scte:
+            return "SCTE"
+        case .daterange:
+            return "DATERANGE"
+        case .EMSG:
+            // EMSG type exists, but has no business logic in the native SDK.
+            // It is effectively treated the same way as "NONE".
+            return "NONE"
+        case .none:
+            return "NONE"
+        @unknown default:
+            return "NONE"
+        }
+    }
+
+    static func toJson(metadata: Metadata?, type: MetadataType) -> [String: Any]? {
+        guard let metadata else { return nil }
+
+        var entriesArray: [[String: Any]] = []
+
+        // DateRangeMetadata is already a container
+        if let dateRangeMetadata = metadata as? DaterangeMetadata {
+            entriesArray.append(toJson(dateRangeMetadata: dateRangeMetadata))
+        }
+
+        for entry in metadata.entries {
+            switch entry {
+            case let id3Entry as AVMetadataItem where type == .ID3:
+                entriesArray.append(toJson(avMetadataItem: id3Entry, metadataType: type))
+            case let scteEntry as ScteMetadataEntry where type == .scte:
+                entriesArray.append(toJson(scteMetadataEntry: scteEntry))
+            default:
+                break
+            }
+        }
+
+        let startTime: Double?
+        if let id3Metadata = metadata as? Id3Metadata {
+            startTime = id3Metadata.startTime
+        } else if let scteMetadata = metadata as? ScteMetadata {
+            startTime = scteMetadata.startTime
+        } else {
+            startTime = nil
+        }
+
+        var json: [String: Any] = [
+            "entries": entriesArray
+        ]
+        if let startTime {
+            json["startTime"] = startTime
+        }
+        return json
+    }
+
+    static func toJson(dateRangeMetadata: DaterangeMetadata) -> [String: Any] {
+        let absoluteTimeRange = absoluteTimeRange(dateRangeMetadata: dateRangeMetadata)
+        var json: [String: Any] = [
+            "metadataType": "DATERANGE",
+            "id": dateRangeMetadata.identifier,
+            "absoluteTimeRange": absoluteTimeRange,
+            "cueingOptions": dateRangeMetadata.cueingOptions
+        ]
+
+        if let classLabel = dateRangeMetadata.classLabel {
+            json["classLabel"] = classLabel
+        }
+        if let endDate = dateRangeMetadata.endDate {
+            json["duration"] = endDate.timeIntervalSince1970 - dateRangeMetadata.startDate.timeIntervalSince1970
+        }
+
+        json["attributes"] = attributesJsonObject(dateRangeMetadata: dateRangeMetadata)
+
+        return json
+    }
+
+    static func absoluteTimeRange(dateRangeMetadata: DaterangeMetadata) -> [String: Any] {
+        var json: [String: Any] = [
+            "start": dateRangeMetadata.startDate.timeIntervalSince1970
+        ]
+        if let endDate = dateRangeMetadata.endDate {
+            json["end"] = endDate.timeIntervalSince1970
+        }
+        return json
+    }
+
+    static func relativeTimeRange(avMetadataItem: AVMetadataItem) -> [String: Any] {
+        var json: [String: Any] = [:]
+
+        let startTime = avMetadataItem.time.safeSeconds
+        let duration = avMetadataItem.duration.safeSeconds
+
+        if let startTime {
+            json["start"] = startTime
+        }
+        if let startTime, let duration {
+            json["end"] = startTime + duration
+        }
+
+        return json
+    }
+
+    static let iso8601Formatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
+    static func attributesJsonObject(dateRangeMetadata: DaterangeMetadata) -> [[String: String]] {
+        dateRangeMetadata.entries.reduce(into: [[String: String]]()) { result, entry in
+            guard let avMetadataItem = entry as? AVMetadataItem,
+                  let key = avMetadataItem.key as? String,
+                  let value = singleValueString(avMetadataItem: avMetadataItem) else {
+                return
+            }
+
+            result.append([key: value])
+        }
+    }
+
+    static func toJson(avMetadataItem: AVMetadataItem, metadataType: MetadataType) -> [String: Any] {
+        var json: [String: Any] = [
+            "metadataType": metadataTypeString(metadataType)
+        ]
+
+        addTimeInfo(from: avMetadataItem, into: &json)
+        addKeyAndValue(from: avMetadataItem, into: &json)
+        addLanguageAndExtras(from: avMetadataItem, into: &json)
+
+        return json
+    }
+
+    private static func addTimeInfo(
+        from item: AVMetadataItem,
+        into json: inout [String: Any]
+    ) {
+        let relativeTimeRange = relativeTimeRange(avMetadataItem: item)
+        if !relativeTimeRange.isEmpty {
+            json["relativeTimeRange"] = relativeTimeRange
+        }
+        if let duration = item.duration.safeSeconds {
+            json["duration"] = duration
+        }
+    }
+
+    private static func addKeyAndValue(
+        from item: AVMetadataItem,
+        into json: inout [String: Any]
+    ) {
+        guard let key = item.key as? String else {
+            return
+        }
+
+        json["id"] = key
+        if let value = singleValueString(avMetadataItem: item) {
+            json["value"] = value
+        }
+        if let valueJson = allValueAccessorsJson(avMetadataItem: item) {
+            json["rawValue"] = valueJson
+        }
+    }
+
+    private static func addLanguageAndExtras(
+        from item: AVMetadataItem,
+        into json: inout [String: Any]
+    ) {
+        if let extendedLanguageTag = item.extendedLanguageTag {
+            json["extendedLanguageTag"] = extendedLanguageTag
+        }
+
+        if let extraAttributes = item.extraAttributes {
+            json["extraAttributes"] = extraAttributes.reduce(into: [String: Any]()) { result, entry in
+                result[entry.key.rawValue] = NonFiniteSanitizer.sanitize(entry.value)
+            }
+        }
+    }
+
+    /// Leverage `AVMetadataItem.dataType` to find the best cast for the value.
+    static func singleValueString(avMetadataItem: AVMetadataItem) -> String? {
+        guard let type = avMetadataItem.dataType?.lowercased() else {
+            return nil
+        }
+
+        // Types are fetched from web and apple sources like `CMMetadata.h` (like `kCMMetadataBaseDataType_RawData`).
+
+        if type.contains("date") || type.contains("time") {
+            // Only return if we actually got a date string, otherwise continue
+            if let date = avMetadataItem.dateValue {
+                return iso8601Formatter.string(from: date)
+            }
+        }
+
+        if ["int", "float", "double", "number", "duration"].contains(where: type.contains) {
+            if let num = avMetadataItem.numberValue?.safeNumber {
+                return String(describing: num)
+            }
+        }
+
+        if ["string", "text", "utf", "sjis", "html", "xml", "json", "isrc", "mi3p", "url"].contains(
+            where: type.contains
+        ) {
+            if let string = avMetadataItem.stringValue {
+                return string
+            }
+        }
+
+        // raw-data, UUID, GIF, JPEG, PNG, BMP,
+        // PointF32, DimensionsF32, RectF32, AffineTransformF64, PerspectiveTransformF64, PolylineF32
+        return toJson(data: avMetadataItem.dataValue)
+    }
+
+    static func allValueAccessorsJson(avMetadataItem: AVMetadataItem) -> [String: Any]? {
+        var valueJson: [String: Any] = [:]
+
+        if let stringValue = avMetadataItem.stringValue {
+            valueJson["stringValue"] = stringValue
+        }
+        if let numberValue = avMetadataItem.numberValue {
+            valueJson["numberValue"] = numberValue
+        }
+        if let dateValue = avMetadataItem.dateValue {
+            valueJson["dateValue"] = iso8601Formatter.string(from: dateValue)
+        }
+        if let dataValue = avMetadataItem.dataValue {
+            valueJson["dataValue"] = dataValue.base64EncodedString()
+        }
+
+        guard !valueJson.isEmpty else {
+            return nil
+        }
+
+        return valueJson
+    }
+
+    static func toJson(scteMetadataEntry: ScteMetadataEntry) -> [String: Any] {
+        var json: [String: Any] = [
+            "metadataType": "SCTE",
+            "key": scteMetadataEntry.key
+        ]
+        if let value = scteMetadataEntry.value {
+            json["value"] = value
+        }
+        return json
     }
 }
 /**

@@ -18,6 +18,7 @@
     "@returns",
     "@example",
     "@deprecated",
-    "@defaultValue"
+    "@defaultValue",
+    "@typeParam"
   ]
 }

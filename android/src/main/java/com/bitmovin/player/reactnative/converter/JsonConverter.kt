@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative.converter
 
 import android.util.Base64
+import android.util.Log
 import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
@@ -44,6 +45,20 @@ import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
+import com.bitmovin.player.api.metadata.Metadata
+import com.bitmovin.player.api.metadata.daterange.DateRangeMetadata
+import com.bitmovin.player.api.metadata.emsg.EventMessage
+import com.bitmovin.player.api.metadata.id3.ApicFrame
+import com.bitmovin.player.api.metadata.id3.BinaryFrame
+import com.bitmovin.player.api.metadata.id3.ChapterFrame
+import com.bitmovin.player.api.metadata.id3.ChapterTocFrame
+import com.bitmovin.player.api.metadata.id3.CommentFrame
+import com.bitmovin.player.api.metadata.id3.GeobFrame
+import com.bitmovin.player.api.metadata.id3.Id3Frame
+import com.bitmovin.player.api.metadata.id3.PrivFrame
+import com.bitmovin.player.api.metadata.id3.TextInformationFrame
+import com.bitmovin.player.api.metadata.id3.UrlLinkFrame
+import com.bitmovin.player.api.metadata.scte.ScteMessage
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.network.HttpResponse
@@ -93,6 +108,10 @@ import java.util.UUID
  */
 private fun Map<String, Any?>.filterNotNullValues(): Map<String, Any> =
     this.filterValues { it != null }.mapValues { it.value!! }
+
+private inline fun MutableMap<String, Any>.putIfNotNull(key: String, value: Any?) {
+    value?.let { put(key, it) }
+}
 
 fun Map<String, Any?>.toPlayerConfig(): PlayerConfig = PlayerConfig(key = getString("licenseKey")).apply {
     withMap("playbackConfig") { playbackConfig = it.toPlaybackConfig() }
@@ -346,6 +365,11 @@ fun SourceEvent.toJson(): Map<String, Any> {
             baseMap["oldVideoQuality"] = oldVideoQuality?.toJson()
         }
 
+        is SourceEvent.MetadataParsed -> {
+            baseMap["metadataType"] = type.toMetadataTypeString()
+            baseMap["metadata"] = metadata.toJson(type)
+        }
+
         else -> {
             // Event is not supported yet or does not have any additional data
         }
@@ -482,6 +506,11 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["end"] = end
             baseMap["text"] = text
             baseMap["image"] = image?.toBase64DataUri()
+        }
+
+        is PlayerEvent.Metadata -> {
+            baseMap["metadataType"] = type.toMetadataTypeString()
+            baseMap["metadata"] = metadata.toJson(type)
         }
 
         else -> {
@@ -884,4 +913,159 @@ fun MediaTrackRole.toJson(): Map<String, Any> = mapOf(
     "id" to id,
     "schemeIdUri" to schemeIdUri,
     "value" to value,
+).filterNotNullValues()
+
+fun String.toMetadataTypeString(): String = when (this) {
+    "ID3" -> "ID3"
+    "SCTE" -> "SCTE"
+    "DATERANGE" -> "DATERANGE"
+    "EMSG" -> "EMSG"
+    else -> "NONE"
+}
+
+fun Metadata.toJson(type: String): Map<String, Any> {
+    val entriesArray = (0 until length())
+        .mapNotNull { get(it) }
+        .map { it.toJson() }
+
+    return mapOf(
+        "startTime" to startTime,
+        "entries" to entriesArray
+    ).filterNotNullValues()
+}
+
+fun Metadata.Entry.toJson(): Map<String, Any> {
+    return when (this) {
+        is DateRangeMetadata -> this.toJson()
+        is EventMessage -> this.toJson()
+        is Id3Frame -> this.toJson()
+        is ScteMessage -> this.toJson()
+        else -> {
+            // The Android SDK never emits unrecognized metadata, it filters out unknown
+            // metadata types before emitting the event.
+            Log.w(
+                "JsonConverter",
+                "Unsupported metadata entry type: ${this::class.simpleName}. " +
+                        "This metadata type is supported on native, but not yet on the React Native SDK"
+            )
+            mapOf(
+                "metadataType" to "NONE",
+                "platform" to "android",
+            )
+        }
+    }
+}
+
+fun DateRangeMetadata.toJson(): Map<String, Any> {
+    // Contrarily to iOS, in Android SDK, startDate is playback seconds
+    // relative to source beginning, not absolute wall-clock time.
+    val startTime = startDate
+    val endSeconds = (duration ?: plannedDuration)?.let { startTime + it }
+
+    val relativeTimeRange = mutableMapOf<String, Any>(
+        "start" to startTime
+    )
+    if (endSeconds != null) {
+        relativeTimeRange["end"] = endSeconds
+    }
+
+    return mapOf(
+        "metadataType" to "DATERANGE",
+        "id" to id,
+        "relativeTimeRange" to relativeTimeRange,
+        "endOnNext" to endOnNext,
+        "attributes" to clientAttributes,
+        "classLabel" to classLabel,
+        "duration" to duration,
+        "plannedDuration" to plannedDuration,
+    ).filterNotNullValues()
+}
+
+fun EventMessage.toJson(): Map<String, Any> = mapOf(
+    "metadataType" to "EMSG",
+    "id" to id,
+    "schemeIdUri" to schemeIdUri,
+    "value" to value,
+    "duration" to durationMs?.div(1000.0),
+    "messageData" to messageData.toBase64String()
+).filterNotNullValues()
+
+private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
+    put("metadataType", "ID3")
+    put("id", id)
+
+    when (this@toJson) {
+        is TextInformationFrame -> {
+            put("frameType", "text")
+            put("value", value)
+            putIfNotNull("description", description)
+        }
+        is BinaryFrame -> {
+            put("frameType", "binary")
+            put("data", data.toBase64String())
+        }
+        is CommentFrame -> {
+            put("frameType", "comment")
+            put("language", language)
+            putIfNotNull("description", description)
+            put("text", text)
+        }
+        is UrlLinkFrame -> {
+            put("frameType", "url")
+            put("url", url)
+            putIfNotNull("description", description)
+        }
+        is ApicFrame -> {
+            put("frameType", "apic")
+            put("mimeType", mimeType)
+            putIfNotNull("description", description)
+            put("pictureType", pictureType)
+            put("pictureData", pictureData.toBase64String())
+        }
+        is GeobFrame -> {
+            put("frameType", "geob")
+            put("mimeType", mimeType)
+            put("filename", filename)
+            putIfNotNull("description", description)
+            put("data", data.toBase64String())
+        }
+        is PrivFrame -> {
+            put("frameType", "priv")
+            put("owner", owner)
+            put("privateData", privateData.toBase64String())
+        }
+        is ChapterFrame -> {
+            put("frameType", "chapter")
+            put("chapterId", chapterId)
+            put(
+                "timeRange",
+                mapOf(
+                    "start" to startTimeMs,
+                    "end" to endTimeMs,
+                ),
+            )
+            put("startOffset", startOffset)
+            put("endOffset", endOffset)
+            put("subFrames", subFrames.map { it.toJson() })
+        }
+        is ChapterTocFrame -> {
+            put("frameType", "chapterToc")
+            put("elementId", elementId)
+            put("isRoot", isRoot)
+            put("isOrdered", isOrdered)
+            put("children", children)
+            put(
+                "subFrames",
+                (0 until subFrameCount)
+                    .mapNotNull { getSubFrame(it) }
+                    .map { it.toJson() },
+            )
+        }
+    }
+}
+
+fun ScteMessage.toJson(): Map<String, Any> = mapOf(
+    "metadataType" to "SCTE",
+    "key" to key,
+    "value" to value
 ).filterNotNullValues()

@@ -11,6 +11,16 @@ import { VideoQuality } from './media';
 import { AudioTrack } from './audioTrack';
 import { LoadingState } from './source';
 import { HttpRequestType } from './network/networkConfig';
+import {
+  DateRangeMetadataEntry,
+  EventMessageMetadataEntry,
+  Id3MetadataEntry,
+  MetadataCollection,
+  MetadataEntry,
+  MetadataType,
+  ScteMetadataEntry,
+  UnsupportedMetadataEntry,
+} from './metadata';
 
 /**
  * Base event type for all events.
@@ -766,3 +776,58 @@ export interface CueExitEvent extends Event {
    */
   image?: string;
 }
+
+/**
+ * Base event type for events that carry timed metadata.
+ *
+ * Concrete events like {@link MetadataParsedEvent} and {@link MetadataEvent}
+ * fix {@link metadataType} and {@link metadata} to a specific metadata entry
+ * type.
+ *
+ * @remarks Branching on {@link metadataType} using an `if`/`switch` statement narrows the
+ *          event to the appropriate metadata subtype, giving access to entry-specific fields.
+ *
+ * @typeParam T - The metadata entry type carried by this event
+ */
+export interface MetadataEventBase<T extends MetadataEntry> extends Event {
+  /**
+   * Discriminator for the metadata type carried by this event.
+   *
+   * All entries in {@link MetadataCollection.entries} share this value.
+   *
+   * @remarks Use it in an `if`/`else` or `switch` to narrow the event type.
+   */
+  metadataType: T['metadataType'];
+  /**
+   * Metadata entries and their trigger time.
+   *
+   * The collection is homogeneous: all entries share the same metadata type,
+   * reflected by {@link metadataType}.
+   */
+  metadata: MetadataCollection<T>;
+}
+
+/**
+ * Emitted when metadata is parsed from the stream.
+ */
+export type MetadataParsedEvent =
+  | (MetadataEventBase<Id3MetadataEntry> & {
+      metadataType: MetadataType.ID3;
+    })
+  | (MetadataEventBase<DateRangeMetadataEntry> & {
+      metadataType: MetadataType.DATERANGE;
+    })
+  | (MetadataEventBase<EventMessageMetadataEntry> & {
+      metadataType: MetadataType.EMSG;
+    })
+  | (MetadataEventBase<ScteMetadataEntry> & {
+      metadataType: MetadataType.SCTE;
+    })
+  | (MetadataEventBase<UnsupportedMetadataEntry> & {
+      metadataType: MetadataType.Unsupported;
+    });
+
+/**
+ * Emitted when metadata is encountered during playback.
+ */
+export type MetadataEvent = MetadataParsedEvent;

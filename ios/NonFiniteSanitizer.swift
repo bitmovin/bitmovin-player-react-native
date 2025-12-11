@@ -1,3 +1,4 @@
+import CoreMedia
 import Foundation
 
 internal enum NonFiniteSanitizer {
@@ -10,14 +11,19 @@ internal enum NonFiniteSanitizer {
     }
 
     // Keep existing generic method for backward compatibility
-    private static func sanitize(_ value: Any) -> Any {
+    static func sanitize(_ value: Any) -> Any {
         switch value {
         case let doubleValue as Double:
-            guard doubleValue.isInfinite else { return doubleValue }
-            return doubleValue.toSentinel()
+            guard doubleValue.isFinite else { return doubleValue.toSentinel() }
+            return doubleValue
         case let floatValue as Float:
-            guard floatValue.isInfinite else { return floatValue }
-            return floatValue.toSentinel()
+            guard floatValue.isFinite else { return floatValue.toSentinel() }
+            return floatValue
+        case let number as NSNumber:
+            guard !number.isBoolean else { return number }
+            return sanitize(number.doubleValue)
+        case let time as CMTime:
+            return time.toSanitizedValue()
         case let dict as [AnyHashable: Any]:
             return dict.reduce(into: [:]) {
                 $0[$1.key] = sanitize($1.value)
@@ -57,5 +63,27 @@ private extension Double {
         default:
             return "\(sentinelPrefix)NaN"
         }
+    }
+}
+
+private extension CMTime {
+    /// Converts CMTime to a sanitized number or sentinel string,
+    /// using the same rules as `Double.toSentinel()`.
+    func toSanitizedValue() -> Any {
+        if !isValid {
+            return "\(sentinelPrefix)Invalid"
+        }
+        if isIndefinite {
+            return "\(sentinelPrefix)Indefinite"
+        }
+        if isPositiveInfinity {
+            return "\(sentinelPrefix)Infinity"
+        }
+        if isNegativeInfinity {
+            return "\(sentinelPrefix)-Infinity"
+        }
+
+        let seconds = CMTimeGetSeconds(self)
+        return NonFiniteSanitizer.sanitize(seconds)
     }
 }

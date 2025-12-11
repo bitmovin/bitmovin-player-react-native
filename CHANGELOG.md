@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.6.0]
+
+### Added
+
+- `MetadataParsedEvent` and `MetadataEvent` to signal when metadata is parsed or encountered during playback. See the new **BasicMetadata** sample in our demo app for a working demonstration.
+  - These events come with typed metadata models (ID3, HLS Date Range, EMSG, and SCTE)
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.135.0+jason`
+
 ## [1.5.0] - 2025-12-05
 
 ### Added

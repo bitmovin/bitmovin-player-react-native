@@ -27,6 +27,8 @@ export enum EventType {
   FullscreenDisabled = 'onFullscreenDisabled',
   FullscreenEnter = 'onFullscreenEnter',
   FullscreenExit = 'onFullscreenExit',
+  Metadata = 'onMetadata',
+  MetadataParsed = 'onMetadataParsed',
   Muted = 'onMuted',
   Paused = 'onPaused',
   PictureInPictureAvailabilityChanged = 'onPictureInPictureAvailabilityChanged',
