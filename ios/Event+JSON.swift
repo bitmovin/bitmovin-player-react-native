@@ -446,6 +446,26 @@ extension CueExitEvent: JsonConvertible {
     }
 }
 
+extension MetadataEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON {
+            [
+                "metadata": RCTConvert.toJson(metadata: metadata, type: metadataType)
+            ]
+        }
+    }
+}
+
+extension MetadataParsedEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON {
+            [
+                "metadata": RCTConvert.toJson(metadata: metadata, type: metadataType)
+            ]
+        }
+    }
+}
+
 extension PlayerActiveEvent: DefaultJsonConvertibleEvent {}
 extension PlayerInactiveEvent: DefaultJsonConvertibleEvent {}
 extension DestroyEvent: DefaultJsonConvertibleEvent {}

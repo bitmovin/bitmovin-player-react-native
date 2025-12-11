@@ -64,6 +64,8 @@ import {
   PlaybackSpeedChangedEvent,
   CueEnterEvent,
   CueExitEvent,
+  MetadataEvent,
+  MetadataParsedEvent,
 } from '../../events';
 
 /**
@@ -225,6 +227,18 @@ export type NativePlayerViewEvents = {
    * @platform iOS, Android
    */
   onBmpFullscreenExit?: (event: { nativeEvent: FullscreenExitEvent }) => void;
+  /**
+   * Event emitted when metadata is encountered during playback.
+   *
+   * @platform iOS, Android
+   */
+  onBmpMetadata?: (event: { nativeEvent: MetadataEvent }) => void;
+  /**
+   * Event emitted when metadata is first seen and parsed.
+   *
+   * @platform iOS, Android
+   */
+  onBmpMetadataParsed?: (event: { nativeEvent: MetadataParsedEvent }) => void;
   /**
    * Event emitted when the player has been muted.
    */

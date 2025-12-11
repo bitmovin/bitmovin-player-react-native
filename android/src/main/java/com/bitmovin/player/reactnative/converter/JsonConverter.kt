@@ -44,6 +44,8 @@ import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
+import com.bitmovin.player.api.metadata.Metadata
+import com.bitmovin.player.api.metadata.scte.ScteMessage
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.network.HttpResponse
@@ -346,6 +348,10 @@ fun SourceEvent.toJson(): Map<String, Any> {
             baseMap["oldVideoQuality"] = oldVideoQuality?.toJson()
         }
 
+        is SourceEvent.MetadataParsed -> {
+            baseMap["metadata"] = metadata.toJson(type)
+        }
+
         else -> {
             // Event is not supported yet or does not have any additional data
         }
@@ -482,6 +488,10 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["end"] = end
             baseMap["text"] = text
             baseMap["image"] = image?.toBase64DataUri()
+        }
+
+        is PlayerEvent.Metadata -> {
+            baseMap["metadata"] = metadata.toJson(type)
         }
 
         else -> {
@@ -884,4 +894,37 @@ fun MediaTrackRole.toJson(): Map<String, Any> = mapOf(
     "id" to id,
     "schemeIdUri" to schemeIdUri,
     "value" to value,
+).filterNotNullValues()
+
+fun String.toMetadataTypeString(): String = when (this) {
+    "ID3" -> "ID3"
+    "SCTE" -> "SCTE"
+    "DATERANGE" -> "DATERANGE"
+    "EMSG" -> "EMSG"
+    else -> "NONE"
+}
+
+fun Metadata.toJson(type: String): Map<String, Any> {
+    val entriesArray = (0 until length())
+        .mapNotNull { get(it) }
+        .map { it.toJson() }
+
+    return mapOf(
+        "metadataType" to type.toMetadataTypeString(),
+        "startTime" to startTime,
+        "entries" to entriesArray
+    ).filterNotNullValues()
+}
+
+fun Metadata.Entry.toJson(): Map<String, Any> {
+    return when (this) {
+        is ScteMessage -> this.toJson()
+        else -> mapOf("metadataType" to "NONE")
+    }
+}
+
+fun ScteMessage.toJson(): Map<String, Any> = mapOf(
+    "metadataType" to "SCTE",
+    "key" to key,
+    "value" to value
 ).filterNotNullValues()

@@ -134,6 +134,8 @@ class RNPlayerViewManager : Module() {
                 "onBmpCastTimeUpdated",
                 "onBmpCueEnter",
                 "onBmpCueExit",
+                "onBmpMetadata",
+                "onBmpMetadataParsed",
             )
         }
     }
