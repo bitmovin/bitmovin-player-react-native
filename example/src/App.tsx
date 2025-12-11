@@ -273,11 +273,7 @@ export default function App() {
           <RootStack.Screen
             name="BasicPictureInPicture"
             component={BasicPictureInPicture}
-            options={{
-              title: 'Basic Picture in Picture',
-              // eslint-disable-next-line react/no-unstable-nested-components
-              headerRight: () => <Button title="Enter PiP" />,
-            }}
+            options={{ title: 'Basic Picture in Picture', headerShown: false }}
           />
         )}
         {!isTVOS && (

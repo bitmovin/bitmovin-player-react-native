@@ -28,7 +28,7 @@ Pod::Spec.new do |s|
   s.static_framework = true
 
   s.dependency 'ExpoModulesCore'
-  s.dependency "BitmovinPlayer", "3.100.0"
+  s.dependency "BitmovinPlayer", "3.102.0"
   s.ios.dependency "GoogleAds-IMA-iOS-SDK", "3.26.1"
   s.tvos.dependency "GoogleAds-IMA-tvOS-SDK", "4.15.1"
 

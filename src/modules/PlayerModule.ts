@@ -236,7 +236,7 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
   /**
    * Set subtitle track.
    */
-  setSubtitleTrack(nativeId: string, trackId: string): Promise<void>;
+  setSubtitleTrack(nativeId: string, trackId: string | null): Promise<void>;
 
   /**
    * Schedule an ad.

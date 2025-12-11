@@ -1,20 +1,32 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Platform, StyleSheet, View, ViewProps } from 'react-native';
 import type { JSX } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
+import {
+  AppState,
+  Button,
+  Platform,
+  StyleSheet,
+  View,
+  ViewProps,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
-  usePlayer,
-  PlayerView,
-  SourceType,
   PictureInPictureEnterEvent,
   PictureInPictureExitEvent,
+  PlayerView,
   PlayerViewConfig,
+  SourceType,
+  usePlayer,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamsList } from '../App';
+import { PictureInPictureAction } from 'bitmovin-player-react-native/components/PlayerView/pictureInPictureAction';
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
@@ -33,6 +45,11 @@ export default function BasicPictureInPicture({
   const [isPictureInPictureRequested, setIsPictureInPictureRequested] =
     useState(false);
   const [isInPictureInPicture, setIsInPictureInPicture] = useState(false);
+  const [isEnteringBackground, setIsEnteringBackground] = useState(false);
+  const pictureInPictureActions = [
+    PictureInPictureAction.TogglePlayback,
+    PictureInPictureAction.Seek,
+  ];
 
   const config: PlayerViewConfig = {
     pictureInPictureConfig: {
@@ -47,7 +64,25 @@ export default function BasicPictureInPicture({
     remoteControlConfig: {
       isCastEnabled: false,
     },
+    playbackConfig: {
+      isBackgroundPlaybackEnabled: false,
+    },
+    mediaControlConfig: {
+      isEnabled: false,
+    },
   });
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'background' || nextState === 'inactive') {
+        setIsEnteringBackground(true);
+      } else if (nextState === 'active') {
+        setIsEnteringBackground(false);
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -70,23 +105,25 @@ export default function BasicPictureInPicture({
 
   // Since PiP on Android is basically just the whole activity fitted in a small
   // floating window, we only want to render the player and hide any other UI.
-  let renderOnlyPlayerView = Platform.OS === 'android' && isInPictureInPicture;
+  const renderOnlyPlayerView =
+    Platform.OS === 'android' &&
+    (isInPictureInPicture ||
+      isPictureInPictureRequested ||
+      // The UI should be updated before entering Picture in Picture mode
+      // because JS execution is unreliable while the app is in the background.
+      isEnteringBackground);
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: !Platform.isTV && !renderOnlyPlayerView,
-      // eslint-disable-next-line react/no-unstable-nested-components
-      headerRight: () =>
-        Platform.isTV ? undefined : (
-          <Button
-            title={isInPictureInPicture ? 'Exit PiP' : 'Enter PiP'}
-            onPress={() =>
-              setIsPictureInPictureRequested(() => !isInPictureInPicture)
-            }
-          />
-        ),
-    });
-  }, [navigation, isInPictureInPicture, renderOnlyPlayerView]);
+  const showCustomHeader = !Platform.isTV && !renderOnlyPlayerView;
+
+  const handleTogglePiP = useCallback(() => {
+    setIsPictureInPictureRequested(!isInPictureInPicture);
+  }, [isInPictureInPicture]);
+
+  const handleGoBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  }, [navigation]);
 
   const onEvent = useCallback((event: Event) => {
     prettyPrint(`[${event.name}]`, event);
@@ -119,32 +156,51 @@ export default function BasicPictureInPicture({
           : styles.container
       }
     >
-      <PlayerView
-        player={player}
-        style={styles.player}
-        isPictureInPictureRequested={isPictureInPictureRequested}
-        config={config}
-        onPictureInPictureAvailabilityChanged={onEvent}
-        onPictureInPictureEnter={onPictureInPictureEnterEvent}
-        onPictureInPictureEntered={onEvent}
-        onPictureInPictureExit={onPictureInPictureExitEvent}
-        onPictureInPictureExited={onEvent}
-      />
+      {showCustomHeader && (
+        <View style={styles.header}>
+          <Button title="Back" onPress={handleGoBack} />
+          <Button
+            title={isInPictureInPicture ? 'Exit PiP' : 'Enter PiP'}
+            onPress={handleTogglePiP}
+          />
+        </View>
+      )}
+      <View style={styles.playerWrapper}>
+        <PlayerView
+          player={player}
+          style={styles.player}
+          isPictureInPictureRequested={isPictureInPictureRequested}
+          config={config}
+          onPictureInPictureAvailabilityChanged={onEvent}
+          onPictureInPictureEnter={onPictureInPictureEnterEvent}
+          onPictureInPictureEntered={onEvent}
+          onPictureInPictureExit={onPictureInPictureExitEvent}
+          onPictureInPictureExited={onEvent}
+          pictureInPictureActions={pictureInPictureActions}
+        />
+      </View>
     </ContainerView>
   );
 }
 
 function SafeAreaContainer(props: ViewProps): JSX.Element {
-  return <SafeAreaView edges={['bottom', 'left', 'right']} {...props} />;
+  return <SafeAreaView edges={['top', 'bottom', 'left', 'right']} {...props} />;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: 'white',
     padding: Platform.isTV ? 0 : 10,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Platform.isTV ? 0 : 10,
+  },
+  playerWrapper: {
+    flex: 1,
   },
   player: {
     flex: 1,

@@ -344,11 +344,11 @@ export interface SubtitleChangedEvent extends Event {
   /**
    * Subtitle track that was previously selected.
    */
-  oldSubtitleTrack: SubtitleTrack;
+  oldSubtitleTrack?: SubtitleTrack;
   /**
    * Subtitle track that is selected now.
    */
-  newSubtitleTrack: SubtitleTrack;
+  newSubtitleTrack?: SubtitleTrack;
 }
 
 /**

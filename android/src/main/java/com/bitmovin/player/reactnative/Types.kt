@@ -17,7 +17,13 @@ enum class UserInterfaceType {
  */
 data class PictureInPictureConfig(
     val isEnabled: Boolean = false,
+    val shouldEnterOnBackground: Boolean = false,
 )
+
+enum class PictureInPictureAction {
+    TogglePlayback,
+    Seek;
+}
 
 /**
  * Wrapper for React Native player view configuration.
