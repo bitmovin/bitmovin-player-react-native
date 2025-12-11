@@ -46,6 +46,16 @@ import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.media.video.quality.VideoQuality
 import com.bitmovin.player.api.metadata.Metadata
 import com.bitmovin.player.api.metadata.daterange.DateRangeMetadata
+import com.bitmovin.player.api.metadata.id3.ApicFrame
+import com.bitmovin.player.api.metadata.id3.BinaryFrame
+import com.bitmovin.player.api.metadata.id3.ChapterFrame
+import com.bitmovin.player.api.metadata.id3.ChapterTocFrame
+import com.bitmovin.player.api.metadata.id3.CommentFrame
+import com.bitmovin.player.api.metadata.id3.GeobFrame
+import com.bitmovin.player.api.metadata.id3.Id3Frame
+import com.bitmovin.player.api.metadata.id3.PrivFrame
+import com.bitmovin.player.api.metadata.id3.TextInformationFrame
+import com.bitmovin.player.api.metadata.id3.UrlLinkFrame
 import com.bitmovin.player.api.metadata.scte.ScteMessage
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
@@ -96,6 +106,10 @@ import java.util.UUID
  */
 private fun Map<String, Any?>.filterNotNullValues(): Map<String, Any> =
     this.filterValues { it != null }.mapValues { it.value!! }
+
+private inline fun MutableMap<String, Any>.putIfNotNull(key: String, value: Any?) {
+    value?.let { put(key, it) }
+}
 
 fun Map<String, Any?>.toPlayerConfig(): PlayerConfig = PlayerConfig(key = getString("licenseKey")).apply {
     withMap("playbackConfig") { playbackConfig = it.toPlaybackConfig() }
@@ -921,6 +935,7 @@ fun Metadata.toJson(type: String): Map<String, Any> {
 fun Metadata.Entry.toJson(): Map<String, Any> {
     return when (this) {
         is DateRangeMetadata -> this.toJson()
+        is Id3Frame -> this.toJson()
         is ScteMessage -> this.toJson()
         else -> mapOf("metadataType" to "NONE")
     }
@@ -941,7 +956,6 @@ fun DateRangeMetadata.toJson(): Map<String, Any> {
 
     return mapOf(
         "metadataType" to "DATERANGE",
-        "platform" to "android",
         "id" to id,
         "relativeTimeRange" to relativeTimeRange,
         "endOnNext" to endOnNext,
@@ -950,6 +964,80 @@ fun DateRangeMetadata.toJson(): Map<String, Any> {
         "duration" to duration,
         "plannedDuration" to plannedDuration,
     ).filterNotNullValues()
+}
+
+private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
+    put("metadataType", "ID3")
+    put("id", id)
+
+    when (this@toJson) {
+        is TextInformationFrame -> {
+            put("frameType", "text")
+            put("value", value)
+            putIfNotNull("description", description)
+        }
+        is BinaryFrame -> {
+            put("frameType", "binary")
+            put("data", data.toBase64String())
+        }
+        is CommentFrame -> {
+            put("frameType", "comment")
+            put("language", language)
+            putIfNotNull("description", description)
+            put("text", text)
+        }
+        is UrlLinkFrame -> {
+            put("frameType", "url")
+            put("url", url)
+            putIfNotNull("description", description)
+        }
+        is ApicFrame -> {
+            put("frameType", "apic")
+            put("mimeType", mimeType)
+            putIfNotNull("description", description)
+            put("pictureType", pictureType)
+            put("pictureData", pictureData.toBase64String())
+        }
+        is GeobFrame -> {
+            put("frameType", "geob")
+            put("mimeType", mimeType)
+            put("filename", filename)
+            putIfNotNull("description", description)
+            put("data", data.toBase64String())
+        }
+        is PrivFrame -> {
+            put("frameType", "priv")
+            put("owner", owner)
+            put("privateData", privateData.toBase64String())
+        }
+        is ChapterFrame -> {
+            put("frameType", "chapter")
+            put("chapterId", chapterId)
+            put(
+                "timeRange",
+                mapOf(
+                    "start" to startTimeMs,
+                    "end" to endTimeMs,
+                ),
+            )
+            put("startOffset", startOffset)
+            put("endOffset", endOffset)
+            put("subFrames", subFrames.map { it.toJson() })
+        }
+        is ChapterTocFrame -> {
+            put("frameType", "chapterToc")
+            put("elementId", elementId)
+            put("isRoot", isRoot)
+            put("isOrdered", isOrdered)
+            put("children", children)
+            put(
+                "subFrames",
+                (0 until subFrameCount)
+                    .mapNotNull { getSubFrame(it) }
+                    .map { it.toJson() },
+            )
+        }
+    }
 }
 
 fun ScteMessage.toJson(): Map<String, Any> = mapOf(

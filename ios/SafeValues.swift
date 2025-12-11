@@ -19,6 +19,10 @@ extension CMTime {
 }
 
 extension NSNumber {
+    var isBoolean: Bool {
+        CFGetTypeID(self) == CFBooleanGetTypeID()
+    }
+
     var safeNumber: Double? {
         guard !isBoolean else {
             return nil
@@ -30,11 +34,5 @@ extension NSNumber {
         }
 
         return value
-    }
-}
-
-private extension NSNumber {
-    var isBoolean: Bool {
-        CFGetTypeID(self) == CFBooleanGetTypeID()
     }
 }

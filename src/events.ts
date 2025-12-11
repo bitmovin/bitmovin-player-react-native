@@ -13,6 +13,7 @@ import { LoadingState } from './source';
 import { HttpRequestType } from './network/networkConfig';
 import {
   DateRangeMetadataEntry,
+  Id3MetadataEntry,
   MetadataCollection,
   MetadataEntry,
   MetadataType,
@@ -808,6 +809,9 @@ export interface MetadataEventBase<T extends MetadataEntry> extends Event {
  * Emitted when metadata is parsed from the stream.
  */
 export type MetadataParsedEvent =
+  | (MetadataEventBase<Id3MetadataEntry> & {
+      metadataType: MetadataType.ID3;
+    })
   | (MetadataEventBase<DateRangeMetadataEntry> & {
       metadataType: MetadataType.DATERANGE;
     })
@@ -818,10 +822,4 @@ export type MetadataParsedEvent =
 /**
  * Emitted when metadata is encountered during playback.
  */
-export type MetadataEvent =
-  | (MetadataEventBase<DateRangeMetadataEntry> & {
-      metadataType: MetadataType.DATERANGE;
-    })
-  | (MetadataEventBase<ScteMetadataEntry> & {
-      metadataType: MetadataType.SCTE;
-    });
+export type MetadataEvent = MetadataParsedEvent;

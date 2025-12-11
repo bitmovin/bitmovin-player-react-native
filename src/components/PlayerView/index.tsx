@@ -7,6 +7,7 @@ import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
 import { PlayerViewProps } from './properties';
 import { PictureInPictureAction } from './pictureInPictureAction';
+import { addPlatformToMetadataEvent } from '../../utils/metadataPlatform';
 
 /**
  * Base style that initializes the native view frame when no width/height prop has been set.
@@ -143,8 +144,19 @@ export function PlayerView({
       onBmpCastWaitingForDevice={proxy(props.onCastWaitingForDevice)}
       onBmpCueEnter={proxy(props.onCueEnter)}
       onBmpCueExit={proxy(props.onCueExit)}
-      onBmpMetadata={proxy(props.onMetadata)}
-      onBmpMetadataParsed={proxy(props.onMetadataParsed)}
+      onBmpMetadata={
+        props.onMetadata
+          ? (e) => props.onMetadata?.(addPlatformToMetadataEvent(e.nativeEvent))
+          : undefined
+      }
+      onBmpMetadataParsed={
+        props.onMetadataParsed
+          ? (e) =>
+              props.onMetadataParsed?.(
+                addPlatformToMetadataEvent(e.nativeEvent)
+              )
+          : undefined
+      }
       onBmpDestroy={proxy(props.onDestroy)}
       onBmpEvent={proxy(props.onEvent)}
       onBmpFullscreenEnabled={proxy(props.onFullscreenEnabled)}

@@ -7,6 +7,7 @@ import { AudioSession, SourceType } from 'bitmovin-player-react-native';
 import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
 import BasicAnalytics from './screens/BasicAnalytics';
+import BasicMetadata from './screens/BasicMetadata';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicTvPlayback from './screens/BasicTvPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
@@ -36,6 +37,7 @@ export type RootStackParamsList = {
   };
   BasicAds: undefined;
   BasicAnalytics: undefined;
+  BasicMetadata: undefined;
   BasicPlayback: undefined;
   BasicTvPlayback: undefined;
   BasicDrmPlayback: undefined;
@@ -111,6 +113,10 @@ export default function App() {
       {
         title: 'Basic Ads',
         routeName: 'BasicAds' as keyof RootStackParamsList,
+      },
+      {
+        title: 'Basic Metadata',
+        routeName: 'BasicMetadata' as keyof RootStackParamsList,
       },
       {
         title: 'Programmatic Track Selection',
@@ -209,6 +215,11 @@ export default function App() {
           name="BasicAnalytics"
           component={BasicAnalytics}
           options={{ title: 'Basic Analytics' }}
+        />
+        <RootStack.Screen
+          name="BasicMetadata"
+          component={BasicMetadata}
+          options={{ title: 'Basic Metadata' }}
         />
         <RootStack.Screen
           name="BasicPlayback"

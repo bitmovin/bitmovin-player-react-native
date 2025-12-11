@@ -1,4 +1,4 @@
-import { TimeRange, Seconds } from './utils/temporal';
+import { TimeRange, Seconds, Milliseconds } from './utils/temporal';
 
 /**
  * Enumerates all supported types of timed metadata entries.
@@ -11,7 +11,10 @@ export enum MetadataType {
   NONE = 'NONE',
 }
 
-export type Base64String = string;
+/**
+ * Base64-encoded raw data without a `data:...;base64,` prefix.
+ */
+export type Base64Raw = string;
 export type CueingOption = 'PRE' | 'POST' | 'ONCE';
 
 interface BaseDateRangeMetadataEntry<TPlatform extends 'ios' | 'android'> {
@@ -29,7 +32,7 @@ interface BaseDateRangeMetadataEntry<TPlatform extends 'ios' | 'android'> {
    */
   classLabel?: string;
   /**
-   * The declared duration of the range.
+   * The declared duration of the range in seconds.
    */
   duration?: Seconds;
   /**
@@ -48,11 +51,11 @@ interface BaseDateRangeMetadataEntry<TPlatform extends 'ios' | 'android'> {
 export interface AndroidDateRangeMetadataEntry
   extends BaseDateRangeMetadataEntry<'android'> {
   /**
-   * Time range of the entry relative to the beginning of the playback.
+   * Time range of the entry relative to the beginning of the playback, in seconds.
    */
   relativeTimeRange: TimeRange<Seconds>;
   /**
-   * The planned duration of the range.
+   * The planned duration of the range in seconds.
    *
    * Used for live streams where the actual end time may not be known yet.
    */
@@ -72,7 +75,7 @@ export interface AndroidDateRangeMetadataEntry
 export interface IosDateRangeMetadataEntry
   extends BaseDateRangeMetadataEntry<'ios'> {
   /**
-   * Time range of the entry relative to Unix Epoch.
+   * Time range of the entry relative to Unix Epoch, in seconds.
    *
    * If the metadata represents an instantaneous event, {@link TimeRange.end} should be equal
    * to {@link TimeRange.start}.
@@ -114,13 +117,271 @@ export interface IosMetadataValue {
    */
   dateValue?: string;
   /**
-   * A binary representation of the value as Base64-encoded data, if available.
+   * A binary representation of the value as raw Base64-encoded data, if available.
    *
    * @remarks Use this accessor to retrieve encapsulated artwork, thumbnails,
    *          proprietary frames, or any encoded value.
    */
-  dataValue?: Base64String;
+  dataValue?: Base64Raw;
 }
+
+/**
+ * iOS representation of ID3 metadata items.
+ *
+ * @platform iOS, tvOS
+ */
+export interface IosId3Frame {
+  metadataType: MetadataType.ID3;
+  /**
+   * Platform discriminator for TypeScript type narrowing.
+   */
+  platform: 'ios';
+  /**
+   * ID3 frame identifier.
+   *
+   * @example "TXXX"
+   */
+  id?: string;
+  /**
+   * String representation of the metadata value.
+   *
+   * The underlying value is first interpreted as the most appropriate type
+   * (date, number, text, or binary data) and then converted to a string.
+   * - Dates are formatted as ISO 8601 strings (e.g. "2025-12-02T00:00:00Z").
+   * - Binary data is encoded as a Base64 string.
+   *
+   * This will be `undefined` if the value cannot be interpreted.
+   */
+  value?: string;
+  /**
+   * Full typed representation of the underlying value as reported by iOS.
+   */
+  rawValue?: IosMetadataValue;
+  /**
+   * Time range of the entry relative to the beginning of the playback, in seconds.
+   */
+  relativeTimeRange?: TimeRange<Seconds>;
+  /**
+   * The duration of the metadata item in seconds.
+   */
+  duration?: Seconds;
+  /**
+   * The IETF BCP 47 language identifier of the metadata item.
+   */
+  extendedLanguageTag?: string;
+  /**
+   * Additional attributes attached to the metadata item.
+   */
+  extraAttributes?: Record<string, unknown>;
+}
+
+/**
+ * Base interface for all Android ID3 frames.
+ *
+ * @platform Android
+ */
+interface AndroidId3FrameBase {
+  metadataType: MetadataType.ID3;
+  /**
+   * Platform discriminator for TypeScript type narrowing.
+   */
+  platform: 'android';
+  /**
+   * ID3 frame identifier.
+   *
+   * @example "TXXX"
+   */
+  id: string;
+}
+
+/**
+ * Stores text-based metadata.
+ *
+ * @platform Android
+ */
+export interface AndroidTextInformationFrame extends AndroidId3FrameBase {
+  frameType: 'text';
+  description?: string;
+  value: string;
+}
+
+/**
+ * Encapsulates an ID3 frame whose payload is treated as opaque binary data.
+ *
+ * @platform Android
+ */
+export interface AndroidBinaryFrame extends AndroidId3FrameBase {
+  frameType: 'binary';
+  /** Raw frame payload encoded as Base64 (no data: URI prefix). */
+  data: Base64Raw;
+}
+
+/**
+ * Encapsulates an attached picture.
+ *
+ * @platform Android
+ */
+export interface AndroidApicFrame extends AndroidId3FrameBase {
+  frameType: 'apic';
+  /**
+   * MIME type of the embedded image as stored in the APIC frame.
+   *
+   * @example "image/jpeg"
+   */
+  mimeType: string;
+  description?: string;
+  /**
+   * Picture type as defined by the ID3 specification.
+   *
+   * @example 3 (front cover)
+   */
+  pictureType: number;
+  /** Raw image data encoded as Base64 (no data: URI prefix). */
+  pictureData: Base64Raw;
+}
+
+/**
+ * Stores an external resource via URL.
+ *
+ * @platform Android
+ */
+export interface AndroidUrlLinkFrame extends AndroidId3FrameBase {
+  frameType: 'url';
+  description?: string;
+  url: string;
+}
+
+/**
+ * Stores user comments or notes.
+ *
+ * @platform Android
+ */
+export interface AndroidCommentFrame extends AndroidId3FrameBase {
+  frameType: 'comment';
+  language: string;
+  description: string;
+  /** The comment text. */
+  text: string;
+}
+
+/**
+ * Encapsulates owner-specific private data.
+ *
+ * The structure and semantics of the payload are defined solely by the `owner`
+ * identifier and are opaque to generic parsers.
+ *
+ * @platform Android
+ */
+export interface AndroidPrivFrame extends AndroidId3FrameBase {
+  frameType: 'priv';
+  /**
+   * Owner identifier string.
+   *
+   * Typically a reverse-DNS or application-specific identifier.
+   *
+   * @example "com.example.app"
+   */
+  owner: string;
+  /**
+   * Raw private payload encoded as Base64 (no data: URI prefix).
+   * Consumers should only attempt to interpret this data if they recognize
+   * and understand the corresponding {@link owner} value.
+   */
+  privateData: Base64Raw;
+}
+
+/**
+ * Encapsulates arbitrary binary objects with metadata.
+ *
+ * @platform Android
+ */
+export interface AndroidGeobFrame extends AndroidId3FrameBase {
+  frameType: 'geob';
+  /**
+   * MIME type of the encapsulated object.
+   *
+   * @example "application/octet-stream"
+   */
+  mimeType: string;
+  /** Original filename of the object. */
+  filename: string;
+  description: string;
+  /**
+   * Raw object data encoded as Base64 (no data: URI prefix).
+   */
+  data: Base64Raw;
+}
+
+/**
+ * Defines a content chapter.
+ *
+ * @platform Android
+ */
+export interface AndroidChapterFrame extends AndroidId3FrameBase {
+  frameType: 'chapter';
+  /** Identifier of the chapter element. */
+  chapterId: string;
+  /** Time range of the chapter in milliseconds. */
+  timeRange: TimeRange<Milliseconds>;
+  /** The byte offset of the start of the chapter, or `-1` if not set. */
+  startOffset: number;
+  /** The byte offset of the end of the chapter, or `-1` if not set. */
+  endOffset: number;
+  /**
+   * Nested ID3 subframes associated with this chapter (e.g. title, URL, etc.).
+   */
+  subFrames: AndroidId3Frame[];
+}
+
+/**
+ * Defines hierarchical chapter structure.
+ *
+ * @platform Android
+ */
+export interface AndroidChapterTocFrame extends AndroidId3FrameBase {
+  frameType: 'chapterToc';
+  /** Identifier of the table-of-contents element. */
+  elementId: string;
+  /** Whether this element is the root of the chapter tree. */
+  isRoot: boolean;
+  /** Whether the listed children are ordered. */
+  isOrdered: boolean;
+  /** IDs of child chapter or TOC elements. */
+  children: string[];
+  /**
+   * Nested ID3 subframes associated with this TOC element.
+   */
+  subFrames: AndroidId3Frame[];
+}
+
+/**
+ * Android representation of ID3 metadata items.
+ *
+ * This is a discriminated union of Android ID3 frame types. Use {@link isAndroidId3Frame}
+ * for type-safe narrowing to specific frame types.
+ *
+ * @platform Android
+ * @see {@link isAndroidId3Frame} for frame type narrowing
+ */
+export type AndroidId3Frame =
+  | AndroidTextInformationFrame
+  | AndroidBinaryFrame
+  | AndroidApicFrame
+  | AndroidUrlLinkFrame
+  | AndroidCommentFrame
+  | AndroidPrivFrame
+  | AndroidGeobFrame
+  | AndroidChapterFrame
+  | AndroidChapterTocFrame;
+
+/**
+ * Describes metadata associated with ID3 tags.
+ *
+ * This is a discriminated union of iOS and Android ID3 representations.
+ * The `platform` field acts as the discriminator, allowing TypeScript to
+ * automatically narrow to the correct platform-specific type.
+ */
+export type Id3MetadataEntry = IosId3Frame | AndroidId3Frame;
 
 /**
  * Describes metadata associated with HLS `#EXT-X-SCTE35` tags.
@@ -159,6 +420,7 @@ export type DateRangeMetadataEntry =
  *
  * This is a discriminated union over the `metadataType` field:
  *
+ * - {@link MetadataType.ID3}: {@link Id3MetadataEntry}
  * - {@link MetadataType.DATERANGE}: {@link DateRangeMetadataEntry}
  * - {@link MetadataType.SCTE}: {@link ScteMetadataEntry}
  *
@@ -184,11 +446,33 @@ export type DateRangeMetadataEntry =
  *       // `entry` is a ScteMetadataEntry
  *       console.log('SCTE key:', entry.key, 'value:', entry.value);
  *       break;
+ *
+ *     case MetadataType.ID3:
+ *       // `entry` is an Id3MetadataEntry
+ *       if (entry.platform === 'android') {
+ *         // `entry` is now an AndroidId3Frame
+ *         console.log('Frame type:', entry.frameType);
+ *         // Further narrow down on the frame type
+ *         if (entry.frameType == 'apic') {
+ *           console.log('APIC frame mimeType: ', entry.mimeType)
+ *         }
+ *       } else {
+ *         // `entry` is now an IosId3Frame
+ *         console.log('Frame ID:', entry.id, 'Value:', entry.value);
+ *       }
+ *       // Or use isAndroidId3Frame to directly narrow to specific Android frame
+ *       if (isAndroidId3Frame(entry, 'text')) {
+ *         console.log('Text frame:', entry.value);
+ *       }
+ *       break;
  *   }
  * }
  * ```
  */
-export type MetadataEntry = DateRangeMetadataEntry | ScteMetadataEntry;
+export type MetadataEntry =
+  | DateRangeMetadataEntry
+  | Id3MetadataEntry
+  | ScteMetadataEntry;
 
 /**
  * A collection of timed metadata entries of the same type.
@@ -206,4 +490,24 @@ export interface MetadataCollection<T extends MetadataEntry> {
    * The group is homogeneous: all entries share the same metadata type.
    */
   entries: T[];
+}
+
+/**
+ * Type-safe narrowing helper for Android ID3 frame types.
+ *
+ * Android ID3 frames have 9 distinct frame types (text, binary, apic, url, comment,
+ * priv, geob, chapter, chapterToc), each with different fields. This helper provides
+ * type-safe access to frame-specific properties.
+ *
+ * @param entry - The ID3 metadata entry to check
+ * @param frameType - The Android frame type to narrow to
+ * @returns `true` if entry is an Android frame of the specified type
+ *
+ * @see {@link MetadataEntry} for the full type narrowing documentation
+ */
+export function isAndroidId3Frame<T extends AndroidId3Frame['frameType']>(
+  entry: Id3MetadataEntry,
+  frameType: T
+): entry is Extract<AndroidId3Frame, { frameType: T }> {
+  return entry.platform === 'android' && entry.frameType === frameType;
 }
