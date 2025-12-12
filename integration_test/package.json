@@ -33,10 +33,10 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
-    "@expo/config-types": "^53.0.0",
+    "@expo/config-types": "^53.0.5",
     "@react-native-tvos/config-tv": "^0.1.1",
     "cavy": "^4.0.2",
-    "expo": "53.0.20",
+    "expo": "53.0.25",
     "expo-build-properties": "~0.14.8",
     "expo-crypto": "~14.1.5",
     "expo-status-bar": "~2.2.3",
@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
-    "@expo/cli": "^0.24.3",
+    "@expo/cli": "^0.24.23",
     "@react-native-community/cli": "latest",
     "@types/react": "~19.0.10",
     "@types/react-native": "~0.70.6",
