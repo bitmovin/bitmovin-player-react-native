@@ -35,7 +35,7 @@ export default function BasicMetadata() {
       player.load({
         url: 'https://cdn.bitmovin.com/content/internal/assets/metadata/media.m3u8',
         type: SourceType.HLS,
-        title: 'ID3 Metadata Sample'
+        title: 'ID3 Metadata Sample',
       });
       return () => {
         player.destroy();
@@ -60,7 +60,11 @@ export default function BasicMetadata() {
               console.log('Android ID3 frame:', entry.frameType);
             } else if (entry.platform === 'ios') {
               // iOS entries have interpreted/typed values.
-              console.log('iOS ID3 id/value:', entry.id, entry.value ?? entry.rawValue);
+              console.log(
+                'iOS ID3 id/value:',
+                entry.id,
+                entry.value ?? entry.rawValue
+              );
             }
           });
           break;
@@ -90,12 +94,16 @@ export default function BasicMetadata() {
           });
           break;
 
-        case MetadataType.Unsupported:
+        case MetadataType.Unsupported: {
           event.metadata.entries.forEach((entry) => {
-            console.warn('Unsupported metadata encountered from: ', entry.platform)
+            console.warn(
+              'Unsupported metadata encountered from: ',
+              entry.platform
+            );
           });
           break;
         }
+      }
     },
     []
   );
