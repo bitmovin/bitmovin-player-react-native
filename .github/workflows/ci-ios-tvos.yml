@@ -92,7 +92,7 @@ jobs:
 
       - name: Cache iOS Example Prebuild
         id: ios-example-prebuild-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             example/ios
@@ -113,7 +113,7 @@ jobs:
         run: .github/scripts/smart-prebuild.sh example
 
       - name: Cache CocoaPods Dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/Library/Caches/CocoaPods
@@ -146,7 +146,7 @@ jobs:
 
       - name: Cache iOS Integration Prebuild
         id: ios-integration-prebuild-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             integration_test/ios
@@ -167,7 +167,7 @@ jobs:
         run: .github/scripts/smart-prebuild.sh integration-test
 
       - name: Cache CocoaPods Dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/Library/Caches/CocoaPods
@@ -200,7 +200,7 @@ jobs:
 
       - name: Cache tvOS Prebuild
         id: tvos-prebuild-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             example/ios
@@ -222,7 +222,7 @@ jobs:
         run: .github/scripts/smart-prebuild.sh example tv
 
       - name: Cache CocoaPods Dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/Library/Caches/CocoaPods
