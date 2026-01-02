@@ -4,7 +4,9 @@ This is a React Native application built to showcase the features of `bitmovin-p
 inside the [`src/screens/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example/src/screens) directory:
 
 - [Basic playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicPlayback.tsx)
+- [Basic TV playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicTvPlayback.tsx)
 - [Basic DRM playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDrmPlayback.tsx)
+- [Background playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BackgroundPlayback.tsx)
 - [Custom subtitles](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/SubtitlePlayback.tsx)
 - [Picture in Picture](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicPictureInPicture.tsx)
 - [Custom HTML UI](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/CustomHtmlUi.tsx) (iOS and Android only)
@@ -12,9 +14,11 @@ inside the [`src/screens/`](https://github.com/bitmovin/bitmovin-player-react-na
 - [Landscape Fullscreen handling](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/LandscapeFullscreenHandling.tsx) (iOS and Android only)
 - [Basic Ads](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicAds.tsx)
 - [Basic Analytics](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicAnalytics.tsx)
+- [Basic Metadata](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicMetadata.tsx)
 - [Basic Offline Playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/OfflinePlayback.tsx) (iOS and Android only)
 - [System UI](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/SystemUi.tsx) (iOS and tvOS only)
 - [Casting](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/Casting.tsx) (iOS and Android only)
+- [Programmatic Track Selection](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/ProgrammaticTrackSelection.tsx)
 
 ### Custom asset playback
 
