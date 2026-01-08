@@ -26,6 +26,7 @@ import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
 import BackgroundPlayback from './screens/BackgroundPlayback';
+import MultiPlayerEventFiltering from './screens/MultiPlayerEventFiltering';
 import * as Device from 'expo-device';
 
 export type RootStackParamsList = {
@@ -68,6 +69,7 @@ export type RootStackParamsList = {
   Casting: undefined;
   SystemUI: undefined;
   BackgroundPlayback: undefined;
+  MultiPlayerEventFiltering: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsList>();
@@ -158,6 +160,10 @@ export default function App() {
   }
 
   if (!Platform.isTV) {
+    stackParams.data.push({
+      title: 'Multi-player event filtering',
+      routeName: 'MultiPlayerEventFiltering',
+    });
     stackParams.data.push({
       title: 'Basic Fullscreen handling',
       routeName: 'BasicFullscreenHandling',
@@ -281,6 +287,13 @@ export default function App() {
             name="CustomHtmlUi"
             component={CustomHtmlUi}
             options={{ title: 'Custom HTML UI' }}
+          />
+        )}
+        {!Platform.isTV && (
+          <RootStack.Screen
+            name="MultiPlayerEventFiltering"
+            component={MultiPlayerEventFiltering}
+            options={{ title: 'Multi-player event filtering' }}
           />
         )}
         {!Platform.isTV && (
