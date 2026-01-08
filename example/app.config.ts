@@ -88,7 +88,7 @@ const config: ExpoConfig = {
         features: {
           airPlay: true,
           backgroundPlayback: true,
-          googleCastSDK: { android: '21.3.0', ios: '4.8.1.2' },
+          googleCastSDK: { android: '21.3.0', ios: '4.8.4' },
           offline: true,
           pictureInPicture: true,
         },
