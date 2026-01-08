@@ -1,6 +1,5 @@
 import { RefObject, useCallback } from 'react';
 import { Event } from '../events';
-import { findNodeHandle } from 'react-native';
 import { normalizeNonFinite } from '../utils/normalizeNonFinite';
 
 /**
@@ -22,10 +21,7 @@ export function useProxy(
   return useCallback(
     <E extends Event>(callback?: Callback<E>) =>
       (event: { nativeEvent: E }) => {
-        const eventTargetNodeHandle: number = (event.nativeEvent as any).target;
-        if (eventTargetNodeHandle !== findNodeHandle(viewRef.current)) {
-          return;
-        }
+        // Remove the target field from the event as it's React Native internal metadata
         const { target, ...eventWithoutTarget } = event.nativeEvent as any;
         const sanitized = normalizeNonFinite(eventWithoutTarget);
         callback?.(sanitized as E);
