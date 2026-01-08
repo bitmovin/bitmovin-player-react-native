@@ -34,6 +34,14 @@ export const startPlayerTest = async (
   return await PlayerTestWorld.shared.startPlayerTest(config, fn);
 };
 
+export const startMultiPlayerTest = async (
+  configA: PlayerConfig,
+  configB: PlayerConfig,
+  fn: () => Promise<void>
+): Promise<void> => {
+  return await PlayerTestWorld.shared.startMultiPlayerTest(configA, configB, fn);
+};
+
 /**
  * Calls the given function with the player instance.
  * @param fn The function to call.
@@ -50,6 +58,13 @@ export const callPlayer = async <T>(
   fn: (player: Player) => Promise<T>
 ): Promise<T> => {
   return await PlayerTestWorld.shared.callPlayer(fn);
+};
+
+export const callPlayerFor = async <T>(
+  playerKey: 'A' | 'B',
+  fn: (player: Player) => Promise<T>
+): Promise<T> => {
+  return await PlayerTestWorld.shared.callPlayerFor(playerKey, fn);
 };
 
 /**
@@ -72,6 +87,30 @@ export const expectEvent = async <T extends Event>(
   timeoutSeconds: number = 10
 ): Promise<T> => {
   return await PlayerTestWorld.shared.expectEvent(
+    expectationConvertible,
+    timeoutSeconds
+  );
+};
+
+export const expectEventFor = async <T extends Event>(
+  playerKey: 'A' | 'B',
+  expectationConvertible: SingleEventExpectation | EventType,
+  timeoutSeconds: number = 10
+): Promise<T> => {
+  return await PlayerTestWorld.shared.expectEventFor(
+    playerKey,
+    expectationConvertible,
+    timeoutSeconds
+  );
+};
+
+export const expectNoEventFor = async (
+  playerKey: 'A' | 'B',
+  expectationConvertible: SingleEventExpectation | EventType,
+  timeoutSeconds: number = 2
+): Promise<void> => {
+  return await PlayerTestWorld.shared.expectNoEventFor(
+    playerKey,
     expectationConvertible,
     timeoutSeconds
   );
@@ -138,6 +177,20 @@ export const callPlayerAndExpectEvent = async <E extends Event>(
   );
 };
 
+export const callPlayerAndExpectEventFor = async <E extends Event>(
+  playerKey: 'A' | 'B',
+  fn: (player: Player) => void,
+  expectationConvertible: SingleEventExpectation | EventType,
+  timeoutSeconds: number = 10
+): Promise<E> => {
+  return await PlayerTestWorld.shared.callPlayerAndExpectEventFor(
+    playerKey,
+    fn,
+    expectationConvertible,
+    timeoutSeconds
+  );
+};
+
 /**
  * Starts listening for the specified `MultipleEventExpectation` before executing the passed `fn` function.
  * This is the race-condition-safe version of calling `callPlayer` and `expectEvents` after that.
@@ -196,6 +249,18 @@ export const loadSourceConfig = async (
   timeoutSeconds: number = 10
 ): Promise<ReadyEvent> => {
   return await PlayerTestWorld.shared.loadSourceConfig(
+    sourceConfig,
+    timeoutSeconds
+  );
+};
+
+export const loadSourceConfigFor = async (
+  playerKey: 'A' | 'B',
+  sourceConfig: SourceConfig,
+  timeoutSeconds: number = 10
+): Promise<ReadyEvent> => {
+  return await PlayerTestWorld.shared.loadSourceConfigFor(
+    playerKey,
     sourceConfig,
     timeoutSeconds
   );

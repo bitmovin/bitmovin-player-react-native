@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useCavy, wrap } from 'cavy';
 import { SafeAreaView, StyleSheet, Text } from 'react-native';
 import { PlayerView } from 'bitmovin-player-react-native';
@@ -7,14 +7,14 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 interface TestablePlayerProps {
   playerTestWorld: PlayerTestWorld;
+  renderCount: number;
 }
 
 export default function TestablePlayer({
   playerTestWorld,
+  renderCount,
 }: TestablePlayerProps): React.JSX.Element {
   const generateTestHook = useCavy();
-  const [renderCount, setRenderCount] = useState(0);
-  playerTestWorld.onReRender = () => setRenderCount((count) => count + 1);
 
   const TestablePlayerView = wrap(PlayerView);
   return (

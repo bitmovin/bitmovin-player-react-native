@@ -3,15 +3,20 @@ import { Tester, TestHookStore } from 'cavy';
 import Specs from '../tests';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 import TestablePlayer from './TestablePlayer';
+import TestableMultiPlayer from './TestableMultiPlayer';
 
 const testHookStore = new TestHookStore();
 
 function TestableApp(): JSX.Element {
   const playerTestWorld = useState(new PlayerTestWorld())[0];
+  const [renderCount, setRenderCount] = useState(0);
   useEffect(() => {
     PlayerTestWorld.shared = playerTestWorld;
+    playerTestWorld.onReRender = () =>
+      setRenderCount((count) => count + 1);
     return () => {
       PlayerTestWorld.shared = undefined;
+      playerTestWorld.onReRender = undefined;
     };
   }, [playerTestWorld]);
   return (
@@ -21,7 +26,17 @@ function TestableApp(): JSX.Element {
       startDelay={1000}
       waitTime={3000}
     >
-      <TestablePlayer playerTestWorld={playerTestWorld} />
+      {playerTestWorld.viewMode === 'multi' ? (
+        <TestableMultiPlayer
+          playerTestWorld={playerTestWorld}
+          renderCount={renderCount}
+        />
+      ) : (
+        <TestablePlayer
+          playerTestWorld={playerTestWorld}
+          renderCount={renderCount}
+        />
+      )}
     </Tester>
   );
 }
