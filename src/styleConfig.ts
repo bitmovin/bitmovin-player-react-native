@@ -107,15 +107,20 @@ export enum ScalingMode {
 export enum UserInterfaceType {
   /**
    * Indicates that Bitmovin's customizable UI should be used.
+   *
+   * @platform iOS, Android
    */
   Bitmovin = 'Bitmovin',
   /**
    * Indicates that the system UI should be used.
+   *
    * @platform iOS, tvOS
    */
   System = 'System',
   /**
    * Indicates that only subtitles should be displayed along with the video content.
+   *
+   * @platform iOS, tvOS, Android
    */
   Subtitle = 'Subtitle',
 }
