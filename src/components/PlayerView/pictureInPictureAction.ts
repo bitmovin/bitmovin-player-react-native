@@ -1,6 +1,8 @@
 export enum PictureInPictureAction {
   /**
    * Picture in Picture window shows Play/Pause button depending on the player state.
+   * 
+   * @remarks In iOS, when using the {@link UserInterfaceType.system}, this property is only supported on iOS 17 and above.
    */
   TogglePlayback = 'TogglePlayback',
   /**
