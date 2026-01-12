@@ -119,8 +119,6 @@ export enum UserInterfaceType {
   System = 'System',
   /**
    * Indicates that only subtitles should be displayed along with the video content.
-   *
-   * @platform iOS, tvOS, Android
    */
   Subtitle = 'Subtitle',
 }
