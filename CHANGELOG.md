@@ -5,6 +5,7 @@
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.138.0+jason`
+- Update IMA SDK dependency on Android to `3.38.0`
 - Update Bitmovin's native iOS SDK version to `3.105.0`
 - Update the Google Cast iOS Sender SDK used by the example app to `4.8.4`
 
