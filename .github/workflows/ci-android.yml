@@ -83,7 +83,7 @@ jobs:
 
       - name: Cache Android Prebuild
         id: android-prebuild-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             example/android
@@ -92,7 +92,7 @@ jobs:
             ${{ runner.os }}-android-prebuild-
 
       - name: Setup Gradle Build Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -134,7 +134,7 @@ jobs:
 
       - name: Upload build cache artifacts
         if: success()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: android-example-build-cache
           path: |
@@ -151,7 +151,7 @@ jobs:
 
       - name: Cache Android Integration Prebuild
         id: android-integration-prebuild-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             integration_test/android
@@ -160,7 +160,7 @@ jobs:
             ${{ runner.os }}-android-integration-prebuild-
 
       - name: Setup Gradle Build Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -203,7 +203,7 @@ jobs:
 
       - name: Upload build cache artifacts
         if: success()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: android-integration-build-cache
           path: |
@@ -220,7 +220,7 @@ jobs:
 
       - name: Cache Android TV Prebuild
         id: android-tv-prebuild-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             example/android
@@ -229,7 +229,7 @@ jobs:
             ${{ runner.os }}-android-tv-prebuild-
 
       - name: Setup Gradle Build Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -273,7 +273,7 @@ jobs:
 
       - name: Upload build cache artifacts
         if: success()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: android-tv-build-cache
           path: |
