@@ -13,11 +13,16 @@ Before creating a pull request, please
 
 ## Development workflow
 
+If this is your first React Native project, setup your React Native development environment for both Android and iOS as described [here](https://reactnative.dev/docs/set-up-your-environment).
+
 To get started with the project, run `yarn bootstrap` in the root directory to install the required dependencies for each package and cocoapods dependencies for the example app:
 
 ```sh
 yarn bootstrap
 ```
+
+Troubleshooting:
+- If you see errors such as `xcrun: error: SDK "iphoneos" cannot be located`, switch the previously installed Xcode SDK using `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer` and run `yarn bootstrap` again.
 
 > While it's possible to use [`npm`](https://github.com/npm/cli), the tooling is built around [`yarn`](https://classic.yarnpkg.com/), so you'll have an easier time if you use `yarn` for development.
 
