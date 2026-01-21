@@ -2,6 +2,7 @@ import { ExpoConfig } from '@expo/config-types';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
+import { AndroidConfig } from 'expo/config-plugins';
 
 const envPath = path.resolve(__dirname, '.env');
 
@@ -14,7 +15,12 @@ if (!fs.existsSync(envPath)) {
 // Load environment variables from .env file
 dotenv.config({ path: envPath });
 
-const { BITMOVIN_PLAYER_LICENSE_KEY, APPLE_DEVELOPMENT_TEAM_ID } = process.env;
+const {
+  BITMOVIN_PLAYER_LICENSE_KEY,
+  APPLE_DEVELOPMENT_TEAM_ID,
+  BITMOVIN_PLAYER_ANDROID_CAST_APPLICATION_ID,
+  BITMOVIN_PLAYER_ANDROID_CAST_MESSAGE_NAMESPACE,
+} = process.env;
 
 if (!BITMOVIN_PLAYER_LICENSE_KEY) {
   throw new Error(
@@ -88,7 +94,14 @@ const config: ExpoConfig = {
         features: {
           airPlay: true,
           backgroundPlayback: true,
-          googleCastSDK: { android: '21.3.0', ios: '4.8.4' },
+          googleCastSDK: {
+            android: {
+              version: '21.3.0',
+              applicationId: BITMOVIN_PLAYER_ANDROID_CAST_APPLICATION_ID,
+              messageNamespace: BITMOVIN_PLAYER_ANDROID_CAST_MESSAGE_NAMESPACE,
+            },
+            ios: '4.8.4',
+          },
           offline: true,
           pictureInPicture: true,
         },

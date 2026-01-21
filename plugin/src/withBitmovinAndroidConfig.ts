@@ -166,6 +166,23 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
         'com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME',
         'com.bitmovin.player.casting.BitmovinCastOptionsProvider'
       );
+      if (typeof features.googleCastSDK.android == 'object') {
+        if (
+          features.googleCastSDK.android.applicationId &&
+          features.googleCastSDK.android.messageNamespace
+        ) {
+          AndroidConfig.Manifest.addMetaDataItemToMainApplication(
+            mainApplication,
+            'BITMOVIN_CAST_APPLICATION_ID',
+            features.googleCastSDK.android.applicationId
+          );
+          AndroidConfig.Manifest.addMetaDataItemToMainApplication(
+            mainApplication,
+            'BITMOVIN_CAST_MESSAGE_NAMESPACE',
+            features.googleCastSDK.android.messageNamespace
+          );
+        }
+      }
     }
 
     return config;
