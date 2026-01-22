@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative
 
+import android.util.Log
 import com.bitmovin.player.casting.BitmovinCastManager
 import com.bitmovin.player.reactnative.extensions.getString
 import expo.modules.kotlin.functions.Queues
@@ -18,11 +19,16 @@ class BitmovinCastManagerModule : Module() {
             val applicationId = options?.getString("applicationId")
             val messageNamespace = options?.getString("messageNamespace")
 
-            BitmovinCastManager.initialize(
-                applicationId,
-                messageNamespace,
-            )
-        }.runOnQueue(Queues.MAIN)
+            if (applicationId != null && messageNamespace != null) {
+                Log.w(
+                    "BitmovinCastManagerModule",
+                    "Ignoring initialization of cast manager. Use `expoConfig` or `AndroidManifest.xml` to configure. See `example/README.md` for more information.",
+                )
+            }
+
+            // no-op, as the default values are used.
+            // The BitmovinCastManager is indirectly initialized via the `ActivityLifecycleListener.onCreate` callback
+        }
 
         AsyncFunction("sendMessage") { message: String, messageNamespace: String? ->
             BitmovinCastManager.getInstance().sendMessage(message, messageNamespace)
