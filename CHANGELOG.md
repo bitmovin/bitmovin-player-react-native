@@ -6,6 +6,14 @@
 
 - Update Bitmovin's native iOS SDK version to `3.106.0`
 
+### Fixed
+
+- Android: Setup of custom `applicationId` and `messageNamespace` for casting
+
+### Added
+
+- Android: Expo config `Features.googleCastSDK.android` object properties `applicationId` and `messageNamespace`
+
 ## [1.7.0] - 2026-01-15
 
 ### Changed
