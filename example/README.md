@@ -89,8 +89,8 @@ To workaround that limitation, you can define the applicationId and messageNames
 
 1. Add the configuration to the `example/.env` file
 
-- Add a value for `BITMOVIN_PLAYER_ANDROID_CAST_APPLICATION_ID=YOUR_APPLICATION_ID`
-- Add a value for `BITMOVIN_PLAYER_ANDROID_CAST_MESSAGE_NAMESPACE=YOUR_MESSAGE_NAMESPACE`.
+- Add a value for `BITMOVIN_PLAYER_CAST_APPLICATION_ID=YOUR_APPLICATION_ID`
+- Add a value for `BITMOVIN_PLAYER_CAST_MESSAGE_NAMESPACE=YOUR_MESSAGE_NAMESPACE`.
 
 2. Add the configuration to the `AndroidManifest.xml` file. Add metadata to the `Application` tag:
 
