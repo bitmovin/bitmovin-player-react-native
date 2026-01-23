@@ -2,6 +2,7 @@ export default interface Features {
   airPlay?: boolean;
   backgroundPlayback?: boolean;
   googleCastSDK?: {
+    appId?: string;
     android:
       | string
       | {
