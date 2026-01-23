@@ -22,6 +22,7 @@ const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
           },
           ios: { isEnabled: !!features.offline },
         };
+  const googleCastConfig = features.googleCastSDK;
   const googleCastIosConfig = features.googleCastSDK?.ios
     ? typeof features.googleCastSDK.ios === 'string'
       ? { version: features.googleCastSDK.ios }
@@ -48,15 +49,19 @@ const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
         config.modResults['BitmovinPlayerOfflineSupportEnabled'] = true;
       }
       if (googleCastIosConfig) {
-        const appId = googleCastIosConfig.appId || 'FFE417E5';
+        const appId =
+          googleCastIosConfig.appId || googleCastConfig?.appId || 'FFE417E5';
+        const messageNamespace =
+          googleCastIosConfig.messageNamespace ||
+          googleCastConfig?.messageNamespace;
         const localNetworkUsageDescription =
           googleCastIosConfig.localNetworkUsageDescription ||
           '${PRODUCT_NAME} uses the local network to discover Cast-enabled devices on your WiFi network.';
 
         config.modResults['BitmovinPlayerGoogleCastApplicationId'] = appId;
-        if (googleCastIosConfig.messageNamespace) {
+        if (messageNamespace) {
           config.modResults['BitmovinPlayerGoogleCastMessageNamespace'] =
-            googleCastIosConfig.messageNamespace;
+            messageNamespace;
         } else {
           delete config.modResults['BitmovinPlayerGoogleCastMessageNamespace'];
         }
