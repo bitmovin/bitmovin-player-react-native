@@ -168,11 +168,12 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
       );
 
       let appId = features.googleCastSDK.appId;
-      let messageNamespace = null;
+      let messageNamespace = features.googleCastSDK.messageNamespace;
       if (typeof features.googleCastSDK.android == 'object') {
-        // Override the top level appId
+        // Override the top level appId and messageNamespace
         appId = features.googleCastSDK.android?.appId || appId;
-        messageNamespace = features.googleCastSDK.android.messageNamespace;
+        messageNamespace =
+          features.googleCastSDK.android.messageNamespace || messageNamespace;
       }
 
       if (appId) {

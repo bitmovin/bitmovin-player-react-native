@@ -3,6 +3,7 @@ export default interface Features {
   backgroundPlayback?: boolean;
   googleCastSDK?: {
     appId?: string;
+    messageNamespace?: string;
     android:
       | string
       | {
