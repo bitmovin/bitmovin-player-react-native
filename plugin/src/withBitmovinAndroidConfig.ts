@@ -168,18 +168,11 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
       );
 
       let appId = features.googleCastSDK.appId;
+      let messageNamespace = null;
       if (typeof features.googleCastSDK.android == 'object') {
         // Override the top level appId
         appId = features.googleCastSDK.android?.appId || appId;
-        const messageNamespace =
-          features.googleCastSDK.android.messageNamespace;
-        if (messageNamespace) {
-          AndroidConfig.Manifest.addMetaDataItemToMainApplication(
-            mainApplication,
-            'BITMOVIN_CAST_MESSAGE_NAMESPACE',
-            messageNamespace
-          );
-        }
+        messageNamespace = features.googleCastSDK.android.messageNamespace;
       }
 
       if (appId) {
@@ -188,6 +181,16 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
           'BITMOVIN_CAST_APP_ID',
           appId
         );
+
+        // Adding a messageNamespace inside the appId if block,
+        // as there should not be a custom namespace without a custom appId
+        if (messageNamespace) {
+          AndroidConfig.Manifest.addMetaDataItemToMainApplication(
+            mainApplication,
+            'BITMOVIN_CAST_MESSAGE_NAMESPACE',
+            messageNamespace
+          );
+        }
       }
     }
 
