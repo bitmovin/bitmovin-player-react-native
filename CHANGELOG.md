@@ -13,6 +13,7 @@
 ### Added
 
 - Android: Expo config `Features.googleCastSDK.android` object properties `applicationId` and `messageNamespace`
+- iOS: Expo config `Features.googleCastSDK.ios` object property `messageNamespace`
 
 ## [1.7.0] - 2026-01-15
 
