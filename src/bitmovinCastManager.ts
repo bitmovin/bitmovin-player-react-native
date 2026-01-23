@@ -50,6 +50,8 @@ export const BitmovinCastManager = {
    *
    * @param options The options to be used for initializing `BitmovinCastManager`
    * @returns A promise that resolves when the `BitmovinCastManager` was initialized successfully
+   *
+   * @deprecated This method is deprecated and will be removed in future versions. Please initialize BitmovinCastManager via ExpoConfig or Info.plist on iOS and AndroidManifest.xml on Android.
    */
   initialize: async (
     options: BitmovinCastManagerOptions | null = null
@@ -57,9 +59,10 @@ export const BitmovinCastManager = {
     if (Platform.OS === 'ios' && Platform.isTV) {
       return Promise.resolve();
     }
-    return BitmovinCastManagerModule.initializeCastManager(
-      options || undefined
+    console.warn(
+      'BitmovinCastManager.initialize is deprecated and will be removed in future versions. Please initialize BitmovinCastManager via ExpoConfig or Info.plist on iOS and AndroidManifest.xml on Android.'
     );
+    return Promise.resolve();
   },
 
   /**
