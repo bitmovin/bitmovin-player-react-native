@@ -53,12 +53,23 @@ const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
           googleCastIosConfig.localNetworkUsageDescription ||
           '${PRODUCT_NAME} uses the local network to discover Cast-enabled devices on your WiFi network.';
 
+        config.modResults['BitmovinPlayerGoogleCastApplicationId'] = appId;
+        if (googleCastIosConfig.messageNamespace) {
+          config.modResults['BitmovinPlayerGoogleCastMessageNamespace'] =
+            googleCastIosConfig.messageNamespace;
+        } else {
+          delete config.modResults['BitmovinPlayerGoogleCastMessageNamespace'];
+        }
+
         config.modResults['NSBonjourServices'] = [
           '_googlecast._tcp',
           `_${appId}._googlecast._tcp`,
         ];
         config.modResults['NSLocalNetworkUsageDescription'] =
           localNetworkUsageDescription;
+      } else {
+        delete config.modResults['BitmovinPlayerGoogleCastApplicationId'];
+        delete config.modResults['BitmovinPlayerGoogleCastMessageNamespace'];
       }
     }
     return config;

@@ -14,6 +14,7 @@ export default interface Features {
       | {
           version: string;
           appId?: string;
+          messageNamespace?: string;
           localNetworkUsageDescription?: string;
         };
   };
