@@ -97,7 +97,7 @@ const config: ExpoConfig = {
           googleCastSDK: {
             android: {
               version: '21.3.0',
-              applicationId: BITMOVIN_PLAYER_CAST_APP_ID,
+              appId: BITMOVIN_PLAYER_CAST_APP_ID,
               messageNamespace: BITMOVIN_PLAYER_CAST_MESSAGE_NAMESPACE,
             },
             ios: {
