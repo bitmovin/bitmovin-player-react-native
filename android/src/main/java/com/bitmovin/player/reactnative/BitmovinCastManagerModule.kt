@@ -15,21 +15,6 @@ class BitmovinCastManagerModule : Module() {
             BitmovinCastManager.isInitialized()
         }
 
-        AsyncFunction("initializeCastManager") { options: Map<String, Any>? ->
-            val applicationId = options?.getString("applicationId")
-            val messageNamespace = options?.getString("messageNamespace")
-
-            if (applicationId != null && messageNamespace != null) {
-                Log.w(
-                    "BitmovinCastManagerModule",
-                    "Ignoring initialization of cast manager. Use `expoConfig` or `AndroidManifest.xml` to configure. See `example/README.md` for more information.",
-                )
-            }
-
-            // no-op, as the default values are used.
-            // The BitmovinCastManager is indirectly initialized via the `ActivityLifecycleListener.onCreate` callback
-        }
-
         AsyncFunction("sendMessage") { message: String, messageNamespace: String? ->
             BitmovinCastManager.getInstance().sendMessage(message, messageNamespace)
         }.runOnQueue(Queues.MAIN)
