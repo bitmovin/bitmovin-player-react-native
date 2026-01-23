@@ -21,7 +21,7 @@ class ActivityLifecycleListener : ReactActivityLifecycleListener {
         }
 
         with(context.packageManager.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA)) {
-            val applicationId = metaData?.getString("BITMOVIN_CAST_APPLICATION_ID")
+            val applicationId = metaData?.getString("BITMOVIN_CAST_APP_ID")
             val messageNamespace = metaData?.getString("BITMOVIN_CAST_MESSAGE_NAMESPACE")
             BitmovinCastManager.initialize(applicationId, messageNamespace)
         }
