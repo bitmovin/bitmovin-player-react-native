@@ -168,13 +168,13 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
       );
       if (typeof features.googleCastSDK.android == 'object') {
         if (
-          features.googleCastSDK.android.applicationId &&
+          features.googleCastSDK.android.appId &&
           features.googleCastSDK.android.messageNamespace
         ) {
           AndroidConfig.Manifest.addMetaDataItemToMainApplication(
             mainApplication,
-            'BITMOVIN_CAST_APPLICATION_ID',
-            features.googleCastSDK.android.applicationId
+            'BITMOVIN_CAST_APP_ID',
+            features.googleCastSDK.android.appId
           );
           AndroidConfig.Manifest.addMetaDataItemToMainApplication(
             mainApplication,

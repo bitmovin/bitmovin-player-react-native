@@ -18,7 +18,7 @@ dotenv.config({ path: envPath });
 const {
   BITMOVIN_PLAYER_LICENSE_KEY,
   APPLE_DEVELOPMENT_TEAM_ID,
-  BITMOVIN_PLAYER_CAST_APPLICATION_ID,
+  BITMOVIN_PLAYER_CAST_APP_ID,
   BITMOVIN_PLAYER_CAST_MESSAGE_NAMESPACE,
 } = process.env;
 
@@ -97,12 +97,12 @@ const config: ExpoConfig = {
           googleCastSDK: {
             android: {
               version: '21.3.0',
-              applicationId: BITMOVIN_PLAYER_CAST_APPLICATION_ID,
+              applicationId: BITMOVIN_PLAYER_CAST_APP_ID,
               messageNamespace: BITMOVIN_PLAYER_CAST_MESSAGE_NAMESPACE,
             },
             ios: {
               version: '4.8.4',
-              appId: BITMOVIN_PLAYER_CAST_APPLICATION_ID,
+              appId: BITMOVIN_PLAYER_CAST_APP_ID,
               messageNamespace: BITMOVIN_PLAYER_CAST_MESSAGE_NAMESPACE,
             },
           },

@@ -6,7 +6,7 @@ export default interface Features {
       | string
       | {
           version: string;
-          applicationId?: string;
+          appId?: string;
           messageNamespace?: string;
         };
     ios:
