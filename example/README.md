@@ -81,21 +81,22 @@ const player = usePlayer({
 });
 ```
 
-### Setup for custom cast applicationId and messageNamespace on Android
+### Setup for custom cast appId and messageNamespace
 
-Due to a lifecycle limitation with react-native, the `BitmovinCastManager.initialize(applicationId, messageNamespace)` do not work as intended, so please don't use it.
-To workaround that limitation, you can define the applicationId and messageNamespace in one of the 2 following ways:
-(Not providing a value will use the default value)
+There are two different ways to set up a custom appId and messageNamespace for casting.  
+If using Expo, provide the value via the environment file: `.env` (see above) and add the following variables
 
-1. Add the configuration to the `example/.env` file
+- `BITMOVIN_PLAYER_CAST_APP_ID=YOUR_APP_ID`
+- `BITMOVIN_PLAYER_CAST_MESSAGE_NAMESPACE=YOUR_MESSAGE_NAMESPACE`
 
-- Add a value for `BITMOVIN_PLAYER_CAST_APP_ID=YOUR_APPLICATION_ID`
-- Add a value for `BITMOVIN_PLAYER_CAST_MESSAGE_NAMESPACE=YOUR_MESSAGE_NAMESPACE`.
+If not using Expo, manually add the values to the `AndroidManifest.xml` file. Add the config values as metadata to the `Application` tag:
 
-2. Add the configuration to the `AndroidManifest.xml` file. Add metadata to the `Application` tag:
-
-- `<meta-data android:name="BITMOVIN_CAST_APP_ID" android:value="YOUR_APPLICATION_ID"/>`
+- `<meta-data android:name="BITMOVIN_CAST_APP_ID" android:value="YOUR_APP_ID"/>`
 - `<meta-data android:name="BITMOVIN_CAST_MESSAGE_NAMESPACE" android:value="YOUR_MESSAGE_NAMESPACE"/>`
+
+Not providing a value will result in using the default appId and messageNamespace.
+
+**Note: Please do not use the `BitmovinCastingManager.initialize` function. This function is deprecated and will be removed in future versions.**
 
 ### Add the Package Name and Bundle Identifiers as an Allowed Domain
 
