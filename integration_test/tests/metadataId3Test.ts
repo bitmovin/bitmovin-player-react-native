@@ -69,7 +69,9 @@ const expectAndroidFrameShape = (frame: Id3MetadataEntry) => {
       expect(frame.subFrames, 'chapter subFrames').toBeInstanceOf(Array);
       frame.subFrames.forEach(expectAndroidFrameShape);
       if (legacyStart !== undefined && start !== undefined) {
-        expect(legacyStart, 'chapter startTimeMs vs timeRange.start').toBe(start);
+        expect(legacyStart, 'chapter startTimeMs vs timeRange.start').toBe(
+          start
+        );
       }
       if (legacyEnd !== undefined && end !== undefined) {
         expect(legacyEnd, 'chapter endTimeMs vs timeRange.end').toBe(end);
@@ -87,7 +89,10 @@ const expectAndroidFrameShape = (frame: Id3MetadataEntry) => {
       frame.subFrames.forEach(expectAndroidFrameShape);
       break;
     default:
-      expect(frame.frameType, 'unknown frameType should be string').toBeDefined();
+      expect(
+        frame.frameType,
+        'unknown frameType should be string'
+      ).toBeDefined();
   }
 };
 
@@ -110,14 +115,16 @@ const expectIosFrameShape = (frame: Id3MetadataEntry) => {
   if (frame.rawValue !== undefined) {
     expect(typeof frame.rawValue, 'rawValue type').toBe('object');
     if (frame.rawValue.stringValue !== undefined) {
-      expect(typeof frame.rawValue.stringValue, 'rawValue stringValue type').toBe(
-        'string'
-      );
+      expect(
+        typeof frame.rawValue.stringValue,
+        'rawValue stringValue type'
+      ).toBe('string');
     }
     if (frame.rawValue.numberValue !== undefined) {
-      expect(typeof frame.rawValue.numberValue, 'rawValue numberValue type').toBe(
-        'number'
-      );
+      expect(
+        typeof frame.rawValue.numberValue,
+        'rawValue numberValue type'
+      ).toBe('number');
     }
     if (frame.rawValue.dateValue !== undefined) {
       expect(typeof frame.rawValue.dateValue, 'rawValue dateValue type').toBe(
@@ -148,7 +155,10 @@ const expectIosFrameShape = (frame: Id3MetadataEntry) => {
     );
   }
   if (frame.extraAttributes !== undefined) {
-    expect(frame.extraAttributes, 'extraAttributes should not be null').toNotBeNull();
+    expect(
+      frame.extraAttributes,
+      'extraAttributes should not be null'
+    ).toNotBeNull();
     expect(typeof frame.extraAttributes, 'extraAttributes type').toBe('object');
   }
 };
@@ -158,7 +168,9 @@ export default (spec: TestScope) => {
     spec.it('emits Android ID3 frames with expected shape', async () => {
       // Gate to Android since the shape expectations are Android-specific.
       if (Platform.OS !== 'android') {
-        console.warn('Skipping Android ID3 metadata shape test on non-Android platform');
+        console.warn(
+          'Skipping Android ID3 metadata shape test on non-Android platform'
+        );
         return;
       }
 
@@ -177,9 +189,10 @@ export default (spec: TestScope) => {
           MetadataType.ID3
         );
         expect(metadataParsed.metadata, 'metadata payload').toBeDefined();
-        expect(metadataParsed.metadata.entries, 'metadata entries').toBeInstanceOf(
-          Array
-        );
+        expect(
+          metadataParsed.metadata.entries,
+          'metadata entries'
+        ).toBeInstanceOf(Array);
         expect(
           metadataParsed.metadata.entries.length,
           'metadata entries length'
@@ -200,7 +213,9 @@ export default (spec: TestScope) => {
     spec.it('emits iOS ID3 frames with expected shape', async () => {
       // Gate to iOS since the shape expectations are iOS-specific.
       if (Platform.OS !== 'ios') {
-        console.warn('Skipping iOS ID3 metadata shape test on non-iOS platform');
+        console.warn(
+          'Skipping iOS ID3 metadata shape test on non-iOS platform'
+        );
         return;
       }
 
@@ -222,9 +237,10 @@ export default (spec: TestScope) => {
         }
 
         expect(metadataParsed.metadata, 'metadata payload').toBeDefined();
-        expect(metadataParsed.metadata.entries, 'metadata entries').toBeInstanceOf(
-          Array
-        );
+        expect(
+          metadataParsed.metadata.entries,
+          'metadata entries'
+        ).toBeInstanceOf(Array);
         expect(
           metadataParsed.metadata.entries.length,
           'metadata entries length'
