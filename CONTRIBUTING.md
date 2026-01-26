@@ -22,6 +22,7 @@ yarn bootstrap
 ```
 
 Troubleshooting:
+
 - If you see errors such as `xcrun: error: SDK "iphoneos" cannot be located`, switch the previously installed Xcode SDK using `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer` and run `yarn bootstrap` again.
 
 > While it's possible to use [`npm`](https://github.com/npm/cli), the tooling is built around [`yarn`](https://classic.yarnpkg.com/), so you'll have an easier time if you use `yarn` for development.
