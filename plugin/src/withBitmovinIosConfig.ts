@@ -22,16 +22,26 @@ const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
           },
           ios: { isEnabled: !!features.offline },
         };
+
   const googleCastConfig = features.googleCastSDK;
-  const googleCastIosConfig = features.googleCastSDK?.ios
-    ? typeof features.googleCastSDK.ios === 'string'
-      ? { version: features.googleCastSDK.ios }
-      : features.googleCastSDK.ios
-    : null;
+  let googleCastVersion =
+    typeof googleCastConfig?.ios === 'object'
+      ? googleCastConfig?.ios?.version
+      : googleCastConfig?.ios;
+  let googleCastAppId = googleCastConfig?.appId || 'FFE417E5';
+  let googleCastMessageNamespace = googleCastConfig?.messageNamespace;
+
+  if (typeof googleCastConfig?.ios == 'object') {
+    googleCastAppId = googleCastConfig?.ios?.appId || googleCastAppId;
+    googleCastMessageNamespace =
+      googleCastConfig?.ios?.messageNamespace || googleCastMessageNamespace;
+  }
 
   config = withInfoPlist(config, (config) => {
     if (playerLicenseKey) {
       config.modResults['BitmovinPlayerLicenseKey'] = playerLicenseKey;
+    } else {
+      delete config.modResults['BitmovinPlayerLicenseKey'];
     }
     if (
       features.backgroundPlayback ||
@@ -47,28 +57,27 @@ const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
     if (!isTV) {
       if (offlineFeatureConfig?.ios?.isEnabled) {
         config.modResults['BitmovinPlayerOfflineSupportEnabled'] = true;
+      } else {
+        delete config.modResults['BitmovinPlayerOfflineSupportEnabled'];
       }
-      if (googleCastIosConfig) {
-        const appId =
-          googleCastIosConfig.appId || googleCastConfig?.appId || 'FFE417E5';
-        const messageNamespace =
-          googleCastIosConfig.messageNamespace ||
-          googleCastConfig?.messageNamespace;
+      if (googleCastConfig?.ios != null) {
         const localNetworkUsageDescription =
-          googleCastIosConfig.localNetworkUsageDescription ||
-          '${PRODUCT_NAME} uses the local network to discover Cast-enabled devices on your WiFi network.';
+          typeof googleCastConfig?.ios === 'object'
+            ? googleCastConfig?.ios?.localNetworkUsageDescription
+            : '${PRODUCT_NAME} uses the local network to discover Cast-enabled devices on your WiFi network.';
 
-        config.modResults['BitmovinPlayerGoogleCastApplicationId'] = appId;
-        if (messageNamespace) {
+        config.modResults['BitmovinPlayerGoogleCastApplicationId'] =
+          googleCastAppId;
+        if (googleCastMessageNamespace) {
           config.modResults['BitmovinPlayerGoogleCastMessageNamespace'] =
-            messageNamespace;
+            googleCastMessageNamespace;
         } else {
           delete config.modResults['BitmovinPlayerGoogleCastMessageNamespace'];
         }
 
         config.modResults['NSBonjourServices'] = [
           '_googlecast._tcp',
-          `_${appId}._googlecast._tcp`,
+          `_${googleCastAppId}._googlecast._tcp`,
         ];
         config.modResults['NSLocalNetworkUsageDescription'] =
           localNetworkUsageDescription;
@@ -82,9 +91,11 @@ const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
 
   if (!isTV) {
     config = withPodfileProperties(config, (config) => {
-      if (googleCastIosConfig) {
+      if (googleCastVersion != null) {
         config.modResults['BITMOVIN_GOOGLE_CAST_SDK_VERSION'] =
-          googleCastIosConfig.version;
+          googleCastVersion;
+      } else {
+        delete config.modResults['BITMOVIN_GOOGLE_CAST_SDK_VERSION'];
       }
       return config;
     });

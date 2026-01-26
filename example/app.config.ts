@@ -95,15 +95,13 @@ const config: ExpoConfig = {
           airPlay: true,
           backgroundPlayback: true,
           googleCastSDK: {
+            appId: BITMOVIN_PLAYER_CAST_APP_ID,
+            messageNamespace: BITMOVIN_PLAYER_CAST_MESSAGE_NAMESPACE,
             android: {
               version: '21.3.0',
-              appId: BITMOVIN_PLAYER_CAST_APP_ID,
-              messageNamespace: BITMOVIN_PLAYER_CAST_MESSAGE_NAMESPACE,
             },
             ios: {
               version: '4.8.4',
-              appId: BITMOVIN_PLAYER_CAST_APP_ID,
-              messageNamespace: BITMOVIN_PLAYER_CAST_MESSAGE_NAMESPACE,
             },
           },
           offline: true,
