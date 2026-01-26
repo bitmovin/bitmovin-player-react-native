@@ -44,10 +44,6 @@ export const BitmovinCastManager = {
    *
    * IMPORTANT: This should only be called when the Google Cast SDK is available in the application.
    *
-   * IMPORTANT: In case the platform is `Android`, initialize the `BitmovinCastManager` via the
-   * `expoConfig` or `AndroidManifest.xml`.
-   * See `example/README.md` for more information.
-   *
    * @param options The options to be used for initializing `BitmovinCastManager`
    * @returns A promise that resolves when the `BitmovinCastManager` was initialized successfully
    *
