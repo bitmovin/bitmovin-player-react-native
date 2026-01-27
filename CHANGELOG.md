@@ -8,12 +8,13 @@
 
 ### Fixed
 
-- Android: Setup of custom `applicationId` and `messageNamespace` for casting
+- Android: Setup of custom `appId` and `messageNamespace` for casting
 
 ### Added
 
-- Android: Expo config `Features.googleCastSDK.android` object properties `applicationId` and `messageNamespace`
+- Android: Expo config `Features.googleCastSDK.android` object properties `appId` and `messageNamespace`
 - iOS: Expo config `Features.googleCastSDK.ios` object property `messageNamespace`
+- Expo config `Features.googleCastSDK` object properties `appId` and `messageNamespace` (in case the Android and iOS properties are the same)
 
 ## [1.7.0] - 2026-01-15
 
