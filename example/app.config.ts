@@ -2,7 +2,6 @@ import { ExpoConfig } from '@expo/config-types';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import { AndroidConfig } from 'expo/config-plugins';
 
 const envPath = path.resolve(__dirname, '.env');
 
