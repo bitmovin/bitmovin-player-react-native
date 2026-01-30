@@ -5,6 +5,7 @@
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to `3.106.0`
+- iOS: `appId` property from Expo config `Features.googleCastSDK.ios` object is now used to initialize Cast receiver application ID
 
 ### Fixed
 
