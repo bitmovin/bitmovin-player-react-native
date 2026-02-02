@@ -5,6 +5,7 @@
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to `3.106.0`
+- Update Expo SDK version to `53.0.26`
 
 ## [1.7.0] - 2026-01-15
 
