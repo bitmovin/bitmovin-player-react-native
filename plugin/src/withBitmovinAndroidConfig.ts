@@ -209,9 +209,12 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
     const mavenRepos = JSON.parse(
       existingEntry?.type == 'property' ? existingEntry.value : '[]'
     );
-    mavenRepos.push({
-      url: 'https://artifacts.bitmovin.com/artifactory/public-releases',
-    });
+    const bitmovinRepoUrl =
+      'https://artifacts.bitmovin.com/artifactory/public-releases';
+    // Only add if not already present
+    if (!mavenRepos.some((repo: any) => repo.url === bitmovinRepoUrl)) {
+      mavenRepos.push({ url: bitmovinRepoUrl });
+    }
     properties.push({
       type: 'property',
       key: 'android.extraMavenRepos',
