@@ -20,6 +20,10 @@ class ActivityLifecycleListener : ReactActivityLifecycleListener {
             return
         }
 
+        // It is important to initialize the `BitmovinCastManager`
+        // before calling the `getSharedInstance`, as this internally calls
+        // `BitmovinCastOptionsProvider` via reflection. Which calls the `BitmovinCastManager`
+        // and initializes the singleton, if not already done.
         with(context.packageManager.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA)) {
             val applicationId = metaData?.getString("BITMOVIN_CAST_APP_ID")
             val messageNamespace = metaData?.getString("BITMOVIN_CAST_MESSAGE_NAMESPACE")
