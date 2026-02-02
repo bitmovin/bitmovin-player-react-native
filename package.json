@@ -67,7 +67,7 @@
     "eslint-config-expo": "~9.2.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.5.1",
-    "expo": "53.0.25",
+    "expo": "53.0.26",
     "expo-module-scripts": "^4.1.9",
     "lint-staged": "13.0.3",
     "prettier": "^3.6.2",
