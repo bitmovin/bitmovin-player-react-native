@@ -36,6 +36,7 @@ export default class PlayerTestWorld {
     B: false,
   };
   private viewMode_: 'single' | 'multi' = 'single';
+  private isSwapped_: boolean = false;
 
   static get shared(): PlayerTestWorld {
     if (PlayerTestWorld.shared_ === undefined) {
@@ -81,6 +82,10 @@ export default class PlayerTestWorld {
     return this.viewMode_;
   }
 
+  get isSwapped(): boolean {
+    return this.isSwapped_;
+  }
+
   onReRender: (() => void) | undefined;
 
   onEvent = (event: Event): void => {
@@ -107,6 +112,7 @@ export default class PlayerTestWorld {
 
     this.viewMode_ = 'single';
     this.isFinished_ = false;
+    this.isSwapped_ = false;
 
     const player = new Player({
       nativeId: `player-${uuid.v4()}`,
@@ -137,6 +143,7 @@ export default class PlayerTestWorld {
 
     this.viewMode_ = 'multi';
     this.isFinished_ = false;
+    this.isSwapped_ = false;
     this.eventListeners = {};
     this.eventListenersByPlayer = { A: {}, B: {} };
 
@@ -160,9 +167,19 @@ export default class PlayerTestWorld {
       playerB.destroy();
       this.isFinished_ = true;
       this.viewMode_ = 'single';
+      this.isSwapped_ = false;
       this.players = {};
       this.eventListenersByPlayer = { A: {}, B: {} };
     });
+  };
+
+  swapViews = async (): Promise<void> => {
+    if (this.viewMode_ !== 'multi') {
+      throw new Error('swapViews can only be used in multi-player mode.');
+    }
+    this.isSwapped_ = !this.isSwapped_;
+    this.reRender();
+    await new Promise((resolve) => setTimeout(resolve, 300));
   };
 
   callPlayer = async <T>(fn: (player: Player) => Promise<T>): Promise<T> => {
@@ -234,6 +251,21 @@ export default class PlayerTestWorld {
   ): Promise<E> => {
     return await this.expectEventCallingFor<E>(
       playerKey,
+      expectationConvertible,
+      timeoutSeconds,
+      async () => fn(await this.ensurePlayerFor(playerKey))
+    );
+  };
+
+  callPlayerAndExpectEventOnView = async <E extends Event>(
+    viewKey: 'A' | 'B',
+    playerKey: 'A' | 'B',
+    fn: (player: Player) => void,
+    expectationConvertible: SingleEventExpectation | EventType,
+    timeoutSeconds: number
+  ): Promise<E> => {
+    return await this.expectEventCallingFor<E>(
+      viewKey,
       expectationConvertible,
       timeoutSeconds,
       async () => fn(await this.ensurePlayerFor(playerKey))

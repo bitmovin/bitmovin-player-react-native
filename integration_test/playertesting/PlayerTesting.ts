@@ -42,6 +42,10 @@ export const startMultiPlayerTest = async (
   return await PlayerTestWorld.shared.startMultiPlayerTest(configA, configB, fn);
 };
 
+export const swapMultiPlayerViews = async (): Promise<void> => {
+  return await PlayerTestWorld.shared.swapViews();
+};
+
 /**
  * Calls the given function with the player instance.
  * @param fn The function to call.
@@ -184,6 +188,22 @@ export const callPlayerAndExpectEventFor = async <E extends Event>(
   timeoutSeconds: number = 10
 ): Promise<E> => {
   return await PlayerTestWorld.shared.callPlayerAndExpectEventFor(
+    playerKey,
+    fn,
+    expectationConvertible,
+    timeoutSeconds
+  );
+};
+
+export const callPlayerAndExpectEventOnView = async <E extends Event>(
+  viewKey: 'A' | 'B',
+  playerKey: 'A' | 'B',
+  fn: (player: Player) => void,
+  expectationConvertible: SingleEventExpectation | EventType,
+  timeoutSeconds: number = 10
+): Promise<E> => {
+  return await PlayerTestWorld.shared.callPlayerAndExpectEventOnView(
+    viewKey,
     playerKey,
     fn,
     expectationConvertible,

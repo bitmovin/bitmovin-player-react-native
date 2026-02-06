@@ -30,6 +30,7 @@ function TestableApp(): JSX.Element {
         <TestableMultiPlayer
           playerTestWorld={playerTestWorld}
           renderCount={renderCount}
+          isSwapped={playerTestWorld.isSwapped}
         />
       ) : (
         <TestablePlayer

@@ -8,16 +8,20 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 interface TestableMultiPlayerProps {
   playerTestWorld: PlayerTestWorld;
   renderCount: number;
+  isSwapped: boolean;
 }
 
 export default function TestableMultiPlayer({
   playerTestWorld,
   renderCount,
+  isSwapped,
 }: TestableMultiPlayerProps): React.JSX.Element {
   const generateTestHook = useCavy();
 
   const TestablePlayerView = wrap(PlayerView);
   const hasPlayers = playerTestWorld.playerA && playerTestWorld.playerB;
+  const playerForViewA = isSwapped ? playerTestWorld.playerB : playerTestWorld.playerA;
+  const playerForViewB = isSwapped ? playerTestWorld.playerA : playerTestWorld.playerB;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -29,7 +33,7 @@ export default function TestableMultiPlayer({
               <TestablePlayerView
                 key={`A-${renderCount}`}
                 ref={generateTestHook('PlayerViewA')}
-                player={playerTestWorld.playerA}
+                player={playerForViewA}
                 style={styles.player}
                 onEvent={playerTestWorld.onEventFor('A')}
               />
@@ -38,7 +42,7 @@ export default function TestableMultiPlayer({
               <TestablePlayerView
                 key={`B-${renderCount}`}
                 ref={generateTestHook('PlayerViewB')}
-                player={playerTestWorld.playerB}
+                player={playerForViewB}
                 style={styles.player}
                 onEvent={playerTestWorld.onEventFor('B')}
               />
