@@ -26,6 +26,6 @@ export function useProxy(
         const sanitized = normalizeNonFinite(eventWithoutTarget);
         callback?.(sanitized as E);
       },
-    [viewRef]
+    []
   );
 }
