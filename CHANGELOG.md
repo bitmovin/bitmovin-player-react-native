@@ -5,7 +5,7 @@
 ### Fixed
 
 - Events occasionally not being delivered to event handlers
-- iOS: Stale fullscreen/PiP state and event listeners when swapping players between views
+- iOS: Improved player view lifecycle cleanup on player re-attachment
 
 ## [1.8.0] - 2026-02-03
 
