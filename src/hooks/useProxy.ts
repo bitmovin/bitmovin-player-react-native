@@ -1,4 +1,4 @@
-import { RefObject, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Event } from '../events';
 import { normalizeNonFinite } from '../utils/normalizeNonFinite';
 
@@ -15,9 +15,9 @@ type NativeCallback<E> = (event: { nativeEvent: E }) => void;
 /**
  * Create a proxy function that unwraps native events.
  */
-export function useProxy(
-  viewRef: RefObject<any>
-): <E extends Event>(callback?: Callback<E>) => NativeCallback<E> {
+export function useProxy(): <E extends Event>(
+  callback?: Callback<E>
+) => NativeCallback<E> {
   return useCallback(
     <E extends Event>(callback?: Callback<E>) =>
       (event: { nativeEvent: E }) => {
