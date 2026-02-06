@@ -107,10 +107,13 @@ export enum ScalingMode {
 export enum UserInterfaceType {
   /**
    * Indicates that Bitmovin's customizable UI should be used.
+   *
+   * @platform iOS, Android
    */
   Bitmovin = 'Bitmovin',
   /**
    * Indicates that the system UI should be used.
+   *
    * @platform iOS, tvOS
    */
   System = 'System',

@@ -5,22 +5,6 @@ public class BitmovinCastManagerModule: Module {
     public func definition() -> ModuleDefinition {
         Name("BitmovinCastManagerModule")
 
-        AsyncFunction("initializeCastManager") { (options: [String: Any]?) throws in
-            #if os(iOS)
-            if let options {
-                guard let options = RCTConvert.castManagerOptions(options) else {
-                    throw Exception(
-                        name: "DESERIALIZATION_ERROR",
-                        description: "Could not deserialize BitmovinCastManagerOptions"
-                    )
-                }
-                BitmovinCastManager.initializeCasting(options: options)
-            } else {
-                BitmovinCastManager.initializeCasting()
-            }
-            #endif
-        }.runOnQueue(.main)
-
         AsyncFunction("isInitialized") { () -> Bool in
             #if os(iOS)
             return BitmovinCastManager.isInitialized()

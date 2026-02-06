@@ -2,9 +2,30 @@
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-02-03
+
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.136.0+jason`
+- Update Bitmovin's native Android SDK version to `3.140.1+jason`
+- Update Bitmovin's native iOS SDK version to `3.106.0`
+- iOS: `appId` property from Expo config `Features.googleCastSDK.ios` object is now used to initialize Cast receiver application ID
+
+### Fixed
+
+- Android: Setup of custom `appId` and `messageNamespace` for casting
+
+### Added
+
+- Android: Expo config `Features.googleCastSDK.android` object properties `appId` and `messageNamespace`
+- iOS: Expo config `Features.googleCastSDK.ios` object property `messageNamespace`
+- Expo config `Features.googleCastSDK` object properties `appId` and `messageNamespace` (in case the Android and iOS properties are the same)
+
+## [1.7.0] - 2026-01-15
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.138.0+jason`
+- Update IMA SDK dependency on Android to `3.38.0`
 - Update Bitmovin's native iOS SDK version to `3.105.0`
 - Update the Google Cast iOS Sender SDK used by the example app to `4.8.4`
 
