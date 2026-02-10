@@ -181,32 +181,42 @@ private fun String.toForceReuseVideoCodecReason(): ForceReuseVideoCodecReason? =
     else -> null
 }
 
-fun Map<String, Any?>.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
-    withDouble("timeChangedInterval") { timeChangedInterval = it }
-    withInt("bandwidthEstimateWeightLimit") {
-        bandwidthMeterType = BandwidthMeterType.Default(
-            bandwidthEstimateWeightLimit = it,
-        )
+fun Map<String, Any?>.toTweaksConfig(): TweaksConfig {
+    val renewRetry = this["enableDrmLicenseRenewRetry"] as? Boolean
+    val cfg = if (renewRetry != null) {
+        // enableDrmLicenseRenewRetry is a val in the SDK, so it must be set via constructor
+        TweaksConfig(enableDrmLicenseRenewRetry = renewRetry)
+    } else {
+        TweaksConfig()
     }
-    withMap("devicesThatRequireSurfaceWorkaround") { devices ->
-        val deviceNames = devices.withStringArray("deviceNames") {
-            it.filterNotNull().map(::DeviceName)
-        } ?: emptyList()
-        val modelNames = devices.withStringArray("modelNames") {
-            it.filterNotNull().map(::DeviceName)
-        } ?: emptyList()
-        devicesThatRequireSurfaceWorkaround = deviceNames + modelNames
-    }
-    withBoolean("languagePropertyNormalization") { languagePropertyNormalization = it }
-    withDouble("localDynamicDashWindowUpdateInterval") { localDynamicDashWindowUpdateInterval = it }
-    withBoolean("useDrmSessionForClearPeriods") { useDrmSessionForClearPeriods = it }
-    withBoolean("useDrmSessionForClearSources") { useDrmSessionForClearSources = it }
-    withBoolean("useFiletypeExtractorFallbackForHls") { useFiletypeExtractorFallbackForHls = it }
-    withStringArray("forceReuseVideoCodecReasons") {
-        forceReuseVideoCodecReasons = it
-            .filterNotNull()
-            .mapNotNull(String::toForceReuseVideoCodecReason)
-            .toSet()
+
+    return cfg.apply {
+        withDouble("timeChangedInterval") { timeChangedInterval = it }
+        withInt("bandwidthEstimateWeightLimit") {
+            bandwidthMeterType = BandwidthMeterType.Default(
+                bandwidthEstimateWeightLimit = it,
+            )
+        }
+        withMap("devicesThatRequireSurfaceWorkaround") { devices ->
+            val deviceNames = devices.withStringArray("deviceNames") {
+                it.filterNotNull().map(::DeviceName)
+            } ?: emptyList()
+            val modelNames = devices.withStringArray("modelNames") {
+                it.filterNotNull().map(::DeviceName)
+            } ?: emptyList()
+            devicesThatRequireSurfaceWorkaround = deviceNames + modelNames
+        }
+        withBoolean("languagePropertyNormalization") { languagePropertyNormalization = it }
+        withDouble("localDynamicDashWindowUpdateInterval") { localDynamicDashWindowUpdateInterval = it }
+        withBoolean("useDrmSessionForClearPeriods") { useDrmSessionForClearPeriods = it }
+        withBoolean("useDrmSessionForClearSources") { useDrmSessionForClearSources = it }
+        withBoolean("useFiletypeExtractorFallbackForHls") { useFiletypeExtractorFallbackForHls = it }
+        withStringArray("forceReuseVideoCodecReasons") {
+            forceReuseVideoCodecReasons = it
+                .filterNotNull()
+                .mapNotNull(String::toForceReuseVideoCodecReason)
+                .toSet()
+        }
     }
 }
 

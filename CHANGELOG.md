@@ -6,6 +6,10 @@
 
 - Update Bitmovin's native Android SDK version to `3.141.0+jason`
 
+### Added
+
+- Android: TweaksConfig option `enableDrmLicenseRenewRetry` to retry renewing a DRM license when the first renewal attempt fails
+
 ## [1.8.0] - 2026-02-03
 
 ### Changed
