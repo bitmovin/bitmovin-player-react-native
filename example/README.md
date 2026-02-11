@@ -81,6 +81,23 @@ const player = usePlayer({
 });
 ```
 
+### Setup for custom cast appId and messageNamespace
+
+There are two different ways to set up a custom appId and messageNamespace for casting.  
+If using Expo, provide the value via the environment file: `.env` (see above) and add the following variables
+
+- `BITMOVIN_PLAYER_CAST_APP_ID=YOUR_APP_ID`
+- `BITMOVIN_PLAYER_CAST_MESSAGE_NAMESPACE=YOUR_MESSAGE_NAMESPACE`
+
+If not using Expo, manually add the values to the `AndroidManifest.xml` file. Add the config values as metadata to the `Application` tag:
+
+- `<meta-data android:name="BITMOVIN_CAST_APP_ID" android:value="YOUR_APP_ID"/>`
+- `<meta-data android:name="BITMOVIN_CAST_MESSAGE_NAMESPACE" android:value="YOUR_MESSAGE_NAMESPACE"/>`
+
+Not providing a value will result in using the default appId and messageNamespace.
+
+**Note: Please do not use the `BitmovinCastingManager.initialize` function. This function is deprecated and will be removed in future versions.**
+
 ### Add the Package Name and Bundle Identifiers as an Allowed Domain
 
 Add the following package name/bundle identifier `com.bitmovin.player.reactnative.example` of the example application as an allowed domain on [https://bitmovin.com/dashboard](https://bitmovin.com/dashboard), under `Player -> Licenses` and also under `Analytics -> Licenses`.

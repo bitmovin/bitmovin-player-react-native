@@ -2,8 +2,10 @@ package com.bitmovin.player.reactnative
 
 import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import com.bitmovin.player.casting.BitmovinCastManager
 import expo.modules.core.interfaces.ReactActivityLifecycleListener
 import java.util.concurrent.Executors
 
@@ -18,6 +20,16 @@ class ActivityLifecycleListener : ReactActivityLifecycleListener {
             return
         }
 
+        // It is important to initialize the `BitmovinCastManager`
+        // before calling the `getSharedInstance`, as this internally calls
+        // `BitmovinCastOptionsProvider` via reflection. Which calls the `BitmovinCastManager`
+        // and initializes the singleton, if not already done.
+        with(context.packageManager.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA)) {
+            val applicationId = metaData?.getString("BITMOVIN_CAST_APP_ID")
+            val messageNamespace = metaData?.getString("BITMOVIN_CAST_MESSAGE_NAMESPACE")
+            BitmovinCastManager.initialize(applicationId, messageNamespace)
+        }
+
         try {
             val castContextClass = Class.forName("com.google.android.gms.cast.framework.CastContext")
             val getSharedInstanceMethod = castContextClass.getMethod(
@@ -26,7 +38,7 @@ class ActivityLifecycleListener : ReactActivityLifecycleListener {
                 java.util.concurrent.Executor::class.java,
             )
             val executor = Executors.newSingleThreadExecutor()
-            
+
             // The method returns a Task<CastContext>, but we don't need to wait for it
             // The initialization will happen asynchronously
             getSharedInstanceMethod.invoke(null, context, executor)

@@ -4,12 +4,31 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `3.106.0`
-- Android/iOS: Web UI integration migrates to UI v4.
+- Update Bitmovin's native Android SDK version to `3.141.0+jason`
+- Web UI integration migrates to UI v4.
 - If you have no UI customizations, no action is required; the new UI is used automatically.
 - `WebUiConfig.variant` now resolves to v4 UIFactory names: `SmallScreenUi` -> `bitmovin.playerui.UIFactory.buildSmallScreenUI`, `TvUi` -> `bitmovin.playerui.UIFactory.buildTvUI`.
 - UIFactory v3 names were renamed in v4 (for example `buildDefaultSmallScreenUI` / `buildModernSmallScreenUI` -> `buildSmallScreenUI`, `buildDefaultTvUI` / `buildModernTvUI` -> `buildTvUI`).
 - If you ship a custom v3 bundle (even if it still uses the legacy v3 factory names), migrate to UI v4 or set a legacy factory explicitly via `new CustomUi('<legacy UIFactory function>')` and keep loading the v3 bundle.
+
+
+## [1.8.0] - 2026-02-03
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.140.1+jason`
+- Update Bitmovin's native iOS SDK version to `3.106.0`
+- iOS: `appId` property from Expo config `Features.googleCastSDK.ios` object is now used to initialize Cast receiver application ID
+
+### Fixed
+
+- Android: Setup of custom `appId` and `messageNamespace` for casting
+
+### Added
+
+- Android: Expo config `Features.googleCastSDK.android` object properties `appId` and `messageNamespace`
+- iOS: Expo config `Features.googleCastSDK.ios` object property `messageNamespace`
+- Expo config `Features.googleCastSDK` object properties `appId` and `messageNamespace` (in case the Android and iOS properties are the same)
 
 ## [1.7.0] - 2026-01-15
 
