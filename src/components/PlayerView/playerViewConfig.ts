@@ -92,7 +92,7 @@ export abstract class Variant {
    * When you added a new function or want to use a different function of our `UIFactory`,
    * you can specify the full qualifier name including namespaces.
    * e.g. `bitmovin.playerui.UIFactory.buildSmallScreenUI` for the SmallScreenUi.
-   * @see UIFactory https://github.com/bitmovin/bitmovin-player-ui/blob/develop/src/ts/uifactory.ts#L60
+   * @see UIFactory https://github.com/bitmovin/bitmovin-player-ui/blob/develop/src/ts/UIFactory.ts
    *
    * Notes:
    * - It's not necessary to use our `UIFactory`. Any static function can be specified.
