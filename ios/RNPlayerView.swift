@@ -146,7 +146,7 @@ public class RNPlayerView: ExpoView {
         }
 
         let previousPictureInPictureAvailableValue: Bool
-        if let previousPlayer = playerView?.player, previousPlayer !== player {
+        if playerView?.player != nil {
             prepareForNewPlayerAttachment()
         }
         if let playerView {
