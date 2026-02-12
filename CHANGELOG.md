@@ -9,7 +9,7 @@
 ### Fixed
 
 - Event handlers could fail to fire in some setups, notably on Android with Paper (old architecture).
-- iOS: Re-attaching a new Player to an existing PlayerView now cleanly resets listeners and fullscreen/Picture-in-Picture state.
+- iOS: Re-attaching a new Player to an existing PlayerView now cleanly resets state.
 
 ## [1.8.0] - 2026-02-03
 
