@@ -251,6 +251,8 @@ private extension RNPlayerView {
         }
 
         // Avoid carrying over fullscreen/PiP state to a new player.
+        // Native PlayerView replaces its UI controller when the player instance changes, and does not
+        // support preserving fullscreen/PiP state across that swap. We tear down first to avoid stale state.
         if playerView.isFullscreen {
             playerView.exitFullscreen()
         }
