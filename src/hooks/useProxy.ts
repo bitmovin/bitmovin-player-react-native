@@ -22,7 +22,7 @@ export function useProxy(): <E extends Event>(
     <E extends Event>(callback?: Callback<E>) =>
       (event: { nativeEvent: E }) => {
         // Remove the target field from the event as it's React Native internal metadata
-        const { target, ...eventWithoutTarget } = event.nativeEvent as any;
+        const { target: _target, ...eventWithoutTarget } = event.nativeEvent as any;
         const sanitized = normalizeNonFinite(eventWithoutTarget);
         callback?.(sanitized as E);
       },
