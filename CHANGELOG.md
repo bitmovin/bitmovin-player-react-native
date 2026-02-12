@@ -7,6 +7,10 @@
 - Update Bitmovin's native iOS SDK version to `3.107.0`
 - Update Bitmovin's native Android SDK version to `3.141.0+jason`
 
+### Fixed
+
+- iOS: some valid FairPlay configurations could fail during source loading with an "Unsupported URL" playback error.
+
 ## [1.8.0] - 2026-02-03
 
 ### Changed
