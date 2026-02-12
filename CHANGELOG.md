@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Changed
+- iOS: When re-attaching a different Player to an existing PlayerView, fullscreen and Picture in Picture are exited before the swap
+
 ### Fixed
 
 - Events occasionally not being delivered to event handlers
