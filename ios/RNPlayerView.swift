@@ -145,21 +145,15 @@ public class RNPlayerView: ExpoView {
             player.config.styleConfig.userInterfaceConfig = userInterfaceConfig
         }
 
-        let previousPictureInPictureAvailableValue: Bool
+        let previousPictureInPictureAvailableValue = playerView?.isPictureInPictureAvailable ?? false
         if playerView?.player != nil {
             prepareForNewPlayerAttachment()
         }
-        if let playerView {
-            playerView.player = player
-            previousPictureInPictureAvailableValue = playerView.isPictureInPictureAvailable
-        } else {
-            self.playerView = PlayerView(
-                player: player,
-                frame: bounds,
-                playerViewConfig: playerViewConfigWrapper?.playerViewConfig ?? PlayerViewConfig()
-            )
-            previousPictureInPictureAvailableValue = false
-        }
+        self.playerView = PlayerView(
+            player: player,
+            frame: bounds,
+            playerViewConfig: playerViewConfigWrapper?.playerViewConfig ?? PlayerViewConfig()
+        )
 
         player.add(listener: self)
         playerView?.add(listener: self)
