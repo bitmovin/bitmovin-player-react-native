@@ -126,11 +126,14 @@ public class RNPlayerView: ExpoView {
     ) {
         self.playerId = playerId
         guard let playerId else {
-            playerView?.player?.remove(listener: self)
-            playerView?.player = nil
+            detachCurrentPlayer()
             return
         }
         guard let player = self.appContext?.moduleRegistry.get(PlayerModule.self)?.retrieve(playerId) else {
+            return
+        }
+        if let playerView, let currentPlayer = playerView.player, currentPlayer === player {
+            // Player is already attached to the PlayerView
             return
         }
 
@@ -142,18 +145,15 @@ public class RNPlayerView: ExpoView {
             player.config.styleConfig.userInterfaceConfig = userInterfaceConfig
         }
 
-        let previousPictureInPictureAvailableValue: Bool
-        if let playerView {
-            playerView.player = player
-            previousPictureInPictureAvailableValue = playerView.isPictureInPictureAvailable
-        } else {
-            self.playerView = PlayerView(
-                player: player,
-                frame: bounds,
-                playerViewConfig: playerViewConfigWrapper?.playerViewConfig ?? PlayerViewConfig()
-            )
-            previousPictureInPictureAvailableValue = false
+        let previousPictureInPictureAvailableValue = playerView?.isPictureInPictureAvailable ?? false
+        if playerView?.player != nil {
+            prepareForNewPlayerAttachment()
         }
+        self.playerView = PlayerView(
+            player: player,
+            frame: bounds,
+            playerViewConfig: playerViewConfigWrapper?.playerViewConfig ?? PlayerViewConfig()
+        )
 
         player.add(listener: self)
         playerView?.add(listener: self)
@@ -236,7 +236,35 @@ public class RNPlayerView: ExpoView {
 }
 
 private extension RNPlayerView {
-    // Helper methods no longer needed - using EventDispatcher properties directly
+    func detachCurrentPlayer() {
+        guard let playerView else {
+            return
+        }
+        playerView.player?.remove(listener: self)
+        playerView.remove(listener: self)
+        playerView.player = nil
+    }
+
+    func prepareForNewPlayerAttachment() {
+        guard let playerView else {
+            return
+        }
+
+        // Avoid carrying over fullscreen/PiP state to a new player.
+        // Native PlayerView replaces its UI controller when the player instance changes, and does not
+        // support preserving fullscreen/PiP state across that swap. We tear down first to avoid stale state.
+        if playerView.isFullscreen {
+            playerView.exitFullscreen()
+        }
+        if playerView.isPictureInPicture {
+            playerView.exitPictureInPicture()
+        }
+
+        detachCurrentPlayer()
+
+        // Force a fresh PlayerView on next attach.
+        self.playerView = nil
+    }
 }
 
 private extension Event {

@@ -4,6 +4,7 @@
 
 ### Changed
 
+- iOS: When re-attaching a different Player to an existing PlayerView, fullscreen and Picture-in-Picture are exited before the swap
 - Update Bitmovin's native iOS SDK version to `3.107.0`
 - Update Bitmovin's native Android SDK version to `3.141.0+jason`
 - Android/iOS: Bitmovin Player Web UI integration migrates to v4 (checkout [What's new in UI v4](https://developer.bitmovin.com/playback/docs/whats-new-in-ui-v4))
@@ -19,6 +20,8 @@
 
 ### Fixed
 
+- Event handlers could fail to fire in some setups, notably on Android with Paper (old architecture).
+- iOS: Re-attaching a new Player to an existing PlayerView now cleanly resets state.
 - iOS: some valid FairPlay configurations could fail during source loading with an "Unsupported URL" playback error.
 
 ## [1.8.0] - 2026-02-03
