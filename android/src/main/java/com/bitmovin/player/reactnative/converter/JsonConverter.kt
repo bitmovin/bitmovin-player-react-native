@@ -761,8 +761,8 @@ private fun Map<String, Any?>.toVariant(): UiConfig.WebUi.Variant? {
     val uiManagerFactoryFunction = getMap("variant")?.getString("uiManagerFactoryFunction") ?: return null
 
     return when (uiManagerFactoryFunction) {
-        "bitmovin.playerui.UIFactory.buildDefaultSmallScreenUI" -> UiConfig.WebUi.Variant.SmallScreenUi
-        "bitmovin.playerui.UIFactory.buildDefaultTvUI" -> UiConfig.WebUi.Variant.TvUi
+        "bitmovin.playerui.UIFactory.buildSmallScreenUI" -> UiConfig.WebUi.Variant.SmallScreenUi
+        "bitmovin.playerui.UIFactory.buildTvUI" -> UiConfig.WebUi.Variant.TvUi
         else -> UiConfig.WebUi.Variant.Custom(uiManagerFactoryFunction)
     }
 }
