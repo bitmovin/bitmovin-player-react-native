@@ -6,6 +6,16 @@
 
 - Update Bitmovin's native iOS SDK version to `3.107.0`
 - Update Bitmovin's native Android SDK version to `3.141.0+jason`
+- Android/iOS: Bitmovin Player Web UI integration migrates to v4 (checkout [What's new in UI v4](https://developer.bitmovin.com/playback/docs/whats-new-in-ui-v4))
+  - `WebUiConfig.variant` now resolves to v4 UIFactory names:
+    - `SmallScreenUi` -> `bitmovin.playerui.UIFactory.buildSmallScreenUI`
+    - `TvUi` -> `bitmovin.playerui.UIFactory.buildTvUI`.
+  - UIFactory v3 names were renamed in v4. For example:
+    - `buildDefaultSmallScreenUI` / `buildModernSmallScreenUI` -> `buildSmallScreenUI`
+    - `buildDefaultTvUI` / `buildModernTvUI` -> `buildTvUI`
+  - If you have no UI customizations, no action is required; the new UI is used automatically.
+  - If you ship a custom v3 bundle (even if it still uses the legacy v3 factory names), [migrate to UI v4](https://developer.bitmovin.com/playback/reference/migration-guide-v3-to-v4) or set a legacy factory explicitly via `new CustomUi('<legacy UIFactory function>')` and keep loading the v3 bundle.
+
 
 ### Fixed
 
