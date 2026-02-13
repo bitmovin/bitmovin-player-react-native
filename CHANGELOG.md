@@ -5,7 +5,7 @@
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.141.0+jason`
-- Android/iOS: Bitmovin Player Web UI integration migrates to v4.
+- Android/iOS: Bitmovin Player Web UI integration migrates to v4 (checkout [What's new in UI v4](https://developer.bitmovin.com/playback/docs/whats-new-in-ui-v4))
   - `WebUiConfig.variant` now resolves to v4 UIFactory names:
     - `SmallScreenUi` -> `bitmovin.playerui.UIFactory.buildSmallScreenUI`
     - `TvUi` -> `bitmovin.playerui.UIFactory.buildTvUI`.
