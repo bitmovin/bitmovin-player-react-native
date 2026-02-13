@@ -1,9 +1,8 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
-  TimeChangedEvent,
   usePlayer,
   PlayerView,
   SourceType,
@@ -21,12 +20,7 @@ export default function BasicPlayback() {
     remoteControlConfig: {
       isCastEnabled: false,
     },
-    playbackConfig: {
-      isAutoplayEnabled: true,
-    },
   });
-
-  const hasSwitchedSource = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -57,25 +51,6 @@ export default function BasicPlayback() {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
 
-  const onTimeChanged = useCallback(
-    (event: TimeChangedEvent) => {
-      prettyPrint(`EVENT [${event.name}]`, event);
-      if (hasSwitchedSource.current) {
-        return;
-      }
-
-      if (event.currentTime >= 10) {
-        hasSwitchedSource.current = true;
-        player.load({
-          url: 'https://stream.streambase.ch/argovia/mp3-192/chmedia-oneplus-tv/op-2682513',
-          type: SourceType.PROGRESSIVE,
-          title: 'Argovia Radio',
-        });
-      }
-    },
-    [player]
-  );
-
   return (
     <View style={styles.container}>
       <PlayerView
@@ -93,7 +68,6 @@ export default function BasicPlayback() {
         onVideoPlaybackQualityChanged={onEvent}
         onAudioAdded={onEvent}
         onAudioChanged={onEvent}
-        onTimeChanged={onTimeChanged}
       />
     </View>
   );
