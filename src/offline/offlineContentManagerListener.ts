@@ -44,8 +44,7 @@ export interface OfflineEvent<T extends OfflineEventType> {
  * Emitted when the download process has completed.
  * @platform Android, iOS
  */
-export interface OnCompletedEvent
-  extends OfflineEvent<OfflineEventType.onCompleted> {
+export interface OnCompletedEvent extends OfflineEvent<OfflineEventType.onCompleted> {
   /**
    * The options that are available to download
    */
@@ -56,8 +55,7 @@ export interface OnCompletedEvent
  * Emitted when an error has occurred.
  * @platform Android, iOS
  */
-export interface OnErrorEvent
-  extends OfflineEvent<OfflineEventType.onError> {
+export interface OnErrorEvent extends OfflineEvent<OfflineEventType.onError> {
   /**
    * The error code of the process error
    */
@@ -72,8 +70,7 @@ export interface OnErrorEvent
  * Emitted when there is a progress change for the process call.
  * @platform Android, iOS
  */
-export interface OnProgressEvent
-  extends OfflineEvent<OfflineEventType.onProgress> {
+export interface OnProgressEvent extends OfflineEvent<OfflineEventType.onProgress> {
   /**
    * The progress for the current process
    */
@@ -84,8 +81,7 @@ export interface OnProgressEvent
  * Emitted when the `OfflineContentOptions` is available after a `OfflineContentManager.getOptions` call.
  * @platform Android, iOS
  */
-export interface OnOptionsAvailableEvent
-  extends OfflineEvent<OfflineEventType.onOptionsAvailable> {
+export interface OnOptionsAvailableEvent extends OfflineEvent<OfflineEventType.onOptionsAvailable> {
   /**
    * The options that are available to download
    */
