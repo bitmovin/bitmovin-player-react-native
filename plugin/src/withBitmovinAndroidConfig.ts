@@ -166,6 +166,33 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
         'com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME',
         'com.bitmovin.player.casting.BitmovinCastOptionsProvider'
       );
+
+      let appId = features.googleCastSDK.appId;
+      let messageNamespace = features.googleCastSDK.messageNamespace;
+      if (typeof features.googleCastSDK.android == 'object') {
+        // Override the top level appId and messageNamespace
+        appId = features.googleCastSDK.android?.appId || appId;
+        messageNamespace =
+          features.googleCastSDK.android.messageNamespace || messageNamespace;
+      }
+
+      if (appId) {
+        AndroidConfig.Manifest.addMetaDataItemToMainApplication(
+          mainApplication,
+          'BITMOVIN_CAST_APP_ID',
+          appId
+        );
+
+        // Adding a messageNamespace inside the appId if block,
+        // as there should not be a custom namespace without a custom appId
+        if (messageNamespace) {
+          AndroidConfig.Manifest.addMetaDataItemToMainApplication(
+            mainApplication,
+            'BITMOVIN_CAST_MESSAGE_NAMESPACE',
+            messageNamespace
+          );
+        }
+      }
     }
 
     return config;
@@ -209,9 +236,12 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
     const mavenRepos = JSON.parse(
       existingEntry?.type == 'property' ? existingEntry.value : '[]'
     );
-    mavenRepos.push({
-      url: 'https://artifacts.bitmovin.com/artifactory/public-releases',
-    });
+    const bitmovinRepoUrl =
+      'https://artifacts.bitmovin.com/artifactory/public-releases';
+    // Only add if not already present
+    if (!mavenRepos.some((repo: any) => repo.url === bitmovinRepoUrl)) {
+      mavenRepos.push({ url: bitmovinRepoUrl });
+    }
     properties.push({
       type: 'property',
       key: 'android.extraMavenRepos',
