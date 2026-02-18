@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
-    "@expo/cli": "^0.24.23",
+    "@expo/cli": "^0.24.24",
     "@expo/config-types": "^53.0.5",
     "@types/react": "~19.0.10",
     "dotenv": "^17.2.0",
