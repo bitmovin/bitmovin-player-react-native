@@ -879,7 +879,7 @@
     "@eslint/core" "^0.15.1"
     levn "^0.4.1"
 
-"@expo/cli@0.24.24":
+"@expo/cli@0.24.24", "@expo/cli@^0.24.24":
   version "0.24.24"
   resolved "https://registry.yarnpkg.com/@expo/cli/-/cli-0.24.24.tgz#383f5cef56b0e456ef8e1343c7d6a387ff3c6b94"
   integrity sha512-XybHfF2QNPJNnHoUKHcG796iEkX5126UuTAs6MSpZuvZRRQRj/sGCLX+driCOVHbDOpcCOusMuHrhxHbtTApyg==
@@ -946,82 +946,6 @@
     undici "^6.18.2"
     wrap-ansi "^7.0.0"
     ws "^8.12.1"
-
-"@expo/cli@^0.24.23":
-  version "0.24.23"
-  resolved "https://registry.yarnpkg.com/@expo/cli/-/cli-0.24.23.tgz#5e25c76a6a94a9fa8309b2f1309d993a95fa4860"
-  integrity sha512-uIlgadw38yVOczYOm9BeW0wkWdC5rtcSP0+NHqOS31DAh2KNzOPRt9dnNuP0ErS+QJM3ymZSjZgo4hUvyFQ7Kw==
-  dependencies:
-    "@0no-co/graphql.web" "^1.0.8"
-    "@babel/runtime" "^7.20.0"
-    "@expo/code-signing-certificates" "^0.0.5"
-    "@expo/config" "~11.0.13"
-    "@expo/config-plugins" "~10.1.2"
-    "@expo/devcert" "^1.1.2"
-    "@expo/env" "~1.0.7"
-    "@expo/image-utils" "^0.7.6"
-    "@expo/json-file" "^9.1.5"
-    "@expo/metro-config" "~0.20.18"
-    "@expo/osascript" "^2.2.5"
-    "@expo/package-manager" "^1.8.6"
-    "@expo/plist" "^0.3.5"
-    "@expo/prebuild-config" "^9.0.12"
-    "@expo/schema-utils" "^0.1.0"
-    "@expo/spawn-async" "^1.7.2"
-    "@expo/ws-tunnel" "^1.0.1"
-    "@expo/xcpretty" "^4.3.0"
-    "@react-native/dev-middleware" "0.79.6"
-    "@urql/core" "^5.0.6"
-    "@urql/exchange-retry" "^1.3.0"
-    accepts "^1.3.8"
-    arg "^5.0.2"
-    better-opn "~3.0.2"
-    bplist-creator "0.1.0"
-    bplist-parser "^0.3.1"
-    chalk "^4.0.0"
-    ci-info "^3.3.0"
-    compression "^1.7.4"
-    connect "^3.7.0"
-    debug "^4.3.4"
-    env-editor "^0.4.1"
-    freeport-async "^2.0.0"
-    getenv "^2.0.0"
-    glob "^10.4.2"
-    lan-network "^0.1.6"
-    minimatch "^9.0.0"
-    node-forge "^1.3.1"
-    npm-package-arg "^11.0.0"
-    ora "^3.4.0"
-    picomatch "^3.0.1"
-    pretty-bytes "^5.6.0"
-    pretty-format "^29.7.0"
-    progress "^2.0.3"
-    prompts "^2.3.2"
-    qrcode-terminal "0.11.0"
-    require-from-string "^2.0.2"
-    requireg "^0.2.2"
-    resolve "^1.22.2"
-    resolve-from "^5.0.0"
-    resolve.exports "^2.0.3"
-    semver "^7.6.0"
-    send "^0.19.0"
-    slugify "^1.3.4"
-    source-map-support "~0.5.21"
-    stacktrace-parser "^0.1.10"
-    structured-headers "^0.4.1"
-    tar "^7.4.3"
-    terminal-link "^2.1.1"
-    undici "^6.18.2"
-    wrap-ansi "^7.0.0"
-    ws "^8.12.1"
-
-"@expo/code-signing-certificates@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@expo/code-signing-certificates/-/code-signing-certificates-0.0.5.tgz#a693ff684fb20c4725dade4b88a6a9f96b02496c"
-  integrity sha512-BNhXkY1bblxKZpltzAx98G2Egj9g1Q+JRcvR7E99DOj862FTCX+ZPsAUtPTr7aHxwtrL7+fL3r0JSmM9kBm+Bw==
-  dependencies:
-    node-forge "^1.2.1"
-    nullthrows "^1.1.1"
 
 "@expo/code-signing-certificates@^0.0.6":
   version "0.0.6"
@@ -5543,7 +5467,7 @@ nocache@^3.0.1:
   resolved "https://registry.yarnpkg.com/nocache/-/nocache-3.0.4.tgz#5b37a56ec6e09fc7d401dceaed2eab40c8bfdf79"
   integrity sha512-WDD0bdg9mbq6F4mRxEYcPWwfA1vxd0mrvKOyxI7Xj/atfRHVeutzuWByG//jfm4uPzp0y4Kj051EORCBSQMycw==
 
-node-forge@^1.2.1, node-forge@^1.3.1, node-forge@^1.3.3:
+node-forge@^1.3.3:
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-1.3.3.tgz#0ad80f6333b3a0045e827ac20b7f735f93716751"
   integrity sha512-rLvcdSyRCyouf6jcOIPe/BgwG/d7hKjzMKOas33/pHEr6gbq18IK9zV7DiPvzsz0oBJPme6qr6H6kGZuI9/DZg==
