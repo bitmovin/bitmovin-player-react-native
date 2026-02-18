@@ -47,6 +47,10 @@
 - iOS: Expo config `Features.googleCastSDK.ios` object property `messageNamespace`
 - Expo config `Features.googleCastSDK` object properties `appId` and `messageNamespace` (in case the Android and iOS properties are the same)
 
+### Known Issues
+
+- Event handlers can fail to fire in some setups, notably on Android with Paper (old architecture). This affects versions `1.0.0` to `1.8.x` and is fixed in `1.9.0`.
+
 ## [1.7.0] - 2026-01-15
 
 ### Changed
