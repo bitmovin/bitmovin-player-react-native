@@ -181,20 +181,15 @@ private fun String.toForceReuseVideoCodecReason(): ForceReuseVideoCodecReason? =
     else -> null
 }
 
-fun Map<String, Any?>.toTweaksConfig(): TweaksConfig {
-    val renewRetry = this["enableDrmLicenseRenewRetry"] as? Boolean
-    val cfg = if (renewRetry != null) {
-        // enableDrmLicenseRenewRetry is a val in the SDK, so it must be set via constructor
-        TweaksConfig(enableDrmLicenseRenewRetry = renewRetry)
-    } else {
-        TweaksConfig()
-    }
-
-    return cfg.apply {
-        withDouble("timeChangedInterval") { timeChangedInterval = it }
+fun Map<String, Any?>.toTweaksConfig(): TweaksConfig =
+    TweaksConfig.Builder().apply {
+        withBoolean("enableDrmLicenseRenewRetry") { setEnableDrmLicenseRenewRetry(it) }
+        withDouble("timeChangedInterval") { setTimeChangedInterval(it) }
         withInt("bandwidthEstimateWeightLimit") {
-            bandwidthMeterType = BandwidthMeterType.Default(
-                bandwidthEstimateWeightLimit = it,
+            setBandwidthMeterType(
+                BandwidthMeterType.Default(
+                    bandwidthEstimateWeightLimit = it,
+                )
             )
         }
         withMap("devicesThatRequireSurfaceWorkaround") { devices ->
@@ -204,21 +199,22 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig {
             val modelNames = devices.withStringArray("modelNames") {
                 it.filterNotNull().map(::DeviceName)
             } ?: emptyList()
-            devicesThatRequireSurfaceWorkaround = deviceNames + modelNames
+            setDevicesThatRequireSurfaceWorkaround(deviceNames + modelNames)
         }
-        withBoolean("languagePropertyNormalization") { languagePropertyNormalization = it }
-        withDouble("localDynamicDashWindowUpdateInterval") { localDynamicDashWindowUpdateInterval = it }
-        withBoolean("useDrmSessionForClearPeriods") { useDrmSessionForClearPeriods = it }
-        withBoolean("useDrmSessionForClearSources") { useDrmSessionForClearSources = it }
-        withBoolean("useFiletypeExtractorFallbackForHls") { useFiletypeExtractorFallbackForHls = it }
+        withBoolean("languagePropertyNormalization") { setLanguagePropertyNormalization(it) }
+        withDouble("localDynamicDashWindowUpdateInterval") { setLocalDynamicDashWindowUpdateInterval(it) }
+        withBoolean("useDrmSessionForClearPeriods") { setUseDrmSessionForClearPeriods(it) }
+        withBoolean("useDrmSessionForClearSources") { setUseDrmSessionForClearSources(it) }
+        withBoolean("useFiletypeExtractorFallbackForHls") { setUseFiletypeExtractorFallbackForHls(it) }
         withStringArray("forceReuseVideoCodecReasons") {
-            forceReuseVideoCodecReasons = it
-                .filterNotNull()
-                .mapNotNull(String::toForceReuseVideoCodecReason)
-                .toSet()
+            setForceReuseVideoCodecReasons(
+                it
+                    .filterNotNull()
+                    .mapNotNull(String::toForceReuseVideoCodecReason)
+                    .toSet()
+            )
         }
-    }
-}
+    }.build()
 
 fun Map<String, Any?>.toAdvertisingConfig(): AdvertisingConfig? {
     val schedule = getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: emptyList()
