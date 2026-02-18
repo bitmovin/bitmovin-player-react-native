@@ -106,7 +106,8 @@ interface BaseDateRangeMetadataEntry<TPlatform extends 'ios' | 'android'> {
  *
  * @platform Android
  */
-export interface AndroidDateRangeMetadataEntry extends BaseDateRangeMetadataEntry<'android'> {
+export interface AndroidDateRangeMetadataEntry
+  extends BaseDateRangeMetadataEntry<'android'> {
   /**
    * Time range of the entry relative to the beginning of the playback, in seconds.
    */
@@ -129,7 +130,8 @@ export interface AndroidDateRangeMetadataEntry extends BaseDateRangeMetadataEntr
  *
  * @platform iOS, tvOS
  */
-export interface IosDateRangeMetadataEntry extends BaseDateRangeMetadataEntry<'ios'> {
+export interface IosDateRangeMetadataEntry
+  extends BaseDateRangeMetadataEntry<'ios'> {
   /**
    * Time range of the entry relative to Unix Epoch, in seconds.
    *
