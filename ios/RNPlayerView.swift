@@ -514,6 +514,7 @@ extension RNPlayerView: PlayerListener {
     }
 
     public func onFairplayLicenseAcquired(_ event: FairplayLicenseAcquiredEvent, player: Player) {
+        FairplayContentKeyRequestRegistry.store(event.contentKeyRequest)
         onBmpFairplayLicenseAcquired(event.eventPayload())
     }
 #endif

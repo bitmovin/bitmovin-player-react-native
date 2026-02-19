@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { View, Platform, StyleSheet } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Platform, StyleSheet, Button } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -7,6 +7,9 @@ import {
   PlayerView,
   SourceType,
   SourceConfig,
+  FairplayLicenseAcquiredEvent,
+  FairplayContentKeyRequest,
+  DebugConfig,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
@@ -117,6 +120,9 @@ export default function BasicDrmPlayback() {
     },
   });
 
+  const [fairplayContentKeyRequest, setFairplayContentKeyRequest] =
+    useState<FairplayContentKeyRequest | null>(null);
+
   useFocusEffect(
     useCallback(() => {
       player.load(source);
@@ -134,6 +140,24 @@ export default function BasicDrmPlayback() {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
 
+  const onFairplayLicenseAcquired = useCallback(
+    (event: FairplayLicenseAcquiredEvent) => {
+      prettyPrint(`EVENT [${event.name}]`, event);
+      setFairplayContentKeyRequest(event.contentKeyRequest);
+    },
+    []
+  );
+
+  const onRenewExpiringLicense = useCallback(() => {
+    console.log('RenewExpiringLicense called');
+    if (fairplayContentKeyRequest) {
+      console.log(
+        'RenewExpiringLicense skdUri=[' + fairplayContentKeyRequest.skdUri + ']'
+      );
+      player.source?.renewExpiringLicense(fairplayContentKeyRequest);
+    }
+  }, [player, fairplayContentKeyRequest]);
+
   return (
     <View style={styles.container}>
       <PlayerView
@@ -146,8 +170,14 @@ export default function BasicDrmPlayback() {
         onSourceLoaded={onEvent}
         onSeek={onEvent}
         onSeeked={onEvent}
-        onFairplayLicenseAcquired={onEvent}
+        onFairplayLicenseAcquired={onFairplayLicenseAcquired}
       />
+      {fairplayContentKeyRequest != null && (
+        <Button
+          title="Renew Expiring License"
+          onPress={onRenewExpiringLicense}
+        />
+      )}
     </View>
   );
 }

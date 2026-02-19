@@ -4,7 +4,8 @@
 
 ### Added
 
-- iOS: `onFairplayLicenseAcquired` player event, providing the `contentKeyRequest.skdUri` of the acquired FairPlay license
+- iOS: `onFairplayLicenseAcquired` player event, providing the `contentKeyRequest` of the acquired FairPlay license
+- iOS: `Source.renewExpiringLicense` method to proactively renew an expiring FairPlay license using the `contentKeyRequest` from a `FairplayLicenseAcquiredEvent`
 
 ### Changed
 

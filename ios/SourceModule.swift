@@ -1,12 +1,40 @@
 import BitmovinPlayer
 import ExpoModulesCore
 
+/**
+ * Registry for `FairplayContentKeyRequest` instances keyed by `skdUri`.
+ *
+ * `FairplayContentKeyRequest` wraps an `AVContentKeyRequest`, which is a native iOS object
+ * that cannot be serialized across the React Native bridge. This registry retains the native
+ * instances so they can be retrieved when `renewExpiringLicense` is called from the JS layer
+ * using only the `skdUri` string.
+ */
+internal final class FairplayContentKeyRequestRegistry {
+    private static let shared = FairplayContentKeyRequestRegistry()
+    private var requests: [String: FairplayContentKeyRequest] = [:]
+
+    private init() {}
+
+    static func store(_ contentKeyRequest: FairplayContentKeyRequest) {
+        shared.requests[contentKeyRequest.skdUri] = contentKeyRequest
+    }
+
+    static func retrieve(skdUri: String) -> FairplayContentKeyRequest? {
+        shared.requests[skdUri]
+    }
+
+    static func remove(skdUri: String) {
+        shared.requests.removeValue(forKey: skdUri)
+    }
+}
+
 public class SourceModule: Module {
     /// In-memory mapping from `nativeId`s to `Source` instances.
     private var sources: Registry<Source> = [:]
     /// In-memory mapping from `nativeId`s to `SourceConfig` instances for casting.
     private var castSourceConfigs: Registry<SourceConfig> = [:]
 
+    // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("SourceModule")
         OnCreate {
@@ -58,6 +86,13 @@ public class SourceModule: Module {
         }.runOnQueue(.main)
         AsyncFunction("getThumbnail") { [weak self] (nativeId: NativeId, time: Double) -> [String: Any]? in
             self?.getSourceThumbnail(nativeId: nativeId, time: time)
+        }.runOnQueue(.main)
+        AsyncFunction("renewExpiringLicense") { [weak self] (nativeId: NativeId, skdUri: String) in
+            guard let source = self?.sources[nativeId],
+                  let contentKeyRequest = FairplayContentKeyRequestRegistry.retrieve(skdUri: skdUri) else {
+                return
+            }
+            source.drm.fairplay.renewExpiringLicense(for: contentKeyRequest)
         }.runOnQueue(.main)
     }
 
