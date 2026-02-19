@@ -1,4 +1,5 @@
 import BitmovinPlayer
+import BitmovinPlayerCore
 import ExpoModulesCore
 
 /**
