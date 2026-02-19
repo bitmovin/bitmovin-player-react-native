@@ -146,6 +146,7 @@ export default function BasicDrmPlayback() {
         onSourceLoaded={onEvent}
         onSeek={onEvent}
         onSeeked={onEvent}
+        onFairplayLicenseAcquired={onEvent}
       />
     </View>
   );

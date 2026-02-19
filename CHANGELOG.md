@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- iOS: `onFairplayLicenseAcquired` player event, providing the `contentKeyRequest.skdUri` of the acquired FairPlay license
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.142.0+jason`
