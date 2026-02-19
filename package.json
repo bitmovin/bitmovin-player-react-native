@@ -72,12 +72,9 @@
     "lint-staged": "13.0.3",
     "prettier": "^3.6.2",
     "react": "19.0.0",
-    "react-native": "0.79.6",
+    "react-native": "0.79.5",
     "typedoc": "^0.28.7",
-    "typescript": "~5.8.3",
-    "@react-native-community/cli": "18.0.0",
-    "@react-native-community/cli-platform-ios": "18.0.0",
-    "@react-native-community/cli-platform-android": "18.0.0"
+    "typescript": "~5.8.3"
   },
   "peerDependencies": {
     "expo": ">=53.0.0",
@@ -98,8 +95,5 @@
       "./scripts/lint-android.sh"
     ],
     "*.(ts|tsx|js|jsx|md|json|yml|yaml)": "prettier --write --no-error-on-unmatched-pattern"
-  },
-  "engines": {
-    "node": ">=22.0.0"
   }
 }
