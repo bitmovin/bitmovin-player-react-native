@@ -2,6 +2,33 @@ import BitmovinPlayer
 import Combine
 import ExpoModulesCore
 
+/**
+ * Registry for `FairplayContentKeyRequest` instances keyed by `skdUri`.
+ *
+ * `FairplayContentKeyRequest` wraps an `AVContentKeyRequest`, which is a native iOS object
+ * that cannot be serialized across the React Native bridge. This registry retains the native
+ * instances so they can be retrieved when `renewExpiringLicense` is called from the JS layer
+ * using only the `skdUri` string.
+ */
+internal final class FairplayContentKeyRequestRegistry {
+    private static let shared = FairplayContentKeyRequestRegistry()
+    private var requests: [String: FairplayContentKeyRequest] = [:]
+
+    private init() {}
+
+    static func store(_ contentKeyRequest: FairplayContentKeyRequest) {
+        shared.requests[contentKeyRequest.skdUri] = contentKeyRequest
+    }
+
+    static func retrieve(skdUri: String) -> FairplayContentKeyRequest? {
+        shared.requests[skdUri]
+    }
+
+    static func remove(skdUri: String) {
+        shared.requests.removeValue(forKey: skdUri)
+    }
+}
+
 public class SourceModule: Module {
     /// In-memory mapping from `nativeId`s to `Source` instances.
     private var sources: Registry<Source> = [:]

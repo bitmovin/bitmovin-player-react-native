@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Platform, StyleSheet, Button } from 'react-native';
+import { View, Platform, StyleSheet, Button } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -154,9 +154,13 @@ export default function BasicDrmPlayback() {
       console.log(
         'RenewExpiringLicense skdUri=[' + fairplayContentKeyRequest.skdUri + ']'
       );
+<<<<<<< HEAD
       player.source?.drm?.fairplay.renewExpiringLicense(
         fairplayContentKeyRequest
       );
+=======
+      player.source?.renewExpiringLicense(fairplayContentKeyRequest);
+>>>>>>> 8e340e7b (Exposing renewExpiringLicense API for iOS SDK)
     }
   }, [player, fairplayContentKeyRequest]);
 
@@ -180,7 +184,11 @@ export default function BasicDrmPlayback() {
           onPress={onRenewExpiringLicense}
         />
       )}
+<<<<<<< HEAD
     </SafeAreaView>
+=======
+    </View>
+>>>>>>> 8e340e7b (Exposing renewExpiringLicense API for iOS SDK)
   );
 }
 
