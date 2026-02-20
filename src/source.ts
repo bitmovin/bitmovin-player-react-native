@@ -154,8 +154,8 @@ export interface SourceRemoteControlConfig {
  */
 export class Source extends NativeInstance<SourceConfig> {
   /**
-   * Provides access to DRM runtime APIs for this source, such as
-   * {@link Drm.fairplay}.{@link FairplayDrmApi.renewExpiringLicense}.
+   * Provides access to DRM runtime APIs for this source.
+   * Use `drm.fairplay` to access {@link FairplayDrmApi} for FairPlay-specific APIs such as {@link FairplayDrmApi.renewExpiringLicense}.
    *
    * `undefined` if the source was created without a {@link DrmConfig}.
    */
