@@ -18,6 +18,10 @@
 - iOS, tvOS: `onFairplayLicenseAcquired` player event, providing the `contentKeyRequest` of the acquired FairPlay license
 - iOS, tvOS: `Source.drm.fairplay.renewExpiringLicense` method to proactively renew an expiring FairPlay license using the `contentKeyRequest` from a `FairplayLicenseAcquiredEvent`
 
+### Added
+
+- Android: TweaksConfig option `enableDrmLicenseRenewRetry` to retry renewing a DRM license when the first renewal attempt fails
+
 ## [1.9.0] - 2026-02-13
 
 ### Changed
