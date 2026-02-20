@@ -835,7 +835,7 @@ export type MetadataEvent = MetadataParsedEvent;
 /**
  * Represents the FairPlay content key request associated with a license acquisition.
  *
- * @platform iOS
+ * @platform iOS, tvOS
  */
 export interface FairplayContentKeyRequest {
   /**
@@ -847,7 +847,7 @@ export interface FairplayContentKeyRequest {
 /**
  * Emitted when a FairPlay license has been acquired successfully.
  *
- * @platform iOS
+ * @platform iOS, tvOS
  */
 export interface FairplayLicenseAcquiredEvent extends Event {
   /**

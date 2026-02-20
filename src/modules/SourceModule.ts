@@ -71,7 +71,9 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
   getThumbnail(nativeId: string, time: number): Promise<Thumbnail | null>;
 
   /**
-   * Renews an expiring FairPlay license for the given content key request (iOS only).
+   * Renews an expiring FairPlay license for the given content key request.
+   *
+   * @platform iOS, tvOS
    */
   renewExpiringLicense(nativeId: string, skdUri: string): Promise<void>;
 }

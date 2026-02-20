@@ -1,11 +1,9 @@
-import { Platform } from 'react-native';
 import { Drm, DrmConfig } from './drm';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { SideLoadedSubtitleTrack } from './subtitleTrack';
 import { Thumbnail } from './thumbnail';
 import { SourceMetadata } from './analytics';
 import SourceModule from './modules/SourceModule';
-import { FairplayContentKeyRequest } from './events';
 
 /**
  * Types of media that can be handled by the player.
@@ -156,9 +154,12 @@ export interface SourceRemoteControlConfig {
  */
 export class Source extends NativeInstance<SourceConfig> {
   /**
-   * The native DRM config reference of this source.
+   * Provides access to DRM runtime APIs for this source, such as
+   * {@link Drm.fairplay}.{@link FairplayDrmApi.renewExpiringLicense}.
+   *
+   * `undefined` if the source was created without a {@link DrmConfig}.
    */
-  private drm?: Drm;
+  drm?: Drm;
   /**
    * The remote control config for this source.
    * This is only supported on iOS.
@@ -182,7 +183,7 @@ export class Source extends NativeInstance<SourceConfig> {
     if (!this.isInitialized) {
       const sourceMetadata = this.config?.analyticsSourceMetadata;
       if (this.config?.drmConfig) {
-        this.drm = new Drm(this.config.drmConfig);
+        this.drm = new Drm(this.config.drmConfig, this.nativeId);
         await this.drm.initialize();
       }
       if (sourceMetadata) {
@@ -278,27 +279,5 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   getThumbnail = async (time: number): Promise<Thumbnail | null> => {
     return SourceModule.getThumbnail(this.nativeId, time);
-  };
-
-  /**
-   * Renews an expiring FairPlay license for the provided content key request.
-   * Has no effect if called on Android.
-   *
-   * @platform iOS
-   * @param contentKeyRequest - The content key request from a {@link FairplayLicenseAcquiredEvent}.
-   */
-  renewExpiringLicense = async (
-    contentKeyRequest: FairplayContentKeyRequest
-  ): Promise<void> => {
-    if (Platform.OS !== 'ios') {
-      console.warn(
-        `[Source ${this.nativeId}] renewExpiringLicense is not available on Android.`
-      );
-      return;
-    }
-    return SourceModule.renewExpiringLicense(
-      this.nativeId,
-      contentKeyRequest.skdUri
-    );
   };
 }

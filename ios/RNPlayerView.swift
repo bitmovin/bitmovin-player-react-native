@@ -513,11 +513,11 @@ extension RNPlayerView: PlayerListener {
         onBmpCastWaitingForDevice(event.eventPayload())
     }
 
+#endif
+
     public func onFairplayLicenseAcquired(_ event: FairplayLicenseAcquiredEvent, player: Player) {
-        FairplayContentKeyRequestRegistry.store(event.contentKeyRequest)
         onBmpFairplayLicenseAcquired(event.eventPayload())
     }
-#endif
 }
 
 extension RNPlayerView: UserInterfaceListener {

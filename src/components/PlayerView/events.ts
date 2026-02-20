@@ -393,7 +393,7 @@ export type PlayerViewEvents = {
   /**
    * Emitted when a FairPlay license has been acquired successfully.
    *
-   * @platform iOS
+   * @platform iOS, tvOS
    */
   onFairplayLicenseAcquired?: (event: FairplayLicenseAcquiredEvent) => void;
 };

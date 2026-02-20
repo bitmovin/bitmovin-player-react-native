@@ -154,7 +154,9 @@ export default function BasicDrmPlayback() {
       console.log(
         'RenewExpiringLicense skdUri=[' + fairplayContentKeyRequest.skdUri + ']'
       );
-      player.source?.renewExpiringLicense(fairplayContentKeyRequest);
+      player.source?.drm?.fairplay.renewExpiringLicense(
+        fairplayContentKeyRequest
+      );
     }
   }, [player, fairplayContentKeyRequest]);
 

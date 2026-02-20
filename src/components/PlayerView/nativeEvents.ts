@@ -418,7 +418,7 @@ export type NativePlayerViewEvents = {
   /**
    * Event emitted when a FairPlay license has been acquired successfully.
    *
-   * @platform iOS
+   * @platform iOS, tvOS
    */
   onBmpFairplayLicenseAcquired?: (event: {
     nativeEvent: FairplayLicenseAcquiredEvent;

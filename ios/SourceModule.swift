@@ -1,38 +1,16 @@
 import BitmovinPlayer
+import Combine
 import ExpoModulesCore
-
-/**
- * Registry for `FairplayContentKeyRequest` instances keyed by `skdUri`.
- *
- * `FairplayContentKeyRequest` wraps an `AVContentKeyRequest`, which is a native iOS object
- * that cannot be serialized across the React Native bridge. This registry retains the native
- * instances so they can be retrieved when `renewExpiringLicense` is called from the JS layer
- * using only the `skdUri` string.
- */
-internal final class FairplayContentKeyRequestRegistry {
-    private static let shared = FairplayContentKeyRequestRegistry()
-    private var requests: [String: FairplayContentKeyRequest] = [:]
-
-    private init() {}
-
-    static func store(_ contentKeyRequest: FairplayContentKeyRequest) {
-        shared.requests[contentKeyRequest.skdUri] = contentKeyRequest
-    }
-
-    static func retrieve(skdUri: String) -> FairplayContentKeyRequest? {
-        shared.requests[skdUri]
-    }
-
-    static func remove(skdUri: String) {
-        shared.requests.removeValue(forKey: skdUri)
-    }
-}
 
 public class SourceModule: Module {
     /// In-memory mapping from `nativeId`s to `Source` instances.
     private var sources: Registry<Source> = [:]
     /// In-memory mapping from `nativeId`s to `SourceConfig` instances for casting.
     private var castSourceConfigs: Registry<SourceConfig> = [:]
+    /// Registry retaining native `FairplayContentKeyRequest` instances keyed by source nativeId + skdUri.
+    private let fairplayRegistry = FairplayContentKeyRequestRegistry()
+    /// Combine cancellables for FairPlay license acquired events, keyed by source nativeId.
+    private var fairplayCancellables: [NativeId: AnyCancellable] = [:]
 
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
@@ -43,6 +21,8 @@ public class SourceModule: Module {
         OnDestroy {
             sources.removeAll()
             castSourceConfigs.removeAll()
+            fairplayCancellables.values.forEach { $0.cancel() }
+            fairplayCancellables.removeAll()
         }
 
         // MARK: - Module methods
@@ -89,7 +69,7 @@ public class SourceModule: Module {
         }.runOnQueue(.main)
         AsyncFunction("renewExpiringLicense") { [weak self] (nativeId: NativeId, skdUri: String) in
             guard let source = self?.sources[nativeId],
-                  let contentKeyRequest = FairplayContentKeyRequestRegistry.retrieve(skdUri: skdUri) else {
+                  let contentKeyRequest = self?.fairplayRegistry.retrieve(nativeId: nativeId, skdUri: skdUri) else {
                 return
             }
             source.drm.fairplay.renewExpiringLicense(for: contentKeyRequest)
@@ -160,6 +140,12 @@ public class SourceModule: Module {
             source = SourceFactory.createSource(from: sourceConfig)
         }
         sources[nativeId] = source
+        // Attach Combine listener to populate the FairPlay registry when a license is acquired
+        fairplayCancellables[nativeId] = source.events
+            .on(FairplayLicenseAcquiredEvent.self)
+            .sink { [weak self] event in
+                self?.fairplayRegistry.store(nativeId: nativeId, contentKeyRequest: event.contentKeyRequest)
+            }
         // Store cast source config if provided
 #if os(iOS)
         if let remoteConfig = RCTConvert.sourceRemoteControlConfig(sourceRemoteControlConfig) {
@@ -174,6 +160,9 @@ public class SourceModule: Module {
     private func destroySource(nativeId: NativeId) {
         sources.removeValue(forKey: nativeId)
         castSourceConfigs.removeValue(forKey: nativeId)
+        fairplayCancellables[nativeId]?.cancel()
+        fairplayCancellables.removeValue(forKey: nativeId)
+        fairplayRegistry.removeAll(nativeId: nativeId)
     }
 }
 
