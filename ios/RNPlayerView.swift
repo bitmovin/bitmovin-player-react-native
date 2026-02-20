@@ -476,6 +476,10 @@ extension RNPlayerView: PlayerListener {
         onBmpMetadataParsed(event.eventPayload())
     }
 
+    public func onFairplayLicenseAcquired(_ event: FairplayLicenseAcquiredEvent, player: Player) {
+        onBmpFairplayLicenseAcquired(event.eventPayload())
+    }
+
 #if os(iOS)
     public func onCastAvailable(_ event: CastAvailableEvent, player: Player) {
         onBmpCastAvailable(event.eventPayload())
@@ -514,10 +518,6 @@ extension RNPlayerView: PlayerListener {
     }
 
 #endif
-
-    public func onFairplayLicenseAcquired(_ event: FairplayLicenseAcquiredEvent, player: Player) {
-        onBmpFairplayLicenseAcquired(event.eventPayload())
-    }
 }
 
 extension RNPlayerView: UserInterfaceListener {
