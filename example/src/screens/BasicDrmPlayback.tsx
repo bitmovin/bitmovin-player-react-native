@@ -9,7 +9,6 @@ import {
   SourceConfig,
   FairplayLicenseAcquiredEvent,
   FairplayContentKeyRequest,
-  DebugConfig,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
