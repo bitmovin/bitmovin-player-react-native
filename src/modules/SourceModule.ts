@@ -75,7 +75,10 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
    *
    * @platform iOS, tvOS
    */
-  renewExpiringLicense(nativeId: string, skdUri: string): Promise<void>;
+  drmFairplayRenewExpiringLicense(
+    nativeId: string,
+    skdUri: string
+  ): Promise<void>;
 }
 
 export default requireNativeModule<SourceModule>('SourceModule');

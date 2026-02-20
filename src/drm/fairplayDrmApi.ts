@@ -28,7 +28,7 @@ export class FairplayDrmApi {
       );
       return;
     }
-    return SourceModule.renewExpiringLicense(
+    return SourceModule.drmFairplayRenewExpiringLicense(
       this.sourceNativeId,
       contentKeyRequest.skdUri
     );

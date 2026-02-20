@@ -67,7 +67,7 @@ public class SourceModule: Module {
         AsyncFunction("getThumbnail") { [weak self] (nativeId: NativeId, time: Double) -> [String: Any]? in
             self?.getSourceThumbnail(nativeId: nativeId, time: time)
         }.runOnQueue(.main)
-        AsyncFunction("renewExpiringLicense") { [weak self] (nativeId: NativeId, skdUri: String) in
+        AsyncFunction("drmFairplayRenewExpiringLicense") { [weak self] (nativeId: NativeId, skdUri: String) in
             guard let source = self?.sources[nativeId],
                   let contentKeyRequest = self?.fairplayRegistry.retrieve(nativeId: nativeId, skdUri: skdUri) else {
                 return
