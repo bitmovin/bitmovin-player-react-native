@@ -4,7 +4,7 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.142.0+jason`
+- Update Bitmovin's native Android SDK version to `3.143.0+jason`
 
 ### Added
 
