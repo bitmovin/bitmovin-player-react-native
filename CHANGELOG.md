@@ -6,6 +6,10 @@
 
 - Update Bitmovin's native Android SDK version to `3.142.0+jason`
 
+### Fixed
+
+- iOS, tvOS: `defaultMetadata` from the analytics config was not applied when initializing a player with analytics
+
 ### Added
 
 - Android: TweaksConfig option `enableDrmLicenseRenewRetry` to retry renewing a DRM license when the first renewal attempt fails

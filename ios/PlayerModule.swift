@@ -195,10 +195,10 @@ public class PlayerModule: Module {
         }.runOnQueue(.main)
         AsyncFunction(
             "initializeWithAnalyticsConfig"
-        ) { [weak self] (nativeId: NativeId, analyticsConfig: [String: Any]?, config: [String: Any]?, networkNativeId: NativeId?, _: String?) in // swiftlint:disable:this line_length
+        ) { [weak self] (nativeId: NativeId, analyticsConfigJson: [String: Any]?, config: [String: Any]?, networkNativeId: NativeId?, _: String?) in // swiftlint:disable:this line_length
             guard !PlayerRegistry.hasPlayer(nativeId: nativeId),
                   let playerConfig = RCTConvert.playerConfig(config),
-                  let analyticsConfig = RCTConvert.analyticsConfig(analyticsConfig) else { return }
+                  let analyticsConfig = RCTConvert.analyticsConfig(analyticsConfigJson) else { return }
             #if os(iOS)
             self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
             #endif
@@ -206,7 +206,7 @@ public class PlayerModule: Module {
                 playerConfig.networkConfig = networkConfig
             }
             self?.setupImaBeforeInitialization(nativeId: nativeId, config: config, playerConfig: playerConfig)
-            let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfig)
+            let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfigJson)
             let player = PlayerFactory.create(
                 playerConfig: playerConfig,
                 analyticsConfig: analyticsConfig,
