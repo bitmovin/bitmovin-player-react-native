@@ -5,6 +5,7 @@
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.142.0+jason`
+- Update Expo SDK version to `53.0.26`
 
 ### Fixed
 
