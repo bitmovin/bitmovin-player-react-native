@@ -109,6 +109,14 @@ export function PlayerView({
     }
   }, [isPlayerInitialized, pictureInPictureActions]);
 
+  useEffect(() => {
+    if (isPlayerInitialized && config?.pictureInPictureConfig != null) {
+      nativeView.current?.updatePictureInPictureConfig(
+        config.pictureInPictureConfig
+      );
+    }
+  }, [isPlayerInitialized, config?.pictureInPictureConfig]);
+
   if (!isPlayerInitialized) {
     return null;
   }
@@ -218,5 +226,12 @@ interface InternalPlayerViewRef extends RefObject<any> {
    */
   updatePictureInPictureActions: (
     actions: PictureInPictureAction[]
+  ) => Promise<void>;
+  /**
+   * Update Picture in Picture configuration.
+   * This method is called imperatively when the config changes to ensure proper handler lifecycle management.
+   */
+  updatePictureInPictureConfig: (
+    config: import('./pictureInPictureConfig').PictureInPictureConfig
   ) => Promise<void>;
 }

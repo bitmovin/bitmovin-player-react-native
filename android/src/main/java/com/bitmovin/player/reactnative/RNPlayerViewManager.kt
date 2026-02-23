@@ -72,6 +72,10 @@ class RNPlayerViewManager : Module() {
                 view.updatePictureInPictureActions(pictureInPictureActions.toPictureInPictureActions())
             }
 
+            AsyncFunction("updatePictureInPictureConfig") { view: RNPlayerView, pictureInPictureConfig: Map<String, Any?>? ->
+                view.updatePictureInPictureConfig(pictureInPictureConfig)
+            }
+
             Events(
                 "onBmpEvent",
                 "onBmpPlayerError",
@@ -140,7 +144,7 @@ class RNPlayerViewManager : Module() {
         }
     }
 
-    private fun updateAutoPictureInPictureRegistration(view: RNPlayerView) {
+    internal fun updateAutoPictureInPictureRegistration(view: RNPlayerView) {
         if (view.shouldEnterPictureInPictureOnBackground()) {
             autoPictureInPictureViews.add(view)
         } else {

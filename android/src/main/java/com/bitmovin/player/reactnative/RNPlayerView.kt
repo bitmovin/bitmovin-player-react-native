@@ -41,6 +41,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private var subtitleView: SubtitleView? = null
     private var playerContainer: FrameLayout? = null
     var enableBackgroundPlayback: Boolean = false
+    private var isPictureInPictureEnabledOnPlayer: Boolean = false
     private var scalingMode: ScalingMode? = null
     private var requestedFullscreenValue: Boolean? = null
     private var requestedPictureInPictureValue: Boolean? = null
@@ -300,6 +301,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             playerView?.player = player
         } else {
             this.enableBackgroundPlayback = enableBackgroundPlayback
+            this.isPictureInPictureEnabledOnPlayer = isPictureInPictureEnabledOnPlayer
             val userInterfaceType = userInterfaceTypeName?.toUserInterfaceType() ?: UserInterfaceType.Bitmovin
             val configuredPlayerViewConfig = playerViewConfigWrapper?.playerViewConfig ?: PlayerViewConfig()
 
@@ -760,6 +762,44 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             pictureInPictureHandler?.updateActions(pictureInPictureActions)
         }
+    }
+
+    fun updatePictureInPictureConfig(pictureInPictureConfigMap: Map<String, Any?>?) {
+        val newConfig = pictureInPictureConfigMap?.let {
+            PictureInPictureConfig(
+                isEnabled = it.get("isEnabled") as? Boolean ?: false,
+                shouldEnterOnBackground = it.get("shouldEnterOnBackground") as? Boolean ?: false
+            )
+        } ?: PictureInPictureConfig()
+
+        this.pictureInPictureConfig = newConfig
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val shouldEnablePiP = isPictureInPictureEnabledOnPlayer || newConfig.isEnabled
+
+            if (shouldEnablePiP && pictureInPictureHandler == null) {
+                // Create handler when enabling PiP
+                val player = playerView?.player ?: return
+                val activity = appContext.currentActivity ?: return
+                pictureInPictureHandler = RNPictureInPictureHandler(
+                    activity,
+                    player,
+                    newConfig,
+                )
+                playerView?.setPictureInPictureHandler(pictureInPictureHandler)
+            } else if (!shouldEnablePiP && pictureInPictureHandler != null) {
+                // Dispose handler when disabling PiP
+                playerView?.setPictureInPictureHandler(null)
+                pictureInPictureHandler?.dispose()
+                pictureInPictureHandler = null
+            } else if (pictureInPictureHandler != null) {
+                // Update existing handler
+                pictureInPictureHandler?.updatePictureInPictureConfig(newConfig)
+            }
+        }
+
+        // Update auto-PiP registration
+        appContext.registry.getModule<RNPlayerViewManager>()?.updateAutoPictureInPictureRegistration(this)
     }
 
     /**
