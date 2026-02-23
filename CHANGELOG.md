@@ -8,7 +8,7 @@
 
 ### Fixed
 
-- iOS, tvOS: `defaultMetadata` from the analytics config was not applied when initializing a player with analytics
+- iOS, tvOS: `defaultMetadata` from `analyticsConfig` was not applied when initializing a player with analytics
 
 ### Added
 
