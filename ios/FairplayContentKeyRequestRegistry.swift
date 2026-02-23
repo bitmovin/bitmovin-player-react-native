@@ -16,21 +16,21 @@ internal final class FairplayContentKeyRequestRegistry {
     private let lock = NSRecursiveLock()
 
     func store(nativeId: String, contentKeyRequest: FairplayContentKeyRequest) {
-        lock.lock()
-        defer { lock.unlock() }
-        requests[key(nativeId: nativeId, skdUri: contentKeyRequest.skdUri)] = contentKeyRequest
+        lock.withLock {
+            requests[key(nativeId: nativeId, skdUri: contentKeyRequest.skdUri)] = contentKeyRequest
+        }
     }
 
     func retrieve(nativeId: String, skdUri: String) -> FairplayContentKeyRequest? {
-        lock.lock()
-        defer { lock.unlock() }
-        return requests[key(nativeId: nativeId, skdUri: skdUri)]
+        lock.withLock {
+            requests[key(nativeId: nativeId, skdUri: skdUri)]
+        }
     }
 
     func removeAll(nativeId: String) {
-        lock.lock()
-        defer { lock.unlock() }
-        requests = requests.filter { !$0.key.hasPrefix("\(nativeId)_") }
+        lock.withLock {
+            requests = requests.filter { !$0.key.hasPrefix("\(nativeId)_") }
+        }
     }
 
     private func key(nativeId: String, skdUri: String) -> String {
