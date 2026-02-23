@@ -95,12 +95,12 @@ export class Network extends NativeInstance<NetworkConfig> {
   ) => {
     this.config
       ?.preprocessHttpRequest?.(type, request)
-      .then((resultRequest) => {
-        NetworkModule.setPreprocessedHttpRequest(requestId, resultRequest);
-      })
-      .catch(() => {
-        NetworkModule.setPreprocessedHttpRequest(requestId, request);
-      });
+      .then((resultRequest) =>
+        NetworkModule.setPreprocessedHttpRequest(requestId, resultRequest)
+      )
+      .catch(() =>
+        NetworkModule.setPreprocessedHttpRequest(requestId, request)
+      );
   };
 
   /**
@@ -120,11 +120,11 @@ export class Network extends NativeInstance<NetworkConfig> {
   ) => {
     this.config
       ?.preprocessHttpResponse?.(type, response)
-      .then((resultResponse) => {
-        NetworkModule.setPreprocessedHttpResponse(responseId, resultResponse);
-      })
-      .catch(() => {
-        NetworkModule.setPreprocessedHttpResponse(responseId, response);
-      });
+      .then((resultResponse) =>
+        NetworkModule.setPreprocessedHttpResponse(responseId, resultResponse)
+      )
+      .catch(() =>
+        NetworkModule.setPreprocessedHttpResponse(responseId, response)
+      );
   };
 }

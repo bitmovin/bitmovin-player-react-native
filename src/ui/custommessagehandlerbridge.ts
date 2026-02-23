@@ -42,7 +42,7 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
         }
       );
 
-    CustomMessageHandlerModule.registerHandler(this.nativeId);
+    void CustomMessageHandlerModule.registerHandler(this.nativeId);
   }
 
   setCustomMessageHandler(customMessageHandler: CustomMessageHandler) {
@@ -55,7 +55,7 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
    */
   destroy() {
     if (!this.isDestroyed) {
-      CustomMessageHandlerModule.destroy(this.nativeId);
+      void CustomMessageHandlerModule.destroy(this.nativeId);
       this.onReceivedSynchronousMessageSubscription?.remove();
       this.onReceivedAsynchronousMessageSubscription?.remove();
       this.onReceivedSynchronousMessageSubscription = undefined;
@@ -77,7 +77,10 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
       message,
       data
     );
-    CustomMessageHandlerModule.onReceivedSynchronousMessageResult(id, result);
+    void CustomMessageHandlerModule.onReceivedSynchronousMessageResult(
+      id,
+      result
+    );
   }
 
   /**
@@ -96,6 +99,6 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
    * Called by CustomMessageHandler, when sending a message to the UI.
    */
   sendMessage(message: string, data: string | undefined): void {
-    CustomMessageHandlerModule.sendMessage(this.nativeId, message, data);
+    void CustomMessageHandlerModule.sendMessage(this.nativeId, message, data);
   }
 }
