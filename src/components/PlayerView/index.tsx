@@ -73,8 +73,6 @@ export function PlayerView({
     customMessageHandlerBridgeId: customMessageHandlerBridge.current?.nativeId,
     enableBackgroundPlayback:
       player.config?.playbackConfig?.isBackgroundPlaybackEnabled,
-    isPictureInPictureEnabledOnPlayer:
-      player.config?.playbackConfig?.isPictureInPictureEnabled,
     userInterfaceTypeName: player.config?.styleConfig?.userInterfaceType,
     playerViewConfig: config,
   };

@@ -37,8 +37,6 @@ class RNPlayerViewManager : Module() {
                     ?: throw IllegalArgumentException("Player info must contain 'playerId' field")
                 val customMessageHandlerBridgeId = playerInfo.getString("customMessageHandlerBridgeId")
                 val enableBackgroundPlayback = playerInfo.getBooleanOrNull("enableBackgroundPlayback") ?: false
-                val isPictureInPictureEnabledOnPlayer =
-                    playerInfo.getBooleanOrNull("isPictureInPictureEnabledOnPlayer") ?: false
                 val userInterfaceTypeName = playerInfo.getString("userInterfaceTypeName")
                 val playerViewConfigWrapper = playerInfo.getMap("playerViewConfig")?.toRNPlayerViewConfigWrapper()
                 view.attachPlayer(
@@ -46,7 +44,6 @@ class RNPlayerViewManager : Module() {
                     playerViewConfigWrapper,
                     customMessageHandlerBridgeId,
                     enableBackgroundPlayback,
-                    isPictureInPictureEnabledOnPlayer,
                     userInterfaceTypeName,
                 )
                 updateAutoPictureInPictureRegistration(view)
