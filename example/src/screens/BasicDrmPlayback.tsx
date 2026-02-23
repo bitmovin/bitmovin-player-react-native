@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Platform, StyleSheet, Button } from 'react-native';
+import { Platform, StyleSheet, Button } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -10,6 +10,7 @@ import {
   FairplayLicenseAcquiredEvent,
   FairplayContentKeyRequest,
 } from 'bitmovin-player-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTVGestures } from '../hooks';
 
 function prettyPrint(header: string, obj: any) {
@@ -160,7 +161,7 @@ export default function BasicDrmPlayback() {
   }, [player, fairplayContentKeyRequest]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['bottom']} style={styles.container}>
       <PlayerView
         player={player}
         style={styles.player}
@@ -179,7 +180,7 @@ export default function BasicDrmPlayback() {
           onPress={onRenewExpiringLicense}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
