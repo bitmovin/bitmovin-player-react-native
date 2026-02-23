@@ -82,7 +82,7 @@ export function PlayerView({
   const [isPlayerInitialized, setIsPlayerInitialized] = useState(false);
 
   useEffect(() => {
-    player.initialize().then(() => {
+    void player.initialize().then(() => {
       setIsPlayerInitialized(true);
       // call attach player on native view if switched to AsyncFunction for RNPlayerViewExpo
     });
@@ -103,7 +103,7 @@ export function PlayerView({
 
   useEffect(() => {
     if (isPlayerInitialized && pictureInPictureActions != null) {
-      nativeView.current?.updatePictureInPictureActions(
+      void nativeView.current?.updatePictureInPictureActions(
         pictureInPictureActions
       );
     }
