@@ -14,6 +14,7 @@
 ### Added
 
 - Android: TweaksConfig option `enableDrmLicenseRenewRetry` to retry renewing a DRM license when the first renewal attempt fails
+- Android/IOS: Keep `PlayerView`'s `config` property immutable, except for `pictureInPictureConfig` which can be updated dynamically after initialization
 
 ## [1.9.0] - 2026-02-13
 
