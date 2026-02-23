@@ -9,6 +9,7 @@
 ### Fixed
 
 - iOS, tvOS: `defaultMetadata` from `analyticsConfig` was not applied when initializing a player with analytics
+- Correctly await DRM teardown before releasing `OfflineContentManager` native resources
 
 ### Added
 
