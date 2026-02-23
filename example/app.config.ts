@@ -37,7 +37,7 @@ const config: ExpoConfig = {
   name: 'Bitmovin Player React Native Example',
   slug: 'bitmovin-player-react-native-example',
   version: '1.0.0',
-  orientation: 'portrait',
+  orientation: 'default',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
   splash: {
