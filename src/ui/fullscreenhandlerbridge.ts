@@ -36,7 +36,7 @@ export class FullscreenHandlerBridge {
         this.exitFullscreen(id);
       }
     );
-    FullscreenHandlerModule.registerHandler(this.nativeId);
+    void FullscreenHandlerModule.registerHandler(this.nativeId);
   }
 
   setFullscreenHandler(fullscreenHandler: FullscreenHandler | undefined) {
@@ -47,7 +47,7 @@ export class FullscreenHandlerBridge {
     this.fullscreenHandler = fullscreenHandler;
 
     // synchronize current state from fullscreenHandler to native
-    FullscreenHandlerModule.setIsFullscreenActive(
+    void FullscreenHandlerModule.setIsFullscreenActive(
       this.nativeId,
       fullscreenHandler?.isFullscreenActive ?? false
     );
@@ -58,7 +58,7 @@ export class FullscreenHandlerBridge {
    */
   destroy() {
     if (!this.isDestroyed) {
-      FullscreenHandlerModule.destroy(this.nativeId);
+      void FullscreenHandlerModule.destroy(this.nativeId);
       this.onEnterFullScreenSubscription?.remove();
       this.onExitFullScreenSubscription?.remove();
       this.onEnterFullScreenSubscription = undefined;
@@ -73,7 +73,7 @@ export class FullscreenHandlerBridge {
    */
   private enterFullscreen(id: number): void {
     this.fullscreenHandler?.enterFullscreen();
-    FullscreenHandlerModule.notifyFullscreenChanged(
+    void FullscreenHandlerModule.notifyFullscreenChanged(
       id,
       this.fullscreenHandler?.isFullscreenActive ?? false
     );
@@ -85,7 +85,7 @@ export class FullscreenHandlerBridge {
    */
   private exitFullscreen(id: number): void {
     this.fullscreenHandler?.exitFullscreen();
-    FullscreenHandlerModule.notifyFullscreenChanged(
+    void FullscreenHandlerModule.notifyFullscreenChanged(
       id,
       this.fullscreenHandler?.isFullscreenActive ?? false
     );

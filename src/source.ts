@@ -209,8 +209,8 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   destroy = () => {
     if (!this.isDestroyed) {
-      SourceModule.destroy(this.nativeId);
-      this.drm?.destroy();
+      void SourceModule.destroy(this.nativeId);
+      void this.drm?.destroy();
       this.isDestroyed = true;
     }
   };
@@ -252,7 +252,7 @@ export class Source extends NativeInstance<SourceConfig> {
    * @param metadata metadata to be set.
    */
   setMetadata = (metadata: Record<string, any> | null): void => {
-    SourceModule.setMetadata(this.nativeId, metadata);
+    void SourceModule.setMetadata(this.nativeId, metadata);
   };
 
   /**
