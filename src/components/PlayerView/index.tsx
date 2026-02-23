@@ -111,7 +111,7 @@ export function PlayerView({
 
   useEffect(() => {
     if (isPlayerInitialized && config?.pictureInPictureConfig != null) {
-      nativeView.current?.updatePictureInPictureConfig(
+      void nativeView.current?.updatePictureInPictureConfig(
         config.pictureInPictureConfig
       );
     }
