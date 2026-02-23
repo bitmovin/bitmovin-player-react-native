@@ -63,9 +63,9 @@ export interface AdItem {
    * Possible values are:
    *  • "pre": pre-roll ad (for VoD and Live streaming)
    *  • "post": post-roll ad (for VoD streaming only)
-   *  • fractional seconds: "10", "12.5" (mid-roll ad, for VoD and Live streaming)
-   *  • percentage of the entire video duration: "25%", "50%" (mid-roll ad, for VoD streaming only)
-   *  • timecode hh:mm:ss.mmm: "00:10:30.000", "01:00:00.000" (mid-roll ad, for VoD streaming only)
+   *  • fractional seconds: "10", "12.5" (mid-roll ad, for VoD and Live streaming)
+   *  • percentage of the entire video duration: "25%", "50%" (mid-roll ad, for VoD streaming only)
+   *  • timecode hh:mm:ss.mmm: "00:10:30.000", "01:00:00.000" (mid-roll ad, for VoD streaming only)
    */
   position?: string;
   /**

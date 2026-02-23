@@ -181,34 +181,40 @@ private fun String.toForceReuseVideoCodecReason(): ForceReuseVideoCodecReason? =
     else -> null
 }
 
-fun Map<String, Any?>.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
-    withDouble("timeChangedInterval") { timeChangedInterval = it }
-    withInt("bandwidthEstimateWeightLimit") {
-        bandwidthMeterType = BandwidthMeterType.Default(
-            bandwidthEstimateWeightLimit = it,
-        )
-    }
-    withMap("devicesThatRequireSurfaceWorkaround") { devices ->
-        val deviceNames = devices.withStringArray("deviceNames") {
-            it.filterNotNull().map(::DeviceName)
-        } ?: emptyList()
-        val modelNames = devices.withStringArray("modelNames") {
-            it.filterNotNull().map(::DeviceName)
-        } ?: emptyList()
-        devicesThatRequireSurfaceWorkaround = deviceNames + modelNames
-    }
-    withBoolean("languagePropertyNormalization") { languagePropertyNormalization = it }
-    withDouble("localDynamicDashWindowUpdateInterval") { localDynamicDashWindowUpdateInterval = it }
-    withBoolean("useDrmSessionForClearPeriods") { useDrmSessionForClearPeriods = it }
-    withBoolean("useDrmSessionForClearSources") { useDrmSessionForClearSources = it }
-    withBoolean("useFiletypeExtractorFallbackForHls") { useFiletypeExtractorFallbackForHls = it }
-    withStringArray("forceReuseVideoCodecReasons") {
-        forceReuseVideoCodecReasons = it
-            .filterNotNull()
-            .mapNotNull(String::toForceReuseVideoCodecReason)
-            .toSet()
-    }
-}
+fun Map<String, Any?>.toTweaksConfig(): TweaksConfig =
+    TweaksConfig.Builder().apply {
+        withBoolean("enableDrmLicenseRenewRetry") { setEnableDrmLicenseRenewRetry(it) }
+        withDouble("timeChangedInterval") { setTimeChangedInterval(it) }
+        withInt("bandwidthEstimateWeightLimit") {
+            setBandwidthMeterType(
+                BandwidthMeterType.Default(
+                    bandwidthEstimateWeightLimit = it,
+                )
+            )
+        }
+        withMap("devicesThatRequireSurfaceWorkaround") { devices ->
+            val deviceNames = devices.withStringArray("deviceNames") {
+                it.filterNotNull().map(::DeviceName)
+            } ?: emptyList()
+            val modelNames = devices.withStringArray("modelNames") {
+                it.filterNotNull().map(::DeviceName)
+            } ?: emptyList()
+            setDevicesThatRequireSurfaceWorkaround(deviceNames + modelNames)
+        }
+        withBoolean("languagePropertyNormalization") { setLanguagePropertyNormalization(it) }
+        withDouble("localDynamicDashWindowUpdateInterval") { setLocalDynamicDashWindowUpdateInterval(it) }
+        withBoolean("useDrmSessionForClearPeriods") { setUseDrmSessionForClearPeriods(it) }
+        withBoolean("useDrmSessionForClearSources") { setUseDrmSessionForClearSources(it) }
+        withBoolean("useFiletypeExtractorFallbackForHls") { setUseFiletypeExtractorFallbackForHls(it) }
+        withStringArray("forceReuseVideoCodecReasons") {
+            setForceReuseVideoCodecReasons(
+                it
+                    .filterNotNull()
+                    .mapNotNull(String::toForceReuseVideoCodecReason)
+                    .toSet()
+            )
+        }
+    }.build()
 
 fun Map<String, Any?>.toAdvertisingConfig(): AdvertisingConfig? {
     val schedule = getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: emptyList()
@@ -751,8 +757,8 @@ private fun Map<String, Any?>.toVariant(): UiConfig.WebUi.Variant? {
     val uiManagerFactoryFunction = getMap("variant")?.getString("uiManagerFactoryFunction") ?: return null
 
     return when (uiManagerFactoryFunction) {
-        "bitmovin.playerui.UIFactory.buildDefaultSmallScreenUI" -> UiConfig.WebUi.Variant.SmallScreenUi
-        "bitmovin.playerui.UIFactory.buildDefaultTvUI" -> UiConfig.WebUi.Variant.TvUi
+        "bitmovin.playerui.UIFactory.buildSmallScreenUI" -> UiConfig.WebUi.Variant.SmallScreenUi
+        "bitmovin.playerui.UIFactory.buildTvUI" -> UiConfig.WebUi.Variant.TvUi
         else -> UiConfig.WebUi.Variant.Custom(uiManagerFactoryFunction)
     }
 }

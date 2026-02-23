@@ -2,6 +2,7 @@
 
 import BitmovinCollector
 import BitmovinPlayer
+import BitmovinPlayerCore
 import Foundation
 
 extension RCTConvert {
@@ -1056,7 +1057,7 @@ extension RCTConvert {
         }
         let variant = json["variant"] as? [String: Any?]
         let uiManagerFactoryFunction = variant?["uiManagerFactoryFunction"] as? String
-        let defaultUiManagerFactoryFunction = "bitmovin.playerui.UIFactory.buildDefaultSmallScreenUI"
+        let defaultUiManagerFactoryFunction = "bitmovin.playerui.UIFactory.buildSmallScreenUI"
 
         return RNUiConfig(
             playbackSpeedSelectionEnabled: json["playbackSpeedSelectionEnabled"] as? Bool ?? true,
