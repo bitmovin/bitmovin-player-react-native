@@ -11,6 +11,7 @@ public class RNPlayerView: ExpoView {
     }
 
     private static var playerHostRegistry: [NativeId: WeakViewReference] = [:]
+    private static let playerHostRegistryLock = NSRecursiveLock()
 
     var playerView: PlayerView? {
         willSet {
@@ -290,25 +291,35 @@ private extension RNPlayerView {
         guard let playerId else {
             return
         }
-        Self.playerHostRegistry[playerId] = WeakViewReference(self)
+        Self.playerHostRegistryLock.withLock {
+            Self.playerHostRegistry[playerId] = WeakViewReference(self)
+        }
     }
 
     func unregisterPlayerHost(for playerId: NativeId?) {
         guard let playerId else {
             return
         }
-        guard let current = Self.playerHostRegistry[playerId]?.value else {
-            Self.playerHostRegistry.removeValue(forKey: playerId)
-            return
-        }
-        if current === self {
-            Self.playerHostRegistry.removeValue(forKey: playerId)
+        Self.playerHostRegistryLock.withLock {
+            guard let current = Self.playerHostRegistry[playerId]?.value else {
+                Self.playerHostRegistry.removeValue(forKey: playerId)
+                return
+            }
+            if current === self {
+                Self.playerHostRegistry.removeValue(forKey: playerId)
+            }
         }
     }
 
     func maybeWarnAboutPlayerRebind(playerId: NativeId, player: Player) {
-        guard let existingHost = Self.playerHostRegistry[playerId]?.value else {
-            Self.playerHostRegistry.removeValue(forKey: playerId)
+        let existingHost = Self.playerHostRegistryLock.withLock { () -> RNPlayerView? in
+            guard let existingHost = Self.playerHostRegistry[playerId]?.value else {
+                Self.playerHostRegistry.removeValue(forKey: playerId)
+                return nil
+            }
+            return existingHost
+        }
+        guard let existingHost else {
             return
         }
         guard existingHost !== self else {
