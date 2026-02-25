@@ -282,26 +282,4 @@ export class Source extends NativeInstance<SourceConfig> {
   getThumbnail = async (time: number): Promise<Thumbnail | null> => {
     return SourceModule.getThumbnail(this.nativeId, time);
   };
-
-  /**
-   * Renews an expiring FairPlay license for the provided content key request.
-   * Has no effect if called on Android.
-   *
-   * @platform iOS
-   * @param contentKeyRequest - The content key request from a {@link FairplayLicenseAcquiredEvent}.
-   */
-  renewExpiringLicense = async (
-    contentKeyRequest: FairplayContentKeyRequest
-  ): Promise<void> => {
-    if (Platform.OS !== 'ios') {
-      console.warn(
-        `[Source ${this.nativeId}] renewExpiringLicense is not available on Android.`
-      );
-      return;
-    }
-    return SourceModule.renewExpiringLicense(
-      this.nativeId,
-      contentKeyRequest.skdUri
-    );
-  };
 }

@@ -154,13 +154,10 @@ export default function BasicDrmPlayback() {
       console.log(
         'RenewExpiringLicense skdUri=[' + fairplayContentKeyRequest.skdUri + ']'
       );
-<<<<<<< HEAD
-      player.source?.drm?.fairplay.renewExpiringLicense(
+
+      void player.source?.drm?.fairplay.renewExpiringLicense(
         fairplayContentKeyRequest
       );
-=======
-      player.source?.renewExpiringLicense(fairplayContentKeyRequest);
->>>>>>> 8e340e7b (Exposing renewExpiringLicense API for iOS SDK)
     }
   }, [player, fairplayContentKeyRequest]);
 
@@ -184,11 +181,7 @@ export default function BasicDrmPlayback() {
           onPress={onRenewExpiringLicense}
         />
       )}
-<<<<<<< HEAD
     </SafeAreaView>
-=======
-    </View>
->>>>>>> 8e340e7b (Exposing renewExpiringLicense API for iOS SDK)
   );
 }
 

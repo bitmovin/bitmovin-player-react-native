@@ -79,7 +79,6 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
     nativeId: string,
     skdUri: string
   ): Promise<void>;
-
 }
 
 export default requireNativeModule<SourceModule>('SourceModule');
