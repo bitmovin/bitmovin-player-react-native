@@ -3,6 +3,15 @@ import BitmovinPlayer
 import ExpoModulesCore
 
 public class RNPlayerView: ExpoView {
+    private final class WeakViewReference {
+        weak var value: RNPlayerView?
+        init(_ value: RNPlayerView) {
+            self.value = value
+        }
+    }
+
+    private static var playerHostRegistry: [NativeId: WeakViewReference] = [:]
+
     var playerView: PlayerView? {
         willSet {
             playerView?.removeFromSuperview()
@@ -114,6 +123,10 @@ public class RNPlayerView: ExpoView {
         clipsToBounds = true
     }
 
+    deinit {
+        unregisterPlayerHost(for: playerId)
+    }
+
     override public func layoutSubviews() {
         super.layoutSubviews()
         maybeFixAVPlayerViewControllerVisibility()
@@ -124,6 +137,9 @@ public class RNPlayerView: ExpoView {
         playerViewConfigWrapper: RNPlayerViewConfig?,
         customMessageHandlerBridgeId: NativeId?
     ) {
+        if self.playerId != playerId {
+            unregisterPlayerHost(for: self.playerId)
+        }
         self.playerId = playerId
         guard let playerId else {
             detachCurrentPlayer()
@@ -132,6 +148,10 @@ public class RNPlayerView: ExpoView {
         guard let player = self.appContext?.moduleRegistry.get(PlayerModule.self)?.retrieve(playerId) else {
             return
         }
+
+        maybeWarnAboutPlayerRebind(playerId: playerId, player: player)
+        registerPlayerHost(for: playerId)
+
         if let playerView, let currentPlayer = playerView.player, currentPlayer === player {
             // Player is already attached to the PlayerView
             return
@@ -264,6 +284,44 @@ private extension RNPlayerView {
 
         // Force a fresh PlayerView on next attach.
         self.playerView = nil
+    }
+
+    func registerPlayerHost(for playerId: NativeId?) {
+        guard let playerId else {
+            return
+        }
+        Self.playerHostRegistry[playerId] = WeakViewReference(self)
+    }
+
+    func unregisterPlayerHost(for playerId: NativeId?) {
+        guard let playerId else {
+            return
+        }
+        guard let current = Self.playerHostRegistry[playerId]?.value else {
+            Self.playerHostRegistry.removeValue(forKey: playerId)
+            return
+        }
+        if current === self {
+            Self.playerHostRegistry.removeValue(forKey: playerId)
+        }
+    }
+
+    func maybeWarnAboutPlayerRebind(playerId: NativeId, player: Player) {
+        guard let existingHost = Self.playerHostRegistry[playerId]?.value else {
+            Self.playerHostRegistry.removeValue(forKey: playerId)
+            return
+        }
+        guard existingHost !== self else {
+            return
+        }
+
+        NSLog(
+            """
+            [RNPlayerView][Warning][playerId=\(playerId)] Detected this player attached to multiple RNPlayerView hosts. \
+            Re-parenting a live PlayerView is unsupported and can cause black screens when paired with IMA ads. \
+            Keep one stable PlayerView host for the session.
+            """
+        )
     }
 }
 
