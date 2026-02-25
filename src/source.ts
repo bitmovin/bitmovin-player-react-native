@@ -1,11 +1,9 @@
-import { Platform } from 'react-native';
 import { Drm, DrmConfig } from './drm';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { SideLoadedSubtitleTrack } from './subtitleTrack';
 import { Thumbnail } from './thumbnail';
 import { SourceMetadata } from './analytics';
 import SourceModule from './modules/SourceModule';
-import { FairplayContentKeyRequest } from './events';
 
 /**
  * Types of media that can be handled by the player.
