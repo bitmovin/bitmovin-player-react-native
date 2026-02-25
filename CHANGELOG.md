@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Update Bitmovin's native iOS SDK version to `3.108.0`
 - Update Bitmovin's native Android SDK version to `3.142.0+jason`
 - Update Expo SDK version to `53.0.26`
 
@@ -17,15 +18,6 @@
 - Android: TweaksConfig option enableDrmLicenseRenewRetry to retry renewing a DRM license when the first renewal attempt fails
 - iOS, tvOS: `onFairplayLicenseAcquired` player event, providing the `contentKeyRequest` of the acquired FairPlay license
 - iOS, tvOS: `Source.drm.fairplay.renewExpiringLicense` method to proactively renew an expiring FairPlay license using the `contentKeyRequest` from a `FairplayLicenseAcquiredEvent`
-
-### Fixed
-
-- iOS, tvOS: `defaultMetadata` from `analyticsConfig` was not applied when initializing a player with analytics
-- Correctly await DRM teardown before releasing `OfflineContentManager` native resources
-
-### Added
-
-- Android: TweaksConfig option `enableDrmLicenseRenewRetry` to retry renewing a DRM license when the first renewal attempt fails
 
 ## [1.9.0] - 2026-02-13
 
