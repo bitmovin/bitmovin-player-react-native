@@ -328,7 +328,8 @@ private extension RNPlayerView {
 
         NSLog(
             """
-            [RNPlayerView][Warning][playerId=\(playerId)] Detected this player attached to multiple RNPlayerView hosts. \
+            [RNPlayerView] [Warning] [playerId=\(playerId)] Detected this player attached \
+            to multiple RNPlayerView hosts. \
             Re-parenting a live PlayerView is unsupported and can cause black screens when paired with IMA ads. \
             Keep one stable PlayerView host for the session.
             """
