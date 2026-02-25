@@ -59,6 +59,7 @@ import com.bitmovin.player.api.metadata.id3.PrivFrame
 import com.bitmovin.player.api.metadata.id3.TextInformationFrame
 import com.bitmovin.player.api.metadata.id3.UrlLinkFrame
 import com.bitmovin.player.api.metadata.scte.ScteMessage
+import com.bitmovin.player.api.deficiency.DeficiencyData
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.network.HttpResponse
@@ -321,11 +322,13 @@ fun SourceEvent.toJson(): Map<String, Any> {
         is SourceEvent.Error -> {
             baseMap["code"] = code.value
             baseMap["message"] = message
+            deficiencyData?.toJson()?.let { baseMap["data"] = it }
         }
 
         is SourceEvent.Warning -> {
             baseMap["code"] = code.value
             baseMap["message"] = message
+            deficiencyData?.toJson()?.let { baseMap["data"] = it }
         }
 
         is SourceEvent.AudioTrackAdded -> {
@@ -393,11 +396,13 @@ fun PlayerEvent.toJson(): Map<String, Any> {
         is PlayerEvent.Error -> {
             baseMap["code"] = code.value
             baseMap["message"] = message
+            deficiencyData?.toJson()?.let { baseMap["data"] = it }
         }
 
         is PlayerEvent.Warning -> {
             baseMap["code"] = code.value
             baseMap["message"] = message
+            deficiencyData?.toJson()?.let { baseMap["data"] = it }
         }
 
         is PlayerEvent.Play -> {
@@ -835,6 +840,14 @@ fun HttpResponse.toJson(): Map<String, Any> = mapOf(
 )
 
 fun HttpRequestType.toJson(): String = toString()
+
+fun DeficiencyData.toJson(): Map<String, Any> {
+    val json = mutableMapOf<String, Any>()
+    if (this is DeficiencyData.Network) {
+        json["httpResponse"] = httpResponse.toJson()
+    }
+    return json
+}
 
 fun MediaType.toJson(): String = when (this) {
     MediaType.Audio -> "audio"

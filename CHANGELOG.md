@@ -16,6 +16,7 @@
 ### Added
 
 - Android: TweaksConfig option `enableDrmLicenseRenewRetry` to retry renewing a DRM license when the first renewal attempt fails
+- Android/iOS: Expose `DeficiencyData` on error and warning events, providing additional diagnostic information such as the HTTP response body when a network request (e.g. DRM license) fails
 
 ## [1.9.0] - 2026-02-13
 

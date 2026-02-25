@@ -10,7 +10,7 @@ import { SubtitleTrack } from './subtitleTrack';
 import { VideoQuality } from './media';
 import { AudioTrack } from './audioTrack';
 import { LoadingState } from './source';
-import { HttpRequestType } from './network/networkConfig';
+import { HttpRequestType, HttpResponse } from './network/networkConfig';
 import {
   DateRangeMetadataEntry,
   EventMessageMetadataEntry,
@@ -37,6 +37,17 @@ export interface Event {
 }
 
 /**
+ * Additional diagnostic information related to an error or warning.
+ */
+export interface DeficiencyData {
+  /**
+   * The HTTP response associated with the error, when the root cause is a network request
+   * (e.g. a DRM license or certificate request resulting in a non-2xx status code).
+   */
+  httpResponse?: HttpResponse;
+}
+
+/**
  * Base event type for error and warning events.
  */
 export interface ErrorEvent extends Event {
@@ -49,9 +60,11 @@ export interface ErrorEvent extends Event {
    */
   message: string;
   /**
-   * Underlying data emitted with the error or warning.
+   * Additional diagnostic information related to the error or warning.
+   * Contains details such as an {@link DeficiencyData.httpResponse | HTTP response} when
+   * the error is caused by a failed network request.
    */
-  data?: Record<string, any>;
+  data?: DeficiencyData & Record<string, any>;
 }
 
 /**
