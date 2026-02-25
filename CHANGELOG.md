@@ -17,6 +17,11 @@
 
 - Android: TweaksConfig option `enableDrmLicenseRenewRetry` to retry renewing a DRM license when the first renewal attempt fails
 
+### Known Issues
+
+- iOS: Moving a live `PlayerView` between different React Native view trees while using IMA ads in the same source is unsupported and can result in a black screen during playback
+  - A native warning log is now emitted when a rebind of this type is detected
+
 ## [1.9.0] - 2026-02-13
 
 ### Changed
