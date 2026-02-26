@@ -154,9 +154,12 @@ export interface SourceRemoteControlConfig {
  */
 export class Source extends NativeInstance<SourceConfig> {
   /**
-   * The native DRM config reference of this source.
+   * Provides access to DRM runtime APIs for this source.
+   * Use `drm.fairplay` to access {@link FairplayDrmApi} for FairPlay-specific APIs such as {@link FairplayDrmApi.renewExpiringLicense}.
+   *
+   * `undefined` if the source was created without a {@link DrmConfig}.
    */
-  private drm?: Drm;
+  drm?: Drm;
   /**
    * The remote control config for this source.
    * This is only supported on iOS.
@@ -180,7 +183,7 @@ export class Source extends NativeInstance<SourceConfig> {
     if (!this.isInitialized) {
       const sourceMetadata = this.config?.analyticsSourceMetadata;
       if (this.config?.drmConfig) {
-        this.drm = new Drm(this.config.drmConfig);
+        this.drm = new Drm(this.config.drmConfig, this.nativeId);
         await this.drm.initialize();
       }
       if (sourceMetadata) {

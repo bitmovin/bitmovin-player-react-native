@@ -108,6 +108,7 @@ public class RNPlayerView: ExpoView {
     let onBmpCueExit = EventDispatcher()
     let onBmpMetadata = EventDispatcher()
     let onBmpMetadataParsed = EventDispatcher()
+    let onBmpFairplayLicenseAcquired = EventDispatcher()
 
     required init(appContext: AppContext? = nil) {
         super.init(appContext: appContext)
@@ -488,6 +489,10 @@ extension RNPlayerView: PlayerListener {
 
     public func onMetadataParsed(_ event: MetadataParsedEvent, player: Player) {
         onBmpMetadataParsed(event.eventPayload())
+    }
+
+    public func onFairplayLicenseAcquired(_ event: FairplayLicenseAcquiredEvent, player: Player) {
+        onBmpFairplayLicenseAcquired(event.eventPayload())
     }
 
 #if os(iOS)

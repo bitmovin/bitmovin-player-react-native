@@ -212,6 +212,7 @@ export function PlayerView({
         props.onVideoPlaybackQualityChanged
       )}
       onBmpDownloadFinished={proxy(props.onDownloadFinished)}
+      onBmpFairplayLicenseAcquired={proxy(props.onFairplayLicenseAcquired)}
     />
   );
 }
