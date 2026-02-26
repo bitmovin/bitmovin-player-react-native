@@ -50,8 +50,10 @@ class RNPlayerViewManager : Module() {
                 val playerViewConfigWrapper = playerInfo.getMap("playerViewConfig")?.toRNPlayerViewConfigWrapper()
 
                 // If another RNPlayerView currently owns the same playerId, dispose it first.
-                // This guarantees old-view teardown happens before attaching the new view,
-                // preventing fullscreen/modal attach-detach races.
+                // This can happen during rapid view hierarchy transitions (e.g. fullscreen/modal
+                // re-mounts), where React may mount a new native view before unmounting the old one.
+                // Disposing first guarantees old-view teardown happens before attaching the new view,
+                // preventing attach-detach races.
                 val previousView = activePlayerIdByView.entries
                     .firstOrNull { it.value == playerId }
                     ?.key
@@ -163,12 +165,8 @@ class RNPlayerViewManager : Module() {
 
     private fun registerViewForPlayer(view: RNPlayerView, playerId: NativeId) {
         // Keep a single ownership mapping by removing entries for this view and for this playerId.
-        val iterator = activePlayerIdByView.entries.iterator()
-        while (iterator.hasNext()) {
-            val entry = iterator.next()
-            if (entry.key === view || entry.value == playerId) {
-                iterator.remove()
-            }
+        activePlayerIdByView.entries.removeAll { (trackedView, trackedPlayerId) ->
+            trackedView === view || trackedPlayerId == playerId
         }
         activePlayerIdByView[view] = playerId
     }
