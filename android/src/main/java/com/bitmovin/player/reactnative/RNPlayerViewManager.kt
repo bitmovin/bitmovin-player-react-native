@@ -14,8 +14,7 @@ import java.util.WeakHashMap
 class RNPlayerViewManager : Module() {
     // Weak Set
     private val autoPictureInPictureViews = Collections.newSetFromMap(WeakHashMap<RNPlayerView, Boolean>())
-    // RNPlayerView -> active playerId (weak keys, same semantics as autoPictureInPictureViews)
-    private val activePlayerIdByView = WeakHashMap<RNPlayerView, NativeId>()
+    private val activePlayerViewsToPlayerIds = WeakHashMap<RNPlayerView, NativeId>()
 
     override fun definition() = ModuleDefinition {
         Name("RNPlayerViewManager")
