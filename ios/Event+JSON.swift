@@ -1,3 +1,5 @@
+// swiftlint:disable file_length
+
 import BitmovinPlayer
 
 extension Source {
@@ -386,6 +388,7 @@ extension CastWaitingForDeviceEvent: JsonConvertible {
         }
     }
 }
+
 #endif
 
 extension DownloadFinishedEvent: JsonConvertible {
@@ -467,6 +470,18 @@ extension MetadataParsedEvent: JsonConvertible {
             [
                 "metadataType": RCTConvert.metadataTypeString(metadataType),
                 "metadata": RCTConvert.toJson(metadata: metadata, type: metadataType)
+            ]
+        }
+    }
+}
+
+extension FairplayLicenseAcquiredEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON {
+            [
+                "contentKeyRequest": [
+                    "skdUri": contentKeyRequest.skdUri
+                ]
             ]
         }
     }

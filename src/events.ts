@@ -844,3 +844,27 @@ export type MetadataParsedEvent =
  * Emitted when metadata is encountered during playback.
  */
 export type MetadataEvent = MetadataParsedEvent;
+
+/**
+ * Represents the FairPlay content key request associated with a license acquisition.
+ *
+ * @platform iOS, tvOS
+ */
+export interface FairplayContentKeyRequest {
+  /**
+   * The URI of the content key (the `skd://` URI from the HLS manifest).
+   */
+  skdUri: string;
+}
+
+/**
+ * Emitted when a FairPlay license has been acquired successfully.
+ *
+ * @platform iOS, tvOS
+ */
+export interface FairplayLicenseAcquiredEvent extends Event {
+  /**
+   * The content key request associated with the acquired license.
+   */
+  contentKeyRequest: FairplayContentKeyRequest;
+}

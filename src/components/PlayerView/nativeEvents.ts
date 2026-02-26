@@ -66,6 +66,7 @@ import {
   CueExitEvent,
   MetadataEvent,
   MetadataParsedEvent,
+  FairplayLicenseAcquiredEvent,
 } from '../../events';
 
 /**
@@ -413,5 +414,13 @@ export type NativePlayerViewEvents = {
    */
   onBmpVideoPlaybackQualityChanged?: (event: {
     nativeEvent: VideoPlaybackQualityChangedEvent;
+  }) => void;
+  /**
+   * Event emitted when a FairPlay license has been acquired successfully.
+   *
+   * @platform iOS, tvOS
+   */
+  onBmpFairplayLicenseAcquired?: (event: {
+    nativeEvent: FairplayLicenseAcquiredEvent;
   }) => void;
 };

@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { View, Platform, StyleSheet } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Platform, StyleSheet, Button } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -7,7 +7,10 @@ import {
   PlayerView,
   SourceType,
   SourceConfig,
+  FairplayLicenseAcquiredEvent,
+  FairplayContentKeyRequest,
 } from 'bitmovin-player-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTVGestures } from '../hooks';
 
 function prettyPrint(header: string, obj: any) {
@@ -117,6 +120,9 @@ export default function BasicDrmPlayback() {
     },
   });
 
+  const [fairplayContentKeyRequest, setFairplayContentKeyRequest] =
+    useState<FairplayContentKeyRequest | null>(null);
+
   useFocusEffect(
     useCallback(() => {
       player.load(source);
@@ -134,8 +140,29 @@ export default function BasicDrmPlayback() {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
 
+  const onFairplayLicenseAcquired = useCallback(
+    (event: FairplayLicenseAcquiredEvent) => {
+      prettyPrint(`EVENT [${event.name}]`, event);
+      setFairplayContentKeyRequest(event.contentKeyRequest);
+    },
+    []
+  );
+
+  const onRenewExpiringLicense = useCallback(() => {
+    console.log('RenewExpiringLicense called');
+    if (fairplayContentKeyRequest) {
+      console.log(
+        'RenewExpiringLicense skdUri=[' + fairplayContentKeyRequest.skdUri + ']'
+      );
+
+      void player.source?.drm?.fairplay.renewExpiringLicense(
+        fairplayContentKeyRequest
+      );
+    }
+  }, [player, fairplayContentKeyRequest]);
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['bottom']} style={styles.container}>
       <PlayerView
         player={player}
         style={styles.player}
@@ -146,8 +173,15 @@ export default function BasicDrmPlayback() {
         onSourceLoaded={onEvent}
         onSeek={onEvent}
         onSeeked={onEvent}
+        onFairplayLicenseAcquired={onFairplayLicenseAcquired}
       />
-    </View>
+      {fairplayContentKeyRequest != null && (
+        <Button
+          title="Renew Expiring License"
+          onPress={onRenewExpiringLicense}
+        />
+      )}
+    </SafeAreaView>
   );
 }
 

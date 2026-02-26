@@ -1,4 +1,5 @@
 import BitmovinPlayer
+import Combine
 import ExpoModulesCore
 
 public class SourceModule: Module {
@@ -6,7 +7,12 @@ public class SourceModule: Module {
     private var sources: Registry<Source> = [:]
     /// In-memory mapping from `nativeId`s to `SourceConfig` instances for casting.
     private var castSourceConfigs: Registry<SourceConfig> = [:]
+    /// Registry retaining native `FairplayContentKeyRequest` instances keyed by source nativeId + skdUri.
+    private let fairplayRegistry = FairplayContentKeyRequestRegistry()
+    /// Combine cancellables for FairPlay license acquired events, keyed by source nativeId.
+    private var fairplayCancellables: [NativeId: AnyCancellable] = [:]
 
+    // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("SourceModule")
         OnCreate {
@@ -15,6 +21,8 @@ public class SourceModule: Module {
         OnDestroy {
             sources.removeAll()
             castSourceConfigs.removeAll()
+            fairplayCancellables.values.forEach { $0.cancel() }
+            fairplayCancellables.removeAll()
         }
 
         // MARK: - Module methods
@@ -58,6 +66,13 @@ public class SourceModule: Module {
         }.runOnQueue(.main)
         AsyncFunction("getThumbnail") { [weak self] (nativeId: NativeId, time: Double) -> [String: Any]? in
             self?.getSourceThumbnail(nativeId: nativeId, time: time)
+        }.runOnQueue(.main)
+        AsyncFunction("drmFairplayRenewExpiringLicense") { [weak self] (nativeId: NativeId, skdUri: String) in
+            guard let source = self?.sources[nativeId],
+                  let contentKeyRequest = self?.fairplayRegistry.retrieve(nativeId: nativeId, skdUri: skdUri) else {
+                return
+            }
+            source.drm.fairplay.renewExpiringLicense(for: contentKeyRequest)
         }.runOnQueue(.main)
     }
 
@@ -125,6 +140,12 @@ public class SourceModule: Module {
             source = SourceFactory.createSource(from: sourceConfig)
         }
         sources[nativeId] = source
+        // Attach Combine listener to populate the FairPlay registry when a license is acquired
+        fairplayCancellables[nativeId] = source.events
+            .on(FairplayLicenseAcquiredEvent.self)
+            .sink { [weak self] event in
+                self?.fairplayRegistry.store(nativeId: nativeId, contentKeyRequest: event.contentKeyRequest)
+            }
         // Store cast source config if provided
 #if os(iOS)
         if let remoteConfig = RCTConvert.sourceRemoteControlConfig(sourceRemoteControlConfig) {
@@ -139,6 +160,9 @@ public class SourceModule: Module {
     private func destroySource(nativeId: NativeId) {
         sources.removeValue(forKey: nativeId)
         castSourceConfigs.removeValue(forKey: nativeId)
+        fairplayCancellables[nativeId]?.cancel()
+        fairplayCancellables.removeValue(forKey: nativeId)
+        fairplayRegistry.removeAll(nativeId: nativeId)
     }
 }
 
