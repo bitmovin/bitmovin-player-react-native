@@ -2,6 +2,7 @@
 
 import BitmovinCollector
 import BitmovinPlayer
+import BitmovinPlayerCore
 import Foundation
 
 extension RCTConvert {

@@ -59,6 +59,7 @@ import com.bitmovin.player.api.metadata.id3.PrivFrame
 import com.bitmovin.player.api.metadata.id3.TextInformationFrame
 import com.bitmovin.player.api.metadata.id3.UrlLinkFrame
 import com.bitmovin.player.api.metadata.scte.ScteMessage
+import com.bitmovin.player.api.deficiency.DeficiencyData
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.network.HttpResponse
@@ -181,34 +182,40 @@ private fun String.toForceReuseVideoCodecReason(): ForceReuseVideoCodecReason? =
     else -> null
 }
 
-fun Map<String, Any?>.toTweaksConfig(): TweaksConfig = TweaksConfig().apply {
-    withDouble("timeChangedInterval") { timeChangedInterval = it }
-    withInt("bandwidthEstimateWeightLimit") {
-        bandwidthMeterType = BandwidthMeterType.Default(
-            bandwidthEstimateWeightLimit = it,
-        )
-    }
-    withMap("devicesThatRequireSurfaceWorkaround") { devices ->
-        val deviceNames = devices.withStringArray("deviceNames") {
-            it.filterNotNull().map(::DeviceName)
-        } ?: emptyList()
-        val modelNames = devices.withStringArray("modelNames") {
-            it.filterNotNull().map(::DeviceName)
-        } ?: emptyList()
-        devicesThatRequireSurfaceWorkaround = deviceNames + modelNames
-    }
-    withBoolean("languagePropertyNormalization") { languagePropertyNormalization = it }
-    withDouble("localDynamicDashWindowUpdateInterval") { localDynamicDashWindowUpdateInterval = it }
-    withBoolean("useDrmSessionForClearPeriods") { useDrmSessionForClearPeriods = it }
-    withBoolean("useDrmSessionForClearSources") { useDrmSessionForClearSources = it }
-    withBoolean("useFiletypeExtractorFallbackForHls") { useFiletypeExtractorFallbackForHls = it }
-    withStringArray("forceReuseVideoCodecReasons") {
-        forceReuseVideoCodecReasons = it
-            .filterNotNull()
-            .mapNotNull(String::toForceReuseVideoCodecReason)
-            .toSet()
-    }
-}
+fun Map<String, Any?>.toTweaksConfig(): TweaksConfig =
+    TweaksConfig.Builder().apply {
+        withBoolean("enableDrmLicenseRenewRetry") { setEnableDrmLicenseRenewRetry(it) }
+        withDouble("timeChangedInterval") { setTimeChangedInterval(it) }
+        withInt("bandwidthEstimateWeightLimit") {
+            setBandwidthMeterType(
+                BandwidthMeterType.Default(
+                    bandwidthEstimateWeightLimit = it,
+                )
+            )
+        }
+        withMap("devicesThatRequireSurfaceWorkaround") { devices ->
+            val deviceNames = devices.withStringArray("deviceNames") {
+                it.filterNotNull().map(::DeviceName)
+            } ?: emptyList()
+            val modelNames = devices.withStringArray("modelNames") {
+                it.filterNotNull().map(::DeviceName)
+            } ?: emptyList()
+            setDevicesThatRequireSurfaceWorkaround(deviceNames + modelNames)
+        }
+        withBoolean("languagePropertyNormalization") { setLanguagePropertyNormalization(it) }
+        withDouble("localDynamicDashWindowUpdateInterval") { setLocalDynamicDashWindowUpdateInterval(it) }
+        withBoolean("useDrmSessionForClearPeriods") { setUseDrmSessionForClearPeriods(it) }
+        withBoolean("useDrmSessionForClearSources") { setUseDrmSessionForClearSources(it) }
+        withBoolean("useFiletypeExtractorFallbackForHls") { setUseFiletypeExtractorFallbackForHls(it) }
+        withStringArray("forceReuseVideoCodecReasons") {
+            setForceReuseVideoCodecReasons(
+                it
+                    .filterNotNull()
+                    .mapNotNull(String::toForceReuseVideoCodecReason)
+                    .toSet()
+            )
+        }
+    }.build()
 
 fun Map<String, Any?>.toAdvertisingConfig(): AdvertisingConfig? {
     val schedule = getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: emptyList()
@@ -315,11 +322,13 @@ fun SourceEvent.toJson(): Map<String, Any> {
         is SourceEvent.Error -> {
             baseMap["code"] = code.value
             baseMap["message"] = message
+            deficiencyData?.toJson()?.let { baseMap["data"] = it }
         }
 
         is SourceEvent.Warning -> {
             baseMap["code"] = code.value
             baseMap["message"] = message
+            deficiencyData?.toJson()?.let { baseMap["data"] = it }
         }
 
         is SourceEvent.AudioTrackAdded -> {
@@ -387,11 +396,13 @@ fun PlayerEvent.toJson(): Map<String, Any> {
         is PlayerEvent.Error -> {
             baseMap["code"] = code.value
             baseMap["message"] = message
+            deficiencyData?.toJson()?.let { baseMap["data"] = it }
         }
 
         is PlayerEvent.Warning -> {
             baseMap["code"] = code.value
             baseMap["message"] = message
+            deficiencyData?.toJson()?.let { baseMap["data"] = it }
         }
 
         is PlayerEvent.Play -> {
@@ -829,6 +840,14 @@ fun HttpResponse.toJson(): Map<String, Any> = mapOf(
 )
 
 fun HttpRequestType.toJson(): String = toString()
+
+fun DeficiencyData.toJson(): Map<String, Any> {
+    val json = mutableMapOf<String, Any>()
+    if (this is DeficiencyData.Network) {
+        json["httpResponse"] = httpResponse.toJson()
+    }
+    return json
+}
 
 fun MediaType.toJson(): String = when (this) {
     MediaType.Audio -> "audio"

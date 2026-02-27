@@ -3,10 +3,11 @@ import { EventSubscription } from 'expo-modules-core';
 import NativeInstance, { NativeInstanceConfig } from '../nativeInstance';
 import { FairplayConfig } from './fairplayConfig';
 import { WidevineConfig } from './widevineConfig';
+import { FairplayDrmApi } from './fairplayDrmApi';
 import DrmModule from './drmModule';
 
-// Export config types from DRM module.
-export { FairplayConfig, WidevineConfig };
+// Export config types and API classes from DRM module.
+export { FairplayConfig, WidevineConfig, FairplayDrmApi };
 
 /**
  * Represents the general Streaming DRM config.
@@ -32,6 +33,12 @@ export interface DrmConfig extends NativeInstanceConfig {
  */
 export class Drm extends NativeInstance<DrmConfig> {
   /**
+   * Provides FairPlay-specific DRM runtime APIs such as {@link FairplayDrmApi.renewExpiringLicense}.
+   *
+   * @platform iOS, tvOS
+   */
+  readonly fairplay: FairplayDrmApi;
+  /**
    * Whether this object's native instance has been created.
    */
   isInitialized = false;
@@ -41,6 +48,11 @@ export class Drm extends NativeInstance<DrmConfig> {
   isDestroyed = false;
 
   private eventSubscriptions: EventSubscription[] = [];
+
+  constructor(config?: DrmConfig, sourceNativeId?: string) {
+    super(config);
+    this.fairplay = new FairplayDrmApi(sourceNativeId ?? '');
+  }
 
   /**
    * Allocates the DRM config instance and its resources natively.
