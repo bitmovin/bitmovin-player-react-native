@@ -12,6 +12,7 @@
 
 - iOS, tvOS: defaultMetadata from analyticsConfig was not applied when initializing a player with analytics
 - Correctly await DRM teardown before releasing OfflineContentManager native resources
+- Android: stabilize PlayerView ownership handoff in RNPlayerViewManager during rapid view transitions (e.g. fullscreen/modal re-mounts) to avoid rendering instability
 
 ### Added
 
