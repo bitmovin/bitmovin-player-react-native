@@ -21,7 +21,7 @@ class RNPlayerViewManager : Module() {
 
         OnDestroy {
             autoPictureInPictureViews.clear()
-            activePlayerIdByView.clear()
+            activePlayerViewsToPlayerIds.clear()
         }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
@@ -53,7 +53,7 @@ class RNPlayerViewManager : Module() {
                 // re-mounts), where React may mount a new native view before unmounting the old one.
                 // Disposing first guarantees old-view teardown happens before attaching the new view,
                 // preventing attach-detach races.
-                val previousView = activePlayerIdByView.entries
+                val previousView = activePlayerViewsToPlayerIds.entries
                     .firstOrNull { it.value == playerId }
                     ?.key
                 if (previousView != null && previousView !== view) {
@@ -164,14 +164,14 @@ class RNPlayerViewManager : Module() {
 
     private fun registerViewForPlayer(view: RNPlayerView, playerId: NativeId) {
         // Keep a single ownership mapping by removing entries for this view and for this playerId.
-        activePlayerIdByView.entries.removeAll { (trackedView, trackedPlayerId) ->
+        activePlayerViewsToPlayerIds.entries.removeAll { (trackedView, trackedPlayerId) ->
             trackedView === view || trackedPlayerId == playerId
         }
-        activePlayerIdByView[view] = playerId
+        activePlayerViewsToPlayerIds[view] = playerId
     }
 
     private fun unregisterView(view: RNPlayerView) {
-        activePlayerIdByView.remove(view)
+        activePlayerViewsToPlayerIds.remove(view)
     }
 
     private fun updateAutoPictureInPictureRegistration(view: RNPlayerView) {
