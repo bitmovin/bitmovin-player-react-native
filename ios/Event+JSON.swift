@@ -30,11 +30,15 @@ extension NSError: JsonConvertible {
 
 extension DeficiencyData: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
-        [
+        var json: [AnyHashable: Any] = [
             "code": code,
             "message": message,
             "underlyingError": underlyingError.toJSON()
         ]
+        if let response {
+            json["httpResponse"] = RCTConvert.toJson(httpResponse: response)
+        }
+        return json
     }
 }
 
