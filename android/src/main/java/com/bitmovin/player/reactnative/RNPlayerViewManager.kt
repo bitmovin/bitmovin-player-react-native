@@ -43,8 +43,6 @@ class RNPlayerViewManager : Module() {
                     ?: throw IllegalArgumentException("Player info must contain 'playerId' field")
                 val customMessageHandlerBridgeId = playerInfo.getString("customMessageHandlerBridgeId")
                 val enableBackgroundPlayback = playerInfo.getBooleanOrNull("enableBackgroundPlayback") ?: false
-                val isPictureInPictureEnabledOnPlayer =
-                    playerInfo.getBooleanOrNull("isPictureInPictureEnabledOnPlayer") ?: false
                 val userInterfaceTypeName = playerInfo.getString("userInterfaceTypeName")
                 val playerViewConfigWrapper = playerInfo.getMap("playerViewConfig")?.toRNPlayerViewConfigWrapper()
 
@@ -67,7 +65,6 @@ class RNPlayerViewManager : Module() {
                     playerViewConfigWrapper,
                     customMessageHandlerBridgeId,
                     enableBackgroundPlayback,
-                    isPictureInPictureEnabledOnPlayer,
                     userInterfaceTypeName,
                 )
                 registerViewForPlayer(view, playerId)
@@ -92,6 +89,10 @@ class RNPlayerViewManager : Module() {
 
             AsyncFunction("updatePictureInPictureActions") { view: RNPlayerView, pictureInPictureActions: List<String> ->
                 view.updatePictureInPictureActions(pictureInPictureActions.toPictureInPictureActions())
+            }
+
+            AsyncFunction("updatePictureInPictureConfig") { view: RNPlayerView, pictureInPictureConfig: Map<String, Any?>? ->
+                view.updatePictureInPictureConfig(pictureInPictureConfig)
             }
 
             Events(
@@ -174,7 +175,7 @@ class RNPlayerViewManager : Module() {
         activePlayerViewsToPlayerIds.remove(view)
     }
 
-    private fun updateAutoPictureInPictureRegistration(view: RNPlayerView) {
+    internal fun updateAutoPictureInPictureRegistration(view: RNPlayerView) {
         if (view.shouldEnterPictureInPictureOnBackground()) {
             autoPictureInPictureViews.add(view)
         } else {

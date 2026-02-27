@@ -23,6 +23,8 @@
 - Android/iOS: Expose `DeficiencyData` on error and warning events, providing additional diagnostic information such as the HTTP response body when a network request (e.g. DRM license) fails
 - iOS, tvOS: `onFairplayLicenseAcquired` player event, providing the `contentKeyRequest` of the acquired FairPlay license
 - iOS, tvOS: `Source.drm.fairplay.renewExpiringLicense` method to proactively renew an expiring FairPlay license using the `contentKeyRequest` from a `FairplayLicenseAcquiredEvent`
+- Android: TweaksConfig option `enableDrmLicenseRenewRetry` to retry renewing a DRM license when the first renewal attempt fails
+- Android/IOS: Keep `PlayerView`'s `config` property immutable, except for `pictureInPictureConfig` which can be updated dynamically after initialization
 
 ## [1.9.0] - 2026-02-13
 
