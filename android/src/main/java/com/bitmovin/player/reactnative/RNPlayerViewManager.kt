@@ -1,7 +1,6 @@
 package com.bitmovin.player.reactnative
 
 import android.os.Build
-import android.util.Log
 import com.bitmovin.player.reactnative.converter.toPictureInPictureActions
 import com.bitmovin.player.reactnative.converter.toRNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
@@ -15,9 +14,15 @@ import java.util.WeakHashMap
 class RNPlayerViewManager : Module() {
     // Weak Set
     private val autoPictureInPictureViews = Collections.newSetFromMap(WeakHashMap<RNPlayerView, Boolean>())
+    private val activePlayerViewsToPlayerIds = WeakHashMap<RNPlayerView, NativeId>()
 
     override fun definition() = ModuleDefinition {
         Name("RNPlayerViewManager")
+
+        OnDestroy {
+            autoPictureInPictureViews.clear()
+            activePlayerViewsToPlayerIds.clear()
+        }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             // On version S or above this is handled with the PiP Parameters in the `PictureInPictureHandler`
@@ -29,6 +34,7 @@ class RNPlayerViewManager : Module() {
         View(RNPlayerView::class) {
             OnViewDestroys { view: RNPlayerView ->
                 autoPictureInPictureViews.remove(view)
+                unregisterView(view)
                 view.dispose()
             }
 
@@ -41,6 +47,21 @@ class RNPlayerViewManager : Module() {
                     playerInfo.getBooleanOrNull("isPictureInPictureEnabledOnPlayer") ?: false
                 val userInterfaceTypeName = playerInfo.getString("userInterfaceTypeName")
                 val playerViewConfigWrapper = playerInfo.getMap("playerViewConfig")?.toRNPlayerViewConfigWrapper()
+
+                // If another RNPlayerView currently owns the same playerId, dispose it first.
+                // This can happen during rapid view hierarchy transitions (e.g. fullscreen/modal
+                // re-mounts), where React may mount a new native view before unmounting the old one.
+                // Disposing first guarantees old-view teardown happens before attaching the new view,
+                // preventing attach-detach races.
+                val previousView = activePlayerViewsToPlayerIds.entries
+                    .firstOrNull { it.value == playerId }
+                    ?.key
+                if (previousView != null && previousView !== view) {
+                    autoPictureInPictureViews.remove(previousView)
+                    unregisterView(previousView)
+                    previousView.dispose()
+                }
+
                 view.attachPlayer(
                     playerId,
                     playerViewConfigWrapper,
@@ -49,6 +70,7 @@ class RNPlayerViewManager : Module() {
                     isPictureInPictureEnabledOnPlayer,
                     userInterfaceTypeName,
                 )
+                registerViewForPlayer(view, playerId)
                 updateAutoPictureInPictureRegistration(view)
             }
 
@@ -138,6 +160,18 @@ class RNPlayerViewManager : Module() {
                 "onBmpMetadataParsed",
             )
         }
+    }
+
+    private fun registerViewForPlayer(view: RNPlayerView, playerId: NativeId) {
+        // Keep a single ownership mapping by removing entries for this view and for this playerId.
+        activePlayerViewsToPlayerIds.entries.removeAll { (trackedView, trackedPlayerId) ->
+            trackedView === view || trackedPlayerId == playerId
+        }
+        activePlayerViewsToPlayerIds[view] = playerId
+    }
+
+    private fun unregisterView(view: RNPlayerView) {
+        activePlayerViewsToPlayerIds.remove(view)
     }
 
     private fun updateAutoPictureInPictureRegistration(view: RNPlayerView) {

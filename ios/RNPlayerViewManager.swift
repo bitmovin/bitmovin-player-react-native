@@ -99,7 +99,8 @@ public class RNPlayerViewManager: Module {
                 "onBmpCueEnter",
                 "onBmpCueExit",
                 "onBmpMetadata",
-                "onBmpMetadataParsed"
+                "onBmpMetadataParsed",
+                "onBmpFairplayLicenseAcquired"
             )
         }
     }

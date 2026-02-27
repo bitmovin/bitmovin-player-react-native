@@ -92,10 +92,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   destroy = () => {
     if (!this.isDestroyed) {
-      PlayerModule.destroy(this.nativeId);
-      this.source?.destroy();
-      this.network?.destroy();
-      this.decoderConfig?.destroy();
+      void PlayerModule.destroy(this.nativeId);
+      void this.source?.destroy();
+      void this.network?.destroy();
+      void this.decoderConfig?.destroy();
       this.onImaBeforeInitializationSubscription?.remove();
       this.onImaBeforeInitializationSubscription = undefined;
       this.isDestroyed = true;
@@ -116,7 +116,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     offlineContentManager: OfflineContentManager,
     options?: OfflineSourceOptions
   ) => {
-    PlayerModule.loadOfflineContent(
+    void PlayerModule.loadOfflineContent(
       this.nativeId,
       offlineContentManager.nativeId,
       options
@@ -128,30 +128,30 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   loadSource = (source: Source) => {
     this.source = source;
-    source.initialize().then(() => {
-      PlayerModule.loadSource(this.nativeId, source.nativeId);
-    });
+    void source
+      .initialize()
+      .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
   };
 
   /**
    * Unloads all {@link Source}s from the player.
    */
   unload = () => {
-    PlayerModule.unload(this.nativeId);
+    void PlayerModule.unload(this.nativeId);
   };
 
   /**
    * Starts or resumes playback after being paused. Has no effect if the player is already playing.
    */
   play = () => {
-    PlayerModule.play(this.nativeId);
+    void PlayerModule.play(this.nativeId);
   };
 
   /**
    * Pauses the video if it is playing. Has no effect if the player is already paused.
    */
   pause = () => {
-    PlayerModule.pause(this.nativeId);
+    void PlayerModule.pause(this.nativeId);
   };
 
   /**
@@ -162,7 +162,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @param time - The time to seek to in seconds.
    */
   seek = (time: number) => {
-    PlayerModule.seek(this.nativeId, time);
+    void PlayerModule.seek(this.nativeId, time);
   };
 
   /**
@@ -177,21 +177,21 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @param offset - Target offset from the live edge in seconds.
    */
   timeShift = (offset: number) => {
-    PlayerModule.timeShift(this.nativeId, offset);
+    void PlayerModule.timeShift(this.nativeId, offset);
   };
 
   /**
    * Mutes the player if an audio track is available. Has no effect if the player is already muted.
    */
   mute = () => {
-    PlayerModule.mute(this.nativeId);
+    void PlayerModule.mute(this.nativeId);
   };
 
   /**
    * Unmutes the player if it is muted. Has no effect if the player is already unmuted.
    */
   unmute = () => {
-    PlayerModule.unmute(this.nativeId);
+    void PlayerModule.unmute(this.nativeId);
   };
 
   /**
@@ -200,7 +200,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @param volume - The volume level to set.
    */
   setVolume = (volume: number) => {
-    PlayerModule.setVolume(this.nativeId, volume);
+    void PlayerModule.setVolume(this.nativeId, volume);
   };
 
   private ensureImaBeforeInitializationListener = () => {
@@ -228,7 +228,7 @@ export class Player extends NativeInstance<PlayerConfig> {
         } catch {
           prepared = cloned;
         }
-        PlayerModule.setPreparedImaSettings(id, prepared);
+        void PlayerModule.setPreparedImaSettings(id, prepared);
       }
     );
   };
@@ -380,7 +380,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, Android
    */
   scheduleAd = (adItem: AdItem) => {
-    PlayerModule.scheduleAd(this.nativeId, adItem);
+    void PlayerModule.scheduleAd(this.nativeId, adItem);
   };
 
   /**
@@ -390,7 +390,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, Android
    */
   skipAd = () => {
-    PlayerModule.skipAd(this.nativeId);
+    void PlayerModule.skipAd(this.nativeId);
   };
 
   /**
@@ -424,7 +424,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Can be set to `null` for no limitation.
    */
   setMaxSelectableBitrate = (bitrate: number | null) => {
-    PlayerModule.setMaxSelectableBitrate(this.nativeId, bitrate || -1);
+    void PlayerModule.setMaxSelectableBitrate(this.nativeId, bitrate || -1);
   };
 
   /**
@@ -467,7 +467,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, Android
    */
   castVideo = () => {
-    PlayerModule.castVideo(this.nativeId);
+    void PlayerModule.castVideo(this.nativeId);
   };
 
   /**
@@ -476,7 +476,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, Android
    */
   castStop = () => {
-    PlayerModule.castStop(this.nativeId);
+    void PlayerModule.castStop(this.nativeId);
   };
 
   /**
@@ -508,7 +508,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       );
       return;
     }
-    PlayerModule.setVideoQuality(this.nativeId, qualityId);
+    void PlayerModule.setVideoQuality(this.nativeId, qualityId);
   };
 
   /**
@@ -528,7 +528,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @param playbackSpeed - The playback speed to set.
    */
   setPlaybackSpeed = (playbackSpeed: number) => {
-    PlayerModule.setPlaybackSpeed(this.nativeId, playbackSpeed);
+    void PlayerModule.setPlaybackSpeed(this.nativeId, playbackSpeed);
   };
 
   /**

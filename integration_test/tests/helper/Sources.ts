@@ -25,4 +25,25 @@ export const Sources = {
     url: 'https://cdn.bitmovin.com/content/internal/assets/sintel/hls/playlist.m3u8',
     type: SourceType.HLS,
   } as SourceConfig,
+
+  widevineDrmWithBrokenLicense: {
+    url: 'https://cdn.bitmovin.com/content/internal/assets/art-of-motion_drm/mpds/11331.mpd',
+    type: SourceType.DASH,
+    drmConfig: {
+      widevine: {
+        licenseUrl: 'https://httpstat.us/403',
+      },
+    },
+  } as SourceConfig,
+
+  fairplayDrmWithBrokenLicense: {
+    url: 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8',
+    type: SourceType.HLS,
+    drmConfig: {
+      fairplay: {
+        licenseUrl: 'https://httpstat.us/403',
+        certificateUrl: 'https://fps.ezdrm.com/demo/video/eleisure.cer',
+      },
+    },
+  } as SourceConfig,
 };
