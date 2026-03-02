@@ -20,11 +20,8 @@ import {
 import { AdTags } from './helper/Ads';
 import { Platform } from 'react-native';
 
-type AdSystem = 'ima' | 'bitmovin' | 'progressive';
-
 type AdScenario = {
   name: string;
-  adSystem: AdSystem;
   adItems: AdItem[];
   expectManifestLoaded: boolean;
   expectManifestLoadedAfterSeekOnAndroid?: boolean;
@@ -34,7 +31,6 @@ export default (spec: TestScope) => {
   function commonAdvertisingTests(scenario: AdScenario) {
     const {
       name,
-      adSystem,
       adItems,
       expectManifestLoaded,
       expectManifestLoadedAfterSeekOnAndroid = false,
@@ -68,8 +64,8 @@ export default (spec: TestScope) => {
         });
       });
     });
-    spec.describe(`playing ${name} ads (${adSystem})`, () => {// TODO: repetition: our `name`s already include the ad system!
-      spec.it('emits Ad events', async () => {// TODO: unrelated (existing bug) - player doens't start playback and test fails (no AdManifestLoaded or break started)
+    spec.describe(`playing ${name} ads`, () => {
+      spec.it('emits Ad events', async () => {
         const advertisingConfig = {
           schedule: adItems,
         } as AdvertisingConfig;
@@ -144,7 +140,6 @@ export default (spec: TestScope) => {
   const adScenarios: AdScenario[] = [
     {
       name: 'IMA VMAP',
-      adSystem: 'ima',
       adItems: [
         { sources: [{ tag: AdTags.vmapPreMidPost, type: AdSourceType.IMA }] },
       ],
@@ -152,7 +147,6 @@ export default (spec: TestScope) => {
     },
     {
       name: 'IMA VAST',
-      adSystem: 'ima',
       adItems: [
         {
           sources: [{ tag: AdTags.vastSkippable, type: AdSourceType.IMA }],
@@ -172,7 +166,6 @@ export default (spec: TestScope) => {
     },
     {
       name: 'Progressive',
-      adSystem: 'progressive',
       adItems: [
         {
           sources: [
@@ -197,7 +190,6 @@ export default (spec: TestScope) => {
     },
     {
       name: 'BITMOVIN VAST',
-      adSystem: 'bitmovin',
       adItems: [
         {
           sources: [{ tag: AdTags.vastSkippable, type: AdSourceType.BITMOVIN }],
