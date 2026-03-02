@@ -178,6 +178,9 @@ public class PlayerModule: Module {
         AsyncFunction("setPreparedImaSettings") { [weak self] (id: Int, settings: [String: Any]?) in
             self?.imaSettingsWaiter.complete(id: id, with: settings ?? [:])
         }
+        AsyncFunction("isGoogleImaAvailable") { () -> Bool in
+            NSClassFromString("IMAAdsLoader") != nil
+        }
         AsyncFunction(
             "initializeWithConfig"
         ) { [weak self] (nativeId: NativeId, config: [String: Any]?, networkNativeId: NativeId?, _: String?) in // swiftlint:disable:this line_length

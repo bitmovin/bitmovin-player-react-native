@@ -25,6 +25,7 @@ import { DecoderConfigBridge } from './decoder';
  * @see PlayerView
  */
 export class Player extends NativeInstance<PlayerConfig> {
+  private static hasLoggedImaUnavailableWarning = false;
   /**
    * Whether the native `Player` object has been created.
    */
@@ -57,7 +58,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   initialize = async (): Promise<void> => {
     if (!this.isInitialized) {
-      this.ensureImaBeforeInitializationListener();
+      await this.ensureImaBeforeInitializationListener();
       if (this.config?.networkConfig) {
         this.network = new Network(this.config.networkConfig);
         await this.network.initialize();
@@ -203,9 +204,19 @@ export class Player extends NativeInstance<PlayerConfig> {
     void PlayerModule.setVolume(this.nativeId, volume);
   };
 
-  private ensureImaBeforeInitializationListener = () => {
+  private ensureImaBeforeInitializationListener = async () => {
     const callback = this.config?.advertisingConfig?.ima?.beforeInitialization;
     if (!callback) {
+      return;
+    }
+    const isGoogleImaAvailable = await PlayerModule.isGoogleImaAvailable();
+    if (!isGoogleImaAvailable) {
+      if (!Player.hasLoggedImaUnavailableWarning) {
+        console.warn(
+          '[bitmovin-player-react-native] advertisingConfig.ima.beforeInitialization was configured, but Google IMA is not available in the native app. Enable features.googleIMA in the Expo plugin configuration to use this callback.'
+        );
+        Player.hasLoggedImaUnavailableWarning = true;
+      }
       return;
     }
     if (this.onImaBeforeInitializationSubscription) {

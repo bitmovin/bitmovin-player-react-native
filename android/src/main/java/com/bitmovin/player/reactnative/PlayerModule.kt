@@ -8,6 +8,7 @@ import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.advertising.BeforeInitializationCallback
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.reactnative.converter.applyOnImaSettings
+import com.bitmovin.player.reactnative.converter.toImaSettingsMap
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
@@ -279,6 +280,10 @@ class PlayerModule : Module() {
             imaSettingsWaiter.complete(id, settings ?: emptyMap())
         }
 
+        AsyncFunction("isGoogleImaAvailable") {
+            isGoogleImaAvailable()
+        }
+
         AsyncFunction("initializeWithConfig") { nativeId: NativeId, config: Map<String, Any>?,
             networkNativeId: NativeId?, decoderNativeId: NativeId?, ->
             initializePlayer(nativeId, config, networkNativeId, decoderNativeId, null)
@@ -377,7 +382,7 @@ class PlayerModule : Module() {
     private fun createBeforeInitializationCallback(nativeId: NativeId): BeforeInitializationCallback =
         BeforeInitializationCallback { settings ->
             val (id, wait) = imaSettingsWaiter.make(250)
-            val payload = settings.toMap()
+            val payload = settings.toImaSettingsMap()
             sendEvent(
                 "onImaBeforeInitialization",
                 bundleOf(
@@ -388,6 +393,11 @@ class PlayerModule : Module() {
             )
             wait()?.applyOnImaSettings(settings)
         }
+
+    private fun isGoogleImaAvailable(): Boolean =
+        runCatching {
+            Class.forName("com.google.ads.interactivemedia.v3.api.ImaSdkSettings")
+        }.isSuccess
 
     // CRITICAL: This method must remain available for cross-module access
     fun getPlayerOrNull(nativeId: NativeId): Player? = PlayerRegistry.getPlayer(nativeId)

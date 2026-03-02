@@ -3,15 +3,26 @@ import {
   withInfoPlist,
   withPodfileProperties,
 } from 'expo/config-plugins';
+import Features from './Features';
 import { BitmovinConfigOptions } from './withBitmovinConfig';
 
 const isTV = !!process.env.EXPO_TV;
+
+function isGoogleImaEnabledOnIos(
+  googleIMAFeature: Features['googleIMA']
+): boolean {
+  if (typeof googleIMAFeature === 'boolean' || googleIMAFeature == null) {
+    return googleIMAFeature ?? true;
+  }
+  return googleIMAFeature.ios ?? true;
+}
 
 const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
   config,
   options
 ) => {
   const { playerLicenseKey = '', features = {} } = options || {};
+  const isGoogleImaEnabled = isGoogleImaEnabledOnIos(features.googleIMA);
   const offlineFeatureConfig =
     typeof features.offline === 'object'
       ? features.offline
@@ -91,6 +102,9 @@ const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
 
   if (!isTV) {
     config = withPodfileProperties(config, (config) => {
+      config.modResults['BITMOVIN_ENABLE_GOOGLE_IMA'] = String(
+        isGoogleImaEnabled
+      );
       if (googleCastVersion != null) {
         config.modResults['BITMOVIN_GOOGLE_CAST_SDK_VERSION'] =
           googleCastVersion;

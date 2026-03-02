@@ -4,16 +4,27 @@ import {
   withAndroidManifest,
   withGradleProperties,
 } from 'expo/config-plugins';
+import Features from './Features';
 import withAppGradleDependencies from './withAppGradleDependencies';
 import { BitmovinConfigOptions } from './withBitmovinConfig';
 
 type ManifestActivity = AndroidConfig.Manifest.ManifestActivity;
+
+function isGoogleImaEnabledOnAndroid(
+  googleIMAFeature: Features['googleIMA']
+): boolean {
+  if (typeof googleIMAFeature === 'boolean' || googleIMAFeature == null) {
+    return googleIMAFeature ?? true;
+  }
+  return googleIMAFeature.android ?? true;
+}
 
 const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
   config,
   options
 ) => {
   const { playerLicenseKey = '', features = {} } = options || {};
+  const isGoogleImaEnabled = isGoogleImaEnabledOnAndroid(features.googleIMA);
   const offlineFeatureConfig =
     typeof features.offline === 'object'
       ? features.offline
@@ -224,6 +235,22 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
 
   config = withGradleProperties(config, (config) => {
     const properties = config.modResults;
+    const setGradleProperty = (key: string, value: string) => {
+      const existingEntry = properties.find(
+        (item) => item.type === 'property' && item.key === key
+      );
+      if (existingEntry) {
+        properties.splice(config.modResults.indexOf(existingEntry), 1);
+      }
+      properties.push({
+        type: 'property',
+        key,
+        value,
+      });
+    };
+
+    setGradleProperty('BITMOVIN_ENABLE_GOOGLE_IMA', String(isGoogleImaEnabled));
+
     const existingEntry = properties.find(
       (item) =>
         item.type === 'property' &&
@@ -242,11 +269,7 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
     if (!mavenRepos.some((repo: any) => repo.url === bitmovinRepoUrl)) {
       mavenRepos.push({ url: bitmovinRepoUrl });
     }
-    properties.push({
-      type: 'property',
-      key: 'android.extraMavenRepos',
-      value: JSON.stringify(mavenRepos),
-    });
+    setGradleProperty('android.extraMavenRepos', JSON.stringify(mavenRepos));
     config.modResults = properties;
     return config;
   });

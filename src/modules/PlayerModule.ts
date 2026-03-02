@@ -165,6 +165,11 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
   setPreparedImaSettings(id: number, settings: ImaSettings): Promise<void>;
 
   /**
+   * Resolves whether the Google IMA SDK is linked in the native app.
+   */
+  isGoogleImaAvailable(): Promise<boolean>;
+
+  /**
    * Check if player can play at specified playback speed (iOS only).
    */
   canPlayAtPlaybackSpeed(

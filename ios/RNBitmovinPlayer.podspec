@@ -2,6 +2,7 @@ require 'json'
 
 package = JSON.parse(File.read(File.join(__dir__, '..', 'package.json')))
 podfile_properties = JSON.parse(File.read("#{Pod::Config.instance.installation_root}/Podfile.properties.json")) rescue {}
+is_google_ima_enabled = podfile_properties['BITMOVIN_ENABLE_GOOGLE_IMA'].to_s != 'false'
 
 new_arch_enabled = ENV['RCT_NEW_ARCH_ENABLED'] == '1'
 new_arch_compiler_flags = '-DRCT_NEW_ARCH_ENABLED'
@@ -29,8 +30,10 @@ Pod::Spec.new do |s|
 
   s.dependency 'ExpoModulesCore'
   s.dependency "BitmovinPlayer", "3.108.1"
-  s.ios.dependency "GoogleAds-IMA-iOS-SDK", "3.26.1"
-  s.tvos.dependency "GoogleAds-IMA-tvOS-SDK", "4.15.1"
+  if is_google_ima_enabled
+    s.ios.dependency "GoogleAds-IMA-iOS-SDK", "3.26.1"
+    s.tvos.dependency "GoogleAds-IMA-tvOS-SDK", "4.15.1"
+  end
 
   if podfile_properties['BITMOVIN_GOOGLE_CAST_SDK_VERSION'].to_s != ''
     s.ios.dependency "google-cast-sdk", podfile_properties['BITMOVIN_GOOGLE_CAST_SDK_VERSION'].to_s

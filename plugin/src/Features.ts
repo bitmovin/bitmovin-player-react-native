@@ -1,6 +1,16 @@
 export default interface Features {
   airPlay?: boolean;
   backgroundPlayback?: boolean;
+  /**
+   * Controls whether Google IMA SDK dependencies are linked.
+   * Defaults to `true`.
+   */
+  googleIMA?:
+    | boolean
+    | {
+        android?: boolean;
+        ios?: boolean;
+      };
   googleCastSDK?: {
     appId?: string;
     messageNamespace?: string;

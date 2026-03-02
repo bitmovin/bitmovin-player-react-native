@@ -6,6 +6,7 @@ import withBitmovinAndroidConfig from './withBitmovinAndroidConfig';
 const defaultFeatures: Features = {
   airPlay: false,
   backgroundPlayback: false,
+  googleIMA: true,
   googleCastSDK: undefined,
   offline: false,
   pictureInPicture: false,
@@ -35,6 +36,7 @@ export interface BitmovinConfigOptions {
  *         features: {
  *           airPlay: true,
  *           backgroundPlayback: true,
+ *           googleIMA: true,
  *           googleCastSDK: { android: '21.3.0', ios: '4.8.1.2' },
  *           offline: true,
  *           pictureInPicture: true,
