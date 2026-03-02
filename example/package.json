@@ -41,14 +41,14 @@
     "@react-navigation/elements": "1.3.30",
     "@react-navigation/native": "6.1.14",
     "@react-navigation/native-stack": "6.9.22",
-    "expo": "53.0.26",
+    "expo": "53.0.27",
     "expo-build-properties": "~0.14.8",
     "expo-crypto": "~14.1.5",
     "expo-dev-client": "~5.2.4",
     "expo-device": "~7.1.4",
-    "expo-notifications": "~0.31.4",
+    "expo-notifications": "~0.31.5",
     "expo-screen-orientation": "~8.1.7",
-    "expo-system-ui": "~5.0.10",
+    "expo-system-ui": "~5.0.11",
     "react": "19.0.0",
     "react-native": "npm:react-native-tvos@0.79.5-0",
     "react-native-safe-area-context": "5.4.0",
@@ -82,7 +82,8 @@
     "doctor": {
       "reactNativeDirectoryCheck": {
         "exclude": [
-          "@react-native-tvos/config-tv"
+          "@react-native-tvos/config-tv",
+          "react-native-system-navigation-bar"
         ]
       }
     }
