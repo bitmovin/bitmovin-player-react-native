@@ -55,28 +55,34 @@ jobs:
           cp example/.env.example example/.env
           cp integration_test/.env.example integration_test/.env
 
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile
+          yarn install --frozen-lockfile --cwd example
+          yarn install --frozen-lockfile --cwd integration_test
+
       - name: Apply expo install --fix in all workspaces
         run: |
-          EXPO_NONINTERACTIVE=1 npx expo install --fix
+          EXPO_NONINTERACTIVE=1 yarn expo install --fix
           (
             cd example
-            EXPO_NONINTERACTIVE=1 npx expo install --fix
+            EXPO_NONINTERACTIVE=1 yarn expo install --fix
           )
           (
             cd integration_test
-            EXPO_NONINTERACTIVE=1 npx expo install --fix
+            EXPO_NONINTERACTIVE=1 yarn expo install --fix
           )
 
       - name: Validate with expo-doctor in all workspaces
         run: |
-          EXPO_NONINTERACTIVE=1 npx --yes expo-doctor@latest
+          EXPO_NONINTERACTIVE=1 yarn expo doctor
           (
             cd example
-            EXPO_NONINTERACTIVE=1 npx --yes expo-doctor@latest
+            EXPO_NONINTERACTIVE=1 yarn expo doctor
           )
           (
             cd integration_test
-            EXPO_NONINTERACTIVE=1 npx --yes expo-doctor@latest
+            EXPO_NONINTERACTIVE=1 yarn expo doctor
           )
 
       - name: Check for tracked changes
