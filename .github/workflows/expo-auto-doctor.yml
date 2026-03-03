@@ -103,7 +103,7 @@ jobs:
         if: ${{ steps.changed.outputs.has_changes == 'true' }}
         run: |
           git add -u
-          git commit -m "Update Expo dependencies via install --fix"
+          git commit -m "Update Expo dependencies via `expo install --fix`"
 
       - name: Push branch
         run: git push --force-with-lease origin "$BOT_BRANCH"
