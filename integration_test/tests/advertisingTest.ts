@@ -41,6 +41,7 @@ type AdScenario = {
   expectManifestLoadedAfterSeekByPlatform?: Partial<
     Record<SupportedTestPlatform, boolean>
   >;
+  enabledOn?: SupportedTestPlatform[];
 };
 
 export default (spec: TestScope) => {
@@ -149,7 +150,6 @@ export default (spec: TestScope) => {
     });
   }
 
-  // TODO: add coverage for BITMOVIN VMAP for android (iOS doesn't support BAM VMAP yet)
   const adScenarios: AdScenario[] = [
     {
       name: 'IMA VMAP',
@@ -221,9 +221,23 @@ export default (spec: TestScope) => {
       ],
       expectManifestLoaded: false,
     },
+    {
+      name: 'BITMOVIN VMAP',
+      adItems: [
+        {
+          sources: [
+            { tag: AdTags.vmapPreMidPost, type: AdSourceType.BITMOVIN },
+          ],
+        },
+      ],
+      expectManifestLoaded: false,
+      enabledOn: ['android'],
+    },
   ];
 
-  adScenarios.forEach(commonAdvertisingTests);
+  adScenarios
+    .filter(({ enabledOn }) => isEnabledForCurrentPlatform(enabledOn))
+    .forEach(commonAdvertisingTests);
 
   type AdErrorScenario = {
     adItem: AdItem;
