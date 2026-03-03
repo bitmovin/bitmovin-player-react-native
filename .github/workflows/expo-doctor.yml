@@ -87,4 +87,4 @@ jobs:
 
       - name: Run expo-doctor
         working-directory: ${{ matrix.cwd }}
-        run: EXPO_NONINTERACTIVE=1 yarn expo doctor
+        run: EXPO_NONINTERACTIVE=1 npx --yes expo-doctor@latest

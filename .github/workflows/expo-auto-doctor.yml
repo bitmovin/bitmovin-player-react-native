@@ -75,14 +75,14 @@ jobs:
 
       - name: Validate with expo-doctor in all workspaces
         run: |
-          EXPO_NONINTERACTIVE=1 yarn expo doctor
+          EXPO_NONINTERACTIVE=1 npx --yes expo-doctor@latest
           (
             cd example
-            EXPO_NONINTERACTIVE=1 yarn expo doctor
+            EXPO_NONINTERACTIVE=1 npx --yes expo-doctor@latest
           )
           (
             cd integration_test
-            EXPO_NONINTERACTIVE=1 yarn expo doctor
+            EXPO_NONINTERACTIVE=1 npx --yes expo-doctor@latest
           )
 
       - name: Check for tracked changes
