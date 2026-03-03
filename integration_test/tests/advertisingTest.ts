@@ -149,6 +149,7 @@ export default (spec: TestScope) => {
     });
   }
 
+  // TODO: add coverage for BITMOVIN VMAP for android (iOS doesn't support BAM VMAP yet)
   const adScenarios: AdScenario[] = [
     {
       name: 'IMA VMAP',
@@ -258,6 +259,11 @@ export default (spec: TestScope) => {
       },
       label: 'progressive',
       enabledOn: ['ios'],
+    },
+    {
+      adItem: { sources: [{ tag: AdTags.error, type: AdSourceType.BITMOVIN }] },
+      label: 'BITMOVIN',
+      enabledOn: ['ios', 'android'],
     },
   ];
 
