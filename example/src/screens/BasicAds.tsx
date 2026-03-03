@@ -24,11 +24,11 @@ const createAdTags = () => ({
   vastSkippable: withCorrelator(
     'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dskippablelinear&correlator='
   ),
-  vast1: withCorrelator(
+  vastLinear: withCorrelator(
     'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator='
   ),
-  vast2: withCorrelator(
-    'https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/single_ad_samples&sz=640x480&cust_params=sample_ct%3Dlinear&ciu_szs=300x250%2C728x90&gdfp_req=1&output=vast&unviewed_position_start=1&env=vp&correlator='
+  vastSkippablePre: withCorrelator(
+    'https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/single_preroll_skippable&sz=640x480&ciu_szs=300x250%2C728x90&gdfp_req=1&output=vast&unviewed_position_start=1&env=vp&correlator='
   ),
 });
 
@@ -62,7 +62,7 @@ const buildAdvertisingConfig = (
     {
       sources: [
         {
-          tag: adTags.vastSkippable,
+          tag: adTags.vastSkippablePre,
           type: sourceType,
         },
       ],
@@ -72,7 +72,7 @@ const buildAdvertisingConfig = (
       position: '20%',
       sources: [
         {
-          tag: adTags.vast1,
+          tag: adTags.vastLinear,
           type: sourceType,
         },
       ],
@@ -185,13 +185,13 @@ function BasicAdsPlayer({
         position: 'post',
         sources: [
           {
-            tag: adTags.vast2,
+            tag: adTags.vastSkippable,
             type: scenario.sourceType,
           },
         ],
       });
     },
-    [adTags.vast2, player, onEvent, scenario.sourceType]
+    [adTags.vastSkippable, player, onEvent, scenario.sourceType]
   );
 
   const onAdStarted = useCallback(
