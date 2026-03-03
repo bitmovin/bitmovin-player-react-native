@@ -120,9 +120,6 @@ export default function BasicAds() {
                 pressed && styles.actionButtonPressed,
               ]}
               onPress={() => onSelectScenario(scenario)}
-              accessibilityRole="button"
-              accessibilityLabel={`Ad System: ${scenario.label}`}
-              accessibilityState={{ selected: isSelected }}
             >
               <Text
                 style={[
