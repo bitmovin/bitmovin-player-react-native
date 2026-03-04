@@ -209,7 +209,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (!callback) {
       return;
     }
-    const isGoogleImaAvailable = await PlayerModule.isGoogleImaAvailable();
+    const isGoogleImaAvailable = await this.isGoogleImaAvailable();
     if (!isGoogleImaAvailable) {
       if (!Player.hasLoggedImaUnavailableWarning) {
         console.warn(
@@ -242,6 +242,17 @@ export class Player extends NativeInstance<PlayerConfig> {
         void PlayerModule.setPreparedImaSettings(id, prepared);
       }
     );
+  };
+
+  private isGoogleImaAvailable = async (): Promise<boolean> => {
+    try {
+      if (typeof PlayerModule.isGoogleImaAvailable !== 'function') {
+        return true;
+      }
+      return await PlayerModule.isGoogleImaAvailable();
+    } catch {
+      return true;
+    }
   };
 
   /**
