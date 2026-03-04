@@ -2,13 +2,14 @@
 
 ## [Unreleased]
 ### Added
-- Support for streaming ads with the Bitmovin Advertising Module (BAM) via `AdSourceType.BITMOVIN` in `AdvertisingConfig` ad schedules. Note: on iOS, VMAP is currently not supported with BAM.
+- Support for streaming ads with the Bitmovin Advertising Module (BAM) via `AdSourceType.BITMOVIN` in `AdvertisingConfig` ad schedules.
+  - BAM is Bitmovin's native streaming ads path with tight player integration and no Google IMA dependency
+  - Note: on iOS, VMAP is currently not supported with BAM.
 - Expo config plugin feature flag `features.googleIMA` to control whether Google IMA native SDK dependencies are linked.
 
 ### Changed
-- Google IMA is now a build-time optional native dependency controlled by `features.googleIMA` (enabled by default).
-- Android: decouple IMA settings bridging from compile-time `ImaSdkSettings` imports so builds succeed when Google IMA is disabled.
-- JS: if `advertisingConfig.ima.beforeInitialization` is configured while Google IMA is unavailable, the callback is skipped and a warning is logged once.
+- Google IMA is now a build-time optional native dependency controlled by `features.googleIMA` (enabled by default)
+- `advertisingConfig.ima.beforeInitialization` now logs a warning in case it is configured while Google IMA is unavailable
 
 ### Changed
 
