@@ -1,0 +1,132 @@
+name: Expo Auto Doctor
+
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: expo-auto-doctor-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  nightly-fix-pr:
+    name: Nightly Expo Fix PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BASE_BRANCH: development
+      BOT_BRANCH: feature/expo-install-fix
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup node and npm registry
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'
+          cache-dependency-path: |
+            yarn.lock
+            example/yarn.lock
+            integration_test/yarn.lock
+
+      - name: Setup git user
+        run: |
+          git config --global user.name "Expo Update Bot"
+          git config --global user.email "expo-update-bot@bitmovin.com"
+
+      - name: Reset branch from latest development
+        run: |
+          git fetch origin "$BASE_BRANCH"
+          git checkout -B "$BOT_BRANCH" "origin/$BASE_BRANCH"
+
+      - name: Prepare env files for app workspaces
+        run: |
+          cp example/.env.example example/.env
+          cp integration_test/.env.example integration_test/.env
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile
+          yarn install --frozen-lockfile --cwd example
+          yarn install --frozen-lockfile --cwd integration_test
+
+      - name: Apply expo install --fix in all workspaces
+        run: |
+          EXPO_NONINTERACTIVE=1 yarn expo install --fix
+          (
+            cd example
+            EXPO_NONINTERACTIVE=1 yarn expo install --fix
+          )
+          (
+            cd integration_test
+            EXPO_NONINTERACTIVE=1 yarn expo install --fix
+          )
+
+      - name: Validate with expo-doctor in all workspaces
+        run: |
+          EXPO_NONINTERACTIVE=1 npx --yes expo-doctor@latest
+          (
+            cd example
+            EXPO_NONINTERACTIVE=1 npx --yes expo-doctor@latest
+          )
+          (
+            cd integration_test
+            EXPO_NONINTERACTIVE=1 npx --yes expo-doctor@latest
+          )
+
+      - name: Check for tracked changes
+        id: changed
+        run: |
+          if [[ -n "$(git status --porcelain --untracked-files=no)" ]]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Lookup existing PR
+        id: pr
+        run: |
+          pr_number="$(gh pr list \
+            --state open \
+            --base "$BASE_BRANCH" \
+            --head "$BOT_BRANCH" \
+            --json number \
+            --jq '.[0].number')"
+          echo "number=$pr_number" >> "$GITHUB_OUTPUT"
+
+      - name: Commit dependency updates
+        if: ${{ steps.changed.outputs.has_changes == 'true' }}
+        run: |
+          git add -u
+          git commit -m "Update Expo dependencies via `expo install --fix`"
+
+      - name: Push branch
+        run: git push --force-with-lease origin "$BOT_BRANCH"
+
+      - name: Create or update draft PR
+        if: ${{ steps.changed.outputs.has_changes == 'true' || steps.pr.outputs.number != '' }}
+        run: |
+          pr_number="${{ steps.pr.outputs.number }}"
+          pr_title="Nightly Expo dependency alignment"
+          pr_body=$'Automated nightly run:\n\n- reset branch from latest `development`\n- run `expo install --fix` in `./`, `example`, and `integration_test`\n- verify all three with `expo-doctor`\n\nPlease review dependency and lockfile updates before merging.'
+          if [[ -z "$pr_number" ]]; then
+            gh pr create \
+              --base "$BASE_BRANCH" \
+              --head "$BOT_BRANCH" \
+              --title "$pr_title" \
+              --body "$pr_body" \
+              --draft
+          else
+            gh pr edit "$pr_number" --title "$pr_title" --body "$pr_body"
+          fi

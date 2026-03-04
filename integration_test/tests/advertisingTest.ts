@@ -20,11 +20,28 @@ import {
 import { AdTags } from './helper/Ads';
 import { Platform } from 'react-native';
 
+type SupportedTestPlatform = 'ios' | 'android';
+
+const currentPlatform = Platform.OS as SupportedTestPlatform;
+
+function isEnabledForCurrentPlatform(
+  enabledOn?: SupportedTestPlatform[]
+): boolean {
+  if (enabledOn === undefined) {
+    return true;
+  }
+
+  return enabledOn.includes(currentPlatform);
+}
+
 type AdScenario = {
   name: string;
   adItems: AdItem[];
   expectManifestLoaded: boolean;
-  expectManifestLoadedAfterSeekOnAndroid?: boolean;
+  expectManifestLoadedAfterSeekByPlatform?: Partial<
+    Record<SupportedTestPlatform, boolean>
+  >;
+  enabledOn?: SupportedTestPlatform[];
 };
 
 export default (spec: TestScope) => {
@@ -33,8 +50,10 @@ export default (spec: TestScope) => {
       name,
       adItems,
       expectManifestLoaded,
-      expectManifestLoadedAfterSeekOnAndroid = false,
+      expectManifestLoadedAfterSeekByPlatform,
     } = scenario;
+    const expectManifestLoadedAfterSeek =
+      expectManifestLoadedAfterSeekByPlatform?.[currentPlatform] ?? false;
 
     spec.describe(`scheduling ${name} ads via AdvertisingConfig`, () => {
       spec.it('emits AdScheduled events', async () => {
@@ -92,10 +111,7 @@ export default (spec: TestScope) => {
           await callPlayerAndExpectEvent((player) => {
             player.seek(13);
           }, EventType.Seeked);
-          if (
-            Platform.OS === 'android' &&
-            expectManifestLoadedAfterSeekOnAndroid
-          ) {
+          if (expectManifestLoadedAfterSeek) {
             await expectEvent(EventType.AdManifestLoaded, 20);
           }
           await expectEvents(
@@ -114,10 +130,7 @@ export default (spec: TestScope) => {
             const duration = await player.getDuration();
             player.seek(duration - 5);
           }, EventType.Seeked);
-          if (
-            Platform.OS === 'android' &&
-            expectManifestLoadedAfterSeekOnAndroid
-          ) {
+          if (expectManifestLoadedAfterSeek) {
             await expectEvent(EventType.AdManifestLoaded, 20);
           }
           await expectEvents(
@@ -162,7 +175,9 @@ export default (spec: TestScope) => {
         },
       ],
       expectManifestLoaded: true,
-      expectManifestLoadedAfterSeekOnAndroid: true,
+      expectManifestLoadedAfterSeekByPlatform: {
+        android: true,
+      },
     },
     {
       name: 'Progressive',
@@ -206,11 +221,32 @@ export default (spec: TestScope) => {
       ],
       expectManifestLoaded: false,
     },
+    {
+      name: 'BITMOVIN VMAP',
+      adItems: [
+        {
+          sources: [
+            { tag: AdTags.vmapPreMidPost, type: AdSourceType.BITMOVIN },
+          ],
+        },
+      ],
+      expectManifestLoaded: false,
+      enabledOn: ['android'],
+    },
   ];
 
-  adScenarios.forEach(commonAdvertisingTests);
+  adScenarios
+    .filter(({ enabledOn }) => isEnabledForCurrentPlatform(enabledOn))
+    .forEach(commonAdvertisingTests);
 
-  function advertisingErrorTests(adItem: AdItem, label: string) {
+  type AdErrorScenario = {
+    adItem: AdItem;
+    label: string;
+    enabledOn?: SupportedTestPlatform[];
+  };
+
+  function advertisingErrorTests(scenario: AdErrorScenario) {
+    const { adItem, label } = scenario;
     spec.describe(`scheduling erroneous ${label} ad`, () => {
       spec.it('emits AdError events', async () => {
         await startPlayerTest({}, async () => {
@@ -224,15 +260,28 @@ export default (spec: TestScope) => {
     });
   }
 
-  advertisingErrorTests(
-    { sources: [{ tag: AdTags.error, type: AdSourceType.IMA }] },
-    'IMA'
-  );
-  if (Platform.OS !== 'android') {
-    // AdError event is not emitted on Android when progressive ad playback fails
-    advertisingErrorTests(
-      { sources: [{ tag: AdTags.error, type: AdSourceType.PROGRESSIVE }] },
-      'progressive'
-    );
-  }
+  const adErrorScenarios: AdErrorScenario[] = [
+    {
+      adItem: { sources: [{ tag: AdTags.error, type: AdSourceType.IMA }] },
+      label: 'IMA',
+      enabledOn: ['ios', 'android'],
+    },
+    {
+      // AdError event is not emitted on Android when progressive ad playback fails.
+      adItem: {
+        sources: [{ tag: AdTags.error, type: AdSourceType.PROGRESSIVE }],
+      },
+      label: 'progressive',
+      enabledOn: ['ios'],
+    },
+    {
+      adItem: { sources: [{ tag: AdTags.error, type: AdSourceType.BITMOVIN }] },
+      label: 'BITMOVIN',
+      enabledOn: ['ios', 'android'],
+    },
+  ];
+
+  adErrorScenarios
+    .filter(({ enabledOn }) => isEnabledForCurrentPlatform(enabledOn))
+    .forEach(advertisingErrorTests);
 };
