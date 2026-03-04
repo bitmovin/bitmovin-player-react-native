@@ -100,20 +100,22 @@ const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
     return config;
   });
 
-  if (!isTV) {
-    config = withPodfileProperties(config, (config) => {
-      config.modResults['BITMOVIN_ENABLE_GOOGLE_IMA'] = String(
-        isGoogleImaEnabled
-      );
+  config = withPodfileProperties(config, (config) => {
+    config.modResults['BITMOVIN_ENABLE_GOOGLE_IMA'] = String(
+      isGoogleImaEnabled
+    );
+
+    if (!isTV) {
       if (googleCastVersion != null) {
         config.modResults['BITMOVIN_GOOGLE_CAST_SDK_VERSION'] =
           googleCastVersion;
       } else {
         delete config.modResults['BITMOVIN_GOOGLE_CAST_SDK_VERSION'];
       }
-      return config;
-    });
-  }
+    }
+
+    return config;
+  });
 
   return config;
 };
