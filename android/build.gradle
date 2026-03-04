@@ -105,6 +105,7 @@ dependencies {
   implementation "androidx.concurrent:concurrent-futures-ktx:1.1.0"
 
   // Google IMA
+  compileOnly 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
   if (enableGoogleIma) {
     implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
   }

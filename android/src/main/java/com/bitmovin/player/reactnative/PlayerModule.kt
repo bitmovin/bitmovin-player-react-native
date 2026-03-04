@@ -13,7 +13,7 @@ import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
-import com.bitmovin.player.reactnative.converter.toMap
+import com.bitmovin.player.reactnative.extensions.toMap
 import com.bitmovin.player.reactnative.converter.toMediaControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.getMap
