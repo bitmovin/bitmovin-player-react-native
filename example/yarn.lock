@@ -3527,10 +3527,10 @@ expo-manifests@~0.16.6:
     "@expo/config" "~11.0.12"
     expo-json-utils "~0.15.0"
 
-expo-modules-autolinking@2.1.14:
-  version "2.1.14"
-  resolved "https://registry.yarnpkg.com/expo-modules-autolinking/-/expo-modules-autolinking-2.1.14.tgz#4b4afddefba1a8b6fec0bf795cf6fe52c81343d1"
-  integrity sha512-nT5ERXwc+0ZT/pozDoJjYZyUQu5RnXMk9jDGm5lg+PiKvsrCTSA/2/eftJGMxLkTjVI2MXp5WjSz3JRjbA7UXA==
+expo-modules-autolinking@2.1.15:
+  version "2.1.15"
+  resolved "https://registry.yarnpkg.com/expo-modules-autolinking/-/expo-modules-autolinking-2.1.15.tgz#d90f64272776c1dbb46737fde5be67cf513bad2a"
+  integrity sha512-IUITUERdkgooXjr9bXsX0PmhrZUIGTMyP6NtmQpAxN5+qtf/I7ewbwLx1/rX7tgiAOzaYme+PZOp/o6yqIhFsw==
   dependencies:
     "@expo/spawn-async" "^1.7.2"
     chalk "^4.1.0"
@@ -3547,10 +3547,10 @@ expo-modules-core@2.5.0:
   dependencies:
     invariant "^2.2.4"
 
-expo-notifications@~0.31.4:
-  version "0.31.4"
-  resolved "https://registry.yarnpkg.com/expo-notifications/-/expo-notifications-0.31.4.tgz#295a4345f7fea6ff974df9005790dda1d17ce00e"
-  integrity sha512-NnGKIFGpgZU66qfiFUyjEBYsS77VahURpSSeWEOLt+P1zOaUFlgx2XqS+dxH3/Bn1Vm7TMj04qKsK5KvzR/8Lw==
+expo-notifications@~0.31.5:
+  version "0.31.5"
+  resolved "https://registry.yarnpkg.com/expo-notifications/-/expo-notifications-0.31.5.tgz#a720598db5190a3f6a5e140edf00cb3f1801e902"
+  integrity sha512-HsitfTrSESFDWwaX0Y+6GQlWEooQqZKdGbNTwTPHfp5PNCr02tVPwwya9j1tdg3Awj8/vmfXmSxzNhULfmgJhQ==
   dependencies:
     "@expo/image-utils" "^0.7.6"
     "@ide/backoff" "^1.0.0"
@@ -3558,19 +3558,19 @@ expo-notifications@~0.31.4:
     assert "^2.0.0"
     badgin "^1.1.5"
     expo-application "~6.1.5"
-    expo-constants "~17.1.7"
+    expo-constants "~17.1.8"
 
 expo-screen-orientation@~8.1.7:
   version "8.1.7"
   resolved "https://registry.yarnpkg.com/expo-screen-orientation/-/expo-screen-orientation-8.1.7.tgz#3751b441f2bfcbde798b1508c0ff9f099f4be911"
   integrity sha512-nYwadYtdU6mMDk0MCHMPPPQtBoeFYJ2FspLRW+J35CMLqzE4nbpwGeiImfXzkvD94fpOCfI4KgLj5vGauC3pfA==
 
-expo-system-ui@~5.0.10:
-  version "5.0.10"
-  resolved "https://registry.yarnpkg.com/expo-system-ui/-/expo-system-ui-5.0.10.tgz#74b14aff7e6b3d127221709f38516593d2868e78"
-  integrity sha512-BTXbSyJr80yuN6VO4XQKZj7BjesZQLHgOYZ0bWyf4VB19GFZq7ZnZOEc/eoKk1B3eIocOMKUfNCrg/Wn8Kfcuw==
+expo-system-ui@~5.0.11:
+  version "5.0.11"
+  resolved "https://registry.yarnpkg.com/expo-system-ui/-/expo-system-ui-5.0.11.tgz#2bb70b2dd9f3f5137df85e43aa5d2d557432ad49"
+  integrity sha512-PG5VdaG5cwBe1Rj02mJdnsihKl9Iw/w/a6+qh2mH3f2K/IvQ+Hf7aG2kavSADtkGNCNj7CEIg7Rn4DQz/SE5rQ==
   dependencies:
-    "@react-native/normalize-colors" "0.79.5"
+    "@react-native/normalize-colors" "0.79.6"
     debug "^4.3.2"
 
 expo-updates-interface@~1.1.0:
@@ -3578,10 +3578,10 @@ expo-updates-interface@~1.1.0:
   resolved "https://registry.yarnpkg.com/expo-updates-interface/-/expo-updates-interface-1.1.0.tgz#62497d4647b381da9fdb68868ed180203ae737ef"
   integrity sha512-DeB+fRe0hUDPZhpJ4X4bFMAItatFBUPjw/TVSbJsaf3Exeami+2qbbJhWkcTMoYHOB73nOIcaYcWXYJnCJXO0w==
 
-expo@53.0.26:
-  version "53.0.26"
-  resolved "https://registry.yarnpkg.com/expo/-/expo-53.0.26.tgz#3eea2ff3c538360e44d39a4f8c30adfbca3cc701"
-  integrity sha512-zap+YY+w1kjwy9ucmtqfeyaL9qhHIpxCBnsTkiLsN8SFyR6TjPV0p8V4Tp/exg3pnc3CkjcMS8Lp/tSg8xeSJA==
+expo@53.0.27:
+  version "53.0.27"
+  resolved "https://registry.yarnpkg.com/expo/-/expo-53.0.27.tgz#d42b14ad23388bd8480c3b84be7558b9a2224c9d"
+  integrity sha512-iQwe2uWLb88opUY4vBYEW1d2GUq3lsa43gsMBEdDV+6pw0Oek93l/4nDLe0ODDdrBRjIJm/rdhKqJC/ehHCUqw==
   dependencies:
     "@babel/runtime" "^7.20.0"
     "@expo/cli" "0.24.24"
@@ -3596,7 +3596,7 @@ expo@53.0.26:
     expo-file-system "~18.1.11"
     expo-font "~13.3.2"
     expo-keep-awake "~14.1.4"
-    expo-modules-autolinking "2.1.14"
+    expo-modules-autolinking "2.1.15"
     expo-modules-core "2.5.0"
     react-native-edge-to-edge "1.6.0"
     whatwg-url-without-unicode "8.0.0-3"

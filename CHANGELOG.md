@@ -1,7 +1,13 @@
 # Changelog
 
+## [1.11.0]
+### Added
+- Support for streaming ads with the Bitmovin Advertising Module (BAM) via `AdSourceType.BITMOVIN` in `AdvertisingConfig` ad schedules. Note: on iOS, VMAP is currently not supported with BAM.
 
-## [Unreleased]
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.144.0+jason`
+- Update Expo SDK version to `53.0.27`
 
 ## [1.10.0] - 2026-02-27
 
