@@ -101,7 +101,6 @@ import com.bitmovin.player.reactnative.extensions.withInt
 import com.bitmovin.player.reactnative.extensions.withMap
 import com.bitmovin.player.reactnative.extensions.withString
 import com.bitmovin.player.reactnative.extensions.withStringArray
-import com.google.ads.interactivemedia.v3.api.ImaSdkSettings
 import java.util.UUID
 
 /**
@@ -222,21 +221,43 @@ fun Map<String, Any?>.toAdvertisingConfig(): AdvertisingConfig? {
     return AdvertisingConfig(schedule)
 }
 
-fun ImaSdkSettings.toMap(): Map<String, Any?> =
-    mutableMapOf<String, Any?>().apply {
-        put("ppid", ppid)
-        put("language", language)
-        put("maxRedirects", maxRedirects)
-        put("playerVersion", playerVersion)
-        put("sessionId", sessionId)
-    }
+private const val IMA_SDK_SETTINGS_CLASS_NAME = "com.google.ads.interactivemedia.v3.api.ImaSdkSettings"
 
-fun Map<String, Any?>.applyOnImaSettings(settings: ImaSdkSettings) {
-    withString("ppid") { settings.ppid = it }
-    withString("language") { settings.language = it }
-    withInt("maxRedirects") { settings.maxRedirects = it }
-    withString("playerVersion") { settings.playerVersion = it }
-    withString("sessionId") { settings.sessionId = it }
+private fun Any.isImaSdkSettings(): Boolean {
+    val imaClass = runCatching { Class.forName(IMA_SDK_SETTINGS_CLASS_NAME) }.getOrNull() ?: return false
+    return imaClass.isInstance(this)
+}
+
+private fun Any.callImaGetter(methodName: String): Any? =
+    runCatching { javaClass.getMethod(methodName).invoke(this) }.getOrNull()
+
+private fun Any.callImaSetter(methodName: String, argType: Class<*>, value: Any): Boolean =
+    runCatching {
+        javaClass.getMethod(methodName, argType).invoke(this, value)
+    }.isSuccess
+
+fun Any.toImaSettingsMap(): Map<String, Any?> {
+    if (!isImaSdkSettings()) {
+        return emptyMap()
+    }
+    return mutableMapOf<String, Any?>().apply {
+        put("ppid", callImaGetter("getPpid") as? String)
+        put("language", callImaGetter("getLanguage") as? String)
+        put("maxRedirects", callImaGetter("getMaxRedirects") as? Int)
+        put("playerVersion", callImaGetter("getPlayerVersion") as? String)
+        put("sessionId", callImaGetter("getSessionId") as? String)
+    }
+}
+
+fun Map<String, Any?>.applyOnImaSettings(settings: Any) {
+    if (!settings.isImaSdkSettings()) {
+        return
+    }
+    withString("ppid") { settings.callImaSetter("setPpid", String::class.java, it) }
+    withString("language") { settings.callImaSetter("setLanguage", String::class.java, it) }
+    withInt("maxRedirects") { settings.callImaSetter("setMaxRedirects", Int::class.javaPrimitiveType!!, it) }
+    withString("playerVersion") { settings.callImaSetter("setPlayerVersion", String::class.java, it) }
+    withString("sessionId") { settings.callImaSetter("setSessionId", String::class.java, it) }
 }
 
 fun Map<String, Any?>.toAdItem(): AdItem? {
