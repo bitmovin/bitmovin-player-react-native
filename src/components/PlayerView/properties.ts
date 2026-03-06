@@ -52,7 +52,8 @@ export interface BasePlayerViewProps {
 
   /**
    * Configures the visual presentation and behaviour of the {@link PlayerView}.
-   * The value must not be altered after setting it initially.
+   * The value must not be altered after setting it initially,
+   * except the `pictureInPictureConfig` property within this config, it can be updated dynamically.
    */
   config?: PlayerViewConfig;
 
