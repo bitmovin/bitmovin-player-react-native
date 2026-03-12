@@ -1,0 +1,90 @@
+name: CI (Expo Doctor)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/expo-doctor.yml'
+      - '.github/actions/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'example/package.json'
+      - 'example/yarn.lock'
+      - 'integration_test/package.json'
+      - 'integration_test/yarn.lock'
+      - 'plugin/**'
+      - '**/app.json'
+      - '**/app.config.*'
+      - '**/expo.json'
+
+  push:
+    branches:
+      - development
+    paths:
+      - '.github/workflows/expo-doctor.yml'
+      - '.github/actions/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'example/package.json'
+      - 'example/yarn.lock'
+      - 'integration_test/package.json'
+      - 'integration_test/yarn.lock'
+      - 'plugin/**'
+      - '**/app.json'
+      - '**/app.config.*'
+      - '**/expo.json'
+
+  workflow_dispatch:
+
+concurrency:
+  group: expo-doctor-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  expo-doctor:
+    name: Expo Doctor (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: root
+            cwd: .
+            lockfile: yarn.lock
+            requires_env: false
+          - name: example
+            cwd: example
+            lockfile: example/yarn.lock
+            requires_env: true
+          - name: integration_test
+            cwd: integration_test
+            lockfile: integration_test/yarn.lock
+            requires_env: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup node and npm registry
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'yarn'
+          cache-dependency-path: ${{ matrix.lockfile }}
+
+      - name: Create .env from .env.example
+        if: ${{ matrix.requires_env }}
+        working-directory: ${{ matrix.cwd }}
+        run: cp .env.example .env
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.cwd }}
+        run: yarn install --frozen-lockfile
+
+      - name: Run expo-doctor
+        working-directory: ${{ matrix.cwd }}
+        run: EXPO_NONINTERACTIVE=1 npx --yes expo-doctor@latest

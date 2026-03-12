@@ -1,4 +1,5 @@
 import BitmovinPlayer
+import Foundation
 
 /**
  * Registry for `FairplayContentKeyRequest` instances.
