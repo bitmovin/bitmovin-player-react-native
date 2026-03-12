@@ -2,12 +2,18 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- iOS, tvOS: Error code was not forwarded to the React Native bridge on error and warning events
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.145.0+jason`
 
 ## [1.11.0] - 2026-03-05
+
 ### Added
+
 - Support for streaming ads with the Bitmovin Advertising Module (BAM) via `AdSourceType.BITMOVIN` in `AdvertisingConfig` ad schedules. Note: on iOS, VMAP is currently not supported with BAM.
 
 ### Changed
