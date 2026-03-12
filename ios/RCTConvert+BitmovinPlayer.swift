@@ -318,6 +318,8 @@ extension RCTConvert {
             return nil
         }
         switch json {
+        case "bitmovin":
+            return .bitmovin
         case "ima":
             return .ima
         case "unknown":
@@ -641,6 +643,8 @@ extension RCTConvert {
             return nil
         }
         switch adSourceType {
+        case .bitmovin:
+            return "bitmovin"
         case .ima:
             return "ima"
         case .unknown:

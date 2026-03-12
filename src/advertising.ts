@@ -21,6 +21,10 @@ export enum AdQuartile {
  */
 export enum AdSourceType {
   /**
+   * Bitmovin Advertising Module.
+   */
+  BITMOVIN = 'bitmovin',
+  /**
    * Google Interactive Media Ads.
    */
   IMA = 'ima',
