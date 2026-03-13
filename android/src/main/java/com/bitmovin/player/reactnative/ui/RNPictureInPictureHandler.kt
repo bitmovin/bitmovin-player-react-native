@@ -53,14 +53,16 @@ class RNPictureInPictureHandler(
         playerIsPlaying = false
     }
 
+    private val onVideoPlaybackQualityChanged: (PlayerEvent.VideoPlaybackQualityChanged) -> Unit = {
+        updatePictureInPictureParams()
+    }
+
     init {
         playerIsPlaying = player.isPlaying
         subscribeToPlayerPlaybackEvents()
         updatePictureInPictureParams()
 
-        player.on<PlayerEvent.VideoPlaybackQualityChanged> {
-            updatePictureInPictureParams()
-        }
+        player.on(onVideoPlaybackQualityChanged)
     }
 
     private fun subscribeToPlayerPlaybackEvents() {
@@ -140,6 +142,7 @@ class RNPictureInPictureHandler(
     fun dispose() {
         pictureInPictureActionHandler.dispose()
         unsubscribeToPlayerPlaybackEvents()
+        player.off(onVideoPlaybackQualityChanged)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             activity.setPictureInPictureParams(
                 PictureInPictureParams.Builder()

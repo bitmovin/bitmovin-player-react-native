@@ -24,6 +24,7 @@ import com.bitmovin.player.api.event.on
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.UiConfig
+import com.bitmovin.player.reactnative.converter.toPictureInPictureConfig
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toUserInterfaceType
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
@@ -761,12 +762,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun updatePictureInPictureConfig(pictureInPictureConfigMap: Map<String, Any?>?) {
-        val newConfig = pictureInPictureConfigMap?.let {
-            PictureInPictureConfig(
-                isEnabled = it.get("isEnabled") as? Boolean ?: false,
-                shouldEnterOnBackground = it.get("shouldEnterOnBackground") as? Boolean ?: false
-            )
-        } ?: PictureInPictureConfig()
+        val newConfig = pictureInPictureConfigMap?.toPictureInPictureConfig() ?: PictureInPictureConfig()
 
         this.pictureInPictureConfig = newConfig
 
