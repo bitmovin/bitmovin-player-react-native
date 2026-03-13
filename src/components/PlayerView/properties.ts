@@ -53,7 +53,11 @@ export interface BasePlayerViewProps {
   /**
    * Configures the visual presentation and behaviour of the {@link PlayerView}.
    * The value must not be altered after setting it initially,
-   * except the `pictureInPictureConfig` property within this config, it can be updated dynamically.
+   * except the `pictureInPictureConfig` property within this config, which can be updated dynamically.
+   *
+   * Platform limitations:
+   * - On iOS, only `pictureInPictureConfig.isEnabled` is applied at runtime. Changes to
+   *   `pictureInPictureConfig.shouldEnterOnBackground` after the initial configuration are ignored.
    */
   config?: PlayerViewConfig;
 
