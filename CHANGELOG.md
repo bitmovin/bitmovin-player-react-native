@@ -5,7 +5,7 @@
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.145.0+jason`
-- Android/IOS: Keep `PlayerView`'s `config` property immutable, except for `pictureInPictureConfig` which can be updated dynamically after initialization
+- Android/iOS: Keep `PlayerView`'s `config` property immutable, except for `pictureInPictureConfig` which can be updated dynamically after initialization
 
 ## [1.11.0] - 2026-03-05
 
