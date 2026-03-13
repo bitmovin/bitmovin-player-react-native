@@ -73,8 +73,6 @@ export function PlayerView({
     customMessageHandlerBridgeId: customMessageHandlerBridge.current?.nativeId,
     enableBackgroundPlayback:
       player.config?.playbackConfig?.isBackgroundPlaybackEnabled,
-    isPictureInPictureEnabledOnPlayer:
-      player.config?.playbackConfig?.isPictureInPictureEnabled,
     userInterfaceTypeName: player.config?.styleConfig?.userInterfaceType,
     playerViewConfig: config,
   };
@@ -108,6 +106,14 @@ export function PlayerView({
       );
     }
   }, [isPlayerInitialized, pictureInPictureActions]);
+
+  useEffect(() => {
+    if (isPlayerInitialized && config?.pictureInPictureConfig != null) {
+      void nativeView.current?.updatePictureInPictureConfig(
+        config.pictureInPictureConfig
+      );
+    }
+  }, [isPlayerInitialized, config?.pictureInPictureConfig]);
 
   if (!isPlayerInitialized) {
     return null;
@@ -219,5 +225,12 @@ interface InternalPlayerViewRef extends RefObject<any> {
    */
   updatePictureInPictureActions: (
     actions: PictureInPictureAction[]
+  ) => Promise<void>;
+  /**
+   * Update Picture in Picture configuration.
+   * This method is called imperatively when the config changes to ensure proper handler lifecycle management.
+   */
+  updatePictureInPictureConfig: (
+    config: import('./pictureInPictureConfig').PictureInPictureConfig
   ) => Promise<void>;
 }

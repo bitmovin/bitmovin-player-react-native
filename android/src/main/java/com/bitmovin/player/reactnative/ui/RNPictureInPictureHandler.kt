@@ -19,7 +19,7 @@ private const val TAG = "RNPiPHandler"
 class RNPictureInPictureHandler(
     private val activity: Activity,
     private val player: Player,
-    private val pictureInPictureConfig: PictureInPictureConfig,
+    private var pictureInPictureConfig: PictureInPictureConfig,
 ) : DefaultPictureInPictureHandler(activity, player) {
     private val pictureInPictureActionHandler = DefaultPictureInPictureActionHandler(
         activity,
@@ -53,14 +53,16 @@ class RNPictureInPictureHandler(
         playerIsPlaying = false
     }
 
+    private val onVideoPlaybackQualityChanged: (PlayerEvent.VideoPlaybackQualityChanged) -> Unit = {
+        updatePictureInPictureParams()
+    }
+
     init {
         playerIsPlaying = player.isPlaying
         subscribeToPlayerPlaybackEvents()
         updatePictureInPictureParams()
 
-        player.on<PlayerEvent.VideoPlaybackQualityChanged> {
-            updatePictureInPictureParams()
-        }
+        player.on(onVideoPlaybackQualityChanged)
     }
 
     private fun subscribeToPlayerPlaybackEvents() {
@@ -132,9 +134,15 @@ class RNPictureInPictureHandler(
         activity.setPictureInPictureParams(buildPictureInPictureParams())
     }
 
+    fun updatePictureInPictureConfig(newConfig: PictureInPictureConfig) {
+        this.pictureInPictureConfig = newConfig
+        updatePictureInPictureParams()
+    }
+
     fun dispose() {
         pictureInPictureActionHandler.dispose()
         unsubscribeToPlayerPlaybackEvents()
+        player.off(onVideoPlaybackQualityChanged)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             activity.setPictureInPictureParams(
                 PictureInPictureParams.Builder()

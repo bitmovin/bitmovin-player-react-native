@@ -24,6 +24,7 @@ import com.bitmovin.player.api.event.on
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.UiConfig
+import com.bitmovin.player.reactnative.converter.toPictureInPictureConfig
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toUserInterfaceType
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
@@ -279,7 +280,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         playerViewConfigWrapper: RNPlayerViewConfigWrapper?,
         customMessageHandlerBridgeId: NativeId?,
         enableBackgroundPlayback: Boolean,
-        isPictureInPictureEnabledOnPlayer: Boolean,
         userInterfaceTypeName: String?,
     ) {
         val playerModule = appContext.registry.getModule<PlayerModule>()
@@ -319,9 +319,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             )
 
             this.pictureInPictureConfig = playerViewConfigWrapper?.pictureInPictureConfig ?: PictureInPictureConfig()
-            val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || pictureInPictureConfig.isEnabled
             pictureInPictureHandler = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                isPictureInPictureEnabled
+                pictureInPictureConfig.isEnabled
             ) {
                 RNPictureInPictureHandler(
                     currentActivity,
@@ -760,6 +759,37 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             pictureInPictureHandler?.updateActions(pictureInPictureActions)
         }
+    }
+
+    fun updatePictureInPictureConfig(pictureInPictureConfigMap: Map<String, Any?>?) {
+        val newConfig = pictureInPictureConfigMap?.toPictureInPictureConfig() ?: PictureInPictureConfig()
+
+        this.pictureInPictureConfig = newConfig
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (newConfig.isEnabled && pictureInPictureHandler == null) {
+                // Create handler when enabling PiP
+                val player = playerView?.player ?: return
+                val activity = appContext.currentActivity ?: return
+                pictureInPictureHandler = RNPictureInPictureHandler(
+                    activity,
+                    player,
+                    newConfig,
+                )
+                playerView?.setPictureInPictureHandler(pictureInPictureHandler)
+            } else if (!newConfig.isEnabled && pictureInPictureHandler != null) {
+                // Dispose handler when disabling PiP
+                playerView?.setPictureInPictureHandler(null)
+                pictureInPictureHandler?.dispose()
+                pictureInPictureHandler = null
+            } else if (pictureInPictureHandler != null) {
+                // Update existing handler
+                pictureInPictureHandler?.updatePictureInPictureConfig(newConfig)
+            }
+        }
+
+        // Update auto-PiP registration
+        appContext.registry.getModule<RNPlayerViewManager>()?.updateAutoPictureInPictureRegistration(this)
     }
 
     /**

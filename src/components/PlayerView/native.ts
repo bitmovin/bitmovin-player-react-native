@@ -10,7 +10,6 @@ export interface NativePlayerViewConfig {
   playerId: string;
   customMessageHandlerBridgeId?: string;
   enableBackgroundPlayback?: boolean;
-  isPictureInPictureEnabledOnPlayer?: boolean;
   userInterfaceTypeName?: string;
 }
 
