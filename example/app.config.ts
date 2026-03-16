@@ -93,6 +93,7 @@ const config: ExpoConfig = {
         features: {
           airPlay: true,
           backgroundPlayback: true,
+          googleIMA: true,
           googleCastSDK: {
             appId: BITMOVIN_PLAYER_CAST_APP_ID,
             messageNamespace: BITMOVIN_PLAYER_CAST_MESSAGE_NAMESPACE,
