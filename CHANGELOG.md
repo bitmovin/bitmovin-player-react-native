@@ -6,9 +6,13 @@
 
 - iOS, tvOS: Error code was not forwarded to the React Native bridge on error and warning events
 
+## [1.13.0] - 2026-03-13
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.145.0+jason`
+
+## [1.12.0] - 2026-03-13
 
 ## [1.11.0] - 2026-03-05
 
