@@ -4,11 +4,19 @@ import fs from 'fs';
 import path from 'path';
 
 const envPath = path.resolve(__dirname, '.env');
+const envExamplePath = path.resolve(__dirname, '.env.example');
 
 if (!fs.existsSync(envPath)) {
-  throw new Error(
-    `Environment file not found at "example/.env". Please copy "example/.env.example" to "example/.env" and fill it out.`
-  );
+  if (fs.existsSync(envExamplePath)) {
+    fs.copyFileSync(envExamplePath, envPath);
+    console.warn(
+      'Created example/.env from example/.env.example. Update it with your license key and team details.'
+    );
+  } else {
+    throw new Error(
+      'Environment file not found at "example/.env" and no template found at "example/.env.example". Please create it and fill it out.'
+    );
+  }
 }
 
 // Load environment variables from .env file
@@ -21,7 +29,7 @@ const {
   BITMOVIN_PLAYER_CAST_MESSAGE_NAMESPACE,
 } = process.env;
 
-if (!BITMOVIN_PLAYER_LICENSE_KEY) {
+if (!BITMOVIN_PLAYER_LICENSE_KEY || BITMOVIN_PLAYER_LICENSE_KEY === 'YOUR_LICENSE_KEY_HERE') {
   throw new Error(
     'BITMOVIN_PLAYER_LICENSE_KEY is not set in example/.env. Please follow the setup instructions in example/README.md.'
   );

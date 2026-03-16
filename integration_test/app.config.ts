@@ -4,11 +4,19 @@ import fs from 'fs';
 import path from 'path';
 
 const envPath = path.resolve(__dirname, '.env');
+const envExamplePath = path.resolve(__dirname, '.env.example');
 
 if (!fs.existsSync(envPath)) {
-  throw new Error(
-    `Environment file not found at "integration_test/.env". Please copy "integration_test/.env.example" to "integration_test/.env" and fill it out.`
-  );
+  if (fs.existsSync(envExamplePath)) {
+    fs.copyFileSync(envExamplePath, envPath);
+    console.warn(
+      'Created integration_test/.env from integration_test/.env.example. Update it with your Bitmovin license key before running.'
+    );
+  } else {
+    throw new Error(
+      'Environment file not found at "integration_test/.env" and no template found at "integration_test/.env.example". Please create it and fill it out.'
+    );
+  }
 }
 
 // Load environment variables from .env file
@@ -17,7 +25,10 @@ dotenv.config({ path: envPath });
 const BITMOVIN_PLAYER_LICENSE_KEY =
   process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY;
 
-if (!BITMOVIN_PLAYER_LICENSE_KEY) {
+if (
+  !BITMOVIN_PLAYER_LICENSE_KEY ||
+  BITMOVIN_PLAYER_LICENSE_KEY === 'YOUR_LICENSE_KEY_HERE'
+) {
   throw new Error(
     'EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY is required. Please set it in your .env file.'
   );
