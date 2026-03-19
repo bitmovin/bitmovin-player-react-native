@@ -370,6 +370,12 @@ extension RCTConvert {
         if let options = json["options"] as? [String: Any] {
             sourceConfig.options = RCTConvert.sourceOptions(options)
         }
+        if let cmcdConfigJson = json["cmcdConfig"] as? [String: Any],
+           let isEnabled = cmcdConfigJson["isEnabled"] as? Bool {
+            if #available(iOS 18, *) {
+                sourceConfig.cmcdConfig.isEnabled = isEnabled
+            }
+        }
         return sourceConfig
     }
 
