@@ -8,11 +8,11 @@
  */
 export interface CmcdConfig {
   /**
-   * Enables sending Common Media Client Data (CMCD) on requests as HTTP Headers.
+   * Enables sending Common Media Client Data (CMCD) on requests as HTTP headers.
    *
    * Note:
-   *   - Common Media Client Data (CMCD) is only supported through HTTP Headers.
-   *   - Per default, CMCD data are only sent on media (video and audio) requests.
+   *   - Common Media Client Data (CMCD) is only supported through HTTP headers.
+   *   - By default, CMCD data is only sent on media (video and audio) requests.
    *     To enable them also for manifest requests, {@link TweaksConfig.isCustomHlsLoadingEnabled} needs to be disabled.
    *   - Only CMCD v1 is supported for now.
    *   - Only supported on iOS and tvOS 18 as well as visionOS 2 upwards.
