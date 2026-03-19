@@ -3,6 +3,8 @@
  * Please find more information about the Consumer Technology Association (CTA) Specification in https://cdn.cta.tech/cta/media/media/resources/standards/pdfs/cta-5004-final.pdf
  *
  * @platform iOS
+ * @platform tvOS
+ * @platform visionOS
  */
 export interface CmcdConfig {
   /**
@@ -18,6 +20,8 @@ export interface CmcdConfig {
    * Default is `false`.
    *
    * @platform iOS
+   * @platform tvOS
+   * @platform visionOS
    */
   isEnabled?: boolean;
 }
