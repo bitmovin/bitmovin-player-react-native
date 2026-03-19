@@ -136,7 +136,7 @@ export interface SourceConfig extends NativeInstanceConfig {
   /**
    * The CMCD (Common Media Client Data) configuration for this source.
    *
-   * @platform iOS
+   * @platform iOS, tvOS, visionOS
    */
   cmcdConfig?: CmcdConfig;
 }
