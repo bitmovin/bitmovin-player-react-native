@@ -1,6 +1,6 @@
 /**
  * Contains config values regarding Common Media Client Data (CMCD).
- * Please find more information about the Consumer Technology Association (CTA) Specification in https://cdn.cta.tech/cta/media/media/resources/standards/pdfs/cta-5004-final.pdf
+ * More information about the Consumer Technology Association (CTA) Specification is available at https://cdn.cta.tech/cta/media/media/resources/standards/pdfs/cta-5004-final.pdf
  *
  * @platform iOS
  * @platform tvOS
