@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `SourceConfig.cmcdConfig.isEnabled` to enable support for Common Media Client Data (CMCD) on iOS/tvOS 18+ (Android currently ignores `cmcdConfig`)
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to `3.109.0`
@@ -16,7 +20,9 @@
 ## [1.12.0] - 2026-03-13
 
 ## [1.11.0] - 2026-03-05
+
 ### Added
+
 - Support for streaming ads with the Bitmovin Advertising Module (BAM) via `AdSourceType.BITMOVIN` in `AdvertisingConfig` ad schedules. Note: on iOS, VMAP is currently not supported with BAM.
 
 ### Changed

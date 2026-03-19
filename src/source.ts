@@ -1,3 +1,4 @@
+import { CmcdConfig } from './cmcdConfig';
 import { Drm, DrmConfig } from './drm';
 import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
 import { SideLoadedSubtitleTrack } from './subtitleTrack';
@@ -132,6 +133,12 @@ export interface SourceConfig extends NativeInstanceConfig {
    * The `SourceMetadata` for the {@link Source} to setup custom analytics tracking
    */
   analyticsSourceMetadata?: SourceMetadata;
+  /**
+   * The CMCD (Common Media Client Data) configuration for this source.
+   *
+   * @platform iOS 18+, tvOS 18+
+   */
+  cmcdConfig?: CmcdConfig;
 }
 
 /**
