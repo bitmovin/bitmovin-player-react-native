@@ -372,7 +372,7 @@ extension RCTConvert {
         }
         if let cmcdConfigJson = json["cmcdConfig"] as? [String: Any],
            let isEnabled = cmcdConfigJson["isEnabled"] as? Bool {
-            if #available(iOS 18, *) {
+            if #available(iOS 18, tvOS 18, visionOS 2, *) {
                 sourceConfig.cmcdConfig.isEnabled = isEnabled
             }
         }
