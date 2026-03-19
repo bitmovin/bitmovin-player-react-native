@@ -13,7 +13,6 @@ export interface CmcdConfig {
    *   - By default, CMCD data is only sent on media (video and audio) requests.
    *     To enable them also for manifest requests, {@link TweaksConfig.isCustomHlsLoadingEnabled} needs to be disabled.
    *   - Only CMCD v1 is supported for now.
-   *   - Only supported on iOS 18+ and tvOS 18+.
    *
    * Default is `false`.
    *
