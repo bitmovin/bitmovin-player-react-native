@@ -4,7 +4,7 @@
 
 ### Added
 
-- `SourceConfig.cmcdConfig.isEnabled` to enable support for Common Media Client Data (CMCD) on iOS/tvOS 18+ and visionOS 2+ (Android currently ignores `cmcdConfig`)
+- `SourceConfig.cmcdConfig.isEnabled` to enable support for Common Media Client Data (CMCD) on iOS/tvOS 18+ (Android currently ignores `cmcdConfig`)
 
 ### Changed
 

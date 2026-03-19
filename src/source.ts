@@ -136,10 +136,10 @@ export interface SourceConfig extends NativeInstanceConfig {
   /**
    * The CMCD (Common Media Client Data) configuration for this source.
    *
-   * Available on iOS 18+, tvOS 18+ and visionOS 2+. On older OS versions this
+   * Available on iOS 18+ and tvOS 18+. On older OS versions this
    * configuration is ignored.
    *
-   * @platform iOS 18+, tvOS 18+, visionOS 2+
+   * @platform iOS 18+, tvOS 18+
    */
   cmcdConfig?: CmcdConfig;
 }
