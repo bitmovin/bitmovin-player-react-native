@@ -280,6 +280,7 @@ fun Map<String, Any?>.toSourceConfig(): SourceConfig? {
         withString("thumbnailTrack") { thumbnailTrack = it.toThumbnailTrack() }
         withMap("metadata") { metadata = it.toMap() }
         withMap("options") { options = it.toSourceOptions() }
+        // Note: cmcdConfig is not yet supported on Android.
     }
 }
 
