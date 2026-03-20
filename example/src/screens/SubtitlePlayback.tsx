@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { View, Platform, StyleSheet } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Text, Platform, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -7,8 +7,11 @@ import {
   PlayerView,
   SourceType,
   SubtitleFormat,
+  CueEnterEvent,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
+
+const IS_TV_OS = Platform.OS === 'tvos';
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
@@ -16,6 +19,8 @@ function prettyPrint(header: string, obj: any) {
 
 export default function SubtitlePlayback() {
   useTVGestures();
+
+  const [subtitleText, setSubtitleText] = useState<string | null>(null);
 
   const player = usePlayer({
     remoteControlConfig: {
@@ -27,10 +32,11 @@ export default function SubtitlePlayback() {
     useCallback(() => {
       player.load({
         url:
-          Platform.OS === 'ios'
+          Platform.OS === 'ios' || IS_TV_OS
             ? 'https://cdn.bitmovin.com/content/internal/assets/sintel/hls/playlist.m3u8'
             : 'https://cdn.bitmovin.com/content/internal/assets/sintel/sintel.mpd',
-        type: Platform.OS === 'ios' ? SourceType.HLS : SourceType.DASH,
+        type:
+          Platform.OS === 'ios' || IS_TV_OS ? SourceType.HLS : SourceType.DASH,
         poster:
           'https://cdn.bitmovin.com/content/internal/assets/sintel/poster.png',
         // External subtitle tracks to be added to the source.
@@ -61,17 +67,37 @@ export default function SubtitlePlayback() {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
 
+  // On tvOS, drive subtitle display ourselves using native UI elements.
+  const onCueEnter = useCallback((event: CueEnterEvent) => {
+    prettyPrint(`EVENT [${event.name}]`, event);
+    if (IS_TV_OS) {
+      setSubtitleText(event.text ?? null);
+    }
+  }, []);
+
+  const onCueExit = useCallback((event: Event) => {
+    prettyPrint(`EVENT [${event.name}]`, event);
+    if (IS_TV_OS) {
+      setSubtitleText(null);
+    }
+  }, []);
+
   return (
     <View style={styles.container}>
       <PlayerView
         player={player}
         style={styles.player}
-        onCueEnter={onEvent}
-        onCueExit={onEvent}
+        onCueEnter={onCueEnter}
+        onCueExit={onCueExit}
         onSubtitleAdded={onEvent}
         onSubtitleChanged={onEvent}
         onSubtitleRemoved={onEvent}
       />
+      {IS_TV_OS && subtitleText != null && (
+        <View style={styles.subtitleContainer} pointerEvents="none">
+          <Text style={styles.subtitleText}>{subtitleText}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -85,5 +111,23 @@ const styles = StyleSheet.create({
   },
   player: {
     flex: 1,
+  },
+  subtitleContainer: {
+    position: 'absolute',
+    bottom: 60,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    paddingHorizontal: 80,
+  },
+  subtitleText: {
+    color: 'white',
+    fontSize: 32,
+    textAlign: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 4,
+    overflow: 'hidden',
   },
 });
