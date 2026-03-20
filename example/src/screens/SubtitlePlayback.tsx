@@ -11,7 +11,7 @@ import {
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 
-const IS_TV_OS = Platform.OS === 'tvos';
+const IS_TV_OS = Platform.OS === 'ios' && Platform.isTV;
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
@@ -25,6 +25,12 @@ export default function SubtitlePlayback() {
   const player = usePlayer({
     remoteControlConfig: {
       isCastEnabled: false,
+    },
+    playbackConfig: {
+      isAutoplayEnabled: true,
+    },
+    styleConfig: {
+      isUiEnabled: false,
     },
   });
 
@@ -121,7 +127,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 80,
   },
   subtitleText: {
-    color: 'white',
+    color: 'green',
     fontSize: 32,
     textAlign: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
