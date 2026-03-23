@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- iOS, tvOS: Error code was not forwarded to the React Native bridge on error and warning events
+- iOS, tvOS: Error/Warning code not forwarded to the React Native bridge on error and warning events
 
 ## [1.13.0] - 2026-03-13
 
