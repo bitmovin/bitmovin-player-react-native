@@ -19,7 +19,7 @@ private const val TAG = "RNPiPHandler"
 class RNPictureInPictureHandler(
     private val activity: Activity,
     private val player: Player,
-    private var pictureInPictureConfig: PictureInPictureConfig,
+    private val pictureInPictureConfig: PictureInPictureConfig,
 ) : DefaultPictureInPictureHandler(activity, player) {
     private val pictureInPictureActionHandler = DefaultPictureInPictureActionHandler(
         activity,
