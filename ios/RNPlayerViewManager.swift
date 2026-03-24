@@ -29,11 +29,11 @@ public class RNPlayerViewManager: Module {
             Prop("fullscreenBridgeId") { (view: RNPlayerView, fullscreenBridgeId: String) in
                 view.attachFullscreenBridge(fullscreenBridgeId: fullscreenBridgeId)
             }
+            AsyncFunction("setIsPictureInPictureEnabled") { (view: RNPlayerView, isEnabled: Bool) in
+                view.setIsPictureInPictureEnabled(isEnabled)
+            }
             AsyncFunction("updatePictureInPictureActions") { (view: RNPlayerView, pictureInPictureActions: [String]) in
                 view.updatePictureInPictureActions(actions: RCTConvert.pictureInPictureActions(pictureInPictureActions))
-            }
-            AsyncFunction("updatePictureInPictureConfig") { (view: RNPlayerView, config: [String: Any]?) in
-                view.updatePictureInPictureConfig(pictureInPictureConfig: config)
             }
             Events(
                 "onBmpEvent",

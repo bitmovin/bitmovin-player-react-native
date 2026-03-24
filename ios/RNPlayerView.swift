@@ -235,18 +235,9 @@ public class RNPlayerView: ExpoView {
 #endif
     }
 
-    internal func updatePictureInPictureConfig(pictureInPictureConfig: [String: Any]?) {
-        guard let playerView else {
-            return
-        }
-        guard let newConfig = RCTConvert.pictureInPictureConfig(pictureInPictureConfig) else {
-            return
-        }
+    internal func setIsPictureInPictureEnabled(_ isEnabled: Bool) {
 #if os(iOS)
-        // On iOS, we can update the isEnabled property at runtime.
-        // Note: shouldEnterOnBackground can only be set during PlayerView initialization
-        // and cannot be changed dynamically. It's a limitation of the iOS Bitmovin SDK.
-        playerView.pictureInPicture.isEnabled = newConfig.isEnabled
+        playerView?.pictureInPicture.isEnabled = isEnabled
 #endif
     }
 }

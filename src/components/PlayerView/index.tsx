@@ -34,6 +34,7 @@ export function PlayerView({
   isFullscreenRequested = false,
   scalingMode,
   isPictureInPictureRequested = false,
+  isPictureInPictureEnabled,
   pictureInPictureActions,
   ...props
 }: PlayerViewProps) {
@@ -108,12 +109,12 @@ export function PlayerView({
   }, [isPlayerInitialized, pictureInPictureActions]);
 
   useEffect(() => {
-    if (isPlayerInitialized && config?.pictureInPictureConfig != null) {
-      void nativeView.current?.updatePictureInPictureConfig(
-        config.pictureInPictureConfig
+    if (isPlayerInitialized && isPictureInPictureEnabled != null) {
+      void nativeView.current?.setIsPictureInPictureEnabled(
+        isPictureInPictureEnabled
       );
     }
-  }, [isPlayerInitialized, config?.pictureInPictureConfig]);
+  }, [isPlayerInitialized, isPictureInPictureEnabled]);
 
   if (!isPlayerInitialized) {
     return null;
@@ -226,11 +227,5 @@ interface InternalPlayerViewRef extends RefObject<any> {
   updatePictureInPictureActions: (
     actions: PictureInPictureAction[]
   ) => Promise<void>;
-  /**
-   * Update Picture in Picture configuration.
-   * This method is called imperatively when the config changes to ensure proper handler lifecycle management.
-   */
-  updatePictureInPictureConfig: (
-    config: import('./pictureInPictureConfig').PictureInPictureConfig
-  ) => Promise<void>;
+  setIsPictureInPictureEnabled: (enabled: boolean) => Promise<void>;
 }

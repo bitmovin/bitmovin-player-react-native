@@ -87,12 +87,12 @@ class RNPlayerViewManager : Module() {
                 view.attachFullscreenBridge(fullscreenBridgeId)
             }
 
-            AsyncFunction("updatePictureInPictureActions") { view: RNPlayerView, pictureInPictureActions: List<String> ->
-                view.updatePictureInPictureActions(pictureInPictureActions.toPictureInPictureActions())
+            AsyncFunction("setIsPictureInPictureEnabled") { view: RNPlayerView, isEnabled: Boolean ->
+                view.setIsPictureInPictureEnabled(isEnabled)
             }
 
-            AsyncFunction("updatePictureInPictureConfig") { view: RNPlayerView, pictureInPictureConfig: Map<String, Any?>? ->
-                view.updatePictureInPictureConfig(pictureInPictureConfig)
+            AsyncFunction("updatePictureInPictureActions") { view: RNPlayerView, pictureInPictureActions: List<String> ->
+                view.updatePictureInPictureActions(pictureInPictureActions.toPictureInPictureActions())
             }
 
             Events(

@@ -52,14 +52,21 @@ export interface BasePlayerViewProps {
 
   /**
    * Configures the visual presentation and behaviour of the {@link PlayerView}.
-   * The value must not be altered after setting it initially,
-   * except the `pictureInPictureConfig` property within this config, which can be updated dynamically.
-   *
-   * Platform limitations:
-   * - On iOS, only `pictureInPictureConfig.isEnabled` is applied at runtime. Changes to
-   *   `pictureInPictureConfig.shouldEnterOnBackground` after the initial configuration are ignored.
+   * The value must not be altered after setting it initially.
    */
   config?: PlayerViewConfig;
+
+  /**
+   * Can be set to `true` to enable Picture in Picture mode, or `false` to disable it.
+   * This allows dynamically enabling or disabling PiP without changing the initial {@link PlayerViewConfig}.
+   *
+   * On iOS, this maps directly to the native `PictureInPictureApi.isEnabled` property.
+   * On Android, the same behaviour is implemented by managing the PiP handler lifecycle.
+   *
+   * When not set, the enabled state from {@link PictureInPictureConfig.isEnabled} in the initial
+   * {@link PlayerViewConfig} is used.
+   */
+  isPictureInPictureEnabled?: boolean;
 
   /**
    * Picture in Picture actions that should be displayed on the Picture in Picture window.

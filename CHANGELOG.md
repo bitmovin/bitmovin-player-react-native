@@ -1,5 +1,9 @@
 # Changelog
 
+### Added
+
+- Android/iOS: Add `isPictureInPictureEnabled` prop to `PlayerView` to dynamically enable or disable Picture in Picture at runtime without changing the initial config
+
 ## [1.14.0] - 2026-03-20
 
 ### Added
@@ -16,7 +20,6 @@
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.145.0+jason`
-- Android/iOS: Keep `PlayerView`'s `config` property immutable, except for `pictureInPictureConfig` which can be updated dynamically after initialization
 
 ## [1.12.0] - 2026-03-13
 

@@ -134,11 +134,6 @@ class RNPictureInPictureHandler(
         activity.setPictureInPictureParams(buildPictureInPictureParams())
     }
 
-    fun updatePictureInPictureConfig(newConfig: PictureInPictureConfig) {
-        this.pictureInPictureConfig = newConfig
-        updatePictureInPictureParams()
-    }
-
     fun dispose() {
         pictureInPictureActionHandler.dispose()
         unsubscribeToPlayerPlaybackEvents()
