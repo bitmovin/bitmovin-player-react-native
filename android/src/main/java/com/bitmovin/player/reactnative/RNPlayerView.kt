@@ -1,26 +1,31 @@
 package com.bitmovin.player.reactnative
 
 import android.annotation.SuppressLint
-import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Color
 import android.os.Build
 import android.util.DisplayMetrics
+import android.util.Log
+import android.view.SurfaceView
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.WindowManager
 import android.widget.FrameLayout
+import android.widget.RelativeLayout
+import androidx.annotation.OptIn
+import androidx.core.view.children
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import com.bitmovin.media3.common.util.UnstableApi
+import com.bitmovin.media3.ui.AspectRatioFrameLayout
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.SubtitleView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
-import com.bitmovin.player.api.event.EventListener
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
-import com.bitmovin.player.api.event.on
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.UiConfig
@@ -218,6 +223,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         removeAllViews()
     }
 
+    @OptIn(UnstableApi::class)
     private fun setPlayerView(playerView: PlayerView) {
         // Remove existing playerView if it exists
         this.playerView?.let { oldPlayerView ->
@@ -259,6 +265,25 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
         this.playerView = playerView
         this.playerContainer = newContainer
+        this.playerView!!.setBackgroundColor(Color.YELLOW)
+        this.playerContainer!!.setBackgroundColor(Color.CYAN)
+        val rnPlayerView = this.playerContainer!!.parent as ViewGroup
+        Log.d("TEST", "PlayerContainer: ${rnPlayerView}")
+        rnPlayerView.setBackgroundColor(Color.MAGENTA)
+//        val rnPlayerViewParent = rnPlayerView.parent as ViewGroup
+//        Log.d("TEST", "PlayerContainerParent: ${rnPlayerViewParent}")
+//        rnPlayerViewParent.setBackgroundColor(Color.MAGENTA)
+        (this.playerView as PlayerView).children.forEach {
+            val aspectRatioView = it as? AspectRatioFrameLayout ?: return
+            aspectRatioView.setBackgroundColor(Color.GREEN)
+            Log.d("TEST", "Child: ${aspectRatioView}")
+            val surfaceViewHolder = (aspectRatioView.getChildAt(0) as? RelativeLayout) ?: return
+            val surfaceView = surfaceViewHolder.getChildAt(0) as? SurfaceView ?: return
+            surfaceViewHolder.setBackgroundColor(Color.BLUE)
+            surfaceView.setBackgroundColor(Color.argb(128, 255, 0, 0)) // 50% transparent red
+            Log.d("TEST", "SurfaceViewHolder: ${surfaceViewHolder}")
+            Log.d("TEST", "SurfaceView: ${surfaceView}")
+        }
 
         scalingMode?.let {
             playerView.scalingMode = it
@@ -415,11 +440,18 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
+
         val wasInPiP = isCurrentActivityInPictureInPictureMode
         val nowInPiP = isInPictureInPictureMode()
 
         if (wasInPiP != nowInPiP) {
             isCurrentActivityInPictureInPictureMode = nowInPiP
+            onPictureInPictureModeChanged(nowInPiP, newConfig)
+        }
+
+        if (nowInPiP) {
+            Log.d("TEST", "Confg changed!")
+            // The PiP window might be resized, we have to make sure to request a layout to resize the PlayerView properly
             onPictureInPictureModeChanged(nowInPiP, newConfig)
         }
     }

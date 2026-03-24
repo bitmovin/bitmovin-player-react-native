@@ -15,7 +15,7 @@ import {
   PictureInPictureExitEvent,
   PlayerView,
   PlayerViewConfig,
-  SourceType,
+  SourceType, SurfaceType,
   usePlayer,
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
@@ -186,7 +186,7 @@ function SafeAreaContainer(props: ViewProps): JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: 'purple',
     padding: Platform.isTV ? 0 : 10,
   },
   header: {
@@ -197,6 +197,7 @@ const styles = StyleSheet.create({
   },
   playerWrapper: {
     flex: 1,
+    backgroundColor: 'black',
   },
   player: {
     flex: 1,
