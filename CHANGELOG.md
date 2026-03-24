@@ -1,11 +1,24 @@
 # Changelog
 
-## [Unreleased]
+## [1.14.0] - 2026-03-20
+
+### Added
+
+- `SourceConfig.cmcdConfig.isEnabled` to enable support for Common Media Client Data (CMCD) on iOS/tvOS 18+ (Android currently ignores `cmcdConfig`)
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.109.0`
+- Update Bitmovin's native Android SDK version to `3.146.0+jason`
+
+## [1.13.0] - 2026-03-13
 
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.145.0+jason`
 - Android/iOS: Keep `PlayerView`'s `config` property immutable, except for `pictureInPictureConfig` which can be updated dynamically after initialization
+
+## [1.12.0] - 2026-03-13
 
 ## [1.11.0] - 2026-03-05
 
