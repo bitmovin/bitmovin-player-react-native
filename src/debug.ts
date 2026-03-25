@@ -51,4 +51,15 @@ export class DebugConfig {
     DebugConfig._isDebugEnabled = value;
     await DebugModule.setDebugLoggingEnabled(value);
   }
+
+  /**
+   * Logs a message to the console if debug logging is enabled.
+   *
+   * @param args - Arguments to pass to `console.log`.
+   */
+  static log(...args: unknown[]): void {
+    if (DebugConfig._isDebugEnabled) {
+      console.log(...args);
+    }
+  }
 }
