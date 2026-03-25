@@ -11,6 +11,10 @@
 - Update Bitmovin's native iOS SDK version to `3.109.0`
 - Update Bitmovin's native Android SDK version to `3.146.0+jason`
 
+### Fixed
+
+- iOS, tvOS: Error/Warning code not forwarded to the React Native bridge on error and warning events
+
 ## [1.13.0] - 2026-03-13
 
 ### Changed
