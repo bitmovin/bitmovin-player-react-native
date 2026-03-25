@@ -234,6 +234,10 @@ public class RNPlayerView: ExpoView {
         playerView.tweaks.hidePlaybackControlsInPictureInPicture = !actions.contains(.togglePlayback)
 #endif
     }
+
+    internal func setIsPictureInPictureEnabled(_ isEnabled: Bool) {
+        playerView?.pictureInPicture.isEnabled = isEnabled
+    }
 }
 
 private extension RNPlayerView {

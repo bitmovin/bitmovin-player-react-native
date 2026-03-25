@@ -73,6 +73,16 @@ export interface BasePlayerViewProps {
    * - iOS: All actions enabled
    */
   pictureInPictureActions?: PictureInPictureAction[];
+
+  /**
+   * Enables or disables Picture in Picture mode.
+   *
+   * On iOS, this controls `playerView.pictureInPicture.isEnabled`.
+   * On Android, it manages the PiP handler lifecycle.
+   *
+   * Can be changed dynamically after the player is initialized.
+   */
+  isPictureInPictureEnabled?: boolean;
 }
 
 /**

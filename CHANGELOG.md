@@ -1,10 +1,15 @@
 # Changelog
 
+### Added
+
+- iOS: `PlayerView.isPictureInPictureEnabled` prop to enable or disable Picture in Picture dynamically after player initialization
+
 ## [1.14.0] - 2026-03-20
 
 ### Added
 
 - `SourceConfig.cmcdConfig.isEnabled` to enable support for Common Media Client Data (CMCD) on iOS/tvOS 18+ (Android currently ignores `cmcdConfig`)
+- iOS: `PlayerView.isPictureInPictureEnabled` prop to enable or disable Picture in Picture dynamically after player initialization
 
 ### Changed
 

@@ -35,6 +35,7 @@ export function PlayerView({
   scalingMode,
   isPictureInPictureRequested = false,
   pictureInPictureActions,
+  isPictureInPictureEnabled,
   ...props
 }: PlayerViewProps) {
   // Keep the device awake while the PlayerView is mounted
@@ -73,8 +74,6 @@ export function PlayerView({
     customMessageHandlerBridgeId: customMessageHandlerBridge.current?.nativeId,
     enableBackgroundPlayback:
       player.config?.playbackConfig?.isBackgroundPlaybackEnabled,
-    isPictureInPictureEnabledOnPlayer:
-      player.config?.playbackConfig?.isPictureInPictureEnabled,
     userInterfaceTypeName: player.config?.styleConfig?.userInterfaceType,
     playerViewConfig: config,
   };
@@ -108,6 +107,14 @@ export function PlayerView({
       );
     }
   }, [isPlayerInitialized, pictureInPictureActions]);
+
+  useEffect(() => {
+    if (isPlayerInitialized && isPictureInPictureEnabled != null) {
+      void nativeView.current?.setIsPictureInPictureEnabled(
+        isPictureInPictureEnabled
+      );
+    }
+  }, [isPlayerInitialized, isPictureInPictureEnabled]);
 
   if (!isPlayerInitialized) {
     return null;
@@ -220,4 +227,5 @@ interface InternalPlayerViewRef extends RefObject<any> {
   updatePictureInPictureActions: (
     actions: PictureInPictureAction[]
   ) => Promise<void>;
+  setIsPictureInPictureEnabled: (isEnabled: boolean) => Promise<void>;
 }
