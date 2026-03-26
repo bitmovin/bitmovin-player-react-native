@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
+    "postinstall": "node scripts/patch-react-native-fmt.js",
     "bootstrap": "yarn install && yarn prebuild && yarn pods",
     "open:android": "open -a \"Android Studio\" android",
     "open:ios": "xed ios",
