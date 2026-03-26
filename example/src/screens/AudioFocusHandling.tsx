@@ -85,6 +85,11 @@ export default function AudioFocusHandling() {
             ? 'Player pauses when another app takes audio focus.'
             : 'Player does not auto-pause on audio focus loss. Other interruptions can still pause playback.'}
         </Text>
+        <Text style={styles.hint}>
+          To test it, start playback here, apply the setting, then open an app
+          requesting audio focus like YouTube or Spotify and start playback
+          there.
+        </Text>
         <Button title="Apply & Recreate Player" onPress={apply} />
         {Platform.OS === 'ios' && (
           <Text style={styles.warning}>
