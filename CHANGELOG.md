@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Android: `PlaybackConfig.handleAudioFocus` to control whether the player pauses playback when audio focus is lost
+
 ## [1.14.0] - 2026-03-20
 
 ### Added
