@@ -1,6 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
+// Xcode 26.4 breaks compilation with the fmt 11.0.2 podspecs pinned
+// by react-native. This postinstall patch bumps the affected iOS
+// podspec graph to fmt 12.1.0 before Expo prebuild / CocoaPods resolution.
+// Remove this script once the example app upgrades to a React Native version
+// that already depends on fmt 12.1.0 or newer.
+// Issue tracker for RN: https://github.com/facebook/react-native/issues/55601
+
 const reactNativeRoot = path.join(
   __dirname,
   '..',
