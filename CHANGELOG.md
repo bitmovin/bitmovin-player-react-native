@@ -11,6 +11,10 @@
 
 - iOS, tvOS: Error/Warning code not forwarded to the React Native bridge on error and warning events
 
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.110.0`
+
 ## [1.14.0] - 2026-03-20
 
 ### Added
