@@ -1,15 +1,21 @@
 # Changelog
 
+## [Unreleased]
+
 ### Added
 
+- Android: `PlaybackConfig.handleAudioFocus` to control whether the player pauses playback when audio focus is lost
 - iOS: `PlayerView.isPictureInPictureEnabled` prop to enable or disable Picture in Picture dynamically after player initialization
+
+### Fixed
+
+- iOS, tvOS: Error/Warning code not forwarded to the React Native bridge on error and warning events
 
 ## [1.14.0] - 2026-03-20
 
 ### Added
 
 - `SourceConfig.cmcdConfig.isEnabled` to enable support for Common Media Client Data (CMCD) on iOS/tvOS 18+ (Android currently ignores `cmcdConfig`)
-- iOS: `PlayerView.isPictureInPictureEnabled` prop to enable or disable Picture in Picture dynamically after player initialization
 
 ### Changed
 
