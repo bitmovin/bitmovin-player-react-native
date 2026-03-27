@@ -67,6 +67,13 @@ export interface PlaybackConfig {
    */
   isBackgroundPlaybackEnabled?: boolean;
   /**
+   * Whether to automate audio focus management, allowing the player to pause when other apps request focus.
+   *
+   * @defaultValue `false`
+   * @platform Android
+   */
+  handleAudioFocus?: boolean;
+  /**
    * Whether the Picture in Picture mode option is enabled or not. Default is `false`.
    *  @example
    * ```
