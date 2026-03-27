@@ -5,7 +5,7 @@
 ### Added
 
 - Android: `PlaybackConfig.handleAudioFocus` to control whether the player pauses playback when audio focus is lost
-- iOS: `PlayerView.isPictureInPictureEnabled` prop to enable or disable Picture in Picture dynamically after player initialization
+- iOS: `PlayerView.isPictureInPictureEnabled` to enable or disable Picture in Picture dynamically after player initialization
 
 ### Fixed
 

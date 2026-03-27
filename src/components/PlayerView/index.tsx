@@ -1,5 +1,5 @@
 import React, { RefObject, useEffect, useRef, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
 import { NativePlayerView, NativePlayerViewConfig } from './native';
 import { useProxy } from '../../hooks/useProxy';
@@ -74,6 +74,8 @@ export function PlayerView({
     customMessageHandlerBridgeId: customMessageHandlerBridge.current?.nativeId,
     enableBackgroundPlayback:
       player.config?.playbackConfig?.isBackgroundPlaybackEnabled,
+    isPictureInPictureEnabledOnPlayer:
+      player.config?.playbackConfig?.isPictureInPictureEnabled,
     userInterfaceTypeName: player.config?.styleConfig?.userInterfaceType,
     playerViewConfig: config,
   };
@@ -109,7 +111,11 @@ export function PlayerView({
   }, [isPlayerInitialized, pictureInPictureActions]);
 
   useEffect(() => {
-    if (isPlayerInitialized && isPictureInPictureEnabled != null) {
+    if (
+      isPlayerInitialized &&
+      isPictureInPictureEnabled != null &&
+      Platform.OS === 'ios'
+    ) {
       void nativeView.current?.setIsPictureInPictureEnabled(
         isPictureInPictureEnabled
       );
@@ -227,5 +233,9 @@ interface InternalPlayerViewRef extends RefObject<any> {
   updatePictureInPictureActions: (
     actions: PictureInPictureAction[]
   ) => Promise<void>;
+  /**
+   * Enables or disables Picture in Picture mode availability.
+   * Only applicable on iOS — `isPictureInPictureRequested` has no effect when disabled.
+   */
   setIsPictureInPictureEnabled: (isEnabled: boolean) => Promise<void>;
 }

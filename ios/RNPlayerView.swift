@@ -30,6 +30,9 @@ public class RNPlayerView: ExpoView {
             if let requestedPictureInPictureValue {
                 setPictureInPicture(enterPictureInPicture: requestedPictureInPictureValue)
             }
+            if let isPictureInPictureEnabledValue {
+                playerView.pictureInPicture.isEnabled = isPictureInPictureEnabledValue
+            }
         }
     }
 
@@ -39,6 +42,7 @@ public class RNPlayerView: ExpoView {
     private var scalingMode: ScalingMode?
     private var requestedFullscreenValue: Bool?
     private var requestedPictureInPictureValue: Bool?
+    private var isPictureInPictureEnabledValue: Bool?
     private var avPlayerViewControllerTransitionForced = false
 
     let onBmpEvent = EventDispatcher()
@@ -236,6 +240,7 @@ public class RNPlayerView: ExpoView {
     }
 
     internal func setIsPictureInPictureEnabled(_ isEnabled: Bool) {
+        isPictureInPictureEnabledValue = isEnabled
         playerView?.pictureInPicture.isEnabled = isEnabled
     }
 }
