@@ -80,7 +80,7 @@ export interface BasePlayerViewProps {
    *
    * Can be changed dynamically after the player is initialized.
    *
-   * @platform iOS
+   * @platform iOS, tvOS
    */
   isPictureInPictureEnabled?: boolean;
 }
