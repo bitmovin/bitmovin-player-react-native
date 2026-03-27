@@ -33,6 +33,7 @@
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.145.0+jason`
+- Android: `onPictureInPictureExit` event listener triggering flow changed to match IOS behavior.
 
 ## [1.12.0] - 2026-03-13
 
