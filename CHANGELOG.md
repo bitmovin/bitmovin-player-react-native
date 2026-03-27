@@ -7,13 +7,13 @@
 - Android: `PlaybackConfig.handleAudioFocus` to control whether the player pauses playback when audio focus is lost
 - iOS: `PlayerView.isPictureInPictureEnabled` to enable or disable Picture in Picture availability dynamically after player initialization
 
-### Fixed
-
-- iOS, tvOS: Error/Warning code not forwarded to the React Native bridge on error and warning events
-
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to `3.110.0`
+
+### Fixed
+
+- iOS, tvOS: Error/Warning code not forwarded to the React Native bridge on error and warning events
 
 ## [1.14.0] - 2026-03-20
 
