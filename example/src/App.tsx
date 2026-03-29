@@ -26,6 +26,7 @@ import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
 import BackgroundPlayback from './screens/BackgroundPlayback';
+import AudioFocusHandling from './screens/AudioFocusHandling';
 import * as Device from 'expo-device';
 
 export type RootStackParamsList = {
@@ -68,6 +69,7 @@ export type RootStackParamsList = {
   Casting: undefined;
   SystemUI: undefined;
   BackgroundPlayback: undefined;
+  AudioFocusHandling: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsList>();
@@ -128,6 +130,13 @@ export default function App() {
       },
     ],
   };
+
+  if (Platform.OS === 'android' && !Platform.isTV) {
+    stackParams.data.push({
+      title: 'Audio Focus Handling',
+      routeName: 'AudioFocusHandling',
+    });
+  }
 
   if (isAndroidTV) {
     stackParams.data.unshift({
@@ -315,6 +324,11 @@ export default function App() {
           name="BackgroundPlayback"
           component={BackgroundPlayback}
           options={{ title: 'Background Playback' }}
+        />
+        <RootStack.Screen
+          name="AudioFocusHandling"
+          component={AudioFocusHandling}
+          options={{ title: 'Audio Focus Handling' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>
