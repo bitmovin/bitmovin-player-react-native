@@ -32,6 +32,9 @@ public class RNPlayerViewManager: Module {
             AsyncFunction("updatePictureInPictureActions") { (view: RNPlayerView, pictureInPictureActions: [String]) in
                 view.updatePictureInPictureActions(actions: RCTConvert.pictureInPictureActions(pictureInPictureActions))
             }
+            AsyncFunction("setIsPictureInPictureEnabled") { (view: RNPlayerView, isEnabled: Bool) in
+                view.setIsPictureInPictureEnabled(isEnabled)
+            }
             Events(
                 "onBmpEvent",
                 "onBmpPlayerActive",
