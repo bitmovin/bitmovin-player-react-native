@@ -90,7 +90,7 @@ extension TimeChangedEvent: JsonConvertible {
 }
 
 private protocol ErrorEventType: Event, JsonConvertible {
-    associatedtype Code
+    associatedtype Code: RawRepresentable where Code.RawValue == Int
     var code: Code { get }
     var data: DeficiencyData? { get }
     var message: String { get }
@@ -100,7 +100,7 @@ extension ErrorEventType {
     func toJSON() -> [AnyHashable: Any] {
         toEventJSON {
             var json: [AnyHashable: Any] = [
-                "code": code,
+                "code": code.rawValue,
                 "message": message
             ]
             if let data {

@@ -6,6 +6,21 @@
 
 - `DebugConfig.setDebugLoggingEnabled` now also controls JS-side debug logging; `console.log` calls in the `Network` and `Drm` modules are suppressed unless debug logging is enabled
 
+## [1.15.0] - 2026-03-27
+
+### Added
+
+- Android: `PlaybackConfig.handleAudioFocus` to control whether the player pauses playback when audio focus is lost
+- iOS: `PlayerView.isPictureInPictureEnabled` to enable or disable Picture in Picture availability dynamically after player initialization
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.110.0`
+
+### Fixed
+
+- iOS, tvOS: Error/Warning code not forwarded to the React Native bridge on error and warning events
+
 ## [1.14.0] - 2026-03-20
 
 ### Added
