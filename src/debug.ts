@@ -59,6 +59,7 @@ export class DebugConfig {
    */
   static log(...args: unknown[]): void {
     if (DebugConfig._isDebugEnabled) {
+      // eslint-disable-next-line no-restricted-properties
       console.log(...args);
     }
   }
