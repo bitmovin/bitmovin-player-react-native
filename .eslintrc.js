@@ -14,5 +14,13 @@ module.exports = {
   rules: {
     '@typescript-eslint/no-floating-promises': 'error',
     'prettier/prettier': 'error',
+    'no-restricted-properties': [
+      'error',
+      {
+        object: 'console',
+        property: 'log',
+        message: 'Use the project logger `DebugConfig.log` instead.',
+      },
+    ],
   },
 };
