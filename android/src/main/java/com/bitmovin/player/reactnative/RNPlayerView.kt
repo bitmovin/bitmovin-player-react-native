@@ -1,14 +1,12 @@
 package com.bitmovin.player.reactnative
 
 import android.annotation.SuppressLint
-import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
-import android.util.DisplayMetrics
+import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
@@ -17,10 +15,8 @@ import com.bitmovin.player.PlayerView
 import com.bitmovin.player.SubtitleView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
-import com.bitmovin.player.api.event.EventListener
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
-import com.bitmovin.player.api.event.on
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.UiConfig
@@ -28,6 +24,8 @@ import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toUserInterfaceType
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.bitmovin.player.reactnative.util.NonFiniteSanitizer
+import com.facebook.react.ReactRootView
+import com.facebook.react.views.view.ReactViewGroup
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
 import expo.modules.kotlin.viewevent.ViewEventCallback
@@ -117,6 +115,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private var pictureInPictureConfig: PictureInPictureConfig = PictureInPictureConfig()
 
     private var playerInMediaSessionService: Player? = null
+
+    // This replaces the manual overwriting of the requestLayout function
+    override val shouldUseAndroidLayout: Boolean = true
 
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
         override fun onStart(owner: LifecycleOwner) {
@@ -320,9 +321,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
             this.pictureInPictureConfig = playerViewConfigWrapper?.pictureInPictureConfig ?: PictureInPictureConfig()
             val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || pictureInPictureConfig.isEnabled
-            pictureInPictureHandler = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                isPictureInPictureEnabled
-            ) {
+            pictureInPictureHandler = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPictureInPictureEnabled) {
                 RNPictureInPictureHandler(
                     currentActivity,
                     player,
@@ -424,6 +423,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
     }
 
+    private val reparentRestoreHolder = RNPlayerViewReparentRestoreHelper()
     private fun onPictureInPictureModeChanged(
         isInPictureInPictureMode: Boolean,
         newConfig: Configuration,
@@ -437,160 +437,15 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 playerView.enterPictureInPicture()
             }
 
-            // Force layout update for PiP mode and ensure proper sizing
-            playerView.requestLayout()
-            requestLayout()
-
-            // Additional PiP-specific layout handling
-            post {
-                val activity = appContext.activityProvider?.currentActivity
-                if (activity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                    activity.isInPictureInPictureMode
-                ) {
-                    // Get the actual PiP window dimensions from WindowManager
-                    val windowManager = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                    val pipWidth: Int
-                    val pipHeight: Int
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        // Use WindowMetrics for API 30+
-                        val windowMetrics = windowManager.currentWindowMetrics
-                        val windowBounds = windowMetrics.bounds
-                        pipWidth = windowBounds.width()
-                        pipHeight = windowBounds.height()
-                    } else {
-                        // Use deprecated Display.getSize() for older APIs
-                        val displayMetrics = DisplayMetrics()
-                        @Suppress("DEPRECATION")
-                        windowManager.defaultDisplay.getMetrics(displayMetrics)
-                        pipWidth = displayMetrics.widthPixels
-                        pipHeight = displayMetrics.heightPixels
-                    }
-
-                    // Force the ExpoView to be resized to PiP dimensions
-                    // Preserve the original layout params type to avoid ClassCastException
-                    layoutParams?.let { currentParams ->
-                        currentParams.width = pipWidth
-                        currentParams.height = pipHeight
-                        // Re-assign to trigger layout update
-                        layoutParams = currentParams
-                    }
-
-                    // Ensure the ExpoView container is properly sized for PiP
-                    measure(
-                        MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
-                    )
-                    layout(left, top, left + pipWidth, top + pipHeight)
-
-                    // Ensure the intermediate container is properly sized for PiP
-                    playerContainer?.let { container ->
-                        // Preserve the original layout params type for the container
-                        container.layoutParams?.let { containerParams ->
-                            containerParams.width = pipWidth
-                            containerParams.height = pipHeight
-                            container.layoutParams = containerParams
-                        }
-                        container.measure(
-                            MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
-                            MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
-                        )
-                        container.layout(0, 0, pipWidth, pipHeight)
-                    }
-
-                    // Ensure the PlayerView is properly sized for PiP
-                    playerView.layoutParams = FrameLayout.LayoutParams(pipWidth, pipHeight)
-                    playerView.measure(
-                        MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
-                    )
-                    playerView.layout(0, 0, pipWidth, pipHeight)
-
-                    // Ensure the SubtitleView is properly sized for PiP
-                    subtitleView?.let { subtitleView ->
-                        subtitleView.layoutParams = FrameLayout.LayoutParams(pipWidth, pipHeight)
-                        subtitleView.measure(
-                            MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
-                            MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
-                        )
-                        subtitleView.layout(0, 0, pipWidth, pipHeight)
-                        subtitleView.invalidate()
-                    }
-
-                    // Try to force a redraw
-                    playerView.invalidate()
-                    playerContainer?.invalidate()
-                    invalidate()
-                }
+            if (!reparentRestoreHolder.isActive) {
+                reparentRestoreHolder.reparent()
             }
         } else {
             if (playerView.isPictureInPicture) {
                 playerView.exitPictureInPicture()
             }
 
-            // Restore full size layout when exiting PiP
-            post {
-                // Reset ExpoView to full size
-                layoutParams?.let { currentParams ->
-                    currentParams.width = LayoutParams.MATCH_PARENT
-                    currentParams.height = LayoutParams.MATCH_PARENT
-                    layoutParams = currentParams
-                }
-
-                // Reset intermediate container to full size
-                playerContainer?.let { container ->
-                    container.layoutParams?.let { containerParams ->
-                        containerParams.width = LayoutParams.MATCH_PARENT
-                        containerParams.height = LayoutParams.MATCH_PARENT
-                        container.layoutParams = containerParams
-                    }
-                }
-
-                // Reset PlayerView to full size
-                playerView.layoutParams = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                )
-
-                // Reset SubtitleView to full size
-                subtitleView?.let { subtitleView ->
-                    subtitleView.layoutParams = FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.MATCH_PARENT,
-                        FrameLayout.LayoutParams.MATCH_PARENT,
-                    )
-                }
-
-                // Force layout updates
-                measure(
-                    MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                    MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
-                )
-                layout(left, top, right, bottom)
-
-                playerContainer?.let { container ->
-                    container.measure(
-                        MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
-                    )
-                    container.layout(0, 0, width, height)
-                }
-
-                playerView.measure(
-                    MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                    MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
-                )
-                playerView.layout(0, 0, width, height)
-
-                // Ensure SubtitleView is properly measured and laid out when exiting PiP
-                subtitleView?.let { subtitleView ->
-                    subtitleView.measure(
-                        MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
-                    )
-                    subtitleView.layout(0, 0, width, height)
-                    subtitleView.invalidate()
-                }
-            }
+            reparentRestoreHolder.tryRestore()
         }
     }
 
@@ -762,19 +617,62 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
     }
 
-    /**
-     * Try to measure and update this view layout as much as possible to
-     * avoid layout problems related to React or old layout values present
-     * in `playerView` due to being previously attached to a different parent.
-     */
-    override fun requestLayout() {
-        super.requestLayout()
-        post {
-            measure(
-                MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
+    private inner class RNPlayerViewReparentRestoreHelper {
+        private var reactRoot: ReactRootView? = null
+        private var playerParentParent: ViewGroup? = null
+        private var playerParent: ReactViewGroup? = null
+        private var playerParentIndex: Int? = null
+
+        val isActive: Boolean
+            get() = playerParentParent != null && playerParent != null && playerParentIndex != null
+
+        private val globalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
+            val reactRoot = this@RNPlayerViewReparentRestoreHelper.reactRoot ?: return@OnGlobalLayoutListener
+            val view = this@RNPlayerView
+            view.measure(
+                MeasureSpec.makeMeasureSpec(reactRoot.width, MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(reactRoot.height, MeasureSpec.EXACTLY),
             )
-            layout(left, top, right, bottom)
+            view.layout(0, 0, view.measuredWidth, view.measuredHeight)
         }
+
+        fun reparent() {
+            val playerParent = this@RNPlayerView.getParent<ReactViewGroup>() ?: return
+            val playerParentParent = playerParent.parent as? ViewGroup ?: return
+            val reactRoot = playerParent.getParent<ReactRootView>() ?: return
+
+            this@RNPlayerViewReparentRestoreHelper.reactRoot = reactRoot
+            this@RNPlayerViewReparentRestoreHelper.playerParentParent = playerParentParent
+            this@RNPlayerViewReparentRestoreHelper.playerParent = playerParent
+            playerParentIndex = playerParentParent.indexOfChild(playerParent)
+
+            playerParentParent.removeView(playerParent)
+            reactRoot.addView(playerParent)
+
+            playerParent.viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
+        }
+
+        fun tryRestore() {
+            val reactRoot = this@RNPlayerViewReparentRestoreHelper.reactRoot ?: return
+            val playerParentParent = this@RNPlayerViewReparentRestoreHelper.playerParentParent ?: return
+            val playerParent = this@RNPlayerViewReparentRestoreHelper.playerParent ?: return
+            val playerParentIndex = this@RNPlayerViewReparentRestoreHelper.playerParentIndex ?: return
+
+            reactRoot.removeView(playerParent)
+            playerParentParent.addView(playerParent, playerParentIndex)
+
+            playerParent.viewTreeObserver.removeOnGlobalLayoutListener(globalLayoutListener)
+            this.playerParentParent = null
+            this.playerParent = null
+            this.playerParentIndex = null
+        }
+    }
+
+    private inline fun <reified T : View> View.getParent(): T? {
+        var view = this
+        do {
+            view = view.parent as? View ?: return null
+        } while (view !is T)
+        return view
     }
 }
