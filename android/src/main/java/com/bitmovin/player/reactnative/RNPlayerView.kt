@@ -279,6 +279,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         playerViewConfigWrapper: RNPlayerViewConfigWrapper?,
         customMessageHandlerBridgeId: NativeId?,
         enableBackgroundPlayback: Boolean,
+        isPictureInPictureEnabledOnPlayer: Boolean,
         userInterfaceTypeName: String?,
     ) {
         val playerModule = appContext.registry.getModule<PlayerModule>()
@@ -318,8 +319,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             )
 
             this.pictureInPictureConfig = playerViewConfigWrapper?.pictureInPictureConfig ?: PictureInPictureConfig()
+            val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || pictureInPictureConfig.isEnabled
             pictureInPictureHandler = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                pictureInPictureConfig.isEnabled
+                isPictureInPictureEnabled
             ) {
                 RNPictureInPictureHandler(
                     currentActivity,

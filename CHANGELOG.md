@@ -2,13 +2,13 @@
 
 ## [Unreleased]
 
-### Changed
-
-- `DebugConfig.setDebugLoggingEnabled` now also controls JS-side debug logging; `console.log` calls in the `Network` and `Drm` modules are suppressed unless debug logging is enabled
-
 ### Added
 
 - Android: `PlayerView.isPictureInPictureEnabled` to enable or disable Picture in Picture availability dynamically after player initialization
+
+### Changed
+
+- `DebugConfig.setDebugLoggingEnabled` now also controls JS-side debug logging; `console.log` calls in the `Network` and `Drm` modules are suppressed unless debug logging is enabled
 
 ## [1.15.0] - 2026-03-27
 

@@ -1,5 +1,5 @@
 import React, { RefObject, useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
 import { NativePlayerView, NativePlayerViewConfig } from './native';
 import { useProxy } from '../../hooks/useProxy';
@@ -111,11 +111,7 @@ export function PlayerView({
   }, [isPlayerInitialized, pictureInPictureActions]);
 
   useEffect(() => {
-    if (
-      isPlayerInitialized &&
-      isPictureInPictureEnabled != null &&
-      Platform.OS === 'ios'
-    ) {
+    if (isPlayerInitialized && isPictureInPictureEnabled != null) {
       void nativeView.current?.setIsPictureInPictureEnabled(
         isPictureInPictureEnabled
       );
@@ -235,7 +231,6 @@ interface InternalPlayerViewRef extends RefObject<any> {
   ) => Promise<void>;
   /**
    * Enables or disables Picture in Picture mode availability.
-   * Only applicable on iOS — `isPictureInPictureRequested` has no effect when disabled.
    */
   setIsPictureInPictureEnabled: (isEnabled: boolean) => Promise<void>;
 }
