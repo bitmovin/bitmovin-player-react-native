@@ -625,6 +625,14 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             var playerParentIndex: Int,
         )
 
+        private inline fun <reified T : View> View.getParent(): T? {
+            var view = this
+            do {
+                view = view.parent as? View ?: return null
+            } while (view !is T)
+            return view
+        }
+
         private var viewHolder: ViewHolder? = null
 
         val isActive: Boolean
@@ -666,13 +674,5 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             viewHolder.playerParent.viewTreeObserver.removeOnGlobalLayoutListener(globalLayoutListener)
             this.viewHolder = null
         }
-    }
-
-    private inline fun <reified T : View> View.getParent(): T? {
-        var view = this
-        do {
-            view = view.parent as? View ?: return null
-        } while (view !is T)
-        return view
     }
 }
