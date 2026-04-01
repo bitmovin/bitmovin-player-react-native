@@ -618,16 +618,20 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     private inner class RNPlayerViewReparentRestoreHelper {
-        private var reactRoot: ReactRootView? = null
-        private var playerParentParent: ViewGroup? = null
-        private var playerParent: ReactViewGroup? = null
-        private var playerParentIndex: Int? = null
+        private inner class ViewHolder(
+            var reactRoot: ReactRootView,
+            var playerParentParent: ViewGroup,
+            var playerParent: ReactViewGroup,
+            var playerParentIndex: Int,
+        )
+
+        private var viewHolder: ViewHolder? = null
 
         val isActive: Boolean
-            get() = playerParentParent != null && playerParent != null && playerParentIndex != null
+            get() = viewHolder != null
 
         private val globalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
-            val reactRoot = this@RNPlayerViewReparentRestoreHelper.reactRoot ?: return@OnGlobalLayoutListener
+            val reactRoot = viewHolder?.reactRoot ?: return@OnGlobalLayoutListener
             val view = this@RNPlayerView
             view.measure(
                 MeasureSpec.makeMeasureSpec(reactRoot.width, MeasureSpec.EXACTLY),
@@ -641,10 +645,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             val playerParentParent = playerParent.parent as? ViewGroup ?: return
             val reactRoot = playerParent.getParent<ReactRootView>() ?: return
 
-            this@RNPlayerViewReparentRestoreHelper.reactRoot = reactRoot
-            this@RNPlayerViewReparentRestoreHelper.playerParentParent = playerParentParent
-            this@RNPlayerViewReparentRestoreHelper.playerParent = playerParent
-            playerParentIndex = playerParentParent.indexOfChild(playerParent)
+            viewHolder = ViewHolder(
+                reactRoot = reactRoot,
+                playerParentParent = playerParentParent,
+                playerParent = playerParent,
+                playerParentIndex = playerParentParent.indexOfChild(playerParent),
+            )
 
             playerParentParent.removeView(playerParent)
             reactRoot.addView(playerParent)
@@ -653,18 +659,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
 
         fun tryRestore() {
-            val reactRoot = this@RNPlayerViewReparentRestoreHelper.reactRoot ?: return
-            val playerParentParent = this@RNPlayerViewReparentRestoreHelper.playerParentParent ?: return
-            val playerParent = this@RNPlayerViewReparentRestoreHelper.playerParent ?: return
-            val playerParentIndex = this@RNPlayerViewReparentRestoreHelper.playerParentIndex ?: return
+            val viewHolder = viewHolder ?: return
+            viewHolder.reactRoot.removeView(viewHolder.playerParent)
+            viewHolder.playerParentParent.addView(viewHolder.playerParent, viewHolder.playerParentIndex)
 
-            reactRoot.removeView(playerParent)
-            playerParentParent.addView(playerParent, playerParentIndex)
-
-            playerParent.viewTreeObserver.removeOnGlobalLayoutListener(globalLayoutListener)
-            this.playerParentParent = null
-            this.playerParent = null
-            this.playerParentIndex = null
+            viewHolder.playerParent.viewTreeObserver.removeOnGlobalLayoutListener(globalLayoutListener)
+            this.viewHolder = null
         }
     }
 
