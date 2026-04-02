@@ -619,6 +619,10 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
     }
 
+    // React Native doesn't properly handle PiP layout transitions.
+    // During PiP mode, we temporarily move the view higher up the hierarchy to the ReactRoot.
+    // This prevents fragmented rendering when the user resizes the PiP window.
+    // On PiP close, we re-arrange the view hierarchy to its original state
     private inner class RNPlayerViewReparentRestoreHelper {
         private inner class ViewHolder(
             var reactRoot: ReactRootView,
