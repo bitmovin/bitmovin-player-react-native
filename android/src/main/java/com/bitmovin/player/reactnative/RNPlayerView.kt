@@ -170,6 +170,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             requestLayout()
         }
 
+    private val reparentRestoreHolder = RNPlayerViewReparentRestoreHelper()
+
     init {
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
         // Since we dynamically add and remove SurfaceView under the hood this caused the player
@@ -212,6 +214,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
         activityLifecycle?.removeObserver(activityLifecycleObserver)
         viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
+        reparentRestoreHolder.dispose()
 
         // cleanup all children views explicitly,
         // so that in case react native does some view caching we are 100% the child views of this view
@@ -423,7 +426,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
     }
 
-    private val reparentRestoreHolder = RNPlayerViewReparentRestoreHelper()
     private fun onPictureInPictureModeChanged(
         isInPictureInPictureMode: Boolean,
         newConfig: Configuration,
@@ -671,7 +673,11 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             viewHolder.reactRoot.removeView(viewHolder.playerParent)
             viewHolder.playerParentParent.addView(viewHolder.playerParent, viewHolder.playerParentIndex)
 
-            viewHolder.playerParent.viewTreeObserver.removeOnGlobalLayoutListener(globalLayoutListener)
+            dispose()
+        }
+
+        fun dispose() {
+            viewHolder?.playerParent?.viewTreeObserver?.removeOnGlobalLayoutListener(globalLayoutListener)
             this.viewHolder = null
         }
     }
