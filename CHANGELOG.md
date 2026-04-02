@@ -6,6 +6,10 @@
 
 - `DebugConfig.setDebugLoggingEnabled` now also controls JS-side debug logging; `console.log` calls in the `Network` and `Drm` modules are suppressed unless debug logging is enabled
 
+### Fixed
+
+- Android: Picture in Picture fragmented rendering when resizing the PiP window
+
 ## [1.15.0] - 2026-03-27
 
 ### Added
