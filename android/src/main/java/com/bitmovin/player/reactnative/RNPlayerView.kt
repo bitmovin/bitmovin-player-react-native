@@ -170,7 +170,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             requestLayout()
         }
 
-    private val reparentRestoreHolder = RNPlayerViewReparentRestoreHelper()
+    private val reparentRestoreHelper = RNPlayerViewReparentRestoreHelper()
 
     init {
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
@@ -214,7 +214,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
         activityLifecycle?.removeObserver(activityLifecycleObserver)
         viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
-        reparentRestoreHolder.dispose()
+        reparentRestoreHelper.dispose()
 
         // cleanup all children views explicitly,
         // so that in case react native does some view caching we are 100% the child views of this view
@@ -439,15 +439,15 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 playerView.enterPictureInPicture()
             }
 
-            if (!reparentRestoreHolder.isActive) {
-                reparentRestoreHolder.reparent()
+            if (!reparentRestoreHelper.isActive) {
+                reparentRestoreHelper.reparent()
             }
         } else {
             if (playerView.isPictureInPicture) {
                 playerView.exitPictureInPicture()
             }
 
-            reparentRestoreHolder.tryRestore()
+            reparentRestoreHelper.tryRestore()
         }
     }
 
