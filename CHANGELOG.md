@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Update Bitmovin's native iOS SDK version to `3.111.0`
 - `DebugConfig.setDebugLoggingEnabled` now also controls JS-side debug logging; `console.log` calls in the `Network` and `Drm` modules are suppressed unless debug logging is enabled
 
 ## [1.15.0] - 2026-03-27
