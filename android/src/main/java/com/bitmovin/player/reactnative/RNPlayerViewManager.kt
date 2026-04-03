@@ -94,6 +94,10 @@ class RNPlayerViewManager : Module() {
                 view.updatePictureInPictureActions(pictureInPictureActions.toPictureInPictureActions())
             }
 
+            AsyncFunction("setIsPictureInPictureEnabled") { view: RNPlayerView, isEnabled: Boolean ->
+                view.setIsPictureInPictureEnabled(isEnabled)
+            }
+
             Events(
                 "onBmpEvent",
                 "onBmpPlayerError",
@@ -174,7 +178,7 @@ class RNPlayerViewManager : Module() {
         activePlayerViewsToPlayerIds.remove(view)
     }
 
-    private fun updateAutoPictureInPictureRegistration(view: RNPlayerView) {
+    internal fun updateAutoPictureInPictureRegistration(view: RNPlayerView) {
         if (view.shouldEnterPictureInPictureOnBackground()) {
             autoPictureInPictureViews.add(view)
         } else {

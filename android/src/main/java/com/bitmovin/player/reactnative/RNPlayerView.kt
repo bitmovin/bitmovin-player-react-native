@@ -762,6 +762,24 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
     }
 
+    fun setIsPictureInPictureEnabled(isEnabled: Boolean) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return
+        }
+        pictureInPictureConfig = pictureInPictureConfig.copy(isEnabled = isEnabled)
+        if (isEnabled && pictureInPictureHandler == null) {
+            val currentActivity = appContext.activityProvider?.currentActivity ?: return
+            val player = playerView?.player ?: return
+            pictureInPictureHandler = RNPictureInPictureHandler(currentActivity, player, pictureInPictureConfig)
+            playerView?.setPictureInPictureHandler(pictureInPictureHandler)
+        } else if (!isEnabled && pictureInPictureHandler != null) {
+            pictureInPictureHandler?.dispose()
+            pictureInPictureHandler = null
+            playerView?.setPictureInPictureHandler(null)
+        }
+        appContext.registry.getModule<RNPlayerViewManager>()?.updateAutoPictureInPictureRegistration(this)
+    }
+
     /**
      * Try to measure and update this view layout as much as possible to
      * avoid layout problems related to React or old layout values present
