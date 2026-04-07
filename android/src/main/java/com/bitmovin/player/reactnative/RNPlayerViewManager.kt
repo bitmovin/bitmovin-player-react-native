@@ -96,6 +96,7 @@ class RNPlayerViewManager : Module() {
 
             AsyncFunction("setIsPictureInPictureEnabled") { view: RNPlayerView, isEnabled: Boolean ->
                 view.setIsPictureInPictureEnabled(isEnabled)
+                updateAutoPictureInPictureRegistration(view)
             }
 
             Events(
@@ -178,7 +179,7 @@ class RNPlayerViewManager : Module() {
         activePlayerViewsToPlayerIds.remove(view)
     }
 
-    internal fun updateAutoPictureInPictureRegistration(view: RNPlayerView) {
+    private fun updateAutoPictureInPictureRegistration(view: RNPlayerView) {
         if (view.shouldEnterPictureInPictureOnBackground()) {
             autoPictureInPictureViews.add(view)
         } else {

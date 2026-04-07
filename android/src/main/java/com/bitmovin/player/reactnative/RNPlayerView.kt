@@ -725,6 +725,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             if (it.isPictureInPicture == isPictureInPicture) {
                 return
             }
+            if (isPictureInPicture && !pictureInPictureConfig.isEnabled) {
+                return
+            }
             if (isPictureInPicture) {
                 it.enterPictureInPicture()
             } else {
@@ -777,7 +780,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             pictureInPictureHandler = null
             playerView?.setPictureInPictureHandler(null)
         }
-        appContext.registry.getModule<RNPlayerViewManager>()?.updateAutoPictureInPictureRegistration(this)
     }
 
     /**
