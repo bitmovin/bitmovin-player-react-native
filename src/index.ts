@@ -1,4 +1,5 @@
 export * from './adaptationConfig';
+export * from './cmcdConfig';
 export * from './advertising';
 export * from './analytics';
 export * from './audioSession';

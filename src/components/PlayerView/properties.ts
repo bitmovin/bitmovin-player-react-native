@@ -73,6 +73,16 @@ export interface BasePlayerViewProps {
    * - iOS: All actions enabled
    */
   pictureInPictureActions?: PictureInPictureAction[];
+
+  /**
+   * Enables or disables Picture in Picture mode availability.
+   * When disabled, `isPictureInPictureRequested` property has no effect.
+   *
+   * Can be changed dynamically after the player is initialized.
+   *
+   * @platform iOS, tvOS
+   */
+  isPictureInPictureEnabled?: boolean;
 }
 
 /**

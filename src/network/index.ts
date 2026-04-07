@@ -1,6 +1,7 @@
 import { EventSubscription } from 'expo-modules-core';
 import NativeInstance from '../nativeInstance';
 import NetworkModule from './networkModule';
+import { DebugConfig } from '../debug';
 import {
   HttpRequestType,
   HttpRequest,
@@ -32,12 +33,12 @@ export class Network extends NativeInstance<NetworkConfig> {
    */
   initialize = async () => {
     if (!this.isInitialized) {
-      console.log('Initializing Network config:', this.nativeId);
+      DebugConfig.log('Initializing Network config:', this.nativeId);
       // Set up event listeners for HTTP request/response preprocessing
       this.onPreprocessHttpRequestSubscription = NetworkModule.addListener(
         'onPreprocessHttpRequest',
         ({ nativeId, requestId, type, request }) => {
-          console.log(`Received HTTP Request [${type}]:`, request);
+          DebugConfig.log(`Received HTTP Request [${type}]:`, request);
           if (nativeId !== this.nativeId) {
             return;
           }
@@ -48,7 +49,7 @@ export class Network extends NativeInstance<NetworkConfig> {
       this.onPreprocessHttpResponseSubscription = NetworkModule.addListener(
         'onPreprocessHttpResponse',
         ({ nativeId, responseId, type, response }) => {
-          console.log(`Received HTTP Response [${type}]:`, response);
+          DebugConfig.log(`Received HTTP Response [${type}]:`, response);
           if (nativeId !== this.nativeId) {
             return;
           }

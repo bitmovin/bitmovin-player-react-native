@@ -4,8 +4,43 @@
 
 ### Changed
 
+- `DebugConfig.setDebugLoggingEnabled` now also controls JS-side debug logging; `console.log` calls in the `Network` and `Drm` modules are suppressed unless debug logging is enabled
+- Update Bitmovin's native iOS SDK version to `3.111.0`
+
+## [1.15.0] - 2026-03-27
+
+### Added
+
+- Android: `PlaybackConfig.handleAudioFocus` to control whether the player pauses playback when audio focus is lost
+- iOS: `PlayerView.isPictureInPictureEnabled` to enable or disable Picture in Picture availability dynamically after player initialization
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.110.0`
+
+### Fixed
+
+- iOS, tvOS: Error/Warning code not forwarded to the React Native bridge on error and warning events
+
+## [1.14.0] - 2026-03-20
+
+### Added
+
+- `SourceConfig.cmcdConfig.isEnabled` to enable support for Common Media Client Data (CMCD) on iOS/tvOS 18+ (Android currently ignores `cmcdConfig`)
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.109.0`
+- Update Bitmovin's native Android SDK version to `3.146.0+jason`
+
+## [1.13.0] - 2026-03-13
+
+### Changed
+
 - Update Bitmovin's native Android SDK version to `3.145.0+jason`
 - Android: `onPictureInPictureExit` event listener triggering flow changed to match IOS behavior.
+
+## [1.12.0] - 2026-03-13
 
 ## [1.11.0] - 2026-03-05
 

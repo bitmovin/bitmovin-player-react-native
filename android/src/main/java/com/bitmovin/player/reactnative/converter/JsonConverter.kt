@@ -165,6 +165,7 @@ fun Map<String, Any?>.toPlaybackConfig(): PlaybackConfig = PlaybackConfig().appl
     withBoolean("isAutoplayEnabled") { isAutoplayEnabled = it }
     withBoolean("isMuted") { isMuted = it }
     withBoolean("isTimeShiftEnabled") { isTimeShiftEnabled = it }
+    withBoolean("handleAudioFocus") { handleAudioFocus = it }
 }
 
 fun Map<String, Any?>.toStyleConfig(): StyleConfig = StyleConfig().apply {
@@ -280,6 +281,7 @@ fun Map<String, Any?>.toSourceConfig(): SourceConfig? {
         withString("thumbnailTrack") { thumbnailTrack = it.toThumbnailTrack() }
         withMap("metadata") { metadata = it.toMap() }
         withMap("options") { options = it.toSourceOptions() }
+        // Note: cmcdConfig is not yet supported on Android.
     }
 }
 

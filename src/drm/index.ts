@@ -5,6 +5,7 @@ import { FairplayConfig } from './fairplayConfig';
 import { WidevineConfig } from './widevineConfig';
 import { FairplayDrmApi } from './fairplayDrmApi';
 import DrmModule from './drmModule';
+import { DebugConfig } from '../debug';
 
 // Export config types and API classes from DRM module.
 export { FairplayConfig, WidevineConfig, FairplayDrmApi };
@@ -276,7 +277,7 @@ export class Drm extends NativeInstance<DrmConfig> {
    * @param contentId - The extracted contentId string.
    */
   private onPrepareContentId = (id: string, contentId: string) => {
-    console.log('onPrepareContentId', contentId);
+    DebugConfig.log('onPrepareContentId', contentId);
     if (this.config?.fairplay?.prepareContentId) {
       const result = this.config?.fairplay?.prepareContentId?.(contentId);
       DrmModule.setPreparedContentId(id, result);
