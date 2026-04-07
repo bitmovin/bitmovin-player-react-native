@@ -207,7 +207,7 @@ class IMAAdsWrapper(
                 String.format("Event: %s\n", adEvent.type),
             )
             AdEventType.TAPPED -> {
-                // Tap on non-clickthrough portion of ad (e.g. video area) — toggle play/pause like iOS.
+                // Tap on non-clickthrough portion of ad (e.g. video area) — toggle play/pause
                 if (videoPlayer.isPlaying) {
                     videoPlayer.pause()
                     playerCallbacks.forEach { it.onPause() }
