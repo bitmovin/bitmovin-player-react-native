@@ -110,6 +110,26 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * Loads a DAI stream from an IMA asset id (SSAI). Wait for `onAdContainerReady` on the attached
+   * `PlayerView` before calling.
+   * @param assetId - IMA asset key / stream asset ID
+   * @param fallbackUrl - Stream URL to load if IMA fails
+   * @param adTagParams - Key-value params for the ad tag (e.g. targeting)
+   */
+  loadDaiStream = (
+    assetId: string,
+    fallbackUrl: string,
+    adTagParams: Record<string, string>
+  ) => {
+    void PlayerModule.loadDaiStream(
+      this.nativeId,
+      assetId,
+      fallbackUrl,
+      adTagParams
+    );
+  };
+
+  /**
    * Loads the downloaded content from {@link OfflineContentManager} into the player.
    */
   loadOfflineContent = (

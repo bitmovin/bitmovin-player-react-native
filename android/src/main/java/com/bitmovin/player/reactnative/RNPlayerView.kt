@@ -113,6 +113,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private val onBmpPictureInPictureAvailabilityChanged by EventDispatcher()
     private val onBmpPictureInPictureEnter by EventDispatcher()
     private val onBmpPictureInPictureExit by EventDispatcher()
+    private val onBmpAdContainerReady by EventDispatcher()
 
     private var pictureInPictureConfig: PictureInPictureConfig = PictureInPictureConfig()
 
@@ -282,10 +283,10 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         isPictureInPictureEnabledOnPlayer: Boolean,
         userInterfaceTypeName: String?,
     ) {
-        val playerModule = appContext.registry.getModule<PlayerModule>()
+        val playerModule = appContext.registry.getModule<PlayerModule>() ?: return
         // Player might not be initialized yet, this is a timing issue
         // Return early without throwing to avoid crash
-        val player = playerModule?.getPlayerOrNull(playerId) ?: return
+        val player = playerModule.getPlayerOrNull(playerId) ?: return
 
         if (playerView?.player == player) {
             // Player is already attached to the PlayerView
@@ -298,6 +299,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         attachPlayerListeners(player)
         if (playerView != null) {
             playerView?.player = player
+            playerModule.assignAdContainer(playerId, playerView as ViewGroup)
+            onBmpAdContainerReady(emptyMap())
         } else {
             this.enableBackgroundPlayback = enableBackgroundPlayback
             val userInterfaceType = userInterfaceTypeName?.toUserInterfaceType() ?: UserInterfaceType.Bitmovin
@@ -332,6 +335,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 null
             }
             newPlayerView.setPictureInPictureHandler(pictureInPictureHandler)
+            playerModule.assignAdContainer(playerId, newPlayerView as ViewGroup)
+            onBmpAdContainerReady(emptyMap())
             setPlayerView(newPlayerView)
             attachPlayerViewListeners(newPlayerView)
 

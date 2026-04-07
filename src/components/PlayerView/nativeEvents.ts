@@ -74,6 +74,13 @@ import {
  */
 export type NativePlayerViewEvents = {
   /**
+   * Event emitted when the native ad container has been assigned (IMA DAI).
+   * Safe to call `Player.loadDaiStream` after this.
+   */
+  onBmpAdContainerReady?: (event: {
+    nativeEvent: Record<string, unknown>;
+  }) => void;
+  /**
    * Event emitted when an ad break has finished.
    */
   onBmpAdBreakFinished?: (event: { nativeEvent: AdBreakFinishedEvent }) => void;

@@ -1,6 +1,9 @@
 // swiftlint:disable file_length
 import BitmovinPlayer
 import ExpoModulesCore
+#if canImport(GoogleInteractiveMediaAds) && os(iOS)
+import UIKit
+#endif
 
 public class RNPlayerView: ExpoView {
     var playerView: PlayerView? {
@@ -113,6 +116,7 @@ public class RNPlayerView: ExpoView {
     let onBmpMetadata = EventDispatcher()
     let onBmpMetadataParsed = EventDispatcher()
     let onBmpFairplayLicenseAcquired = EventDispatcher()
+    let onBmpAdContainerReady = EventDispatcher()
 
     required init(appContext: AppContext? = nil) {
         super.init(appContext: appContext)
@@ -122,6 +126,17 @@ public class RNPlayerView: ExpoView {
     override public func layoutSubviews() {
         super.layoutSubviews()
         maybeFixAVPlayerViewControllerVisibility()
+        #if canImport(GoogleInteractiveMediaAds) && os(iOS)
+        // IMA needs the ad container to be in a window. assignAdContainer may have been
+        // called from attachPlayer before the view was in the hierarchy; retry when we have a window.
+        if let playerId, let playerView, playerView.window != nil {
+            self.appContext?.moduleRegistry.get(PlayerModule.self)?.assignAdContainer(
+                nativeId: playerId,
+                adUiContainer: playerView
+            )
+            onBmpAdContainerReady([:])
+        }
+        #endif
     }
 
     internal func attachPlayer(
@@ -162,6 +177,16 @@ public class RNPlayerView: ExpoView {
 
         player.add(listener: self)
         playerView?.add(listener: self)
+
+        #if canImport(GoogleInteractiveMediaAds) && os(iOS)
+        if let playerView {
+            self.appContext?.moduleRegistry.get(PlayerModule.self)?.assignAdContainer(
+                nativeId: playerId,
+                adUiContainer: playerView
+            )
+            onBmpAdContainerReady([:])
+        }
+        #endif
 
         self.maybeEmitPictureInPictureAvailabilityEvent(
             previousState: previousPictureInPictureAvailableValue
