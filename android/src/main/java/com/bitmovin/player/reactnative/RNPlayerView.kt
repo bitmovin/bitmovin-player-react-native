@@ -720,12 +720,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun setPictureInPicture(isPictureInPicture: Boolean) {
+        if (isPictureInPicture && !pictureInPictureConfig.isEnabled) {
+            return
+        }
         requestedPictureInPictureValue = isPictureInPicture
         playerView?.let {
             if (it.isPictureInPicture == isPictureInPicture) {
-                return
-            }
-            if (isPictureInPicture && !pictureInPictureConfig.isEnabled) {
                 return
             }
             if (isPictureInPicture) {
