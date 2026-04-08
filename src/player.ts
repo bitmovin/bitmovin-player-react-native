@@ -1,19 +1,19 @@
-import { EventSubscription } from 'expo-modules-core';
+import type { EventSubscription } from 'expo-modules-core';
 import { Platform } from 'react-native';
+import type { AdItem, ImaSettings } from './advertising';
+import { AnalyticsApi } from './analytics/player';
+import type { AudioTrack } from './audioTrack';
+import { BufferApi } from './bufferApi';
+import { DecoderConfigBridge } from './decoder';
+import type { VideoQuality } from './media';
 import PlayerModule from './modules/PlayerModule';
 import NativeInstance from './nativeInstance';
-import { Source, SourceConfig } from './source';
-import { AudioTrack } from './audioTrack';
-import { SubtitleTrack } from './subtitleTrack';
-import { OfflineContentManager, OfflineSourceOptions } from './offline';
-import { Thumbnail } from './thumbnail';
-import { AnalyticsApi } from './analytics/player';
-import { PlayerConfig } from './playerConfig';
-import { AdItem, ImaSettings } from './advertising';
-import { BufferApi } from './bufferApi';
-import { VideoQuality } from './media';
 import { Network } from './network';
-import { DecoderConfigBridge } from './decoder';
+import type { OfflineContentManager, OfflineSourceOptions } from './offline';
+import type { PlayerConfig } from './playerConfig';
+import { Source, type SourceConfig } from './source';
+import type { SubtitleTrack } from './subtitleTrack';
+import type { Thumbnail } from './thumbnail';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -116,11 +116,15 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @param fallbackUrl - Stream URL to load if IMA fails
    * @param adTagParams - Key-value params for the ad tag (e.g. targeting)
    */
-  loadDaiStream = (
-    assetId: string,
-    fallbackUrl: string,
-    adTagParams: Record<string, string>
-  ) => {
+  loadDaiStream = ({
+    assetId,
+    fallbackUrl,
+    adTagParams,
+  }: {
+    assetId: string;
+    fallbackUrl: string;
+    adTagParams: Record<string, string>;
+  }) => {
     void PlayerModule.loadDaiStream(
       this.nativeId,
       assetId,

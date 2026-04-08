@@ -1,33 +1,38 @@
-import React, { useEffect } from 'react';
-import { Platform, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AudioSession, SourceType } from 'bitmovin-player-react-native';
-import ExamplesList from './screens/ExamplesList';
+import {
+  createNativeStackNavigator,
+  type NativeStackNavigationProp,
+} from '@react-navigation/native-stack';
+import { AudioSession, type SourceType } from 'bitmovin-player-react-native';
+import React, { useEffect } from 'react';
+import { Button, Platform } from 'react-native';
 import BasicAds from './screens/BasicAds';
 import BasicAnalytics from './screens/BasicAnalytics';
+import BasicDrmPlayback from './screens/BasicDrmPlayback';
+import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 import BasicMetadata from './screens/BasicMetadata';
+import BasicPictureInPicture from './screens/BasicPictureInPicture';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicTvPlayback from './screens/BasicTvPlayback';
-import BasicDrmPlayback from './screens/BasicDrmPlayback';
-import SubtitlePlayback from './screens/SubtitlePlayback';
-import ProgrammaticTrackSelection from './screens/ProgrammaticTrackSelection';
-import CustomPlaybackForm from './screens/CustomPlaybackForm';
-import CustomPlayback from './screens/CustomPlayback';
-import BasicPictureInPicture from './screens/BasicPictureInPicture';
 import CustomHtmlUi from './screens/CustomHtmlUi';
-import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
+import CustomPlayback from './screens/CustomPlayback';
+import CustomPlaybackForm from './screens/CustomPlaybackForm';
+import ExamplesList from './screens/ExamplesList';
+import ProgrammaticTrackSelection from './screens/ProgrammaticTrackSelection';
+import SubtitlePlayback from './screens/SubtitlePlayback';
+
 // Import LandscapeFullscreenHandling only on non-TV platforms
 const LandscapeFullscreenHandling = Platform.isTV
   ? () => null
   : require('./screens/LandscapeFullscreenHandling').default;
-import SystemUI from './screens/SystemUi';
-import OfflinePlayback from './screens/OfflinePlayback';
-import Casting from './screens/Casting';
-import BackgroundPlayback from './screens/BackgroundPlayback';
-import AudioFocusHandling from './screens/AudioFocusHandling';
+
 import * as Device from 'expo-device';
+import AudioFocusHandling from './screens/AudioFocusHandling';
+import BackgroundPlayback from './screens/BackgroundPlayback';
+import Casting from './screens/Casting';
+import MidrollIMAAds from './screens/MidrollIMAAds';
+import OfflinePlayback from './screens/OfflinePlayback';
+import SystemUI from './screens/SystemUi';
 
 export type RootStackParamsList = {
   ExamplesList: {
@@ -70,6 +75,7 @@ export type RootStackParamsList = {
   SystemUI: undefined;
   BackgroundPlayback: undefined;
   AudioFocusHandling: undefined;
+  MidrollIMAAds: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsList>();
@@ -127,6 +133,10 @@ export default function App() {
       {
         title: 'Background Playback',
         routeName: 'BackgroundPlayback' as keyof RootStackParamsList,
+      },
+      {
+        title: 'Midroll IMA Ads',
+        routeName: 'MidrollIMAAds' as keyof RootStackParamsList,
       },
     ],
   };
@@ -329,6 +339,11 @@ export default function App() {
           name="AudioFocusHandling"
           component={AudioFocusHandling}
           options={{ title: 'Audio Focus Handling' }}
+        />
+        <RootStack.Screen
+          name="MidrollIMAAds"
+          component={MidrollIMAAds}
+          options={{ title: 'Midroll IMA Ads' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>
