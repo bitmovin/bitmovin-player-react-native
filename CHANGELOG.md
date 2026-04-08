@@ -6,6 +6,10 @@
 
 - Android: `PlayerView.isPictureInPictureEnabled` to enable or disable Picture in Picture availability dynamically after player initialization
 
+### Fixed
+
+- Android: `OfflineDownloadRequest.minimumBitrate` is now correctly read from React Native numeric values and applied during offline rendition selection
+
 ### Changed
 
 - `DebugConfig.setDebugLoggingEnabled` now also controls JS-side debug logging; `console.log` calls in the `Network` and `Drm` modules are suppressed unless debug logging is enabled
