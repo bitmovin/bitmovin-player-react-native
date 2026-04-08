@@ -94,6 +94,11 @@ class RNPlayerViewManager : Module() {
                 view.updatePictureInPictureActions(pictureInPictureActions.toPictureInPictureActions())
             }
 
+            AsyncFunction("setIsPictureInPictureEnabled") { view: RNPlayerView, isEnabled: Boolean ->
+                view.setIsPictureInPictureEnabled(isEnabled)
+                updateAutoPictureInPictureRegistration(view)
+            }
+
             Events(
                 "onBmpEvent",
                 "onBmpPlayerError",

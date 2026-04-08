@@ -720,6 +720,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun setPictureInPicture(isPictureInPicture: Boolean) {
+        if (isPictureInPicture && !pictureInPictureConfig.isEnabled) {
+            return
+        }
         requestedPictureInPictureValue = isPictureInPicture
         playerView?.let {
             if (it.isPictureInPicture == isPictureInPicture) {
@@ -759,6 +762,23 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     fun updatePictureInPictureActions(pictureInPictureActions: List<PictureInPictureAction>) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             pictureInPictureHandler?.updateActions(pictureInPictureActions)
+        }
+    }
+
+    fun setIsPictureInPictureEnabled(isEnabled: Boolean) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return
+        }
+        pictureInPictureConfig = pictureInPictureConfig.copy(isEnabled = isEnabled)
+        if (isEnabled && pictureInPictureHandler == null) {
+            val currentActivity = appContext.activityProvider?.currentActivity ?: return
+            val player = playerView?.player ?: return
+            pictureInPictureHandler = RNPictureInPictureHandler(currentActivity, player, pictureInPictureConfig)
+            playerView?.setPictureInPictureHandler(pictureInPictureHandler)
+        } else if (!isEnabled && pictureInPictureHandler != null) {
+            pictureInPictureHandler?.dispose()
+            pictureInPictureHandler = null
+            playerView?.setPictureInPictureHandler(null)
         }
     }
 
