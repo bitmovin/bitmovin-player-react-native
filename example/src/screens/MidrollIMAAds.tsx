@@ -8,11 +8,11 @@ import React, { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTVGestures } from '../hooks';
 
-function prettyPrint(header: string, obj: any) {
+function prettyPrint(header: string, obj: unknown) {
   console.log(header, JSON.stringify(obj, null, 2));
 }
 
-export default function BasicPlayback() {
+export default function MidrollIMAAds() {
   useTVGestures();
 
   const player = usePlayer({

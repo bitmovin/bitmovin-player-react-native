@@ -1,38 +1,34 @@
-import { NavigationContainer } from '@react-navigation/native';
-import {
-  createNativeStackNavigator,
-  type NativeStackNavigationProp,
-} from '@react-navigation/native-stack';
-import { AudioSession, type SourceType } from 'bitmovin-player-react-native';
 import React, { useEffect } from 'react';
-import { Button, Platform } from 'react-native';
+import { Platform, Button } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AudioSession, SourceType } from 'bitmovin-player-react-native';
+import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
 import BasicAnalytics from './screens/BasicAnalytics';
-import BasicDrmPlayback from './screens/BasicDrmPlayback';
-import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 import BasicMetadata from './screens/BasicMetadata';
-import BasicPictureInPicture from './screens/BasicPictureInPicture';
 import BasicPlayback from './screens/BasicPlayback';
 import BasicTvPlayback from './screens/BasicTvPlayback';
-import CustomHtmlUi from './screens/CustomHtmlUi';
-import CustomPlayback from './screens/CustomPlayback';
-import CustomPlaybackForm from './screens/CustomPlaybackForm';
-import ExamplesList from './screens/ExamplesList';
-import ProgrammaticTrackSelection from './screens/ProgrammaticTrackSelection';
+import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
-
+import ProgrammaticTrackSelection from './screens/ProgrammaticTrackSelection';
+import CustomPlaybackForm from './screens/CustomPlaybackForm';
+import CustomPlayback from './screens/CustomPlayback';
+import BasicPictureInPicture from './screens/BasicPictureInPicture';
+import CustomHtmlUi from './screens/CustomHtmlUi';
+import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 // Import LandscapeFullscreenHandling only on non-TV platforms
 const LandscapeFullscreenHandling = Platform.isTV
   ? () => null
   : require('./screens/LandscapeFullscreenHandling').default;
-
-import * as Device from 'expo-device';
-import AudioFocusHandling from './screens/AudioFocusHandling';
-import BackgroundPlayback from './screens/BackgroundPlayback';
-import Casting from './screens/Casting';
-import MidrollIMAAds from './screens/MidrollIMAAds';
-import OfflinePlayback from './screens/OfflinePlayback';
 import SystemUI from './screens/SystemUi';
+import OfflinePlayback from './screens/OfflinePlayback';
+import Casting from './screens/Casting';
+import BackgroundPlayback from './screens/BackgroundPlayback';
+import AudioFocusHandling from './screens/AudioFocusHandling';
+import MidrollIMAAds from './screens/MidrollIMAAds';
+import * as Device from 'expo-device';
 
 export type RootStackParamsList = {
   ExamplesList: {
