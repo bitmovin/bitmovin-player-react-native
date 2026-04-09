@@ -170,7 +170,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             requestLayout()
         }
 
-    private val reparentRestoreHelper = RNPlayerViewReparentRestoreHelper()
+    private val reparentHelper = RNPlayerViewReparentHelper()
 
     init {
         // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
@@ -214,7 +214,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
         activityLifecycle?.removeObserver(activityLifecycleObserver)
         viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
-        reparentRestoreHelper.dispose()
+        reparentHelper.dispose()
 
         // cleanup all children views explicitly,
         // so that in case react native does some view caching we are 100% the child views of this view
@@ -439,15 +439,15 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 playerView.enterPictureInPicture()
             }
 
-            if (!reparentRestoreHelper.isActive) {
-                reparentRestoreHelper.reparent()
+            if (!reparentHelper.isActive) {
+                reparentHelper.reparent()
             }
         } else {
             if (playerView.isPictureInPicture) {
                 playerView.exitPictureInPicture()
             }
 
-            reparentRestoreHelper.tryRestore()
+            reparentHelper.tryRestore()
         }
     }
 
@@ -643,7 +643,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     // During PiP mode, we temporarily move the view higher up the hierarchy to the ReactRoot.
     // This prevents fragmented rendering when the user resizes the PiP window.
     // On PiP close, we re-arrange the view hierarchy to its original state
-    private inner class RNPlayerViewReparentRestoreHelper {
+    private inner class RNPlayerViewReparentHelper {
         private inner class ViewHolder(
             val reactRoot: ReactRootView,
             val playerParentParent: ViewGroup,
