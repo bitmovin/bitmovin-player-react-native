@@ -88,7 +88,9 @@ class OfflineModule : Module() {
                 else -> {}
             }
 
-            val minimumBitRate = request["minimumBitrate"] as? Int
+            // ReactNative translates `number` to `Double` when de/serializing,
+            // so we need to manually parse the property to an `Int` here
+            val minimumBitRate = (request["minimumBitrate"] as? Number)?.toInt()
             if (minimumBitRate != null && minimumBitRate < 0) {
                 throw OfflineException.InvalidRequest()
             }
