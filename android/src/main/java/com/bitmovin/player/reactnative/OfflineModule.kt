@@ -88,7 +88,9 @@ class OfflineModule : Module() {
                 else -> {}
             }
 
-            val minimumBitRate = request.minimumBitrate()
+            // ReactNative translates `number` to `Double` when de/serializing,
+            // so we need to manually parse the property to an `Int` here
+            val minimumBitRate = (request["minimumBitrate"] as? Number)?.toInt()
             if (minimumBitRate != null && minimumBitRate < 0) {
                 throw OfflineException.InvalidRequest()
             }
@@ -176,10 +178,6 @@ class OfflineModule : Module() {
     fun getOfflineContentManagerBridge(nativeId: NativeId): OfflineContentManagerBridge {
         return offlineContentManagerBridges[nativeId] ?: throw OfflineException.ManagerNotFound(nativeId)
     }
-}
-
-internal fun Map<String, Any?>.minimumBitrate(): Int? {
-    return (this["minimumBitrate"] as? Number)?.toInt()
 }
 
 // MARK: - Exception Definitions
