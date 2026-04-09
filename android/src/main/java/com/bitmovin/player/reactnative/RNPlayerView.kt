@@ -645,10 +645,10 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     // On PiP close, we re-arrange the view hierarchy to its original state
     private inner class RNPlayerViewReparentRestoreHelper {
         private inner class ViewHolder(
-            var reactRoot: ReactRootView,
-            var playerParentParent: ViewGroup,
-            var playerParent: ReactViewGroup,
-            var playerParentIndex: Int,
+            val reactRoot: ReactRootView,
+            val playerParentParent: ViewGroup,
+            val playerParent: ReactViewGroup,
+            val playerParentIndex: Int,
         )
 
         private inline fun <reified T : View> View.getParent(): T? {
