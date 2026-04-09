@@ -8,7 +8,7 @@
 
 ### Fixed
 
-- Android: `OfflineDownloadRequest.minimumBitrate` is now correctly read from React Native numeric values and applied during offline rendition selection
+- Android: `OfflineDownloadRequest.minimumBitrate` not correctly parsed from React Native for offline rendition selection
 
 ### Changed
 
