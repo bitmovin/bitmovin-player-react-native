@@ -116,7 +116,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
     private var playerInMediaSessionService: Player? = null
 
-    // This replaces the manual overwriting of the requestLayout function
+    // Setting this flag to `true` in order for React Native to re-render our view when [requestLayout] is triggered
     override val shouldUseAndroidLayout: Boolean = true
 
     private val activityLifecycleObserver = object : DefaultLifecycleObserver {
