@@ -651,7 +651,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             val playerParentIndex: Int,
         )
 
-        private inline fun <reified T : View> View.getParent(): T? {
+        private inline fun <reified T : View> View.findParentOfType(): T? {
             var view = this
             do {
                 view = view.parent as? View ?: return null
@@ -675,9 +675,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
 
         fun reparent() {
-            val playerParent = this@RNPlayerView.getParent<ReactViewGroup>() ?: return
+            val playerParent = this@RNPlayerView.findParentOfType<ReactViewGroup>() ?: return
             val playerParentParent = playerParent.parent as? ViewGroup ?: return
-            val reactRoot = playerParent.getParent<ReactRootView>() ?: return
+            val reactRoot = playerParent.findParentOfType<ReactRootView>() ?: return
 
             viewHolder = ViewHolder(
                 reactRoot = reactRoot,
