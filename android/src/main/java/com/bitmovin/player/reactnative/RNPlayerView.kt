@@ -699,7 +699,14 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         fun tryRestore() {
             val viewHolder = viewHolder ?: return
             viewHolder.reactRoot.removeView(viewHolder.playerParent)
-            viewHolder.playerParentParent.addView(viewHolder.playerParent, viewHolder.playerParentIndex)
+            try {
+                viewHolder.playerParentParent.addView(viewHolder.playerParent, viewHolder.playerParentIndex)
+            } catch (_: Exception) {
+                // In case the view hierarchy layout has changed an exception will be thrown while adding the view
+                // This should never happen, but we can not be sure what react-native does under the hood.
+                // As a fallback add the view without index (will be added as last view)
+                viewHolder.playerParentParent.addView(viewHolder.playerParent)
+            }
 
             dispose()
         }
