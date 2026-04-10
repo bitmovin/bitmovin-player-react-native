@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-04-10
+
 ### Added
 
 - Android: `PlayerView.isPictureInPictureEnabled` to enable or disable Picture in Picture availability dynamically after player initialization
