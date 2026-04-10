@@ -12,6 +12,7 @@ inside the [`src/screens/`](https://github.com/bitmovin/bitmovin-player-react-na
 - [Custom HTML UI](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/CustomHtmlUi.tsx) (iOS and Android only)
 - [Basic Fullscreen handling](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicFullscreenHandling.tsx) (iOS and Android only)
 - [Landscape Fullscreen handling](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/LandscapeFullscreenHandling.tsx) (iOS and Android only)
+- [Modal Fullscreen handling](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/ModalFullscreenHandling.tsx) (iOS and Android only)
 - [Basic Ads](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicAds.tsx)
 - [Basic Analytics](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicAnalytics.tsx)
 - [Basic Metadata](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicMetadata.tsx)

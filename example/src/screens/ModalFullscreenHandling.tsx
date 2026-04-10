@@ -6,13 +6,6 @@
  * devices with navigation bars — because Modal always renders at the top of the
  * native window, above every other UI element (headers, tab bars, SafeAreaViews).
  *
- * WHY NOT absolute positioning?
- * ─────────────────────────────
- * The simpler approach (position: 'absolute', top/right/bottom/left: 0) only
- * fills the nearest positioned parent. If the player sits inside a ScrollView
- * or a navigation stack, "fullscreen" only fills that container — not the whole
- * display. On tablets this is especially visible.
- *
  * WHY MODAL WORKS
  * ───────────────
  * React Native's Modal renders outside the component tree at the native window
