@@ -22,6 +22,7 @@ import BasicFullscreenHandling from './screens/BasicFullscreenHandling';
 const LandscapeFullscreenHandling = Platform.isTV
   ? () => null
   : require('./screens/LandscapeFullscreenHandling').default;
+import ModalFullscreenHandling from './screens/ModalFullscreenHandling';
 import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
@@ -51,6 +52,7 @@ export type RootStackParamsList = {
   LandscapeFullscreenHandling: {
     navigation: NativeStackNavigationProp<RootStackParamsList>;
   };
+  ModalFullscreenHandling: undefined;
   SubtitlePlayback: undefined;
   ProgrammaticTrackSelection: undefined;
   CustomPlaybackForm: undefined;
@@ -174,6 +176,10 @@ export default function App() {
     stackParams.data.push({
       title: 'Landscape Fullscreen handling',
       routeName: 'LandscapeFullscreenHandling',
+    });
+    stackParams.data.push({
+      title: 'Modal Fullscreen handling',
+      routeName: 'ModalFullscreenHandling',
     });
     stackParams.data.push({
       title: 'Casting',
@@ -304,6 +310,13 @@ export default function App() {
             name="LandscapeFullscreenHandling"
             component={LandscapeFullscreenHandling}
             options={{ title: 'Lanscape Fullscreen Handling' }}
+          />
+        )}
+        {!Platform.isTV && (
+          <RootStack.Screen
+            name="ModalFullscreenHandling"
+            component={ModalFullscreenHandling}
+            options={{ headerShown: false }}
           />
         )}
         {Platform.OS === 'ios' && (
