@@ -690,7 +690,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             reactRoot.addView(playerParent)
 
             // We attach the global layout listener to a playerParent,
-            // but inside the callback we are measuring reach root.
+            // but inside the callback we are measuring each root.
             // This is because the root is the first view layer that gets transformed in PiP mode.
             // Measuring and layouting this should cascade down the viewHierarchy.
             playerParent.viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
