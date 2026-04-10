@@ -89,7 +89,7 @@ class RNPictureInPictureHandler(
         player.off<PlayerEvent.AdBreakFinished>(setPlayerIsNotPlaying)
     }
 
-    private fun getPiPAspectRation() = player.playbackVideoData
+    private fun getPiPAspectRatio() = player.playbackVideoData
         ?.let { Rational(it.width, it.height) }
         ?: Rational(16, 9)
 
@@ -120,7 +120,7 @@ class RNPictureInPictureHandler(
     private fun buildPictureInPictureParams(
         autoEnterEnabled: Boolean = pictureInPictureConfig.isAutoPipEnabled && playerIsPlaying,
     ) = PictureInPictureParams.Builder()
-        .setAspectRatio(getPiPAspectRation())
+        .setAspectRatio(getPiPAspectRatio())
         .setActions(pictureInPictureActionHandler.buildRemoteActions())
         .apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
