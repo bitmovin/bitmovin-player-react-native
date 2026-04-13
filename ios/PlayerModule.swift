@@ -1,23 +1,33 @@
 import BitmovinPlayer
 import ExpoModulesCore
+#if canImport(GoogleInteractiveMediaAds) && os(iOS)
+import UIKit
+#endif
 
 // swiftlint:disable:next type_body_length
 public class PlayerModule: Module {
     private let imaSettingsWaiter = ResultWaiter<[String: Any]>()
 
-    // swiftlint:disable:next function_body_length
+    #if canImport(GoogleInteractiveMediaAds) && os(iOS)
+    private var adsWrappers: [String: IMAAdsWrapper] = [:]
+    #endif
+
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
     public func definition() -> ModuleDefinition {
         Name("PlayerModule")
         OnCreate {}
-        OnDestroy {
+        OnDestroy { [weak self] in
+            self?.imaSettingsWaiter.removeAll()
             // Destroy all players on the main thread when the module is deallocated.
             // This is necessary when the IMA SDK is present in the app,
             // as it may crash if the players are destroyed on a background thread.
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [weak self] in
                 PlayerRegistry.getAllPlayers().forEach { $0.destroy() }
                 PlayerRegistry.clear()
+                #if canImport(GoogleInteractiveMediaAds) && os(iOS)
+                self?.adsWrappers.removeAll()
+                #endif
             }
-            imaSettingsWaiter.removeAll()
         }
         Events("onImaBeforeInitialization")
         AsyncFunction("play") { (nativeId: NativeId) in
@@ -38,11 +48,14 @@ public class PlayerModule: Module {
         AsyncFunction("timeShift") { (nativeId: NativeId, offset: Double) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.timeShift = offset
         }.runOnQueue(.main)
-        AsyncFunction("destroy") { (nativeId: NativeId) in
+        AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
             if let player = PlayerRegistry.getPlayer(nativeId: nativeId) {
                 player.destroy()
                 PlayerRegistry.unregister(nativeId: nativeId)
             }
+            #if canImport(GoogleInteractiveMediaAds) && os(iOS)
+            self?.adsWrappers[nativeId] = nil
+            #endif
         }.runOnQueue(.main)
         AsyncFunction("setVolume") { (nativeId: NativeId, volume: Int) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.volume = volume
@@ -192,6 +205,9 @@ public class PlayerModule: Module {
             self?.setupImaBeforeInitialization(nativeId: nativeId, config: config, playerConfig: playerConfig)
             let player = PlayerFactory.create(playerConfig: playerConfig)
             PlayerRegistry.register(player: player, nativeId: nativeId)
+            #if canImport(GoogleInteractiveMediaAds) && os(iOS)
+            self?.adsWrappers[nativeId] = IMAAdsWrapper(player: player)
+            #endif
         }.runOnQueue(.main)
         AsyncFunction(
             "initializeWithAnalyticsConfig"
@@ -213,6 +229,24 @@ public class PlayerModule: Module {
                 defaultMetadata: defaultMetadata ?? DefaultMetadata()
             )
             PlayerRegistry.register(player: player, nativeId: nativeId)
+            #if canImport(GoogleInteractiveMediaAds) && os(iOS)
+            self?.adsWrappers[nativeId] = IMAAdsWrapper(player: player)
+            #endif
+        }.runOnQueue(.main)
+        // swiftlint:disable:next line_length
+        AsyncFunction("loadDaiStream") { [weak self] (nativeId: NativeId, assetId: String, fallbackUrl: String, adTagParams: [String: Any]?) in
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId) else { return }
+            #if canImport(GoogleInteractiveMediaAds) && os(iOS)
+            if let adsWrapper = self?.adsWrappers[nativeId] {
+                adsWrapper.setFallbackUrl(fallbackUrl)
+                adsWrapper.setAdTagParams(adTagParams)
+                adsWrapper.requestAndLoadStream(assetId)
+            } else {
+                self?.loadFallbackUrl(player: player, fallbackUrl: fallbackUrl)
+            }
+            #else
+            self?.loadFallbackUrl(player: player, fallbackUrl: fallbackUrl)
+            #endif
         }.runOnQueue(.main)
         AsyncFunction("loadSource") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) in
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
@@ -227,6 +261,13 @@ public class PlayerModule: Module {
     public func retrieve(_ nativeId: NativeId) -> Player? {
         PlayerRegistry.getPlayer(nativeId: nativeId)
     }
+
+    #if canImport(GoogleInteractiveMediaAds) && os(iOS)
+    /// Assigns the ad container view for IMA DAI. Call from the player view when the native view is attached.
+    public func assignAdContainer(nativeId: NativeId, adUiContainer: UIView) {
+        adsWrappers[nativeId]?.setAdUiContainer(adUiContainer)
+    }
+    #endif
 
     private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {
         remoteControlConfig.prepareSource = { [weak self] _, sourceConfig in
@@ -275,5 +316,12 @@ public class PlayerModule: Module {
             guard let updated = wait() else { return }
             RCTConvert.applyImaSettings(settings, from: updated)
         }
+    }
+
+    /// Loads the fallback URL into the player (e.g. when IMA is unavailable or not configured).
+    private func loadFallbackUrl(player: Player, fallbackUrl: String) {
+        guard let url = URL(string: fallbackUrl) else { return }
+        let sourceConfig = SourceConfig(url: url, type: .hls)
+        player.load(sourceConfig: sourceConfig)
     }
 }

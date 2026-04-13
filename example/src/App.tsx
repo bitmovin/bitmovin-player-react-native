@@ -27,6 +27,7 @@ import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
 import BackgroundPlayback from './screens/BackgroundPlayback';
 import AudioFocusHandling from './screens/AudioFocusHandling';
+import MidrollIMAAds from './screens/MidrollIMAAds';
 import * as Device from 'expo-device';
 
 export type RootStackParamsList = {
@@ -70,6 +71,7 @@ export type RootStackParamsList = {
   SystemUI: undefined;
   BackgroundPlayback: undefined;
   AudioFocusHandling: undefined;
+  MidrollIMAAds: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsList>();
@@ -127,6 +129,10 @@ export default function App() {
       {
         title: 'Background Playback',
         routeName: 'BackgroundPlayback' as keyof RootStackParamsList,
+      },
+      {
+        title: 'Midroll IMA Ads',
+        routeName: 'MidrollIMAAds' as keyof RootStackParamsList,
       },
     ],
   };
@@ -329,6 +335,11 @@ export default function App() {
           name="AudioFocusHandling"
           component={AudioFocusHandling}
           options={{ title: 'Audio Focus Handling' }}
+        />
+        <RootStack.Screen
+          name="MidrollIMAAds"
+          component={MidrollIMAAds}
+          options={{ title: 'Midroll IMA Ads' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>

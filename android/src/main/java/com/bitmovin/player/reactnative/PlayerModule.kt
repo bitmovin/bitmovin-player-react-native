@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative
 
+import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
@@ -16,6 +17,8 @@ import com.bitmovin.player.reactnative.converter.toMap
 import com.bitmovin.player.reactnative.converter.toMediaControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.getMap
+import com.facebook.react.bridge.ReactContext
+import com.facebook.react.bridge.ReadableMap
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -24,6 +27,7 @@ class PlayerModule : Module() {
 
     val mediaSessionPlaybackManager by lazy { MediaSessionPlaybackManager(appContext) }
     private val imaSettingsWaiter = ResultWaiter<Map<String, Any?>>()
+    private val adsWrappers: Registry<IMAAdsWrapper> = mutableMapOf()
 
     override fun definition() = ModuleDefinition {
         Name("PlayerModule")
@@ -43,6 +47,7 @@ class PlayerModule : Module() {
             }
             imaSettingsWaiter.clear()
             PlayerRegistry.clear()
+            adsWrappers.clear()
         }
 
         Events("onImaBeforeInitialization")
@@ -50,11 +55,17 @@ class PlayerModule : Module() {
         AsyncFunction("play") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
             player?.play()
+            adsWrappers[nativeId]?.playerCallbacks?.forEach {
+                it.onResume()
+            }
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("pause") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
             player?.pause()
+            adsWrappers[nativeId]?.playerCallbacks?.forEach {
+                it.onPause()
+            }
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("mute") { nativeId: NativeId ->
@@ -85,11 +96,15 @@ class PlayerModule : Module() {
                 player.destroy()
                 PlayerRegistry.unregister(nativeId)
             }
+            adsWrappers.remove(nativeId)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("setVolume") { nativeId: NativeId, volume: Double ->
             val player = PlayerRegistry.getPlayer(nativeId)
             player?.volume = volume.toInt()
+            adsWrappers[nativeId]?.playerCallbacks?.forEach {
+                it.onVolumeChanged(volume.toInt())
+            }
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("getVolume") { nativeId: NativeId ->
@@ -130,6 +145,20 @@ class PlayerModule : Module() {
         AsyncFunction("unload") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
             player?.unload()
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("assignAdContainer") { nativeId: NativeId, adUiContainer: ViewGroup ->
+            val adsWrapper = adsWrappers[nativeId]
+                ?: throw IllegalStateException("IMAAdsWrapper not found for Player with id $nativeId")
+            adsWrapper.setAdUiContainer(adUiContainer)
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("loadDaiStream") { nativeId: NativeId, assetId: String, fallbackUrl: String, adTagParams: ReadableMap ->
+            val adsWrapper = adsWrappers[nativeId]
+                ?: throw IllegalStateException("IMAAdsWrapper not found for Player with id $nativeId")
+            adsWrapper.setAdTagParams(adTagParams)
+            adsWrapper.setFallbackUrl(fallbackUrl)
+            adsWrapper.requestAndLoadStream(assetId)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("getTimeShift") { nativeId: NativeId ->
@@ -356,6 +385,11 @@ class PlayerModule : Module() {
         if (enableMediaSession) {
             mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
         }
+
+        adsWrappers[nativeId] = IMAAdsWrapper(
+            appContext.reactContext as ReactContext,
+            player,
+        )
     }
 
     private fun setupImaBeforeInitialization(
@@ -391,4 +425,10 @@ class PlayerModule : Module() {
 
     // CRITICAL: This method must remain available for cross-module access
     fun getPlayerOrNull(nativeId: NativeId): Player? = PlayerRegistry.getPlayer(nativeId)
+
+    fun assignAdContainer(nativeId: NativeId, adUiContainer: ViewGroup) {
+        val adsWrapper = adsWrappers[nativeId]
+            ?: throw IllegalStateException("IMAAdsWrapper not found for Player with id $nativeId")
+        adsWrapper.setAdUiContainer(adUiContainer)
+    }
 }

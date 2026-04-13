@@ -131,6 +131,11 @@ export function PlayerView({
       isPictureInPictureRequested={isPictureInPictureRequested}
       scalingMode={scalingMode}
       fullscreenBridgeId={fullscreenBridge.current?.nativeId}
+      onBmpAdContainerReady={
+        props.onAdContainerReady
+          ? (_event) => props.onAdContainerReady?.()
+          : undefined
+      }
       onBmpAdBreakFinished={proxy(props.onAdBreakFinished)}
       onBmpAdBreakStarted={proxy(props.onAdBreakStarted)}
       onBmpAdClicked={proxy(props.onAdClicked)}
