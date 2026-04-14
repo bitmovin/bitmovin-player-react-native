@@ -40,12 +40,14 @@ class SampleFullscreenHandler implements FullscreenHandler {
     this.isFullscreenActive = true;
     if (Platform.OS === 'android') {
       // Hides navigation and status bar on Android
-      SystemNavigationBar.stickyImmersive(true);
+      void SystemNavigationBar.stickyImmersive(true);
     } else {
       // Hides status bar on iOS
       StatusBar.setHidden(true);
     }
-    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    void ScreenOrientation.lockAsync(
+      ScreenOrientation.OrientationLock.LANDSCAPE
+    );
     console.log('enter fullscreen');
     this.onFullscreen(true);
   }
@@ -54,12 +56,12 @@ class SampleFullscreenHandler implements FullscreenHandler {
     this.isFullscreenActive = false;
     if (Platform.OS === 'android') {
       // shows navigation and status bar on Android
-      SystemNavigationBar.stickyImmersive(false);
+      void SystemNavigationBar.stickyImmersive(false);
     } else {
       // shows status bar on iOS
       StatusBar.setHidden(false);
     }
-    ScreenOrientation.unlockAsync();
+    void ScreenOrientation.unlockAsync();
     console.log('exit fullscreen');
     this.onFullscreen(false);
   }

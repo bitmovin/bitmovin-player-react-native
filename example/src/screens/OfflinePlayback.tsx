@@ -82,7 +82,7 @@ export default function OfflinePlayback() {
   const [isLoadedSourceOffline, setIsLoadedSourceOffline] =
     useState<boolean>(false);
   const stateLabel = useMemo(() => {
-    offlineContentManager?.usedStorage().then((usedStorageInBytes) => {
+    void offlineContentManager?.usedStorage().then((usedStorageInBytes) => {
       setUsedStorage(usedStorageInBytes / 1024 / 1024);
     });
     switch (downloadState) {
@@ -111,7 +111,7 @@ export default function OfflinePlayback() {
 
   useFocusEffect(
     useCallback(() => {
-      requestNotificationPermissionAsync();
+      void requestNotificationPermissionAsync();
     }, [])
   );
 
@@ -119,7 +119,7 @@ export default function OfflinePlayback() {
 
   useFocusEffect(
     useCallback(() => {
-      player.load(sourceConfig);
+      void player.load(sourceConfig);
 
       const newOfflineContentManager = new OfflineContentManager({
         identifier: STABLE_CONTENT_IDENTIFIER,
@@ -166,7 +166,7 @@ export default function OfflinePlayback() {
         .initialize()
         .then(() => {
           setOfflineContentManager(newOfflineContentManager);
-          newOfflineContentManager.state().then((state) => {
+          void newOfflineContentManager.state().then((state) => {
             setDownloadState(state);
           });
           newOfflineContentManager.getOptions().catch(console.error);
@@ -175,7 +175,7 @@ export default function OfflinePlayback() {
 
       return () => {
         removeOfflineContentManagerListener();
-        newOfflineContentManager.destroy();
+        void newOfflineContentManager.destroy();
         setOfflineContentManager(undefined);
       };
     }, [onEvent, player])
@@ -193,7 +193,7 @@ export default function OfflinePlayback() {
           <Action
             text={'Load online content'}
             onPress={() => {
-              player.load(sourceConfig);
+              void player.load(sourceConfig);
               setIsLoadedSourceOffline(false);
             }}
           />
@@ -228,12 +228,15 @@ export default function OfflinePlayback() {
           <Action
             text={'Delete all'}
             onPress={() => {
-              offlineContentManager?.deleteAll().then(() => {
-                setDownloadState(OfflineState.NotDownloaded);
-                offlineContentManager.getOptions().catch(console.error);
-                player.load(sourceConfig);
-                setIsLoadedSourceOffline(false);
-              });
+              void offlineContentManager
+                ?.deleteAll()
+                .then(() => {
+                  setDownloadState(OfflineState.NotDownloaded);
+                  offlineContentManager.getOptions().catch(console.error);
+                  void player.load(sourceConfig);
+                  setIsLoadedSourceOffline(false);
+                })
+                .catch(console.error);
             }}
           />
         )}

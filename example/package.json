@@ -72,6 +72,9 @@
     "typescript": "~5.9.2"
   },
   "private": true,
+  "resolutions": {
+    "strip-ansi": "6.0.1"
+  },
   "expo": {
     "install": {
       "exclude": [
