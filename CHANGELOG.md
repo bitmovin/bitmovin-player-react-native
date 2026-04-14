@@ -6,6 +6,7 @@
 
 - `DebugConfig.setDebugLoggingEnabled` now also controls JS-side debug logging; `console.log` calls in the `Network` and `Drm` modules are suppressed unless debug logging is enabled
 - Update Bitmovin's native iOS SDK version to `3.111.0`
+- Update Expo SDK stack to `54.0.33` and align tvOS React Native integration to `react-native-tvos@0.81.5-0` (including example/integration test apps)
 
 ## [1.15.0] - 2026-03-27
 
