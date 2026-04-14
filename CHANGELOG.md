@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update Expo SDK version to `54.0.33` and React Native version to `0.81.5`
+
 ## [1.16.0] - 2026-04-10
 
 ### Added
@@ -16,7 +20,6 @@
 
 - `DebugConfig.setDebugLoggingEnabled` now also controls JS-side debug logging; `console.log` calls in the `Network` and `Drm` modules are suppressed unless debug logging is enabled
 - Update Bitmovin's native iOS SDK version to `3.111.0`
-- Update Expo SDK version to `54.0.33` and React Native version to `0.81.5`
 
 ### Fixed
 
