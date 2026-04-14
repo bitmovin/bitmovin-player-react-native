@@ -82,9 +82,12 @@ export default function OfflinePlayback() {
   const [isLoadedSourceOffline, setIsLoadedSourceOffline] =
     useState<boolean>(false);
   const stateLabel = useMemo(() => {
-    void offlineContentManager?.usedStorage().then((usedStorageInBytes) => {
-      setUsedStorage(usedStorageInBytes / 1024 / 1024);
-    });
+    void offlineContentManager
+      ?.usedStorage()
+      .then((usedStorageInBytes) => {
+        setUsedStorage(usedStorageInBytes / 1024 / 1024);
+      })
+      .catch(console.error);
     switch (downloadState) {
       case OfflineState.Downloading:
         return `Downloading: ${progress.toFixed(2)}%`;
@@ -111,7 +114,7 @@ export default function OfflinePlayback() {
 
   useFocusEffect(
     useCallback(() => {
-      void requestNotificationPermissionAsync();
+      void requestNotificationPermissionAsync().catch(console.error);
     }, [])
   );
 
@@ -166,16 +169,19 @@ export default function OfflinePlayback() {
         .initialize()
         .then(() => {
           setOfflineContentManager(newOfflineContentManager);
-          void newOfflineContentManager.state().then((state) => {
-            setDownloadState(state);
-          });
+          void newOfflineContentManager
+            .state()
+            .then((state) => {
+              setDownloadState(state);
+            })
+            .catch(console.error);
           newOfflineContentManager.getOptions().catch(console.error);
         })
         .catch(console.error);
 
       return () => {
         removeOfflineContentManagerListener();
-        void newOfflineContentManager.destroy();
+        void newOfflineContentManager.destroy().catch(console.error);
         setOfflineContentManager(undefined);
       };
     }, [onEvent, player])

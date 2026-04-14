@@ -17,7 +17,7 @@ function prettyPrint(header: string, obj: any) {
 export default function Casting() {
   if (Platform.OS === 'android') {
     // Must be called in every activity on Android
-    void BitmovinCastManager.updateContext();
+    void BitmovinCastManager.updateContext().catch(console.error);
   }
 
   const player = usePlayer();
