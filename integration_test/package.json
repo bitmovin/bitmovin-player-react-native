@@ -43,7 +43,7 @@
     "expo-status-bar": "~3.0.9",
     "expo-system-ui": "~6.0.9",
     "react": "19.1.0",
-    "react-native": "npm:react-native-tvos@0.79.5-0",
+    "react-native": "npm:react-native-tvos@0.81.5-0",
     "react-native-uuid": "^2.0.1"
   },
   "devDependencies": {
@@ -64,7 +64,7 @@
     "typescript": "~5.9.2"
   },
   "resolutions": {
-    "react-native": "npm:react-native-tvos@0.79.5-0"
+    "react-native": "npm:react-native-tvos@0.81.5-0"
   },
   "expo": {
     "install": {
