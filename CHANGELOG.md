@@ -2,10 +2,24 @@
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-04-10
+
+### Added
+
+- Android: `PlayerView.isPictureInPictureEnabled` to enable or disable Picture in Picture availability dynamically after player initialization
+
+### Fixed
+
+- Android: `OfflineDownloadRequest.minimumBitrate` not correctly parsed from React Native for offline rendition selection
+
 ### Changed
 
 - `DebugConfig.setDebugLoggingEnabled` now also controls JS-side debug logging; `console.log` calls in the `Network` and `Drm` modules are suppressed unless debug logging is enabled
 - Update Bitmovin's native iOS SDK version to `3.111.0`
+
+### Fixed
+
+- Android: Picture in Picture fragmented rendering when resizing the PiP window
 
 ## [1.15.0] - 2026-03-27
 
