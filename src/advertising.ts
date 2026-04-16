@@ -101,12 +101,16 @@ export interface AdvertisingConfig {
    */
   schedule: AdItem[];
   /**
-   * Invoked shortly before an ad item would start loading.
+   * Called right before an ad item begins loading.
    *
-   * Return `true` to allow the ad item to load and remain scheduled.
-   * Return `false` to discard the ad item from the schedule.
+   * Use this callback to conditionally allow or skip individual ad items
+   * based on runtime logic (e.g., user state, targeting rules, frequency caps).
    *
-   * @defaultValue `true` (Allow all)
+   * @param adItem - The ad item that is about to be loaded.
+   *
+   * @returns
+   * - `true` → the ad item will proceed to load as scheduled.
+   * - `false` → the ad item will be skipped and removed from the playback schedule.
    */
   shouldLoadAdItem?: (adItem: AdItem) => boolean;
   /**
