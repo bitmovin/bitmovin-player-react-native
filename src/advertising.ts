@@ -101,6 +101,15 @@ export interface AdvertisingConfig {
    */
   schedule: AdItem[];
   /**
+   * Invoked shortly before an ad item would start loading.
+   *
+   * Return `true` to allow the ad item to load and remain scheduled.
+   * Return `false` to discard the ad item from the schedule.
+   *
+   * @defaultValue `true` (Allow all)
+   */
+  shouldLoadAdItem?: (adItem: AdItem) => boolean;
+  /**
    * Configuration to customize Google IMA SDK integration.
    */
   ima?: ImaAdvertisingConfig;
