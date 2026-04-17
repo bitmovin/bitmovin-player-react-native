@@ -14,7 +14,7 @@ This is an open-source project created to enable customers to integrate the Bitm
 
 ## Platform Support
 
-This library requires at least Expo 53+, React Native 0.79+ and React 17+ to work properly. The **officially supported** platforms are:
+This library requires at least Expo 54+, React Native 0.79+ and React 17+ to work properly. The **officially supported** platforms are:
 
 - **iOS/iPadOS/tvOS:** 15.1+
 - **Android:** 7.0+
