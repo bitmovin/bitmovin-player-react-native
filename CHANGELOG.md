@@ -5,6 +5,7 @@
 ### Changed
 
 - Update Expo SDK version to `54.0.33` and React Native version to `0.81.5`
+- Minimum supported Expo SDK version is now `54`
 
 ## [1.16.0] - 2026-04-10
 
