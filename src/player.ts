@@ -51,12 +51,14 @@ export class Player extends NativeInstance<PlayerConfig> {
   private network?: Network;
 
   private decoderConfig?: DecoderConfigBridge;
+  private onShouldLoadAdItemSubscription?: EventSubscription;
   private onImaBeforeInitializationSubscription?: EventSubscription;
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
   initialize = async (): Promise<void> => {
     if (!this.isInitialized) {
+      this.ensureShouldLoadAdItemListener();
       this.ensureImaBeforeInitializationListener();
       if (this.config?.networkConfig) {
         this.network = new Network(this.config.networkConfig);
@@ -96,10 +98,41 @@ export class Player extends NativeInstance<PlayerConfig> {
       void this.source?.destroy();
       void this.network?.destroy();
       void this.decoderConfig?.destroy();
+      this.onShouldLoadAdItemSubscription?.remove();
       this.onImaBeforeInitializationSubscription?.remove();
+      this.onShouldLoadAdItemSubscription = undefined;
       this.onImaBeforeInitializationSubscription = undefined;
       this.isDestroyed = true;
     }
+  };
+
+  private ensureShouldLoadAdItemListener = () => {
+    const callback = this.config?.advertisingConfig?.shouldLoadAdItem;
+    if (!callback) {
+      return;
+    }
+    if (this.onShouldLoadAdItemSubscription) {
+      return;
+    }
+    this.onShouldLoadAdItemSubscription = PlayerModule.addListener(
+      'onShouldLoadAdItem',
+      ({ nativeId, id, adItem }) => {
+        if (nativeId !== this.nativeId) {
+          return;
+        }
+        const cloned: AdItem = {
+          ...adItem,
+          sources: adItem.sources.map((source) => ({ ...source })),
+        };
+        let shouldLoad = true;
+        try {
+          shouldLoad = callback(cloned);
+        } catch {
+          shouldLoad = true;
+        }
+        void PlayerModule.setShouldLoadAdItem(id, shouldLoad);
+      }
+    );
   };
 
   /**

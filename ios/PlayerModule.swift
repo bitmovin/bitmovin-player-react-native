@@ -3,6 +3,7 @@ import ExpoModulesCore
 
 // swiftlint:disable:next type_body_length
 public class PlayerModule: Module {
+    private let shouldLoadAdItemWaiter = ResultWaiter<Bool>()
     private let imaSettingsWaiter = ResultWaiter<[String: Any]>()
 
     // swiftlint:disable:next function_body_length
@@ -17,9 +18,10 @@ public class PlayerModule: Module {
                 PlayerRegistry.getAllPlayers().forEach { $0.destroy() }
                 PlayerRegistry.clear()
             }
+            shouldLoadAdItemWaiter.removeAll()
             imaSettingsWaiter.removeAll()
         }
-        Events("onImaBeforeInitialization")
+        Events("onShouldLoadAdItem", "onImaBeforeInitialization")
         AsyncFunction("play") { (nativeId: NativeId) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.play()
         }.runOnQueue(.main)
@@ -178,6 +180,9 @@ public class PlayerModule: Module {
         AsyncFunction("setPreparedImaSettings") { [weak self] (id: Int, settings: [String: Any]?) in
             self?.imaSettingsWaiter.complete(id: id, with: settings ?? [:])
         }
+        AsyncFunction("setShouldLoadAdItem") { [weak self] (id: Int, shouldLoad: Bool) in
+            self?.shouldLoadAdItemWaiter.complete(id: id, with: shouldLoad)
+        }
         AsyncFunction(
             "initializeWithConfig"
         ) { [weak self] (nativeId: NativeId, config: [String: Any]?, networkNativeId: NativeId?, _: String?) in // swiftlint:disable:this line_length
@@ -189,6 +194,7 @@ public class PlayerModule: Module {
             if let networkNativeId, let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
                 playerConfig.networkConfig = networkConfig
             }
+            self?.setupShouldLoadAdItem(nativeId: nativeId, config: config, playerConfig: playerConfig)
             self?.setupImaBeforeInitialization(nativeId: nativeId, config: config, playerConfig: playerConfig)
             let player = PlayerFactory.create(playerConfig: playerConfig)
             PlayerRegistry.register(player: player, nativeId: nativeId)
@@ -205,6 +211,7 @@ public class PlayerModule: Module {
             if let networkNativeId, let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
                 playerConfig.networkConfig = networkConfig
             }
+            self?.setupShouldLoadAdItem(nativeId: nativeId, config: config, playerConfig: playerConfig)
             self?.setupImaBeforeInitialization(nativeId: nativeId, config: config, playerConfig: playerConfig)
             let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfigJson)
             let player = PlayerFactory.create(
@@ -245,6 +252,33 @@ public class PlayerModule: Module {
             return nil
         }
         return networkModule.retrieve(nativeId)
+    }
+
+    private func setupShouldLoadAdItem(
+        nativeId: NativeId,
+        config: [String: Any]?,
+        playerConfig: PlayerConfig
+    ) {
+        guard
+            let advertisingJson = config?["advertisingConfig"] as? [String: Any],
+            advertisingJson["shouldLoadAdItem"] != nil
+        else {
+            return
+        }
+
+        playerConfig.advertisingConfig.shouldLoadAdItem = { [weak self] adItem in
+            guard let self else { return true }
+            let (id, wait) = shouldLoadAdItemWaiter.make(timeout: 0.25)
+            self.sendEvent(
+                "onShouldLoadAdItem",
+                [
+                    "nativeId": nativeId,
+                    "id": id,
+                    "adItem": RCTConvert.toJson(adItem: adItem) as Any
+                ]
+            )
+            return wait() ?? true
+        }
     }
 
     private func setupImaBeforeInitialization(

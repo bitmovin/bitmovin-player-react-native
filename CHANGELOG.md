@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `AdvertisingConfig.shouldLoadAdItem` callback to filter ad items before they are loaded
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to `3.111.1`
