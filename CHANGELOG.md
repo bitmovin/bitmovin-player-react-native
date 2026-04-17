@@ -20,6 +20,10 @@
 - Minimum supported Expo SDK version is now `54`
 - Minimum supported React Native version is now `0.81.5`
 
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.111.1`
+
 ## [1.16.0] - 2026-04-10
 
 ### Added
