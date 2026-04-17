@@ -82,9 +82,12 @@ export default function OfflinePlayback() {
   const [isLoadedSourceOffline, setIsLoadedSourceOffline] =
     useState<boolean>(false);
   const stateLabel = useMemo(() => {
-    offlineContentManager?.usedStorage().then((usedStorageInBytes) => {
-      setUsedStorage(usedStorageInBytes / 1024 / 1024);
-    });
+    void offlineContentManager
+      ?.usedStorage()
+      .then((usedStorageInBytes) => {
+        setUsedStorage(usedStorageInBytes / 1024 / 1024);
+      })
+      .catch(console.error);
     switch (downloadState) {
       case OfflineState.Downloading:
         return `Downloading: ${progress.toFixed(2)}%`;
@@ -111,7 +114,7 @@ export default function OfflinePlayback() {
 
   useFocusEffect(
     useCallback(() => {
-      requestNotificationPermissionAsync();
+      void requestNotificationPermissionAsync().catch(console.error);
     }, [])
   );
 
@@ -119,7 +122,7 @@ export default function OfflinePlayback() {
 
   useFocusEffect(
     useCallback(() => {
-      player.load(sourceConfig);
+      void player.load(sourceConfig);
 
       const newOfflineContentManager = new OfflineContentManager({
         identifier: STABLE_CONTENT_IDENTIFIER,
@@ -166,16 +169,19 @@ export default function OfflinePlayback() {
         .initialize()
         .then(() => {
           setOfflineContentManager(newOfflineContentManager);
-          newOfflineContentManager.state().then((state) => {
-            setDownloadState(state);
-          });
+          void newOfflineContentManager
+            .state()
+            .then((state) => {
+              setDownloadState(state);
+            })
+            .catch(console.error);
           newOfflineContentManager.getOptions().catch(console.error);
         })
         .catch(console.error);
 
       return () => {
         removeOfflineContentManagerListener();
-        newOfflineContentManager.destroy();
+        void newOfflineContentManager.destroy().catch(console.error);
         setOfflineContentManager(undefined);
       };
     }, [onEvent, player])
@@ -193,7 +199,7 @@ export default function OfflinePlayback() {
           <Action
             text={'Load online content'}
             onPress={() => {
-              player.load(sourceConfig);
+              void player.load(sourceConfig);
               setIsLoadedSourceOffline(false);
             }}
           />
@@ -228,12 +234,15 @@ export default function OfflinePlayback() {
           <Action
             text={'Delete all'}
             onPress={() => {
-              offlineContentManager?.deleteAll().then(() => {
-                setDownloadState(OfflineState.NotDownloaded);
-                offlineContentManager.getOptions().catch(console.error);
-                player.load(sourceConfig);
-                setIsLoadedSourceOffline(false);
-              });
+              void offlineContentManager
+                ?.deleteAll()
+                .then(() => {
+                  setDownloadState(OfflineState.NotDownloaded);
+                  offlineContentManager.getOptions().catch(console.error);
+                  void player.load(sourceConfig);
+                  setIsLoadedSourceOffline(false);
+                })
+                .catch(console.error);
             }}
           />
         )}

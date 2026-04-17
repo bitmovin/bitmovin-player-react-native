@@ -1,6 +1,6 @@
 {
   "name": "bitmovin-player-react-native",
-  "version": "1.16.0",
+  "version": "1.17.0",
   "description": "Official React Native bindings for Bitmovin's mobile Player SDKs.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -56,27 +56,27 @@
   "license": "MIT",
   "homepage": "https://bitmovin.com/video-player/react-native-sdk",
   "dependencies": {
-    "expo-crypto": "~14.1.5",
-    "expo-keep-awake": "~14.1.4"
+    "expo-crypto": "~15.0.8",
+    "expo-keep-awake": "~15.0.8"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
-    "@types/react": "~19.0.10",
+    "@types/react": "~19.1.10",
     "eslint": "^8.57.0",
-    "eslint-config-expo": "~9.2.0",
+    "eslint-config-expo": "~10.0.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.5.1",
-    "expo": "53.0.27",
+    "expo": "~54.0.33",
     "expo-module-scripts": "^4.1.9",
     "lint-staged": "13.0.3",
     "prettier": "^3.6.2",
-    "react": "19.0.0",
-    "react-native": "0.79.6",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
     "typedoc": "^0.28.7",
-    "typescript": "~5.8.3"
+    "typescript": "~5.9.2"
   },
   "peerDependencies": {
-    "expo": ">=53.0.0",
+    "expo": ">=54.0.0",
     "expo-crypto": ">=14.0.0",
     "react": "*",
     "react-native": "*"
