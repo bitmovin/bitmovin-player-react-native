@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `AdvertisingConfig.shouldLoadAdItem` callback to filter ad items before they are loaded
+
 ## [1.16.0] - 2026-04-10
 
 ### Added
