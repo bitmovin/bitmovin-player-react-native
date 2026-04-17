@@ -7,6 +7,7 @@ import {
   EventType,
   expectEvent,
   expectEvents,
+  FilteredEvent,
   loadSourceConfig,
   RepeatedEvent,
   startPlayerTest,
@@ -16,8 +17,11 @@ import {
   AdItem,
   AdSourceType,
   AdvertisingConfig,
+  PlaybackConfig,
+  TimeChangedEvent,
 } from 'bitmovin-player-react-native';
 import { AdTags } from './helper/Ads';
+import { expect } from './helper/Expect';
 import { Platform } from 'react-native';
 
 type SupportedTestPlatform = 'ios' | 'android';
@@ -148,6 +152,45 @@ export default (spec: TestScope) => {
         });
       });
     });
+
+    spec.describe(
+      `filtering ${name} ads scheduled ads via shouldLoadAdItem`,
+      () => {
+        spec.it('does not play preroll when filtered', async () => {
+          const advertisingConfig: AdvertisingConfig = {
+            schedule: [
+              {
+                sources: [
+                  { tag: AdTags.vastSkippable, type: AdSourceType.IMA },
+                ],
+                position: 'pre',
+              },
+            ],
+            shouldLoadAdItem: () => false,
+          };
+          const playbackConfig: PlaybackConfig = {
+            isAutoplayEnabled: true,
+          };
+          await startPlayerTest(
+            { playbackConfig, advertisingConfig },
+            async () => {
+              await callPlayerAndExpectEvent(
+                (player) => {
+                  player.load(Sources.artOfMotionHls);
+                },
+                FilteredEvent<TimeChangedEvent>(
+                  EventType.TimeChanged,
+                  (event) => event.currentTime > 0.25
+                )
+              );
+              await callPlayer(async (player) => {
+                expect(await player.isAd()).toBeFalsy();
+              });
+            }
+          );
+        });
+      }
+    );
   }
 
   const adScenarios: AdScenario[] = [
