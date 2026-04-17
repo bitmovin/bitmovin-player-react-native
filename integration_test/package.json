@@ -37,34 +37,35 @@
     "@expo/config-types": "^53.0.5",
     "@react-native-tvos/config-tv": "^0.1.1",
     "cavy": "^4.0.2",
-    "expo": "53.0.27",
-    "expo-build-properties": "~0.14.8",
-    "expo-crypto": "~14.1.5",
-    "expo-status-bar": "~2.2.3",
-    "expo-system-ui": "~5.0.11",
-    "react": "19.0.0",
-    "react-native": "npm:react-native-tvos@0.79.5-0",
+    "expo": "~54.0.33",
+    "expo-build-properties": "~1.0.10",
+    "expo-crypto": "~15.0.8",
+    "expo-status-bar": "~3.0.9",
+    "expo-system-ui": "~6.0.9",
+    "react": "19.1.0",
+    "react-native": "npm:react-native-tvos@0.81.5-0",
     "react-native-uuid": "^2.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
     "@expo/cli": "^0.24.24",
     "@react-native-community/cli": "latest",
-    "@types/react": "~19.0.10",
+    "@react-native/metro-config": "0.81.5",
+    "@types/react": "~19.1.10",
     "babel-plugin-module-resolver": "^5.0.0",
     "cavy-cli": "github:bitmovin-engineering/cavy-cli#a288754",
     "dotenv": "^17.2.0",
     "eslint": "^8.57.0",
-    "eslint-config-expo": "~9.2.0",
+    "eslint-config-expo": "~10.0.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.5.1",
     "patch-package": "^8.0.1",
     "pod-install": "^0.3.10",
     "prettier": "^3.6.2",
-    "typescript": "~5.8.3"
+    "typescript": "~5.9.2"
   },
   "resolutions": {
-    "react-native": "npm:react-native-tvos@0.79.5-0"
+    "react-native": "npm:react-native-tvos@0.81.5-0"
   },
   "expo": {
     "install": {
