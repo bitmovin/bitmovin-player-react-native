@@ -1,6 +1,17 @@
 # Changelog
 
-## [Unreleased]
+## [1.17.0] - 2026-04-17
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.149.0+jason`
+- Update Expo SDK version to `54.0.33` and React Native version to `0.81.5`
+- Minimum supported Expo SDK version is now `54`
+- Minimum supported React Native version is now `0.81.5`
+
+## [1.16.0] - 2026-04-10
+
+## [1.16.0] - 2026-04-10
 
 ### Changed
 
