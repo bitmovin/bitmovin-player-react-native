@@ -3,7 +3,7 @@ import { useCavy, wrap } from 'cavy';
 import { SafeAreaView, StyleSheet, Text } from 'react-native';
 import { PlayerView } from 'bitmovin-player-react-native';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
+const darkTextColor = '#11181C';
 
 interface TestablePlayerProps {
   playerTestWorld: PlayerTestWorld;
@@ -54,6 +54,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 24,
-    color: Colors.darker,
+    color: darkTextColor,
   },
 });
