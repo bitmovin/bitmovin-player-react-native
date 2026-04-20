@@ -53,6 +53,7 @@ const config: ExpoConfig = {
       'expo-build-properties',
       {
         android: {
+          kotlinVersion: '2.2.21',
           buildToolsVersion: '35.0.0',
         },
         ios: {
