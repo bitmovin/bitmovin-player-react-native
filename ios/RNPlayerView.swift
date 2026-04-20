@@ -165,7 +165,8 @@ public class RNPlayerView: ExpoView {
         player.add(listener: self)
         playerView?.add(listener: self)
 
-        shouldExitPictureInPictureOnForeground = playerViewConfigWrapper?.shouldExitPictureInPictureOnForeground ?? false
+        shouldExitPictureInPictureOnForeground =
+            playerViewConfigWrapper?.shouldExitPictureInPictureOnForeground ?? false
         updateForegroundObserver()
 
         self.maybeEmitPictureInPictureAvailabilityEvent(
