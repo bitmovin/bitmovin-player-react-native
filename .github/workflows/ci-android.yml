@@ -87,7 +87,7 @@ jobs:
         with:
           path: |
             example/android
-          key: ${{ runner.os }}-android-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'android/**') }}
+          key: ${{ runner.os }}-android-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.config.*', 'plugin/**', 'android/**') }}
           restore-keys: |
             ${{ runner.os }}-android-prebuild-
 
@@ -155,7 +155,7 @@ jobs:
         with:
           path: |
             integration_test/android
-          key: ${{ runner.os }}-android-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.json', 'plugin/**', 'android/**') }}
+          key: ${{ runner.os }}-android-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.config.*', 'plugin/**', 'android/**') }}
           restore-keys: |
             ${{ runner.os }}-android-integration-prebuild-
 
@@ -224,7 +224,7 @@ jobs:
         with:
           path: |
             example/android
-          key: ${{ runner.os }}-android-tv-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'android/**') }}
+          key: ${{ runner.os }}-android-tv-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.config.*', 'plugin/**', 'android/**') }}
           restore-keys: |
             ${{ runner.os }}-android-tv-prebuild-
 
