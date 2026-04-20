@@ -44,6 +44,8 @@ public class RNPlayerView: ExpoView {
     private var requestedPictureInPictureValue: Bool?
     private var isPictureInPictureEnabledValue: Bool?
     private var avPlayerViewControllerTransitionForced = false
+    private var shouldExitPictureInPictureOnForeground = false
+    private var foregroundObserver: NSObjectProtocol?
 
     let onBmpEvent = EventDispatcher()
     let onBmpPlayerActive = EventDispatcher()
@@ -163,6 +165,9 @@ public class RNPlayerView: ExpoView {
         player.add(listener: self)
         playerView?.add(listener: self)
 
+        shouldExitPictureInPictureOnForeground = playerViewConfigWrapper?.shouldExitPictureInPictureOnForeground ?? false
+        updateForegroundObserver()
+
         self.maybeEmitPictureInPictureAvailabilityEvent(
             previousState: previousPictureInPictureAvailableValue
         )
@@ -253,6 +258,26 @@ private extension RNPlayerView {
         playerView.player?.remove(listener: self)
         playerView.remove(listener: self)
         playerView.player = nil
+        shouldExitPictureInPictureOnForeground = false
+        updateForegroundObserver()
+    }
+
+    func updateForegroundObserver() {
+        if let foregroundObserver {
+            NotificationCenter.default.removeObserver(foregroundObserver)
+            self.foregroundObserver = nil
+        }
+        guard shouldExitPictureInPictureOnForeground else { return }
+#if os(iOS)
+        foregroundObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self, self.playerView?.isPictureInPicture == true else { return }
+            self.playerView?.exitPictureInPicture()
+        }
+#endif
     }
 
     func prepareForNewPlayerAttachment() {

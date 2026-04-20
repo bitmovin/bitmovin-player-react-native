@@ -1054,9 +1054,15 @@ extension RCTConvert {
             return nil
         }
 
+        let shouldExitPiPOnForeground = json["pictureInPictureConfig"].flatMap { pipJson -> Bool? in
+            guard let dict = pipJson as? [String: Any] else { return nil }
+            return dict["shouldExitOnForeground"] as? Bool
+        } ?? false
+
         return RNPlayerViewConfig(
             uiConfig: json["uiConfig"].flatMap(rnUiConfig),
             pictureInPictureConfig: json["pictureInPictureConfig"].flatMap(pictureInPictureConfig),
+            shouldExitPictureInPictureOnForeground: shouldExitPiPOnForeground,
             hideFirstFrame: json["hideFirstFrame"] as? Bool
         )
     }
@@ -1412,6 +1418,11 @@ internal struct RNPlayerViewConfig {
      * Picture in picture config
      */
     let pictureInPictureConfig: PictureInPictureConfig?
+
+    /**
+     * Whether PiP should exit automatically when the app comes to the foreground.
+     */
+    let shouldExitPictureInPictureOnForeground: Bool
 
     /**
      * PlayerView config considering all properties

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `PictureInPictureConfig.shouldExitOnForeground` to automatically exit PiP mode when the app transitions to the foreground
+
 ## [1.16.0] - 2026-04-10
 
 ### Added
