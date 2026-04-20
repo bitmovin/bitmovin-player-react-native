@@ -1,7 +1,7 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet, Text } from 'react-native';
 
-import { Colors } from 'react-native/Libraries/NewAppScreen';
+const darkTextColor = '#11181C';
 
 function App(): JSX.Element {
   console.info(`
@@ -41,11 +41,11 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 30,
-    color: Colors.darker,
+    color: darkTextColor,
   },
   instructions: {
     fontSize: 24,
-    color: Colors.darker,
+    color: darkTextColor,
   },
   code: {
     fontSize: 20,
