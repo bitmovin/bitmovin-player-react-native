@@ -59,7 +59,7 @@ exit "$STUB_SLEEP_EXIT"
   writeExecutable(
     path.join(binDir, 'npx'),
     `#!/bin/sh
-echo "npx:$*" >> "$STUB_RECORD_FILE"
+echo "npx:$PWD:$*" >> "$STUB_RECORD_FILE"
 if [ "$1" = "expo" ] && [ "$2" = "start" ]; then
   exit 0
 fi
@@ -187,8 +187,15 @@ test('start-test-ios starts Expo instead of react-native when it owns the packag
   const calls = readCalls(recordFile);
 
   assert.notEqual(result.status, 0);
-  assert.ok(calls.some((call) => call.startsWith('npx:expo start ')));
-  assert.ok(!calls.some((call) => call.startsWith('npx:react-native start --port 8081')));
+  const integrationTestDir = path.resolve(__dirname, '..');
+  assert.ok(
+    calls.some((call) => call.startsWith(`npx:${integrationTestDir}:expo start `))
+  );
+  assert.ok(
+    !calls.some((call) =>
+      call.includes(':react-native start --port 8081')
+    )
+  );
 });
 
 test('stop-packager kills the harness-owned integration_test Expo server', (t) => {

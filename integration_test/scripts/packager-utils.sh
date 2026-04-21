@@ -2,7 +2,6 @@
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 INTEGRATION_TEST_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
-REPO_ROOT=$(cd "$INTEGRATION_TEST_DIR/.." && pwd)
 PACKAGER_PORT=8081
 PACKAGER_PID_FILE="${TMPDIR:-/tmp}/bitmovin-integration-test-packager.pid"
 PACKAGER_LOG_FILE="${TMPDIR:-/tmp}/bitmovin-integration-test-metro.log"
@@ -102,8 +101,8 @@ ensure_packager_running() {
 
     echo "Starting integration_test Expo packager on port $PACKAGER_PORT..."
     (
-        cd "$REPO_ROOT" || exit 1
-        npx expo start "$INTEGRATION_TEST_DIR" --port "$PACKAGER_PORT" --localhost > "$PACKAGER_LOG_FILE" 2>&1 &
+        cd "$INTEGRATION_TEST_DIR" || exit 1
+        npx expo start --port "$PACKAGER_PORT" --localhost > "$PACKAGER_LOG_FILE" 2>&1 &
         echo "$!" > "$PACKAGER_PID_FILE"
     )
 
