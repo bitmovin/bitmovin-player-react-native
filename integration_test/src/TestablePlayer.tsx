@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useCavy, wrap } from 'cavy';
-import { SafeAreaView, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { PlayerView } from 'bitmovin-player-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 const darkTextColor = '#11181C';
 
