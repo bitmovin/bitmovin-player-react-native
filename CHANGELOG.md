@@ -4,7 +4,7 @@
 
 ### Added
 
-- `PictureInPictureConfig.shouldExitOnForeground` to automatically exit PiP mode when the app transitions to the foreground
+- iOS: `PictureInPictureConfig.shouldExitOnForeground` to automatically exit PiP mode when the app transitions to the foreground
 
 ### Changed
 

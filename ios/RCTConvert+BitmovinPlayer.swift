@@ -1049,20 +1049,25 @@ extension RCTConvert {
         return array.compactMap(RNPictureInPictureAction.init(rawValue:))
     }
 
+    static func rnPictureInPictureConfig(_ json: Any?) -> RNPictureInPictureConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        return RNPictureInPictureConfig(
+            nativeConfig: pictureInPictureConfig(json),
+            shouldExitOnForeground: json["shouldExitOnForeground"] as? Bool ?? false
+        )
+    }
+
     static func rnPlayerViewConfig(_ json: Any?) -> RNPlayerViewConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
         }
 
-        let shouldExitPiPOnForeground = json["pictureInPictureConfig"].flatMap { pipJson -> Bool? in
-            guard let dict = pipJson as? [String: Any] else { return nil }
-            return dict["shouldExitOnForeground"] as? Bool
-        } ?? false
-
         return RNPlayerViewConfig(
             uiConfig: json["uiConfig"].flatMap(rnUiConfig),
-            pictureInPictureConfig: json["pictureInPictureConfig"].flatMap(pictureInPictureConfig),
-            shouldExitPictureInPictureOnForeground: shouldExitPiPOnForeground,
+            pictureInPictureConfig: json["pictureInPictureConfig"].flatMap(rnPictureInPictureConfig),
             hideFirstFrame: json["hideFirstFrame"] as? Bool
         )
     }
@@ -1415,22 +1420,17 @@ internal struct RNPlayerViewConfig {
     let uiConfig: RNUiConfig?
 
     /**
-     * Picture in picture config
+     * React Native specific picture in picture config.
      */
-    let pictureInPictureConfig: PictureInPictureConfig?
-
-    /**
-     * Whether PiP should exit automatically when the app comes to the foreground.
-     */
-    let shouldExitPictureInPictureOnForeground: Bool
+    let pictureInPictureConfig: RNPictureInPictureConfig?
 
     /**
      * PlayerView config considering all properties
      */
     var playerViewConfig: PlayerViewConfig {
         let config = PlayerViewConfig()
-        if let pictureInPictureConfig {
-            config.pictureInPictureConfig = pictureInPictureConfig
+        if let nativePictureInPictureConfig = pictureInPictureConfig?.nativeConfig {
+            config.pictureInPictureConfig = nativePictureInPictureConfig
         }
         return config
     }
@@ -1452,6 +1452,21 @@ internal struct RNUiConfig {
     let playbackSpeedSelectionEnabled: Bool
     let enableWebViewInspecting: Bool
     let uiManagerFactoryFunction: String
+}
+
+/**
+ * React Native specific PictureInPictureConfig.
+ */
+internal struct RNPictureInPictureConfig {
+    /**
+     * Native SDK PiP configuration.
+     */
+    let nativeConfig: PictureInPictureConfig?
+
+    /**
+     * Whether PiP should exit automatically when the app comes to the foreground.
+     */
+    let shouldExitOnForeground: Bool
 }
 
 /**
