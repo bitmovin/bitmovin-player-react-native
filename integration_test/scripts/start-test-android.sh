@@ -2,6 +2,39 @@
 # Start Android test by ensuring emulator is running and executing cavy
 
 ARGS=$@
+PACKAGER_PID=""
+
+cleanup_packager() {
+    if [ -n "$PACKAGER_PID" ] && kill -0 "$PACKAGER_PID" 2>/dev/null; then
+        echo "Stopping Metro packager (pid: $PACKAGER_PID)"
+        kill "$PACKAGER_PID" 2>/dev/null || true
+    fi
+}
+
+ensure_packager_running() {
+    if lsof -ti:8081 >/dev/null 2>&1; then
+        echo "Using existing Metro packager on port 8081"
+        return
+    fi
+
+    echo "Starting Metro packager on port 8081..."
+    npx react-native start --port 8081 > /tmp/bitmovin-integration-test-metro.log 2>&1 &
+    PACKAGER_PID=$!
+
+    for _ in {1..30}; do
+        if lsof -ti:8081 >/dev/null 2>&1; then
+            echo "Metro packager is ready"
+            return
+        fi
+        sleep 1
+    done
+
+    echo "Failed to start Metro packager. Check /tmp/bitmovin-integration-test-metro.log"
+    exit 1
+}
+
+trap cleanup_packager EXIT
+ensure_packager_running
 
 # Check if emulator is already running
 EMULATOR_ID=$(adb devices | grep -v List | grep device | grep emulator | head -n 1 | cut -f 1)
@@ -26,7 +59,7 @@ fi
 # Run cavy with the emulator
 if [ -n "$EMULATOR_ID" ]; then
     echo "Running tests on emulator: $EMULATOR_ID"
-    ANDROID_SERIAL="$EMULATOR_ID" yarn cavy run-android --no-screenshots --keep-alive-timeout=300 --terminal="terminal" --deviceId "$EMULATOR_ID" $ARGS
+    ANDROID_SERIAL="$EMULATOR_ID" yarn cavy run-android --no-screenshots --keep-alive-timeout=300 --no-packager --deviceId "$EMULATOR_ID" $ARGS
 else
     echo "Failed to start or find Android emulator"
     exit 1
