@@ -32,7 +32,7 @@ packager_process_matches_project() {
     fi
 
     case "$command" in
-        *"expo start"*)
+        *"expo start"*|*"expo/bin/cli start"*|*"@expo/cli"*)
             ;;
         *)
             return 1
@@ -45,13 +45,6 @@ packager_process_matches_project() {
 
     cwd=$(packager_process_cwd "$pid")
     [ "$cwd" = "$INTEGRATION_TEST_DIR" ]
-}
-
-packager_pid_file_matches() {
-    local pid="$1"
-
-    [ -f "$PACKAGER_PID_FILE" ] || return 1
-    [ "$(cat "$PACKAGER_PID_FILE" 2>/dev/null)" = "$pid" ]
 }
 
 kill_packager_pid() {

@@ -18,6 +18,7 @@
     "stop-test:ios": "./scripts/stop-test-ios.sh",
     "start-test:android": "./scripts/start-test-android.sh",
     "start-test:ios": "./scripts/start-test-ios.sh",
+    "test:scripts": "node --test scripts/start-test-scripts.test.js",
     "test:android": "yarn stop-test:android && yarn start-test:android",
     "test:ios": "yarn stop-test:ios && yarn start-test:ios",
     "patch-ios-build": "./scripts/patch-ios-build.sh",

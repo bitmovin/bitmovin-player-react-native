@@ -22,6 +22,7 @@ function createStubEnvironment(t, env = {}) {
     PATH: `${binDir}:${process.env.PATH}`,
     STUB_RECORD_FILE: recordFile,
     LSOF_PIDS: '',
+    LSOF_CWD: '',
     STUB_NPX_MODE: '',
     STUB_PROCESS_LIST: '',
     STUB_SLEEP_EXIT: '0',
@@ -34,6 +35,13 @@ function createStubEnvironment(t, env = {}) {
 if [ "$1" = "-ti:8081" ]; then
   if [ -n "$LSOF_PIDS" ]; then
     printf "%s\\n" "$LSOF_PIDS"
+    exit 0
+  fi
+  exit 1
+fi
+if [ "$1" = "-a" ] && [ "$2" = "-p" ] && [ "$4" = "-d" ] && [ "$5" = "cwd" ] && [ "$6" = "-Fn" ]; then
+  if [ -n "$LSOF_CWD" ]; then
+    printf "n%s\\n" "$LSOF_CWD"
     exit 0
   fi
   exit 1
@@ -195,6 +203,24 @@ test('start-test-ios starts Expo instead of react-native when it owns the packag
     !calls.some((call) =>
       call.includes(':react-native start --port 8081')
     )
+  );
+});
+
+test('start-test-ios reuses an owned Expo CLI process without starting another packager', (t) => {
+  const { env, recordFile } = createStubEnvironment(t, {
+    LSOF_PIDS: '54321',
+    LSOF_CWD: path.resolve(__dirname, '..'),
+    STUB_PROCESS_LIST:
+      '54321 ?? 0:00.10 node /tmp/integration-test/node_modules/expo/bin/cli start --port 8081 --localhost',
+  });
+
+  const result = runIosScript(env);
+  const calls = readCalls(recordFile);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout + result.stderr, /Using existing integration_test Expo packager/i);
+  assert.ok(
+    !calls.some((call) => call.startsWith('npx:') && call.includes(':expo start '))
   );
 });
 
