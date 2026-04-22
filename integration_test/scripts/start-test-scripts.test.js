@@ -358,7 +358,54 @@ test('start-test-android reuses an owned Expo CLI process and forwards --no-pack
   assertPackagerNotStarted(calls);
 });
 
-test('start-test-android starts an emulator when needed and runs cavy without opening a new packager', (t) => {
+test('run-test-android reuses an owned Expo CLI process and runs cavy on an existing emulator', (t) => {
+  const { env, recordFile } = createStubEnvironment(t, {
+    LSOF_PIDS: ARBITRARY_OWNED_PID,
+    LSOF_CWD: INTEGRATION_TEST_DIR,
+    STUB_PROCESS_LIST:
+      `${ARBITRARY_OWNED_PID} ?? 0:00.10 node ${FAKE_OWNED_PROJECT_PATH}/node_modules/expo/bin/cli start --port ${PACKAGER_PORT} --localhost`,
+    STUB_ADB_DEVICES: `List of devices attached\n${FAKE_ANDROID_EMULATOR_ID}\tdevice\n`,
+  });
+
+  const result = runScript('run-test-android.sh', env);
+  const calls = readCalls(recordFile);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout + result.stderr, /Using existing integration_test Expo packager/i);
+  assert.ok(
+    calls.some((call) =>
+      call.includes(
+        `yarn:cavy run-android --no-screenshots --keep-alive-timeout=300 --no-packager --deviceId ${FAKE_ANDROID_EMULATOR_ID}`
+      )
+    )
+  );
+  assertPackagerNotStarted(calls);
+});
+
+test('ensure-android-emulator starts an emulator when none is running', (t) => {
+  const { env, recordFile, expoMarkerFile } = createStubEnvironment(t, {
+    STUB_EXPO_START_MODE: 'hold',
+    STUB_ADB_DEVICES_FIRST: 'List of devices attached\n',
+    STUB_ADB_DEVICES_NEXT: `List of devices attached\n${FAKE_ANDROID_EMULATOR_ID}\tdevice\n`,
+    STUB_EMULATOR_LIST_AVDS: FAKE_ANDROID_AVD_NAME,
+  });
+
+  const result = runScript('ensure-android-emulator.sh', env);
+  const calls = readCalls(recordFile);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout + result.stderr, new RegExp(FAKE_ANDROID_EMULATOR_ID));
+  assert.ok(calls.some((call) => call.includes(`emulator:-list-avds`)));
+  assert.ok(calls.some((call) => call.includes(`emulator:-avd ${FAKE_ANDROID_AVD_NAME}`)));
+  assert.ok(calls.some((call) => call.includes('adb:wait-for-device shell')));
+  assert.ok(
+    !calls.some((call) => call.startsWith('npx:') && call.includes(':expo start '))
+  );
+  assert.ok(!calls.some((call) => call.includes('yarn:cavy run-android')));
+  assert.equal(fs.existsSync(expoMarkerFile), false);
+});
+
+test('start-test-android composes emulator boot and android test run for local workflows', (t) => {
   const { env, recordFile, expoMarkerFile } = createStubEnvironment(t, {
     STUB_EXPO_START_MODE: 'hold',
     STUB_ADB_DEVICES_FIRST: 'List of devices attached\n',
