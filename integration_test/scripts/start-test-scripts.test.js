@@ -16,6 +16,8 @@ const ARBITRARY_OWNED_PID = '22222';
 const WAIT_TIMEOUT_MS = 1000;
 const FAKE_FOREIGN_PROJECT_PATH = '/tmp/fake-other-project';
 const FAKE_OWNED_PROJECT_PATH = '/tmp/fake-integration-test-project';
+const FAKE_ANDROID_EMULATOR_ID = 'emulator-5554';
+const FAKE_ANDROID_AVD_NAME = 'Stub_AVD';
 
 function writeFakeCommand(binDir, commandName, script) {
   // These files live in the test temp dir and shadow PATH only for the spawned script process.
@@ -30,15 +32,29 @@ function createStubEnvironment(t, env = {}) {
   fs.mkdirSync(binDir);
 
   const recordFile = path.join(tempDir, RECORD_FILE_NAME);
+  const adbDevicesStateFile = path.join(tempDir, 'adb-devices.state');
+  const expoPidFile = path.join(tempDir, 'expo.pid');
+  const expoCwdFile = path.join(tempDir, 'expo.cwd');
+  const expoMarkerFile = path.join(tempDir, 'expo.terminated');
   const defaultEnv = {
     ...process.env,
     PATH: `${binDir}:${process.env.PATH}`,
     STUB_RECORD_FILE: recordFile,
+    STUB_ADB_DEVICES_STATE_FILE: adbDevicesStateFile,
+    STUB_EXPO_PID_FILE: expoPidFile,
+    STUB_EXPO_CWD_FILE: expoCwdFile,
+    STUB_EXPO_MARKER_FILE: expoMarkerFile,
     LSOF_PIDS: '',
     LSOF_CWD: '',
     STUB_NPX_MODE: '',
+    STUB_EXPO_START_MODE: '',
     STUB_PROCESS_LIST: '',
     STUB_SLEEP_EXIT: '0',
+    STUB_ADB_DEVICES: '',
+    STUB_ADB_DEVICES_FIRST: '',
+    STUB_ADB_DEVICES_NEXT: '',
+    STUB_ADB_WAIT_FOR_DEVICE_EXIT: '0',
+    STUB_EMULATOR_LIST_AVDS: '',
     ...env,
   };
 
@@ -47,6 +63,10 @@ function createStubEnvironment(t, env = {}) {
     'lsof',
     `#!/bin/sh
 if [ "$1" = "-ti:${PACKAGER_PORT}" ]; then
+  if [ -f "$STUB_EXPO_PID_FILE" ]; then
+    cat "$STUB_EXPO_PID_FILE"
+    exit 0
+  fi
   if [ -n "$LSOF_PIDS" ]; then
     printf "%s\\n" "$LSOF_PIDS"
     exit 0
@@ -55,6 +75,10 @@ if [ "$1" = "-ti:${PACKAGER_PORT}" ]; then
 fi
 # Match the exact "what is this process cwd?" lsof call used by packager-utils.sh.
 if [ "$1" = "-a" ] && [ "$2" = "-p" ] && [ "$4" = "-d" ] && [ "$5" = "cwd" ] && [ "$6" = "-Fn" ]; then
+  if [ -f "$STUB_EXPO_CWD_FILE" ]; then
+    printf "n%s\\n" "$(cat "$STUB_EXPO_CWD_FILE")"
+    exit 0
+  fi
   if [ -n "$LSOF_CWD" ]; then
     printf "n%s\\n" "$LSOF_CWD"
     exit 0
@@ -69,6 +93,12 @@ exit 1
     binDir,
     'ps',
     `#!/bin/sh
+if [ -f "$STUB_EXPO_PID_FILE" ]; then
+  pid="$(cat "$STUB_EXPO_PID_FILE")"
+  cwd="$(cat "$STUB_EXPO_CWD_FILE" 2>/dev/null)"
+  printf "%s\\n" "node $cwd/node_modules/expo/bin/cli start --port ${PACKAGER_PORT} --localhost"
+  exit 0
+fi
 printf "%s\\n" "$STUB_PROCESS_LIST"
 `
   );
@@ -87,6 +117,14 @@ exit "$STUB_SLEEP_EXIT"
     `#!/bin/sh
 echo "npx:$PWD:$*" >> "$STUB_RECORD_FILE"
 if [ "$1" = "expo" ] && [ "$2" = "start" ]; then
+  if [ "$STUB_EXPO_START_MODE" = "hold" ]; then
+    echo "$$" > "$STUB_EXPO_PID_FILE"
+    echo "$PWD" > "$STUB_EXPO_CWD_FILE"
+    trap 'echo "terminated" > "$STUB_EXPO_MARKER_FILE"; rm -f "$STUB_EXPO_PID_FILE" "$STUB_EXPO_CWD_FILE"; exit 0' TERM INT
+    while true; do
+      sleep 1
+    done
+  fi
   exit 0
 fi
 if [ "$1" = "react-native" ] && [ "$2" = "start" ]; then
@@ -124,7 +162,49 @@ printf "%s\\n" '${FAKE_IOS_SIMULATOR_NAME}'
 `
   );
 
-  return { tempDir, recordFile, env: defaultEnv };
+  writeFakeCommand(
+    binDir,
+    'adb',
+    `#!/bin/sh
+echo "adb:$*" >> "$STUB_RECORD_FILE"
+if [ "$1" = "devices" ]; then
+  if [ -n "$STUB_ADB_DEVICES_FIRST" ]; then
+    if [ ! -f "$STUB_ADB_DEVICES_STATE_FILE" ]; then
+      touch "$STUB_ADB_DEVICES_STATE_FILE"
+      printf "%b" "$STUB_ADB_DEVICES_FIRST"
+      exit 0
+    fi
+    next_output="$STUB_ADB_DEVICES_NEXT"
+    if [ -z "$next_output" ]; then
+      next_output="$STUB_ADB_DEVICES"
+    fi
+    printf "%b" "$next_output"
+    exit 0
+  fi
+  printf "%b" "$STUB_ADB_DEVICES"
+  exit 0
+fi
+if [ "$1" = "wait-for-device" ]; then
+  exit "$STUB_ADB_WAIT_FOR_DEVICE_EXIT"
+fi
+exit 0
+`
+  );
+
+  writeFakeCommand(
+    binDir,
+    'emulator',
+    `#!/bin/sh
+echo "emulator:$*" >> "$STUB_RECORD_FILE"
+if [ "$1" = "-list-avds" ]; then
+  printf "%s\\n" "$STUB_EMULATOR_LIST_AVDS"
+  exit 0
+fi
+exit 0
+`
+  );
+
+  return { tempDir, recordFile, expoMarkerFile, env: defaultEnv };
 }
 
 function runScript(scriptName, env) {
@@ -229,6 +309,81 @@ test('start-test-ios reuses an owned Expo CLI process without starting another p
   assert.equal(result.status, 0);
   assert.match(result.stdout + result.stderr, /Using existing integration_test Expo packager/i);
   assertPackagerNotStarted(calls);
+});
+
+test('start-test-ios starts Expo, runs cavy, and cleans up the owned packager on exit', (t) => {
+  const { env, recordFile, expoMarkerFile } = createStubEnvironment(t, {
+    STUB_EXPO_START_MODE: 'hold',
+  });
+
+  const result = runScript('start-test-ios.sh', env);
+  const calls = readCalls(recordFile);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout + result.stderr, /Integration test Expo packager is ready/i);
+  assert.ok(
+    calls.some((call) => call.startsWith(`npx:${INTEGRATION_TEST_DIR}:expo start `))
+  );
+  assert.ok(
+    calls.some((call) =>
+      call.includes(
+        `yarn:cavy run-ios --no-screenshots --keep-alive-timeout=300 --no-packager --simulator ${FAKE_IOS_SIMULATOR_NAME}`
+      )
+    )
+  );
+  assert.equal(waitForFile(expoMarkerFile), true);
+});
+
+test('start-test-android reuses an owned Expo CLI process and forwards --no-packager', (t) => {
+  const { env, recordFile } = createStubEnvironment(t, {
+    LSOF_PIDS: ARBITRARY_OWNED_PID,
+    LSOF_CWD: INTEGRATION_TEST_DIR,
+    STUB_PROCESS_LIST:
+      `${ARBITRARY_OWNED_PID} ?? 0:00.10 node ${FAKE_OWNED_PROJECT_PATH}/node_modules/expo/bin/cli start --port ${PACKAGER_PORT} --localhost`,
+    STUB_ADB_DEVICES: `List of devices attached\n${FAKE_ANDROID_EMULATOR_ID}\tdevice\n`,
+  });
+
+  const result = runScript('start-test-android.sh', env);
+  const calls = readCalls(recordFile);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout + result.stderr, /Using existing integration_test Expo packager/i);
+  assert.ok(
+    calls.some((call) =>
+      call.includes(
+        `yarn:cavy run-android --no-screenshots --keep-alive-timeout=300 --no-packager --deviceId ${FAKE_ANDROID_EMULATOR_ID}`
+      )
+    )
+  );
+  assertPackagerNotStarted(calls);
+});
+
+test('start-test-android starts an emulator when needed and runs cavy without opening a new packager', (t) => {
+  const { env, recordFile, expoMarkerFile } = createStubEnvironment(t, {
+    STUB_EXPO_START_MODE: 'hold',
+    STUB_ADB_DEVICES_FIRST: 'List of devices attached\n',
+    STUB_ADB_DEVICES_NEXT: `List of devices attached\n${FAKE_ANDROID_EMULATOR_ID}\tdevice\n`,
+    STUB_EMULATOR_LIST_AVDS: FAKE_ANDROID_AVD_NAME,
+  });
+
+  const result = runScript('start-test-android.sh', env);
+  const calls = readCalls(recordFile);
+
+  assert.equal(result.status, 0);
+  assert.ok(
+    calls.some((call) => call.startsWith(`npx:${INTEGRATION_TEST_DIR}:expo start `))
+  );
+  assert.ok(calls.some((call) => call.includes(`emulator:-list-avds`)));
+  assert.ok(calls.some((call) => call.includes(`emulator:-avd ${FAKE_ANDROID_AVD_NAME}`)));
+  assert.ok(calls.some((call) => call.includes('adb:wait-for-device shell')));
+  assert.ok(
+    calls.some((call) =>
+      call.includes(
+        `yarn:cavy run-android --no-screenshots --keep-alive-timeout=300 --no-packager --deviceId ${FAKE_ANDROID_EMULATOR_ID}`
+      )
+    )
+  );
+  assert.equal(waitForFile(expoMarkerFile), true);
 });
 
 test('stop-packager kills the harness-owned integration_test Expo server', (t) => {
