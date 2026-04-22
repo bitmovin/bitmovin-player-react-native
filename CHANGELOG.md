@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Android: Video black screen when entering Picture in Picture mode on old React Native architecture
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.150.0+jason`
