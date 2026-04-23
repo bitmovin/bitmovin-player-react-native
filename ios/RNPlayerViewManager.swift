@@ -73,6 +73,7 @@ public class RNPlayerViewManager: Module {
                 "onBmpPictureInPictureExited",
                 "onBmpAdBreakFinished",
                 "onBmpAdBreakStarted",
+                "onBmpAdContainerReady",
                 "onBmpAdClicked",
                 "onBmpAdError",
                 "onBmpAdFinished",

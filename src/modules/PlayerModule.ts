@@ -200,6 +200,20 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
   loadSource(nativeId: string, sourceNativeId: string): Promise<void>;
 
   /**
+   * Load a DAI (Dynamic Ad Insertion) stream via IMA SSAI.
+   * @param nativeId - Player native id
+   * @param assetId - IMA asset key / stream asset ID
+   * @param fallbackUrl - HLS URL to load if IMA fails
+   * @param adTagParams - Optional key-value params for the ad tag (e.g. for targeting)
+   */
+  loadDaiStream(
+    nativeId: string,
+    assetId: string,
+    fallbackUrl: string,
+    adTagParams: Record<string, string>
+  ): Promise<void>;
+
+  /**
    * Load offline content into the player.
    */
   loadOfflineContent(

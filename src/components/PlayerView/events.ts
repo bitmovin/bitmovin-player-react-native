@@ -77,6 +77,11 @@ import {
  */
 export type PlayerViewEvents = {
   /**
+   * Event emitted when the native ad container has been assigned (IMA DAI).
+   * Safe to call `Player.loadDaiStream` after this.
+   */
+  onAdContainerReady?: () => void;
+  /**
    * Event emitted when an ad break has finished.
    */
   onAdBreakFinished?: (event: AdBreakFinishedEvent) => void;

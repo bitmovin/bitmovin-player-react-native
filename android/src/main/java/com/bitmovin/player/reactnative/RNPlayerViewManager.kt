@@ -100,6 +100,7 @@ class RNPlayerViewManager : Module() {
             }
 
             Events(
+                "onBmpAdContainerReady",
                 "onBmpEvent",
                 "onBmpPlayerError",
                 "onBmpPlayerWarning",

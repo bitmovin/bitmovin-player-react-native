@@ -38,6 +38,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private var pictureInPictureHandler: RNPictureInPictureHandler? = null
     private var subtitleView: SubtitleView? = null
     private var playerContainer: FrameLayout? = null
+    /** Sits above [PlayerView] so IMA ad UI is not occluded by the video [android.view.SurfaceView]. */
+    private var imaAdContainer: FrameLayout? = null
     var enableBackgroundPlayback: Boolean = false
     private var scalingMode: ScalingMode? = null
     private var requestedFullscreenValue: Boolean? = null
@@ -111,6 +113,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private val onBmpPictureInPictureAvailabilityChanged by EventDispatcher()
     private val onBmpPictureInPictureEnter by EventDispatcher()
     private val onBmpPictureInPictureExit by EventDispatcher()
+    private val onBmpAdContainerReady by EventDispatcher()
 
     private var pictureInPictureConfig: PictureInPictureConfig = PictureInPictureConfig()
 
@@ -211,6 +214,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             (container.parent as? ViewGroup)?.removeView(container)
         }
         playerContainer = null
+        imaAdContainer = null
 
         activityLifecycle?.removeObserver(activityLifecycleObserver)
         viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
@@ -220,6 +224,30 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         // so that in case react native does some view caching we are 100% the child views of this view
         // are cleaned up from the view hierarchy
         removeAllViews()
+    }
+
+    /**
+     * IMA injects WebViews into this layer for Learn More, countdown, etc. It must be a sibling **above**
+     * [PlayerView] in z-order; using [PlayerView] as the IMA container hides UI behind the video SurfaceView.
+     */
+    private fun ensureImaAdOverlay(container: FrameLayout): FrameLayout {
+        val existing = imaAdContainer
+        if (existing != null && existing.parent === container) {
+            existing.bringToFront()
+            return existing
+        }
+        existing?.let { (it.parent as? ViewGroup)?.removeView(it) }
+        val overlay = FrameLayout(context).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT,
+            )
+            elevation = 1f
+        }
+        container.addView(overlay)
+        overlay.bringToFront()
+        imaAdContainer = overlay
+        return overlay
     }
 
     private fun setPlayerView(playerView: PlayerView) {
@@ -236,6 +264,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         playerContainer?.let { oldContainer ->
             (oldContainer.parent as? ViewGroup)?.removeView(oldContainer)
         }
+        imaAdContainer = null
 
         // Create new container for the PlayerView
         val newContainer = FrameLayout(context).apply {
@@ -254,6 +283,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 FrameLayout.LayoutParams.MATCH_PARENT,
             ),
         )
+
+        ensureImaAdOverlay(newContainer)
 
         // Add container to the ExpoView with correct layout parameters
         val containerLayoutParams = generateDefaultLayoutParams()
@@ -286,10 +317,10 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         isPictureInPictureEnabledOnPlayer: Boolean,
         userInterfaceTypeName: String?,
     ) {
-        val playerModule = appContext.registry.getModule<PlayerModule>()
+        val playerModule = appContext.registry.getModule<PlayerModule>() ?: return
         // Player might not be initialized yet, this is a timing issue
         // Return early without throwing to avoid crash
-        val player = playerModule?.getPlayerOrNull(playerId) ?: return
+        val player = playerModule.getPlayerOrNull(playerId) ?: return
 
         if (playerView?.player == player) {
             // Player is already attached to the PlayerView
@@ -302,6 +333,11 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         attachPlayerListeners(player)
         if (playerView != null) {
             playerView?.player = player
+            playerContainer?.let { container ->
+                val adContainer = ensureImaAdOverlay(container)
+                playerModule.assignAdContainer(playerId, adContainer)
+            }
+            onBmpAdContainerReady(emptyMap())
         } else {
             this.enableBackgroundPlayback = enableBackgroundPlayback
             val userInterfaceType = userInterfaceTypeName?.toUserInterfaceType() ?: UserInterfaceType.Bitmovin
@@ -335,6 +371,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             }
             newPlayerView.setPictureInPictureHandler(pictureInPictureHandler)
             setPlayerView(newPlayerView)
+            imaAdContainer?.let { playerModule.assignAdContainer(playerId, it) }
+            onBmpAdContainerReady(emptyMap())
             attachPlayerViewListeners(newPlayerView)
 
             val playerConfig = player.config
@@ -397,6 +435,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             )
             container.addView(subtitleView, layoutParams)
             subtitleView.bringToFront() // Ensure proper z-ordering
+            // IMA ad chrome must stay above subtitles during DAI ad breaks
+            imaAdContainer?.bringToFront()
         }
     }
 
