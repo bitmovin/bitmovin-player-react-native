@@ -96,7 +96,7 @@ jobs:
         with:
           path: |
             example/ios
-          key: ${{ runner.os }}-ios-example-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'ios/**') }}
+          key: ${{ runner.os }}-ios-example-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.config.*', 'plugin/**', 'ios/**') }}
           restore-keys: |
             ${{ runner.os }}-ios-example-prebuild-
 
@@ -150,7 +150,7 @@ jobs:
         with:
           path: |
             integration_test/ios
-          key: ${{ runner.os }}-ios-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.json', 'plugin/**', 'ios/**') }}
+          key: ${{ runner.os }}-ios-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.config.*', 'plugin/**', 'ios/**') }}
           restore-keys: |
             ${{ runner.os }}-ios-integration-prebuild-
 
@@ -204,7 +204,7 @@ jobs:
         with:
           path: |
             example/ios
-          key: ${{ runner.os }}-tvos-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'ios/**') }}
+          key: ${{ runner.os }}-tvos-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.config.*', 'plugin/**', 'ios/**') }}
           restore-keys: |
             ${{ runner.os }}-tvos-prebuild-
 
