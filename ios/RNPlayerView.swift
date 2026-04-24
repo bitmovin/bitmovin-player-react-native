@@ -47,6 +47,12 @@ public class RNPlayerView: ExpoView {
     private var shouldExitPictureInPictureOnForeground = false
     private var foregroundObserver: NSObjectProtocol?
 
+    deinit {
+        if let foregroundObserver {
+            NotificationCenter.default.removeObserver(foregroundObserver)
+        }
+    }
+
     let onBmpEvent = EventDispatcher()
     let onBmpPlayerActive = EventDispatcher()
     let onBmpPlayerError = EventDispatcher()
