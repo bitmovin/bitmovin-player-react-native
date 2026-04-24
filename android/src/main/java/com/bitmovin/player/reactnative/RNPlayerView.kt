@@ -434,8 +434,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     ) {
         val playerView = playerView ?: return
 
-        playerView.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-
         if (isInPictureInPictureMode) {
             if (!playerView.isPictureInPicture) {
                 playerView.enterPictureInPicture()
@@ -450,6 +448,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             }
 
             reparentHelper.tryRestore()
+        }
+
+        // We must "delay" the onPictureInPictureModeChanged callback via posting a runnable.
+        // This will force the callback to be called at the end of the current pending UI transactions.
+        post {
+            playerView.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         }
     }
 
