@@ -262,8 +262,6 @@ export type NativePlayerViewEvents = {
   }) => void;
   /**
    * Event emitted when the player entered Picture in Picture mode.
-   *
-   * @platform iOS
    */
   onBmpPictureInPictureEntered?: (event: {
     nativeEvent: PictureInPictureEnteredEvent;
@@ -276,8 +274,6 @@ export type NativePlayerViewEvents = {
   }) => void;
   /**
    * Event emitted when the player exited Picture in Picture mode.
-   *
-   * @platform iOS
    */
   onBmpPictureInPictureExited?: (event: {
     nativeEvent: PictureInPictureExitedEvent;
