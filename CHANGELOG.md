@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- iOS: `PictureInPictureConfig.shouldExitOnForeground` to automatically exit PiP mode when the app transitions to the foreground
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.150.0+jason`
