@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `AdvertisingConfig.shouldLoadAdItem` callback to filter ad items before they are loaded
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.150.0+jason`
