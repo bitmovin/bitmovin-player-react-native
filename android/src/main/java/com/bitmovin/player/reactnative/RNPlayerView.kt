@@ -110,7 +110,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private val onBmpFullscreenExit by EventDispatcher()
     private val onBmpPictureInPictureAvailabilityChanged by EventDispatcher()
     private val onBmpPictureInPictureEnter by EventDispatcher()
+    private val onBmpPictureInPictureEntered by EventDispatcher()
     private val onBmpPictureInPictureExit by EventDispatcher()
+    private val onBmpPictureInPictureExited by EventDispatcher()
 
     private var pictureInPictureConfig: PictureInPictureConfig = PictureInPictureConfig()
 
@@ -432,8 +434,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     ) {
         val playerView = playerView ?: return
 
-        playerView.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-
         if (isInPictureInPictureMode) {
             if (!playerView.isPictureInPicture) {
                 playerView.enterPictureInPicture()
@@ -448,6 +448,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             }
 
             reparentHelper.tryRestore()
+        }
+
+        // We must "delay" the onPictureInPictureModeChanged callback via posting a runnable.
+        // This will force the callback to be called at the end of the current pending UI transactions.
+        post {
+            playerView.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         }
     }
 
@@ -470,8 +476,14 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         playerView.on(PlayerEvent.PictureInPictureEnter::class) {
             onBmpPictureInPictureEnter(it.toJson())
         }
+        playerView.on(PlayerEvent.PictureInPictureEntered::class) {
+            onBmpPictureInPictureEntered(it.toJson())
+        }
         playerView.on(PlayerEvent.PictureInPictureExit::class) {
             onBmpPictureInPictureExit(it.toJson())
+        }
+        playerView.on(PlayerEvent.PictureInPictureExited::class) {
+            onBmpPictureInPictureExited(it.toJson())
         }
     }
 

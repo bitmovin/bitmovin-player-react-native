@@ -8,6 +8,9 @@
 - Update Bitmovin's native iOS SDK version to `3.111.1`
 - Android: Kotlin version to `2.2.20`
 
+### Added
+- Android: `PictureInPictureEntered` and `PictureInPictureExited` player events
+
 ## [1.17.0] - 2026-04-17
 
 ### Changed
