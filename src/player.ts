@@ -126,7 +126,9 @@ export class Player extends NativeInstance<PlayerConfig> {
         };
         let shouldLoad = true;
         try {
-          shouldLoad = callback(cloned);
+          const shouldLoadResult = callback(cloned);
+          shouldLoad =
+            typeof shouldLoadResult === 'boolean' ? shouldLoadResult : true;
         } catch {
           shouldLoad = true;
         }
