@@ -154,7 +154,7 @@ export default (spec: TestScope) => {
     });
 
     spec.describe(
-      `filtering ${name} ads scheduled ads via shouldLoadAdItem`,
+      `filtering scheduled ${name} ads via shouldLoadAdItem`,
       () => {
         spec.it('does not play preroll when filtered', async () => {
           const advertisingConfig: AdvertisingConfig = {
