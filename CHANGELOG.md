@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Add `DvrWindowExceededEvent` support: bridge the native `DvrWindowExceededEvent` (iOS) / `PlayerEvent.DvrWindowExceeded` (Android) to the React Native `onDvrWindowExceeded` prop on `PlayerView`
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.150.0+jason`

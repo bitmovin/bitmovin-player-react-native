@@ -237,6 +237,13 @@ export interface TimeShiftEvent extends Event {
 export type TimeShiftedEvent = Event;
 
 /**
+ * Emitted when the player is paused or buffering and the time-shift offset has been pushed out of
+ * the available DVR window, causing the player to jump back to the live edge.
+ * This event only applies to live streams with DVR.
+ */
+export type DvrWindowExceededEvent = Event;
+
+/**
  * Emitted when the player begins to stall and to buffer due to an empty buffer.
  */
 export type StallStartedEvent = Event;

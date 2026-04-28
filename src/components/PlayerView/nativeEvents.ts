@@ -43,6 +43,7 @@ import {
   SeekEvent,
   TimeShiftEvent,
   TimeShiftedEvent,
+  DvrWindowExceededEvent,
   StallStartedEvent,
   StallEndedEvent,
   SourceErrorEvent,
@@ -341,6 +342,13 @@ export type NativePlayerViewEvents = {
    * Only applies to live streams.
    */
   onBmpTimeShifted?: (event: { nativeEvent: TimeShiftedEvent }) => void;
+  /**
+   * Event emitted when the DVR window has been exceeded and the player jumps back to the live edge.
+   * Only applies to live streams with DVR.
+   */
+  onBmpDvrWindowExceeded?: (event: {
+    nativeEvent: DvrWindowExceededEvent;
+  }) => void;
   /**
    * Event emitted when the player begins to stall and to buffer due to an empty buffer.
    */

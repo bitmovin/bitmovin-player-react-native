@@ -61,6 +61,7 @@ public class RNPlayerView: ExpoView {
     let onBmpSeeked = EventDispatcher()
     let onBmpTimeShift = EventDispatcher()
     let onBmpTimeShifted = EventDispatcher()
+    let onBmpDvrWindowExceeded = EventDispatcher()
     let onBmpStallStarted = EventDispatcher()
     let onBmpStallEnded = EventDispatcher()
     let onBmpTimeChanged = EventDispatcher()
@@ -351,6 +352,10 @@ extension RNPlayerView: PlayerListener {
 
     public func onTimeShifted(_ event: TimeShiftedEvent, player: Player) {
         onBmpTimeShifted(event.eventPayload())
+    }
+
+    public func onDvrWindowExceeded(_ event: DvrWindowExceededEvent, player: Player) {
+        onBmpDvrWindowExceeded(event.eventPayload())
     }
 
     public func onStallStarted(_ event: StallStartedEvent, player: Player) {

@@ -61,6 +61,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private val onBmpSeeked by EventDispatcher()
     private val onBmpTimeShift by EventDispatcher()
     private val onBmpTimeShifted by EventDispatcher()
+    private val onBmpDvrWindowExceeded by EventDispatcher()
     private val onBmpStallStarted by EventDispatcher()
     private val onBmpStallEnded by EventDispatcher()
     private val onBmpTimeChanged by EventDispatcher()
@@ -493,6 +494,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         EventSubscription<PlayerEvent.Seeked> { onEvent(onBmpSeeked, it.toJson()) },
         EventSubscription<PlayerEvent.TimeShift> { onEvent(onBmpTimeShift, it.toJson()) },
         EventSubscription<PlayerEvent.TimeShifted> { onEvent(onBmpTimeShifted, it.toJson()) },
+        EventSubscription<PlayerEvent.DvrWindowExceeded> { onEvent(onBmpDvrWindowExceeded, it.toJson()) },
         EventSubscription<PlayerEvent.StallStarted> { onEvent(onBmpStallStarted, it.toJson()) },
         EventSubscription<PlayerEvent.StallEnded> { onEvent(onBmpStallEnded, it.toJson()) },
         EventSubscription<PlayerEvent.TimeChanged> { onEvent(onBmpTimeChanged, it.toJson()) },

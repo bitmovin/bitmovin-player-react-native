@@ -115,6 +115,7 @@ class RNPlayerViewManager : Module() {
                 "onBmpSeeked",
                 "onBmpTimeShift",
                 "onBmpTimeShifted",
+                "onBmpDvrWindowExceeded",
                 "onBmpStallStarted",
                 "onBmpStallEnded",
                 "onBmpTimeChanged",

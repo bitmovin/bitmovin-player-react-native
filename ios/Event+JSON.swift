@@ -496,6 +496,7 @@ extension ReadyEvent: DefaultJsonConvertibleEvent {}
 extension PlaybackFinishedEvent: DefaultJsonConvertibleEvent {}
 extension SeekedEvent: DefaultJsonConvertibleEvent {}
 extension TimeShiftedEvent: DefaultJsonConvertibleEvent {}
+extension DvrWindowExceededEvent: DefaultJsonConvertibleEvent {}
 extension StallStartedEvent: DefaultJsonConvertibleEvent {}
 extension StallEndedEvent: DefaultJsonConvertibleEvent {}
 extension CastAvailableEvent: DefaultJsonConvertibleEvent {}

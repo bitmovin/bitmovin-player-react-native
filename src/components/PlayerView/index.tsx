@@ -193,6 +193,7 @@ export function PlayerView({
       onBmpSeeked={proxy(props.onSeeked)}
       onBmpTimeShift={proxy(props.onTimeShift)}
       onBmpTimeShifted={proxy(props.onTimeShifted)}
+      onBmpDvrWindowExceeded={proxy(props.onDvrWindowExceeded)}
       onBmpStallStarted={proxy(props.onStallStarted)}
       onBmpStallEnded={proxy(props.onStallEnded)}
       onBmpSourceError={proxy(props.onSourceError)}
