@@ -1,7 +1,16 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
-import { ImaSettings } from '../advertising';
+import { AdItem, ImaSettings } from '../advertising';
 
 export type PlayerModuleEvents = {
+  onShouldLoadAdItem: ({
+    nativeId,
+    id,
+    adItem,
+  }: {
+    nativeId: string;
+    id: number;
+    adItem: AdItem;
+  }) => void;
   onImaBeforeInitialization: ({
     nativeId,
     id,
@@ -158,6 +167,11 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
    * Skip current ad for nativeId's player.
    */
   skipAd(nativeId: string): Promise<void>;
+
+  /**
+   * Applies the JS decision for an ad item load callback.
+   */
+  setShouldLoadAdItem(id: number, shouldLoad: boolean): Promise<void>;
 
   /**
    * Applies the JS-updated IMA settings for a before-initialization callback.
