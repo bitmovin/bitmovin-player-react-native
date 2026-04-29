@@ -5,6 +5,7 @@
 ### Added
 
 - `AdvertisingConfig.shouldLoadAdItem` callback to filter ad items before they are loaded
+- iOS: `PictureInPictureConfig.shouldExitOnForeground` to automatically exit PiP mode when the app transitions to the foreground
 
 ### Changed
 
