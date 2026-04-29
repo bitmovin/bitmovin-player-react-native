@@ -47,12 +47,6 @@ public class RNPlayerView: ExpoView {
     private var shouldExitPictureInPictureOnForeground = false
     private var foregroundObserver: NSObjectProtocol?
 
-    deinit {
-        if let foregroundObserver {
-            NotificationCenter.default.removeObserver(foregroundObserver)
-        }
-    }
-
     let onBmpEvent = EventDispatcher()
     let onBmpPlayerActive = EventDispatcher()
     let onBmpPlayerError = EventDispatcher()
@@ -125,6 +119,12 @@ public class RNPlayerView: ExpoView {
     required init(appContext: AppContext? = nil) {
         super.init(appContext: appContext)
         clipsToBounds = true
+    }
+
+    deinit {
+        if let foregroundObserver {
+            NotificationCenter.default.removeObserver(foregroundObserver)
+        }
     }
 
     override public func layoutSubviews() {
