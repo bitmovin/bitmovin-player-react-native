@@ -59,7 +59,7 @@
   "devDependencies": {
     "@babel/core": "^7.28.0",
     "@expo/cli": "^0.24.24",
-    "@expo/config-types": "^53.0.5",
+    "@expo/config-types": "^54.0.10",
     "@types/react": "~19.1.10",
     "dotenv": "^17.2.0",
     "eslint": "^8.57.0",
@@ -87,6 +87,7 @@
     "doctor": {
       "reactNativeDirectoryCheck": {
         "exclude": [
+          "bitmovin-player-react-native",
           "@react-native-tvos/config-tv",
           "react-native-system-navigation-bar"
         ]
