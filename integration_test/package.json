@@ -34,12 +34,11 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
-    "@expo/config-types": "^53.0.5",
     "@react-native-tvos/config-tv": "^0.1.1",
     "cavy": "^4.0.2",
-    "expo": "~54.0.33",
+    "expo": "~54.0.34",
     "expo-build-properties": "~1.0.10",
-    "expo-crypto": "~15.0.8",
+    "expo-crypto": "~15.0.9",
     "expo-status-bar": "~3.0.9",
     "expo-system-ui": "~6.0.9",
     "react": "19.1.0",
@@ -48,6 +47,7 @@
     "react-native-uuid": "^2.0.1"
   },
   "devDependencies": {
+    "@expo/config-types": "^54.0.10",
     "@babel/core": "^7.28.0",
     "@expo/cli": "^0.24.24",
     "@react-native-community/cli": "latest",
@@ -73,6 +73,14 @@
       "exclude": [
         "react-native"
       ]
+    },
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "bitmovin-player-react-native",
+          "@react-native-tvos/config-tv"
+        ]
+      }
     },
     "autolinking": {
       "nativeModulesDir": ".."
