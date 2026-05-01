@@ -614,6 +614,7 @@ fun AdConfig.toJson(): Map<String, Any> = mapOf<String, Any?>(
 fun AdItem.toJson(): Map<String, Any> = mapOf(
     "position" to position,
     "sources" to sources.toList().map { it.toJson() },
+    "preloadOffset" to preloadOffset,
 )
 
 fun AdSource.toJson(): Map<String, Any> = mapOf(
