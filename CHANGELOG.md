@@ -2,11 +2,17 @@
 
 ## [Unreleased]
 
+### Added
+
+- `AdvertisingConfig.shouldLoadAdItem` callback to filter ad items before they are loaded
+- iOS: `PictureInPictureConfig.shouldExitOnForeground` to automatically exit PiP mode when the app transitions to the foreground
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to `3.151.0+jason`
-- Update Bitmovin's native iOS SDK version to `3.111.1`
+- Update Bitmovin's native iOS SDK version to `3.112.0`
 - Android: Kotlin version to `2.2.20`
+- Update Expo SDK version to `54.0.34`
 
 ## [1.17.0] - 2026-04-17
 
