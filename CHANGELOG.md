@@ -14,6 +14,9 @@
 - Android: Kotlin version to `2.2.20`
 - Update Expo SDK version to `54.0.34`
 
+### Added
+- Android: `PictureInPictureEntered` and `PictureInPictureExited` player events
+
 ## [1.17.0] - 2026-04-17
 
 ### Changed
