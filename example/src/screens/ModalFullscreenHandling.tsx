@@ -40,6 +40,7 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
+  Switch,
   Text,
   useWindowDimensions,
   View,
@@ -63,15 +64,18 @@ import { RootStackParamsList } from '../App';
 // ---------------------------------------------------------------------------
 // Inlined here so this file is self-contained and can be copied to any project.
 //
-// enterFullscreen: unlocks orientation (follows device), hides system UI, shows Modal.
-// exitFullscreen:  unlocks orientation, restores system UI, hides Modal.
+// enterFullscreen: hides system UI, locks/unlocks orientation based on
+//                 landscapeOnEnter, shows Modal.
+// exitFullscreen:  restores system UI, unlocks orientation, hides Modal.
 //
-// Both enter and exit call unlockAsync() (not lockAsync) so fullscreen respects
-// whatever orientation the device is currently held in, and the user can freely
-// rotate while in fullscreen.
+// `landscapeOnEnter` is a mutable property updated from React state — it must
+// not be set via the constructor because the handler instance is stable (useRef)
+// and React state changes happen after creation.
 
 class SampleFullscreenHandler implements FullscreenHandler {
   isFullscreenActive: boolean = false;
+  landscapeOnEnter: boolean = false;
+  fullscreenOnRotate: boolean = false;
   private onFullscreen: (isFullscreen: boolean) => void;
 
   constructor(onFullscreen: (isFullscreen: boolean) => void) {
@@ -85,8 +89,13 @@ class SampleFullscreenHandler implements FullscreenHandler {
     } else {
       StatusBar.setHidden(true);
     }
-    // Unlock so fullscreen follows whatever direction the device is held.
-    void ScreenOrientation.unlockAsync();
+    if (this.landscapeOnEnter) {
+      void ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.LANDSCAPE
+      );
+    } else {
+      void ScreenOrientation.unlockAsync();
+    }
     this.onFullscreen(true);
   }
 
@@ -97,7 +106,20 @@ class SampleFullscreenHandler implements FullscreenHandler {
     } else {
       StatusBar.setHidden(false);
     }
-    void ScreenOrientation.unlockAsync();
+    if (this.landscapeOnEnter || this.fullscreenOnRotate) {
+      // Snap back to portrait. When fullscreenOnRotate is on we then
+      // immediately unlock so the orientation listener can detect the next
+      // landscape rotation (a persistent portrait lock would silence it).
+      void ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT
+      ).then(() => {
+        if (this.fullscreenOnRotate) {
+          void ScreenOrientation.unlockAsync();
+        }
+      });
+    } else {
+      void ScreenOrientation.unlockAsync();
+    }
     this.onFullscreen(false);
   }
 }
@@ -148,11 +170,44 @@ export default function ModalFullscreenHandling({ navigation }: Props) {
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
 
+  // ── Fullscreen options ─────────────────────────────────────────────────────
+  const [landscapeFullscreen, setLandscapeFullscreen] = useState(true);
+  const [fullscreenOnRotate, setFullscreenOnRotate] = useState(true);
+
   // useRef so the handler instance is stable across renders and never
   // recreated (which would cause the SDK to lose its reference to it).
   const fullscreenHandler = useRef(
     new SampleFullscreenHandler(setIsFullscreen)
   ).current;
+
+  // Keep the handler's mutable flags in sync with the switch states.
+  useEffect(() => {
+    fullscreenHandler.landscapeOnEnter = landscapeFullscreen;
+  }, [landscapeFullscreen, fullscreenHandler]);
+
+  useEffect(() => {
+    fullscreenHandler.fullscreenOnRotate = fullscreenOnRotate;
+  }, [fullscreenOnRotate, fullscreenHandler]);
+
+  // Auto-enter/exit fullscreen when the device is rotated.
+  useEffect(() => {
+    if (!fullscreenOnRotate) return;
+
+    const sub = ScreenOrientation.addOrientationChangeListener((event) => {
+      const { orientation } = event.orientationInfo;
+      const rotatedToLandscape =
+        orientation === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
+        orientation === ScreenOrientation.Orientation.LANDSCAPE_RIGHT;
+
+      if (rotatedToLandscape && !fullscreenHandler.isFullscreenActive) {
+        fullscreenHandler.enterFullscreen();
+      } else if (!rotatedToLandscape && fullscreenHandler.isFullscreenActive) {
+        fullscreenHandler.exitFullscreen();
+      }
+    });
+
+    return () => ScreenOrientation.removeOrientationChangeListener(sub);
+  }, [fullscreenOnRotate, fullscreenHandler]);
 
   const onError = useCallback(() => {
     // On error, exit fullscreen to avoid a blank fullscreen Modal.
@@ -255,6 +310,31 @@ export default function ModalFullscreenHandling({ navigation }: Props) {
               When you exit fullscreen (via the player button or the Android
               back button), the Modal hides and the player reappears inline,
               continuing from where it left off.
+            </Text>
+
+            <View style={styles.divider} />
+
+            <View style={styles.switchRow}>
+              <Text style={styles.switchLabel}>Landscape fullscreen</Text>
+              <Switch
+                value={landscapeFullscreen}
+                onValueChange={setLandscapeFullscreen}
+              />
+            </View>
+            <Text style={styles.switchDescription}>
+              Lock to landscape when entering fullscreen.
+            </Text>
+
+            <View style={styles.switchRow}>
+              <Text style={styles.switchLabel}>Fullscreen on rotate</Text>
+              <Switch
+                value={fullscreenOnRotate}
+                onValueChange={setFullscreenOnRotate}
+              />
+            </View>
+            <Text style={styles.switchDescription}>
+              Automatically enter fullscreen when rotating to landscape, and
+              exit when rotating back to portrait.
             </Text>
           </View>
         </ScrollView>
@@ -362,5 +442,24 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 14,
     lineHeight: 22,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#1e1e1e',
+    marginVertical: 8,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  switchLabel: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  switchDescription: {
+    color: '#888',
+    fontSize: 12,
+    lineHeight: 18,
   },
 });
