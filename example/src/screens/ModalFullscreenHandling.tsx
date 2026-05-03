@@ -56,6 +56,7 @@ import type {
   SourceConfig,
 } from 'bitmovin-player-react-native';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import * as SystemUI from 'expo-system-ui';
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 import { RootStackParamsList } from '../App';
 
@@ -89,13 +90,7 @@ class SampleFullscreenHandler implements FullscreenHandler {
     } else {
       StatusBar.setHidden(true);
     }
-    if (this.landscapeOnEnter) {
-      void ScreenOrientation.lockAsync(
-        ScreenOrientation.OrientationLock.LANDSCAPE
-      );
-    } else {
-      void ScreenOrientation.unlockAsync();
-    }
+    // Orientation is handled by the React component via useEffect.
     this.onFullscreen(true);
   }
 
@@ -106,20 +101,8 @@ class SampleFullscreenHandler implements FullscreenHandler {
     } else {
       StatusBar.setHidden(false);
     }
-    if (this.landscapeOnEnter || this.fullscreenOnRotate) {
-      // Snap back to portrait. When fullscreenOnRotate is on we then
-      // immediately unlock so the orientation listener can detect the next
-      // landscape rotation (a persistent portrait lock would silence it).
-      void ScreenOrientation.lockAsync(
-        ScreenOrientation.OrientationLock.PORTRAIT
-      ).then(() => {
-        if (this.fullscreenOnRotate) {
-          void ScreenOrientation.unlockAsync();
-        }
-      });
-    } else {
-      void ScreenOrientation.unlockAsync();
-    }
+    // Orientation is handled by the React component via useEffect so it runs
+    // reliably inside the React lifecycle on both iOS and Android.
     this.onFullscreen(false);
   }
 }
@@ -188,6 +171,37 @@ export default function ModalFullscreenHandling({ navigation }: Props) {
   useEffect(() => {
     fullscreenHandler.fullscreenOnRotate = fullscreenOnRotate;
   }, [fullscreenOnRotate, fullscreenHandler]);
+
+  // Handle orientation when fullscreen state changes.
+  // Outside fullscreen, orientation is free — the device follows its physical
+  // rotation. Inside fullscreen, lock to landscape if landscapeFullscreen is
+  // on, otherwise stay free. The fullscreenOnRotate listener handles the
+  // landscape-portrait transitions automatically.
+  useEffect(() => {
+    if (isFullscreen && landscapeFullscreen) {
+      void ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.LANDSCAPE
+      );
+    } else {
+      void ScreenOrientation.unlockAsync();
+    }
+  }, [isFullscreen, landscapeFullscreen]);
+
+  // Unlock orientation when leaving the screen so it doesn't leak to others.
+  useEffect(() => {
+    return () => {
+      void ScreenOrientation.unlockAsync();
+    };
+  }, []);
+
+  // Set the iOS root window background to dark so the rotation transition
+  // doesn't show a white flash behind the Modal.
+  useEffect(() => {
+    void SystemUI.setBackgroundColorAsync('#0a0a0a');
+    return () => {
+      void SystemUI.setBackgroundColorAsync(null);
+    };
+  }, []);
 
   // Auto-enter/exit fullscreen when the device is rotated.
   useEffect(() => {
@@ -374,6 +388,7 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    backgroundColor: '#0a0a0a',
   },
   header: {
     flexDirection: 'row',
@@ -401,6 +416,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 48,
+    backgroundColor: '#0a0a0a',
   },
 
   // Inline player: fixed 16:9 ratio, sits in the scroll flow like any element.
