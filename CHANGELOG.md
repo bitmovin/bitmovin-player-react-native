@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Android: `AdvertisingConfig.shouldPlayAdBreak` callback to decide at runtime whether a scheduled ad break should play
+
 ## [1.18.0] - 2026-05-01
 
 ### Added
