@@ -125,6 +125,11 @@ export interface AdvertisingConfig {
    * - `true` → the ad break will start playback.
    * - `false` → the ad break will be skipped.
    *
+   * @remarks
+   * If the callback does not return within the platform's internal timeout,
+   * the ad break will play.
+   * The callback must be synchronous.
+   *
    * @platform Android
    */
   shouldPlayAdBreak?: (adBreak: AdBreak) => boolean;
