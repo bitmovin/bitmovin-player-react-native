@@ -191,6 +191,49 @@ export default (spec: TestScope) => {
         });
       }
     );
+
+    spec.describe(
+      `filtering scheduled ${name} ad breaks via shouldPlayAdBreak`,
+      () => {
+        spec.it('skips ad break when callback returns false', async () => {
+          if (currentPlatform !== 'android') {
+            return;
+          }
+
+          let callbackInvocationCount = 0;
+          const advertisingConfig: AdvertisingConfig = {
+            schedule: adItems,
+            shouldPlayAdBreak: () => {
+              callbackInvocationCount += 1;
+              return false;
+            },
+          };
+          const playbackConfig: PlaybackConfig = {
+            isAutoplayEnabled: true,
+          };
+
+          await startPlayerTest(
+            { playbackConfig, advertisingConfig },
+            async () => {
+              await callPlayerAndExpectEvent(
+                (player) => {
+                  player.load(Sources.artOfMotionHls);
+                },
+                FilteredEvent<TimeChangedEvent>(
+                  EventType.TimeChanged,
+                  (event) => event.currentTime > 0.25
+                )
+              );
+
+              expect(callbackInvocationCount).toBeGreaterThan(0);
+              await callPlayer(async (player) => {
+                expect(await player.isAd()).toBeFalsy();
+              });
+            }
+          );
+        });
+      }
+    );
   }
 
   const adScenarios: AdScenario[] = [
