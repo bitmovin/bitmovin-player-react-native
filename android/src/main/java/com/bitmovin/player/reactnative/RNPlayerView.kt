@@ -639,10 +639,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
     }
 
-    // React Native doesn't properly handle PiP layout transitions.
-    // During PiP mode, we temporarily move the view higher up the hierarchy to the ReactRoot.
-    // This prevents fragmented rendering when the user resizes the PiP window.
-    // On PiP close, we re-arrange the view hierarchy to its original state
+    // On old RN architecture, React Native doesn't properly handle PiP layout transitions.
+    // During PiP mode, we attach a global layout listener to force the player view to fill
+    // the screen correctly. The view hierarchy is NOT moved — moving it would trigger
+    // dispatchDetachedFromWindow on the SurfaceView inside PlayerView, causing surfaceDestroyed
+    // and a black screen. On new arch (Fabric), ReactViewGroup is absent from the hierarchy so
+    // reparent() exits early and has no effect there either.
     private inner class RNPlayerViewReparentHelper {
         private inner class ViewHolder(
             val reactRoot: ReactRootView,
@@ -686,28 +688,18 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 playerParentIndex = playerParentParent.indexOfChild(playerParent),
             )
 
-            playerParentParent.removeView(playerParent)
-            reactRoot.addView(playerParent)
-
-            // We attach the global layout listener to a playerParent,
-            // but inside the callback we are measuring each root.
-            // This is because the root is the first view layer that gets transformed in PiP mode.
-            // Measuring and layouting this should cascade down the viewHierarchy.
+            // Do NOT call removeView/addView: that triggers dispatchDetachedFromWindow on every
+            // descendant of playerParent, which causes the SurfaceView inside PlayerView to fire
+            // surfaceDestroyed. The video decoder then loses its output surface, producing a black
+            // screen and a stall/loading state until the new surface is reconnected. Audio is
+            // unaffected because it has no surface dependency.
+            // The globalLayoutListener below still forces RNPlayerView to be measured at ReactRoot
+            // dimensions, which mitigates layout imperfections during PiP without destroying the surface.
             playerParent.viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
         }
 
         fun tryRestore() {
-            val viewHolder = viewHolder ?: return
-            viewHolder.reactRoot.removeView(viewHolder.playerParent)
-            try {
-                viewHolder.playerParentParent.addView(viewHolder.playerParent, viewHolder.playerParentIndex)
-            } catch (_: Exception) {
-                // In case the view hierarchy layout has changed an exception will be thrown while adding the view
-                // This should never happen, but we can not be sure what react-native does under the hood.
-                // As a fallback add the view without index (will be added as last view)
-                viewHolder.playerParentParent.addView(viewHolder.playerParent)
-            }
-
+            if (viewHolder == null) return
             dispose()
         }
 
