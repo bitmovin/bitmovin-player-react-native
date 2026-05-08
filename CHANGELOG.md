@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.19.0]
+
+### Added
+
+- Android: `AdvertisingConfig.shouldPlayAdBreak` callback to decide at runtime whether a scheduled ad break should play
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.113.0`
+- Update Bitmovin's native Android SDK version to `3.152.0+jason`
+
 ## [1.18.0] - 2026-05-01
 
 ### Added
