@@ -452,6 +452,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
         // We must "delay" the onPictureInPictureModeChanged callback via posting a runnable.
         // This will force the callback to be called at the end of the current pending UI transactions.
+        // This is necessary as the `PlayerView.onPictureInPictureModeChanged` call will immediately send a
+        // PiP-transition ended event.
         post {
             playerView.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         }
