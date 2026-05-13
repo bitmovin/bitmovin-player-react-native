@@ -115,6 +115,14 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private val onBmpPictureInPictureExited by EventDispatcher()
 
     private var pictureInPictureConfig: PictureInPictureConfig = PictureInPictureConfig()
+    // Set to true when the activity enters PiP. Cleared by the first lifecycle
+    // callback that fires when PiP exits: onResume = expand, onStop/onDestroy = close.
+    private var wasPictureInPicture = false
+    // Captured SDK event payload; set when the SDK event arrives before the lifecycle callback.
+    private var capturedPictureInPictureExitEventData: MutableMap<String, Any>? = null
+    // Set when the lifecycle callback fires before the SDK event (close case).
+    // The SDK event listener will use this to emit the event once the SDK payload arrives.
+    private var pendingPictureInPictureExit = false
 
     private var playerInMediaSessionService: Player? = null
 
@@ -130,6 +138,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
 
         override fun onResume(owner: LifecycleOwner) {
+            consumePendingPictureInPictureExit()
             playerView?.onResume()
         }
 
@@ -138,11 +147,13 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
 
         override fun onStop(owner: LifecycleOwner) {
+            consumePendingPictureInPictureExit()
             removePlayerForBackgroundPlayback()
             playerView?.onStop()
         }
 
         override fun onDestroy(owner: LifecycleOwner) {
+            consumePendingPictureInPictureExit()
             dispose()
         }
 
@@ -199,6 +210,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             view.onDestroy()
         }
         playerView = null
+        wasPictureInPicture = false
+        capturedPictureInPictureExitEventData = null
+        pendingPictureInPictureExit = false
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             pictureInPictureHandler?.dispose()
             pictureInPictureHandler = null
@@ -435,6 +449,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         val playerView = playerView ?: return
 
         if (isInPictureInPictureMode) {
+            wasPictureInPicture = true
             if (!playerView.isPictureInPicture) {
                 playerView.enterPictureInPicture()
             }
@@ -456,6 +471,21 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         // PiP-transition ended event.
         post {
             playerView.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        }
+    }
+
+    private fun consumePendingPictureInPictureExit() {
+        if (!wasPictureInPicture) return
+        wasPictureInPicture = false
+        val eventData = capturedPictureInPictureExitEventData
+        capturedPictureInPictureExitEventData = null
+        if (eventData != null) {
+            // SDK event already arrived; emit it.
+            onBmpPictureInPictureExit(eventData)
+        } else {
+            // SDK event hasn't arrived yet (close case); mark pending so the SDK
+            // event listener emits with its full payload (including timestamp) once it fires.
+            pendingPictureInPictureExit = true
         }
     }
 
@@ -482,7 +512,21 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             onBmpPictureInPictureEntered(it.toJson())
         }
         playerView.on(PlayerEvent.PictureInPictureExit::class) {
-            onBmpPictureInPictureExit(it.toJson())
+            val eventData = it.toJson().toMutableMap()
+            if (pendingPictureInPictureExit) {
+                // Lifecycle already fired (close case); emit now using the SDK's full payload.
+                pendingPictureInPictureExit = false
+                onBmpPictureInPictureExit(eventData)
+                return@on
+            }
+            if (wasPictureInPicture) {
+                // SDK event arrived before the lifecycle callback; capture it for the
+                // lifecycle handler (onResume = expand, onStop/onDestroy = close).
+                capturedPictureInPictureExitEventData = eventData
+            } else {
+                // Programmatic exit (e.g. isPictureInPictureRequested = false).
+                onBmpPictureInPictureExit(eventData)
+            }
         }
         playerView.on(PlayerEvent.PictureInPictureExited::class) {
             onBmpPictureInPictureExited(it.toJson())
