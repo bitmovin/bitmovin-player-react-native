@@ -247,8 +247,6 @@ export type PlayerViewEvents = {
   onPictureInPictureEnter?: (event: PictureInPictureEnterEvent) => void;
   /**
    * Event emitted when the player entered Picture in Picture mode.
-   *
-   * @platform iOS
    */
   onPictureInPictureEntered?: (event: PictureInPictureEnteredEvent) => void;
   /**
@@ -257,8 +255,6 @@ export type PlayerViewEvents = {
   onPictureInPictureExit?: (event: PictureInPictureExitEvent) => void;
   /**
    * Event emitted when the player exited Picture in Picture mode.
-   *
-   * @platform iOS
    */
   onPictureInPictureExited?: (event: PictureInPictureExitedEvent) => void;
   /**
