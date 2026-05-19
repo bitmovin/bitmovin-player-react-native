@@ -6,6 +6,10 @@
 
 - iOS: Expo config plugin no longer drops `NSLocalNetworkUsageDescription` from `Info.plist` when `features.googleCastSDK.ios` is configured as an object without an explicit `localNetworkUsageDescription`. The default description is now applied as a fallback, restoring local-network access required for Cast device discovery
 
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.113.1`
+
 ## [1.19.0] - 2026-05-08
 
 ### Added
