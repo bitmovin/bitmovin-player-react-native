@@ -13,6 +13,47 @@ import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 import { CueEnterEvent, CueExitEvent } from 'bitmovin-player-react-native';
 
+function expectCueVtt(
+  vtt: CueEnterEvent['vtt'] | CueExitEvent['vtt'],
+  eventName: string
+) {
+  expect(vtt, `${eventName} event should have vtt`).toBeDefined();
+  if (!vtt) {
+    return;
+  }
+
+  expect(
+    typeof vtt.line === 'number' || vtt.line === 'auto',
+    `${eventName} vtt line should be a number or auto`
+  ).toBe(true);
+  expect(typeof vtt.snapToLines, `${eventName} snapToLines type`).toBe(
+    'boolean'
+  );
+  expect(
+    ['start', 'center', 'end'].includes(vtt.lineAlign ?? ''),
+    `${eventName} lineAlign value`
+  ).toBe(true);
+  expect(
+    typeof vtt.position === 'number' || vtt.position === 'auto',
+    `${eventName} vtt position should be a number or auto`
+  ).toBe(true);
+  expect(
+    ['line-left', 'center', 'line-right', 'auto'].includes(
+      vtt.positionAlign ?? ''
+    ),
+    `${eventName} positionAlign value`
+  ).toBe(true);
+  expect(typeof vtt.size, `${eventName} size type`).toBe('number');
+  expect(
+    ['start', 'center', 'end', 'left', 'right'].includes(vtt.align ?? ''),
+    `${eventName} align value`
+  ).toBe(true);
+  expect(
+    ['', 'lr', 'rl'].includes(vtt.vertical ?? ''),
+    `${eventName} vertical value`
+  ).toBe(true);
+}
+
 export default (spec: TestScope) => {
   spec.describe('playing captions', () => {
     spec.it('emits CueEnter and CueExit events', async () => {
@@ -153,6 +194,7 @@ export default (spec: TestScope) => {
         expect(typeof cueEnterEvent.text, 'text should be a string').toBe(
           'string'
         );
+        expectCueVtt(cueEnterEvent.vtt, 'CueEnter');
       });
     });
 
@@ -214,6 +256,7 @@ export default (spec: TestScope) => {
         expect(typeof cueExitEvent.text, 'text should be a string').toBe(
           'string'
         );
+        expectCueVtt(cueExitEvent.vtt, 'CueExit');
       });
     });
 

@@ -2,6 +2,7 @@ package com.bitmovin.player.reactnative.converter
 
 import android.util.Base64
 import android.util.Log
+import android.text.Layout.Alignment
 import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
@@ -41,6 +42,7 @@ import com.bitmovin.player.api.media.MediaTrackRole
 import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.audio.quality.AudioQuality
+import com.bitmovin.player.api.media.subtitle.Cue
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
@@ -512,6 +514,9 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["end"] = end
             baseMap["text"] = text
             baseMap["image"] = image?.toBase64DataUri()
+            cue.html?.let { baseMap["html"] = it }
+            val vtt = cue.toVttJson()
+            if (vtt.isNotEmpty()) baseMap["vtt"] = vtt
         }
 
         is PlayerEvent.CueExit -> {
@@ -519,6 +524,9 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["end"] = end
             baseMap["text"] = text
             baseMap["image"] = image?.toBase64DataUri()
+            cue.html?.let { baseMap["html"] = it }
+            val vtt = cue.toVttJson()
+            if (vtt.isNotEmpty()) baseMap["vtt"] = vtt
         }
 
         is PlayerEvent.Metadata -> {
@@ -1091,3 +1099,57 @@ fun ScteMessage.toJson(): Map<String, Any> = mapOf(
     "key" to key,
     "value" to value
 ).filterNotNullValues()
+
+private fun Cue.toVttJson(): Map<String, Any> {
+    return mapOf(
+        "vertical" to verticalType.toVttVerticalJson(),
+        "line" to line.toVttLineJson(lineType),
+        "lineAlign" to lineAnchor.toVttLineAlignJson(lineType),
+        "snapToLines" to (lineType == Cue.LineType.LineTypeNumber),
+        "size" to if (size != Cue.DIMEN_UNSET) size.toPercent() else 100.0,
+        "align" to textAlignment.toVttAlignJson(),
+        "position" to fractionalPosition.toVttPositionJson(),
+        "positionAlign" to positionAnchor.toVttPositionAlignJson()
+    )
+}
+
+private fun Float.toVttLineJson(lineType: Cue.LineType): Any = when {
+    this == Cue.DIMEN_UNSET -> "auto"
+    lineType == Cue.LineType.LineTypeNumber -> toDouble()
+    else -> toPercent()
+}
+
+private fun Float.toVttPositionJson(): Any =
+    if (this != Cue.DIMEN_UNSET) toPercent() else "auto"
+
+private fun Float.toPercent(): Double = (this * 100).toDouble()
+
+private fun Cue.AnchorType.toVttLineAlignJson(lineType: Cue.LineType): String {
+    if (lineType != Cue.LineType.LineTypeFraction) {
+        return "start"
+    }
+    return when (this) {
+        Cue.AnchorType.AnchorTypeMiddle -> "center"
+        Cue.AnchorType.AnchorTypeEnd -> "end"
+        else -> "start"
+    }
+}
+
+private fun Cue.AnchorType.toVttPositionAlignJson(): String = when (this) {
+    Cue.AnchorType.AnchorTypeStart -> "line-left"
+    Cue.AnchorType.AnchorTypeMiddle -> "center"
+    Cue.AnchorType.AnchorTypeEnd -> "line-right"
+    else -> "auto"
+}
+
+private fun Cue.VerticalType.toVttVerticalJson(): String = when (this) {
+    Cue.VerticalType.VerticalTypeLeftToRight -> "lr"
+    Cue.VerticalType.VerticalTypeRightToLeft -> "rl"
+    else -> ""
+}
+
+private fun Alignment?.toVttAlignJson(): String = when (this) {
+    Alignment.ALIGN_NORMAL -> "start"
+    Alignment.ALIGN_OPPOSITE -> "end"
+    else -> "center"
+}

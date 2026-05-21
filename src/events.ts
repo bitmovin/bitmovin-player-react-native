@@ -747,6 +747,66 @@ export interface PlaybackSpeedChangedEvent extends Event {
 }
 
 /**
+ * VTT cue geometry and positioning metadata.
+ */
+export interface SubtitleCueVtt {
+  /**
+   * Vertical position of the cue box.
+   * The value is `'auto'` when no explicit line position is set.
+   * - When {@link snapToLines} is `false`, this is a percentage (0–100) relative to the viewport.
+   * - When {@link snapToLines} is `true`, this is an integer line number.
+   */
+  line?: number | 'auto';
+  /**
+   * Whether {@link line} is interpreted as a line number (`true`) or a percentage (`false`).
+   */
+  snapToLines?: boolean;
+  /**
+   * Alignment of the cue box at the line position.
+   */
+  lineAlign?: 'start' | 'center' | 'end';
+  /**
+   * Horizontal position of the cue box as a percentage (0–100) relative to the viewport.
+   * The value is `'auto'` when no explicit position is set.
+   */
+  position?: number | 'auto';
+  /**
+   * Alignment of the cue box at the horizontal position.
+   */
+  positionAlign?: 'line-left' | 'center' | 'line-right' | 'auto';
+  /**
+   * Size of the cue box as a percentage (0–100) of the viewport dimension in the cue writing direction.
+   * For horizontal cues this is relative to viewport width; for vertical cues this is relative to viewport height.
+   */
+  size?: number;
+  /**
+   * Alignment of the cue text within the cue box.
+   */
+  align?: 'start' | 'center' | 'end' | 'left' | 'right';
+  /**
+   * Writing direction of the cue text.
+   * An empty string means horizontal (default), `'lr'` is vertical left-to-right, `'rl'` is vertical right-to-left.
+   */
+  vertical?: '' | 'lr' | 'rl';
+}
+
+/**
+ * CEA-608 grid position for closed captions.
+ *
+ * @platform iOS, tvOS
+ */
+export interface Cea608Position {
+  /**
+   * Row index (0–14).
+   */
+  row: number;
+  /**
+   * Column index (0–31).
+   */
+  column: number;
+}
+
+/**
  * Emitted when a subtitle entry transitions into the active status.
  */
 export interface CueEnterEvent extends Event {
@@ -766,6 +826,27 @@ export interface CueEnterEvent extends Event {
    * Data URI for image data of this subtitle.
    */
   image?: string;
+  /**
+   * HTML representation of the cue text, if available.
+   */
+  html?: string;
+  /**
+   * VTT cue geometry and positioning metadata.
+   * Present when the subtitle track provides positioning data.
+   */
+  vtt?: SubtitleCueVtt;
+  /**
+   * CEA-608 grid position for closed captions.
+   *
+   * @platform iOS, tvOS
+   */
+  cea608Position?: Cea608Position;
+  /**
+   * VTT region identifier for this cue.
+   *
+   * @platform iOS, tvOS
+   */
+  region?: string;
 }
 
 /**
@@ -788,6 +869,27 @@ export interface CueExitEvent extends Event {
    * Data URI for image data of this subtitle.
    */
   image?: string;
+  /**
+   * HTML representation of the cue text, if available.
+   */
+  html?: string;
+  /**
+   * VTT cue geometry and positioning metadata.
+   * Present when the subtitle track provides positioning data.
+   */
+  vtt?: SubtitleCueVtt;
+  /**
+   * CEA-608 grid position for closed captions.
+   *
+   * @platform iOS, tvOS
+   */
+  cea608Position?: Cea608Position;
+  /**
+   * VTT region identifier for this cue.
+   *
+   * @platform iOS, tvOS
+   */
+  region?: string;
 }
 
 /**

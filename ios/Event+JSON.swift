@@ -421,6 +421,96 @@ extension PlaybackSpeedChangedEvent: JsonConvertible {
     }
 }
 
+private func vttLineJSONValue(_ line: VttLine) -> Any {
+    switch line.type {
+    case .value:
+        return line.value
+    default:
+        return "auto"
+    }
+}
+
+private func vttPositionJSONValue(_ position: VttPosition) -> Any {
+    switch position.type {
+    case .value:
+        return position.value
+    default:
+        return "auto"
+    }
+}
+
+private func vttVerticalJSONValue(_ vertical: VttVertical) -> String {
+    switch vertical {
+    case .leftToRight:
+        return "lr"
+    case .rightToLeft:
+        return "rl"
+    default:
+        return ""
+    }
+}
+
+private func vttLineAlignJSONValue(_ lineAlign: VttLineAlign) -> String {
+    switch lineAlign {
+    case .center:
+        return "center"
+    case .end:
+        return "end"
+    default:
+        return "start"
+    }
+}
+
+private func vttAlignJSONValue(_ align: VttAlign) -> String {
+    switch align {
+    case .center:
+        return "center"
+    case .end:
+        return "end"
+    case .left:
+        return "left"
+    case .right:
+        return "right"
+    default:
+        return "start"
+    }
+}
+
+private func vttPositionAlignJSONValue(_ positionAlign: VttPositionAlign) -> String {
+    switch positionAlign {
+    case .lineLeft:
+        return "line-left"
+    case .center:
+        return "center"
+    case .lineRight:
+        return "line-right"
+    default:
+        return "auto"
+    }
+}
+
+private func vttPropertiesJSON(_ vtt: VttProperties?) -> [AnyHashable: Any]? {
+    guard let vtt else {
+        return nil
+    }
+
+    return [
+        "vertical": vttVerticalJSONValue(vtt.vertical),
+        "line": vttLineJSONValue(vtt.line),
+        "lineAlign": vttLineAlignJSONValue(vtt.lineAlign),
+        "snapToLines": vtt.snapToLines,
+        "size": vtt.size,
+        "align": vttAlignJSONValue(vtt.align),
+        "position": vttPositionJSONValue(vtt.position),
+        "positionAlign": vttPositionAlignJSONValue(vtt.positionAlign),
+    ]
+}
+
+private func cea608PositionJSON(_ position: CuePosition?) -> [AnyHashable: Any]? {
+    guard let position else { return nil }
+    return ["row": position.row, "column": position.column]
+}
+
 extension CueEnterEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
         toEventJSON {
@@ -431,6 +521,18 @@ extension CueEnterEvent: JsonConvertible {
             ]
             if let imagePngData = image?.pngData() {
                 json["image"] = "data:image/png;base64,\(imagePngData.base64EncodedString())"
+            }
+            if let html {
+                json["html"] = html
+            }
+            if let region {
+                json["region"] = region
+            }
+            if let vttJSON = vttPropertiesJSON(vtt) {
+                json["vtt"] = vttJSON
+            }
+            if let posJSON = cea608PositionJSON(position) {
+                json["cea608Position"] = posJSON
             }
             return json
         }
@@ -447,6 +549,18 @@ extension CueExitEvent: JsonConvertible {
             ]
             if let imagePngData = image?.pngData() {
                 json["image"] = "data:image/png;base64,\(imagePngData.base64EncodedString())"
+            }
+            if let html {
+                json["html"] = html
+            }
+            if let region {
+                json["region"] = region
+            }
+            if let vttJSON = vttPropertiesJSON(vtt) {
+                json["vtt"] = vttJSON
+            }
+            if let posJSON = cea608PositionJSON(position) {
+                json["cea608Position"] = posJSON
             }
             return json
         }
