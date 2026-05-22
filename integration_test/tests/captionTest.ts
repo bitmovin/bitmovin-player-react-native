@@ -13,11 +13,10 @@ import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 import { CueEnterEvent, CueExitEvent } from 'bitmovin-player-react-native';
 
-function expectCueVtt(
+function expectCueVttIfPresent(
   vtt: CueEnterEvent['vtt'] | CueExitEvent['vtt'],
   eventName: string
 ) {
-  expect(vtt, `${eventName} event should have vtt`).toBeDefined();
   if (!vtt) {
     return;
   }
@@ -52,6 +51,17 @@ function expectCueVtt(
     ['', 'lr', 'rl'].includes(vtt.vertical ?? ''),
     `${eventName} vertical value`
   ).toBe(true);
+}
+
+function expectCueRegionStyle(
+  event: CueEnterEvent | CueExitEvent,
+  eventName: string
+) {
+  if (event.regionStyle !== undefined) {
+    expect(typeof event.regionStyle, `${eventName} regionStyle type`).toBe(
+      'string'
+    );
+  }
 }
 
 export default (spec: TestScope) => {
@@ -194,7 +204,8 @@ export default (spec: TestScope) => {
         expect(typeof cueEnterEvent.text, 'text should be a string').toBe(
           'string'
         );
-        expectCueVtt(cueEnterEvent.vtt, 'CueEnter');
+        expectCueVttIfPresent(cueEnterEvent.vtt, 'CueEnter');
+        expectCueRegionStyle(cueEnterEvent, 'CueEnter');
       });
     });
 
@@ -256,7 +267,8 @@ export default (spec: TestScope) => {
         expect(typeof cueExitEvent.text, 'text should be a string').toBe(
           'string'
         );
-        expectCueVtt(cueExitEvent.vtt, 'CueExit');
+        expectCueVttIfPresent(cueExitEvent.vtt, 'CueExit');
+        expectCueRegionStyle(cueExitEvent, 'CueExit');
       });
     });
 

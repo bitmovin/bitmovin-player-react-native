@@ -847,6 +847,12 @@ export interface CueEnterEvent extends Event {
    * @platform iOS, tvOS
    */
   region?: string;
+  /**
+   * VTT region style for this cue.
+   *
+   * @platform iOS, tvOS
+   */
+  regionStyle?: string;
 }
 
 /**
@@ -890,6 +896,12 @@ export interface CueExitEvent extends Event {
    * @platform iOS, tvOS
    */
   region?: string;
+  /**
+   * VTT region style for this cue.
+   *
+   * @platform iOS, tvOS
+   */
+  regionStyle?: string;
 }
 
 /**

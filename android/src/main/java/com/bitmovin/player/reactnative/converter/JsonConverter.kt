@@ -515,8 +515,7 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["text"] = text
             baseMap["image"] = image?.toBase64DataUri()
             cue.html?.let { baseMap["html"] = it }
-            val vtt = cue.toVttJson()
-            if (vtt.isNotEmpty()) baseMap["vtt"] = vtt
+            cue.toVttJson()?.let { baseMap["vtt"] = it }
         }
 
         is PlayerEvent.CueExit -> {
@@ -525,8 +524,7 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["text"] = text
             baseMap["image"] = image?.toBase64DataUri()
             cue.html?.let { baseMap["html"] = it }
-            val vtt = cue.toVttJson()
-            if (vtt.isNotEmpty()) baseMap["vtt"] = vtt
+            cue.toVttJson()?.let { baseMap["vtt"] = it }
         }
 
         is PlayerEvent.Metadata -> {
@@ -1100,11 +1098,14 @@ fun ScteMessage.toJson(): Map<String, Any> = mapOf(
     "value" to value
 ).filterNotNullValues()
 
-private fun Cue.toVttJson(): Map<String, Any> {
+private fun Cue.toVttJson(): Map<String, Any>? {
+    if (!hasVttProperties()) {
+        return null
+    }
     return mapOf(
         "vertical" to verticalType.toVttVerticalJson(),
         "line" to line.toVttLineJson(lineType),
-        "lineAlign" to lineAnchor.toVttLineAlignJson(lineType),
+        "lineAlign" to lineAnchor.toVttLineAlignJson(),
         "snapToLines" to (lineType == Cue.LineType.LineTypeNumber),
         "size" to if (size != Cue.DIMEN_UNSET) size.toPercent() else 100.0,
         "align" to textAlignment.toVttAlignJson(),
@@ -1112,6 +1113,16 @@ private fun Cue.toVttJson(): Map<String, Any> {
         "positionAlign" to positionAnchor.toVttPositionAlignJson()
     )
 }
+
+private fun Cue.hasVttProperties(): Boolean =
+    verticalType != Cue.VerticalType.TypeUnset ||
+        line != Cue.DIMEN_UNSET ||
+        lineType != Cue.LineType.TypeUnset ||
+        lineAnchor != Cue.AnchorType.TypeUnset ||
+        size != Cue.DIMEN_UNSET ||
+        textAlignment != null ||
+        fractionalPosition != Cue.DIMEN_UNSET ||
+        positionAnchor != Cue.AnchorType.TypeUnset
 
 private fun Float.toVttLineJson(lineType: Cue.LineType): Any = when {
     this == Cue.DIMEN_UNSET -> "auto"
@@ -1124,15 +1135,10 @@ private fun Float.toVttPositionJson(): Any =
 
 private fun Float.toPercent(): Double = (this * 100).toDouble()
 
-private fun Cue.AnchorType.toVttLineAlignJson(lineType: Cue.LineType): String {
-    if (lineType != Cue.LineType.LineTypeFraction) {
-        return "start"
-    }
-    return when (this) {
-        Cue.AnchorType.AnchorTypeMiddle -> "center"
-        Cue.AnchorType.AnchorTypeEnd -> "end"
-        else -> "start"
-    }
+private fun Cue.AnchorType.toVttLineAlignJson(): String = when (this) {
+    Cue.AnchorType.AnchorTypeMiddle -> "center"
+    Cue.AnchorType.AnchorTypeEnd -> "end"
+    else -> "start"
 }
 
 private fun Cue.AnchorType.toVttPositionAlignJson(): String = when (this) {

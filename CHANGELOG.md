@@ -4,7 +4,9 @@
 
 ### Added
 
-- Android/iOS: `CueEnterEvent` and `CueExitEvent` now expose cue geometry via a unified `vtt` object (`line`, `snapToLines`, `lineAlign`, `position`, `positionAlign`, `size`, `align`, `vertical`), `html`, and iOS-specific `cea608Position` and `region` fields. `line` and `position` are `"auto"` when the native cue has no explicit value
+- `CueEnterEvent` and `CueExitEvent` now expose additional cue fields:
+  - cue geometry data via a unified `vtt` object (`line`, `snapToLines`, `lineAlign`, `position`, `positionAlign`, `size`, `align`, `vertical`). `line` and `position` are `"auto"` when the native cue has no explicit value
+  - cue `html` and iOS-specific `cea608Position`, `region`, and `regionStyle` fields
 
 ### Fixed
 

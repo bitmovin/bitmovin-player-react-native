@@ -539,6 +539,9 @@ extension CueEnterEvent: JsonConvertible {
             if let region {
                 json["region"] = region
             }
+            if let regionStyle {
+                json["regionStyle"] = regionStyle
+            }
             if let vtt {
                 json["vtt"] = vtt.json
             }
@@ -566,6 +569,9 @@ extension CueExitEvent: JsonConvertible {
             }
             if let region {
                 json["region"] = region
+            }
+            if let regionStyle {
+                json["regionStyle"] = regionStyle
             }
             if let vtt {
                 json["vtt"] = vtt.json
