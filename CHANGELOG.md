@@ -3,6 +3,7 @@
 ## [1.20.0]
 
 ### Added
+
 - Android: `PictureInPictureEntered` and `PictureInPictureExited` player events
   - Known Limitation: On Android <15 the `PictureInPictureEntered` and `PictureInPictureExited` events are called before the `AppState` changed callback is called
 
