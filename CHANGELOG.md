@@ -1,6 +1,22 @@
 # Changelog
 
-## [Unreleased]
+## [1.20.0]
+
+### Added
+
+- Android: `PictureInPictureEntered` and `PictureInPictureExited` player events
+  - Known Limitation: On Android <15 the `PictureInPictureEntered` and `PictureInPictureExited` events are called before the `AppState` changed callback is called
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.154.0+jason`
+- Update Bitmovin's native iOS SDK version to `3.114.1`
+
+### Fixed
+
+- iOS: Expo config plugin no longer drops `NSLocalNetworkUsageDescription` from `Info.plist` when `features.googleCastSDK.ios` is configured as an object without an explicit `localNetworkUsageDescription`. The default description is now applied as a fallback, restoring local-network access required for Cast device discovery
+
+## [1.19.0] - 2026-05-08
 
 ## [1.19.0] - 2026-05-08
 

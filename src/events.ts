@@ -383,14 +383,14 @@ export type PictureInPictureExitEvent = Event;
 /**
  * Emitted when the player has finished entering Picture in Picture mode on iOS.
  *
- * @platform iOS
+ * @platform iOS, Android
  */
 export type PictureInPictureEnteredEvent = Event;
 
 /**
  * Emitted when the player has finished exiting Picture in Picture mode on iOS.
  *
- * @platform iOS
+ * @platform iOS, Android
  */
 export type PictureInPictureExitedEvent = Event;
 
