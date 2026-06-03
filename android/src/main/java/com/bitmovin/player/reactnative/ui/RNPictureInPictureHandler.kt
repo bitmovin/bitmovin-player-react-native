@@ -1,8 +1,10 @@
 package com.bitmovin.player.reactnative.ui
 
 import android.app.Activity
+import android.app.Application
 import android.app.PictureInPictureParams
 import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import android.util.Rational
 import androidx.annotation.RequiresApi
@@ -10,8 +12,8 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.on
 import com.bitmovin.player.reactnative.PictureInPictureAction
-import com.bitmovin.player.ui.DefaultPictureInPictureHandler
 import com.bitmovin.player.reactnative.PictureInPictureConfig
+import com.bitmovin.player.ui.DefaultPictureInPictureHandler
 
 private const val TAG = "RNPiPHandler"
 
@@ -20,6 +22,7 @@ class RNPictureInPictureHandler(
     private val activity: Activity,
     private val player: Player,
     private val pictureInPictureConfig: PictureInPictureConfig,
+    private val onPictureInPictureExited: () -> Unit = {},
 ) : DefaultPictureInPictureHandler(activity, player) {
     private val pictureInPictureActionHandler = DefaultPictureInPictureActionHandler(
         activity,
@@ -107,6 +110,8 @@ class RNPictureInPictureHandler(
             return
         }
 
+        activity.application.registerActivityLifecycleCallbacks(PipTransactionEndedActivityLifecycleCallback())
+
         activity.enterPictureInPictureMode(buildPictureInPictureParams())
         _isPictureInPicture = true
     }
@@ -143,6 +148,65 @@ class RNPictureInPictureHandler(
                     .setAutoEnterEnabled(false)
                     .build(),
             )
+        }
+    }
+
+    private inner class PipTransactionEndedActivityLifecycleCallback : Application.ActivityLifecycleCallbacks {
+        private var callbackReceived = false
+        override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+            // no-op
+        }
+
+        override fun onActivityDestroyed(activity: Activity) {
+            // no-op
+        }
+
+        override fun onActivityPaused(activity: Activity) {
+            // no-op
+        }
+
+        override fun onActivityResumed(activity: Activity) {
+            // Called when the PiP mode is exited via restoring to the "normal" activity
+            if (activity != this@RNPictureInPictureHandler.activity) {
+                return
+            }
+            if (callbackReceived) {
+                return
+            }
+            callbackReceived = true
+            try {
+                if (!isPictureInPicture) {
+                    onPictureInPictureExited()
+                }
+            } finally {
+                activity.application.unregisterActivityLifecycleCallbacks(this)
+            }
+        }
+
+        override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
+            // no-op
+        }
+
+        override fun onActivityStarted(activity: Activity) {
+            // no-op
+        }
+
+        override fun onActivityStopped(activity: Activity) {
+            // Called when the PiP mode is exited via closing the PiP window
+            if (activity != this@RNPictureInPictureHandler.activity) {
+                return
+            }
+            if (callbackReceived) {
+                return
+            }
+            callbackReceived = true
+            // No need to check the `isPictureInPicture` value, as `onActivityStopped` is called
+            // when the activity gets destroyed from PiP mode
+            try {
+                onPictureInPictureExited()
+            } finally {
+                activity.application.unregisterActivityLifecycleCallbacks(this)
+            }
         }
     }
 }
