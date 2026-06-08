@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Android: Fix known limitation of `PictureInPictureEntered` and `PictureInPictureExited` events on Android <15
+
 ## [1.20.0] - 2026-05-29
 
 ### Added
