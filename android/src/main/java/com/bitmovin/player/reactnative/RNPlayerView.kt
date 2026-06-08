@@ -332,7 +332,11 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                     player = player,
                     pictureInPictureConfig = pictureInPictureConfig,
                     onPictureInPictureExited = {
-                        playerView?.onPictureInPictureModeChanged(false, null)
+                        // It is safe to call this function with `newConfig = null`
+                        playerView?.onPictureInPictureModeChanged(
+                            isInPictureInPictureMode = false,
+                            newConfig = null,
+                        )
                     },
                 )
             } else {
@@ -657,7 +661,11 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 player = player,
                 pictureInPictureConfig = pictureInPictureConfig,
                 onPictureInPictureExited = {
-                    playerView?.onPictureInPictureModeChanged(false, null)
+                    // It is safe to call this function with `newConfig = null`
+                    playerView?.onPictureInPictureModeChanged(
+                        isInPictureInPictureMode = false,
+                        newConfig = null,
+                    )
                 },
             )
             playerView?.setPictureInPictureHandler(pictureInPictureHandler)
