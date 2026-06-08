@@ -60,6 +60,8 @@ class RNPictureInPictureHandler(
         updatePictureInPictureParams()
     }
 
+    private var pipTransactionEndedCallback: PipTransactionEndedActivityLifecycleCallback? = null
+
     init {
         playerIsPlaying = player.isPlaying
         subscribeToPlayerPlaybackEvents()
@@ -110,7 +112,9 @@ class RNPictureInPictureHandler(
             return
         }
 
-        activity.application.registerActivityLifecycleCallbacks(PipTransactionEndedActivityLifecycleCallback())
+        val callback = PipTransactionEndedActivityLifecycleCallback()
+        activity.application.registerActivityLifecycleCallbacks(callback)
+        pipTransactionEndedCallback = callback
 
         activity.enterPictureInPictureMode(buildPictureInPictureParams())
         _isPictureInPicture = true
@@ -149,6 +153,10 @@ class RNPictureInPictureHandler(
                     .build(),
             )
         }
+        pipTransactionEndedCallback?.let { callback ->
+            activity.application.unregisterActivityLifecycleCallbacks(callback)
+        }
+        pipTransactionEndedCallback = null
     }
 
     private inner class PipTransactionEndedActivityLifecycleCallback : Application.ActivityLifecycleCallbacks {
@@ -180,6 +188,9 @@ class RNPictureInPictureHandler(
                 }
             } finally {
                 activity.application.unregisterActivityLifecycleCallbacks(this)
+                if (pipTransactionEndedCallback == this) {
+                    pipTransactionEndedCallback = null
+                }
             }
         }
 
@@ -206,6 +217,9 @@ class RNPictureInPictureHandler(
                 onPictureInPictureExited()
             } finally {
                 activity.application.unregisterActivityLifecycleCallbacks(this)
+                if (pipTransactionEndedCallback == this) {
+                    pipTransactionEndedCallback = null
+                }
             }
         }
     }
