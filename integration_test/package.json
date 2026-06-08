@@ -36,7 +36,7 @@
   "dependencies": {
     "@react-native-tvos/config-tv": "^0.1.1",
     "cavy": "^4.0.2",
-    "expo": "~54.0.34",
+    "expo": "~54.0.35",
     "expo-build-properties": "~1.0.10",
     "expo-crypto": "~15.0.9",
     "expo-status-bar": "~3.0.9",
@@ -47,9 +47,9 @@
     "react-native-uuid": "^2.0.1"
   },
   "devDependencies": {
-    "@expo/config-types": "^54.0.10",
     "@babel/core": "^7.28.0",
     "@expo/cli": "^0.24.24",
+    "@expo/config-types": "^54.0.10",
     "@react-native-community/cli": "latest",
     "@react-native/metro-config": "0.81.5",
     "@types/react": "~19.1.10",
