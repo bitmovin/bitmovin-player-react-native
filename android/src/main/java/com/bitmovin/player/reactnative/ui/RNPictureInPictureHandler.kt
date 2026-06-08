@@ -161,6 +161,14 @@ class RNPictureInPictureHandler(
 
     private inner class PipTransactionEndedActivityLifecycleCallback : Application.ActivityLifecycleCallbacks {
         private var callbackReceived = false
+
+        private fun unregisterCallback(activity:Activity) {
+            activity.application.unregisterActivityLifecycleCallbacks(this)
+            if (pipTransactionEndedCallback == this) {
+                pipTransactionEndedCallback = null
+            }
+        }
+
         override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
             // no-op
         }
@@ -187,10 +195,7 @@ class RNPictureInPictureHandler(
                     onPictureInPictureExited()
                 }
             } finally {
-                activity.application.unregisterActivityLifecycleCallbacks(this)
-                if (pipTransactionEndedCallback == this) {
-                    pipTransactionEndedCallback = null
-                }
+                unregisterCallback(activity)
             }
         }
 
@@ -216,10 +221,7 @@ class RNPictureInPictureHandler(
             try {
                 onPictureInPictureExited()
             } finally {
-                activity.application.unregisterActivityLifecycleCallbacks(this)
-                if (pipTransactionEndedCallback == this) {
-                    pipTransactionEndedCallback = null
-                }
+                unregisterCallback(activity)
             }
         }
     }
