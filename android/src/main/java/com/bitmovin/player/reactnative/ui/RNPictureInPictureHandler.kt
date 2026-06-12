@@ -162,7 +162,7 @@ class RNPictureInPictureHandler(
     private inner class PipTransactionEndedActivityLifecycleCallback : Application.ActivityLifecycleCallbacks {
         private var callbackReceived = false
 
-        private fun unregisterCallback(activity:Activity) {
+        private fun unregisterCallback(activity: Activity) {
             activity.application.unregisterActivityLifecycleCallbacks(this)
             if (pipTransactionEndedCallback == this) {
                 pipTransactionEndedCallback = null
