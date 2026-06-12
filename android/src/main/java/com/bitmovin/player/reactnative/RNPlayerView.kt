@@ -328,9 +328,16 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || pictureInPictureConfig.isEnabled
             pictureInPictureHandler = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPictureInPictureEnabled) {
                 RNPictureInPictureHandler(
-                    currentActivity,
-                    player,
-                    pictureInPictureConfig,
+                    activity = currentActivity,
+                    player = player,
+                    pictureInPictureConfig = pictureInPictureConfig,
+                    onPictureInPictureExited = {
+                        // It is safe to call this function with `newConfig = null`
+                        playerView?.onPictureInPictureModeChanged(
+                            isInPictureInPictureMode = false,
+                            newConfig = null,
+                        )
+                    },
                 )
             } else {
                 null
@@ -442,20 +449,25 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             if (!reparentHelper.isActive) {
                 reparentHelper.reparent()
             }
+
+            // We must "delay" the onPictureInPictureModeChanged callback via posting a runnable.
+            // This will force the callback to be called at the end of the current pending UI transactions.
+            // This is necessary as the `PlayerView.onPictureInPictureModeChanged` call will immediately send a
+            // PiP-transition ended event.
+            post {
+                playerView.onPictureInPictureModeChanged(true, newConfig)
+            }
         } else {
             if (playerView.isPictureInPicture) {
                 playerView.exitPictureInPicture()
             }
 
             reparentHelper.tryRestore()
-        }
 
-        // We must "delay" the onPictureInPictureModeChanged callback via posting a runnable.
-        // This will force the callback to be called at the end of the current pending UI transactions.
-        // This is necessary as the `PlayerView.onPictureInPictureModeChanged` call will immediately send a
-        // PiP-transition ended event.
-        post {
-            playerView.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+            // No need to call playerView.onPictureInPictureModeChanged,
+            // as this is done via the RNPictureInPictureHandler callback.
+            // The PiP-exit handling is different compared to PiP-enter, due to the nature of PiP handling:
+            // Enter via `activity.enterPictureInPictureMode`, Exit via `activity.startActivity(restoreIntent)`.
         }
     }
 
@@ -644,7 +656,18 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         if (isEnabled && pictureInPictureHandler == null) {
             val currentActivity = appContext.activityProvider?.currentActivity ?: return
             val player = playerView?.player ?: return
-            pictureInPictureHandler = RNPictureInPictureHandler(currentActivity, player, pictureInPictureConfig)
+            pictureInPictureHandler = RNPictureInPictureHandler(
+                activity = currentActivity,
+                player = player,
+                pictureInPictureConfig = pictureInPictureConfig,
+                onPictureInPictureExited = {
+                    // It is safe to call this function with `newConfig = null`
+                    playerView?.onPictureInPictureModeChanged(
+                        isInPictureInPictureMode = false,
+                        newConfig = null,
+                    )
+                },
+            )
             playerView?.setPictureInPictureHandler(pictureInPictureHandler)
         } else if (!isEnabled && pictureInPictureHandler != null) {
             pictureInPictureHandler?.dispose()
