@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Android: Expo config plugin now enables core library desugaring independently from Cast and offline features
+
+## [Unreleased]
+
 ### Added
 
 - `CueEnterEvent` and `CueExitEvent` now expose additional cue fields:
