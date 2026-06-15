@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Android: Expo config plugin now enables core library desugaring independently from Cast and offline features, fixing clean builds with the Google IMA SDK dependency
+
 ## [1.20.1] - 2026-06-12
 
 ### Fixed

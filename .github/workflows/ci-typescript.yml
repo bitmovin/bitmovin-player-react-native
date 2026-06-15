@@ -100,8 +100,8 @@ jobs:
       - name: Build TypeScript (Module)
         run: yarn build:module
 
-      - name: Build TypeScript (Plugin)
-        run: yarn build:plugin
+      - name: Build and test TypeScript (Plugin)
+        run: yarn test:plugin
 
   test-build-docs:
     name: Build API docs

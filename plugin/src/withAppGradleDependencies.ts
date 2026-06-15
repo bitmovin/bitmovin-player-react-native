@@ -9,9 +9,67 @@ export type PluginProps = {
   dependencies?: string[];
 };
 
+const DEFAULT_SPACING = '    ';
+
 const defaultProps: PluginProps = {
-  spacing: '    ',
+  spacing: DEFAULT_SPACING,
   dependencies: [],
+};
+
+const CORE_LIBRARY_DESUGARING_DEPENDENCY =
+  "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'";
+
+const hasCoreLibraryDesugaringEnabled = (contents: string) =>
+  contents.includes('coreLibraryDesugaringEnabled') ||
+  contents.includes('setCoreLibraryDesugaringEnabled');
+
+const hasCoreLibraryDesugaringDependency = (contents: string) =>
+  /\bcoreLibraryDesugaring\b/.test(contents);
+
+const ensureCoreLibraryDesugaringCompileOptions = (
+  contents: string,
+  spacing: string,
+  androidPosition: number
+) => {
+  if (hasCoreLibraryDesugaringEnabled(contents)) {
+    return contents;
+  }
+
+  const compileOptionsStart = contents.search(/^\s*compileOptions\s*\{$/m);
+  if (compileOptionsStart === -1) {
+    const compileOptions = [];
+    compileOptions.push(`${spacing}compileOptions {`);
+    compileOptions.push('\n');
+    compileOptions.push(
+      `${spacing}${spacing}setCoreLibraryDesugaringEnabled(true)`
+    );
+    compileOptions.push('\n');
+    compileOptions.push(`${spacing}}`);
+    compileOptions.push('\n');
+    return [
+      contents.slice(0, androidPosition),
+      ...compileOptions,
+      contents.slice(androidPosition),
+    ].join('');
+  }
+
+  const compileOptionsLineEnd = contents.indexOf('\n', compileOptionsStart) + 1;
+  return [
+    contents.slice(0, compileOptionsLineEnd),
+    `${spacing}${spacing}setCoreLibraryDesugaringEnabled(true)\n`,
+    contents.slice(compileOptionsLineEnd),
+  ].join('');
+};
+
+const getCoreLibraryDesugaringDependencyLines = (
+  contents: string,
+  spacing: string
+) => {
+  if (hasCoreLibraryDesugaringDependency(contents)) {
+    return [];
+  }
+
+  return ['\n', `${spacing}${CORE_LIBRARY_DESUGARING_DEPENDENCY}`, '\n'];
 };
 
 const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
@@ -19,6 +77,7 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
   props: PluginProps
 ) => {
   const combinedProps = { ...defaultProps, ...(props || {}) };
+  const spacing = combinedProps.spacing || DEFAULT_SPACING;
   config = withAppBuildGradle(config, (config) => {
     if (config.modResults.language !== 'groovy') {
       WarningAggregator.addWarningAndroid(
@@ -34,9 +93,6 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
     const filteredDependencies = deduplicatedDependencies.filter((dep) => {
       return config.modResults.contents.indexOf(dep) === -1;
     });
-    if (filteredDependencies.length === 0) {
-      return config;
-    }
 
     const androidBlockStart =
       config.modResults.contents.search(/^android \{$/m);
@@ -57,20 +113,11 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
       return config;
     }
     const androidPosition = androidBlockStart + androidBlockEnd;
-    const compileOptions = [];
-    compileOptions.push(`${combinedProps.spacing}compileOptions {`);
-    compileOptions.push('\n');
-    compileOptions.push(
-      `${combinedProps.spacing}setCoreLibraryDesugaringEnabled(true)`
+    config.modResults.contents = ensureCoreLibraryDesugaringCompileOptions(
+      config.modResults.contents,
+      spacing,
+      androidPosition
     );
-    compileOptions.push('\n');
-    compileOptions.push(`${combinedProps.spacing}}`);
-    compileOptions.push('\n');
-    config.modResults.contents = [
-      config.modResults.contents.slice(0, androidPosition),
-      ...compileOptions,
-      config.modResults.contents.slice(androidPosition),
-    ].join('');
 
     const dependenciesBlockStart =
       config.modResults.contents.search(/^dependencies \{$/m);
@@ -93,17 +140,16 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
       return config;
     }
     const position = dependenciesBlockStart + dependenciesBlockEnd;
-    let insertedDependencies: string[] = [];
-    insertedDependencies.push('\n');
-    insertedDependencies.push(
-      `${combinedProps.spacing}coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'`
+    const insertedDependencies = getCoreLibraryDesugaringDependencyLines(
+      config.modResults.contents,
+      spacing
     );
-    insertedDependencies.push('\n');
     filteredDependencies.forEach((dependency) => {
-      insertedDependencies.push(
-        `${combinedProps.spacing}implementation '${dependency}'\n`
-      );
+      insertedDependencies.push(`${spacing}implementation '${dependency}'\n`);
     });
+    if (insertedDependencies.length === 0) {
+      return config;
+    }
     insertedDependencies.push('\n');
     config.modResults.contents = [
       config.modResults.contents.slice(0, position),
