@@ -20,22 +20,42 @@ const CORE_LIBRARY_DESUGARING_DEPENDENCY =
   "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'";
 
 const hasCoreLibraryDesugaringEnabled = (contents: string) =>
-  contents.includes('coreLibraryDesugaringEnabled') ||
-  contents.includes('setCoreLibraryDesugaringEnabled');
+  /^\s*(?:setCoreLibraryDesugaringEnabled\s*\(\s*true\s*\)|coreLibraryDesugaringEnabled(?:\s*=\s*|\s+)true\b)/m.test(
+    contents
+  );
 
 const hasCoreLibraryDesugaringDependency = (contents: string) =>
-  /\bcoreLibraryDesugaring\b/.test(contents);
+  /^\s*coreLibraryDesugaring\b/m.test(contents);
+
+const replaceDisabledCoreLibraryDesugaringSettings = (contents: string) =>
+  contents
+    .replace(
+      /^(\s*)setCoreLibraryDesugaringEnabled\s*\(\s*false\s*\)/gm,
+      '$1setCoreLibraryDesugaringEnabled(true)'
+    )
+    .replace(
+      /^(\s*)coreLibraryDesugaringEnabled(\s*=\s*)false\b/gm,
+      '$1coreLibraryDesugaringEnabled$2true'
+    )
+    .replace(
+      /^(\s*)coreLibraryDesugaringEnabled(\s+)false\b/gm,
+      '$1coreLibraryDesugaringEnabled$2true'
+    );
 
 const ensureCoreLibraryDesugaringCompileOptions = (
   contents: string,
   spacing: string,
   androidPosition: number
 ) => {
-  if (hasCoreLibraryDesugaringEnabled(contents)) {
-    return contents;
+  const updatedContents =
+    replaceDisabledCoreLibraryDesugaringSettings(contents);
+  if (hasCoreLibraryDesugaringEnabled(updatedContents)) {
+    return updatedContents;
   }
 
-  const compileOptionsStart = contents.search(/^\s*compileOptions\s*\{$/m);
+  const compileOptionsStart = updatedContents.search(
+    /^\s*compileOptions\s*\{$/m
+  );
   if (compileOptionsStart === -1) {
     const compileOptions = [];
     compileOptions.push(`${spacing}compileOptions {`);
@@ -47,17 +67,18 @@ const ensureCoreLibraryDesugaringCompileOptions = (
     compileOptions.push(`${spacing}}`);
     compileOptions.push('\n');
     return [
-      contents.slice(0, androidPosition),
+      updatedContents.slice(0, androidPosition),
       ...compileOptions,
-      contents.slice(androidPosition),
+      updatedContents.slice(androidPosition),
     ].join('');
   }
 
-  const compileOptionsLineEnd = contents.indexOf('\n', compileOptionsStart) + 1;
+  const compileOptionsLineEnd =
+    updatedContents.indexOf('\n', compileOptionsStart) + 1;
   return [
-    contents.slice(0, compileOptionsLineEnd),
+    updatedContents.slice(0, compileOptionsLineEnd),
     `${spacing}${spacing}setCoreLibraryDesugaringEnabled(true)\n`,
-    contents.slice(compileOptionsLineEnd),
+    updatedContents.slice(compileOptionsLineEnd),
   ].join('');
 };
 
@@ -112,12 +133,6 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
       );
       return config;
     }
-    const androidPosition = androidBlockStart + androidBlockEnd;
-    config.modResults.contents = ensureCoreLibraryDesugaringCompileOptions(
-      config.modResults.contents,
-      spacing,
-      androidPosition
-    );
 
     const dependenciesBlockStart =
       config.modResults.contents.search(/^dependencies \{$/m);
@@ -139,9 +154,27 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
       );
       return config;
     }
-    const position = dependenciesBlockStart + dependenciesBlockEnd;
-    const insertedDependencies = getCoreLibraryDesugaringDependencyLines(
+    const androidPosition = androidBlockStart + androidBlockEnd;
+    config.modResults.contents = ensureCoreLibraryDesugaringCompileOptions(
       config.modResults.contents,
+      spacing,
+      androidPosition
+    );
+
+    const updatedDependenciesBlockStart =
+      config.modResults.contents.search(/^dependencies \{$/m);
+    const updatedFromDependencies = config.modResults.contents.substring(
+      updatedDependenciesBlockStart
+    );
+    const updatedDependenciesBlockEnd = updatedFromDependencies.search(/^\}$/m);
+    const position =
+      updatedDependenciesBlockStart + updatedDependenciesBlockEnd;
+    const dependenciesBlock = config.modResults.contents.slice(
+      updatedDependenciesBlockStart,
+      position
+    );
+    const insertedDependencies = getCoreLibraryDesugaringDependencyLines(
+      dependenciesBlock,
       spacing
     );
     filteredDependencies.forEach((dependency) => {

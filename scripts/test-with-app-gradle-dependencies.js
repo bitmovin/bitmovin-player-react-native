@@ -119,6 +119,89 @@ dependencies {
   assert.match(result, /implementation 'com.example:feature:1\.0'/);
 });
 
+test('replaces explicitly disabled core library desugaring property syntax', async () => {
+  const gradleWithDisabledDesugaring = `plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example'
+    compileOptions {
+        coreLibraryDesugaringEnabled false
+    }
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-android'
+}
+`;
+
+  const result = await applyPlugin(gradleWithDisabledDesugaring);
+
+  assert.match(result, /coreLibraryDesugaringEnabled true/);
+  assert.doesNotMatch(result, /coreLibraryDesugaringEnabled false/);
+  assert.ok(result.includes(coreLibraryDesugaringDependency));
+});
+
+test('replaces explicitly disabled core library desugaring setter syntax', async () => {
+  const gradleWithDisabledDesugaring = `plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example'
+    compileOptions {
+        setCoreLibraryDesugaringEnabled(false)
+    }
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-android'
+}
+`;
+
+  const result = await applyPlugin(gradleWithDisabledDesugaring);
+
+  assert.match(result, /setCoreLibraryDesugaringEnabled\(true\)/);
+  assert.doesNotMatch(result, /setCoreLibraryDesugaringEnabled\(false\)/);
+  assert.ok(result.includes(coreLibraryDesugaringDependency));
+});
+
+test('leaves gradle unchanged when dependencies block is missing', async () => {
+  const gradleWithoutDependencies = `plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example'
+}
+`;
+
+  const result = await applyPlugin(gradleWithoutDependencies);
+
+  assert.equal(result, gradleWithoutDependencies);
+});
+
+test('does not treat comments as existing core library desugaring dependency', async () => {
+  const gradleWithDependencyComment = `plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example'
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-android'
+    // coreLibraryDesugaring is added by the Bitmovin plugin
+}
+`;
+
+  const result = await applyPlugin(gradleWithDependencyComment);
+
+  assert.ok(result.includes(coreLibraryDesugaringDependency));
+});
+
 const run = async () => {
   const failures = [];
 
@@ -138,4 +221,7 @@ const run = async () => {
   }
 };
 
-run();
+run().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
