@@ -14,6 +14,16 @@ const defaultProps: PluginProps = {
   dependencies: [],
 };
 
+const CORE_LIBRARY_DESUGARING_DEPENDENCY =
+  "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'";
+
+const hasCoreLibraryDesugaringEnabled = (contents: string) =>
+  contents.includes('coreLibraryDesugaringEnabled') ||
+  contents.includes('setCoreLibraryDesugaringEnabled');
+
+const hasCoreLibraryDesugaringDependency = (contents: string) =>
+  /\bcoreLibraryDesugaring\b/.test(contents);
+
 const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
   config,
   props: PluginProps
@@ -34,9 +44,6 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
     const filteredDependencies = deduplicatedDependencies.filter((dep) => {
       return config.modResults.contents.indexOf(dep) === -1;
     });
-    if (filteredDependencies.length === 0) {
-      return config;
-    }
 
     const androidBlockStart =
       config.modResults.contents.search(/^android \{$/m);
@@ -57,20 +64,34 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
       return config;
     }
     const androidPosition = androidBlockStart + androidBlockEnd;
-    const compileOptions = [];
-    compileOptions.push(`${combinedProps.spacing}compileOptions {`);
-    compileOptions.push('\n');
-    compileOptions.push(
-      `${combinedProps.spacing}setCoreLibraryDesugaringEnabled(true)`
-    );
-    compileOptions.push('\n');
-    compileOptions.push(`${combinedProps.spacing}}`);
-    compileOptions.push('\n');
-    config.modResults.contents = [
-      config.modResults.contents.slice(0, androidPosition),
-      ...compileOptions,
-      config.modResults.contents.slice(androidPosition),
-    ].join('');
+    if (!hasCoreLibraryDesugaringEnabled(config.modResults.contents)) {
+      const compileOptionsStart =
+        config.modResults.contents.search(/^\s*compileOptions\s*\{$/m);
+      if (compileOptionsStart === -1) {
+        const compileOptions = [];
+        compileOptions.push(`${combinedProps.spacing}compileOptions {`);
+        compileOptions.push('\n');
+        compileOptions.push(
+          `${combinedProps.spacing}${combinedProps.spacing}setCoreLibraryDesugaringEnabled(true)`
+        );
+        compileOptions.push('\n');
+        compileOptions.push(`${combinedProps.spacing}}`);
+        compileOptions.push('\n');
+        config.modResults.contents = [
+          config.modResults.contents.slice(0, androidPosition),
+          ...compileOptions,
+          config.modResults.contents.slice(androidPosition),
+        ].join('');
+      } else {
+        const compileOptionsLineEnd =
+          config.modResults.contents.indexOf('\n', compileOptionsStart) + 1;
+        config.modResults.contents = [
+          config.modResults.contents.slice(0, compileOptionsLineEnd),
+          `${combinedProps.spacing}${combinedProps.spacing}setCoreLibraryDesugaringEnabled(true)\n`,
+          config.modResults.contents.slice(compileOptionsLineEnd),
+        ].join('');
+      }
+    }
 
     const dependenciesBlockStart =
       config.modResults.contents.search(/^dependencies \{$/m);
@@ -93,17 +114,22 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
       return config;
     }
     const position = dependenciesBlockStart + dependenciesBlockEnd;
-    let insertedDependencies: string[] = [];
-    insertedDependencies.push('\n');
-    insertedDependencies.push(
-      `${combinedProps.spacing}coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'`
-    );
-    insertedDependencies.push('\n');
+    const insertedDependencies: string[] = [];
+    if (!hasCoreLibraryDesugaringDependency(config.modResults.contents)) {
+      insertedDependencies.push('\n');
+      insertedDependencies.push(
+        `${combinedProps.spacing}${CORE_LIBRARY_DESUGARING_DEPENDENCY}`
+      );
+      insertedDependencies.push('\n');
+    }
     filteredDependencies.forEach((dependency) => {
       insertedDependencies.push(
         `${combinedProps.spacing}implementation '${dependency}'\n`
       );
     });
+    if (insertedDependencies.length === 0) {
+      return config;
+    }
     insertedDependencies.push('\n');
     config.modResults.contents = [
       config.modResults.contents.slice(0, position),
