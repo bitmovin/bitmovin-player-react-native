@@ -19,13 +19,16 @@ const defaultProps: PluginProps = {
 const CORE_LIBRARY_DESUGARING_DEPENDENCY =
   "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'";
 
+const stripBlockComments = (contents: string) =>
+  contents.replace(/\/\*[\s\S]*?\*\//g, '');
+
 const hasCoreLibraryDesugaringEnabled = (contents: string) =>
   /^\s*(?:setCoreLibraryDesugaringEnabled\s*\(\s*true\s*\)|coreLibraryDesugaringEnabled(?:\s*=\s*|\s+)true\b)/m.test(
-    contents
+    stripBlockComments(contents)
   );
 
 const hasCoreLibraryDesugaringDependency = (contents: string) =>
-  /^\s*coreLibraryDesugaring\b/m.test(contents);
+  /^\s*coreLibraryDesugaring\b/m.test(stripBlockComments(contents));
 
 const escapeRegExp = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -40,24 +43,26 @@ const hasGradleDependencyDeclaration = (
   );
   let nestedBlockDepth = 0;
 
-  return contents.split('\n').some((line) => {
-    const trimmedLine = line.trim();
-    if (trimmedLine.startsWith('//')) {
-      return false;
-    }
+  return stripBlockComments(contents)
+    .split('\n')
+    .some((line) => {
+      const trimmedLine = line.trim();
+      if (trimmedLine.startsWith('//')) {
+        return false;
+      }
 
-    if (/^dependencies\s*\{$/.test(trimmedLine)) {
-      return false;
-    }
+      if (/^dependencies\s*\{$/.test(trimmedLine)) {
+        return false;
+      }
 
-    const isTopLevelDependency =
-      nestedBlockDepth === 0 && declarationPattern.test(trimmedLine);
-    const openBlockCount = (trimmedLine.match(/\{/g) || []).length;
-    const closeBlockCount = (trimmedLine.match(/\}/g) || []).length;
-    nestedBlockDepth += openBlockCount - closeBlockCount;
+      const isTopLevelDependency =
+        nestedBlockDepth === 0 && declarationPattern.test(trimmedLine);
+      const openBlockCount = (trimmedLine.match(/\{/g) || []).length;
+      const closeBlockCount = (trimmedLine.match(/\}/g) || []).length;
+      nestedBlockDepth += openBlockCount - closeBlockCount;
 
-    return isTopLevelDependency;
-  });
+      return isTopLevelDependency;
+    });
 };
 
 const replaceDisabledCoreLibraryDesugaringSettings = (contents: string) =>
@@ -78,18 +83,28 @@ const replaceDisabledCoreLibraryDesugaringSettings = (contents: string) =>
 const ensureCoreLibraryDesugaringCompileOptions = (
   contents: string,
   spacing: string,
+  androidBlockStart: number,
   androidPosition: number
 ) => {
-  const updatedContents =
-    replaceDisabledCoreLibraryDesugaringSettings(contents);
-  if (hasCoreLibraryDesugaringEnabled(updatedContents)) {
+  const androidBlock = contents.slice(androidBlockStart, androidPosition);
+  const updatedAndroidBlock =
+    replaceDisabledCoreLibraryDesugaringSettings(androidBlock);
+  const updatedContents = [
+    contents.slice(0, androidBlockStart),
+    updatedAndroidBlock,
+    contents.slice(androidPosition),
+  ].join('');
+  const updatedAndroidPosition =
+    androidPosition + updatedAndroidBlock.length - androidBlock.length;
+
+  if (hasCoreLibraryDesugaringEnabled(updatedAndroidBlock)) {
     return updatedContents;
   }
 
-  const compileOptionsStart = updatedContents.search(
+  const compileOptionsRelativeStart = updatedAndroidBlock.search(
     /^\s*compileOptions\s*\{$/m
   );
-  if (compileOptionsStart === -1) {
+  if (compileOptionsRelativeStart === -1) {
     const compileOptions = [];
     compileOptions.push(`${spacing}compileOptions {`);
     compileOptions.push('\n');
@@ -100,12 +115,13 @@ const ensureCoreLibraryDesugaringCompileOptions = (
     compileOptions.push(`${spacing}}`);
     compileOptions.push('\n');
     return [
-      updatedContents.slice(0, androidPosition),
+      updatedContents.slice(0, updatedAndroidPosition),
       ...compileOptions,
-      updatedContents.slice(androidPosition),
+      updatedContents.slice(updatedAndroidPosition),
     ].join('');
   }
 
+  const compileOptionsStart = androidBlockStart + compileOptionsRelativeStart;
   const compileOptionsLineEnd =
     updatedContents.indexOf('\n', compileOptionsStart) + 1;
   return [
@@ -184,6 +200,7 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
     config.modResults.contents = ensureCoreLibraryDesugaringCompileOptions(
       config.modResults.contents,
       spacing,
+      androidBlockStart,
       androidPosition
     );
 
