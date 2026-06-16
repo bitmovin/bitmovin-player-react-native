@@ -18,6 +18,8 @@ const defaultProps: PluginProps = {
 
 const CORE_LIBRARY_DESUGARING_DEPENDENCY =
   "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'";
+const CORE_LIBRARY_DESUGARING_COORDINATES =
+  'com.android.tools:desugar_jdk_libs:2.1.5';
 
 const stripBlockComments = (contents: string) =>
   contents.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -27,19 +29,20 @@ const hasCoreLibraryDesugaringEnabled = (contents: string) =>
     stripBlockComments(contents)
   );
 
-const hasCoreLibraryDesugaringDependency = (contents: string) =>
-  /^\s*coreLibraryDesugaring\b/m.test(stripBlockComments(contents));
-
 const escapeRegExp = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const hasGradleDependencyDeclaration = (
   contents: string,
-  dependency: string
+  dependency: string,
+  configuration?: string
 ) => {
   const dependencyPattern = escapeRegExp(dependency);
+  const configurationPattern = configuration
+    ? escapeRegExp(configuration)
+    : '[A-Za-z_][\\w.-]*';
   const declarationPattern = new RegExp(
-    `^[A-Za-z_][\\w.-]*\\s*(?:\\(\\s*)?['"]${dependencyPattern}['"]`
+    `^${configurationPattern}\\s*(?:\\(\\s*)?['"]${dependencyPattern}['"]`
   );
   let nestedBlockDepth = 0;
 
@@ -65,7 +68,16 @@ const hasGradleDependencyDeclaration = (
     });
 };
 
-const replaceDisabledCoreLibraryDesugaringSettings = (contents: string) =>
+const hasCoreLibraryDesugaringDependency = (contents: string) =>
+  hasGradleDependencyDeclaration(
+    contents,
+    CORE_LIBRARY_DESUGARING_COORDINATES,
+    'coreLibraryDesugaring'
+  );
+
+const replaceDisabledCoreLibraryDesugaringSettingsInGradle = (
+  contents: string
+) =>
   contents
     .replace(
       /^(\s*)setCoreLibraryDesugaringEnabled\s*\(\s*false\s*\)/gm,
@@ -79,6 +91,16 @@ const replaceDisabledCoreLibraryDesugaringSettings = (contents: string) =>
       /^(\s*)coreLibraryDesugaringEnabled(\s+)false\b/gm,
       '$1coreLibraryDesugaringEnabled$2true'
     );
+
+const replaceDisabledCoreLibraryDesugaringSettings = (contents: string) =>
+  contents
+    .split(/(\/\*[\s\S]*?\*\/)/g)
+    .map((part) =>
+      part.startsWith('/*')
+        ? part
+        : replaceDisabledCoreLibraryDesugaringSettingsInGradle(part)
+    )
+    .join('');
 
 const ensureCoreLibraryDesugaringCompileOptions = (
   contents: string,

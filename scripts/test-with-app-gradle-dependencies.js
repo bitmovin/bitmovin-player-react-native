@@ -308,6 +308,34 @@ dependencies {
   );
 });
 
+test('does not treat dependency constraints as existing core library desugaring dependency', async () => {
+  const gradleWithCoreLibraryDependencyConstraint = `plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example'
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-android'
+    constraints {
+        coreLibraryDesugaring('com.android.tools:desugar_jdk_libs:2.1.5') {
+            because 'pins the version when another dependency requests it'
+        }
+    }
+}
+`;
+
+  const result = await applyPlugin(gradleWithCoreLibraryDependencyConstraint);
+
+  assert.equal(countOccurrences(result, coreLibraryDesugaringDependency), 1);
+  assert.match(
+    result,
+    /constraints \{\n        coreLibraryDesugaring\('com\.android\.tools:desugar_jdk_libs:2\.1\.5'\)/
+  );
+});
+
 test('does not treat dependency constraints as existing feature dependencies', async () => {
   const featureDependency = 'com.example:feature:1.0';
   const gradleWithFeatureDependencyConstraint = `plugins {
@@ -333,6 +361,35 @@ dependencies {
   });
 
   assert.match(result, /implementation 'com\.example:feature:1\.0'/);
+});
+
+test('does not rewrite disabled core library desugaring settings inside block comments', async () => {
+  const gradleWithDisabledDesugaringBlockComment = `plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example'
+    /*
+    setCoreLibraryDesugaringEnabled(false)
+    */
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-android'
+}
+`;
+
+  const result = await applyPlugin(gradleWithDisabledDesugaringBlockComment);
+
+  assert.match(
+    result,
+    /\/\*\n    setCoreLibraryDesugaringEnabled\(false\)\n    \*\//
+  );
+  assert.match(
+    result,
+    /compileOptions \{\n        setCoreLibraryDesugaringEnabled\(true\)\n    }/
+  );
 });
 
 const run = async () => {
