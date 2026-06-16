@@ -88,6 +88,39 @@ dependencies {
   );
 });
 
+test('ignores compileOptions blocks outside android', async () => {
+  const gradleWithExternalCompileOptions = `plugins {
+    id 'com.android.application'
+}
+
+subprojects {
+    compileOptions {
+        setCoreLibraryDesugaringEnabled(false)
+        sourceCompatibility JavaVersion.VERSION_17
+    }
+}
+
+android {
+    namespace 'com.example'
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-android'
+}
+`;
+
+  const result = await applyPlugin(gradleWithExternalCompileOptions);
+
+  assert.match(
+    result,
+    /subprojects \{\n    compileOptions \{\n        setCoreLibraryDesugaringEnabled\(false\)\n        sourceCompatibility JavaVersion\.VERSION_17/
+  );
+  assert.match(
+    result,
+    /android \{\n    namespace 'com\.example'\n    compileOptions \{\n        setCoreLibraryDesugaringEnabled\(true\)\n    }\n}/
+  );
+});
+
 test('does not duplicate existing core library desugaring settings', async () => {
   const gradleWithDesugaring = `plugins {
     id 'com.android.application'
@@ -202,6 +235,28 @@ dependencies {
   assert.ok(result.includes(coreLibraryDesugaringDependency));
 });
 
+test('does not treat block comments as existing core library desugaring dependency', async () => {
+  const gradleWithDependencyBlockComment = `plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example'
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-android'
+    /*
+    ${coreLibraryDesugaringDependency}
+    */
+}
+`;
+
+  const result = await applyPlugin(gradleWithDependencyBlockComment);
+
+  assert.equal(countOccurrences(result, coreLibraryDesugaringDependency), 2);
+});
+
 test('does not treat comments as existing feature dependencies', async () => {
   const featureDependency = 'com.example:feature:1.0';
   const gradleWithFeatureDependencyComment = `plugins {
@@ -223,6 +278,34 @@ dependencies {
   });
 
   assert.match(result, /implementation 'com\.example:feature:1\.0'/);
+});
+
+test('does not treat block comments as existing feature dependencies', async () => {
+  const featureDependency = 'com.example:feature:1.0';
+  const gradleWithFeatureDependencyBlockComment = `plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example'
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-android'
+    /*
+    implementation '${featureDependency}'
+    */
+}
+`;
+
+  const result = await applyPlugin(gradleWithFeatureDependencyBlockComment, {
+    dependencies: [featureDependency],
+  });
+
+  assert.equal(
+    countOccurrences(result, `implementation '${featureDependency}'`),
+    2
+  );
 });
 
 test('does not treat dependency constraints as existing feature dependencies', async () => {
