@@ -202,6 +202,56 @@ dependencies {
   assert.ok(result.includes(coreLibraryDesugaringDependency));
 });
 
+test('does not treat comments as existing feature dependencies', async () => {
+  const featureDependency = 'com.example:feature:1.0';
+  const gradleWithFeatureDependencyComment = `plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example'
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-android'
+    // ${featureDependency} is added by the Bitmovin plugin
+}
+`;
+
+  const result = await applyPlugin(gradleWithFeatureDependencyComment, {
+    dependencies: [featureDependency],
+  });
+
+  assert.match(result, /implementation 'com\.example:feature:1\.0'/);
+});
+
+test('does not treat dependency constraints as existing feature dependencies', async () => {
+  const featureDependency = 'com.example:feature:1.0';
+  const gradleWithFeatureDependencyConstraint = `plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example'
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-android'
+    constraints {
+        implementation('${featureDependency}') {
+            because 'pins the version when another dependency requests it'
+        }
+    }
+}
+`;
+
+  const result = await applyPlugin(gradleWithFeatureDependencyConstraint, {
+    dependencies: [featureDependency],
+  });
+
+  assert.match(result, /implementation 'com\.example:feature:1\.0'/);
+});
+
 const run = async () => {
   const failures = [];
 

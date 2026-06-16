@@ -27,6 +27,39 @@ const hasCoreLibraryDesugaringEnabled = (contents: string) =>
 const hasCoreLibraryDesugaringDependency = (contents: string) =>
   /^\s*coreLibraryDesugaring\b/m.test(contents);
 
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const hasGradleDependencyDeclaration = (
+  contents: string,
+  dependency: string
+) => {
+  const dependencyPattern = escapeRegExp(dependency);
+  const declarationPattern = new RegExp(
+    `^[A-Za-z_][\\w.-]*\\s*(?:\\(\\s*)?['"]${dependencyPattern}['"]`
+  );
+  let nestedBlockDepth = 0;
+
+  return contents.split('\n').some((line) => {
+    const trimmedLine = line.trim();
+    if (trimmedLine.startsWith('//')) {
+      return false;
+    }
+
+    if (/^dependencies\s*\{$/.test(trimmedLine)) {
+      return false;
+    }
+
+    const isTopLevelDependency =
+      nestedBlockDepth === 0 && declarationPattern.test(trimmedLine);
+    const openBlockCount = (trimmedLine.match(/\{/g) || []).length;
+    const closeBlockCount = (trimmedLine.match(/\}/g) || []).length;
+    nestedBlockDepth += openBlockCount - closeBlockCount;
+
+    return isTopLevelDependency;
+  });
+};
+
 const replaceDisabledCoreLibraryDesugaringSettings = (contents: string) =>
   contents
     .replace(
@@ -108,13 +141,6 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
       return config;
     }
 
-    const deduplicatedDependencies = Array.from(
-      new Set(combinedProps.dependencies)
-    );
-    const filteredDependencies = deduplicatedDependencies.filter((dep) => {
-      return config.modResults.contents.indexOf(dep) === -1;
-    });
-
     const androidBlockStart =
       config.modResults.contents.search(/^android \{$/m);
     if (androidBlockStart === -1) {
@@ -176,6 +202,13 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
     const insertedDependencies = getCoreLibraryDesugaringDependencyLines(
       dependenciesBlock,
       spacing
+    );
+    const deduplicatedDependencies = Array.from(
+      new Set(combinedProps.dependencies)
+    );
+    const filteredDependencies = deduplicatedDependencies.filter(
+      (dependency) =>
+        !hasGradleDependencyDeclaration(dependenciesBlock, dependency)
     );
     filteredDependencies.forEach((dependency) => {
       insertedDependencies.push(`${spacing}implementation '${dependency}'\n`);
