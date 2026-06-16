@@ -2,12 +2,6 @@
 
 ## [Unreleased]
 
-### Fixed
-
-- Android: Expo config plugin now enables core library desugaring independently from Cast and offline features
-
-## [Unreleased]
-
 ### Added
 
 - `CueEnterEvent` and `CueExitEvent` now expose additional cue fields:
@@ -44,6 +38,7 @@
 - Update Expo SDK version to `54.0.34`
 
 ### Added
+
 - Android: `PictureInPictureEntered` and `PictureInPictureExited` player events
   - Known Limitation: On Android <15 the `PictureInPictureEntered` and `PictureInPictureExited` events are called before the `AppState` changed callback is called
 
