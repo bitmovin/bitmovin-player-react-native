@@ -115,18 +115,11 @@ private inline fun MutableMap<String, Any>.putIfNotNull(key: String, value: Any?
     value?.let { put(key, it) }
 }
 
-private fun MutableMap<String, Any?>.putCueGeometry(cue: Cue) {
-    this["textAlignment"] = cue.textAlignment?.name
-    this["line"] = cue.line.takeUnless { it == Cue.DIMEN_UNSET }
-    this["lineType"] = cue.lineType.takeUnless { it == Cue.LineType.TypeUnset }?.name
-    this["lineAnchor"] = cue.lineAnchor.takeUnless { it == Cue.AnchorType.TypeUnset }?.name
-    this["position"] = cue.fractionalPosition.takeUnless { it == Cue.DIMEN_UNSET }
-    this["positionAnchor"] = cue.positionAnchor.takeUnless { it == Cue.AnchorType.TypeUnset }?.name
-    this["size"] = cue.size.takeUnless { it == Cue.DIMEN_UNSET }
-    this["bitmapHeight"] = cue.bitmapHeight.takeUnless { it == Cue.DIMEN_UNSET }
-    this["windowColor"] = if (cue.isWindowColorSet) cue.windowColor else null
-    this["verticalType"] = cue.verticalType.takeUnless { it == Cue.VerticalType.TypeUnset }?.name
-}
+private fun Cue.toJson() =  mapOf(
+    "textAlignment" to cue.textAlignment?.name
+    "line" = cue.line.takeUnless { it == Cue.DIMEN_UNSET }
+...
+).filterNotNullValues()
 
 fun Map<String, Any?>.toPlayerConfig(): PlayerConfig = PlayerConfig(key = getString("licenseKey")).apply {
     withMap("playbackConfig") { playbackConfig = it.toPlaybackConfig() }
