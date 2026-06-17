@@ -516,6 +516,25 @@ private extension VttProperties {
     }
 }
 
+private func vttJSON(
+    from vtt: VttProperties?,
+    region: String?,
+    regionStyle: String?
+) -> [AnyHashable: Any]? {
+    var json = vtt?.json ?? [:]
+    if region != nil || regionStyle != nil {
+        var regionJSON: [AnyHashable: Any] = [:]
+        if let region {
+            regionJSON["id"] = region
+        }
+        if let regionStyle {
+            regionJSON["style"] = regionStyle
+        }
+        json["region"] = regionJSON
+    }
+    return json.isEmpty ? nil : json
+}
+
 private extension CuePosition {
     var json: [AnyHashable: Any] {
         ["row": row, "column": column]
@@ -536,14 +555,8 @@ extension CueEnterEvent: JsonConvertible {
             if let html {
                 json["html"] = html
             }
-            if let region {
-                json["region"] = region
-            }
-            if let regionStyle {
-                json["regionStyle"] = regionStyle
-            }
-            if let vtt {
-                json["vtt"] = vtt.json
+            if let vtt = vttJSON(from: vtt, region: region, regionStyle: regionStyle) {
+                json["vtt"] = vtt
             }
             if let position {
                 json["cea608Position"] = position.json
@@ -567,14 +580,8 @@ extension CueExitEvent: JsonConvertible {
             if let html {
                 json["html"] = html
             }
-            if let region {
-                json["region"] = region
-            }
-            if let regionStyle {
-                json["regionStyle"] = regionStyle
-            }
-            if let vtt {
-                json["vtt"] = vtt.json
+            if let vtt = vttJSON(from: vtt, region: region, regionStyle: regionStyle) {
+                json["vtt"] = vtt
             }
             if let position {
                 json["cea608Position"] = position.json

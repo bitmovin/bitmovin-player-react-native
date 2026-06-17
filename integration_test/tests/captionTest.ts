@@ -1,4 +1,5 @@
 import { TestScope } from 'cavy';
+import { Platform } from 'react-native';
 import {
   callPlayer,
   callPlayerAndExpectEvent,
@@ -11,7 +12,34 @@ import {
 } from '../playertesting';
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
-import { CueEnterEvent, CueExitEvent } from 'bitmovin-player-react-native';
+import {
+  CueEnterEvent,
+  CueExitEvent,
+  SourceConfig,
+  SubtitleFormat,
+} from 'bitmovin-player-react-native';
+
+const positionedWebVtt = [
+  'WEBVTT',
+  '',
+  '00:00:00.000 --> 00:00:10.000 line:20% position:30%,line-left size:40% align:start',
+  'Positioned WebVTT cue',
+  '',
+].join('\n');
+
+const positionedWebVttSource: SourceConfig = {
+  ...Sources.sintel,
+  subtitleTracks: [
+    {
+      url: `data:text/vtt;charset=utf-8,${encodeURIComponent(
+        positionedWebVtt
+      )}`,
+      label: 'Positioned WebVTT',
+      language: 'en',
+      format: SubtitleFormat.VTT,
+    },
+  ],
+};
 
 function expectCueVttIfPresent(
   vtt: CueEnterEvent['vtt'] | CueExitEvent['vtt'],
@@ -53,12 +81,12 @@ function expectCueVttIfPresent(
   ).toBe(true);
 }
 
-function expectCueRegionStyle(
-  event: CueEnterEvent | CueExitEvent,
+function expectCueVttRegionIfPresent(
+  vtt: CueEnterEvent['vtt'] | CueExitEvent['vtt'],
   eventName: string
 ) {
-  if (event.regionStyle !== undefined) {
-    expect(typeof event.regionStyle, `${eventName} regionStyle type`).toBe(
+  if (vtt?.region?.style !== undefined) {
+    expect(typeof vtt.region.style, `${eventName} region style type`).toBe(
       'string'
     );
   }
@@ -205,7 +233,7 @@ export default (spec: TestScope) => {
           'string'
         );
         expectCueVttIfPresent(cueEnterEvent.vtt, 'CueEnter');
-        expectCueRegionStyle(cueEnterEvent, 'CueEnter');
+        expectCueVttRegionIfPresent(cueEnterEvent.vtt, 'CueEnter');
       });
     });
 
@@ -268,9 +296,49 @@ export default (spec: TestScope) => {
           'string'
         );
         expectCueVttIfPresent(cueExitEvent.vtt, 'CueExit');
-        expectCueRegionStyle(cueExitEvent, 'CueExit');
+        expectCueVttRegionIfPresent(cueExitEvent.vtt, 'CueExit');
       });
     });
+
+    spec.it(
+      'emits VTT cue geometry for positioned WebVTT subtitles on Android',
+      async () => {
+        if (Platform.OS !== 'android') {
+          return;
+        }
+
+        await startPlayerTest({}, async () => {
+          await loadSourceConfig(positionedWebVttSource);
+          await callPlayer(async (player) => {
+            const subtitleTrack = (await player.getAvailableSubtitles()).find(
+              (track) => track.label === 'Positioned WebVTT'
+            );
+            expect(
+              subtitleTrack,
+              'Positioned WebVTT track should be available'
+            ).toBeDefined();
+
+            void player.setSubtitleTrack(subtitleTrack!.identifier);
+            void player.play();
+          });
+
+          const cueEnterEvent: CueEnterEvent = await expectEvent(
+            EventType.CueEnter,
+            30
+          );
+          const vtt = cueEnterEvent.vtt;
+          expect(vtt, 'CueEnter should expose VTT geometry').toBeDefined();
+          expect(vtt?.line, 'CueEnter VTT line').toBeCloseTo(20);
+          expect(vtt?.snapToLines, 'CueEnter VTT snapToLines').toBe(false);
+          expect(vtt?.position, 'CueEnter VTT position').toBeCloseTo(30);
+          expect(vtt?.positionAlign, 'CueEnter VTT positionAlign').toBe(
+            'line-left'
+          );
+          expect(vtt?.size, 'CueEnter VTT size').toBeCloseTo(40);
+          expect(vtt?.align, 'CueEnter VTT align').toBe('start');
+        });
+      }
+    );
 
     spec.it(
       'disables subtitles when calling setSubtitleTrack with undefined',

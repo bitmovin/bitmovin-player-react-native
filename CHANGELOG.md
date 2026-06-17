@@ -5,8 +5,9 @@
 ### Added
 
 - `CueEnterEvent` and `CueExitEvent` now expose additional cue fields:
-  - cue geometry data via a unified `vtt` object (`line`, `snapToLines`, `lineAlign`, `position`, `positionAlign`, `size`, `align`, `vertical`). `line` and `position` are `"auto"` when the native cue has no explicit value
-  - cue `html` and iOS-specific `cea608Position`, `region`, and `regionStyle` fields
+  - WebVTT-style cue geometry via a unified `vtt` object (`line`, `snapToLines`, `lineAlign`, `position`, `positionAlign`, `size`, `align`, `vertical`). Values may include native/defaulted cue values, not only explicitly authored WebVTT cue settings
+  - iOS-specific VTT region metadata via `vtt.region` (`id`, `style`)
+  - cue `html` and iOS-specific `cea608Position` fields
 
 ## [1.20.1] - 2026-06-12
 

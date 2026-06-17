@@ -747,7 +747,24 @@ export interface PlaybackSpeedChangedEvent extends Event {
 }
 
 /**
- * VTT cue geometry and positioning metadata.
+ * VTT region metadata.
+ *
+ * @platform iOS, tvOS
+ */
+export interface SubtitleCueVttRegion {
+  /**
+   * VTT region identifier for this cue.
+   */
+  id?: string;
+  /**
+   * VTT region style for this cue.
+   */
+  style?: string;
+}
+
+/**
+ * WebVTT-style cue geometry and positioning metadata normalized from native cue data.
+ * Values may include native/defaulted cue values, not only explicitly authored WebVTT cue settings.
  */
 export interface SubtitleCueVtt {
   /**
@@ -788,6 +805,12 @@ export interface SubtitleCueVtt {
    * An empty string means horizontal (default), `'lr'` is vertical left-to-right, `'rl'` is vertical right-to-left.
    */
   vertical?: '' | 'lr' | 'rl';
+  /**
+   * VTT region metadata for this cue.
+   *
+   * @platform iOS, tvOS
+   */
+  region?: SubtitleCueVttRegion;
 }
 
 /**
@@ -831,7 +854,8 @@ export interface CueEnterEvent extends Event {
    */
   html?: string;
   /**
-   * VTT cue geometry and positioning metadata.
+   * WebVTT-style cue geometry and positioning metadata normalized from native cue data.
+   * Values may include native/defaulted cue values, not only explicitly authored WebVTT cue settings.
    * Present when the subtitle track provides positioning data.
    */
   vtt?: SubtitleCueVtt;
@@ -841,18 +865,6 @@ export interface CueEnterEvent extends Event {
    * @platform iOS, tvOS
    */
   cea608Position?: Cea608Position;
-  /**
-   * VTT region identifier for this cue.
-   *
-   * @platform iOS, tvOS
-   */
-  region?: string;
-  /**
-   * VTT region style for this cue.
-   *
-   * @platform iOS, tvOS
-   */
-  regionStyle?: string;
 }
 
 /**
@@ -880,7 +892,8 @@ export interface CueExitEvent extends Event {
    */
   html?: string;
   /**
-   * VTT cue geometry and positioning metadata.
+   * WebVTT-style cue geometry and positioning metadata normalized from native cue data.
+   * Values may include native/defaulted cue values, not only explicitly authored WebVTT cue settings.
    * Present when the subtitle track provides positioning data.
    */
   vtt?: SubtitleCueVtt;
@@ -890,18 +903,6 @@ export interface CueExitEvent extends Event {
    * @platform iOS, tvOS
    */
   cea608Position?: Cea608Position;
-  /**
-   * VTT region identifier for this cue.
-   *
-   * @platform iOS, tvOS
-   */
-  region?: string;
-  /**
-   * VTT region style for this cue.
-   *
-   * @platform iOS, tvOS
-   */
-  regionStyle?: string;
 }
 
 /**
