@@ -1,5 +1,5 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
-import { AdItem, ImaSettings } from '../advertising';
+import { AdBreak, AdItem, ImaSettings } from '../advertising';
 
 export type PlayerModuleEvents = {
   onShouldLoadAdItem: ({
@@ -10,6 +10,15 @@ export type PlayerModuleEvents = {
     nativeId: string;
     id: number;
     adItem: AdItem;
+  }) => void;
+  onShouldPlayAdBreak: ({
+    nativeId,
+    id,
+    adBreak,
+  }: {
+    nativeId: string;
+    id: number;
+    adBreak: AdBreak;
   }) => void;
   onImaBeforeInitialization: ({
     nativeId,
@@ -172,6 +181,11 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
    * Applies the JS decision for an ad item load callback.
    */
   setShouldLoadAdItem(id: number, shouldLoad: boolean): Promise<void>;
+
+  /**
+   * Applies the JS decision for an ad break playback callback.
+   */
+  setShouldPlayAdBreak(id: number, shouldPlay: boolean): Promise<void>;
 
   /**
    * Applies the JS-updated IMA settings for a before-initialization callback.

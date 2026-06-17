@@ -9,7 +9,7 @@ import { OfflineContentManager, OfflineSourceOptions } from './offline';
 import { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/player';
 import { PlayerConfig } from './playerConfig';
-import { AdItem, ImaSettings } from './advertising';
+import { AdBreak, AdItem, ImaSettings } from './advertising';
 import { BufferApi } from './bufferApi';
 import { VideoQuality } from './media';
 import { Network } from './network';
@@ -52,6 +52,7 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   private decoderConfig?: DecoderConfigBridge;
   private onShouldLoadAdItemSubscription?: EventSubscription;
+  private onShouldPlayAdBreakSubscription?: EventSubscription;
   private onImaBeforeInitializationSubscription?: EventSubscription;
   /**
    * Allocates the native `Player` instance and its resources natively.
@@ -59,6 +60,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   initialize = async (): Promise<void> => {
     if (!this.isInitialized) {
       this.ensureShouldLoadAdItemListener();
+      this.ensureShouldPlayAdBreakListener();
       this.ensureImaBeforeInitializationListener();
       if (this.config?.networkConfig) {
         this.network = new Network(this.config.networkConfig);
@@ -99,8 +101,10 @@ export class Player extends NativeInstance<PlayerConfig> {
       void this.network?.destroy();
       void this.decoderConfig?.destroy();
       this.onShouldLoadAdItemSubscription?.remove();
+      this.onShouldPlayAdBreakSubscription?.remove();
       this.onImaBeforeInitializationSubscription?.remove();
       this.onShouldLoadAdItemSubscription = undefined;
+      this.onShouldPlayAdBreakSubscription = undefined;
       this.onImaBeforeInitializationSubscription = undefined;
       this.isDestroyed = true;
     }
@@ -236,6 +240,43 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   setVolume = (volume: number) => {
     void PlayerModule.setVolume(this.nativeId, volume);
+  };
+
+  private ensureShouldPlayAdBreakListener = () => {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+    const callback = this.config?.advertisingConfig?.shouldPlayAdBreak;
+    if (!callback) {
+      return;
+    }
+    if (this.onShouldPlayAdBreakSubscription) {
+      return;
+    }
+    this.onShouldPlayAdBreakSubscription = PlayerModule.addListener(
+      'onShouldPlayAdBreak',
+      ({ nativeId, id, adBreak }) => {
+        if (nativeId !== this.nativeId) {
+          return;
+        }
+        const cloned: AdBreak = {
+          ...adBreak,
+          ads: adBreak.ads.map((ad) => ({
+            ...ad,
+            data: ad.data ? { ...ad.data } : undefined,
+          })),
+        };
+        let shouldPlay = true;
+        try {
+          const shouldPlayResult = callback(cloned);
+          shouldPlay =
+            typeof shouldPlayResult === 'boolean' ? shouldPlayResult : true;
+        } catch {
+          shouldPlay = true;
+        }
+        void PlayerModule.setShouldPlayAdBreak(id, shouldPlay);
+      }
+    );
   };
 
   private ensureImaBeforeInitializationListener = () => {

@@ -2,15 +2,52 @@
 
 ## [Unreleased]
 
+## [1.20.1] - 2026-06-12
+
+### Fixed
+
+- Android: Fix known limitation of `PictureInPictureEntered` and `PictureInPictureExited` events on Android <15
+
+## [1.20.0] - 2026-05-29
+
 ### Added
 
-- `AdvertisingConfig.shouldLoadAdItem` callback to filter ad items before they are loaded
+- Android: `PictureInPictureEntered` and `PictureInPictureExited` player events
+  - Known Limitation: On Android <15 the `PictureInPictureEntered` and `PictureInPictureExited` events are called before the `AppState` changed callback is called
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.150.0+jason`
-- Update Bitmovin's native iOS SDK version to `3.111.1`
+- Update Bitmovin's native Android SDK version to `3.154.0+jason`
+- Update Bitmovin's native iOS SDK version to `3.114.1`
+
+### Fixed
+
+- iOS: Expo config plugin no longer drops `NSLocalNetworkUsageDescription` from `Info.plist` when `features.googleCastSDK.ios` is configured as an object without an explicit `localNetworkUsageDescription`. The default description is now applied as a fallback, restoring local-network access required for Cast device discovery
+
+## [1.19.0] - 2026-05-08
+
+### Added
+
+- Android: `AdvertisingConfig.shouldPlayAdBreak` callback to decide at runtime whether a scheduled ad break should play
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.113.0`
+- Update Bitmovin's native Android SDK version to `3.152.0+jason`
+
+## [1.18.0] - 2026-05-01
+
+### Added
+
+- `AdvertisingConfig.shouldLoadAdItem` callback to filter ad items before they are loaded
+- iOS: `PictureInPictureConfig.shouldExitOnForeground` to automatically exit PiP mode when the app transitions to the foreground
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.151.0+jason`
+- Update Bitmovin's native iOS SDK version to `3.112.0`
 - Android: Kotlin version to `2.2.20`
+- Update Expo SDK version to `54.0.34`
 
 ## [1.17.0] - 2026-04-17
 

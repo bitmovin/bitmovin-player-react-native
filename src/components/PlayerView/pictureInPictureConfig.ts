@@ -21,4 +21,14 @@ export interface PictureInPictureConfig {
    * @platform iOS 14.2+, Android 8.0+
    */
   shouldEnterOnBackground?: boolean;
+
+  /**
+   * Defines whether Picture in Picture should exit automatically when the app transitions back to foreground.
+   *
+   * Does not have any effect when Picture in Picture is disabled.
+   *
+   * @defaultValue `false`
+   * @platform iOS
+   */
+  shouldExitOnForeground?: boolean;
 }
