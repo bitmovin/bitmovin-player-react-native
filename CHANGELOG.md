@@ -4,7 +4,7 @@
 
 ### Added
 
-- Android: Expose cue geometry and positioning fields (`line`, `position`, `size`, `textAlignment`, `lineType`, `lineAnchor`, `positionAnchor`, `bitmapHeight`, `windowColor`, `verticalType`, `html`) in `CueEnterEvent` and `CueExitEvent`
+- Android: Expose cue geometry and positioning data as a nested `cue` object on `CueEnterEvent` and `CueExitEvent`, including `line`, `position`, `size`, `textAlignment`, `lineType`, `lineAnchor`, `positionAnchor`, `bitmapHeight`, `windowColor`, `verticalType`, and `html`
 
 ## [1.20.1] - 2026-06-12
 
