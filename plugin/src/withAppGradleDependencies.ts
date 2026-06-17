@@ -18,8 +18,8 @@ const defaultProps: PluginProps = {
 
 const CORE_LIBRARY_DESUGARING_DEPENDENCY =
   "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'";
-const CORE_LIBRARY_DESUGARING_COORDINATES =
-  'com.android.tools:desugar_jdk_libs:2.1.5';
+const CORE_LIBRARY_DESUGARING_ARTIFACT =
+  'com.android.tools:desugar_jdk_libs';
 
 const stripBlockComments = (contents: string) =>
   contents.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -32,17 +32,27 @@ const hasCoreLibraryDesugaringEnabled = (contents: string) =>
 const escapeRegExp = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+// Removes quoted strings and trailing line comments so that braces appearing
+// inside them do not throw off the nesting-depth tracking below.
+const stripLineNoise = (line: string) =>
+  line
+    .replace(/'(?:\\.|[^'\\])*'/g, "''")
+    .replace(/"(?:\\.|[^"\\])*"/g, '""')
+    .replace(/\/\/.*$/, '');
+
 const hasGradleDependencyDeclaration = (
   contents: string,
   dependency: string,
-  configuration?: string
+  configuration?: string,
+  allowVersionSuffix = false
 ) => {
   const dependencyPattern = escapeRegExp(dependency);
   const configurationPattern = configuration
     ? escapeRegExp(configuration)
     : '[A-Za-z_][\\w.-]*';
+  const versionSuffixPattern = allowVersionSuffix ? `(?::[^'"]*)?` : '';
   const declarationPattern = new RegExp(
-    `^${configurationPattern}\\s*(?:\\(\\s*)?['"]${dependencyPattern}['"]`
+    `^${configurationPattern}\\s*(?:\\(\\s*)?['"]${dependencyPattern}${versionSuffixPattern}['"]`
   );
   let nestedBlockDepth = 0;
 
@@ -60,19 +70,23 @@ const hasGradleDependencyDeclaration = (
 
       const isTopLevelDependency =
         nestedBlockDepth === 0 && declarationPattern.test(trimmedLine);
-      const openBlockCount = (trimmedLine.match(/\{/g) || []).length;
-      const closeBlockCount = (trimmedLine.match(/\}/g) || []).length;
+      const sanitizedLine = stripLineNoise(trimmedLine);
+      const openBlockCount = (sanitizedLine.match(/\{/g) || []).length;
+      const closeBlockCount = (sanitizedLine.match(/\}/g) || []).length;
       nestedBlockDepth += openBlockCount - closeBlockCount;
 
       return isTopLevelDependency;
     });
 };
 
+// Matches any pinned version of the desugaring artifact so an existing
+// declaration is never duplicated, even when it pins a different version.
 const hasCoreLibraryDesugaringDependency = (contents: string) =>
   hasGradleDependencyDeclaration(
     contents,
-    CORE_LIBRARY_DESUGARING_COORDINATES,
-    'coreLibraryDesugaring'
+    CORE_LIBRARY_DESUGARING_ARTIFACT,
+    'coreLibraryDesugaring',
+    true
   );
 
 const replaceDisabledCoreLibraryDesugaringSettingsInGradle = (
@@ -124,7 +138,7 @@ const ensureCoreLibraryDesugaringCompileOptions = (
   }
 
   const compileOptionsRelativeStart = updatedAndroidBlock.search(
-    /^\s*compileOptions\s*\{$/m
+    /^[^\S\r\n]*compileOptions\s*\{$/m
   );
   if (compileOptionsRelativeStart === -1) {
     const compileOptions = [];
@@ -151,17 +165,6 @@ const ensureCoreLibraryDesugaringCompileOptions = (
     `${spacing}${spacing}setCoreLibraryDesugaringEnabled(true)\n`,
     updatedContents.slice(compileOptionsLineEnd),
   ].join('');
-};
-
-const getCoreLibraryDesugaringDependencyLines = (
-  contents: string,
-  spacing: string
-) => {
-  if (hasCoreLibraryDesugaringDependency(contents)) {
-    return [];
-  }
-
-  return ['\n', `${spacing}${CORE_LIBRARY_DESUGARING_DEPENDENCY}`, '\n'];
 };
 
 const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
@@ -238,27 +241,29 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
       updatedDependenciesBlockStart,
       position
     );
-    const insertedDependencies = getCoreLibraryDesugaringDependencyLines(
-      dependenciesBlock,
-      spacing
-    );
+    const dependencyDeclarations: string[] = [];
+    if (!hasCoreLibraryDesugaringDependency(dependenciesBlock)) {
+      dependencyDeclarations.push(
+        `${spacing}${CORE_LIBRARY_DESUGARING_DEPENDENCY}`
+      );
+    }
     const deduplicatedDependencies = Array.from(
       new Set(combinedProps.dependencies)
     );
-    const filteredDependencies = deduplicatedDependencies.filter(
-      (dependency) =>
-        !hasGradleDependencyDeclaration(dependenciesBlock, dependency)
-    );
-    filteredDependencies.forEach((dependency) => {
-      insertedDependencies.push(`${spacing}implementation '${dependency}'\n`);
-    });
-    if (insertedDependencies.length === 0) {
+    deduplicatedDependencies
+      .filter(
+        (dependency) =>
+          !hasGradleDependencyDeclaration(dependenciesBlock, dependency)
+      )
+      .forEach((dependency) => {
+        dependencyDeclarations.push(`${spacing}implementation '${dependency}'`);
+      });
+    if (dependencyDeclarations.length === 0) {
       return config;
     }
-    insertedDependencies.push('\n');
     config.modResults.contents = [
       config.modResults.contents.slice(0, position),
-      ...insertedDependencies,
+      `\n${dependencyDeclarations.join('\n')}\n`,
       config.modResults.contents.slice(position),
     ].join('');
     return config;

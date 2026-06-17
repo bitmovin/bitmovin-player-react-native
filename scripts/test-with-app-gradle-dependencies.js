@@ -392,6 +392,118 @@ dependencies {
   );
 });
 
+test('enables desugaring inside a compileOptions block preceded by a blank line', async () => {
+  const gradleWithBlankLineBeforeCompileOptions = `plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-android'
+}
+`;
+
+  const result = await applyPlugin(gradleWithBlankLineBeforeCompileOptions);
+
+  assert.equal(countOccurrences(result, 'compileOptions {'), 1);
+  assert.match(
+    result,
+    /compileOptions \{\n        setCoreLibraryDesugaringEnabled\(true\)\n        sourceCompatibility/
+  );
+  assert.doesNotMatch(
+    result,
+    /namespace 'com\.example'\n\n        setCoreLibraryDesugaringEnabled/
+  );
+});
+
+test('enables desugaring inside a compileOptions block preceded by a comment line', async () => {
+  const gradleWithCommentBeforeCompileOptions = `plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example'
+    // Java 17 toolchain
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-android'
+}
+`;
+
+  const result = await applyPlugin(gradleWithCommentBeforeCompileOptions);
+
+  assert.equal(countOccurrences(result, 'compileOptions {'), 1);
+  assert.match(
+    result,
+    /compileOptions \{\n        setCoreLibraryDesugaringEnabled\(true\)\n        sourceCompatibility/
+  );
+});
+
+test('does not duplicate an existing desugaring dependency pinned to another version', async () => {
+  const gradleWithOtherDesugaringVersion = `plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example'
+    compileOptions {
+        setCoreLibraryDesugaringEnabled(true)
+    }
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-android'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+}
+`;
+
+  const result = await applyPlugin(gradleWithOtherDesugaringVersion);
+
+  assert.equal(
+    countOccurrences(result, "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs"),
+    1
+  );
+  assert.doesNotMatch(result, /desugar_jdk_libs:2\.1\.5/);
+  assert.match(result, /desugar_jdk_libs:2\.0\.4/);
+});
+
+test('does not desync nesting depth on braces inside trailing comments', async () => {
+  const featureDependency = 'com.example:feature:1.0';
+  const gradleWithTrailingBraceComment = `plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example'
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-android' // TODO close this {
+    implementation '${featureDependency}'
+}
+`;
+
+  const result = await applyPlugin(gradleWithTrailingBraceComment, {
+    dependencies: [featureDependency],
+  });
+
+  assert.equal(
+    countOccurrences(result, `implementation '${featureDependency}'`),
+    1
+  );
+});
+
 const run = async () => {
   const failures = [];
 
