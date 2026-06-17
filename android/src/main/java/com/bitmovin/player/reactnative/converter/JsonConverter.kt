@@ -527,7 +527,7 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["text"] = text
             baseMap["html"] = html
             baseMap["image"] = image?.toBase64DataUri()
-            baseMap.putCueGeometry(cue)
+            baseMap["cue"] = cue.toJson()
         }
 
         is PlayerEvent.CueExit -> {
