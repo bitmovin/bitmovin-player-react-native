@@ -41,6 +41,7 @@ import com.bitmovin.player.api.media.MediaTrackRole
 import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.audio.quality.AudioQuality
+import com.bitmovin.player.api.media.subtitle.Cue
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
@@ -112,6 +113,19 @@ private fun Map<String, Any?>.filterNotNullValues(): Map<String, Any> =
 
 private inline fun MutableMap<String, Any>.putIfNotNull(key: String, value: Any?) {
     value?.let { put(key, it) }
+}
+
+private fun MutableMap<String, Any?>.putCueGeometry(cue: Cue) {
+    this["textAlignment"] = cue.textAlignment?.name
+    this["line"] = cue.line.takeUnless { it == Cue.DIMEN_UNSET }
+    this["lineType"] = cue.lineType.takeUnless { it == Cue.LineType.TypeUnset }?.name
+    this["lineAnchor"] = cue.lineAnchor.takeUnless { it == Cue.AnchorType.TypeUnset }?.name
+    this["position"] = cue.fractionalPosition.takeUnless { it == Cue.DIMEN_UNSET }
+    this["positionAnchor"] = cue.positionAnchor.takeUnless { it == Cue.AnchorType.TypeUnset }?.name
+    this["size"] = cue.size.takeUnless { it == Cue.DIMEN_UNSET }
+    this["bitmapHeight"] = cue.bitmapHeight.takeUnless { it == Cue.DIMEN_UNSET }
+    this["windowColor"] = if (cue.isWindowColorSet) cue.windowColor else null
+    this["verticalType"] = cue.verticalType.takeUnless { it == Cue.VerticalType.TypeUnset }?.name
 }
 
 fun Map<String, Any?>.toPlayerConfig(): PlayerConfig = PlayerConfig(key = getString("licenseKey")).apply {
@@ -511,14 +525,18 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["start"] = start
             baseMap["end"] = end
             baseMap["text"] = text
+            baseMap["html"] = html
             baseMap["image"] = image?.toBase64DataUri()
+            baseMap.putCueGeometry(cue)
         }
 
         is PlayerEvent.CueExit -> {
             baseMap["start"] = start
             baseMap["end"] = end
             baseMap["text"] = text
+            baseMap["html"] = html
             baseMap["image"] = image?.toBase64DataUri()
+            baseMap.putCueGeometry(cue)
         }
 
         is PlayerEvent.Metadata -> {

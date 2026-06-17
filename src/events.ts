@@ -747,9 +747,76 @@ export interface PlaybackSpeedChangedEvent extends Event {
 }
 
 /**
+ * Positioning geometry shared by CueEnterEvent and CueExitEvent (Android only).
+ */
+export interface CueGeometry {
+  /**
+   * HTML representation of the cue text, including inline styling tags.
+   * Android only.
+   */
+  html?: string;
+  /**
+   * Text alignment within the cue box. One of `ALIGN_NORMAL`, `ALIGN_OPPOSITE`, `ALIGN_CENTER`.
+   * Android only.
+   */
+  textAlignment?: string;
+  /**
+   * Position of the cue box along the axis perpendicular to the writing direction, as a
+   * fraction of the viewport or as a line number (see `lineType`). Omitted when unset.
+   * Android only.
+   */
+  line?: number;
+  /**
+   * How `line` is interpreted. One of `LineTypeFraction`, `LineTypeNumber`.
+   * Android only.
+   */
+  lineType?: string;
+  /**
+   * Which edge of the cue box is anchored to `line`. One of `AnchorTypeStart`,
+   * `AnchorTypeMiddle`, `AnchorTypeEnd`.
+   * Android only.
+   */
+  lineAnchor?: string;
+  /**
+   * Position of the cue box along the writing direction as a fraction of the viewport.
+   * Omitted when unset.
+   * Android only.
+   */
+  position?: number;
+  /**
+   * Which edge of the cue box is anchored to `position`. One of `AnchorTypeStart`,
+   * `AnchorTypeMiddle`, `AnchorTypeEnd`.
+   * Android only.
+   */
+  positionAnchor?: string;
+  /**
+   * Width of the cue box as a fraction of the viewport width. Omitted when unset.
+   * Android only.
+   */
+  size?: number;
+  /**
+   * Height of the bitmap cue as a fraction of the viewport height. Omitted when unset.
+   * Android only.
+   */
+  bitmapHeight?: number;
+  /**
+   * Background color of the cue window as a packed ARGB integer. Only present when the
+   * cue specifies a window color.
+   * Android only.
+   */
+  windowColor?: number;
+  /**
+   * Vertical writing direction of the cue. One of `VerticalTypeLeftToRight`,
+   * `VerticalTypeRightToLeft`. Omitted for standard horizontal text.
+   * Android only.
+   */
+  verticalType?: string;
+}
+
+/**
  * Emitted when a subtitle entry transitions into the active status.
  */
-export interface CueEnterEvent extends Event {
+export interface CueEnterEvent extends Event, CueGeometry {
   /**
    * The playback time in seconds when the subtitle should be rendered.
    */
@@ -771,7 +838,7 @@ export interface CueEnterEvent extends Event {
 /**
  * Emitted when an active subtitle entry transitions into the inactive status.
  */
-export interface CueExitEvent extends Event {
+export interface CueExitEvent extends Event, CueGeometry {
   /**
    * The playback time in seconds when the subtitle should be rendered.
    */
