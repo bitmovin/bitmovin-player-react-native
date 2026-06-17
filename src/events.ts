@@ -753,11 +753,12 @@ export interface PlaybackSpeedChangedEvent extends Event {
  */
 export interface SubtitleCueVttRegion {
   /**
-   * VTT region identifier for this cue.
+   * VTT region identifier for this cue, when available.
    */
   id?: string;
   /**
-   * VTT region style for this cue.
+   * Opaque VTT region style string from the native SDK, when available.
+   * This value is intended for forwarding/rendering, not parsing as structured data.
    */
   style?: string;
 }
@@ -765,6 +766,7 @@ export interface SubtitleCueVttRegion {
 /**
  * WebVTT-style cue geometry and positioning metadata normalized from native cue data.
  * Values may include native/defaulted cue values, not only explicitly authored WebVTT cue settings.
+ * Individual fields are optional because native SDKs expose different subsets of cue metadata.
  */
 export interface SubtitleCueVtt {
   /**
@@ -830,9 +832,9 @@ export interface Cea608Position {
 }
 
 /**
- * Emitted when a subtitle entry transitions into the active status.
+ * Shared subtitle cue event payload.
  */
-export interface CueEnterEvent extends Event {
+export interface SubtitleCueEventPayload {
   /**
    * The playback time in seconds when the subtitle should be rendered.
    */
@@ -856,7 +858,8 @@ export interface CueEnterEvent extends Event {
   /**
    * WebVTT-style cue geometry and positioning metadata normalized from native cue data.
    * Values may include native/defaulted cue values, not only explicitly authored WebVTT cue settings.
-   * Present when the subtitle track provides positioning data.
+   * Present when the native cue exposes WebVTT-style geometry or region metadata.
+   * Individual fields are optional.
    */
   vtt?: SubtitleCueVtt;
   /**
@@ -868,42 +871,14 @@ export interface CueEnterEvent extends Event {
 }
 
 /**
+ * Emitted when a subtitle entry transitions into the active status.
+ */
+export interface CueEnterEvent extends Event, SubtitleCueEventPayload {}
+
+/**
  * Emitted when an active subtitle entry transitions into the inactive status.
  */
-export interface CueExitEvent extends Event {
-  /**
-   * The playback time in seconds when the subtitle should be rendered.
-   */
-  start: number;
-  /**
-   * The playback time in seconds when the subtitle should be hidden.
-   */
-  end: number;
-  /**
-   * The textual content of this subtitle.
-   */
-  text?: string;
-  /**
-   * Data URI for image data of this subtitle.
-   */
-  image?: string;
-  /**
-   * HTML representation of the cue text, if available.
-   */
-  html?: string;
-  /**
-   * WebVTT-style cue geometry and positioning metadata normalized from native cue data.
-   * Values may include native/defaulted cue values, not only explicitly authored WebVTT cue settings.
-   * Present when the subtitle track provides positioning data.
-   */
-  vtt?: SubtitleCueVtt;
-  /**
-   * CEA-608 grid position for closed captions.
-   *
-   * @platform iOS, tvOS
-   */
-  cea608Position?: Cea608Position;
-}
+export interface CueExitEvent extends Event, SubtitleCueEventPayload {}
 
 /**
  * Base event type for events that carry timed metadata.
