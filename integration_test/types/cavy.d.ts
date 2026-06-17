@@ -11,8 +11,8 @@ declare module 'cavy' {
   }
 
   export interface TestScope {
-    describe: (name: string, fn: () => void) => void;
-    it: (name: string, fn: () => Promise<void>) => void;
+    describe: (name: string, fn: () => void, tag?: string) => void;
+    it: (name: string, fn: () => Promise<void>, tag?: string) => void;
     beforeEach: (fn: () => void) => void;
     afterEach: (fn: () => void) => void;
   }
@@ -23,6 +23,7 @@ declare module 'cavy' {
     waitTime?: number;
     startDelay?: number;
     clearAsyncStorage?: boolean;
+    only?: string[];
     reporter?: (report: any) => void;
     children?: React.ReactNode;
   }

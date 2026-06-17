@@ -1,4 +1,5 @@
 import { TestScope } from 'cavy';
+import { Asset } from 'expo-asset';
 import { Platform } from 'react-native';
 import {
   callPlayer,
@@ -12,6 +13,8 @@ import {
 } from '../playertesting';
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
+import positionedWebVttAssetId from '../assets/subtitles/positioned.vtt';
+import regionWebVttAssetId from '../assets/subtitles/region.vtt';
 import {
   CueEnterEvent,
   CueExitEvent,
@@ -19,27 +22,24 @@ import {
   SubtitleFormat,
 } from 'bitmovin-player-react-native';
 
-const positionedWebVtt = [
-  'WEBVTT',
-  '',
-  '00:00:00.000 --> 00:00:10.000 line:20% position:30%,line-left size:40% align:start',
-  'Positioned WebVTT cue',
-  '',
-].join('\n');
+const positionedWebVttLabel = 'Positioned WebVTT';
+const positionedWebVttAsset = Asset.fromModule(positionedWebVttAssetId);
+const regionWebVttLabel = 'Region WebVTT';
+const regionWebVttAsset = Asset.fromModule(regionWebVttAssetId);
 
-const positionedWebVttSource: SourceConfig = {
-  ...Sources.sintel,
-  subtitleTracks: [
-    {
-      url: `data:text/vtt;charset=utf-8,${encodeURIComponent(
-        positionedWebVtt
-      )}`,
-      label: 'Positioned WebVTT',
-      language: 'en',
-      format: SubtitleFormat.VTT,
-    },
-  ],
-};
+function sourceWithWebVttTrack(url: string, label: string): SourceConfig {
+  return {
+    ...Sources.sintel,
+    subtitleTracks: [
+      {
+        url,
+        label,
+        language: 'en',
+        format: SubtitleFormat.VTT,
+      },
+    ],
+  };
+}
 
 function expectCueVttIfPresent(
   vtt: CueEnterEvent['vtt'] | CueExitEvent['vtt'],
@@ -85,11 +85,36 @@ function expectCueVttRegionIfPresent(
   vtt: CueEnterEvent['vtt'] | CueExitEvent['vtt'],
   eventName: string
 ) {
+  if (vtt?.region?.id !== undefined) {
+    expect(typeof vtt.region.id, `${eventName} region id type`).toBe('string');
+  }
   if (vtt?.region?.style !== undefined) {
     expect(typeof vtt.region.style, `${eventName} region style type`).toBe(
       'string'
     );
   }
+}
+
+function expectPositionedWebVttGeometry(
+  vtt: CueEnterEvent['vtt'] | CueExitEvent['vtt'],
+  eventName: string
+) {
+  expect(vtt, `${eventName} should expose VTT geometry`).toBeDefined();
+  expect(vtt?.line, `${eventName} VTT line`).toBeCloseTo(20);
+  expect(vtt?.snapToLines, `${eventName} VTT snapToLines`).toBe(false);
+  expect(vtt?.position, `${eventName} VTT position`).toBeCloseTo(30);
+  expect(vtt?.positionAlign, `${eventName} VTT positionAlign`).toBe(
+    'line-left'
+  );
+  expect(vtt?.size, `${eventName} VTT size`).toBeCloseTo(40);
+  expect(vtt?.align, `${eventName} VTT align`).toBe('start');
+}
+
+async function getAssetUri(asset: Asset, description: string): Promise<string> {
+  await asset.downloadAsync();
+  const uri = asset.localUri ?? asset.uri;
+  expect(uri, `${description} asset URI should be available`).toBeDefined();
+  return uri;
 }
 
 export default (spec: TestScope) => {
@@ -308,10 +333,15 @@ export default (spec: TestScope) => {
         }
 
         await startPlayerTest({}, async () => {
-          await loadSourceConfig(positionedWebVttSource);
+          await loadSourceConfig(
+            sourceWithWebVttTrack(
+              await getAssetUri(positionedWebVttAsset, positionedWebVttLabel),
+              positionedWebVttLabel
+            )
+          );
           await callPlayer(async (player) => {
             const subtitleTrack = (await player.getAvailableSubtitles()).find(
-              (track) => track.label === 'Positioned WebVTT'
+              (track) => track.label === positionedWebVttLabel
             );
             expect(
               subtitleTrack,
@@ -326,18 +356,76 @@ export default (spec: TestScope) => {
             EventType.CueEnter,
             30
           );
-          const vtt = cueEnterEvent.vtt;
-          expect(vtt, 'CueEnter should expose VTT geometry').toBeDefined();
-          expect(vtt?.line, 'CueEnter VTT line').toBeCloseTo(20);
-          expect(vtt?.snapToLines, 'CueEnter VTT snapToLines').toBe(false);
-          expect(vtt?.position, 'CueEnter VTT position').toBeCloseTo(30);
-          expect(vtt?.positionAlign, 'CueEnter VTT positionAlign').toBe(
-            'line-left'
+          expectPositionedWebVttGeometry(cueEnterEvent.vtt, 'CueEnter');
+
+          const cueExitEvent: CueExitEvent = await expectEvent(
+            EventType.CueExit,
+            15
           );
-          expect(vtt?.size, 'CueEnter VTT size').toBeCloseTo(40);
-          expect(vtt?.align, 'CueEnter VTT align').toBe('start');
+          expectPositionedWebVttGeometry(cueExitEvent.vtt, 'CueExit');
         });
-      }
+      },
+      'cueGeometry'
+    );
+
+    spec.it(
+      'emits VTT region metadata under vtt on iOS',
+      async () => {
+        if (Platform.OS !== 'ios') {
+          return;
+        }
+
+        await startPlayerTest({}, async () => {
+          await loadSourceConfig(
+            sourceWithWebVttTrack(
+              await getAssetUri(regionWebVttAsset, regionWebVttLabel),
+              regionWebVttLabel
+            )
+          );
+          await callPlayer(async (player) => {
+            const subtitleTrack = (await player.getAvailableSubtitles()).find(
+              (track) => track.label === regionWebVttLabel
+            );
+            expect(
+              subtitleTrack,
+              'Region WebVTT track should be available'
+            ).toBeDefined();
+
+            void player.setSubtitleTrack(subtitleTrack!.identifier);
+            void player.play();
+          });
+
+          const cueEnterEvent: CueEnterEvent = await expectEvent(
+            EventType.CueEnter,
+            30
+          );
+          expect(
+            cueEnterEvent.vtt?.region,
+            'CueEnter should expose VTT region metadata under vtt'
+          ).toBeDefined();
+          expect(cueEnterEvent.vtt?.region?.id, 'CueEnter VTT region id').toBe(
+            'region-test'
+          );
+          expect(
+            cueEnterEvent.vtt?.region?.style,
+            'CueEnter VTT region style'
+          ).toBeDefined();
+          expect(
+            typeof cueEnterEvent.vtt?.region?.style,
+            'CueEnter VTT region style type'
+          ).toBe('string');
+          expect(
+            (cueEnterEvent as CueEnterEvent & { region?: string }).region,
+            'CueEnter should not expose legacy top-level region'
+          ).toBeUndefined();
+          expect(
+            (cueEnterEvent as CueEnterEvent & { regionStyle?: string })
+              .regionStyle,
+            'CueEnter should not expose legacy top-level regionStyle'
+          ).toBeUndefined();
+        });
+      },
+      'cueRegion'
     );
 
     spec.it(
