@@ -18,27 +18,15 @@ const defaultProps: PluginProps = {
 
 const CORE_LIBRARY_DESUGARING_DEPENDENCY =
   "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'";
-const CORE_LIBRARY_DESUGARING_ARTIFACT =
-  'com.android.tools:desugar_jdk_libs';
-
-const stripBlockComments = (contents: string) =>
-  contents.replace(/\/\*[\s\S]*?\*\//g, '');
+const CORE_LIBRARY_DESUGARING_ARTIFACT = 'com.android.tools:desugar_jdk_libs';
 
 const hasCoreLibraryDesugaringEnabled = (contents: string) =>
   /^\s*(?:setCoreLibraryDesugaringEnabled\s*\(\s*true\s*\)|coreLibraryDesugaringEnabled(?:\s*=\s*|\s+)true\b)/m.test(
-    stripBlockComments(contents)
+    contents
   );
 
 const escapeRegExp = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-// Removes quoted strings and trailing line comments so that braces appearing
-// inside them do not throw off the nesting-depth tracking below.
-const stripLineNoise = (line: string) =>
-  line
-    .replace(/'(?:\\.|[^'\\])*'/g, "''")
-    .replace(/"(?:\\.|[^"\\])*"/g, '""')
-    .replace(/\/\/.*$/, '');
 
 const hasGradleDependencyDeclaration = (
   contents: string,
@@ -56,27 +44,24 @@ const hasGradleDependencyDeclaration = (
   );
   let nestedBlockDepth = 0;
 
-  return stripBlockComments(contents)
-    .split('\n')
-    .some((line) => {
-      const trimmedLine = line.trim();
-      if (trimmedLine.startsWith('//')) {
-        return false;
-      }
+  return contents.split('\n').some((line) => {
+    const trimmedLine = line.trim();
+    if (trimmedLine.startsWith('//')) {
+      return false;
+    }
 
-      if (/^dependencies\s*\{$/.test(trimmedLine)) {
-        return false;
-      }
+    if (/^dependencies\s*\{$/.test(trimmedLine)) {
+      return false;
+    }
 
-      const isTopLevelDependency =
-        nestedBlockDepth === 0 && declarationPattern.test(trimmedLine);
-      const sanitizedLine = stripLineNoise(trimmedLine);
-      const openBlockCount = (sanitizedLine.match(/\{/g) || []).length;
-      const closeBlockCount = (sanitizedLine.match(/\}/g) || []).length;
-      nestedBlockDepth += openBlockCount - closeBlockCount;
+    const isTopLevelDependency =
+      nestedBlockDepth === 0 && declarationPattern.test(trimmedLine);
+    const openBlockCount = (trimmedLine.match(/\{/g) || []).length;
+    const closeBlockCount = (trimmedLine.match(/\}/g) || []).length;
+    nestedBlockDepth += openBlockCount - closeBlockCount;
 
-      return isTopLevelDependency;
-    });
+    return isTopLevelDependency;
+  });
 };
 
 // Matches any pinned version of the desugaring artifact so an existing
@@ -89,9 +74,7 @@ const hasCoreLibraryDesugaringDependency = (contents: string) =>
     true
   );
 
-const replaceDisabledCoreLibraryDesugaringSettingsInGradle = (
-  contents: string
-) =>
+const replaceDisabledCoreLibraryDesugaringSettings = (contents: string) =>
   contents
     .replace(
       /^(\s*)setCoreLibraryDesugaringEnabled\s*\(\s*false\s*\)/gm,
@@ -105,16 +88,6 @@ const replaceDisabledCoreLibraryDesugaringSettingsInGradle = (
       /^(\s*)coreLibraryDesugaringEnabled(\s+)false\b/gm,
       '$1coreLibraryDesugaringEnabled$2true'
     );
-
-const replaceDisabledCoreLibraryDesugaringSettings = (contents: string) =>
-  contents
-    .split(/(\/\*[\s\S]*?\*\/)/g)
-    .map((part) =>
-      part.startsWith('/*')
-        ? part
-        : replaceDisabledCoreLibraryDesugaringSettingsInGradle(part)
-    )
-    .join('');
 
 const ensureCoreLibraryDesugaringCompileOptions = (
   contents: string,
@@ -141,18 +114,15 @@ const ensureCoreLibraryDesugaringCompileOptions = (
     /^[^\S\r\n]*compileOptions\s*\{$/m
   );
   if (compileOptionsRelativeStart === -1) {
-    const compileOptions = [];
-    compileOptions.push(`${spacing}compileOptions {`);
-    compileOptions.push('\n');
-    compileOptions.push(
-      `${spacing}${spacing}setCoreLibraryDesugaringEnabled(true)`
-    );
-    compileOptions.push('\n');
-    compileOptions.push(`${spacing}}`);
-    compileOptions.push('\n');
+    const compileOptions = [
+      `${spacing}compileOptions {`,
+      `${spacing}${spacing}setCoreLibraryDesugaringEnabled(true)`,
+      `${spacing}}`,
+      '',
+    ].join('\n');
     return [
       updatedContents.slice(0, updatedAndroidPosition),
-      ...compileOptions,
+      compileOptions,
       updatedContents.slice(updatedAndroidPosition),
     ].join('');
   }
@@ -241,23 +211,17 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
       updatedDependenciesBlockStart,
       position
     );
-    const dependencyDeclarations: string[] = [];
-    if (!hasCoreLibraryDesugaringDependency(dependenciesBlock)) {
-      dependencyDeclarations.push(
-        `${spacing}${CORE_LIBRARY_DESUGARING_DEPENDENCY}`
-      );
-    }
-    const deduplicatedDependencies = Array.from(
-      new Set(combinedProps.dependencies)
-    );
-    deduplicatedDependencies
-      .filter(
-        (dependency) =>
-          !hasGradleDependencyDeclaration(dependenciesBlock, dependency)
-      )
-      .forEach((dependency) => {
-        dependencyDeclarations.push(`${spacing}implementation '${dependency}'`);
-      });
+    const dependencyDeclarations = [
+      ...(!hasCoreLibraryDesugaringDependency(dependenciesBlock)
+        ? [`${spacing}${CORE_LIBRARY_DESUGARING_DEPENDENCY}`]
+        : []),
+      ...Array.from(new Set(combinedProps.dependencies))
+        .filter(
+          (dependency) =>
+            !hasGradleDependencyDeclaration(dependenciesBlock, dependency)
+        )
+        .map((dependency) => `${spacing}implementation '${dependency}'`),
+    ];
     if (dependencyDeclarations.length === 0) {
       return config;
     }
