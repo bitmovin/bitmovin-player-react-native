@@ -8,6 +8,24 @@
   - cue geometry data via a unified `vtt` object (`line`, `snapToLines`, `lineAlign`, `position`, `positionAlign`, `size`, `align`, `vertical`). `line` and `position` are `"auto"` when the native cue has no explicit value
   - cue `html` and iOS-specific `cea608Position`, `region`, and `regionStyle` fields
 
+## [1.20.1] - 2026-06-12
+
+### Fixed
+
+- Android: Fix known limitation of `PictureInPictureEntered` and `PictureInPictureExited` events on Android <15
+
+## [1.20.0] - 2026-05-29
+
+### Added
+
+- Android: `PictureInPictureEntered` and `PictureInPictureExited` player events
+  - Known Limitation: On Android <15 the `PictureInPictureEntered` and `PictureInPictureExited` events are called before the `AppState` changed callback is called
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.154.0+jason`
+- Update Bitmovin's native iOS SDK version to `3.114.1`
+
 ### Fixed
 
 - iOS: Expo config plugin no longer drops `NSLocalNetworkUsageDescription` from `Info.plist` when `features.googleCastSDK.ios` is configured as an object without an explicit `localNetworkUsageDescription`. The default description is now applied as a fallback, restoring local-network access required for Cast device discovery
@@ -36,11 +54,6 @@
 - Update Bitmovin's native iOS SDK version to `3.112.0`
 - Android: Kotlin version to `2.2.20`
 - Update Expo SDK version to `54.0.34`
-
-### Added
-
-- Android: `PictureInPictureEntered` and `PictureInPictureExited` player events
-  - Known Limitation: On Android <15 the `PictureInPictureEntered` and `PictureInPictureExited` events are called before the `AppState` changed callback is called
 
 ## [1.17.0] - 2026-04-17
 
