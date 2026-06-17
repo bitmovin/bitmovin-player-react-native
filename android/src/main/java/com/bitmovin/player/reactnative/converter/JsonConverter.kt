@@ -115,10 +115,18 @@ private inline fun MutableMap<String, Any>.putIfNotNull(key: String, value: Any?
     value?.let { put(key, it) }
 }
 
-private fun Cue.toJson() =  mapOf(
-    "textAlignment" to cue.textAlignment?.name
-    "line" = cue.line.takeUnless { it == Cue.DIMEN_UNSET }
-...
+private fun Cue.toJson() = mapOf(
+    "html" to html,
+    "textAlignment" to textAlignment?.name,
+    "line" to line.takeUnless { it == Cue.DIMEN_UNSET },
+    "lineType" to lineType.takeUnless { it == Cue.LineType.TypeUnset }?.name,
+    "lineAnchor" to lineAnchor.takeUnless { it == Cue.AnchorType.TypeUnset }?.name,
+    "position" to fractionalPosition.takeUnless { it == Cue.DIMEN_UNSET },
+    "positionAnchor" to positionAnchor.takeUnless { it == Cue.AnchorType.TypeUnset }?.name,
+    "size" to size.takeUnless { it == Cue.DIMEN_UNSET },
+    "bitmapHeight" to bitmapHeight.takeUnless { it == Cue.DIMEN_UNSET },
+    "windowColor" to if (isWindowColorSet) windowColor else null,
+    "verticalType" to verticalType.takeUnless { it == Cue.VerticalType.TypeUnset }?.name,
 ).filterNotNullValues()
 
 fun Map<String, Any?>.toPlayerConfig(): PlayerConfig = PlayerConfig(key = getString("licenseKey")).apply {
@@ -518,7 +526,6 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["start"] = start
             baseMap["end"] = end
             baseMap["text"] = text
-            baseMap["html"] = html
             baseMap["image"] = image?.toBase64DataUri()
             baseMap["cue"] = cue.toJson()
         }
@@ -527,7 +534,6 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["start"] = start
             baseMap["end"] = end
             baseMap["text"] = text
-            baseMap["html"] = html
             baseMap["image"] = image?.toBase64DataUri()
             baseMap["cue"] = cue.toJson()
         }
