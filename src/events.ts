@@ -871,15 +871,15 @@ export interface SubtitleCue {
    */
   start: number;
   /**
-   * End time of the cue in seconds.
+   * The playback time in seconds when the subtitle should be hidden.
    */
   end: number;
   /**
-   * Plain subtitle text.
+   * The textual content of this subtitle.
    */
   text?: string;
   /**
-   * Image subtitle data URI.
+   * Data URI for image data of this subtitle.
    */
   image?: string;
   /**
