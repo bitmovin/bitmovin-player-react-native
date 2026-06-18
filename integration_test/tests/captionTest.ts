@@ -439,8 +439,7 @@ export default (spec: TestScope) => {
             'CueEnter should not expose legacy top-level regionStyle'
           ).toBeUndefined();
         });
-      },
-      'cueRegion'
+      }
     );
 
     spec.it(
