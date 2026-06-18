@@ -384,8 +384,7 @@ export default (spec: TestScope) => {
           );
           expectPositionedWebVttGeometry(cueExitEvent.layout, 'CueExit');
         });
-      },
-      'cueGeometry'
+      }
     );
 
     spec.it(
