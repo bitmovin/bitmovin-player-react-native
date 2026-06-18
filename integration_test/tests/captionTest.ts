@@ -41,73 +41,93 @@ function sourceWithWebVttTrack(url: string, label: string): SourceConfig {
   };
 }
 
-function expectCueVttIfPresent(
-  vtt: CueEnterEvent['vtt'] | CueExitEvent['vtt'],
+function expectCueLayoutIfPresent(
+  layout: CueEnterEvent['layout'] | CueExitEvent['layout'],
   eventName: string
 ) {
-  if (!vtt) {
+  if (!layout) {
     return;
   }
 
-  expect(
-    typeof vtt.line === 'number' || vtt.line === 'auto',
-    `${eventName} vtt line should be a number or auto`
-  ).toBe(true);
-  expect(typeof vtt.snapToLines, `${eventName} snapToLines type`).toBe(
-    'boolean'
-  );
-  expect(
-    ['start', 'center', 'end'].includes(vtt.lineAlign ?? ''),
-    `${eventName} lineAlign value`
-  ).toBe(true);
-  expect(
-    typeof vtt.position === 'number' || vtt.position === 'auto',
-    `${eventName} vtt position should be a number or auto`
-  ).toBe(true);
-  expect(
-    ['line-left', 'center', 'line-right', 'auto'].includes(
-      vtt.positionAlign ?? ''
-    ),
-    `${eventName} positionAlign value`
-  ).toBe(true);
-  expect(typeof vtt.size, `${eventName} size type`).toBe('number');
-  expect(
-    ['start', 'center', 'end', 'left', 'right'].includes(vtt.align ?? ''),
-    `${eventName} align value`
-  ).toBe(true);
-  expect(
-    ['', 'lr', 'rl'].includes(vtt.vertical ?? ''),
-    `${eventName} vertical value`
-  ).toBe(true);
+  if (layout.line !== undefined) {
+    if (layout.line.value !== 'auto') {
+      expect(typeof layout.line.value, `${eventName} line value type`).toBe(
+        'number'
+      );
+      expect(
+        ['line', 'percent'].includes(layout.line.unit),
+        `${eventName} line unit value`
+      ).toBe(true);
+    }
+  }
+  if (layout.lineAlign !== undefined) {
+    expect(
+      ['start', 'center', 'end'].includes(layout.lineAlign),
+      `${eventName} lineAlign value`
+    ).toBe(true);
+  }
+  if (layout.position !== undefined) {
+    expect(
+      typeof layout.position === 'number' || layout.position === 'auto',
+      `${eventName} layout position should be a number or auto`
+    ).toBe(true);
+  }
+  if (layout.positionAlign !== undefined) {
+    expect(
+      ['line-left', 'center', 'line-right', 'auto'].includes(
+        layout.positionAlign
+      ),
+      `${eventName} positionAlign value`
+    ).toBe(true);
+  }
+  if (layout.size !== undefined) {
+    expect(typeof layout.size, `${eventName} size type`).toBe('number');
+  }
+  if (layout.textAlign !== undefined) {
+    expect(
+      ['start', 'center', 'end', 'left', 'right'].includes(layout.textAlign),
+      `${eventName} textAlign value`
+    ).toBe(true);
+  }
+  if (layout.writingMode !== undefined) {
+    expect(
+      ['horizontal', 'vertical-lr', 'vertical-rl'].includes(layout.writingMode),
+      `${eventName} writingMode value`
+    ).toBe(true);
+  }
 }
 
-function expectCueVttRegionIfPresent(
-  vtt: CueEnterEvent['vtt'] | CueExitEvent['vtt'],
+function expectCueRegionIfPresent(
+  region: CueEnterEvent['region'] | CueExitEvent['region'],
   eventName: string
 ) {
-  if (vtt?.region?.id !== undefined) {
-    expect(typeof vtt.region.id, `${eventName} region id type`).toBe('string');
+  if (region?.id !== undefined) {
+    expect(typeof region.id, `${eventName} region id type`).toBe('string');
   }
-  if (vtt?.region?.style !== undefined) {
-    expect(typeof vtt.region.style, `${eventName} region style type`).toBe(
+  if (region?.style !== undefined) {
+    expect(typeof region.style, `${eventName} region style type`).toBe(
       'string'
     );
   }
 }
 
 function expectPositionedWebVttGeometry(
-  vtt: CueEnterEvent['vtt'] | CueExitEvent['vtt'],
+  layout: CueEnterEvent['layout'] | CueExitEvent['layout'],
   eventName: string
 ) {
-  expect(vtt, `${eventName} should expose VTT geometry`).toBeDefined();
-  expect(vtt?.line, `${eventName} VTT line`).toBeCloseTo(20);
-  expect(vtt?.snapToLines, `${eventName} VTT snapToLines`).toBe(false);
-  expect(vtt?.position, `${eventName} VTT position`).toBeCloseTo(30);
-  expect(vtt?.positionAlign, `${eventName} VTT positionAlign`).toBe(
+  expect(layout, `${eventName} should expose cue layout`).toBeDefined();
+  const line = layout?.line;
+  expect(line, `${eventName} layout line`).toBeDefined();
+  expect(line?.value, `${eventName} layout line`).toBeCloseTo(20);
+  if (line?.value !== 'auto') {
+    expect(line?.unit, `${eventName} layout line unit`).toBe('percent');
+  }
+  expect(layout?.position, `${eventName} layout position`).toBeCloseTo(30);
+  expect(layout?.positionAlign, `${eventName} layout positionAlign`).toBe(
     'line-left'
   );
-  expect(vtt?.size, `${eventName} VTT size`).toBeCloseTo(40);
-  expect(vtt?.align, `${eventName} VTT align`).toBe('start');
+  expect(layout?.size, `${eventName} layout size`).toBeCloseTo(40);
+  expect(layout?.textAlign, `${eventName} layout textAlign`).toBe('start');
 }
 
 async function getAssetUri(asset: Asset, description: string): Promise<string> {
@@ -257,8 +277,8 @@ export default (spec: TestScope) => {
         expect(typeof cueEnterEvent.text, 'text should be a string').toBe(
           'string'
         );
-        expectCueVttIfPresent(cueEnterEvent.vtt, 'CueEnter');
-        expectCueVttRegionIfPresent(cueEnterEvent.vtt, 'CueEnter');
+        expectCueLayoutIfPresent(cueEnterEvent.layout, 'CueEnter');
+        expectCueRegionIfPresent(cueEnterEvent.region, 'CueEnter');
       });
     });
 
@@ -320,8 +340,8 @@ export default (spec: TestScope) => {
         expect(typeof cueExitEvent.text, 'text should be a string').toBe(
           'string'
         );
-        expectCueVttIfPresent(cueExitEvent.vtt, 'CueExit');
-        expectCueVttRegionIfPresent(cueExitEvent.vtt, 'CueExit');
+        expectCueLayoutIfPresent(cueExitEvent.layout, 'CueExit');
+        expectCueRegionIfPresent(cueExitEvent.region, 'CueExit');
       });
     });
 
@@ -356,20 +376,20 @@ export default (spec: TestScope) => {
             EventType.CueEnter,
             30
           );
-          expectPositionedWebVttGeometry(cueEnterEvent.vtt, 'CueEnter');
+          expectPositionedWebVttGeometry(cueEnterEvent.layout, 'CueEnter');
 
           const cueExitEvent: CueExitEvent = await expectEvent(
             EventType.CueExit,
             15
           );
-          expectPositionedWebVttGeometry(cueExitEvent.vtt, 'CueExit');
+          expectPositionedWebVttGeometry(cueExitEvent.layout, 'CueExit');
         });
       },
       'cueGeometry'
     );
 
     spec.it(
-      'emits VTT region metadata under vtt on iOS',
+      'emits region metadata on iOS',
       async () => {
         if (Platform.OS !== 'ios') {
           return;
@@ -400,24 +420,20 @@ export default (spec: TestScope) => {
             30
           );
           expect(
-            cueEnterEvent.vtt?.region,
-            'CueEnter should expose VTT region metadata under vtt'
+            cueEnterEvent.region,
+            'CueEnter should expose region metadata'
           ).toBeDefined();
-          expect(cueEnterEvent.vtt?.region?.id, 'CueEnter VTT region id').toBe(
+          expect(cueEnterEvent.region?.id, 'CueEnter region id').toBe(
             'region-test'
           );
           expect(
-            cueEnterEvent.vtt?.region?.style,
-            'CueEnter VTT region style'
+            cueEnterEvent.region?.style,
+            'CueEnter region style'
           ).toBeDefined();
           expect(
-            typeof cueEnterEvent.vtt?.region?.style,
-            'CueEnter VTT region style type'
+            typeof cueEnterEvent.region?.style,
+            'CueEnter region style type'
           ).toBe('string');
-          expect(
-            (cueEnterEvent as CueEnterEvent & { region?: string }).region,
-            'CueEnter should not expose legacy top-level region'
-          ).toBeUndefined();
           expect(
             (cueEnterEvent as CueEnterEvent & { regionStyle?: string })
               .regionStyle,
