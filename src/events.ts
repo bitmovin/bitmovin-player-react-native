@@ -755,6 +755,8 @@ export type SubtitleCueLayoutLine =
  *
  * Values may include native/defaulted cue values, not only explicitly authored subtitle settings.
  * Omitted fields mean the value was not exposed or not applicable for this cue.
+ *
+ * @platform Android, iOS, tvOS
  */
 export interface SubtitleCueLayout {
   /**
@@ -809,7 +811,7 @@ export interface SubtitleCueLayout {
    *
    * This affects how `line`, `position`, and `size` are interpreted.
    */
-  writingMode?: 'horizontal' | 'vertical-lr' | 'vertical-rl';
+  writingMode: 'horizontal' | 'vertical-lr' | 'vertical-rl';
 }
 
 /**
@@ -817,6 +819,8 @@ export interface SubtitleCueLayout {
  *
  * Regions are used by formats such as TTML and WebVTT to group or position cues.
  * This object is omitted when no region metadata is available.
+ *
+ * @platform iOS, tvOS
  */
 export interface SubtitleCueRegion {
   /**
@@ -891,10 +895,14 @@ export interface SubtitleCue {
   html?: string;
   /**
    * Cross-platform cue layout metadata, when exposed by the native SDK.
+   *
+   * @platform Android, iOS, tvOS
    */
   layout?: SubtitleCueLayout;
   /**
    * Region metadata for this cue, when exposed by the native SDK.
+   *
+   * @platform iOS, tvOS
    */
   region?: SubtitleCueRegion;
   /**
