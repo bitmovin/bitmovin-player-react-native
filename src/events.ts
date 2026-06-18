@@ -746,139 +746,174 @@ export interface PlaybackSpeedChangedEvent extends Event {
   to: number;
 }
 
+export type SubtitleCueLayoutLine =
+  | { value: 'auto' }
+  | { value: number; unit: 'line' | 'percent' };
+
 /**
- * VTT region metadata.
+ * Cross-platform cue layout metadata normalized from native cue data.
  *
- * @platform iOS, tvOS
+ * Values may include native/defaulted cue values, not only explicitly authored subtitle settings.
+ * Omitted fields mean the value was not exposed or not applicable for this cue.
  */
-export interface SubtitleCueVttRegion {
+export interface SubtitleCueLayout {
   /**
-   * VTT region identifier for this cue, when available.
+   * Cue position on the axis perpendicular to the text flow.
+   *
+   * For horizontal captions this controls vertical placement:
+   * - `{ value: 85, unit: 'percent' }` places the cue about 85% down the video viewport.
+   * - `{ value: 12, unit: 'line' }` places the cue by counting rendered text-line slots, not viewport percentage.
+   * - `{ value: 'auto' }` lets the renderer/platform choose automatic line placement.
+   *
+   * For vertical captions this controls horizontal placement.
+   * This is not the same as `cea608Position.rowIndex`, which refers to the CEA-608 caption grid.
+   */
+  line?: SubtitleCueLayoutLine;
+  /**
+   * Alignment of the cue box at the `line` position.
+   *
+   * This does not control text alignment inside the cue box; use `textAlign` for that.
+   */
+  lineAlign?: 'start' | 'center' | 'end';
+  /**
+   * Cue box position as a percentage of the viewport on the axis orthogonal to `line`.
+   *
+   * For horizontal captions this controls horizontal placement:
+   * - `50` places the cue around the horizontal center of the viewport.
+   * - `10` places the cue near the left side of the viewport.
+   * - `'auto'` lets the renderer/platform choose automatic position placement.
+   *
+   * For vertical captions this controls vertical placement.
+   * Use `positionAlign` to describe which part of the cue box is anchored at this position.
+   */
+  position?: number | 'auto';
+  /**
+   * Alignment of the cue box at the `position` value.
+   *
+   * For horizontal captions, this controls which horizontal part of the cue box is anchored at `position`.
+   */
+  positionAlign?: 'line-left' | 'center' | 'line-right' | 'auto';
+  /**
+   * Size of the cue box as a percentage of the viewport dimension in the cue writing direction.
+   *
+   * For horizontal captions this is relative to viewport width.
+   * For vertical captions this is relative to viewport height.
+   */
+  size?: number;
+  /**
+   * Alignment of the cue text inside the cue box.
+   */
+  textAlign?: 'start' | 'center' | 'end' | 'left' | 'right';
+  /**
+   * Writing direction of the cue text.
+   *
+   * This affects how `line`, `position`, and `size` are interpreted.
+   */
+  writingMode?: 'horizontal' | 'vertical-lr' | 'vertical-rl';
+}
+
+/**
+ * Region metadata for this cue, when exposed by the native SDK.
+ *
+ * Regions are used by formats such as TTML and WebVTT to group or position cues.
+ * This object is omitted when no region metadata is available.
+ */
+export interface SubtitleCueRegion {
+  /**
+   * Region identifier for this cue, when available.
    */
   id?: string;
   /**
-   * Opaque VTT region style string from the native SDK, when available.
-   * This value is intended for forwarding/rendering, not parsing as structured data.
+   * Opaque region style string from the native SDK, when available.
+   *
+   * The format is not guaranteed to be stable or portable across caption formats.
+   * Prefer forwarding it to a compatible renderer or using it for diagnostics rather than parsing it as structured data.
    */
   style?: string;
 }
 
 /**
- * WebVTT-style cue geometry and positioning metadata normalized from native cue data.
- * Values may include native/defaulted cue values, not only explicitly authored WebVTT cue settings.
- * Individual fields are optional because native SDKs expose different subsets of cue metadata.
- */
-export interface SubtitleCueVtt {
-  /**
-   * Vertical position of the cue box.
-   * The value is `'auto'` when no explicit line position is set.
-   * - When {@link snapToLines} is `false`, this is a percentage (0–100) relative to the viewport.
-   * - When {@link snapToLines} is `true`, this is an integer line number.
-   */
-  line?: number | 'auto';
-  /**
-   * Whether {@link line} is interpreted as a line number (`true`) or a percentage (`false`).
-   */
-  snapToLines?: boolean;
-  /**
-   * Alignment of the cue box at the line position.
-   */
-  lineAlign?: 'start' | 'center' | 'end';
-  /**
-   * Horizontal position of the cue box as a percentage (0–100) relative to the viewport.
-   * The value is `'auto'` when no explicit position is set.
-   */
-  position?: number | 'auto';
-  /**
-   * Alignment of the cue box at the horizontal position.
-   */
-  positionAlign?: 'line-left' | 'center' | 'line-right' | 'auto';
-  /**
-   * Size of the cue box as a percentage (0–100) of the viewport dimension in the cue writing direction.
-   * For horizontal cues this is relative to viewport width; for vertical cues this is relative to viewport height.
-   */
-  size?: number;
-  /**
-   * Alignment of the cue text within the cue box.
-   */
-  align?: 'start' | 'center' | 'end' | 'left' | 'right';
-  /**
-   * Writing direction of the cue text.
-   * An empty string means horizontal (default), `'lr'` is vertical left-to-right, `'rl'` is vertical right-to-left.
-   */
-  vertical?: '' | 'lr' | 'rl';
-  /**
-   * VTT region metadata for this cue.
-   *
-   * @platform iOS, tvOS
-   */
-  region?: SubtitleCueVttRegion;
-}
-
-/**
  * CEA-608 grid position for closed captions.
+ *
+ * This preserves the native 15x32 CEA-608 caption grid and is separate from `layout`,
+ * which exposes normalized cue-box geometry.
  *
  * @platform iOS, tvOS
  */
-export interface Cea608Position {
+export interface Cea608CuePosition {
   /**
-   * Row index (0–14).
+   * Zero-based row index in the CEA-608 grid.
+   *
+   * Valid values are `0` through `rows - 1`.
    */
-  row: number;
+  rowIndex: number;
   /**
-   * Column index (0–31).
+   * Zero-based column index in the CEA-608 grid.
+   *
+   * Valid values are `0` through `columns - 1`.
    */
-  column: number;
+  columnIndex: number;
+  /**
+   * Total row count in the CEA-608 grid.
+   */
+  rows: 15;
+  /**
+   * Total column count in the CEA-608 grid.
+   */
+  columns: 32;
 }
 
 /**
- * Shared subtitle cue event payload.
+ * Subtitle cue payload shared by cue enter and cue exit events.
  */
-export interface SubtitleCueEventPayload {
+export interface SubtitleCue {
   /**
-   * The playback time in seconds when the subtitle should be rendered.
+   * Start time of the cue in seconds.
    */
   start: number;
   /**
-   * The playback time in seconds when the subtitle should be hidden.
+   * End time of the cue in seconds.
    */
   end: number;
   /**
-   * The textual content of this subtitle.
+   * Plain textual content of this subtitle, when available.
    */
   text?: string;
   /**
-   * Data URI for image data of this subtitle.
+   * Data URI for image subtitle data, when available.
    */
   image?: string;
   /**
-   * HTML representation of the cue text, if available.
+   * Cue text represented as HTML, when available.
+   *
+   * This may include styling generated by the native SDK. Treat it as renderer input, not plain text.
    */
   html?: string;
   /**
-   * WebVTT-style cue geometry and positioning metadata normalized from native cue data.
-   * Values may include native/defaulted cue values, not only explicitly authored WebVTT cue settings.
-   * Present when the native cue exposes WebVTT-style geometry or region metadata.
-   * Individual fields are optional.
+   * Cross-platform cue layout metadata, when exposed by the native SDK.
    */
-  vtt?: SubtitleCueVtt;
+  layout?: SubtitleCueLayout;
+  /**
+   * Region metadata for this cue, when exposed by the native SDK.
+   */
+  region?: SubtitleCueRegion;
   /**
    * CEA-608 grid position for closed captions.
    *
    * @platform iOS, tvOS
    */
-  cea608Position?: Cea608Position;
+  cea608Position?: Cea608CuePosition;
 }
 
 /**
  * Emitted when a subtitle entry transitions into the active status.
  */
-export interface CueEnterEvent extends Event, SubtitleCueEventPayload {}
+export interface CueEnterEvent extends Event, SubtitleCue {}
 
 /**
  * Emitted when an active subtitle entry transitions into the inactive status.
  */
-export interface CueExitEvent extends Event, SubtitleCueEventPayload {}
+export interface CueExitEvent extends Event, SubtitleCue {}
 
 /**
  * Base event type for events that carry timed metadata.
