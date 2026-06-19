@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update Bitmovin's native iOS SDK version to `3.115.0`
+
 ## [1.20.1] - 2026-06-12
 
 ### Fixed
