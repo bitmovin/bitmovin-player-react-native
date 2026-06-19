@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Removed
+
+- iOS: `TweaksConfig.updatesNowPlayingInfoCenter`, which was removed from the native iOS SDK in `3.115.0`. Use `MediaControlConfig.isEnabled` to control the Now Playing information instead
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to `3.115.0`
