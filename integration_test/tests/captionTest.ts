@@ -295,8 +295,86 @@ export default (spec: TestScope) => {
                 'center'
               );
             });
-          },
-          'cue-geometry-layout'
+          }
+        );
+
+        spec.it(
+          'CueEnter html field is present for a cue with inline styling',
+          async () => {
+            await startPlayerTest({}, async () => {
+              await loadSourceConfig(sourceWithPositionedSubs);
+              await callPlayer(async (player) => {
+                player.setSubtitleTrack('positioned-cues');
+                player.play();
+              });
+              await callPlayerAndExpectEvent((player) => {
+                player.seek(2);
+              }, EventType.Seeked);
+
+              const cueEnterEvent: CueEnterEvent = await expectEvent(
+                EventType.CueEnter
+              );
+
+              // The VTT cue contains <b>...</b> so Bitmovin SDK populates html
+              expect(
+                cueEnterEvent.html,
+                'html should be present for a cue with inline tags'
+              ).toBeDefined();
+              expect(
+                typeof cueEnterEvent.html,
+                'html should be a string'
+              ).toBe('string');
+              expect(
+                (cueEnterEvent.html as string).length,
+                'html should be non-empty'
+              ).toBeGreaterThan(0);
+            });
+          }
+        );
+
+        spec.it(
+          'CueExit carries the same layout and html as its paired CueEnter',
+          async () => {
+            await startPlayerTest({}, async () => {
+              await loadSourceConfig(sourceWithPositionedSubs);
+              await callPlayer(async (player) => {
+                player.setSubtitleTrack('positioned-cues');
+                player.play();
+              });
+              await callPlayerAndExpectEvent((player) => {
+                player.seek(2);
+              }, EventType.Seeked);
+
+              await expectEvent(EventType.CueEnter);
+              const cueExitEvent: CueExitEvent = await expectEvent(
+                EventType.CueExit
+              );
+
+              expect(
+                cueExitEvent.layout,
+                'CueExit should have a layout field'
+              ).toBeDefined();
+
+              const layout = cueExitEvent.layout as SubtitleCueLayout;
+              expect(
+                layout.writingMode,
+                'writingMode should be horizontal'
+              ).toBe('horizontal');
+              expect(
+                (layout.line as any)?.value,
+                'line.value should be 85'
+              ).toBe(85);
+              expect(layout.position, 'position should be 50').toBe(50);
+
+              expect(
+                cueExitEvent.html,
+                'CueExit html should be present'
+              ).toBeDefined();
+              expect(typeof cueExitEvent.html, 'html should be a string').toBe(
+                'string'
+              );
+            });
+          }
         );
 
       });
