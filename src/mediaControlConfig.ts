@@ -13,8 +13,6 @@ export interface MediaControlConfig {
    * For a detailed list of the supported features in the **default behavior**,
    * check the **Default Supported Features** section.
    *
-   * @remarks Enabling this flag will automatically treat {@link TweaksConfig.updatesNowPlayingInfoCenter} as `false`.
-   *
    * ## Limitations
    * ---
    * - Android: If an app creates multiple player instances, the player shown in media controls is the latest one created having media controls enabled.
