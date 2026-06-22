@@ -5,6 +5,9 @@
 ### Added
 
 - Android: Expose normalized cue layout data on `CueEnterEvent` and `CueExitEvent` via `layout` (`line`, `lineAlign`, `position`, `positionAlign`, `size`, `textAlign`, `writingMode`) and `html`
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.155.1+jason`
 
 ## [1.20.1] - 2026-06-12
 
