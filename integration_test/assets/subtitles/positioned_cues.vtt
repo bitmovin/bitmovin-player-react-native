@@ -1,0 +1,9 @@
+WEBVTT
+
+cue1
+00:00:03.000 --> 00:00:06.000 line:85% position:50% size:80% align:center
+<b>First positioned cue</b>
+
+cue2
+00:00:07.000 --> 00:00:10.000 line:15% position:50% size:80% align:center
+<i>Second positioned cue</i>
