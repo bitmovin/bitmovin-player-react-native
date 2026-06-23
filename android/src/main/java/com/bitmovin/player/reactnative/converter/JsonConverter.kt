@@ -1135,7 +1135,7 @@ private fun Cue.toLayoutLineJson(): Map<String, Any>? = when {
     else -> mapOf("value" to line.toPercent(), "unit" to "percent")
 }
 
-private fun Float.toLayoutPositionJson(): Any? =
+private fun Float.toLayoutPositionJson() =
     if (this != Cue.DIMEN_UNSET) toPercent() else null
 
 private fun Float.toPercent(): Double = (this * 100).toDouble()
