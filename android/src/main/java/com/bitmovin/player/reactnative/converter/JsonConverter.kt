@@ -1101,7 +1101,7 @@ fun ScteMessage.toJson(): Map<String, Any> = mapOf(
 private fun Cue.toLayoutJson(): Map<String, Any>? {
     val line = toLayoutLineJson()
     val position = fractionalPosition.toLayoutPositionJson()
-    val size = if (size != Cue.DIMEN_UNSET) size.toPercent() else null
+    val size = size.takeIf { it != Cue.DIMEN_UNSET }.toPercent() else null
     val textAlign = textAlignment.toLayoutTextAlignJson()
     val hasLayout =
         line != null ||
