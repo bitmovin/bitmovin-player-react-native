@@ -1120,7 +1120,6 @@ private fun Cue.toLayoutJson(): Map<String, Any>? {
         ),
         "lineAlign" to (
             lineAnchor.toLayoutLineAlignJson()
-                .takeIf { line != null || lineType != Cue.LineType.TypeUnset || lineAnchor != Cue.AnchorType.TypeUnset }
         ),
         "position" to (position ?: "auto".takeIf { positionAnchor != Cue.AnchorType.TypeUnset }),
         "positionAlign" to (
