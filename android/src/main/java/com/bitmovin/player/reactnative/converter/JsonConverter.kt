@@ -1122,10 +1122,7 @@ private fun Cue.toLayoutJson(): Map<String, Any>? {
             lineAnchor.toLayoutLineAlignJson()
         ),
         "position" to position,
-        "positionAlign" to (
-            positionAnchor.toLayoutPositionAlignJson()
-                .takeIf { position != null || positionAnchor != Cue.AnchorType.TypeUnset }
-        ),
+        "positionAlign" to positionAnchor,
         "size" to size,
         "textAlign" to textAlign,
         "writingMode" to verticalType.toLayoutWritingModeJson(),
