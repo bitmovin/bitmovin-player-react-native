@@ -1121,7 +1121,7 @@ private fun Cue.toLayoutJson(): Map<String, Any>? {
         "lineAlign" to (
             lineAnchor.toLayoutLineAlignJson()
         ),
-        "position" to (position ?: "auto".takeIf { positionAnchor != Cue.AnchorType.TypeUnset }),
+        "position" to position,
         "positionAlign" to (
             positionAnchor.toLayoutPositionAlignJson()
                 .takeIf { position != null || positionAnchor != Cue.AnchorType.TypeUnset }
