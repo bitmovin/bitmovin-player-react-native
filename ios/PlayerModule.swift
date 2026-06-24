@@ -162,6 +162,11 @@ public class PlayerModule: Module {
             nil
             #endif
         }.runOnQueue(.main)
+        AsyncFunction("showAirPlayTargetPicker") { (nativeId: NativeId) in
+            #if os(iOS)
+            PlayerRegistry.getPlayer(nativeId: nativeId)?.showAirPlayTargetPicker()
+            #endif
+        }.runOnQueue(.main)
         AsyncFunction("isCastAvailable") { (nativeId: NativeId) -> Bool? in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.isCastAvailable
         }.runOnQueue(.main)

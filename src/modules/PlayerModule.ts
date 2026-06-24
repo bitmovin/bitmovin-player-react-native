@@ -153,6 +153,11 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
   isAirPlayAvailable(nativeId: string): Promise<boolean | null>;
 
   /**
+   * Display the AirPlay route selection menu for nativeId's player (iOS only).
+   */
+  showAirPlayTargetPicker(nativeId: string): Promise<void>;
+
+  /**
    * Resolve nativeId's cast availability state.
    */
   isCastAvailable(nativeId: string): Promise<boolean | null>;

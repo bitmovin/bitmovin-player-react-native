@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- iOS: `Player.showAirPlayTargetPicker()` to display the system AirPlay route selection menu
+
 ### Fixed
 
 - Android: Expo config plugin now enables core library desugaring independently from Cast and offline features
