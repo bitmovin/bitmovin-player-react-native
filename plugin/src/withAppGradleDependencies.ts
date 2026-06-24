@@ -21,9 +21,7 @@ const CORE_LIBRARY_DESUGARING_DEPENDENCY =
 const CORE_LIBRARY_DESUGARING_ARTIFACT = 'com.android.tools:desugar_jdk_libs';
 
 const hasCoreLibraryDesugaringEnabled = (contents: string) =>
-  /^\s*(?:setCoreLibraryDesugaringEnabled\s*\(\s*true\s*\)|coreLibraryDesugaringEnabled(?:\s*=\s*|\s+)true\b)/m.test(
-    contents
-  );
+  /^\s*(?:set)?CoreLibraryDesugaringEnabled\b.*?\btrue\b/m.test(contents);
 
 const escapeRegExp = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
