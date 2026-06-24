@@ -1106,9 +1106,9 @@ private fun Cue.toLayoutJson(): Map<String, Any> {
 
     return mapOf(
         "line" to line,
-        "lineAlign" to lineAnchor.toLayoutLineAlignJson(), //lineAnchor is int type hence not nullabled and doesn't required lineAnchor?
+        "lineAlign" to lineAnchor.toLayoutLineAlignJson(),
         "position" to position,
-        "positionAlign" to positionAnchor.toLayoutPositionAlignJson(), //positionAnchor is int type hence not nullabled and doesn't required positionAnchor?
+        "positionAlign" to positionAnchor.toLayoutPositionAlignJson(),
         "size" to size,
         "textAlign" to textAlign,
         "writingMode" to verticalType?.toLayoutWritingModeJson(),
@@ -1135,7 +1135,7 @@ private fun Cue.AnchorType.toLayoutPositionAlignJson(): String? = when (this) {
     Cue.AnchorType.AnchorTypeStart -> "line-left"
     Cue.AnchorType.AnchorTypeMiddle -> "center"
     Cue.AnchorType.AnchorTypeEnd -> "line-right"
-    Cue.AnchorType.AnchorTypeUnset -> null
+    Cue.AnchorType.TypeUnset -> null
 }
 
 private fun Cue.VerticalType.toLayoutWritingModeJson(): String? = when (this) {
