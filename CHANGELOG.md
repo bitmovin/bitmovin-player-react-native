@@ -5,6 +5,10 @@
 ### Added
 
 - Android: Expose normalized cue layout data on `CueEnterEvent` and `CueExitEvent` via `layout` (`line`, `lineAlign`, `position`, `positionAlign`, `size`, `textAlign`, `writingMode`) and `html`
+### Fixed
+
+- Android: Expo config plugin now enables core library desugaring independently from Cast and offline features
+
 ### Removed
 
 - iOS: `TweaksConfig.updatesNowPlayingInfoCenter`. Use `MediaControlConfig.isEnabled` to control the Now Playing information instead
