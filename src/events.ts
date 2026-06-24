@@ -806,7 +806,7 @@ export interface SubtitleCueLayout {
   /**
    * Writing direction of the cue text; affects how `line`, `position`, and `size` are interpreted.
    */
-  writingMode: 'horizontal' | 'vertical-lr' | 'vertical-rl';
+  writingMode?: 'horizontal' | 'vertical-lr' | 'vertical-rl';
 }
 
 /**

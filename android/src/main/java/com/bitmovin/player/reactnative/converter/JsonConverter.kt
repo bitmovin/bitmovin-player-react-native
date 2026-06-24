@@ -1102,16 +1102,16 @@ private fun Cue.toLayoutJson(): Map<String, Any> {
     val line = toLayoutLineJson()
     val position = fractionalPosition.takeIf { it != Cue.DIMEN_UNSET }?.toPercent()
     val size = size.takeIf { it != Cue.DIMEN_UNSET }?.toPercent()
-    val textAlign = textAlignment.toLayoutTextAlignJson()
+    val textAlign = textAlignment?.toLayoutTextAlignJson()
 
     return mapOf(
         "line" to line,
-        "lineAlign" to lineAnchor.toLayoutLineAlignJson(),
+        "lineAlign" to lineAnchor.toLayoutLineAlignJson(), //lineAnchor is int type hence not nullabled and doesn't required lineAnchor?
         "position" to position,
-        "positionAlign" to positionAnchor.toLayoutPositionAlignJson(),
+        "positionAlign" to positionAnchor.toLayoutPositionAlignJson(), //positionAnchor is int type hence not nullabled and doesn't required positionAnchor?
         "size" to size,
         "textAlign" to textAlign,
-        "writingMode" to verticalType.toLayoutWritingModeJson(),
+        "writingMode" to verticalType?.toLayoutWritingModeJson(),
     ).filterNotNullValues()
 }
 
@@ -1124,29 +1124,29 @@ private fun Cue.toLayoutLineJson(): Map<String, Any>? = when {
 
 private fun Float.toPercent(): Double = (this * 100).toDouble()
 
-private fun Cue.AnchorType.toLayoutLineAlignJson(): String = when (this) {
+private fun Cue.AnchorType.toLayoutLineAlignJson(): String? = when (this) {
     Cue.AnchorType.AnchorTypeMiddle -> "center"
     Cue.AnchorType.AnchorTypeEnd -> "end"
-    else -> "start"
+    Cue.AnchorType.AnchorTypeStart -> "start"
+    Cue.AnchorType.TypeUnset -> null
 }
 
-private fun Cue.AnchorType.toLayoutPositionAlignJson(): String = when (this) {
+private fun Cue.AnchorType.toLayoutPositionAlignJson(): String? = when (this) {
     Cue.AnchorType.AnchorTypeStart -> "line-left"
     Cue.AnchorType.AnchorTypeMiddle -> "center"
     Cue.AnchorType.AnchorTypeEnd -> "line-right"
-    else -> "auto"
+    Cue.AnchorType.AnchorTypeUnset -> null
 }
 
-private fun Cue.VerticalType.toLayoutWritingModeJson(): String = when (this) {
+private fun Cue.VerticalType.toLayoutWritingModeJson(): String? = when (this) {
     Cue.VerticalType.VerticalTypeLeftToRight -> "vertical-lr"
     Cue.VerticalType.VerticalTypeRightToLeft -> "vertical-rl"
-    else -> "horizontal"
+    Cue.VerticalType.TypeUnset -> null
 }
 
-private fun Alignment?.toLayoutTextAlignJson(): String? = when (this) {
+private fun Alignment.toLayoutTextAlignJson(): String = when (this) {
     Alignment.ALIGN_NORMAL -> "start"
     Alignment.ALIGN_OPPOSITE -> "end"
     Alignment.ALIGN_CENTER -> "center"
-    else -> null
 }
 
