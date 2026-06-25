@@ -805,8 +805,9 @@ export interface SubtitleCueLayout {
   textAlign?: 'start' | 'center' | 'end' | 'left' | 'right';
   /**
    * Writing direction of the cue text; affects how `line`, `position`, and `size` are interpreted.
+   * When absent, the cue uses the default horizontal writing direction.
    */
-  writingMode?: 'horizontal' | 'vertical-lr' | 'vertical-rl';
+  writingMode?: 'vertical-lr' | 'vertical-rl';
 }
 
 /**
