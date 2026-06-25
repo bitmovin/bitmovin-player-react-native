@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative.converter
 
+import android.text.Layout.Alignment
 import android.util.Base64
 import android.util.Log
 import com.bitmovin.analytics.api.AnalyticsConfig
@@ -41,6 +42,7 @@ import com.bitmovin.player.api.media.MediaTrackRole
 import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.media.audio.AudioTrack
 import com.bitmovin.player.api.media.audio.quality.AudioQuality
+import com.bitmovin.player.api.media.subtitle.Cue
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
@@ -512,6 +514,8 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["end"] = end
             baseMap["text"] = text
             baseMap["image"] = image?.toBase64DataUri()
+            cue.html?.let { baseMap["html"] = it }
+            baseMap["layout"] = cue.toLayoutJson()
         }
 
         is PlayerEvent.CueExit -> {
@@ -519,6 +523,8 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["end"] = end
             baseMap["text"] = text
             baseMap["image"] = image?.toBase64DataUri()
+            cue.html?.let { baseMap["html"] = it }
+            baseMap["layout"] = cue.toLayoutJson()
         }
 
         is PlayerEvent.Metadata -> {
@@ -1091,3 +1097,56 @@ fun ScteMessage.toJson(): Map<String, Any> = mapOf(
     "key" to key,
     "value" to value
 ).filterNotNullValues()
+
+private fun Cue.toLayoutJson(): Map<String, Any> {
+    val line = toLayoutLineJson()
+    val position = fractionalPosition.takeIf { it != Cue.DIMEN_UNSET }?.toPercent()
+    val size = size.takeIf { it != Cue.DIMEN_UNSET }?.toPercent()
+    val textAlign = textAlignment?.toLayoutTextAlignJson()
+
+    return mapOf(
+        "line" to line,
+        "lineAlign" to lineAnchor.toLayoutLineAlignJson(),
+        "position" to position,
+        "positionAlign" to positionAnchor.toLayoutPositionAlignJson(),
+        "size" to size,
+        "textAlign" to textAlign,
+        "writingMode" to verticalType?.toLayoutWritingModeJson(),
+    ).filterNotNullValues()
+}
+
+private fun Cue.toLayoutLineJson(): Map<String, Any>? = when {
+    line == Cue.DIMEN_UNSET -> null
+    lineType == Cue.LineType.LineTypeNumber -> mapOf("value" to line.toDouble(), "unit" to "line")
+    else -> mapOf("value" to line.toPercent(), "unit" to "percent")
+}
+
+
+private fun Float.toPercent(): Double = (this * 100).toDouble()
+
+private fun Cue.AnchorType.toLayoutLineAlignJson(): String? = when (this) {
+    Cue.AnchorType.AnchorTypeMiddle -> "center"
+    Cue.AnchorType.AnchorTypeEnd -> "end"
+    Cue.AnchorType.AnchorTypeStart -> "start"
+    Cue.AnchorType.TypeUnset -> null
+}
+
+private fun Cue.AnchorType.toLayoutPositionAlignJson(): String? = when (this) {
+    Cue.AnchorType.AnchorTypeStart -> "line-left"
+    Cue.AnchorType.AnchorTypeMiddle -> "center"
+    Cue.AnchorType.AnchorTypeEnd -> "line-right"
+    Cue.AnchorType.TypeUnset -> null
+}
+
+private fun Cue.VerticalType.toLayoutWritingModeJson(): String? = when (this) {
+    Cue.VerticalType.VerticalTypeLeftToRight -> "vertical-lr"
+    Cue.VerticalType.VerticalTypeRightToLeft -> "vertical-rl"
+    Cue.VerticalType.TypeUnset -> null
+}
+
+private fun Alignment.toLayoutTextAlignJson(): String = when (this) {
+    Alignment.ALIGN_NORMAL -> "start"
+    Alignment.ALIGN_OPPOSITE -> "end"
+    Alignment.ALIGN_CENTER -> "center"
+}
+
