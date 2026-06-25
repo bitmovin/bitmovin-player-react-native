@@ -402,9 +402,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS
    */
   showAirPlayTargetPicker = () => {
-    if (Platform.OS === 'android') {
+    if (Platform.OS !== 'ios' || Platform.isTV) {
       console.warn(
-        `[Player ${this.nativeId}] Method showAirPlayTargetPicker is not available for Android. Only iOS devices.`
+        `[Player ${this.nativeId}] Method showAirPlayTargetPicker is only available on iOS (not Android/tvOS).`
       );
       return;
     }
