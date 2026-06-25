@@ -396,6 +396,22 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * Displays the system AirPlay route selection menu, allowing the user to pick
+   * an AirPlay target for the current playback.
+   *
+   * @platform iOS
+   */
+  showAirPlayTargetPicker = () => {
+    if (Platform.OS !== 'ios' || Platform.isTV) {
+      console.warn(
+        `[Player ${this.nativeId}] Method showAirPlayTargetPicker is only available on iOS (not Android/tvOS).`
+      );
+      return;
+    }
+    void PlayerModule.showAirPlayTargetPicker(this.nativeId);
+  };
+
+  /**
    * @returns The currently selected audio track or `null`.
    */
   getAudioTrack = async (): Promise<AudioTrack | null> => {
