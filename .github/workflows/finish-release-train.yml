@@ -80,7 +80,7 @@ jobs:
             target_base="development"
           fi
 
-          branch_name="release/v${{ needs.prepare.outputs.version_number }}-sync-${target_base}"
+          branch_name="finish-release/v${{ needs.prepare.outputs.version_number }}-sync-${target_base}"
           echo "target_base=$target_base" >> "$GITHUB_OUTPUT"
           echo "branch_name=$branch_name" >> "$GITHUB_OUTPUT"
 
@@ -95,6 +95,7 @@ jobs:
           else
             git add CHANGELOG.md
             git commit --no-verify -m "restore unreleased changelog section"
+            git fetch origin "${{ steps.sync.outputs.branch_name }}:refs/remotes/origin/${{ steps.sync.outputs.branch_name }}" || true
             git push --force-with-lease origin "${{ steps.sync.outputs.branch_name }}"
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
           fi
