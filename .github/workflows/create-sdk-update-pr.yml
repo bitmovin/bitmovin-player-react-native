@@ -17,10 +17,17 @@ on:
         required: true
         type: string
 
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.sdk_name }}
+  cancel-in-progress: true
+
 jobs:
   update:
     name: Update SDK version
     runs-on: macos-15
+    permissions:
+      contents: write
+      pull-requests: write
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
@@ -38,10 +45,25 @@ jobs:
           branch_name="update_${{ inputs.sdk_name }}_player_to_${{ inputs.version_number }}"
           echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
 
+      - name: Close superseded SDK update PRs
+        run: |
+          set -euo pipefail
+
+          gh pr list --state open --limit 100 --json number,headRefName,baseRefName \
+            | python3 .github/scripts/close_superseded_sdk_update_prs.py "${{ inputs.sdk_name }}" "${{ inputs.version_number }}" "${{ github.ref_name }}" \
+            | while IFS=$'\t' read -r pr_number head_ref_name old_version; do
+                if [ -z "$pr_number" ]; then
+                  continue
+                fi
+
+                gh pr close "$pr_number" \
+                  --delete-branch \
+                  --comment "Closing because ${{ inputs.sdk_name == 'ios' && 'iOS' || 'Android' }} Player SDK ${old_version} is superseded by ${{ inputs.version_number }}."
+              done
+
       - name: Create update branch
         run: |
-          git push origin --delete ${{ steps.branching.outputs.branch_name }} || true
-          git checkout -b ${{ steps.branching.outputs.branch_name }}
+          git checkout -B ${{ steps.branching.outputs.branch_name }}
 
       - name: Bump iOS player SDK version
         if: ${{ inputs.sdk_name == 'ios' }}
@@ -61,11 +83,25 @@ jobs:
         run: |
           git add ios/RNBitmovinPlayer.podspec android/build.gradle CHANGELOG.md
           git commit --no-verify -m "chore(${{ inputs.sdk_name }}): update ${{ inputs.sdk_name }} player version to ${{ inputs.version_number }}"
-          git push origin ${{ steps.branching.outputs.branch_name }}
+          git push --force-with-lease origin ${{ steps.branching.outputs.branch_name }}
 
       - name: Create PR
         run: |
-          gh pr create \
-          --base "${{ github.ref }}" \
-          --title "Update ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player to ${{ inputs.version_number }}" \
-          --body "Automated ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player version update to ${{ inputs.version_number }}"
+          existing_pr_number="$(gh pr list \
+            --state open \
+            --head "${{ steps.branching.outputs.branch_name }}" \
+            --base "${{ github.ref_name }}" \
+            --json number \
+            --jq '.[0].number // empty')"
+
+          if [ -n "$existing_pr_number" ]; then
+            gh pr edit "$existing_pr_number" \
+              --title "Update ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player to ${{ inputs.version_number }}" \
+              --body "Automated ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player version update to ${{ inputs.version_number }}"
+          else
+            gh pr create \
+              --base "${{ github.ref_name }}" \
+              --head "${{ steps.branching.outputs.branch_name }}" \
+              --title "Update ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player to ${{ inputs.version_number }}" \
+              --body "Automated ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player version update to ${{ inputs.version_number }}"
+          fi
