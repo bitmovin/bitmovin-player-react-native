@@ -36,12 +36,28 @@ MESSAGE_ADDING_ENTRY = (
 PLATFORM_ANDROID = "android"
 PLATFORM_IOS = "ios"
 PLATFORMS = {PLATFORM_ANDROID: "Android", PLATFORM_IOS: "iOS"}
+RELEASE_NOTES_URLS = {
+    PLATFORM_ANDROID: "https://developer.bitmovin.com/playback/docs/release-notes-android",
+    PLATFORM_IOS: "https://developer.bitmovin.com/playback/docs/release-notes-ios",
+}
 
 # SemVer: MAJOR.MINOR.PATCH with optional -pre-release and +build metadata
 SEMVER_RE = r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?"
 
 # Entry line template pieces
 ENTRY_LINE_PREFIX = "- Update Bitmovin's native {platform} SDK version to `"
+LINKED_ENTRY_LINE_PREFIX = "- Update Bitmovin's native {platform} SDK version to [`"
+
+
+def release_notes_url(platform_key: str, version: str) -> str | None:
+    semver_without_build_metadata = version.split("+", maxsplit=1)[0]
+    if "-" in semver_without_build_metadata:
+        return None
+    if not re.fullmatch(r"\d+\.\d+\.\d+", semver_without_build_metadata):
+        return None
+
+    anchor = semver_without_build_metadata.replace(".", "")
+    return f"{RELEASE_NOTES_URLS[platform_key]}#{anchor}"
 
 
 def normalize_newlines(text: str) -> str:
@@ -68,10 +84,19 @@ def write_changelog(path: str, content: str) -> None:
 def build_entry(platform_key: str, version: str) -> Tuple[str, re.Pattern[str]]:
     platform_label = PLATFORMS[platform_key]
     entry_prefix = ENTRY_LINE_PREFIX.format(platform=platform_label)
-    new_entry = f"{entry_prefix}{version}`"
+    linked_entry_prefix = LINKED_ENTRY_LINE_PREFIX.format(platform=platform_label)
+    release_note_url = release_notes_url(platform_key, version)
+    if release_note_url:
+        new_entry = f"{linked_entry_prefix}{version}`]({release_note_url})"
+    else:
+        new_entry = f"{entry_prefix}{version}`"
+
     # Pattern to find an existing entry for this platform regardless of version
     existing_pattern = re.compile(
-        rf"^{re.escape(entry_prefix)}{SEMVER_RE}`$",
+        rf"^(?:"
+        rf"{re.escape(entry_prefix)}{SEMVER_RE}`"
+        rf"|{re.escape(linked_entry_prefix)}{SEMVER_RE}`\]\([^)]+\)"
+        rf")$",
         flags=re.MULTILINE,
     )
     return new_entry, existing_pattern
