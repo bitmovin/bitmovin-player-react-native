@@ -36,7 +36,7 @@ MESSAGE_ADDING_ENTRY = (
 PLATFORM_ANDROID = "android"
 PLATFORM_IOS = "ios"
 PLATFORMS = {PLATFORM_ANDROID: "Android", PLATFORM_IOS: "iOS"}
-RELEASE_NOTES_URLS = {
+NATIVE_SDK_RELEASE_NOTES_URLS = {
     PLATFORM_ANDROID: "https://developer.bitmovin.com/playback/docs/release-notes-android",
     PLATFORM_IOS: "https://developer.bitmovin.com/playback/docs/release-notes-ios",
 }
@@ -57,7 +57,7 @@ def release_notes_url(platform_key: str, version: str) -> str | None:
         return None
 
     anchor = semver_without_build_metadata.replace(".", "")
-    return f"{RELEASE_NOTES_URLS[platform_key]}#{anchor}"
+    return f"{NATIVE_SDK_RELEASE_NOTES_URLS[platform_key]}#{anchor}"
 
 
 def normalize_newlines(text: str) -> str:
