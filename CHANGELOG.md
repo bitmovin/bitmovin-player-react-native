@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.21.0]
+
+### Added
+
+- Android: Expose normalized cue layout data on `CueEnterEvent` and `CueExitEvent` via `layout` (`line`, `lineAlign`, `position`, `positionAlign`, `size`, `textAlign`, `writingMode`) and `html`
+- iOS: `Player.showAirPlayTargetPicker()` to display the system AirPlay route selection menu
+
+### Fixed
+
+- Android: Expo config plugin now enables core library desugaring independently from Cast and offline features
+
+### Removed
+
+- iOS: `TweaksConfig.updatesNowPlayingInfoCenter`. Use `MediaControlConfig.isEnabled` to control the Now Playing information instead
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to `3.155.1+jason`
+- Update Bitmovin's native iOS SDK version to `3.115.0`
+
 ## [1.20.1] - 2026-06-12
 
 ### Fixed

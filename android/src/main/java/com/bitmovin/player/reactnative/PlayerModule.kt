@@ -181,6 +181,10 @@ class PlayerModule : Module() {
             false
         }
 
+        AsyncFunction("showAirPlayTargetPicker") { _: String ->
+            // AirPlay is iOS-only, no-op on Android
+        }
+
         AsyncFunction("isCastAvailable") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.isCastAvailable
