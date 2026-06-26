@@ -3,7 +3,6 @@ const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 
 const config = getDefaultConfig(__dirname);
-config.resolver.assetExts.push('vtt');
 
 // npm v7+ will install ../node_modules/react and ../node_modules/react-native because of peerDependencies.
 // To prevent the incompatible react-native between ./node_modules/react-native and ../node_modules/react-native,
@@ -24,6 +23,8 @@ config.resolver.extraNodeModules = {
 };
 
 config.watchFolders = [path.resolve(__dirname, '..')];
+
+config.resolver.assetExts = [...(config.resolver.assetExts ?? []), 'vtt'];
 
 config.transformer.getTransformOptions = async () => ({
   transform: {

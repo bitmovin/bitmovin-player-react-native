@@ -746,128 +746,76 @@ export interface PlaybackSpeedChangedEvent extends Event {
   to: number;
 }
 
+/**
+ * The `line` field of a {@link SubtitleCueLayout}.
+ *
+ * `{ value: 'auto' }` defers placement to the renderer.
+ * `{ value: number; unit: 'percent' }` places the cue as a percentage of the viewport.
+ * `{ value: number; unit: 'line' }` places the cue by counting rendered text-line slots.
+ *
+ * @platform Android
+ */
 export type SubtitleCueLayoutLine =
   | { value: 'auto' }
   | { value: number; unit: 'line' | 'percent' };
 
 /**
- * Layout metadata normalized from native cue data.
+ * Normalized cue-box geometry.
  *
- * Values may include native/defaulted cue values, not only explicitly authored subtitle settings.
- * Omitted fields mean the value was not exposed or not applicable for this cue.
+ * Values reflect native cue data including platform defaults, not only explicitly authored
+ * subtitle settings. Omitted fields were not set or not applicable for this cue.
  *
- * @platform Android, iOS, tvOS
+ * @platform Android
  */
 export interface SubtitleCueLayout {
   /**
    * Cue position on the axis perpendicular to the text flow.
    *
    * For horizontal captions this controls vertical placement:
-   * - `{ value: 85, unit: 'percent' }` places the cue about 85% down the video viewport.
-   * - `{ value: 12, unit: 'line' }` places the cue by counting rendered text-line slots, not viewport percentage.
-   * - `{ value: 'auto' }` lets the renderer/platform choose automatic line placement.
+   * - `{ value: 85, unit: 'percent' }` — 85% down the viewport.
+   * - `{ value: 12, unit: 'line' }` — 12 rendered text-line slots from the edge.
+   * - `{ value: 'auto' }` — renderer chooses placement.
    *
    * For vertical captions this controls horizontal placement.
-   * This is not the same as `cea608Position.rowIndex`, which refers to the CEA-608 caption grid.
    */
   line?: SubtitleCueLayoutLine;
   /**
-   * Alignment of the cue box at the `line` position.
+   * Which edge of the cue box is anchored at `line`.
    *
-   * This does not control text alignment inside the cue box; use `textAlign` for that.
+   * Does not control text alignment inside the box; see `textAlign` for that.
    */
   lineAlign?: 'start' | 'center' | 'end';
   /**
    * Cue box position as a percentage of the viewport on the axis orthogonal to `line`.
    *
-   * For horizontal captions this controls horizontal placement:
-   * - `50` places the cue around the horizontal center of the viewport.
-   * - `10` places the cue near the left side of the viewport.
-   * - `'auto'` lets the renderer/platform choose automatic position placement.
-   *
-   * For vertical captions this controls vertical placement.
-   * Use `positionAlign` to describe which part of the cue box is anchored at this position.
+   * `'auto'` defers to the renderer.
    */
   position?: number | 'auto';
   /**
-   * Alignment of the cue box at the `position` value.
-   *
-   * For horizontal captions, this controls which horizontal part of the cue box is anchored at `position`.
+   * Which edge of the cue box is anchored at `position`.
    */
   positionAlign?: 'line-left' | 'center' | 'line-right' | 'auto';
   /**
-   * Size of the cue box as a percentage of the viewport dimension in the cue writing direction.
-   *
-   * For horizontal captions this is relative to viewport width.
-   * For vertical captions this is relative to viewport height.
+   * Width of the cue box as a percentage of the viewport dimension in the writing direction.
    */
   size?: number;
   /**
-   * Alignment of the cue text inside the cue box.
+   * Text alignment inside the cue box.
    */
   textAlign?: 'start' | 'center' | 'end' | 'left' | 'right';
   /**
-   * Writing direction of the cue text.
-   *
-   * This affects how `line`, `position`, and `size` are interpreted.
+   * Writing direction of the cue text; affects how `line`, `position`, and `size` are interpreted.
+   * When absent, the cue uses the default horizontal writing direction.
    */
-  writingMode: 'horizontal' | 'vertical-lr' | 'vertical-rl';
+  writingMode?: 'vertical-lr' | 'vertical-rl';
 }
 
 /**
- * Region metadata.
- *
- * @platform iOS, tvOS
+ * Emitted when a subtitle entry transitions into the active status.
  */
-export interface SubtitleCueRegion {
+export interface CueEnterEvent extends Event {
   /**
-   * Region identifier.
-   */
-  id?: string;
-  /**
-   * Region style string from the native SDK.
-   *
-   * The format is platform-defined and should be treated as renderer input.
-   */
-  style?: string;
-}
-
-/**
- * CEA-608 grid position.
- *
- * Separate from `layout`, which exposes normalized cue-box geometry.
- *
- * @platform iOS, tvOS
- */
-export interface Cea608CuePosition {
-  /**
-   * Zero-based row index in the CEA-608 grid.
-   *
-   * Valid values are `0` through `rows - 1`.
-   */
-  rowIndex: number;
-  /**
-   * Zero-based column index in the CEA-608 grid.
-   *
-   * Valid values are `0` through `columns - 1`.
-   */
-  columnIndex: number;
-  /**
-   * Total row count in the CEA-608 grid.
-   */
-  rows: 15;
-  /**
-   * Total column count in the CEA-608 grid.
-   */
-  columns: 32;
-}
-
-/**
- * Subtitle cue payload shared by cue enter and cue exit events.
- */
-export interface SubtitleCue {
-  /**
-   * Start time of the cue in seconds.
+   * The playback time in seconds when the subtitle should be rendered.
    */
   start: number;
   /**
@@ -875,48 +823,64 @@ export interface SubtitleCue {
    */
   end: number;
   /**
-   * The textual content of this subtitle.
+   * Plain-text content of this subtitle.
    */
   text?: string;
   /**
-   * Data URI for image data of this subtitle.
+   * Data URI for image subtitle data.
    */
   image?: string;
   /**
-   * HTML cue text.
+   * HTML cue text, which may include styling generated by the native SDK.
    *
-   * This may include styling generated by the native SDK. Treat it as renderer input, not plain text.
+   * Treat as renderer input, not plain text.
+   *
+   * @platform Android
    */
   html?: string;
   /**
-   * Normalized cue layout metadata.
+   * Normalized cue-box geometry.
    *
-   * @platform Android, iOS, tvOS
+   * @platform Android
    */
   layout?: SubtitleCueLayout;
-  /**
-   * Cue region metadata.
-   *
-   * @platform iOS, tvOS
-   */
-  region?: SubtitleCueRegion;
-  /**
-   * CEA-608 grid position for closed captions.
-   *
-   * @platform iOS, tvOS
-   */
-  cea608Position?: Cea608CuePosition;
 }
-
-/**
- * Emitted when a subtitle entry transitions into the active status.
- */
-export interface CueEnterEvent extends Event, SubtitleCue {}
 
 /**
  * Emitted when an active subtitle entry transitions into the inactive status.
  */
-export interface CueExitEvent extends Event, SubtitleCue {}
+export interface CueExitEvent extends Event {
+  /**
+   * The playback time in seconds when the subtitle should be rendered.
+   */
+  start: number;
+  /**
+   * The playback time in seconds when the subtitle should be hidden.
+   */
+  end: number;
+  /**
+   * Plain-text content of this subtitle.
+   */
+  text?: string;
+  /**
+   * Data URI for image subtitle data.
+   */
+  image?: string;
+  /**
+   * HTML cue text, which may include styling generated by the native SDK.
+   *
+   * Treat as renderer input, not plain text.
+   *
+   * @platform Android
+   */
+  html?: string;
+  /**
+   * Normalized cue-box geometry.
+   *
+   * @platform Android
+   */
+  layout?: SubtitleCueLayout;
+}
 
 /**
  * Base event type for events that carry timed metadata.

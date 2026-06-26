@@ -512,19 +512,19 @@ fun PlayerEvent.toJson(): Map<String, Any> {
         is PlayerEvent.CueEnter -> {
             baseMap["start"] = start
             baseMap["end"] = end
-            baseMap["text"] = text.nonEmptyOrNull()
+            baseMap["text"] = text
             baseMap["image"] = image?.toBase64DataUri()
-            cue.html.nonEmptyOrNull()?.let { baseMap["html"] = it }
-            cue.toLayoutJson()?.let { baseMap["layout"] = it }
+            cue.html?.let { baseMap["html"] = it }
+            baseMap["layout"] = cue.toLayoutJson()
         }
 
         is PlayerEvent.CueExit -> {
             baseMap["start"] = start
             baseMap["end"] = end
-            baseMap["text"] = text.nonEmptyOrNull()
+            baseMap["text"] = text
             baseMap["image"] = image?.toBase64DataUri()
-            cue.html.nonEmptyOrNull()?.let { baseMap["html"] = it }
-            cue.toLayoutJson()?.let { baseMap["layout"] = it }
+            cue.html?.let { baseMap["html"] = it }
+            baseMap["layout"] = cue.toLayoutJson()
         }
 
         is PlayerEvent.Metadata -> {
@@ -1098,42 +1098,20 @@ fun ScteMessage.toJson(): Map<String, Any> = mapOf(
     "value" to value
 ).filterNotNullValues()
 
-private fun Cue.toLayoutJson(): Map<String, Any>? {
+private fun Cue.toLayoutJson(): Map<String, Any> {
     val line = toLayoutLineJson()
-    val position = fractionalPosition.toLayoutPositionJson()
-    val size = if (size != Cue.DIMEN_UNSET) size.toPercent() else null
-    val textAlign = textAlignment.toLayoutTextAlignJson()
-    val shouldEmitLayout =
-        line != null ||
-            lineType != Cue.LineType.TypeUnset ||
-            lineAnchor != Cue.AnchorType.TypeUnset ||
-            position != null ||
-            positionAnchor != Cue.AnchorType.TypeUnset ||
-            size != null ||
-            textAlign != null ||
-            verticalType != Cue.VerticalType.TypeUnset
-
-    if (!shouldEmitLayout) {
-        return null
-    }
+    val position = fractionalPosition.takeIf { it != Cue.DIMEN_UNSET }?.toPercent()
+    val size = size.takeIf { it != Cue.DIMEN_UNSET }?.toPercent()
+    val textAlign = textAlignment?.toLayoutTextAlignJson()
 
     return mapOf(
-        "line" to (
-            line ?: mapOf("value" to "auto")
-                .takeIf { lineType != Cue.LineType.TypeUnset || lineAnchor != Cue.AnchorType.TypeUnset }
-        ),
-        "lineAlign" to (
-            lineAnchor.toLayoutLineAlignJson()
-                .takeIf { line != null || lineType != Cue.LineType.TypeUnset || lineAnchor != Cue.AnchorType.TypeUnset }
-        ),
-        "position" to (position ?: "auto".takeIf { positionAnchor != Cue.AnchorType.TypeUnset }),
-        "positionAlign" to (
-            positionAnchor.toLayoutPositionAlignJson()
-                .takeIf { position != null || positionAnchor != Cue.AnchorType.TypeUnset }
-        ),
+        "line" to line,
+        "lineAlign" to lineAnchor.toLayoutLineAlignJson(),
+        "position" to position,
+        "positionAlign" to positionAnchor.toLayoutPositionAlignJson(),
         "size" to size,
         "textAlign" to textAlign,
-        "writingMode" to verticalType.toLayoutWritingModeJson(),
+        "writingMode" to verticalType?.toLayoutWritingModeJson(),
     ).filterNotNullValues()
 }
 
@@ -1143,35 +1121,32 @@ private fun Cue.toLayoutLineJson(): Map<String, Any>? = when {
     else -> mapOf("value" to line.toPercent(), "unit" to "percent")
 }
 
-private fun Float.toLayoutPositionJson(): Any? =
-    if (this != Cue.DIMEN_UNSET) toPercent() else null
 
 private fun Float.toPercent(): Double = (this * 100).toDouble()
 
-private fun Cue.AnchorType.toLayoutLineAlignJson(): String = when (this) {
+private fun Cue.AnchorType.toLayoutLineAlignJson(): String? = when (this) {
     Cue.AnchorType.AnchorTypeMiddle -> "center"
     Cue.AnchorType.AnchorTypeEnd -> "end"
-    else -> "start"
+    Cue.AnchorType.AnchorTypeStart -> "start"
+    Cue.AnchorType.TypeUnset -> null
 }
 
-private fun Cue.AnchorType.toLayoutPositionAlignJson(): String = when (this) {
+private fun Cue.AnchorType.toLayoutPositionAlignJson(): String? = when (this) {
     Cue.AnchorType.AnchorTypeStart -> "line-left"
     Cue.AnchorType.AnchorTypeMiddle -> "center"
     Cue.AnchorType.AnchorTypeEnd -> "line-right"
-    else -> "auto"
+    Cue.AnchorType.TypeUnset -> null
 }
 
-private fun Cue.VerticalType.toLayoutWritingModeJson(): String = when (this) {
+private fun Cue.VerticalType.toLayoutWritingModeJson(): String? = when (this) {
     Cue.VerticalType.VerticalTypeLeftToRight -> "vertical-lr"
     Cue.VerticalType.VerticalTypeRightToLeft -> "vertical-rl"
-    else -> "horizontal"
+    Cue.VerticalType.TypeUnset -> null
 }
 
-private fun Alignment?.toLayoutTextAlignJson(): String? = when (this) {
+private fun Alignment.toLayoutTextAlignJson(): String = when (this) {
     Alignment.ALIGN_NORMAL -> "start"
     Alignment.ALIGN_OPPOSITE -> "end"
     Alignment.ALIGN_CENTER -> "center"
-    null -> null
 }
 
-private fun String?.nonEmptyOrNull(): String? = this?.takeIf { it.isNotEmpty() }

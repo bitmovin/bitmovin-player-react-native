@@ -421,164 +421,16 @@ extension PlaybackSpeedChangedEvent: JsonConvertible {
     }
 }
 
-private extension VttPosition {
-    var jsonValue: Any {
-        switch type {
-        case .value:
-            return value
-        default:
-            return "auto"
-        }
-    }
-}
-
-private extension VttVertical {
-    var writingModeJSONValue: String {
-        switch self {
-        case .leftToRight:
-            return "vertical-lr"
-        case .rightToLeft:
-            return "vertical-rl"
-        default:
-            return "horizontal"
-        }
-    }
-}
-
-private extension VttLineAlign {
-    var jsonValue: String {
-        switch self {
-        case .center:
-            return "center"
-        case .end:
-            return "end"
-        default:
-            return "start"
-        }
-    }
-}
-
-private extension VttAlign {
-    var jsonValue: String {
-        switch self {
-        case .center:
-            return "center"
-        case .end:
-            return "end"
-        case .left:
-            return "left"
-        case .right:
-            return "right"
-        default:
-            return "start"
-        }
-    }
-}
-
-private extension VttPositionAlign {
-    var jsonValue: String {
-        switch self {
-        case .lineLeft:
-            return "line-left"
-        case .center:
-            return "center"
-        case .lineRight:
-            return "line-right"
-        default:
-            return "auto"
-        }
-    }
-}
-
-private extension VttProperties {
-    var layoutJSON: [AnyHashable: Any] {
-        [
-            "writingMode": vertical.writingModeJSONValue,
-            "line": lineJSON,
-            "lineAlign": lineAlign.jsonValue,
-            "size": size,
-            "textAlign": align.jsonValue,
-            "position": position.jsonValue,
-            "positionAlign": positionAlign.jsonValue,
-        ]
-    }
-
-    private var lineJSON: [AnyHashable: Any] {
-        switch line.type {
-        case .value:
-            [
-                "value": line.value,
-                "unit": snapToLines ? "line" : "percent",
-            ]
-        default:
-            ["value": "auto"]
-        }
-    }
-}
-
-private func layoutJSON(from vtt: VttProperties?) -> [AnyHashable: Any]? {
-    guard let vtt else {
-        return nil
-    }
-
-    return vtt.layoutJSON
-}
-
-private func regionJSON(
-    region: String?,
-    regionStyle: String?
-) -> [AnyHashable: Any]? {
-    var json: [AnyHashable: Any] = [:]
-    if let region = region.nonEmptyOrNil {
-        json["id"] = region
-    }
-    if let regionStyle = regionStyle.nonEmptyOrNil {
-        json["style"] = regionStyle
-    }
-    return json.isEmpty ? nil : json
-}
-
-private extension CuePosition {
-    var json: [AnyHashable: Any] {
-        [
-            "rowIndex": row,
-            "columnIndex": column,
-            "rows": 15,
-            "columns": 32,
-        ]
-    }
-}
-
-private extension String? {
-    var nonEmptyOrNil: String? {
-        self?.isEmpty == false ? self : nil
-    }
-}
-
 extension CueEnterEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
         toEventJSON {
             var json: [AnyHashable: Any] = [
                 "start": startTime,
                 "end": endTime,
+                "text": text,
             ]
-            if let text = text.nonEmptyOrNil {
-                json["text"] = text
-            }
             if let imagePngData = image?.pngData() {
                 json["image"] = "data:image/png;base64,\(imagePngData.base64EncodedString())"
-            }
-            if let html = html.nonEmptyOrNil {
-                json["html"] = html
-            }
-            if let layout = layoutJSON(from: vtt) {
-                json["layout"] = layout
-            }
-            if let region = regionJSON(region: region, regionStyle: regionStyle) {
-                json["region"] = region
-            }
-            if let position {
-                json["cea608Position"] = position.json
             }
             return json
         }
@@ -591,24 +443,10 @@ extension CueExitEvent: JsonConvertible {
             var json: [AnyHashable: Any] = [
                 "start": startTime,
                 "end": endTime,
+                "text": text,
             ]
-            if let text = text.nonEmptyOrNil {
-                json["text"] = text
-            }
             if let imagePngData = image?.pngData() {
                 json["image"] = "data:image/png;base64,\(imagePngData.base64EncodedString())"
-            }
-            if let html = html.nonEmptyOrNil {
-                json["html"] = html
-            }
-            if let layout = layoutJSON(from: vtt) {
-                json["layout"] = layout
-            }
-            if let region = regionJSON(region: region, regionStyle: regionStyle) {
-                json["region"] = region
-            }
-            if let position {
-                json["cea608Position"] = position.json
             }
             return json
         }
