@@ -800,8 +800,10 @@ export interface SubtitleCueLayout {
    */
   textAlign?: 'start' | 'center' | 'end' | 'left' | 'right';
   /**
-   * Writing direction of the cue text; affects how `line`, `position`, and `size` are interpreted.
-   * When absent, the cue uses the default horizontal writing direction.
+   * Vertical writing direction of the cue text.
+   *
+   * When omitted, consumers should treat the cue as using the default horizontal writing direction.
+   * This affects how `line`, `position`, and `size` are interpreted.
    */
   writingMode?: 'vertical-lr' | 'vertical-rl';
 }
