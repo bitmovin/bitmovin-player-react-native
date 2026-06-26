@@ -83,6 +83,7 @@ jobs:
         run: |
           git add ios/RNBitmovinPlayer.podspec android/build.gradle CHANGELOG.md
           git commit --no-verify -m "chore(${{ inputs.sdk_name }}): update ${{ inputs.sdk_name }} player version to ${{ inputs.version_number }}"
+          git fetch origin "${{ steps.branching.outputs.branch_name }}:refs/remotes/origin/${{ steps.branching.outputs.branch_name }}" || true
           git push --force-with-lease origin ${{ steps.branching.outputs.branch_name }}
 
       - name: Create PR

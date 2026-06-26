@@ -1,8 +1,8 @@
 """Select open SDK update PRs superseded by a newer SDK update.
 
 Usage:
-    gh pr list --state open --json number,headRefName \
-      | python3 .github/scripts/close_superseded_sdk_update_prs.py <android|ios> <version>
+    gh pr list --state open --json number,headRefName,baseRefName \
+      | python3 .github/scripts/close_superseded_sdk_update_prs.py <android|ios> <version> [base-ref]
 
 The script prints TSV rows:
     <pr-number>\t<head-branch>\t<old-version>
