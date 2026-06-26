@@ -57,28 +57,69 @@ jobs:
     needs: [prepare]
     name: Create Finish Release PR
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
+
+      - name: Setup Git User
+        run: |
+          git config --global user.name "Bitmovin Release Automation"
+          git config --global user.email "support@bitmovin.com"
+
+      - name: Set sync branch
+        id: sync
+        run: |
+          if [ "${{ github.event.pull_request.base.ref }}" = "support/v0" ]; then
+            target_base="development-v0"
+          else
+            target_base="development"
+          fi
+
+          branch_name="release/v${{ needs.prepare.outputs.version_number }}-sync-${target_base}"
+          echo "target_base=$target_base" >> "$GITHUB_OUTPUT"
+          echo "branch_name=$branch_name" >> "$GITHUB_OUTPUT"
+
+      - name: Create sync branch
+        id: sync_branch
+        run: |
+          git checkout -B "${{ steps.sync.outputs.branch_name }}"
+          python3 .github/scripts/ensure_unreleased_changelog.py
+
+          if git diff --quiet -- CHANGELOG.md; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            git add CHANGELOG.md
+            git commit --no-verify -m "restore unreleased changelog section"
+            git push --force-with-lease origin "${{ steps.sync.outputs.branch_name }}"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Create PR
-        if: ${{ github.event.pull_request.merged == true && startsWith(github.head_ref, 'support/v0') }}
+        if: steps.sync_branch.outputs.has_changes == 'true'
         run: |
-          gh pr create \
-          --base "development-v0" \
-          --head "support/v0" \
-          --title "Finish release ${{ needs.prepare.outputs.version_number }}" \
-          --body "Finish release ${{ needs.prepare.outputs.version_number }}"
-        env:
-          GH_TOKEN: ${{ github.token }}
+          existing_pr_number="$(gh pr list \
+            --state open \
+            --head "${{ steps.sync.outputs.branch_name }}" \
+            --base "${{ steps.sync.outputs.target_base }}" \
+            --json number \
+            --jq '.[0].number // empty')"
 
-      - name: Create PR
-        if: ${{ github.event.pull_request.merged == true && !startsWith(github.head_ref, 'support/v0') }}
-        run: |
-          gh pr create \
-          --base "development" \
-          --head "main" \
-          --title "Finish release ${{ needs.prepare.outputs.version_number }}" \
-          --body "Finish release ${{ needs.prepare.outputs.version_number }}"
+          if [ -n "$existing_pr_number" ]; then
+            gh pr edit "$existing_pr_number" \
+              --title "Finish release ${{ needs.prepare.outputs.version_number }}" \
+              --body "Finish release ${{ needs.prepare.outputs.version_number }}"
+          else
+            gh pr create \
+              --base "${{ steps.sync.outputs.target_base }}" \
+              --head "${{ steps.sync.outputs.branch_name }}" \
+              --title "Finish release ${{ needs.prepare.outputs.version_number }}" \
+              --body "Finish release ${{ needs.prepare.outputs.version_number }}"
+          fi
         env:
           GH_TOKEN: ${{ github.token }}
 
