@@ -17,7 +17,6 @@ import {
   SideLoadedSubtitleTrack,
   SourceConfig,
   SourceType,
-  SubtitleCueLayout,
   SubtitleFormat,
 } from 'bitmovin-player-react-native';
 import { Image, Platform } from 'react-native';
@@ -52,6 +51,66 @@ function sourceWithSubtitleTrack(
     type: SourceType.HLS,
     subtitleTracks: [subtitleTrack],
   };
+}
+
+function expectPositionedCueLayout(
+  layout: CueEnterEvent['layout'] | CueExitEvent['layout'],
+  eventName: string
+) {
+  expect(layout, `${eventName} should have a layout field`).toBeDefined();
+
+  const line = layout?.line;
+  expect(line, `${eventName} line should be present`).toBeDefined();
+  expect(line?.value, `${eventName} line.value should be 85`).toBeCloseTo(85);
+  expect(line?.unit, `${eventName} line.unit should be percent`).toBe(
+    'percent'
+  );
+  expect(
+    layout?.position,
+    `${eventName} position should be 50`
+  ).toBeCloseTo(50);
+  expect(layout?.size, `${eventName} size should be 80`).toBeCloseTo(80);
+  expect(layout?.textAlign, `${eventName} textAlign should be center`).toBe(
+    'center'
+  );
+  expect(
+    layout?.writingMode,
+    `${eventName} writingMode should be omitted for horizontal cues`
+  ).toBeUndefined();
+}
+
+function expectCueHtml(
+  event: CueEnterEvent | CueExitEvent,
+  eventName: string
+) {
+  expect(event.html, `${eventName} html should be present`).toBeDefined();
+  expect(typeof event.html, `${eventName} html should be a string`).toBe(
+    'string'
+  );
+  expect(
+    (event.html as string).length,
+    `${eventName} html should be non-empty`
+  ).toBeGreaterThan(0);
+}
+
+function expectCueRegionMetadata(
+  event: CueEnterEvent | CueExitEvent,
+  eventName: string
+) {
+  expect(
+    event.region,
+    `${eventName} should expose region metadata`
+  ).toBeDefined();
+  expect(event.region?.id, `${eventName} region id`).toBe('region-test');
+  expect(event.region?.style, `${eventName} region style`).toBeDefined();
+  expect(typeof event.region?.style, `${eventName} region style type`).toBe(
+    'string'
+  );
+  expect(
+    (event as CueEnterEvent & CueExitEvent & { regionStyle?: string })
+      .regionStyle,
+    `${eventName} should not expose legacy top-level regionStyle`
+  ).toBeUndefined();
 }
 
 export default (spec: TestScope) => {
@@ -279,31 +338,7 @@ export default (spec: TestScope) => {
                 EventType.CueEnter
               );
 
-              expect(
-                cueEnterEvent.layout,
-                'CueEnter should have a layout field'
-              ).toBeDefined();
-
-              const layout = cueEnterEvent.layout as SubtitleCueLayout;
-
-              expect(
-                layout.writingMode,
-                'writingMode should be omitted for horizontal cues'
-              ).toBeUndefined();
-
-              expect(
-                (layout.line as any)?.value,
-                'line.value should be 85'
-              ).toBeCloseTo(85);
-              expect(
-                (layout.line as any)?.unit,
-                'line.unit should be percent'
-              ).toBe('percent');
-              expect(layout.position, 'position should be 50').toBeCloseTo(50);
-              expect(layout.size, 'size should be 80').toBeCloseTo(80);
-              expect(layout.textAlign, 'textAlign should be center').toBe(
-                'center'
-              );
+              expectPositionedCueLayout(cueEnterEvent.layout, 'CueEnter');
             });
           }
         );
@@ -327,18 +362,7 @@ export default (spec: TestScope) => {
                 EventType.CueEnter
               );
 
-              expect(
-                cueEnterEvent.html,
-                'html should be present for a cue with inline tags'
-              ).toBeDefined();
-              expect(
-                typeof cueEnterEvent.html,
-                'html should be a string'
-              ).toBe('string');
-              expect(
-                (cueEnterEvent.html as string).length,
-                'html should be non-empty'
-              ).toBeGreaterThan(0);
+              expectCueHtml(cueEnterEvent, 'CueEnter');
             });
           }
         );
@@ -363,29 +387,8 @@ export default (spec: TestScope) => {
                 EventType.CueExit
               );
 
-              expect(
-                cueExitEvent.layout,
-                'CueExit should have a layout field'
-              ).toBeDefined();
-
-              const layout = cueExitEvent.layout as SubtitleCueLayout;
-              expect(
-                layout.writingMode,
-                'writingMode should be omitted for horizontal cues'
-              ).toBeUndefined();
-              expect(
-                (layout.line as any)?.value,
-                'line.value should be 85'
-              ).toBeCloseTo(85);
-              expect(layout.position, 'position should be 50').toBeCloseTo(50);
-
-              expect(
-                cueExitEvent.html,
-                'CueExit html should be present'
-              ).toBeDefined();
-              expect(typeof cueExitEvent.html, 'html should be a string').toBe(
-                'string'
-              );
+              expectPositionedCueLayout(cueExitEvent.layout, 'CueExit');
+              expectCueHtml(cueExitEvent, 'CueExit');
             });
           }
         );
@@ -395,6 +398,36 @@ export default (spec: TestScope) => {
 
     if (Platform.OS === 'ios') {
       spec.describe('iOS cue metadata fields', () => {
+        spec.it(
+          'CueEnter and CueExit carry positioned WebVTT layout and html',
+          async () => {
+            await startPlayerTest({}, async () => {
+              await loadSourceConfig(
+                sourceWithSubtitleTrack(positionedSubtitleTrack)
+              );
+              await callPlayer(async (player) => {
+                player.setSubtitleTrack('positioned-cues');
+                player.play();
+              });
+              await callPlayerAndExpectEvent((player) => {
+                player.seek(2);
+              }, EventType.Seeked);
+
+              const cueEnterEvent: CueEnterEvent = await expectEvent(
+                EventType.CueEnter
+              );
+              expectPositionedCueLayout(cueEnterEvent.layout, 'CueEnter');
+              expectCueHtml(cueEnterEvent, 'CueEnter');
+
+              const cueExitEvent: CueExitEvent = await expectEvent(
+                EventType.CueExit
+              );
+              expectPositionedCueLayout(cueExitEvent.layout, 'CueExit');
+              expectCueHtml(cueExitEvent, 'CueExit');
+            });
+          }
+        );
+
         spec.it('CueEnter and CueExit carry WebVTT region metadata', async () => {
           await startPlayerTest({}, async () => {
             await loadSourceConfig(sourceWithSubtitleTrack(regionSubtitleTrack));
@@ -410,51 +443,13 @@ export default (spec: TestScope) => {
               EventType.CueEnter
             );
 
-            expect(
-              cueEnterEvent.region,
-              'CueEnter should expose region metadata'
-            ).toBeDefined();
-            expect(cueEnterEvent.region?.id, 'CueEnter region id').toBe(
-              'region-test'
-            );
-            expect(
-              cueEnterEvent.region?.style,
-              'CueEnter region style'
-            ).toBeDefined();
-            expect(
-              typeof cueEnterEvent.region?.style,
-              'CueEnter region style type'
-            ).toBe('string');
-            expect(
-              (cueEnterEvent as CueEnterEvent & { regionStyle?: string })
-                .regionStyle,
-              'CueEnter should not expose legacy top-level regionStyle'
-            ).toBeUndefined();
+            expectCueRegionMetadata(cueEnterEvent, 'CueEnter');
 
             const cueExitEvent: CueExitEvent = await expectEvent(
               EventType.CueExit
             );
 
-            expect(
-              cueExitEvent.region,
-              'CueExit should expose region metadata'
-            ).toBeDefined();
-            expect(cueExitEvent.region?.id, 'CueExit region id').toBe(
-              'region-test'
-            );
-            expect(
-              cueExitEvent.region?.style,
-              'CueExit region style'
-            ).toBeDefined();
-            expect(
-              typeof cueExitEvent.region?.style,
-              'CueExit region style type'
-            ).toBe('string');
-            expect(
-              (cueExitEvent as CueExitEvent & { regionStyle?: string })
-                .regionStyle,
-              'CueExit should not expose legacy top-level regionStyle'
-            ).toBeUndefined();
+            expectCueRegionMetadata(cueExitEvent, 'CueExit');
           });
         });
       });

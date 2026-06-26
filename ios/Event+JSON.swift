@@ -422,12 +422,12 @@ extension PlaybackSpeedChangedEvent: JsonConvertible {
 }
 
 private extension VttPosition {
-    var jsonValue: Any {
+    var jsonValue: Any? {
         switch type {
         case .value:
             return value
         default:
-            return "auto"
+            return nil
         }
     }
 }
@@ -446,20 +446,20 @@ private extension VttVertical {
 }
 
 private extension VttLineAlign {
-    var jsonValue: String {
+    var jsonValue: String? {
         switch self {
         case .center:
             return "center"
         case .end:
             return "end"
         default:
-            return "start"
+            return nil
         }
     }
 }
 
 private extension VttAlign {
-    var jsonValue: String {
+    var jsonValue: String? {
         switch self {
         case .center:
             return "center"
@@ -470,13 +470,13 @@ private extension VttAlign {
         case .right:
             return "right"
         default:
-            return "start"
+            return nil
         }
     }
 }
 
 private extension VttPositionAlign {
-    var jsonValue: String {
+    var jsonValue: String? {
         switch self {
         case .lineLeft:
             return "line-left"
@@ -485,28 +485,39 @@ private extension VttPositionAlign {
         case .lineRight:
             return "line-right"
         default:
-            return "auto"
+            return nil
         }
     }
 }
 
 private extension VttProperties {
-    var layoutJSON: [AnyHashable: Any] {
-        var json: [AnyHashable: Any] = [
-            "line": lineJSON,
-            "lineAlign": lineAlign.jsonValue,
-            "size": size,
-            "textAlign": align.jsonValue,
-            "position": position.jsonValue,
-            "positionAlign": positionAlign.jsonValue,
-        ]
+    var layoutJSON: [AnyHashable: Any]? {
+        var json: [AnyHashable: Any] = [:]
+        if let line = lineJSON {
+            json["line"] = line
+        }
+        if let lineAlign = lineAlign.jsonValue {
+            json["lineAlign"] = lineAlign
+        }
+        if size != 100 {
+            json["size"] = size
+        }
+        if let textAlign = align.jsonValue {
+            json["textAlign"] = textAlign
+        }
+        if let position = position.jsonValue {
+            json["position"] = position
+        }
+        if let positionAlign = positionAlign.jsonValue {
+            json["positionAlign"] = positionAlign
+        }
         if let writingMode = vertical.writingModeJSONValue {
             json["writingMode"] = writingMode
         }
-        return json
+        return json.isEmpty ? nil : json
     }
 
-    private var lineJSON: [AnyHashable: Any] {
+    private var lineJSON: [AnyHashable: Any]? {
         switch line.type {
         case .value:
             [
@@ -514,7 +525,7 @@ private extension VttProperties {
                 "unit": snapToLines ? "line" : "percent",
             ]
         default:
-            ["value": "auto"]
+            nil
         }
     }
 }

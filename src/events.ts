@@ -749,19 +749,17 @@ export interface PlaybackSpeedChangedEvent extends Event {
 /**
  * The `line` field of a {@link SubtitleCueLayout}.
  *
- * `{ value: 'auto' }` defers placement to the renderer.
  * `{ value: number; unit: 'percent' }` places the cue as a percentage of the viewport.
  * `{ value: number; unit: 'line' }` places the cue by counting rendered text-line slots.
+ * When omitted, the renderer/platform chooses automatic line placement.
  */
-export type SubtitleCueLayoutLine =
-  | { value: 'auto' }
-  | { value: number; unit: 'line' | 'percent' };
+export type SubtitleCueLayoutLine = { value: number; unit: 'line' | 'percent' };
 
 /**
  * Normalized cue-box geometry.
  *
- * Values reflect native cue data including platform defaults, not only explicitly authored
- * subtitle settings. Omitted fields were not set or not applicable for this cue.
+ * Values reflect normalized native cue data. Omitted fields were not set, were default values,
+ * or were not applicable for this cue.
  */
 export interface SubtitleCueLayout {
   /**
@@ -770,7 +768,7 @@ export interface SubtitleCueLayout {
    * For horizontal captions this controls vertical placement:
    * - `{ value: 85, unit: 'percent' }` — 85% down the viewport.
    * - `{ value: 12, unit: 'line' }` — 12 rendered text-line slots from the edge.
-   * - `{ value: 'auto' }` — renderer chooses placement.
+   * - `undefined` — renderer chooses placement.
    *
    * For vertical captions this controls horizontal placement.
    */
@@ -784,13 +782,13 @@ export interface SubtitleCueLayout {
   /**
    * Cue box position as a percentage of the viewport on the axis orthogonal to `line`.
    *
-   * `'auto'` defers to the renderer.
+   * When omitted, the renderer/platform chooses automatic position placement.
    */
-  position?: number | 'auto';
+  position?: number;
   /**
    * Which edge of the cue box is anchored at `position`.
    */
-  positionAlign?: 'line-left' | 'center' | 'line-right' | 'auto';
+  positionAlign?: 'line-left' | 'center' | 'line-right';
   /**
    * Width of the cue box as a percentage of the viewport dimension in the writing direction.
    */
@@ -884,6 +882,8 @@ export interface CueEnterEvent extends Event {
   html?: string;
   /**
    * Normalized cue-box geometry.
+   *
+   * Omitted when no non-default layout metadata is exposed for this cue.
    */
   layout?: SubtitleCueLayout;
   /**
@@ -928,6 +928,8 @@ export interface CueExitEvent extends Event {
   html?: string;
   /**
    * Normalized cue-box geometry.
+   *
+   * Omitted when no non-default layout metadata is exposed for this cue.
    */
   layout?: SubtitleCueLayout;
   /**
