@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- iOS/tvOS: Expose cue metadata on `CueEnterEvent` and `CueExitEvent` via `layout`, `region`, `cea608Position`, and `html`
+
 ## [1.21.0] - 2026-06-26
 
 ### Added

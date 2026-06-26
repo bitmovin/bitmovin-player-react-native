@@ -753,7 +753,7 @@ export interface PlaybackSpeedChangedEvent extends Event {
  * `{ value: number; unit: 'percent' }` places the cue as a percentage of the viewport.
  * `{ value: number; unit: 'line' }` places the cue by counting rendered text-line slots.
  *
- * @platform Android
+ * @platform Android, iOS, tvOS
  */
 export type SubtitleCueLayoutLine =
   | { value: 'auto' }
@@ -765,7 +765,7 @@ export type SubtitleCueLayoutLine =
  * Values reflect native cue data including platform defaults, not only explicitly authored
  * subtitle settings. Omitted fields were not set or not applicable for this cue.
  *
- * @platform Android
+ * @platform Android, iOS, tvOS
  */
 export interface SubtitleCueLayout {
   /**
@@ -807,7 +807,55 @@ export interface SubtitleCueLayout {
    * Writing direction of the cue text; affects how `line`, `position`, and `size` are interpreted.
    * When absent, the cue uses the default horizontal writing direction.
    */
-  writingMode?: 'vertical-lr' | 'vertical-rl';
+  writingMode?: 'horizontal' | 'vertical-lr' | 'vertical-rl';
+}
+
+/**
+ * Region metadata.
+ *
+ * @platform iOS, tvOS
+ */
+export interface SubtitleCueRegion {
+  /**
+   * Region identifier.
+   */
+  id?: string;
+  /**
+   * Region style string from the native SDK.
+   *
+   * The format is platform-defined and should be treated as renderer input.
+   */
+  style?: string;
+}
+
+/**
+ * CEA-608 grid position.
+ *
+ * Separate from `layout`, which exposes normalized cue-box geometry.
+ *
+ * @platform iOS, tvOS
+ */
+export interface Cea608CuePosition {
+  /**
+   * Zero-based row index in the CEA-608 grid.
+   *
+   * Valid values are `0` through `rows - 1`.
+   */
+  rowIndex: number;
+  /**
+   * Zero-based column index in the CEA-608 grid.
+   *
+   * Valid values are `0` through `columns - 1`.
+   */
+  columnIndex: number;
+  /**
+   * Total row count in the CEA-608 grid.
+   */
+  rows: 15;
+  /**
+   * Total column count in the CEA-608 grid.
+   */
+  columns: 32;
 }
 
 /**
@@ -835,15 +883,27 @@ export interface CueEnterEvent extends Event {
    *
    * Treat as renderer input, not plain text.
    *
-   * @platform Android
+   * @platform Android, iOS, tvOS
    */
   html?: string;
   /**
    * Normalized cue-box geometry.
    *
-   * @platform Android
+   * @platform Android, iOS, tvOS
    */
   layout?: SubtitleCueLayout;
+  /**
+   * Cue region metadata.
+   *
+   * @platform iOS, tvOS
+   */
+  region?: SubtitleCueRegion;
+  /**
+   * CEA-608 grid position for closed captions.
+   *
+   * @platform iOS, tvOS
+   */
+  cea608Position?: Cea608CuePosition;
 }
 
 /**
@@ -871,15 +931,27 @@ export interface CueExitEvent extends Event {
    *
    * Treat as renderer input, not plain text.
    *
-   * @platform Android
+   * @platform Android, iOS, tvOS
    */
   html?: string;
   /**
    * Normalized cue-box geometry.
    *
-   * @platform Android
+   * @platform Android, iOS, tvOS
    */
   layout?: SubtitleCueLayout;
+  /**
+   * Cue region metadata.
+   *
+   * @platform iOS, tvOS
+   */
+  region?: SubtitleCueRegion;
+  /**
+   * CEA-608 grid position for closed captions.
+   *
+   * @platform iOS, tvOS
+   */
+  cea608Position?: Cea608CuePosition;
 }
 
 /**

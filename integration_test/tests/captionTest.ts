@@ -33,10 +33,27 @@ const positionedSubtitleTrack: SideLoadedSubtitleTrack = {
   format: SubtitleFormat.VTT,
 };
 
+const regionSubtitleTrack: SideLoadedSubtitleTrack = {
+  identifier: 'region-cues',
+  url: Image.resolveAssetSource(
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require('../assets/subtitles/region.vtt')
+  ).uri,
+  label: 'Region Cues',
+  language: 'en',
+  format: SubtitleFormat.VTT,
+};
+
 const sourceWithPositionedSubs: SourceConfig = {
   url: Sources.artOfMotionHls.url!,
   type: SourceType.HLS,
   subtitleTracks: [positionedSubtitleTrack],
+};
+
+const sourceWithRegionSubs: SourceConfig = {
+  url: Sources.artOfMotionHls.url!,
+  type: SourceType.HLS,
+  subtitleTracks: [regionSubtitleTrack],
 };
 
 export default (spec: TestScope) => {
@@ -377,6 +394,48 @@ export default (spec: TestScope) => {
           }
         );
 
+      });
+    }
+
+    if (Platform.OS === 'ios') {
+      spec.describe('iOS cue metadata fields', () => {
+        spec.it('CueEnter carries WebVTT region metadata', async () => {
+          await startPlayerTest({}, async () => {
+            await loadSourceConfig(sourceWithRegionSubs);
+            await callPlayer(async (player) => {
+              player.setSubtitleTrack('region-cues');
+              player.play();
+            });
+            await callPlayerAndExpectEvent((player) => {
+              player.seek(1);
+            }, EventType.Seeked);
+
+            const cueEnterEvent: CueEnterEvent = await expectEvent(
+              EventType.CueEnter
+            );
+
+            expect(
+              cueEnterEvent.region,
+              'CueEnter should expose region metadata'
+            ).toBeDefined();
+            expect(cueEnterEvent.region?.id, 'CueEnter region id').toBe(
+              'region-test'
+            );
+            expect(
+              cueEnterEvent.region?.style,
+              'CueEnter region style'
+            ).toBeDefined();
+            expect(
+              typeof cueEnterEvent.region?.style,
+              'CueEnter region style type'
+            ).toBe('string');
+            expect(
+              (cueEnterEvent as CueEnterEvent & { regionStyle?: string })
+                .regionStyle,
+              'CueEnter should not expose legacy top-level regionStyle'
+            ).toBeUndefined();
+          });
+        });
       });
     }
 
