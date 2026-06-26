@@ -1,6 +1,8 @@
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 
-from update_player_sdk_update_changelog import update_unreleased_changed_section
+from update_player_sdk_update_changelog import update_unreleased_changed_section, validate_inputs
 
 
 class UpdatePlayerSdkUpdateChangelogTests(unittest.TestCase):
@@ -61,6 +63,10 @@ class UpdatePlayerSdkUpdateChangelogTests(unittest.TestCase):
 
         self.assertIn("- Update Bitmovin's native iOS SDK version to `3.115.0-beta.1`", updated)
         self.assertNotIn("release-notes-ios", updated)
+
+    def test_rejects_malformed_versions(self) -> None:
+        with self.assertRaises(SystemExit), redirect_stdout(StringIO()):
+            validate_inputs("3.115.0-beta..1", "ios")
 
 
 if __name__ == "__main__":

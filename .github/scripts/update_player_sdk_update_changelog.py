@@ -13,6 +13,11 @@ import sys
 import re
 from typing import Tuple
 
+from link_native_sdk_release_notes import (
+    is_valid_native_sdk_version,
+    native_sdk_release_notes_url,
+)
+
 
 CHANGELOG_FILE = "CHANGELOG.md"
 
@@ -36,10 +41,6 @@ MESSAGE_ADDING_ENTRY = (
 PLATFORM_ANDROID = "android"
 PLATFORM_IOS = "ios"
 PLATFORMS = {PLATFORM_ANDROID: "Android", PLATFORM_IOS: "iOS"}
-NATIVE_SDK_RELEASE_NOTES_URLS = {
-    PLATFORM_ANDROID: "https://developer.bitmovin.com/playback/docs/release-notes-android",
-    PLATFORM_IOS: "https://developer.bitmovin.com/playback/docs/release-notes-ios",
-}
 
 # SemVer: MAJOR.MINOR.PATCH with optional -pre-release and +build metadata
 SEMVER_RE = r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?"
@@ -47,17 +48,6 @@ SEMVER_RE = r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?"
 # Entry line template pieces
 ENTRY_LINE_PREFIX = "- Update Bitmovin's native {platform} SDK version to `"
 LINKED_ENTRY_LINE_PREFIX = "- Update Bitmovin's native {platform} SDK version to [`"
-
-
-def release_notes_url(platform_key: str, version: str) -> str | None:
-    semver_without_build_metadata = version.split("+", maxsplit=1)[0]
-    if "-" in semver_without_build_metadata:
-        return None
-    if not re.fullmatch(r"\d+\.\d+\.\d+", semver_without_build_metadata):
-        return None
-
-    anchor = semver_without_build_metadata.replace(".", "")
-    return f"{NATIVE_SDK_RELEASE_NOTES_URLS[platform_key]}#{anchor}"
 
 
 def normalize_newlines(text: str) -> str:
@@ -85,7 +75,7 @@ def build_entry(platform_key: str, version: str) -> Tuple[str, re.Pattern[str]]:
     platform_label = PLATFORMS[platform_key]
     entry_prefix = ENTRY_LINE_PREFIX.format(platform=platform_label)
     linked_entry_prefix = LINKED_ENTRY_LINE_PREFIX.format(platform=platform_label)
-    release_note_url = release_notes_url(platform_key, version)
+    release_note_url = native_sdk_release_notes_url(platform_key, version)
     if release_note_url:
         new_entry = f"{linked_entry_prefix}{version}`]({release_note_url})"
     else:
@@ -173,7 +163,7 @@ def validate_inputs(version: str, platform: str) -> None:
     if platform not in PLATFORMS:
         print(ERROR_INVALID_PLATFORM)
         sys.exit(1)
-    if not re.fullmatch(SEMVER_RE, version):
+    if not is_valid_native_sdk_version(version):
         print(ERROR_INVALID_VERSION)
         sys.exit(1)
 
