@@ -56,6 +56,16 @@ class LinkNativeSdkChangelogTests(unittest.TestCase):
             issues,
         )
 
+    def test_reports_malformed_prerelease_versions(self) -> None:
+        content = "- Update Bitmovin's native iOS SDK version to `3.115.0-beta..1`\n"
+
+        issues = find_link_issues(content)
+
+        self.assertEqual(
+            ["line 1: invalid native SDK version `3.115.0-beta..1`"],
+            issues,
+        )
+
     def test_ignores_invalid_non_native_dependency_versions(self) -> None:
         content = (
             "- Update Google Cast SDK version to `4.8`\n"

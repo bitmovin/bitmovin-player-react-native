@@ -11,18 +11,14 @@ import re
 import sys
 from pathlib import Path
 
+from link_native_sdk_release_notes import (
+    is_valid_native_sdk_version,
+    native_sdk_release_notes_url,
+)
+
 
 CHANGELOG_FILE = "CHANGELOG.md"
 PLATFORM_LABELS = {"Android": "android", "iOS": "ios"}
-NATIVE_SDK_RELEASE_NOTES_URLS = {
-    "android": "https://developer.bitmovin.com/playback/docs/release-notes-android",
-    "ios": "https://developer.bitmovin.com/playback/docs/release-notes-ios",
-}
-SEMVER_PATTERN = re.compile(
-    r"^v?(?P<core>\d+\.\d+\.\d+)"
-    r"(?P<prerelease>-[0-9A-Za-z.-]+)?"
-    r"(?P<build>\+[0-9A-Za-z.-]+)?$"
-)
 
 ENTRY_PATTERN = re.compile(
     r"^(?P<prefix>- Update Bitmovin's native (?P<platform>Android|iOS) SDK version to )"
@@ -32,20 +28,11 @@ ENTRY_PATTERN = re.compile(
 )
 
 
-def native_sdk_release_notes_url(platform_label: str, version: str) -> str | None:
-    platform_key = PLATFORM_LABELS[platform_label]
-    match = SEMVER_PATTERN.fullmatch(version)
-    if match is None or match.group("prerelease"):
-        return None
-
-    anchor = match.group("core").replace(".", "")
-    return f"{NATIVE_SDK_RELEASE_NOTES_URLS[platform_key]}#{anchor}"
-
-
 def link_native_sdk_changelog_entries(content: str) -> str:
     def replace_entry(match: re.Match[str]) -> str:
         version = match.group("plain_version") or match.group("linked_version")
-        release_notes_url = native_sdk_release_notes_url(match.group("platform"), version)
+        platform_key = PLATFORM_LABELS[match.group("platform")]
+        release_notes_url = native_sdk_release_notes_url(platform_key, version)
         if release_notes_url is None:
             return match.group(0)
 
@@ -63,7 +50,7 @@ def find_link_issues(content: str) -> list[str]:
     issues = []
     for match in ENTRY_PATTERN.finditer(content):
         version = match.group("plain_version") or match.group("linked_version")
-        if SEMVER_PATTERN.fullmatch(version) is None:
+        if not is_valid_native_sdk_version(version):
             line_number = content.count("\n", 0, match.start()) + 1
             issues.append(f"line {line_number}: invalid native SDK version `{version}`")
 
