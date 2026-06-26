@@ -433,14 +433,14 @@ private extension VttPosition {
 }
 
 private extension VttVertical {
-    var writingModeJSONValue: String {
+    var writingModeJSONValue: String? {
         switch self {
         case .leftToRight:
             return "vertical-lr"
         case .rightToLeft:
             return "vertical-rl"
         default:
-            return "horizontal"
+            return nil
         }
     }
 }
@@ -492,8 +492,7 @@ private extension VttPositionAlign {
 
 private extension VttProperties {
     var layoutJSON: [AnyHashable: Any] {
-        [
-            "writingMode": vertical.writingModeJSONValue,
+        var json: [AnyHashable: Any] = [
             "line": lineJSON,
             "lineAlign": lineAlign.jsonValue,
             "size": size,
@@ -501,6 +500,10 @@ private extension VttProperties {
             "position": position.jsonValue,
             "positionAlign": positionAlign.jsonValue,
         ]
+        if let writingMode = vertical.writingModeJSONValue {
+            json["writingMode"] = writingMode
+        }
+        return json
     }
 
     private var lineJSON: [AnyHashable: Any] {

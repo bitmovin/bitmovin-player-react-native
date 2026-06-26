@@ -44,17 +44,15 @@ const regionSubtitleTrack: SideLoadedSubtitleTrack = {
   format: SubtitleFormat.VTT,
 };
 
-const sourceWithPositionedSubs: SourceConfig = {
-  url: Sources.artOfMotionHls.url!,
-  type: SourceType.HLS,
-  subtitleTracks: [positionedSubtitleTrack],
-};
-
-const sourceWithRegionSubs: SourceConfig = {
-  url: Sources.artOfMotionHls.url!,
-  type: SourceType.HLS,
-  subtitleTracks: [regionSubtitleTrack],
-};
+function sourceWithSubtitleTrack(
+  subtitleTrack: SideLoadedSubtitleTrack
+): SourceConfig {
+  return {
+    url: Sources.artOfMotionHls.url!,
+    type: SourceType.HLS,
+    subtitleTracks: [subtitleTrack],
+  };
+}
 
 export default (spec: TestScope) => {
   spec.describe('playing captions', () => {
@@ -266,7 +264,9 @@ export default (spec: TestScope) => {
           'CueEnter layout field reflects geometry authored in the VTT',
           async () => {
             await startPlayerTest({}, async () => {
-              await loadSourceConfig(sourceWithPositionedSubs);
+              await loadSourceConfig(
+                sourceWithSubtitleTrack(positionedSubtitleTrack)
+              );
               await callPlayer(async (player) => {
                 player.setSubtitleTrack('positioned-cues');
                 player.play();
@@ -288,26 +288,19 @@ export default (spec: TestScope) => {
 
               expect(
                 layout.writingMode,
-                'writingMode should be horizontal'
-              ).toBe('horizontal');
+                'writingMode should be omitted for horizontal cues'
+              ).toBeUndefined();
 
-              // line:85% in the VTT → { value: 85, unit: 'percent' }
               expect(
                 (layout.line as any)?.value,
                 'line.value should be 85'
-              ).toBe(85);
+              ).toBeCloseTo(85);
               expect(
                 (layout.line as any)?.unit,
                 'line.unit should be percent'
               ).toBe('percent');
-
-              // position:50% → 50
-              expect(layout.position, 'position should be 50').toBe(50);
-
-              // size:80% → 80
-              expect(layout.size, 'size should be 80').toBe(80);
-
-              // align:center → textAlign center
+              expect(layout.position, 'position should be 50').toBeCloseTo(50);
+              expect(layout.size, 'size should be 80').toBeCloseTo(80);
               expect(layout.textAlign, 'textAlign should be center').toBe(
                 'center'
               );
@@ -319,7 +312,9 @@ export default (spec: TestScope) => {
           'CueEnter html field is present for a cue with inline styling',
           async () => {
             await startPlayerTest({}, async () => {
-              await loadSourceConfig(sourceWithPositionedSubs);
+              await loadSourceConfig(
+                sourceWithSubtitleTrack(positionedSubtitleTrack)
+              );
               await callPlayer(async (player) => {
                 player.setSubtitleTrack('positioned-cues');
                 player.play();
@@ -332,7 +327,6 @@ export default (spec: TestScope) => {
                 EventType.CueEnter
               );
 
-              // The VTT cue contains <b>...</b> so Bitmovin SDK populates html
               expect(
                 cueEnterEvent.html,
                 'html should be present for a cue with inline tags'
@@ -353,7 +347,9 @@ export default (spec: TestScope) => {
           'CueExit carries the same layout and html as its paired CueEnter',
           async () => {
             await startPlayerTest({}, async () => {
-              await loadSourceConfig(sourceWithPositionedSubs);
+              await loadSourceConfig(
+                sourceWithSubtitleTrack(positionedSubtitleTrack)
+              );
               await callPlayer(async (player) => {
                 player.setSubtitleTrack('positioned-cues');
                 player.play();
@@ -375,13 +371,13 @@ export default (spec: TestScope) => {
               const layout = cueExitEvent.layout as SubtitleCueLayout;
               expect(
                 layout.writingMode,
-                'writingMode should be horizontal'
-              ).toBe('horizontal');
+                'writingMode should be omitted for horizontal cues'
+              ).toBeUndefined();
               expect(
                 (layout.line as any)?.value,
                 'line.value should be 85'
-              ).toBe(85);
-              expect(layout.position, 'position should be 50').toBe(50);
+              ).toBeCloseTo(85);
+              expect(layout.position, 'position should be 50').toBeCloseTo(50);
 
               expect(
                 cueExitEvent.html,
@@ -399,9 +395,9 @@ export default (spec: TestScope) => {
 
     if (Platform.OS === 'ios') {
       spec.describe('iOS cue metadata fields', () => {
-        spec.it('CueEnter carries WebVTT region metadata', async () => {
+        spec.it('CueEnter and CueExit carry WebVTT region metadata', async () => {
           await startPlayerTest({}, async () => {
-            await loadSourceConfig(sourceWithRegionSubs);
+            await loadSourceConfig(sourceWithSubtitleTrack(regionSubtitleTrack));
             await callPlayer(async (player) => {
               player.setSubtitleTrack('region-cues');
               player.play();
@@ -433,6 +429,31 @@ export default (spec: TestScope) => {
               (cueEnterEvent as CueEnterEvent & { regionStyle?: string })
                 .regionStyle,
               'CueEnter should not expose legacy top-level regionStyle'
+            ).toBeUndefined();
+
+            const cueExitEvent: CueExitEvent = await expectEvent(
+              EventType.CueExit
+            );
+
+            expect(
+              cueExitEvent.region,
+              'CueExit should expose region metadata'
+            ).toBeDefined();
+            expect(cueExitEvent.region?.id, 'CueExit region id').toBe(
+              'region-test'
+            );
+            expect(
+              cueExitEvent.region?.style,
+              'CueExit region style'
+            ).toBeDefined();
+            expect(
+              typeof cueExitEvent.region?.style,
+              'CueExit region style type'
+            ).toBe('string');
+            expect(
+              (cueExitEvent as CueExitEvent & { regionStyle?: string })
+                .regionStyle,
+              'CueExit should not expose legacy top-level regionStyle'
             ).toBeUndefined();
           });
         });
