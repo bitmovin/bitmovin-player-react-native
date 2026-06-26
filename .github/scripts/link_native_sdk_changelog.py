@@ -18,6 +18,11 @@ NATIVE_SDK_RELEASE_NOTES_URLS = {
     "android": "https://developer.bitmovin.com/playback/docs/release-notes-android",
     "ios": "https://developer.bitmovin.com/playback/docs/release-notes-ios",
 }
+SEMVER_PATTERN = re.compile(
+    r"^v?(?P<core>\d+\.\d+\.\d+)"
+    r"(?P<prerelease>-[0-9A-Za-z.-]+)?"
+    r"(?P<build>\+[0-9A-Za-z.-]+)?$"
+)
 
 ENTRY_PATTERN = re.compile(
     r"^(?P<prefix>- Update Bitmovin's native (?P<platform>Android|iOS) SDK version to )"
@@ -29,15 +34,11 @@ ENTRY_PATTERN = re.compile(
 
 def native_sdk_release_notes_url(platform_label: str, version: str) -> str | None:
     platform_key = PLATFORM_LABELS[platform_label]
-    normalized_version = version[1:] if version[:1].lower() == "v" else version
-    semver_without_build_metadata = normalized_version.split("+", maxsplit=1)[0]
-
-    if "-" in semver_without_build_metadata:
-        return None
-    if not re.fullmatch(r"\d+\.\d+\.\d+", semver_without_build_metadata):
+    match = SEMVER_PATTERN.fullmatch(version)
+    if match is None or match.group("prerelease"):
         return None
 
-    anchor = semver_without_build_metadata.replace(".", "")
+    anchor = match.group("core").replace(".", "")
     return f"{NATIVE_SDK_RELEASE_NOTES_URLS[platform_key]}#{anchor}"
 
 
@@ -58,10 +59,14 @@ def link_native_sdk_changelog_entries(content: str) -> str:
 
 def find_link_issues(content: str) -> list[str]:
     linked_content = link_native_sdk_changelog_entries(content)
-    if linked_content == content:
-        return []
 
     issues = []
+    for match in ENTRY_PATTERN.finditer(content):
+        version = match.group("plain_version") or match.group("linked_version")
+        if SEMVER_PATTERN.fullmatch(version) is None:
+            line_number = content.count("\n", 0, match.start()) + 1
+            issues.append(f"line {line_number}: invalid native SDK version `{version}`")
+
     for line_number, (old_line, new_line) in enumerate(
         zip(content.splitlines(), linked_content.splitlines(), strict=True),
         start=1,

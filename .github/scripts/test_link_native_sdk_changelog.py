@@ -1,6 +1,6 @@
 import unittest
 
-from link_native_sdk_changelog import link_native_sdk_changelog_entries
+from link_native_sdk_changelog import find_link_issues, link_native_sdk_changelog_entries
 
 
 class LinkNativeSdkChangelogTests(unittest.TestCase):
@@ -44,6 +44,28 @@ class LinkNativeSdkChangelogTests(unittest.TestCase):
 
         updated = link_native_sdk_changelog_entries(content)
 
+        self.assertEqual(content, updated)
+
+    def test_reports_invalid_native_sdk_versions(self) -> None:
+        content = "- Update Bitmovin's native iOS SDK version to `3.115`\n"
+
+        issues = find_link_issues(content)
+
+        self.assertEqual(
+            ["line 1: invalid native SDK version `3.115`"],
+            issues,
+        )
+
+    def test_ignores_invalid_non_native_dependency_versions(self) -> None:
+        content = (
+            "- Update Google Cast SDK version to `4.8`\n"
+            "- Update IMA SDK dependency on Android to `3.38`\n"
+        )
+
+        issues = find_link_issues(content)
+        updated = link_native_sdk_changelog_entries(content)
+
+        self.assertEqual([], issues)
         self.assertEqual(content, updated)
 
     def test_replaces_stale_links(self) -> None:
