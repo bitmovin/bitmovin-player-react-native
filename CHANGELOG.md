@@ -6,6 +6,10 @@
 
 - iOS/tvOS: Expose cue metadata on `CueEnterEvent` and `CueExitEvent` via `layout`, `region`, `cea608Position`, and `html`
 
+### Changed
+
+- Cue layout automatic line and position placement is represented by omitted fields instead of `'auto'` sentinel values
+
 ## [1.21.0] - 2026-06-26
 
 ### Added

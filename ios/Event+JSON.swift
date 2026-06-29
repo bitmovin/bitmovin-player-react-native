@@ -461,6 +461,8 @@ private extension VttLineAlign {
 private extension VttAlign {
     var jsonValue: String? {
         switch self {
+        case .start:
+            return "start"
         case .center:
             return "center"
         case .end:
@@ -576,7 +578,7 @@ extension CueEnterEvent: JsonConvertible {
                 "start": startTime,
                 "end": endTime,
             ]
-            if let text = text.nonEmptyOrNil {
+            if let text {
                 json["text"] = text
             }
             if let imagePngData = image?.pngData() {
@@ -606,7 +608,7 @@ extension CueExitEvent: JsonConvertible {
                 "start": startTime,
                 "end": endTime,
             ]
-            if let text = text.nonEmptyOrNil {
+            if let text {
                 json["text"] = text
             }
             if let imagePngData = image?.pngData() {
