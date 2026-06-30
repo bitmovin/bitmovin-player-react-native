@@ -49,7 +49,26 @@ jobs:
         run: |
           set -euo pipefail
 
-          gh pr list --state open --limit 100 --json number,headRefName,baseRefName \
+          gh api graphql --paginate --slurp \
+            -F owner="${{ github.repository_owner }}" \
+            -F name="${{ github.event.repository.name }}" \
+            -f query='
+              query($owner: String!, $name: String!, $endCursor: String) {
+                repository(owner: $owner, name: $name) {
+                  pullRequests(states: OPEN, first: 100, after: $endCursor) {
+                    nodes {
+                      number
+                      headRefName
+                      baseRefName
+                    }
+                    pageInfo {
+                      hasNextPage
+                      endCursor
+                    }
+                  }
+                }
+              }
+            ' \
             | python3 .github/scripts/close_superseded_sdk_update_prs.py "${{ inputs.sdk_name }}" "${{ inputs.version_number }}" "${{ github.ref_name }}" \
             | while IFS=$'\t' read -r pr_number head_ref_name old_version; do
                 if [ -z "$pr_number" ]; then

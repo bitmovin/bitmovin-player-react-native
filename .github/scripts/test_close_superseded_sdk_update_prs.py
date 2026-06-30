@@ -1,6 +1,6 @@
 import unittest
 
-from close_superseded_sdk_update_prs import find_superseded_prs
+from close_superseded_sdk_update_prs import find_superseded_prs, normalize_prs_payload
 
 
 class FindSupersededPrsTests(unittest.TestCase):
@@ -91,6 +91,65 @@ class FindSupersededPrsTests(unittest.TestCase):
         superseded = find_superseded_prs("android", "3.152.0+jason", prs)
 
         self.assertEqual([], superseded)
+
+    def test_ignores_prerelease_numeric_identifiers_with_leading_zeroes(self) -> None:
+        prs = [
+            {"number": 70, "headRefName": "update_ios_player_to_3.114.0-01"},
+        ]
+
+        superseded = find_superseded_prs("ios", "3.114.0", prs)
+
+        self.assertEqual([], superseded)
+
+    def test_normalizes_paginated_graphql_pr_payload(self) -> None:
+        payload = [
+            {
+                "data": {
+                    "repository": {
+                        "pullRequests": {
+                            "nodes": [
+                                {
+                                    "number": 80,
+                                    "headRefName": "update_ios_player_to_3.113.0",
+                                    "baseRefName": "development",
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "data": {
+                    "repository": {
+                        "pullRequests": {
+                            "nodes": [
+                                {
+                                    "number": 81,
+                                    "headRefName": "update_ios_player_to_3.112.0",
+                                    "baseRefName": "support/v0",
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+        ]
+
+        self.assertEqual(
+            [
+                {
+                    "number": 80,
+                    "headRefName": "update_ios_player_to_3.113.0",
+                    "baseRefName": "development",
+                },
+                {
+                    "number": 81,
+                    "headRefName": "update_ios_player_to_3.112.0",
+                    "baseRefName": "support/v0",
+                },
+            ],
+            normalize_prs_payload(payload),
+        )
 
 
 if __name__ == "__main__":

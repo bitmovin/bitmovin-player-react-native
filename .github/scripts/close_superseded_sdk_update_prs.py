@@ -4,6 +4,9 @@ Usage:
     gh pr list --state open --json number,headRefName,baseRefName \
       | python3 .github/scripts/close_superseded_sdk_update_prs.py <android|ios> <version> [base-ref]
 
+    gh api graphql --paginate --slurp ... \
+      | python3 .github/scripts/close_superseded_sdk_update_prs.py <android|ios> <version> [base-ref]
+
 The script prints TSV rows:
     <pr-number>\t<head-branch>\t<old-version>
 """
@@ -25,6 +28,10 @@ SEMVER_RE = re.compile(
     r"(?:\+(?P<build>[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
 )
 VALID_SDK_NAMES = {"android", "ios"}
+USAGE = (
+    "Usage: python3 .github/scripts/close_superseded_sdk_update_prs.py "
+    "<android|ios> <version> [base-ref]"
+)
 
 
 @total_ordering
@@ -80,11 +87,18 @@ def parse_semver(version: str) -> SemVer | None:
         return None
 
     prerelease = match.group("prerelease")
+    prerelease_identifiers = tuple(prerelease.split(".")) if prerelease else ()
+    if any(
+        identifier.isdigit() and len(identifier) > 1 and identifier.startswith("0")
+        for identifier in prerelease_identifiers
+    ):
+        return None
+
     return SemVer(
         major=int(match.group("major")),
         minor=int(match.group("minor")),
         patch=int(match.group("patch")),
-        prerelease=tuple(prerelease.split(".")) if prerelease else (),
+        prerelease=prerelease_identifiers,
     )
 
 
@@ -131,21 +145,48 @@ def find_superseded_prs(
     return superseded_prs
 
 
+def normalize_prs_payload(payload: Any) -> list[dict[str, Any]]:
+    if not isinstance(payload, list):
+        raise ValueError("PR JSON must be a list")
+
+    if all(isinstance(pr, dict) and "headRefName" in pr for pr in payload):
+        return payload
+
+    prs = []
+    for page in payload:
+        if not isinstance(page, dict):
+            raise ValueError("PR JSON must be a list")
+
+        nodes = (
+            page.get("data", {})
+            .get("repository", {})
+            .get("pullRequests", {})
+            .get("nodes")
+        )
+        if not isinstance(nodes, list):
+            raise ValueError("PR JSON must be a list")
+
+        for pr in nodes:
+            if not isinstance(pr, dict):
+                raise ValueError("PR JSON must be a list")
+            prs.append(pr)
+
+    return prs
+
+
 def load_prs_from_stdin() -> list[dict[str, Any]]:
     try:
-        prs = json.load(sys.stdin)
+        payload = json.load(sys.stdin)
     except json.JSONDecodeError as error:
         raise ValueError(f"Invalid PR JSON: {error}") from error
 
-    if not isinstance(prs, list):
-        raise ValueError("PR JSON must be a list")
-    return prs
+    return normalize_prs_payload(payload)
 
 
 def main() -> None:
     if len(sys.argv) not in (3, 4):
         print(
-            "Usage: python3 close_superseded_sdk_update_prs.py <android|ios> <version> [base-ref]",
+            USAGE,
             file=sys.stderr,
         )
         sys.exit(1)
