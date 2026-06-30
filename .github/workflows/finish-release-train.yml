@@ -96,7 +96,16 @@ jobs:
             git commit --no-verify -m "restore unreleased changelog section"
           fi
 
-          git fetch origin "${{ steps.sync.outputs.branch_name }}:refs/remotes/origin/${{ steps.sync.outputs.branch_name }}" || true
+          if git ls-remote --exit-code --heads origin "${{ steps.sync.outputs.branch_name }}" >/dev/null; then
+            git fetch origin "${{ steps.sync.outputs.branch_name }}:refs/remotes/origin/${{ steps.sync.outputs.branch_name }}"
+          else
+            status=$?
+            if [ "$status" -eq 2 ]; then
+              echo "Sync branch does not exist yet"
+            else
+              exit "$status"
+            fi
+          fi
           git push --force-with-lease origin "${{ steps.sync.outputs.branch_name }}"
 
       - name: Create PR
