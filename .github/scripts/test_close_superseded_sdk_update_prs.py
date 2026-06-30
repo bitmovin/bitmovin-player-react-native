@@ -151,6 +151,10 @@ class FindSupersededPrsTests(unittest.TestCase):
             normalize_prs_payload(payload),
         )
 
+    def test_rejects_malformed_graphql_pr_payload(self) -> None:
+        with self.assertRaises(ValueError):
+            normalize_prs_payload([{"data": None}])
+
 
 if __name__ == "__main__":
     unittest.main()

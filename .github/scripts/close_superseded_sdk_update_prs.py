@@ -157,12 +157,19 @@ def normalize_prs_payload(payload: Any) -> list[dict[str, Any]]:
         if not isinstance(page, dict):
             raise ValueError("PR JSON must be a list")
 
-        nodes = (
-            page.get("data", {})
-            .get("repository", {})
-            .get("pullRequests", {})
-            .get("nodes")
-        )
+        data = page.get("data")
+        if not isinstance(data, dict):
+            raise ValueError("PR JSON must be a list")
+
+        repository = data.get("repository")
+        if not isinstance(repository, dict):
+            raise ValueError("PR JSON must be a list")
+
+        pull_requests = repository.get("pullRequests")
+        if not isinstance(pull_requests, dict):
+            raise ValueError("PR JSON must be a list")
+
+        nodes = pull_requests.get("nodes")
         if not isinstance(nodes, list):
             raise ValueError("PR JSON must be a list")
 
