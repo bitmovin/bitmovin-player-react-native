@@ -85,23 +85,21 @@ jobs:
           echo "branch_name=$branch_name" >> "$GITHUB_OUTPUT"
 
       - name: Create sync branch
-        id: sync_branch
         run: |
           git checkout -B "${{ steps.sync.outputs.branch_name }}"
           python3 .github/scripts/ensure_unreleased_changelog.py
 
           if git diff --quiet -- CHANGELOG.md; then
-            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "CHANGELOG.md already contains an Unreleased section"
           else
             git add CHANGELOG.md
             git commit --no-verify -m "restore unreleased changelog section"
-            git fetch origin "${{ steps.sync.outputs.branch_name }}:refs/remotes/origin/${{ steps.sync.outputs.branch_name }}" || true
-            git push --force-with-lease origin "${{ steps.sync.outputs.branch_name }}"
-            echo "has_changes=true" >> "$GITHUB_OUTPUT"
           fi
 
+          git fetch origin "${{ steps.sync.outputs.branch_name }}:refs/remotes/origin/${{ steps.sync.outputs.branch_name }}" || true
+          git push --force-with-lease origin "${{ steps.sync.outputs.branch_name }}"
+
       - name: Create PR
-        if: steps.sync_branch.outputs.has_changes == 'true'
         run: |
           existing_pr_number="$(gh pr list \
             --state open \
