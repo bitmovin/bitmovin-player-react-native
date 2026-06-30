@@ -45,6 +45,28 @@ class PushFinishReleaseSyncBranchTests(unittest.TestCase):
                 ).stdout,
             )
 
+    def test_rewrites_remote_automation_branch_from_shallow_checkout(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            temporary_path = Path(temporary_directory)
+            remote_path, release_path = self.create_repositories(temporary_path)
+            self.commit_release_sync_change(release_path)
+            self.push_branch(release_path)
+            self.advance_release_base(release_path)
+            shallow_path = self.clone_shallow_release_base(temporary_path, remote_path)
+            self.commit_release_sync_change(shallow_path, "second automation commit\n")
+
+            result = self.run_script(shallow_path)
+
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertEqual(
+                "second automation commit\n",
+                self.git(
+                    remote_path,
+                    "show",
+                    f"refs/heads/{BRANCH_NAME}:CHANGELOG.md",
+                ).stdout,
+            )
+
     def test_refuses_to_rewrite_remote_branch_with_manual_commit(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             temporary_path = Path(temporary_directory)
@@ -94,6 +116,22 @@ class PushFinishReleaseSyncBranchTests(unittest.TestCase):
         self.git(manual_path, "checkout", "-B", BRANCH_NAME, f"origin/{BRANCH_NAME}")
         return manual_path
 
+    def clone_shallow_release_base(self, temporary_path: Path, remote_path: Path) -> Path:
+        shallow_path = temporary_path / "shallow"
+        self.git(
+            temporary_path,
+            "clone",
+            "--depth",
+            "1",
+            "--branch",
+            "main",
+            f"file://{remote_path}",
+            str(shallow_path),
+        )
+        self.configure_user(shallow_path, "Bitmovin Release Automation", "support@bitmovin.com")
+        self.git(shallow_path, "checkout", "-B", BRANCH_NAME)
+        return shallow_path
+
     def commit_release_sync_change(
         self,
         repository_path: Path,
@@ -107,6 +145,13 @@ class PushFinishReleaseSyncBranchTests(unittest.TestCase):
         (repository_path / "manual.txt").write_text("manual\n", encoding="utf-8")
         self.git(repository_path, "add", "manual.txt")
         self.git(repository_path, "commit", "-m", "manual change")
+
+    def advance_release_base(self, repository_path: Path) -> None:
+        self.git(repository_path, "checkout", "main")
+        (repository_path / "base.txt").write_text("base advanced\n", encoding="utf-8")
+        self.git(repository_path, "add", "base.txt")
+        self.git(repository_path, "commit", "-m", "advance release base")
+        self.git(repository_path, "push", "origin", "HEAD:main")
 
     def push_branch(self, repository_path: Path) -> None:
         self.git(repository_path, "push", "origin", f"HEAD:{BRANCH_NAME}")

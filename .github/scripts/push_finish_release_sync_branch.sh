@@ -3,11 +3,13 @@ set -euo pipefail
 
 branch_name="$1"
 remote_name="${2:-origin}"
+remote_branch_ref="refs/heads/${branch_name}"
 
 automation_author_email="support@bitmovin.com"
 automation_subject="restore unreleased changelog section"
 automation_changed_file="CHANGELOG.md"
 remote_tracking_ref="refs/remotes/${remote_name}/${branch_name}"
+expected_remote_sha=""
 
 is_rewriteable_automation_commit() {
   local commit="$1"
@@ -25,7 +27,12 @@ is_rewriteable_automation_commit() {
 }
 
 if git ls-remote --exit-code --heads "$remote_name" "$branch_name" >/dev/null; then
-  git fetch "$remote_name" "+refs/heads/${branch_name}:${remote_tracking_ref}"
+  if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+    git fetch --unshallow "$remote_name"
+  fi
+
+  git fetch "$remote_name" "+${remote_branch_ref}:${remote_tracking_ref}"
+  expected_remote_sha="$(git rev-parse "$remote_tracking_ref")"
 
   while read -r commit; do
     [ -n "$commit" ] || continue
@@ -47,4 +54,8 @@ else
   fi
 fi
 
-git push --force-with-lease "$remote_name" "$branch_name"
+if [ -n "$expected_remote_sha" ]; then
+  git push --force-with-lease="${remote_branch_ref}:${expected_remote_sha}" "$remote_name" "$branch_name"
+else
+  git push --force-with-lease "$remote_name" "$branch_name"
+fi

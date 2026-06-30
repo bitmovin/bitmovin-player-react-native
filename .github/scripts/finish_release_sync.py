@@ -55,7 +55,8 @@ def write_outputs(
         github_output.write(f"branch_name={sync.branch_name}\n")
         github_output.write(f"pr_title={sync.pr_title}\n")
 
-    pr_body_path.write_text(sync.pr_body, encoding="utf-8", newline="\n")
+    with pr_body_path.open("w", encoding="utf-8", newline="\n") as pr_body_file:
+        pr_body_file.write(sync.pr_body)
 
 
 def main(argv: Sequence[str] | None = None) -> None:
