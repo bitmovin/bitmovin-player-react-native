@@ -1,0 +1,30 @@
+name: CI (GitHub scripts)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/ci-github-scripts.yml'
+      - '.github/workflows/finish-release-train.yml'
+      - '.github/scripts/**'
+
+  push:
+    branches: [development, development-v0]
+    paths:
+      - '.github/workflows/ci-github-scripts.yml'
+      - '.github/workflows/finish-release-train.yml'
+      - '.github/scripts/**'
+
+concurrency:
+  group: ci-github-scripts-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-github-scripts:
+    name: Test GitHub scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Test GitHub scripts
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
