@@ -7,7 +7,7 @@ from link_native_sdk_release_notes import (
 
 
 class LinkNativeSdkReleaseNotesTests(unittest.TestCase):
-    def test_builds_android_release_notes_url_without_build_metadata(self) -> None:
+    def test_builds_android_release_notes_url_ignoring_build_metadata(self) -> None:
         self.assertEqual(
             "https://developer.bitmovin.com/playback/docs/release-notes-android#31551",
             native_sdk_release_notes_url("android", "3.155.1+jason"),
