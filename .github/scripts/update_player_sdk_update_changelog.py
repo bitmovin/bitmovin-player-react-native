@@ -155,8 +155,8 @@ def validate_inputs(version: str, platform: str) -> None:
     if platform not in PLATFORMS:
         print(ERROR_INVALID_PLATFORM)
         sys.exit(1)
-    # The workflow also writes this value into dependency files, where v-prefixed
-    # native SDK versions are invalid.
+    # Existing changelog entries may use legacy v-prefixed versions, but new
+    # workflow input must be dependency-compatible and omit the v prefix.
     if version.startswith("v") or not is_valid_native_sdk_version(version):
         print(ERROR_INVALID_VERSION)
         sys.exit(1)
