@@ -1,0 +1,46 @@
+name: Lint changelog
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    paths:
+      - 'CHANGELOG.md'
+      - '.github/workflows/lint-changelog.yml'
+      - '.github/scripts/link_native_sdk_changelog.py'
+      - '.github/scripts/link_native_sdk_release_notes.py'
+      - '.github/scripts/test_link_native_sdk_changelog.py'
+      - '.github/scripts/test_link_native_sdk_release_notes.py'
+
+  push:
+    branches: [development, development-v0]
+    paths:
+      - 'CHANGELOG.md'
+      - '.github/workflows/lint-changelog.yml'
+      - '.github/scripts/link_native_sdk_changelog.py'
+      - '.github/scripts/link_native_sdk_release_notes.py'
+      - '.github/scripts/test_link_native_sdk_changelog.py'
+      - '.github/scripts/test_link_native_sdk_release_notes.py'
+
+concurrency:
+  group: lint-changelog-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  native-sdk-links:
+    name: Native SDK release-note links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Test native SDK changelog tooling
+        run: |
+          python3 .github/scripts/test_link_native_sdk_release_notes.py
+          python3 .github/scripts/test_link_native_sdk_changelog.py
+
+      - name: Check native SDK changelog links
+        run: python3 .github/scripts/link_native_sdk_changelog.py --check CHANGELOG.md
