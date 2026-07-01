@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from link_native_sdk_changelog import find_link_issues, link_native_sdk_changelog_entries
 
@@ -91,6 +92,21 @@ class LinkNativeSdkChangelogTests(unittest.TestCase):
             "[`3.154.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31540)\n",
             updated,
         )
+
+    def test_find_link_issues_does_not_require_zip_strict(self) -> None:
+        content = (
+            "- Update Bitmovin's native iOS SDK version to "
+            "[`3.115.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31150)\n"
+        )
+        original_zip = zip
+
+        def python39_zip(*iterables, **kwargs):
+            if "strict" in kwargs:
+                raise TypeError("zip() takes no keyword argument 'strict'")
+            return original_zip(*iterables)
+
+        with patch("builtins.zip", side_effect=python39_zip):
+            self.assertEqual([], find_link_issues(content))
 
 
 if __name__ == "__main__":
