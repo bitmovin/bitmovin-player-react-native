@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - '.github/workflows/ci-github-scripts.yml'
+      - '.github/workflows/finish-release-train.yml'
       - '.github/scripts/**'
 
   push:
     branches: [development, development-v0]
     paths:
       - '.github/workflows/ci-github-scripts.yml'
+      - '.github/workflows/finish-release-train.yml'
       - '.github/scripts/**'
 
 concurrency:

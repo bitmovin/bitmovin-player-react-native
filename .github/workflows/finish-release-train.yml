@@ -74,15 +74,11 @@ jobs:
       - name: Set sync branch
         id: sync
         run: |
-          if [ "${{ github.event.pull_request.base.ref }}" = "support/v0" ]; then
-            target_base="development-v0"
-          else
-            target_base="development"
-          fi
-
-          branch_name="finish-release/v${{ needs.prepare.outputs.version_number }}-sync-${target_base}"
-          echo "target_base=$target_base" >> "$GITHUB_OUTPUT"
-          echo "branch_name=$branch_name" >> "$GITHUB_OUTPUT"
+          python3 .github/scripts/finish_release_sync.py \
+            "${{ needs.prepare.outputs.version_number }}" \
+            "${{ github.event.pull_request.base.ref }}" \
+            --github-output "$GITHUB_OUTPUT" \
+            --pr-body-file finish-release-pr-body.md
 
       - name: Create sync branch
         run: |
@@ -96,29 +92,16 @@ jobs:
             git commit --no-verify -m "restore unreleased changelog section"
           fi
 
-          git fetch origin "${{ steps.sync.outputs.branch_name }}:refs/remotes/origin/${{ steps.sync.outputs.branch_name }}" || true
-          git push --force-with-lease origin "${{ steps.sync.outputs.branch_name }}"
+          bash .github/scripts/push_finish_release_sync_branch.sh \
+            "${{ steps.sync.outputs.branch_name }}"
 
       - name: Create PR
         run: |
-          existing_pr_number="$(gh pr list \
-            --state open \
-            --head "${{ steps.sync.outputs.branch_name }}" \
-            --base "${{ steps.sync.outputs.target_base }}" \
-            --json number \
-            --jq '.[0].number // empty')"
-
-          if [ -n "$existing_pr_number" ]; then
-            gh pr edit "$existing_pr_number" \
-              --title "Finish release ${{ needs.prepare.outputs.version_number }}" \
-              --body "Finish release ${{ needs.prepare.outputs.version_number }}"
-          else
-            gh pr create \
-              --base "${{ steps.sync.outputs.target_base }}" \
-              --head "${{ steps.sync.outputs.branch_name }}" \
-              --title "Finish release ${{ needs.prepare.outputs.version_number }}" \
-              --body "Finish release ${{ needs.prepare.outputs.version_number }}"
-          fi
+          bash .github/scripts/create_or_update_finish_release_pr.sh \
+            "${{ steps.sync.outputs.branch_name }}" \
+            "${{ steps.sync.outputs.target_base }}" \
+            "${{ steps.sync.outputs.pr_title }}" \
+            finish-release-pr-body.md
         env:
           GH_TOKEN: ${{ github.token }}
 
