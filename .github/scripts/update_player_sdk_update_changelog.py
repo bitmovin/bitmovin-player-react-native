@@ -11,8 +11,12 @@ from __future__ import annotations
 
 import sys
 import re
-from typing import Tuple
 
+from link_native_sdk_changelog import (
+    ENTRY_PATTERN,
+    PLATFORM_LABELS,
+    native_sdk_changelog_entry_prefix,
+)
 from link_native_sdk_release_notes import (
     is_valid_native_sdk_version,
     native_sdk_release_notes_url,
@@ -42,13 +46,6 @@ PLATFORM_ANDROID = "android"
 PLATFORM_IOS = "ios"
 PLATFORMS = {PLATFORM_ANDROID: "Android", PLATFORM_IOS: "iOS"}
 
-# SemVer: MAJOR.MINOR.PATCH with optional -pre-release and +build metadata
-SEMVER_RE = r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?"
-
-# Entry line template pieces
-ENTRY_LINE_PREFIX = "- Update Bitmovin's native {platform} SDK version to `"
-LINKED_ENTRY_LINE_PREFIX = "- Update Bitmovin's native {platform} SDK version to [`"
-
 
 def normalize_newlines(text: str) -> str:
     """Normalize CRLF to LF to make regex handling deterministic."""
@@ -71,25 +68,13 @@ def write_changelog(path: str, content: str) -> None:
         f.write(content)
 
 
-def build_entry(platform_key: str, version: str) -> Tuple[str, re.Pattern[str]]:
+def build_entry(platform_key: str, version: str) -> str:
     platform_label = PLATFORMS[platform_key]
-    entry_prefix = ENTRY_LINE_PREFIX.format(platform=platform_label)
-    linked_entry_prefix = LINKED_ENTRY_LINE_PREFIX.format(platform=platform_label)
+    entry_prefix = native_sdk_changelog_entry_prefix(platform_label)
     release_note_url = native_sdk_release_notes_url(platform_key, version)
     if release_note_url:
-        new_entry = f"{linked_entry_prefix}{version}`]({release_note_url})"
-    else:
-        new_entry = f"{entry_prefix}{version}`"
-
-    # Pattern to find an existing entry for this platform regardless of version
-    existing_pattern = re.compile(
-        rf"^(?:"
-        rf"{re.escape(entry_prefix)}{SEMVER_RE}`"
-        rf"|{re.escape(linked_entry_prefix)}{SEMVER_RE}`\]\([^)]+\)"
-        rf")$",
-        flags=re.MULTILINE,
-    )
-    return new_entry, existing_pattern
+        return f"{entry_prefix}[`{version}`]({release_note_url})"
+    return f"{entry_prefix}`{version}`"
 
 
 def update_unreleased_changed_section(content: str, platform_key: str, version: str) -> str:
@@ -101,7 +86,7 @@ def update_unreleased_changed_section(content: str, platform_key: str, version: 
 
     match = unreleased_section_pattern.search(content)
 
-    new_entry, existing_pattern = build_entry(platform_key, version)
+    new_entry = build_entry(platform_key, version)
 
     if match:
         unreleased_header = match.group(1)
@@ -118,11 +103,18 @@ def update_unreleased_changed_section(content: str, platform_key: str, version: 
             changed_header = changed_match.group(1)
             changed_body = changed_match.group(2)
 
-            if existing_pattern.search(changed_body):
-                # Replace existing line for this platform
-                new_changed_body = existing_pattern.sub(new_entry, changed_body)
-            else:
-                # Prepend new entry to keep fresh updates at the top
+            replaced_existing_entry = False
+
+            def replace_existing_entry(match: re.Match[str]) -> str:
+                nonlocal replaced_existing_entry
+                if PLATFORM_LABELS[match.group("platform")] != platform_key:
+                    return match.group(0)
+
+                replaced_existing_entry = True
+                return new_entry
+
+            new_changed_body = ENTRY_PATTERN.sub(replace_existing_entry, changed_body)
+            if not replaced_existing_entry:
                 new_changed_body = new_entry + "\n" + changed_body
 
             new_unreleased_body = changed_subsection_pattern.sub(

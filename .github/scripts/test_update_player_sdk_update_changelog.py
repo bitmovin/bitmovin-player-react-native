@@ -56,6 +56,24 @@ class UpdatePlayerSdkUpdateChangelogTests(unittest.TestCase):
         self.assertEqual(updated, updated_again)
         self.assertEqual(updated.count("release-notes-android"), 1)
 
+    def test_replaces_legacy_v_prefixed_linked_entry_with_trailing_period(self) -> None:
+        content = (
+            "# Changelog\n\n"
+            "## [Unreleased]\n\n"
+            "### Changed\n\n"
+            "- Update Bitmovin's native iOS SDK version to "
+            "[`v3.36.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3360).\n"
+        )
+
+        updated = update_unreleased_changed_section(content, "ios", "3.114.1")
+
+        self.assertNotIn("v3.36.0", updated)
+        self.assertEqual(updated.count("native iOS SDK version"), 1)
+        self.assertIn(
+            "- Update Bitmovin's native iOS SDK version to [`3.114.1`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31141)",
+            updated,
+        )
+
     def test_prerelease_entry_is_not_linked(self) -> None:
         content = "# Changelog\n\n## [Unreleased]\n\n### Changed\n\n"
 
