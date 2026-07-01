@@ -1,6 +1,6 @@
 name: Create SDK update PR
 
-run-name: Create SDK update PR for ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player to ${{ inputs.version_number }}
+run-name: Create SDK update PR for ${{ inputs.sdk_name == 'ios' && 'iOS' || 'Android' }} player to ${{ inputs.version_number }}
 
 on:
   workflow_dispatch:
@@ -81,14 +81,14 @@ jobs:
 
           if [ -n "$existing_pr_number" ]; then
             gh pr edit "$existing_pr_number" \
-              --title "Update ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player to ${{ inputs.version_number }}" \
-              --body "Automated ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player version update to ${{ inputs.version_number }}"
+              --title "Update ${{ inputs.sdk_name == 'ios' && 'iOS' || 'Android' }} player to ${{ inputs.version_number }}" \
+              --body "Automated ${{ inputs.sdk_name == 'ios' && 'iOS' || 'Android' }} player version update to ${{ inputs.version_number }}"
           else
             gh pr create \
               --base "${{ github.ref_name }}" \
               --head "${{ steps.branching.outputs.branch_name }}" \
-              --title "Update ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player to ${{ inputs.version_number }}" \
-              --body "Automated ${{ inputs.sdk_name == 'ios' && 'iOS' || inputs.sdk_name }} player version update to ${{ inputs.version_number }}"
+              --title "Update ${{ inputs.sdk_name == 'ios' && 'iOS' || 'Android' }} player to ${{ inputs.version_number }}" \
+              --body "Automated ${{ inputs.sdk_name == 'ios' && 'iOS' || 'Android' }} player version update to ${{ inputs.version_number }}"
           fi
 
       - name: Close superseded SDK update PRs
