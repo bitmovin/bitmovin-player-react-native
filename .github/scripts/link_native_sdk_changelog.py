@@ -54,8 +54,15 @@ def find_link_issues(content: str) -> list[str]:
             line_number = content.count("\n", 0, match.start()) + 1
             issues.append(f"line {line_number}: invalid native SDK version `{version}`")
 
+    old_lines = content.splitlines()
+    new_lines = linked_content.splitlines()
+    if len(old_lines) != len(new_lines):
+        issues.append(
+            "internal error: native SDK changelog linking changed the line count"
+        )
+
     for line_number, (old_line, new_line) in enumerate(
-        zip(content.splitlines(), linked_content.splitlines(), strict=True),
+        zip(old_lines, new_lines),
         start=1,
     ):
         if old_line != new_line:
