@@ -1,11 +1,11 @@
 """Select open SDK update PRs superseded by a newer SDK update.
 
 Usage:
-    gh pr list --state open --json number,headRefName,baseRefName \
-      | python3 .github/scripts/close_superseded_sdk_update_prs.py <android|ios> <version> [base-ref]
+    gh pr list --state open --json number,headRefName,baseRefName,headRepository \
+      | python3 .github/scripts/close_superseded_sdk_update_prs.py <android|ios> <version> [base-ref] [head-repository]
 
     gh api graphql --paginate --slurp ... \
-      | python3 .github/scripts/close_superseded_sdk_update_prs.py <android|ios> <version> [base-ref]
+      | python3 .github/scripts/close_superseded_sdk_update_prs.py <android|ios> <version> [base-ref] [head-repository]
 
 The script prints TSV rows:
     <pr-number>\t<head-branch>\t<old-version>
@@ -30,7 +30,7 @@ SEMVER_RE = re.compile(
 VALID_SDK_NAMES = {"android", "ios"}
 USAGE = (
     "Usage: python3 .github/scripts/close_superseded_sdk_update_prs.py "
-    "<android|ios> <version> [base-ref]"
+    "<android|ios> <version> [base-ref] [head-repository]"
 )
 
 
@@ -107,6 +107,7 @@ def find_superseded_prs(
     new_version: str,
     prs: list[dict[str, Any]],
     expected_base_ref: str | None = None,
+    expected_head_repository: str | None = None,
 ) -> list[dict[str, Any]]:
     if sdk_name not in VALID_SDK_NAMES:
         raise ValueError("SDK name must be 'android' or 'ios'")
@@ -121,6 +122,12 @@ def find_superseded_prs(
     for pr in prs:
         if expected_base_ref is not None and pr.get("baseRefName") != expected_base_ref:
             continue
+        if expected_head_repository is not None:
+            head_repository = pr.get("headRepository")
+            if not isinstance(head_repository, dict):
+                continue
+            if head_repository.get("nameWithOwner") != expected_head_repository:
+                continue
 
         head_ref_name = pr.get("headRefName")
         if not isinstance(head_ref_name, str):
@@ -191,7 +198,7 @@ def load_prs_from_stdin() -> list[dict[str, Any]]:
 
 
 def main() -> None:
-    if len(sys.argv) not in (3, 4):
+    if len(sys.argv) not in (3, 4, 5):
         print(
             USAGE,
             file=sys.stderr,
@@ -203,7 +210,8 @@ def main() -> None:
             sdk_name=sys.argv[1],
             new_version=sys.argv[2],
             prs=load_prs_from_stdin(),
-            expected_base_ref=sys.argv[3] if len(sys.argv) == 4 else None,
+            expected_base_ref=sys.argv[3] if len(sys.argv) >= 4 else None,
+            expected_head_repository=sys.argv[4] if len(sys.argv) == 5 else None,
         )
     except ValueError as error:
         print(f"Error: {error}", file=sys.stderr)

@@ -83,6 +83,41 @@ class FindSupersededPrsTests(unittest.TestCase):
             superseded,
         )
 
+    def test_ignores_prs_from_different_head_repository(self) -> None:
+        prs = [
+            {
+                "number": 52,
+                "headRefName": "update_ios_player_to_3.113.0",
+                "baseRefName": "development",
+                "headRepository": {"nameWithOwner": "external/fork"},
+            },
+            {
+                "number": 53,
+                "headRefName": "update_ios_player_to_3.112.0",
+                "baseRefName": "development",
+                "headRepository": {"nameWithOwner": "bitmovin/bitmovin-player-react-native"},
+            },
+        ]
+
+        superseded = find_superseded_prs(
+            "ios",
+            "3.114.0",
+            prs,
+            "development",
+            "bitmovin/bitmovin-player-react-native",
+        )
+
+        self.assertEqual(
+            [
+                {
+                    "number": 53,
+                    "headRefName": "update_ios_player_to_3.112.0",
+                    "version": "3.112.0",
+                }
+            ],
+            superseded,
+        )
+
     def test_keeps_same_core_version_with_different_build_metadata(self) -> None:
         prs = [
             {"number": 60, "headRefName": "update_android_player_to_3.152.0+preview"},
@@ -112,6 +147,9 @@ class FindSupersededPrsTests(unittest.TestCase):
                                     "number": 80,
                                     "headRefName": "update_ios_player_to_3.113.0",
                                     "baseRefName": "development",
+                                    "headRepository": {
+                                        "nameWithOwner": "bitmovin/bitmovin-player-react-native"
+                                    },
                                 }
                             ]
                         }
@@ -127,6 +165,9 @@ class FindSupersededPrsTests(unittest.TestCase):
                                     "number": 81,
                                     "headRefName": "update_ios_player_to_3.112.0",
                                     "baseRefName": "support/v0",
+                                    "headRepository": {
+                                        "nameWithOwner": "bitmovin/bitmovin-player-react-native"
+                                    },
                                 }
                             ]
                         }
@@ -141,11 +182,17 @@ class FindSupersededPrsTests(unittest.TestCase):
                     "number": 80,
                     "headRefName": "update_ios_player_to_3.113.0",
                     "baseRefName": "development",
+                    "headRepository": {
+                        "nameWithOwner": "bitmovin/bitmovin-player-react-native"
+                    },
                 },
                 {
                     "number": 81,
                     "headRefName": "update_ios_player_to_3.112.0",
                     "baseRefName": "support/v0",
+                    "headRepository": {
+                        "nameWithOwner": "bitmovin/bitmovin-player-react-native"
+                    },
                 },
             ],
             normalize_prs_payload(payload),
