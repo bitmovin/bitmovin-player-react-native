@@ -76,8 +76,8 @@ jobs:
             --state open \
             --head "${{ steps.branching.outputs.branch_name }}" \
             --base "${{ github.ref_name }}" \
-            --json number \
-            --jq '.[0].number // empty')"
+            --json number,headRepository \
+            --jq 'map(select(.headRepository.nameWithOwner == "${{ github.repository }}")) | .[0].number // empty')"
 
           if [ -n "$existing_pr_number" ]; then
             gh pr edit "$existing_pr_number" \
