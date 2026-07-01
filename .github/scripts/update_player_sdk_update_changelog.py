@@ -163,7 +163,9 @@ def validate_inputs(version: str, platform: str) -> None:
     if platform not in PLATFORMS:
         print(ERROR_INVALID_PLATFORM)
         sys.exit(1)
-    if not is_valid_native_sdk_version(version):
+    # The workflow also writes this value into dependency files, where v-prefixed
+    # native SDK versions are invalid.
+    if version.startswith("v") or not is_valid_native_sdk_version(version):
         print(ERROR_INVALID_VERSION)
         sys.exit(1)
 

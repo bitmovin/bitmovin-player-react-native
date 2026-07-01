@@ -68,6 +68,10 @@ class UpdatePlayerSdkUpdateChangelogTests(unittest.TestCase):
         with self.assertRaises(SystemExit), redirect_stdout(StringIO()):
             validate_inputs("3.115.0-beta..1", "ios")
 
+    def test_rejects_v_prefixed_versions(self) -> None:
+        with self.assertRaises(SystemExit), redirect_stdout(StringIO()):
+            validate_inputs("v3.115.0", "ios")
+
 
 if __name__ == "__main__":
     unittest.main()
