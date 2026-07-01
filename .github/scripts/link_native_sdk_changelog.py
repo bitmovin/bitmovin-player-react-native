@@ -19,6 +19,7 @@ from link_native_sdk_release_notes import (
 
 CHANGELOG_FILE = "CHANGELOG.md"
 PLATFORM_LABELS = {"Android": "android", "iOS": "ios"}
+ENTRY_PREFIX_TEMPLATE = "- Update Bitmovin's native {platform} SDK version to "
 
 ENTRY_PATTERN = re.compile(
     r"^(?P<prefix>- Update Bitmovin's native (?P<platform>Android|iOS) SDK version to )"
@@ -26,6 +27,10 @@ ENTRY_PATTERN = re.compile(
     r"(?P<trailing_period>\.?)$",
     flags=re.MULTILINE,
 )
+
+
+def native_sdk_changelog_entry_prefix(platform_label: str) -> str:
+    return ENTRY_PREFIX_TEMPLATE.format(platform=platform_label)
 
 
 def link_native_sdk_changelog_entries(content: str) -> str:
