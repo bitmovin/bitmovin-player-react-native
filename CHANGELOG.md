@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- iOS: `Player.nowPlaying` namespace of type `NowPlayingApi` to dynamically enable or disable Bitmovin Player's Now Playing integration at runtime via `NowPlayingApi.isEnabled`/`NowPlayingApi.setEnabled`
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to [`3.116.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31160)

@@ -27,6 +27,7 @@ import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
 import BackgroundPlayback from './screens/BackgroundPlayback';
 import AudioFocusHandling from './screens/AudioFocusHandling';
+import NowPlayingControl from './screens/NowPlayingControl';
 import * as Device from 'expo-device';
 
 export type RootStackParamsList = {
@@ -70,6 +71,7 @@ export type RootStackParamsList = {
   SystemUI: undefined;
   BackgroundPlayback: undefined;
   AudioFocusHandling: undefined;
+  NowPlayingControl: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsList>();
@@ -185,6 +187,10 @@ export default function App() {
     stackParams.data.push({
       title: 'System UI',
       routeName: 'SystemUI',
+    });
+    stackParams.data.push({
+      title: 'Now Playing Control',
+      routeName: 'NowPlayingControl',
     });
   }
 
@@ -330,6 +336,13 @@ export default function App() {
           component={AudioFocusHandling}
           options={{ title: 'Audio Focus Handling' }}
         />
+        {Platform.OS === 'ios' && (
+          <RootStack.Screen
+            name="NowPlayingControl"
+            component={NowPlayingControl}
+            options={{ title: 'Now Playing Control' }}
+          />
+        )}
       </RootStack.Navigator>
     </NavigationContainer>
   );
