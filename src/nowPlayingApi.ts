@@ -26,8 +26,9 @@ export class NowPlayingApi {
    *
    * ## Limitations
    * - Google IMA SDK instances that were already created can still publish their own Now Playing information.
-   * - This API only controls the Bitmovin Player integration. It does not change app-owned enabled states on
-   *   shared `MPRemoteCommandCenter` commands.
+   * - This API only controls the Bitmovin Player media controls integration.
+   *   It does not manage media controls, sessions, command handlers, or metadata
+   *   created directly by the app or by other libraries.
    *
    * @platform iOS
    * @returns `true` if the Now Playing integration is enabled, `false` otherwise. Always `false` on Android.
