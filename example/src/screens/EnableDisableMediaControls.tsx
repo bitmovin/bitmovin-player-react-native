@@ -13,10 +13,10 @@ function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
 }
 
-export default function NowPlayingControl() {
+export default function EnableDisableMediaControls() {
   useTVGestures();
 
-  const [isNowPlayingEnabled, setIsNowPlayingEnabled] = useState(true);
+  const [isMediaControlsEnabled, setIsMediaControlsEnabled] = useState(true);
 
   const player = usePlayer({
     playbackConfig: {
@@ -33,9 +33,11 @@ export default function NowPlayingControl() {
   useFocusEffect(
     useCallback(() => {
       player.load({
-        url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+        url: 'https://cdn.bitmovin.com/content/assets/art-of-motion-dash-hls-progressive/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
         type: SourceType.HLS,
-        title: 'Big Buck Bunny (Mux test stream)',
+        title: 'Art of Motion',
+        poster:
+          'https://cdn.bitmovin.com/content/assets/art-of-motion-dash-hls-progressive/poster.jpg',
       });
       return () => {
         player.destroy();
@@ -46,7 +48,7 @@ export default function NowPlayingControl() {
   const onReady = useCallback(
     async (event: Event) => {
       prettyPrint(`EVENT [${event.name}]`, event);
-      setIsNowPlayingEnabled(await player.nowPlaying.isEnabled());
+      setIsMediaControlsEnabled(await player.mediaControls.isEnabled());
     },
     [player]
   );
@@ -55,10 +57,10 @@ export default function NowPlayingControl() {
     prettyPrint(`EVENT [${event.name}]`, event);
   }, []);
 
-  const toggleNowPlaying = useCallback(async () => {
-    await player.nowPlaying.setEnabled(!isNowPlayingEnabled);
-    setIsNowPlayingEnabled(await player.nowPlaying.isEnabled());
-  }, [isNowPlayingEnabled, player]);
+  const toggleMediaControls = useCallback(async () => {
+    await player.mediaControls.setEnabled(!isMediaControlsEnabled);
+    setIsMediaControlsEnabled(await player.mediaControls.isEnabled());
+  }, [isMediaControlsEnabled, player]);
 
   return (
     <View style={styles.container}>
@@ -77,8 +79,8 @@ export default function NowPlayingControl() {
       />
       <View style={styles.controls}>
         <Text style={styles.statusText}>
-          Now Playing integration is{' '}
-          {isNowPlayingEnabled ? 'ENABLED' : 'DISABLED'}
+          Media controls integration is{' '}
+          {isMediaControlsEnabled ? 'ENABLED' : 'DISABLED'}
         </Text>
         <Text style={styles.hintText}>
           Background the app or open Control Center to check the Now Playing
@@ -86,9 +88,11 @@ export default function NowPlayingControl() {
         </Text>
         <Button
           title={
-            isNowPlayingEnabled ? 'Disable Now Playing' : 'Enable Now Playing'
+            isMediaControlsEnabled
+              ? 'Disable Media Controls'
+              : 'Enable Media Controls'
           }
-          onPress={toggleNowPlaying}
+          onPress={toggleMediaControls}
         />
       </View>
     </View>

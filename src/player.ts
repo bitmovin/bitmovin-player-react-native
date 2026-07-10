@@ -11,7 +11,7 @@ import { AnalyticsApi } from './analytics/player';
 import { PlayerConfig } from './playerConfig';
 import { AdBreak, AdItem, ImaSettings } from './advertising';
 import { BufferApi } from './bufferApi';
-import { NowPlayingApi } from './nowPlayingApi';
+import { MediaControlsApi } from './mediaControlsApi';
 import { VideoQuality } from './media';
 import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
@@ -49,11 +49,11 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   buffer: BufferApi = new BufferApi(this.nativeId);
   /**
-   * The {@link NowPlayingApi} for interactions regarding the Player's Now Playing integration.
+   * The {@link MediaControlsApi} for interactions regarding the Player's media controls integration.
    *
    * @platform iOS, tvOS
    */
-  nowPlaying: NowPlayingApi = new NowPlayingApi(this.nativeId);
+  mediaControls: MediaControlsApi = new MediaControlsApi(this.nativeId);
 
   private network?: Network;
 

@@ -25,7 +25,7 @@ export * from './playbackConfig';
 export * from './playerConfig';
 export * from './liveConfig';
 export * from './bufferApi';
-export * from './nowPlayingApi';
+export * from './mediaControlsApi';
 export * from './network';
 export * from './mediaControlConfig';
 export * from './debug';

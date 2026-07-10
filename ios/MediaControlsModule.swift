@@ -1,9 +1,9 @@
 import BitmovinPlayer
 import ExpoModulesCore
 
-public class NowPlayingModule: Module {
+public class MediaControlsModule: Module {
     public func definition() -> ModuleDefinition {
-        Name("NowPlayingModule")
+        Name("MediaControlsModule")
 
         AsyncFunction("isEnabled") { (playerId: String) -> Bool? in
             guard let playerModule = appContext?.moduleRegistry.get(PlayerModule.self),

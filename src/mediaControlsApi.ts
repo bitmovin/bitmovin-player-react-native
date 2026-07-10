@@ -1,16 +1,16 @@
 import { Platform } from 'react-native';
-import NowPlayingModule from './modules/NowPlayingModule';
+import MediaControlsModule from './modules/MediaControlsModule';
 
 /**
- * Provides control for the Player's Now Playing integration.
+ * Provides control for the Player's media controls integration (Now Playing information on iOS/tvOS).
  *
- * Accessible through {@link Player.nowPlaying}.
+ * Accessible through {@link Player.mediaControls}.
  *
- * @platform iOS
+ * @platform iOS, tvOS
  */
-export class NowPlayingApi {
+export class MediaControlsApi {
   /**
-   * The native player id that this Now Playing api is attached to.
+   * The native player id that this media controls api is attached to.
    */
   readonly nativeId: string;
 
@@ -31,7 +31,7 @@ export class NowPlayingApi {
    *   created directly by the app or by other libraries.
    *
    * @platform iOS, tvOS
-   * @returns `true` if the Now Playing integration is enabled, `false` otherwise. Always `false` on Android.
+   * @returns `true` if the media controls integration is enabled, `false` otherwise. Always `false` on Android.
    */
   isEnabled = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
@@ -40,22 +40,22 @@ export class NowPlayingApi {
       );
       return false;
     }
-    return (await NowPlayingModule.isEnabled(this.nativeId)) ?? false;
+    return (await MediaControlsModule.isEnabled(this.nativeId)) ?? false;
   };
 
   /**
-   * Enables or disables the Player's Now Playing integration at runtime.
+   * Enables or disables the Player's media controls integration at runtime.
    *
    * @platform iOS, tvOS
-   * @param enabled Whether the Now Playing integration should be enabled.
+   * @param enabled Whether the media controls integration should be enabled.
    */
   setEnabled = async (enabled: boolean): Promise<void> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Method nowPlaying.setEnabled is not available for Android. Only iOS devices.`
+        `[Player ${this.nativeId}] Method mediaControls.setEnabled is not available for Android. Only iOS/tvOS devices.`
       );
       return;
     }
-    return NowPlayingModule.setEnabled(this.nativeId, enabled);
+    return MediaControlsModule.setEnabled(this.nativeId, enabled);
   };
 }

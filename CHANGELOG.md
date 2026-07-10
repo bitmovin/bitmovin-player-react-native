@@ -4,7 +4,7 @@
 
 ### Added
 
-- iOS: `Player.nowPlaying` namespace of type `NowPlayingApi` to dynamically enable or disable Bitmovin Player's Now Playing integration at runtime via `NowPlayingApi.isEnabled`/`NowPlayingApi.setEnabled`
+- iOS/tvOS: `Player.mediaControls` namespace of type `MediaControlsApi` to dynamically enable or disable Bitmovin Player's media controls (Now Playing) integration at runtime via `MediaControlsApi.isEnabled`/`MediaControlsApi.setEnabled`
 
 ### Changed
 
