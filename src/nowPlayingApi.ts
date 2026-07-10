@@ -36,7 +36,7 @@ export class NowPlayingApi {
   isEnabled = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Method nowPlaying.isEnabled is not available for Android. Only iOS devices.`
+        `[Player ${this.nativeId}] Runtime mediaControls APIs are not implemented on Android yet.`
       );
       return false;
     }
