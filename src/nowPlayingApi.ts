@@ -46,7 +46,7 @@ export class NowPlayingApi {
   /**
    * Enables or disables the Player's Now Playing integration at runtime.
    *
-   * @platform iOS
+   * @platform iOS, tvOS
    * @param enabled Whether the Now Playing integration should be enabled.
    */
   setEnabled = async (enabled: boolean): Promise<void> => {
