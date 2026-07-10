@@ -30,7 +30,7 @@ export class NowPlayingApi {
    *   It does not manage media controls, sessions, command handlers, or metadata
    *   created directly by the app or by other libraries.
    *
-   * @platform iOS
+   * @platform iOS, tvOS
    * @returns `true` if the Now Playing integration is enabled, `false` otherwise. Always `false` on Android.
    */
   isEnabled = async (): Promise<boolean> => {
