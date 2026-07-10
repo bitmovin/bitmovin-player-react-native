@@ -51,7 +51,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * The {@link NowPlayingApi} for interactions regarding the Player's Now Playing integration.
    *
-   * @platform iOS
+   * @platform iOS, tvOS
    */
   nowPlaying: NowPlayingApi = new NowPlayingApi(this.nativeId);
 
