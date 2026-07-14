@@ -8,7 +8,7 @@
 
 ### Changed
 
-- Cue layout automatic line and position placement is represented by omitted fields instead of `'auto'` sentinel values
+- Cue layout no longer emits or types `'auto'` for `line`, `position`, or `positionAlign`; automatic placement is represented by omitted fields
 
 ## [1.21.0] - 2026-06-26
 
