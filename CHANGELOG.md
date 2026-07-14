@@ -4,7 +4,7 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to [`3.116.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31160)
+- Update Bitmovin's native iOS SDK version to [`3.117.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31170)
 
 ## [1.21.0] - 2026-06-26
 
