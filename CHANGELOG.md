@@ -2,10 +2,6 @@
 
 ## [Unreleased]
 
-### Added
-
-- Add native `PlayerAccessor` interop for optional companion packages and an in-repository `@bitmovin/player-react-native-google-dai` companion package with JavaScript lifecycle/config validation, Android bridge support for `com.bitmovin.player.integration:google-dai:0.1.0-alpha.1`, and an iOS placeholder pending SDK contract confirmation
-
 ### Changed
 
 - Update Bitmovin's native Android SDK version to [`3.159.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31590)
