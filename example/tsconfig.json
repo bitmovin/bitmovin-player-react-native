@@ -4,7 +4,13 @@
     "strict": true,
     "paths": {
       "bitmovin-player-react-native": ["../src/index"],
-      "bitmovin-player-react-native/*": ["../src/*"]
+      "bitmovin-player-react-native/*": ["../src/*"],
+      "@bitmovin/player-react-native-google-dai": [
+        "../packages/google-dai/src/index"
+      ],
+      "@bitmovin/player-react-native-google-dai/*": [
+        "../packages/google-dai/src/*"
+      ]
     }
   }
 }

@@ -27,6 +27,7 @@ import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
 import BackgroundPlayback from './screens/BackgroundPlayback';
 import AudioFocusHandling from './screens/AudioFocusHandling';
+import GoogleDai from './screens/GoogleDai';
 import * as Device from 'expo-device';
 
 export type RootStackParamsList = {
@@ -70,6 +71,7 @@ export type RootStackParamsList = {
   SystemUI: undefined;
   BackgroundPlayback: undefined;
   AudioFocusHandling: undefined;
+  GoogleDai: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsList>();
@@ -135,6 +137,10 @@ export default function App() {
     stackParams.data.push({
       title: 'Audio Focus Handling',
       routeName: 'AudioFocusHandling',
+    });
+    stackParams.data.push({
+      title: 'Google IMA DAI',
+      routeName: 'GoogleDai',
     });
   }
 
@@ -330,6 +336,13 @@ export default function App() {
           component={AudioFocusHandling}
           options={{ title: 'Audio Focus Handling' }}
         />
+        {Platform.OS === 'android' && !Platform.isTV && (
+          <RootStack.Screen
+            name="GoogleDai"
+            component={GoogleDai}
+            options={{ title: 'Google IMA DAI' }}
+          />
+        )}
       </RootStack.Navigator>
     </NavigationContainer>
   );

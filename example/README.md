@@ -13,6 +13,7 @@ inside the [`src/screens/`](https://github.com/bitmovin/bitmovin-player-react-na
 - [Basic Fullscreen handling](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicFullscreenHandling.tsx) (iOS and Android only)
 - [Landscape Fullscreen handling](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/LandscapeFullscreenHandling.tsx) (iOS and Android only)
 - [Basic Ads](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicAds.tsx)
+- [Google IMA DAI](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/GoogleDai.tsx) (Android only)
 - [Basic Analytics](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicAnalytics.tsx)
 - [Basic Metadata](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicMetadata.tsx)
 - [Basic Offline Playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/OfflinePlayback.tsx) (iOS and Android only)
