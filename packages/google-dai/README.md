@@ -2,7 +2,7 @@
 
 Optional companion package for Google IMA Dynamic Ad Insertion (DAI/SSAI) support in `bitmovin-player-react-native`.
 
-> Release note: this package is prepared in-repository for Android-first validation. Do not publish it publicly until the rollout checklist is complete, including the confirmed iOS native DAI SDK contract.
+> Release note: this package is currently staged in-repository for Android-first validation and is intended to migrate to `bitmovin-player-react-native-integrations-google-dai` once that standalone repository exists. Do not publish it publicly until the rollout checklist is complete, including the confirmed iOS native DAI SDK contract.
 
 ## Installation
 

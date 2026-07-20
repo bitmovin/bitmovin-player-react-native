@@ -23,12 +23,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/bitmovin/bitmovin-player-react-native",
-    "directory": "packages/google-dai"
+    "url": "https://github.com/bitmovin/bitmovin-player-react-native-integrations-google-dai"
   },
   "author": "Bitmovin GmbH <player-sdks@bitmovin.com> (https://github.com/bitmovin)",
   "license": "MIT",
-  "homepage": "https://bitmovin.com/video-player/react-native-sdk",
+  "homepage": "https://github.com/bitmovin/bitmovin-player-react-native-integrations-google-dai#readme",
   "publishConfig": {
     "access": "public"
   },

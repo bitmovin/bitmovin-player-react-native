@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   }
   s.swift_version  = '5.10'
   s.source         = {
-    git: 'https://github.com/bitmovin/bitmovin-player-react-native',
+    git: 'https://github.com/bitmovin/bitmovin-player-react-native-integrations-google-dai',
     tag: "v#{s.version}"
   }
   s.static_framework = true
