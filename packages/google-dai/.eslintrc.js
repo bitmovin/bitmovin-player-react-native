@@ -1,5 +1,7 @@
 module.exports = {
-  extends: ['../../.eslintrc.js'],
+  root: true,
+  extends: ['expo', 'prettier'],
+  plugins: ['prettier'],
   overrides: [
     {
       files: ['**/*.ts', '**/*.tsx'],
@@ -9,4 +11,11 @@ module.exports = {
       },
     },
   ],
+  env: {
+    node: true,
+  },
+  rules: {
+    '@typescript-eslint/no-floating-promises': 'error',
+    'prettier/prettier': 'error',
+  },
 };
