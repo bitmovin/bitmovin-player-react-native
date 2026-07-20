@@ -1,3 +1,12 @@
 #!/bin/bash
-# Run SwiftLint in strict and quiet mode - treat warnings as errors, only show violations
-swiftlint ios --strict --quiet
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT"
+
+TARGETS=("$REPO_ROOT/ios")
+if [ -d "$REPO_ROOT/packages/google-dai/ios" ]; then
+  TARGETS+=("$REPO_ROOT/packages/google-dai/ios")
+fi
+
+swiftlint "${TARGETS[@]}" --strict --quiet

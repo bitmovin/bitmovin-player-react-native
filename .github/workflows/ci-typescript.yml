@@ -4,7 +4,12 @@ on:
   pull_request:
     paths:
       - '.github/workflows/ci-typescript.yml'
+      - '.github/workflows/create-sdk-update-pr.yml'
       - '.github/actions/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - '.npmignore'
+      - 'CHANGELOG.md'
+      - 'packages/google-dai/README.md'
       - '**.ts'
       - '**.tsx'
       - '**.js'
@@ -24,7 +29,12 @@ on:
     branches: [development, development-v0]
     paths:
       - '.github/workflows/ci-typescript.yml'
+      - '.github/workflows/create-sdk-update-pr.yml'
       - '.github/actions/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - '.npmignore'
+      - 'CHANGELOG.md'
+      - 'packages/google-dai/README.md'
       - '**.ts'
       - '**.tsx'
       - '**.js'
@@ -71,6 +81,9 @@ jobs:
       - name: Lint Typescript
         run: yarn lint
 
+      - name: Lint Google DAI companion TypeScript
+        run: yarn lint:google-dai
+
   test-build-typescript:
     name: Build
     runs-on: ubuntu-latest
@@ -99,6 +112,9 @@ jobs:
 
       - name: Build TypeScript (Module)
         run: yarn build:module
+
+      - name: Build TypeScript (Google DAI companion)
+        run: yarn build:google-dai
 
       - name: Build and test TypeScript (Plugin)
         run: yarn test:plugin

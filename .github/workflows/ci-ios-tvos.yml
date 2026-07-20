@@ -6,6 +6,9 @@ on:
       - development
     paths:
       - 'ios/**'
+      - 'packages/google-dai/ios/**'
+      - 'packages/google-dai/package.json'
+      - 'packages/google-dai/expo-module.config.json'
       - 'plugin/**'
       - 'example/ios/**'
       - 'example/package.json'
@@ -23,6 +26,7 @@ on:
       - '.github/workflows/ci-ios-tvos.yml'
       - '.github/scripts/**'
       - '.github/actions/**'
+      - 'scripts/**'
       - '**/app.config.*'
       - '**/expo.json'
       - '**/build-ios.sh'
@@ -34,6 +38,9 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'ios/**'
+      - 'packages/google-dai/ios/**'
+      - 'packages/google-dai/package.json'
+      - 'packages/google-dai/expo-module.config.json'
       - 'plugin/**'
       - 'example/ios/**'
       - 'example/package.json'
@@ -51,6 +58,7 @@ on:
       - '.github/workflows/ci-ios-tvos.yml'
       - '.github/scripts/**'
       - '.github/actions/**'
+      - 'scripts/**'
       - '**/app.config.*'
       - '**/expo.json'
       - '**/build-ios.sh'
@@ -80,7 +88,7 @@ jobs:
       - name: SwiftLint
         uses: norio-nomura/action-swiftlint@3.2.1
         with:
-          args: ios --strict
+          args: ios packages/google-dai/ios --strict
 
   ios-example-build:
     name: Build iOS Example App

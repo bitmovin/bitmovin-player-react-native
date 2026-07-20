@@ -1,0 +1,61 @@
+{
+  "name": "@bitmovin/player-react-native-google-dai",
+  "version": "1.21.0",
+  "description": "Optional Google IMA DAI companion package for Bitmovin Player React Native.",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "build": "expo-module build",
+    "clean": "expo-module clean",
+    "lint": "eslint --quiet src --ext .ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prepare": "expo-module prepare",
+    "prepublishOnly": "node scripts/prepublish-only.js && expo-module prepublishOnly"
+  },
+  "keywords": [
+    "react-native",
+    "expo",
+    "bitmovin",
+    "player",
+    "google-dai",
+    "ima",
+    "ssai"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bitmovin/bitmovin-player-react-native",
+    "directory": "packages/google-dai"
+  },
+  "author": "Bitmovin GmbH <player-sdks@bitmovin.com> (https://github.com/bitmovin)",
+  "license": "MIT",
+  "homepage": "https://bitmovin.com/video-player/react-native-sdk",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "android/build.gradle",
+    "android/gradle.properties",
+    "android/src",
+    "build",
+    "expo-module.config.json",
+    "ios/GoogleDaiModule.swift",
+    "ios/RNBitmovinPlayerGoogleDai.podspec",
+    "src",
+    "README.md"
+  ],
+  "dependencies": {
+    "expo-crypto": "~15.0.9"
+  },
+  "peerDependencies": {
+    "bitmovin-player-react-native": "^1.21.0",
+    "expo": ">=54.0.0",
+    "expo-crypto": ">=14.0.0",
+    "react": "*",
+    "react-native": "*"
+  },
+  "devDependencies": {
+    "expo-module-scripts": "^4.1.9",
+    "typescript": "~5.9.2"
+  },
+  "module": "expo-module"
+}

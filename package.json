@@ -8,21 +8,24 @@
     "build": "yarn build:module && yarn build:plugin",
     "build:module": "EXPO_NONINTERACTIVE=true expo-module build",
     "build:plugin": "EXPO_NONINTERACTIVE=true expo-module build plugin",
+    "build:google-dai": "yarn --cwd packages/google-dai build",
     "postinstall": "node scripts/check-dependencies.js",
     "dev:plugin": "expo-module build plugin",
     "clean": "expo-module clean",
     "lint": "expo-module lint",
-    "lint:all": "yarn lint && yarn example lint && yarn lint:ios && yarn lint:android",
-    "lint:all-with-tests": "yarn lint && yarn example lint && yarn integration-test lint && yarn lint:ios && yarn lint:android",
+    "lint:google-dai": "yarn --cwd packages/google-dai lint",
+    "lint:all": "yarn lint && yarn lint:google-dai && yarn example lint && yarn lint:ios && yarn lint:android",
+    "lint:all-with-tests": "yarn lint && yarn lint:google-dai && yarn example lint && yarn integration-test lint && yarn lint:ios && yarn lint:android",
     "typecheck": "tsc --noEmit",
-    "typecheck:all": "yarn typecheck && yarn example typecheck && yarn integration-test typecheck",
+    "typecheck:google-dai": "yarn --cwd packages/google-dai typecheck",
+    "typecheck:all": "yarn typecheck && yarn typecheck:google-dai && yarn example typecheck && yarn integration-test typecheck",
     "format": "prettier --write '**/*.{ts,tsx,js,jsx,md,json,yml,yaml}'",
     "format:ios": "./scripts/format-swift.sh",
     "format:android": "./scripts/format-android.sh",
     "format:all": "yarn format && yarn format:ios && yarn format:android",
     "setup-hooks": "./scripts/setup-hooks.sh",
-    "lint:ios": "swiftlint ios --strict --quiet",
-    "lint:android": "cd android && ./gradlew -b ktlint.gradle ktlintCheck --quiet --console=plain",
+    "lint:ios": "./scripts/lint-swift.sh",
+    "lint:android": "./scripts/lint-android.sh",
     "test:plugin": "yarn build:plugin && node scripts/test-with-app-gradle-dependencies.js",
     "prepare": "expo-module prepare",
     "prepublishOnly": "expo-module prepublishOnly",
@@ -84,13 +87,22 @@
   },
   "lint-staged": {
     "src/**/*.(ts|tsx)": "eslint --quiet",
+    "packages/google-dai/src/**/*.(ts|tsx)": "eslint --quiet --config packages/google-dai/.eslintrc.js",
     "example/src/**/*.(ts|tsx)": "eslint --quiet --config example/.eslintrc.js",
     "integration_test/{src,playertesting,tests}/**/*.(ts|tsx)": "eslint --quiet --config integration_test/.eslintrc.js",
     "ios/**/*.swift": [
       "./scripts/format-swift.sh",
       "./scripts/lint-swift.sh"
     ],
+    "packages/google-dai/ios/**/*.swift": [
+      "./scripts/format-swift.sh",
+      "./scripts/lint-swift.sh"
+    ],
     "android/**/*.kt": [
+      "./scripts/format-android.sh",
+      "./scripts/lint-android.sh"
+    ],
+    "packages/google-dai/android/**/*.kt": [
       "./scripts/format-android.sh",
       "./scripts/lint-android.sh"
     ],

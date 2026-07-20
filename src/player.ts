@@ -16,6 +16,14 @@ import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
 
 /**
+ * Resource that should be disposed together with a {@link Player} instance.
+ * @internal
+ */
+export interface PlayerDestroyResource {
+  destroy(): void | Promise<void>;
+}
+
+/**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
  * instance can be created via the {@link usePlayer} hook and will idle until one or more {@link Source}s are
  * loaded. Once {@link Player.load} or {@link Player.loadSource} is called, the player becomes active and initiates necessary downloads to
@@ -51,6 +59,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   private network?: Network;
 
   private decoderConfig?: DecoderConfigBridge;
+  private readonly destroyResources = new Set<PlayerDestroyResource>();
   private onShouldLoadAdItemSubscription?: EventSubscription;
   private onShouldPlayAdBreakSubscription?: EventSubscription;
   private onImaBeforeInitializationSubscription?: EventSubscription;
@@ -92,10 +101,29 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
+   * Registers a resource that should be destroyed together with this player.
+   * @internal
+   */
+  registerDestroyResource = (resource: PlayerDestroyResource): (() => void) => {
+    if (this.isDestroyed) {
+      void resource.destroy();
+      return () => undefined;
+    }
+    this.destroyResources.add(resource);
+    return () => {
+      this.destroyResources.delete(resource);
+    };
+  };
+
+  /**
    * Destroys the native `Player` and releases all of its allocated resources.
    */
   destroy = () => {
     if (!this.isDestroyed) {
+      this.destroyResources.forEach((resource) => {
+        void resource.destroy();
+      });
+      this.destroyResources.clear();
       void PlayerModule.destroy(this.nativeId);
       void this.source?.destroy();
       void this.network?.destroy();

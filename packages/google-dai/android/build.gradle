@@ -1,0 +1,99 @@
+import groovy.json.JsonSlurper
+
+// Read version from this package's package.json.
+def packageJsonFile = new File(projectDir, '../package.json')
+def packageJson = new JsonSlurper().parseText(packageJsonFile.text)
+def packageVersion = packageJson.version
+
+buildscript {
+  def ktlintVersion = rootProject.ext.has('ktlintVersion') ? rootProject.ext.get('ktlintVersion') : (project.properties['BitmovinPlayerReactNativeGoogleDai_ktlintVersion'] ?: '11.6.0')
+  def androidPluginVersion = rootProject.ext.has('androidPluginVersion') ? rootProject.ext.get('androidPluginVersion') : (project.properties['BitmovinPlayerReactNativeGoogleDai_androidPluginVersion'] ?: '8.1.0')
+
+  repositories {
+    google()
+    mavenCentral()
+    maven {
+      url = uri('https://plugins.gradle.org/m2/')
+    }
+  }
+  dependencies {
+    classpath "com.android.tools.build:gradle:$androidPluginVersion"
+    classpath "org.jlleitschuh.gradle:ktlint-gradle:$ktlintVersion"
+  }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'org.jlleitschuh.gradle.ktlint'
+
+group = 'com.bitmovin.player.reactnative.googledai'
+version = packageVersion
+
+def expoModulesCorePlugin = new File(project(':expo-modules-core').projectDir.absolutePath, 'ExpoModulesCorePlugin.gradle')
+apply from: expoModulesCorePlugin
+applyKotlinExpoModulesCorePlugin()
+useCoreDependencies()
+useExpoPublishing()
+
+buildscript {
+  ext.safeExtGet = { prop, fallback ->
+    def packageProp = "BitmovinPlayerReactNativeGoogleDai_${prop}"
+    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : (project.properties[packageProp] ?: fallback)
+  }
+}
+
+android {
+  namespace 'com.bitmovin.player.reactnative.googledai'
+
+  compileSdkVersion safeExtGet('compileSdkVersion', 35)
+
+  defaultConfig {
+    minSdkVersion safeExtGet('minSdkVersion', 24)
+    targetSdkVersion safeExtGet('targetSdkVersion', 35)
+    versionCode 1
+    versionName packageVersion
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
+    }
+  }
+
+  lintOptions {
+    disable 'GradleCompatible'
+    abortOnError false
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+}
+
+repositories {
+  google()
+  mavenCentral()
+  maven {
+    url = uri("https://artifacts.bitmovin.com/artifactory/public-releases")
+  }
+}
+
+def bitmovinPlayerReactNativeProject = rootProject.subprojects.find { subproject ->
+  subproject.name == 'bitmovin-player-react-native' ||
+    (subproject.projectDir.name == 'android' &&
+      subproject.projectDir.parentFile?.name == 'bitmovin-player-react-native')
+}
+
+if (bitmovinPlayerReactNativeProject == null) {
+  throw new GradleException(
+    'The @bitmovin/player-react-native-google-dai Android module requires the ' +
+      'bitmovin-player-react-native peer Android project to be autolinked.'
+  )
+}
+
+dependencies {
+  compileOnly bitmovinPlayerReactNativeProject
+  compileOnly("com.bitmovin.player:player:3.159.0+jason")
+
+  implementation("com.bitmovin.player.integration:google-dai:0.1.0-alpha.1")
+}

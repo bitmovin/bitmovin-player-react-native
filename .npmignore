@@ -12,4 +12,5 @@ __tests__
 /android/src/test/
 /android/build/
 /example/
-integration_test/
+/integration_test/
+/packages/

@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["GoogleDaiModule"]
+  },
+  "android": {
+    "modules": ["com.bitmovin.player.reactnative.googledai.GoogleDaiModule"]
+  }
+}
