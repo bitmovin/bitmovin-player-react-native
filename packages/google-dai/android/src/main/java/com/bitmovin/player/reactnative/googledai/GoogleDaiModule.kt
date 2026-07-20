@@ -9,7 +9,7 @@ import com.bitmovin.player.integration.googledai.api.GoogleDaiSourceConfig
 import com.bitmovin.player.integration.googledai.api.GoogleDaiSourceType
 import com.bitmovin.player.integration.googledai.api.googleDai
 import com.bitmovin.player.reactnative.NativeId
-import com.bitmovin.player.reactnative.PlayerAccessor
+import com.bitmovin.player.reactnative.PlayerRegistry
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
@@ -75,7 +75,7 @@ class GoogleDaiModule : Module() {
             playerOwners.remove(validatedPlayerId, existingGoogleDaiId)
         }
 
-        val player = PlayerAccessor.get(validatedPlayerId)
+        val player = PlayerRegistry.getPlayer(validatedPlayerId)
             ?: throw GoogleDaiException.PlayerUnavailable(validatedPlayerId)
         try {
             ensureNativeCompatibility()

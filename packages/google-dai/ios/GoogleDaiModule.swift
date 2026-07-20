@@ -56,7 +56,7 @@ public class GoogleDaiModule: Module {
             )
         }
 
-        guard let player = PlayerAccessor.retrieve(playerId) else {
+        guard let player = PlayerRegistry.getPlayer(nativeId: playerId) else {
             throw googleDaiException(
                 "PLAYER_UNAVAILABLE",
                 "Player '\(playerId)' is not initialized or has already been destroyed."
