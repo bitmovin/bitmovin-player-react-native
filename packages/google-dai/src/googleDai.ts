@@ -8,8 +8,8 @@ import {
   GoogleDaiSourceType,
 } from './googleDaiSourceConfig';
 
-export interface GoogleDaiConfig {
-  nativeId?: string;
+export interface GoogleDai {
+  load(sourceConfig: GoogleDaiSourceConfig): Promise<void>;
 }
 
 export interface GoogleDaiCapability {
@@ -21,7 +21,7 @@ const googleDaiInstanceSymbol: unique symbol = Symbol(
 );
 
 type GoogleDaiDecoratedPlayer = Player & {
-  [googleDaiInstanceSymbol]?: GoogleDai;
+  [googleDaiInstanceSymbol]?: NativeGoogleDai;
 };
 
 /**
@@ -45,18 +45,12 @@ export function withGoogleDai<T extends Player>(
       'Cannot attach Google DAI because the player already defines a googleDai property.'
     );
   }
-  if (typeof decoratedPlayer.registerDestroyResource !== 'function') {
-    throw new Error(
-      'Google DAI requires a bitmovin-player-react-native Player with destroy-resource registration support.'
-    );
-  }
   if (!Object.isExtensible(decoratedPlayer)) {
     throw new Error('Cannot attach Google DAI to a non-extensible player.');
   }
 
   assertGoogleDaiModuleAvailable();
-  const googleDai = new GoogleDai(decoratedPlayer);
-  decoratedPlayer.registerDestroyResource(googleDai);
+  const googleDai = new NativeGoogleDai(decoratedPlayer);
 
   Object.defineProperty(decoratedPlayer, googleDaiInstanceSymbol, {
     value: googleDai,
@@ -75,50 +69,29 @@ export function withGoogleDai<T extends Player>(
 }
 
 /**
- * Native-backed Google IMA DAI integration for an existing Bitmovin Player.
+ * Native-backed Google IMA DAI implementation for an existing Bitmovin Player.
  */
-export class GoogleDai {
-  readonly nativeId: string;
-  readonly player: Player;
-  readonly config?: GoogleDaiConfig;
+class NativeGoogleDai implements GoogleDai {
+  private readonly nativeId: string;
+  private readonly player: Player;
 
-  isInitialized = false;
-  isDestroyed = false;
-
+  private isInitialized = false;
   private initializePromise?: Promise<void>;
-  private destroyPromise?: Promise<void>;
 
-  constructor(player: Player, config?: GoogleDaiConfig) {
-    const validatedConfig = validateConfig(config);
+  constructor(player: Player) {
     this.player = assertPlayer(player);
-    this.config = validatedConfig;
-    this.nativeId = validatedConfig?.nativeId ?? Crypto.randomUUID();
+    this.nativeId = Crypto.randomUUID();
   }
 
   load = async (sourceConfig: GoogleDaiSourceConfig): Promise<void> => {
-    this.ensureUsable();
     const validatedConfig = validateSourceConfig(sourceConfig);
     await this.initializeNative();
-    this.ensureUsable();
     this.ensurePlayerInitialized();
     await GoogleDaiModule.load(this.nativeId, validatedConfig);
   };
 
-  destroy = (): Promise<void> => {
-    if (this.isDestroyed) {
-      return this.destroyPromise ?? Promise.resolve();
-    }
-    this.isDestroyed = true;
-    const pendingInitialization = this.initializePromise ?? Promise.resolve();
-    this.destroyPromise = pendingInitialization
-      .catch(() => undefined)
-      .then(() => GoogleDaiModule.destroy(this.nativeId));
-    return this.destroyPromise;
-  };
-
   private initializeNative(): Promise<void> {
     try {
-      this.ensureUsable();
       this.ensurePlayerInitialized();
     } catch (error) {
       return Promise.reject(error);
@@ -133,15 +106,10 @@ export class GoogleDai {
       )
         .then(async () => {
           try {
-            this.ensureUsable();
             this.ensurePlayerInitialized();
             this.isInitialized = true;
           } catch (error) {
-            if (!this.isDestroyed) {
-              await GoogleDaiModule.destroy(this.nativeId).catch(
-                () => undefined
-              );
-            }
+            await GoogleDaiModule.destroy(this.nativeId).catch(() => undefined);
             throw error;
           }
         })
@@ -151,12 +119,6 @@ export class GoogleDai {
         });
     }
     return this.initializePromise;
-  }
-
-  private ensureUsable() {
-    if (this.isDestroyed) {
-      throw new Error('GoogleDai has been destroyed and cannot be used again.');
-    }
   }
 
   private ensurePlayerInitialized() {
@@ -171,7 +133,10 @@ export class GoogleDai {
   }
 }
 
-function assertExistingGoogleDaiProperty(player: Player, googleDai: GoogleDai) {
+function assertExistingGoogleDaiProperty(
+  player: Player,
+  googleDai: NativeGoogleDai
+) {
   const descriptor = findPropertyDescriptor(player, 'googleDai');
   if (!descriptor || descriptor.value !== googleDai) {
     throw new Error(
@@ -193,23 +158,6 @@ function findPropertyDescriptor(
     target = Object.getPrototypeOf(target);
   }
   return undefined;
-}
-
-function validateConfig(config: GoogleDaiConfig | undefined) {
-  if (config == null) {
-    return undefined;
-  }
-  const candidate = assertRecord(config, 'GoogleDai config');
-  if (candidate.nativeId == null) {
-    return config;
-  }
-  if (
-    typeof candidate.nativeId !== 'string' ||
-    candidate.nativeId.trim().length === 0
-  ) {
-    throw new Error('GoogleDai config nativeId must be a non-empty string.');
-  }
-  return config;
 }
 
 function assertPlayer(player: Player): Player {

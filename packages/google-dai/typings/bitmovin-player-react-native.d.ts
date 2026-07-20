@@ -4,9 +4,6 @@ declare module 'bitmovin-player-react-native' {
     isInitialized: boolean;
     isDestroyed: boolean;
     initialize(): Promise<void>;
-    registerDestroyResource(resource: {
-      destroy(): void | Promise<void>;
-    }): () => void;
     destroy(): void;
   }
 }
