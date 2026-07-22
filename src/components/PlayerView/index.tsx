@@ -36,6 +36,7 @@ export function PlayerView({
   isPictureInPictureRequested = false,
   pictureInPictureActions,
   isPictureInPictureEnabled,
+  onPlayerViewReady,
   ...props
 }: PlayerViewProps) {
   // Keep the device awake while the PlayerView is mounted
@@ -81,6 +82,7 @@ export function PlayerView({
   };
 
   const [isPlayerInitialized, setIsPlayerInitialized] = useState(false);
+  const didNotifyPlayerViewReady = useRef(false);
 
   useEffect(() => {
     void player.initialize().then(() => {
@@ -97,10 +99,19 @@ export function PlayerView({
   }, [player, fullscreenBridge, customMessageHandlerBridge]);
 
   useEffect(() => {
-    if (isPlayerInitialized && viewRef) {
+    if (!isPlayerInitialized || !nativeView.current) {
+      return;
+    }
+
+    if (viewRef) {
       viewRef.current = nativeView.current;
     }
-  }, [isPlayerInitialized, viewRef, nativeView]);
+
+    if (!didNotifyPlayerViewReady.current) {
+      didNotifyPlayerViewReady.current = true;
+      onPlayerViewReady?.();
+    }
+  }, [isPlayerInitialized, viewRef, nativeView, onPlayerViewReady]);
 
   useEffect(() => {
     if (isPlayerInitialized && pictureInPictureActions != null) {
