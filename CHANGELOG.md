@@ -4,7 +4,7 @@
 
 ### Added
 
-- `PlayerView.onPlayerViewReady` callback fired once after the player is initialized and the native view is mounted
+- `PlayerViewProps.onPlayerViewReady` callback fired once after the player is initialized and the native view is mounted
 
 ### Changed
 
