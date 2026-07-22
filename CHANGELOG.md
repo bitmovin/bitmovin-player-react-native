@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `PlayerView.onPlayerViewReady` callback fired once after the player is initialized and the native view is mounted
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to [`3.159.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31590)

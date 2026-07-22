@@ -81,6 +81,11 @@ export interface BasePlayerViewProps {
    * Can be changed dynamically after the player is initialized.
    */
   isPictureInPictureEnabled?: boolean;
+
+  /**
+   * Called once after the {@link PlayerView} has initialized its player and mounted the native view.
+   */
+  onPlayerViewReady?: () => void;
 }
 
 /**
