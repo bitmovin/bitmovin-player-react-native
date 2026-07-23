@@ -81,6 +81,15 @@ export interface BasePlayerViewProps {
    * Can be changed dynamically after the player is initialized.
    */
   isPictureInPictureEnabled?: boolean;
+
+  /**
+   * Event-style callback called once after the {@link PlayerView} has initialized its player and mounted the
+   * native view.
+   *
+   * Like other event callbacks, this is only invoked if provided when readiness happens; it is not replayed if
+   * assigned later.
+   */
+  onPlayerViewReady?: () => void;
 }
 
 /**
