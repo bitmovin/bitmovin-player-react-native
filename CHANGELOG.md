@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.22.0] - 2026-07-23
+
 ### Added
 
 - `PlayerViewProps.onPlayerViewReady` callback fired once after the player is initialized and the native view is mounted
