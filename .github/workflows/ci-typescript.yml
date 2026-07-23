@@ -52,11 +52,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Setup node and npm registry
-        uses: actions/setup-node@v6
+      - name: Setup Node
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org/'
           cache: 'yarn'
 
       - name: Install node_modules
@@ -78,11 +77,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Setup node and npm registry
-        uses: actions/setup-node@v6
+      - name: Setup Node
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org/'
           cache: 'yarn'
 
       - name: Install node_modules
