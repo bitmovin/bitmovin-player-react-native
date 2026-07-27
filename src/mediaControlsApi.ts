@@ -40,7 +40,7 @@ export class MediaControlsApi {
       );
       return false;
     }
-    return (await MediaControlsModule.isEnabled(this.nativeId)) ?? false;
+    return (await MediaControlsModule?.isEnabled(this.nativeId)) ?? false;
   };
 
   /**
@@ -52,10 +52,10 @@ export class MediaControlsApi {
   setEnabled = async (enabled: boolean): Promise<void> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Method mediaControls.setEnabled is not available for Android. Only iOS/tvOS devices.`
+        `[Player ${this.nativeId}] Runtime mediaControls APIs are not implemented on Android yet.`
       );
       return;
     }
-    return MediaControlsModule.setEnabled(this.nativeId, enabled);
+    return MediaControlsModule?.setEnabled(this.nativeId, enabled);
   };
 }

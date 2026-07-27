@@ -1,4 +1,5 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
+import { Platform } from 'react-native';
 
 export type MediaControlsModuleEvents = Record<string, any>;
 
@@ -14,4 +15,6 @@ declare class MediaControlsModule extends NativeModule<MediaControlsModuleEvents
   setEnabled(playerId: string, enabled: boolean): Promise<void>;
 }
 
-export default requireNativeModule<MediaControlsModule>('MediaControlsModule');
+export default Platform.OS === 'ios'
+  ? requireNativeModule<MediaControlsModule>('MediaControlsModule')
+  : null;

@@ -26,7 +26,6 @@
       "com.bitmovin.player.reactnative.PlayerModule",
       "com.bitmovin.player.reactnative.SourceModule",
       "com.bitmovin.player.reactnative.BufferModule",
-      "com.bitmovin.player.reactnative.MediaControlsModule",
       "com.bitmovin.player.reactnative.NetworkModule",
       "com.bitmovin.player.reactnative.CustomMessageHandlerModule",
       "com.bitmovin.player.reactnative.DrmModule",
