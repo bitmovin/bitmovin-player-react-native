@@ -759,7 +759,7 @@ export type SubtitleCueLayoutLine = { value: number; unit: 'line' | 'percent' };
  * Cue-box geometry converted to the shared React Native event shape.
  *
  * Platform-specific SDK values are converted to shared JS units/enums. Fields with automatic
- * or default values, or values not applicable to a cue, are omitted.
+ * or unset values, or values not applicable to a cue, are omitted.
  */
 export interface SubtitleCueLayout {
   /**
@@ -883,7 +883,7 @@ export interface CueEnterEvent extends Event {
   /**
    * Cue-box geometry.
    *
-   * Present only when at least one concrete, non-default layout field is available.
+   * Present only when at least one concrete layout field is available.
    */
   layout?: SubtitleCueLayout;
   /**
@@ -929,7 +929,7 @@ export interface CueExitEvent extends Event {
   /**
    * Cue-box geometry.
    *
-   * Present only when at least one concrete, non-default layout field is available.
+   * Present only when at least one concrete layout field is available.
    */
   layout?: SubtitleCueLayout;
   /**
