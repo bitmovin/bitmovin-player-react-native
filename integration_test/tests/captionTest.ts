@@ -559,7 +559,14 @@ export default (spec: TestScope) => {
                 cea608Track,
                 'CEA-608 track should be available'
               ).toBeDefined();
-              player.setSubtitleTrack(cea608Track!.identifier);
+              expect(
+                cea608Track?.identifier,
+                'CEA-608 track should have an identifier'
+              ).toBeDefined();
+              if (!cea608Track?.identifier) {
+                return;
+              }
+              player.setSubtitleTrack(cea608Track.identifier);
               player.play();
             });
             await callPlayerAndExpectEvent((player) => {
