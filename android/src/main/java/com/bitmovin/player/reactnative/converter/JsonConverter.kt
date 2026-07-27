@@ -46,6 +46,7 @@ import com.bitmovin.player.api.media.subtitle.Cue
 import com.bitmovin.player.api.media.subtitle.SubtitleTrack
 import com.bitmovin.player.api.media.thumbnail.Thumbnail
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
+import com.bitmovin.player.api.media.video.quality.DynamicRange
 import com.bitmovin.player.api.media.video.quality.VideoQuality
 import com.bitmovin.player.api.metadata.Metadata
 import com.bitmovin.player.api.metadata.daterange.DateRangeMetadata
@@ -699,7 +700,16 @@ fun VideoQuality.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "frameRate" to frameRate.toDouble(),
     "height" to height,
     "width" to width,
+    "colorInfo" to mapOf(
+        "dynamicRange" to dynamicRange.toJson(),
+    ),
 ).filterNotNullValues()
+
+fun DynamicRange.toJson(): String = when (this) {
+    DynamicRange.SDR -> "sdr"
+    DynamicRange.HDR -> "hdr"
+    DynamicRange.Unknown -> "unknown"
+}
 
 fun AudioQuality.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "id" to id,
