@@ -33,11 +33,11 @@ export default function EnableDisableMediaControls() {
   useFocusEffect(
     useCallback(() => {
       player.load({
-        url: 'https://cdn.bitmovin.com/content/assets/art-of-motion-dash-hls-progressive/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
+        url: 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
         type: SourceType.HLS,
         title: 'Art of Motion',
         poster:
-          'https://cdn.bitmovin.com/content/assets/art-of-motion-dash-hls-progressive/poster.jpg',
+          'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/poster.jpg',
       });
       return () => {
         player.destroy();
@@ -83,8 +83,8 @@ export default function EnableDisableMediaControls() {
           {isMediaControlsEnabled ? 'ENABLED' : 'DISABLED'}
         </Text>
         <Text style={styles.hintText}>
-          Background the app or open Control Center to check the Now Playing
-          info.
+          Background the app or open Control Center to check the media controls
+          metadata.
         </Text>
         <Button
           title={

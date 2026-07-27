@@ -188,6 +188,9 @@ export default function App() {
       title: 'System UI',
       routeName: 'SystemUI',
     });
+  }
+
+  if (Platform.OS === 'ios') {
     stackParams.data.push({
       title: 'Enable/Disable Media Controls',
       routeName: 'EnableDisableMediaControls',
