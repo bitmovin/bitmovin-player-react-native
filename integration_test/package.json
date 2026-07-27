@@ -47,7 +47,7 @@
     "react-native-uuid": "^2.0.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.0",
+    "@babel/core": "^7.29.6",
     "@expo/cli": "^0.24.24",
     "@expo/config-types": "^54.0.10",
     "@react-native-community/cli": "latest",
