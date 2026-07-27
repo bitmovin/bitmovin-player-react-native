@@ -751,7 +751,7 @@ export interface PlaybackSpeedChangedEvent extends Event {
  *
  * `{ value: number; unit: 'percent' }` places the cue as a percentage of the viewport.
  * `{ value: number; unit: 'line' }` places the cue by counting rendered text-line slots.
- * When omitted, line placement is automatic in the underlying subtitle renderer.
+ * When omitted, the underlying subtitle renderer determines line placement automatically.
  */
 export type SubtitleCueLayoutLine = { value: number; unit: 'line' | 'percent' };
 
@@ -768,7 +768,7 @@ export interface SubtitleCueLayout {
    * For horizontal captions this controls vertical placement:
    * - `{ value: 85, unit: 'percent' }` — 85% down the viewport.
    * - `{ value: 12, unit: 'line' }` — 12 rendered text-line slots from the edge.
-   * - `undefined` — line placement is automatic in the underlying subtitle renderer.
+   * - `undefined` — the underlying subtitle renderer determines line placement automatically.
    *
    * For vertical captions this controls horizontal placement.
    */
@@ -782,7 +782,7 @@ export interface SubtitleCueLayout {
   /**
    * Cue box position as a percentage of the viewport on the axis orthogonal to `line`.
    *
-   * When omitted, position placement is automatic in the underlying subtitle renderer.
+   * When omitted, the underlying subtitle renderer determines position placement automatically.
    */
   position?: number;
   /**
