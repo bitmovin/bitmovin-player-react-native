@@ -39,6 +39,10 @@
 - PRs: follow `.github/PULL_REQUEST_TEMPLATE.md`; link issues; add screenshots for UI-facing changes.
 - Required before review: `yarn lint:all`, `yarn typecheck:all`, build the library, and run the example on at least one platform.
 - Changelog: add a `CHANGELOG.md` entry for user‑visible behavior changes.
+- Changelog platform prefixes:
+  - Prefix platform-specific changes with the affected platform, e.g. `iOS: Add ...` or `Android: Add ...`.
+  - For iOS changes that also apply to tvOS, use `iOS:` only; tvOS is implicit unless it differs.
+  - Do not prefix entries for features available on all platforms; write `Add ...`, not `iOS/tvOS and Android: Add ...`.
 
 ## Security & Configuration Tips
 
