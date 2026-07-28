@@ -8,7 +8,19 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to [`3.116.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31160)
+- Update Bitmovin's native iOS SDK version to [`3.118.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31180)
+- Update Bitmovin's native Android SDK version to [`3.160.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31600)
+
+## [1.22.0] - 2026-07-23
+
+### Added
+
+- `PlayerViewProps.onPlayerViewReady` callback fired once after the player is initialized and the native view is mounted
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to [`3.159.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31590)
+- Update Bitmovin's native iOS SDK version to [`3.117.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31170)
 
 ## [1.21.0] - 2026-06-26
 

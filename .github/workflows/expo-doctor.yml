@@ -42,6 +42,9 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  EXPO_DOCTOR_VERSION: '1.20.1'
+
 jobs:
   expo-doctor:
     name: Expo Doctor (${{ matrix.name }})
@@ -68,11 +71,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Setup node and npm registry
-        uses: actions/setup-node@v6
+      - name: Setup Node
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org/'
           cache: 'yarn'
           cache-dependency-path: ${{ matrix.lockfile }}
 
@@ -87,4 +89,8 @@ jobs:
 
       - name: Run expo-doctor
         working-directory: ${{ matrix.cwd }}
-        run: EXPO_NONINTERACTIVE=1 npx --yes expo-doctor@latest
+        env:
+          EXPO_NONINTERACTIVE: '1'
+          # The dependency version check uses remote Expo metadata and can require new patch versions without repo changes.
+          EXPO_DOCTOR_SKIP_DEPENDENCY_VERSION_CHECK: '1'
+        run: npx --yes expo-doctor@${EXPO_DOCTOR_VERSION}
