@@ -7,6 +7,7 @@ import MediaControlsTest from './mediaControlsTest';
 import metadataId3Test from './metadataId3Test';
 import PlaybackTest from './playbackTest';
 import UnloadingTest from './unloadingTest';
+import videoQualityTest from './videoQualityTest';
 
 export default [
   AdvertisingTest,
@@ -18,4 +19,5 @@ export default [
   PlaybackTest,
   UnloadingTest,
   audioTrackTest,
+  videoQualityTest,
 ];

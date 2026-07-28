@@ -4,7 +4,13 @@
 
 ### Added
 
-- iOS/tvOS: `Player.mediaControls` namespace of type `MediaControlsApi` to dynamically enable or disable Bitmovin Player's media controls integration at runtime via `MediaControlsApi.isEnabled`/`MediaControlsApi.setEnabled`
+- iOS/tvOS: `Player.mediaControls` namespace of type `MediaControlsApi` to dynamically query, enable or disable Bitmovin Player's media controls integration at runtime via `MediaControlsApi.isEnabled`/`MediaControlsApi.setEnabled`
+
+## [1.23.0] - 2026-07-28
+
+### Added
+
+- Android and iOS/tvOS: Expose `VideoQuality.colorInfo.dynamicRange` (`sdr`, `hdr`, `unknown`) via the new `DynamicRange` enum
 
 ### Changed
 
