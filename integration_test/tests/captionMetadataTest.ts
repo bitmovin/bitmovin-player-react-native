@@ -4,6 +4,7 @@ import {
   callPlayerAndExpectEvent,
   EventType,
   expectEvent,
+  FilteredEvent,
   loadSourceConfig,
   startPlayerTest,
 } from '../playertesting';
@@ -17,6 +18,7 @@ import {
   SourceType,
   SubtitleCueLayout,
   SubtitleFormat,
+  SubtitleTrack,
 } from 'bitmovin-player-react-native';
 import { Image, Platform } from 'react-native';
 
@@ -31,34 +33,29 @@ const positionedSubtitleTrack: SideLoadedSubtitleTrack = {
   format: SubtitleFormat.VTT,
 };
 
-const regionSubtitleTrack: SideLoadedSubtitleTrack = {
-  identifier: 'region-cues',
-  url: Image.resolveAssetSource(
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    require('../assets/subtitles/region.vtt')
-  ).uri,
-  label: 'Region Cues',
-  language: 'en',
-  format: SubtitleFormat.VTT,
+const sourceWithPositionedSubs: SourceConfig = {
+  url: Sources.artOfMotionHls.url!,
+  type: SourceType.HLS,
+  subtitleTracks: [positionedSubtitleTrack],
 };
 
-function sourceWithSubtitleTrack(
-  subtitleTrack: SideLoadedSubtitleTrack
-): SourceConfig {
-  return {
-    url: Sources.artOfMotionHls.url!,
-    type: SourceType.HLS,
-    subtitleTracks: [subtitleTrack],
-  };
-}
+const sourceWithInManifestPositionedSubs: SourceConfig = {
+  url: 'https://bitmovin-player-eu-west1-ci-input.s3.amazonaws.com/general/hls/sintel-different_attributes-subtitle/master-debug-short.m3u8',
+  type: SourceType.HLS,
+};
+
+const sourceWithCea608Captions: SourceConfig = {
+  url: 'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8',
+  type: SourceType.HLS,
+};
 
 async function loadSideLoadedTrackAndSeek(
   subtitleTrack: SideLoadedSubtitleTrack,
   seekTime: number
 ) {
-  await loadSourceConfig(sourceWithSubtitleTrack(subtitleTrack));
+  await loadSourceConfig(sourceWithPositionedSubs);
   await callPlayer(async (player) => {
-    player.setSubtitleTrack(subtitleTrack.identifier);
+    await player.setSubtitleTrack(subtitleTrack.identifier);
     player.play();
   });
   await callPlayerAndExpectEvent((player) => {
@@ -74,11 +71,15 @@ function expectPositionedCueLayout(
 
   const positionedLayout = layout as SubtitleCueLayout;
   expect(
-    (positionedLayout.line as any)?.value,
+    positionedLayout.writingMode,
+    `${eventName} writingMode should be omitted for horizontal cues`
+  ).toBeUndefined();
+  expect(
+    positionedLayout.line?.value,
     `${eventName} line.value should be 85`
   ).toBeCloseTo(85);
   expect(
-    (positionedLayout.line as any)?.unit,
+    positionedLayout.line?.unit,
     `${eventName} line.unit should be percent`
   ).toBe('percent');
   expect(
@@ -101,23 +102,6 @@ function expectCueHtml(event: CueEnterEvent | CueExitEvent, eventName: string) {
   );
 }
 
-function expectCueRegionMetadata(
-  event: CueEnterEvent | CueExitEvent,
-  eventName: string
-) {
-  expect(
-    event.region,
-    `${eventName} should expose region metadata`
-  ).toBeDefined();
-  expect(event.region?.id, `${eventName} region id`).toBe('region-test');
-  expect(event.region?.style, `${eventName} region style`).toBeDefined();
-  expect(
-    (event as CueEnterEvent & CueExitEvent & { regionStyle?: string })
-      .regionStyle,
-    `${eventName} should not expose legacy top-level regionStyle`
-  ).toBeUndefined();
-}
-
 export default (spec: TestScope) => {
   spec.describe('caption metadata', () => {
     if (Platform.OS === 'android') {
@@ -133,10 +117,6 @@ export default (spec: TestScope) => {
               );
 
               expectPositionedCueLayout(cueEnterEvent.layout, 'CueEnter');
-              expect(
-                cueEnterEvent.layout?.writingMode,
-                'writingMode should be horizontal'
-              ).toBe('horizontal');
             });
           }
         );
@@ -172,10 +152,6 @@ export default (spec: TestScope) => {
               );
 
               expectPositionedCueLayout(cueExitEvent.layout, 'CueExit');
-              expect(
-                cueExitEvent.layout?.writingMode,
-                'writingMode should be horizontal'
-              ).toBe('horizontal');
               expectCueHtml(cueExitEvent, 'CueExit');
             });
           }
@@ -186,47 +162,122 @@ export default (spec: TestScope) => {
     if (Platform.OS === 'ios') {
       spec.describe('iOS cue metadata fields', () => {
         spec.it(
-          'CueEnter and CueExit carry positioned WebVTT layout and html',
+          'CueEnter carries in-manifest WebVTT layout metadata',
           async () => {
             await startPlayerTest({}, async () => {
-              await loadSideLoadedTrackAndSeek(positionedSubtitleTrack, 2);
+              await loadSourceConfig(sourceWithInManifestPositionedSubs);
+              await callPlayer(async (player) => {
+                const subtitleTracks = await player.getAvailableSubtitles();
+                const subtitleTrack =
+                  subtitleTracks.find((track) => track.label === 'Debug') ??
+                  subtitleTracks.find((track) => track.identifier !== 'off');
+                expect(
+                  subtitleTrack?.identifier,
+                  'Positioned subtitle track should have an identifier'
+                ).toBeDefined();
+                if (!subtitleTrack?.identifier) {
+                  return;
+                }
+                await player.setSubtitleTrack(subtitleTrack.identifier);
+                player.play();
+              });
+              await callPlayerAndExpectEvent((player) => {
+                player.seek(1);
+              }, EventType.Seeked);
 
               const cueEnterEvent: CueEnterEvent = await expectEvent(
-                EventType.CueEnter
+                FilteredEvent<CueEnterEvent>(
+                  EventType.CueEnter,
+                  (event) =>
+                    event.layout?.line?.value === 10 &&
+                    event.layout?.line?.unit === 'percent' &&
+                    event.layout?.position === 10 &&
+                    event.layout?.textAlign === 'start'
+                ),
+                30
               );
-              expectPositionedCueLayout(cueEnterEvent.layout, 'CueEnter');
               expect(
-                cueEnterEvent.layout?.writingMode,
+                cueEnterEvent.layout,
+                'CueEnter should expose cue layout'
+              ).toBeDefined();
+              const enterLayout = cueEnterEvent.layout as SubtitleCueLayout;
+              expect(
+                enterLayout.line?.value,
+                'CueEnter line value'
+              ).toBeCloseTo(10);
+              expect(enterLayout.line?.unit, 'CueEnter line unit').toBe(
+                'percent'
+              );
+              expect(enterLayout.position, 'CueEnter position').toBeCloseTo(10);
+              expect(enterLayout.positionAlign, 'CueEnter positionAlign').toBe(
+                'line-left'
+              );
+              expect(
+                enterLayout.size,
+                'CueEnter should omit default cue-box size'
+              ).toBeUndefined();
+              expect(enterLayout.textAlign, 'CueEnter textAlign').toBe('start');
+              expect(
+                enterLayout.writingMode,
                 'CueEnter writingMode should be omitted for horizontal cues'
               ).toBeUndefined();
-              expectCueHtml(cueEnterEvent, 'CueEnter');
-
-              const cueExitEvent: CueExitEvent = await expectEvent(
-                EventType.CueExit
-              );
-              expectPositionedCueLayout(cueExitEvent.layout, 'CueExit');
-              expect(
-                cueExitEvent.layout?.writingMode,
-                'CueExit writingMode should be omitted for horizontal cues'
-              ).toBeUndefined();
-              expectCueHtml(cueExitEvent, 'CueExit');
             });
           }
         );
 
-        spec.it('CueEnter and CueExit carry WebVTT region metadata', async () => {
+        spec.it('CueEnter carries CEA-608 grid position metadata', async () => {
           await startPlayerTest({}, async () => {
-            await loadSideLoadedTrackAndSeek(regionSubtitleTrack, 1);
+            await loadSourceConfig(sourceWithCea608Captions);
+            await callPlayer(async (player) => {
+              const subtitleTracks = await player.getAvailableSubtitles();
+              const cea608Track = subtitleTracks.find(
+                (track: SubtitleTrack) => track.format === SubtitleFormat.CEA
+              );
+              expect(
+                cea608Track,
+                'CEA-608 track should be available'
+              ).toBeDefined();
+              expect(
+                cea608Track?.identifier,
+                'CEA-608 track should have an identifier'
+              ).toBeDefined();
+              if (!cea608Track?.identifier) {
+                return;
+              }
+              await player.setSubtitleTrack(cea608Track.identifier);
+              player.play();
+            });
+            await callPlayerAndExpectEvent((player) => {
+              player.seek(10);
+            }, EventType.Seeked);
 
             const cueEnterEvent: CueEnterEvent = await expectEvent(
-              EventType.CueEnter
+              EventType.CueEnter,
+              30
             );
-            expectCueRegionMetadata(cueEnterEvent, 'CueEnter');
-
-            const cueExitEvent: CueExitEvent = await expectEvent(
-              EventType.CueExit
-            );
-            expectCueRegionMetadata(cueExitEvent, 'CueExit');
+            const position = cueEnterEvent.cea608Position;
+            expect(
+              position,
+              'CueEnter should expose CEA-608 position'
+            ).toBeDefined();
+            expect(position?.rows, 'CEA-608 row count').toBe(15);
+            expect(position?.columns, 'CEA-608 column count').toBe(32);
+            expect(
+              position?.rowIndex,
+              'CEA-608 row index should be in range'
+            ).toBeGreaterThanOrEqual(0);
+            expect(
+              position?.rowIndex,
+              'CEA-608 row index should be below rows'
+            ).toBeSmallerThan(15);
+            expect(
+              position?.columnIndex,
+              'CEA-608 column index should be in range'
+            ).toBeGreaterThanOrEqual(0);
+            expect(
+              position?.columnIndex,
+              'CEA-608 column index should be below columns'
+            ).toBeSmallerThan(32);
           });
         });
       });

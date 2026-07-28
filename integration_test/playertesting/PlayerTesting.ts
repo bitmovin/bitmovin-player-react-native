@@ -127,7 +127,7 @@ export const expectEvents = async (
  * @see {@link EventType}
  */
 export const callPlayerAndExpectEvent = async <E extends Event>(
-  fn: (player: Player) => void,
+  fn: (player: Player) => void | Promise<void>,
   expectationConvertible: SingleEventExpectation | EventType,
   timeoutSeconds: number = 10
 ): Promise<E> => {
@@ -163,7 +163,7 @@ export const callPlayerAndExpectEvent = async <E extends Event>(
  * @see {@link EventType}
  */
 export const callPlayerAndExpectEvents = async (
-  fn: (player: Player) => void,
+  fn: (player: Player) => void | Promise<void>,
   expectationsConvertible: MultipleEventsExpectation | EventType[],
   timeoutSeconds: number = 10
 ): Promise<Event[]> => {

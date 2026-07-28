@@ -11,10 +11,7 @@ import {
 } from '../playertesting';
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
-import {
-  CueEnterEvent,
-  CueExitEvent,
-} from 'bitmovin-player-react-native';
+import { CueEnterEvent, CueExitEvent } from 'bitmovin-player-react-native';
 
 export default (spec: TestScope) => {
   spec.describe('playing captions', () => {
@@ -23,7 +20,7 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.sintel);
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
-          player.setSubtitleTrack(subtitleTrack.identifier);
+          await player.setSubtitleTrack(subtitleTrack.identifier);
           player.play();
         });
         await callPlayerAndExpectEvent((player) => {
@@ -99,7 +96,7 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.sintel);
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
-          player.setSubtitleTrack(subtitleTrack.identifier);
+          await player.setSubtitleTrack(subtitleTrack.identifier);
           player.play();
         });
         await callPlayerAndExpectEvent((player) => {
@@ -164,7 +161,7 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.sintel);
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
-          player.setSubtitleTrack(subtitleTrack.identifier);
+          await player.setSubtitleTrack(subtitleTrack.identifier);
           player.play();
         });
         await callPlayerAndExpectEvent((player) => {
@@ -238,8 +235,8 @@ export default (spec: TestScope) => {
           )!;
           expect(subtitleTrack).toNotBeNull();
 
-          await callPlayerAndExpectEvent((player) => {
-            player.setSubtitleTrack(subtitleTrack.identifier);
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.setSubtitleTrack(subtitleTrack.identifier);
           }, EventType.SubtitleChanged);
 
           const selectedSubtitle = await callPlayer((player) =>
@@ -254,8 +251,8 @@ export default (spec: TestScope) => {
             'Selected subtitle identifier should match the requested track'
           ).toBe(subtitleTrack.identifier);
 
-          await callPlayerAndExpectEvent((player) => {
-            player.setSubtitleTrack(undefined);
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.setSubtitleTrack(undefined);
           }, EventType.SubtitleChanged);
           const disabledSubtitle = await callPlayer((player) =>
             player.getSubtitleTrack()

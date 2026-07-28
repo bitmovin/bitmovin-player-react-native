@@ -27,6 +27,7 @@ import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
 import BackgroundPlayback from './screens/BackgroundPlayback';
 import AudioFocusHandling from './screens/AudioFocusHandling';
+import EnableDisableMediaControls from './screens/EnableDisableMediaControls';
 import * as Device from 'expo-device';
 
 export type RootStackParamsList = {
@@ -70,6 +71,7 @@ export type RootStackParamsList = {
   SystemUI: undefined;
   BackgroundPlayback: undefined;
   AudioFocusHandling: undefined;
+  EnableDisableMediaControls: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsList>();
@@ -185,6 +187,13 @@ export default function App() {
     stackParams.data.push({
       title: 'System UI',
       routeName: 'SystemUI',
+    });
+  }
+
+  if (Platform.OS === 'ios') {
+    stackParams.data.push({
+      title: 'Enable/Disable Media Controls',
+      routeName: 'EnableDisableMediaControls',
     });
   }
 
@@ -330,6 +339,13 @@ export default function App() {
           component={AudioFocusHandling}
           options={{ title: 'Audio Focus Handling' }}
         />
+        {Platform.OS === 'ios' && (
+          <RootStack.Screen
+            name="EnableDisableMediaControls"
+            component={EnableDisableMediaControls}
+            options={{ title: 'Enable/Disable Media Controls' }}
+          />
+        )}
       </RootStack.Navigator>
     </NavigationContainer>
   );

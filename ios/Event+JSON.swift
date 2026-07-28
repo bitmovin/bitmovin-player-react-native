@@ -461,6 +461,8 @@ private extension VttLineAlign {
 private extension VttAlign {
     var jsonValue: String? {
         switch self {
+        case .start:
+            return "start"
         case .center:
             return "center"
         case .end:
@@ -500,6 +502,7 @@ private extension VttProperties {
             json["lineAlign"] = lineAlign
         }
         if size != 100 {
+            // 100 is the WebVTT/SDK default cue-box size; omit default layout values.
             json["size"] = size
         }
         if let textAlign = align.jsonValue {
@@ -554,12 +557,41 @@ private func regionJSON(
 
 private extension CuePosition {
     var json: [AnyHashable: Any] {
+        // CEA-608 uses a fixed 15-row by 32-column grid; iOS SDK indexes are zero-based.
         [
             "rowIndex": row,
             "columnIndex": column,
             "rows": 15,
             "columns": 32,
         ]
+    }
+}
+
+private extension CueEvent {
+    var cueJSON: [AnyHashable: Any] {
+        var json: [AnyHashable: Any] = [
+            "start": startTime,
+            "end": endTime,
+        ]
+        if let text {
+            json["text"] = text
+        }
+        if let imagePngData = image?.pngData() {
+            json["image"] = "data:image/png;base64,\(imagePngData.base64EncodedString())"
+        }
+        if let html = html.nonEmptyOrNil {
+            json["html"] = html
+        }
+        if let layout = layoutJSON(from: vtt) {
+            json["layout"] = layout
+        }
+        if let region = regionJSON(region: region, regionStyle: regionStyle) {
+            json["region"] = region
+        }
+        if let position {
+            json["cea608Position"] = position.json
+        }
+        return json
     }
 }
 
@@ -572,29 +604,7 @@ private extension String? {
 extension CueEnterEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
         toEventJSON {
-            var json: [AnyHashable: Any] = [
-                "start": startTime,
-                "end": endTime,
-            ]
-            if let text = text.nonEmptyOrNil {
-                json["text"] = text
-            }
-            if let imagePngData = image?.pngData() {
-                json["image"] = "data:image/png;base64,\(imagePngData.base64EncodedString())"
-            }
-            if let html = html.nonEmptyOrNil {
-                json["html"] = html
-            }
-            if let layout = layoutJSON(from: vtt) {
-                json["layout"] = layout
-            }
-            if let region = regionJSON(region: region, regionStyle: regionStyle) {
-                json["region"] = region
-            }
-            if let position {
-                json["cea608Position"] = position.json
-            }
-            return json
+            cueJSON
         }
     }
 }
@@ -602,29 +612,7 @@ extension CueEnterEvent: JsonConvertible {
 extension CueExitEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
         toEventJSON {
-            var json: [AnyHashable: Any] = [
-                "start": startTime,
-                "end": endTime,
-            ]
-            if let text = text.nonEmptyOrNil {
-                json["text"] = text
-            }
-            if let imagePngData = image?.pngData() {
-                json["image"] = "data:image/png;base64,\(imagePngData.base64EncodedString())"
-            }
-            if let html = html.nonEmptyOrNil {
-                json["html"] = html
-            }
-            if let layout = layoutJSON(from: vtt) {
-                json["layout"] = layout
-            }
-            if let region = regionJSON(region: region, regionStyle: regionStyle) {
-                json["region"] = region
-            }
-            if let position {
-                json["cea608Position"] = position.json
-            }
-            return json
+            cueJSON
         }
     }
 }

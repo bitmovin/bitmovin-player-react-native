@@ -751,15 +751,16 @@ export interface PlaybackSpeedChangedEvent extends Event {
  *
  * `{ value: number; unit: 'percent' }` places the cue as a percentage of the viewport.
  * `{ value: number; unit: 'line' }` places the cue by counting rendered text-line slots.
- * When omitted, the renderer/platform chooses automatic line placement.
+ * When omitted, the underlying subtitle renderer determines line placement automatically.
  */
 export type SubtitleCueLayoutLine = { value: number; unit: 'line' | 'percent' };
 
 /**
- * Normalized cue-box geometry.
+ * Cue-box geometry converted to the shared React Native event shape.
  *
- * Values reflect normalized native cue data. Omitted fields were not set, were default values,
- * or were not applicable for this cue.
+ * Platform-specific SDK values are converted to shared JS units/enums when the native cue
+ * exposes them. Fields with automatic or unset values, values not applicable to a cue, or
+ * values not exposed by the active native subtitle pipeline are omitted.
  */
 export interface SubtitleCueLayout {
   /**
@@ -768,7 +769,7 @@ export interface SubtitleCueLayout {
    * For horizontal captions this controls vertical placement:
    * - `{ value: 85, unit: 'percent' }` — 85% down the viewport.
    * - `{ value: 12, unit: 'line' }` — 12 rendered text-line slots from the edge.
-   * - `undefined` — renderer chooses placement.
+   * - `undefined` — the underlying subtitle renderer determines line placement automatically.
    *
    * For vertical captions this controls horizontal placement.
    */
@@ -782,7 +783,7 @@ export interface SubtitleCueLayout {
   /**
    * Cue box position as a percentage of the viewport on the axis orthogonal to `line`.
    *
-   * When omitted, the renderer/platform chooses automatic position placement.
+   * When omitted, the underlying subtitle renderer determines cue box position automatically.
    */
   position?: number;
   /**
@@ -807,7 +808,7 @@ export interface SubtitleCueLayout {
 }
 
 /**
- * Region metadata.
+ * Native cue region metadata, when provided by the platform.
  *
  * @platform iOS, tvOS
  */
@@ -817,9 +818,9 @@ export interface SubtitleCueRegion {
    */
   id?: string;
   /**
-   * Region style string from the native SDK.
+   * Opaque region style string from the native SDK.
    *
-   * The format is platform-defined and should be treated as renderer input.
+   * The format is platform-defined; consumers should not parse or rely on its exact syntax.
    */
   style?: string;
 }
@@ -827,7 +828,7 @@ export interface SubtitleCueRegion {
 /**
  * CEA-608 grid position.
  *
- * Separate from `layout`, which exposes normalized cue-box geometry.
+ * Separate from `layout`, which describes cue-box geometry in the shared JS shape.
  *
  * @platform iOS, tvOS
  */
@@ -881,13 +882,16 @@ export interface CueEnterEvent extends Event {
    */
   html?: string;
   /**
-   * Normalized cue-box geometry.
+   * Cue-box geometry.
    *
-   * Omitted when no non-default layout metadata is exposed for this cue.
+   * Present only when at least one concrete layout field is available from native cue data.
    */
   layout?: SubtitleCueLayout;
   /**
-   * Cue region metadata.
+   * Native cue region metadata.
+   *
+   * Forwarded only when the native SDK provides it. Built-in iOS/tvOS WebVTT parsing does
+   * not populate this field currently.
    *
    * @platform iOS, tvOS
    */
@@ -927,13 +931,16 @@ export interface CueExitEvent extends Event {
    */
   html?: string;
   /**
-   * Normalized cue-box geometry.
+   * Cue-box geometry.
    *
-   * Omitted when no non-default layout metadata is exposed for this cue.
+   * Present only when at least one concrete layout field is available from native cue data.
    */
   layout?: SubtitleCueLayout;
   /**
-   * Cue region metadata.
+   * Native cue region metadata.
+   *
+   * Forwarded only when the native SDK provides it. Built-in iOS/tvOS WebVTT parsing does
+   * not currently populate this field.
    *
    * @platform iOS, tvOS
    */
