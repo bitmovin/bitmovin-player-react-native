@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import MediaControlsModule from './modules/MediaControlsModule';
 
 /**
- * Provides control for the Player's media controls integration (Now Playing information on iOS/tvOS).
+ * Provides control for the Player's media controls integration.
  *
  * Accessible through {@link Player.mediaControls}.
  *
@@ -19,13 +19,13 @@ export class MediaControlsApi {
   }
 
   /**
-   * Indicates whether the Player publishes Now Playing information and registers media command handlers.
+   * Indicates whether the Player publishes media control information and registers media command handlers.
    *
    * The initial value is configured via {@link MediaControlConfig.isEnabled}.
-   * Disabling this integration clears the Player's Now Playing metadata and removes the Player's command handlers.
+   * Disabling this integration clears the Player's media controls metadata and removes the Player's command handlers.
    *
    * ## Limitations
-   * - Google IMA SDK instances that were already created can still publish their own Now Playing information.
+   * - Google IMA SDK instances that were already created can still publish their own media control information.
    * - This API only controls the Bitmovin Player media controls integration.
    *   It does not manage media controls, sessions, command handlers, or metadata
    *   created directly by the app or by other libraries.
