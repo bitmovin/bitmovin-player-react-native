@@ -9,7 +9,7 @@
 
 ### Changed
 
-- Cue layout no longer emits or types `'auto'` for `line`, `position`, or `positionAlign`; automatic placement is represented by omitted fields
+- Cue layout no longer emits empty `layout` objects or `'auto'` values for `line`, `position`, or `positionAlign`; automatic or unset placement is represented by omitted fields
 
 ## [1.23.0] - 2026-07-28
 
