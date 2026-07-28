@@ -77,6 +77,11 @@
 - Source of truth: export public surface from `src/index.ts:1-29` (ensure new modules are re‑exported).
 - Use typed Expo wrappers in `src/modules/`:
   - Define `declare class <Feature>Module extends NativeModule<Events> { ... }` and load with `requireNativeModule('<Feature>Module')` (example: `src/modules/PlayerModule.ts:1,251`).
+- For platform-specific native modules:
+  - Do not add a native stub on unsupported platforms just to satisfy `requireNativeModule`.
+  - Platform-gate the TS wrapper instead, following `src/modules/AudioSessionModule.ts`.
+  - Register the native module in `expo-module.config.json` only for platforms that actually implement it.
+  - The public JS API may still exist cross-platform if it has guarded no-op/unsupported behavior and a future implementation is expected.
 - Match native names exactly on both platforms:
   - iOS: `Name("PlayerModule")` in `ios/PlayerModule.swift:7`; Android: `Name("PlayerModule")` in `android/src/main/java/com/bitmovin/player/reactnative/PlayerModule.kt:23`.
 - Bridge views via view managers:
