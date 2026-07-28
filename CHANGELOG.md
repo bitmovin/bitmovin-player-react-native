@@ -4,18 +4,21 @@
 
 ### Added
 
+- iOS/tvOS: Expose cue metadata on `CueEnterEvent` and `CueExitEvent` via `html`, `cea608Position`, and native cue `layout` or `region` metadata when available
 - iOS/tvOS: `Player.mediaControls` namespace of type `MediaControlsApi` to dynamically query, enable or disable Bitmovin Player's media controls integration via `MediaControlsApi.isEnabled` and `MediaControlsApi.setEnabled`
+
+### Changed
+
+- Cue layout no longer emits or types `'auto'` for `line`, `position`, or `positionAlign`; automatic placement is represented by omitted fields
 
 ## [1.23.0] - 2026-07-28
 
 ### Added
 
-- iOS/tvOS: Expose cue metadata on `CueEnterEvent` and `CueExitEvent` via `html`, `cea608Position`, and native cue `layout` or `region` metadata when available
 - Android and iOS/tvOS: Expose `VideoQuality.colorInfo.dynamicRange` (`sdr`, `hdr`, `unknown`) via the new `DynamicRange` enum
 
 ### Changed
 
-- Cue layout no longer emits or types `'auto'` for `line`, `position`, or `positionAlign`; automatic placement is represented by omitted fields
 - Update Bitmovin's native iOS SDK version to [`3.118.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31180)
 - Update Bitmovin's native Android SDK version to [`3.160.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31600)
 
