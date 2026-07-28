@@ -82,6 +82,8 @@
   - Platform-gate the TS wrapper instead, following `src/modules/AudioSessionModule.ts`.
   - Register the native module in `expo-module.config.json` only for platforms that actually implement it.
   - The public JS API may still exist cross-platform if it has guarded no-op/unsupported behavior and a future implementation is expected.
+- Public React Native API names should be platform-neutral when Android/iOS parity is expected. Keep Apple/Android SDK terminology inside native implementation files only.
+- New runtime APIs should be exported from `src/index.ts`.
 - Public API docs should use `@platform` only when the API is platform-gated.
   - Valid cases are `@platform iOS`, `@platform tvOS`, `@platform iOS/tvOS`, and `@platform Android`.
   - Include OS versions when support is version-gated, e.g. `@platform iOS 18+, tvOS 18+`.
