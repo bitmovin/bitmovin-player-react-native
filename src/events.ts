@@ -783,7 +783,7 @@ export interface SubtitleCueLayout {
   /**
    * Cue box position as a percentage of the viewport on the axis orthogonal to `line`.
    *
-   * When omitted, the underlying subtitle renderer determines position placement automatically.
+   * When omitted, the underlying subtitle renderer determines cue box position automatically.
    */
   position?: number;
   /**
