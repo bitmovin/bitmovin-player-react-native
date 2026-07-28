@@ -82,6 +82,11 @@
   - Platform-gate the TS wrapper instead, following `src/modules/AudioSessionModule.ts`.
   - Register the native module in `expo-module.config.json` only for platforms that actually implement it.
   - The public JS API may still exist cross-platform if it has guarded no-op/unsupported behavior and a future implementation is expected.
+- Public API docs should use `@platform` only when the API is platform-gated.
+  - Valid cases are `@platform iOS`, `@platform tvOS`, `@platform iOS/tvOS`, and `@platform Android`.
+  - Include OS versions when support is version-gated, e.g. `@platform iOS 18+, tvOS 18+`.
+  - Android TV does not need a separate platform distinction; treat it as Android.
+  - If an API is available on all platforms, omit `@platform` entirely. Do not write `@platform iOS/tvOS/Android`.
 - Match native names exactly on both platforms:
   - iOS: `Name("PlayerModule")` in `ios/PlayerModule.swift:7`; Android: `Name("PlayerModule")` in `android/src/main/java/com/bitmovin/player/reactnative/PlayerModule.kt:23`.
 - Bridge views via view managers:
