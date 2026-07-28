@@ -1108,7 +1108,7 @@ fun ScteMessage.toJson(): Map<String, Any> = mapOf(
     "value" to value
 ).filterNotNullValues()
 
-private fun Cue.toLayoutJson(): Map<String, Any> {
+private fun Cue.toLayoutJson(): Map<String, Any>? {
     val line = toLayoutLineJson()
     val position = fractionalPosition.takeIf { it != Cue.DIMEN_UNSET }?.toPercent()
     val size = size.takeIf { it != Cue.DIMEN_UNSET }?.toPercent()
@@ -1122,7 +1122,7 @@ private fun Cue.toLayoutJson(): Map<String, Any> {
         "size" to size,
         "textAlign" to textAlign,
         "writingMode" to verticalType?.toLayoutWritingModeJson(),
-    ).filterNotNullValues()
+    ).filterNotNullValues().takeIf { it.isNotEmpty() }
 }
 
 private fun Cue.toLayoutLineJson(): Map<String, Any>? = when {
@@ -1159,4 +1159,3 @@ private fun Alignment.toLayoutTextAlignJson(): String = when (this) {
     Alignment.ALIGN_OPPOSITE -> "end"
     Alignment.ALIGN_CENTER -> "center"
 }
-

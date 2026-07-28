@@ -71,7 +71,7 @@ export default class PlayerTestWorld {
       nativeId: `player-${uuid.v4()}`,
       ...config,
     });
-    player.initialize();
+    await player.initialize();
     this.player = player;
 
     await fn().finally(() => {
@@ -101,26 +101,30 @@ export default class PlayerTestWorld {
   };
 
   callPlayerAndExpectEvent = async <E extends Event>(
-    fn: (player: Player) => void,
+    fn: (player: Player) => void | Promise<void>,
     expectationConvertible: SingleEventExpectation | EventType,
     timeoutSeconds: number
   ): Promise<E> => {
     return await this.expectEventCalling<E>(
       expectationConvertible,
       timeoutSeconds,
-      async () => fn(await this.ensurePlayer())
+      async () => {
+        await fn(await this.ensurePlayer());
+      }
     );
   };
 
   callPlayerAndExpectEvents = async (
-    fn: (player: Player) => void,
+    fn: (player: Player) => void | Promise<void>,
     expectationsConvertible: MultipleEventsExpectation | EventType[],
     timeoutSeconds: number
   ): Promise<Event[]> => {
     return await this.expectEventsCalling(
       expectationsConvertible,
       timeoutSeconds,
-      async () => fn(await this.ensurePlayer())
+      async () => {
+        await fn(await this.ensurePlayer());
+      }
     );
   };
 

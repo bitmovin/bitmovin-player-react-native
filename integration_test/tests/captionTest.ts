@@ -6,6 +6,7 @@ import {
   EventType,
   expectEvent,
   expectEvents,
+  FilteredEvent,
   loadSourceConfig,
   startPlayerTest,
 } from '../playertesting';
@@ -14,6 +15,7 @@ import { expect } from './helper/Expect';
 import {
   CueEnterEvent,
   CueExitEvent,
+  SubtitleTrack,
   SideLoadedSubtitleTrack,
   SourceConfig,
   SourceType,
@@ -39,6 +41,16 @@ const sourceWithPositionedSubs: SourceConfig = {
   subtitleTracks: [positionedSubtitleTrack],
 };
 
+const sourceWithInManifestPositionedSubs: SourceConfig = {
+  url: 'https://bitmovin-player-eu-west1-ci-input.s3.amazonaws.com/general/hls/sintel-different_attributes-subtitle/master-debug-short.m3u8',
+  type: SourceType.HLS,
+};
+
+const sourceWithCea608Captions: SourceConfig = {
+  url: 'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8',
+  type: SourceType.HLS,
+};
+
 export default (spec: TestScope) => {
   spec.describe('playing captions', () => {
     spec.it('emits CueEnter and CueExit events', async () => {
@@ -46,7 +58,7 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.sintel);
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
-          player.setSubtitleTrack(subtitleTrack.identifier);
+          await player.setSubtitleTrack(subtitleTrack.identifier);
           player.play();
         });
         await callPlayerAndExpectEvent((player) => {
@@ -122,7 +134,7 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.sintel);
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
-          player.setSubtitleTrack(subtitleTrack.identifier);
+          await player.setSubtitleTrack(subtitleTrack.identifier);
           player.play();
         });
         await callPlayerAndExpectEvent((player) => {
@@ -187,7 +199,7 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.sintel);
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
-          player.setSubtitleTrack(subtitleTrack.identifier);
+          await player.setSubtitleTrack(subtitleTrack.identifier);
           player.play();
         });
         await callPlayerAndExpectEvent((player) => {
@@ -251,7 +263,7 @@ export default (spec: TestScope) => {
             await startPlayerTest({}, async () => {
               await loadSourceConfig(sourceWithPositionedSubs);
               await callPlayer(async (player) => {
-                player.setSubtitleTrack('positioned-cues');
+                await player.setSubtitleTrack('positioned-cues');
                 player.play();
               });
               await callPlayerAndExpectEvent((player) => {
@@ -271,18 +283,14 @@ export default (spec: TestScope) => {
 
               expect(
                 layout.writingMode,
-                'writingMode should be horizontal'
-              ).toBe('horizontal');
+                'writingMode should be omitted for horizontal cues'
+              ).toBeUndefined();
 
               // line:85% in the VTT → { value: 85, unit: 'percent' }
-              expect(
-                (layout.line as any)?.value,
-                'line.value should be 85'
-              ).toBe(85);
-              expect(
-                (layout.line as any)?.unit,
-                'line.unit should be percent'
-              ).toBe('percent');
+              expect(layout.line?.value, 'line.value should be 85').toBe(85);
+              expect(layout.line?.unit, 'line.unit should be percent').toBe(
+                'percent'
+              );
 
               // position:50% → 50
               expect(layout.position, 'position should be 50').toBe(50);
@@ -304,7 +312,7 @@ export default (spec: TestScope) => {
             await startPlayerTest({}, async () => {
               await loadSourceConfig(sourceWithPositionedSubs);
               await callPlayer(async (player) => {
-                player.setSubtitleTrack('positioned-cues');
+                await player.setSubtitleTrack('positioned-cues');
                 player.play();
               });
               await callPlayerAndExpectEvent((player) => {
@@ -320,10 +328,9 @@ export default (spec: TestScope) => {
                 cueEnterEvent.html,
                 'html should be present for a cue with inline tags'
               ).toBeDefined();
-              expect(
-                typeof cueEnterEvent.html,
-                'html should be a string'
-              ).toBe('string');
+              expect(typeof cueEnterEvent.html, 'html should be a string').toBe(
+                'string'
+              );
               expect(
                 (cueEnterEvent.html as string).length,
                 'html should be non-empty'
@@ -338,7 +345,7 @@ export default (spec: TestScope) => {
             await startPlayerTest({}, async () => {
               await loadSourceConfig(sourceWithPositionedSubs);
               await callPlayer(async (player) => {
-                player.setSubtitleTrack('positioned-cues');
+                await player.setSubtitleTrack('positioned-cues');
                 player.play();
               });
               await callPlayerAndExpectEvent((player) => {
@@ -358,12 +365,9 @@ export default (spec: TestScope) => {
               const layout = cueExitEvent.layout as SubtitleCueLayout;
               expect(
                 layout.writingMode,
-                'writingMode should be horizontal'
-              ).toBe('horizontal');
-              expect(
-                (layout.line as any)?.value,
-                'line.value should be 85'
-              ).toBe(85);
+                'writingMode should be omitted for horizontal cues'
+              ).toBeUndefined();
+              expect(layout.line?.value, 'line.value should be 85').toBe(85);
               expect(layout.position, 'position should be 50').toBe(50);
 
               expect(
@@ -376,7 +380,130 @@ export default (spec: TestScope) => {
             });
           }
         );
+      });
+    }
 
+    if (Platform.OS === 'ios') {
+      spec.describe('iOS cue metadata fields', () => {
+        spec.it(
+          'CueEnter carries in-manifest WebVTT layout metadata',
+          async () => {
+            await startPlayerTest({}, async () => {
+              await loadSourceConfig(sourceWithInManifestPositionedSubs);
+              await callPlayer(async (player) => {
+                const subtitleTracks = await player.getAvailableSubtitles();
+                const subtitleTrack =
+                  subtitleTracks.find((track) => track.label === 'Debug') ??
+                  subtitleTracks.find((track) => track.identifier !== 'off');
+                expect(
+                  subtitleTrack?.identifier,
+                  'Positioned subtitle track should have an identifier'
+                ).toBeDefined();
+                if (!subtitleTrack?.identifier) {
+                  return;
+                }
+                await player.setSubtitleTrack(subtitleTrack.identifier);
+                player.play();
+              });
+              await callPlayerAndExpectEvent((player) => {
+                player.seek(1);
+              }, EventType.Seeked);
+
+              const cueEnterEvent: CueEnterEvent = await expectEvent(
+                FilteredEvent<CueEnterEvent>(
+                  EventType.CueEnter,
+                  (event) =>
+                    event.layout?.line?.value === 10 &&
+                    event.layout?.line?.unit === 'percent' &&
+                    event.layout?.position === 10 &&
+                    event.layout?.textAlign === 'start'
+                ),
+                30
+              );
+              expect(
+                cueEnterEvent.layout,
+                'CueEnter should expose cue layout'
+              ).toBeDefined();
+              const enterLayout = cueEnterEvent.layout as SubtitleCueLayout;
+              expect(
+                enterLayout.line?.value,
+                'CueEnter line value'
+              ).toBeCloseTo(10);
+              expect(enterLayout.line?.unit, 'CueEnter line unit').toBe(
+                'percent'
+              );
+              expect(enterLayout.position, 'CueEnter position').toBeCloseTo(10);
+              expect(enterLayout.positionAlign, 'CueEnter positionAlign').toBe(
+                'line-left'
+              );
+              expect(
+                enterLayout.size,
+                'CueEnter should omit default cue-box size'
+              ).toBeUndefined();
+              expect(enterLayout.textAlign, 'CueEnter textAlign').toBe('start');
+              expect(
+                enterLayout.writingMode,
+                'CueEnter writingMode should be omitted for horizontal cues'
+              ).toBeUndefined();
+            });
+          }
+        );
+
+        spec.it('CueEnter carries CEA-608 grid position metadata', async () => {
+          await startPlayerTest({}, async () => {
+            await loadSourceConfig(sourceWithCea608Captions);
+            await callPlayer(async (player) => {
+              const subtitleTracks = await player.getAvailableSubtitles();
+              const cea608Track = subtitleTracks.find(
+                (track: SubtitleTrack) => track.format === SubtitleFormat.CEA
+              );
+              expect(
+                cea608Track,
+                'CEA-608 track should be available'
+              ).toBeDefined();
+              expect(
+                cea608Track?.identifier,
+                'CEA-608 track should have an identifier'
+              ).toBeDefined();
+              if (!cea608Track?.identifier) {
+                return;
+              }
+              await player.setSubtitleTrack(cea608Track.identifier);
+              player.play();
+            });
+            await callPlayerAndExpectEvent((player) => {
+              player.seek(10);
+            }, EventType.Seeked);
+
+            const cueEnterEvent: CueEnterEvent = await expectEvent(
+              EventType.CueEnter,
+              30
+            );
+            const position = cueEnterEvent.cea608Position;
+            expect(
+              position,
+              'CueEnter should expose CEA-608 position'
+            ).toBeDefined();
+            expect(position?.rows, 'CEA-608 row count').toBe(15);
+            expect(position?.columns, 'CEA-608 column count').toBe(32);
+            expect(
+              position?.rowIndex,
+              'CEA-608 row index should be in range'
+            ).toBeGreaterThanOrEqual(0);
+            expect(
+              position?.rowIndex,
+              'CEA-608 row index should be below rows'
+            ).toBeSmallerThan(15);
+            expect(
+              position?.columnIndex,
+              'CEA-608 column index should be in range'
+            ).toBeGreaterThanOrEqual(0);
+            expect(
+              position?.columnIndex,
+              'CEA-608 column index should be below columns'
+            ).toBeSmallerThan(32);
+          });
+        });
       });
     }
 
@@ -398,8 +525,8 @@ export default (spec: TestScope) => {
           )!;
           expect(subtitleTrack).toNotBeNull();
 
-          await callPlayerAndExpectEvent((player) => {
-            player.setSubtitleTrack(subtitleTrack.identifier);
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.setSubtitleTrack(subtitleTrack.identifier);
           }, EventType.SubtitleChanged);
 
           const selectedSubtitle = await callPlayer((player) =>
@@ -414,8 +541,8 @@ export default (spec: TestScope) => {
             'Selected subtitle identifier should match the requested track'
           ).toBe(subtitleTrack.identifier);
 
-          await callPlayerAndExpectEvent((player) => {
-            player.setSubtitleTrack(undefined);
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.setSubtitleTrack(undefined);
           }, EventType.SubtitleChanged);
           const disabledSubtitle = await callPlayer((player) =>
             player.getSubtitleTrack()
