@@ -857,12 +857,32 @@ extension RCTConvert {
             "height": videoQuality.height,
             "width": videoQuality.width,
             "bitrate": videoQuality.bitrate,
+            "colorInfo": toJson(colorInfo: videoQuality.colorInfo),
         ]
         if let codec = videoQuality.codec {
             videoQualityDict["codec"] = codec
         }
 
         return videoQualityDict
+    }
+
+    static func toJson(colorInfo: VideoColorInfo) -> [String: Any] {
+        [
+            "dynamicRange": toJson(dynamicRange: colorInfo.dynamicRange),
+        ]
+    }
+
+    static func toJson(dynamicRange: DynamicRange) -> String {
+        switch dynamicRange {
+        case .sdr:
+            return "sdr"
+        case .hdr:
+            return "hdr"
+        case .unknown:
+            return "unknown"
+        @unknown default:
+            return "unknown"
+        }
     }
 
     static func userInterfaceType(_ json: Any?) -> UserInterfaceType? {
