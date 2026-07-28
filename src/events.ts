@@ -891,7 +891,7 @@ export interface CueEnterEvent extends Event {
    * Native cue region metadata.
    *
    * Forwarded only when the native SDK provides it. Built-in iOS/tvOS WebVTT parsing does
-   * not currently populate this field.
+   * not populate this field currently.
    *
    * @platform iOS, tvOS
    */
