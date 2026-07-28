@@ -33,12 +33,6 @@ const positionedSubtitleTrack: SideLoadedSubtitleTrack = {
   format: SubtitleFormat.VTT,
 };
 
-const sourceWithPositionedSubs: SourceConfig = {
-  url: Sources.artOfMotionHls.url!,
-  type: SourceType.HLS,
-  subtitleTracks: [positionedSubtitleTrack],
-};
-
 const sourceWithInManifestPositionedSubs: SourceConfig = {
   url: 'https://bitmovin-player-eu-west1-ci-input.s3.amazonaws.com/general/hls/sintel-different_attributes-subtitle/master-debug-short.m3u8',
   type: SourceType.HLS,
@@ -49,11 +43,21 @@ const sourceWithCea608Captions: SourceConfig = {
   type: SourceType.HLS,
 };
 
+function sourceWithSubtitleTrack(
+  subtitleTrack: SideLoadedSubtitleTrack
+): SourceConfig {
+  return {
+    url: Sources.artOfMotionHls.url!,
+    type: SourceType.HLS,
+    subtitleTracks: [subtitleTrack],
+  };
+}
+
 async function loadSideLoadedTrackAndSeek(
   subtitleTrack: SideLoadedSubtitleTrack,
   seekTime: number
 ) {
-  await loadSourceConfig(sourceWithPositionedSubs);
+  await loadSourceConfig(sourceWithSubtitleTrack(subtitleTrack));
   await callPlayer(async (player) => {
     await player.setSubtitleTrack(subtitleTrack.identifier);
     player.play();
