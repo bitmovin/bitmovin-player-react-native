@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Android and iOS/tvOS: Expose `VideoQuality.colorInfo.dynamicRange` (`sdr`, `hdr`, `unknown`) via the new `DynamicRange` enum
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to [`3.118.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31180)
