@@ -89,6 +89,12 @@
   - Include OS versions when support is version-gated, e.g. `@platform iOS 18+, tvOS 18+`.
   - Android TV does not need a separate platform distinction; treat it as Android.
   - If an API is available on all platforms, omit `@platform` entirely. Do not write `@platform iOS/tvOS/Android`.
+- Public API docs should use TypeDoc's `@defaultValue` tag for documented defaults on properties, accessors, and config fields.
+  - Prefer `@defaultValue \`false\``over prose like`Default is \`false\`.` because TypeDoc renders the tag explicitly.
+  - Put `@defaultValue` near other tags, before or next to `@platform`.
+  - Do not duplicate the same default in prose and `@defaultValue`.
+  - If defaults differ by platform, describe that inside `@defaultValue`, e.g. `@defaultValue iOS: \`1.0\`, Android: \`0.2\``.
+  - When touching public docs that already mention defaults in prose, convert the touched default to `@defaultValue` instead of preserving the older style.
 - Match native names exactly on both platforms:
   - iOS: `Name("PlayerModule")` in `ios/PlayerModule.swift:7`; Android: `Name("PlayerModule")` in `android/src/main/java/com/bitmovin/player/reactnative/PlayerModule.kt:23`.
 - Bridge views via view managers:
