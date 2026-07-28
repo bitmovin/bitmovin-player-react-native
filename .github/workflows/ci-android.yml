@@ -87,7 +87,7 @@ jobs:
         with:
           path: |
             example/android
-          key: ${{ runner.os }}-android-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.config.*', 'plugin/**', 'android/**') }}
+          key: ${{ runner.os }}-android-prebuild-${{ hashFiles('package.json', 'yarn.lock', 'expo-module.config.json', 'example/package.json', 'example/yarn.lock', 'example/app.config.*', 'plugin/**', 'android/**') }}
           restore-keys: |
             ${{ runner.os }}-android-prebuild-
 
@@ -101,9 +101,9 @@ jobs:
             example/android/.gradle
             example/android/app/build
             example/android/build
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'example/yarn.lock') }}
+          key: ${{ runner.os }}-gradle-example-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'example/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
+            ${{ runner.os }}-gradle-example-
 
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
@@ -155,7 +155,7 @@ jobs:
         with:
           path: |
             integration_test/android
-          key: ${{ runner.os }}-android-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.config.*', 'plugin/**', 'android/**') }}
+          key: ${{ runner.os }}-android-integration-prebuild-${{ hashFiles('package.json', 'yarn.lock', 'expo-module.config.json', 'integration_test/package.json', 'integration_test/yarn.lock', 'integration_test/app.config.*', 'plugin/**', 'android/**') }}
           restore-keys: |
             ${{ runner.os }}-android-integration-prebuild-
 
@@ -172,7 +172,6 @@ jobs:
           key: ${{ runner.os }}-gradle-integration-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'integration_test/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-gradle-integration-
-            ${{ runner.os }}-gradle-
 
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
@@ -224,7 +223,7 @@ jobs:
         with:
           path: |
             example/android
-          key: ${{ runner.os }}-android-tv-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.config.*', 'plugin/**', 'android/**') }}
+          key: ${{ runner.os }}-android-tv-prebuild-${{ hashFiles('package.json', 'yarn.lock', 'expo-module.config.json', 'example/package.json', 'example/yarn.lock', 'example/app.config.*', 'plugin/**', 'android/**') }}
           restore-keys: |
             ${{ runner.os }}-android-tv-prebuild-
 
@@ -241,7 +240,6 @@ jobs:
           key: ${{ runner.os }}-gradle-tv-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'example/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-gradle-tv-
-            ${{ runner.os }}-gradle-
 
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
