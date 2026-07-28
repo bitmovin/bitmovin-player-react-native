@@ -93,3 +93,4 @@
   - Views: add `Prop(...)`/`Events(...)` in native managers and extend `NativePlayerViewProps`.
   - Tests: extend integration tests; validate on at least one platform.
   - Naming: keep method/event names identical across TS, iOS, Android.
+- Example screens should reuse existing Bitmovin sample streams rather than introducing third-party test streams.
