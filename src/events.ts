@@ -758,8 +758,9 @@ export type SubtitleCueLayoutLine = { value: number; unit: 'line' | 'percent' };
 /**
  * Cue-box geometry converted to the shared React Native event shape.
  *
- * Platform-specific SDK values are converted to shared JS units/enums. Fields with automatic
- * or unset values, or values not applicable to a cue, are omitted.
+ * Platform-specific SDK values are converted to shared JS units/enums when the native cue
+ * exposes them. Fields with automatic or unset values, values not applicable to a cue, or
+ * values not exposed by the active native subtitle pipeline are omitted.
  */
 export interface SubtitleCueLayout {
   /**
@@ -807,7 +808,7 @@ export interface SubtitleCueLayout {
 }
 
 /**
- * Region metadata.
+ * Native cue region metadata, when provided by the platform.
  *
  * @platform iOS, tvOS
  */
@@ -883,11 +884,14 @@ export interface CueEnterEvent extends Event {
   /**
    * Cue-box geometry.
    *
-   * Present only when at least one concrete layout field is available.
+   * Present only when at least one concrete layout field is available from native cue data.
    */
   layout?: SubtitleCueLayout;
   /**
-   * Cue region metadata.
+   * Native cue region metadata.
+   *
+   * Forwarded only when the native SDK provides it. Built-in iOS/tvOS WebVTT parsing does
+   * not currently populate this field.
    *
    * @platform iOS, tvOS
    */
@@ -929,11 +933,14 @@ export interface CueExitEvent extends Event {
   /**
    * Cue-box geometry.
    *
-   * Present only when at least one concrete layout field is available.
+   * Present only when at least one concrete layout field is available from native cue data.
    */
   layout?: SubtitleCueLayout;
   /**
-   * Cue region metadata.
+   * Native cue region metadata.
+   *
+   * Forwarded only when the native SDK provides it. Built-in iOS/tvOS WebVTT parsing does
+   * not currently populate this field.
    *
    * @platform iOS, tvOS
    */

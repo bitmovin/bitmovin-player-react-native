@@ -4,7 +4,7 @@
 
 ### Added
 
-- iOS/tvOS: Expose cue metadata on `CueEnterEvent` and `CueExitEvent` via `layout`, `region`, `cea608Position`, and `html`
+- iOS/tvOS: Expose cue metadata on `CueEnterEvent` and `CueExitEvent` via `html`, `cea608Position`, and native cue `layout` or `region` metadata when available
 - Android and iOS/tvOS: Expose `VideoQuality.colorInfo.dynamicRange` (`sdr`, `hdr`, `unknown`) via the new `DynamicRange` enum
 
 ### Changed
