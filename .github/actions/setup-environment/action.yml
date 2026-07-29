@@ -43,7 +43,7 @@ runs:
 
     - name: Set up Gradle cache
       if: ${{ inputs.java == 'true' }}
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v6
       with:
         cache-read-only: ${{ github.ref != 'refs/heads/development' }}
 

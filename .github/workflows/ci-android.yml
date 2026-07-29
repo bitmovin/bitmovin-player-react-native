@@ -91,20 +91,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-android-prebuild-
 
-      - name: Setup Gradle Build Cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ${{ github.workspace }}/.gradle-ci
-            example/android/.gradle
-            example/android/app/build
-            example/android/build
-          key: ${{ runner.os }}-gradle-example-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'example/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-example-
-
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
         with:
@@ -159,20 +145,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-android-integration-prebuild-
 
-      - name: Setup Gradle Build Cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ${{ github.workspace }}/.gradle-ci
-            integration_test/android/.gradle
-            integration_test/android/app/build
-            integration_test/android/build
-          key: ${{ runner.os }}-gradle-integration-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'integration_test/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-integration-
-
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
         with:
@@ -226,20 +198,6 @@ jobs:
           key: ${{ runner.os }}-android-tv-prebuild-${{ hashFiles('package.json', 'yarn.lock', 'expo-module.config.json', 'example/package.json', 'example/yarn.lock', 'example/app.config.*', 'plugin/**', 'android/**') }}
           restore-keys: |
             ${{ runner.os }}-android-tv-prebuild-
-
-      - name: Setup Gradle Build Cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ${{ github.workspace }}/.gradle-ci
-            example/android/.gradle
-            example/android/app/build
-            example/android/build
-          key: ${{ runner.os }}-gradle-tv-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'example/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-tv-
 
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
