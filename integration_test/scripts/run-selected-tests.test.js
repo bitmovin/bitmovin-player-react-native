@@ -43,6 +43,13 @@ describe('parseTestArguments', () => {
       /--tags requires a comma-separated value/
     );
   });
+
+  it('rejects a tag selection containing only empty values', () => {
+    assert.throws(
+      () => parseTestArguments(['--tags', ' , ']),
+      /--tags requires at least one tag/
+    );
+  });
 });
 
 describe('createTestRun', () => {
@@ -87,6 +94,27 @@ describe('createTestRun', () => {
 
   it('rejects unsupported platforms', () => {
     assert.throws(() => createTestRun('windows', []), /Unsupported platform/);
+  });
+
+  it('rejects unknown tags', () => {
+    assert.throws(
+      () => createTestRun('android', ['--tags', 'captino']),
+      /Unknown test tag: captino/
+    );
+  });
+
+  it('rejects tags that do not apply to the selected platform', () => {
+    assert.throws(
+      () => createTestRun('android', ['--tags', 'cue-metadata']),
+      /Test tag cue-metadata is not available on android/
+    );
+  });
+
+  it('requires a matching tag for both platforms in a combined run', () => {
+    assert.throws(
+      () => createTestRun('all', ['--tags', 'cue-geometry']),
+      /No selected test tags are available on ios/
+    );
   });
 });
 

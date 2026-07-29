@@ -1,0 +1,14 @@
+{
+  "caption": {
+    "name": "caption",
+    "platforms": ["android", "ios"]
+  },
+  "cueGeometry": {
+    "name": "cue-geometry",
+    "platforms": ["android"]
+  },
+  "cueMetadata": {
+    "name": "cue-metadata",
+    "platforms": ["ios"]
+  }
+}

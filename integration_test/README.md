@@ -60,7 +60,8 @@ runs the complete test suite.
 
 To make another test group selectable, pass its tag as the third argument to
 `spec.describe`. Individual tests can instead receive a tag as the third
-argument to `spec.it`.
+argument to `spec.it`. Define tags and their supported platforms in
+`test-tags.json`.
 
 ## Architecture
 

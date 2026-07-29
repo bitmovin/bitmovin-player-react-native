@@ -12,6 +12,7 @@ import {
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 import { CueEnterEvent, CueExitEvent } from 'bitmovin-player-react-native';
+import testTags from '../test-tags.json';
 
 export default (spec: TestScope) => {
   // prettier-ignore
@@ -265,5 +266,5 @@ export default (spec: TestScope) => {
         });
       }
     );
-  }, 'caption');
+  }, testTags.caption.name);
 };

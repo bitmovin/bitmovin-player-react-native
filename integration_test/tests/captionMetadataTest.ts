@@ -21,6 +21,7 @@ import {
   SubtitleTrack,
 } from 'bitmovin-player-react-native';
 import { Image, Platform } from 'react-native';
+import testTags from '../test-tags.json';
 
 const positionedSubtitleTrack: SideLoadedSubtitleTrack = {
   identifier: 'positioned-cues',
@@ -161,7 +162,7 @@ export default (spec: TestScope) => {
             });
           }
         );
-      }, 'cue-geometry');
+      }, testTags.cueGeometry.name);
     }
 
     if (Platform.OS === 'ios') {
@@ -286,7 +287,7 @@ export default (spec: TestScope) => {
             ).toBeSmallerThan(32);
           });
         });
-      }, 'cue-metadata');
+      }, testTags.cueMetadata.name);
     }
   });
 };

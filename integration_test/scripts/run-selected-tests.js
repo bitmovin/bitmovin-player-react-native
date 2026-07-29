@@ -1,18 +1,52 @@
 #!/usr/bin/env node
 
 const { spawnSync } = require('node:child_process');
+const testTags = require('../test-tags.json');
 
 const supportedPlatforms = new Set(['all', 'android', 'ios']);
+const availableTestTags = new Map(
+  Object.values(testTags).map(({ name, platforms }) => [name, platforms])
+);
 
 function appendTags(tags, value) {
   if (!value || value.startsWith('--')) {
     throw new Error('--tags requires a comma-separated value');
   }
 
-  for (const tag of value.split(',')) {
-    const trimmedTag = tag.trim();
-    if (trimmedTag && !tags.includes(trimmedTag)) {
-      tags.push(trimmedTag);
+  const parsedTags = value
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+  if (parsedTags.length === 0) {
+    throw new Error('--tags requires at least one tag');
+  }
+
+  for (const tag of parsedTags) {
+    if (!tags.includes(tag)) {
+      tags.push(tag);
+    }
+  }
+}
+
+function validateTags(tags, platform) {
+  for (const tag of tags) {
+    const tagPlatforms = availableTestTags.get(tag);
+    if (!tagPlatforms) {
+      throw new Error(`Unknown test tag: ${tag}`);
+    }
+    if (platform !== 'all' && !tagPlatforms.includes(platform)) {
+      throw new Error(`Test tag ${tag} is not available on ${platform}`);
+    }
+  }
+
+  if (platform === 'all') {
+    for (const target of ['android', 'ios']) {
+      const hasMatchingTag = tags.some((tag) =>
+        availableTestTags.get(tag).includes(target)
+      );
+      if (!hasMatchingTag) {
+        throw new Error(`No selected test tags are available on ${target}`);
+      }
     }
   }
 }
@@ -43,6 +77,7 @@ function createTestRun(platform, testArguments) {
   }
 
   const { tags, forwardedArguments } = parseTestArguments(testArguments);
+  validateTags(tags, platform);
   const environment =
     tags.length > 0 ? { EXPO_PUBLIC_CAVY_ONLY_TAGS: tags.join(',') } : {};
   const platforms = platform === 'all' ? ['android', 'ios'] : [platform];
