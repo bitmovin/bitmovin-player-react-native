@@ -42,6 +42,26 @@ yarn integration-test test:android # Run tests on Android emulator
 yarn integration-test test # Run tests on both Android emulator and iOS simulator
 ```
 
+Run only tests matching one or more comma-separated Cavy tags:
+
+```sh
+yarn integration-test test:android --tags caption,cue-geometry
+yarn integration-test test:ios --tags caption,cue-metadata
+```
+
+The available tags are:
+
+- `caption` — general caption playback and event coverage
+- `cue-geometry` — Android cue geometry coverage
+- `cue-metadata` — iOS cue metadata coverage
+
+Arguments other than `--tags` are forwarded to `cavy-cli`. Omitting `--tags`
+runs the complete test suite.
+
+To make another test group selectable, pass its tag as the third argument to
+`spec.describe`. Individual tests can instead receive a tag as the third
+argument to `spec.it`.
+
 ## Architecture
 
 This integration test app is built as an Expo application using:

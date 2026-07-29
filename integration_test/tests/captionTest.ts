@@ -14,6 +14,7 @@ import { expect } from './helper/Expect';
 import { CueEnterEvent, CueExitEvent } from 'bitmovin-player-react-native';
 
 export default (spec: TestScope) => {
+  // prettier-ignore
   spec.describe('playing captions', () => {
     spec.it('emits CueEnter and CueExit events', async () => {
       await startPlayerTest({}, async () => {
@@ -264,5 +265,5 @@ export default (spec: TestScope) => {
         });
       }
     );
-  });
+  }, 'caption');
 };
