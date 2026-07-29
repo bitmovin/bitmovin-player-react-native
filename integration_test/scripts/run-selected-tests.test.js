@@ -4,6 +4,7 @@ const { describe, it } = require('node:test');
 const {
   createProcessEnvironment,
   createTestRun,
+  executeTestRun,
   parseTestArguments,
 } = require('./run-selected-tests');
 
@@ -129,6 +130,83 @@ describe('createProcessEnvironment', () => {
         {}
       ),
       { PATH: '/bin' }
+    );
+  });
+});
+
+describe('executeTestRun', () => {
+  it('passes the selected tags to every command', () => {
+    const calls = [];
+    const executeCommand = (command, commandArguments, options) => {
+      calls.push({ command, commandArguments, options });
+      return { status: 0 };
+    };
+
+    assert.equal(
+      executeTestRun('android', ['--tags', 'caption'], executeCommand, {
+        PATH: '/bin',
+      }),
+      0
+    );
+    assert.deepEqual(calls, [
+      {
+        command: 'yarn',
+        commandArguments: ['stop-test:android'],
+        options: {
+          env: {
+            EXPO_PUBLIC_CAVY_ONLY_TAGS: 'caption',
+            PATH: '/bin',
+          },
+          stdio: 'inherit',
+        },
+      },
+      {
+        command: 'yarn',
+        commandArguments: ['start-test:android'],
+        options: {
+          env: {
+            EXPO_PUBLIC_CAVY_ONLY_TAGS: 'caption',
+            PATH: '/bin',
+          },
+          stdio: 'inherit',
+        },
+      },
+    ]);
+  });
+
+  it('stops after the first failed command and preserves its status', () => {
+    let callCount = 0;
+    const executeCommand = () => {
+      callCount += 1;
+      return { status: callCount === 3 ? 42 : 0 };
+    };
+
+    assert.equal(
+      executeTestRun('all', ['--tags', 'caption'], executeCommand, process.env),
+      42
+    );
+    assert.equal(callCount, 3);
+  });
+
+  it('throws command execution errors', () => {
+    const executionError = new Error('spawn failed');
+
+    assert.throws(
+      () =>
+        executeTestRun(
+          'ios',
+          [],
+          () => ({ error: executionError, status: null }),
+          process.env
+        ),
+      executionError
+    );
+  });
+
+  it('returns a failure when a command exits without a status', () => {
+    assert.equal(
+      executeTestRun('ios', [], () => ({ status: null }), process.env),
+      1
     );
   });
 });

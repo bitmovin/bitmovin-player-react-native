@@ -104,12 +104,20 @@ function createProcessEnvironment(baseEnvironment, testEnvironment) {
   return processEnvironment;
 }
 
-function run(platform, testArguments) {
+function executeTestRun(
+  platform,
+  testArguments,
+  executeCommand = spawnSync,
+  baseEnvironment = process.env
+) {
   const { commands, environment } = createTestRun(platform, testArguments);
-  const childEnvironment = createProcessEnvironment(process.env, environment);
+  const childEnvironment = createProcessEnvironment(
+    baseEnvironment,
+    environment
+  );
 
   for (const [command, commandArguments] of commands) {
-    const result = spawnSync(command, commandArguments, {
+    const result = executeCommand(command, commandArguments, {
       env: childEnvironment,
       stdio: 'inherit',
     });
@@ -118,25 +126,27 @@ function run(platform, testArguments) {
       throw result.error;
     }
     if (result.status !== 0) {
-      process.exit(result.status ?? 1);
+      return result.status ?? 1;
     }
   }
+
+  return 0;
 }
 
 module.exports = {
   createProcessEnvironment,
   createTestRun,
+  executeTestRun,
   parseTestArguments,
-  run,
 };
 
 if (require.main === module) {
   const [platform, ...testArguments] = process.argv.slice(2);
 
   try {
-    run(platform, testArguments);
+    process.exitCode = executeTestRun(platform, testArguments);
   } catch (error) {
     console.error(error.message);
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
