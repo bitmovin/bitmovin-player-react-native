@@ -49,6 +49,15 @@ yarn integration-test test:android --tags caption,cue-geometry
 yarn integration-test test:ios --tags caption,cue-metadata
 ```
 
+When running both platforms, the selection must include at least one tag
+supported by Android and at least one supported by iOS. A shared tag can cover
+both platforms, or platform-specific tags can be combined:
+
+```sh
+yarn integration-test test --tags caption
+yarn integration-test test --tags cue-geometry,cue-metadata
+```
+
 The available tags are:
 
 - `caption` — general caption playback and event coverage
