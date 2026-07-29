@@ -1,5 +1,6 @@
 import AdvertisingTest from './advertisingTest';
 import audioTrackTest from './audioTrackTest';
+import captionMetadataTest from './captionMetadataTest';
 import CaptionTest from './captionTest';
 import ErrorTest from './errorTest';
 import LoadingTest from './loadingTest';
@@ -12,6 +13,7 @@ import videoQualityTest from './videoQualityTest';
 export default [
   AdvertisingTest,
   CaptionTest,
+  captionMetadataTest,
   ErrorTest,
   LoadingTest,
   MediaControlsTest,
