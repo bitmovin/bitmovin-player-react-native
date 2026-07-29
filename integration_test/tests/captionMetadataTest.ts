@@ -110,8 +110,7 @@ function expectCueHtml(event: CueEnterEvent | CueExitEvent, eventName: string) {
 export default (spec: TestScope) => {
   spec.describe('caption metadata', () => {
     if (Platform.OS === 'android') {
-      // prettier-ignore
-      spec.describe('Android cue geometry fields', () => {
+      const defineAndroidCueGeometryTests = () => {
         spec.it(
           'CueEnter layout field reflects geometry authored in the VTT',
           async () => {
@@ -162,12 +161,16 @@ export default (spec: TestScope) => {
             });
           }
         );
-      }, testTags.cueGeometry.name);
+      };
+      spec.describe(
+        'Android cue geometry fields',
+        defineAndroidCueGeometryTests,
+        testTags.cueGeometry.name
+      );
     }
 
     if (Platform.OS === 'ios') {
-      // prettier-ignore
-      spec.describe('iOS cue metadata fields', () => {
+      const defineIosCueMetadataTests = () => {
         spec.it(
           'CueEnter carries in-manifest WebVTT layout metadata',
           async () => {
@@ -287,7 +290,12 @@ export default (spec: TestScope) => {
             ).toBeSmallerThan(32);
           });
         });
-      }, testTags.cueMetadata.name);
+      };
+      spec.describe(
+        'iOS cue metadata fields',
+        defineIosCueMetadataTests,
+        testTags.cueMetadata.name
+      );
     }
   });
 };

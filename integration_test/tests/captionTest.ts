@@ -15,8 +15,7 @@ import { CueEnterEvent, CueExitEvent } from 'bitmovin-player-react-native';
 import testTags from '../test-tags.json';
 
 export default (spec: TestScope) => {
-  // prettier-ignore
-  spec.describe('playing captions', () => {
+  const defineCaptionTests = () => {
     spec.it('emits CueEnter and CueExit events', async () => {
       await startPlayerTest({}, async () => {
         await loadSourceConfig(Sources.sintel);
@@ -266,5 +265,6 @@ export default (spec: TestScope) => {
         });
       }
     );
-  }, testTags.caption.name);
+  };
+  spec.describe('playing captions', defineCaptionTests, testTags.caption.name);
 };
