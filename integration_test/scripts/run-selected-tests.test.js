@@ -93,6 +93,18 @@ describe('createTestRun', () => {
     });
   });
 
+  it('runs the complete combined suite when tags are omitted', () => {
+    assert.deepEqual(createTestRun('all', []), {
+      environment: {},
+      commands: [
+        ['yarn', ['stop-test:android']],
+        ['yarn', ['stop-test:ios']],
+        ['yarn', ['start-test:android']],
+        ['yarn', ['start-test:ios']],
+      ],
+    });
+  });
+
   it('rejects unsupported platforms', () => {
     assert.throws(() => createTestRun('windows', []), /Unsupported platform/);
   });

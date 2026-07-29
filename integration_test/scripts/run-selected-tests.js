@@ -29,6 +29,10 @@ function appendTags(tags, value) {
 }
 
 function validateTags(tags, platform) {
+  if (tags.length === 0) {
+    return;
+  }
+
   for (const tag of tags) {
     const tagPlatforms = availableTestTags.get(tag);
     if (!tagPlatforms) {
