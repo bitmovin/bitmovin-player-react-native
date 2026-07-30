@@ -33,6 +33,17 @@ describe('tagTestSuite', () => {
     assert.deepEqual(registeredTags, ['playback']);
   });
 
+  it('assigns the default tag to a top-level test', () => {
+    const { registeredTags, scope } = createScope();
+    const registerSuite = tagTestSuite((spec) => {
+      spec.it('plays', async () => {});
+    }, 'playback');
+
+    registerSuite(scope);
+
+    assert.deepEqual(registeredTags, ['playback']);
+  });
+
   it('preserves an explicit subgroup tag', () => {
     const { registeredTags, scope } = createScope();
     const registerSuite = tagTestSuite((spec) => {
