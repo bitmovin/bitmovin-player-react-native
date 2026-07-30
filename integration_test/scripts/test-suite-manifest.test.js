@@ -1,7 +1,11 @@
 const assert = require('node:assert/strict');
 const { describe, it } = require('node:test');
 
-const { availableTestTags, createSpecs, testSelectors } = require('../tests');
+const {
+  availableTestTags,
+  createSpecs,
+  cueMetadataSelector,
+} = require('../tests');
 
 describe('test suite manifest', () => {
   it('exposes every suite and focused selector without loading React Native', () => {
@@ -20,7 +24,6 @@ describe('test suite manifest', () => {
       { name: 'video-quality', platforms: ['android', 'ios'] },
     ]);
     assert.equal(typeof createSpecs, 'function');
-    assert.equal(testSelectors.cueGeometry, 'cue-geometry');
-    assert.equal(testSelectors.cueMetadata, 'cue-metadata');
+    assert.equal(cueMetadataSelector, 'cue-metadata');
   });
 });

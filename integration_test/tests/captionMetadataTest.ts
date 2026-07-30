@@ -21,7 +21,7 @@ import {
   SubtitleTrack,
 } from 'bitmovin-player-react-native';
 import { Image, Platform } from 'react-native';
-import { testSelectors } from '.';
+import { cueMetadataSelector } from '.';
 
 const positionedSubtitleTrack: SideLoadedSubtitleTrack = {
   identifier: 'positioned-cues',
@@ -110,7 +110,7 @@ function expectCueHtml(event: CueEnterEvent | CueExitEvent, eventName: string) {
 export default (spec: TestScope) => {
   spec.describe('caption metadata', () => {
     if (Platform.OS === 'android') {
-      const defineAndroidCueGeometryTests = () => {
+      spec.describe('Android cue geometry fields', () => {
         spec.it(
           'CueEnter layout field reflects geometry authored in the VTT',
           async () => {
@@ -161,16 +161,11 @@ export default (spec: TestScope) => {
             });
           }
         );
-      };
-      spec.describe(
-        'Android cue geometry fields',
-        defineAndroidCueGeometryTests,
-        testSelectors.cueGeometry
-      );
+      });
     }
 
     if (Platform.OS === 'ios') {
-      const defineIosCueGeometryTests = () => {
+      spec.describe('iOS cue geometry fields', () => {
         spec.it(
           'CueEnter carries in-manifest WebVTT layout metadata',
           async () => {
@@ -234,12 +229,7 @@ export default (spec: TestScope) => {
             });
           }
         );
-      };
-      spec.describe(
-        'iOS cue geometry fields',
-        defineIosCueGeometryTests,
-        testSelectors.cueGeometry
-      );
+      });
 
       const defineIosCueMetadataTests = () => {
         spec.it('CueEnter carries CEA-608 grid position metadata', async () => {
@@ -301,7 +291,7 @@ export default (spec: TestScope) => {
       spec.describe(
         'iOS cue metadata fields',
         defineIosCueMetadataTests,
-        testSelectors.cueMetadata
+        cueMetadataSelector
       );
     }
   });

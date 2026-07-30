@@ -8,6 +8,6 @@ export const availableTestTags: Array<{
   platforms: TestPlatform[];
 }>;
 
-export const testSelectors: Readonly<Record<string, string>>;
+export const cueMetadataSelector: string;
 
 export function createSpecs(): TestSuite[];

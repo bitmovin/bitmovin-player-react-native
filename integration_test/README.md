@@ -83,8 +83,7 @@ runs the complete test suite.
 and platform support. Registered test modules receive their suite selector
 automatically. To make a focused group selectable independently, add it to the
 same manifest and pass its exported selector as the third argument to
-`spec.describe`. Individual tests can instead receive a selector as the third
-argument to `spec.it`.
+`spec.describe`.
 
 ## Architecture
 

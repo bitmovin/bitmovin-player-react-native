@@ -14,7 +14,7 @@ import { expect } from './helper/Expect';
 import { CueEnterEvent, CueExitEvent } from 'bitmovin-player-react-native';
 
 export default (spec: TestScope) => {
-  const defineCaptionTests = () => {
+  spec.describe('playing captions', () => {
     spec.it('emits CueEnter and CueExit events', async () => {
       await startPlayerTest({}, async () => {
         await loadSourceConfig(Sources.sintel);
@@ -264,6 +264,5 @@ export default (spec: TestScope) => {
         });
       }
     );
-  };
-  spec.describe('playing captions', defineCaptionTests);
+  });
 };

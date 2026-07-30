@@ -1,120 +1,69 @@
 const { tagTestSuite } = require('../scripts/tag-test-suite');
 
 const androidAndIos = ['android', 'ios'];
+const iosOnly = ['ios'];
+const cueMetadataSelector = 'cue-metadata';
 
-const testSelectors = Object.freeze({
-  advertising: 'advertising',
-  audioTrack: 'audio-track',
-  caption: 'caption',
-  cueGeometry: 'cue-geometry',
-  cueMetadata: 'cue-metadata',
-  error: 'error',
-  loading: 'loading',
-  mediaControls: 'media-controls',
-  metadataId3: 'metadata-id3',
-  playback: 'playback',
-  unloading: 'unloading',
-  videoQuality: 'video-quality',
-});
+function testSuite(name, platforms, load, additionalSelectors = []) {
+  return { name, platforms, load, additionalSelectors };
+}
 
 const testRegistrations = [
-  {
-    defaultSelector: {
-      name: testSelectors.advertising,
-      platforms: androidAndIos,
-    },
-    load: () => require('./advertisingTest').default,
-  },
-  {
-    defaultSelector: {
-      name: testSelectors.caption,
-      platforms: androidAndIos,
-    },
-    load: () => require('./captionTest').default,
-  },
-  {
-    focusedSelectors: [
-      { name: testSelectors.cueGeometry, platforms: androidAndIos },
-      { name: testSelectors.cueMetadata, platforms: ['ios'] },
-    ],
-    load: () => require('./captionMetadataTest').default,
-  },
-  {
-    defaultSelector: {
-      name: testSelectors.error,
-      platforms: androidAndIos,
-    },
-    load: () => require('./errorTest').default,
-  },
-  {
-    defaultSelector: {
-      name: testSelectors.loading,
-      platforms: androidAndIos,
-    },
-    load: () => require('./loadingTest').default,
-  },
-  {
-    defaultSelector: {
-      name: testSelectors.mediaControls,
-      platforms: ['ios'],
-    },
-    load: () => require('./mediaControlsTest').default,
-  },
-  {
-    defaultSelector: {
-      name: testSelectors.metadataId3,
-      platforms: androidAndIos,
-    },
-    load: () => require('./metadataId3Test').default,
-  },
-  {
-    defaultSelector: {
-      name: testSelectors.playback,
-      platforms: androidAndIos,
-    },
-    load: () => require('./playbackTest').default,
-  },
-  {
-    defaultSelector: {
-      name: testSelectors.unloading,
-      platforms: androidAndIos,
-    },
-    load: () => require('./unloadingTest').default,
-  },
-  {
-    defaultSelector: {
-      name: testSelectors.audioTrack,
-      platforms: androidAndIos,
-    },
-    load: () => require('./audioTrackTest').default,
-  },
-  {
-    defaultSelector: {
-      name: testSelectors.videoQuality,
-      platforms: androidAndIos,
-    },
-    load: () => require('./videoQualityTest').default,
-  },
+  testSuite(
+    'advertising',
+    androidAndIos,
+    () => require('./advertisingTest').default
+  ),
+  testSuite('caption', androidAndIos, () => require('./captionTest').default),
+  testSuite(
+    'cue-geometry',
+    androidAndIos,
+    () => require('./captionMetadataTest').default,
+    [{ name: cueMetadataSelector, platforms: iosOnly }]
+  ),
+  testSuite('error', androidAndIos, () => require('./errorTest').default),
+  testSuite('loading', androidAndIos, () => require('./loadingTest').default),
+  testSuite(
+    'media-controls',
+    iosOnly,
+    () => require('./mediaControlsTest').default
+  ),
+  testSuite(
+    'metadata-id3',
+    androidAndIos,
+    () => require('./metadataId3Test').default
+  ),
+  testSuite('playback', androidAndIos, () => require('./playbackTest').default),
+  testSuite(
+    'unloading',
+    androidAndIos,
+    () => require('./unloadingTest').default
+  ),
+  testSuite(
+    'audio-track',
+    androidAndIos,
+    () => require('./audioTrackTest').default
+  ),
+  testSuite(
+    'video-quality',
+    androidAndIos,
+    () => require('./videoQualityTest').default
+  ),
 ];
 
 const availableTestTags = testRegistrations.flatMap(
-  ({ defaultSelector, focusedSelectors = [] }) => [
-    ...(defaultSelector ? [defaultSelector] : []),
-    ...focusedSelectors,
+  ({ name, platforms, additionalSelectors }) => [
+    { name, platforms },
+    ...additionalSelectors,
   ]
 );
 
 function createSpecs() {
-  return testRegistrations.map(({ defaultSelector, load }) => {
-    const registerSuite = load();
-    return defaultSelector
-      ? tagTestSuite(registerSuite, defaultSelector.name)
-      : registerSuite;
-  });
+  return testRegistrations.map(({ name, load }) => tagTestSuite(load(), name));
 }
 
 module.exports = {
   availableTestTags,
   createSpecs,
-  testSelectors,
+  cueMetadataSelector,
 };
