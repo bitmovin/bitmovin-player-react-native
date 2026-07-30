@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Tester, TestHookStore } from 'cavy';
-import Specs from '../tests';
+import { createSpecs } from '../tests';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 import TestablePlayer from './TestablePlayer';
 
 const testHookStore = new TestHookStore();
+const Specs = createSpecs();
 const selectedTestTags = process.env.EXPO_PUBLIC_CAVY_ONLY_TAGS?.split(',')
   .map((tag) => tag.trim())
   .filter(Boolean);

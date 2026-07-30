@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 const { spawnSync } = require('node:child_process');
-const testTags = require('../test-tags.json');
+const { availableTestTags: testTags } = require('../tests');
 
 const supportedPlatforms = new Set(['all', 'android', 'ios']);
 const availableTestTags = new Map(
-  Object.values(testTags).map(({ name, platforms }) => [name, platforms])
+  testTags.map(({ name, platforms }) => [name, platforms])
 );
 
 function appendTags(tags, value) {

@@ -12,7 +12,6 @@ import {
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 import { CueEnterEvent, CueExitEvent } from 'bitmovin-player-react-native';
-import testTags from '../test-tags.json';
 
 export default (spec: TestScope) => {
   const defineCaptionTests = () => {
@@ -266,5 +265,5 @@ export default (spec: TestScope) => {
       }
     );
   };
-  spec.describe('playing captions', defineCaptionTests, testTags.caption.name);
+  spec.describe('playing captions', defineCaptionTests);
 };

@@ -21,7 +21,7 @@ import {
   SubtitleTrack,
 } from 'bitmovin-player-react-native';
 import { Image, Platform } from 'react-native';
-import testTags from '../test-tags.json';
+import { testSelectors } from '.';
 
 const positionedSubtitleTrack: SideLoadedSubtitleTrack = {
   identifier: 'positioned-cues',
@@ -165,7 +165,7 @@ export default (spec: TestScope) => {
       spec.describe(
         'Android cue geometry fields',
         defineAndroidCueGeometryTests,
-        testTags.cueGeometry.name
+        testSelectors.cueGeometry
       );
     }
 
@@ -238,7 +238,7 @@ export default (spec: TestScope) => {
       spec.describe(
         'iOS cue geometry fields',
         defineIosCueGeometryTests,
-        testTags.cueGeometry.name
+        testSelectors.cueGeometry
       );
 
       const defineIosCueMetadataTests = () => {
@@ -301,7 +301,7 @@ export default (spec: TestScope) => {
       spec.describe(
         'iOS cue metadata fields',
         defineIosCueMetadataTests,
-        testTags.cueMetadata.name
+        testSelectors.cueMetadata
       );
     }
   });

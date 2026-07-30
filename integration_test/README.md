@@ -79,11 +79,12 @@ Focused selectors are also available for test groups within a larger feature:
 Arguments other than `--tags` are forwarded to `cavy-cli`. Omitting `--tags`
 runs the complete test suite.
 
-Test modules registered in `tests/index.ts` receive their suite selector
-automatically. To make a focused group selectable independently, pass its tag
-as the third argument to `spec.describe`. Individual tests can instead receive
-a tag as the third argument to `spec.it`. Define selectors and their supported
-platforms in `test-tags.json`.
+`tests/index.js` is the source of truth for suite registration, selector names,
+and platform support. Registered test modules receive their suite selector
+automatically. To make a focused group selectable independently, add it to the
+same manifest and pass its exported selector as the third argument to
+`spec.describe`. Individual tests can instead receive a selector as the third
+argument to `spec.it`.
 
 ## Architecture
 
