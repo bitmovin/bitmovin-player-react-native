@@ -91,6 +91,18 @@ describe('createTestRun', () => {
     });
   });
 
+  it('runs multiple unrelated suites as a union', () => {
+    assert.deepEqual(createTestRun('ios', ['--tags', 'playback,unloading']), {
+      environment: {
+        EXPO_PUBLIC_CAVY_ONLY_TAGS: 'playback,unloading',
+      },
+      commands: [
+        ['yarn', ['stop-test:ios']],
+        ['yarn', ['start-test:ios']],
+      ],
+    });
+  });
+
   it('creates the existing combined Android and iOS command sequence', () => {
     assert.deepEqual(createTestRun('all', ['--tags', 'caption']), {
       environment: {

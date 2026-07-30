@@ -42,11 +42,11 @@ yarn integration-test test:android # Run tests on Android emulator
 yarn integration-test test # Run tests on both Android emulator and iOS simulator
 ```
 
-Run only tests matching one or more comma-separated Cavy tags:
+Run one or more test suites by passing their comma-separated selectors:
 
 ```sh
-yarn integration-test test:android --tags caption,cue-geometry
-yarn integration-test test:ios --tags caption,cue-geometry
+yarn integration-test test:android --tags playback
+yarn integration-test test:ios --tags playback,unloading
 ```
 
 When running both platforms, the selection must include at least one tag
@@ -54,23 +54,36 @@ supported by Android and at least one supported by iOS. A shared tag can cover
 both platforms, or platform-specific tags can be combined:
 
 ```sh
-yarn integration-test test --tags caption
-yarn integration-test test --tags cue-geometry
+yarn integration-test test --tags playback
+yarn integration-test test --tags advertising,media-controls
 ```
 
-The available tags are:
+The available suite selectors are:
 
+- `advertising` — advertising configuration, scheduling, playback, and errors
+- `audio-track` — audio track events and properties
 - `caption` — general caption playback and event coverage
+- `error` — player error events and network details
+- `loading` — source loading and download events
+- `media-controls` — iOS media controls configuration and runtime changes
+- `metadata-id3` — Android and iOS ID3 metadata serialization
+- `playback` — play, pause, time updates, and playback completion
+- `unloading` — source unloading events and player state
+- `video-quality` — video quality events and properties
+
+Focused selectors are also available for test groups within a larger feature:
+
 - `cue-geometry` — Android and iOS cue geometry coverage
 - `cue-metadata` — iOS cue metadata coverage
 
 Arguments other than `--tags` are forwarded to `cavy-cli`. Omitting `--tags`
 runs the complete test suite.
 
-To make another test group selectable, pass its tag as the third argument to
-`spec.describe`. Individual tests can instead receive a tag as the third
-argument to `spec.it`. Define tags and their supported platforms in
-`test-tags.json`.
+Test modules registered in `tests/index.ts` receive their suite selector
+automatically. To make a focused group selectable independently, pass its tag
+as the third argument to `spec.describe`. Individual tests can instead receive
+a tag as the third argument to `spec.it`. Define selectors and their supported
+platforms in `test-tags.json`.
 
 ## Architecture
 

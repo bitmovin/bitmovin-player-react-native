@@ -9,17 +9,19 @@ import metadataId3Test from './metadataId3Test';
 import PlaybackTest from './playbackTest';
 import UnloadingTest from './unloadingTest';
 import videoQualityTest from './videoQualityTest';
+import testTags from '../test-tags.json';
+import { tagTestSuite } from '../scripts/tag-test-suite';
 
 export default [
-  AdvertisingTest,
-  CaptionTest,
+  tagTestSuite(AdvertisingTest, testTags.advertising.name),
+  tagTestSuite(CaptionTest, testTags.caption.name),
   captionMetadataTest,
-  ErrorTest,
-  LoadingTest,
-  MediaControlsTest,
-  metadataId3Test,
-  PlaybackTest,
-  UnloadingTest,
-  audioTrackTest,
-  videoQualityTest,
+  tagTestSuite(ErrorTest, testTags.error.name),
+  tagTestSuite(LoadingTest, testTags.loading.name),
+  tagTestSuite(MediaControlsTest, testTags.mediaControls.name),
+  tagTestSuite(metadataId3Test, testTags.metadataId3.name),
+  tagTestSuite(PlaybackTest, testTags.playback.name),
+  tagTestSuite(UnloadingTest, testTags.unloading.name),
+  tagTestSuite(audioTrackTest, testTags.audioTrack.name),
+  tagTestSuite(videoQualityTest, testTags.videoQuality.name),
 ];

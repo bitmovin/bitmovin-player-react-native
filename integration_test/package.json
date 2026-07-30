@@ -14,7 +14,7 @@
     "test": "node scripts/run-selected-tests.js all",
     "check:runner": "yarn lint:runner && yarn test:runner",
     "lint:runner": "eslint scripts --ext .js --quiet",
-    "test:runner": "node --test scripts/run-selected-tests.test.js",
+    "test:runner": "node --test scripts/*.test.js",
     "stop-packager": "./scripts/stop-packager.sh",
     "stop-test:android": "./scripts/stop-test-android.sh",
     "prestart-test:ios": "yarn patch-ios-build",
