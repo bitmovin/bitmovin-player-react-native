@@ -33,7 +33,7 @@ describe('tagTestSuite', () => {
     assert.deepEqual(registeredTags, ['playback']);
   });
 
-  it('assigns the default tag to a top-level test', () => {
+  it('leaves tests outside describe untagged', () => {
     const { registeredTags, scope } = createScope();
     const registerSuite = tagTestSuite((spec) => {
       spec.it('plays', async () => {});
@@ -41,7 +41,7 @@ describe('tagTestSuite', () => {
 
     registerSuite(scope);
 
-    assert.deepEqual(registeredTags, ['playback']);
+    assert.deepEqual(registeredTags, [undefined]);
   });
 
   it('preserves an explicit subgroup tag', () => {

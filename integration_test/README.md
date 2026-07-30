@@ -80,10 +80,10 @@ Arguments other than `--tags` are forwarded to `cavy-cli`. Omitting `--tags`
 runs the complete test suite.
 
 `tests/index.js` is the source of truth for suite registration, selector names,
-and platform support. Registered test modules receive their suite selector
-automatically. To make a focused group selectable independently, add it to the
-same manifest and pass its exported selector as the third argument to
-`spec.describe`.
+and platform support. Tests must be registered inside `spec.describe`; those
+groups receive their suite selector automatically. To make a focused group
+selectable independently, add it to the same manifest and pass its exported
+selector as the third argument to `spec.describe`.
 
 ## Architecture
 
