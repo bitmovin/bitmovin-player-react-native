@@ -81,16 +81,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Cache Android Prebuild
-        id: android-prebuild-cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            example/android
-          key: ${{ runner.os }}-android-prebuild-${{ hashFiles('package.json', 'yarn.lock', 'expo-module.config.json', 'example/package.json', 'example/yarn.lock', 'example/app.config.*', 'plugin/**', 'android/**') }}
-          restore-keys: |
-            ${{ runner.os }}-android-prebuild-
-
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
         with:
@@ -99,9 +89,8 @@ jobs:
           subprojects: true
           skip-prebuild: true
 
-      - name: Prebuild Android Example (on cache miss)
-        if: ${{ steps.android-prebuild-cache.outputs.cache-hit != 'true' }}
-        run: .github/scripts/smart-prebuild.sh example
+      - name: Prebuild Android Example
+        run: yarn example prebuild --clean --platform android
 
       - name: Build Android example
         id: build
@@ -118,32 +107,12 @@ jobs:
       - name: Report build time
         run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
 
-      - name: Upload build cache artifacts
-        if: success()
-        uses: actions/upload-artifact@v7
-        with:
-          name: android-example-build-cache
-          path: |
-            ~/.gradle/caches/build-cache-*
-            example/android/app/build/intermediates
-          retention-days: 1
-
   test-build-android-integration-tests:
     name: Build Android Integration Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-
-      - name: Cache Android Integration Prebuild
-        id: android-integration-prebuild-cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            integration_test/android
-          key: ${{ runner.os }}-android-integration-prebuild-${{ hashFiles('package.json', 'yarn.lock', 'expo-module.config.json', 'integration_test/package.json', 'integration_test/yarn.lock', 'integration_test/app.config.*', 'plugin/**', 'android/**') }}
-          restore-keys: |
-            ${{ runner.os }}-android-integration-prebuild-
 
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
@@ -153,9 +122,8 @@ jobs:
           subprojects: true
           skip-prebuild: true
 
-      - name: Prebuild Android Integration (on cache miss)
-        if: ${{ steps.android-integration-prebuild-cache.outputs.cache-hit != 'true' }}
-        run: .github/scripts/smart-prebuild.sh integration-test
+      - name: Prebuild Android Integration
+        run: yarn integration-test prebuild --clean --platform android
 
       - name: Build Android integration test host app
         id: build
@@ -172,32 +140,12 @@ jobs:
       - name: Report build time
         run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
 
-      - name: Upload build cache artifacts
-        if: success()
-        uses: actions/upload-artifact@v7
-        with:
-          name: android-integration-build-cache
-          path: |
-            ~/.gradle/caches/build-cache-*
-            integration_test/android/app/build/intermediates
-          retention-days: 1
-
   test-build-android-tv:
     name: Build Android TV Example App
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-
-      - name: Cache Android TV Prebuild
-        id: android-tv-prebuild-cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            example/android
-          key: ${{ runner.os }}-android-tv-prebuild-${{ hashFiles('package.json', 'yarn.lock', 'expo-module.config.json', 'example/package.json', 'example/yarn.lock', 'example/app.config.*', 'plugin/**', 'android/**') }}
-          restore-keys: |
-            ${{ runner.os }}-android-tv-prebuild-
 
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
@@ -208,9 +156,8 @@ jobs:
           tv: true
           skip-prebuild: true
 
-      - name: Prebuild Android TV Example (on cache miss)
-        if: ${{ steps.android-tv-prebuild-cache.outputs.cache-hit != 'true' }}
-        run: .github/scripts/smart-prebuild.sh example tv
+      - name: Prebuild Android TV Example
+        run: yarn example prebuild:tv --clean --platform android
 
       - name: Build Android TV example
         id: build
@@ -226,13 +173,3 @@ jobs:
 
       - name: Report build time
         run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
-
-      - name: Upload build cache artifacts
-        if: success()
-        uses: actions/upload-artifact@v7
-        with:
-          name: android-tv-build-cache
-          path: |
-            ~/.gradle/caches/build-cache-*
-            example/android/app/build/intermediates
-          retention-days: 1
