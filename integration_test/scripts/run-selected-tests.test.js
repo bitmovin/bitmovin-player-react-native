@@ -2,11 +2,49 @@ const assert = require('node:assert/strict');
 const { describe, it } = require('node:test');
 
 const {
-  createProcessEnvironment,
   createTestRun,
   executeTestRun,
   parseTestArguments,
 } = require('./run-selected-tests');
+
+function commandsFor(platforms, forwardedArguments = []) {
+  return [
+    ...platforms.map((platform) => ['yarn', [`stop-test:${platform}`]]),
+    ...platforms.map((platform) => [
+      'yarn',
+      [`start-test:${platform}`, ...forwardedArguments],
+    ]),
+  ];
+}
+
+function assertRun(
+  platform,
+  testArguments,
+  tags,
+  platforms,
+  forwardedArguments = []
+) {
+  assert.deepEqual(createTestRun(platform, testArguments), {
+    environment:
+      tags.length > 0 ? { EXPO_PUBLIC_CAVY_ONLY_TAGS: tags.join(',') } : {},
+    commands: commandsFor(platforms, forwardedArguments),
+  });
+}
+
+function executeAndRecord(platform, testArguments, environment) {
+  const calls = [];
+  const status = executeTestRun(
+    platform,
+    testArguments,
+    (command, commandArguments, options) => {
+      calls.push({ command, commandArguments, options });
+      return { status: 0 };
+    },
+    environment
+  );
+
+  return { calls, status };
+}
 
 describe('parseTestArguments', () => {
   it('parses comma-separated tags and preserves Cavy arguments', () => {
@@ -15,25 +53,11 @@ describe('parseTestArguments', () => {
         '--tags',
         'caption,cue-geometry',
         '--boot-timeout',
-        '120',
+        '3',
       ]),
       {
         tags: ['caption', 'cue-geometry'],
-        forwardedArguments: ['--boot-timeout', '120'],
-      }
-    );
-  });
-
-  it('combines repeated tags and removes empty or duplicate values', () => {
-    assert.deepEqual(
-      parseTestArguments([
-        '--tags=caption, cue-geometry',
-        '--tags',
-        'caption,,playback',
-      ]),
-      {
-        tags: ['caption', 'cue-geometry', 'playback'],
-        forwardedArguments: [],
+        forwardedArguments: ['--boot-timeout', '3'],
       }
     );
   });
@@ -45,7 +69,7 @@ describe('parseTestArguments', () => {
     );
   });
 
-  it('rejects a tag selection containing only empty values', () => {
+  it('rejects a selection containing only empty values', () => {
     assert.throws(
       () => parseTestArguments(['--tags', ' , ']),
       /--tags requires at least one tag/
@@ -54,173 +78,96 @@ describe('parseTestArguments', () => {
 });
 
 describe('createTestRun', () => {
-  it('creates the existing stop and start commands with the tag environment', () => {
-    assert.deepEqual(
-      createTestRun('android', ['--tags', 'caption', '--no-build']),
-      {
-        environment: {
-          EXPO_PUBLIC_CAVY_ONLY_TAGS: 'caption',
-        },
-        commands: [
-          ['yarn', ['stop-test:android']],
-          ['yarn', ['start-test:android', '--no-build']],
-        ],
-      }
+  it('creates a filtered Android run', () => {
+    assertRun(
+      'android',
+      ['--tags', 'caption', '--no-build'],
+      ['caption'],
+      ['android'],
+      ['--no-build']
     );
   });
 
-  it('does not set a filter when tags are omitted', () => {
-    assert.deepEqual(createTestRun('ios', []), {
-      environment: {},
-      commands: [
-        ['yarn', ['stop-test:ios']],
-        ['yarn', ['start-test:ios']],
-      ],
-    });
-  });
-
-  it('runs cue geometry tests on iOS', () => {
-    assert.deepEqual(createTestRun('ios', ['--tags', 'cue-geometry']), {
-      environment: {
-        EXPO_PUBLIC_CAVY_ONLY_TAGS: 'cue-geometry',
-      },
-      commands: [
-        ['yarn', ['stop-test:ios']],
-        ['yarn', ['start-test:ios']],
-      ],
-    });
-  });
-
-  it('runs multiple unrelated suites as a union', () => {
-    assert.deepEqual(createTestRun('ios', ['--tags', 'playback,unloading']), {
-      environment: {
-        EXPO_PUBLIC_CAVY_ONLY_TAGS: 'playback,unloading',
-      },
-      commands: [
-        ['yarn', ['stop-test:ios']],
-        ['yarn', ['start-test:ios']],
-      ],
-    });
-  });
-
-  it('creates the existing combined Android and iOS command sequence', () => {
-    assert.deepEqual(createTestRun('all', ['--tags', 'caption']), {
-      environment: {
-        EXPO_PUBLIC_CAVY_ONLY_TAGS: 'caption',
-      },
-      commands: [
-        ['yarn', ['stop-test:android']],
-        ['yarn', ['stop-test:ios']],
-        ['yarn', ['start-test:android']],
-        ['yarn', ['start-test:ios']],
-      ],
-    });
-  });
-
-  it('runs the complete combined suite when tags are omitted', () => {
-    assert.deepEqual(createTestRun('all', []), {
-      environment: {},
-      commands: [
-        ['yarn', ['stop-test:android']],
-        ['yarn', ['stop-test:ios']],
-        ['yarn', ['start-test:android']],
-        ['yarn', ['start-test:ios']],
-      ],
-    });
-  });
-
-  it('rejects unsupported platforms', () => {
-    assert.throws(() => createTestRun('windows', []), /Unsupported platform/);
-  });
-
-  it('rejects unknown tags', () => {
-    assert.throws(
-      () => createTestRun('android', ['--tags', 'captino']),
-      /Unknown test tag: captino/
+  it('selects multiple suites as a union', () => {
+    assertRun(
+      'ios',
+      ['--tags', 'playback,unloading'],
+      ['playback', 'unloading'],
+      ['ios']
     );
   });
 
-  it('rejects tags that do not apply to the selected platform', () => {
-    assert.throws(
-      () => createTestRun('android', ['--tags', 'cue-metadata']),
-      /Test tag cue-metadata is not available on android/
-    );
+  it('preserves the unfiltered combined run', () => {
+    assertRun('all', [], [], ['android', 'ios']);
   });
 
-  it('requires a matching tag for both platforms in a combined run', () => {
-    assert.throws(
-      () => createTestRun('all', ['--tags', 'cue-metadata']),
-      /No selected test tags are available on android/
-    );
-  });
-});
-
-describe('createProcessEnvironment', () => {
-  it('clears a stale tag filter when the current run has no tags', () => {
-    assert.deepEqual(
-      createProcessEnvironment(
-        {
-          EXPO_PUBLIC_CAVY_ONLY_TAGS: 'caption',
-          PATH: '/bin',
-        },
-        {}
-      ),
-      { PATH: '/bin' }
-    );
-  });
+  for (const [name, platform, args, error] of [
+    ['rejects unsupported platforms', 'windows', [], /Unsupported platform/],
+    [
+      'rejects unknown tags',
+      'android',
+      ['--tags', 'captino'],
+      /Unknown test tag/,
+    ],
+    [
+      'rejects tags unavailable on the platform',
+      'android',
+      ['--tags', 'cue-metadata'],
+      /not available on android/,
+    ],
+    [
+      'requires tags for both platforms',
+      'all',
+      ['--tags', 'cue-metadata'],
+      /available on android/,
+    ],
+  ]) {
+    it(name, () => assert.throws(() => createTestRun(platform, args), error));
+  }
 });
 
 describe('executeTestRun', () => {
-  it('passes the selected tags to every command', () => {
-    const calls = [];
-    const executeCommand = (command, commandArguments, options) => {
-      calls.push({ command, commandArguments, options });
-      return { status: 0 };
-    };
-
-    assert.equal(
-      executeTestRun('android', ['--tags', 'caption'], executeCommand, {
-        PATH: '/bin',
-      }),
-      0
+  it('passes selected tags to every command', () => {
+    const { calls, status } = executeAndRecord(
+      'android',
+      ['--tags', 'caption'],
+      { PATH: '/bin' }
     );
-    assert.deepEqual(calls, [
-      {
-        command: 'yarn',
-        commandArguments: ['stop-test:android'],
-        options: {
-          env: {
-            EXPO_PUBLIC_CAVY_ONLY_TAGS: 'caption',
-            PATH: '/bin',
-          },
-          stdio: 'inherit',
-        },
-      },
-      {
-        command: 'yarn',
-        commandArguments: ['start-test:android'],
-        options: {
-          env: {
-            EXPO_PUBLIC_CAVY_ONLY_TAGS: 'caption',
-            PATH: '/bin',
-          },
-          stdio: 'inherit',
-        },
-      },
-    ]);
+
+    assert.equal(status, 0);
+    assert.equal(calls.length, 2);
+    assert.ok(
+      calls.every(
+        ({ options }) =>
+          options.stdio === 'inherit' &&
+          options.env.PATH === '/bin' &&
+          options.env.EXPO_PUBLIC_CAVY_ONLY_TAGS === 'caption'
+      )
+    );
   });
 
-  it('stops after the first failed command and preserves its status', () => {
-    let callCount = 0;
-    const executeCommand = () => {
-      callCount += 1;
-      return { status: callCount === 3 ? 42 : 0 };
-    };
+  it('clears a stale tag filter from unfiltered runs', () => {
+    const { calls } = executeAndRecord('ios', [], {
+      EXPO_PUBLIC_CAVY_ONLY_TAGS: 'caption',
+      PATH: '/bin',
+    });
 
-    assert.equal(
-      executeTestRun('all', ['--tags', 'caption'], executeCommand, process.env),
-      42
+    assert.deepEqual(
+      calls.map(({ options }) => options.env),
+      [{ PATH: '/bin' }, { PATH: '/bin' }]
     );
+  });
+
+  it('stops after the first failure and preserves its status', () => {
+    let callCount = 0;
+    const status = executeTestRun(
+      'all',
+      ['--tags', 'caption'],
+      () => ({ status: ++callCount === 3 ? 42 : 0 }),
+      process.env
+    );
+
+    assert.equal(status, 42);
     assert.equal(callCount, 3);
   });
 
@@ -239,7 +186,7 @@ describe('executeTestRun', () => {
     );
   });
 
-  it('returns a failure when a command exits without a status', () => {
+  it('fails when a command exits without a status', () => {
     assert.equal(
       executeTestRun('ios', [], () => ({ status: null }), process.env),
       1

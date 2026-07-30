@@ -1,13 +1,11 @@
 function tagTestSuite(registerSuite, defaultTag) {
   return (spec) => {
-    const taggedSpec = Object.create(spec);
+    const describe = spec.describe.bind(spec);
 
-    taggedSpec.describe = (label, defineTests, tag = defaultTag) =>
-      spec.describe(label, defineTests, tag);
-    taggedSpec.it = (label, test, tag = defaultTag) =>
-      spec.it(label, test, tag);
+    spec.describe = (label, defineTests, tag = defaultTag) =>
+      describe(label, defineTests, tag);
 
-    return registerSuite(taggedSpec);
+    return registerSuite(spec);
   };
 }
 

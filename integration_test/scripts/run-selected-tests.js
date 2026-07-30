@@ -8,24 +8,30 @@ const availableTestTags = new Map(
   testTags.map(({ name, platforms }) => [name, platforms])
 );
 
-function appendTags(tags, value) {
+function parseTestArguments(argumentsToParse) {
+  const tagsIndex = argumentsToParse.indexOf('--tags');
+  if (tagsIndex === -1) {
+    return { tags: [], forwardedArguments: argumentsToParse };
+  }
+
+  const value = argumentsToParse[tagsIndex + 1];
   if (!value || value.startsWith('--')) {
     throw new Error('--tags requires a comma-separated value');
   }
 
-  const parsedTags = value
-    .split(',')
-    .map((tag) => tag.trim())
-    .filter(Boolean);
-  if (parsedTags.length === 0) {
+  const tags = [...new Set(value.split(',').map((tag) => tag.trim()))].filter(
+    Boolean
+  );
+  if (tags.length === 0) {
     throw new Error('--tags requires at least one tag');
   }
 
-  for (const tag of parsedTags) {
-    if (!tags.includes(tag)) {
-      tags.push(tag);
-    }
-  }
+  return {
+    tags,
+    forwardedArguments: argumentsToParse.filter(
+      (_, index) => index !== tagsIndex && index !== tagsIndex + 1
+    ),
+  };
 }
 
 function validateTags(tags, platform) {
@@ -55,26 +61,6 @@ function validateTags(tags, platform) {
   }
 }
 
-function parseTestArguments(argumentsToParse) {
-  const tags = [];
-  const forwardedArguments = [];
-
-  for (let index = 0; index < argumentsToParse.length; index += 1) {
-    const argument = argumentsToParse[index];
-
-    if (argument === '--tags') {
-      appendTags(tags, argumentsToParse[index + 1]);
-      index += 1;
-    } else if (argument.startsWith('--tags=')) {
-      appendTags(tags, argument.slice('--tags='.length));
-    } else {
-      forwardedArguments.push(argument);
-    }
-  }
-
-  return { tags, forwardedArguments };
-}
-
 function createTestRun(platform, testArguments) {
   if (!supportedPlatforms.has(platform)) {
     throw new Error(`Unsupported platform: ${platform}`);
@@ -98,16 +84,6 @@ function createTestRun(platform, testArguments) {
   };
 }
 
-function createProcessEnvironment(baseEnvironment, testEnvironment) {
-  const processEnvironment = { ...baseEnvironment, ...testEnvironment };
-
-  if (!testEnvironment.EXPO_PUBLIC_CAVY_ONLY_TAGS) {
-    delete processEnvironment.EXPO_PUBLIC_CAVY_ONLY_TAGS;
-  }
-
-  return processEnvironment;
-}
-
 function executeTestRun(
   platform,
   testArguments,
@@ -115,10 +91,10 @@ function executeTestRun(
   baseEnvironment = process.env
 ) {
   const { commands, environment } = createTestRun(platform, testArguments);
-  const childEnvironment = createProcessEnvironment(
-    baseEnvironment,
-    environment
-  );
+  const childEnvironment = { ...baseEnvironment, ...environment };
+  if (!environment.EXPO_PUBLIC_CAVY_ONLY_TAGS) {
+    delete childEnvironment.EXPO_PUBLIC_CAVY_ONLY_TAGS;
+  }
 
   for (const [command, commandArguments] of commands) {
     const result = executeCommand(command, commandArguments, {
@@ -138,7 +114,6 @@ function executeTestRun(
 }
 
 module.exports = {
-  createProcessEnvironment,
   createTestRun,
   executeTestRun,
   parseTestArguments,

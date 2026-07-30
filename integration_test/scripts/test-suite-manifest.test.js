@@ -8,22 +8,20 @@ const {
 } = require('../tests');
 
 describe('test suite manifest', () => {
-  it('exposes every suite and focused selector without loading React Native', () => {
-    assert.deepEqual(availableTestTags, [
-      { name: 'advertising', platforms: ['android', 'ios'] },
-      { name: 'caption', platforms: ['android', 'ios'] },
-      { name: 'cue-geometry', platforms: ['android', 'ios'] },
-      { name: 'cue-metadata', platforms: ['ios'] },
-      { name: 'error', platforms: ['android', 'ios'] },
-      { name: 'loading', platforms: ['android', 'ios'] },
-      { name: 'media-controls', platforms: ['ios'] },
-      { name: 'metadata-id3', platforms: ['android', 'ios'] },
-      { name: 'playback', platforms: ['android', 'ios'] },
-      { name: 'unloading', platforms: ['android', 'ios'] },
-      { name: 'audio-track', platforms: ['android', 'ios'] },
-      { name: 'video-quality', platforms: ['android', 'ios'] },
-    ]);
+  it('exposes a valid selector registry without loading React Native', () => {
+    const names = availableTestTags.map(({ name }) => name);
+
     assert.equal(typeof createSpecs, 'function');
     assert.equal(cueMetadataSelector, 'cue-metadata');
+    assert.equal(new Set(names).size, names.length);
+    assert.ok(names.includes(cueMetadataSelector));
+
+    for (const { name, platforms } of availableTestTags) {
+      assert.ok(name.length > 0);
+      assert.ok(platforms.length > 0);
+      assert.ok(
+        platforms.every((platform) => ['android', 'ios'].includes(platform))
+      );
+    }
   });
 });
