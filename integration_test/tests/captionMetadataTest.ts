@@ -170,7 +170,7 @@ export default (spec: TestScope) => {
     }
 
     if (Platform.OS === 'ios') {
-      const defineIosCueMetadataTests = () => {
+      const defineIosCueGeometryTests = () => {
         spec.it(
           'CueEnter carries in-manifest WebVTT layout metadata',
           async () => {
@@ -234,7 +234,14 @@ export default (spec: TestScope) => {
             });
           }
         );
+      };
+      spec.describe(
+        'iOS cue geometry fields',
+        defineIosCueGeometryTests,
+        testTags.cueGeometry.name
+      );
 
+      const defineIosCueMetadataTests = () => {
         spec.it('CueEnter carries CEA-608 grid position metadata', async () => {
           await startPlayerTest({}, async () => {
             await loadSourceConfig(sourceWithCea608Captions);

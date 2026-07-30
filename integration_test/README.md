@@ -46,7 +46,7 @@ Run only tests matching one or more comma-separated Cavy tags:
 
 ```sh
 yarn integration-test test:android --tags caption,cue-geometry
-yarn integration-test test:ios --tags caption,cue-metadata
+yarn integration-test test:ios --tags caption,cue-geometry
 ```
 
 When running both platforms, the selection must include at least one tag
@@ -55,13 +55,13 @@ both platforms, or platform-specific tags can be combined:
 
 ```sh
 yarn integration-test test --tags caption
-yarn integration-test test --tags cue-geometry,cue-metadata
+yarn integration-test test --tags cue-geometry
 ```
 
 The available tags are:
 
 - `caption` — general caption playback and event coverage
-- `cue-geometry` — Android cue geometry coverage
+- `cue-geometry` — Android and iOS cue geometry coverage
 - `cue-metadata` — iOS cue metadata coverage
 
 Arguments other than `--tags` are forwarded to `cavy-cli`. Omitting `--tags`

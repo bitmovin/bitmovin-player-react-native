@@ -79,6 +79,18 @@ describe('createTestRun', () => {
     });
   });
 
+  it('runs cue geometry tests on iOS', () => {
+    assert.deepEqual(createTestRun('ios', ['--tags', 'cue-geometry']), {
+      environment: {
+        EXPO_PUBLIC_CAVY_ONLY_TAGS: 'cue-geometry',
+      },
+      commands: [
+        ['yarn', ['stop-test:ios']],
+        ['yarn', ['start-test:ios']],
+      ],
+    });
+  });
+
   it('creates the existing combined Android and iOS command sequence', () => {
     assert.deepEqual(createTestRun('all', ['--tags', 'caption']), {
       environment: {
@@ -125,8 +137,8 @@ describe('createTestRun', () => {
 
   it('requires a matching tag for both platforms in a combined run', () => {
     assert.throws(
-      () => createTestRun('all', ['--tags', 'cue-geometry']),
-      /No selected test tags are available on ios/
+      () => createTestRun('all', ['--tags', 'cue-metadata']),
+      /No selected test tags are available on android/
     );
   });
 });

@@ -5,7 +5,7 @@
   },
   "cueGeometry": {
     "name": "cue-geometry",
-    "platforms": ["android"]
+    "platforms": ["android", "ios"]
   },
   "cueMetadata": {
     "name": "cue-metadata",
