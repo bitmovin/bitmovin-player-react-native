@@ -8,6 +8,4 @@ export const availableTestTags: Array<{
   platforms: TestPlatform[];
 }>;
 
-export const cueMetadataSelector: string;
-
 export function createSpecs(): TestSuite[];

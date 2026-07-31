@@ -63,8 +63,7 @@ yarn integration-test test --tags advertising,media-controls
 Arguments other than `--tags` are forwarded to `cavy-cli`. Omitting `--tags`
 runs the complete test suite.
 
-See [Adding new tests](../CONTRIBUTING.md#adding-new-tests) to register a suite
-or focused selector.
+See [Adding new tests](../CONTRIBUTING.md#adding-new-tests) to register a suite.
 
 ## Architecture
 

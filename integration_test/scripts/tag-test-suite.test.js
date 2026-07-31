@@ -44,21 +44,6 @@ describe('tagTestSuite', () => {
     assert.deepEqual(registeredTags, [undefined]);
   });
 
-  it('preserves an explicit subgroup tag', () => {
-    const { registeredTags, scope } = createScope();
-    const registerSuite = tagTestSuite((spec) => {
-      spec.describe(
-        'cue geometry',
-        () => spec.it('reports layout', async () => {}),
-        'cue-geometry'
-      );
-    }, 'caption-metadata');
-
-    registerSuite(scope);
-
-    assert.deepEqual(registeredTags, ['cue-geometry']);
-  });
-
   it('preserves state stored by Cavy scope methods', () => {
     const beforeEachHook = () => {};
     const { scope } = createScope();

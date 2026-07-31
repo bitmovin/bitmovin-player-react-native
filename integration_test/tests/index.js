@@ -2,10 +2,9 @@ const { tagTestSuite } = require('../scripts/tag-test-suite');
 
 const androidAndIos = ['android', 'ios'];
 const iosOnly = ['ios'];
-const cueMetadataSelector = 'cue-metadata';
 
-function testSuite(name, platforms, load, additionalSelectors = []) {
-  return { name, platforms, load, additionalSelectors };
+function testSuite(name, platforms, load) {
+  return { name, platforms, load };
 }
 
 const testRegistrations = [
@@ -16,10 +15,9 @@ const testRegistrations = [
   ),
   testSuite('caption', androidAndIos, () => require('./captionTest').default),
   testSuite(
-    'cue-geometry',
+    'cue-metadata',
     androidAndIos,
-    () => require('./captionMetadataTest').default,
-    [{ name: cueMetadataSelector, platforms: iosOnly }]
+    () => require('./captionMetadataTest').default
   ),
   testSuite('error', androidAndIos, () => require('./errorTest').default),
   testSuite('loading', androidAndIos, () => require('./loadingTest').default),
@@ -51,12 +49,10 @@ const testRegistrations = [
   ),
 ];
 
-const availableTestTags = testRegistrations.flatMap(
-  ({ name, platforms, additionalSelectors }) => [
-    { name, platforms },
-    ...additionalSelectors,
-  ]
-);
+const availableTestTags = testRegistrations.map(({ name, platforms }) => ({
+  name,
+  platforms,
+}));
 
 function createSpecs() {
   return testRegistrations.map(({ name, load }) => tagTestSuite(load(), name));
@@ -65,5 +61,4 @@ function createSpecs() {
 module.exports = {
   availableTestTags,
   createSpecs,
-  cueMetadataSelector,
 };

@@ -1,20 +1,22 @@
 const assert = require('node:assert/strict');
 const { describe, it } = require('node:test');
 
-const {
-  availableTestTags,
-  createSpecs,
-  cueMetadataSelector,
-} = require('../tests');
+const { availableTestTags, createSpecs } = require('../tests');
 
 describe('test suite manifest', () => {
   it('exposes a valid selector registry without loading React Native', () => {
     const names = availableTestTags.map(({ name }) => name);
+    const cueMetadataTag = availableTestTags.find(
+      ({ name }) => name === 'cue-metadata'
+    );
 
     assert.equal(typeof createSpecs, 'function');
-    assert.equal(cueMetadataSelector, 'cue-metadata');
     assert.equal(new Set(names).size, names.length);
-    assert.ok(names.includes(cueMetadataSelector));
+    assert.deepEqual(cueMetadataTag, {
+      name: 'cue-metadata',
+      platforms: ['android', 'ios'],
+    });
+    assert.equal(names.includes('cue-geometry'), false);
 
     for (const { name, platforms } of availableTestTags) {
       assert.ok(name.length > 0);

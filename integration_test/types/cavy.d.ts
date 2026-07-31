@@ -11,8 +11,8 @@ declare module 'cavy' {
   }
 
   export interface TestScope {
-    describe: (name: string, fn: () => void, tag?: string) => void;
-    it: (name: string, fn: () => Promise<void>, tag?: string) => void;
+    describe: (name: string, fn: () => void) => void;
+    it: (name: string, fn: () => Promise<void>) => void;
     beforeEach: (fn: () => void) => void;
     afterEach: (fn: () => void) => void;
   }

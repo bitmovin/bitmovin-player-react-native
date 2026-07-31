@@ -99,12 +99,12 @@ describe('parseTestArguments', () => {
     assert.deepEqual(
       parseTestArguments([
         '--tags',
-        'caption,cue-geometry',
+        'caption,cue-metadata',
         '--boot-timeout',
         '3',
       ]),
       {
-        tags: ['caption', 'cue-geometry'],
+        tags: ['caption', 'cue-metadata'],
         forwardedArguments: ['--boot-timeout', '3'],
       }
     );
@@ -145,6 +145,15 @@ describe('createTestRun', () => {
     );
   });
 
+  it('runs cue metadata on Android', () => {
+    assertRun(
+      'android',
+      ['--tags', 'cue-metadata'],
+      ['cue-metadata'],
+      ['android']
+    );
+  });
+
   it('preserves the unfiltered combined run', () => {
     assertRun('all', [], [], ['android', 'ios']);
   });
@@ -160,13 +169,13 @@ describe('createTestRun', () => {
     [
       'rejects tags unavailable on the platform',
       'android',
-      ['--tags', 'cue-metadata'],
+      ['--tags', 'media-controls'],
       /not available on android/,
     ],
     [
       'requires tags for both platforms',
       'all',
-      ['--tags', 'cue-metadata'],
+      ['--tags', 'media-controls'],
       /available on android/,
     ],
   ]) {

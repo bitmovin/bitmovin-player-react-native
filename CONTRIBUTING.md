@@ -213,9 +213,7 @@ testSuite('drm', androidAndIos, () => require('./drmTest').default),
 ```
 
 Use `iosOnly` instead of `androidAndIos` for an iOS-only suite. Keep tests
-inside `spec.describe` so they receive the suite selector automatically. For a
-selector covering only part of a suite, follow the existing `cue-metadata`
-registration and pass that selector as the third argument to `spec.describe`.
+inside `spec.describe` so they receive the suite selector automatically.
 
 For example:
 
