@@ -42,50 +42,29 @@ yarn integration-test test:android # Run tests on Android emulator
 yarn integration-test test # Run tests on both Android emulator and iOS simulator
 ```
 
-Run one or more test suites by passing their comma-separated selectors:
+List the available selectors or run one or more test suites by passing
+comma-separated selectors:
 
 ```sh
-yarn integration-test list-tags # List selectors and their supported platforms
+yarn integration-test list-tags
 yarn integration-test test:android --tags playback
 yarn integration-test test:ios --tags playback,unloading
 ```
 
-When using `yarn integration-test test` to run Android and iOS sequentially,
-the selection must include at least one tag supported by Android and at least
-one supported by iOS. A shared tag can cover both platforms, or
-platform-specific tags can be combined:
+`yarn integration-test test` runs Android and iOS sequentially, so its
+selection must cover both platforms. Use a shared selector or combine
+platform-specific selectors:
 
 ```sh
 yarn integration-test test --tags playback
 yarn integration-test test --tags advertising,media-controls
 ```
 
-The available suite selectors are:
-
-- `advertising` — advertising configuration, scheduling, playback, and errors
-- `audio-track` — audio track events and properties
-- `caption` — general caption playback and event coverage
-- `error` — player error events and network details
-- `loading` — source loading and download events
-- `media-controls` — iOS media controls configuration and runtime changes
-- `metadata-id3` — Android and iOS ID3 metadata serialization
-- `playback` — play, pause, time updates, and playback completion
-- `unloading` — source unloading events and player state
-- `video-quality` — video quality events and properties
-
-Focused selectors are also available for test groups within a larger feature:
-
-- `cue-geometry` — Android and iOS cue geometry coverage
-- `cue-metadata` — iOS cue metadata coverage
-
 Arguments other than `--tags` are forwarded to `cavy-cli`. Omitting `--tags`
 runs the complete test suite.
 
-`tests/index.js` is the source of truth for suite registration, selector names,
-and platform support. Tests must be registered inside `spec.describe`; those
-groups receive their suite selector automatically. To make a focused group
-selectable independently, add it to the same manifest and pass its exported
-selector as the third argument to `spec.describe`.
+See [Adding new tests](../CONTRIBUTING.md#adding-new-tests) to register a suite
+or focused selector.
 
 ## Architecture
 
