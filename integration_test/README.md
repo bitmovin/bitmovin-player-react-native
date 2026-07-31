@@ -50,9 +50,10 @@ yarn integration-test test:android --tags playback
 yarn integration-test test:ios --tags playback,unloading
 ```
 
-When running both platforms, the selection must include at least one tag
-supported by Android and at least one supported by iOS. A shared tag can cover
-both platforms, or platform-specific tags can be combined:
+When using `yarn integration-test test` to run Android and iOS sequentially,
+the selection must include at least one tag supported by Android and at least
+one supported by iOS. A shared tag can cover both platforms, or
+platform-specific tags can be combined:
 
 ```sh
 yarn integration-test test --tags playback

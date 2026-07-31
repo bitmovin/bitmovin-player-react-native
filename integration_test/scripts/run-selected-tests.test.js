@@ -50,14 +50,23 @@ function executeAndRecord(platform, testArguments, environment) {
 }
 
 describe('list-tags', () => {
-  it('prints every selector with its supported platforms', () => {
+  it('prints aligned selectors alphabetically with their platforms', () => {
     const result = spawnSync(
       process.execPath,
       [path.join(__dirname, 'run-selected-tests.js'), 'list-tags'],
       { encoding: 'utf8' }
     );
-    const expectedOutput = availableTestTags
-      .map(({ name, platforms }) => `${name}\t${platforms.join(', ')}`)
+    const sortedTestTags = [...availableTestTags].sort((left, right) =>
+      left.name.localeCompare(right.name)
+    );
+    const tagNameWidth = Math.max(
+      ...sortedTestTags.map(({ name }) => name.length)
+    );
+    const expectedOutput = sortedTestTags
+      .map(
+        ({ name, platforms }) =>
+          `${name.padEnd(tagNameWidth)}  ${platforms.join(', ')}`
+      )
       .join('\n');
 
     assert.equal(result.status, 0, result.stderr);

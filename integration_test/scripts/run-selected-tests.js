@@ -124,8 +124,14 @@ if (require.main === module) {
 
   try {
     if (platform === 'list-tags') {
-      for (const { name, platforms } of testTags) {
-        console.log(`${name}\t${platforms.join(', ')}`);
+      const sortedTestTags = [...testTags].sort((left, right) =>
+        left.name.localeCompare(right.name)
+      );
+      const tagNameWidth = Math.max(
+        ...sortedTestTags.map(({ name }) => name.length)
+      );
+      for (const { name, platforms } of sortedTestTags) {
+        console.log(`${name.padEnd(tagNameWidth)}  ${platforms.join(', ')}`);
       }
     } else {
       process.exitCode = executeTestRun(platform, testArguments);
