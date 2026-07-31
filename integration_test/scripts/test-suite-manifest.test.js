@@ -24,4 +24,33 @@ describe('test suite manifest', () => {
       );
     }
   });
+
+  it('resolves every registered suite module', () => {
+    const originalTypeScriptLoader = require.extensions['.ts'];
+    const loadedModulePaths = [];
+
+    require.extensions['.ts'] = (module, filename) => {
+      loadedModulePaths.push(filename);
+      module.exports = { default: () => {} };
+    };
+
+    try {
+      const specs = createSpecs();
+
+      assert.equal(specs.length, loadedModulePaths.length);
+      for (const registerSpec of specs) {
+        assert.doesNotThrow(() => registerSpec({ describe() {} }));
+      }
+    } finally {
+      for (const modulePath of loadedModulePaths) {
+        delete require.cache[modulePath];
+      }
+
+      if (originalTypeScriptLoader) {
+        require.extensions['.ts'] = originalTypeScriptLoader;
+      } else {
+        delete require.extensions['.ts'];
+      }
+    }
+  });
 });
