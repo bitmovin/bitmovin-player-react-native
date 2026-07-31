@@ -12,11 +12,10 @@ function parseTestArguments(argumentsToParse) {
   const tagsIndex = argumentsToParse.indexOf('--tags');
   if (tagsIndex === -1) {
     const [firstArgument] = argumentsToParse;
-    if (firstArgument && !firstArgument.startsWith('-')) {
-      const tagSuggestion = availableTestTags.has(firstArgument)
-        ? `\nDid you mean --tags ${firstArgument}?`
-        : '';
-      throw new Error(`Unexpected argument: ${firstArgument}${tagSuggestion}`);
+    if (argumentsToParse.length === 1 && availableTestTags.has(firstArgument)) {
+      throw new Error(
+        `Unexpected argument: ${firstArgument}\nDid you mean --tags ${firstArgument}?`
+      );
     }
 
     return { tags: [], forwardedArguments: argumentsToParse };

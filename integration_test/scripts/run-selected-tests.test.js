@@ -82,9 +82,17 @@ describe('parseTestArguments', () => {
     });
   });
 
-  it('rejects an unknown positional argument', () => {
-    assert.throws(() => parseTestArguments(['audio-trak']), {
-      message: 'Unexpected argument: audio-trak',
+  it('forwards arguments it does not own', () => {
+    assert.deepEqual(parseTestArguments(['audio-trak']), {
+      tags: [],
+      forwardedArguments: ['audio-trak'],
+    });
+  });
+
+  it('only suggests --tags for a lone known selector', () => {
+    assert.deepEqual(parseTestArguments(['audio-track', '--xml']), {
+      tags: [],
+      forwardedArguments: ['audio-track', '--xml'],
     });
   });
 
