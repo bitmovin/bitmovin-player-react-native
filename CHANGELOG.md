@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.24.0]
+
+### Added
+
+- iOS/tvOS: Expose cue metadata on `CueEnterEvent` and `CueExitEvent` via `html`, `cea608Position`, and native cue `layout` or `region` metadata when available
+- iOS/tvOS: `Player.mediaControls` namespace of type `MediaControlsApi` to dynamically query, enable or disable Bitmovin Player's media controls integration via `MediaControlsApi.isEnabled` and `MediaControlsApi.setEnabled`
+
+### Changed
+
+- Cue layout no longer emits empty `layout` objects or uses `'auto'` for `line`, `position`, or `positionAlign`; automatic or unset placement is now represented by omitting these fields
+
 ## [1.23.0] - 2026-07-28
 
 ### Added

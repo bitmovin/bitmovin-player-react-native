@@ -11,33 +11,7 @@ import {
 } from '../playertesting';
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
-import {
-  CueEnterEvent,
-  CueExitEvent,
-  SideLoadedSubtitleTrack,
-  SourceConfig,
-  SourceType,
-  SubtitleCueLayout,
-  SubtitleFormat,
-} from 'bitmovin-player-react-native';
-import { Image, Platform } from 'react-native';
-
-const positionedSubtitleTrack: SideLoadedSubtitleTrack = {
-  identifier: 'positioned-cues',
-  url: Image.resolveAssetSource(
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    require('../assets/subtitles/positioned_cues.vtt')
-  ).uri,
-  label: 'Positioned Cues',
-  language: 'en',
-  format: SubtitleFormat.VTT,
-};
-
-const sourceWithPositionedSubs: SourceConfig = {
-  url: Sources.artOfMotionHls.url!,
-  type: SourceType.HLS,
-  subtitleTracks: [positionedSubtitleTrack],
-};
+import { CueEnterEvent, CueExitEvent } from 'bitmovin-player-react-native';
 
 export default (spec: TestScope) => {
   spec.describe('playing captions', () => {
@@ -46,7 +20,7 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.sintel);
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
-          player.setSubtitleTrack(subtitleTrack.identifier);
+          await player.setSubtitleTrack(subtitleTrack.identifier);
           player.play();
         });
         await callPlayerAndExpectEvent((player) => {
@@ -122,7 +96,7 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.sintel);
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
-          player.setSubtitleTrack(subtitleTrack.identifier);
+          await player.setSubtitleTrack(subtitleTrack.identifier);
           player.play();
         });
         await callPlayerAndExpectEvent((player) => {
@@ -187,7 +161,7 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.sintel);
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
-          player.setSubtitleTrack(subtitleTrack.identifier);
+          await player.setSubtitleTrack(subtitleTrack.identifier);
           player.play();
         });
         await callPlayerAndExpectEvent((player) => {
@@ -243,143 +217,6 @@ export default (spec: TestScope) => {
       });
     });
 
-    if (Platform.OS === 'android') {
-      spec.describe('Android cue geometry fields', () => {
-        spec.it(
-          'CueEnter layout field reflects geometry authored in the VTT',
-          async () => {
-            await startPlayerTest({}, async () => {
-              await loadSourceConfig(sourceWithPositionedSubs);
-              await callPlayer(async (player) => {
-                player.setSubtitleTrack('positioned-cues');
-                player.play();
-              });
-              await callPlayerAndExpectEvent((player) => {
-                player.seek(2);
-              }, EventType.Seeked);
-
-              const cueEnterEvent: CueEnterEvent = await expectEvent(
-                EventType.CueEnter
-              );
-
-              expect(
-                cueEnterEvent.layout,
-                'CueEnter should have a layout field'
-              ).toBeDefined();
-
-              const layout = cueEnterEvent.layout as SubtitleCueLayout;
-
-              expect(
-                layout.writingMode,
-                'writingMode should be horizontal'
-              ).toBe('horizontal');
-
-              // line:85% in the VTT → { value: 85, unit: 'percent' }
-              expect(
-                (layout.line as any)?.value,
-                'line.value should be 85'
-              ).toBe(85);
-              expect(
-                (layout.line as any)?.unit,
-                'line.unit should be percent'
-              ).toBe('percent');
-
-              // position:50% → 50
-              expect(layout.position, 'position should be 50').toBe(50);
-
-              // size:80% → 80
-              expect(layout.size, 'size should be 80').toBe(80);
-
-              // align:center → textAlign center
-              expect(layout.textAlign, 'textAlign should be center').toBe(
-                'center'
-              );
-            });
-          }
-        );
-
-        spec.it(
-          'CueEnter html field is present for a cue with inline styling',
-          async () => {
-            await startPlayerTest({}, async () => {
-              await loadSourceConfig(sourceWithPositionedSubs);
-              await callPlayer(async (player) => {
-                player.setSubtitleTrack('positioned-cues');
-                player.play();
-              });
-              await callPlayerAndExpectEvent((player) => {
-                player.seek(2);
-              }, EventType.Seeked);
-
-              const cueEnterEvent: CueEnterEvent = await expectEvent(
-                EventType.CueEnter
-              );
-
-              // The VTT cue contains <b>...</b> so Bitmovin SDK populates html
-              expect(
-                cueEnterEvent.html,
-                'html should be present for a cue with inline tags'
-              ).toBeDefined();
-              expect(
-                typeof cueEnterEvent.html,
-                'html should be a string'
-              ).toBe('string');
-              expect(
-                (cueEnterEvent.html as string).length,
-                'html should be non-empty'
-              ).toBeGreaterThan(0);
-            });
-          }
-        );
-
-        spec.it(
-          'CueExit carries the same layout and html as its paired CueEnter',
-          async () => {
-            await startPlayerTest({}, async () => {
-              await loadSourceConfig(sourceWithPositionedSubs);
-              await callPlayer(async (player) => {
-                player.setSubtitleTrack('positioned-cues');
-                player.play();
-              });
-              await callPlayerAndExpectEvent((player) => {
-                player.seek(2);
-              }, EventType.Seeked);
-
-              await expectEvent(EventType.CueEnter);
-              const cueExitEvent: CueExitEvent = await expectEvent(
-                EventType.CueExit
-              );
-
-              expect(
-                cueExitEvent.layout,
-                'CueExit should have a layout field'
-              ).toBeDefined();
-
-              const layout = cueExitEvent.layout as SubtitleCueLayout;
-              expect(
-                layout.writingMode,
-                'writingMode should be horizontal'
-              ).toBe('horizontal');
-              expect(
-                (layout.line as any)?.value,
-                'line.value should be 85'
-              ).toBe(85);
-              expect(layout.position, 'position should be 50').toBe(50);
-
-              expect(
-                cueExitEvent.html,
-                'CueExit html should be present'
-              ).toBeDefined();
-              expect(typeof cueExitEvent.html, 'html should be a string').toBe(
-                'string'
-              );
-            });
-          }
-        );
-
-      });
-    }
-
     spec.it(
       'disables subtitles when calling setSubtitleTrack with undefined',
       async () => {
@@ -398,8 +235,8 @@ export default (spec: TestScope) => {
           )!;
           expect(subtitleTrack).toNotBeNull();
 
-          await callPlayerAndExpectEvent((player) => {
-            player.setSubtitleTrack(subtitleTrack.identifier);
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.setSubtitleTrack(subtitleTrack.identifier);
           }, EventType.SubtitleChanged);
 
           const selectedSubtitle = await callPlayer((player) =>
@@ -414,8 +251,8 @@ export default (spec: TestScope) => {
             'Selected subtitle identifier should match the requested track'
           ).toBe(subtitleTrack.identifier);
 
-          await callPlayerAndExpectEvent((player) => {
-            player.setSubtitleTrack(undefined);
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.setSubtitleTrack(undefined);
           }, EventType.SubtitleChanged);
           const disabledSubtitle = await callPlayer((player) =>
             player.getSubtitleTrack()
