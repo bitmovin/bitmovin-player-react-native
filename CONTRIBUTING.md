@@ -188,12 +188,10 @@ See available API for testing [here](/integration_test/playertesting/PlayerTesti
 
 ### Adding new tests
 
-To add new tests:
+To add a new test suite:
 
-1. create a new file in the `specs/` folder.
-1. import the new file to the `specs/index.ts` file and add it to the default exported array.
-
-A Player Test has the following structure always:
+1. Create a file such as `integration_test/tests/drmTest.ts` with the following
+   structure:
 
 ```ts
 export default (spec: TestScope) => {
@@ -206,6 +204,18 @@ export default (spec: TestScope) => {
   });
 };
 ```
+
+2. Register it in `integration_test/tests/index.js` with a selector and its
+   supported platforms:
+
+```js
+testSuite('drm', androidAndIos, () => require('./drmTest').default),
+```
+
+Use `iosOnly` instead of `androidAndIos` for an iOS-only suite. Keep tests
+inside `spec.describe` so they receive the suite selector automatically. For a
+selector covering only part of a suite, follow the existing `cue-metadata`
+registration and pass that selector as the third argument to `spec.describe`.
 
 For example:
 
