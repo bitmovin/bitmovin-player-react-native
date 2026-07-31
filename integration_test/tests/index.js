@@ -1,5 +1,3 @@
-const { tagTestSuite } = require('../scripts/tag-test-suite');
-
 const androidAndIos = ['android', 'ios'];
 const iosOnly = ['ios'];
 
@@ -55,7 +53,17 @@ const availableTestTags = testRegistrations.map(({ name, platforms }) => ({
 }));
 
 function createSpecs() {
-  return testRegistrations.map(({ name, load }) => tagTestSuite(load(), name));
+  return testRegistrations.map(({ name, load }) => {
+    const registerSuite = load();
+
+    return (spec) => {
+      const describe = spec.describe.bind(spec);
+      spec.describe = (label, defineTests) =>
+        describe(label, defineTests, name);
+
+      return registerSuite(spec);
+    };
+  });
 }
 
 module.exports = {

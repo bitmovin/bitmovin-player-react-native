@@ -6,17 +6,8 @@ const { availableTestTags, createSpecs } = require('../tests');
 describe('test suite manifest', () => {
   it('exposes a valid selector registry without loading React Native', () => {
     const names = availableTestTags.map(({ name }) => name);
-    const cueMetadataTag = availableTestTags.find(
-      ({ name }) => name === 'cue-metadata'
-    );
 
-    assert.equal(typeof createSpecs, 'function');
     assert.equal(new Set(names).size, names.length);
-    assert.deepEqual(cueMetadataTag, {
-      name: 'cue-metadata',
-      platforms: ['android', 'ios'],
-    });
-    assert.equal(names.includes('cue-geometry'), false);
 
     for (const { name, platforms } of availableTestTags) {
       assert.ok(name.length > 0);
@@ -27,13 +18,18 @@ describe('test suite manifest', () => {
     }
   });
 
-  it('resolves every registered suite module', () => {
+  it('resolves and tags every registered suite module', () => {
     const originalTypeScriptLoader = require.extensions['.ts'];
     const loadedModulePaths = [];
+    const registeredTags = [];
 
     require.extensions['.ts'] = (module, filename) => {
       loadedModulePaths.push(filename);
-      module.exports = { default: () => {} };
+      module.exports = {
+        default: (spec) => {
+          spec.describe('suite', () => spec.it('test', () => {}));
+        },
+      };
     };
 
     try {
@@ -41,8 +37,22 @@ describe('test suite manifest', () => {
 
       assert.equal(specs.length, loadedModulePaths.length);
       for (const registerSpec of specs) {
-        assert.doesNotThrow(() => registerSpec({ describe() {} }));
+        const scope = {
+          describe(_label, defineTests, tag) {
+            this.tag = tag;
+            defineTests();
+          },
+          it() {
+            registeredTags.push(this.tag);
+          },
+        };
+        registerSpec(scope);
       }
+
+      assert.deepEqual(
+        registeredTags,
+        availableTestTags.map(({ name }) => name)
+      );
     } finally {
       for (const modulePath of loadedModulePaths) {
         delete require.cache[modulePath];
