@@ -231,66 +231,69 @@ export default (spec: TestScope) => {
         );
       });
 
-      const defineIosCueMetadataTests = () => {
-        spec.it('CueEnter carries CEA-608 grid position metadata', async () => {
-          await startPlayerTest({}, async () => {
-            await loadSourceConfig(sourceWithCea608Captions);
-            await callPlayer(async (player) => {
-              const subtitleTracks = await player.getAvailableSubtitles();
-              const cea608Track = subtitleTracks.find(
-                (track: SubtitleTrack) => track.format === SubtitleFormat.CEA
-              );
-              expect(
-                cea608Track,
-                'CEA-608 track should be available'
-              ).toBeDefined();
-              expect(
-                cea608Track?.identifier,
-                'CEA-608 track should have an identifier'
-              ).toBeDefined();
-              if (!cea608Track?.identifier) {
-                return;
-              }
-              await player.setSubtitleTrack(cea608Track.identifier);
-              player.play();
-            });
-            await callPlayerAndExpectEvent((player) => {
-              player.seek(10);
-            }, EventType.Seeked);
-
-            const cueEnterEvent: CueEnterEvent = await expectEvent(
-              EventType.CueEnter,
-              30
-            );
-            const position = cueEnterEvent.cea608Position;
-            expect(
-              position,
-              'CueEnter should expose CEA-608 position'
-            ).toBeDefined();
-            expect(position?.rows, 'CEA-608 row count').toBe(15);
-            expect(position?.columns, 'CEA-608 column count').toBe(32);
-            expect(
-              position?.rowIndex,
-              'CEA-608 row index should be in range'
-            ).toBeGreaterThanOrEqual(0);
-            expect(
-              position?.rowIndex,
-              'CEA-608 row index should be below rows'
-            ).toBeSmallerThan(15);
-            expect(
-              position?.columnIndex,
-              'CEA-608 column index should be in range'
-            ).toBeGreaterThanOrEqual(0);
-            expect(
-              position?.columnIndex,
-              'CEA-608 column index should be below columns'
-            ).toBeSmallerThan(32);
-          });
-        });
-      };
       spec.describe(
         'iOS cue metadata fields',
-        defineIosCueMetadataTests,
+        () => {
+          spec.it(
+            'CueEnter carries CEA-608 grid position metadata',
+            async () => {
+              await startPlayerTest({}, async () => {
+                await loadSourceConfig(sourceWithCea608Captions);
+                await callPlayer(async (player) => {
+                  const subtitleTracks = await player.getAvailableSubtitles();
+                  const cea608Track = subtitleTracks.find(
+                    (track: SubtitleTrack) =>
+                      track.format === SubtitleFormat.CEA
+                  );
+                  expect(
+                    cea608Track,
+                    'CEA-608 track should be available'
+                  ).toBeDefined();
+                  expect(
+                    cea608Track?.identifier,
+                    'CEA-608 track should have an identifier'
+                  ).toBeDefined();
+                  if (!cea608Track?.identifier) {
+                    return;
+                  }
+                  await player.setSubtitleTrack(cea608Track.identifier);
+                  player.play();
+                });
+                await callPlayerAndExpectEvent((player) => {
+                  player.seek(10);
+                }, EventType.Seeked);
+
+                const cueEnterEvent: CueEnterEvent = await expectEvent(
+                  EventType.CueEnter,
+                  30
+                );
+                const position = cueEnterEvent.cea608Position;
+                expect(
+                  position,
+                  'CueEnter should expose CEA-608 position'
+                ).toBeDefined();
+                expect(position?.rows, 'CEA-608 row count').toBe(15);
+                expect(position?.columns, 'CEA-608 column count').toBe(32);
+                expect(
+                  position?.rowIndex,
+                  'CEA-608 row index should be in range'
+                ).toBeGreaterThanOrEqual(0);
+                expect(
+                  position?.rowIndex,
+                  'CEA-608 row index should be below rows'
+                ).toBeSmallerThan(15);
+                expect(
+                  position?.columnIndex,
+                  'CEA-608 column index should be in range'
+                ).toBeGreaterThanOrEqual(0);
+                expect(
+                  position?.columnIndex,
+                  'CEA-608 column index should be below columns'
+                ).toBeSmallerThan(32);
+              });
+            }
+          );
+        },
         cueMetadataSelector
       );
     }
