@@ -11,6 +11,14 @@ const availableTestTags = new Map(
 function parseTestArguments(argumentsToParse) {
   const tagsIndex = argumentsToParse.indexOf('--tags');
   if (tagsIndex === -1) {
+    const [firstArgument] = argumentsToParse;
+    if (firstArgument && !firstArgument.startsWith('-')) {
+      const tagSuggestion = availableTestTags.has(firstArgument)
+        ? `\nDid you mean --tags ${firstArgument}?`
+        : '';
+      throw new Error(`Unexpected argument: ${firstArgument}${tagSuggestion}`);
+    }
+
     return { tags: [], forwardedArguments: argumentsToParse };
   }
 

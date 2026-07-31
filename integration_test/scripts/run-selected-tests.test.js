@@ -75,6 +75,26 @@ describe('list-tags', () => {
 });
 
 describe('parseTestArguments', () => {
+  it('suggests --tags for a bare test selector', () => {
+    assert.throws(() => parseTestArguments(['audio-track']), {
+      message:
+        'Unexpected argument: audio-track\nDid you mean --tags audio-track?',
+    });
+  });
+
+  it('rejects an unknown positional argument', () => {
+    assert.throws(() => parseTestArguments(['audio-trak']), {
+      message: 'Unexpected argument: audio-trak',
+    });
+  });
+
+  it('preserves positional values belonging to Cavy options', () => {
+    assert.deepEqual(parseTestArguments(['--file', 'audio-track']), {
+      tags: [],
+      forwardedArguments: ['--file', 'audio-track'],
+    });
+  });
+
   it('parses comma-separated tags and preserves Cavy arguments', () => {
     assert.deepEqual(
       parseTestArguments([
