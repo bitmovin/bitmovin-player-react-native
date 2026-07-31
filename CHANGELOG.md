@@ -9,6 +9,7 @@
 
 ### Changed
 
+- Update Bitmovin's native iOS SDK version to [`3.118.1`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31181)
 - Cue layout no longer emits empty `layout` objects or uses `'auto'` for `line`, `position`, or `positionAlign`; automatic or unset placement is now represented by omitting these fields
 
 ## [1.23.0] - 2026-07-28
