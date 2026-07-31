@@ -12,6 +12,7 @@
     "android": "expo run:android",
     "preios": "yarn patch-ios-build",
     "test": "node scripts/run-selected-tests.js all",
+    "list-tags": "node scripts/run-selected-tests.js list-tags",
     "check:runner": "yarn lint:runner && yarn test:runner",
     "lint:runner": "eslint scripts --ext .js --quiet",
     "test:runner": "node --test scripts/*.test.js",

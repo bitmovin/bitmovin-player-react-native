@@ -45,6 +45,7 @@ yarn integration-test test # Run tests on both Android emulator and iOS simulato
 Run one or more test suites by passing their comma-separated selectors:
 
 ```sh
+yarn integration-test list-tags # List selectors and their supported platforms
 yarn integration-test test:android --tags playback
 yarn integration-test test:ios --tags playback,unloading
 ```

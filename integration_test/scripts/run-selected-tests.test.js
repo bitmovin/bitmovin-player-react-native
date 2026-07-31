@@ -1,6 +1,9 @@
 const assert = require('node:assert/strict');
+const { spawnSync } = require('node:child_process');
+const path = require('node:path');
 const { describe, it } = require('node:test');
 
+const { availableTestTags } = require('../tests');
 const {
   createTestRun,
   executeTestRun,
@@ -45,6 +48,22 @@ function executeAndRecord(platform, testArguments, environment) {
 
   return { calls, status };
 }
+
+describe('list-tags', () => {
+  it('prints every selector with its supported platforms', () => {
+    const result = spawnSync(
+      process.execPath,
+      [path.join(__dirname, 'run-selected-tests.js'), 'list-tags'],
+      { encoding: 'utf8' }
+    );
+    const expectedOutput = availableTestTags
+      .map(({ name, platforms }) => `${name}\t${platforms.join(', ')}`)
+      .join('\n');
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), expectedOutput);
+  });
+});
 
 describe('parseTestArguments', () => {
   it('parses comma-separated tags and preserves Cavy arguments', () => {

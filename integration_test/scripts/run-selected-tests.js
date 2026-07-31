@@ -123,7 +123,13 @@ if (require.main === module) {
   const [platform, ...testArguments] = process.argv.slice(2);
 
   try {
-    process.exitCode = executeTestRun(platform, testArguments);
+    if (platform === 'list-tags') {
+      for (const { name, platforms } of testTags) {
+        console.log(`${name}\t${platforms.join(', ')}`);
+      }
+    } else {
+      process.exitCode = executeTestRun(platform, testArguments);
+    }
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
