@@ -3,10 +3,7 @@
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
 INTEGRATION_TEST_DIR=$(cd "$SCRIPT_DIR/.." && pwd -P)
 PACKAGER_PORT=8081
-PACKAGER_STATE_ID=$(printf '%s' "$INTEGRATION_TEST_DIR" | cksum | awk '{print $1 "-" $2}')
-PACKAGER_PID_FILE="${TMPDIR:-/tmp}/bitmovin-integration-test-packager-${PACKAGER_STATE_ID}.pid"
-PACKAGER_LOG_FILE="${TMPDIR:-/tmp}/bitmovin-integration-test-metro-${PACKAGER_STATE_ID}.log"
-PACKAGER_STARTED_BY_SCRIPT=0
+PACKAGER_LOG_FILE="${TMPDIR:-/tmp}/bitmovin-integration-test-metro.log"
 PACKAGER_STARTED_PID=""
 
 packager_pid_on_port() {
@@ -63,21 +60,17 @@ kill_packager_pid() {
 
 cleanup_owned_packager() {
     local pid
-    local recorded_pid
 
-    if [ "$PACKAGER_STARTED_BY_SCRIPT" != "1" ]; then
+    pid="$PACKAGER_STARTED_PID"
+    if [ -z "$pid" ]; then
         return
     fi
 
-    pid="$PACKAGER_STARTED_PID"
-    if [ -n "$pid" ] && packager_process_matches_project "$pid"; then
+    if packager_process_matches_project "$pid"; then
         kill_packager_pid "$pid"
     fi
 
-    recorded_pid=$(cat "$PACKAGER_PID_FILE" 2>/dev/null)
-    if [ "$recorded_pid" = "$pid" ]; then
-        rm -f "$PACKAGER_PID_FILE"
-    fi
+    PACKAGER_STARTED_PID=""
 }
 
 ensure_packager_running() {
@@ -101,14 +94,11 @@ ensure_packager_running() {
     ) > "$PACKAGER_LOG_FILE" 2>&1 &
 
     PACKAGER_STARTED_PID="$!"
-    printf '%s\n' "$PACKAGER_STARTED_PID" > "$PACKAGER_PID_FILE"
-    PACKAGER_STARTED_BY_SCRIPT=1
 
     for _ in {1..30}; do
         pid=$(packager_pid_on_port)
         if [ -n "$pid" ] && packager_process_matches_project "$pid"; then
             PACKAGER_STARTED_PID="$pid"
-            printf '%s\n' "$PACKAGER_STARTED_PID" > "$PACKAGER_PID_FILE"
             echo "Integration test Expo packager is ready"
             return 0
         fi
@@ -123,20 +113,11 @@ ensure_packager_running() {
 stop_integration_test_packager() {
     local pid
 
-    pid=$(cat "$PACKAGER_PID_FILE" 2>/dev/null)
-    if [ -n "$pid" ] && packager_process_matches_project "$pid"; then
-        kill_packager_pid "$pid"
-        rm -f "$PACKAGER_PID_FILE"
-        return 0
-    fi
-
     pid=$(packager_pid_on_port)
     if [ -n "$pid" ] && packager_process_matches_project "$pid"; then
         kill_packager_pid "$pid"
-        rm -f "$PACKAGER_PID_FILE"
         return 0
     fi
 
-    rm -f "$PACKAGER_PID_FILE"
     echo "No integration_test Expo packager found"
 }

@@ -37,4 +37,4 @@ jobs:
           cache-dependency-path: integration_test/yarn.lock
 
       - name: Run integration test script suite
-        run: yarn --cwd integration_test test:scripts
+        run: yarn --cwd integration_test test:runner

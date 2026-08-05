@@ -23,7 +23,6 @@
     "start-test:android": "./scripts/start-test-android.sh",
     "run-test:android": "./scripts/run-test-android.sh",
     "start-test:ios": "./scripts/start-test-ios.sh",
-    "test:scripts": "node --test scripts/*.test.js",
     "test:android": "node scripts/run-selected-tests.js android",
     "test:ios": "node scripts/run-selected-tests.js ios",
     "patch-ios-build": "./scripts/patch-ios-build.sh",
