@@ -174,19 +174,6 @@ export interface TweaksConfig {
    * @platform Android
    */
   enableDrmLicenseRenewRetry?: boolean;
-  /**
-   * Determines whether `AVKit` should update Now Playing information automatically when using System UI.
-   *
-   * - If set to `false`, the automatic updates of Now Playing Info sent by `AVKit` are disabled.
-   *   This prevents interference with manual updates you may want to perform.
-   * - If set to `true`, the default behaviour is maintained, allowing `AVKit` to handle Now Playing updates.
-   *
-   * Default is `true`.
-   *
-   * @deprecated To enable the Now Playing information use {@link MediaControlConfig.isEnabled}
-   * @platform iOS
-   */
-  updatesNowPlayingInfoCenter?: boolean;
 
   /**
    * When switching between video formats (eg: adapting between video qualities)

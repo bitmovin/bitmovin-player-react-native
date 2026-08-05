@@ -24,6 +24,8 @@ config.resolver.extraNodeModules = {
 
 config.watchFolders = [path.resolve(__dirname, '..')];
 
+config.resolver.assetExts = [...(config.resolver.assetExts ?? []), 'vtt'];
+
 config.transformer.getTransformOptions = async () => ({
   transform: {
     experimentalImportSupport: false,

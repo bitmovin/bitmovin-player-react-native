@@ -1,19 +1,21 @@
 /**
  * Configures the media control information for the application. This information will be displayed
  * wherever current media information typically appears, such as the lock screen, in notifications, and
- * and inside the control center.
+ * inside the control center.
  */
 export interface MediaControlConfig {
   /**
    * Enable the default behavior of displaying media information
    * on the lock screen, in notifications, and within the control center.
    *
-   * Default is `true`.
-   *
    * For a detailed list of the supported features in the **default behavior**,
    * check the **Default Supported Features** section.
    *
-   * @remarks Enabling this flag will automatically treat {@link TweaksConfig.updatesNowPlayingInfoCenter} as `false`.
+   * @remarks
+   * This configuration is applied when the native Player is created. Runtime changes are supported through
+   * {@link Player.mediaControls} on iOS/tvOS only; Android runtime changes are not implemented yet.
+   *
+   * @defaultValue `true`
    *
    * ## Limitations
    * ---

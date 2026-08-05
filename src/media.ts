@@ -1,3 +1,15 @@
+import { DynamicRange } from './dynamicRange';
+
+/**
+ * Color information of a video representation.
+ */
+export interface VideoColorInfo {
+  /**
+   * The dynamic range of the video quality.
+   */
+  dynamicRange: DynamicRange;
+}
+
 /**
  * Quality definition of a video representation.
  */
@@ -30,6 +42,10 @@ export interface VideoQuality {
    * The width of the video quality.
    */
   width?: number;
+  /**
+   * The color information of the video quality.
+   */
+  colorInfo: VideoColorInfo;
 }
 
 /**

@@ -9,13 +9,15 @@ module.exports = {
         project: './tsconfig.json',
         tsconfigRootDir: __dirname,
       },
+      rules: {
+        '@typescript-eslint/no-floating-promises': 'error',
+      },
     },
   ],
   env: {
     node: true,
   },
   rules: {
-    '@typescript-eslint/no-floating-promises': 'error',
     'prettier/prettier': 'error',
   },
 };

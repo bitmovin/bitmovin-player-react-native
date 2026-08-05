@@ -8,6 +8,7 @@
       "PlayerModule",
       "SourceModule",
       "BufferModule",
+      "MediaControlsModule",
       "NetworkModule",
       "CustomMessageHandlerModule",
       "DrmModule",

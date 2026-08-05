@@ -10,7 +10,8 @@ const TEMP_DIR_PREFIX = 'integration-test-scripts-';
 const RECORD_FILE_NAME = 'calls.log';
 const PACKAGER_PORT = '8081';
 const FAKE_IOS_SIMULATOR_NAME = 'Stub iPhone Simulator';
-const FAKE_IOS_DEVICE_TYPE = 'com.example.CoreSimulator.SimDeviceType.Stub-iPhone';
+const FAKE_IOS_DEVICE_TYPE =
+  'com.example.CoreSimulator.SimDeviceType.Stub-iPhone';
 const ARBITRARY_FOREIGN_PID = '11111';
 const ARBITRARY_OWNED_PID = '22222';
 const WAIT_TIMEOUT_MS = 1000;
@@ -36,6 +37,7 @@ function createStubEnvironment(t, env = {}) {
   const expoPidFile = path.join(tempDir, 'expo.pid');
   const expoCwdFile = path.join(tempDir, 'expo.cwd');
   const expoMarkerFile = path.join(tempDir, 'expo.terminated');
+  const forwardedArgumentsFile = path.join(tempDir, 'arguments');
   const defaultEnv = {
     ...process.env,
     PATH: `${binDir}:${process.env.PATH}`,
@@ -44,6 +46,7 @@ function createStubEnvironment(t, env = {}) {
     STUB_EXPO_PID_FILE: expoPidFile,
     STUB_EXPO_CWD_FILE: expoCwdFile,
     STUB_EXPO_MARKER_FILE: expoMarkerFile,
+    STUB_FORWARDED_ARGUMENTS_FILE: forwardedArgumentsFile,
     LSOF_PIDS: '',
     LSOF_CWD: '',
     STUB_NPX_MODE: '',
@@ -142,6 +145,9 @@ exit 0
     'yarn',
     `#!/bin/sh
 echo "yarn:$*" >> "$STUB_RECORD_FILE"
+if [ -n "$STUB_FORWARDED_ARGUMENTS_FILE" ]; then
+  printf "%s\\n" "$@" > "$STUB_FORWARDED_ARGUMENTS_FILE"
+fi
 exit 0
 `
   );
@@ -204,11 +210,17 @@ exit 0
 `
   );
 
-  return { tempDir, recordFile, expoMarkerFile, env: defaultEnv };
+  return {
+    tempDir,
+    recordFile,
+    expoMarkerFile,
+    forwardedArgumentsFile,
+    env: defaultEnv,
+  };
 }
 
-function runScript(scriptName, env) {
-  return spawnSync(`./scripts/${scriptName}`, {
+function runScript(scriptName, env, args = []) {
+  return spawnSync(`./scripts/${scriptName}`, args, {
     cwd: INTEGRATION_TEST_DIR,
     env,
     encoding: 'utf8',
@@ -220,10 +232,7 @@ function readCalls(recordFile) {
     return [];
   }
 
-  return fs
-    .readFileSync(recordFile, 'utf8')
-    .split('\n')
-    .filter(Boolean);
+  return fs.readFileSync(recordFile, 'utf8').split('\n').filter(Boolean);
 }
 
 function startDetachedTrapProcess(markerFile) {
@@ -260,7 +269,9 @@ function waitForFile(filePath, timeoutMs = WAIT_TIMEOUT_MS) {
 
 function assertPackagerNotStarted(calls) {
   assert.ok(
-    !calls.some((call) => call.startsWith('npx:') && call.includes(':expo start '))
+    !calls.some(
+      (call) => call.startsWith('npx:') && call.includes(':expo start ')
+    )
   );
 }
 
@@ -287,10 +298,14 @@ test('start-test-ios starts Expo instead of react-native when it owns the packag
 
   assert.notEqual(result.status, 0);
   assert.ok(
-    calls.some((call) => call.startsWith(`npx:${INTEGRATION_TEST_DIR}:expo start `))
+    calls.some((call) =>
+      call.startsWith(`npx:${INTEGRATION_TEST_DIR}:expo start `)
+    )
   );
   assert.ok(
-    !calls.some((call) => call.includes(`:react-native start --port ${PACKAGER_PORT}`))
+    !calls.some((call) =>
+      call.includes(`:react-native start --port ${PACKAGER_PORT}`)
+    )
   );
 });
 
@@ -299,15 +314,17 @@ test('start-test-ios reuses an owned Expo CLI process without starting another p
     LSOF_PIDS: ARBITRARY_OWNED_PID,
     LSOF_CWD: INTEGRATION_TEST_DIR,
     // Fake ps output for the already-running integration_test Expo CLI process we should reuse.
-    STUB_PROCESS_LIST:
-      `${ARBITRARY_OWNED_PID} ?? 0:00.10 node ${FAKE_OWNED_PROJECT_PATH}/node_modules/expo/bin/cli start --port ${PACKAGER_PORT} --localhost`,
+    STUB_PROCESS_LIST: `${ARBITRARY_OWNED_PID} ?? 0:00.10 node ${FAKE_OWNED_PROJECT_PATH}/node_modules/expo/bin/cli start --port ${PACKAGER_PORT} --localhost`,
   });
 
   const result = runScript('start-test-ios.sh', env);
   const calls = readCalls(recordFile);
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout + result.stderr, /Using existing integration_test Expo packager/i);
+  assert.match(
+    result.stdout + result.stderr,
+    /Using existing integration_test Expo packager/i
+  );
   assertPackagerNotStarted(calls);
 });
 
@@ -320,9 +337,14 @@ test('start-test-ios starts Expo, runs cavy, and cleans up the owned packager on
   const calls = readCalls(recordFile);
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout + result.stderr, /Integration test Expo packager is ready/i);
+  assert.match(
+    result.stdout + result.stderr,
+    /Integration test Expo packager is ready/i
+  );
   assert.ok(
-    calls.some((call) => call.startsWith(`npx:${INTEGRATION_TEST_DIR}:expo start `))
+    calls.some((call) =>
+      call.startsWith(`npx:${INTEGRATION_TEST_DIR}:expo start `)
+    )
   );
   assert.ok(
     calls.some((call) =>
@@ -338,8 +360,7 @@ test('start-test-android reuses an owned Expo CLI process and forwards --no-pack
   const { env, recordFile } = createStubEnvironment(t, {
     LSOF_PIDS: ARBITRARY_OWNED_PID,
     LSOF_CWD: INTEGRATION_TEST_DIR,
-    STUB_PROCESS_LIST:
-      `${ARBITRARY_OWNED_PID} ?? 0:00.10 node ${FAKE_OWNED_PROJECT_PATH}/node_modules/expo/bin/cli start --port ${PACKAGER_PORT} --localhost`,
+    STUB_PROCESS_LIST: `${ARBITRARY_OWNED_PID} ?? 0:00.10 node ${FAKE_OWNED_PROJECT_PATH}/node_modules/expo/bin/cli start --port ${PACKAGER_PORT} --localhost`,
     STUB_ADB_DEVICES: `List of devices attached\n${FAKE_ANDROID_EMULATOR_ID}\tdevice\n`,
   });
 
@@ -347,7 +368,10 @@ test('start-test-android reuses an owned Expo CLI process and forwards --no-pack
   const calls = readCalls(recordFile);
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout + result.stderr, /Using existing integration_test Expo packager/i);
+  assert.match(
+    result.stdout + result.stderr,
+    /Using existing integration_test Expo packager/i
+  );
   assert.ok(
     calls.some((call) =>
       call.includes(
@@ -362,8 +386,7 @@ test('run-test-android reuses an owned Expo CLI process and runs cavy on an exis
   const { env, recordFile } = createStubEnvironment(t, {
     LSOF_PIDS: ARBITRARY_OWNED_PID,
     LSOF_CWD: INTEGRATION_TEST_DIR,
-    STUB_PROCESS_LIST:
-      `${ARBITRARY_OWNED_PID} ?? 0:00.10 node ${FAKE_OWNED_PROJECT_PATH}/node_modules/expo/bin/cli start --port ${PACKAGER_PORT} --localhost`,
+    STUB_PROCESS_LIST: `${ARBITRARY_OWNED_PID} ?? 0:00.10 node ${FAKE_OWNED_PROJECT_PATH}/node_modules/expo/bin/cli start --port ${PACKAGER_PORT} --localhost`,
     STUB_ADB_DEVICES: `List of devices attached\n${FAKE_ANDROID_EMULATOR_ID}\tdevice\n`,
   });
 
@@ -371,7 +394,10 @@ test('run-test-android reuses an owned Expo CLI process and runs cavy on an exis
   const calls = readCalls(recordFile);
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout + result.stderr, /Using existing integration_test Expo packager/i);
+  assert.match(
+    result.stdout + result.stderr,
+    /Using existing integration_test Expo packager/i
+  );
   assert.ok(
     calls.some((call) =>
       call.includes(
@@ -394,12 +420,21 @@ test('ensure-android-emulator starts an emulator when none is running', (t) => {
   const calls = readCalls(recordFile);
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout + result.stderr, new RegExp(FAKE_ANDROID_EMULATOR_ID));
+  assert.match(
+    result.stdout + result.stderr,
+    new RegExp(FAKE_ANDROID_EMULATOR_ID)
+  );
   assert.ok(calls.some((call) => call.includes(`emulator:-list-avds`)));
-  assert.ok(calls.some((call) => call.includes(`emulator:-avd ${FAKE_ANDROID_AVD_NAME}`)));
+  assert.ok(
+    calls.some((call) =>
+      call.includes(`emulator:-avd ${FAKE_ANDROID_AVD_NAME}`)
+    )
+  );
   assert.ok(calls.some((call) => call.includes('adb:wait-for-device shell')));
   assert.ok(
-    !calls.some((call) => call.startsWith('npx:') && call.includes(':expo start '))
+    !calls.some(
+      (call) => call.startsWith('npx:') && call.includes(':expo start ')
+    )
   );
   assert.ok(!calls.some((call) => call.includes('yarn:cavy run-android')));
   assert.equal(fs.existsSync(expoMarkerFile), false);
@@ -418,10 +453,16 @@ test('start-test-android composes emulator boot and android test run for local w
 
   assert.equal(result.status, 0);
   assert.ok(
-    calls.some((call) => call.startsWith(`npx:${INTEGRATION_TEST_DIR}:expo start `))
+    calls.some((call) =>
+      call.startsWith(`npx:${INTEGRATION_TEST_DIR}:expo start `)
+    )
   );
   assert.ok(calls.some((call) => call.includes(`emulator:-list-avds`)));
-  assert.ok(calls.some((call) => call.includes(`emulator:-avd ${FAKE_ANDROID_AVD_NAME}`)));
+  assert.ok(
+    calls.some((call) =>
+      call.includes(`emulator:-avd ${FAKE_ANDROID_AVD_NAME}`)
+    )
+  );
   assert.ok(calls.some((call) => call.includes('adb:wait-for-device shell')));
   assert.ok(
     calls.some((call) =>
@@ -433,8 +474,35 @@ test('start-test-android composes emulator boot and android test run for local w
   assert.equal(waitForFile(expoMarkerFile), true);
 });
 
+for (const scriptName of ['start-test-android.sh', 'start-test-ios.sh']) {
+  test(`${scriptName} preserves forwarded argument boundaries`, (t) => {
+    const { env, forwardedArgumentsFile } = createStubEnvironment(t, {
+      LSOF_PIDS: ARBITRARY_OWNED_PID,
+      LSOF_CWD: INTEGRATION_TEST_DIR,
+      STUB_PROCESS_LIST: `${ARBITRARY_OWNED_PID} ?? 0:00.10 node ${FAKE_OWNED_PROJECT_PATH}/node_modules/expo/bin/cli start --port ${PACKAGER_PORT} --localhost`,
+      STUB_ADB_DEVICES: `List of devices attached\n${FAKE_ANDROID_EMULATOR_ID}\tdevice\n`,
+    });
+    const forwardedArguments = ['--file', 'specs/with spaces.js'];
+
+    const result = runScript(scriptName, env, forwardedArguments);
+    const capturedArguments = fs
+      .readFileSync(forwardedArgumentsFile, 'utf8')
+      .trim()
+      .split('\n');
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(
+      capturedArguments.slice(-forwardedArguments.length),
+      forwardedArguments
+    );
+  });
+}
+
 test('stop-packager kills the harness-owned integration_test Expo server', (t) => {
-  const ownedMarkerFile = path.join(os.tmpdir(), `owned-packager-${Date.now()}.txt`);
+  const ownedMarkerFile = path.join(
+    os.tmpdir(),
+    `owned-packager-${Date.now()}.txt`
+  );
   const ownedPid = startDetachedTrapProcess(ownedMarkerFile);
   assert.ok(ownedPid);
   t.after(() => {
@@ -446,7 +514,10 @@ test('stop-packager kills the harness-owned integration_test Expo server', (t) =
   env.TMPDIR = tempDir;
   // Fake ps output for the harness-owned Expo server referenced by the pid file.
   env.STUB_PROCESS_LIST = `${ownedPid} ?? 0:00.10 node /usr/local/bin/expo start ${INTEGRATION_TEST_DIR} --port ${PACKAGER_PORT} --localhost`;
-  fs.writeFileSync(path.join(tempDir, 'bitmovin-integration-test-packager.pid'), `${ownedPid}`);
+  fs.writeFileSync(
+    path.join(tempDir, 'bitmovin-integration-test-packager.pid'),
+    `${ownedPid}`
+  );
 
   const result = runScript('stop-packager.sh', env);
 
@@ -455,7 +526,10 @@ test('stop-packager kills the harness-owned integration_test Expo server', (t) =
 });
 
 test('stop-packager leaves a foreign process on 8081 alone', (t) => {
-  const foreignMarkerFile = path.join(os.tmpdir(), `foreign-packager-${Date.now()}.txt`);
+  const foreignMarkerFile = path.join(
+    os.tmpdir(),
+    `foreign-packager-${Date.now()}.txt`
+  );
   const foreignPid = startDetachedTrapProcess(foreignMarkerFile);
   assert.ok(foreignPid);
   t.after(() => {

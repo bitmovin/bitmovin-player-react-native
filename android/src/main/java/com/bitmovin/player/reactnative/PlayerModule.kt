@@ -23,6 +23,8 @@ import expo.modules.kotlin.modules.ModuleDefinition
 class PlayerModule : Module() {
 
     val mediaSessionPlaybackManager by lazy { MediaSessionPlaybackManager(appContext) }
+    private val shouldLoadAdItemWaiter = ResultWaiter<Boolean>()
+    private val shouldPlayAdBreakWaiter = ResultWaiter<Boolean>()
     private val imaSettingsWaiter = ResultWaiter<Map<String, Any?>>()
 
     override fun definition() = ModuleDefinition {
@@ -41,11 +43,13 @@ class PlayerModule : Module() {
                     // Log but don't crash on cleanup
                 }
             }
+            shouldLoadAdItemWaiter.clear()
+            shouldPlayAdBreakWaiter.clear()
             imaSettingsWaiter.clear()
             PlayerRegistry.clear()
         }
 
-        Events("onImaBeforeInitialization")
+        Events("onShouldLoadAdItem", "onShouldPlayAdBreak", "onImaBeforeInitialization")
 
         AsyncFunction("play") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
@@ -177,6 +181,10 @@ class PlayerModule : Module() {
             false
         }
 
+        AsyncFunction("showAirPlayTargetPicker") { _: String ->
+            // AirPlay is iOS-only, no-op on Android
+        }
+
         AsyncFunction("isCastAvailable") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.isCastAvailable
@@ -279,6 +287,14 @@ class PlayerModule : Module() {
             imaSettingsWaiter.complete(id, settings ?: emptyMap())
         }
 
+        AsyncFunction("setShouldLoadAdItem") { id: Int, shouldLoad: Boolean ->
+            shouldLoadAdItemWaiter.complete(id, shouldLoad)
+        }
+
+        AsyncFunction("setShouldPlayAdBreak") { id: Int, shouldPlay: Boolean ->
+            shouldPlayAdBreakWaiter.complete(id, shouldPlay)
+        }
+
         AsyncFunction("initializeWithConfig") { nativeId: NativeId, config: Map<String, Any>?,
             networkNativeId: NativeId?, decoderNativeId: NativeId?, ->
             initializePlayer(nativeId, config, networkNativeId, decoderNativeId, null)
@@ -318,6 +334,8 @@ class PlayerModule : Module() {
         val playerConfig = config?.toPlayerConfig() ?: PlayerConfig()
         @Suppress("UNCHECKED_CAST")
         val configJson = config as? Map<String, Any?>
+        setupShouldLoadAdItem(nativeId, configJson, playerConfig)
+        setupShouldPlayAdBreak(nativeId, configJson, playerConfig)
         setupImaBeforeInitialization(nativeId, configJson, playerConfig)
         val enableMediaSession = config?.getMap("mediaControlConfig")
             ?.toMediaControlConfig()?.isEnabled ?: true
@@ -372,6 +390,58 @@ class PlayerModule : Module() {
         val callback = createBeforeInitializationCallback(nativeId)
         val updatedIma = advertisingConfig.ima.copy(beforeInitialization = callback)
         playerConfig.advertisingConfig = advertisingConfig.copy(ima = updatedIma)
+    }
+
+    private fun setupShouldLoadAdItem(
+        nativeId: NativeId,
+        configJson: Map<String, Any?>?,
+        playerConfig: PlayerConfig,
+    ) {
+        val advertisingConfigJson = configJson?.getMap("advertisingConfig") ?: return
+        if (!advertisingConfigJson.containsKey("shouldLoadAdItem")) {
+            return
+        }
+        val advertisingConfig = playerConfig.advertisingConfig ?: AdvertisingConfig()
+        playerConfig.advertisingConfig = advertisingConfig.copy(
+            shouldLoadAdItem = { adItem ->
+                val (id, wait) = shouldLoadAdItemWaiter.make(250)
+                sendEvent(
+                    "onShouldLoadAdItem",
+                    bundleOf(
+                        "nativeId" to nativeId,
+                        "id" to id,
+                        "adItem" to adItem.toJson(),
+                    ),
+                )
+                wait() ?: true
+            },
+        )
+    }
+
+    private fun setupShouldPlayAdBreak(
+        nativeId: NativeId,
+        configJson: Map<String, Any?>?,
+        playerConfig: PlayerConfig,
+    ) {
+        val advertisingConfigJson = configJson?.getMap("advertisingConfig") ?: return
+        if (!advertisingConfigJson.containsKey("shouldPlayAdBreak")) {
+            return
+        }
+        val advertisingConfig = playerConfig.advertisingConfig ?: AdvertisingConfig()
+        playerConfig.advertisingConfig = advertisingConfig.copy(
+            shouldPlayAdBreak = { adBreak ->
+                val (id, wait) = shouldPlayAdBreakWaiter.make(250)
+                sendEvent(
+                    "onShouldPlayAdBreak",
+                    bundleOf(
+                        "nativeId" to nativeId,
+                        "id" to id,
+                        "adBreak" to adBreak.toJson(),
+                    ),
+                )
+                wait() ?: true
+            },
+        )
     }
 
     private fun createBeforeInitializationCallback(nativeId: NativeId): BeforeInitializationCallback =

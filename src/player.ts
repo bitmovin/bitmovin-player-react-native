@@ -9,8 +9,9 @@ import { OfflineContentManager, OfflineSourceOptions } from './offline';
 import { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/player';
 import { PlayerConfig } from './playerConfig';
-import { AdItem, ImaSettings } from './advertising';
+import { AdBreak, AdItem, ImaSettings } from './advertising';
 import { BufferApi } from './bufferApi';
+import { MediaControlsApi } from './mediaControlsApi';
 import { VideoQuality } from './media';
 import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
@@ -47,16 +48,26 @@ export class Player extends NativeInstance<PlayerConfig> {
    * The {@link BufferApi} for interactions regarding the buffer.
    */
   buffer: BufferApi = new BufferApi(this.nativeId);
+  /**
+   * The {@link MediaControlsApi} for interactions regarding the Player's media controls integration.
+   *
+   * @platform iOS, tvOS
+   */
+  mediaControls: MediaControlsApi = new MediaControlsApi(this.nativeId);
 
   private network?: Network;
 
   private decoderConfig?: DecoderConfigBridge;
+  private onShouldLoadAdItemSubscription?: EventSubscription;
+  private onShouldPlayAdBreakSubscription?: EventSubscription;
   private onImaBeforeInitializationSubscription?: EventSubscription;
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
   initialize = async (): Promise<void> => {
     if (!this.isInitialized) {
+      this.ensureShouldLoadAdItemListener();
+      this.ensureShouldPlayAdBreakListener();
       this.ensureImaBeforeInitializationListener();
       if (this.config?.networkConfig) {
         this.network = new Network(this.config.networkConfig);
@@ -96,10 +107,45 @@ export class Player extends NativeInstance<PlayerConfig> {
       void this.source?.destroy();
       void this.network?.destroy();
       void this.decoderConfig?.destroy();
+      this.onShouldLoadAdItemSubscription?.remove();
+      this.onShouldPlayAdBreakSubscription?.remove();
       this.onImaBeforeInitializationSubscription?.remove();
+      this.onShouldLoadAdItemSubscription = undefined;
+      this.onShouldPlayAdBreakSubscription = undefined;
       this.onImaBeforeInitializationSubscription = undefined;
       this.isDestroyed = true;
     }
+  };
+
+  private ensureShouldLoadAdItemListener = () => {
+    const callback = this.config?.advertisingConfig?.shouldLoadAdItem;
+    if (!callback) {
+      return;
+    }
+    if (this.onShouldLoadAdItemSubscription) {
+      return;
+    }
+    this.onShouldLoadAdItemSubscription = PlayerModule.addListener(
+      'onShouldLoadAdItem',
+      ({ nativeId, id, adItem }) => {
+        if (nativeId !== this.nativeId) {
+          return;
+        }
+        const cloned: AdItem = {
+          ...adItem,
+          sources: adItem.sources.map((source) => ({ ...source })),
+        };
+        let shouldLoad = true;
+        try {
+          const shouldLoadResult = callback(cloned);
+          shouldLoad =
+            typeof shouldLoadResult === 'boolean' ? shouldLoadResult : true;
+        } catch {
+          shouldLoad = true;
+        }
+        void PlayerModule.setShouldLoadAdItem(id, shouldLoad);
+      }
+    );
   };
 
   /**
@@ -201,6 +247,43 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   setVolume = (volume: number) => {
     void PlayerModule.setVolume(this.nativeId, volume);
+  };
+
+  private ensureShouldPlayAdBreakListener = () => {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+    const callback = this.config?.advertisingConfig?.shouldPlayAdBreak;
+    if (!callback) {
+      return;
+    }
+    if (this.onShouldPlayAdBreakSubscription) {
+      return;
+    }
+    this.onShouldPlayAdBreakSubscription = PlayerModule.addListener(
+      'onShouldPlayAdBreak',
+      ({ nativeId, id, adBreak }) => {
+        if (nativeId !== this.nativeId) {
+          return;
+        }
+        const cloned: AdBreak = {
+          ...adBreak,
+          ads: adBreak.ads.map((ad) => ({
+            ...ad,
+            data: ad.data ? { ...ad.data } : undefined,
+          })),
+        };
+        let shouldPlay = true;
+        try {
+          const shouldPlayResult = callback(cloned);
+          shouldPlay =
+            typeof shouldPlayResult === 'boolean' ? shouldPlayResult : true;
+        } catch {
+          shouldPlay = true;
+        }
+        void PlayerModule.setShouldPlayAdBreak(id, shouldPlay);
+      }
+    );
   };
 
   private ensureImaBeforeInitializationListener = () => {
@@ -317,6 +400,22 @@ export class Player extends NativeInstance<PlayerConfig> {
       return false;
     }
     return (await PlayerModule.isAirPlayAvailable(this.nativeId)) ?? false;
+  };
+
+  /**
+   * Displays the system AirPlay route selection menu, allowing the user to pick
+   * an AirPlay target for the current playback.
+   *
+   * @platform iOS
+   */
+  showAirPlayTargetPicker = () => {
+    if (Platform.OS !== 'ios' || Platform.isTV) {
+      console.warn(
+        `[Player ${this.nativeId}] Method showAirPlayTargetPicker is only available on iOS (not Android/tvOS).`
+      );
+      return;
+    }
+    void PlayerModule.showAirPlayTargetPicker(this.nativeId);
   };
 
   /**

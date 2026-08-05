@@ -23,6 +23,7 @@ declare module 'cavy' {
     waitTime?: number;
     startDelay?: number;
     clearAsyncStorage?: boolean;
+    only?: string[];
     reporter?: (report: any) => void;
     children?: React.ReactNode;
   }

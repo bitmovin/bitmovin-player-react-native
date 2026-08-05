@@ -101,6 +101,39 @@ export interface AdvertisingConfig {
    */
   schedule: AdItem[];
   /**
+   * Called right before an ad item begins loading.
+   *
+   * Use this callback to conditionally allow or skip individual ad items
+   * based on runtime logic (e.g., user state, targeting rules, frequency caps).
+   *
+   * @param adItem - The ad item that is about to be loaded.
+   *
+   * @returns
+   * - `true` → the ad item will proceed to load as scheduled.
+   * - `false` → the ad item will be skipped and removed from the playback schedule.
+   */
+  shouldLoadAdItem?: (adItem: AdItem) => boolean;
+  /**
+   * Called right before a scheduled ad break starts playback.
+   *
+   * Use this callback to conditionally allow or skip ad breaks at runtime
+   * (e.g., when starting playback from a time offset and discarding past breaks).
+   *
+   * @param adBreak - The ad break that is about to start.
+   *
+   * @returns
+   * - `true` → the ad break will start playback.
+   * - `false` → the ad break will be skipped.
+   *
+   * @remarks
+   * If the callback does not return within the platform's internal timeout,
+   * the ad break will play.
+   * The callback must be synchronous.
+   *
+   * @platform Android
+   */
+  shouldPlayAdBreak?: (adBreak: AdBreak) => boolean;
+  /**
    * Configuration to customize Google IMA SDK integration.
    */
   ima?: ImaAdvertisingConfig;

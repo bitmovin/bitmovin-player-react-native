@@ -75,7 +75,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: SwiftLint
         uses: norio-nomura/action-swiftlint@3.2.1
@@ -88,15 +88,15 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Cache iOS Example Prebuild
         id: ios-example-prebuild-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             example/ios
-          key: ${{ runner.os }}-ios-example-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'ios/**') }}
+          key: ${{ runner.os }}-ios-example-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.config.*', 'plugin/**', 'ios/**') }}
           restore-keys: |
             ${{ runner.os }}-ios-example-prebuild-
 
@@ -113,7 +113,7 @@ jobs:
         run: .github/scripts/smart-prebuild.sh example
 
       - name: Cache CocoaPods Dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/Library/Caches/CocoaPods
@@ -142,15 +142,15 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Cache iOS Integration Prebuild
         id: ios-integration-prebuild-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             integration_test/ios
-          key: ${{ runner.os }}-ios-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.json', 'plugin/**', 'ios/**') }}
+          key: ${{ runner.os }}-ios-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.config.*', 'plugin/**', 'ios/**') }}
           restore-keys: |
             ${{ runner.os }}-ios-integration-prebuild-
 
@@ -167,7 +167,7 @@ jobs:
         run: .github/scripts/smart-prebuild.sh integration-test
 
       - name: Cache CocoaPods Dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/Library/Caches/CocoaPods
@@ -196,15 +196,15 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Cache tvOS Prebuild
         id: tvos-prebuild-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             example/ios
-          key: ${{ runner.os }}-tvos-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.json', 'plugin/**', 'ios/**') }}
+          key: ${{ runner.os }}-tvos-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.config.*', 'plugin/**', 'ios/**') }}
           restore-keys: |
             ${{ runner.os }}-tvos-prebuild-
 
@@ -222,7 +222,7 @@ jobs:
         run: .github/scripts/smart-prebuild.sh example tv
 
       - name: Cache CocoaPods Dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/Library/Caches/CocoaPods

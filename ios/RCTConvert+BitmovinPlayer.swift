@@ -146,11 +146,6 @@ extension RCTConvert {
                 break
             }
         }
-#if !os(tvOS)
-        if let updatesNowPlayingInfoCenter = json["updatesNowPlayingInfoCenter"] as? Bool {
-            tweaksConfig.updatesNowPlayingInfoCenter = updatesNowPlayingInfoCenter
-        }
-#endif
         return tweaksConfig
     }
 
@@ -862,12 +857,32 @@ extension RCTConvert {
             "height": videoQuality.height,
             "width": videoQuality.width,
             "bitrate": videoQuality.bitrate,
+            "colorInfo": toJson(colorInfo: videoQuality.colorInfo),
         ]
         if let codec = videoQuality.codec {
             videoQualityDict["codec"] = codec
         }
 
         return videoQualityDict
+    }
+
+    static func toJson(colorInfo: VideoColorInfo) -> [String: Any] {
+        [
+            "dynamicRange": toJson(dynamicRange: colorInfo.dynamicRange),
+        ]
+    }
+
+    static func toJson(dynamicRange: DynamicRange) -> String {
+        switch dynamicRange {
+        case .sdr:
+            return "sdr"
+        case .hdr:
+            return "hdr"
+        case .unknown:
+            return "unknown"
+        @unknown default:
+            return "unknown"
+        }
     }
 
     static func userInterfaceType(_ json: Any?) -> UserInterfaceType? {
@@ -1049,6 +1064,17 @@ extension RCTConvert {
         return array.compactMap(RNPictureInPictureAction.init(rawValue:))
     }
 
+    static func rnPictureInPictureConfig(_ json: Any?) -> RNPictureInPictureConfig? {
+        guard let json = json as? [String: Any?] else {
+            return nil
+        }
+
+        return RNPictureInPictureConfig(
+            nativeConfig: pictureInPictureConfig(json),
+            shouldExitOnForeground: json["shouldExitOnForeground"] as? Bool ?? false
+        )
+    }
+
     static func rnPlayerViewConfig(_ json: Any?) -> RNPlayerViewConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
@@ -1056,7 +1082,7 @@ extension RCTConvert {
 
         return RNPlayerViewConfig(
             uiConfig: json["uiConfig"].flatMap(rnUiConfig),
-            pictureInPictureConfig: json["pictureInPictureConfig"].flatMap(pictureInPictureConfig),
+            pictureInPictureConfig: json["pictureInPictureConfig"].flatMap(rnPictureInPictureConfig),
             hideFirstFrame: json["hideFirstFrame"] as? Bool
         )
     }
@@ -1409,17 +1435,17 @@ internal struct RNPlayerViewConfig {
     let uiConfig: RNUiConfig?
 
     /**
-     * Picture in picture config
+     * React Native specific picture in picture config.
      */
-    let pictureInPictureConfig: PictureInPictureConfig?
+    let pictureInPictureConfig: RNPictureInPictureConfig?
 
     /**
      * PlayerView config considering all properties
      */
     var playerViewConfig: PlayerViewConfig {
         let config = PlayerViewConfig()
-        if let pictureInPictureConfig {
-            config.pictureInPictureConfig = pictureInPictureConfig
+        if let nativePictureInPictureConfig = pictureInPictureConfig?.nativeConfig {
+            config.pictureInPictureConfig = nativePictureInPictureConfig
         }
         return config
     }
@@ -1441,6 +1467,21 @@ internal struct RNUiConfig {
     let playbackSpeedSelectionEnabled: Bool
     let enableWebViewInspecting: Bool
     let uiManagerFactoryFunction: String
+}
+
+/**
+ * React Native specific PictureInPictureConfig.
+ */
+internal struct RNPictureInPictureConfig {
+    /**
+     * Native SDK PiP configuration.
+     */
+    let nativeConfig: PictureInPictureConfig?
+
+    /**
+     * Whether PiP should exit automatically when the app comes to the foreground.
+     */
+    let shouldExitOnForeground: Bool
 }
 
 /**

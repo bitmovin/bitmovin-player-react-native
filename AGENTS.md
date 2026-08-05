@@ -39,6 +39,10 @@
 - PRs: follow `.github/PULL_REQUEST_TEMPLATE.md`; link issues; add screenshots for UI-facing changes.
 - Required before review: `yarn lint:all`, `yarn typecheck:all`, build the library, and run the example on at least one platform.
 - Changelog: add a `CHANGELOG.md` entry for user‑visible behavior changes.
+- Changelog platform prefixes:
+  - Prefix platform-specific changes with the affected platform, e.g. `iOS: Add ...` or `Android: Add ...`.
+  - For iOS changes that also apply to tvOS, use `iOS:` only; tvOS is implicit unless it differs.
+  - Do not prefix entries for features available on all platforms; write `Add ...`, not `iOS/tvOS and Android: Add ...`.
 
 ## Security & Configuration Tips
 
@@ -73,6 +77,24 @@
 - Source of truth: export public surface from `src/index.ts:1-29` (ensure new modules are re‑exported).
 - Use typed Expo wrappers in `src/modules/`:
   - Define `declare class <Feature>Module extends NativeModule<Events> { ... }` and load with `requireNativeModule('<Feature>Module')` (example: `src/modules/PlayerModule.ts:1,251`).
+- For platform-specific native modules:
+  - Do not add a native stub on unsupported platforms just to satisfy `requireNativeModule`.
+  - Platform-gate the TS wrapper instead, following `src/modules/AudioSessionModule.ts`.
+  - Register the native module in `expo-module.config.json` only for platforms that actually implement it.
+  - The public JS API may still exist cross-platform if it has guarded no-op/unsupported behavior and a future implementation is expected.
+- Public React Native API names should be platform-neutral when Android/iOS parity is expected. Keep Apple/Android SDK terminology inside native implementation files only.
+- New runtime APIs should be exported from `src/index.ts`.
+- Public API docs should use `@platform` only when the API is platform-gated.
+  - Valid cases are `@platform iOS`, `@platform tvOS`, `@platform iOS/tvOS`, and `@platform Android`.
+  - Include OS versions when support is version-gated, e.g. `@platform iOS 18+, tvOS 18+`.
+  - Android TV does not need a separate platform distinction; treat it as Android.
+  - If an API is available on all platforms, omit `@platform` entirely. Do not write `@platform iOS/tvOS/Android`.
+- Public API docs should use TypeDoc's `@defaultValue` tag for documented defaults on properties, accessors, and config fields.
+  - Prefer `@defaultValue \`false\`` over prose like `Default is \`false\`.` because TypeDoc renders the tag explicitly.
+  - Put `@defaultValue` near other tags, before or next to `@platform`.
+  - Do not duplicate the same default in prose and `@defaultValue`.
+  - If defaults differ by platform, describe that inside `@defaultValue`, e.g. `@defaultValue iOS: \`1.0\`, Android: \`0.2\``.
+  - When touching public docs that already mention defaults in prose, convert the touched default to `@defaultValue` instead of preserving the older style.
 - Match native names exactly on both platforms:
   - iOS: `Name("PlayerModule")` in `ios/PlayerModule.swift:7`; Android: `Name("PlayerModule")` in `android/src/main/java/com/bitmovin/player/reactnative/PlayerModule.kt:23`.
 - Bridge views via view managers:
@@ -89,3 +111,4 @@
   - Views: add `Prop(...)`/`Events(...)` in native managers and extend `NativePlayerViewProps`.
   - Tests: extend integration tests; validate on at least one platform.
   - Naming: keep method/event names identical across TS, iOS, Android.
+- Example screens should reuse existing Bitmovin sample streams rather than introducing third-party test streams.

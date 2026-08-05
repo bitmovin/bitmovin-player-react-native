@@ -1,7 +1,25 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
-import { ImaSettings } from '../advertising';
+import { AdBreak, AdItem, ImaSettings } from '../advertising';
 
 export type PlayerModuleEvents = {
+  onShouldLoadAdItem: ({
+    nativeId,
+    id,
+    adItem,
+  }: {
+    nativeId: string;
+    id: number;
+    adItem: AdItem;
+  }) => void;
+  onShouldPlayAdBreak: ({
+    nativeId,
+    id,
+    adBreak,
+  }: {
+    nativeId: string;
+    id: number;
+    adBreak: AdBreak;
+  }) => void;
   onImaBeforeInitialization: ({
     nativeId,
     id,
@@ -135,6 +153,11 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
   isAirPlayAvailable(nativeId: string): Promise<boolean | null>;
 
   /**
+   * Display the AirPlay route selection menu for nativeId's player (iOS only).
+   */
+  showAirPlayTargetPicker(nativeId: string): Promise<void>;
+
+  /**
    * Resolve nativeId's cast availability state.
    */
   isCastAvailable(nativeId: string): Promise<boolean | null>;
@@ -158,6 +181,16 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
    * Skip current ad for nativeId's player.
    */
   skipAd(nativeId: string): Promise<void>;
+
+  /**
+   * Applies the JS decision for an ad item load callback.
+   */
+  setShouldLoadAdItem(id: number, shouldLoad: boolean): Promise<void>;
+
+  /**
+   * Applies the JS decision for an ad break playback callback.
+   */
+  setShouldPlayAdBreak(id: number, shouldPlay: boolean): Promise<void>;
 
   /**
    * Applies the JS-updated IMA settings for a before-initialization callback.

@@ -42,6 +42,29 @@ yarn integration-test test:android # Run tests on Android emulator
 yarn integration-test test # Run tests on both Android emulator and iOS simulator
 ```
 
+List the available selectors or run one or more test suites by passing
+comma-separated selectors:
+
+```sh
+yarn integration-test list-tags
+yarn integration-test test:android --tags playback
+yarn integration-test test:ios --tags playback,unloading
+```
+
+`yarn integration-test test` runs Android and iOS sequentially, so its
+selection must cover both platforms. Use a shared selector or combine
+platform-specific selectors:
+
+```sh
+yarn integration-test test --tags playback
+yarn integration-test test --tags advertising,media-controls
+```
+
+Arguments other than `--tags` are forwarded to `cavy-cli`. Omitting `--tags`
+runs the complete test suite.
+
+See [Adding new tests](../CONTRIBUTING.md#adding-new-tests) to register a suite.
+
 ## Architecture
 
 This integration test app is built as an Expo application using:

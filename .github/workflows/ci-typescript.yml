@@ -50,13 +50,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
-      - name: Setup node and npm registry
-        uses: actions/setup-node@v6
+      - name: Setup Node
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org/'
           cache: 'yarn'
 
       - name: Install node_modules
@@ -71,18 +70,20 @@ jobs:
       - name: Lint Typescript
         run: yarn lint
 
+      - name: Check integration test runner
+        run: yarn integration-test check:runner
+
   test-build-typescript:
     name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
-      - name: Setup node and npm registry
-        uses: actions/setup-node@v6
+      - name: Setup Node
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org/'
           cache: 'yarn'
 
       - name: Install node_modules
@@ -100,15 +101,15 @@ jobs:
       - name: Build TypeScript (Module)
         run: yarn build:module
 
-      - name: Build TypeScript (Plugin)
-        run: yarn build:plugin
+      - name: Build and test TypeScript (Plugin)
+        run: yarn test:plugin
 
   test-build-docs:
     name: Build API docs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Environment
         uses: ./.github/actions/setup-environment

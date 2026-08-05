@@ -61,10 +61,12 @@ const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
         delete config.modResults['BitmovinPlayerOfflineSupportEnabled'];
       }
       if (googleCastConfig?.ios != null) {
+        const defaultLocalNetworkUsageDescription =
+          '${PRODUCT_NAME} uses the local network to discover Cast-enabled devices on your WiFi network.';
         const localNetworkUsageDescription =
-          typeof googleCastConfig?.ios === 'object'
+          (typeof googleCastConfig?.ios === 'object'
             ? googleCastConfig?.ios?.localNetworkUsageDescription
-            : '${PRODUCT_NAME} uses the local network to discover Cast-enabled devices on your WiFi network.';
+            : undefined) ?? defaultLocalNetworkUsageDescription;
 
         config.modResults['BitmovinPlayerGoogleCastApplicationId'] =
           googleCastAppId;

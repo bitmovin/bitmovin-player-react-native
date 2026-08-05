@@ -4,14 +4,113 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.150.0+jason`
-- Update Bitmovin's native iOS SDK version to `3.111.1`
+- Update Bitmovin's native iOS SDK version to [`3.119.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31190)
+
+## [1.24.0] - 2026-07-31
+
+### Added
+
+- iOS/tvOS: Expose cue metadata on `CueEnterEvent` and `CueExitEvent` via `html`, `cea608Position`, and native cue `layout` or `region` metadata when available
+- iOS/tvOS: `Player.mediaControls` namespace of type `MediaControlsApi` to dynamically query, enable or disable Bitmovin Player's media controls integration via `MediaControlsApi.isEnabled` and `MediaControlsApi.setEnabled`
+
+### Changed
+
+- Cue layout no longer emits empty `layout` objects or uses `'auto'` for `line`, `position`, or `positionAlign`; automatic or unset placement is now represented by omitting these fields
+
+## [1.23.0] - 2026-07-28
+
+### Added
+
+- Android and iOS/tvOS: Expose `VideoQuality.colorInfo.dynamicRange` (`sdr`, `hdr`, `unknown`) via the new `DynamicRange` enum
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to [`3.118.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31180)
+- Update Bitmovin's native Android SDK version to [`3.160.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31600)
+
+## [1.22.0] - 2026-07-23
+
+### Added
+
+- `PlayerViewProps.onPlayerViewReady` callback fired once after the player is initialized and the native view is mounted
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to [`3.159.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31590)
+- Update Bitmovin's native iOS SDK version to [`3.117.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31170)
+
+## [1.21.0] - 2026-06-26
+
+### Added
+
+- Android: Expose normalized cue layout data on `CueEnterEvent` and `CueExitEvent` via `layout` (`line`, `lineAlign`, `position`, `positionAlign`, `size`, `textAlign`, `writingMode`) and `html`
+- iOS: `Player.showAirPlayTargetPicker()` to display the system AirPlay route selection menu
+
+### Fixed
+
+- Android: Expo config plugin now enables core library desugaring independently from Cast and offline features
+
+### Removed
+
+- iOS: `TweaksConfig.updatesNowPlayingInfoCenter`. Use `MediaControlConfig.isEnabled` to control the Now Playing information instead
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to [`3.155.1+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31551)
+- Update Bitmovin's native iOS SDK version to [`3.115.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31150)
+
+## [1.20.1] - 2026-06-12
+
+### Fixed
+
+- Android: Fix known limitation of `PictureInPictureEntered` and `PictureInPictureExited` events on Android <15
+
+## [1.20.0] - 2026-05-29
+
+### Added
+
+- Android: `PictureInPictureEntered` and `PictureInPictureExited` player events
+  - Known Limitation: On Android <15 the `PictureInPictureEntered` and `PictureInPictureExited` events are called before the `AppState` changed callback is called
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to [`3.154.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31540)
+- Update Bitmovin's native iOS SDK version to [`3.114.1`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31141)
+
+### Fixed
+
+- iOS: Expo config plugin no longer drops `NSLocalNetworkUsageDescription` from `Info.plist` when `features.googleCastSDK.ios` is configured as an object without an explicit `localNetworkUsageDescription`. The default description is now applied as a fallback, restoring local-network access required for Cast device discovery
+
+## [1.19.0] - 2026-05-08
+
+### Added
+
+- Android: `AdvertisingConfig.shouldPlayAdBreak` callback to decide at runtime whether a scheduled ad break should play
+
+### Changed
+
+- Update Bitmovin's native iOS SDK version to [`3.113.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31130)
+- Update Bitmovin's native Android SDK version to [`3.152.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31520)
+
+## [1.18.0] - 2026-05-01
+
+### Added
+
+- `AdvertisingConfig.shouldLoadAdItem` callback to filter ad items before they are loaded
+- iOS: `PictureInPictureConfig.shouldExitOnForeground` to automatically exit PiP mode when the app transitions to the foreground
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to [`3.151.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31510)
+- Update Bitmovin's native iOS SDK version to [`3.112.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31120)
+- Android: Kotlin version to `2.2.20`
+- Update Expo SDK version to `54.0.34`
 
 ## [1.17.0] - 2026-04-17
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.149.0+jason`
+- Update Bitmovin's native Android SDK version to [`3.149.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31490)
 - Update Expo SDK version to `54.0.33` and React Native version to `0.81.5`
   - Minimum supported Expo SDK version is now `54`
   - Minimum supported React Native version is now `0.81.5`
@@ -25,7 +124,7 @@
 ### Changed
 
 - `DebugConfig.setDebugLoggingEnabled` now also controls JS-side debug logging; `console.log` calls in the `Network` and `Drm` modules are suppressed unless debug logging is enabled
-- Update Bitmovin's native iOS SDK version to `3.111.0`
+- Update Bitmovin's native iOS SDK version to [`3.111.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31110)
 
 ### Fixed
 
@@ -41,7 +140,7 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `3.110.0`
+- Update Bitmovin's native iOS SDK version to [`3.110.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31100)
 
 ### Fixed
 
@@ -55,14 +154,14 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `3.109.0`
-- Update Bitmovin's native Android SDK version to `3.146.0+jason`
+- Update Bitmovin's native iOS SDK version to [`3.109.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31090)
+- Update Bitmovin's native Android SDK version to [`3.146.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31460)
 
 ## [1.13.0] - 2026-03-13
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.145.0+jason`
+- Update Bitmovin's native Android SDK version to [`3.145.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31450)
 
 ## [1.12.0] - 2026-03-13
 
@@ -74,15 +173,15 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.144.0+jason`
+- Update Bitmovin's native Android SDK version to [`3.144.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31440)
 - Update Expo SDK version to `53.0.27`
 
 ## [1.10.0] - 2026-02-27
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `3.108.1`
-- Update Bitmovin's native Android SDK version to `3.143.0+jason`
+- Update Bitmovin's native iOS SDK version to [`3.108.1`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31081)
+- Update Bitmovin's native Android SDK version to [`3.143.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31430)
 - Update Expo SDK version to `53.0.26`
 
 ### Fixed
@@ -112,8 +211,8 @@
   - If you have no UI customizations, no action is required; the new UI is used automatically
   - If you ship a custom v3 bundle (even if it still uses the legacy v3 factory names), [migrate to UI v4](https://developer.bitmovin.com/playback/reference/migration-guide-v3-to-v4) or set a legacy factory explicitly via `new CustomUi('<legacy UIFactory function>')` and keep loading the v3 bundle
 - iOS: When re-attaching a different Player to an existing PlayerView, fullscreen and Picture-in-Picture are exited before the swap
-- Update Bitmovin's native iOS SDK version to `3.107.0`
-- Update Bitmovin's native Android SDK version to `3.141.0+jason`
+- Update Bitmovin's native iOS SDK version to [`3.107.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31070)
+- Update Bitmovin's native Android SDK version to [`3.141.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31410)
 
 ### Fixed
 
@@ -125,8 +224,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.140.1+jason`
-- Update Bitmovin's native iOS SDK version to `3.106.0`
+- Update Bitmovin's native Android SDK version to [`3.140.1+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31401)
+- Update Bitmovin's native iOS SDK version to [`3.106.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31060)
 - iOS: `appId` property from Expo config `Features.googleCastSDK.ios` object is now used to initialize Cast receiver application ID
 
 ### Fixed
@@ -147,9 +246,9 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.138.0+jason`
+- Update Bitmovin's native Android SDK version to [`3.138.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31380)
 - Update IMA SDK dependency on Android to `3.38.0`
-- Update Bitmovin's native iOS SDK version to `3.105.0`
+- Update Bitmovin's native iOS SDK version to [`3.105.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31050)
 - Update the Google Cast iOS Sender SDK used by the example app to `4.8.4`
 
 ## [1.6.0] - 2025-12-11
@@ -161,7 +260,7 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.135.0+jason`
+- Update Bitmovin's native Android SDK version to [`3.135.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31350)
 
 ## [1.5.0] - 2025-12-05
 
@@ -175,8 +274,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.134.0+jason`
-- Update Bitmovin's native iOS SDK version to `3.102.0`
+- Update Bitmovin's native Android SDK version to [`3.134.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31340)
+- Update Bitmovin's native iOS SDK version to [`3.102.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31020)
 - When no subtitle is selected on iOS/tvOS, it returns `null` instead of a track with identifier `off` to align with the Android Player SDK behavior
 - `SubtitleChangedEvent`'s properties of `oldSubtitleTrack` and `newSubtitleTrack` are now optional to align with the native Player SDKs
 
@@ -189,8 +288,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.132.1+jason`
-- Update Bitmovin's native iOS SDK version to `3.98.0`
+- Update Bitmovin's native Android SDK version to [`3.132.1+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31321)
+- Update Bitmovin's native iOS SDK version to [`3.98.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3980)
 
 ### Fixed
 
@@ -213,7 +312,7 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.131.0+jason`
+- Update Bitmovin's native Android SDK version to [`3.131.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31310)
 
 ### Fixed
 
@@ -223,8 +322,8 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `3.97.2`
-- Update Bitmovin's native Android SDK version to `3.128.0+jason`
+- Update Bitmovin's native iOS SDK version to [`3.97.2`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3972)
+- Update Bitmovin's native Android SDK version to [`3.128.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31280)
 - Update IMA SDK dependency on iOS to `3.26.1`
 - Update IMA SDK dependency on tvOS to `4.15.1`
 - Update IMA SDK dependency on Android to `3.37.0`
@@ -233,8 +332,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.123.0`
-- Update Bitmovin's native iOS SDK version to `3.94.1`
+- Update Bitmovin's native Android SDK version to [`3.123.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#31230)
+- Update Bitmovin's native iOS SDK version to [`3.94.1`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3941)
 
 ### Fixed
 
@@ -264,8 +363,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.118.0`
-- Update Bitmovin's native iOS SDK version to `3.93.0`
+- Update Bitmovin's native Android SDK version to [`3.118.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#31180)
+- Update Bitmovin's native iOS SDK version to [`3.93.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3930)
 - Android: Add null safety checks to `ReadableMap`/`ReadableArray` calls in `JsonConverter`
 
 ### Removed
@@ -280,15 +379,15 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.115.0`
-- Update Bitmovin's native iOS SDK version to `3.92.0`
+- Update Bitmovin's native Android SDK version to [`3.115.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#31150)
+- Update Bitmovin's native iOS SDK version to [`3.92.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3920)
 
 ## [0.42.0] - 2025-06-02
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.112.0`
-- Update Bitmovin's native iOS SDK version to `3.90.0`
+- Update Bitmovin's native Android SDK version to [`3.112.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#31120)
+- Update Bitmovin's native iOS SDK version to [`3.90.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3900)
 
 ### Added
 
@@ -312,8 +411,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.104.2`
-- Update Bitmovin's native iOS SDK version to `3.85.2`
+- Update Bitmovin's native Android SDK version to [`3.104.2`](https://developer.bitmovin.com/playback/docs/release-notes-android#31042)
+- Update Bitmovin's native iOS SDK version to [`3.85.2`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3852)
 
 ## [0.39.0] - 2025-03-07
 
@@ -325,8 +424,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.104.1`
-- Update Bitmovin's native iOS SDK version to `3.85.0`
+- Update Bitmovin's native Android SDK version to [`3.104.1`](https://developer.bitmovin.com/playback/docs/release-notes-android#31041)
+- Update Bitmovin's native iOS SDK version to [`3.85.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3850)
 
 ## [0.37.0] - 2025-01-17
 
@@ -338,7 +437,7 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `3.80.0`
+- Update Bitmovin's native iOS SDK version to [`3.80.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3800)
 
 ### Added
 
@@ -348,8 +447,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.98.0`
-- Update Bitmovin's native iOS SDK version to `3.79.0`
+- Update Bitmovin's native Android SDK version to [`3.98.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3980)
+- Update Bitmovin's native iOS SDK version to [`3.79.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3790)
 
 ### Fixed
 
@@ -359,7 +458,7 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.96.0`
+- Update Bitmovin's native Android SDK version to [`3.96.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3960)
 
 ## [0.33.0] - 2024-11-28
 
@@ -370,14 +469,14 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `3.78.0`
-- Update Bitmovin's native Android SDK version to `3.94.0`
+- Update Bitmovin's native iOS SDK version to [`3.78.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3780)
+- Update Bitmovin's native Android SDK version to [`3.94.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3940)
 
 ## [0.32.0] - 2024-11-14
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.92.0`
+- Update Bitmovin's native Android SDK version to [`3.92.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3920)
 
 ### Fixed
 
@@ -393,7 +492,7 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.91.0`
+- Update Bitmovin's native Android SDK version to [`3.91.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3910)
 
 ### Deprecated
 
@@ -403,8 +502,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.90.0`
-- Update Bitmovin's native iOS SDK version to `3.77.0`
+- Update Bitmovin's native Android SDK version to [`3.90.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3900)
+- Update Bitmovin's native iOS SDK version to [`3.77.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3770)
 
 ### Added
 
@@ -422,8 +521,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.82.0`
-- Update Bitmovin's native iOS SDK version to `3.71.0`
+- Update Bitmovin's native Android SDK version to [`3.82.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3820)
+- Update Bitmovin's native iOS SDK version to [`3.71.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3710)
 - Update IMA SDK dependency on Android to `3.33.0`
 
 ### Changed
@@ -436,8 +535,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.78.0`
-- Update Bitmovin's native iOS SDK version to `3.67.0`
+- Update Bitmovin's native Android SDK version to [`3.78.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3780)
+- Update Bitmovin's native iOS SDK version to [`3.67.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3670)
 
 ## [0.27.1] - 2024-07-05
 
@@ -452,8 +551,8 @@
 
 - Update Google IMA SDK dependencies to `3.23.0` for iOS, and to `4.13.0` for tvOS
 - Update example app dependency: Google Cast iOS sender SDK to `4.8.1`
-- Update Bitmovin's native Android SDK version to `3.74.0`
-- Update Bitmovin's native iOS SDK version to `3.66.0`
+- Update Bitmovin's native Android SDK version to [`3.74.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3740)
+- Update Bitmovin's native iOS SDK version to [`3.66.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3660)
 
 ## [0.26.0] - 2024-06-14
 
@@ -463,8 +562,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.73.0`
-- Update Bitmovin's native iOS SDK version to `3.65.0`
+- Update Bitmovin's native Android SDK version to [`3.73.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3730)
+- Update Bitmovin's native iOS SDK version to [`3.65.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3650)
 
 ### Fixed
 
@@ -490,8 +589,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.72.0`
-- Update Bitmovin's native iOS SDK version to `3.64.0`
+- Update Bitmovin's native Android SDK version to [`3.72.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3720)
+- Update Bitmovin's native iOS SDK version to [`3.64.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3640)
 
 ### Fixed
 
@@ -502,8 +601,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.68.0`
-- Update Bitmovin's native iOS SDK version to `3.62.0`
+- Update Bitmovin's native Android SDK version to [`3.68.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3680)
+- Update Bitmovin's native iOS SDK version to [`3.62.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3620)
 
 ### Fixed
 
@@ -517,7 +616,7 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `3.60.0`
+- Update Bitmovin's native iOS SDK version to [`3.60.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3600)
 - Update IMA SDK dependency on iOS to `3.19.1`, respectively `4.9.2` for tvOS
 
 ## [0.21.0] - 2024-04-08
@@ -530,8 +629,8 @@
 ### Changed
 
 - Android: Default Picture-in-Picture implementation doesn't automatically hide/show the Toolbar anymore. This should be handled by the app itself, check out the sample app for an example implementation
-- Update Bitmovin's native Android SDK version to `3.65.0`
-- Update Bitmovin's native iOS SDK version to `3.59.0`
+- Update Bitmovin's native Android SDK version to [`3.65.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3650)
+- Update Bitmovin's native iOS SDK version to [`3.59.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3590)
 
 ## [0.20.0] - 2024-03-29
 
@@ -542,7 +641,7 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.64.0`
+- Update Bitmovin's native Android SDK version to [`3.64.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3640)
 
 ## [0.19.0] - 2024-03-22
 
@@ -552,8 +651,8 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.63.0`
-- Update Bitmovin's native iOS SDK version to `3.57.2`
+- Update Bitmovin's native Android SDK version to [`3.63.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3630)
+- Update Bitmovin's native iOS SDK version to [`3.57.2`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3572)
 
 ### Fixed
 
@@ -564,8 +663,8 @@
 ### Changed
 
 - React Native version to `0.73.4`
-- Update Bitmovin's native Android SDK version to `3.61.0`
-- Update Bitmovin's native iOS SDK version to `3.56.3`
+- Update Bitmovin's native Android SDK version to [`3.61.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3610)
+- Update Bitmovin's native iOS SDK version to [`3.56.3`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3563)
 
 ### Fixed
 
@@ -579,7 +678,7 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `3.55.0`
+- Update Bitmovin's native iOS SDK version to [`3.55.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3550)
 
 ### Fixed
 
@@ -589,7 +688,7 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.56.0`
+- Update Bitmovin's native Android SDK version to [`3.56.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3560)
 - Android: Kotlin version to `1.9.21`
 
 ## [0.15.0] - 2023-12-18
@@ -602,7 +701,7 @@
 
 - React Native version to `0.72.6`
 - React Native peer dependency version to `0.65.0+`
-- Update Bitmovin's native Android SDK version to `3.54.0`
+- Update Bitmovin's native Android SDK version to [`3.54.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3540)
 - Android: Kotlin version to `1.8.20`
 
 ## [0.14.2] - 2023-11-27
@@ -654,7 +753,7 @@
 ### Changed
 
 - Update IMA SDK dependency on Android to `3.31.0`
-- Update Bitmovin's native Android SDK version to `3.47.0`
+- Update Bitmovin's native Android SDK version to [`3.47.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3470)
 
 ### Deprecated
 
@@ -673,7 +772,7 @@
 
 - `AnalyticsConfig` properties to match the Bitmovin analytics v3 API
 - Use `jason` build of Bitmovin's native Android SDK
-- Update Bitmovin's native Android SDK version to `3.44.0`
+- Update Bitmovin's native Android SDK version to [`3.44.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3440)
 
 ### Removed
 
@@ -690,7 +789,7 @@
 
 ### Changed
 
-- Update Bitmovin's native Android SDK version to `3.43.0`
+- Update Bitmovin's native Android SDK version to [`3.43.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3430)
 
 ## [0.10.0] - 2023-09-04
 
@@ -705,7 +804,7 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `3.43.1`
+- Update Bitmovin's native iOS SDK version to [`3.43.1`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3431)
 
 ## [0.9.1] - 2023-08-17
 
@@ -723,7 +822,7 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `3.42.0`
+- Update Bitmovin's native iOS SDK version to [`3.42.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3420)
 
 ### Fixed
 
@@ -737,8 +836,8 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `3.41.2`
-- Update Bitmovin's native Android SDK version to `3.40.0`
+- Update Bitmovin's native iOS SDK version to [`3.41.2`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3412)
+- Update Bitmovin's native Android SDK version to [`3.40.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3400)
 - Update IMA SDK dependency on iOS to `3.18.4`, respectively `4.8.2` for tvOS
 - Update IMA SDK dependency on Android to `3.29.0`
 
@@ -783,8 +882,8 @@
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `v3.36.0`.
-- Update Bitmovin's native Android SDK version to `v3.35.0`.
+- Update Bitmovin's native iOS SDK version to [`v3.36.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3360).
+- Update Bitmovin's native Android SDK version to [`v3.35.0`](https://developer.bitmovin.com/playback/docs/release-notes-android#3350).
 
 ## [0.5.1] - 2023-01-23
 
@@ -830,8 +929,8 @@ Adds support for tvOS projects and ability to customize the default playback beh
 
 ### Changed
 
-- Update Bitmovin's native iOS SDK version to `v3.28.0`.
-- Update Bitmovin's native Android SDK version to `v3.24.2`.
+- Update Bitmovin's native iOS SDK version to [`v3.28.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#3280).
+- Update Bitmovin's native Android SDK version to [`v3.24.2`](https://developer.bitmovin.com/playback/docs/release-notes-android#3242).
 - Setup a new tvOS target on example app's `.xcodeproj` file.
 - Replace `react-native` with `react-native-tvos` on the example app.
 

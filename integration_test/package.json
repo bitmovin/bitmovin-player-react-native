@@ -11,7 +11,11 @@
     "start": "expo start",
     "android": "expo run:android",
     "preios": "yarn patch-ios-build",
-    "test": "yarn stop-test:android && yarn stop-test:ios && yarn start-test:android && yarn start-test:ios",
+    "test": "node scripts/run-selected-tests.js all",
+    "list-tags": "node scripts/run-selected-tests.js list-tags",
+    "check:runner": "yarn lint:runner && yarn test:runner",
+    "lint:runner": "eslint scripts --ext .js --quiet",
+    "test:runner": "node --test scripts/*.test.js",
     "stop-packager": "./scripts/stop-packager.sh",
     "stop-test:android": "./scripts/stop-test-android.sh",
     "prestart-test:ios": "yarn patch-ios-build",
@@ -20,8 +24,8 @@
     "run-test:android": "./scripts/run-test-android.sh",
     "start-test:ios": "./scripts/start-test-ios.sh",
     "test:scripts": "node --test scripts/*.test.js",
-    "test:android": "yarn stop-test:android && yarn start-test:android",
-    "test:ios": "yarn stop-test:ios && yarn start-test:ios",
+    "test:android": "node scripts/run-selected-tests.js android",
+    "test:ios": "node scripts/run-selected-tests.js ios",
     "patch-ios-build": "./scripts/patch-ios-build.sh",
     "pods": "yarn pods-install || yarn pods-update",
     "pods-install": "./scripts/pods-install.sh",
@@ -36,21 +40,22 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
-    "@expo/config-types": "^53.0.5",
     "@react-native-tvos/config-tv": "^0.1.1",
     "cavy": "^4.0.2",
-    "expo": "~54.0.33",
+    "expo": "~54.0.35",
     "expo-build-properties": "~1.0.10",
-    "expo-crypto": "~15.0.8",
+    "expo-crypto": "~15.0.9",
     "expo-status-bar": "~3.0.9",
     "expo-system-ui": "~6.0.9",
     "react": "19.1.0",
     "react-native": "npm:react-native-tvos@0.81.5-0",
+    "react-native-safe-area-context": "~5.6.0",
     "react-native-uuid": "^2.0.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.0",
+    "@babel/core": "^7.29.6",
     "@expo/cli": "^0.24.24",
+    "@expo/config-types": "^54.0.10",
     "@react-native-community/cli": "latest",
     "@react-native/metro-config": "0.81.5",
     "@types/react": "~19.1.10",
@@ -74,6 +79,14 @@
       "exclude": [
         "react-native"
       ]
+    },
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "bitmovin-player-react-native",
+          "@react-native-tvos/config-tv"
+        ]
+      }
     },
     "autolinking": {
       "nativeModulesDir": ".."
