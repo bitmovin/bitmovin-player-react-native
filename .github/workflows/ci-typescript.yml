@@ -70,6 +70,9 @@ jobs:
       - name: Lint Typescript
         run: yarn lint
 
+      - name: Check integration test runner
+        run: yarn integration-test check:runner
+
   test-build-typescript:
     name: Build
     runs-on: ubuntu-latest
