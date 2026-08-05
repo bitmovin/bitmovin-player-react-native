@@ -17,12 +17,10 @@ public class AppLifecycleDelegate: ExpoAppDelegateSubscriber {
         }
 
         // Only initialize Cast when it is configured via the Expo plugin.
-        if infoDictionary["BitmovinPlayerGoogleCastApplicationId"] is String,
+        if let applicationId = infoDictionary["BitmovinPlayerGoogleCastApplicationId"] as? String,
            !BitmovinCastManager.isInitialized() {
             let options = BitmovinCastManagerOptions()
-            if let applicationId = infoDictionary["BitmovinPlayerGoogleCastApplicationId"] as? String {
-                options.applicationId = applicationId
-            }
+            options.applicationId = applicationId
             if let messageNamespace = infoDictionary["BitmovinPlayerGoogleCastMessageNamespace"] as? String {
                 options.messageNamespace = messageNamespace
             }
