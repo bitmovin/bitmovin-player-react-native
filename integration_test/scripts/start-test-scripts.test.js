@@ -47,6 +47,7 @@ function createStubEnvironment(t, env = {}) {
     STUB_EXPO_CWD_FILE: expoCwdFile,
     STUB_EXPO_MARKER_FILE: expoMarkerFile,
     STUB_FORWARDED_ARGUMENTS_FILE: forwardedArgumentsFile,
+    STUB_PACKAGER_PID_REPLACEMENT: '',
     LSOF_PIDS: '',
     LSOF_CWD: '',
     STUB_NPX_MODE: '',
@@ -148,6 +149,14 @@ echo "yarn:$*" >> "$STUB_RECORD_FILE"
 if [ -n "$STUB_FORWARDED_ARGUMENTS_FILE" ]; then
   printf "%s\\n" "$@" > "$STUB_FORWARDED_ARGUMENTS_FILE"
 fi
+if [ -n "$STUB_PACKAGER_PID_REPLACEMENT" ]; then
+  for pid_file in "\${TMPDIR:-/tmp}"/bitmovin-integration-test-packager-*.pid; do
+    if [ -f "$pid_file" ]; then
+      printf "%s\\n" "$STUB_PACKAGER_PID_REPLACEMENT" > "$pid_file"
+      break
+    fi
+  done
+fi
 exit 0
 `
   );
@@ -214,6 +223,7 @@ exit 0
     tempDir,
     recordFile,
     expoMarkerFile,
+    expoPidFile,
     forwardedArgumentsFile,
     env: defaultEnv,
   };
@@ -225,6 +235,28 @@ function runScript(scriptName, env, args = []) {
     env,
     encoding: 'utf8',
   });
+}
+
+function readPackagerPidFile(scriptPath, temporaryDirectory) {
+  const result = spawnSync(
+    'bash',
+    [
+      '-c',
+      '. "$1"; printf "%s\\n" "$PACKAGER_PID_FILE"',
+      'read-packager-pid-file',
+      scriptPath,
+    ],
+    {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        TMPDIR: temporaryDirectory,
+      },
+    }
+  );
+
+  assert.equal(result.status, 0, result.stderr);
+  return result.stdout.trim();
 }
 
 function readCalls(recordFile) {
@@ -286,6 +318,51 @@ test('start-test-ios fails when port 8081 is occupied by a non-integration proce
 
   assert.notEqual(result.status, 0);
   assert.match(result.stdout + result.stderr, /integration_test|8081/i);
+});
+
+test('start-test-ios rejects an Expo process whose path only contains this project path', (t) => {
+  const containingProjectPath = `${INTEGRATION_TEST_DIR}-copy`;
+  const { env } = createStubEnvironment(t, {
+    LSOF_PIDS: ARBITRARY_FOREIGN_PID,
+    LSOF_CWD: containingProjectPath,
+    STUB_PROCESS_LIST: `${ARBITRARY_FOREIGN_PID} ?? 0:00.10 node ${containingProjectPath}/node_modules/expo/bin/cli start --port ${PACKAGER_PORT}`,
+  });
+
+  const result = runScript('start-test-ios.sh', env);
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout + result.stderr, /different process/i);
+});
+
+test('packager state files are isolated per checkout', (t) => {
+  const temporaryDirectory = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'integration-test-checkouts-')
+  );
+  t.after(() =>
+    fs.rmSync(temporaryDirectory, { recursive: true, force: true })
+  );
+
+  const firstScript = path.join(
+    temporaryDirectory,
+    'first',
+    'scripts',
+    'packager-utils.sh'
+  );
+  const secondScript = path.join(
+    temporaryDirectory,
+    'second',
+    'scripts',
+    'packager-utils.sh'
+  );
+  fs.mkdirSync(path.dirname(firstScript), { recursive: true });
+  fs.mkdirSync(path.dirname(secondScript), { recursive: true });
+  fs.copyFileSync(path.join(__dirname, 'packager-utils.sh'), firstScript);
+  fs.copyFileSync(path.join(__dirname, 'packager-utils.sh'), secondScript);
+
+  const firstPidFile = readPackagerPidFile(firstScript, temporaryDirectory);
+  const secondPidFile = readPackagerPidFile(secondScript, temporaryDirectory);
+
+  assert.notEqual(firstPidFile, secondPidFile);
 });
 
 test('start-test-ios starts Expo instead of react-native when it owns the packager lifecycle', (t) => {
@@ -354,6 +431,38 @@ test('start-test-ios starts Expo, runs cavy, and cleans up the owned packager on
     )
   );
   assert.equal(waitForFile(expoMarkerFile), true);
+});
+
+test('cleanup stops the packager started by this invocation after ownership state is replaced', (t) => {
+  const { env, tempDir, expoMarkerFile, expoPidFile } = createStubEnvironment(
+    t,
+    {
+      STUB_EXPO_START_MODE: 'hold',
+      STUB_PACKAGER_PID_REPLACEMENT: ARBITRARY_OWNED_PID,
+    }
+  );
+  env.TMPDIR = tempDir;
+  const packagerPidFile = readPackagerPidFile(
+    path.join(__dirname, 'packager-utils.sh'),
+    tempDir
+  );
+
+  try {
+    const result = runScript('start-test-ios.sh', env);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(waitForFile(expoMarkerFile), true);
+    assert.equal(
+      fs.readFileSync(packagerPidFile, 'utf8').trim(),
+      ARBITRARY_OWNED_PID
+    );
+  } finally {
+    if (fs.existsSync(expoPidFile)) {
+      spawnSync('kill', ['-9', fs.readFileSync(expoPidFile, 'utf8').trim()], {
+        stdio: 'ignore',
+      });
+    }
+  }
 });
 
 test('start-test-android reuses an owned Expo CLI process and forwards --no-packager', (t) => {
@@ -440,6 +549,18 @@ test('ensure-android-emulator starts an emulator when none is running', (t) => {
   assert.equal(fs.existsSync(expoMarkerFile), false);
 });
 
+test('start-test-android reports why emulator setup failed', (t) => {
+  const { env } = createStubEnvironment(t, {
+    STUB_ADB_DEVICES: 'List of devices attached\n',
+    STUB_EMULATOR_LIST_AVDS: '',
+  });
+
+  const result = runScript('start-test-android.sh', env);
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout + result.stderr, /No AVDs available/i);
+});
+
 test('start-test-android composes emulator boot and android test run for local workflows', (t) => {
   const { env, recordFile, expoMarkerFile } = createStubEnvironment(t, {
     STUB_EXPO_START_MODE: 'hold',
@@ -510,14 +631,17 @@ test('stop-packager kills the harness-owned integration_test Expo server', (t) =
     fs.rmSync(ownedMarkerFile, { force: true });
   });
 
-  const { env, tempDir } = createStubEnvironment(t);
+  const { env, tempDir } = createStubEnvironment(t, {
+    LSOF_CWD: INTEGRATION_TEST_DIR,
+  });
   env.TMPDIR = tempDir;
   // Fake ps output for the harness-owned Expo server referenced by the pid file.
   env.STUB_PROCESS_LIST = `${ownedPid} ?? 0:00.10 node /usr/local/bin/expo start ${INTEGRATION_TEST_DIR} --port ${PACKAGER_PORT} --localhost`;
-  fs.writeFileSync(
-    path.join(tempDir, 'bitmovin-integration-test-packager.pid'),
-    `${ownedPid}`
+  const packagerPidFile = readPackagerPidFile(
+    path.join(__dirname, 'packager-utils.sh'),
+    tempDir
   );
+  fs.writeFileSync(packagerPidFile, `${ownedPid}`);
 
   const result = runScript('stop-packager.sh', env);
 

@@ -9,14 +9,14 @@ android_emulator_id() {
 EMULATOR_ID=$(android_emulator_id)
 
 if [ -z "$EMULATOR_ID" ]; then
-    echo "No emulator running, starting one..."
+    echo "No emulator running, starting one..." >&2
     AVD_NAME=$(emulator -list-avds | head -n 1)
     if [ -n "$AVD_NAME" ]; then
         emulator -avd "$AVD_NAME" 1> /dev/null 2> /dev/null &
         adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
         EMULATOR_ID=$(android_emulator_id)
     else
-        echo "No AVDs available. Please create an Android Virtual Device first."
+        echo "No AVDs available. Please create an Android Virtual Device first." >&2
         exit 1
     fi
 fi
@@ -24,6 +24,6 @@ fi
 if [ -n "$EMULATOR_ID" ]; then
     echo "$EMULATOR_ID"
 else
-    echo "Failed to start or find Android emulator"
+    echo "Failed to start or find Android emulator" >&2
     exit 1
 fi

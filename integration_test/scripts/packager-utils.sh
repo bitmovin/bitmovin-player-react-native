@@ -1,11 +1,13 @@
 #!/bin/bash
 
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-INTEGRATION_TEST_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
+INTEGRATION_TEST_DIR=$(cd "$SCRIPT_DIR/.." && pwd -P)
 PACKAGER_PORT=8081
-PACKAGER_PID_FILE="${TMPDIR:-/tmp}/bitmovin-integration-test-packager.pid"
-PACKAGER_LOG_FILE="${TMPDIR:-/tmp}/bitmovin-integration-test-metro.log"
+PACKAGER_STATE_ID=$(printf '%s' "$INTEGRATION_TEST_DIR" | cksum | awk '{print $1 "-" $2}')
+PACKAGER_PID_FILE="${TMPDIR:-/tmp}/bitmovin-integration-test-packager-${PACKAGER_STATE_ID}.pid"
+PACKAGER_LOG_FILE="${TMPDIR:-/tmp}/bitmovin-integration-test-metro-${PACKAGER_STATE_ID}.log"
 PACKAGER_STARTED_BY_SCRIPT=0
+PACKAGER_STARTED_PID=""
 
 packager_pid_on_port() {
     lsof -ti:"$PACKAGER_PORT" 2>/dev/null | head -n 1
@@ -39,10 +41,6 @@ packager_process_matches_project() {
             ;;
     esac
 
-    if printf '%s' "$command" | grep -F "$INTEGRATION_TEST_DIR" >/dev/null 2>&1; then
-        return 0
-    fi
-
     cwd=$(packager_process_cwd "$pid")
     [ "$cwd" = "$INTEGRATION_TEST_DIR" ]
 }
@@ -65,17 +63,21 @@ kill_packager_pid() {
 
 cleanup_owned_packager() {
     local pid
+    local recorded_pid
 
     if [ "$PACKAGER_STARTED_BY_SCRIPT" != "1" ]; then
         return
     fi
 
-    pid=$(cat "$PACKAGER_PID_FILE" 2>/dev/null)
+    pid="$PACKAGER_STARTED_PID"
     if [ -n "$pid" ] && packager_process_matches_project "$pid"; then
         kill_packager_pid "$pid"
     fi
 
-    rm -f "$PACKAGER_PID_FILE"
+    recorded_pid=$(cat "$PACKAGER_PID_FILE" 2>/dev/null)
+    if [ "$recorded_pid" = "$pid" ]; then
+        rm -f "$PACKAGER_PID_FILE"
+    fi
 }
 
 ensure_packager_running() {
@@ -95,15 +97,18 @@ ensure_packager_running() {
     echo "Starting integration_test Expo packager on port $PACKAGER_PORT..."
     (
         cd "$INTEGRATION_TEST_DIR" || exit 1
-        npx expo start --port "$PACKAGER_PORT" --localhost > "$PACKAGER_LOG_FILE" 2>&1 &
-        echo "$!" > "$PACKAGER_PID_FILE"
-    )
+        exec npx expo start --port "$PACKAGER_PORT" --localhost
+    ) > "$PACKAGER_LOG_FILE" 2>&1 &
 
+    PACKAGER_STARTED_PID="$!"
+    printf '%s\n' "$PACKAGER_STARTED_PID" > "$PACKAGER_PID_FILE"
     PACKAGER_STARTED_BY_SCRIPT=1
 
     for _ in {1..30}; do
         pid=$(packager_pid_on_port)
         if [ -n "$pid" ] && packager_process_matches_project "$pid"; then
+            PACKAGER_STARTED_PID="$pid"
+            printf '%s\n' "$PACKAGER_STARTED_PID" > "$PACKAGER_PID_FILE"
             echo "Integration test Expo packager is ready"
             return 0
         fi
