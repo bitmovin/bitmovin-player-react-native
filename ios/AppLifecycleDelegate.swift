@@ -16,7 +16,9 @@ public class AppLifecycleDelegate: ExpoAppDelegateSubscriber {
             OfflineManager.initializeOfflineManager()
         }
 
-        if !BitmovinCastManager.isInitialized() {
+        // Only initialize Cast when it is configured via the Expo plugin.
+        if infoDictionary["BitmovinPlayerGoogleCastApplicationId"] is String,
+           !BitmovinCastManager.isInitialized() {
             let options = BitmovinCastManagerOptions()
             if let applicationId = infoDictionary["BitmovinPlayerGoogleCastApplicationId"] as? String {
                 options.applicationId = applicationId

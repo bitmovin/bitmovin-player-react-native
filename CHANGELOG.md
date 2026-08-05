@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- iOS: Prevent startup crashes when Google Cast is not configured
+
 ## [1.24.0] - 2026-07-31
 
 ### Added
