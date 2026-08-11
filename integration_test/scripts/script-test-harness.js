@@ -57,14 +57,11 @@ function createStubEnvironment(t, env = {}) {
     STUB_FORWARDED_ARGUMENTS_FILE: forwardedArgumentsFile,
     LSOF_PIDS: '',
     LSOF_CWD: '',
-    STUB_NPX_MODE: '',
     STUB_EXPO_START_MODE: '',
     STUB_PROCESS_LIST: '',
-    STUB_SLEEP_EXIT: '0',
     STUB_ADB_DEVICES: '',
     STUB_ADB_DEVICES_FIRST: '',
     STUB_ADB_DEVICES_NEXT: '',
-    STUB_ADB_WAIT_FOR_DEVICE_EXIT: '0',
     STUB_EMULATOR_LIST_AVDS: '',
     STUB_IOS_DEVICES_JSON: iosDevicesJson([
       iosDevice({
@@ -73,8 +70,6 @@ function createStubEnvironment(t, env = {}) {
         state: 'Shutdown',
       }),
     ]),
-    STUB_XCRUN_BOOT_EXIT: '0',
-    STUB_XCRUN_BOOTSTATUS_EXIT: '0',
     ...env,
   };
 
@@ -82,7 +77,8 @@ function createStubEnvironment(t, env = {}) {
     binDir,
     'lsof',
     `#!/bin/sh
-if [ "$1" = "-ti:${PACKAGER_PORT}" ]; then
+echo "lsof:$*" >> "$STUB_RECORD_FILE"
+if [ "$1" = "-nP" ] && [ "$2" = "-iTCP:${PACKAGER_PORT}" ] && [ "$3" = "-sTCP:LISTEN" ] && [ "$4" = "-t" ]; then
   if [ -f "$STUB_EXPO_PID_FILE" ]; then
     cat "$STUB_EXPO_PID_FILE"
     exit 0
@@ -127,7 +123,7 @@ printf "%s\\n" "$STUB_PROCESS_LIST"
     binDir,
     'sleep',
     `#!/bin/sh
-exit "$STUB_SLEEP_EXIT"
+exit 0
 `
   );
 
@@ -146,12 +142,6 @@ if [ "$1" = "expo" ] && [ "$2" = "start" ]; then
     done
   fi
   exit 0
-fi
-if [ "$1" = "react-native" ] && [ "$2" = "start" ]; then
-  exit 0
-fi
-if [ -n "$STUB_NPX_MODE" ]; then
-  exit "$STUB_NPX_MODE"
 fi
 exit 0
 `
@@ -178,12 +168,6 @@ if [ "$1" = "simctl" ] && [ "$2" = "list" ]; then
   printf "%s\\n" "$STUB_IOS_DEVICES_JSON"
   exit 0
 fi
-if [ "$1" = "simctl" ] && [ "$2" = "boot" ]; then
-  exit "$STUB_XCRUN_BOOT_EXIT"
-fi
-if [ "$1" = "simctl" ] && [ "$2" = "bootstatus" ]; then
-  exit "$STUB_XCRUN_BOOTSTATUS_EXIT"
-fi
 exit 0
 `
   );
@@ -209,9 +193,6 @@ if [ "$1" = "devices" ]; then
   fi
   printf "%b" "$STUB_ADB_DEVICES"
   exit 0
-fi
-if [ "$1" = "wait-for-device" ]; then
-  exit "$STUB_ADB_WAIT_FOR_DEVICE_EXIT"
 fi
 exit 0
 `

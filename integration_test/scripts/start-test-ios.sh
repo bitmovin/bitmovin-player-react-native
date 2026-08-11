@@ -5,7 +5,6 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 . "$SCRIPT_DIR/packager-utils.sh"
 
 trap cleanup_owned_packager EXIT
-ensure_packager_running || exit 1
 # Prefer an already-booted iPhone, otherwise select the first available one.
 SIMULATOR=$(xcrun simctl list devices available -e -j | \
     jq --raw-output -s \
@@ -28,6 +27,8 @@ if [ -n "$SIMULATOR_UDID" ]; then
             exit 1
         fi
     fi
+
+    ensure_packager_running || exit 1
 
     echo "Running tests on iOS simulator: $SIMULATOR_NAME"
     yarn cavy run-ios --no-screenshots --keep-alive-timeout=300 --no-packager --udid "$SIMULATOR_UDID" "$@"

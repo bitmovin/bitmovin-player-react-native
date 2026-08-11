@@ -7,7 +7,7 @@ PACKAGER_LOG_FILE="${TMPDIR:-/tmp}/bitmovin-integration-test-metro.log"
 PACKAGER_STARTED_PID=""
 
 packager_pid_on_port() {
-    lsof -ti:"$PACKAGER_PORT" 2>/dev/null | head -n 1
+    lsof -nP -iTCP:"$PACKAGER_PORT" -sTCP:LISTEN -t 2>/dev/null | head -n 1
 }
 
 packager_process_command() {

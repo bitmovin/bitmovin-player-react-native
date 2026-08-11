@@ -46,27 +46,6 @@ test('start-test-ios rejects an Expo process whose path only contains this proje
   assert.match(result.stdout + result.stderr, /different process/i);
 });
 
-test('start-test-ios starts Expo instead of react-native when it owns the packager lifecycle', (t) => {
-  const { env, recordFile } = createStubEnvironment(t, {
-    STUB_SLEEP_EXIT: '1',
-  });
-
-  const result = runScript('start-test-ios.sh', env);
-  const calls = readCalls(recordFile);
-
-  assert.notEqual(result.status, 0);
-  assert.ok(
-    calls.some((call) =>
-      call.startsWith(`npx:${INTEGRATION_TEST_DIR}:expo start `)
-    )
-  );
-  assert.ok(
-    !calls.some((call) =>
-      call.includes(`:react-native start --port ${PACKAGER_PORT}`)
-    )
-  );
-});
-
 test('start-test-ios reuses an owned Expo CLI process without starting another packager', (t) => {
   const { env, recordFile } = createOwnedPackagerEnvironment(t);
 
@@ -79,6 +58,16 @@ test('start-test-ios reuses an owned Expo CLI process without starting another p
     /Using existing integration_test Expo packager/i
   );
   assertPackagerNotStarted(calls);
+});
+
+test('packager discovery checks only listening TCP sockets', (t) => {
+  const { env, recordFile } = createOwnedPackagerEnvironment(t);
+
+  const result = runScript('start-test-ios.sh', env);
+  const calls = readCalls(recordFile);
+
+  assert.equal(result.status, 0);
+  assert.ok(calls.includes(`lsof:-nP -iTCP:${PACKAGER_PORT} -sTCP:LISTEN -t`));
 });
 
 test('start-test-ios starts Expo, runs cavy, and cleans up the owned packager on exit', (t) => {

@@ -4,6 +4,7 @@ const test = require('node:test');
 const {
   FAKE_IOS_SIMULATOR_UDID,
   createOwnedPackagerEnvironment,
+  createStubEnvironment,
   iosDevice,
   iosDevicesJson,
   readCalls,
@@ -69,6 +70,25 @@ test('start-test-ios boots and waits for a shutdown simulator', (t) => {
   assert.ok(bootStatusIndex > bootIndex);
   assert.ok(cavyIndex > bootStatusIndex);
   assert.match(calls[cavyIndex], new RegExp(`--udid ${shutdownUdid}`));
+});
+
+test('start-test-ios starts its packager after the simulator is ready', (t) => {
+  const { env, recordFile } = createStubEnvironment(t, {
+    STUB_EXPO_START_MODE: 'hold',
+  });
+
+  const result = runScript('start-test-ios.sh', env);
+  const calls = readCalls(recordFile);
+  const bootStatusIndex = calls.indexOf(
+    `xcrun:simctl bootstatus ${FAKE_IOS_SIMULATOR_UDID} -b`
+  );
+  const packagerStartIndex = calls.findIndex(
+    (call) => call.startsWith('npx:') && call.includes(':expo start ')
+  );
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(bootStatusIndex >= 0);
+  assert.ok(packagerStartIndex > bootStatusIndex);
 });
 
 test('start-test-ios.sh preserves forwarded argument boundaries', (t) => {

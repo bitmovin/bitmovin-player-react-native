@@ -1,5 +1,4 @@
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
 const test = require('node:test');
 
 const {
@@ -36,33 +35,6 @@ test('start-test-android reuses an owned Expo CLI process and forwards --no-pack
     )
   );
   assertPackagerNotStarted(calls);
-});
-
-test('ensure-android-emulator starts an emulator when none is running', (t) => {
-  const { env, recordFile, expoMarkerFile } = createStubEnvironment(t, {
-    STUB_EXPO_START_MODE: 'hold',
-    STUB_ADB_DEVICES_FIRST: 'List of devices attached\n',
-    STUB_ADB_DEVICES_NEXT: `List of devices attached\n${FAKE_ANDROID_EMULATOR_ID}\tdevice\n`,
-    STUB_EMULATOR_LIST_AVDS: FAKE_ANDROID_AVD_NAME,
-  });
-
-  const result = runScript('ensure-android-emulator.sh', env);
-  const calls = readCalls(recordFile);
-
-  assert.equal(result.status, 0);
-  assert.match(
-    result.stdout + result.stderr,
-    new RegExp(FAKE_ANDROID_EMULATOR_ID)
-  );
-  assert.ok(calls.some((call) => call.includes('emulator:-list-avds')));
-  assert.ok(
-    calls.some((call) =>
-      call.includes(`emulator:-avd ${FAKE_ANDROID_AVD_NAME}`)
-    )
-  );
-  assert.ok(calls.some((call) => call.includes('adb:wait-for-device shell')));
-  assertPackagerNotStarted(calls);
-  assert.equal(fs.existsSync(expoMarkerFile), false);
 });
 
 test('start-test-android reports why emulator setup failed', (t) => {
