@@ -269,11 +269,12 @@ function readForwardedArguments(forwardedArgumentsFile) {
 }
 
 function startDetachedTrapProcess(markerFile) {
+  const readyFile = `${markerFile}.ready`;
   const child = spawn(
-    'node',
+    process.execPath,
     [
       '-e',
-      "const fs=require('fs'); process.on('SIGTERM',()=>{fs.writeFileSync(process.env.MARKER_FILE,'terminated'); process.exit(0);}); setInterval(()=>{}, 1000);",
+      "const fs=require('fs'); process.on('SIGTERM',()=>{fs.writeFileSync(process.env.MARKER_FILE,'terminated'); process.exit(0);}); fs.writeFileSync(process.env.READY_FILE,'ready'); setInterval(()=>{}, 1000);",
     ],
     {
       detached: true,
@@ -281,10 +282,18 @@ function startDetachedTrapProcess(markerFile) {
       env: {
         ...process.env,
         MARKER_FILE: markerFile,
+        READY_FILE: readyFile,
       },
     }
   );
   child.unref();
+
+  if (!waitForFile(readyFile, 5000)) {
+    spawnSync('kill', ['-9', String(child.pid)], { stdio: 'ignore' });
+    throw new Error('Timed out waiting for the disposable process to start');
+  }
+  fs.rmSync(readyFile, { force: true });
+
   return String(child.pid);
 }
 

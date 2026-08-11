@@ -21,7 +21,6 @@
     "prestart-test:ios": "yarn patch-ios-build",
     "stop-test:ios": "./scripts/stop-test-ios.sh",
     "start-test:android": "./scripts/start-test-android.sh",
-    "run-test:android": "./scripts/run-test-android.sh",
     "start-test:ios": "./scripts/start-test-ios.sh",
     "test:android": "node scripts/run-selected-tests.js android",
     "test:ios": "node scripts/run-selected-tests.js ios",
