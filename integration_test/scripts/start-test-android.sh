@@ -1,8 +1,6 @@
 #!/bin/bash
 # Start Android test by ensuring emulator is running and executing cavy
 
-ARGS=$@
-
 # Check if emulator is already running
 EMULATOR_ID=$(adb devices | grep -v List | grep device | grep emulator | head -n 1 | cut -f 1)
 
@@ -26,7 +24,7 @@ fi
 # Run cavy with the emulator
 if [ -n "$EMULATOR_ID" ]; then
     echo "Running tests on emulator: $EMULATOR_ID"
-    ANDROID_SERIAL="$EMULATOR_ID" yarn cavy run-android --no-screenshots --keep-alive-timeout=300 --terminal="terminal" --deviceId "$EMULATOR_ID" $ARGS
+    ANDROID_SERIAL="$EMULATOR_ID" yarn cavy run-android --no-screenshots --keep-alive-timeout=300 --terminal="terminal" --deviceId "$EMULATOR_ID" "$@"
 else
     echo "Failed to start or find Android emulator"
     exit 1
