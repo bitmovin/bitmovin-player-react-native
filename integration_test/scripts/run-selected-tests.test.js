@@ -12,7 +12,10 @@ const {
 
 function commandsFor(platforms, forwardedArguments = []) {
   return [
-    ...platforms.map((platform) => ['yarn', [`stop-test:${platform}`]]),
+    ...platforms.map((platform) => [
+      'yarn',
+      [`stop-test:${platform}`, ...forwardedArguments],
+    ]),
     ...platforms.map((platform) => [
       'yarn',
       [`start-test:${platform}`, ...forwardedArguments],
@@ -164,6 +167,10 @@ describe('createTestRun', () => {
 
   it('preserves the unfiltered combined run', () => {
     assertRun('all', [], [], ['android', 'ios']);
+  });
+
+  it('uses the forwarded Metro port for cleanup and startup', () => {
+    assertRun('ios', ['--port', '9090'], [], ['ios'], ['--port', '9090']);
   });
 
   for (const [name, platform, args, error] of [

@@ -146,3 +146,30 @@ test('stop-packager leaves a foreign process on 8081 alone', (t) => {
   assert.equal(result.status, 0);
   assert.equal(fs.existsSync(foreignMarkerFile), false);
 });
+
+for (const scriptName of ['stop-test-ios.sh', 'stop-test-android.sh']) {
+  test(`${scriptName} stops an owned packager on a forwarded custom port`, (t) => {
+    const customPort = '9090';
+    const markerFile = path.join(
+      os.tmpdir(),
+      `custom-port-packager-${Date.now()}.txt`
+    );
+    const packagerPid = startDetachedTrapProcess(markerFile);
+    t.after(() => {
+      spawnSync('kill', ['-9', packagerPid], { stdio: 'ignore' });
+      fs.rmSync(markerFile, { force: true });
+    });
+
+    const { env } = createStubEnvironment(t, {
+      LSOF_PIDS: packagerPid,
+      LSOF_CWD: INTEGRATION_TEST_DIR,
+      STUB_EXPECTED_PACKAGER_PORT: customPort,
+      STUB_PROCESS_LIST: `${packagerPid} ?? 0:00.10 node ${INTEGRATION_TEST_DIR}/node_modules/expo/bin/cli start --port ${customPort} --localhost`,
+    });
+
+    const result = runScript(scriptName, env, ['--port', customPort]);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(waitForFile(markerFile), true);
+  });
+}
