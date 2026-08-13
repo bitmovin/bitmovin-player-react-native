@@ -91,17 +91,16 @@ const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
     return config;
   });
 
-  if (!isTV) {
-    config = withPodfileProperties(config, (config) => {
-      if (googleCastVersion != null) {
-        config.modResults['BITMOVIN_GOOGLE_CAST_SDK_VERSION'] =
-          googleCastVersion;
-      } else {
-        delete config.modResults['BITMOVIN_GOOGLE_CAST_SDK_VERSION'];
-      }
-      return config;
-    });
-  }
+  config = withPodfileProperties(config, (config) => {
+    config.modResults['BITMOVIN_APPLE_PLATFORM'] = isTV ? 'tvos' : 'ios';
+    if (!isTV && googleCastVersion != null) {
+      config.modResults['BITMOVIN_GOOGLE_CAST_SDK_VERSION'] =
+        googleCastVersion;
+    } else {
+      delete config.modResults['BITMOVIN_GOOGLE_CAST_SDK_VERSION'];
+    }
+    return config;
+  });
 
   return config;
 };

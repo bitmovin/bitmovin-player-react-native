@@ -5,6 +5,8 @@
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to [`3.119.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31190)
+- iOS/tvOS: Resolve the Bitmovin Player and Google IMA SDKs through Swift Package Manager instead of CocoaPods
+- Update Google IMA to `3.31.0` on iOS and `4.16.0` on tvOS
 
 ## [1.24.0] - 2026-07-31
 

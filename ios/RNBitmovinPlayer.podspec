@@ -28,9 +28,34 @@ Pod::Spec.new do |s|
   s.static_framework = true
 
   s.dependency 'ExpoModulesCore'
-  s.dependency "BitmovinPlayer", "3.119.0"
-  s.ios.dependency "GoogleAds-IMA-iOS-SDK", "3.26.1"
-  s.tvos.dependency "GoogleAds-IMA-tvOS-SDK", "4.15.1"
+
+  unless respond_to?(:spm_dependency, true)
+    raise 'RNBitmovinPlayer requires React Native >=0.75.0 because it uses Swift Package Manager dependencies.'
+  end
+
+  spm_dependency(
+    s,
+    url: 'https://github.com/bitmovin/player-ios.git',
+    requirement: { kind: 'exactVersion', version: '3.119.0' },
+    products: ['BitmovinPlayer']
+  )
+
+  is_tvos = podfile_properties['BITMOVIN_APPLE_PLATFORM'] == 'tvos'
+  if is_tvos
+    spm_dependency(
+      s,
+      url: 'https://github.com/googleads/swift-package-manager-google-interactive-media-ads-tvos',
+      requirement: { kind: 'exactVersion', version: '4.16.0' },
+      products: ['GoogleInteractiveMediaAdsTvOS']
+    )
+  else
+    spm_dependency(
+      s,
+      url: 'https://github.com/googleads/swift-package-manager-google-interactive-media-ads-ios',
+      requirement: { kind: 'exactVersion', version: '3.31.0' },
+      products: ['GoogleInteractiveMediaAds']
+    )
+  end
 
   if podfile_properties['BITMOVIN_GOOGLE_CAST_SDK_VERSION'].to_s != ''
     s.ios.dependency "google-cast-sdk", podfile_properties['BITMOVIN_GOOGLE_CAST_SDK_VERSION'].to_s
