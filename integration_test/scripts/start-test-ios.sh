@@ -4,6 +4,7 @@
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 . "$SCRIPT_DIR/packager-utils.sh"
 
+configure_packager_port "$@"
 trap cleanup_owned_packager EXIT
 # Prefer an already-booted iPhone, otherwise select the first available one.
 SIMULATOR=$(xcrun simctl list devices available -e -j | \

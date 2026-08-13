@@ -2,9 +2,26 @@
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
 INTEGRATION_TEST_DIR=$(cd "$SCRIPT_DIR/.." && pwd -P)
-PACKAGER_PORT=8081
+PACKAGER_PORT="${RCT_METRO_PORT:-8081}"
 PACKAGER_LOG_FILE="${TMPDIR:-/tmp}/bitmovin-integration-test-metro.log"
 PACKAGER_STARTED_PID=""
+
+configure_packager_port() {
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --port)
+                if [ "$#" -gt 1 ]; then
+                    PACKAGER_PORT="$2"
+                    shift
+                fi
+                ;;
+            --port=*)
+                PACKAGER_PORT="${1#--port=}"
+                ;;
+        esac
+        shift
+    done
+}
 
 packager_pid_on_port() {
     lsof -nP -iTCP:"$PACKAGER_PORT" -sTCP:LISTEN -t 2>/dev/null | head -n 1

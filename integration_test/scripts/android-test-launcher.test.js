@@ -103,3 +103,18 @@ test('start-test-android.sh preserves forwarded argument boundaries', (t) => {
     forwardedArguments
   );
 });
+
+test('start-test-android uses RCT_METRO_PORT for its managed packager', (t) => {
+  const customPort = '9090';
+  const { env, recordFile } = createOwnedPackagerEnvironment(t, {
+    RCT_METRO_PORT: customPort,
+    STUB_EXPECTED_PACKAGER_PORT: customPort,
+    STUB_ADB_DEVICES: `List of devices attached\n${FAKE_ANDROID_EMULATOR_ID}\tdevice\n`,
+  });
+
+  const result = runScript('start-test-android.sh', env);
+  const calls = readCalls(recordFile);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(calls.includes(`lsof:-nP -iTCP:${customPort} -sTCP:LISTEN -t`));
+});

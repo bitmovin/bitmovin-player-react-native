@@ -4,6 +4,8 @@
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 . "$SCRIPT_DIR/packager-utils.sh"
 
+configure_packager_port "$@"
+
 android_emulator_id() {
     adb devices | grep -v List | grep device | grep emulator | head -n 1 | cut -f 1
 }

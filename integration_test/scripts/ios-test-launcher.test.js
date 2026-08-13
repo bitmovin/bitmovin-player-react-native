@@ -104,3 +104,45 @@ test('start-test-ios.sh preserves forwarded argument boundaries', (t) => {
     forwardedArguments
   );
 });
+
+test('start-test-ios uses a forwarded --port for its managed packager', (t) => {
+  const customPort = '9090';
+  const { env, recordFile, forwardedArgumentsFile } =
+    createOwnedPackagerEnvironment(t, {
+      STUB_EXPECTED_PACKAGER_PORT: customPort,
+    });
+  const forwardedArguments = ['--port', customPort];
+
+  const result = runScript('start-test-ios.sh', env, forwardedArguments);
+  const calls = readCalls(recordFile);
+
+  assert.equal(result.status, 0, result.stderr);
+  const capturedArguments = readForwardedArguments(forwardedArgumentsFile);
+  assert.ok(calls.includes(`lsof:-nP -iTCP:${customPort} -sTCP:LISTEN -t`));
+  assert.deepEqual(
+    capturedArguments.slice(-forwardedArguments.length),
+    forwardedArguments
+  );
+});
+
+test('start-test-ios lets --port= override RCT_METRO_PORT', (t) => {
+  const environmentPort = '9090';
+  const argumentPort = '9091';
+  const { env, recordFile, forwardedArgumentsFile } =
+    createOwnedPackagerEnvironment(t, {
+      RCT_METRO_PORT: environmentPort,
+      STUB_EXPECTED_PACKAGER_PORT: argumentPort,
+    });
+  const forwardedArguments = [`--port=${argumentPort}`];
+
+  const result = runScript('start-test-ios.sh', env, forwardedArguments);
+  const calls = readCalls(recordFile);
+
+  assert.equal(result.status, 0, result.stderr);
+  const capturedArguments = readForwardedArguments(forwardedArgumentsFile);
+  assert.ok(calls.includes(`lsof:-nP -iTCP:${argumentPort} -sTCP:LISTEN -t`));
+  assert.deepEqual(
+    capturedArguments.slice(-forwardedArguments.length),
+    forwardedArguments
+  );
+});

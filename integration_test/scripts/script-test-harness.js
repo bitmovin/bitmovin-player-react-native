@@ -55,6 +55,7 @@ function createStubEnvironment(t, env = {}) {
     STUB_EXPO_CWD_FILE: expoCwdFile,
     STUB_EXPO_MARKER_FILE: expoMarkerFile,
     STUB_FORWARDED_ARGUMENTS_FILE: forwardedArgumentsFile,
+    STUB_EXPECTED_PACKAGER_PORT: PACKAGER_PORT,
     LSOF_PIDS: '',
     LSOF_CWD: '',
     STUB_EXPO_START_MODE: '',
@@ -78,7 +79,7 @@ function createStubEnvironment(t, env = {}) {
     'lsof',
     `#!/bin/sh
 echo "lsof:$*" >> "$STUB_RECORD_FILE"
-if [ "$1" = "-nP" ] && [ "$2" = "-iTCP:${PACKAGER_PORT}" ] && [ "$3" = "-sTCP:LISTEN" ] && [ "$4" = "-t" ]; then
+if [ "$1" = "-nP" ] && [ "$2" = "-iTCP:$STUB_EXPECTED_PACKAGER_PORT" ] && [ "$3" = "-sTCP:LISTEN" ] && [ "$4" = "-t" ]; then
   if [ -f "$STUB_EXPO_PID_FILE" ]; then
     cat "$STUB_EXPO_PID_FILE"
     exit 0
@@ -112,7 +113,7 @@ exit 1
 if [ -f "$STUB_EXPO_PID_FILE" ]; then
   pid="$(cat "$STUB_EXPO_PID_FILE")"
   cwd="$(cat "$STUB_EXPO_CWD_FILE" 2>/dev/null)"
-  printf "%s\\n" "node $cwd/node_modules/expo/bin/cli start --port ${PACKAGER_PORT} --localhost"
+  printf "%s\\n" "node $cwd/node_modules/expo/bin/cli start --port $STUB_EXPECTED_PACKAGER_PORT --localhost"
   exit 0
 fi
 printf "%s\\n" "$STUB_PROCESS_LIST"
