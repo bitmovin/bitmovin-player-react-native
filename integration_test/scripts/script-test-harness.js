@@ -50,6 +50,7 @@ function createStubEnvironment(t, env = {}) {
   const forwardedArgumentsFile = path.join(tempDir, 'arguments');
   const defaultEnv = {
     ...process.env,
+    RCT_METRO_PORT: '',
     PATH: `${binDir}:${process.env.PATH}`,
     STUB_RECORD_FILE: recordFile,
     STUB_ADB_DEVICES_STATE_FILE: adbDevicesStateFile,

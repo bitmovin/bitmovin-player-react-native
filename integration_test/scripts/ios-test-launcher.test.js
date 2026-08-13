@@ -146,3 +146,20 @@ test('start-test-ios lets --port= override RCT_METRO_PORT', (t) => {
     forwardedArguments
   );
 });
+
+test('launcher tests ignore an inherited Metro port by default', (t) => {
+  const originalMetroPort = process.env.RCT_METRO_PORT;
+  process.env.RCT_METRO_PORT = '9090';
+  t.after(() => {
+    if (originalMetroPort === undefined) {
+      delete process.env.RCT_METRO_PORT;
+    } else {
+      process.env.RCT_METRO_PORT = originalMetroPort;
+    }
+  });
+
+  const { env } = createOwnedPackagerEnvironment(t);
+  const result = runScript('start-test-ios.sh', env);
+
+  assert.equal(result.status, 0, result.stderr);
+});
