@@ -6,6 +6,10 @@ inputs:
     description: Setup node and install root node modules
     default: false
     required: false
+  node-version:
+    description: Node.js version to use when setting up node
+    default: '20'
+    required: false
   subprojects:
     description: Setup node and install root and subproject node modules (overrides `node` input)
     default: false
@@ -51,7 +55,7 @@ runs:
       if: ${{ inputs.node == 'true' || inputs.subprojects == 'true' }}
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: ${{ inputs['node-version'] }}
         registry-url: 'https://registry.npmjs.org/'
         cache: 'yarn'
 
