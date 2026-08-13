@@ -2,7 +2,7 @@
 # Stop iOS test by killing packager and terminating the test app on simulators
 
 # Stop the packager first
-./scripts/stop-packager.sh
+./scripts/stop-packager.sh "$@"
 
 # Get all booted iPhone simulators and terminate the test app
 xcrun simctl list devices available -e -j | \
