@@ -4,6 +4,7 @@ import {
   withPodfileProperties,
 } from 'expo/config-plugins';
 import { BitmovinConfigOptions } from './withBitmovinConfig';
+import withBitmovinIosDependencies from './withBitmovinIosDependencies';
 
 const isTV = !!process.env.EXPO_TV;
 
@@ -101,6 +102,8 @@ const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
     }
     return config;
   });
+
+  config = withBitmovinIosDependencies(config, isTV ? 'tvos' : 'ios');
 
   return config;
 };
