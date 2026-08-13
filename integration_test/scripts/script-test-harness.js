@@ -15,6 +15,8 @@ const FAKE_IOS_DEVICE_TYPE =
 const ARBITRARY_FOREIGN_PID = '11111';
 const ARBITRARY_OWNED_PID = '22222';
 const WAIT_TIMEOUT_MS = 1000;
+const WAIT_POLL_INTERVAL_MS = 10;
+const WAIT_ARRAY = new Int32Array(new SharedArrayBuffer(4));
 const FAKE_FOREIGN_PROJECT_PATH = '/tmp/fake-other-project';
 const FAKE_OWNED_PROJECT_PATH = '/tmp/fake-integration-test-project';
 const FAKE_ANDROID_EMULATOR_ID = 'emulator-5554';
@@ -124,7 +126,7 @@ printf "%s\\n" "$STUB_PROCESS_LIST"
     binDir,
     'sleep',
     `#!/bin/sh
-exit 0
+exec /bin/sleep 0.01
 `
   );
 
@@ -286,6 +288,7 @@ function waitForFile(filePath, timeoutMs = WAIT_TIMEOUT_MS) {
     if (fs.existsSync(filePath)) {
       return true;
     }
+    Atomics.wait(WAIT_ARRAY, 0, 0, WAIT_POLL_INTERVAL_MS);
   }
 
   return false;
