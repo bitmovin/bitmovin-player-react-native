@@ -2,10 +2,16 @@
 
 ## [Unreleased]
 
+## [1.25.0] - 2026-08-13
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to [`3.162.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31620)
 - Update Bitmovin's native iOS SDK version to [`3.119.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31190)
+
+### Fixed
+
+- iOS: Prevent startup crashes when Google Cast is not configured
 
 ## [1.24.0] - 2026-07-31
 

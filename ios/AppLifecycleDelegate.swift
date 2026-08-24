@@ -16,11 +16,11 @@ public class AppLifecycleDelegate: ExpoAppDelegateSubscriber {
             OfflineManager.initializeOfflineManager()
         }
 
-        if !BitmovinCastManager.isInitialized() {
+        // The Cast SDK is optional; only attempt initialization when Cast configuration is present.
+        if let applicationId = infoDictionary["BitmovinPlayerGoogleCastApplicationId"] as? String,
+           !BitmovinCastManager.isInitialized() {
             let options = BitmovinCastManagerOptions()
-            if let applicationId = infoDictionary["BitmovinPlayerGoogleCastApplicationId"] as? String {
-                options.applicationId = applicationId
-            }
+            options.applicationId = applicationId
             if let messageNamespace = infoDictionary["BitmovinPlayerGoogleCastMessageNamespace"] as? String {
                 options.messageNamespace = messageNamespace
             }
