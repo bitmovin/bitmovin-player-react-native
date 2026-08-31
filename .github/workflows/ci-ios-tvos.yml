@@ -84,7 +84,7 @@ jobs:
 
   ios-example-build:
     name: Build iOS Example App
-    runs-on: macOS-15
+    runs-on: macos-26
     timeout-minutes: 25
     steps:
       - name: Checkout
@@ -138,7 +138,7 @@ jobs:
 
   ios-integration-build:
     name: Build iOS Integration Tests
-    runs-on: macOS-15
+    runs-on: macos-26
     timeout-minutes: 25
     steps:
       - name: Checkout
@@ -192,7 +192,7 @@ jobs:
 
   tvos-example-build:
     name: Build tvOS Example App
-    runs-on: macOS-15
+    runs-on: macos-26
     timeout-minutes: 30
     steps:
       - name: Checkout
