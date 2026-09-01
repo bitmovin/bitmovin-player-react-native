@@ -15,6 +15,8 @@ Before creating a pull request, please
 
 If this is your first React Native project, setup your React Native development environment for both Android and iOS as described [here](https://reactnative.dev/docs/set-up-your-environment).
 
+For iOS and tvOS development, use Xcode 26.6, which includes the Swift 6.3.3 compiler, to match CI. Xcode 26.6 requires macOS Tahoe 26.2 or later. The native bridge remains in Swift 5 language mode (`s.swift_version = '5.10'`); this toolchain update does not enable Swift 6 language mode.
+
 To get started with the project, run `yarn bootstrap` in the root directory to install the required dependencies for each package and cocoapods dependencies for the example app:
 
 ```sh
