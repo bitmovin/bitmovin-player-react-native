@@ -33,6 +33,17 @@ const positionedSubtitleTrack: SideLoadedSubtitleTrack = {
   format: SubtitleFormat.VTT,
 };
 
+const bitmapSubtitleTrack: SideLoadedSubtitleTrack = {
+  identifier: 'bitmap-cues',
+  url: Image.resolveAssetSource(
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require('../assets/subtitles/bitmap_percentage_region.ttml')
+  ).uri,
+  label: 'Bitmap Cues',
+  language: 'en',
+  format: SubtitleFormat.TTML,
+};
+
 const sourceWithInManifestPositionedSubs: SourceConfig = {
   url: 'https://bitmovin-player-eu-west1-ci-input.s3.amazonaws.com/general/hls/sintel-different_attributes-subtitle/master-debug-short.m3u8',
   type: SourceType.HLS,
@@ -99,6 +110,17 @@ function expectPositionedCueLayout(
   ).toBe('center');
 }
 
+function expectBitmapCue(
+  event: CueEnterEvent | CueExitEvent,
+  eventName: string
+) {
+  expect(event.image, `${eventName} image should be present`).toBeDefined();
+  expect(
+    event.layout?.bitmapHeight,
+    `${eventName} bitmapHeight should be 0.12`
+  ).toBeCloseTo(0.12);
+}
+
 function expectCueHtml(event: CueEnterEvent | CueExitEvent, eventName: string) {
   expect(event.html, `${eventName} html should be present`).toBeDefined();
   expect(typeof event.html, `${eventName} html should be a string`).toBe(
@@ -110,6 +132,39 @@ export default (spec: TestScope) => {
   spec.describe('caption metadata', () => {
     if (Platform.OS === 'android') {
       spec.describe('Android cue geometry fields', () => {
+        spec.it(
+          'CueEnter and CueExit expose bitmap height for image TTML cues',
+          async () => {
+            await startPlayerTest({}, async () => {
+              await loadSourceConfig(
+                sourceWithSubtitleTrack(bitmapSubtitleTrack)
+              );
+              await callPlayer(async (player) => {
+                await player.setSubtitleTrack(bitmapSubtitleTrack.identifier);
+              });
+
+              const cueEnterEvent =
+                await callPlayerAndExpectEvent<CueEnterEvent>(
+                  (player) => player.seek(1),
+                  FilteredEvent<CueEnterEvent>(
+                    EventType.CueEnter,
+                    (event) => event.layout?.bitmapHeight !== undefined
+                  )
+                );
+              expectBitmapCue(cueEnterEvent, 'CueEnter');
+
+              const cueExitEvent = await callPlayerAndExpectEvent<CueExitEvent>(
+                (player) => player.seek(3.1),
+                FilteredEvent<CueExitEvent>(
+                  EventType.CueExit,
+                  (event) => event.layout?.bitmapHeight !== undefined
+                )
+              );
+              expectBitmapCue(cueExitEvent, 'CueExit');
+            });
+          }
+        );
+
         spec.it(
           'CueEnter layout field reflects geometry authored in the VTT',
           async () => {

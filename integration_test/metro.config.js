@@ -24,7 +24,11 @@ config.resolver.extraNodeModules = {
 
 config.watchFolders = [path.resolve(__dirname, '..')];
 
-config.resolver.assetExts = [...(config.resolver.assetExts ?? []), 'vtt'];
+config.resolver.assetExts = [
+  ...(config.resolver.assetExts ?? []),
+  'vtt',
+  'ttml',
+];
 
 config.transformer.getTransformOptions = async () => ({
   transform: {
