@@ -42,7 +42,7 @@
     "@react-navigation/elements": "1.3.30",
     "@react-navigation/native": "6.1.14",
     "@react-navigation/native-stack": "6.9.22",
-    "expo": "~54.0.35",
+    "expo": "~54.0.36",
     "expo-build-properties": "~1.0.10",
     "expo-crypto": "~15.0.9",
     "expo-dev-client": "~6.0.21",
