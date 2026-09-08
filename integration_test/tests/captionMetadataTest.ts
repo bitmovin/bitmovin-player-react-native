@@ -108,6 +108,10 @@ function expectPositionedCueLayout(
     positionedLayout.textAlign,
     `${eventName} textAlign should be center`
   ).toBe('center');
+  expect(
+    positionedLayout.bitmapHeight,
+    `${eventName} bitmapHeight should be omitted for text cues`
+  ).toBeUndefined();
 }
 
 function expectBitmapCue(
@@ -117,8 +121,8 @@ function expectBitmapCue(
   expect(event.image, `${eventName} image should be present`).toBeDefined();
   expect(
     event.layout?.bitmapHeight,
-    `${eventName} bitmapHeight should be 0.12`
-  ).toBeCloseTo(0.12);
+    `${eventName} bitmapHeight should be 12`
+  ).toBeCloseTo(12);
 }
 
 function expectCueHtml(event: CueEnterEvent | CueExitEvent, eventName: string) {

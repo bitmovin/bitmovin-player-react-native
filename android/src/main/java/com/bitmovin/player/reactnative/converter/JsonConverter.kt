@@ -1112,7 +1112,7 @@ private fun Cue.toLayoutJson(): Map<String, Any>? {
     val line = toLayoutLineJson()
     val position = fractionalPosition.takeIf { it != Cue.DIMEN_UNSET }?.toPercent()
     val size = size.takeIf { it != Cue.DIMEN_UNSET }?.toPercent()
-    val bitmapHeight = bitmapHeight.takeIf { it != Cue.DIMEN_UNSET }?.toDouble()
+    val bitmapHeight = bitmapHeight.takeIf { it != Cue.DIMEN_UNSET }?.toPercent()
     val textAlign = textAlignment?.toLayoutTextAlignJson()
 
     return mapOf(
