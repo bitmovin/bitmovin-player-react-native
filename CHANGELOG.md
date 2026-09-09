@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Android: Expose `bitmapHeight` on `CueEnterEvent` and `CueExitEvent` cue `layout` for image-based TTML/IMSC subtitle cues
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to [`3.121.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31210)
