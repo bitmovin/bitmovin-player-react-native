@@ -795,6 +795,17 @@ export interface SubtitleCueLayout {
    */
   size?: number;
   /**
+   * Height of an image/bitmap cue as a percentage of the viewport size (typically `0`–`100`).
+   *
+   * Only meaningful for image-based cues (e.g. IMSC1 image profile / DVB subtitles). It is
+   * omitted for text cues, and also for bitmap cues that should be displayed at their natural
+   * height. Because it is relative to the viewport rather than a pixel height, it is not
+   * equivalent to measuring the decoded bitmap exposed via the event's `image` field.
+   *
+   * @platform Android
+   */
+  bitmapHeight?: number;
+  /**
    * Text alignment inside the cue box.
    */
   textAlign?: 'start' | 'center' | 'end' | 'left' | 'right';

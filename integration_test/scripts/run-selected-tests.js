@@ -82,7 +82,10 @@ function createTestRun(platform, testArguments) {
   return {
     environment,
     commands: [
-      ...platforms.map((target) => ['yarn', [`stop-test:${target}`]]),
+      ...platforms.map((target) => [
+        'yarn',
+        [`stop-test:${target}`, ...forwardedArguments],
+      ]),
       ...platforms.map((target) => [
         'yarn',
         [`start-test:${target}`, ...forwardedArguments],

@@ -2,7 +2,7 @@
 # Stop Android test by killing packager and force-stopping the test app
 
 # Stop the packager first
-./scripts/stop-packager.sh
+./scripts/stop-packager.sh "$@"
 
 # Get the first available Android emulator ID
 EMULATOR_ID="$(adb devices | grep -v List | grep device | grep emulator | head -n 1 | cut -f 1)"
