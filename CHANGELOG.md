@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update Bitmovin's native Android SDK version to [`3.166.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31660)
+
 ## [1.26.0] - 2026-09-11
 
 ### Added
