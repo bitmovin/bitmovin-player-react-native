@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.26.0] - 2026-09-11
+
 ### Added
 
 - Android: Expose `bitmapHeight` on `CueEnterEvent` and `CueExitEvent` cue `layout` for image-based TTML/IMSC subtitle cues
