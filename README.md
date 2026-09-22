@@ -45,6 +45,10 @@ Use the [Low-Code Wizard](https://dashboard.bitmovin.com/player/getting-started)
 
 Check out our [React Native Guides](https://developer.bitmovin.com/playback/docs/guides-react-native) for more information on how to set up Player features such as Advertising, DRM-protected playback, Subtitles and more.
 
+### Apple dependency management
+
+Player and Google IMA use Swift Package Manager. See [Apple SDK dependencies](docs/apple-dependencies.md) for Expo prebuild, manual integration, and upgrade instructions.
+
 ### Sample Application
 
 In the [/example/](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) folder you can find a sample application showcasing many of the features of the Player React Native SDK.
