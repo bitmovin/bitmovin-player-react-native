@@ -108,9 +108,11 @@ jobs:
           ios: true
           skip-prebuild: true
 
-      - name: Prebuild iOS Example (on cache miss)
-        if: ${{ steps.ios-example-prebuild-cache.outputs.cache-hit != 'true' }}
-        run: .github/scripts/smart-prebuild.sh example
+      - name: Build config plugin
+        run: yarn build:plugin
+
+      - name: Configure iOS Example
+        run: yarn example prebuild --platform ios --no-install
 
       - name: Cache CocoaPods Dependencies
         uses: actions/cache@v6
@@ -118,12 +120,21 @@ jobs:
           path: |
             ~/Library/Caches/CocoaPods
             example/ios/Pods
-          key: ${{ runner.os }}-ios-example-pods-${{ hashFiles('ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock') }}
+          key: ${{ runner.os }}-ios-example-pods-${{ hashFiles('ios/dependencies.json', 'ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-ios-example-pods-
 
       - name: Install CocoaPods Dependencies
         run: yarn example pods
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -workspace example/ios/BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample
+
+      - name: Save resolved Swift package versions
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-example-swift-packages
+          path: example/ios/BitmovinPlayerReactNativeExample.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
       - name: Build iOS Example App
         id: build
@@ -162,9 +173,11 @@ jobs:
           ios: true
           skip-prebuild: true
 
-      - name: Prebuild iOS Integration (on cache miss)
-        if: ${{ steps.ios-integration-prebuild-cache.outputs.cache-hit != 'true' }}
-        run: .github/scripts/smart-prebuild.sh integration-test
+      - name: Build config plugin
+        run: yarn build:plugin
+
+      - name: Configure iOS Integration
+        run: yarn integration-test prebuild --platform ios --no-install
 
       - name: Cache CocoaPods Dependencies
         uses: actions/cache@v6
@@ -172,12 +185,15 @@ jobs:
           path: |
             ~/Library/Caches/CocoaPods
             integration_test/ios/Pods
-          key: ${{ runner.os }}-ios-integration-pods-${{ hashFiles('ios/RNBitmovinPlayer.podspec', 'integration_test/ios/Podfile.lock') }}
+          key: ${{ runner.os }}-ios-integration-pods-${{ hashFiles('ios/dependencies.json', 'ios/RNBitmovinPlayer.podspec', 'integration_test/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-ios-integration-pods-
 
       - name: Install CocoaPods Dependencies
         run: yarn integration-test pods
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -workspace integration_test/ios/IntegrationTest.xcworkspace -scheme IntegrationTest
 
       - name: Build iOS Integration Tests
         id: build
@@ -217,9 +233,11 @@ jobs:
           tv: true
           skip-prebuild: true
 
-      - name: Prebuild tvOS Example (on cache miss)
-        if: ${{ steps.tvos-prebuild-cache.outputs.cache-hit != 'true' }}
-        run: .github/scripts/smart-prebuild.sh example tv
+      - name: Build config plugin
+        run: yarn build:plugin
+
+      - name: Configure tvOS Example
+        run: yarn example prebuild:tv --platform ios --no-install
 
       - name: Cache CocoaPods Dependencies
         uses: actions/cache@v6
@@ -227,12 +245,21 @@ jobs:
           path: |
             ~/Library/Caches/CocoaPods
             example/ios/Pods
-          key: ${{ runner.os }}-tvos-pods-${{ hashFiles('ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock') }}
+          key: ${{ runner.os }}-tvos-pods-${{ hashFiles('ios/dependencies.json', 'ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-tvos-pods-
 
       - name: Install CocoaPods Dependencies
         run: yarn example pods
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -workspace example/ios/BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample
+
+      - name: Save resolved Swift package versions
+        uses: actions/upload-artifact@v4
+        with:
+          name: tvos-example-swift-packages
+          path: example/ios/BitmovinPlayerReactNativeExample.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
       - name: Build tvOS Example App
         id: build
