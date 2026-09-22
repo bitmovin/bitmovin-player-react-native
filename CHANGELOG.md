@@ -4,6 +4,9 @@
 
 ### Changed
 
+- iOS: Resolve Player and Google IMA through Swift Package Manager, with automatic app integration during Expo prebuild
+- iOS: Update Google IMA to `3.31.0`; tvOS: Update Google IMA to `4.16.0`
+
 - Update Bitmovin's native iOS SDK version to [`3.123.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31230)
 
 ## [1.26.0] - 2026-09-11
