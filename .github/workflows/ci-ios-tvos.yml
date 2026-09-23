@@ -109,9 +109,11 @@ jobs:
           skip-prebuild: true
 
       - name: Build config plugin
+        if: ${{ steps.ios-example-prebuild-cache.outputs.cache-hit != 'true' }}
         run: yarn build:plugin
 
       - name: Configure iOS Example
+        if: ${{ steps.ios-example-prebuild-cache.outputs.cache-hit != 'true' }}
         run: yarn example prebuild --platform ios --no-install
 
       - name: Cache CocoaPods Dependencies
@@ -174,9 +176,11 @@ jobs:
           skip-prebuild: true
 
       - name: Build config plugin
+        if: ${{ steps.ios-integration-prebuild-cache.outputs.cache-hit != 'true' }}
         run: yarn build:plugin
 
       - name: Configure iOS Integration
+        if: ${{ steps.ios-integration-prebuild-cache.outputs.cache-hit != 'true' }}
         run: yarn integration-test prebuild --platform ios --no-install
 
       - name: Cache CocoaPods Dependencies
@@ -234,9 +238,11 @@ jobs:
           skip-prebuild: true
 
       - name: Build config plugin
+        if: ${{ steps.tvos-prebuild-cache.outputs.cache-hit != 'true' }}
         run: yarn build:plugin
 
       - name: Configure tvOS Example
+        if: ${{ steps.tvos-prebuild-cache.outputs.cache-hit != 'true' }}
         run: yarn example prebuild:tv --platform ios --no-install
 
       - name: Cache CocoaPods Dependencies
