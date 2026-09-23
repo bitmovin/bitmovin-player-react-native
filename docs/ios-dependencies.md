@@ -5,7 +5,7 @@ Player and Google IMA are installed through Swift Package Manager (SPM).
 CocoaPods still installs the React Native bridge, ExpoModulesCore, and optional
 Google Cast SDK.
 
-## Migrating an existing app to this release
+## Migrating from CocoaPods to SPM
 
 After upgrading the React Native Player package, follow the steps for your
 project's workflow.
@@ -39,7 +39,7 @@ Apps with multiple application targets must integrate the products into each
 target using the bridge. New integrations follow the same setup for their chosen
 workflow.
 
-## Upgrading to later releases
+## Upgrading after the migration
 
 Check the release notes and the installed package's `ios/dependencies.json` for
 native integration changes. If anything changes, rerun prebuild or update the
