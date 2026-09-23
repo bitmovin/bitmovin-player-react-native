@@ -7,12 +7,12 @@
   "ima": {
     "ios": {
       "url": "https://github.com/googleads/swift-package-manager-google-interactive-media-ads-ios",
-      "version": "3.31.0",
+      "version": "3.26.1",
       "product": "GoogleInteractiveMediaAds"
     },
     "tvos": {
       "url": "https://github.com/googleads/swift-package-manager-google-interactive-media-ads-tvos",
-      "version": "4.16.0",
+      "version": "4.15.1",
       "product": "GoogleInteractiveMediaAdsTvOS"
     }
   }
