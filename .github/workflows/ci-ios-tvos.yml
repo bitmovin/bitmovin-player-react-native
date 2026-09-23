@@ -147,7 +147,19 @@ jobs:
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
           echo "✅ Build completed in $((END_TIME - START_TIME)) seconds"
         env:
-          XCODEBUILD_ARGS: "-destination '${{ env.IOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }}"
+          XCODEBUILD_ARGS: "-destination '${{ env.IOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }} -derivedDataPath ${{ runner.temp }}/bitmovin-build"
+
+      - name: Verify embedded SDK frameworks
+        env:
+          APP_PATH: ${{ runner.temp }}/bitmovin-build/Build/Products/Debug-iphonesimulator/BitmovinPlayerReactNativeExample.app
+        run: |
+          for framework in BitmovinPlayer BitmovinPlayerCore BitmovinPlayerAnalytics BitmovinCollector GoogleInteractiveMediaAds; do
+            binary="$APP_PATH/Frameworks/$framework.framework/$framework"
+            if [ ! -s "$binary" ]; then
+              echo "::error::Missing embedded SDK binary: $binary"
+              exit 1
+            fi
+          done
 
   ios-integration-build:
     name: Build iOS Integration Tests
@@ -276,4 +288,16 @@ jobs:
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
           echo "✅ Build completed in $((END_TIME - START_TIME)) seconds"
         env:
-          XCODEBUILD_ARGS: "-destination '${{ env.TVOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }}"
+          XCODEBUILD_ARGS: "-destination '${{ env.TVOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }} -derivedDataPath ${{ runner.temp }}/bitmovin-build"
+
+      - name: Verify embedded SDK frameworks
+        env:
+          APP_PATH: ${{ runner.temp }}/bitmovin-build/Build/Products/Debug-appletvsimulator/BitmovinPlayerReactNativeExample.app
+        run: |
+          for framework in BitmovinPlayer BitmovinPlayerCore BitmovinPlayerAnalytics BitmovinCollector GoogleInteractiveMediaAds; do
+            binary="$APP_PATH/Frameworks/$framework.framework/$framework"
+            if [ ! -s "$binary" ]; then
+              echo "::error::Missing embedded SDK binary: $binary"
+              exit 1
+            fi
+          done
