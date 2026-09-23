@@ -34,7 +34,7 @@ jobs:
       - name: Setup Git User
         run: |
           git config --global user.name "Bitmovin Release Automation"
-          git config --global user.email "support@bitmovin.com"
+          git config --global user.email "player-sdks@bitmovin.com"
 
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
