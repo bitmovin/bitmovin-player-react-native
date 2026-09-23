@@ -28,9 +28,23 @@ Pod::Spec.new do |s|
   s.static_framework = true
 
   s.dependency 'ExpoModulesCore'
-  s.dependency "BitmovinPlayer", "3.123.0"
-  s.ios.dependency "GoogleAds-IMA-iOS-SDK", "3.26.1"
-  s.tvos.dependency "GoogleAds-IMA-tvOS-SDK", "4.15.1"
+  unless respond_to?(:spm_dependency, true)
+    raise 'RNBitmovinPlayer requires React Native with spm_dependency support (>= 0.75).'
+  end
+
+  apple_platform = podfile_properties['BITMOVIN_APPLE_PLATFORM']
+  unless %w[ios tvos].include?(apple_platform)
+    raise 'Set BITMOVIN_APPLE_PLATFORM to ios or tvos in Podfile.properties.json. The Bitmovin Expo plugin configures this during prebuild.'
+  end
+  dependencies = JSON.parse(File.read(File.join(__dir__, 'dependencies.json')))
+  [dependencies.fetch('player'), dependencies.fetch('ima').fetch(apple_platform)].each do |dependency|
+    spm_dependency(
+      s,
+      url: dependency.fetch('url'),
+      requirement: { kind: 'exactVersion', version: dependency.fetch('version') },
+      products: [dependency.fetch('product')]
+    )
+  end
 
   if podfile_properties['BITMOVIN_GOOGLE_CAST_SDK_VERSION'].to_s != ''
     s.ios.dependency "google-cast-sdk", podfile_properties['BITMOVIN_GOOGLE_CAST_SDK_VERSION'].to_s

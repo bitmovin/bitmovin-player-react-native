@@ -108,9 +108,13 @@ jobs:
           ios: true
           skip-prebuild: true
 
-      - name: Prebuild iOS Example (on cache miss)
+      - name: Build config plugin
         if: ${{ steps.ios-example-prebuild-cache.outputs.cache-hit != 'true' }}
-        run: .github/scripts/smart-prebuild.sh example
+        run: yarn build:plugin
+
+      - name: Configure iOS Example
+        if: ${{ steps.ios-example-prebuild-cache.outputs.cache-hit != 'true' }}
+        run: yarn example prebuild --platform ios --no-install
 
       - name: Cache CocoaPods Dependencies
         uses: actions/cache@v6
@@ -118,12 +122,21 @@ jobs:
           path: |
             ~/Library/Caches/CocoaPods
             example/ios/Pods
-          key: ${{ runner.os }}-ios-example-pods-${{ hashFiles('ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock') }}
+          key: ${{ runner.os }}-ios-example-pods-${{ hashFiles('ios/dependencies.json', 'ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-ios-example-pods-
 
       - name: Install CocoaPods Dependencies
         run: yarn example pods
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -workspace example/ios/BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample
+
+      - name: Save resolved Swift package versions
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-example-swift-packages
+          path: example/ios/BitmovinPlayerReactNativeExample.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
       - name: Build iOS Example App
         id: build
@@ -134,7 +147,19 @@ jobs:
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
           echo "✅ Build completed in $((END_TIME - START_TIME)) seconds"
         env:
-          XCODEBUILD_ARGS: "-destination '${{ env.IOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }}"
+          XCODEBUILD_ARGS: "-destination '${{ env.IOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }} -derivedDataPath ${{ runner.temp }}/bitmovin-build"
+
+      - name: Verify embedded SDK frameworks
+        env:
+          APP_PATH: ${{ runner.temp }}/bitmovin-build/Build/Products/Debug-iphonesimulator/BitmovinPlayerReactNativeExample.app
+        run: |
+          for framework in BitmovinPlayer BitmovinPlayerCore BitmovinPlayerAnalytics BitmovinCollector GoogleInteractiveMediaAds; do
+            binary="$APP_PATH/Frameworks/$framework.framework/$framework"
+            if [ ! -s "$binary" ]; then
+              echo "::error::Missing embedded SDK binary: $binary"
+              exit 1
+            fi
+          done
 
   ios-integration-build:
     name: Build iOS Integration Tests
@@ -162,9 +187,13 @@ jobs:
           ios: true
           skip-prebuild: true
 
-      - name: Prebuild iOS Integration (on cache miss)
+      - name: Build config plugin
         if: ${{ steps.ios-integration-prebuild-cache.outputs.cache-hit != 'true' }}
-        run: .github/scripts/smart-prebuild.sh integration-test
+        run: yarn build:plugin
+
+      - name: Configure iOS Integration
+        if: ${{ steps.ios-integration-prebuild-cache.outputs.cache-hit != 'true' }}
+        run: yarn integration-test prebuild --platform ios --no-install
 
       - name: Cache CocoaPods Dependencies
         uses: actions/cache@v6
@@ -172,12 +201,15 @@ jobs:
           path: |
             ~/Library/Caches/CocoaPods
             integration_test/ios/Pods
-          key: ${{ runner.os }}-ios-integration-pods-${{ hashFiles('ios/RNBitmovinPlayer.podspec', 'integration_test/ios/Podfile.lock') }}
+          key: ${{ runner.os }}-ios-integration-pods-${{ hashFiles('ios/dependencies.json', 'ios/RNBitmovinPlayer.podspec', 'integration_test/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-ios-integration-pods-
 
       - name: Install CocoaPods Dependencies
         run: yarn integration-test pods
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -workspace integration_test/ios/IntegrationTest.xcworkspace -scheme IntegrationTest
 
       - name: Build iOS Integration Tests
         id: build
@@ -217,9 +249,13 @@ jobs:
           tv: true
           skip-prebuild: true
 
-      - name: Prebuild tvOS Example (on cache miss)
+      - name: Build config plugin
         if: ${{ steps.tvos-prebuild-cache.outputs.cache-hit != 'true' }}
-        run: .github/scripts/smart-prebuild.sh example tv
+        run: yarn build:plugin
+
+      - name: Configure tvOS Example
+        if: ${{ steps.tvos-prebuild-cache.outputs.cache-hit != 'true' }}
+        run: yarn example prebuild:tv --platform ios --no-install
 
       - name: Cache CocoaPods Dependencies
         uses: actions/cache@v6
@@ -227,12 +263,21 @@ jobs:
           path: |
             ~/Library/Caches/CocoaPods
             example/ios/Pods
-          key: ${{ runner.os }}-tvos-pods-${{ hashFiles('ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock') }}
+          key: ${{ runner.os }}-tvos-pods-${{ hashFiles('ios/dependencies.json', 'ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-tvos-pods-
 
       - name: Install CocoaPods Dependencies
         run: yarn example pods
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -workspace example/ios/BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample
+
+      - name: Save resolved Swift package versions
+        uses: actions/upload-artifact@v4
+        with:
+          name: tvos-example-swift-packages
+          path: example/ios/BitmovinPlayerReactNativeExample.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
       - name: Build tvOS Example App
         id: build
@@ -243,4 +288,16 @@ jobs:
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
           echo "✅ Build completed in $((END_TIME - START_TIME)) seconds"
         env:
-          XCODEBUILD_ARGS: "-destination '${{ env.TVOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }}"
+          XCODEBUILD_ARGS: "-destination '${{ env.TVOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }} -derivedDataPath ${{ runner.temp }}/bitmovin-build"
+
+      - name: Verify embedded SDK frameworks
+        env:
+          APP_PATH: ${{ runner.temp }}/bitmovin-build/Build/Products/Debug-appletvsimulator/BitmovinPlayerReactNativeExample.app
+        run: |
+          for framework in BitmovinPlayer BitmovinPlayerCore BitmovinPlayerAnalytics BitmovinCollector GoogleInteractiveMediaAds; do
+            binary="$APP_PATH/Frameworks/$framework.framework/$framework"
+            if [ ! -s "$binary" ]; then
+              echo "::error::Missing embedded SDK binary: $binary"
+              exit 1
+            fi
+          done

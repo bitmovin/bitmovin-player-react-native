@@ -1,0 +1,19 @@
+{
+  "player": {
+    "url": "https://github.com/bitmovin/player-ios.git",
+    "version": "3.123.0",
+    "product": "BitmovinPlayer"
+  },
+  "ima": {
+    "ios": {
+      "url": "https://github.com/googleads/swift-package-manager-google-interactive-media-ads-ios",
+      "version": "3.26.1",
+      "product": "GoogleInteractiveMediaAds"
+    },
+    "tvos": {
+      "url": "https://github.com/googleads/swift-package-manager-google-interactive-media-ads-tvos",
+      "version": "4.15.1",
+      "product": "GoogleInteractiveMediaAdsTvOS"
+    }
+  }
+}
