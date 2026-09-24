@@ -1,3 +1,4 @@
+import os
 import subprocess
 import tempfile
 import unittest
@@ -5,6 +6,7 @@ from pathlib import Path
 
 
 SCRIPT_PATH = Path(__file__).resolve().parent / "push_finish_release_sync_branch.sh"
+AUTOMATION_EMAIL = "release-automation@example.com"
 BRANCH_NAME = "finish-release/v1.22.0-sync-development"
 
 
@@ -100,7 +102,7 @@ class PushFinishReleaseSyncBranchTests(unittest.TestCase):
 
         self.git(temporary_path, "init", "--bare", str(remote_path))
         self.git(temporary_path, "clone", str(remote_path), str(release_path))
-        self.configure_user(release_path, "Bitmovin Release Automation", "player-sdks@bitmovin.com")
+        self.configure_user(release_path, "Bitmovin Release Automation", AUTOMATION_EMAIL)
         self.git(release_path, "checkout", "-B", "main")
         (release_path / "CHANGELOG.md").write_text("# Changelog\n", encoding="utf-8")
         self.git(release_path, "add", "CHANGELOG.md")
@@ -129,7 +131,7 @@ class PushFinishReleaseSyncBranchTests(unittest.TestCase):
             f"file://{remote_path}",
             str(shallow_path),
         )
-        self.configure_user(shallow_path, "Bitmovin Release Automation", "player-sdks@bitmovin.com")
+        self.configure_user(shallow_path, "Bitmovin Release Automation", AUTOMATION_EMAIL)
         self.git(shallow_path, "checkout", "-B", BRANCH_NAME)
         return shallow_path
 
@@ -160,6 +162,7 @@ class PushFinishReleaseSyncBranchTests(unittest.TestCase):
     def run_script(self, repository_path: Path) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
             ["bash", str(SCRIPT_PATH), BRANCH_NAME],
+            env={**os.environ, "RELEASE_AUTOMATION_EMAIL": AUTOMATION_EMAIL},
             cwd=repository_path,
             text=True,
             capture_output=True,

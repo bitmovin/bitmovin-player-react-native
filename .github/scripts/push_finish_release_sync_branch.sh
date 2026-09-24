@@ -5,7 +5,7 @@ branch_name="$1"
 remote_name="${2:-origin}"
 remote_branch_ref="refs/heads/${branch_name}"
 
-automation_author_email="player-sdks@bitmovin.com"
+automation_author_email="$RELEASE_AUTOMATION_EMAIL"
 automation_subject="restore unreleased changelog section"
 automation_changed_file="CHANGELOG.md"
 remote_tracking_ref="refs/remotes/${remote_name}/${branch_name}"
