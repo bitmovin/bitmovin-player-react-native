@@ -1,7 +1,7 @@
 {
   "player": {
     "url": "https://github.com/bitmovin/player-ios.git",
-    "version": "3.123.0",
+    "version": "3.125.0",
     "product": "BitmovinPlayer"
   },
   "ima": {

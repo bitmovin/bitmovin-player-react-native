@@ -5,7 +5,7 @@
 ### Changed
 
 - iOS: **Breaking change:** Migrate Player and Google IMA dependencies to Swift Package Manager (SPM). Apps using Expo prebuild must rerun it after upgrading. Apps maintained without prebuild must set `BITMOVIN_APPLE_PLATFORM` before `pod install` and add the SPM packages to the application target. See the [migration guide](docs/ios-dependencies.md) for details.
-- Update Bitmovin's native iOS SDK version to [`3.123.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31230)
+- Update Bitmovin's native iOS SDK version to [`3.125.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31250)
 
 ## [1.26.0] - 2026-09-11
 
