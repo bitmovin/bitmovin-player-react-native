@@ -226,8 +226,7 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
     const properties = config.modResults;
     const googleImaProperty = properties.find(
       (item) =>
-        item.type === 'property' &&
-        item.key === 'BITMOVIN_ENABLE_GOOGLE_IMA'
+        item.type === 'property' && item.key === 'BITMOVIN_ENABLE_GOOGLE_IMA'
     );
     if (googleImaProperty) {
       properties.splice(properties.indexOf(googleImaProperty), 1);

@@ -88,12 +88,18 @@ const propertyValue = (properties, key) =>
 
 test('disables Google IMA in Gradle properties when omitted', async () => {
   const properties = await applyGradleProperties({});
-  assert.equal(propertyValue(properties, 'BITMOVIN_ENABLE_GOOGLE_IMA'), 'false');
+  assert.equal(
+    propertyValue(properties, 'BITMOVIN_ENABLE_GOOGLE_IMA'),
+    'false'
+  );
 });
 
 test('disables Google IMA in Gradle properties when explicitly false', async () => {
   const properties = await applyGradleProperties({ googleIMA: false });
-  assert.equal(propertyValue(properties, 'BITMOVIN_ENABLE_GOOGLE_IMA'), 'false');
+  assert.equal(
+    propertyValue(properties, 'BITMOVIN_ENABLE_GOOGLE_IMA'),
+    'false'
+  );
 });
 
 test('enables Google IMA in Gradle properties when true', async () => {

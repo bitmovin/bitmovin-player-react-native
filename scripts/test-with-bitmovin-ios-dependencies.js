@@ -277,10 +277,7 @@ test('writes the Google IMA Podfile property with a disabled default', async () 
     [{ googleIMA: false }, 'false'],
     [{ googleIMA: true }, 'true'],
   ]) {
-    const config = withIosConfig(
-      { name: 'App', slug: 'app' },
-      { features }
-    );
+    const config = withIosConfig({ name: 'App', slug: 'app' }, { features });
     const result = await config.mods.ios.podfileProperties({
       ...config,
       modResults: {},

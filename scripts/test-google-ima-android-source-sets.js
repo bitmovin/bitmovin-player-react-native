@@ -7,7 +7,10 @@ const root = path.resolve(__dirname, '..');
 const read = (relativePath) =>
   fs.readFileSync(path.join(root, relativePath), 'utf8');
 const readRequired = (relativePath) => {
-  assert.ok(fs.existsSync(path.join(root, relativePath)), `${relativePath} must exist`);
+  assert.ok(
+    fs.existsSync(path.join(root, relativePath)),
+    `${relativePath} must exist`
+  );
   return read(relativePath);
 };
 
