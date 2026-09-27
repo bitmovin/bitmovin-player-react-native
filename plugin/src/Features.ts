@@ -1,6 +1,12 @@
 export default interface Features {
   airPlay?: boolean;
   backgroundPlayback?: boolean;
+  /**
+   * Enables the Google Interactive Media Ads SDK on Android, iOS, and tvOS.
+   *
+   * @defaultValue `false`
+   */
+  googleIMA?: boolean;
   googleCastSDK?: {
     appId?: string;
     messageNamespace?: string;

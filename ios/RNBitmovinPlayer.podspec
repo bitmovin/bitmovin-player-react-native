@@ -37,7 +37,11 @@ Pod::Spec.new do |s|
     raise 'Set BITMOVIN_APPLE_PLATFORM to ios or tvos in Podfile.properties.json. The Bitmovin Expo plugin configures this during prebuild.'
   end
   dependencies = JSON.parse(File.read(File.join(__dir__, 'dependencies.json')))
-  [dependencies.fetch('player'), dependencies.fetch('ima').fetch(apple_platform)].each do |dependency|
+  native_dependencies = [dependencies.fetch('player')]
+  if podfile_properties['BITMOVIN_ENABLE_GOOGLE_IMA'].to_s == 'true'
+    native_dependencies << dependencies.fetch('ima').fetch(apple_platform)
+  end
+  native_dependencies.each do |dependency|
     spm_dependency(
       s,
       url: dependency.fetch('url'),

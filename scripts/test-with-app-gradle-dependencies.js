@@ -2,6 +2,8 @@ const assert = require('node:assert/strict');
 
 const withAppGradleDependencies =
   require('../plugin/build/withAppGradleDependencies').default;
+const withBitmovinAndroidConfig =
+  require('../plugin/build/withBitmovinAndroidConfig').default;
 
 const desugaringDependency =
   "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'";
@@ -57,6 +59,47 @@ const tests = [];
 const test = (name, run) => {
   tests.push({ name, run });
 };
+
+const applyGradleProperties = async (features) => {
+  const config = withBitmovinAndroidConfig(
+    { name: 'test-app', slug: 'test-app' },
+    { features }
+  );
+  const gradlePropertiesMod = config.mods?.android?.gradleProperties;
+  assert.equal(typeof gradlePropertiesMod, 'function');
+
+  const result = await gradlePropertiesMod({
+    ...config,
+    modResults: [],
+    modRequest: {
+      projectRoot: process.cwd(),
+      platform: 'android',
+      modName: 'gradleProperties',
+      introspect: true,
+    },
+  });
+
+  return result.modResults;
+};
+
+const propertyValue = (properties, key) =>
+  properties.find((item) => item.type === 'property' && item.key === key)
+    ?.value;
+
+test('disables Google IMA in Gradle properties when omitted', async () => {
+  const properties = await applyGradleProperties({});
+  assert.equal(propertyValue(properties, 'BITMOVIN_ENABLE_GOOGLE_IMA'), 'false');
+});
+
+test('disables Google IMA in Gradle properties when explicitly false', async () => {
+  const properties = await applyGradleProperties({ googleIMA: false });
+  assert.equal(propertyValue(properties, 'BITMOVIN_ENABLE_GOOGLE_IMA'), 'false');
+});
+
+test('enables Google IMA in Gradle properties when true', async () => {
+  const properties = await applyGradleProperties({ googleIMA: true });
+  assert.equal(propertyValue(properties, 'BITMOVIN_ENABLE_GOOGLE_IMA'), 'true');
+});
 
 test('adds desugaring when no feature dependencies are requested', async () => {
   const result = await applyPlugin(gradle({}));

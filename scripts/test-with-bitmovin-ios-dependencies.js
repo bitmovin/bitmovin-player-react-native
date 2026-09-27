@@ -49,7 +49,7 @@ const player = (project) =>
 
 test('adds products and survives serialization and repeated prebuilds', () => {
   const project = fixture();
-  apply(project, 'ios');
+  apply(project, 'ios', true);
   assert.equal(packages(project).length, 2);
   assert.equal(
     objects(project).PBXFrameworksBuildPhase.FRAMEWORKS.files.length,
@@ -57,39 +57,42 @@ test('adds products and survives serialization and repeated prebuilds', () => {
   );
   const serialized = project.writeSync();
   project.hash = require('xcode/lib/parser/pbxproj').parse(serialized);
-  apply(project, 'ios');
+  apply(project, 'ios', true);
   assert.equal(project.writeSync(), serialized);
 });
 
 test('updates an owned version on SDK upgrade', () => {
   const project = fixture();
-  apply(project, 'ios');
+  apply(project, 'ios', true);
   const [id, pkg] = player(project);
   pkg.requirement.version = '3.119.0';
   objects(project).PBXProject.ROOT.attributes.BitmovinSwiftPackages[
     id
   ].version = '3.119.0';
-  apply(project, 'ios');
+  apply(project, 'ios', true);
   assert.equal(pkg.requirement.version, dependencies.player.version);
 });
 
 test('rejects edits to an owned requirement and conflicting customer requirements', () => {
   for (const owned of [true, false]) {
     const project = fixture();
-    apply(project, 'ios');
+    apply(project, 'ios', true);
     player(project)[1].requirement.version = '3.100.0';
     if (!owned)
       objects(project).PBXProject.ROOT.attributes.BitmovinSwiftPackages = {};
-    assert.throws(() => apply(project, 'ios'), /customer-managed or shared/);
+    assert.throws(
+      () => apply(project, 'ios', true),
+      /customer-managed or shared/
+    );
     assert.equal(player(project)[1].requirement.version, '3.100.0');
   }
 });
 
 test('switches platforms without leaving IMA products or build files behind', () => {
   const project = fixture();
-  apply(project, 'ios');
+  apply(project, 'ios', true);
   for (const platform of ['tvos', 'ios', 'tvos']) {
-    apply(project, platform);
+    apply(project, platform, true);
     assert.equal(packages(project).length, 2);
     const products = Object.values(
       objects(project).XCSwiftPackageProductDependency
@@ -108,9 +111,9 @@ test('switches platforms without leaving IMA products or build files behind', ()
 
 test('preserves customer-managed packages during platform switching', () => {
   const project = fixture();
-  apply(project, 'ios');
+  apply(project, 'ios', true);
   objects(project).PBXProject.ROOT.attributes.BitmovinSwiftPackages = {};
-  apply(project, 'tvos');
+  apply(project, 'tvos', true);
   assert.equal(packages(project).length, 3);
 });
 
@@ -122,8 +125,8 @@ test('requires an explicit target for multiple apps and leaves other targets unt
     productType: '"com.apple.product-type.application"',
     buildPhases: [],
   };
-  assert.throws(() => apply(project, 'ios'), /unique application target/);
-  apply(project, 'ios', 'App');
+  assert.throws(() => apply(project, 'ios', true), /unique application target/);
+  apply(project, 'ios', true, 'App');
   assert.equal(
     objects(project).PBXNativeTarget.OTHER.packageProductDependencies,
     undefined
@@ -132,7 +135,7 @@ test('requires an explicit target for multiple apps and leaves other targets unt
 
 test('does not upgrade a package shared with another target', () => {
   const project = fixture();
-  apply(project, 'ios');
+  apply(project, 'ios', true);
   const [id, pkg] = player(project);
   pkg.requirement.version = '3.119.0';
   objects(project).PBXProject.ROOT.attributes.BitmovinSwiftPackages[
@@ -146,12 +149,15 @@ test('does not upgrade a package shared with another target', () => {
       ...objects(project).PBXNativeTarget.APP.packageProductDependencies,
     ],
   };
-  assert.throws(() => apply(project, 'ios'), /shared with another target/);
+  assert.throws(
+    () => apply(project, 'ios', true),
+    /shared with another target/
+  );
 });
 
 test('preserves another target and embed phase when removing an owned IMA package', () => {
   const project = fixture();
-  apply(project, 'ios');
+  apply(project, 'ios', true);
   const ima = objects(
     project
   ).PBXNativeTarget.APP.packageProductDependencies.find(
@@ -165,10 +171,64 @@ test('preserves another target and embed phase when removing an owned IMA packag
   objects(project).PBXCopyFilesBuildPhase = {
     EMBED: { isa: 'PBXCopyFilesBuildPhase', files: [buildFile] },
   };
-  apply(project, 'tvos');
+  apply(project, 'tvos', true);
   assert.ok(objects(project).PBXBuildFile[buildFile.value]);
   assert.ok(objects(project).XCSwiftPackageProductDependency[ima.value]);
   assert.equal(packages(project).length, 3);
+});
+
+test('links only Player when Google IMA is disabled', () => {
+  const project = fixture();
+  apply(project, 'ios', false);
+  assert.deepEqual(
+    packages(project).map(([, pkg]) => pkg.repositoryURL),
+    [`"${dependencies.player.url}"`]
+  );
+  assert.equal(
+    objects(project).PBXFrameworksBuildPhase.FRAMEWORKS.files.length,
+    1
+  );
+});
+
+test('removes and restores all managed IMA references', () => {
+  const project = fixture();
+  apply(project, 'ios', true);
+  apply(project, 'ios', false);
+  assert.equal(packages(project).length, 1);
+  assert.deepEqual(
+    Object.values(objects(project).XCSwiftPackageProductDependency)
+      .filter((value) => typeof value === 'object')
+      .map((value) => value.productName),
+    ['BitmovinPlayer']
+  );
+  assert.equal(
+    objects(project).PBXFrameworksBuildPhase.FRAMEWORKS.files.length,
+    1
+  );
+  assert.equal(Object.keys(objects(project).PBXBuildFile).length, 2);
+
+  apply(project, 'ios', true);
+  assert.equal(packages(project).length, 2);
+  assert.equal(
+    objects(project).PBXFrameworksBuildPhase.FRAMEWORKS.files.length,
+    2
+  );
+});
+
+test('leaves customer-managed IMA references untouched when disabled', () => {
+  const project = fixture();
+  apply(project, 'ios', true);
+  const managed =
+    objects(project).PBXProject.ROOT.attributes.BitmovinSwiftPackages;
+  const imaPackage = packages(project).find(([, pkg]) =>
+    pkg.repositoryURL.includes('interactive-media-ads')
+  );
+  delete managed[imaPackage[0]];
+
+  apply(project, 'ios', false);
+
+  assert.equal(packages(project).length, 2);
+  assert.ok(packages(project).some(([id]) => id === imaPackage[0]));
 });
 
 test('configures platform per invocation and removes Cast from tvOS properties', async () => {
@@ -205,5 +265,32 @@ test('configures platform per invocation and removes Cast from tvOS properties',
   } finally {
     if (previous === undefined) delete process.env.EXPO_TV;
     else process.env.EXPO_TV = previous;
+  }
+});
+
+test('writes the Google IMA Podfile property with a disabled default', async () => {
+  const withIosConfig =
+    require('../plugin/build/withBitmovinIosConfig').default;
+
+  for (const [features, expected] of [
+    [{}, 'false'],
+    [{ googleIMA: false }, 'false'],
+    [{ googleIMA: true }, 'true'],
+  ]) {
+    const config = withIosConfig(
+      { name: 'App', slug: 'app' },
+      { features }
+    );
+    const result = await config.mods.ios.podfileProperties({
+      ...config,
+      modResults: {},
+      modRequest: {
+        projectRoot: process.cwd(),
+        platform: 'ios',
+        modName: 'podfileProperties',
+        introspect: true,
+      },
+    });
+    assert.equal(result.modResults.BITMOVIN_ENABLE_GOOGLE_IMA, expected);
   }
 });
