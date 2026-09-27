@@ -27,6 +27,37 @@ Please note that browsers and other browser-like environments such as webOS and 
 
 Please refer to the [Features](https://developer.bitmovin.com/playback/docs/react-native-introduction#features) section of our documentation for an up-to-date list of supported Player features.
 
+### Google IMA
+
+Google IMA is disabled by default. Enable it only if the app uses IMA ad
+sources. Bitmovin Advertising Module (BAM) ads and ordinary playback work
+without it.
+
+For apps using Expo prebuild, enable the feature in the config plugin:
+
+```js
+[
+  'bitmovin-player-react-native',
+  {
+    features: {
+      googleIMA: true,
+    },
+  },
+];
+```
+
+Rerun Expo prebuild and rebuild the native app after changing this flag.
+
+For a bare Android app, add this property to `android/gradle.properties`, then
+rebuild the app:
+
+```properties
+BITMOVIN_ENABLE_GOOGLE_IMA=true
+```
+
+Manually maintained iOS and tvOS projects need additional SPM configuration.
+See [iOS SDK dependencies](docs/ios-dependencies.md).
+
 ## Documentation
 
 ### API Reference
@@ -47,7 +78,7 @@ Check out our [React Native Guides](https://developer.bitmovin.com/playback/docs
 
 ### iOS dependency management
 
-Player and Google IMA use Swift Package Manager. See [iOS SDK dependencies](docs/ios-dependencies.md) for Expo prebuild, manual integration, and upgrade instructions.
+Player and the optional Google IMA SDK use Swift Package Manager. See [iOS SDK dependencies](docs/ios-dependencies.md) for Expo prebuild, manual integration, and upgrade instructions.
 
 ### Sample Application
 

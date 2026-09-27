@@ -1,9 +1,56 @@
 # iOS SDK dependencies
 
 This guide covers iOS and tvOS apps integrating the React Native Player SDK.
-Player and Google IMA are installed through Swift Package Manager (SPM).
-CocoaPods still installs the React Native bridge, ExpoModulesCore, and optional
-Google Cast SDK.
+Player is installed through Swift Package Manager (SPM). Google IMA also uses
+SPM when explicitly enabled. CocoaPods still installs the React Native bridge,
+ExpoModulesCore, and optional Google Cast SDK.
+
+Google IMA is disabled by default. IMA ad sources require it, while Bitmovin
+Advertising Module (BAM) ads and ordinary playback do not.
+
+## Enabling Google IMA
+
+### Apps using Expo prebuild
+
+Set `features.googleIMA` in the Bitmovin config plugin:
+
+```js
+[
+  'bitmovin-player-react-native',
+  {
+    features: {
+      googleIMA: true,
+    },
+  },
+];
+```
+
+Rerun Expo prebuild and rebuild the native app after enabling or disabling the
+feature. The plugin writes `BITMOVIN_ENABLE_GOOGLE_IMA` to
+`Podfile.properties.json` and updates the application target's SPM references.
+
+### Apps maintained without Expo prebuild
+
+Set both properties in the `Podfile.properties.json` beside the Podfile before
+running `pod install`:
+
+```json
+{
+  "BITMOVIN_APPLE_PLATFORM": "ios",
+  "BITMOVIN_ENABLE_GOOGLE_IMA": "true"
+}
+```
+
+Use `tvos` for `BITMOVIN_APPLE_PLATFORM` when building tvOS. Always add the
+Player package and `BitmovinPlayer` product to the application target. When IMA
+is enabled, also add the current platform's IMA package and product listed in
+`node_modules/bitmovin-player-react-native/ios/dependencies.json`. Use the exact
+versions from that file.
+
+To disable IMA later, set `BITMOVIN_ENABLE_GOOGLE_IMA` to `false`, run
+`pod install`, and remove the IMA package, product, framework, and build-file
+references that you added to the application target. Keep the Player package
+and product.
 
 ## Migrating from CocoaPods to SPM
 
@@ -13,9 +60,10 @@ project's workflow.
 ### Apps using Expo prebuild
 
 1. Remove any explicit Player, Player Core, Analytics, or IMA pod dependencies.
-2. Rerun Expo prebuild for iOS. Use `EXPO_TV=1` for tvOS prebuilds.
-3. Install pods if prebuild did not do so, then open the generated `.xcworkspace`.
-4. Build and launch the app. The config plugin configures SPM dependencies for
+2. Set `features.googleIMA: true` if the app uses IMA ad sources.
+3. Rerun Expo prebuild for iOS. Use `EXPO_TV=1` for tvOS prebuilds.
+4. Install pods if prebuild did not do so, then open the generated `.xcworkspace`.
+5. Build and launch the app. The config plugin configures SPM dependencies for
    both the bridge and application targets.
 
 ### Apps maintained without Expo prebuild
@@ -23,15 +71,17 @@ project's workflow.
 Your app must already support Expo modules and call `react_native_post_install`
 in its Podfile. React Native's `spm_dependency` helper must be available.
 
-1. Set `BITMOVIN_APPLE_PLATFORM` to `ios` or `tvos` in the
+1. Set `BITMOVIN_APPLE_PLATFORM` to `ios` or `tvos` and set
+   `BITMOVIN_ENABLE_GOOGLE_IMA` to `true` or `false` in the
    `Podfile.properties.json` beside your Podfile, **before running `pod install`**.
 2. Remove explicit Player, Player Core, Analytics, and IMA pod dependencies, then
    run `pod install`. Keep the bridge, Expo, and optional Cast dependencies.
-3. In Xcode, add the Player package and the appropriate IMA package from
-   `node_modules/bitmovin-player-react-native/ios/dependencies.json`, using their
-   exact versions. Add the named products to the application target's Frameworks,
-   Libraries, and Embedded Content. Let Xcode embed the dynamic frameworks
-   supplied by these products.
+3. In Xcode, add the Player package from
+   `node_modules/bitmovin-player-react-native/ios/dependencies.json`. If IMA is
+   enabled, add the current platform's IMA package as well. Use the exact
+   versions from that file. Add the named products to the application target's
+   Frameworks, Libraries, and Embedded Content. Let Xcode embed the dynamic
+   frameworks supplied by these products.
 4. Build and launch the app. A successful compilation alone does not verify
    framework embedding. Validate Release archives and tvOS if used.
 
