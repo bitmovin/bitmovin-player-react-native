@@ -14,6 +14,8 @@ if (!fs.existsSync(envPath)) {
 // Load environment variables from .env file
 dotenv.config({ path: envPath });
 
+const googleImaEnabled = process.env.BITMOVIN_ENABLE_GOOGLE_IMA !== 'false';
+
 const BITMOVIN_PLAYER_LICENSE_KEY =
   process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY;
 
@@ -67,6 +69,7 @@ const config: ExpoConfig = {
         features: {
           airPlay: true,
           backgroundPlayback: true,
+          googleIMA: googleImaEnabled,
           googleCastSDK: { android: '21.3.0', ios: '4.8.1.2' },
           offline: true,
           pictureInPicture: true,
