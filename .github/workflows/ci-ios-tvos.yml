@@ -133,7 +133,7 @@ jobs:
         run: xcodebuild -resolvePackageDependencies -workspace example/ios/BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample
 
       - name: Save resolved Swift package versions
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-example-swift-packages
           path: example/ios/BitmovinPlayerReactNativeExample.xcworkspace/xcshareddata/swiftpm/Package.resolved
@@ -274,7 +274,7 @@ jobs:
         run: xcodebuild -resolvePackageDependencies -workspace example/ios/BitmovinPlayerReactNativeExample.xcworkspace -scheme BitmovinPlayerReactNativeExample
 
       - name: Save resolved Swift package versions
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tvos-example-swift-packages
           path: example/ios/BitmovinPlayerReactNativeExample.xcworkspace/xcshareddata/swiftpm/Package.resolved
