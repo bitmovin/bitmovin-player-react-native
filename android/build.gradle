@@ -60,7 +60,7 @@ if (useManagedAndroidSdkVersions) {
 
 android {
   namespace "com.bitmovin.player.reactnative"
-  
+
   defaultConfig {
     versionCode 1
     versionName packageVersion
@@ -99,7 +99,7 @@ dependencies {
   // React Native (needed for hybrid bridge modules)
   //noinspection GradleDynamicVersion
   implementation 'com.facebook.react:react-native:+' // From node_modules
-  
+
   implementation "androidx.concurrent:concurrent-futures:1.1.0"
   implementation "androidx.concurrent:concurrent-futures-ktx:1.1.0"
 
@@ -108,6 +108,24 @@ dependencies {
 
   // Bitmovin
   implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
-  implementation 'com.bitmovin.player:player:3.165.0+jason'
-  implementation 'com.bitmovin.player:player-media-session:3.165.0+jason'
+  implementation('com.bitmovin.player:player:3.167.0+jason') {
+      exclude group: "com.squareup.okhttp3", module: "okhttp-android"
+      exclude group: "com.squareup.okhttp3", module: "okhttp"
+      exclude group: "org.jetbrains.kotlinx", module: "kotlinx-serialization-json"
+      exclude group: "org.jetbrains.kotlinx", module: "kotlinx-serialization-core"
+      exclude group: "org.jetbrains.kotlinx", module: "kotlinx-coroutines-core"
+  }
+  implementation('com.bitmovin.player:player-media-session:3.167.0+jason') {
+      exclude group: "com.squareup.okhttp3", module: "okhttp-android"
+      exclude group: "com.squareup.okhttp3", module: "okhttp"
+      exclude group: "org.jetbrains.kotlinx", module: "kotlinx-serialization-json"
+      exclude group: "org.jetbrains.kotlinx", module: "kotlinx-serialization-core"
+      exclude group: "org.jetbrains.kotlinx", module: "kotlinx-coroutines-core"
+  }
+
+  // pinning of transitive dependencies (included via the native player)
+  implementation("com.squareup.okhttp3:okhttp:4.12.0")
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 }
