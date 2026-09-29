@@ -80,6 +80,9 @@ const config: ExpoConfig = {
       {
         android: {
           buildToolsVersion: '35.0.0',
+          packagingOptions: {
+            exclude: ['META-INF/versions/9/OSGI-INF/MANIFEST.MF'],
+          },
         },
         ios: {
           flipper: false,

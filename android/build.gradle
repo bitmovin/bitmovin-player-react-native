@@ -107,30 +107,9 @@ dependencies {
   implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
 
   // Bitmovin
-  // With the latest native player releases (since 3.167.0), there are some transitive dependencies
-  // which will result in the react native project to be not buildable, or crash during runtime.
-  // To avoid this, we exclude some transitive dependencies and enforce a specific version of them.
-  // As of 2026-09-29 we are experiencing troubles with the following dependencies:
-  // okhttp, kotlinx
   implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
-  implementation('com.bitmovin.player:player:3.167.0+jason') {
-      exclude group: "com.squareup.okhttp3", module: "okhttp-android"
-      exclude group: "com.squareup.okhttp3", module: "okhttp"
-      exclude group: "org.jetbrains.kotlinx", module: "kotlinx-serialization-json"
-      exclude group: "org.jetbrains.kotlinx", module: "kotlinx-serialization-core"
-      exclude group: "org.jetbrains.kotlinx", module: "kotlinx-coroutines-core"
-  }
-  implementation('com.bitmovin.player:player-media-session:3.167.0+jason') {
-      exclude group: "com.squareup.okhttp3", module: "okhttp-android"
-      exclude group: "com.squareup.okhttp3", module: "okhttp"
-      exclude group: "org.jetbrains.kotlinx", module: "kotlinx-serialization-json"
-      exclude group: "org.jetbrains.kotlinx", module: "kotlinx-serialization-core"
-      exclude group: "org.jetbrains.kotlinx", module: "kotlinx-coroutines-core"
-  }
-
-  // Pinning of specific versions of transitive dependencies (included via the native player)
-  implementation("com.squareup.okhttp3:okhttp:4.12.0")
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+  implementation 'com.bitmovin.player:player:3.165.0+jason'
+  implementation 'com.bitmovin.player:player-media-session:3.165.0+jason'
+  // force okhttp-urlconnection version to 5.3.2 to avoid version conflicts
+  implementation 'com.squareup.okhttp3:okhttp-urlconnection:5.3.2'
 }
