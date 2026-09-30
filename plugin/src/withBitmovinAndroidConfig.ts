@@ -247,6 +247,27 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
       key: 'android.extraMavenRepos',
       value: JSON.stringify(mavenRepos),
     });
+
+    // Files that are shipped by multiple transitive dependencies of the native
+    // player and would otherwise fail the app packaging with duplicate entries.
+    const packagingExcludes = ['META-INF/versions/9/OSGI-INF/MANIFEST.MF'];
+    const packagingExcludesKey = 'android.packagingOptions.excludes';
+    const existingExcludesEntry = properties.find(
+      (item) => item.type === 'property' && item.key === packagingExcludesKey
+    );
+    const existingExcludes =
+      existingExcludesEntry?.type === 'property'
+        ? existingExcludesEntry.value
+            .split(',')
+            .map((exclude) => exclude.trim())
+        : [];
+
+    AndroidConfig.BuildProperties.updateAndroidBuildProperty(
+      properties,
+      packagingExcludesKey,
+      [...new Set([...existingExcludes, ...packagingExcludes])].join(',')
+    );
+
     config.modResults = properties;
     return config;
   });

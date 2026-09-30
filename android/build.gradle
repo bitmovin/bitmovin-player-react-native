@@ -60,7 +60,7 @@ if (useManagedAndroidSdkVersions) {
 
 android {
   namespace "com.bitmovin.player.reactnative"
-  
+
   defaultConfig {
     versionCode 1
     versionName packageVersion
@@ -99,7 +99,7 @@ dependencies {
   // React Native (needed for hybrid bridge modules)
   //noinspection GradleDynamicVersion
   implementation 'com.facebook.react:react-native:+' // From node_modules
-  
+
   implementation "androidx.concurrent:concurrent-futures:1.1.0"
   implementation "androidx.concurrent:concurrent-futures-ktx:1.1.0"
 
@@ -110,4 +110,6 @@ dependencies {
   implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
   implementation 'com.bitmovin.player:player:3.165.0+jason'
   implementation 'com.bitmovin.player:player-media-session:3.165.0+jason'
+  // force okhttp-urlconnection version to 5.3.2 to avoid version conflicts
+  implementation 'com.squareup.okhttp3:okhttp-urlconnection:5.3.2'
 }
