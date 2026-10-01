@@ -228,6 +228,11 @@ jobs:
         env:
           APP_PATH: ${{ runner.temp }}/bitmovin-integration-build/Build/Products/Debug-iphonesimulator/IntegrationTest.app
         run: |
+          PLAYER_BINARY="$APP_PATH/Frameworks/BitmovinPlayer.framework/BitmovinPlayer"
+          if [ ! -s "$PLAYER_BINARY" ]; then
+            echo "::error::Missing embedded Player binary: $PLAYER_BINARY"
+            exit 1
+          fi
           PROJECT_FILE=integration_test/ios/IntegrationTest.xcodeproj/project.pbxproj
           PACKAGE_RESOLVED=integration_test/ios/IntegrationTest.xcworkspace/xcshareddata/swiftpm/Package.resolved
           for file in "$PROJECT_FILE" "$PACKAGE_RESOLVED"; do
