@@ -4,7 +4,7 @@
 
 ### Added
 
-- Add `AnalyticsConfig.retryPolicy` to configure retry behavior and support offline analytics tracking
+- Android and iOS/tvOS: Introduce `AnalyticsConfig.retryPolicy` to configure retry behavior and support offline analytics tracking
 
 ### Changed
 
