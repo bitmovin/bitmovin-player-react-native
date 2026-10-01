@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Android and iOS/tvOS: Introduce `AnalyticsConfig.retryPolicy` to configure retry behavior and support offline analytics tracking
+
 ### Changed
 
 - iOS: **Breaking change:** Migrate Player and Google IMA dependencies to Swift Package Manager (SPM). Apps using Expo prebuild must rerun it after upgrading. Apps maintained without prebuild must set `BITMOVIN_APPLE_PLATFORM` before `pod install` and add the SPM packages to the application target. See the [migration guide](docs/ios-dependencies.md) for details.

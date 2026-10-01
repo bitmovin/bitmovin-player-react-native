@@ -6,6 +6,7 @@ import android.util.Log
 import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
+import com.bitmovin.analytics.api.RetryPolicy
 import com.bitmovin.analytics.api.SourceMetadata
 import com.bitmovin.player.reactnative.extensions.get
 import com.bitmovin.player.reactnative.extensions.set
@@ -647,6 +648,13 @@ fun Map<String, Any?>.toAnalyticsConfig(): AnalyticsConfig? = getString("license
     ?.apply {
         withBoolean("adTrackingDisabled") { setAdTrackingDisabled(it) }
         withBoolean("randomizeUserId") { setRandomizeUserId(it) }
+        withString("retryPolicy") { retryPolicy ->
+            when (retryPolicy) {
+                "noRetry" -> RetryPolicy.NO_RETRY
+                "longTerm" -> RetryPolicy.LONG_TERM
+                else -> null
+            }?.let { setRetryPolicy(it) }
+        }
     }?.build()
 
 fun Map<String, Any?>.toAnalyticsDefaultMetadata(): DefaultMetadata = DefaultMetadata.Builder().apply {
