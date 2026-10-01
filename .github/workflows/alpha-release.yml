@@ -10,6 +10,7 @@ on:
         required: true
 
 env:
+  RELEASE_AUTOMATION_EMAIL: ${{ vars.RELEASE_AUTOMATION_EMAIL }}
   LC_ALL: en_US.UTF-8
   LANG: en_US.UTF-8
 
@@ -34,7 +35,7 @@ jobs:
       - name: Setup Git User
         run: |
           git config --global user.name "Bitmovin Release Automation"
-          git config --global user.email "support@bitmovin.com"
+          git config --global user.email "${RELEASE_AUTOMATION_EMAIL:?Set the RELEASE_AUTOMATION_EMAIL repository variable}"
 
       - name: Setup Environment
         uses: ./.github/actions/setup-environment

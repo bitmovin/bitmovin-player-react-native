@@ -188,6 +188,19 @@ To set the license key to be used for the tests, you can set the key `"licenseKe
 
 See available API for testing [here](/integration_test/playertesting/PlayerTesting.ts).
 
+### Config plugin and dependency tests
+
+Run `yarn test:plugin` to test Android Gradle configuration and iOS SPM project
+integration. The iOS tests cover repeated prebuilds, SDK upgrades, conflicting
+requirements, platform switching, and preservation of customer-managed references.
+
+Run `python3 -m unittest discover -s .github/scripts -p 'test_*.py'` for repository
+automation tests, including the iOS SDK version updater.
+
+Native CI builds both examples, checks embedded Player, Analytics, and IMA
+binaries, and saves `Package.resolved` artifacts. App launch, playback, ads,
+Analytics, and signed-device archives still need runtime validation.
+
 ### Adding new tests
 
 To add a new test suite:
@@ -266,3 +279,15 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn integration-test test:ios`: run the player tests on iOS simulator.
 - `yarn integration-test pods`: install pods only.
 - `yarn example ios`: run the example app on iOS.
+
+### Updating the native iOS SDK
+
+Run `python3 .github/scripts/update_ios_sdk_version.py <version>` to update the
+Player pin in `ios/dependencies.json`. The SDK-update workflow uses the same
+command. The podspec and Expo plugin both read this manifest.
+
+Keep the iOS and tvOS IMA pins aligned with the versions used to build the native
+Player SDK. Run the updater and plugin tests, then validate the native integration
+when changing SDK versions.
+
+Integrator instructions live in the [iOS dependency migration guide](docs/ios-dependencies.md).

@@ -52,7 +52,9 @@ jobs:
       - name: Bump iOS player SDK version
         if: ${{ inputs.sdk_name == 'ios' }}
         run: |
-          sed -i '' 's/s\.dependency "BitmovinPlayer", ".*/s.dependency "BitmovinPlayer", "${{ inputs.version_number }}"/g' ios/RNBitmovinPlayer.podspec
+          python3 .github/scripts/update_ios_sdk_version.py "$SDK_VERSION"
+        env:
+          SDK_VERSION: ${{ inputs.version_number }}
 
       - name: Bump Android player SDK version
         if: ${{ inputs.sdk_name == 'android' }}
@@ -65,7 +67,7 @@ jobs:
 
       - name: Commit version bump
         run: |
-          git add ios/RNBitmovinPlayer.podspec android/build.gradle CHANGELOG.md
+          git add ios/dependencies.json android/build.gradle CHANGELOG.md
           git commit --no-verify -m "chore(${{ inputs.sdk_name }}): update ${{ inputs.sdk_name }} player version to ${{ inputs.version_number }}"
           git fetch origin "${{ steps.branching.outputs.branch_name }}:refs/remotes/origin/${{ steps.branching.outputs.branch_name }}" || true
           git push --force-with-lease origin ${{ steps.branching.outputs.branch_name }}

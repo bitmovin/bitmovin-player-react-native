@@ -11,6 +11,7 @@ on:
       - support/v0
 
 env:
+  RELEASE_AUTOMATION_EMAIL: ${{ vars.RELEASE_AUTOMATION_EMAIL }}
   LC_ALL: en_US.UTF-8
   LANG: en_US.UTF-8
 
@@ -34,7 +35,7 @@ jobs:
         run: |
           # setup git
           git config --global user.name "Bitmovin Release Automation"
-          git config --global user.email "support@bitmovin.com"
+          git config --global user.email "${RELEASE_AUTOMATION_EMAIL:?Set the RELEASE_AUTOMATION_EMAIL repository variable}"
 
       - name: Detect version number
         id: version_number
@@ -69,7 +70,7 @@ jobs:
       - name: Setup Git User
         run: |
           git config --global user.name "Bitmovin Release Automation"
-          git config --global user.email "support@bitmovin.com"
+          git config --global user.email "$RELEASE_AUTOMATION_EMAIL"
 
       - name: Set sync branch
         id: sync
@@ -122,7 +123,7 @@ jobs:
         run: |
           # setup git
           git config --global user.name "Bitmovin Release Automation"
-          git config --global user.email "support@bitmovin.com"
+          git config --global user.email "$RELEASE_AUTOMATION_EMAIL"
 
       - name: Add tag
         run: |
