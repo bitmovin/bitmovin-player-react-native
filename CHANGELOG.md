@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.27.0] - 2026-10-01
+
 ### Added
 
 - Android and iOS/tvOS: Introduce `AnalyticsConfig.retryPolicy` to configure retry behavior and support offline analytics tracking
