@@ -18,6 +18,10 @@
 - Update Bitmovin's native iOS SDK version to [`3.125.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31250)
 - Android: Fix version conflicts resulting in a RuntimeException by manually pinning the `okhttp-urlconnection` dependency version to `5.3.2`
 
+### Known Issues
+
+- iOS: Xcode archives may fail because duplicate SPM framework signatures cannot be copied to the archive's `Signatures` directory. See the [temporary workaround](docs/ios-dependencies.md#xcode-archive-failures-with-version-1270).
+
 ## [1.26.0] - 2026-09-11
 
 ### Added
