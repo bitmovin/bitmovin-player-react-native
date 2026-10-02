@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.27.1] - 2026-10-02
+
 ### Fixed
 
 - iOS: Prevent duplicate SPM framework signatures from causing Xcode archives to fail
