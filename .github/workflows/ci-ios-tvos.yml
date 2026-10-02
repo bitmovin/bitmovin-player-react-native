@@ -301,3 +301,66 @@ jobs:
               exit 1
             fi
           done
+
+  example-archive:
+    name: Archive ${{ matrix.platform }} (${{ matrix.configuration }})
+    runs-on: macos-26
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(github.event_name == 'pull_request' && '["iOS"]' || '["iOS", "tvOS"]') }}
+        configuration: ${{ fromJSON(github.event_name == 'pull_request' && '["Release"]' || '["Debug", "Release"]') }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          subprojects: true
+          ios: true
+          skip-prebuild: true
+      - name: Build library and configure example
+        run: |
+          yarn build
+          if [ '${{ matrix.platform }}' = tvOS ]; then
+            yarn example prebuild:tv --platform ios --no-install
+          else
+            yarn example prebuild --platform ios --no-install
+          fi
+          yarn example pods
+      - name: Archive unsigned device app
+        env:
+          SKIP_BUNDLING: '1'
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -workspace example/ios/BitmovinPlayerReactNativeExample.xcworkspace \
+            -scheme BitmovinPlayerReactNativeExample \
+            -configuration '${{ matrix.configuration }}' \
+            -destination 'generic/platform=${{ matrix.platform }}' \
+            -archivePath '${{ runner.temp }}/Example.xcarchive' \
+            -derivedDataPath '${{ runner.temp }}/archive-build' \
+            CODE_SIGNING_ALLOWED=NO | tee '${{ runner.temp }}/archive.log' | xcbeautify --renderer github-actions
+      - name: Verify archived frameworks and signatures
+        env:
+          ARCHIVE_PATH: ${{ runner.temp }}/Example.xcarchive
+        run: |
+          app="$ARCHIVE_PATH/Products/Applications/BitmovinPlayerReactNativeExample.app"
+          for framework in BitmovinPlayer BitmovinPlayerCore BitmovinPlayerAnalytics BitmovinCollector GoogleInteractiveMediaAds; do
+            test -s "$app/Frameworks/$framework.framework/$framework"
+          done
+          platform=ios
+          if [ '${{ matrix.platform }}' = tvOS ]; then platform=tvos; fi
+          for framework in BitmovinPlayer BitmovinPlayerCore BitmovinPlayerAnalytics BitmovinCollector CoreCollector GoogleInteractiveMediaAds; do
+            test -s "$ARCHIVE_PATH/Signatures/$framework.xcframework-$platform.signature"
+          done
+          duplicates=$(find "$ARCHIVE_PATH/Signatures" -type f -name '*.signature' -exec basename {} \; | sort | uniq -d)
+          test -z "$duplicates"
+      - name: Save archive diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: archive-${{ matrix.platform }}-${{ matrix.configuration }}
+          path: |
+            ${{ runner.temp }}/archive.log
+            ${{ runner.temp }}/Example.xcarchive/Signatures

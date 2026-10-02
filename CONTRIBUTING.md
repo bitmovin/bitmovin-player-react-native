@@ -192,14 +192,18 @@ See available API for testing [here](/integration_test/playertesting/PlayerTesti
 
 Run `yarn test:plugin` to test Android Gradle configuration and iOS SPM project
 integration. The iOS tests cover repeated prebuilds, SDK upgrades, conflicting
-requirements, platform switching, and preservation of customer-managed references.
+requirements, platform switching, preservation of customer-managed references,
+and archive signature cleanup.
 
 Run `python3 -m unittest discover -s .github/scripts -p 'test_*.py'` for repository
 automation tests, including the iOS SDK version updater.
 
 Native CI builds both examples, checks embedded Player, Analytics, and IMA
-binaries, and saves `Package.resolved` artifacts. App launch, playback, ads,
-Analytics, and signed-device archives still need runtime validation.
+binaries, and saves `Package.resolved` artifacts. Pull requests archive iOS Release;
+pushes to `development` archive Debug and Release for both iOS and tvOS. These
+unsigned device archives check framework embedding and retained SDK signatures,
+with JavaScript bundling skipped. App launch, playback, ads, Analytics,
+and signed-device archives still need separate validation.
 
 ### Adding new tests
 

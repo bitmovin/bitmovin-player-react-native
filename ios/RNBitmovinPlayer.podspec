@@ -57,5 +57,32 @@ Pod::Spec.new do |s|
   }
   s.compiler_flags = compiler_flags
 
+  # Xcode archives collect signatures from both the shared SPM products directory
+  # and this pod's build directory. Keep the shared copy to avoid name collisions.
+  # A podspec phase also covers integrations that do not use Expo prebuild.
+  s.script_phase = {
+    :name => 'Remove duplicate SPM archive signatures',
+    :execution_position => :after_compile,
+    :script => <<-'SH'
+set -eu
+if [ "${ACTION:-}" != "install" ]; then
+  exit 0
+fi
+pod_dir=$(cd "${CONFIGURATION_BUILD_DIR:?}" && pwd -P)
+shared_dir=$(cd "${PODS_CONFIGURATION_BUILD_DIR:?}" && pwd -P)
+if [ "$pod_dir" = "$shared_dir" ]; then
+  exit 0
+fi
+for signature in "$pod_dir"/*.xcframework-*.signature; do
+  [ -f "$signature" ] || continue
+  shared_signature="$shared_dir/$(basename "$signature")"
+  # Never remove a unique signature or silently hide a signature mismatch.
+  if [ -f "$shared_signature" ] && cmp -s "$signature" "$shared_signature"; then
+    rm -f "$signature"
+  fi
+done
+SH
+  }
+
   s.source_files = "**/*.{h,m,mm,swift,hpp,cpp}"
 end
