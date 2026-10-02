@@ -59,3 +59,45 @@ attributes when editing the generated project.
 If a requirement was changed manually or is shared with another target, a
 conflicting version causes prebuild to fail. Align that requirement with
 `dependencies.json` and rerun prebuild.
+
+## Xcode archive failures with version 1.27.0
+
+Archiving an iOS app may fail with:
+
+```text
+“BitmovinPlayerAnalytics.xcframework-ios.signature” couldn’t be copied
+to “Signatures” because an item with the same name already exists.
+```
+
+This happens when Xcode collects duplicate SPM framework signatures from the app
+and `RNBitmovinPlayer` build directories. Disabling code signing does not prevent it.
+
+Until a fixed SDK version is available, add a **Run Script build phase at the end
+of your app target’s build phases**:
+
+```sh
+set -eu
+
+if [ "${ACTION:-}" = "install" ]; then
+  shared_dir="${CONFIGURATION_BUILD_DIR:?}"
+  pod_dir="$shared_dir/RNBitmovinPlayer"
+
+  for signature in "$pod_dir"/*.xcframework-*.signature; do
+    [ -f "$signature" ] || continue
+    shared_signature="$shared_dir/$(basename "$signature")"
+
+    if [ -f "$shared_signature" ] &&
+       cmp -s "$signature" "$shared_signature"; then
+      rm -f "$signature"
+    fi
+  done
+fi
+```
+
+Disable **Based on dependency analysis** for this phase so it runs for every
+archive. The script removes only duplicate signatures from `RNBitmovinPlayer`
+when an identical shared copy exists.
+
+For projects using Expo prebuild, add the phase through a local config plugin so
+it survives regeneration of the native project. Remove the workaround after
+upgrading to the SDK version containing the fix.
