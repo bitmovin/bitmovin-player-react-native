@@ -127,6 +127,10 @@ printf "%s\\n" "$STUB_PROCESS_LIST"
     binDir,
     'sleep',
     `#!/bin/sh
+# Preserve the shutdown grace period once the fake Expo process is ready.
+if [ -f "$STUB_EXPO_PID_FILE" ]; then
+  exec /bin/sleep "$@"
+fi
 exec /bin/sleep 0.01
 `
   );
@@ -138,11 +142,13 @@ exec /bin/sleep 0.01
 echo "npx:$PWD:$*" >> "$STUB_RECORD_FILE"
 if [ "$1" = "expo" ] && [ "$2" = "start" ]; then
   if [ "$STUB_EXPO_START_MODE" = "hold" ]; then
-    echo "$$" > "$STUB_EXPO_PID_FILE"
+    # Model a packager that needs time to shut down gracefully.
+    trap '/bin/sleep 0.05; echo "terminated" > "$STUB_EXPO_MARKER_FILE"; rm -f "$STUB_EXPO_PID_FILE" "$STUB_EXPO_CWD_FILE"; exit 0' TERM INT
+    # Publish readiness only after the handler and project directory are set.
     echo "$PWD" > "$STUB_EXPO_CWD_FILE"
-    trap 'echo "terminated" > "$STUB_EXPO_MARKER_FILE"; rm -f "$STUB_EXPO_PID_FILE" "$STUB_EXPO_CWD_FILE"; exit 0' TERM INT
+    echo "$$" > "$STUB_EXPO_PID_FILE"
     while true; do
-      sleep 1
+      /bin/sleep 0.01
     done
   fi
   exit 0
