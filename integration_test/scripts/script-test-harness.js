@@ -62,6 +62,7 @@ function createStubEnvironment(t, env = {}) {
     LSOF_PIDS: '',
     LSOF_CWD: '',
     STUB_EXPO_START_MODE: '',
+    STUB_PRESERVE_SLEEP: '',
     STUB_PROCESS_LIST: '',
     STUB_ADB_DEVICES: '',
     STUB_ADB_DEVICES_FIRST: '',
@@ -127,8 +128,8 @@ printf "%s\\n" "$STUB_PROCESS_LIST"
     binDir,
     'sleep',
     `#!/bin/sh
-# Preserve the shutdown grace period once the fake Expo process is ready.
-if [ -f "$STUB_EXPO_PID_FILE" ]; then
+# Tests that stop a process opt in, since kill_packager_pid relies on this grace period.
+if [ -n "$STUB_PRESERVE_SLEEP" ]; then
   exec /bin/sleep "$@"
 fi
 exec /bin/sleep 0.01

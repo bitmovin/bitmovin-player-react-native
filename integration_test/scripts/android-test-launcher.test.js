@@ -52,6 +52,7 @@ test('start-test-android reports why emulator setup failed', (t) => {
 test('start-test-android composes emulator boot and android test run for local workflows', (t) => {
   const { env, recordFile, expoMarkerFile } = createStubEnvironment(t, {
     STUB_EXPO_START_MODE: 'hold',
+    STUB_PRESERVE_SLEEP: '1',
     STUB_ADB_DEVICES_FIRST: 'List of devices attached\n',
     STUB_ADB_DEVICES_NEXT: `List of devices attached\n${FAKE_ANDROID_EMULATOR_ID}\tdevice\n`,
     STUB_EMULATOR_LIST_AVDS: FAKE_ANDROID_AVD_NAME,
