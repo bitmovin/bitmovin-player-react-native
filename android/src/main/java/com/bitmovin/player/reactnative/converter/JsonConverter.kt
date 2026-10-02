@@ -6,6 +6,7 @@ import android.util.Log
 import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
+import com.bitmovin.analytics.api.RetryPolicy
 import com.bitmovin.analytics.api.SourceMetadata
 import com.bitmovin.player.reactnative.extensions.get
 import com.bitmovin.player.reactnative.extensions.set
@@ -522,16 +523,6 @@ fun PlayerEvent.toJson(): Map<String, Any> {
     return baseMap.filterNotNullValues()
 }
 
-fun Map<String, Any?>.toWidevineConfig(): WidevineConfig? = getMap("widevine")?.run {
-    WidevineConfig(getString("licenseUrl")).apply {
-        withString("preferredSecurityLevel") { preferredSecurityLevel = it }
-        withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
-        withMap("httpHeaders") { httpHeaders = it.mapValues { entry -> entry.value as String }.toMutableMap() }
-    }
-}
-
-fun String.toThumbnailTrack(): ThumbnailTrack = ThumbnailTrack(this)
-
 fun AudioTrack.toJson(): Map<String, Any> = mapOf(
     "url" to url,
     "label" to label,
@@ -541,24 +532,6 @@ fun AudioTrack.toJson(): Map<String, Any> = mapOf(
     "roles" to roles.map { it.toJson() },
     "qualities" to qualities?.map { it.toJson() },
 ).filterNotNullValues()
-
-fun Map<String, Any?>.toSubtitleTrack(): SubtitleTrack? {
-    return SubtitleTrack(
-        url = getString("url") ?: return null,
-        label = getString("label") ?: return null,
-        id = getString("identifier") ?: UUID.randomUUID().toString(),
-        isDefault = getBooleanOrNull("isDefault") ?: false,
-        language = getString("language"),
-        isForced = getBooleanOrNull("isForced") ?: false,
-        mimeType = getString("format")?.takeIf { it.isNotEmpty() }?.toSubtitleMimeType(),
-    )
-}
-
-private fun String.toSubtitleMimeType(): String = when (this) {
-    "srt" -> "application/x-subrip"
-    "ttml" -> "application/ttml+xml"
-    else -> "text/$this"
-}
 
 fun SubtitleTrack.toJson(): Map<String, Any> = mapOf(
     "url" to url,
@@ -570,8 +543,6 @@ fun SubtitleTrack.toJson(): Map<String, Any> = mapOf(
     "format" to mimeType?.textMimeTypeToJson(),
     "roles" to roles.map { it.toJson() },
 ).filterNotNullValues()
-
-private fun String.textMimeTypeToJson(): String = split("/").last()
 
 fun AdBreak.toJson(): Map<String, Any> = mapOf(
     "ads" to ads.map { it.toJson() },
@@ -624,28 +595,6 @@ fun AdQuartile.toJson(): String = when (this) {
     AdQuartile.ThirdQuartile -> "third"
 }
 
-fun Map<String, Any?>.toAnalyticsConfig(): AnalyticsConfig? = getString("licenseKey")
-    ?.let { AnalyticsConfig.Builder(it) }
-    ?.apply {
-        withBoolean("adTrackingDisabled") { setAdTrackingDisabled(it) }
-        withBoolean("randomizeUserId") { setRandomizeUserId(it) }
-    }?.build()
-
-fun Map<String, Any?>.toAnalyticsDefaultMetadata(): DefaultMetadata = DefaultMetadata.Builder().apply {
-    setCustomData(toAnalyticsCustomData())
-    withString("cdnProvider") { setCdnProvider(it) }
-    withString("customUserId") { setCustomUserId(it) }
-}.build()
-
-fun Map<String, Any?>.toAnalyticsCustomData(): CustomData = CustomData.Builder().apply {
-    for (n in 1..30) {
-        this[n] = getString("customData$n")
-    }
-    getString("experimentName")?.let {
-        setExperimentName(it)
-    }
-}.build()
-
 fun CustomData.toJson(): Map<String, Any> {
     val map = mutableMapOf<String, Any?>()
     for (n in 1..30) {
@@ -654,15 +603,6 @@ fun CustomData.toJson(): Map<String, Any> {
     experimentName?.let { map["experimentName"] = it }
     return map.filterNotNullValues()
 }
-
-fun Map<String, Any?>.toAnalyticsSourceMetadata(): SourceMetadata = SourceMetadata(
-    title = getString("title"),
-    videoId = getString("videoId"),
-    cdnProvider = getString("cdnProvider"),
-    path = getString("path"),
-    isLive = getBooleanOrNull("isLive"),
-    customData = toAnalyticsCustomData(),
-)
 
 fun SourceMetadata.toJson(): Map<String, Any> {
     val map = customData.toJson().toMutableMap<String, Any?>()
@@ -724,107 +664,6 @@ fun Thumbnail.toJson(): Map<String, Any> = mapOf(
     "height" to height,
 )
 
-fun Map<String, Any?>.toPictureInPictureConfig(): PictureInPictureConfig = PictureInPictureConfig(
-    isEnabled = getBooleanOrNull("isEnabled") ?: false,
-    shouldEnterOnBackground = getBooleanOrNull("shouldEnterOnBackground") ?: false,
-)
-
-fun List<String>.toPictureInPictureActions(): List<PictureInPictureAction> = mapNotNull {
-    runCatching {
-        PictureInPictureAction.valueOf(it)
-    }.getOrNull()
-}
-
-fun Map<String, Any?>.toPlayerViewConfig(): PlayerViewConfig = PlayerViewConfig(
-    uiConfig = getMap("uiConfig")?.toUiConfig() ?: UiConfig.WebUi(),
-    hideFirstFrame = getBooleanOrNull("hideFirstFrame") ?: false,
-    surfaceType = getString("surfaceType")?.toSurfaceType() ?: SurfaceType.SurfaceView,
-)
-
-private fun String.toSurfaceType(): SurfaceType? = when (this) {
-    "SurfaceView" -> SurfaceType.SurfaceView
-    "TextureView" -> SurfaceType.TextureView
-    else -> null
-}
-
-private fun Map<String, Any?>.toUiConfig(): UiConfig {
-    val variant = toVariant() ?: UiConfig.WebUi.Variant.SmallScreenUi
-    val focusUiOnInitialization = getBooleanOrNull("focusUiOnInitialization")
-    val defaultFocusUiOnInitialization = variant == UiConfig.WebUi.Variant.TvUi
-
-    return UiConfig.WebUi(
-        playbackSpeedSelectionEnabled = getBooleanOrNull("playbackSpeedSelectionEnabled") ?: true,
-        variant = variant,
-        focusUiOnInitialization = focusUiOnInitialization ?: defaultFocusUiOnInitialization,
-    )
-}
-
-private fun Map<String, Any?>.toVariant(): UiConfig.WebUi.Variant? {
-    val uiManagerFactoryFunction = getMap("variant")?.getString("uiManagerFactoryFunction") ?: return null
-
-    return when (uiManagerFactoryFunction) {
-        "bitmovin.playerui.UIFactory.buildSmallScreenUI" -> UiConfig.WebUi.Variant.SmallScreenUi
-        "bitmovin.playerui.UIFactory.buildTvUI" -> UiConfig.WebUi.Variant.TvUi
-        else -> UiConfig.WebUi.Variant.Custom(uiManagerFactoryFunction)
-    }
-}
-
-private fun Map<String, Any?>.toUserInterfaceTypeFromPlayerConfig(): UserInterfaceType? =
-    when (getMap("styleConfig")?.getString("userInterfaceType")) {
-        "Subtitle" -> UserInterfaceType.Subtitle
-        "Bitmovin" -> UserInterfaceType.Bitmovin
-        else -> null
-    }
-
-fun String.toUserInterfaceType(): UserInterfaceType? = when (this) {
-    "Subtitle" -> UserInterfaceType.Subtitle
-    "Bitmovin" -> UserInterfaceType.Bitmovin
-    else -> null
-}
-
-fun Map<String, Any?>.toRNPlayerViewConfigWrapper() = RNPlayerViewConfigWrapper(
-    playerViewConfig = toPlayerViewConfig(),
-    pictureInPictureConfig = getMap("pictureInPictureConfig")?.toPictureInPictureConfig(),
-)
-
-fun Map<String, Any?>.toRNStyleConfigWrapperFromPlayerConfig(): RNStyleConfigWrapper? {
-    return RNStyleConfigWrapper(
-        styleConfig = toStyleConfig(),
-        userInterfaceType = toUserInterfaceTypeFromPlayerConfig() ?: return null,
-    )
-}
-
-fun Map<String, Any?>.toLiveConfig(): LiveConfig = LiveConfig().apply {
-    withDouble("minTimeshiftBufferDepth") { minTimeShiftBufferDepth = it }
-}
-
-fun Map<String, Any?>.toHttpRequest(): HttpRequest? {
-    return HttpRequest(
-        getString("url") ?: return null,
-        getMap("headers")?.toMap(),
-        getString("body")?.toByteArrayFromBase64(),
-        getString("method") ?: return null,
-    )
-}
-
-private fun ByteArray.toBase64String(): String {
-    return Base64.encodeToString(this, Base64.NO_WRAP)
-}
-
-private fun String.toByteArrayFromBase64(): ByteArray = Base64.decode(this, Base64.NO_WRAP)
-
-fun Map<String, Any?>.toHttpResponse(): HttpResponse? {
-    return HttpResponse(
-        httpRequest = getMap("request")?.toHttpRequest() ?: return null,
-        url = getString("url") ?: return null,
-        status = getInt("status"),
-        headers = getMap("headers")?.toMap() ?: return null,
-        body = getString("body")?.toByteArrayFromBase64() ?: return null,
-    )
-}
-
-fun Map<String, Any?>.toNetworkConfig(): NetworkConfig = NetworkConfig()
-
 fun HttpRequest.toJson(): Map<String, Any> = mapOf(
     "url" to url,
     "headers" to headers,
@@ -872,27 +711,6 @@ fun RNBufferLevels.toJson(): Map<String, Any> = mapOf(
     "video" to video.toJson(),
 )
 
-// Extension function to convert string to BufferType
-fun String.toBufferTypeOrThrow(): BufferType = when (this.lowercase()) {
-    "forwardduration" -> BufferType.ForwardDuration
-    "backwardduration" -> BufferType.BackwardDuration
-    else -> throw IllegalArgumentException("Unknown buffer type: $this")
-}
-
-fun String.toMediaType(): MediaType? = when (this) {
-    "audio" -> MediaType.Audio
-    "video" -> MediaType.Video
-    else -> null
-}
-
-data class MediaControlConfig(
-    var isEnabled: Boolean = true,
-)
-
-fun Map<String, Any?>.toMediaControlConfig(): MediaControlConfig = MediaControlConfig().apply {
-    withBoolean("isEnabled") { isEnabled = it }
-}
-
 private fun CastPayload.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "currentTime" to currentTime,
     "deviceName" to deviceName,
@@ -911,48 +729,11 @@ fun MediaCodecInfo.toJson(): Map<String, Any> = mapOf(
     "isSoftware" to isSoftware,
 )
 
-fun List<Any?>.toMediaCodecInfoList(): List<MediaCodecInfo> {
-    if (isEmpty()) {
-        return emptyList()
-    }
-    val mediaCodecInfoList = mutableListOf<MediaCodecInfo>()
-    indices.forEach {
-        val info = getMap(it)?.toMediaCodecInfo() ?: return@forEach
-        mediaCodecInfoList.add(info)
-    }
-    return mediaCodecInfoList
-}
-
-fun Map<String, Any?>.toMediaCodecInfo(): MediaCodecInfo? {
-    val name = getString("name") ?: return null
-    val isSoftware = getBooleanOrNull("isSoftware") ?: return null
-    return MediaCodecInfo(name, isSoftware)
-}
-
 fun MediaTrackRole.toJson(): Map<String, Any> = mapOf(
     "id" to id,
     "schemeIdUri" to schemeIdUri,
     "value" to value,
 ).filterNotNullValues()
-
-fun String.toMetadataTypeString(): String = when (this) {
-    "ID3" -> "ID3"
-    "SCTE" -> "SCTE"
-    "DATERANGE" -> "DATERANGE"
-    "EMSG" -> "EMSG"
-    else -> "NONE"
-}
-
-fun Metadata.toJson(type: String): Map<String, Any> {
-    val entriesArray = (0 until length())
-        .mapNotNull { get(it) }
-        .map { it.toJson() }
-
-    return mapOf(
-        "startTime" to startTime,
-        "entries" to entriesArray
-    ).filterNotNullValues()
-}
 
 fun Metadata.Entry.toJson(): Map<String, Any> {
     return when (this) {
@@ -1089,6 +870,233 @@ fun ScteMessage.toJson(): Map<String, Any> = mapOf(
     "key" to key,
     "value" to value
 ).filterNotNullValues()
+
+fun Map<String, Any?>.toWidevineConfig(): WidevineConfig? = getMap("widevine")?.run {
+    WidevineConfig(getString("licenseUrl")).apply {
+        withString("preferredSecurityLevel") { preferredSecurityLevel = it }
+        withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
+        withMap("httpHeaders") { httpHeaders = it.mapValues { entry -> entry.value as String }.toMutableMap() }
+    }
+}
+
+fun String.toThumbnailTrack(): ThumbnailTrack = ThumbnailTrack(this)
+
+fun Map<String, Any?>.toSubtitleTrack(): SubtitleTrack? {
+    return SubtitleTrack(
+        url = getString("url") ?: return null,
+        label = getString("label") ?: return null,
+        id = getString("identifier") ?: UUID.randomUUID().toString(),
+        isDefault = getBooleanOrNull("isDefault") ?: false,
+        language = getString("language"),
+        isForced = getBooleanOrNull("isForced") ?: false,
+        mimeType = getString("format")?.takeIf { it.isNotEmpty() }?.toSubtitleMimeType(),
+    )
+}
+
+private fun String.toSubtitleMimeType(): String = when (this) {
+    "srt" -> "application/x-subrip"
+    "ttml" -> "application/ttml+xml"
+    else -> "text/$this"
+}
+
+private fun String.textMimeTypeToJson(): String = split("/").last()
+
+fun Map<String, Any?>.toAnalyticsConfig(): AnalyticsConfig? = getString("licenseKey")
+    ?.let { AnalyticsConfig.Builder(it) }
+    ?.apply {
+        withBoolean("adTrackingDisabled") { setAdTrackingDisabled(it) }
+        withBoolean("randomizeUserId") { setRandomizeUserId(it) }
+        withString("retryPolicy") { retryPolicy ->
+            when (retryPolicy) {
+                "noRetry" -> RetryPolicy.NO_RETRY
+                "longTerm" -> RetryPolicy.LONG_TERM
+                else -> null
+            }?.let { setRetryPolicy(it) }
+        }
+    }?.build()
+
+fun Map<String, Any?>.toAnalyticsDefaultMetadata(): DefaultMetadata = DefaultMetadata.Builder().apply {
+    setCustomData(toAnalyticsCustomData())
+    withString("cdnProvider") { setCdnProvider(it) }
+    withString("customUserId") { setCustomUserId(it) }
+}.build()
+
+fun Map<String, Any?>.toAnalyticsCustomData(): CustomData = CustomData.Builder().apply {
+    for (n in 1..30) {
+        this[n] = getString("customData$n")
+    }
+    getString("experimentName")?.let {
+        setExperimentName(it)
+    }
+}.build()
+
+fun Map<String, Any?>.toAnalyticsSourceMetadata(): SourceMetadata = SourceMetadata(
+    title = getString("title"),
+    videoId = getString("videoId"),
+    cdnProvider = getString("cdnProvider"),
+    path = getString("path"),
+    isLive = getBooleanOrNull("isLive"),
+    customData = toAnalyticsCustomData(),
+)
+
+fun Map<String, Any?>.toPictureInPictureConfig(): PictureInPictureConfig = PictureInPictureConfig(
+    isEnabled = getBooleanOrNull("isEnabled") ?: false,
+    shouldEnterOnBackground = getBooleanOrNull("shouldEnterOnBackground") ?: false,
+)
+
+fun List<String>.toPictureInPictureActions(): List<PictureInPictureAction> = mapNotNull {
+    runCatching {
+        PictureInPictureAction.valueOf(it)
+    }.getOrNull()
+}
+
+fun Map<String, Any?>.toPlayerViewConfig(): PlayerViewConfig = PlayerViewConfig(
+    uiConfig = getMap("uiConfig")?.toUiConfig() ?: UiConfig.WebUi(),
+    hideFirstFrame = getBooleanOrNull("hideFirstFrame") ?: false,
+    surfaceType = getString("surfaceType")?.toSurfaceType() ?: SurfaceType.SurfaceView,
+)
+
+private fun String.toSurfaceType(): SurfaceType? = when (this) {
+    "SurfaceView" -> SurfaceType.SurfaceView
+    "TextureView" -> SurfaceType.TextureView
+    else -> null
+}
+
+private fun Map<String, Any?>.toUiConfig(): UiConfig {
+    val variant = toVariant() ?: UiConfig.WebUi.Variant.SmallScreenUi
+    val focusUiOnInitialization = getBooleanOrNull("focusUiOnInitialization")
+    val defaultFocusUiOnInitialization = variant == UiConfig.WebUi.Variant.TvUi
+
+    return UiConfig.WebUi(
+        playbackSpeedSelectionEnabled = getBooleanOrNull("playbackSpeedSelectionEnabled") ?: true,
+        variant = variant,
+        focusUiOnInitialization = focusUiOnInitialization ?: defaultFocusUiOnInitialization,
+    )
+}
+
+private fun Map<String, Any?>.toVariant(): UiConfig.WebUi.Variant? {
+    val uiManagerFactoryFunction = getMap("variant")?.getString("uiManagerFactoryFunction") ?: return null
+
+    return when (uiManagerFactoryFunction) {
+        "bitmovin.playerui.UIFactory.buildSmallScreenUI" -> UiConfig.WebUi.Variant.SmallScreenUi
+        "bitmovin.playerui.UIFactory.buildTvUI" -> UiConfig.WebUi.Variant.TvUi
+        else -> UiConfig.WebUi.Variant.Custom(uiManagerFactoryFunction)
+    }
+}
+
+private fun Map<String, Any?>.toUserInterfaceTypeFromPlayerConfig(): UserInterfaceType? =
+    when (getMap("styleConfig")?.getString("userInterfaceType")) {
+        "Subtitle" -> UserInterfaceType.Subtitle
+        "Bitmovin" -> UserInterfaceType.Bitmovin
+        else -> null
+    }
+
+fun String.toUserInterfaceType(): UserInterfaceType? = when (this) {
+    "Subtitle" -> UserInterfaceType.Subtitle
+    "Bitmovin" -> UserInterfaceType.Bitmovin
+    else -> null
+}
+
+fun Map<String, Any?>.toRNPlayerViewConfigWrapper() = RNPlayerViewConfigWrapper(
+    playerViewConfig = toPlayerViewConfig(),
+    pictureInPictureConfig = getMap("pictureInPictureConfig")?.toPictureInPictureConfig(),
+)
+
+fun Map<String, Any?>.toRNStyleConfigWrapperFromPlayerConfig(): RNStyleConfigWrapper? {
+    return RNStyleConfigWrapper(
+        styleConfig = toStyleConfig(),
+        userInterfaceType = toUserInterfaceTypeFromPlayerConfig() ?: return null,
+    )
+}
+
+fun Map<String, Any?>.toLiveConfig(): LiveConfig = LiveConfig().apply {
+    withDouble("minTimeshiftBufferDepth") { minTimeShiftBufferDepth = it }
+}
+
+fun Map<String, Any?>.toHttpRequest(): HttpRequest? {
+    return HttpRequest(
+        getString("url") ?: return null,
+        getMap("headers")?.toMap(),
+        getString("body")?.toByteArrayFromBase64(),
+        getString("method") ?: return null,
+    )
+}
+
+private fun ByteArray.toBase64String(): String {
+    return Base64.encodeToString(this, Base64.NO_WRAP)
+}
+
+private fun String.toByteArrayFromBase64(): ByteArray = Base64.decode(this, Base64.NO_WRAP)
+
+fun Map<String, Any?>.toHttpResponse(): HttpResponse? {
+    return HttpResponse(
+        httpRequest = getMap("request")?.toHttpRequest() ?: return null,
+        url = getString("url") ?: return null,
+        status = getInt("status"),
+        headers = getMap("headers")?.toMap() ?: return null,
+        body = getString("body")?.toByteArrayFromBase64() ?: return null,
+    )
+}
+
+fun Map<String, Any?>.toNetworkConfig(): NetworkConfig = NetworkConfig()
+
+// Extension function to convert string to BufferType
+fun String.toBufferTypeOrThrow(): BufferType = when (this.lowercase()) {
+    "forwardduration" -> BufferType.ForwardDuration
+    "backwardduration" -> BufferType.BackwardDuration
+    else -> throw IllegalArgumentException("Unknown buffer type: $this")
+}
+
+fun String.toMediaType(): MediaType? = when (this) {
+    "audio" -> MediaType.Audio
+    "video" -> MediaType.Video
+    else -> null
+}
+
+data class MediaControlConfig(
+    var isEnabled: Boolean = true,
+)
+
+fun Map<String, Any?>.toMediaControlConfig(): MediaControlConfig = MediaControlConfig().apply {
+    withBoolean("isEnabled") { isEnabled = it }
+}
+
+fun List<Any?>.toMediaCodecInfoList(): List<MediaCodecInfo> {
+    if (isEmpty()) {
+        return emptyList()
+    }
+    val mediaCodecInfoList = mutableListOf<MediaCodecInfo>()
+    indices.forEach {
+        val info = getMap(it)?.toMediaCodecInfo() ?: return@forEach
+        mediaCodecInfoList.add(info)
+    }
+    return mediaCodecInfoList
+}
+
+fun Map<String, Any?>.toMediaCodecInfo(): MediaCodecInfo? {
+    val name = getString("name") ?: return null
+    val isSoftware = getBooleanOrNull("isSoftware") ?: return null
+    return MediaCodecInfo(name, isSoftware)
+}
+
+fun String.toMetadataTypeString(): String = when (this) {
+    "ID3" -> "ID3"
+    "SCTE" -> "SCTE"
+    "DATERANGE" -> "DATERANGE"
+    "EMSG" -> "EMSG"
+    else -> "NONE"
+}
+
+fun Metadata.toJson(type: String): Map<String, Any> {
+    val entriesArray = (0 until length())
+        .mapNotNull { get(it) }
+        .map { it.toJson() }
+
+    return mapOf(
+        "startTime" to startTime,
+        "entries" to entriesArray
+    ).filterNotNullValues()
+}
 
 private fun Cue.toLayoutJson(): Map<String, Any>? {
     val line = toLayoutLineJson()

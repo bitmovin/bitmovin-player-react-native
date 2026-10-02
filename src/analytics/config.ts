@@ -1,4 +1,19 @@
 /**
+ * Retry policy applied when analytics samples cannot be sent.
+ */
+export enum AnalyticsRetryPolicy {
+  /**
+   * Failed analytics requests are not retried.
+   */
+  NO_RETRY = 'noRetry',
+  /**
+   * Failed analytics requests are persisted and retried for up to 14 days.
+   * This policy supports analytics tracking during offline playback.
+   */
+  LONG_TERM = 'longTerm',
+}
+
+/**
  * Object used to configure the build-in analytics collector.
  */
 export interface AnalyticsConfig {
@@ -14,6 +29,12 @@ export interface AnalyticsConfig {
    * Flag to use randomised userId not depending on device specific values (default: false).
    */
   randomizeUserId?: boolean;
+  /**
+   * Retry behavior when analytics samples cannot be sent.
+   *
+   * @defaultValue `AnalyticsRetryPolicy.NO_RETRY`
+   */
+  retryPolicy?: AnalyticsRetryPolicy;
   /**
    * Default metadata to be sent with events.
    * Fields of the `SourceMetadata` are prioritized over the default metadata.

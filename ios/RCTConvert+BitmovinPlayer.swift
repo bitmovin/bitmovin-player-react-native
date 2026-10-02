@@ -725,9 +725,17 @@ extension RCTConvert {
         }
         let randomizeUserId = json["randomizeUserId"] as? Bool
         let adTrackingDisabled = json["adTrackingDisabled"] as? Bool
+        let retryPolicy: RetryPolicy
+        switch json["retryPolicy"] as? String {
+        case "longTerm":
+            retryPolicy = .longTerm
+        default:
+            retryPolicy = .noRetry
+        }
 
         let config = AnalyticsConfig(
             licenseKey: key,
+            retryPolicy: retryPolicy,
             randomizeUserId: randomizeUserId ?? false,
             adTrackingDisabled: adTrackingDisabled ?? false
         )
