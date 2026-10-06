@@ -11,6 +11,8 @@
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to [`3.126.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31260)
+- Update Bitmovin's native Android SDK version to [`3.169.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31690)
+- Android: Update the pinned `okhttp-urlconnection` dependency version to `5.5.0` to match the `okhttp` version used by the Android SDK
 - Update Expo SDK version to `57.0.26` and React Native version to `0.86.3`
   - Minimum supported Expo SDK version is now `57`
   - Minimum supported React Native version is now `0.86.3`

@@ -108,8 +108,8 @@ dependencies {
 
   // Bitmovin
   implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
-  implementation 'com.bitmovin.player:player:3.165.0+jason'
-  implementation 'com.bitmovin.player:player-media-session:3.165.0+jason'
-  // force okhttp-urlconnection version to 5.3.2 to avoid version conflicts
-  implementation 'com.squareup.okhttp3:okhttp-urlconnection:5.3.2'
+  implementation 'com.bitmovin.player:player:3.169.0+jason'
+  implementation 'com.bitmovin.player:player-media-session:3.169.0+jason'
+  // force okhttp-urlconnection to match the okhttp version pulled in by the player to avoid version conflicts
+  implementation 'com.squareup.okhttp3:okhttp-urlconnection:5.5.0'
 }
