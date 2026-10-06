@@ -57,27 +57,28 @@
   "license": "MIT",
   "homepage": "https://bitmovin.com/video-player/react-native-sdk",
   "dependencies": {
-    "expo-crypto": "~15.0.9",
-    "expo-keep-awake": "~15.0.8"
+    "expo-crypto": "~57.0.3",
+    "expo-keep-awake": "~57.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
-    "@types/react": "~19.1.10",
+    "@types/node": "^25.2.0",
+    "@types/react": "~19.2.4",
     "eslint": "^8.57.0",
-    "eslint-config-expo": "~10.0.0",
+    "eslint-config-expo": "~57.0.2",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.5.1",
-    "expo": "~54.0.35",
-    "expo-module-scripts": "^4.1.9",
+    "expo": "~57.0.26",
+    "expo-module-scripts": "^56.0.3",
     "lint-staged": "13.0.3",
     "prettier": "^3.6.2",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
-    "typedoc": "^0.28.7",
-    "typescript": "~5.9.2"
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "typedoc": "^0.28.20",
+    "typescript": "~6.0.3"
   },
   "peerDependencies": {
-    "expo": ">=54.0.0",
+    "expo": ">=57.0.0",
     "expo-crypto": ">=14.0.0",
     "react": "*",
     "react-native": "*"

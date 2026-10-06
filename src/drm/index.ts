@@ -8,7 +8,8 @@ import DrmModule from './drmModule';
 import { DebugConfig } from '../debug';
 
 // Export config types and API classes from DRM module.
-export { FairplayConfig, WidevineConfig, FairplayDrmApi };
+export type { FairplayConfig, WidevineConfig };
+export { FairplayDrmApi };
 
 /**
  * Represents the general Streaming DRM config.
