@@ -1,13 +1,69 @@
 import {
   AndroidConfig,
   ConfigPlugin,
+  WarningAggregator,
   withAndroidManifest,
   withGradleProperties,
+  withProjectBuildGradle,
 } from 'expo/config-plugins';
 import withAppGradleDependencies from './withAppGradleDependencies';
 import { BitmovinConfigOptions } from './withBitmovinConfig';
 
 type ManifestActivity = AndroidConfig.Manifest.ManifestActivity;
+
+// The Android player's transitive dependencies ship Kotlin 2.3 metadata, which
+// needs at least a Kotlin 2.2 compiler.
+const MIN_KOTLIN_VERSION = '2.2.21';
+// Required by okhttp-android 5.5.0, which is pulled in by the Android player.
+// Can be removed with Expo SDK 58, which compiles against SDK 37 by default.
+const MIN_COMPILE_SDK_VERSION = 37;
+
+const KOTLIN_GRADLE_PLUGIN_CLASSPATH =
+  /classpath\(\s*['"]org\.jetbrains\.kotlin:kotlin-gradle-plugin(?::([^'"]*))?['"]\s*\)/;
+
+const compareVersions = (a: string, b: string) => {
+  const aParts = a.split('.').map((part) => parseInt(part, 10) || 0);
+  const bParts = b.split('.').map((part) => parseInt(part, 10) || 0);
+  for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+    const diff = (aParts[i] ?? 0) - (bParts[i] ?? 0);
+    if (diff !== 0) {
+      return diff;
+    }
+  }
+  return 0;
+};
+
+const isLiteralVersion = (version: string) => /^\d+(\.\d+)*$/.test(version);
+
+/**
+ * Pins the Kotlin Gradle plugin in the root `build.gradle` to at least
+ * `MIN_KOTLIN_VERSION`. The Expo template declares the plugin without a
+ * version, so it would otherwise resolve to the version used by React Native's
+ * Gradle plugin. Versions that are already high enough or not literal (e.g.
+ * `$kotlinVersion`) are left untouched.
+ */
+export const pinKotlinGradlePluginVersion = (contents: string) => {
+  const match = contents.match(KOTLIN_GRADLE_PLUGIN_CLASSPATH);
+  if (!match) {
+    WarningAggregator.addWarningAndroid(
+      'bitmovin-player-react-native',
+      `Could not find the Kotlin Gradle plugin classpath entry in android/build.gradle. Make sure the app uses Kotlin ${MIN_KOTLIN_VERSION} or newer.`
+    );
+    return contents;
+  }
+  const currentVersion = match[1];
+  if (
+    currentVersion &&
+    (!isLiteralVersion(currentVersion) ||
+      compareVersions(currentVersion, MIN_KOTLIN_VERSION) >= 0)
+  ) {
+    return contents;
+  }
+  return contents.replace(
+    KOTLIN_GRADLE_PLUGIN_CLASSPATH,
+    `classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:${MIN_KOTLIN_VERSION}')`
+  );
+};
 
 const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
   config,
@@ -222,6 +278,20 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
 
   config = withAppGradleDependencies(config, { dependencies });
 
+  config = withProjectBuildGradle(config, (config) => {
+    if (config.modResults.language === 'groovy') {
+      config.modResults.contents = pinKotlinGradlePluginVersion(
+        config.modResults.contents
+      );
+    } else {
+      WarningAggregator.addWarningAndroid(
+        'bitmovin-player-react-native',
+        `Cannot pin the Kotlin Gradle plugin in a Kotlin DSL build.gradle. Make sure the app uses Kotlin ${MIN_KOTLIN_VERSION} or newer.`
+      );
+    }
+    return config;
+  });
+
   config = withGradleProperties(config, (config) => {
     const properties = config.modResults;
     const existingEntry = properties.find(
@@ -267,6 +337,35 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
       packagingExcludesKey,
       [...new Set([...existingExcludes, ...packagingExcludes])].join(',')
     );
+
+    const kotlinVersionEntry = properties.find(
+      (item) => item.type === 'property' && item.key === 'android.kotlinVersion'
+    );
+    if (
+      kotlinVersionEntry?.type !== 'property' ||
+      compareVersions(kotlinVersionEntry.value, MIN_KOTLIN_VERSION) < 0
+    ) {
+      AndroidConfig.BuildProperties.updateAndroidBuildProperty(
+        properties,
+        'android.kotlinVersion',
+        MIN_KOTLIN_VERSION
+      );
+    }
+
+    const compileSdkEntry = properties.find(
+      (item) =>
+        item.type === 'property' && item.key === 'android.compileSdkVersion'
+    );
+    if (
+      compileSdkEntry?.type !== 'property' ||
+      (parseInt(compileSdkEntry.value, 10) || 0) < MIN_COMPILE_SDK_VERSION
+    ) {
+      AndroidConfig.BuildProperties.updateAndroidBuildProperty(
+        properties,
+        'android.compileSdkVersion',
+        `${MIN_COMPILE_SDK_VERSION}`
+      );
+    }
 
     config.modResults = properties;
     return config;
