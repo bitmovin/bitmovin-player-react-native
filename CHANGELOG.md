@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Android: `PlaybackConfig.isTunneledPlaybackEnabled` to enable tunneled playback on supported devices
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to [`3.126.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31260)
