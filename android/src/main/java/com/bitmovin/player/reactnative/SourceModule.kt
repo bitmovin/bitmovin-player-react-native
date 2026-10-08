@@ -41,6 +41,8 @@ class SourceModule : Module() {
 
         AsyncFunction("destroy") { nativeId: NativeId ->
             sources.remove(nativeId)
+            // Don't return the removed value: Expo can't convert it to a JS value and rejects the promise.
+            Unit
         }
 
         AsyncFunction("isAttachedToPlayer") { nativeId: NativeId ->
