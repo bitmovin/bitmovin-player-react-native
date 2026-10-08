@@ -152,6 +152,11 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             playerInMediaSessionService = null
             val player = playerView?.player ?: return
 
+            // When the player is in PiP mode and this window is closed, we want the player to stop
+            // So we ignore the `isBackgroundPlaybackEnabled` flag
+            if (isInPictureInPictureMode()) {
+                return
+            }
             if (!enableBackgroundPlayback) {
                 return
             }

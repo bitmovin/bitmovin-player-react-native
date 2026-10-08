@@ -6,6 +6,10 @@
 
 - Update Bitmovin's native iOS SDK version to [`3.126.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31260)
 
+### Fixed
+
+- Android: Playback continuing in the background after closing the Picture-in-Picture window while background playback is enabled
+
 ## [1.27.1] - 2026-10-02
 
 ### Fixed
