@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.28.0] - 2026-10-08
+
 ### Added
 
 - Android: `PlaybackConfig.isTunneledPlaybackEnabled` to enable tunneled playback on supported devices
