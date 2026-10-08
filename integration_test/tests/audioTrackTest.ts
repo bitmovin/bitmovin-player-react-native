@@ -6,6 +6,7 @@ import {
   startPlayerTest,
 } from '../playertesting';
 import { Sources } from './helper/Sources';
+import { expect } from './helper/Expect';
 import { Platform } from 'react-native';
 
 export default (spec: TestScope) => {
