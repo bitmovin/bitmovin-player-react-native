@@ -74,6 +74,13 @@ export interface PlaybackConfig {
    */
   handleAudioFocus?: boolean;
   /**
+   * Whether tunneled playback is enabled when supported by the device.
+   *
+   * @defaultValue `false`
+   * @platform Android
+   */
+  isTunneledPlaybackEnabled?: boolean;
+  /**
    * Whether the Picture in Picture mode option is enabled or not. Default is `false`.
    *  @example
    * ```

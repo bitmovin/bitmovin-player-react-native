@@ -170,6 +170,7 @@ fun Map<String, Any?>.toPlaybackConfig(): PlaybackConfig = PlaybackConfig().appl
     withBoolean("isMuted") { isMuted = it }
     withBoolean("isTimeShiftEnabled") { isTimeShiftEnabled = it }
     withBoolean("handleAudioFocus") { handleAudioFocus = it }
+    withBoolean("isTunneledPlaybackEnabled") { isTunneledPlaybackEnabled = it }
 }
 
 fun Map<String, Any?>.toStyleConfig(): StyleConfig = StyleConfig().apply {

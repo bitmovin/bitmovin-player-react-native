@@ -73,6 +73,7 @@ test('packager discovery checks only listening TCP sockets', (t) => {
 test('start-test-ios starts Expo, runs cavy, and cleans up the owned packager on exit', (t) => {
   const { env, recordFile, expoMarkerFile } = createStubEnvironment(t, {
     STUB_EXPO_START_MODE: 'hold',
+    STUB_PRESERVE_SLEEP: '1',
   });
 
   const result = runScript('start-test-ios.sh', env);
@@ -113,6 +114,7 @@ test('stop-packager kills the harness-owned integration_test Expo server', (t) =
   const { env, tempDir } = createStubEnvironment(t, {
     LSOF_PIDS: ownedPid,
     LSOF_CWD: INTEGRATION_TEST_DIR,
+    STUB_PRESERVE_SLEEP: '1',
   });
   env.TMPDIR = tempDir;
   env.STUB_PROCESS_LIST = `${ownedPid} ?? 0:00.10 node /usr/local/bin/expo start ${INTEGRATION_TEST_DIR} --port ${PACKAGER_PORT} --localhost`;
@@ -164,6 +166,7 @@ for (const scriptName of ['stop-test-ios.sh', 'stop-test-android.sh']) {
       LSOF_PIDS: packagerPid,
       LSOF_CWD: INTEGRATION_TEST_DIR,
       STUB_EXPECTED_PACKAGER_PORT: customPort,
+      STUB_PRESERVE_SLEEP: '1',
       STUB_PROCESS_LIST: `${packagerPid} ?? 0:00.10 node ${INTEGRATION_TEST_DIR}/node_modules/expo/bin/cli start --port ${customPort} --localhost`,
     });
 
