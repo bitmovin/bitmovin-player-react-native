@@ -17,6 +17,7 @@
 - Update Expo SDK version to `57.0.26` and React Native version to `0.86.3`
   - Minimum supported Expo SDK version is now `57`
   - Minimum supported React Native version is now `0.86.3`
+  - The `prepare` script now runs `yarn build`, as `expo-module-scripts` no longer builds the library and the Expo config plugin on install
 
 ### Fixed
 
