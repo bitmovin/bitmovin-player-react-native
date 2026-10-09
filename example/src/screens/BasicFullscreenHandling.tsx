@@ -39,7 +39,9 @@ class SampleFullscreenHandler implements FullscreenHandler {
     this.isFullscreenActive = true;
     if (Platform.OS === 'android') {
       // Hides navigation and status bar on Android
-      void SystemNavigationBar.stickyImmersive(true).catch(console.error);
+      void SystemNavigationBar.setImmersive('sticky', true).catch(
+        console.error
+      );
     } else {
       // Hides status bar on iOS
       StatusBar.setHidden(true);
@@ -52,7 +54,9 @@ class SampleFullscreenHandler implements FullscreenHandler {
     this.isFullscreenActive = false;
     if (Platform.OS === 'android') {
       // shows navigation and status bar on Android
-      void SystemNavigationBar.stickyImmersive(false).catch(console.error);
+      void SystemNavigationBar.setImmersive('sticky', false).catch(
+        console.error
+      );
     } else {
       // shows status bar on iOS
       StatusBar.setHidden(false);

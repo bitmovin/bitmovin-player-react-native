@@ -83,6 +83,8 @@ class NetworkModule : Module() {
         AsyncFunction("setPreprocessedHttpResponse") { responseId: String, response: Map<String, Any?> ->
             preprocessHttpResponseCompleters[responseId]?.set(response.toHttpResponse())
             preprocessHttpResponseCompleters.remove(responseId)
+            // Don't return the removed value: Expo can't convert it to a JS value and rejects the promise.
+            Unit
         }
     }
 

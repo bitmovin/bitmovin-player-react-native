@@ -1,0 +1,48 @@
+diff --git a/node_modules/cavy/src/Reporter.js b/node_modules/cavy/src/Reporter.js
+index 1cdeb38..a2671d9 100644
+--- a/node_modules/cavy/src/Reporter.js
++++ b/node_modules/cavy/src/Reporter.js
+@@ -15,7 +15,7 @@ export default class Reporter {
+   // Internal: Send a single test result to cavy-cli over the websocket connection.
+   send(result) {
+     if (this.websocketReady()) {
+-      testData = { event: 'singleResult', data: result };
++      const testData = { event: 'singleResult', data: result };
+       this.sendData(testData);
+     }
+   }
+@@ -23,7 +23,7 @@ export default class Reporter {
+   // Internal: Send report to cavy-cli over the websocket connection.
+   onFinish(report) {
+     if (this.websocketReady()) {
+-      testData = { event: 'testingComplete', data: report };
++      const testData = { event: 'testingComplete', data: report };
+       this.sendData(testData);
+     } else {
+       // If cavy-cli is not running, let people know in a friendly way
+diff --git a/node_modules/cavy/src/TestRunner.js b/node_modules/cavy/src/TestRunner.js
+index 40552bf..04f8da3 100644
+--- a/node_modules/cavy/src/TestRunner.js
++++ b/node_modules/cavy/src/TestRunner.js
+@@ -93,7 +93,7 @@ export default class TestRunner {
+     } else if (this.reporter.type == 'deferred') {
+       await this.reporter.send(report);
+     } else {
+-      message = 'Could not find a valid reporter. For more ' +
++      const message = 'Could not find a valid reporter. For more ' +
+                 'information on custom reporters, see the documentation ' +
+                 'here: https://cavy.app/docs/guides/writing-custom-reporters';
+       console.log(message);
+diff --git a/node_modules/cavy/src/Tester.js b/node_modules/cavy/src/Tester.js
+index c61e31a..fc2538e 100644
+--- a/node_modules/cavy/src/Tester.js
++++ b/node_modules/cavy/src/Tester.js
+@@ -68,7 +68,7 @@ export default class Tester extends Component {
+       console.warn(message);
+       this.reporter = props.reporter;
+     } else {
+-      reporterClass = props.reporter || Reporter;
++      const reporterClass = props.reporter || Reporter;
+       this.reporter = new reporterClass;
+     }
+   }

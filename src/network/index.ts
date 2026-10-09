@@ -1,15 +1,12 @@
-import { EventSubscription } from 'expo-modules-core';
+import type { EventSubscription } from 'expo-modules-core';
 import NativeInstance from '../nativeInstance';
 import NetworkModule from './networkModule';
 import { DebugConfig } from '../debug';
-import {
-  HttpRequestType,
-  HttpRequest,
-  HttpResponse,
-  NetworkConfig,
-} from './networkConfig';
+import type { HttpRequest, HttpResponse, NetworkConfig } from './networkConfig';
+import { HttpRequestType } from './networkConfig';
 
-export { HttpRequestType, HttpRequest, HttpResponse, NetworkConfig };
+export { HttpRequestType };
+export type { HttpRequest, HttpResponse, NetworkConfig };
 
 /**
  * Represents a native Network configuration object.

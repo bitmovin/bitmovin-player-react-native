@@ -37,6 +37,8 @@ class FullscreenHandlerModule : Module() {
 
         AsyncFunction("destroy") { nativeId: NativeId ->
             fullscreenHandlers.remove(nativeId)
+            // Don't return the removed value: Expo can't convert it to a JS value and rejects the promise.
+            Unit
         }
 
         AsyncFunction("notifyFullscreenChanged") { id: Int, isFullscreenEnabled: Boolean ->

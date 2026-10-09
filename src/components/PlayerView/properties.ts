@@ -1,11 +1,11 @@
-import { PlayerViewEvents } from './events';
-import { Player } from '../../player';
-import { FullscreenHandler, CustomMessageHandler } from '../../ui';
-import { ScalingMode } from '../../styleConfig';
-import { ViewStyle } from 'react-native';
-import { PlayerViewConfig } from './playerViewConfig';
-import { PictureInPictureAction } from './pictureInPictureAction';
-import { RefObject } from 'react';
+import type { PlayerViewEvents } from './events';
+import type { Player } from '../../player';
+import type { FullscreenHandler, CustomMessageHandler } from '../../ui';
+import type { ScalingMode } from '../../styleConfig';
+import type { ViewStyle } from 'react-native';
+import type { PlayerViewConfig } from './playerViewConfig';
+import type { PictureInPictureAction } from './pictureInPictureAction';
+import type { RefObject } from 'react';
 
 /**
  * Base `PlayerView` component props.

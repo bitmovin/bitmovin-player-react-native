@@ -1,5 +1,6 @@
-import { NativeModule, requireNativeModule } from 'expo-modules-core';
-import { DrmConfig } from './index';
+import type { NativeModule } from 'expo-modules-core';
+import { requireNativeModule } from 'expo-modules-core';
+import type { DrmConfig } from './index';
 
 export type DrmModuleEvents = {
   onPrepareCertificate: ({

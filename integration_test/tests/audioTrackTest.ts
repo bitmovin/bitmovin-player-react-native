@@ -6,6 +6,7 @@ import {
   startPlayerTest,
 } from '../playertesting';
 import { Sources } from './helper/Sources';
+import { expect } from './helper/Expect';
 import { Platform } from 'react-native';
 
 export default (spec: TestScope) => {
@@ -24,7 +25,7 @@ export default (spec: TestScope) => {
             await callPlayerAndExpectEvent((player) => {
               player.load(Sources.artOfMotionHls);
             }, EventType.AudioAdded);
-            callPlayer(async (player) => {
+            await callPlayer(async (player) => {
               const audioTrack = await player.getAudioTrack();
               expect(audioTrack?.qualities).toBeDefined();
               const quality = audioTrack?.qualities![0]!;
@@ -49,7 +50,7 @@ export default (spec: TestScope) => {
               await callPlayerAndExpectEvent((player) => {
                 player.load(Sources.artOfMotionHls);
               }, EventType.AudioAdded);
-              callPlayer(async (player) => {
+              await callPlayer(async (player) => {
                 const audioTrack = await player.getAudioTrack();
                 expect(audioTrack?.qualities).toBeUndefined();
               });

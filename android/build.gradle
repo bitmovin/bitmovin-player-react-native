@@ -7,7 +7,6 @@ def packageVersion = packageJson.version
 
 buildscript {
     // Buildscript is evaluated before everything else so we can't use getExtOrDefault
-    def kotlin_version = rootProject.ext.has("kotlinVersion") ? rootProject.ext.get("kotlinVersion") : project.properties["BitmovinPlayerReactNative_kotlinVersion"]
     def ktlint_version = rootProject.ext.has("ktlintVersion") ? rootProject.ext.get("ktlintVersion") : project.properties["BitmovinPlayerReactNative_ktlintVersion"]
     def android_plugin_version = rootProject.ext.has("androidPluginVersion") ? rootProject.ext.get("androidPluginVersion") : project.properties["BitmovinPlayerReactNative_androidPluginVersion"]
 
@@ -108,8 +107,8 @@ dependencies {
 
   // Bitmovin
   implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
-  implementation 'com.bitmovin.player:player:3.165.0+jason'
-  implementation 'com.bitmovin.player:player-media-session:3.165.0+jason'
-  // force okhttp-urlconnection version to 5.3.2 to avoid version conflicts
-  implementation 'com.squareup.okhttp3:okhttp-urlconnection:5.3.2'
+  implementation 'com.bitmovin.player:player:3.169.0+jason'
+  implementation 'com.bitmovin.player:player-media-session:3.169.0+jason'
+  // force okhttp-urlconnection to match the okhttp version pulled in by the player to avoid version conflicts
+  implementation 'com.squareup.okhttp3:okhttp-urlconnection:5.5.0'
 }

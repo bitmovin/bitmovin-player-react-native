@@ -73,6 +73,8 @@ class DecoderConfigModule : Module() {
             val mediaCodecInfoList = response.toMediaCodecInfoList()
             completer.set(mediaCodecInfoList)
             overrideDecoderPriorityProviderCompleters.remove(nativeId)
+            // Don't return the removed value: Expo can't convert it to a JS value and rejects the promise.
+            Unit
         }
 
         /**

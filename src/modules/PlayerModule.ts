@@ -1,5 +1,6 @@
-import { NativeModule, requireNativeModule } from 'expo-modules-core';
-import { AdBreak, AdItem, ImaSettings } from '../advertising';
+import type { NativeModule } from 'expo-modules-core';
+import { requireNativeModule } from 'expo-modules-core';
+import type { AdBreak, AdItem, ImaSettings } from '../advertising';
 
 export type PlayerModuleEvents = {
   onShouldLoadAdItem: ({

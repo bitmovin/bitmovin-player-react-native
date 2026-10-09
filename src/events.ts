@@ -1,4 +1,4 @@
-import {
+import type {
   Ad,
   AdBreak,
   AdConfig,
@@ -6,12 +6,12 @@ import {
   AdQuartile,
   AdSourceType,
 } from './advertising';
-import { SubtitleTrack } from './subtitleTrack';
-import { VideoQuality } from './media';
-import { AudioTrack } from './audioTrack';
-import { LoadingState } from './source';
-import { HttpRequestType, HttpResponse } from './network/networkConfig';
-import {
+import type { SubtitleTrack } from './subtitleTrack';
+import type { VideoQuality } from './media';
+import type { AudioTrack } from './audioTrack';
+import type { LoadingState } from './source';
+import type { HttpRequestType, HttpResponse } from './network/networkConfig';
+import type {
   DateRangeMetadataEntry,
   EventMessageMetadataEntry,
   Id3MetadataEntry,

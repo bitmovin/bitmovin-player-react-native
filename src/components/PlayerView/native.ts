@@ -1,9 +1,9 @@
 import { requireNativeViewManager } from 'expo-modules-core';
 import type { ViewStyle } from 'react-native';
-import { NativePlayerViewEvents } from './nativeEvents';
-import { ScalingMode } from '../../styleConfig';
-import { PlayerViewConfig } from './playerViewConfig';
-import { RefObject } from 'react';
+import type { NativePlayerViewEvents } from './nativeEvents';
+import type { ScalingMode } from '../../styleConfig';
+import type { PlayerViewConfig } from './playerViewConfig';
+import type { RefObject } from 'react';
 
 export interface NativePlayerViewConfig {
   playerViewConfig?: PlayerViewConfig;

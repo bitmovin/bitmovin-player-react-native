@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Player } from '../player';
-import { PlayerConfig } from '../playerConfig';
+import type { PlayerConfig } from '../playerConfig';
 
 /**
  * React hook that creates and returns a reference to a `Player` instance
