@@ -1,4 +1,4 @@
-import { DynamicRange } from './dynamicRange';
+import type { DynamicRange } from './dynamicRange';
 
 /**
  * Color information of a video representation.

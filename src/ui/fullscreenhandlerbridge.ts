@@ -1,5 +1,5 @@
-import { EventSubscription } from 'expo-modules-core';
-import { FullscreenHandler } from './fullscreenhandler';
+import type { EventSubscription } from 'expo-modules-core';
+import type { FullscreenHandler } from './fullscreenhandler';
 import * as Crypto from 'expo-crypto';
 import FullscreenHandlerModule from './fullscreenHandlerModule';
 

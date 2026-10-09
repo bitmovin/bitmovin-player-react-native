@@ -1,5 +1,6 @@
-import { NativeModule, requireNativeModule } from 'expo-modules-core';
-import {
+import type { NativeModule } from 'expo-modules-core';
+import { requireNativeModule } from 'expo-modules-core';
+import type {
   HttpRequest,
   HttpResponse,
   NetworkConfig,

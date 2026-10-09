@@ -1,4 +1,4 @@
-import { CustomDataConfig } from './config';
+import type { CustomDataConfig } from './config';
 import PlayerAnalyticsModule from './playerAnalyticsModule';
 
 /**

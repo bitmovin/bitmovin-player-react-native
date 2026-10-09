@@ -1,4 +1,4 @@
-import { NativeInstanceConfig } from '../nativeInstance';
+import type { NativeInstanceConfig } from '../nativeInstance';
 
 /**
  * Available HTTP request types.

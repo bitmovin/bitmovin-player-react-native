@@ -1,15 +1,15 @@
-import { AdvertisingConfig } from './advertising';
-import { AnalyticsConfig } from './analytics';
-import { StyleConfig } from './styleConfig';
-import { TweaksConfig } from './tweaksConfig';
-import { AdaptationConfig } from './adaptationConfig';
-import { RemoteControlConfig } from './remoteControlConfig';
-import { BufferConfig } from './bufferConfig';
-import { NativeInstanceConfig } from './nativeInstance';
-import { PlaybackConfig } from './playbackConfig';
-import { LiveConfig } from './liveConfig';
-import { NetworkConfig } from './network/networkConfig';
-import { MediaControlConfig } from './mediaControlConfig';
+import type { AdvertisingConfig } from './advertising';
+import type { AnalyticsConfig } from './analytics';
+import type { StyleConfig } from './styleConfig';
+import type { TweaksConfig } from './tweaksConfig';
+import type { AdaptationConfig } from './adaptationConfig';
+import type { RemoteControlConfig } from './remoteControlConfig';
+import type { BufferConfig } from './bufferConfig';
+import type { NativeInstanceConfig } from './nativeInstance';
+import type { PlaybackConfig } from './playbackConfig';
+import type { LiveConfig } from './liveConfig';
+import type { NetworkConfig } from './network/networkConfig';
+import type { MediaControlConfig } from './mediaControlConfig';
 
 /**
  * Object used to configure a new `Player` instance.

@@ -1,5 +1,5 @@
-import { MediaTrackRole } from './mediaTrackRole';
-import { AudioQuality } from './media';
+import type { MediaTrackRole } from './mediaTrackRole';
+import type { AudioQuality } from './media';
 
 /**
  * Represents an audio track for a video.
