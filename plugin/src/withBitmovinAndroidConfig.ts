@@ -42,7 +42,7 @@ const isLiteralVersion = (version: string) => /^\d+(\.\d+)*$/.test(version);
  * Gradle plugin. Versions that are already high enough or not literal (e.g.
  * `$kotlinVersion`) are left untouched.
  */
-export const pinKotlinGradlePluginVersion = (contents: string) => {
+const pinKotlinGradlePluginVersion = (contents: string) => {
   const match = contents.match(KOTLIN_GRADLE_PLUGIN_CLASSPATH);
   if (!match) {
     WarningAggregator.addWarningAndroid(
