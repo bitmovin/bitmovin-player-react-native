@@ -40,6 +40,8 @@ class CustomMessageHandlerModule : Module() {
 
         AsyncFunction("destroy") { nativeId: NativeId ->
             customMessageHandlers.remove(nativeId)
+            // Don't return the removed value: Expo can't convert it to a JS value and rejects the promise.
+            Unit
         }
 
         AsyncFunction("onReceivedSynchronousMessageResult") { id: Int, result: String? ->
