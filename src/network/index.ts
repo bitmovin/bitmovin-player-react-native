@@ -9,7 +9,8 @@ import {
   NetworkConfig,
 } from './networkConfig';
 
-export { HttpRequestType, HttpRequest, HttpResponse, NetworkConfig };
+export { HttpRequestType };
+export type { HttpRequest, HttpResponse, NetworkConfig };
 
 /**
  * Represents a native Network configuration object.

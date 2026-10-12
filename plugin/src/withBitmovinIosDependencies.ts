@@ -86,7 +86,8 @@ const addReference = (references: PbxReference[], reference: PbxReference) => {
 
 const removeReferences = (references: PbxReference[], values: Set<string>) => {
   for (let index = references.length - 1; index >= 0; index--) {
-    if (values.has(references[index].value)) {
+    const reference = references[index];
+    if (reference && values.has(reference.value)) {
       references.splice(index, 1);
     }
   }
