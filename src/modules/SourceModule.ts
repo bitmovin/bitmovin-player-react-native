@@ -1,6 +1,7 @@
-import { NativeModule, requireNativeModule } from 'expo-modules-core';
-import { LoadingState, SourceRemoteControlConfig } from '../source';
-import { Thumbnail } from '../thumbnail';
+import type { NativeModule } from 'expo-modules-core';
+import { requireNativeModule } from 'expo-modules-core';
+import type { LoadingState, SourceRemoteControlConfig } from '../source';
+import type { Thumbnail } from '../thumbnail';
 
 export type SourceModuleEvents = Record<string, any>;
 
