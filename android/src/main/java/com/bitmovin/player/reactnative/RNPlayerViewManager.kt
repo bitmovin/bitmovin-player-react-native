@@ -6,6 +6,7 @@ import com.bitmovin.player.reactnative.converter.toRNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.extensions.getString
+import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.Collections
@@ -15,6 +16,10 @@ class RNPlayerViewManager : Module() {
     // Weak Set
     private val autoPictureInPictureViews = Collections.newSetFromMap(WeakHashMap<RNPlayerView, Boolean>())
     private val activePlayerViewsToPlayerIds = WeakHashMap<RNPlayerView, NativeId>()
+
+    private fun WeakHashMap<RNPlayerView, NativeId>.findPlayerView(
+        playerId: NativeId,
+    ): RNPlayerView? = entries.firstOrNull { it.value == playerId }?.key
 
     override fun definition() = ModuleDefinition {
         Name("RNPlayerViewManager")
@@ -30,6 +35,18 @@ class RNPlayerViewManager : Module() {
                 requestAutoPictureInPicture()
             }
         }
+
+        AsyncFunction("updatePictureInPictureActions") { id: NativeId, pictureInPictureActions: List<String> ->
+            activePlayerViewsToPlayerIds.findPlayerView(id)
+                ?.updatePictureInPictureActions(pictureInPictureActions.toPictureInPictureActions())
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("setIsPictureInPictureEnabled") { id: NativeId, isEnabled: Boolean ->
+            activePlayerViewsToPlayerIds.findPlayerView(id)?.let { view ->
+                view.setIsPictureInPictureEnabled(isEnabled)
+                updateAutoPictureInPictureRegistration(view)
+            }
+        }.runOnQueue(Queues.MAIN)
 
         View(RNPlayerView::class) {
             OnViewDestroys { view: RNPlayerView ->
@@ -88,15 +105,6 @@ class RNPlayerViewManager : Module() {
 
             Prop("fullscreenBridgeId") { view: RNPlayerView, fullscreenBridgeId: String ->
                 view.attachFullscreenBridge(fullscreenBridgeId)
-            }
-
-            AsyncFunction("updatePictureInPictureActions") { view: RNPlayerView, pictureInPictureActions: List<String> ->
-                view.updatePictureInPictureActions(pictureInPictureActions.toPictureInPictureActions())
-            }
-
-            AsyncFunction("setIsPictureInPictureEnabled") { view: RNPlayerView, isEnabled: Boolean ->
-                view.setIsPictureInPictureEnabled(isEnabled)
-                updateAutoPictureInPictureRegistration(view)
             }
 
             Events(
