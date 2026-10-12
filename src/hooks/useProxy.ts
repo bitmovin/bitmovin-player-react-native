@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Event } from '../events';
+import type { Event } from '../events';
 import { normalizeNonFinite } from '../utils/normalizeNonFinite';
 
 /**

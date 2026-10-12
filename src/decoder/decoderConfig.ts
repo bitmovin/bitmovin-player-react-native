@@ -1,4 +1,4 @@
-import { NativeInstanceConfig } from '../nativeInstance';
+import type { NativeInstanceConfig } from '../nativeInstance';
 
 /**
  * Configures the playback behaviour of the player.
