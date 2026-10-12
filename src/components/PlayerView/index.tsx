@@ -1,12 +1,14 @@
-import React, { RefObject, useEffect, useRef, useState } from 'react';
+import type { RefObject } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
-import { NativePlayerView, NativePlayerViewConfig } from './native';
+import type { NativePlayerViewConfig } from './native';
+import { NativePlayerView } from './native';
 import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
-import { PlayerViewProps } from './properties';
-import { PictureInPictureAction } from './pictureInPictureAction';
+import type { PlayerViewProps } from './properties';
+import type { PictureInPictureAction } from './pictureInPictureAction';
 import { addPlatformToMetadataEvent } from '../../utils/metadataPlatform';
 
 /**
@@ -49,7 +51,7 @@ export function PlayerView({
   // Style resulting from merging `baseStyle` and `props.style`.
   const nativeViewStyle = StyleSheet.flatten([styles.baseStyle, style]);
 
-  const fullscreenBridge: React.RefObject<FullscreenHandlerBridge | undefined> =
+  const fullscreenBridge: RefObject<FullscreenHandlerBridge | undefined> =
     useRef(undefined);
   if (fullscreenHandler && !fullscreenBridge.current) {
     fullscreenBridge.current = new FullscreenHandlerBridge();
@@ -58,7 +60,7 @@ export function PlayerView({
     fullscreenBridge.current.setFullscreenHandler(fullscreenHandler);
   }
 
-  const customMessageHandlerBridge: React.RefObject<
+  const customMessageHandlerBridge: RefObject<
     CustomMessageHandlerBridge | undefined
   > = useRef(undefined);
   if (customMessageHandler && !customMessageHandlerBridge.current) {

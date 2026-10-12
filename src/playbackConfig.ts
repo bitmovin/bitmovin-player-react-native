@@ -1,4 +1,4 @@
-import { DecoderConfig } from './decoder/decoderConfig';
+import type { DecoderConfig } from './decoder/decoderConfig';
 
 /**
  * Configures the playback behaviour of the player.
