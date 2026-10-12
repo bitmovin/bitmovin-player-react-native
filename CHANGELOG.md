@@ -5,6 +5,7 @@
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to [`3.127.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31270)
+- Android: The Expo config plugin now raises the app's Kotlin Gradle plugin version to at least `2.2.21` and `compileSdkVersion` to at least `37`, as required by the Android SDK's dependencies. Apps that don't use the config plugin need to apply these settings manually.
 - **Breaking change:** Update Expo SDK to `57.0.27` and React Native to `0.86.3`
   - Minimum supported Expo SDK version is now `57`
   - Minimum supported React Native version is now `0.86.3`
