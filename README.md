@@ -16,7 +16,7 @@ This is an open-source project created to enable customers to integrate the Bitm
 
 This library requires at least Expo 57+ and React Native 0.86.3+ to work properly, checkout our [Lifecycle policy](https://developer.bitmovin.com/playback/docs/lifecycle-policy#react-native-dependency-upgrade-and-compatibility-policy) for more details. The **officially supported** platforms are:
 
-- **iOS/iPadOS/tvOS:** 15.1+
+- **iOS/iPadOS/tvOS:** 16.4+
 - **Android:** 7.0+
 - **Android TV:** 7+
 - **Fire TV:** Fire OS 6.0+
