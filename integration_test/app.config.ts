@@ -51,7 +51,12 @@ const config: ExpoConfig = {
         backgroundColor: '#ffffff',
       },
     ],
-    '@react-native-tvos/config-tv',
+    [
+      '@react-native-tvos/config-tv',
+      {
+        tvosDeploymentTarget: '16.4',
+      },
+    ],
     [
       'expo-build-properties',
       {

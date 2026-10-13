@@ -66,6 +66,7 @@ const config: ExpoConfig = {
     [
       '@react-native-tvos/config-tv',
       {
+        tvosDeploymentTarget: '16.4',
         androidTVBanner: './assets/android-tv-banner.png',
         appleTVImages: {
           icon: './assets/tvos-1280x768.png',
