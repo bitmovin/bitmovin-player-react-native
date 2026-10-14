@@ -1,7 +1,6 @@
 package com.bitmovin.player.reactnative
 
 import android.annotation.SuppressLint
-import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
@@ -17,7 +16,6 @@ import com.bitmovin.player.PlayerView
 import com.bitmovin.player.SubtitleView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
-import com.bitmovin.player.api.event.EventListener
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.on
@@ -105,6 +103,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private val onBmpCueExit by EventDispatcher()
     private val onBmpMetadata by EventDispatcher()
     private val onBmpMetadataParsed by EventDispatcher()
+    private val onBmpPlaylistTransition by EventDispatcher()
+    private val onBmpSourceAdded by EventDispatcher()
+    private val onBmpSourceRemoved by EventDispatcher()
 
     private val onBmpFullscreenEnabled by EventDispatcher()
     private val onBmpFullscreenDisabled by EventDispatcher()
@@ -118,62 +119,66 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
     private var playerInMediaSessionService: Player? = null
 
-    private val activityLifecycleObserver = object : DefaultLifecycleObserver {
-        override fun onStart(owner: LifecycleOwner) {
-            if (playerInMediaSessionService != null) {
-                playerView?.player = playerInMediaSessionService
+    private val activityLifecycleObserver =
+            object : DefaultLifecycleObserver {
+                override fun onStart(owner: LifecycleOwner) {
+                    if (playerInMediaSessionService != null) {
+                        playerView?.player = playerInMediaSessionService
+                    }
+                    playerView?.onStart()
+                }
+
+                override fun onResume(owner: LifecycleOwner) {
+                    playerView?.onResume()
+                }
+
+                override fun onPause(owner: LifecycleOwner) {
+                    playerView?.onPause()
+                }
+
+                override fun onStop(owner: LifecycleOwner) {
+                    removePlayerForBackgroundPlayback()
+                    playerView?.onStop()
+                }
+
+                override fun onDestroy(owner: LifecycleOwner) {
+                    dispose()
+                }
+
+                // When background playback is enabled,
+                // remove player from view so it does not get paused when entering background
+                private fun removePlayerForBackgroundPlayback() {
+                    playerInMediaSessionService = null
+                    val player = playerView?.player ?: return
+
+                    if (!enableBackgroundPlayback) {
+                        return
+                    }
+                    if (appContext.registry.getModule<PlayerModule>()
+                                    ?.mediaSessionPlaybackManager
+                                    ?.player != player
+                    ) {
+                        return
+                    }
+
+                    playerInMediaSessionService = player
+                    playerView?.player = null
+                }
             }
-            playerView?.onStart()
-        }
-
-        override fun onResume(owner: LifecycleOwner) {
-            playerView?.onResume()
-        }
-
-        override fun onPause(owner: LifecycleOwner) {
-            playerView?.onPause()
-        }
-
-        override fun onStop(owner: LifecycleOwner) {
-            removePlayerForBackgroundPlayback()
-            playerView?.onStop()
-        }
-
-        override fun onDestroy(owner: LifecycleOwner) {
-            dispose()
-        }
-
-        // When background playback is enabled,
-        // remove player from view so it does not get paused when entering background
-        private fun removePlayerForBackgroundPlayback() {
-            playerInMediaSessionService = null
-            val player = playerView?.player ?: return
-
-            if (!enableBackgroundPlayback) {
-                return
-            }
-            if (appContext.registry.getModule<PlayerModule>()?.mediaSessionPlaybackManager?.player != player) {
-                return
-            }
-
-            playerInMediaSessionService = player
-            playerView?.player = null
-        }
-    }
 
     private val activityLifecycle: Lifecycle? =
-        (appContext.currentActivity as? LifecycleOwner)?.lifecycle
+            (appContext.currentActivity as? LifecycleOwner)?.lifecycle
 
     private val globalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener =
-        ViewTreeObserver.OnGlobalLayoutListener {
-            requestLayout()
-        }
+            ViewTreeObserver.OnGlobalLayoutListener { requestLayout() }
 
     init {
-        // React Native has a bug that dynamically added views sometimes aren't laid out again properly.
+        // React Native has a bug that dynamically added views sometimes aren't laid out again
+        // properly.
         // Since we dynamically add and remove SurfaceView under the hood this caused the player
         // to suddenly not show the video anymore because SurfaceView was not laid out properly.
-        // Bitmovin player issue: https://github.com/bitmovin/bitmovin-player-react-native/issues/180
+        // Bitmovin player issue:
+        // https://github.com/bitmovin/bitmovin-player-react-native/issues/180
         // React Native layout issue: https://github.com/facebook/react-native/issues/17968
         viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
 
@@ -182,9 +187,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
     fun dispose() {
         playerView?.let { view ->
-            view.player?.let {
-                detachPlayerListeners(it)
-            }
+            view.player?.let { detachPlayerListeners(it) }
             view.setPictureInPictureHandler(null)
             // keep the player alive (before calling PlayerView.onDestroy,
             // as this would internally destroy the player)
@@ -213,7 +216,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
 
         // cleanup all children views explicitly,
-        // so that in case react native does some view caching we are 100% the child views of this view
+        // so that in case react native does some view caching we are 100% the child views of this
+        // view
         // are cleaned up from the view hierarchy
         removeAllViews()
     }
@@ -221,9 +225,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private fun setPlayerView(playerView: PlayerView) {
         // Remove existing playerView if it exists
         this.playerView?.let { oldPlayerView ->
-            oldPlayerView.player?.let {
-                detachPlayerListeners(it)
-            }
+            oldPlayerView.player?.let { detachPlayerListeners(it) }
             (oldPlayerView.parent as? ViewGroup)?.removeView(oldPlayerView)
             oldPlayerView.player = null
         }
@@ -234,21 +236,23 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
 
         // Create new container for the PlayerView
-        val newContainer = FrameLayout(context).apply {
-            layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT,
-            )
-        }
+        val newContainer =
+                FrameLayout(context).apply {
+                    layoutParams =
+                            FrameLayout.LayoutParams(
+                                    FrameLayout.LayoutParams.MATCH_PARENT,
+                                    FrameLayout.LayoutParams.MATCH_PARENT,
+                            )
+                }
 
         // Add PlayerView to the container
         (playerView.parent as ViewGroup?)?.removeView(playerView)
         newContainer.addView(
-            playerView,
-            FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT,
-            ),
+                playerView,
+                FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                ),
         )
 
         // Add container to the ExpoView with correct layout parameters
@@ -260,27 +264,19 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         this.playerView = playerView
         this.playerContainer = newContainer
 
-        scalingMode?.let {
-            playerView.scalingMode = it
-        }
-        fullscreenBridgeId?.let {
-            attachFullscreenBridge(it)
-        }
-        requestedFullscreenValue?.let {
-            setFullscreen(it)
-        }
-        requestedPictureInPictureValue?.let {
-            setPictureInPicture(it)
-        }
+        scalingMode?.let { playerView.scalingMode = it }
+        fullscreenBridgeId?.let { attachFullscreenBridge(it) }
+        requestedFullscreenValue?.let { setFullscreen(it) }
+        requestedPictureInPictureValue?.let { setPictureInPicture(it) }
     }
 
     fun attachPlayer(
-        playerId: NativeId,
-        playerViewConfigWrapper: RNPlayerViewConfigWrapper?,
-        customMessageHandlerBridgeId: NativeId?,
-        enableBackgroundPlayback: Boolean,
-        isPictureInPictureEnabledOnPlayer: Boolean,
-        userInterfaceTypeName: String?,
+            playerId: NativeId,
+            playerViewConfigWrapper: RNPlayerViewConfigWrapper?,
+            customMessageHandlerBridgeId: NativeId?,
+            enableBackgroundPlayback: Boolean,
+            isPictureInPictureEnabledOnPlayer: Boolean,
+            userInterfaceTypeName: String?,
     ) {
         val playerModule = appContext.registry.getModule<PlayerModule>()
         // Player might not be initialized yet, this is a timing issue
@@ -292,51 +288,60 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             return
         }
 
-        playerView?.player?.let {
-            detachPlayerListeners(it)
-        }
+        playerView?.player?.let { detachPlayerListeners(it) }
         attachPlayerListeners(player)
         if (playerView != null) {
             playerView?.player = player
         } else {
             this.enableBackgroundPlayback = enableBackgroundPlayback
-            val userInterfaceType = userInterfaceTypeName?.toUserInterfaceType() ?: UserInterfaceType.Bitmovin
-            val configuredPlayerViewConfig = playerViewConfigWrapper?.playerViewConfig ?: PlayerViewConfig()
+            val userInterfaceType =
+                    userInterfaceTypeName?.toUserInterfaceType() ?: UserInterfaceType.Bitmovin
+            val configuredPlayerViewConfig =
+                    playerViewConfigWrapper?.playerViewConfig ?: PlayerViewConfig()
 
-            val currentActivity = appContext.currentActivity
-                ?: throw IllegalStateException("Cannot create a PlayerView, because no activity is attached.")
-            val playerViewConfig: PlayerViewConfig = if (userInterfaceType != UserInterfaceType.Bitmovin) {
-                configuredPlayerViewConfig.copy(uiConfig = UiConfig.Disabled)
-            } else {
-                configuredPlayerViewConfig
-            }
+            val currentActivity =
+                    appContext.currentActivity
+                            ?: throw IllegalStateException(
+                                    "Cannot create a PlayerView, because no activity is attached."
+                            )
+            val playerViewConfig: PlayerViewConfig =
+                    if (userInterfaceType != UserInterfaceType.Bitmovin) {
+                        configuredPlayerViewConfig.copy(uiConfig = UiConfig.Disabled)
+                    } else {
+                        configuredPlayerViewConfig
+                    }
 
             val newPlayerView = PlayerView(currentActivity, player, playerViewConfig)
 
-            newPlayerView.layoutParams = LayoutParams(
-                LayoutParams.MATCH_PARENT,
-                LayoutParams.MATCH_PARENT,
-            )
+            newPlayerView.layoutParams =
+                    LayoutParams(
+                            LayoutParams.MATCH_PARENT,
+                            LayoutParams.MATCH_PARENT,
+                    )
 
-            this.pictureInPictureConfig = playerViewConfigWrapper?.pictureInPictureConfig ?: PictureInPictureConfig()
-            val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || pictureInPictureConfig.isEnabled
-            pictureInPictureHandler = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                isPictureInPictureEnabled
-            ) {
-                RNPictureInPictureHandler(
-                    currentActivity,
-                    player,
-                    pictureInPictureConfig,
-                )
-            } else {
-                null
-            }
+            this.pictureInPictureConfig =
+                    playerViewConfigWrapper?.pictureInPictureConfig ?: PictureInPictureConfig()
+            val isPictureInPictureEnabled =
+                    isPictureInPictureEnabledOnPlayer || pictureInPictureConfig.isEnabled
+            pictureInPictureHandler =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPictureInPictureEnabled
+                    ) {
+                        RNPictureInPictureHandler(
+                                currentActivity,
+                                player,
+                                pictureInPictureConfig,
+                        )
+                    } else {
+                        null
+                    }
             newPlayerView.setPictureInPictureHandler(pictureInPictureHandler)
             setPlayerView(newPlayerView)
             attachPlayerViewListeners(newPlayerView)
 
             val playerConfig = player.config
-            if (playerConfig.styleConfig.isUiEnabled && userInterfaceType == UserInterfaceType.Subtitle) {
+            if (playerConfig.styleConfig.isUiEnabled &&
+                            userInterfaceType == UserInterfaceType.Subtitle
+            ) {
                 appContext.activityProvider?.currentActivity?.let { activity ->
                     val subtitleView = SubtitleView(activity)
                     subtitleView.setPlayer(player)
@@ -345,16 +350,15 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             }
         }
         customMessageHandlerBridgeId?.let {
-            appContext.registry.getModule<CustomMessageHandlerModule>()?.getInstance(it)
-                ?.let { customMessageHandlerBridge ->
-                    playerView?.setCustomMessageHandler(customMessageHandlerBridge.customMessageHandler)
-                }
+            appContext.registry.getModule<CustomMessageHandlerModule>()?.getInstance(it)?.let {
+                    customMessageHandlerBridge ->
+                playerView?.setCustomMessageHandler(customMessageHandlerBridge.customMessageHandler)
+            }
         }
     }
 
-    internal fun shouldEnterPictureInPictureOnBackground() = pictureInPictureConfig.let {
-        it.isEnabled && it.shouldEnterOnBackground
-    }
+    internal fun shouldEnterPictureInPictureOnBackground() =
+            pictureInPictureConfig.let { it.isEnabled && it.shouldEnterOnBackground }
 
     internal fun requestPictureInPictureOnBackgroundTransition(): Boolean {
         if (!shouldEnterPictureInPictureOnBackground()) {
@@ -389,10 +393,11 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         // Add SubtitleView to the playerContainer instead of the ExpoView
         // This ensures it's on top of the PlayerView
         playerContainer?.let { container ->
-            val layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT,
-            )
+            val layoutParams =
+                    FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.MATCH_PARENT,
+                    )
             container.addView(subtitleView, layoutParams)
             subtitleView.bringToFront() // Ensure proper z-ordering
         }
@@ -409,9 +414,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
     private var isCurrentActivityInPictureInPictureMode: Boolean = isInPictureInPictureMode()
 
-    /**
-     * Called whenever this view's activity configuration changes.
-     */
+    /** Called whenever this view's activity configuration changes. */
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
@@ -425,8 +428,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     private fun onPictureInPictureModeChanged(
-        isInPictureInPictureMode: Boolean,
-        newConfig: Configuration,
+            isInPictureInPictureMode: Boolean,
+            newConfig: Configuration,
     ) {
         val playerView = playerView ?: return
 
@@ -444,11 +447,13 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             // Additional PiP-specific layout handling
             post {
                 val activity = appContext.activityProvider?.currentActivity
-                if (activity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                    activity.isInPictureInPictureMode
+                if (activity != null &&
+                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                                activity.isInPictureInPictureMode
                 ) {
                     // Get the actual PiP window dimensions from WindowManager
-                    val windowManager = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                    val windowManager =
+                            activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
                     val pipWidth: Int
                     val pipHeight: Int
 
@@ -478,8 +483,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
                     // Ensure the ExpoView container is properly sized for PiP
                     measure(
-                        MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
+                            MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
+                            MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
                     )
                     layout(left, top, left + pipWidth, top + pipHeight)
 
@@ -492,8 +497,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                             container.layoutParams = containerParams
                         }
                         container.measure(
-                            MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
-                            MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
+                                MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
+                                MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
                         )
                         container.layout(0, 0, pipWidth, pipHeight)
                     }
@@ -501,8 +506,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                     // Ensure the PlayerView is properly sized for PiP
                     playerView.layoutParams = FrameLayout.LayoutParams(pipWidth, pipHeight)
                     playerView.measure(
-                        MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
+                            MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
+                            MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
                     )
                     playerView.layout(0, 0, pipWidth, pipHeight)
 
@@ -510,8 +515,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                     subtitleView?.let { subtitleView ->
                         subtitleView.layoutParams = FrameLayout.LayoutParams(pipWidth, pipHeight)
                         subtitleView.measure(
-                            MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
-                            MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
+                                MeasureSpec.makeMeasureSpec(pipWidth, MeasureSpec.EXACTLY),
+                                MeasureSpec.makeMeasureSpec(pipHeight, MeasureSpec.EXACTLY),
                         )
                         subtitleView.layout(0, 0, pipWidth, pipHeight)
                         subtitleView.invalidate()
@@ -547,45 +552,47 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 }
 
                 // Reset PlayerView to full size
-                playerView.layoutParams = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                )
+                playerView.layoutParams =
+                        FrameLayout.LayoutParams(
+                                FrameLayout.LayoutParams.MATCH_PARENT,
+                                FrameLayout.LayoutParams.MATCH_PARENT,
+                        )
 
                 // Reset SubtitleView to full size
                 subtitleView?.let { subtitleView ->
-                    subtitleView.layoutParams = FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.MATCH_PARENT,
-                        FrameLayout.LayoutParams.MATCH_PARENT,
-                    )
+                    subtitleView.layoutParams =
+                            FrameLayout.LayoutParams(
+                                    FrameLayout.LayoutParams.MATCH_PARENT,
+                                    FrameLayout.LayoutParams.MATCH_PARENT,
+                            )
                 }
 
                 // Force layout updates
                 measure(
-                    MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                    MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
                 )
                 layout(left, top, right, bottom)
 
                 playerContainer?.let { container ->
                     container.measure(
-                        MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
+                            MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                            MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
                     )
                     container.layout(0, 0, width, height)
                 }
 
                 playerView.measure(
-                    MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                    MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
                 )
                 playerView.layout(0, 0, width, height)
 
                 // Ensure SubtitleView is properly measured and laid out when exiting PiP
                 subtitleView?.let { subtitleView ->
                     subtitleView.measure(
-                        MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
+                            MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                            MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
                     )
                     subtitleView.layout(0, 0, width, height)
                     subtitleView.invalidate()
@@ -595,18 +602,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     private fun attachPlayerViewListeners(playerView: PlayerView) {
-        playerView.on(PlayerEvent.FullscreenEnabled::class) {
-            onBmpFullscreenEnabled(it.toJson())
-        }
+        playerView.on(PlayerEvent.FullscreenEnabled::class) { onBmpFullscreenEnabled(it.toJson()) }
         playerView.on(PlayerEvent.FullscreenDisabled::class) {
             onBmpFullscreenDisabled(it.toJson())
         }
-        playerView.on(PlayerEvent.FullscreenEnter::class) {
-            onBmpFullscreenEnter(it.toJson())
-        }
-        playerView.on(PlayerEvent.FullscreenExit::class) {
-            onBmpFullscreenExit(it.toJson())
-        }
+        playerView.on(PlayerEvent.FullscreenEnter::class) { onBmpFullscreenEnter(it.toJson()) }
+        playerView.on(PlayerEvent.FullscreenExit::class) { onBmpFullscreenExit(it.toJson()) }
         playerView.on(PlayerEvent.PictureInPictureAvailabilityChanged::class) {
             onBmpPictureInPictureAvailabilityChanged(it.toJson())
         }
@@ -619,89 +620,191 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     @Suppress("UNCHECKED_CAST")
-    private val playerEventSubscriptions: List<EventSubscription<Event>> = listOf(
-        EventSubscription<PlayerEvent.Active> { onEvent(onBmpPlayerActive, it.toJson()) },
-        EventSubscription<PlayerEvent.Inactive> { onEvent(onBmpPlayerInactive, it.toJson()) },
-        EventSubscription<PlayerEvent.Error> { onEvent(onBmpPlayerError, it.toJson()) },
-        EventSubscription<PlayerEvent.Warning> { onEvent(onBmpPlayerWarning, it.toJson()) },
-        EventSubscription<PlayerEvent.Destroy> { onEvent(onBmpDestroy, it.toJson()) },
-        EventSubscription<PlayerEvent.Muted> { onEvent(onBmpMuted, it.toJson()) },
-        EventSubscription<PlayerEvent.Unmuted> { onEvent(onBmpUnmuted, it.toJson()) },
-        EventSubscription<PlayerEvent.Ready> { onEvent(onBmpReady, it.toJson()) },
-        EventSubscription<PlayerEvent.Paused> { onEvent(onBmpPaused, it.toJson()) },
-        EventSubscription<PlayerEvent.Play> { onEvent(onBmpPlay, it.toJson()) },
-        EventSubscription<PlayerEvent.Playing> { onEvent(onBmpPlaying, it.toJson()) },
-        EventSubscription<PlayerEvent.PlaybackFinished> { onEvent(onBmpPlaybackFinished, it.toJson()) },
-        EventSubscription<PlayerEvent.Seek> { onEvent(onBmpSeek, it.toJson()) },
-        EventSubscription<PlayerEvent.Seeked> { onEvent(onBmpSeeked, it.toJson()) },
-        EventSubscription<PlayerEvent.TimeShift> { onEvent(onBmpTimeShift, it.toJson()) },
-        EventSubscription<PlayerEvent.TimeShifted> { onEvent(onBmpTimeShifted, it.toJson()) },
-        EventSubscription<PlayerEvent.StallStarted> { onEvent(onBmpStallStarted, it.toJson()) },
-        EventSubscription<PlayerEvent.StallEnded> { onEvent(onBmpStallEnded, it.toJson()) },
-        EventSubscription<PlayerEvent.TimeChanged> { onEvent(onBmpTimeChanged, it.toJson()) },
-        EventSubscription<SourceEvent.Load> { onEvent(onBmpSourceLoad, it.toJson()) },
-        EventSubscription<SourceEvent.Loaded> { onEvent(onBmpSourceLoaded, it.toJson()) },
-        EventSubscription<SourceEvent.Unloaded> { onEvent(onBmpSourceUnloaded, it.toJson()) },
-        EventSubscription<SourceEvent.Error> { onEvent(onBmpSourceError, it.toJson()) },
-        EventSubscription<SourceEvent.Warning> { onEvent(onBmpSourceWarning, it.toJson()) },
-        EventSubscription<SourceEvent.AudioTrackAdded> { onEvent(onBmpAudioAdded, it.toJson()) },
-        EventSubscription<SourceEvent.AudioTrackChanged> { onEvent(onBmpAudioChanged, it.toJson()) },
-        EventSubscription<SourceEvent.AudioTrackRemoved> { onEvent(onBmpAudioRemoved, it.toJson()) },
-        EventSubscription<SourceEvent.SubtitleTrackAdded> { onEvent(onBmpSubtitleAdded, it.toJson()) },
-        EventSubscription<SourceEvent.SubtitleTrackChanged> { onEvent(onBmpSubtitleChanged, it.toJson()) },
-        EventSubscription<SourceEvent.SubtitleTrackRemoved> { onEvent(onBmpSubtitleRemoved, it.toJson()) },
-        EventSubscription<SourceEvent.DownloadFinished> { onEvent(onBmpDownloadFinished, it.toJson()) },
-        EventSubscription<PlayerEvent.AdBreakFinished> { onEvent(onBmpAdBreakFinished, it.toJson()) },
-        EventSubscription<PlayerEvent.AdBreakStarted> { onEvent(onBmpAdBreakStarted, it.toJson()) },
-        EventSubscription<PlayerEvent.AdClicked> { onEvent(onBmpAdClicked, it.toJson()) },
-        EventSubscription<PlayerEvent.AdError> { onEvent(onBmpAdError, it.toJson()) },
-        EventSubscription<PlayerEvent.AdFinished> { onEvent(onBmpAdFinished, it.toJson()) },
-        EventSubscription<PlayerEvent.AdManifestLoad> { onEvent(onBmpAdManifestLoad, it.toJson()) },
-        EventSubscription<PlayerEvent.AdManifestLoaded> { onEvent(onBmpAdManifestLoaded, it.toJson()) },
-        EventSubscription<PlayerEvent.AdQuartile> { onEvent(onBmpAdQuartile, it.toJson()) },
-        EventSubscription<PlayerEvent.AdScheduled> { onEvent(onBmpAdScheduled, it.toJson()) },
-        EventSubscription<PlayerEvent.AdSkipped> { onEvent(onBmpAdSkipped, it.toJson()) },
-        EventSubscription<PlayerEvent.AdStarted> { onEvent(onBmpAdStarted, it.toJson()) },
-        EventSubscription<SourceEvent.VideoDownloadQualityChanged> {
-            onEvent(
-                onBmpVideoDownloadQualityChanged,
-                it.toJson(),
-            )
-        },
-        EventSubscription<PlayerEvent.VideoPlaybackQualityChanged> {
-            onEvent(
-                onBmpVideoPlaybackQualityChanged,
-                it.toJson(),
-            )
-        },
-        EventSubscription<PlayerEvent.CastAvailable> { onEvent(onBmpCastAvailable, it.toJson()) },
-        EventSubscription<PlayerEvent.CastPaused> { onEvent(onBmpCastPaused, it.toJson()) },
-        EventSubscription<PlayerEvent.CastPlaybackFinished> { onEvent(onBmpCastPlaybackFinished, it.toJson()) },
-        EventSubscription<PlayerEvent.CastPlaying> { onEvent(onBmpCastPlaying, it.toJson()) },
-        EventSubscription<PlayerEvent.CastStarted> { onEvent(onBmpCastStarted, it.toJson()) },
-        EventSubscription<PlayerEvent.CastStart> { onEvent(onBmpCastStart, it.toJson()) },
-        EventSubscription<PlayerEvent.CastStopped> { onEvent(onBmpCastStopped, it.toJson()) },
-        EventSubscription<PlayerEvent.CastTimeUpdated> { onEvent(onBmpCastTimeUpdated, it.toJson()) },
-        EventSubscription<PlayerEvent.CastWaitingForDevice> { onEvent(onBmpCastWaitingForDevice, it.toJson()) },
-        EventSubscription<PlayerEvent.CueEnter> { onEvent(onBmpCueEnter, it.toJson()) },
-        EventSubscription<PlayerEvent.CueExit> { onEvent(onBmpCueExit, it.toJson()) },
-        EventSubscription<PlayerEvent.Metadata> { onEvent(onBmpMetadata, it.toJson()) },
-        EventSubscription<SourceEvent.MetadataParsed> { onEvent(onBmpMetadataParsed, it.toJson()) },
-    ) as List<EventSubscription<Event>>
+    private val playerEventSubscriptions: List<EventSubscription<Event>> =
+            listOf(
+                    EventSubscription<PlayerEvent.Active> {
+                        onEvent(onBmpPlayerActive, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.Inactive> {
+                        onEvent(onBmpPlayerInactive, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.Error> { onEvent(onBmpPlayerError, it.toJson()) },
+                    EventSubscription<PlayerEvent.Warning> {
+                        onEvent(onBmpPlayerWarning, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.Destroy> { onEvent(onBmpDestroy, it.toJson()) },
+                    EventSubscription<PlayerEvent.Muted> { onEvent(onBmpMuted, it.toJson()) },
+                    EventSubscription<PlayerEvent.Unmuted> { onEvent(onBmpUnmuted, it.toJson()) },
+                    EventSubscription<PlayerEvent.Ready> { onEvent(onBmpReady, it.toJson()) },
+                    EventSubscription<PlayerEvent.Paused> { onEvent(onBmpPaused, it.toJson()) },
+                    EventSubscription<PlayerEvent.Play> { onEvent(onBmpPlay, it.toJson()) },
+                    EventSubscription<PlayerEvent.Playing> { onEvent(onBmpPlaying, it.toJson()) },
+                    EventSubscription<PlayerEvent.PlaybackFinished> {
+                        onEvent(onBmpPlaybackFinished, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.Seek> { onEvent(onBmpSeek, it.toJson()) },
+                    EventSubscription<PlayerEvent.Seeked> { onEvent(onBmpSeeked, it.toJson()) },
+                    EventSubscription<PlayerEvent.TimeShift> {
+                        onEvent(onBmpTimeShift, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.TimeShifted> {
+                        onEvent(onBmpTimeShifted, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.StallStarted> {
+                        onEvent(onBmpStallStarted, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.StallEnded> {
+                        onEvent(onBmpStallEnded, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.TimeChanged> {
+                        onEvent(onBmpTimeChanged, it.toJson())
+                    },
+                    EventSubscription<SourceEvent.Load> { onEvent(onBmpSourceLoad, it.toJson()) },
+                    EventSubscription<SourceEvent.Loaded> {
+                        onEvent(onBmpSourceLoaded, it.toJson())
+                    },
+                    EventSubscription<SourceEvent.Unloaded> {
+                        onEvent(onBmpSourceUnloaded, it.toJson())
+                    },
+                    EventSubscription<SourceEvent.Error> { onEvent(onBmpSourceError, it.toJson()) },
+                    EventSubscription<SourceEvent.Warning> {
+                        onEvent(onBmpSourceWarning, it.toJson())
+                    },
+                    EventSubscription<SourceEvent.AudioTrackAdded> {
+                        onEvent(onBmpAudioAdded, it.toJson())
+                    },
+                    EventSubscription<SourceEvent.AudioTrackChanged> {
+                        onEvent(onBmpAudioChanged, it.toJson())
+                    },
+                    EventSubscription<SourceEvent.AudioTrackRemoved> {
+                        onEvent(onBmpAudioRemoved, it.toJson())
+                    },
+                    EventSubscription<SourceEvent.SubtitleTrackAdded> {
+                        onEvent(onBmpSubtitleAdded, it.toJson())
+                    },
+                    EventSubscription<SourceEvent.SubtitleTrackChanged> {
+                        onEvent(onBmpSubtitleChanged, it.toJson())
+                    },
+                    EventSubscription<SourceEvent.SubtitleTrackRemoved> {
+                        onEvent(onBmpSubtitleRemoved, it.toJson())
+                    },
+                    EventSubscription<SourceEvent.DownloadFinished> {
+                        onEvent(onBmpDownloadFinished, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.AdBreakFinished> {
+                        onEvent(onBmpAdBreakFinished, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.AdBreakStarted> {
+                        onEvent(onBmpAdBreakStarted, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.AdClicked> {
+                        onEvent(onBmpAdClicked, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.AdError> { onEvent(onBmpAdError, it.toJson()) },
+                    EventSubscription<PlayerEvent.AdFinished> {
+                        onEvent(onBmpAdFinished, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.AdManifestLoad> {
+                        onEvent(onBmpAdManifestLoad, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.AdManifestLoaded> {
+                        onEvent(onBmpAdManifestLoaded, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.AdQuartile> {
+                        onEvent(onBmpAdQuartile, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.AdScheduled> {
+                        onEvent(onBmpAdScheduled, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.AdSkipped> {
+                        onEvent(onBmpAdSkipped, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.AdStarted> {
+                        onEvent(onBmpAdStarted, it.toJson())
+                    },
+                    EventSubscription<SourceEvent.VideoDownloadQualityChanged> {
+                        onEvent(
+                                onBmpVideoDownloadQualityChanged,
+                                it.toJson(),
+                        )
+                    },
+                    EventSubscription<PlayerEvent.VideoPlaybackQualityChanged> {
+                        onEvent(
+                                onBmpVideoPlaybackQualityChanged,
+                                it.toJson(),
+                        )
+                    },
+                    EventSubscription<PlayerEvent.CastAvailable> {
+                        onEvent(onBmpCastAvailable, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.CastPaused> {
+                        onEvent(onBmpCastPaused, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.CastPlaybackFinished> {
+                        onEvent(onBmpCastPlaybackFinished, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.CastPlaying> {
+                        onEvent(onBmpCastPlaying, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.CastStarted> {
+                        onEvent(onBmpCastStarted, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.CastStart> {
+                        onEvent(onBmpCastStart, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.CastStopped> {
+                        onEvent(onBmpCastStopped, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.CastTimeUpdated> {
+                        onEvent(onBmpCastTimeUpdated, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.CastWaitingForDevice> {
+                        onEvent(onBmpCastWaitingForDevice, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.CueEnter> { onEvent(onBmpCueEnter, it.toJson()) },
+                    EventSubscription<PlayerEvent.CueExit> { onEvent(onBmpCueExit, it.toJson()) },
+                    EventSubscription<PlayerEvent.Metadata> { onEvent(onBmpMetadata, it.toJson()) },
+                    EventSubscription<SourceEvent.MetadataParsed> {
+                        onEvent(onBmpMetadataParsed, it.toJson())
+                    },
+                    EventSubscription<PlayerEvent.PlaylistTransition> { event ->
+                        val sourceModule = appContext.registry.getModule<SourceModule>()
+                        val fromId = sourceModule?.getNativeId(event.from)
+                        val toId = sourceModule?.getNativeId(event.to)
+                        val map = event.toJson().toMutableMap()
+                        map["from"] = event.from.toJson(fromId)
+                        map["to"] = event.to.toJson(toId)
+                        onEvent(onBmpPlaylistTransition, map)
+                    },
+                    EventSubscription<PlayerEvent.SourceAdded> { event ->
+                        val sourceModule = appContext.registry.getModule<SourceModule>()
+                        val sourceId = sourceModule?.getNativeId(event.source)
+                        val map = event.toJson().toMutableMap()
+                        map["source"] = event.source.toJson(sourceId)
+                        onEvent(onBmpSourceAdded, map)
+                    },
+                    EventSubscription<PlayerEvent.SourceRemoved> { event ->
+                        val sourceModule = appContext.registry.getModule<SourceModule>()
+                        val sourceId = sourceModule?.getNativeId(event.source)
+                        val map = event.toJson().toMutableMap()
+                        map["source"] = event.source.toJson(sourceId)
+                        onEvent(onBmpSourceRemoved, map)
+                    },
+            ) as
+                    List<EventSubscription<Event>>
 
     private fun detachPlayerListeners(player: Player) {
-        playerEventSubscriptions.forEach {
-            player.off(it.eventClass, it.eventListener)
-        }
+        playerEventSubscriptions.forEach { player.off(it.eventClass, it.eventListener) }
     }
 
     private fun attachPlayerListeners(player: Player) {
-        playerEventSubscriptions.forEach {
-            player.on(it.eventClass, it.eventListener)
-        }
+        playerEventSubscriptions.forEach { player.on(it.eventClass, it.eventListener) }
     }
 
-    private fun onEvent(dispatcher: ViewEventCallback<Map<String, Any>>, eventData: Map<String, Any>) {
+    private fun onEvent(
+            dispatcher: ViewEventCallback<Map<String, Any>>,
+            eventData: Map<String, Any>
+    ) {
         val sanitized = NonFiniteSanitizer.sanitizeEventData(eventData)
         dispatcher(sanitized)
         onBmpEvent(sanitized)
@@ -741,10 +844,14 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     fun attachFullscreenBridge(fullscreenBridgeId: NativeId) {
         this.fullscreenBridgeId = fullscreenBridgeId
         val playerView = playerView ?: return
-        appContext.registry.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId)
-            ?.let { fullscreenBridge ->
-                playerView.setFullscreenHandler(fullscreenBridge)
-            } ?: throw IllegalArgumentException("Fullscreen bridge with ID $fullscreenBridgeId not found")
+        appContext
+                .registry
+                .getModule<FullscreenHandlerModule>()
+                ?.getInstance(fullscreenBridgeId)
+                ?.let { fullscreenBridge -> playerView.setFullscreenHandler(fullscreenBridge) }
+                ?: throw IllegalArgumentException(
+                        "Fullscreen bridge with ID $fullscreenBridgeId not found"
+                )
         requestedFullscreenValue?.let { isFullscreen ->
             playerView.let {
                 if (isFullscreen) {
@@ -763,16 +870,16 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     /**
-     * Try to measure and update this view layout as much as possible to
-     * avoid layout problems related to React or old layout values present
-     * in `playerView` due to being previously attached to a different parent.
+     * Try to measure and update this view layout as much as possible to avoid layout problems
+     * related to React or old layout values present in `playerView` due to being previously
+     * attached to a different parent.
      */
     override fun requestLayout() {
         super.requestLayout()
         post {
             measure(
-                MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
             )
             layout(left, top, right, bottom)
         }

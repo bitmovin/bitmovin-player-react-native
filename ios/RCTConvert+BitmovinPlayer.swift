@@ -1387,6 +1387,47 @@ extension RCTConvert {
         }
         return json
     }
+
+    static func toJson(sourceConfig: SourceConfig?) -> [String: Any]? {
+        guard let sourceConfig else { return nil }
+        var json: [String: Any] = [
+            "url": sourceConfig.url.absoluteString,
+            "type": RCTConvert.toJson(sourceType: sourceConfig.type)
+        ]
+        if let title = sourceConfig.title {
+            json["title"] = title
+        }
+        if let description = sourceConfig.sourceDescription {
+            json["description"] = description
+        }
+        if let poster = sourceConfig.posterSource {
+            json["poster"] = poster.absoluteString
+        }
+        json["isPosterPersistent"] = sourceConfig.isPosterPersistent
+        json["metadata"] = sourceConfig.metadata
+        return json
+    }
+
+    static func toJson(sourceType: SourceType) -> String {
+        switch sourceType {
+        case .dash: return "dash"
+        case .hls: return "hls"
+        case .progressive: return "progressive"
+        @unknown default: return "none"
+        }
+    }
+
+    static func toJson(source: Source, nativeId: String? = nil) -> [String: Any] {
+        var json: [String: Any] = RCTConvert.toJson(sourceConfig: source.sourceConfig) ?? [:]
+        json["duration"] = source.duration
+        json["isActive"] = source.isActive
+        json["loadingState"] = source.loadingState.rawValue
+        json["isAttachedToPlayer"] = source.isAttachedToPlayer
+        if let nativeId {
+            json["nativeId"] = nativeId
+        }
+        return json
+    }
 }
 /**
  * React native specific PlayerViewConfig.

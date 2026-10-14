@@ -26,6 +26,7 @@ import SystemUI from './screens/SystemUi';
 import OfflinePlayback from './screens/OfflinePlayback';
 import Casting from './screens/Casting';
 import BackgroundPlayback from './screens/BackgroundPlayback';
+import PlaylistPlayback from './screens/PlaylistPlayback';
 import * as Device from 'expo-device';
 
 export type RootStackParamsList = {
@@ -68,6 +69,7 @@ export type RootStackParamsList = {
   Casting: undefined;
   SystemUI: undefined;
   BackgroundPlayback: undefined;
+  PlaylistPlayback: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsList>();
@@ -97,6 +99,10 @@ export default function App() {
       {
         title: 'Basic playback',
         routeName: 'BasicPlayback' as keyof RootStackParamsList,
+      },
+      {
+        title: 'Playlist Playback',
+        routeName: 'PlaylistPlayback' as keyof RootStackParamsList,
       },
       {
         title: 'Basic Analytics',
@@ -195,13 +201,13 @@ export default function App() {
             // eslint-disable-next-line react/no-unstable-nested-components
             headerRight: !Platform.isTV
               ? () => (
-                  <Button
-                    title="Custom"
-                    onPress={() => {
-                      navigation.navigate('CustomPlaybackForm');
-                    }}
-                  />
-                )
+                <Button
+                  title="Custom"
+                  onPress={() => {
+                    navigation.navigate('CustomPlaybackForm');
+                  }}
+                />
+              )
               : undefined,
           })}
           initialParams={stackParams}
@@ -225,6 +231,11 @@ export default function App() {
           name="BasicPlayback"
           component={BasicPlayback}
           options={{ title: 'Basic playback' }}
+        />
+        <RootStack.Screen
+          name="PlaylistPlayback"
+          component={PlaylistPlayback}
+          options={{ title: 'Playlist Playback' }}
         />
         {isAndroidTV && (
           <RootStack.Screen

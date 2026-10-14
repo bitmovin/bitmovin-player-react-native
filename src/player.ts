@@ -11,7 +11,10 @@ import { AnalyticsApi } from './analytics/player';
 import { PlayerConfig } from './playerConfig';
 import { AdItem, ImaSettings } from './advertising';
 import { BufferApi } from './bufferApi';
+import { PlaylistApi, PlaylistConfig } from './playlistApi';
 import { VideoQuality } from './media';
+import { PlaylistTransitionEvent, SourceAddedEvent, SourceRemovedEvent } from './events';
+
 import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
 
@@ -48,10 +51,22 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   buffer: BufferApi = new BufferApi(this.nativeId);
 
+  /**
+   * The {@link PlaylistApi} for interactions regarding the playlist.
+   */
+  playlist: PlaylistApi = new PlaylistApi(this.nativeId);
+
   private network?: Network;
+
+  onPlaylistTransition?: (event: PlaylistTransitionEvent) => void;
+  onSourceAdded?: (event: SourceAddedEvent) => void;
+  onSourceRemoved?: (event: SourceRemovedEvent) => void;
 
   private decoderConfig?: DecoderConfigBridge;
   private onImaBeforeInitializationSubscription?: EventSubscription;
+  private onPlaylistTransitionSubscription?: EventSubscription;
+  private onSourceAddedSubscription?: EventSubscription;
+  private onSourceRemovedSubscription?: EventSubscription;
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
@@ -82,6 +97,38 @@ export class Player extends NativeInstance<PlayerConfig> {
         );
       }
 
+      this.onPlaylistTransitionSubscription = PlayerModule.addListener(
+        'onPlaylistTransition',
+        (event: PlaylistTransitionEvent) => {
+          if (event.nativeId !== this.nativeId) {
+            return;
+          }
+          this.source = new Source(event.to.config);
+          this.source.initialize();
+          this.onPlaylistTransition?.(event);
+        }
+      );
+
+      this.onSourceAddedSubscription = PlayerModule.addListener(
+        'onSourceAdded',
+        (event: SourceAddedEvent) => {
+          if (event.nativeId !== this.nativeId) {
+            return;
+          }
+          this.onSourceAdded?.(event);
+        }
+      );
+
+      this.onSourceRemovedSubscription = PlayerModule.addListener(
+        'onSourceRemoved',
+        (event: SourceRemovedEvent) => {
+          if (event.nativeId !== this.nativeId) {
+            return;
+          }
+          this.onSourceRemoved?.(event);
+        }
+      );
+
       this.isInitialized = true;
     }
     return Promise.resolve();
@@ -98,6 +145,12 @@ export class Player extends NativeInstance<PlayerConfig> {
       this.decoderConfig?.destroy();
       this.onImaBeforeInitializationSubscription?.remove();
       this.onImaBeforeInitializationSubscription = undefined;
+      this.onPlaylistTransitionSubscription?.remove();
+      this.onPlaylistTransitionSubscription = undefined;
+      this.onSourceAddedSubscription?.remove();
+      this.onSourceAddedSubscription = undefined;
+      this.onSourceRemovedSubscription?.remove();
+      this.onSourceRemovedSubscription = undefined;
       this.isDestroyed = true;
     }
   };
@@ -105,8 +158,24 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Loads a new {@link Source} from `sourceConfig` into the player.
    */
-  load = (sourceConfig: SourceConfig) => {
-    this.loadSource(new Source(sourceConfig));
+
+
+  /**
+   * Loads a new {@link Source} from `sourceConfig` into the player.
+   */
+  load = (config: SourceConfig | PlaylistConfig) => {
+    if ('sources' in config) {
+      const sources = config.sources.map((sourceConfig) => new Source(sourceConfig));
+      Promise.all(sources.map((source) => source.initialize())).then(() => {
+        PlayerModule.loadPlaylist(
+          this.nativeId,
+          sources.map((source) => source.nativeId),
+          config.options
+        );
+      });
+    } else {
+      this.loadSource(new Source(config));
+    }
   };
 
   /**

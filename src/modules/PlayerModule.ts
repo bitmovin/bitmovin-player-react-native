@@ -1,5 +1,6 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
 import { ImaSettings } from '../advertising';
+import { PlaylistTransitionEvent, SourceAddedEvent, SourceRemovedEvent } from '../events';
 
 export type PlayerModuleEvents = {
   onImaBeforeInitialization: ({
@@ -11,6 +12,9 @@ export type PlayerModuleEvents = {
     id: number;
     settings: ImaSettings;
   }) => void;
+  onPlaylistTransition: (event: PlaylistTransitionEvent) => void;
+  onSourceAdded: (event: SourceAddedEvent) => void;
+  onSourceRemoved: (event: SourceRemovedEvent) => void;
 };
 
 declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
@@ -200,6 +204,16 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
   loadSource(nativeId: string, sourceNativeId: string): Promise<void>;
 
   /**
+   * Load playlist into the player.
+   * Requires SourceModule dependency.
+   */
+  loadPlaylist(
+    nativeId: string,
+    sourceNativeIds: string[],
+    options?: Record<string, any>
+  ): Promise<void>;
+
+  /**
    * Load offline content into the player.
    */
   loadOfflineContent(
@@ -262,6 +276,31 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
    * Set video quality.
    */
   setVideoQuality(nativeId: string, qualityId: string): Promise<void>;
+
+  /**
+   * Add source to playlist.
+   */
+  playlistAdd(nativeId: string, sourceNativeId: string, index?: number): Promise<void>;
+
+  /**
+   * Remove source from playlist.
+   */
+  playlistRemove(nativeId: string, sourceNativeId: string): Promise<void>;
+
+  /**
+   * Remove source from playlist at index.
+   */
+  playlistRemoveAt(nativeId: string, index: number): Promise<void>;
+
+  /**
+   * Seek to specific time in a source in the playlist.
+   */
+  playlistSeek(nativeId: string, sourceNativeId: string, time: number): Promise<void>;
+
+  /**
+   * Get sources in playlist.
+   */
+  playlistSources(nativeId: string): Promise<any[]>;
 }
 
 export default requireNativeModule<PlayerModule>('PlayerModule');

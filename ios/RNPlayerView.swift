@@ -108,6 +108,9 @@ public class RNPlayerView: ExpoView {
     let onBmpCueExit = EventDispatcher()
     let onBmpMetadata = EventDispatcher()
     let onBmpMetadataParsed = EventDispatcher()
+    let onBmpPlaylistTransition = EventDispatcher()
+    let onBmpSourceAdded = EventDispatcher()
+    let onBmpSourceRemoved = EventDispatcher()
 
     required init(appContext: AppContext? = nil) {
         super.init(appContext: appContext)
@@ -445,6 +448,35 @@ extension RNPlayerView: PlayerListener {
 
     public func onMetadataParsed(_ event: MetadataParsedEvent, player: Player) {
         onBmpMetadataParsed(event.eventPayload())
+    }
+
+    public func onPlaylistTransition(_ event: PlaylistTransitionEvent, player: Player) {
+        var payload = event.eventPayload()
+        if let sourceModule = self.appContext?.moduleRegistry.get(SourceModule.self) {
+            let fromId = sourceModule.nativeId(where: { $0 === event.from })
+            let toId = sourceModule.nativeId(where: { $0 === event.to })
+            payload["from"] = RCTConvert.toJson(source: event.from, nativeId: fromId)
+            payload["to"] = RCTConvert.toJson(source: event.to, nativeId: toId)
+        }
+        onBmpPlaylistTransition(payload)
+    }
+
+    public func onSourceAdded(_ event: SourceAddedEvent, player: Player) {
+        var payload = event.eventPayload()
+        if let sourceModule = self.appContext?.moduleRegistry.get(SourceModule.self) {
+            let sourceId = sourceModule.nativeId(where: { $0 === event.source })
+            payload["source"] = RCTConvert.toJson(source: event.source, nativeId: sourceId)
+        }
+        onBmpSourceAdded(payload)
+    }
+
+    public func onSourceRemoved(_ event: SourceRemovedEvent, player: Player) {
+        var payload = event.eventPayload()
+        if let sourceModule = self.appContext?.moduleRegistry.get(SourceModule.self) {
+            let sourceId = sourceModule.nativeId(where: { $0 === event.source })
+            payload["source"] = RCTConvert.toJson(source: event.source, nativeId: sourceId)
+        }
+        onBmpSourceRemoved(payload)
     }
 
 #if os(iOS)

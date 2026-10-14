@@ -19,7 +19,7 @@ public class PlayerModule: Module {
             }
             imaSettingsWaiter.removeAll()
         }
-        Events("onImaBeforeInitialization")
+        Events("onImaBeforeInitialization", "onSourceAdded", "onSourceRemoved")
         AsyncFunction("play") { (nativeId: NativeId) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.play()
         }.runOnQueue(.main)
@@ -191,6 +191,7 @@ public class PlayerModule: Module {
             }
             self?.setupImaBeforeInitialization(nativeId: nativeId, config: config, playerConfig: playerConfig)
             let player = PlayerFactory.create(playerConfig: playerConfig)
+            player.add(listener: self)
             PlayerRegistry.register(player: player, nativeId: nativeId)
         }.runOnQueue(.main)
         AsyncFunction(
@@ -207,11 +208,9 @@ public class PlayerModule: Module {
             }
             self?.setupImaBeforeInitialization(nativeId: nativeId, config: config, playerConfig: playerConfig)
             let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfig)
-            let player = PlayerFactory.create(
-                playerConfig: playerConfig,
-                analyticsConfig: analyticsConfig,
                 defaultMetadata: defaultMetadata ?? DefaultMetadata()
             )
+            player.add(listener: self)
             PlayerRegistry.register(player: player, nativeId: nativeId)
         }.runOnQueue(.main)
         AsyncFunction("loadSource") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) in
@@ -219,6 +218,60 @@ public class PlayerModule: Module {
                   let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
                   let source = sourceModule.retrieve(sourceNativeId) else { return }
             player.load(source: source)
+        }.runOnQueue(.main)
+
+        AsyncFunction("loadPlaylist") { [weak self] (nativeId: NativeId, sourceNativeIds: [NativeId], _: [String: Any]?) in
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
+                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self) else { return }
+
+            let sources: [Source] = sourceNativeIds.compactMap { sourceModule.retrieve($0) }
+            guard let firstSource = sources.first else { return }
+
+            player.load(source: firstSource)
+            sources.dropFirst().forEach { player.playlist.add(source: $0) }
+        }.runOnQueue(.main)
+
+        AsyncFunction("playlistAdd") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId, index: Int?) in
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
+                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
+                  let source = sourceModule.retrieve(sourceNativeId) else { return }
+            if let index {
+                player.playlist.add(source: source, at: index)
+            } else {
+                player.playlist.add(source: source)
+            }
+        }.runOnQueue(.main)
+
+        AsyncFunction("playlistRemove") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) in
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
+                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
+                  let source = sourceModule.retrieve(sourceNativeId) else { return }
+
+            if let index = player.playlist.sources.firstIndex(where: { $0 === source }) {
+                player.playlist.remove(sourceAt: index)
+            }
+        }.runOnQueue(.main)
+
+        AsyncFunction("playlistRemoveAt") { (nativeId: NativeId, index: Int) in
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId) else { return }
+            player.playlist.remove(sourceAt: index)
+        }.runOnQueue(.main)
+
+        AsyncFunction("playlistSeek") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId, time: Double) in
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
+                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
+                  let source = sourceModule.retrieve(sourceNativeId) else { return }
+            player.playlist.seek(source: source, time: time)
+        }.runOnQueue(.main)
+
+        AsyncFunction("playlistSources") { [weak self] (nativeId: NativeId) -> [[String: Any]] in
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId) else { return [] }
+            guard let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self) else { return [] }
+
+            return player.playlist.sources.map { source in
+                let nativeId = sourceModule.nativeId(where: { $0 === source })
+                return RCTConvert.toJson(source: source, nativeId: nativeId)
+            }
         }.runOnQueue(.main)
     }
 
@@ -275,5 +328,27 @@ public class PlayerModule: Module {
             guard let updated = wait() else { return }
             RCTConvert.applyImaSettings(settings, from: updated)
         }
+    }
+}
+
+extension PlayerModule: PlayerListener {
+    public func onSourceAdded(_ event: SourceAddedEvent, player: Player) {
+        guard let nativeId = PlayerRegistry.getNativeId(player: player),
+              let sourceModule = self.appContext?.moduleRegistry.get(SourceModule.self) else { return }
+        let sourceId = sourceModule.nativeId(where: { $0 === event.source })
+        var payload = event.eventPayload()
+        payload["nativeId"] = nativeId
+        payload["source"] = RCTConvert.toJson(source: event.source, nativeId: sourceId)
+        sendEvent("onSourceAdded", payload)
+    }
+
+    public func onSourceRemoved(_ event: SourceRemovedEvent, player: Player) {
+        guard let nativeId = PlayerRegistry.getNativeId(player: player),
+              let sourceModule = self.appContext?.moduleRegistry.get(SourceModule.self) else { return }
+        let sourceId = sourceModule.nativeId(where: { $0 === event.source })
+        var payload = event.eventPayload()
+        payload["nativeId"] = nativeId
+        payload["source"] = RCTConvert.toJson(source: event.source, nativeId: sourceId)
+        sendEvent("onSourceRemoved", payload)
     }
 }

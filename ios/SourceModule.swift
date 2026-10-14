@@ -19,7 +19,7 @@ public class SourceModule: Module {
 
         // MARK: - Module methods
         AsyncFunction("initializeWithConfig") { [weak self] (nativeId: NativeId, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?) in // swiftlint:disable:this line_length
-            self?.createSource(
+            try self?.createSource(
                 nativeId: nativeId,
                 drmNativeId: drmNativeId,
                 config: config,
@@ -27,7 +27,7 @@ public class SourceModule: Module {
             )
         }.runOnQueue(.main)
         AsyncFunction("initializeWithAnalyticsConfig") { [weak self] (nativeId: NativeId, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?, analyticsSourceMetadata: [String: Any]?) in // swiftlint:disable:this line_length
-            self?.createSource(
+            try self?.createSource(
                 nativeId: nativeId,
                 drmNativeId: drmNativeId,
                 config: config,
@@ -104,7 +104,7 @@ public class SourceModule: Module {
         config: [String: Any]?,
         sourceRemoteControlConfig: [String: Any]?,
         analyticsSourceMetadata: [String: Any]? = nil
-    ) {
+    ) throws {
         guard sources[nativeId] == nil else {
             // Source already exists
             return
@@ -113,7 +113,7 @@ public class SourceModule: Module {
         let drmModule = appContext?.moduleRegistry.get(DrmModule.self)
         let drmConfig = drmNativeId.flatMap { drmModule?.retrieve($0) }
         guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig) else {
-            return
+            throw RNSourceError.invalidConfig
         }
         // Add analytics metadata if provided
         let sourceMetadata = RCTConvert.analyticsSourceMetadata(analyticsSourceMetadata)
@@ -144,4 +144,8 @@ public class SourceModule: Module {
 
 internal struct SourceRemoteControlConfig {
     let castSourceConfig: SourceConfig?
+}
+
+enum RNSourceError: Error {
+    case invalidConfig
 }

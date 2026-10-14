@@ -9,7 +9,7 @@ import {
 import { SubtitleTrack } from './subtitleTrack';
 import { VideoQuality } from './media';
 import { AudioTrack } from './audioTrack';
-import { LoadingState } from './source';
+import { LoadingState, SourceConfig } from './source';
 import { HttpRequestType } from './network/networkConfig';
 import {
   DateRangeMetadataEntry,
@@ -34,6 +34,10 @@ export interface Event {
    * The UNIX timestamp in which this event happened.
    */
   timestamp: number;
+  /**
+   * The native ID of the player instance that emitted this event.
+   */
+  nativeId?: string;
 }
 
 /**
@@ -58,7 +62,7 @@ export interface ErrorEvent extends Event {
  * Emitted when a source is loaded into the player.
  * Seeking and time shifting are allowed as soon as this event is seen.
  */
-export type PlayerActiveEvent = Event;
+// PlayerActiveEvent removed (duplicate)
 
 /**
  * Emitted when a source is unloaded from the player.
@@ -95,6 +99,23 @@ export type UnmutedEvent = Event;
  * Emitted when the player is ready for immediate playback, because initial audio/video
  * has been downloaded.
  */
+export type PlayerActiveEvent = Event;
+
+/**
+ * Emitted when a source is added to the playlist.
+ */
+export interface SourceAddedEvent extends Event {
+  source: SourceConfig;
+  index: number;
+}
+
+/**
+ * Emitted when a source is removed from the playlist.
+ */
+export interface SourceRemovedEvent extends Event {
+  source: SourceConfig;
+  index: number;
+}
 export type ReadyEvent = Event;
 
 /**
@@ -161,6 +182,10 @@ export interface EventSource {
    * The current {@link LoadingState} of the source.
    */
   loadingState: LoadingState;
+  /**
+   * The {@link SourceConfig} used to create the source.
+   */
+  config: SourceConfig;
 }
 
 /**
@@ -812,22 +837,36 @@ export interface MetadataEventBase<T extends MetadataEntry> extends Event {
  */
 export type MetadataParsedEvent =
   | (MetadataEventBase<Id3MetadataEntry> & {
-      metadataType: MetadataType.ID3;
-    })
+    metadataType: MetadataType.ID3;
+  })
   | (MetadataEventBase<DateRangeMetadataEntry> & {
-      metadataType: MetadataType.DATERANGE;
-    })
+    metadataType: MetadataType.DATERANGE;
+  })
   | (MetadataEventBase<EventMessageMetadataEntry> & {
-      metadataType: MetadataType.EMSG;
-    })
+    metadataType: MetadataType.EMSG;
+  })
   | (MetadataEventBase<ScteMetadataEntry> & {
-      metadataType: MetadataType.SCTE;
-    })
+    metadataType: MetadataType.SCTE;
+  })
   | (MetadataEventBase<UnsupportedMetadataEntry> & {
-      metadataType: MetadataType.Unsupported;
-    });
+    metadataType: MetadataType.Unsupported;
+  });
 
 /**
  * Emitted when metadata is encountered during playback.
  */
 export type MetadataEvent = MetadataParsedEvent;
+
+/**
+ * Emitted when the source in the playlist changes.
+ */
+export interface PlaylistTransitionEvent extends Event {
+  /**
+   * The source from which the transition started.
+   */
+  from: EventSource;
+  /**
+   * The source to which the transition ended.
+   */
+  to: EventSource;
+}
