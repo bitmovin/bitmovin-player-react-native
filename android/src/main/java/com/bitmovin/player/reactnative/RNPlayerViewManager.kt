@@ -17,10 +17,6 @@ class RNPlayerViewManager : Module() {
     private val autoPictureInPictureViews = Collections.newSetFromMap(WeakHashMap<RNPlayerView, Boolean>())
     private val activePlayerViewsToPlayerIds = WeakHashMap<RNPlayerView, NativeId>()
 
-    private fun WeakHashMap<RNPlayerView, NativeId>.findPlayerView(
-        playerId: NativeId,
-    ): RNPlayerView? = entries.firstOrNull { it.value == playerId }?.key
-
     override fun definition() = ModuleDefinition {
         Name("RNPlayerViewManager")
 
@@ -200,3 +196,7 @@ class RNPlayerViewManager : Module() {
     private fun requestAutoPictureInPicture() = autoPictureInPictureViews
         .firstOrNull { it.requestPictureInPictureOnBackgroundTransition() }
 }
+
+private fun WeakHashMap<RNPlayerView, NativeId>.findPlayerView(
+    playerId: NativeId,
+): RNPlayerView? = entries.firstOrNull { it.value == playerId }?.key
