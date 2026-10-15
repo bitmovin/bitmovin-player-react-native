@@ -213,7 +213,8 @@ export interface AdConfig {
   /**
    * Specifies how many seconds of the main video content should be replaced by ad break(s).
    *
-   * Undefined for pause ads, as they do not replace main content.
+   * Pause ads do not replace main content: on Android this is `undefined`
+   * for pause ads, on iOS it is `0`.
    */
   replaceContentDuration?: number;
 }
