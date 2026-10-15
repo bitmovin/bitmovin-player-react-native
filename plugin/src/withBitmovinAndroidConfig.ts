@@ -15,7 +15,7 @@ type ManifestActivity = AndroidConfig.Manifest.ManifestActivity;
 // needs at least a Kotlin 2.2 compiler.
 const MIN_KOTLIN_VERSION = '2.2.21';
 // Required by okhttp-android 5.5.0, which is pulled in by the Android player.
-// Can be removed with Expo SDK 58, which compiles against SDK 37 by default.
+// TODO: Can be removed with Expo SDK 58, which compiles against SDK 37 by default.
 const MIN_COMPILE_SDK_VERSION = 37;
 
 const KOTLIN_GRADLE_PLUGIN_CLASSPATH =
@@ -41,6 +41,7 @@ const isLiteralVersion = (version: string) => /^\d+(\.\d+)*$/.test(version);
  * version, so it would otherwise resolve to the version used by React Native's
  * Gradle plugin. Versions that are already high enough or not literal (e.g.
  * `$kotlinVersion`) are left untouched.
+ * TODO: Can be removed with Expo SDK 58, whose React Native version uses Kotlin 2.2.
  */
 const pinKotlinGradlePluginVersion = (contents: string) => {
   const match = contents.match(KOTLIN_GRADLE_PLUGIN_CLASSPATH);
@@ -338,6 +339,7 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
       [...new Set([...existingExcludes, ...packagingExcludes])].join(',')
     );
 
+    // TODO: Can be removed with Expo SDK 58, whose React Native version uses Kotlin 2.2.
     const kotlinVersionEntry = properties.find(
       (item) => item.type === 'property' && item.key === 'android.kotlinVersion'
     );
