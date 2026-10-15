@@ -53,7 +53,7 @@
     "react": "19.2.3",
     "react-native": "npm:react-native-tvos@0.86.3-0",
     "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "~4.26.0",
+    "react-native-screens": "~4.29.0",
     "react-native-system-navigation-bar": "^3.0.1"
   },
   "devDependencies": {
@@ -76,8 +76,10 @@
   },
   "expo": {
     "install": {
+      "//": "TODO: Remove the react-native-screens exclusion once the Expo SDK bundles react-native-screens 4.29.0 or newer, which fixes unresponsive touches on covered screens after a window resize, such as Picture in Picture (https://github.com/software-mansion/react-native-screens/pull/4760).",
       "exclude": [
-        "react-native"
+        "react-native",
+        "react-native-screens"
       ]
     },
     "autolinking": {
