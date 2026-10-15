@@ -60,11 +60,8 @@ export interface AdSource {
  * if the first one fails to load. The start and end of an ad break are signaled via `AdBreakStartedEvent`
  * and `AdBreakFinishedEvent`.
  *
- * An `AdItem` with the position `"pause"` is a pause ad instead of an ad break. It does not interrupt the
- * main content and emits no `AdScheduledEvent`, ad break, `AdStartedEvent`, `AdFinishedEvent` or
- * `AdQuartileEvent` events.
- * Its lifecycle is signaled via `NonLinearAdStartedEvent`, `NonLinearAdSkippedEvent` and
- * `NonLinearAdFinishedEvent` instead.
+ * An `AdItem` with the position `"pause"` is a pause ad instead of an ad break. Its lifecycle is signaled via
+ * `NonLinearAdStartedEvent`, `NonLinearAdSkippedEvent` and `NonLinearAdFinishedEvent`.
  */
 export interface AdItem {
   /**
@@ -74,20 +71,13 @@ export interface AdItem {
    * Possible values are:
    *  • "pre": pre-roll ad (for VoD and Live streaming)
    *  • "post": post-roll ad (for VoD streaming only)
-   *  • "pause": pause ad, shown while the main content is paused (for VoD and Live streaming, experimental)
+   *  • "pause": pause ad, shown while the main content is paused (experimental)
    *  • fractional seconds: "10", "12.5" (mid-roll ad, for VoD and Live streaming)
    *  • percentage of the entire video duration: "25%", "50%" (mid-roll ad, for VoD streaming only)
    *  • timecode hh:mm:ss.mmm: "00:10:30.000", "01:00:00.000" (mid-roll ad, for VoD streaming only)
    *
-   * Support for the "pause" position is experimental and may change in a future version.
-   * The value is case-insensitive. Pause ads behave as follows:
-   *  • Only `AdSourceType.BITMOVIN` sources and VAST NonLinear creatives of type `image/png` or `image/jpeg`
-   *    are supported.
-   *  • The pause ad is shown in the `PlayerView`, which must be mounted and visible.
-   *  • With the Subtitle UI, a custom UI, a Bitmovin Web UI older than 4.22.0 or a disabled UI, the player
-   *    shows no controls for the pause ad.
-   *
-   * See the platform guides for details such as when pause ads are suppressed and how errors are reported.
+   * Pause ads require `AdSourceType.BITMOVIN` sources with a static PNG or JPEG VAST NonLinear creative.
+   * See the platform guides for more details.
    *
    * @see [Pause ads on Android](https://developer.bitmovin.com/playback/docs/pause-ads-android)
    * @see [Pause ads on iOS](https://developer.bitmovin.com/playback/docs/pause-ads-ios)
