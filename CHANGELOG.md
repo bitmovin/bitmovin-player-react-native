@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+
+- Experimental support for pause ads, shown while playback is paused
+  - Schedule an `AdItem` with `position` `"pause"` and `AdSourceType.BITMOVIN` sources
+  - `NonLinearAdStartedEvent`, `NonLinearAdSkippedEvent` and `NonLinearAdFinishedEvent` to signal when a pause ad is shown, skipped or finished
+  - See the native guides for more information:
+    - [Pause ads on Android](https://developer.bitmovin.com/playback/docs/pause-ads-android)
+    - [Pause ads on iOS](https://developer.bitmovin.com/playback/docs/pause-ads-ios)
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to [`3.128.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31280)
