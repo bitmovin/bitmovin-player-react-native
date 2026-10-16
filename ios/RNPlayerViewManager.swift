@@ -1,12 +1,44 @@
 import ExpoModulesCore
 
 public class RNPlayerViewManager: Module {
+    private var playerViews: [NativeId: WeakPlayerView] = [:]
+    private var pendingPictureInPictureActions: [NativeId: [RNPictureInPictureAction]] = [:]
+    private var pendingIsPictureInPictureEnabled: [NativeId: Bool] = [:]
+
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("RNPlayerViewManager")
 
+        OnDestroy {
+            self.playerViews.removeAll()
+            self.pendingPictureInPictureActions.removeAll()
+            self.pendingIsPictureInPictureEnabled.removeAll()
+        }
+
+        AsyncFunction("updatePictureInPictureActions") { [weak self] (playerId: NativeId, actions: [String]) in
+            guard let self, let pictureInPictureActions = RCTConvert.pictureInPictureActions(actions) else {
+                return
+            }
+            guard let view = self.playerView(for: playerId) else {
+                self.pendingPictureInPictureActions[playerId] = pictureInPictureActions
+                return
+            }
+            view.updatePictureInPictureActions(actions: pictureInPictureActions)
+        }.runOnQueue(.main)
+
+        AsyncFunction("setIsPictureInPictureEnabled") { [weak self] (playerId: NativeId, isEnabled: Bool) in
+            guard let self else {
+                return
+            }
+            guard let view = self.playerView(for: playerId) else {
+                self.pendingIsPictureInPictureEnabled[playerId] = isEnabled
+                return
+            }
+            view.setIsPictureInPictureEnabled(isEnabled)
+        }.runOnQueue(.main)
+
         View(RNPlayerView.self) {
-            Prop("config") { (view: RNPlayerView, playerInfo: [String: Any]?) in
+            Prop("config") { [weak self] (view: RNPlayerView, playerInfo: [String: Any]?) in
                 let playerId = playerInfo?["playerId"] as? NativeId
                 let playerViewConfigWrapper = RCTConvert
                     .rnPlayerViewConfig(playerInfo?["playerViewConfig"] as? [String: Any])
@@ -16,6 +48,7 @@ public class RNPlayerViewManager: Module {
                     playerViewConfigWrapper: playerViewConfigWrapper,
                     customMessageHandlerBridgeId: customMessageHandlerBridgeId
                 )
+                self?.registerView(view, playerId: playerId)
             }
             Prop("scalingMode") { (view: RNPlayerView, scalingMode: String?) in
                 view.setScalingMode(scalingMode: scalingMode)
@@ -28,12 +61,6 @@ public class RNPlayerViewManager: Module {
             }
             Prop("fullscreenBridgeId") { (view: RNPlayerView, fullscreenBridgeId: String) in
                 view.attachFullscreenBridge(fullscreenBridgeId: fullscreenBridgeId)
-            }
-            AsyncFunction("updatePictureInPictureActions") { (view: RNPlayerView, pictureInPictureActions: [String]) in
-                view.updatePictureInPictureActions(actions: RCTConvert.pictureInPictureActions(pictureInPictureActions))
-            }
-            AsyncFunction("setIsPictureInPictureEnabled") { (view: RNPlayerView, isEnabled: Bool) in
-                view.setIsPictureInPictureEnabled(isEnabled)
             }
             Events(
                 "onBmpEvent",
@@ -106,5 +133,39 @@ public class RNPlayerViewManager: Module {
                 "onBmpFairplayLicenseAcquired"
             )
         }
+    }
+
+    private func playerView(for playerId: NativeId) -> RNPlayerView? {
+        playerViews[playerId]?.view
+    }
+
+    /// Keeps a single view per player and applies the Picture in Picture values that were set
+    /// before the view showing the player was registered.
+    private func registerView(_ view: RNPlayerView, playerId: NativeId?) {
+        playerViews = playerViews.filter { _, entry in
+            guard let trackedView = entry.view else {
+                return false
+            }
+            return trackedView !== view
+        }
+        guard let playerId else {
+            return
+        }
+        playerViews[playerId] = WeakPlayerView(view)
+
+        if let isEnabled = pendingIsPictureInPictureEnabled.removeValue(forKey: playerId) {
+            view.setIsPictureInPictureEnabled(isEnabled)
+        }
+        if let actions = pendingPictureInPictureActions.removeValue(forKey: playerId) {
+            view.updatePictureInPictureActions(actions: actions)
+        }
+    }
+}
+
+private final class WeakPlayerView {
+    weak var view: RNPlayerView?
+
+    init(_ view: RNPlayerView) {
+        self.view = view
     }
 }
