@@ -21,6 +21,32 @@ const MIN_COMPILE_SDK_VERSION = 37;
 const KOTLIN_GRADLE_PLUGIN_CLASSPATH =
   /classpath\(\s*['"]org\.jetbrains\.kotlin:kotlin-gradle-plugin(?::([^'"]*))?['"]\s*\)/;
 
+const ROOT_PROJECT_PLUGIN = 'apply plugin: "expo-root-project"';
+const GENERATED_BLOCK_BEGIN =
+  '// @generated begin bitmovin-player-react-native';
+const GENERATED_BLOCK_END = '// @generated end bitmovin-player-react-native';
+
+// Expo's root project plugin only sets `kotlinVersion` and `compileSdkVersion`
+// if they are not defined yet, so defining them before it is applied takes
+// precedence over Expo's defaults.
+const ROOT_PROJECT_VERSIONS = `${GENERATED_BLOCK_BEGIN}
+// Gradle resolves the Kotlin Gradle plugin to the highest requested version, so
+// let Expo pick KSP for that version instead of its default Kotlin version.
+def kotlinGradlePlugin = buildscript.configurations.classpath.incoming.resolutionResult.allComponents
+  .find { it.moduleVersion.group == 'org.jetbrains.kotlin' && it.moduleVersion.name == 'kotlin-gradle-plugin' }
+if (kotlinGradlePlugin != null) {
+  ext.kotlinVersion = kotlinGradlePlugin.moduleVersion.version
+}
+// Raise Expo's compile SDK version only if it is lower than required.
+ext.compileSdkVersion = Math.max(
+  ${MIN_COMPILE_SDK_VERSION},
+  versionCatalogs.find('expoLibs')
+    .flatMap { it.findVersion('compileSdk') }
+    .map { it.requiredVersion as int }
+    .orElse(0)
+)
+${GENERATED_BLOCK_END}`;
+
 const compareVersions = (a: string, b: string) => {
   const aParts = a.split('.').map((part) => parseInt(part, 10) || 0);
   const bParts = b.split('.').map((part) => parseInt(part, 10) || 0);
@@ -63,6 +89,32 @@ const pinKotlinGradlePluginVersion = (contents: string) => {
   return contents.replace(
     KOTLIN_GRADLE_PLUGIN_CLASSPATH,
     `classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:${MIN_KOTLIN_VERSION}')`
+  );
+};
+
+/**
+ * Defines the Kotlin and compile SDK versions in the root `build.gradle` before
+ * Expo's root project plugin is applied. The block is replaced on repeated
+ * prebuilds, so it is only added once.
+ * TODO: Can be removed with Expo SDK 58, whose React Native version uses Kotlin 2.2.
+ */
+const defineRootProjectVersions = (contents: string) => {
+  const existingBlock = new RegExp(
+    `${GENERATED_BLOCK_BEGIN}[\\s\\S]*?${GENERATED_BLOCK_END}`
+  );
+  if (existingBlock.test(contents)) {
+    return contents.replace(existingBlock, ROOT_PROJECT_VERSIONS);
+  }
+  if (!contents.includes(ROOT_PROJECT_PLUGIN)) {
+    WarningAggregator.addWarningAndroid(
+      'bitmovin-player-react-native',
+      `Could not find "${ROOT_PROJECT_PLUGIN}" in android/build.gradle. Make sure the app uses compileSdkVersion ${MIN_COMPILE_SDK_VERSION} or newer and a KSP version matching its Kotlin version.`
+    );
+    return contents;
+  }
+  return contents.replace(
+    ROOT_PROJECT_PLUGIN,
+    `${ROOT_PROJECT_VERSIONS}\n${ROOT_PROJECT_PLUGIN}`
   );
 };
 
@@ -281,13 +333,13 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
 
   config = withProjectBuildGradle(config, (config) => {
     if (config.modResults.language === 'groovy') {
-      config.modResults.contents = pinKotlinGradlePluginVersion(
-        config.modResults.contents
+      config.modResults.contents = defineRootProjectVersions(
+        pinKotlinGradlePluginVersion(config.modResults.contents)
       );
     } else {
       WarningAggregator.addWarningAndroid(
         'bitmovin-player-react-native',
-        `Cannot pin the Kotlin Gradle plugin in a Kotlin DSL build.gradle. Make sure the app uses Kotlin ${MIN_KOTLIN_VERSION} or newer.`
+        `Cannot configure a Kotlin DSL build.gradle. Make sure the app uses Kotlin ${MIN_KOTLIN_VERSION} or newer, a KSP version matching it and compileSdkVersion ${MIN_COMPILE_SDK_VERSION} or newer.`
       );
     }
     return config;
@@ -338,36 +390,6 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
       packagingExcludesKey,
       [...new Set([...existingExcludes, ...packagingExcludes])].join(',')
     );
-
-    // TODO: Can be removed with Expo SDK 58, whose React Native version uses Kotlin 2.2.
-    const kotlinVersionEntry = properties.find(
-      (item) => item.type === 'property' && item.key === 'android.kotlinVersion'
-    );
-    if (
-      kotlinVersionEntry?.type !== 'property' ||
-      compareVersions(kotlinVersionEntry.value, MIN_KOTLIN_VERSION) < 0
-    ) {
-      AndroidConfig.BuildProperties.updateAndroidBuildProperty(
-        properties,
-        'android.kotlinVersion',
-        MIN_KOTLIN_VERSION
-      );
-    }
-
-    const compileSdkEntry = properties.find(
-      (item) =>
-        item.type === 'property' && item.key === 'android.compileSdkVersion'
-    );
-    if (
-      compileSdkEntry?.type !== 'property' ||
-      (parseInt(compileSdkEntry.value, 10) || 0) < MIN_COMPILE_SDK_VERSION
-    ) {
-      AndroidConfig.BuildProperties.updateAndroidBuildProperty(
-        properties,
-        'android.compileSdkVersion',
-        `${MIN_COMPILE_SDK_VERSION}`
-      );
-    }
 
     config.modResults = properties;
     return config;

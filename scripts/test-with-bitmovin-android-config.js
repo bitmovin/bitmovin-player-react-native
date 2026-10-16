@@ -88,23 +88,25 @@ test('leaves build.gradle untouched without a Kotlin classpath entry', async () 
   assert.equal(await applyToProjectBuildGradle(original), original);
 });
 
-test('raises missing or lower Kotlin and compile SDK versions', async () => {
-  assert.deepEqual(pick(await applyToGradleProperties({})), {
-    kotlinVersion: '2.2.21',
-    compileSdkVersion: '37',
-  });
-  assert.deepEqual(
-    pick(
-      await applyToGradleProperties({
-        'android.kotlinVersion': '2.1.20',
-        'android.compileSdkVersion': '36',
-      })
-    ),
-    { kotlinVersion: '2.2.21', compileSdkVersion: '37' }
+test('defines the root project versions once before the Expo root project plugin', async () => {
+  const original = `${projectBuildGradle(
+    "classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')"
+  )}
+apply plugin: "expo-root-project"
+`;
+  const contents = await applyToProjectBuildGradle(original);
+  assert.match(
+    contents,
+    /\/\/ @generated begin bitmovin-player-react-native\n[\s\S]*ext\.kotlinVersion = [\s\S]*ext\.compileSdkVersion = Math\.max\(\n  37,[\s\S]*\/\/ @generated end bitmovin-player-react-native\napply plugin: "expo-root-project"/
   );
+  assert.equal(await applyToProjectBuildGradle(contents), contents);
 });
 
-test('keeps higher Kotlin and compile SDK versions', async () => {
+test('does not set Kotlin and compile SDK versions in gradle.properties', async () => {
+  assert.deepEqual(pick(await applyToGradleProperties({})), {
+    kotlinVersion: undefined,
+    compileSdkVersion: undefined,
+  });
   assert.deepEqual(
     pick(
       await applyToGradleProperties({
