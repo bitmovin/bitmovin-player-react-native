@@ -142,6 +142,7 @@ exec /bin/sleep 0.01
     `#!/bin/sh
 echo "npx:$PWD:$*" >> "$STUB_RECORD_FILE"
 if [ "$1" = "expo" ] && [ "$2" = "start" ]; then
+  echo "npx-node-options:$NODE_OPTIONS" >> "$STUB_RECORD_FILE"
   if [ "$STUB_EXPO_START_MODE" = "hold" ]; then
     # Model a packager that needs time to shut down gracefully.
     trap '/bin/sleep 0.05; echo "terminated" > "$STUB_EXPO_MARKER_FILE"; rm -f "$STUB_EXPO_PID_FILE" "$STUB_EXPO_CWD_FILE"; exit 0' TERM INT
