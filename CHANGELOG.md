@@ -5,11 +5,11 @@
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to [`3.128.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31280)
-- Update Expo SDK version to `57.0.27` and React Native version to `0.86.3`
+- **Breaking change:** Update Expo SDK to `57.0.27` and React Native to `0.86.3`
   - Minimum supported Expo SDK version is now `57`
   - Minimum supported React Native version is now `0.86.3`
   - Minimum supported iOS/tvOS version is now `16.4`
-  - The `prepare` script now runs `yarn build`, as `expo-module-scripts` no longer builds the library and the Expo config plugin on install
+  - Apps using older Expo or React Native versions must upgrade to these minimums before updating this SDK. Follow the [Expo upgrade guide](https://docs.expo.dev/workflow/upgrading-expo-sdk-walkthrough/) for the migration steps appropriate to your application.
 
 ## [1.28.0] - 2026-10-08
 
