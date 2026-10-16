@@ -16,5 +16,6 @@ export const AdTags = {
   ),
   progressive:
     'https://cdn.bitmovin.com/content/internal/assets/testing/ads/testad2s.mp4',
+  pause: 'https://cdn.bitmovin.com/content/demos/pause-ads/popcorn.xml',
   error: withCorrelator('https://mock.codes/404?correlator='),
 };

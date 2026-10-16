@@ -2,6 +2,7 @@
 
 import BitmovinCollector
 import BitmovinPlayer
+@_spi(ExperimentalApi)
 import BitmovinPlayerCore
 import Foundation
 
@@ -291,10 +292,14 @@ extension RCTConvert {
         else {
             return nil
         }
-        return AdItem(
-            adSources: sources.compactMap { RCTConvert.adSource($0) },
-            atPosition: json["position"] as? String
-        )
+        let adSources = sources.compactMap { RCTConvert.adSource($0) }
+        let position = json["position"] as? String
+        switch position {
+        case "pause":
+            return AdItem(adSources: adSources, trigger: .pause)
+        default:
+            return AdItem(adSources: adSources, atPosition: position)
+        }
     }
 
     static func adSource(_ json: Any?) -> AdSource? {
@@ -624,7 +629,7 @@ extension RCTConvert {
             return nil
         }
         return [
-            "position": adItem.position,
+            "position": adItem.trigger == .pause ? "pause" : adItem.position,
             "sources": adItem.sources.compactMap { RCTConvert.toJson(adSource: $0) }
         ]
     }

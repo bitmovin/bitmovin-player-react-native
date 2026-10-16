@@ -13,6 +13,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.SubtitleView
+import com.bitmovin.player.api.ExperimentalBitmovinApi
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
@@ -87,6 +88,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private val onBmpAdScheduled by EventDispatcher()
     private val onBmpAdSkipped by EventDispatcher()
     private val onBmpAdStarted by EventDispatcher()
+    private val onBmpNonLinearAdStarted by EventDispatcher()
+    private val onBmpNonLinearAdSkipped by EventDispatcher()
+    private val onBmpNonLinearAdFinished by EventDispatcher()
     private val onBmpVideoDownloadQualityChanged by EventDispatcher()
     private val onBmpVideoPlaybackQualityChanged by EventDispatcher()
     private val onBmpCastAvailable by EventDispatcher()
@@ -550,6 +554,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         EventSubscription<PlayerEvent.AdScheduled> { onEvent(onBmpAdScheduled, it.toJson()) },
         EventSubscription<PlayerEvent.AdSkipped> { onEvent(onBmpAdSkipped, it.toJson()) },
         EventSubscription<PlayerEvent.AdStarted> { onEvent(onBmpAdStarted, it.toJson()) },
+        @OptIn(ExperimentalBitmovinApi::class)
+        EventSubscription<PlayerEvent.NonLinearAdStarted> { onEvent(onBmpNonLinearAdStarted, it.toJson()) },
+        @OptIn(ExperimentalBitmovinApi::class)
+        EventSubscription<PlayerEvent.NonLinearAdSkipped> { onEvent(onBmpNonLinearAdSkipped, it.toJson()) },
+        @OptIn(ExperimentalBitmovinApi::class)
+        EventSubscription<PlayerEvent.NonLinearAdFinished> { onEvent(onBmpNonLinearAdFinished, it.toJson()) },
         EventSubscription<SourceEvent.VideoDownloadQualityChanged> {
             onEvent(
                 onBmpVideoDownloadQualityChanged,

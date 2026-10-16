@@ -26,6 +26,9 @@ import type {
   FullscreenEnterEvent,
   FullscreenExitEvent,
   MutedEvent,
+  NonLinearAdStartedEvent,
+  NonLinearAdSkippedEvent,
+  NonLinearAdFinishedEvent,
   PausedEvent,
   PictureInPictureAvailabilityChangedEvent,
   PictureInPictureEnterEvent,
@@ -231,6 +234,24 @@ export type PlayerViewEvents = {
    * Event emitted when the player has been muted.
    */
   onMuted?: (event: MutedEvent) => void;
+  /**
+   * Event emitted when a non-linear ad has started.
+   *
+   * @experimental
+   */
+  onNonLinearAdStarted?: (event: NonLinearAdStartedEvent) => void;
+  /**
+   * Event emitted when a non-linear ad has been skipped.
+   *
+   * @experimental
+   */
+  onNonLinearAdSkipped?: (event: NonLinearAdSkippedEvent) => void;
+  /**
+   * Event emitted when a non-linear ad has finished.
+   *
+   * @experimental
+   */
+  onNonLinearAdFinished?: (event: NonLinearAdFinishedEvent) => void;
   /**
    * Event emitted when the player has been paused.
    */

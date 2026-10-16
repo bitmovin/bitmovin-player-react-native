@@ -12,6 +12,7 @@ import com.bitmovin.player.reactnative.extensions.get
 import com.bitmovin.player.reactnative.extensions.set
 import com.bitmovin.player.api.BandwidthMeterType
 import com.bitmovin.player.api.DeviceDescription.DeviceName
+import com.bitmovin.player.api.ExperimentalBitmovinApi
 import com.bitmovin.player.api.ForceReuseVideoCodecReason
 import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.PlayerConfig
@@ -393,6 +394,7 @@ fun SourceEvent.toJson(): Map<String, Any> {
     return baseMap.filterNotNullValues()
 }
 
+@OptIn(ExperimentalBitmovinApi::class)
 fun PlayerEvent.toJson(): Map<String, Any> {
     val baseMap = mutableMapOf<String, Any?>(
         "name" to getName(),
@@ -497,6 +499,18 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["position"] = position
             baseMap["skipOffset"] = skipOffset
             baseMap["timeOffset"] = timeOffset
+        }
+
+        is PlayerEvent.NonLinearAdStarted -> {
+            baseMap["ad"] = ad.toJson()
+        }
+
+        is PlayerEvent.NonLinearAdSkipped -> {
+            baseMap["ad"] = ad.toJson()
+        }
+
+        is PlayerEvent.NonLinearAdFinished -> {
+            baseMap["ad"] = ad.toJson()
         }
 
         is PlayerEvent.VideoPlaybackQualityChanged -> {
