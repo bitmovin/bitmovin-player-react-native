@@ -37,6 +37,26 @@ test('start-test-android reuses an owned Expo CLI process and forwards --no-pack
   assertPackagerNotStarted(calls);
 });
 
+test('start-test-android starts Expo with IPv4-first DNS resolution and keeps existing NODE_OPTIONS', (t) => {
+  const { env, recordFile, expoMarkerFile } = createStubEnvironment(t, {
+    STUB_EXPO_START_MODE: 'hold',
+    STUB_PRESERVE_SLEEP: '1',
+    STUB_ADB_DEVICES: `List of devices attached\n${FAKE_ANDROID_EMULATOR_ID}\tdevice\n`,
+    NODE_OPTIONS: '--max-old-space-size=4096',
+  });
+
+  const result = runScript('start-test-android.sh', env);
+  const calls = readCalls(recordFile);
+
+  assert.equal(result.status, 0);
+  assert.ok(
+    calls.includes(
+      'npx-node-options:--max-old-space-size=4096 --dns-result-order=ipv4first'
+    )
+  );
+  assert.equal(waitForFile(expoMarkerFile), true);
+});
+
 test('start-test-android reports why emulator setup failed', (t) => {
   const { env } = createStubEnvironment(t, {
     STUB_ADB_DEVICES: 'List of devices attached\n',
