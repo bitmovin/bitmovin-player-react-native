@@ -1,9 +1,11 @@
-import { CmcdConfig } from './cmcdConfig';
-import { Drm, DrmConfig } from './drm';
-import NativeInstance, { NativeInstanceConfig } from './nativeInstance';
-import { SideLoadedSubtitleTrack } from './subtitleTrack';
-import { Thumbnail } from './thumbnail';
-import { SourceMetadata } from './analytics';
+import type { CmcdConfig } from './cmcdConfig';
+import type { DrmConfig } from './drm';
+import { Drm } from './drm';
+import type { NativeInstanceConfig } from './nativeInstance';
+import NativeInstance from './nativeInstance';
+import type { SideLoadedSubtitleTrack } from './subtitleTrack';
+import type { Thumbnail } from './thumbnail';
+import type { SourceMetadata } from './analytics';
 import SourceModule from './modules/SourceModule';
 
 /**

@@ -1,4 +1,4 @@
-import { PictureInPictureConfig } from './pictureInPictureConfig';
+import type { PictureInPictureConfig } from './pictureInPictureConfig';
 
 /**
  * Configures the visual presentation and behaviour of the `PlayerView`.

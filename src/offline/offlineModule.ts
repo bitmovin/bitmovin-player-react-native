@@ -1,7 +1,8 @@
-import { NativeModule, requireNativeModule } from 'expo-modules-core';
-import { SourceConfig } from '../source';
-import { OfflineDownloadRequest } from './offlineDownloadRequest';
-import { BitmovinNativeOfflineEventData } from './offlineContentManagerListener';
+import type { NativeModule } from 'expo-modules-core';
+import { requireNativeModule } from 'expo-modules-core';
+import type { SourceConfig } from '../source';
+import type { OfflineDownloadRequest } from './offlineDownloadRequest';
+import type { BitmovinNativeOfflineEventData } from './offlineContentManagerListener';
 
 export type OfflineModuleEvents = {
   onBitmovinOfflineEvent: (event: BitmovinNativeOfflineEventData) => void;
