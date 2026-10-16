@@ -4,6 +4,7 @@ import {
   WarningAggregator,
   withAndroidManifest,
   withGradleProperties,
+  // TODO: remove with expo 58
   withProjectBuildGradle,
 } from 'expo/config-plugins';
 import withAppGradleDependencies from './withAppGradleDependencies';
@@ -11,11 +12,14 @@ import { BitmovinConfigOptions } from './withBitmovinConfig';
 
 type ManifestActivity = AndroidConfig.Manifest.ManifestActivity;
 
+// TODO: remove with expo 58: START
+// Expo SDK 58's React Native version uses Kotlin 2.2 and compiles against
+// SDK 37 by default, so the app's versions no longer need to be raised.
+
 // The Android player's transitive dependencies ship Kotlin 2.3 metadata, which
 // needs at least a Kotlin 2.2 compiler.
 const MIN_KOTLIN_VERSION = '2.2.21';
 // Required by okhttp-android 5.5.0, which is pulled in by the Android player.
-// TODO: Can be removed with Expo SDK 58, which compiles against SDK 37 by default.
 const MIN_COMPILE_SDK_VERSION = 37;
 
 const KOTLIN_GRADLE_PLUGIN_CLASSPATH =
@@ -67,7 +71,6 @@ const isLiteralVersion = (version: string) => /^\d+(\.\d+)*$/.test(version);
  * version, so it would otherwise resolve to the version used by React Native's
  * Gradle plugin. Versions that are already high enough or not literal (e.g.
  * `$kotlinVersion`) are left untouched.
- * TODO: Can be removed with Expo SDK 58, whose React Native version uses Kotlin 2.2.
  */
 const pinKotlinGradlePluginVersion = (contents: string) => {
   const match = contents.match(KOTLIN_GRADLE_PLUGIN_CLASSPATH);
@@ -96,7 +99,6 @@ const pinKotlinGradlePluginVersion = (contents: string) => {
  * Defines the Kotlin and compile SDK versions in the root `build.gradle` before
  * Expo's root project plugin is applied. The block is replaced on repeated
  * prebuilds, so it is only added once.
- * TODO: Can be removed with Expo SDK 58, whose React Native version uses Kotlin 2.2.
  */
 const defineRootProjectVersions = (contents: string) => {
   const existingBlock = new RegExp(
@@ -117,6 +119,7 @@ const defineRootProjectVersions = (contents: string) => {
     `${ROOT_PROJECT_VERSIONS}\n${ROOT_PROJECT_PLUGIN}`
   );
 };
+// TODO: remove with expo 58: END
 
 const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
   config,
@@ -331,6 +334,7 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
 
   config = withAppGradleDependencies(config, { dependencies });
 
+  // TODO: remove with expo 58: START
   config = withProjectBuildGradle(config, (config) => {
     if (config.modResults.language === 'groovy') {
       config.modResults.contents = defineRootProjectVersions(
@@ -344,6 +348,7 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
     }
     return config;
   });
+  // TODO: remove with expo 58: END
 
   config = withGradleProperties(config, (config) => {
     const properties = config.modResults;
