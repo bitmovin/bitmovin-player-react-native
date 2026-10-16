@@ -12,7 +12,7 @@ if (!fs.existsSync(envPath)) {
 }
 
 // Load environment variables from .env file
-dotenv.config({ path: envPath });
+dotenv.config({ path: envPath, quiet: true });
 
 const BITMOVIN_PLAYER_LICENSE_KEY =
   process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY;
@@ -30,11 +30,6 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   userInterfaceStyle: 'light',
-  splash: {
-    image: './assets/images/splash-icon.png',
-    resizeMode: 'contain',
-    backgroundColor: '#ffffff',
-  },
   assetBundlePatterns: ['**/*'],
   ios: {
     supportsTablet: true,
@@ -48,7 +43,20 @@ const config: ExpoConfig = {
     package: 'com.bitmovin.player.reactnative.integrationtests',
   },
   plugins: [
-    '@react-native-tvos/config-tv',
+    [
+      'expo-splash-screen',
+      {
+        image: './assets/images/splash-icon.png',
+        resizeMode: 'contain',
+        backgroundColor: '#ffffff',
+      },
+    ],
+    [
+      '@react-native-tvos/config-tv',
+      {
+        tvosDeploymentTarget: '16.4',
+      },
+    ],
     [
       'expo-build-properties',
       {
