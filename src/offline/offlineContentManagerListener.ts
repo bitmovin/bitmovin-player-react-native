@@ -1,5 +1,5 @@
-import { OfflineContentOptions } from './offlineContentOptions';
-import { OfflineState } from './offlineState';
+import type { OfflineContentOptions } from './offlineContentOptions';
+import type { OfflineState } from './offlineState';
 
 /**
  * Enum to hold the `eventType` on the `BitmovinNativeOfflineEventData`

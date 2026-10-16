@@ -1,8 +1,9 @@
 import { Platform } from 'react-native';
-import { EventSubscription } from 'expo-modules-core';
-import NativeInstance, { NativeInstanceConfig } from '../nativeInstance';
-import { FairplayConfig } from './fairplayConfig';
-import { WidevineConfig } from './widevineConfig';
+import type { EventSubscription } from 'expo-modules-core';
+import type { NativeInstanceConfig } from '../nativeInstance';
+import NativeInstance from '../nativeInstance';
+import type { FairplayConfig } from './fairplayConfig';
+import type { WidevineConfig } from './widevineConfig';
 import { FairplayDrmApi } from './fairplayDrmApi';
 import DrmModule from './drmModule';
 import { DebugConfig } from '../debug';
