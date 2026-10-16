@@ -1,3 +1,5 @@
+// TODO: remove with expo 58: this whole file and its entry in the `test:plugin`
+// script, as it only tests the Kotlin and compile SDK version setup.
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const withBitmovinAndroidConfig =
