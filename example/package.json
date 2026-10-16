@@ -4,7 +4,6 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "postinstall": "patch-package",
     "bootstrap": "yarn install && yarn prebuild && yarn pods",
     "open:android": "open -a \"Android Studio\" android",
     "open:ios": "xed ios",
@@ -67,7 +66,6 @@
     "eslint-config-expo": "~57.0.2",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.5.1",
-    "patch-package": "^8.0.1",
     "pod-install": "^0.3.10",
     "prettier": "^3.6.2",
     "typescript": "~6.0.3"
