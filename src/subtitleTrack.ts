@@ -1,5 +1,5 @@
-import { MediaTrackRole } from './mediaTrackRole';
-import { SubtitleFormat } from './subtitleFormat';
+import type { MediaTrackRole } from './mediaTrackRole';
+import type { SubtitleFormat } from './subtitleFormat';
 
 /**
  * Describes a subtitle track.

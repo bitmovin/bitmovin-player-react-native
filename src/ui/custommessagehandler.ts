@@ -1,4 +1,4 @@
-import { CustomMessageSender } from './custommessagesender';
+import type { CustomMessageSender } from './custommessagesender';
 
 export interface CustomMessageHandlerProps {
   /**

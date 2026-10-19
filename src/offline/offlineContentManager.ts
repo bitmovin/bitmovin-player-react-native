@@ -1,13 +1,13 @@
-import { EventSubscription } from 'expo-modules-core';
+import type { EventSubscription } from 'expo-modules-core';
 import NativeInstance from '../nativeInstance';
-import {
+import type {
   BitmovinNativeOfflineEventData,
   OfflineContentManagerListener,
-  OfflineEventType,
 } from './offlineContentManagerListener';
-import { OfflineContentConfig } from './offlineContentConfig';
-import { OfflineDownloadRequest } from './offlineDownloadRequest';
-import { OfflineState } from './offlineState';
+import { OfflineEventType } from './offlineContentManagerListener';
+import type { OfflineContentConfig } from './offlineContentConfig';
+import type { OfflineDownloadRequest } from './offlineDownloadRequest';
+import type { OfflineState } from './offlineState';
 import { Drm } from '../drm';
 import OfflineModule from './offlineModule';
 

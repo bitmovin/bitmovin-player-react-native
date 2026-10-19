@@ -1,5 +1,6 @@
-import { NativeModule, requireNativeModule } from 'expo-modules-core';
-import { BufferLevels } from '../bufferApi';
+import type { NativeModule } from 'expo-modules-core';
+import { requireNativeModule } from 'expo-modules-core';
+import type { BufferLevels } from '../bufferApi';
 
 export type BufferModuleEvents = Record<string, any>;
 

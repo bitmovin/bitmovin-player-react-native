@@ -1,4 +1,5 @@
-import { NativeModule, requireNativeModule } from 'expo-modules-core';
+import type { NativeModule } from 'expo-modules-core';
+import { requireNativeModule } from 'expo-modules-core';
 import { Platform } from 'react-native';
 
 export type AudioSessionModuleEvents = Record<string, any>;
