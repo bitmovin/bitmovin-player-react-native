@@ -30,6 +30,7 @@ const testRegistrations = [
     () => require('./metadataId3Test').default
   ),
   testSuite('playback', androidAndIos, () => require('./playbackTest').default),
+  testSuite('playlist', androidAndIos, () => require('./playlistTest').default),
   testSuite(
     'unloading',
     androidAndIos,

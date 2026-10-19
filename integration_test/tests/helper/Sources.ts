@@ -26,6 +26,11 @@ export const Sources = {
     type: SourceType.HLS,
   } as SourceConfig,
 
+  bigBuckBunnyHls: {
+    url: 'https://cdn.bitmovin.com/content/assets/bbb/stream.m3u8',
+    type: SourceType.HLS,
+  } as SourceConfig,
+
   widevineDrmWithBrokenLicense: {
     url: 'https://cdn.bitmovin.com/content/internal/assets/art-of-motion_drm/mpds/11331.mpd',
     type: SourceType.DASH,

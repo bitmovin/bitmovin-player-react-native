@@ -9,6 +9,7 @@ import BasicAds from './screens/BasicAds';
 import BasicAnalytics from './screens/BasicAnalytics';
 import BasicMetadata from './screens/BasicMetadata';
 import BasicPlayback from './screens/BasicPlayback';
+import PlaylistPlayback from './screens/PlaylistPlayback';
 import BasicTvPlayback from './screens/BasicTvPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
@@ -41,6 +42,7 @@ export type RootStackParamsList = {
   BasicAnalytics: undefined;
   BasicMetadata: undefined;
   BasicPlayback: undefined;
+  PlaylistPlayback: undefined;
   BasicTvPlayback: undefined;
   BasicDrmPlayback: undefined;
   BasicPictureInPicture: {
@@ -101,6 +103,10 @@ export default function App() {
       {
         title: 'Basic playback',
         routeName: 'BasicPlayback' as keyof RootStackParamsList,
+      },
+      {
+        title: 'Playlist playback',
+        routeName: 'PlaylistPlayback' as keyof RootStackParamsList,
       },
       {
         title: 'Basic Analytics',
@@ -243,6 +249,11 @@ export default function App() {
           name="BasicPlayback"
           component={BasicPlayback}
           options={{ title: 'Basic playback' }}
+        />
+        <RootStack.Screen
+          name="PlaylistPlayback"
+          component={PlaylistPlayback}
+          options={{ title: 'Playlist playback' }}
         />
         {isAndroidTV && (
           <RootStack.Screen

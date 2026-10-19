@@ -4,6 +4,7 @@ This is a React Native application built to showcase the features of `bitmovin-p
 inside the [`src/screens/`](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example/src/screens) directory:
 
 - [Basic playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicPlayback.tsx)
+- [Playlist playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/PlaylistPlayback.tsx)
 - [Basic TV playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicTvPlayback.tsx)
 - [Basic DRM playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BasicDrmPlayback.tsx)
 - [Background playback](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/example/src/screens/BackgroundPlayback.tsx)
