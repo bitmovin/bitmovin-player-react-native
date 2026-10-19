@@ -196,7 +196,7 @@ jobs:
           emulator-boot-timeout: 300
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none
           disable-animations: true
-          script: cd integration_test && node scripts/run-ci-tests.js android --tags playback,loading
+          script: cd integration_test && node scripts/run-ci-tests.js android --tags playback,loading-vod
 
       - name: Upload Android smoke diagnostics
         if: always()
