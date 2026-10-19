@@ -630,9 +630,9 @@ fun AdData.toJson(): Map<String, Any> = mapOf<String, Any?>(
     "minBitrate" to minBitrate,
 ).filterNotNullValues()
 
-fun AdConfig.toJson(): Map<String, Any> = mapOf<String, Any?>(
+fun AdConfig.toJson(): Map<String, Any> = mapOf<String, Any>(
     "replaceContentDuration" to (replaceContentDuration ?: Double.NaN),
-).filterNotNullValues()
+)
 
 fun AdItem.toJson(): Map<String, Any> = mapOf(
     "position" to position,
@@ -1061,21 +1061,25 @@ private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
             put("value", value)
             putIfNotNull("description", description)
         }
+
         is BinaryFrame -> {
             put("frameType", "binary")
             put("data", data.toBase64String())
         }
+
         is CommentFrame -> {
             put("frameType", "comment")
             put("language", language)
             putIfNotNull("description", description)
             put("text", text)
         }
+
         is UrlLinkFrame -> {
             put("frameType", "url")
             put("url", url)
             putIfNotNull("description", description)
         }
+
         is ApicFrame -> {
             put("frameType", "apic")
             put("mimeType", mimeType)
@@ -1083,6 +1087,7 @@ private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
             put("pictureType", pictureType)
             put("pictureData", pictureData.toBase64String())
         }
+
         is GeobFrame -> {
             put("frameType", "geob")
             put("mimeType", mimeType)
@@ -1090,11 +1095,13 @@ private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
             putIfNotNull("description", description)
             put("data", data.toBase64String())
         }
+
         is PrivFrame -> {
             put("frameType", "priv")
             put("owner", owner)
             put("privateData", privateData.toBase64String())
         }
+
         is ChapterFrame -> {
             put("frameType", "chapter")
             put("chapterId", chapterId)
@@ -1109,6 +1116,7 @@ private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
             put("endOffset", endOffset)
             put("subFrames", subFrames.map { it.toJson() })
         }
+
         is ChapterTocFrame -> {
             put("frameType", "chapterToc")
             put("elementId", elementId)
