@@ -1,11 +1,20 @@
 name: CI (iOS & tvOS)
 
 on:
+  workflow_dispatch:
+
   push:
     branches:
       - development
     paths:
       - 'ios/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'tsconfig*.json'
+      - 'app.plugin.js'
+      - 'integration_test/**'
+      - 'patches/**'
+      - 'expo-module.config.json'
       - 'plugin/**'
       - 'example/ios/**'
       - 'example/package.json'
@@ -34,6 +43,13 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'ios/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'tsconfig*.json'
+      - 'app.plugin.js'
+      - 'integration_test/**'
+      - 'patches/**'
+      - 'expo-module.config.json'
       - 'plugin/**'
       - 'example/ios/**'
       - 'example/package.json'
@@ -57,6 +73,9 @@ on:
       - '**/build-tvos.sh'
       - 'example/scripts/**'
       - 'integration_test/scripts/**'
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-ios-tvos-${{ github.event.pull_request.number || github.ref }}
@@ -83,6 +102,7 @@ jobs:
           args: ios --strict
 
   ios-example-build:
+    if: github.event_name != 'workflow_dispatch'
     name: Build iOS Example App
     runs-on: macos-26
     timeout-minutes: 25
@@ -162,38 +182,40 @@ jobs:
           done
 
   ios-integration-build:
-    name: Build iOS Integration Tests
+    name: Build and smoke-test iOS Integration Host
     runs-on: macos-26
-    timeout-minutes: 25
+    timeout-minutes: 40
+    env:
+      IOS_SMOKE_RUNTIME: com.apple.CoreSimulator.SimRuntime.iOS-26-5
+      IOS_SMOKE_DEVICE_TYPE: com.apple.CoreSimulator.SimDeviceType.iPhone-17
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-
-      - name: Cache iOS Integration Prebuild
-        id: ios-integration-prebuild-cache
-        uses: actions/cache@v6
         with:
-          path: |
-            integration_test/ios
-          key: ${{ runner.os }}-ios-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.config.*', 'plugin/**', 'ios/**') }}
-          restore-keys: |
-            ${{ runner.os }}-ios-integration-prebuild-
+          persist-credentials: false
+
+      - name: Set iOS smoke artifact paths
+        run: |
+          echo "IOS_SMOKE_APP_PATH=$RUNNER_TEMP/integration-host/Build/Products/Debug-iphonesimulator/IntegrationTest.app" >> "$GITHUB_ENV"
+          echo "CAVY_ARTIFACTS_DIR=$RUNNER_TEMP/ios-cavy" >> "$GITHUB_ENV"
 
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
         with:
           node: true
+          node-version: '22'
           subprojects: true
           ios: true
           skip-prebuild: true
 
+      - name: Check iOS CI launcher failure handling
+        run: node --test integration_test/scripts/ios-ci-launcher.test.js
+
       - name: Build config plugin
-        if: ${{ steps.ios-integration-prebuild-cache.outputs.cache-hit != 'true' }}
         run: yarn build:plugin
 
       - name: Configure iOS Integration
-        if: ${{ steps.ios-integration-prebuild-cache.outputs.cache-hit != 'true' }}
-        run: yarn integration-test prebuild --platform ios --no-install
+        run: yarn integration-test prebuild --clean --platform ios --no-install
 
       - name: Cache CocoaPods Dependencies
         uses: actions/cache@v6
@@ -201,9 +223,9 @@ jobs:
           path: |
             ~/Library/Caches/CocoaPods
             integration_test/ios/Pods
-          key: ${{ runner.os }}-ios-integration-pods-${{ hashFiles('ios/dependencies.json', 'ios/RNBitmovinPlayer.podspec', 'integration_test/ios/Podfile.lock') }}
+          key: ${{ runner.os }}-ios-integration-arm64-pods-v1-${{ hashFiles('ios/dependencies.json', 'ios/RNBitmovinPlayer.podspec', 'integration_test/ios/Podfile.lock') }}
           restore-keys: |
-            ${{ runner.os }}-ios-integration-pods-
+            ${{ runner.os }}-ios-integration-arm64-pods-v1-
 
       - name: Install CocoaPods Dependencies
         run: yarn integration-test pods
@@ -214,15 +236,44 @@ jobs:
       - name: Build iOS Integration Tests
         id: build
         run: |
-          START_TIME=$(date +%s)
-          yarn integration-test build:ios --renderer github-actions
-          END_TIME=$(date +%s)
-          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
-          echo "✅ Build completed in $((END_TIME - START_TIME)) seconds"
+          mkdir -p "$CAVY_ARTIFACTS_DIR"
+          set -o pipefail
+          yarn integration-test build:ios --renderer github-actions 2>&1 | tee "$CAVY_ARTIFACTS_DIR/build.log"
         env:
-          XCODEBUILD_ARGS: "-destination '${{ env.IOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }}"
+          # macos-26 is arm64. Keep this Debug product and install it below;
+          # Cavy must never invoke a second React Native build.
+          XCODEBUILD_ARGS: "-destination 'generic/platform=iOS Simulator' -derivedDataPath ${{ runner.temp }}/integration-host ONLY_ACTIVE_ARCH=YES ARCHS=arm64 VALID_ARCHS=arm64 CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO"
+
+      - name: Run iOS playback and loading smoke
+        if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        timeout-minutes: 15
+        working-directory: integration_test
+        env:
+          CI: 'true'
+          EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
+          EXPO_PUBLIC_CAVY_ONLY_TAGS: playback,loading
+        run: |
+          test -n "$EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY" || { echo '::error::INTEGRATION_TESTS_PLAYER_LICENSE_KEY is required for iOS smoke'; exit 1; }
+          # The shared runner owns Metro, the test entry, Cavy reports and their
+          # failure/zero-test checks. This adapter only installs and launches.
+          # Simulator FairPlay and TV are excluded, never counted as passing.
+          node scripts/run-ci-tests.js ios --tags playback,loading
+
+      - name: Explain unavailable smoke credentials
+        if: github.event_name == 'pull_request' && (github.event.pull_request.head.repo.full_name != github.repository || github.actor == 'dependabot[bot]')
+        run: echo '::notice::iOS host build only. Playback smoke is skipped for fork and Dependabot PRs because no license secret is exposed.'
+
+      - name: Save iOS smoke diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-cavy-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.CAVY_ARTIFACTS_DIR }}
+          if-no-files-found: warn
+          retention-days: 7
 
   tvos-example-build:
+    if: github.event_name != 'workflow_dispatch'
     name: Build tvOS Example App
     runs-on: macos-26
     timeout-minutes: 30
@@ -303,6 +354,7 @@ jobs:
           done
 
   example-archive:
+    if: github.event_name != 'workflow_dispatch'
     name: Archive ${{ matrix.platform }} (${{ matrix.configuration }})
     runs-on: macos-26
     timeout-minutes: 45
