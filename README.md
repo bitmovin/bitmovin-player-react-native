@@ -51,7 +51,7 @@ Rerun Expo prebuild and rebuild the native app after changing this flag.
 For a bare Android app, add this property to `android/gradle.properties`, then
 rebuild the app:
 
-```properties
+```text
 BITMOVIN_ENABLE_GOOGLE_IMA=true
 ```
 
