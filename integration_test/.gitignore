@@ -47,3 +47,5 @@ web-build/
 .temp/
 screenshots/
 cavy_results.md
+cavy_results.xml
+cavy-artifacts/
