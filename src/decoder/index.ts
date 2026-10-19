@@ -1,5 +1,9 @@
-import { EventSubscription } from 'expo-modules-core';
-import { DecoderConfig, DecoderContext, MediaCodecInfo } from './decoderConfig';
+import type { EventSubscription } from 'expo-modules-core';
+import type {
+  DecoderConfig,
+  DecoderContext,
+  MediaCodecInfo,
+} from './decoderConfig';
 import NativeInstance from '../nativeInstance';
 import DecoderConfigModule from './decoderConfigModule';
 

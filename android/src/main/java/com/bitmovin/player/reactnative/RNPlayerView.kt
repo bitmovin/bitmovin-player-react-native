@@ -36,6 +36,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     var playerView: PlayerView? = null
         private set
     private var pictureInPictureHandler: RNPictureInPictureHandler? = null
+
+    private var pictureInPictureActions: List<PictureInPictureAction>? = null
     private var subtitleView: SubtitleView? = null
     private var playerContainer: FrameLayout? = null
     var enableBackgroundPlayback: Boolean = false
@@ -152,6 +154,11 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             playerInMediaSessionService = null
             val player = playerView?.player ?: return
 
+            // When the player is in PiP mode and this window is closed, we want the player to stop
+            // So we ignore the `isBackgroundPlaybackEnabled` flag
+            if (isInPictureInPictureMode()) {
+                return
+            }
             if (!enableBackgroundPlayback) {
                 return
             }
@@ -217,6 +224,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         activityLifecycle?.removeObserver(activityLifecycleObserver)
         viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
         reparentHelper.dispose()
+        pictureInPictureActions = null
 
         // cleanup all children views explicitly,
         // so that in case react native does some view caching we are 100% the child views of this view
@@ -343,6 +351,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 null
             }
             newPlayerView.setPictureInPictureHandler(pictureInPictureHandler)
+            applyPictureInPictureActions()
             setPlayerView(newPlayerView)
             attachPlayerViewListeners(newPlayerView)
 
@@ -643,8 +652,14 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun updatePictureInPictureActions(pictureInPictureActions: List<PictureInPictureAction>) {
+        this.pictureInPictureActions = pictureInPictureActions
+        applyPictureInPictureActions()
+    }
+
+    private fun applyPictureInPictureActions() {
+        val actions = pictureInPictureActions ?: return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            pictureInPictureHandler?.updateActions(pictureInPictureActions)
+            pictureInPictureHandler?.updateActions(actions)
         }
     }
 
@@ -669,6 +684,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 },
             )
             playerView?.setPictureInPictureHandler(pictureInPictureHandler)
+            applyPictureInPictureActions()
         } else if (!isEnabled && pictureInPictureHandler != null) {
             pictureInPictureHandler?.dispose()
             pictureInPictureHandler = null

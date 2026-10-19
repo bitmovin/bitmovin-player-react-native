@@ -36,8 +36,8 @@
 ## Commit & Pull Request Guidelines
 
 - Commits: concise, imperative; do not use prefixes such as `fix:`, `chore:`, etc.
-- PRs: follow `.github/PULL_REQUEST_TEMPLATE.md`; link issues; add screenshots for UI-facing changes.
-- Required before review: `yarn lint:all`, `yarn typecheck:all`, build the library, and run the example on at least one platform.
+- PRs: read the current template and [PR writing guide](docs/pull-request-writing.md). Explain why, keep only review-relevant highlights, describe behavioral coverage, and delete inapplicable checks. Retained reviewer manual-testing checks require runnable smoke instructions and expected results. Link public issues; add screenshots for UI-facing changes.
+- For code changes, required before review: `yarn lint:all`, `yarn typecheck:all`, build the library, and run the example on at least one platform. For documentation-only changes, check links, formatting, and consistency with current repository instructions.
 - Changelog: add a `CHANGELOG.md` entry for user‑visible behavior changes.
 - Changelog platform prefixes:
   - Prefix platform-specific changes with the affected platform, e.g. `iOS: Add ...` or `Android: Add ...`.
@@ -59,7 +59,7 @@
 
 - Environment
   - Node + Yarn (use Yarn across workspaces); macOS: Xcode + CocoaPods; Android: Android Studio + JDK 17+ (Gradle 8.2 wrapper).
-  - Platforms per README: Expo 53+, React Native 0.79+, React 17+.
+  - Platforms per README: Expo 57+, React Native 0.86.3+, React 17+.
 - Tooling & Hooks
   - Install hooks with `yarn setup-hooks`; verify with `yarn lint:all` and `yarn typecheck:all` before PRs.
   - SwiftLint/ktlint required for native; use `yarn format:ios` / `yarn format:android` for auto-fixes.

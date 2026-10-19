@@ -24,5 +24,7 @@ module.exports = {
   rules: {
     '@typescript-eslint/no-floating-promises': 'error',
     'prettier/prettier': 'error',
+    // Rule introduced with the Expo SDK 57 update (via eslint-config-expo 57 -> eslint-plugin-react-hooks 7).
+    'react-hooks/refs': 'off',
   },
 };

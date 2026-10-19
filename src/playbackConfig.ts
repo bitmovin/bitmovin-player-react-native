@@ -1,4 +1,4 @@
-import { DecoderConfig } from './decoder/decoderConfig';
+import type { DecoderConfig } from './decoder/decoderConfig';
 
 /**
  * Configures the playback behaviour of the player.
@@ -73,6 +73,13 @@ export interface PlaybackConfig {
    * @platform Android
    */
   handleAudioFocus?: boolean;
+  /**
+   * Whether tunneled playback is enabled when supported by the device.
+   *
+   * @defaultValue `false`
+   * @platform Android
+   */
+  isTunneledPlaybackEnabled?: boolean;
   /**
    * Whether the Picture in Picture mode option is enabled or not. Default is `false`.
    *  @example

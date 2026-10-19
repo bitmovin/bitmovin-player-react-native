@@ -12,7 +12,7 @@ if (!fs.existsSync(envPath)) {
 }
 
 // Load environment variables from .env file
-dotenv.config({ path: envPath });
+dotenv.config({ path: envPath, quiet: true });
 
 const googleImaEnabled = process.env.BITMOVIN_ENABLE_GOOGLE_IMA !== 'false';
 
@@ -42,11 +42,6 @@ const config: ExpoConfig = {
   orientation: 'default',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
-  splash: {
-    image: './assets/splash-icon.png',
-    resizeMode: 'contain',
-    backgroundColor: '#1EABE3',
-  },
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.bitmovin.player.reactnative.example',
@@ -63,8 +58,17 @@ const config: ExpoConfig = {
   },
   plugins: [
     [
+      'expo-splash-screen',
+      {
+        image: './assets/splash-icon.png',
+        resizeMode: 'contain',
+        backgroundColor: '#1EABE3',
+      },
+    ],
+    [
       '@react-native-tvos/config-tv',
       {
+        tvosDeploymentTarget: '16.4',
         androidTVBanner: './assets/android-tv-banner.png',
         appleTVImages: {
           icon: './assets/tvos-1280x768.png',

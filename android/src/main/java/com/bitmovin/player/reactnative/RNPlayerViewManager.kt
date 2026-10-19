@@ -6,6 +6,7 @@ import com.bitmovin.player.reactnative.converter.toRNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.extensions.getString
+import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.Collections
@@ -16,12 +17,17 @@ class RNPlayerViewManager : Module() {
     private val autoPictureInPictureViews = Collections.newSetFromMap(WeakHashMap<RNPlayerView, Boolean>())
     private val activePlayerViewsToPlayerIds = WeakHashMap<RNPlayerView, NativeId>()
 
+    private val pendingPictureInPictureActions = mutableMapOf<NativeId, List<PictureInPictureAction>>()
+    private val pendingIsPictureInPictureEnabled = mutableMapOf<NativeId, Boolean>()
+
     override fun definition() = ModuleDefinition {
         Name("RNPlayerViewManager")
 
         OnDestroy {
             autoPictureInPictureViews.clear()
             activePlayerViewsToPlayerIds.clear()
+            pendingPictureInPictureActions.clear()
+            pendingIsPictureInPictureEnabled.clear()
         }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
@@ -30,6 +36,26 @@ class RNPlayerViewManager : Module() {
                 requestAutoPictureInPicture()
             }
         }
+
+        AsyncFunction("updatePictureInPictureActions") { id: NativeId, pictureInPictureActions: List<String> ->
+            val actions = pictureInPictureActions.toPictureInPictureActions()
+            val view = activePlayerViewsToPlayerIds.findPlayerView(id)
+            if (view == null) {
+                pendingPictureInPictureActions[id] = actions
+                return@AsyncFunction
+            }
+            view.updatePictureInPictureActions(actions)
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("setIsPictureInPictureEnabled") { id: NativeId, isEnabled: Boolean ->
+            val view = activePlayerViewsToPlayerIds.findPlayerView(id)
+            if (view == null) {
+                pendingIsPictureInPictureEnabled[id] = isEnabled
+                return@AsyncFunction
+            }
+            view.setIsPictureInPictureEnabled(isEnabled)
+            updateAutoPictureInPictureRegistration(view)
+        }.runOnQueue(Queues.MAIN)
 
         View(RNPlayerView::class) {
             OnViewDestroys { view: RNPlayerView ->
@@ -71,6 +97,7 @@ class RNPlayerViewManager : Module() {
                     userInterfaceTypeName,
                 )
                 registerViewForPlayer(view, playerId)
+                applyPendingPictureInPictureValues(view, playerId)
                 updateAutoPictureInPictureRegistration(view)
             }
 
@@ -88,15 +115,6 @@ class RNPlayerViewManager : Module() {
 
             Prop("fullscreenBridgeId") { view: RNPlayerView, fullscreenBridgeId: String ->
                 view.attachFullscreenBridge(fullscreenBridgeId)
-            }
-
-            AsyncFunction("updatePictureInPictureActions") { view: RNPlayerView, pictureInPictureActions: List<String> ->
-                view.updatePictureInPictureActions(pictureInPictureActions.toPictureInPictureActions())
-            }
-
-            AsyncFunction("setIsPictureInPictureEnabled") { view: RNPlayerView, isEnabled: Boolean ->
-                view.setIsPictureInPictureEnabled(isEnabled)
-                updateAutoPictureInPictureRegistration(view)
             }
 
             Events(
@@ -177,6 +195,11 @@ class RNPlayerViewManager : Module() {
         activePlayerViewsToPlayerIds[view] = playerId
     }
 
+    private fun applyPendingPictureInPictureValues(view: RNPlayerView, playerId: NativeId) {
+        pendingIsPictureInPictureEnabled.remove(playerId)?.let { view.setIsPictureInPictureEnabled(it) }
+        pendingPictureInPictureActions.remove(playerId)?.let { view.updatePictureInPictureActions(it) }
+    }
+
     private fun unregisterView(view: RNPlayerView) {
         activePlayerViewsToPlayerIds.remove(view)
     }
@@ -192,3 +215,7 @@ class RNPlayerViewManager : Module() {
     private fun requestAutoPictureInPicture() = autoPictureInPictureViews
         .firstOrNull { it.requestPictureInPictureOnBackgroundTransition() }
 }
+
+private fun WeakHashMap<RNPlayerView, NativeId>.findPlayerView(
+    playerId: NativeId,
+): RNPlayerView? = entries.firstOrNull { it.value == playerId }?.key

@@ -6,6 +6,10 @@ With bugs and problems, please try to describe the issue as detailed as possible
 
 ## Pull Requests
 
+Use the current [PR template](.github/PULL_REQUEST_TEMPLATE.md) and
+[PR writing guide](docs/pull-request-writing.md) for concise descriptions,
+behavioral coverage summaries, and reviewer smoke tests.
+
 Before creating a pull request, please
 
 - Make sure all guidelines are followed
