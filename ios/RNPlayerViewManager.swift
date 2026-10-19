@@ -9,10 +9,10 @@ public class RNPlayerViewManager: Module {
     public func definition() -> ModuleDefinition {
         Name("RNPlayerViewManager")
 
-        OnDestroy {
-            self.playerViews.removeAll()
-            self.pendingPictureInPictureActions.removeAll()
-            self.pendingIsPictureInPictureEnabled.removeAll()
+        OnDestroy { [weak self] in
+            self?.playerViews.removeAll()
+            self?.pendingPictureInPictureActions.removeAll()
+            self?.pendingIsPictureInPictureEnabled.removeAll()
         }
 
         AsyncFunction("updatePictureInPictureActions") { [weak self] (playerId: NativeId, actions: [String]) in
