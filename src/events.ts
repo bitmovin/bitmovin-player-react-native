@@ -455,7 +455,7 @@ export interface AdBreakFinishedEvent extends Event {
 }
 
 /**
- * Emitted when the playback of an ad has started.
+ * Emitted when the playback of a linear ad has started.
  */
 export interface AdStartedEvent extends Event {
   /**
@@ -493,7 +493,7 @@ export interface AdStartedEvent extends Event {
 }
 
 /**
- * Emitted when an ad has finished playback.
+ * Emitted when a linear ad has finished playback.
  */
 export interface AdFinishedEvent extends Event {
   /**
@@ -530,7 +530,7 @@ export interface AdClickedEvent extends Event {
 }
 
 /**
- * Emitted when an ad was skipped.
+ * Emitted when a linear ad was skipped.
  */
 export interface AdSkippedEvent extends Event {
   /**
@@ -540,13 +540,11 @@ export interface AdSkippedEvent extends Event {
 }
 
 /**
- * Emitted when a non-linear ad is shown.
+ * Emitted when a non-linear ad, such as a pause ad, is shown.
+ * Linear ads emit {@link AdStartedEvent} instead. See {@link AdItem} for the lifecycle of both ad types.
  *
- * Non-linear ads do not interrupt the main content and are not part of an ad break,
- * so no {@link AdBreakStartedEvent} or {@link AdBreakFinishedEvent} is emitted around this event.
- * A {@link NonLinearAdStartedEvent} is normally followed by one {@link NonLinearAdSkippedEvent}
- * or {@link NonLinearAdFinishedEvent}. The closing event may not be delivered if the `PlayerView` is unmounted
- * or the player is detached from it while the ad is shown.
+ * The {@link NonLinearAdSkippedEvent} or {@link NonLinearAdFinishedEvent} that follows may not be delivered
+ * if the `PlayerView` is unmounted or the player is detached from it while the ad is shown.
  *
  * @experimental
  */
@@ -563,6 +561,7 @@ export interface NonLinearAdStartedEvent extends Event {
  *
  * Skipping a pause ad leaves the main content paused.
  * A non-linear ad that ends in any other way emits {@link NonLinearAdFinishedEvent} instead.
+ * Linear ads emit {@link AdSkippedEvent} instead.
  *
  * @experimental
  */
@@ -576,6 +575,7 @@ export interface NonLinearAdSkippedEvent extends Event {
 /**
  * Emitted when a shown non-linear ad was taken down without being skipped,
  * e.g. because playback resumed or the user seeked.
+ * Linear ads emit {@link AdFinishedEvent} instead.
  *
  * @experimental
  */

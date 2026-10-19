@@ -57,11 +57,16 @@ export interface AdSource {
  * Represents an ad break or a pause ad which can be scheduled for playback.
  *
  * One single `AdItem` can have multiple `AdSource`s where all but the first act as fallback ad sources
- * if the first one fails to load. The start and end of an ad break are signaled via `AdBreakStartedEvent`
- * and `AdBreakFinishedEvent`.
+ * if the first one fails to load.
  *
- * An `AdItem` with the position `"pause"` is a pause ad instead of an ad break. Its lifecycle is signaled via
- * `NonLinearAdStartedEvent`, `NonLinearAdSkippedEvent` and `NonLinearAdFinishedEvent`.
+ * An ad break contains linear ads, which interrupt the main content. The start and end of an ad break are
+ * signaled via `AdBreakStartedEvent` and `AdBreakFinishedEvent`, and each of its ads via `AdStartedEvent`
+ * followed by `AdSkippedEvent` or `AdFinishedEvent`.
+ *
+ * An `AdItem` with the position `"pause"` is a pause ad instead of an ad break. A pause ad is a non-linear ad:
+ * it does not interrupt the main content and is not part of an ad break, so none of the events above are
+ * emitted for it. Each time it is shown, `NonLinearAdStartedEvent` is emitted, followed by
+ * `NonLinearAdSkippedEvent` or `NonLinearAdFinishedEvent`.
  */
 export interface AdItem {
   /**

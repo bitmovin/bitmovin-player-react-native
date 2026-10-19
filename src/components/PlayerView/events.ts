@@ -96,7 +96,7 @@ export type PlayerViewEvents = {
    */
   onAdError?: (event: AdErrorEvent) => void;
   /**
-   * Event emitted when an ad has finished.
+   * Event emitted when a linear ad has finished.
    */
   onAdFinished?: (event: AdFinishedEvent) => void;
   /**
@@ -116,11 +116,11 @@ export type PlayerViewEvents = {
    */
   onAdScheduled?: (event: AdScheduledEvent) => void;
   /**
-   * Event emitted when an ad has been skipped.
+   * Event emitted when a linear ad has been skipped.
    */
   onAdSkipped?: (event: AdSkippedEvent) => void;
   /**
-   * Event emitted when an ad has started.
+   * Event emitted when a linear ad has started.
    */
   onAdStarted?: (event: AdStartedEvent) => void;
   /**
