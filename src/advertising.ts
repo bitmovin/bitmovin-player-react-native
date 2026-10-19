@@ -124,9 +124,6 @@ export interface AdvertisingConfig {
    * @returns
    * - `true` → the ad item will proceed to load as scheduled.
    * - `false` → the ad item will be skipped and removed from the playback schedule.
-   *
-   * @remarks
-   * For pause ads, the callback is called each time a pause ad is about to load.
    */
   shouldLoadAdItem?: (adItem: AdItem) => boolean;
   /**
