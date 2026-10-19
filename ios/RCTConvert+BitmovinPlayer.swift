@@ -285,6 +285,8 @@ extension RCTConvert {
 #endif
     }
 
+    static let pauseTrigger = "pause"
+
     static func adItem(_ json: Any?) -> AdItem? {
         guard
             let json = json as? [String: Any?],
@@ -295,7 +297,7 @@ extension RCTConvert {
         let adSources = sources.compactMap { RCTConvert.adSource($0) }
         let position = json["position"] as? String
         switch position {
-        case "pause":
+        case RCTConvert.pauseTrigger:
             return AdItem(adSources: adSources, trigger: .pause)
         default:
             return AdItem(adSources: adSources, atPosition: position)
@@ -629,7 +631,7 @@ extension RCTConvert {
             return nil
         }
         return [
-            "position": adItem.trigger == .pause ? "pause" : adItem.position,
+            "position": adItem.trigger == .pause ? RCTConvert.pauseTrigger : adItem.position,
             "sources": adItem.sources.compactMap { RCTConvert.toJson(adSource: $0) }
         ]
     }
