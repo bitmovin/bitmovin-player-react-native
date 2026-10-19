@@ -49,6 +49,11 @@ function createCiConfig(args, environment = process.env) {
     NODE_OPTIONS:
       `${environment.NODE_OPTIONS || ''} --dns-result-order=ipv4first`.trim(),
   };
+  const timeoutMs = positiveInteger(
+    environment.CAVY_TIMEOUT_MS,
+    600000,
+    'CAVY_TIMEOUT_MS'
+  );
   return {
     platform,
     artifactsDir,
@@ -56,11 +61,7 @@ function createCiConfig(args, environment = process.env) {
     env,
     metroPort,
     reporterPort: 8082,
-    timeoutMs: positiveInteger(
-      environment.CAVY_TIMEOUT_MS,
-      600000,
-      'CAVY_TIMEOUT_MS'
-    ),
+    timeoutMs,
     startupTimeoutMs: 120000,
     pollMs: 200,
     // iOS owns simulator teardown and needs time to finish it after SIGTERM.
@@ -85,6 +86,8 @@ function createCiConfig(args, environment = process.env) {
         '--skipbuild',
         '--no-screenshots',
         '--xml',
+        '--keep-alive-timeout',
+        String(Math.ceil(timeoutMs / 1000)),
       ],
     ],
     launcherCommand: [
