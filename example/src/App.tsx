@@ -106,10 +106,15 @@ export default function App() {
         title: 'Basic Analytics',
         routeName: 'BasicAnalytics' as keyof RootStackParamsList,
       },
-      {
-        title: 'Basic Drm playback',
-        routeName: 'BasicDrmPlayback' as keyof RootStackParamsList,
-      },
+      // FairPlay is unsupported on Apple simulators and crashes AVContentKeySession.
+      ...(!isIOSSimulator && !isTVOSSimulator
+        ? [
+            {
+              title: 'Basic Drm playback',
+              routeName: 'BasicDrmPlayback' as keyof RootStackParamsList,
+            },
+          ]
+        : []),
       {
         title: 'Subtitle and captions',
         routeName: 'SubtitlePlayback' as keyof RootStackParamsList,
