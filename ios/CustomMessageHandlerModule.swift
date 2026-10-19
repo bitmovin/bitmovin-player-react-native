@@ -30,7 +30,7 @@ public class CustomMessageHandlerModule: Module {
         }.runOnQueue(.main)
 
         AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
-            self?.customMessageHandlers.removeValue(forKey: nativeId)
+            _ = self?.customMessageHandlers.removeValue(forKey: nativeId)
         }.runOnQueue(.main)
 
         AsyncFunction("onReceivedSynchronousMessageResult") { [weak self] (id: Int, result: String?) in

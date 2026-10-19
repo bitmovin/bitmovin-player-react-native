@@ -33,6 +33,9 @@ public class RNPlayerView: ExpoView {
             if let isPictureInPictureEnabledValue {
                 playerView.pictureInPicture.isEnabled = isPictureInPictureEnabledValue
             }
+            if let pictureInPictureActions {
+                updatePictureInPictureActions(actions: pictureInPictureActions)
+            }
         }
     }
 
@@ -43,6 +46,7 @@ public class RNPlayerView: ExpoView {
     private var requestedFullscreenValue: Bool?
     private var requestedPictureInPictureValue: Bool?
     private var isPictureInPictureEnabledValue: Bool?
+    private var pictureInPictureActions: [RNPictureInPictureAction]?
     private var avPlayerViewControllerTransitionForced = false
     private var shouldExitPictureInPictureOnForeground = false
     private var foregroundObserver: NSObjectProtocol?
@@ -244,6 +248,7 @@ public class RNPlayerView: ExpoView {
         guard let actions else {
             return
         }
+        pictureInPictureActions = actions
         guard let playerView else { return }
 #if os(iOS)
         playerView.pictureInPicture.showSkipControls = actions.contains(.seek)
