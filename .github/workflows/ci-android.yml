@@ -9,14 +9,16 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - 'plugin/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'tsconfig*.json'
+      - 'expo-module.config.json'
+      - 'app.plugin.js'
       - 'android/**'
       - 'example/android/**'
       - 'example/package.json'
       - 'example/yarn.lock'
-      - 'integration_test/android/**'
-      - 'integration_test/scripts/build-android.sh'
-      - 'integration_test/package.json'
-      - 'integration_test/yarn.lock'
+      - 'integration_test/**'
       - '**/app.config.*'
       - '**/expo.json'
       - '**/*.gradle*'
@@ -35,14 +37,16 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - 'plugin/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'tsconfig*.json'
+      - 'expo-module.config.json'
+      - 'app.plugin.js'
       - 'android/**'
       - 'example/android/**'
       - 'example/package.json'
       - 'example/yarn.lock'
-      - 'integration_test/android/**'
-      - 'integration_test/scripts/build-android.sh'
-      - 'integration_test/package.json'
-      - 'integration_test/yarn.lock'
+      - 'integration_test/**'
       - '**/app.config.*'
       - '**/expo.json'
       - '**/*.gradle*'
@@ -50,6 +54,11 @@ on:
       - '**/gradle-wrapper.properties'
       - '**/gradle/**'
       - '**/gradlew*'
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-android-${{ github.event.pull_request.number || github.ref }}
@@ -75,6 +84,7 @@ jobs:
         run: yarn lint:android
 
   test-build-android:
+    if: github.event_name != 'workflow_dispatch'
     name: Build Android Example App
     runs-on: ubuntu-latest
     steps:
@@ -108,11 +118,33 @@ jobs:
         run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
 
   test-build-android-integration-tests:
-    name: Build Android Integration Tests
+    name: Build and smoke test Android integration host
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ANDROID_SERIAL: emulator-5554
+      CAVY_ANDROID_APK: ${{ github.workspace }}/integration_test/android/app/build/outputs/apk/debug/app-debug.apk
+      CAVY_ARTIFACTS_DIR: ${{ github.workspace }}/integration_test/artifacts/android-smoke
+      RCT_METRO_PORT: '8081'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check smoke test license
+        if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        env:
+          EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
+        run: |
+          if [ -z "$EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY" ]; then
+            echo "::error::Configure INTEGRATION_TESTS_PLAYER_LICENSE_KEY to run Android playback smoke tests."
+            exit 1
+          fi
+
+      - name: Explain fork smoke test policy
+        if: github.event_name == 'pull_request' && (github.event.pull_request.head.repo.full_name != github.repository || github.actor == 'dependabot[bot]')
+        run: echo "Android host build and launcher tests run for fork PRs. Playback smoke tests require a trusted branch with the player license secret." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
@@ -122,25 +154,64 @@ jobs:
           subprojects: true
           skip-prebuild: true
 
+      - name: Check integration test runners
+        timeout-minutes: 5
+        run: yarn integration-test check:runner
+
       - name: Prebuild Android Integration
+        timeout-minutes: 5
+        env:
+          # Forks retain build coverage using the same placeholder as .env.example.
+          EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')) && secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY || 'YOUR_LICENSE_KEY_HERE' }}
         run: yarn integration-test prebuild --clean --platform android
 
-      - name: Build Android integration test host app
-        id: build
+      - name: Build Android integration test host app once
+        timeout-minutes: 25
+        working-directory: integration_test/android
         run: |
-          START_TIME=$(date +%s)
-          cd integration_test/android
           ./gradlew assembleDebug --quiet --console=plain \
             --build-cache --parallel --max-workers=4 --no-daemon \
             --no-configuration-cache \
-            -PreactNativeArchitectures=x86,x86_64
-          END_TIME=$(date +%s)
-          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
+            -PreactNativeArchitectures=x86_64
 
-      - name: Report build time
-        run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
+      - name: Enable KVM
+        if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Android playback and loading smoke tests
+        if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        timeout-minutes: 15
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          emulator-port: 5554
+          emulator-boot-timeout: 300
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none
+          disable-animations: true
+          script: cd integration_test && node scripts/run-ci-tests.js android --tags playback,loading
+
+      - name: Upload Android smoke diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-smoke-${{ github.run_attempt }}
+          path: |
+            integration_test/artifacts/android-smoke/
+            integration_test/cavy_results.xml
+            integration_test/cavy_results.md
+          if-no-files-found: warn
+          retention-days: 7
 
   test-build-android-tv:
+    if: github.event_name != 'workflow_dispatch'
     name: Build Android TV Example App
     runs-on: ubuntu-latest
     steps:
