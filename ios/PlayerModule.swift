@@ -40,11 +40,13 @@ public class PlayerModule: Module {
         AsyncFunction("timeShift") { (nativeId: NativeId, offset: Double) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.timeShift = offset
         }.runOnQueue(.main)
-        AsyncFunction("destroy") { (nativeId: NativeId) in
+        AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
             if let player = PlayerRegistry.getPlayer(nativeId: nativeId) {
                 player.destroy()
                 PlayerRegistry.unregister(nativeId: nativeId)
             }
+            self?.appContext?.moduleRegistry.get(RNPlayerViewManager.self)?
+                .discardPendingPictureInPictureValues(playerId: nativeId)
         }.runOnQueue(.main)
         AsyncFunction("setVolume") { (nativeId: NativeId, volume: Int) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.volume = volume

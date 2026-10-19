@@ -135,6 +135,13 @@ public class RNPlayerViewManager: Module {
         }
     }
 
+    /// Discards the Picture in Picture values that were set for a player whose view was never registered,
+    /// e.g. because the player was destroyed first. Otherwise a later player with the same ID would pick them up.
+    internal func discardPendingPictureInPictureValues(playerId: NativeId) {
+        pendingPictureInPictureActions.removeValue(forKey: playerId)
+        pendingIsPictureInPictureEnabled.removeValue(forKey: playerId)
+    }
+
     private func playerView(for playerId: NativeId) -> RNPlayerView? {
         playerViews[playerId]?.view
     }
