@@ -15,6 +15,10 @@
   - Apps using older Expo or React Native versions must upgrade to these minimums before updating this SDK. Follow the [Expo upgrade guide](https://docs.expo.dev/workflow/upgrading-expo-sdk-walkthrough/) for the migration steps appropriate to your application.
   - Android: Apps using `react-native-screens` should use version `4.29.0` or newer, instead of the `4.26` version bundled with Expo SDK 57. With older versions, touches on screens covered by the player screen stop working after entering and exiting Picture in Picture ([react-native-screens#4760](https://github.com/software-mansion/react-native-screens/pull/4760)). Expo users should also add `react-native-screens` to `expo.install.exclude` to suppress the version warning, then rebuild the native app.
 
+### Fixed
+
+- Complete HTTP preprocessing with the original request or response when a user callback throws, and avoid retrying failed native completion calls
+
 ## [1.28.0] - 2026-10-08
 
 ### Added
