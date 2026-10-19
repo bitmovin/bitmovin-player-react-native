@@ -251,13 +251,13 @@ jobs:
         env:
           CI: 'true'
           EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
-          EXPO_PUBLIC_CAVY_ONLY_TAGS: playback,loading
+          EXPO_PUBLIC_CAVY_ONLY_TAGS: playback,loading-vod
         run: |
           test -n "$EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY" || { echo '::error::INTEGRATION_TESTS_PLAYER_LICENSE_KEY is required for iOS smoke'; exit 1; }
           # The shared runner owns Metro, the test entry, Cavy reports and their
           # failure/zero-test checks. This adapter only installs and launches.
           # Simulator FairPlay and TV are excluded, never counted as passing.
-          node scripts/run-ci-tests.js ios --tags playback,loading
+          node scripts/run-ci-tests.js ios --tags playback,loading-vod
 
       - name: Explain unavailable smoke credentials
         if: github.event_name == 'pull_request' && (github.event.pull_request.head.repo.full_name != github.repository || github.actor == 'dependabot[bot]')
