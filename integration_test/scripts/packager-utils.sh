@@ -107,7 +107,10 @@ ensure_packager_running() {
     echo "Starting integration_test Expo packager on port $PACKAGER_PORT..."
     (
         cd "$INTEGRATION_TEST_DIR" || exit 1
-        exec npx expo start --port "$PACKAGER_PORT" --localhost
+        # With --localhost, Metro listens on "localhost", which can resolve to the IPv6 loopback only.
+        # Android emulators reach Metro through `adb reverse` on the IPv4 loopback, so prefer IPv4.
+        NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--dns-result-order=ipv4first" \
+            exec npx expo start --port "$PACKAGER_PORT" --localhost
     ) > "$PACKAGER_LOG_FILE" 2>&1 &
 
     PACKAGER_STARTED_PID="$!"
