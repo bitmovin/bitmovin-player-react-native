@@ -1,5 +1,12 @@
 import { NativeModule, requireNativeModule } from 'expo-modules-core';
 import { AdBreak, AdItem, ImaSettings } from '../advertising';
+import type {
+  PlaylistOptions,
+  PlaylistSeekTarget,
+  PlaylistSourceAddedEvent,
+  PlaylistSourceRemovedEvent,
+  PlaylistTransitionEvent,
+} from '../playlist';
 
 export type PlayerModuleEvents = {
   onShouldLoadAdItem: ({
@@ -29,6 +36,15 @@ export type PlayerModuleEvents = {
     id: number;
     settings: ImaSettings;
   }) => void;
+  onSourceAdded: (
+    event: PlaylistSourceAddedEvent & { nativeId: string }
+  ) => void;
+  onSourceRemoved: (
+    event: PlaylistSourceRemovedEvent & { nativeId: string }
+  ) => void;
+  onPlaylistTransition: (
+    event: PlaylistTransitionEvent & { nativeId: string }
+  ) => void;
 };
 
 declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
@@ -231,6 +247,57 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
    * Requires SourceModule dependency.
    */
   loadSource(nativeId: string, sourceNativeId: string): Promise<void>;
+
+  /**
+   * Load sources as a playlist into the player.
+   */
+  loadPlaylist(
+    nativeId: string,
+    sourceNativeIds: string[],
+    options?: PlaylistOptions
+  ): Promise<void>;
+
+  /**
+   * Add a source to the active playlist, optionally at the given index.
+   */
+  playlistAddSource(
+    nativeId: string,
+    sourceNativeId: string,
+    index?: number | null
+  ): Promise<void>;
+
+  /**
+   * Remove a source from the active playlist.
+   */
+  playlistRemoveSource(nativeId: string, sourceNativeId: string): Promise<void>;
+
+  /**
+   * Remove a source at the given playlist index.
+   */
+  playlistRemoveSourceAt(nativeId: string, index: number): Promise<void>;
+
+  /**
+   * Seek to a time within a playlist source, or to the source default position when time is null.
+   */
+  playlistSeekToTime(
+    nativeId: string,
+    sourceNativeId: string,
+    time?: number | null
+  ): Promise<void>;
+
+  /**
+   * Seek to a structured target within a playlist source.
+   */
+  playlistSeekToTarget(
+    nativeId: string,
+    sourceNativeId: string,
+    target: PlaylistSeekTarget
+  ): Promise<void>;
+
+  /**
+   * Get playlist source native IDs in order.
+   */
+  getPlaylistSources(nativeId: string): Promise<string[]>;
 
   /**
    * Load offline content into the player.

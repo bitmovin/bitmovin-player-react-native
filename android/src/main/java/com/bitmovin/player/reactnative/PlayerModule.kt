@@ -7,6 +7,14 @@ import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.advertising.BeforeInitializationCallback
 import com.bitmovin.player.api.analytics.create
+import com.bitmovin.player.api.event.Event
+import com.bitmovin.player.api.event.PlayerEvent
+import com.bitmovin.player.api.playlist.PlaylistConfig
+import com.bitmovin.player.api.playlist.PlaylistOptions
+import com.bitmovin.player.api.playlist.ReplayMode
+import com.bitmovin.player.api.playlist.SeekTarget
+import com.bitmovin.player.api.source.Source
+import com.bitmovin.player.api.source.TimelineReferencePoint
 import com.bitmovin.player.reactnative.converter.applyOnImaSettings
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
@@ -15,7 +23,11 @@ import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toMap
 import com.bitmovin.player.reactnative.converter.toMediaControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
+import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
+import com.bitmovin.player.reactnative.extensions.getDoubleOrNull
 import com.bitmovin.player.reactnative.extensions.getMap
+import com.bitmovin.player.reactnative.extensions.getString
+import com.bitmovin.player.reactnative.util.NonFiniteSanitizer
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -26,6 +38,7 @@ class PlayerModule : Module() {
     private val shouldLoadAdItemWaiter = ResultWaiter<Boolean>()
     private val shouldPlayAdBreakWaiter = ResultWaiter<Boolean>()
     private val imaSettingsWaiter = ResultWaiter<Map<String, Any?>>()
+    private val playlistEventSubscriptions = mutableMapOf<NativeId, List<EventSubscription<Event>>>()
 
     override fun definition() = ModuleDefinition {
         Name("PlayerModule")
@@ -36,6 +49,9 @@ class PlayerModule : Module() {
 
         OnDestroy {
             // Clean up all players when module is destroyed
+            PlayerRegistry.getAllNativeIds().forEach { nativeId ->
+                PlayerRegistry.getPlayer(nativeId)?.let { detachPlaylistEventListeners(nativeId, it) }
+            }
             PlayerRegistry.getAllPlayers().forEach { player ->
                 try {
                     player.destroy()
@@ -49,7 +65,14 @@ class PlayerModule : Module() {
             PlayerRegistry.clear()
         }
 
-        Events("onShouldLoadAdItem", "onShouldPlayAdBreak", "onImaBeforeInitialization")
+        Events(
+            "onShouldLoadAdItem",
+            "onShouldPlayAdBreak",
+            "onImaBeforeInitialization",
+            "onSourceAdded",
+            "onSourceRemoved",
+            "onPlaylistTransition",
+        )
 
         AsyncFunction("play") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
@@ -86,6 +109,7 @@ class PlayerModule : Module() {
             if (player != null) {
                 // Note: MediaSession cleanup would need to be handled here
                 // For now, just destroy the player and remove from registry
+                detachPlaylistEventListeners(nativeId, player)
                 player.destroy()
                 PlayerRegistry.unregister(nativeId)
             }
@@ -313,6 +337,63 @@ class PlayerModule : Module() {
             }
         }.runOnQueue(Queues.MAIN)
 
+        AsyncFunction("loadPlaylist") { nativeId: NativeId, sourceNativeIds: List<String>, options: Map<String, Any?>? ->
+            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
+            val sourceModule = appContext.registry.getModule<SourceModule>() ?: return@AsyncFunction
+            val sources = sourceNativeIds.mapNotNull { sourceModule.getSourceOrNull(it) }
+            if (sources.size != sourceNativeIds.size) return@AsyncFunction
+            player.load(PlaylistConfig(sources, options.toPlaylistOptions()))
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("playlistAddSource") { nativeId: NativeId, sourceNativeId: NativeId, index: Int? ->
+            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
+            val sourceModule = appContext.registry.getModule<SourceModule>() ?: return@AsyncFunction
+            val source = sourceModule.getSourceOrNull(sourceNativeId) ?: return@AsyncFunction
+            if (index == null) {
+                player.playlist.add(source)
+            } else {
+                player.playlist.add(source, index)
+            }
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("playlistRemoveSource") { nativeId: NativeId, sourceNativeId: NativeId ->
+            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
+            val sourceModule = appContext.registry.getModule<SourceModule>() ?: return@AsyncFunction
+            val source = sourceModule.getSourceOrNull(sourceNativeId) ?: return@AsyncFunction
+            player.playlist.remove(source)
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("playlistRemoveSourceAt") { nativeId: NativeId, index: Int ->
+            PlayerRegistry.getPlayer(nativeId)?.playlist?.remove(index)
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("playlistSeekToTime") { nativeId: NativeId, sourceNativeId: NativeId, time: Double? ->
+            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
+            val sourceModule = appContext.registry.getModule<SourceModule>() ?: return@AsyncFunction
+            val source = sourceModule.getSourceOrNull(sourceNativeId) ?: return@AsyncFunction
+            if (time == null) {
+                player.playlist.seek(source, null)
+            } else {
+                player.playlist.seek(source, time)
+            }
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("playlistSeekToTarget") { nativeId: NativeId, sourceNativeId: NativeId, target: Map<String, Any?> ->
+            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
+            val sourceModule = appContext.registry.getModule<SourceModule>() ?: return@AsyncFunction
+            val source = sourceModule.getSourceOrNull(sourceNativeId) ?: return@AsyncFunction
+            player.playlist.seek(source, target.toSeekTarget())
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("getPlaylistSources") { nativeId: NativeId ->
+            val sourceModule = appContext.registry.getModule<SourceModule>() ?: return@AsyncFunction emptyList<String>()
+            return@AsyncFunction PlayerRegistry.getPlayer(nativeId)
+                ?.playlist
+                ?.sources
+                ?.mapNotNull { sourceModule.getNativeId(it) }
+                ?: emptyList()
+        }
+
         AsyncFunction("source") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.source?.toJson()
@@ -370,11 +451,98 @@ class PlayerModule : Module() {
             Player.create(applicationContext, playerConfig)
         }
         PlayerRegistry.register(player, nativeId)
+        attachPlaylistEventListeners(nativeId, player)
 
         if (enableMediaSession) {
             mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
         }
     }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun attachPlaylistEventListeners(nativeId: NativeId, player: Player) {
+        if (playlistEventSubscriptions.containsKey(nativeId)) return
+        val subscriptions = listOf(
+            EventSubscription<PlayerEvent.SourceAdded> { event ->
+                sendPlaylistEvent(nativeId, "onSourceAdded", event.source, event.index, event)
+            },
+            EventSubscription<PlayerEvent.SourceRemoved> { event ->
+                sendPlaylistEvent(nativeId, "onSourceRemoved", event.source, event.index, event)
+            },
+            EventSubscription<PlayerEvent.PlaylistTransition> { event ->
+                sendPlaylistTransitionEvent(nativeId, event)
+            },
+        ) as List<EventSubscription<Event>>
+        subscriptions.forEach { player.on(it.eventClass, it.eventListener) }
+        playlistEventSubscriptions[nativeId] = subscriptions
+    }
+
+    private fun detachPlaylistEventListeners(nativeId: NativeId, player: Player) {
+        playlistEventSubscriptions.remove(nativeId)?.forEach {
+            player.off(it.eventClass, it.eventListener)
+        }
+    }
+
+    private fun sendPlaylistEvent(
+        nativeId: NativeId,
+        eventName: String,
+        source: Source,
+        index: Int,
+        event: PlayerEvent,
+    ) {
+        val sourceNativeId = appContext.registry.getModule<SourceModule>()?.getNativeId(source)
+        val payload = mutableMapOf<String, Any?>().apply {
+            putAll(event.toJson())
+            put("nativeId", nativeId)
+            put("name", eventName)
+            put("source", source.toJsonWithNativeId(sourceNativeId))
+            put("sourceNativeId", sourceNativeId)
+            put("index", index)
+        }.filterNotNullValues()
+        sendEvent(eventName, NonFiniteSanitizer.sanitizeEventData(payload))
+    }
+
+    private fun sendPlaylistTransitionEvent(nativeId: NativeId, event: PlayerEvent.PlaylistTransition) {
+        val sourceModule = appContext.registry.getModule<SourceModule>()
+        val fromNativeId = sourceModule?.getNativeId(event.from)
+        val toNativeId = sourceModule?.getNativeId(event.to)
+        val payload = mutableMapOf<String, Any?>().apply {
+            putAll(event.toJson())
+            put("nativeId", nativeId)
+            put("name", "onPlaylistTransition")
+            put("from", event.from.toJsonWithNativeId(fromNativeId))
+            put("to", event.to.toJsonWithNativeId(toNativeId))
+            put("fromSourceNativeId", fromNativeId)
+            put("toSourceNativeId", toNativeId)
+        }.filterNotNullValues()
+        sendEvent("onPlaylistTransition", NonFiniteSanitizer.sanitizeEventData(payload))
+    }
+
+    private fun Source.toJsonWithNativeId(nativeId: NativeId?): Map<String, Any> = toJson().toMutableMap().apply {
+        if (nativeId != null) put("nativeId", nativeId)
+    }
+
+    private fun Map<String, Any?>?.toPlaylistOptions(): PlaylistOptions {
+        if (this == null) return PlaylistOptions()
+        return PlaylistOptions(
+            preloadAllSources = getBooleanOrNull("preloadAllSources") ?: false,
+            replayMode = when (getString("replayMode")) {
+                "lastSource" -> ReplayMode.LastSource
+                else -> ReplayMode.Playlist
+            },
+        )
+    }
+
+    private fun Map<*, *>.toSeekTarget(): SeekTarget = SeekTarget(
+        offset = (this["offset"] as? Number)?.toDouble() ?: 0.0,
+        startOffsetTimelineReference = when (this["startOffsetTimelineReference"] as? String) {
+            "start" -> TimelineReferencePoint.Start
+            "end" -> TimelineReferencePoint.End
+            else -> null
+        },
+    )
+
+    private fun Map<String, Any?>.filterNotNullValues(): Map<String, Any> =
+        filterValues { it != null }.mapValues { it.value!! }
 
     private fun setupImaBeforeInitialization(
         nativeId: NativeId,

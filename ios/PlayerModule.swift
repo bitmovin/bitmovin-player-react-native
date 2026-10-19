@@ -5,8 +5,9 @@ import ExpoModulesCore
 public class PlayerModule: Module {
     private let shouldLoadAdItemWaiter = ResultWaiter<Bool>()
     private let imaSettingsWaiter = ResultWaiter<[String: Any]>()
+    private lazy var playlistEventEmitter = PlaylistEventEmitter(module: self)
 
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
     public func definition() -> ModuleDefinition {
         Name("PlayerModule")
         OnCreate {}
@@ -15,13 +16,22 @@ public class PlayerModule: Module {
             // This is necessary when the IMA SDK is present in the app,
             // as it may crash if the players are destroyed on a background thread.
             DispatchQueue.main.async {
-                PlayerRegistry.getAllPlayers().forEach { $0.destroy() }
+                PlayerRegistry.getAllPlayers().forEach {
+                    $0.remove(listener: self.playlistEventEmitter)
+                    $0.destroy()
+                }
                 PlayerRegistry.clear()
             }
             shouldLoadAdItemWaiter.removeAll()
             imaSettingsWaiter.removeAll()
         }
-        Events("onShouldLoadAdItem", "onImaBeforeInitialization")
+        Events(
+            "onShouldLoadAdItem",
+            "onImaBeforeInitialization",
+            "onSourceAdded",
+            "onSourceRemoved",
+            "onPlaylistTransition"
+        )
         AsyncFunction("play") { (nativeId: NativeId) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.play()
         }.runOnQueue(.main)
@@ -42,6 +52,7 @@ public class PlayerModule: Module {
         }.runOnQueue(.main)
         AsyncFunction("destroy") { (nativeId: NativeId) in
             if let player = PlayerRegistry.getPlayer(nativeId: nativeId) {
+                player.remove(listener: self.playlistEventEmitter)
                 player.destroy()
                 PlayerRegistry.unregister(nativeId: nativeId)
             }
@@ -202,6 +213,9 @@ public class PlayerModule: Module {
             self?.setupShouldLoadAdItem(nativeId: nativeId, config: config, playerConfig: playerConfig)
             self?.setupImaBeforeInitialization(nativeId: nativeId, config: config, playerConfig: playerConfig)
             let player = PlayerFactory.create(playerConfig: playerConfig)
+            if let playlistEventEmitter = self?.playlistEventEmitter {
+                player.add(listener: playlistEventEmitter)
+            }
             PlayerRegistry.register(player: player, nativeId: nativeId)
         }.runOnQueue(.main)
         AsyncFunction(
@@ -224,6 +238,9 @@ public class PlayerModule: Module {
                 analyticsConfig: analyticsConfig,
                 defaultMetadata: defaultMetadata ?? DefaultMetadata()
             )
+            if let playlistEventEmitter = self?.playlistEventEmitter {
+                player.add(listener: playlistEventEmitter)
+            }
             PlayerRegistry.register(player: player, nativeId: nativeId)
         }.runOnQueue(.main)
         AsyncFunction("loadSource") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) in
@@ -231,6 +248,53 @@ public class PlayerModule: Module {
                   let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
                   let source = sourceModule.retrieve(sourceNativeId) else { return }
             player.load(source: source)
+        }.runOnQueue(.main)
+        AsyncFunction("loadPlaylist") { [weak self] (nativeId: NativeId, sourceNativeIds: [NativeId], options: [String: Any]?) in // swiftlint:disable:this line_length
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
+                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self) else { return }
+            let sources = sourceNativeIds.compactMap { sourceModule.retrieve($0) }
+            guard sources.count == sourceNativeIds.count else { return }
+            player.load(playlistConfig: PlaylistConfig(sources: sources, options: RCTConvert.playlistOptions(options)))
+        }.runOnQueue(.main)
+        AsyncFunction("playlistAddSource") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId, index: Int?) in
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
+                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
+                  let source = sourceModule.retrieve(sourceNativeId) else { return }
+            if let index {
+                player.playlist.add(source: source, at: index)
+            } else {
+                player.playlist.add(source: source)
+            }
+        }.runOnQueue(.main)
+        AsyncFunction("playlistRemoveSource") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) in
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
+                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
+                  let source = sourceModule.retrieve(sourceNativeId),
+                  let index = player.playlist.sources.firstIndex(where: {
+                      $0.sourceConfig === source.sourceConfig
+                  }) else {
+                return
+            }
+            player.playlist.remove(sourceAt: index)
+        }.runOnQueue(.main)
+        AsyncFunction("playlistRemoveSourceAt") { (nativeId: NativeId, index: Int) in
+            PlayerRegistry.getPlayer(nativeId: nativeId)?.playlist.remove(sourceAt: index)
+        }.runOnQueue(.main)
+        AsyncFunction("playlistSeekToTime") { [weak self] (playerId: NativeId, sourceId: NativeId, time: Double?) in
+            guard let player = PlayerRegistry.getPlayer(nativeId: playerId),
+                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
+                  let source = sourceModule.retrieve(sourceId) else { return }
+            player.playlist.seek(source: source, time: time ?? 0)
+        }.runOnQueue(.main)
+        AsyncFunction("playlistSeekToTarget") { (_: NativeId, _: NativeId, _: [String: Any]) in
+            // Structured playlist seek targets are not supported by the native iOS/tvOS SDK.
+        }.runOnQueue(.main)
+        AsyncFunction("getPlaylistSources") { [weak self] (nativeId: NativeId) -> [NativeId] in
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
+                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self) else { return [] }
+            return player.playlist.sources.compactMap { playlistSource in
+                sourceModule.nativeId { $0.sourceConfig === playlistSource.sourceConfig }
+            }
         }.runOnQueue(.main)
     }
 
@@ -314,5 +378,103 @@ public class PlayerModule: Module {
             guard let updated = wait() else { return }
             RCTConvert.applyImaSettings(settings, from: updated)
         }
+    }
+}
+
+private final class PlaylistEventEmitter: NSObject, PlayerListener {
+    weak var module: PlayerModule?
+
+    init(module: PlayerModule) {
+        self.module = module
+    }
+
+    func onSourceAdded(_ event: SourceAddedEvent, player: Player) {
+        sendPlaylistEvent(
+            eventName: "onSourceAdded",
+            player: player,
+            source: event.source,
+            sourceIndex: event.index,
+            event: event
+        )
+    }
+
+    func onSourceRemoved(_ event: SourceRemovedEvent, player: Player) {
+        sendPlaylistEvent(
+            eventName: "onSourceRemoved",
+            player: player,
+            source: event.source,
+            sourceIndex: event.index,
+            event: event
+        )
+    }
+
+    func onPlaylistTransition(_ event: PlaylistTransitionEvent, player: Player) {
+        guard let module, let nativeId = PlayerRegistry.nativeId(where: { $0 === player }) else { return }
+        let fromNativeId = sourceNativeId(event.from)
+        let toNativeId = sourceNativeId(event.to)
+        var payload = eventPayload(event)
+        payload.merge(compactPayload([
+            "nativeId": nativeId,
+            "name": "onPlaylistTransition",
+            "from": sourcePayload(event.from, nativeId: fromNativeId),
+            "to": sourcePayload(event.to, nativeId: toNativeId),
+            "fromSourceNativeId": fromNativeId,
+            "toSourceNativeId": toNativeId
+        ])) { _, new in new }
+        module.sendEvent("onPlaylistTransition", NonFiniteSanitizer.sanitizeEventData(payload))
+    }
+
+    private func sendPlaylistEvent(
+        eventName: String,
+        player: Player,
+        source: Source,
+        sourceIndex: Int,
+        event: Event
+    ) {
+        guard let module, let nativeId = PlayerRegistry.nativeId(where: { $0 === player }) else { return }
+        let sourceNativeId = sourceNativeId(source)
+        var payload = eventPayload(event)
+        payload.merge(compactPayload([
+            "nativeId": nativeId,
+            "name": eventName,
+            "source": sourcePayload(source, nativeId: sourceNativeId),
+            "sourceNativeId": sourceNativeId,
+            "index": sourceIndex
+        ])) { _, new in new }
+        module.sendEvent(eventName, NonFiniteSanitizer.sanitizeEventData(payload))
+    }
+
+    private func sourceNativeId(_ source: Source) -> NativeId? {
+        module?.appContext?.moduleRegistry.get(SourceModule.self)?.nativeId {
+            $0.sourceConfig === source.sourceConfig
+        }
+    }
+
+    private func eventPayload(_ event: Event) -> [String: Any] {
+        guard let jsonConvertible = event as? JsonConvertible else {
+            return [
+                "name": event.name,
+                "timestamp": event.timestamp
+            ]
+        }
+        return jsonConvertible.toJSON().reduce(into: [String: Any]()) { result, pair in
+            if let key = pair.key as? String {
+                result[key] = pair.value
+            }
+        }
+    }
+
+    private func sourcePayload(_ source: Source, nativeId: NativeId?) -> [String: Any] {
+        var payload = source.toJSON().reduce(into: [String: Any]()) { result, pair in
+            if let key = pair.key as? String {
+                result[key] = pair.value
+            }
+        }
+        payload["nativeId"] = nativeId
+        return payload
+    }
+
+    private func compactPayload(_ payload: [String: Any?]) -> [String: Any] {
+        payload.compactMapValues { $0 }
     }
 }

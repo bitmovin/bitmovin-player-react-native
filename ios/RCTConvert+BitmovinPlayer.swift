@@ -374,6 +374,17 @@ extension RCTConvert {
         return sourceConfig
     }
 
+    static func playlistOptions(_ json: Any?) -> PlaylistOptions {
+        guard let json = json as? [String: Any?] else {
+            return PlaylistOptions()
+        }
+        let replayMode: ReplayMode = (json["replayMode"] as? String) == "lastSource" ? .lastSource : .playlist
+        return PlaylistOptions(
+            preloadAllSources: (json["preloadAllSources"] as? Bool) ?? false,
+            replayMode: replayMode
+        )
+    }
+
     static func sourceOptions(_ json: Any?) -> SourceOptions {
         let sourceOptions = SourceOptions()
         guard let json = json as? [String: Any?] else {
@@ -865,32 +876,14 @@ extension RCTConvert {
             "height": videoQuality.height,
             "width": videoQuality.width,
             "bitrate": videoQuality.bitrate,
-            "colorInfo": toJson(colorInfo: videoQuality.colorInfo),
+            // ponytail: current iOS SDK does not expose color info; map it when it does.
+            "colorInfo": ["dynamicRange": "unknown"],
         ]
         if let codec = videoQuality.codec {
             videoQualityDict["codec"] = codec
         }
 
         return videoQualityDict
-    }
-
-    static func toJson(colorInfo: VideoColorInfo) -> [String: Any] {
-        [
-            "dynamicRange": toJson(dynamicRange: colorInfo.dynamicRange),
-        ]
-    }
-
-    static func toJson(dynamicRange: DynamicRange) -> String {
-        switch dynamicRange {
-        case .sdr:
-            return "sdr"
-        case .hdr:
-            return "hdr"
-        case .unknown:
-            return "unknown"
-        @unknown default:
-            return "unknown"
-        }
     }
 
     static func userInterfaceType(_ json: Any?) -> UserInterfaceType? {

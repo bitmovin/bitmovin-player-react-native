@@ -104,6 +104,8 @@ class SourceModule : Module() {
     // CRITICAL: This method must remain available for cross-module access
     // Called by PlayerModule.loadSource()
     fun getSourceOrNull(nativeId: NativeId): Source? = sources[nativeId]
+
+    fun getNativeId(source: Source): NativeId? = sources.entries.firstOrNull { it.value === source }?.key
 }
 
 // MARK: - Exception Definitions

@@ -49,6 +49,12 @@ Check out our [React Native Guides](https://developer.bitmovin.com/playback/docs
 
 Player and Google IMA use Swift Package Manager. See [iOS SDK dependencies](docs/ios-dependencies.md) for Expo prebuild, manual integration, and upgrade instructions.
 
+### Playlist playback
+
+Use `player.loadPlaylist([...sources], options)` or `player.playlist.load(...)` to start a native playlist session. `player.playlist` also exposes native playlist management: `add(source, index?)`, `remove(source)`, `removeAt(index)`, `seek(source, target?)`, `getSources()`, and `addEventListener(...)` for `sourceAdded`, `sourceRemoved`, and `playlistTransition` events. Playlist events are delivered by the player module and do not require a mounted `PlayerView`.
+
+Native defaults and limitations are preserved. `PlaylistOptions.preloadAllSources` defaults to `false`; `replayMode` defaults to `ReplayMode.PLAYLIST`. Android supports structured playlist seek targets (`{ offset, startOffsetTimelineReference }`) and `null`/`undefined` for a source's default position. iOS/tvOS supports native time-based playlist seeking only. Native no-op behavior is preserved for operations without an active session, invalid indices, non-member sources, and active-source removal.
+
 ### Sample Application
 
 In the [/example/](https://github.com/bitmovin/bitmovin-player-react-native/tree/development/example) folder you can find a sample application showcasing many of the features of the Player React Native SDK.

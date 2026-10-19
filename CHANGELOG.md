@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Add native playlist loading, management, seeking, source-added/source-removed/playlist-transition events, docs, and a playlist sample screen
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to [`3.128.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31280)

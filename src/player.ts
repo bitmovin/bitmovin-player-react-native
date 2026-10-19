@@ -15,6 +15,7 @@ import { MediaControlsApi } from './mediaControlsApi';
 import { VideoQuality } from './media';
 import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
+import { PlaylistApi, PlaylistConfig, PlaylistOptions } from './playlist';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -55,47 +56,65 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   mediaControls: MediaControlsApi = new MediaControlsApi(this.nativeId);
 
+  /** API for loading and managing native playlists. */
+  playlist: PlaylistApi = new PlaylistApi(
+    this.nativeId,
+    (source) => {
+      this.source = source;
+    },
+    () => this.initialize()
+  );
+
   private network?: Network;
 
   private decoderConfig?: DecoderConfigBridge;
   private onShouldLoadAdItemSubscription?: EventSubscription;
   private onShouldPlayAdBreakSubscription?: EventSubscription;
   private onImaBeforeInitializationSubscription?: EventSubscription;
+  private initializationPromise?: Promise<void>;
+
   /**
    * Allocates the native `Player` instance and its resources natively.
+   * Concurrent calls share the same initialization.
    */
-  initialize = async (): Promise<void> => {
-    if (!this.isInitialized) {
-      this.ensureShouldLoadAdItemListener();
-      this.ensureShouldPlayAdBreakListener();
-      this.ensureImaBeforeInitializationListener();
-      if (this.config?.networkConfig) {
-        this.network = new Network(this.config.networkConfig);
-        await this.network.initialize();
-      }
-      await this.maybeInitDecoderConfig();
-      const analyticsConfig = this.config?.analyticsConfig;
-      if (analyticsConfig) {
-        await PlayerModule.initializeWithAnalyticsConfig(
-          this.nativeId,
-          analyticsConfig,
-          this.config,
-          this.network?.nativeId,
-          this.decoderConfig?.nativeId
-        );
-        this.analytics = new AnalyticsApi(this.nativeId);
-      } else {
-        await PlayerModule.initializeWithConfig(
-          this.nativeId,
-          this.config,
-          this.network?.nativeId,
-          this.decoderConfig?.nativeId
-        );
-      }
-
-      this.isInitialized = true;
+  initialize = (): Promise<void> => {
+    if (this.isInitialized) {
+      return Promise.resolve();
     }
-    return Promise.resolve();
+    return (this.initializationPromise ??=
+      this.initializeNativePlayer().finally(() => {
+        this.initializationPromise = undefined;
+      }));
+  };
+
+  private initializeNativePlayer = async (): Promise<void> => {
+    this.ensureShouldLoadAdItemListener();
+    this.ensureShouldPlayAdBreakListener();
+    this.ensureImaBeforeInitializationListener();
+    if (this.config?.networkConfig) {
+      this.network ??= new Network(this.config.networkConfig);
+      await this.network.initialize();
+    }
+    await this.maybeInitDecoderConfig();
+    const analyticsConfig = this.config?.analyticsConfig;
+    if (analyticsConfig) {
+      await PlayerModule.initializeWithAnalyticsConfig(
+        this.nativeId,
+        analyticsConfig,
+        this.config,
+        this.network?.nativeId,
+        this.decoderConfig?.nativeId
+      );
+      this.analytics = new AnalyticsApi(this.nativeId);
+    } else {
+      await PlayerModule.initializeWithConfig(
+        this.nativeId,
+        this.config,
+        this.network?.nativeId,
+        this.decoderConfig?.nativeId
+      );
+    }
+    this.isInitialized = true;
   };
 
   /**
@@ -110,6 +129,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       this.onShouldLoadAdItemSubscription?.remove();
       this.onShouldPlayAdBreakSubscription?.remove();
       this.onImaBeforeInitializationSubscription?.remove();
+      this.playlist.dispose();
       this.onShouldLoadAdItemSubscription = undefined;
       this.onShouldPlayAdBreakSubscription = undefined;
       this.onImaBeforeInitializationSubscription = undefined;
@@ -174,9 +194,20 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   loadSource = (source: Source) => {
     this.source = source;
+    this.playlist.registerSources([source]);
     void source
       .initialize()
       .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
+  };
+
+  /**
+   * Loads the given sources as a native playlist and replaces the current playback session.
+   */
+  loadPlaylist = (
+    configOrSources: PlaylistConfig | Source[],
+    options?: PlaylistOptions
+  ): Promise<void> => {
+    return this.playlist.load(configOrSources, options);
   };
 
   /**

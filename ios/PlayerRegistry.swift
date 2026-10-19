@@ -59,6 +59,17 @@ public class PlayerRegistry {
     }
 
     /**
+     * Finds a player native ID using the provided predicate.
+     */
+    public static func nativeId(where predicate: (Player) -> Bool) -> NativeId? {
+        shared.queue.sync {
+            shared.players.first { _, player in
+                predicate(player)
+            }?.key
+        }
+    }
+
+    /**
      * Check if a player is registered with the given native ID.
      */
     public static func hasPlayer(nativeId: NativeId) -> Bool {

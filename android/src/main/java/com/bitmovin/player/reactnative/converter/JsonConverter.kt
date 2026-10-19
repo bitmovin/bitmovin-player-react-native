@@ -433,6 +433,21 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["to"] = to.toJson()
         }
 
+        is PlayerEvent.SourceAdded -> {
+            baseMap["source"] = source.toJson()
+            baseMap["index"] = index
+        }
+
+        is PlayerEvent.SourceRemoved -> {
+            baseMap["source"] = source.toJson()
+            baseMap["index"] = index
+        }
+
+        is PlayerEvent.PlaylistTransition -> {
+            baseMap["from"] = from.toJson()
+            baseMap["to"] = to.toJson()
+        }
+
         is PlayerEvent.TimeShift -> {
             baseMap["position"] = position
             baseMap["targetPosition"] = target
