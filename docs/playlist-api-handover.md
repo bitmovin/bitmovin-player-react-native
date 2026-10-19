@@ -122,7 +122,7 @@ Additional review/coverage gaps:
 
 ## Verification record
 
-The following were rerun after moving onto base `e80b4fa7`, before the implementation commits were pushed:
+The following were run after moving onto base `e80b4fa7`, during branch preparation and handover. Only documentation changed afterward:
 
 | Check                       | Result                                                                                                                                                                                                                                                                                                                              |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
