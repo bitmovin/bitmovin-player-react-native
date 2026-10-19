@@ -631,7 +631,7 @@ fun AdData.toJson(): Map<String, Any> = mapOf<String, Any?>(
 ).filterNotNullValues()
 
 fun AdConfig.toJson(): Map<String, Any> = mapOf<String, Any?>(
-    "replaceContentDuration" to replaceContentDuration,
+    "replaceContentDuration" to (replaceContentDuration ?: Double.NaN),
 ).filterNotNullValues()
 
 fun AdItem.toJson(): Map<String, Any> = mapOf(
