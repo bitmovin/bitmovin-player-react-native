@@ -456,6 +456,8 @@ export interface AdBreakFinishedEvent extends Event {
 
 /**
  * Emitted when the playback of a linear ad has started.
+ * Non-linear ads, such as pause ads, emit {@link NonLinearAdStartedEvent} instead.
+ * See {@link AdItem} for the lifecycle of both ad types.
  */
 export interface AdStartedEvent extends Event {
   /**
@@ -494,6 +496,7 @@ export interface AdStartedEvent extends Event {
 
 /**
  * Emitted when a linear ad has finished playback.
+ * Non-linear ads emit {@link NonLinearAdFinishedEvent} instead.
  */
 export interface AdFinishedEvent extends Event {
   /**
@@ -531,6 +534,7 @@ export interface AdClickedEvent extends Event {
 
 /**
  * Emitted when a linear ad was skipped.
+ * Non-linear ads emit {@link NonLinearAdSkippedEvent} instead.
  */
 export interface AdSkippedEvent extends Event {
   /**
