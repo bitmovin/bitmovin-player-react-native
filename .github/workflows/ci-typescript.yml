@@ -98,6 +98,9 @@ jobs:
       - name: Typecheck TypeScript
         run: yarn typecheck:all
 
+      - name: Test network preprocessing
+        run: node --test scripts/test-network-preprocessing.js
+
       - name: Build TypeScript (Module)
         run: yarn build:module
 
