@@ -266,7 +266,7 @@ export default (spec: TestScope) => {
           position: '15',
         },
         {
-          sources: [{ tag: AdTags.vast2, type: AdSourceType.IMA }],
+          sources: [{ tag: AdTags.vast1, type: AdSourceType.IMA }],
           position: 'post',
         },
       ],
