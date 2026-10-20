@@ -211,14 +211,44 @@ test('detects am start errors even when adb exits zero', async (t) => {
   await assert.rejects(launcher.launch(), /start|Activity/i);
 });
 
-test('rejects Android display timeouts without retrying launch', async (t) => {
-  const { launcher, outputs, calls } = fixture(t);
+test('defers a live app display timeout to bounded Cavy readiness without relaunching', async (t) => {
+  const { launcher, outputs, calls, env } = fixture(t);
   launcher.prepare();
   outputs[
     'shell am start -W -n com.bitmovin.player.reactnative.integrationtests/.MainActivity'
   ] = 'Status: timeout\nLaunchState: UNKNOWN (-1)\nWaitTime: 11272\nComplete\n';
-  await assert.rejects(launcher.launch(), /Status: timeout/);
+  await launcher.launch();
   assert.equal(calls.filter(({ args }) => args.includes('start')).length, 1);
+  assert.ok(calls.some(({ args }) => args.includes('pidof')));
+  assert.match(
+    fs.readFileSync(path.join(env.CAVY_ARTIFACTS_DIR, 'launch.txt'), 'utf8'),
+    /Status: timeout/
+  );
+});
+
+test('fails display timeouts when the app process is absent', async (t) => {
+  const { launcher, outputs } = fixture(t);
+  launcher.prepare();
+  outputs[
+    'shell am start -W -n com.bitmovin.player.reactnative.integrationtests/.MainActivity'
+  ] = 'Status: timeout\nWaitTime: 13317\nComplete\n';
+  outputs['shell pidof com.bitmovin.player.reactnative.integrationtests'] = '';
+  await assert.rejects(launcher.launch(), /process|crash/i);
+});
+
+test('fails unknown launch statuses and adb command timeouts', async (t) => {
+  for (const result of [
+    'Status: failed\n',
+    'Starting: Intent without a status\n',
+    new Error('adb command timed out'),
+  ]) {
+    const { launcher, outputs } = fixture(t);
+    launcher.prepare();
+    outputs[
+      'shell am start -W -n com.bitmovin.player.reactnative.integrationtests/.MainActivity'
+    ] = result;
+    await assert.rejects(launcher.launch(), /failed|timed out/);
+  }
 });
 
 test('detects an app crash or missing application process', async (t) => {

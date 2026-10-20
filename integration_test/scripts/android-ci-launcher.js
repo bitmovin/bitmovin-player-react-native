@@ -119,8 +119,7 @@ function createAndroidLauncher(
   async function launch() {
     const state = readState();
     if (!state) throw new Error('Prepare the Android launcher before launch');
-    // am start -W has a short Android display deadline, independent of adb's
-    // timeout. Finish the cold Metro transform before starting that clock.
+    // Finish the cold Metro transform before starting the application.
     // Match React Native's debug bundle request; Expo resolves the virtual entry
     // from package.json, including the Hermes transform options.
     const bundleUrl = new URL(
@@ -156,11 +155,19 @@ function createAndroidLauncher(
     ).toString();
     fs.writeFileSync(path.join(artifactDirectory, 'launch.txt'), output);
     if (
-      /\bError\b|Exception|Status:\s*(?!ok\b)\S+/i.test(output) ||
-      !/Status:\s*ok\b/i.test(output)
+      /\bError\b|Exception/i.test(output) ||
+      !/^Status:\s*(?:ok|timeout)\s*$/im.test(output)
     ) {
       throw new Error(`Android application failed to start: ${output.trim()}`);
     }
+    if (/^Status:\s*timeout\s*$/im.test(output)) {
+      console.error(
+        'Android display wait expired; checking the app process and awaiting bounded Cavy results'
+      );
+    }
+    // Android's display wait can expire just before a live app renders.
+    // Keep the process check; the supervisor still requires a passing Cavy
+    // report within its whole-run deadline, so a hung app cannot pass.
     check();
   }
 

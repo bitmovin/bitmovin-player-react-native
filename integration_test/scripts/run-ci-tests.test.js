@@ -376,6 +376,25 @@ for (const [mode, expected] of [
   });
 }
 
+for (const mode of [
+  'timeout',
+  'nonzero',
+  'missing',
+  'malformed',
+  'zero',
+  'assertion',
+]) {
+  test(`Android live app cannot pass without successful Cavy results: ${mode}`, async (t) => {
+    const { root, config } = await fixture(t, mode, 'android');
+    await assert.rejects(runCiTests(config));
+    const events = fs.readFileSync(path.join(root, 'events'), 'utf8');
+    assert.match(events, /app:launch/);
+    assert.match(events, /app:diagnostics/);
+    assert.match(events, /app:cleanup/);
+    assert.ok(!fs.existsSync(path.join(root, '.supervisor-lock')));
+  });
+}
+
 for (const mode of ['prepare-failure', 'android-check']) {
   test(`Android lifecycle failure: ${mode}`, async (t) => {
     const { root, config } = await fixture(t, mode, 'android');
