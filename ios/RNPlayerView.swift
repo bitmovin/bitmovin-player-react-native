@@ -1,5 +1,7 @@
 // swiftlint:disable file_length
 import BitmovinPlayer
+@_spi(ExperimentalApi)
+import BitmovinPlayerCore
 import ExpoModulesCore
 
 public class RNPlayerView: ExpoView {
@@ -97,6 +99,9 @@ public class RNPlayerView: ExpoView {
     let onBmpAdScheduled = EventDispatcher()
     let onBmpAdSkipped = EventDispatcher()
     let onBmpAdStarted = EventDispatcher()
+    let onBmpNonLinearAdStarted = EventDispatcher()
+    let onBmpNonLinearAdSkipped = EventDispatcher()
+    let onBmpNonLinearAdFinished = EventDispatcher()
     let onBmpVideoDownloadQualityChanged = EventDispatcher()
     let onBmpVideoPlaybackQualityChanged = EventDispatcher()
     let onBmpFullscreenEnabled = EventDispatcher()
@@ -496,6 +501,21 @@ extension RNPlayerView: PlayerListener {
 
     public func onAdStarted(_ event: AdStartedEvent, player: Player) {
         onBmpAdStarted(event.eventPayload())
+    }
+
+    @_spi(ExperimentalApi)
+    public func onNonLinearAdStarted(_ event: NonLinearAdStartedEvent, player: Player) {
+        onBmpNonLinearAdStarted(event.eventPayload())
+    }
+
+    @_spi(ExperimentalApi)
+    public func onNonLinearAdSkipped(_ event: NonLinearAdSkippedEvent, player: Player) {
+        onBmpNonLinearAdSkipped(event.eventPayload())
+    }
+
+    @_spi(ExperimentalApi)
+    public func onNonLinearAdFinished(_ event: NonLinearAdFinishedEvent, player: Player) {
+        onBmpNonLinearAdFinished(event.eventPayload())
     }
 
     public func onVideoDownloadQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {

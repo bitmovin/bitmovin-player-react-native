@@ -9,6 +9,7 @@ import {
   expectEvents,
   FilteredEvent,
   loadSourceConfig,
+  playUntil,
   RepeatedEvent,
   startPlayerTest,
 } from '../playertesting';
@@ -368,4 +369,60 @@ export default (spec: TestScope) => {
   adErrorScenarios
     .filter(({ enabledOn }) => isEnabledForCurrentPlatform(enabledOn))
     .forEach(advertisingErrorTests);
+
+  spec.describe('playing pause ads', () => {
+    const pauseAdvertisingConfig = (tag: string): AdvertisingConfig => ({
+      schedule: [
+        {
+          sources: [{ tag, type: AdSourceType.BITMOVIN }],
+          position: 'pause',
+        },
+      ],
+    });
+    const advertisingConfig = pauseAdvertisingConfig(AdTags.pause);
+
+    const pauseAndExpect = async (eventType: EventType) => {
+      await loadSourceConfig(Sources.artOfMotionHls);
+      await playUntil(1);
+      await callPlayerAndExpectEvent(
+        (player) => {
+          player.pause();
+        },
+        eventType,
+        20
+      );
+    };
+
+    const pauseAndExpectPauseAd = () =>
+      pauseAndExpect(EventType.NonLinearAdStarted);
+
+    spec.it('emits NonLinearAdStarted when paused', async () => {
+      await startPlayerTest({ advertisingConfig }, pauseAndExpectPauseAd);
+    });
+
+    spec.it('emits NonLinearAdSkipped when skipped', async () => {
+      await startPlayerTest({ advertisingConfig }, async () => {
+        await pauseAndExpectPauseAd();
+        await callPlayerAndExpectEvent((player) => {
+          player.skipAd();
+        }, EventType.NonLinearAdSkipped);
+      });
+    });
+
+    spec.it('emits NonLinearAdFinished when playback resumes', async () => {
+      await startPlayerTest({ advertisingConfig }, async () => {
+        await pauseAndExpectPauseAd();
+        await callPlayerAndExpectEvent((player) => {
+          player.play();
+        }, EventType.NonLinearAdFinished);
+      });
+    });
+
+    spec.it('emits AdError when the ad fails to load', async () => {
+      await startPlayerTest(
+        { advertisingConfig: pauseAdvertisingConfig(AdTags.error) },
+        () => pauseAndExpect(EventType.AdError)
+      );
+    });
+  });
 };
