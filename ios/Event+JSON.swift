@@ -1,6 +1,8 @@
 // swiftlint:disable file_length
 
 import BitmovinPlayer
+@_spi(ExperimentalApi)
+import BitmovinPlayerCore
 
 extension Source {
     func toJSON() -> [AnyHashable: Any] {
@@ -341,6 +343,36 @@ extension AdStartedEvent: JsonConvertible {
                 "position": position,
                 "skipOffset": skipOffset,
                 "timeOffset": timeOffset
+            ]
+        }
+    }
+}
+
+extension NonLinearAdStartedEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON {
+            [
+                "ad": RCTConvert.toJson(ad: ad)
+            ]
+        }
+    }
+}
+
+extension NonLinearAdSkippedEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON {
+            [
+                "ad": RCTConvert.toJson(ad: ad)
+            ]
+        }
+    }
+}
+
+extension NonLinearAdFinishedEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON {
+            [
+                "ad": RCTConvert.toJson(ad: ad)
             ]
         }
     }

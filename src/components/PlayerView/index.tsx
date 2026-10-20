@@ -195,6 +195,9 @@ export function PlayerView({
       onBmpFullscreenEnter={proxy(props.onFullscreenEnter)}
       onBmpFullscreenExit={proxy(props.onFullscreenExit)}
       onBmpMuted={proxy(props.onMuted)}
+      onBmpNonLinearAdStarted={proxy(props.onNonLinearAdStarted)}
+      onBmpNonLinearAdSkipped={proxy(props.onNonLinearAdSkipped)}
+      onBmpNonLinearAdFinished={proxy(props.onNonLinearAdFinished)}
       onBmpPaused={proxy(props.onPaused)}
       onBmpPictureInPictureAvailabilityChanged={proxy(
         props.onPictureInPictureAvailabilityChanged

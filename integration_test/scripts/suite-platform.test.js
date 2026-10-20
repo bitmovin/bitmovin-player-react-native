@@ -18,7 +18,7 @@ function registeredTests(file, platform, ci = true) {
   vm.runInNewContext(outputText, {
     exports,
     process: { env: { EXPO_PUBLIC_CAVY_CI: ci ? '1' : '' } },
-    console: { info: (message) => messages.push(message) },
+    console: { warn: (message) => messages.push(message) },
     require(name) {
       if (name === 'react-native') return { Platform: { OS: platform } };
       if (name === 'bitmovin-player-react-native') {
@@ -77,7 +77,7 @@ test('iOS CI excludes FairPlay explicitly instead of registering a passing no-op
   assert.ok(messages.some((message) => /FairPlay.*physical/i.test(message)));
 });
 
-test('retains the DRM assertion for Android CI and manual iOS device runs', () => {
+test('retains Android DRM and excludes FairPlay from the local simulator runner', () => {
   assert.equal(registeredTests('errorTest.ts', 'android').names.length, 1);
-  assert.equal(registeredTests('errorTest.ts', 'ios', false).names.length, 1);
+  assert.equal(registeredTests('errorTest.ts', 'ios', false).names.length, 0);
 });
