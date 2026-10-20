@@ -71,11 +71,14 @@ From `integration_test/`, use the shared supervisor with a fresh artifact
 directory:
 
 ```sh
-CAVY_ARTIFACTS_DIR=/tmp/cavy-android-run node scripts/run-ci-tests.js android --tags playback,loading-vod
-CAVY_ARTIFACTS_DIR=/tmp/cavy-ios-run node scripts/run-ci-tests.js ios --tags playback,loading-vod
+CAVY_TIMEOUT_MS=1800000 CAVY_ARTIFACTS_DIR=/tmp/cavy-android-run node scripts/run-ci-tests.js android
+CAVY_TIMEOUT_MS=1800000 CAVY_ARTIFACTS_DIR=/tmp/cavy-ios-run node scripts/run-ci-tests.js ios
 ```
 
-`playback,loading-vod` uses the existing Art of Motion VOD tests. The `loading`
+CI runs every registered suite supported by its platform, including live loading,
+advertising, captions, cue metadata, ID3, unloading, audio tracks and video quality.
+For a short local smoke run, append `--tags playback,loading-vod` to use the
+existing Art of Motion VOD tests. The `loading`
 selector still includes both VOD and live loading tests. `loading-vod` is an
 explicit subset selector; omitting tags runs the original full suite without
 duplicating its VOD tests.
@@ -97,7 +100,7 @@ The adapters require these environment variables:
 `RCT_METRO_PORT` defaults to 8081; Cavy uses 8082. Occupied ports and existing
 Cavy reports are rejected. Metro uses IPv4-first DNS resolution for Android's
 reverse port mapping. `CAVY_TIMEOUT_MS` bounds startup and test execution
-(default 600000 ms); startup readiness also has a 120-second limit. Bounded
+(default 600000 ms; full-suite CI uses 1800000 ms); startup readiness also has a 120-second limit. Bounded
 adapter cleanup runs afterward.
 
 `CAVY_ARTIFACTS_DIR` defaults to `cavy-artifacts/` in the current directory.
@@ -112,9 +115,16 @@ runtime fixes. The canonical CLI is
 pinned to `833199422418fa72ba6f977b190f46beb23fbba2` in the lockfile; the
 runtime remains upstream `cavy@4.0.2`.
 
-The initial smoke gate excludes live loading, advertising, captions, metadata,
-DRM and TV runtime coverage. FairPlay cannot run on Apple simulators; these
-excluded tests are not counted as passing.
+Android includes the Widevine license-error assertion, which requires a license
+request to reach the expected HTTP 403 response. It does not establish successful
+encrypted playback or hardware-backed DRM coverage.
+
+FairPlay cannot run on Apple simulators. The supervisor excludes that iOS test
+with an explicit log message; the assertion remains for a physical-device harness.
+The current simulator launcher is not a physical-device runner. Platform-only
+ID3, media-control and ad-break tests are registered only where applicable, so
+unsupported cases are not reported as passing no-ops. Existing platform-specific
+ad and caption coverage remains intact. TV runtime execution remains outside CI.
 
 The Android adapter exposes `prepare`, `launch`, `check`, `diagnostics`, and
 `cleanup` operations. The iOS adapter stays alive while the app runs and fails

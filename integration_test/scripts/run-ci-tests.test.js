@@ -14,24 +14,23 @@ const {
 // Restricted workers can exercise real subprocess lifecycle without binding sockets.
 // Default validation always uses real HTTP/TCP; this mode explicitly omits it.
 const noNetwork = process.env.CAVY_TEST_NO_NETWORK === '1';
+function socketFreeDependencies(config) {
+  return {
+    assertPortFree: async () => {},
+    probe: async (_port, metro) => {
+      const events = path.join(config.artifactsDir, 'events');
+      return (
+        fs.existsSync(events) &&
+        fs
+          .readFileSync(events, 'utf8')
+          .includes(metro ? 'metro:ready' : 'reporter:ready')
+      );
+    },
+  };
+}
+
 function runCiTests(config) {
-  return supervise(
-    config,
-    noNetwork
-      ? {
-          assertPortFree: async () => {},
-          probe: async (_port, metro) => {
-            const events = path.join(config.artifactsDir, 'events');
-            return (
-              fs.existsSync(events) &&
-              fs
-                .readFileSync(events, 'utf8')
-                .includes(metro ? 'metro:ready' : 'reporter:ready')
-            );
-          },
-        }
-      : {}
-  );
+  return supervise(config, noNetwork ? socketFreeDependencies(config) : {});
 }
 
 const goodXml =
@@ -245,12 +244,15 @@ test('exits nonzero when process-group termination leaves live children', async 
         '-e',
         `
 const fs = require('node:fs');
+const path = require('node:path');
 const { runCiTests } = require(${JSON.stringify(require.resolve('./run-ci-tests'))});
 process.kill = (pid) => {
   fs.appendFileSync(${JSON.stringify(pidsPath)}, String(-pid) + '\\n');
   throw Object.assign(new Error('injected kill failure'), { code: 'EPERM' });
 };
-runCiTests(${JSON.stringify(config)}).catch((error) => {
+const config = ${JSON.stringify(config)};
+const dependencies = ${noNetwork ? `(${socketFreeDependencies.toString()})(config)` : '{}'};
+runCiTests(config, dependencies).catch((error) => {
   console.error(error.message);
   process.exitCode = 1;
 });
@@ -306,6 +308,70 @@ test('does not signal completed Android operation PIDs during final cleanup', as
     await runCiTests(config);
   } finally {
     process.kill = kill;
+  }
+});
+
+test('does not signal stopped process groups after Android diagnostics', async (t) => {
+  const { root, config } = await fixture(t, 'pass', 'android');
+  const kill = process.kill;
+  const stoppedGroups = new Set();
+  process.kill = function (pid, signal) {
+    const diagnosticsStarted = fs
+      .readFileSync(path.join(root, 'events'), 'utf8')
+      .includes('app:diagnostics');
+    if (pid < 0) {
+      if (diagnosticsStarted) {
+        assert.ok(
+          !stoppedGroups.has(pid),
+          'a stopped process-group ID may have been reused'
+        );
+      } else {
+        stoppedGroups.add(pid);
+      }
+    }
+    return kill.call(process, pid, signal);
+  };
+  try {
+    assert.equal(await runCiTests(config), 1);
+    assert.ok(stoppedGroups.size >= 2, 'Metro and Cavy groups must be stopped');
+  } finally {
+    process.kill = kill;
+  }
+});
+
+test('retries failed process-group cleanup after Android diagnostics', async (t) => {
+  const { root, config } = await fixture(t, 'pass', 'android');
+  const kill = process.kill;
+  let failedGroup;
+  let retried = false;
+  process.kill = function (pid, signal) {
+    if (pid < 0 && failedGroup === undefined) {
+      failedGroup = pid;
+      throw Object.assign(new Error('injected kill failure'), {
+        code: 'EPERM',
+      });
+    }
+    if (pid === failedGroup) {
+      assert.match(
+        fs.readFileSync(path.join(root, 'events'), 'utf8'),
+        /app:cleanup/
+      );
+      retried = true;
+    }
+    return kill.call(process, pid, signal);
+  };
+  try {
+    await assert.rejects(runCiTests(config), /injected kill failure/);
+    assert.ok(retried, 'failed stops must remain eligible for final cleanup');
+  } finally {
+    process.kill = kill;
+    if (failedGroup !== undefined) {
+      try {
+        kill.call(process, failedGroup, 'SIGKILL');
+      } catch (error) {
+        if (error.code !== 'ESRCH') throw error;
+      }
+    }
   }
 });
 

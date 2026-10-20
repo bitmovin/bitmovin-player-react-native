@@ -394,6 +394,8 @@ async function runCiTests(config, dependencies = {}) {
       await delay(100);
       signalGroup(entry, 'SIGKILL');
       await boundedWait(entry.done, 1000);
+      // A later cleanup pass must not signal a process-group ID that was reused.
+      children.splice(children.indexOf(entry), 1);
     } finally {
       // A failed signal must not keep the supervisor alive past its deadline.
       entry.child.unref();
