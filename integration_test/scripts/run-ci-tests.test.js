@@ -62,10 +62,13 @@ const net = require('node:net');
 const { spawn } = require('node:child_process');
 const [role, mode, metroPort, reporterPort, operation] = process.argv.slice(2);
 const record = (s) => fs.appendFileSync('events', s + '\\n');
-if (mode === 'redaction') console.log('test-license-redaction-sentinel');
+if (mode.startsWith('redaction')) {
+  const license = process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY ?? require(${JSON.stringify(require.resolve('dotenv'))}).parse(fs.readFileSync('.env')).EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY;
+  console.log(license);
+}
 record(role + ':' + (operation || 'start') + ':' + process.env.EXPO_PUBLIC_CAVY_ONLY_TAGS);
 if (role === 'metro') {
-  if (mode === 'metro-exit') process.exit(2);
+  if (['metro-exit', 'redaction-startup-failure'].includes(mode)) process.exit(2);
   if (mode === 'descendant') {
     const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], {stdio:'ignore'});
     fs.writeFileSync('descendant', String(child.pid));
@@ -231,6 +234,60 @@ test('releases its lock and signal handlers even when a process cannot be cleane
   }
 });
 
+test('exits nonzero when process-group termination leaves live children', async (t) => {
+  const { root, config } = await fixture(t, 'timeout');
+  const pidsPath = path.join(root, 'unkillable-pids');
+  let result;
+  try {
+    result = spawnSync(
+      process.execPath,
+      [
+        '-e',
+        `
+const fs = require('node:fs');
+const { runCiTests } = require(${JSON.stringify(require.resolve('./run-ci-tests'))});
+process.kill = (pid) => {
+  fs.appendFileSync(${JSON.stringify(pidsPath)}, String(-pid) + '\\n');
+  throw Object.assign(new Error('injected kill failure'), { code: 'EPERM' });
+};
+runCiTests(${JSON.stringify(config)}).catch((error) => {
+  console.error(error.message);
+  process.exitCode = 1;
+});
+`,
+      ],
+      { timeout: 7000, encoding: 'utf8' }
+    );
+  } finally {
+    if (fs.existsSync(pidsPath)) {
+      const pids = new Set(
+        fs.readFileSync(pidsPath, 'utf8').trim().split('\n').map(Number)
+      );
+      let liveChildren = 0;
+      for (const pid of pids) {
+        try {
+          process.kill(-pid, 'SIGKILL');
+          liveChildren++;
+        } catch (error) {
+          if (error.code !== 'ESRCH') throw error;
+        }
+      }
+      assert.ok(
+        liveChildren > 0,
+        'termination failure must leave a live child'
+      );
+    }
+  }
+  assert.ifError(result.error);
+  assert.equal(result.status, 1, result.stderr);
+  assert.match(result.stderr, /whole run timed out/);
+  assert.match(
+    fs.readFileSync(path.join(root, 'supervisor.log'), 'utf8'),
+    /injected kill failure/
+  );
+  assert.ok(!fs.existsSync(path.join(root, '.supervisor-lock')));
+});
+
 test('does not signal completed Android operation PIDs during final cleanup', async (t) => {
   const { root, config } = await fixture(t, 'pass', 'android');
   const kill = process.kill;
@@ -377,6 +434,10 @@ for (const mode of ['cleanup-failure', 'cleanup-missing']) {
 
 test('removes a synthetic license marker from retained process logs', async (t) => {
   const f = await fixture(t, 'redaction', 'android');
+  fs.writeFileSync(
+    path.join(f.root, '.env'),
+    'EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY=dotenv-fallback-license\n'
+  );
   f.config.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY =
     'test-license-redaction-sentinel';
   await runCiTests(f.config);
@@ -386,6 +447,25 @@ test('removes a synthetic license marker from retained process logs', async (t) 
     assert.ok(log.includes('[REDACTED]'));
   }
 });
+
+for (const mode of ['redaction', 'redaction-startup-failure']) {
+  test(`redacts a dotenv-only license: ${mode}`, async (t) => {
+    const f = await fixture(t, mode, 'android');
+    delete f.config.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY;
+    fs.writeFileSync(
+      path.join(f.root, '.env'),
+      'export EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY="test-license-redaction-sentinel"\n'
+    );
+    if (mode === 'redaction-startup-failure') {
+      await assert.rejects(runCiTests(f.config), /Metro.*exited early/);
+    } else {
+      assert.equal(await runCiTests(f.config), 1);
+    }
+    const log = fs.readFileSync(path.join(f.root, 'metro.log'), 'utf8');
+    assert.ok(!log.includes('test-license-redaction-sentinel'));
+    assert.ok(log.includes('[REDACTED]'));
+  });
+}
 
 test('aligns reporter boot and keep-alive deadlines with the whole-run budget', () => {
   const config = createCiConfig(['ios', '--tags', 'playback'], {
