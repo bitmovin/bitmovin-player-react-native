@@ -29,6 +29,7 @@ import Casting from './screens/Casting';
 import BackgroundPlayback from './screens/BackgroundPlayback';
 import AudioFocusHandling from './screens/AudioFocusHandling';
 import EnableDisableMediaControls from './screens/EnableDisableMediaControls';
+import Playlist from './screens/Playlist';
 import * as Device from 'expo-device';
 
 export type RootStackParamsList = {
@@ -74,6 +75,7 @@ export type RootStackParamsList = {
   BackgroundPlayback: undefined;
   AudioFocusHandling: undefined;
   EnableDisableMediaControls: undefined;
+  Playlist: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsList>();
@@ -198,6 +200,14 @@ export default function App() {
     stackParams.data.push({
       title: 'System UI',
       routeName: 'SystemUI',
+    });
+  }
+
+  // TODO: show on all platforms once the iOS playlist bridge is implemented
+  if (Platform.OS === 'android') {
+    stackParams.data.push({
+      title: 'Playlist',
+      routeName: 'Playlist',
     });
   }
 
@@ -355,6 +365,13 @@ export default function App() {
           component={AudioFocusHandling}
           options={{ title: 'Audio Focus Handling' }}
         />
+        {Platform.OS === 'android' && (
+          <RootStack.Screen
+            name="Playlist"
+            component={Playlist}
+            options={{ title: 'Playlist' }}
+          />
+        )}
         {Platform.OS === 'ios' && (
           <RootStack.Screen
             name="EnableDisableMediaControls"
