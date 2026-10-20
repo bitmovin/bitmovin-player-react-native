@@ -102,6 +102,7 @@ async function runIosApp(config, dependencies = {}) {
   const onTerminate = () => cancel('iOS launcher stopped by SIGTERM');
   const onInterrupt = () => cancel('iOS launcher stopped by SIGINT');
   const command = async (args, timeout = 30000, required = true) => {
+    const startedAt = Date.now();
     const result = await run('xcrun', ['simctl', ...args], {
       encoding: 'utf8',
       timeout,
@@ -109,13 +110,24 @@ async function runIosApp(config, dependencies = {}) {
       maxBuffer: 4 * 1024 * 1024,
       ...(required ? { signal: controller.signal } : {}),
     });
+    const diagnostics = {
+      startedAt: new Date(startedAt).toISOString(),
+      elapsedMs: Date.now() - startedAt,
+      timeoutMs: timeout,
+      status: result.status,
+      code: result.error ? (result.error.code ?? null) : result.status,
+      signal: result.error?.signal ?? null,
+      killed: result.error?.killed ?? false,
+      cancelled: required && controller.signal.aborted,
+      error: result.error?.message ?? null,
+    };
     fs.appendFileSync(
       commandLog,
-      `$ xcrun simctl ${args.join(' ')}\n${result.stdout || ''}${result.stderr || ''}\n`
+      `$ xcrun simctl ${args.join(' ')}\n${result.stdout || ''}${result.stderr || ''}\nResult: ${JSON.stringify(diagnostics)}\n`
     );
     if (required && (result.error || result.status !== 0)) {
       throw new Error(
-        `simctl ${args[0]} failed: ${result.error?.message || result.stderr || result.status}`
+        `simctl ${args[0]} failed after ${diagnostics.elapsedMs}ms (timeout ${timeout}ms, code ${diagnostics.code}, signal ${diagnostics.signal}, killed ${diagnostics.killed}): ${result.error?.message || result.stderr || result.status}`
       );
     }
     if (
@@ -161,7 +173,9 @@ async function runIosApp(config, dependencies = {}) {
       JSON.stringify({ udid, runtime, deviceType, appPath }, null, 2)
     );
     await command(['boot', udid]);
-    await command(['bootstatus', udid, '-b'], 120000);
+    // Fresh CI devices can spend more than two minutes migrating runtime data.
+    // Allow one bounded cold boot; the overall run deadline still aborts it.
+    await command(['bootstatus', udid, '-b'], 300000);
     await command(['install', udid, appPath], 120000);
     appFd = fs.openSync(path.join(artifactsDir, 'app-console.log'), 'w');
     logFd = fs.openSync(path.join(artifactsDir, 'simulator.log'), 'w');

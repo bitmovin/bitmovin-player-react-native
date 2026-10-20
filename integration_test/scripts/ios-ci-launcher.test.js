@@ -104,6 +104,130 @@ test('fails when the explicitly selected runtime is unavailable', async (t) => {
   assert.ok(!f.calls.some(({ args }) => args[1] === 'create'));
 });
 
+test('allows a cold simulator migration beyond two minutes without retrying boot', async (t) => {
+  const f = fixture(t);
+  f.config.timeoutMs = 600000;
+  const run = f.dependencies.run;
+  f.dependencies.run = (command, args, config) => {
+    const result = run(command, args, config);
+    if (args[1] === 'bootstatus') {
+      // A cold boot taking three minutes must reach install on its first try.
+      if (config.timeout < 180000) {
+        return {
+          status: 1,
+          error: new Error('cold migration killed before completion'),
+          stdout: 'Status=2, isTerminal=NO: Waiting on Data Migration',
+        };
+      }
+      assert.equal(config.timeout, 300000);
+      return { status: 0, stdout: 'Status=4294967295, isTerminal=YES' };
+    }
+    return result;
+  };
+  await assert.rejects(
+    implementation().runIosApp(f.config, f.dependencies),
+    /app exited/
+  );
+  assert.equal(
+    f.calls.filter(({ args }) => args[1] === 'bootstatus').length,
+    1
+  );
+  assert.equal(f.calls.filter(({ args }) => args[1] === 'boot').length, 1);
+  assert.ok(f.calls.some(({ args }) => args[1] === 'install'));
+});
+
+test('retains migration output and timeout kill details before cleaning up a failed boot', async (t) => {
+  const f = fixture(t);
+  const run = f.dependencies.run;
+  f.dependencies.run = (command, args, config) => {
+    const result = run(command, args, config);
+    if (args[1] !== 'bootstatus') return result;
+    return {
+      status: 1,
+      error: Object.assign(
+        new Error('Command failed: xcrun simctl bootstatus'),
+        {
+          code: null,
+          signal: 'SIGKILL',
+          killed: true,
+        }
+      ),
+      stdout: 'Waiting on Data Migration: CoreLocationMigrator.migrator\n',
+    };
+  };
+  await assert.rejects(
+    implementation().runIosApp(f.config, f.dependencies),
+    /bootstatus.*timeout 300000ms.*SIGKILL/
+  );
+  const log = fs.readFileSync(
+    path.join(f.config.artifactsDir, 'simulator-commands.log'),
+    'utf8'
+  );
+  assert.match(log, /CoreLocationMigrator\.migrator/);
+  const results = log
+    .split('\n')
+    .filter((line) => line.startsWith('Result: '))
+    .map((line) => JSON.parse(line.slice('Result: '.length)));
+  const boot = results.find((result) => result.signal === 'SIGKILL');
+  assert.ok(boot);
+  assert.equal(boot.timeoutMs, 300000);
+  assert.equal(boot.code, null);
+  assert.equal(boot.killed, true);
+  assert.equal(boot.cancelled, false);
+  assert.equal(boot.status, 1);
+  assert.equal(boot.error, 'Command failed: xcrun simctl bootstatus');
+  assert.ok(Number.isFinite(Date.parse(boot.startedAt)));
+  assert.ok(Number.isFinite(boot.elapsedMs) && boot.elapsedMs >= 0);
+  assert.equal(
+    f.calls.filter(({ args }) => args[1] === 'bootstatus').length,
+    1
+  );
+  assert.ok(!f.calls.some(({ args }) => args[1] === 'install'));
+  assert.ok(
+    f.calls.some(({ args }) => args.join(' ') === 'simctl delete owned-udid')
+  );
+});
+
+test(
+  'the overall deadline interrupts the larger boot allowance and still cleans up',
+  { timeout: 1000 },
+  async (t) => {
+    const f = fixture(t);
+    f.config.timeoutMs = 30;
+    const run = f.dependencies.run;
+    f.dependencies.run = (command, args, config) => {
+      const result = run(command, args, config);
+      if (args[1] !== 'bootstatus') return result;
+      return new Promise((resolve) => {
+        config.signal.addEventListener(
+          'abort',
+          () => {
+            resolve({ status: 1, error: new Error('bootstatus aborted') });
+          },
+          { once: true }
+        );
+      });
+    };
+    await assert.rejects(
+      implementation().runIosApp(f.config, f.dependencies),
+      /bootstatus/
+    );
+    const boot = f.calls.find(({ args }) => args[1] === 'bootstatus');
+    assert.equal(boot.config.signal.aborted, true);
+    assert.ok(!f.calls.some(({ args }) => args[1] === 'install'));
+    const cleanup = f.calls.filter(({ args }) =>
+      ['terminate', 'shutdown', 'delete'].includes(args[1])
+    );
+    assert.deepEqual(
+      cleanup.map(({ args }) => args[1]),
+      ['terminate', 'shutdown', 'delete']
+    );
+    assert.ok(
+      cleanup.every(({ config }) => !config.signal && config.timeout === 10000)
+    );
+  }
+);
+
 for (const operation of ['boot', 'bootstatus', 'install']) {
   test(`${operation} failure fails the run and removes only its created simulator`, async (t) => {
     const f = fixture(t, { fail: operation });
@@ -112,6 +236,7 @@ for (const operation of ['boot', 'bootstatus', 'install']) {
       new RegExp(operation)
     );
     assert.ok(!f.calls.some(({ args }) => args[1] === 'launch'));
+    assert.equal(f.calls.filter(({ args }) => args[1] === operation).length, 1);
     assert.ok(
       f.calls.some(({ args }) => args.join(' ') === 'simctl delete owned-udid')
     );
