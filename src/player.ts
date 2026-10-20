@@ -37,10 +37,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   isDestroyed = false;
   /**
-   * Currently active source, or `null` if none is active.
-   */
-  source?: Source;
-  /**
    * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.
    *
    * `undefined` if the player was created without analytics support.
@@ -182,11 +178,21 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Loads the given {@link Source} into the player.
    */
   loadSource = (source: Source) => {
-    this.source = source;
     this.knownSources.set(source.nativeId, source);
     void source
       .initialize()
       .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
+  };
+
+  /**
+   * Gets the currently active {@link Source} of the playback session.
+   *
+   * @returns the active source, or `undefined` if there is no active playback session or the active source was
+   * not created through a {@link Source} instance (e.g. offline content).
+   */
+  getSource = async (): Promise<Source | undefined> => {
+    const sourceNativeId = await PlayerModule.source(this.nativeId);
+    return sourceNativeId ? this.knownSources.get(sourceNativeId) : undefined;
   };
 
   /**

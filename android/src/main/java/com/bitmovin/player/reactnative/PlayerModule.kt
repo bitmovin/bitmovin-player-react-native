@@ -323,9 +323,8 @@ class PlayerModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("source") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.source?.toJson()
-        }
+            PlayerRegistry.getPlayer(nativeId)?.source?.let { SourceRegistry.getNativeId(it) }
+        }.runOnQueue(Queues.MAIN)
     }
 
     private fun initializePlayer(

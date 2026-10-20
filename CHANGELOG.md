@@ -8,6 +8,10 @@
 - `onPlayerInactive` event prop on `PlayerView` to indicate when the active playback session ends and the player becomes inactive
 - Android: `EventSource.nativeId` to map sources in event payloads to their `Source` instances
 
+### Changed
+
+- **Breaking change:** Replace the `Player.source` property with `Player.getSource()`, which returns the currently active source of the native player
+
 ### Fixed
 
 - Android: **Breaking change:** `PlayerActive` and `PlayerInactive` events being named `onActive` and `onInactive` instead of `onPlayerActive` and `onPlayerInactive`, as on iOS. Apps comparing `Event.name`, e.g. in `onEvent`, must use the new names.

@@ -249,6 +249,11 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
   ): Promise<void>;
 
   /**
+   * Get the native id of the active source.
+   */
+  source(nativeId: string): Promise<string | null>;
+
+  /**
    * Load offline content into the player.
    */
   loadOfflineContent(
