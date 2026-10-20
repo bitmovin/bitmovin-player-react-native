@@ -71,6 +71,7 @@ import com.bitmovin.player.api.network.HttpResponse
 import com.bitmovin.player.api.network.NetworkConfig
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
+import com.bitmovin.player.api.source.LoadingState
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceOptions
@@ -281,11 +282,17 @@ fun String.toSourceType(): SourceType? = when (this) {
     else -> null
 }
 
+fun LoadingState.toJson(): Int = when (this) {
+    LoadingState.Unloaded -> 0
+    LoadingState.Loading -> 1
+    LoadingState.Loaded -> 2
+}
+
 fun Source.toJson(): Map<String, Any> = mapOf(
     "duration" to duration,
     "isActive" to isActive,
     "isAttachedToPlayer" to isAttachedToPlayer,
-    "loadingState" to loadingState.ordinal,
+    "loadingState" to loadingState.toJson(),
     "metadata" to (config.metadata ?: emptyMap<String, Any>()),
 ).filterNotNullValues()
 
