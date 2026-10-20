@@ -9,7 +9,11 @@ const path = require('node:path');
 const APP_ID = 'com.bitmovin.player.reactnative.integrationtests';
 const ACTIVITY = `${APP_ID}/.MainActivity`;
 
-function createAndroidLauncher(env = process.env, execute = execFileSync) {
+function createAndroidLauncher(
+  env = process.env,
+  execute = execFileSync,
+  request = fetch
+) {
   const serial = env.ANDROID_SERIAL;
   if (!/^emulator-\d+$/.test(serial || '')) {
     throw new Error('ANDROID_SERIAL must identify an explicit emulator');
@@ -112,9 +116,37 @@ function createAndroidLauncher(env = process.env, execute = execFileSync) {
       );
   }
 
-  function launch() {
+  async function launch() {
     const state = readState();
     if (!state) throw new Error('Prepare the Android launcher before launch');
+    // am start -W has a short Android display deadline, independent of adb's
+    // timeout. Finish the cold Metro transform before starting that clock.
+    // Match React Native's debug bundle request; Expo resolves the virtual entry
+    // from package.json, including the Hermes transform options.
+    const bundleUrl = new URL(
+      `http://127.0.0.1:${metroPort}/.expo/.virtual-metro-entry.bundle`
+    );
+    bundleUrl.search = new URLSearchParams({
+      platform: 'android',
+      dev: 'true',
+      lazy: 'true',
+      minify: 'false',
+      app: APP_ID,
+      modulesOnly: 'false',
+      runModule: 'true',
+      excludeSource: 'true',
+      sourcePaths: 'url-server',
+    }).toString();
+    try {
+      const response = await request(bundleUrl.toString(), {
+        signal: AbortSignal.timeout(120000),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      // Headers can arrive while Metro is still serializing the bundle.
+      await response.arrayBuffer();
+    } catch (error) {
+      throw new Error(`Android Metro bundle warmup failed: ${error.message}`);
+    }
     // Record ownership before launching, so a partial startup is still cleaned up.
     state.launched = true;
     saveState(state);
@@ -191,7 +223,7 @@ function createAndroidLauncher(env = process.env, execute = execFileSync) {
 module.exports = { createAndroidLauncher };
 
 if (require.main === module) {
-  try {
+  async function main() {
     const [operation, ...rest] = process.argv.slice(2);
     if (
       !['prepare', 'launch', 'check', 'diagnostics', 'cleanup'].includes(
@@ -203,9 +235,10 @@ if (require.main === module) {
         'Usage: android-ci-launcher.js <prepare|launch|check|diagnostics|cleanup>'
       );
     }
-    createAndroidLauncher()[operation]();
-  } catch (error) {
+    await createAndroidLauncher()[operation]();
+  }
+  main().catch((error) => {
     console.error(error.message);
     process.exitCode = 1;
-  }
+  });
 }

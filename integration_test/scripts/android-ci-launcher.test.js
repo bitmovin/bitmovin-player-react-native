@@ -12,6 +12,7 @@ function fixture(t, overrides = {}) {
   const apk = path.join(directory, 'host.apk');
   fs.writeFileSync(apk, 'fixture');
   const calls = [];
+  const requests = [];
   const env = {
     ANDROID_SERIAL: 'emulator-5554',
     CAVY_ANDROID_APK: apk,
@@ -38,7 +39,23 @@ function fixture(t, overrides = {}) {
   };
   assert.ok(fs.existsSync(launcherPath), 'Android CI launcher must exist');
   const { createAndroidLauncher } = require('./android-ci-launcher');
-  return { launcher: createAndroidLauncher(env, execute), env, calls, outputs };
+  const response = {
+    ok: true,
+    status: 200,
+    arrayBuffer: async () => new ArrayBuffer(1),
+  };
+  const request = async (url, options) => {
+    requests.push({ url, options });
+    return response;
+  };
+  return {
+    launcher: createAndroidLauncher(env, execute, request),
+    env,
+    calls,
+    outputs,
+    requests,
+    response,
+  };
 }
 
 test('requires an explicit emulator instead of accidentally selecting a device', (t) => {
@@ -126,27 +143,96 @@ test('preserves pre-existing reverse mappings and does not kill the emulator', (
   assert.ok(!calls.some(({ args }) => args.includes('kill')));
 });
 
-test('detects am start errors even when adb exits zero', (t) => {
+test('warms the Expo Android entry on the selected Metro port before launching', async (t) => {
+  const { launcher, calls, requests, response } = fixture(t, {
+    RCT_METRO_PORT: '9090',
+  });
+  launcher.prepare();
+  let finishBundle;
+  response.arrayBuffer = () =>
+    new Promise((resolve) => {
+      finishBundle = resolve;
+    });
+  const launch = launcher.launch();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(requests.length, 1);
+  const url = new URL(requests[0].url);
+  assert.equal(url.origin, 'http://127.0.0.1:9090');
+  assert.equal(url.pathname, '/.expo/.virtual-metro-entry.bundle');
+  assert.deepEqual(Object.fromEntries(url.searchParams), {
+    platform: 'android',
+    dev: 'true',
+    lazy: 'true',
+    minify: 'false',
+    app: 'com.bitmovin.player.reactnative.integrationtests',
+    modulesOnly: 'false',
+    runModule: 'true',
+    excludeSource: 'true',
+    sourcePaths: 'url-server',
+  });
+  assert.ok(requests[0].options.signal instanceof AbortSignal);
+  assert.ok(!calls.some(({ args }) => args.includes('start')));
+  assert.equal(
+    typeof finishBundle,
+    'function',
+    'wait for the complete bundle body'
+  );
+  finishBundle(new ArrayBuffer(1));
+  await launch;
+  assert.equal(calls.filter(({ args }) => args.includes('start')).length, 1);
+});
+
+test('does not launch when Metro rejects or interrupts the Android bundle', async (t) => {
+  for (const failure of ['http', 'body']) {
+    const { launcher, calls, requests, response } = fixture(t);
+    launcher.prepare();
+    if (failure === 'http') {
+      response.ok = false;
+      response.status = 500;
+    } else {
+      response.arrayBuffer = async () => {
+        throw new Error('connection closed');
+      };
+    }
+    await assert.rejects(launcher.launch(), /Metro.*(500|connection closed)/);
+    assert.equal(requests.length, 1, 'do not retry a failed bundle');
+    assert.ok(!calls.some(({ args }) => args.includes('start')));
+    launcher.cleanup();
+    assert.ok(!calls.some(({ args }) => args.includes('force-stop')));
+  }
+});
+
+test('detects am start errors even when adb exits zero', async (t) => {
   const { launcher, outputs } = fixture(t);
   launcher.prepare();
   outputs[
     'shell am start -W -n com.bitmovin.player.reactnative.integrationtests/.MainActivity'
   ] = 'Error type 3\nError: Activity class does not exist.\n';
-  assert.throws(() => launcher.launch(), /start|Activity/i);
+  await assert.rejects(launcher.launch(), /start|Activity/i);
 });
 
-test('detects an app crash or missing application process', (t) => {
+test('rejects Android display timeouts without retrying launch', async (t) => {
+  const { launcher, outputs, calls } = fixture(t);
+  launcher.prepare();
+  outputs[
+    'shell am start -W -n com.bitmovin.player.reactnative.integrationtests/.MainActivity'
+  ] = 'Status: timeout\nLaunchState: UNKNOWN (-1)\nWaitTime: 11272\nComplete\n';
+  await assert.rejects(launcher.launch(), /Status: timeout/);
+  assert.equal(calls.filter(({ args }) => args.includes('start')).length, 1);
+});
+
+test('detects an app crash or missing application process', async (t) => {
   const { launcher, outputs } = fixture(t);
   launcher.prepare();
-  launcher.launch();
+  await launcher.launch();
   outputs['shell pidof com.bitmovin.player.reactnative.integrationtests'] = '';
   assert.throws(() => launcher.check(), /process|crash/i);
 });
 
-test('launch and cleanup work across separate adapter invocations', (t) => {
+test('launch and cleanup work across separate adapter invocations', async (t) => {
   const { launcher, env, calls } = fixture(t);
   launcher.prepare();
-  launcher.launch();
+  await launcher.launch();
   const { createAndroidLauncher } = require('./android-ci-launcher');
   createAndroidLauncher(env, (command, args, options) => {
     calls.push({ command, args, options });
