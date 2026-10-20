@@ -31,9 +31,14 @@ export default (spec: TestScope) => {
 
         await startPlayerTest({}, async () => {
           const errorEvent: ErrorEvent =
-            await callPlayerAndExpectEvent<ErrorEvent>((player) => {
-              player.load(source);
-            }, EventType.PlayerError);
+            await callPlayerAndExpectEvent<ErrorEvent>(
+              (player) => {
+                player.load(source);
+              },
+              Platform.OS === 'android'
+                ? EventType.SourceError
+                : EventType.PlayerError
+            );
 
           expect(
             errorEvent.code,

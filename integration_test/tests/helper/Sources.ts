@@ -1,4 +1,5 @@
 import { SourceConfig, SourceType } from 'bitmovin-player-react-native';
+import { fixtureUrl } from './FixtureUrl';
 
 export const Sources = {
   artOfMotionHls: {
@@ -26,15 +27,17 @@ export const Sources = {
     type: SourceType.HLS,
   } as SourceConfig,
 
-  widevineDrmWithBrokenLicense: {
-    url: 'https://cdn.bitmovin.com/content/internal/assets/art-of-motion_drm/mpds/11331.mpd',
-    type: SourceType.DASH,
-    drmConfig: {
-      widevine: {
-        licenseUrl: 'https://httpstat.us/403',
+  get widevineDrmWithBrokenLicense(): SourceConfig {
+    return {
+      url: 'https://cdn.bitmovin.com/content/internal/assets/art-of-motion_drm/mpds/11331.mpd',
+      type: SourceType.DASH,
+      drmConfig: {
+        widevine: {
+          licenseUrl: fixtureUrl('drm/license-403'),
+        },
       },
-    },
-  } as SourceConfig,
+    };
+  },
 
   fairplayDrmWithBrokenLicense: {
     url: 'https://fps.ezdrm.com/demo/video/ezdrm.m3u8',
