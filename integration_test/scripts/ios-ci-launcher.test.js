@@ -104,22 +104,22 @@ test('fails when the explicitly selected runtime is unavailable', async (t) => {
   assert.ok(!f.calls.some(({ args }) => args[1] === 'create'));
 });
 
-test('allows a cold simulator migration beyond two minutes without retrying boot', async (t) => {
+test('allows cold migration within the overall budget without retrying boot', async (t) => {
   const f = fixture(t);
   f.config.timeoutMs = 600000;
   const run = f.dependencies.run;
   f.dependencies.run = (command, args, config) => {
     const result = run(command, args, config);
     if (args[1] === 'bootstatus') {
-      // A cold boot taking three minutes must reach install on its first try.
-      if (config.timeout < 180000) {
+      // A cold boot taking six minutes must reach install on its first try.
+      if (config.timeout < 360000) {
         return {
           status: 1,
           error: new Error('cold migration killed before completion'),
           stdout: 'Status=2, isTerminal=NO: Waiting on Data Migration',
         };
       }
-      assert.equal(config.timeout, 300000);
+      assert.equal(config.timeout, f.config.timeoutMs);
       return { status: 0, stdout: 'Status=4294967295, isTerminal=YES' };
     }
     return result;
@@ -157,7 +157,7 @@ test('retains migration output and timeout kill details before cleaning up a fai
   };
   await assert.rejects(
     implementation().runIosApp(f.config, f.dependencies),
-    /bootstatus.*timeout 300000ms.*SIGKILL/
+    /bootstatus.*timeout .*ms.*SIGKILL/
   );
   const log = fs.readFileSync(
     path.join(f.config.artifactsDir, 'simulator-commands.log'),
@@ -170,7 +170,7 @@ test('retains migration output and timeout kill details before cleaning up a fai
     .map((line) => JSON.parse(line.slice('Result: '.length)));
   const boot = results.find((result) => result.signal === 'SIGKILL');
   assert.ok(boot);
-  assert.equal(boot.timeoutMs, 300000);
+  assert.equal(boot.timeoutMs, f.config.timeoutMs);
   assert.equal(boot.code, null);
   assert.equal(boot.killed, true);
   assert.equal(boot.cancelled, false);

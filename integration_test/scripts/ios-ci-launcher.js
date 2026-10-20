@@ -173,9 +173,9 @@ async function runIosApp(config, dependencies = {}) {
       JSON.stringify({ udid, runtime, deviceType, appPath }, null, 2)
     );
     await command(['boot', udid]);
-    // Fresh CI devices can spend more than two minutes migrating runtime data.
-    // Allow one bounded cold boot; the overall run deadline still aborts it.
-    await command(['bootstatus', udid, '-b'], 300000);
+    // Cold migration shares the existing whole-run budget. A shorter command
+    // cutoff can kill a healthy first boot; the overall signal still aborts it.
+    await command(['bootstatus', udid, '-b'], timeoutMs);
     await command(['install', udid, appPath], 120000);
     appFd = fs.openSync(path.join(artifactsDir, 'app-console.log'), 'w');
     logFd = fs.openSync(path.join(artifactsDir, 'simulator.log'), 'w');
