@@ -55,6 +55,7 @@ const config: ExpoConfig = {
     package: 'com.bitmovin.player.reactnative.example',
   },
   plugins: [
+    '../scripts/with-ios-scene-lifecycle',
     [
       'expo-splash-screen',
       {
