@@ -293,6 +293,51 @@ export interface SourceUnloadedEvent extends Event {
 }
 
 /**
+ * Emitted when a {@link Source} was added to an active playback session, either while loading a
+ * playlist via {@link Player.loadPlaylist} or via {@link PlaylistApi.add}.
+ * When loading, it is emitted for every source of the playlist before {@link PlayerActiveEvent}.
+ */
+export interface SourceAddedEvent extends Event {
+  /**
+   * The source that was added.
+   */
+  source: EventSource;
+  /**
+   * The position in the playlist the source was added to.
+   */
+  index: number;
+}
+
+/**
+ * Emitted when a {@link Source} was removed from an active playback session, either via
+ * {@link PlaylistApi.remove} / {@link PlaylistApi.removeAt} or while unloading the playback session.
+ */
+export interface SourceRemovedEvent extends Event {
+  /**
+   * The source that was removed.
+   */
+  source: EventSource;
+  /**
+   * The position in the playlist the source was removed from.
+   */
+  index: number;
+}
+
+/**
+ * Emitted when the player transitions between two sources in a playlist.
+ */
+export interface PlaylistTransitionEvent extends Event {
+  /**
+   * The source that was active before the transition.
+   */
+  from: EventSource;
+  /**
+   * The source that is active after the transition.
+   */
+  to: EventSource;
+}
+
+/**
  * Emitted when a source error occurred.
  */
 export type SourceErrorEvent = ErrorEvent;

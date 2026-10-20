@@ -247,6 +247,9 @@ export function PlayerView({
       onBmpSourceLoad={proxy(props.onSourceLoad)}
       onBmpSourceLoaded={proxy(props.onSourceLoaded)}
       onBmpSourceUnloaded={proxy(props.onSourceUnloaded)}
+      onBmpSourceAdded={proxy(props.onSourceAdded)}
+      onBmpSourceRemoved={proxy(props.onSourceRemoved)}
+      onBmpPlaylistTransition={proxy(props.onPlaylistTransition)}
       onBmpSourceWarning={proxy(props.onSourceWarning)}
       onBmpAudioAdded={proxy(props.onAudioAdded)}
       onBmpAudioChanged={proxy(props.onAudioChanged)}

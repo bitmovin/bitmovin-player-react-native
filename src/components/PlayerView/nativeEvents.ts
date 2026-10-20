@@ -53,6 +53,9 @@ import type {
   SourceLoadedEvent,
   SourceLoadEvent,
   SourceUnloadedEvent,
+  SourceAddedEvent,
+  SourceRemovedEvent,
+  PlaylistTransitionEvent,
   SourceWarningEvent,
   AudioAddedEvent,
   AudioChangedEvent,
@@ -388,6 +391,20 @@ export type NativePlayerViewEvents = {
    * Event emitted when the current source has been unloaded.
    */
   onBmpSourceUnloaded?: (event: { nativeEvent: SourceUnloadedEvent }) => void;
+  /**
+   * Event emitted when a source was added to an active playback session.
+   */
+  onBmpSourceAdded?: (event: { nativeEvent: SourceAddedEvent }) => void;
+  /**
+   * Event emitted when a source was removed from an active playback session.
+   */
+  onBmpSourceRemoved?: (event: { nativeEvent: SourceRemovedEvent }) => void;
+  /**
+   * Event emitted when the player transitions between two sources in a playlist.
+   */
+  onBmpPlaylistTransition?: (event: {
+    nativeEvent: PlaylistTransitionEvent;
+  }) => void;
   /**
    * Event emitted when a source warning occurred.
    */

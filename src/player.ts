@@ -203,6 +203,11 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Starts a new playback session consisting of {@link PlaylistConfig.sources}.
    * The first source becomes active immediately. An already active playback session is unloaded first.
    *
+   * Only one source is active at a time and all player APIs (e.g. time, duration, seeking) act on the active
+   * source; there is no playlist-wide time. Source events of inactive sources, such as `SourceLoaded` of a
+   * preloaded source, are not emitted by the player. Ads scheduled via the advertising config only apply to the
+   * first source.
+   *
    * @returns a promise that rejects if the playlist could not be loaded, e.g. when `sources` is empty.
    * @platform Android
    */

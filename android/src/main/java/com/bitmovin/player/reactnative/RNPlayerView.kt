@@ -71,6 +71,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private val onBmpSourceLoad by EventDispatcher()
     private val onBmpSourceLoaded by EventDispatcher()
     private val onBmpSourceUnloaded by EventDispatcher()
+    private val onBmpSourceAdded by EventDispatcher()
+    private val onBmpSourceRemoved by EventDispatcher()
+    private val onBmpPlaylistTransition by EventDispatcher()
     private val onBmpSourceError by EventDispatcher()
     private val onBmpSourceWarning by EventDispatcher()
     private val onBmpAudioAdded by EventDispatcher()
@@ -540,6 +543,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         EventSubscription<SourceEvent.Load> { onEvent(onBmpSourceLoad, it.toJson()) },
         EventSubscription<SourceEvent.Loaded> { onEvent(onBmpSourceLoaded, it.toJson()) },
         EventSubscription<SourceEvent.Unloaded> { onEvent(onBmpSourceUnloaded, it.toJson()) },
+        EventSubscription<PlayerEvent.SourceAdded> { onEvent(onBmpSourceAdded, it.toJson()) },
+        EventSubscription<PlayerEvent.SourceRemoved> { onEvent(onBmpSourceRemoved, it.toJson()) },
+        EventSubscription<PlayerEvent.PlaylistTransition> { onEvent(onBmpPlaylistTransition, it.toJson()) },
         EventSubscription<SourceEvent.Error> { onEvent(onBmpSourceError, it.toJson()) },
         EventSubscription<SourceEvent.Warning> { onEvent(onBmpSourceWarning, it.toJson()) },
         EventSubscription<SourceEvent.AudioTrackAdded> { onEvent(onBmpAudioAdded, it.toJson()) },
