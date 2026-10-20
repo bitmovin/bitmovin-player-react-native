@@ -14,11 +14,16 @@ import expo.modules.kotlin.modules.ModuleDefinition
 
 class SourceModule : Module() {
     private val eventRelay = EventRelay<SourceEvent>(PlayerEventTypes.source) { nativeId, event ->
+        // The native `Unloaded` event carries no source; here the emitting source is known.
+        val unloadedSource = if (event is SourceEvent.Unloaded) SourceRegistry.getSource(nativeId) else null
+        val eventJson = event.toJson().let { json ->
+            if (unloadedSource == null) json else json + ("source" to unloadedSource.toJson())
+        }
         sendEvent(
             "onSourceEvent",
             mapOf(
                 "nativeId" to nativeId,
-                "event" to NonFiniteSanitizer.sanitizeEventData(event.toJson()),
+                "event" to NonFiniteSanitizer.sanitizeEventData(eventJson),
             ),
         )
     }
