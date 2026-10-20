@@ -9,6 +9,7 @@ import {
   startPlayerTest,
 } from '../playertesting';
 import { Sources } from './helper/Sources';
+import { fixtureUrl } from './helper/FixtureUrl';
 import { expect } from './helper/Expect';
 import {
   CueEnterEvent,
@@ -45,7 +46,9 @@ const bitmapSubtitleTrack: SideLoadedSubtitleTrack = {
 };
 
 const sourceWithInManifestPositionedSubs: SourceConfig = {
-  url: 'https://bitmovin-player-eu-west1-ci-input.s3.amazonaws.com/general/hls/sintel-different_attributes-subtitle/master-debug-short.m3u8',
+  get url() {
+    return fixtureUrl('positioned-webvtt/master.m3u8');
+  },
   type: SourceType.HLS,
 };
 

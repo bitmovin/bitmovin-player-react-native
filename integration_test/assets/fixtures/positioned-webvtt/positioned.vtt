@@ -1,0 +1,6 @@
+WEBVTT
+X-TIMESTAMP-MAP=LOCAL:00:00:00.000,MPEGTS:7200
+
+positioned
+00:00:03.000 --> 00:00:03.750 line:10% position:10%,line-left align:start
+Positioned in-manifest cue

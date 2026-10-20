@@ -19,6 +19,39 @@ export default function TestablePlayer({
   const player = playerTestWorld.player;
   const onEvent = (event: Event) => {
     if (player && playerTestWorld.player === player) {
+      if (
+        /^(onAd|onNonLinearAd)/.test(event.name) ||
+        [
+          'onReady',
+          'onPaused',
+          'onStallStarted',
+          'onStallEnded',
+          'onPlayerError',
+          'onSourceError',
+        ].includes(event.name)
+      ) {
+        const detail = event as Event & {
+          duration?: number;
+          quartile?: string;
+          code?: number;
+        };
+        console.info(
+          '[Cavy event]',
+          JSON.stringify({
+            playerId: player.nativeId,
+            event: event.name,
+            observedAt: Date.now(),
+            duration:
+              typeof detail.duration === 'number' ? detail.duration : undefined,
+            quartile:
+              detail.quartile &&
+              ['first', 'mid_point', 'third'].includes(detail.quartile)
+                ? detail.quartile
+                : undefined,
+            code: typeof detail.code === 'number' ? detail.code : undefined,
+          })
+        );
+      }
       playerTestWorld.onEvent(event);
     }
   };
