@@ -5,7 +5,7 @@ const test = require('node:test');
 const vm = require('node:vm');
 const ts = require('typescript');
 
-function renderPlayer(world) {
+function renderPlayer(world, logs = []) {
   const source = fs.readFileSync(
     path.join(__dirname, '../src/TestablePlayer.tsx'),
     'utf8'
@@ -28,6 +28,7 @@ function renderPlayer(world) {
   const exports = {};
   vm.runInNewContext(outputText, {
     exports,
+    console: { info: (...args) => logs.push(args) },
     require(name) {
       if (name === 'react') return react;
       if (name === 'cavy') {
@@ -66,6 +67,30 @@ test('observes enriched metadata callbacks exactly once and retains other events
   const ready = { name: 'onReady' };
   props.onEvent(ready);
   assert.deepEqual(events, [enriched, parsed, ready]);
+});
+
+test('ad diagnostics retain timing and identity without private event payloads', () => {
+  const logs = [];
+  const props = renderPlayer(
+    { player: { nativeId: 'test-player' }, onEvent: () => {} },
+    logs
+  );
+  props.onEvent({
+    name: 'onAdStarted',
+    duration: 10,
+    clickThroughUrl: 'private-url',
+    message: 'private-message',
+    data: { licenseKey: 'private-key' },
+  });
+  assert.equal(logs.length, 1);
+  const record = JSON.parse(logs[0][1]);
+  assert.equal(record.playerId, 'test-player');
+  assert.equal(record.event, 'onAdStarted');
+  assert.equal(record.duration, 10);
+  assert.equal(typeof record.observedAt, 'number');
+  assert.ok(!JSON.stringify(logs).includes('private-'));
+  props.onEvent({ name: 'onTimeChanged', currentTime: 1 });
+  assert.equal(logs.length, 1, 'high-frequency progress events stay quiet');
 });
 
 test('ignores queued events from a player retired by the next test', () => {
