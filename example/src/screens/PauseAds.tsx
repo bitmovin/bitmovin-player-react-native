@@ -21,7 +21,7 @@ const pauseAdItem: AdItem = {
   position: 'pause',
   sources: [
     {
-      tag: 'https://cdn.bitmovin.com/content/demos/pause-ads/popcorn.xml',
+      tag: 'https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/nonlinear_ad_samples&sz=480x70&cust_params=sample_ct%3Dnonlinear&ciu_szs=300x250%2C728x90&gdfp_req=1&output=vast&unviewed_position_start=1&env=vp&correlator=',
       type: AdSourceType.BITMOVIN,
     },
   ],
