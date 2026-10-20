@@ -46,7 +46,8 @@ For apps using Expo prebuild, enable the feature in the config plugin:
 ];
 ```
 
-Rerun Expo prebuild and rebuild the native app after changing this flag.
+After changing this flag, rerun Expo prebuild. On iOS and tvOS, also run
+`pod install` from the directory containing the Podfile. Rebuild the native app.
 
 For a bare Android app, add this property to `android/gradle.properties`, then
 rebuild the app:

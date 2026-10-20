@@ -25,8 +25,9 @@ Set `features.googleIMA` in the Bitmovin config plugin:
 ];
 ```
 
-Rerun Expo prebuild and rebuild the native app after enabling or disabling the
-feature. The plugin writes `BITMOVIN_ENABLE_GOOGLE_IMA` to
+After enabling or disabling the feature, rerun Expo prebuild, run `pod install`
+from the directory containing the Podfile, and rebuild the native app.
+The plugin writes `BITMOVIN_ENABLE_GOOGLE_IMA` to
 `Podfile.properties.json` and updates the application target's SPM references.
 
 ### Apps maintained without Expo prebuild
