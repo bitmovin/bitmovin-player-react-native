@@ -311,6 +311,70 @@ test('does not signal completed Android operation PIDs during final cleanup', as
   }
 });
 
+test('does not signal stopped process groups after Android diagnostics', async (t) => {
+  const { root, config } = await fixture(t, 'pass', 'android');
+  const kill = process.kill;
+  const stoppedGroups = new Set();
+  process.kill = function (pid, signal) {
+    const diagnosticsStarted = fs
+      .readFileSync(path.join(root, 'events'), 'utf8')
+      .includes('app:diagnostics');
+    if (pid < 0) {
+      if (diagnosticsStarted) {
+        assert.ok(
+          !stoppedGroups.has(pid),
+          'a stopped process-group ID may have been reused'
+        );
+      } else {
+        stoppedGroups.add(pid);
+      }
+    }
+    return kill.call(process, pid, signal);
+  };
+  try {
+    assert.equal(await runCiTests(config), 1);
+    assert.ok(stoppedGroups.size >= 2, 'Metro and Cavy groups must be stopped');
+  } finally {
+    process.kill = kill;
+  }
+});
+
+test('retries failed process-group cleanup after Android diagnostics', async (t) => {
+  const { root, config } = await fixture(t, 'pass', 'android');
+  const kill = process.kill;
+  let failedGroup;
+  let retried = false;
+  process.kill = function (pid, signal) {
+    if (pid < 0 && failedGroup === undefined) {
+      failedGroup = pid;
+      throw Object.assign(new Error('injected kill failure'), {
+        code: 'EPERM',
+      });
+    }
+    if (pid === failedGroup) {
+      assert.match(
+        fs.readFileSync(path.join(root, 'events'), 'utf8'),
+        /app:cleanup/
+      );
+      retried = true;
+    }
+    return kill.call(process, pid, signal);
+  };
+  try {
+    await assert.rejects(runCiTests(config), /injected kill failure/);
+    assert.ok(retried, 'failed stops must remain eligible for final cleanup');
+  } finally {
+    process.kill = kill;
+    if (failedGroup !== undefined) {
+      try {
+        kill.call(process, failedGroup, 'SIGKILL');
+      } catch (error) {
+        if (error.code !== 'ESRCH') throw error;
+      }
+    }
+  }
+});
+
 test('handles missing executables and removes the run lock', async (t) => {
   const { root, config } = await fixture(t);
   config.metroCommand = [path.join(root, 'missing-program'), []];
