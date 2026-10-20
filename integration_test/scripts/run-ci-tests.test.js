@@ -148,6 +148,8 @@ test('canonical arguments reuse tag validation and pinned CLI no-build spelling'
     '--skipbuild',
     '--no-screenshots',
     '--xml',
+    '--boot-timeout',
+    '10',
     '--keep-alive-timeout',
     '600',
   ]);
@@ -385,11 +387,13 @@ test('removes a synthetic license marker from retained process logs', async (t) 
   }
 });
 
-test('aligns the pinned reporter watchdog with a custom whole-run deadline', () => {
+test('aligns reporter boot and keep-alive deadlines with the whole-run budget', () => {
   const config = createCiConfig(['ios', '--tags', 'playback'], {
     CAVY_TIMEOUT_MS: '123001',
   });
-  assert.deepEqual(config.cavyCommand[1].slice(-2), [
+  assert.deepEqual(config.cavyCommand[1].slice(-4), [
+    '--boot-timeout',
+    '3',
     '--keep-alive-timeout',
     '124',
   ]);

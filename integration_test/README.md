@@ -109,7 +109,7 @@ Cleanup signals only processes started by this run; adapters own their device
 cleanup. Keep `patches/cavy+4.0.2.patch`: the CLI fork does not replace the
 runtime fixes. The canonical CLI is
 [`bitmovin-engineering/cavy-cli`](https://github.com/bitmovin-engineering/cavy-cli),
-pinned to `a288754be47e3ad31191c50558bda40fb8ca0a37` in the lockfile; the
+pinned to `833199422418fa72ba6f977b190f46beb23fbba2` in the lockfile; the
 runtime remains upstream `cavy@4.0.2`.
 
 The initial smoke gate excludes live loading, advertising, captions, metadata,

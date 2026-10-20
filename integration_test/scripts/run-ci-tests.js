@@ -77,7 +77,7 @@ function createCiConfig(args, environment = process.env) {
         '--localhost',
       ],
     ],
-    // a288754 spells this --skipbuild. --skip-build is silently ignored by it.
+    // The maintained CLI spells this --skipbuild, without a hyphen.
     cavyCommand: [
       process.execPath,
       [
@@ -86,6 +86,8 @@ function createCiConfig(args, environment = process.env) {
         '--skipbuild',
         '--no-screenshots',
         '--xml',
+        '--boot-timeout',
+        String(Math.ceil(timeoutMs / 60000)),
         '--keep-alive-timeout',
         String(Math.ceil(timeoutMs / 1000)),
       ],
