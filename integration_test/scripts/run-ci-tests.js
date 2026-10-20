@@ -77,7 +77,7 @@ function createCiConfig(args, environment = process.env) {
         '--localhost',
       ],
     ],
-    // a288754 spells this --skipbuild. --skip-build is silently ignored by it.
+    // The maintained CLI spells this --skipbuild, without a hyphen.
     cavyCommand: [
       process.execPath,
       [
@@ -86,6 +86,8 @@ function createCiConfig(args, environment = process.env) {
         '--skipbuild',
         '--no-screenshots',
         '--xml',
+        '--boot-timeout',
+        String(Math.ceil(timeoutMs / 60000)),
         '--keep-alive-timeout',
         String(Math.ceil(timeoutMs / 1000)),
       ],
@@ -250,7 +252,16 @@ function probe(port, metro) {
 async function runCiTests(config, dependencies = {}) {
   const checkPort = dependencies.assertPortFree || assertPortFree;
   const checkReady = dependencies.probe || probe;
-  const { artifactsDir, projectDir, env, platform } = config;
+  const { artifactsDir, projectDir, platform } = config;
+  const env = { ...config.env };
+  // app.config.ts loads this file in Metro, which cannot update our environment.
+  // Resolve the same license before spawning so startup diagnostics are redacted.
+  const envPath = path.join(projectDir, '.env');
+  if (fs.existsSync(envPath)) {
+    const dotenv = require('dotenv').parse(fs.readFileSync(envPath));
+    env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY ??=
+      dotenv.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY;
+  }
   fs.mkdirSync(artifactsDir, { recursive: true });
   const reportPath = path.join(artifactsDir, 'cavy_results.xml');
   for (const file of [
@@ -372,16 +383,21 @@ async function runCiTests(config, dependencies = {}) {
   }
 
   async function stop(entry, graceful = false) {
-    if (graceful && !entry.closed) {
-      entry.child.kill('SIGTERM');
-      await boundedWait(entry.done, config.stopTimeoutMs);
+    try {
+      if (graceful && !entry.closed) {
+        entry.child.kill('SIGTERM');
+        await boundedWait(entry.done, config.stopTimeoutMs);
+      }
+      // Even an exited group leader can leave live descendants.
+      signalGroup(entry, 'SIGTERM');
+      // Give descendants time to exit even if the group leader has already closed.
+      await delay(100);
+      signalGroup(entry, 'SIGKILL');
+      await boundedWait(entry.done, 1000);
+    } finally {
+      // A failed signal must not keep the supervisor alive past its deadline.
+      entry.child.unref();
     }
-    // Even an exited group leader can leave live descendants.
-    signalGroup(entry, 'SIGTERM');
-    // Give descendants time to exit even if the group leader has already closed.
-    await delay(100);
-    signalGroup(entry, 'SIGKILL');
-    await boundedWait(entry.done, 1000);
   }
 
   async function stopAll(app) {

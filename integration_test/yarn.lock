@@ -2698,9 +2698,9 @@ caniuse-lite@^1.0.30001810:
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001810.tgz#4970b477dea3278374de9bc43aa8f5d39fc3cda2"
   integrity sha512-TITQPUkaz+aVk5GL6NhOdwk1aEaNTSDPsGFWrTuhKGtjTF70jL/Oht2W4c6rXUe5fu7Ie19VIahAXHIIiWWNeg==
 
-"cavy-cli@github:bitmovin-engineering/cavy-cli#a288754":
+"cavy-cli@github:bitmovin-engineering/cavy-cli#833199422418fa72ba6f977b190f46beb23fbba2":
   version "3.1.7"
-  resolved "https://codeload.github.com/bitmovin-engineering/cavy-cli/tar.gz/a288754be47e3ad31191c50558bda40fb8ca0a37"
+  resolved "https://codeload.github.com/bitmovin-engineering/cavy-cli/tar.gz/833199422418fa72ba6f977b190f46beb23fbba2"
   dependencies:
     chalk "^2.3.0"
     commander "^2.12.2"
