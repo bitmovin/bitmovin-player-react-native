@@ -68,7 +68,8 @@ function advertisingHarness(platform, timing) {
   let config;
   let ready = false;
   let seeks = 0;
-  const emit = (name) => world.onEvent({ name });
+  const callbackResults = [];
+  const emit = (name, data = {}) => world.onEvent({ name, ...data });
   const lifecycle = [
     EventType.AdBreakStarted,
     EventType.AdStarted,
@@ -81,6 +82,15 @@ function advertisingHarness(platform, timing) {
   const emitLifecycle = () => lifecycle.forEach(emit);
   const player = {
     load() {
+      if (timing.startsWith('filter:')) {
+        emit(EventType.TimeChanged, { currentTime: 0.5 });
+        setImmediate(() => {
+          const callback = config.advertisingConfig[timing.split(':')[1]];
+          if (!timing.endsWith(':missing')) callbackResults.push(callback({}));
+          emit(EventType.TimeChanged, { currentTime: 1 });
+        });
+        return;
+      }
       // Manifest loading can finish before source readiness or play().
       if (timing === 'load') emit(EventType.AdManifestLoaded);
       setImmediate(() => {
@@ -118,6 +128,9 @@ function advertisingHarness(platform, timing) {
     async getDuration() {
       return 60;
     },
+    async isAd() {
+      return false;
+    },
   };
   // Native player/view setup is outside this regression; event subscription,
   // expectation fulfillment, and listener removal use PlayerTestWorld itself.
@@ -150,10 +163,35 @@ function advertisingHarness(platform, timing) {
       descriptions.pop();
     },
     it(name, run) {
-      if (name === 'emits Ad events') cases.set(descriptions.join(' '), run);
+      if (
+        name === 'emits Ad events' ||
+        descriptions[0].startsWith('filtering scheduled')
+      ) {
+        cases.set(descriptions.join(' '), run);
+      }
     },
   });
   return {
+    async runFilter(scenario, callbackName) {
+      const noun = callbackName === 'shouldLoadAdItem' ? 'ads' : 'ad breaks';
+      try {
+        await cases.get(
+          `filtering scheduled ${scenario} ${noun} via ${callbackName}`
+        )();
+        assert.deepEqual(callbackResults, [false], 'must observe the callback');
+        const expectedType = scenario.startsWith('IMA')
+          ? 'ima'
+          : scenario === 'Progressive'
+            ? 'progressive'
+            : 'bitmovin';
+        for (const item of config.advertisingConfig.schedule) {
+          assert.equal(item.sources[0].type, expectedType);
+        }
+      } finally {
+        timers.forEach(clearTimeout);
+        World.shared = undefined;
+      }
+    },
     async run(scenario) {
       try {
         await cases.get(`playing ${scenario} ads`)();
@@ -219,4 +257,24 @@ for (const platform of ['ios', 'android']) {
       });
     }
   }
+}
+
+for (const callbackName of ['shouldLoadAdItem', 'shouldPlayAdBreak']) {
+  for (const scenario of ['IMA VAST', 'Progressive', 'BITMOVIN VAST']) {
+    test(`${scenario}: ${callbackName} waits for the actual callback`, async () => {
+      await advertisingHarness('android', `filter:${callbackName}`).runFilter(
+        scenario,
+        callbackName
+      );
+    });
+  }
+  test(`${callbackName} fails when the callback never arrives`, async () => {
+    await assert.rejects(
+      advertisingHarness('android', `filter:${callbackName}:missing`).runFilter(
+        'BITMOVIN VAST',
+        callbackName
+      ),
+      /Expectation was not met.*onTimeChanged/
+    );
+  });
 }

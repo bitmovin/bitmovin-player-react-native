@@ -167,16 +167,13 @@ export default (spec: TestScope) => {
       `filtering scheduled ${name} ads via shouldLoadAdItem`,
       () => {
         spec.it('does not play preroll when filtered', async () => {
+          let callbackInvocationCount = 0;
           const advertisingConfig: AdvertisingConfig = {
-            schedule: [
-              {
-                sources: [
-                  { tag: AdTags.vastSkippable, type: AdSourceType.IMA },
-                ],
-                position: 'pre',
-              },
-            ],
-            shouldLoadAdItem: () => false,
+            schedule: adItems,
+            shouldLoadAdItem: () => {
+              callbackInvocationCount += 1;
+              return false;
+            },
           };
           const playbackConfig: PlaybackConfig = {
             isAutoplayEnabled: true,
@@ -190,9 +187,11 @@ export default (spec: TestScope) => {
                 },
                 FilteredEvent<TimeChangedEvent>(
                   EventType.TimeChanged,
-                  (event) => event.currentTime > 0.25
+                  (event) =>
+                    event.currentTime > 0.25 && callbackInvocationCount > 0
                 )
               );
+              expect(callbackInvocationCount).toBeGreaterThan(0);
               await callPlayer(async (player) => {
                 expect(await player.isAd()).toBeFalsy();
               });
@@ -228,7 +227,8 @@ export default (spec: TestScope) => {
                   },
                   FilteredEvent<TimeChangedEvent>(
                     EventType.TimeChanged,
-                    (event) => event.currentTime > 0.25
+                    (event) =>
+                      event.currentTime > 0.25 && callbackInvocationCount > 0
                   )
                 );
 
