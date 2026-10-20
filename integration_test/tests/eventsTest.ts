@@ -5,6 +5,7 @@ import {
   Source,
   SourceAddedEvent,
   SourceLoadedEvent,
+  SourceUnloadedEvent,
 } from 'bitmovin-player-react-native';
 import { loadSourceConfig, startPlayerTest } from '../playertesting';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
@@ -148,6 +149,10 @@ export default (spec: TestScope) => {
         isSourceUnloaded,
         'SourceUnloaded should be received'
       ).toBeTruthy();
+      const sourceUnloaded = received.find(
+        (event) => event.name === 'onSourceUnloaded'
+      ) as SourceUnloadedEvent | undefined;
+      expect(sourceUnloaded?.source.nativeId).toBe(source.nativeId);
       const countAfterDestroy = received.length;
       await delay(1000);
       expect(received.length, 'Events after destroy').toBe(countAfterDestroy);

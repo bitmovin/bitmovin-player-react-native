@@ -7,6 +7,7 @@ import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.event.Event
+import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.playlist.PlaylistConfig
 import com.bitmovin.player.api.playlist.PlaylistOptions
 import com.bitmovin.player.reactnative.converter.toAdItem
@@ -28,14 +29,19 @@ class PlayerModule : Module() {
     private val shouldLoadAdItemWaiter = ResultWaiter<Boolean>()
     private val shouldPlayAdBreakWaiter = ResultWaiter<Boolean>()
     private val imaSettingsWaiter = ResultWaiter<Map<String, Any?>>()
+    private val unloadedSourceResolver = UnloadedSourceResolver()
     private val removedSourceReleaser = RemovedSourceReleaser { releaseSource(it) }
 
     private val eventRelay = EventRelay<Event>(PlayerEventTypes.player) { nativeId, event ->
+        val unloadedSource = (event as? SourceEvent.Unloaded)?.let { unloadedSourceResolver.resolve(it) }
+        val eventJson = event.toJson().let { json ->
+            if (unloadedSource == null) json else json + ("source" to unloadedSource.toJson())
+        }
         sendEvent(
             "onPlayerEvent",
             mapOf(
                 "nativeId" to nativeId,
-                "event" to NonFiniteSanitizer.sanitizeEventData(event.toJson()),
+                "event" to NonFiniteSanitizer.sanitizeEventData(eventJson),
             ),
         )
     }
@@ -60,6 +66,7 @@ class PlayerModule : Module() {
             shouldPlayAdBreakWaiter.clear()
             imaSettingsWaiter.clear()
             eventRelay.clear()
+            unloadedSourceResolver.clear()
             removedSourceReleaser.clear()
             PlayerRegistry.clear()
         }
@@ -117,6 +124,7 @@ class PlayerModule : Module() {
                 PlayerRegistry.unregister(nativeId)
             }
             eventRelay.unsubscribeAll(nativeId, player)
+            unloadedSourceResolver.detach(nativeId, player)
             removedSourceReleaser.detach(nativeId, player)
             sourceNativeIds.forEach { releaseSource(it) }
         }.runOnQueue(Queues.MAIN)
@@ -424,6 +432,7 @@ class PlayerModule : Module() {
             Player.create(applicationContext, playerConfig)
         }
         PlayerRegistry.register(player, nativeId)
+        unloadedSourceResolver.attach(nativeId, player)
         removedSourceReleaser.attach(nativeId, player)
 
         if (enableMediaSession) {

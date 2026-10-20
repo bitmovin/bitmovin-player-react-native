@@ -13,6 +13,7 @@ import {
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 import { Platform } from 'react-native';
+import { SourceUnloadedEvent } from 'bitmovin-player-react-native';
 
 export default (spec: TestScope) => {
   spec.describe('unloading the player', () => {
@@ -33,9 +34,10 @@ export default (spec: TestScope) => {
           player.load(Sources.artOfMotionHls);
         }, EventType.Ready);
 
-        const sourceUnloadedEvent = await callPlayerAndExpectEvent((player) => {
-          player.unload();
-        }, EventType.SourceUnloaded);
+        const sourceUnloadedEvent =
+          await callPlayerAndExpectEvent<SourceUnloadedEvent>((player) => {
+            player.unload();
+          }, EventType.SourceUnloaded);
 
         expect(
           sourceUnloadedEvent.name,
@@ -48,6 +50,10 @@ export default (spec: TestScope) => {
         expect(
           sourceUnloadedEvent.timestamp,
           'SourceUnloaded event should have timestamp'
+        ).toBeDefined();
+        expect(
+          sourceUnloadedEvent.source,
+          'SourceUnloaded event should have a source'
         ).toBeDefined();
         expect(
           typeof sourceUnloadedEvent.timestamp,
