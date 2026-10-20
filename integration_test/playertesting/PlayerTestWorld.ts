@@ -215,12 +215,15 @@ export default class PlayerTestWorld {
         reject(new Error(`Expectation was not met: ${actualExpectation}`));
       }
     }, timeoutSeconds * 1000);
-    await afterListenerAttached();
-    return future.then((event) => {
+    // The expectation can time out while the trigger is still running.
+    void future.catch(() => {});
+    try {
+      await afterListenerAttached();
+      return await future;
+    } finally {
       clearTimeout(timeoutHandle);
       removeListener();
-      return event;
-    });
+    }
   };
 
   private expectEventsCalling = async (
@@ -263,12 +266,15 @@ export default class PlayerTestWorld {
         reject(new Error(`Expectation was not met: ${actualExpectation}`));
       }
     }, timeoutSeconds * 1000);
-    await afterListenerAttached();
-    return future.then((events) => {
+    // The expectation can time out while the trigger is still running.
+    void future.catch(() => {});
+    try {
+      await afterListenerAttached();
+      return await future;
+    } finally {
       clearTimeout(timeoutHandle);
       removeListener();
-      return events;
-    });
+    }
   };
 
   private addEventListener = <T extends Event>(
