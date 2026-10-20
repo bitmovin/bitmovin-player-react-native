@@ -2,7 +2,8 @@ export default interface Features {
   airPlay?: boolean;
   backgroundPlayback?: boolean;
   /**
-   * Enables the Google Interactive Media Ads SDK on Android, iOS, and tvOS.
+   * Includes the Google Interactive Media Ads SDK in native builds.
+   * Required for IMA ad sources.
    *
    * @defaultValue `false`
    */
