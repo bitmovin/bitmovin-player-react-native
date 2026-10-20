@@ -73,6 +73,7 @@ import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.playlist.PlaylistOptions
 import com.bitmovin.player.api.playlist.ReplayMode
+import com.bitmovin.player.api.playlist.SeekTarget
 import com.bitmovin.player.api.source.LoadingState
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
@@ -163,6 +164,13 @@ fun Map<String, Any?>.toPlaylistOptions(): PlaylistOptions {
     return PlaylistOptions(
         preloadAllSources = getBooleanOrNull("preloadAllSources") ?: defaults.preloadAllSources,
         replayMode = getString("replayMode")?.toReplayMode() ?: defaults.replayMode,
+    )
+}
+
+fun Map<String, Any?>.toSeekTarget(): SeekTarget? {
+    return SeekTarget(
+        offset = getDoubleOrNull("offset") ?: return null,
+        startOffsetTimelineReference = getString("startOffsetTimelineReference")?.toTimelineReferencePoint(),
     )
 }
 

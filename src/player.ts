@@ -17,6 +17,7 @@ import type { VideoQuality } from './media';
 import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
 import type { PlaylistConfig } from './playlist';
+import { PlaylistApi } from './playlist';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -52,12 +53,15 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, tvOS
    */
   mediaControls: MediaControlsApi = new MediaControlsApi(this.nativeId);
-
   /**
    * All {@link Source}s handed to the native player, keyed by {@link Source.nativeId}.
    * Used to resolve native sources back to their JS instances.
    */
   private readonly knownSources = new Map<string, Source>();
+  /**
+   * The {@link PlaylistApi} for interactions regarding the playlist of the playback session.
+   */
+  playlist: PlaylistApi = new PlaylistApi(this.nativeId, this.knownSources);
 
   private network?: Network;
 
@@ -200,6 +204,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * The first source becomes active immediately. An already active playback session is unloaded first.
    *
    * @returns a promise that rejects if the playlist could not be loaded, e.g. when `sources` is empty.
+   * @platform Android
    */
   loadPlaylist = async (playlistConfig: PlaylistConfig): Promise<void> => {
     playlistConfig.sources.forEach((source) =>
