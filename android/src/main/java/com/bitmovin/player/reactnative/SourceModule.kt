@@ -10,12 +10,6 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 class SourceModule : Module() {
-    /**
-     * In-memory mapping from [NativeId]s to [Source] instances.
-     * This must match the Registry pattern from legacy SourceModule
-     */
-    private val sources: Registry<Source> = mutableMapOf()
-
     override fun definition() = ModuleDefinition {
         Name("SourceModule")
 
@@ -24,8 +18,7 @@ class SourceModule : Module() {
         }
 
         OnDestroy {
-            // Clean up sources
-            sources.clear()
+            SourceRegistry.clear()
         }
 
         AsyncFunction("initializeWithConfig") { nativeId: NativeId, drmNativeId: NativeId?,
@@ -40,37 +33,37 @@ class SourceModule : Module() {
         }
 
         AsyncFunction("destroy") { nativeId: NativeId ->
-            sources.remove(nativeId)
+            SourceRegistry.unregister(nativeId)
             // Don't return the removed value: Expo can't convert it to a JS value and rejects the promise.
             Unit
         }
 
         AsyncFunction("isAttachedToPlayer") { nativeId: NativeId ->
-            sources[nativeId]?.isAttachedToPlayer
+            SourceRegistry.getSource(nativeId)?.isAttachedToPlayer
         }
 
         AsyncFunction("isActive") { nativeId: NativeId ->
-            sources[nativeId]?.isActive
+            SourceRegistry.getSource(nativeId)?.isActive
         }
 
         AsyncFunction("duration") { nativeId: NativeId ->
-            sources[nativeId]?.duration
+            SourceRegistry.getSource(nativeId)?.duration
         }
 
         AsyncFunction("loadingState") { nativeId: NativeId ->
-            sources[nativeId]?.loadingState?.toJson()
+            SourceRegistry.getSource(nativeId)?.loadingState?.toJson()
         }
 
         AsyncFunction("getMetadata") { nativeId: NativeId ->
-            sources[nativeId]?.config?.metadata
+            SourceRegistry.getSource(nativeId)?.config?.metadata
         }
 
         AsyncFunction("setMetadata") { nativeId: NativeId, metadata: Map<String, Any>? ->
-            sources[nativeId]?.config?.metadata = metadata?.mapValues { it.value.toString() }
+            SourceRegistry.getSource(nativeId)?.config?.metadata = metadata?.mapValues { it.value.toString() }
         }
 
         AsyncFunction("getThumbnail") { nativeId: NativeId, time: Double ->
-            sources[nativeId]?.getThumbnail(time)?.toJson()
+            SourceRegistry.getSource(nativeId)?.getThumbnail(time)?.toJson()
         }
     }
 
@@ -81,7 +74,7 @@ class SourceModule : Module() {
         sourceRemoteControlConfig: Map<String, Any>?,
         analyticsSourceMetadata: Map<String, Any>?,
     ) {
-        if (sources.containsKey(nativeId)) {
+        if (SourceRegistry.getSource(nativeId) != null) {
             return // Source already exists
         }
 
@@ -93,11 +86,12 @@ class SourceModule : Module() {
 
         val sourceMetadata = analyticsSourceMetadata?.toAnalyticsSourceMetadata()
         try {
-            sources[nativeId] = if (sourceMetadata != null) {
+            val source = if (sourceMetadata != null) {
                 Source.create(sourceConfig, sourceMetadata)
             } else {
                 Source.create(sourceConfig)
             }
+            SourceRegistry.register(nativeId, source)
         } catch (e: Exception) {
             throw SourceException.SourceCreationFailed(e.message ?: "Unknown error")
         }
@@ -105,7 +99,7 @@ class SourceModule : Module() {
 
     // CRITICAL: This method must remain available for cross-module access
     // Called by PlayerModule.loadSource()
-    fun getSourceOrNull(nativeId: NativeId): Source? = sources[nativeId]
+    fun getSourceOrNull(nativeId: NativeId): Source? = SourceRegistry.getSource(nativeId)
 }
 
 // MARK: - Exception Definitions
