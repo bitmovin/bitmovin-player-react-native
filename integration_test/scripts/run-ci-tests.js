@@ -250,7 +250,16 @@ function probe(port, metro) {
 async function runCiTests(config, dependencies = {}) {
   const checkPort = dependencies.assertPortFree || assertPortFree;
   const checkReady = dependencies.probe || probe;
-  const { artifactsDir, projectDir, env, platform } = config;
+  const { artifactsDir, projectDir, platform } = config;
+  const env = { ...config.env };
+  // app.config.ts loads this file in Metro, which cannot update our environment.
+  // Resolve the same license before spawning so startup diagnostics are redacted.
+  const envPath = path.join(projectDir, '.env');
+  if (fs.existsSync(envPath)) {
+    const dotenv = require('dotenv').parse(fs.readFileSync(envPath));
+    env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY ??=
+      dotenv.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY;
+  }
   fs.mkdirSync(artifactsDir, { recursive: true });
   const reportPath = path.join(artifactsDir, 'cavy_results.xml');
   for (const file of [

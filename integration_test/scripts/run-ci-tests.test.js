@@ -62,10 +62,13 @@ const net = require('node:net');
 const { spawn } = require('node:child_process');
 const [role, mode, metroPort, reporterPort, operation] = process.argv.slice(2);
 const record = (s) => fs.appendFileSync('events', s + '\\n');
-if (mode === 'redaction') console.log('test-license-redaction-sentinel');
+if (mode.startsWith('redaction')) {
+  const license = process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY ?? require(${JSON.stringify(require.resolve('dotenv'))}).parse(fs.readFileSync('.env')).EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY;
+  console.log(license);
+}
 record(role + ':' + (operation || 'start') + ':' + process.env.EXPO_PUBLIC_CAVY_ONLY_TAGS);
 if (role === 'metro') {
-  if (mode === 'metro-exit') process.exit(2);
+  if (['metro-exit', 'redaction-startup-failure'].includes(mode)) process.exit(2);
   if (mode === 'descendant') {
     const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], {stdio:'ignore'});
     fs.writeFileSync('descendant', String(child.pid));
@@ -429,6 +432,10 @@ for (const mode of ['cleanup-failure', 'cleanup-missing']) {
 
 test('removes a synthetic license marker from retained process logs', async (t) => {
   const f = await fixture(t, 'redaction', 'android');
+  fs.writeFileSync(
+    path.join(f.root, '.env'),
+    'EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY=dotenv-fallback-license\n'
+  );
   f.config.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY =
     'test-license-redaction-sentinel';
   await runCiTests(f.config);
@@ -438,6 +445,25 @@ test('removes a synthetic license marker from retained process logs', async (t) 
     assert.ok(log.includes('[REDACTED]'));
   }
 });
+
+for (const mode of ['redaction', 'redaction-startup-failure']) {
+  test(`redacts a dotenv-only license: ${mode}`, async (t) => {
+    const f = await fixture(t, mode, 'android');
+    delete f.config.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY;
+    fs.writeFileSync(
+      path.join(f.root, '.env'),
+      'export EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY="test-license-redaction-sentinel"\n'
+    );
+    if (mode === 'redaction-startup-failure') {
+      await assert.rejects(runCiTests(f.config), /Metro.*exited early/);
+    } else {
+      assert.equal(await runCiTests(f.config), 1);
+    }
+    const log = fs.readFileSync(path.join(f.root, 'metro.log'), 'utf8');
+    assert.ok(!log.includes('test-license-redaction-sentinel'));
+    assert.ok(log.includes('[REDACTED]'));
+  });
+}
 
 test('aligns the pinned reporter watchdog with a custom whole-run deadline', () => {
   const config = createCiConfig(['ios', '--tags', 'playback'], {
