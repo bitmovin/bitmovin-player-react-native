@@ -118,13 +118,14 @@ jobs:
         run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
 
   test-build-android-integration-tests:
-    name: Build and smoke test Android integration host
+    name: Build and test Android integration host
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 75
     env:
       ANDROID_SERIAL: emulator-5554
       CAVY_ANDROID_APK: ${{ github.workspace }}/integration_test/android/app/build/outputs/apk/debug/app-debug.apk
-      CAVY_ARTIFACTS_DIR: ${{ github.workspace }}/integration_test/artifacts/android-smoke
+      CAVY_ARTIFACTS_DIR: ${{ github.workspace }}/integration_test/artifacts/android-system-tests
+      CAVY_TIMEOUT_MS: '1800000'
       RCT_METRO_PORT: '8081'
     steps:
       - name: Checkout
@@ -132,19 +133,19 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Check smoke test license
+      - name: Check integration test license
         if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
         env:
           EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
         run: |
           if [ -z "$EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY" ]; then
-            echo "::error::Configure INTEGRATION_TESTS_PLAYER_LICENSE_KEY to run Android playback smoke tests."
+            echo "::error::Configure INTEGRATION_TESTS_PLAYER_LICENSE_KEY to run Android integration tests."
             exit 1
           fi
 
-      - name: Explain fork smoke test policy
+      - name: Explain fork integration test policy
         if: github.event_name == 'pull_request' && (github.event.pull_request.head.repo.full_name != github.repository || github.actor == 'dependabot[bot]')
-        run: echo "Android host build and launcher tests run for fork PRs. Playback smoke tests require a trusted branch with the player license secret." >> "$GITHUB_STEP_SUMMARY"
+        run: echo "Android host build and launcher tests run for fork PRs. Integration execution requires a trusted branch with the player license secret." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
@@ -180,31 +181,39 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
+          test -r /dev/kvm && test -w /dev/kvm
 
-      - name: Run Android playback and loading smoke tests
+      - name: Run all Android integration tests
         if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
-        timeout-minutes: 15
+        timeout-minutes: 35
         uses: reactivecircus/android-emulator-runner@v2
         env:
           EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
         with:
-          api-level: 35
+          api-level: 36
           target: google_apis
           arch: x86_64
           profile: pixel_2
+          avd-name: cavy-ci
+          cores: 2
           emulator-port: 5554
           emulator-boot-timeout: 300
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none
+          emulator-options: -no-window -gpu swiftshader -noaudio -no-boot-anim -no-snapshot -camera-back none
           disable-animations: true
-          script: cd integration_test && node scripts/run-ci-tests.js android --tags playback,loading-vod
+          script: |
+            mkdir -p "$CAVY_ARTIFACTS_DIR"
+            "$ANDROID_HOME/emulator/emulator" -version > "$CAVY_ARTIFACTS_DIR/emulator-version.txt" 2>&1
+            cp "${ANDROID_AVD_HOME:-$HOME/.android/avd}/cavy-ci.avd/config.ini" "$CAVY_ARTIFACTS_DIR/emulator-config.ini"
+            adb -s "$ANDROID_SERIAL" shell getprop ro.build.fingerprint > "$CAVY_ARTIFACTS_DIR/system-image.txt"
+            cd integration_test && node scripts/run-ci-tests.js android
 
-      - name: Upload Android smoke diagnostics
+      - name: Upload Android integration diagnostics
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: android-smoke-${{ github.run_attempt }}
+          name: android-system-tests-${{ github.run_attempt }}
           path: |
-            integration_test/artifacts/android-smoke/
+            integration_test/artifacts/android-system-tests/
             integration_test/cavy_results.xml
             integration_test/cavy_results.md
           if-no-files-found: warn
