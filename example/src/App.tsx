@@ -6,6 +6,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AudioSession, SourceType } from 'bitmovin-player-react-native';
 import ExamplesList from './screens/ExamplesList';
 import BasicAds from './screens/BasicAds';
+import PauseAds from './screens/PauseAds';
 import BasicAnalytics from './screens/BasicAnalytics';
 import BasicMetadata from './screens/BasicMetadata';
 import BasicPlayback from './screens/BasicPlayback';
@@ -38,6 +39,7 @@ export type RootStackParamsList = {
     }[];
   };
   BasicAds: undefined;
+  PauseAds: undefined;
   BasicAnalytics: undefined;
   BasicMetadata: undefined;
   BasicPlayback: undefined;
@@ -122,6 +124,10 @@ export default function App() {
       {
         title: 'Basic Ads',
         routeName: 'BasicAds' as keyof RootStackParamsList,
+      },
+      {
+        title: 'Pause Ads',
+        routeName: 'PauseAds' as keyof RootStackParamsList,
       },
       {
         title: 'Basic Metadata',
@@ -233,6 +239,11 @@ export default function App() {
           name="BasicAds"
           component={BasicAds}
           options={{ title: 'Basic Ads' }}
+        />
+        <RootStack.Screen
+          name="PauseAds"
+          component={PauseAds}
+          options={{ title: 'Pause Ads' }}
         />
         <RootStack.Screen
           name="BasicAnalytics"

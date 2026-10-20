@@ -2,10 +2,20 @@
 
 ## [Unreleased]
 
+### Added
+
+- Experimental support for pause ads, shown while playback is paused
+  - Schedule an `AdItem` with `position` `"pause"` and `AdSourceType.BITMOVIN` sources
+  - `NonLinearAdStartedEvent`, `NonLinearAdSkippedEvent` and `NonLinearAdFinishedEvent` to signal when a pause ad is shown, skipped or finished
+  - See the native guides for more information:
+    - [Pause ads on Android](https://developer.bitmovin.com/playback/docs/pause-ads-android)
+    - [Pause ads on iOS](https://developer.bitmovin.com/playback/docs/pause-ads-ios)
+
 ### Changed
 
 - Update Bitmovin's native iOS SDK version to [`3.128.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31280)
 - Update Bitmovin's native Android SDK version to [`3.170.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31700)
+- Android: `AdConfig.replaceContentDuration` is now `NaN` instead of missing when it doesn't apply, matching iOS
 - Android: Update the pinned `okhttp-urlconnection` dependency version to `5.5.0` to match the `okhttp` version used by the Android SDK
 - Android: The Expo config plugin now raises the app's Kotlin Gradle plugin version to at least `2.2.21` and `compileSdkVersion` to at least `37`, as required by the Android SDK's dependencies. Apps that don't use the config plugin need to apply these settings manually.
 - **Breaking change:** Update Expo SDK to `57.0.27` and React Native to `0.86.3`
