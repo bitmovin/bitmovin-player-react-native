@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.29.0] - 2026-10-20
+
 ### Added
 
 - Experimental support for pause ads, shown while playback is paused
