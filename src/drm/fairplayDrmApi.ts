@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { FairplayContentKeyRequest } from '../events';
+import type { FairplayContentKeyRequest } from '../events';
 import SourceModule from '../modules/SourceModule';
 
 /**

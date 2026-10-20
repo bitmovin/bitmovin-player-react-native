@@ -1,5 +1,5 @@
-import { NativeInstanceConfig } from '../nativeInstance';
-import { SourceConfig } from '../source';
+import type { NativeInstanceConfig } from '../nativeInstance';
+import type { SourceConfig } from '../source';
 
 /**
  * Object used to configure a new `OfflineContentManager` instance.

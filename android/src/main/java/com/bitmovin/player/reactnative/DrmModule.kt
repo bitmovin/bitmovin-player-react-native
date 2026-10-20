@@ -62,6 +62,8 @@ class DrmModule : Module() {
 
         AsyncFunction("destroy") { nativeId: NativeId ->
             drmConfigs.remove(nativeId)
+            // Don't return the removed value: Expo can't convert it to a JS value and rejects the promise.
+            Unit
         }
 
         Function("setPreparedMessage") { id: Int, message: String ->

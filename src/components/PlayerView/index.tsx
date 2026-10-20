@@ -1,13 +1,16 @@
-import React, { RefObject, useEffect, useRef, useState } from 'react';
+import type { RefObject } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
-import { NativePlayerView, NativePlayerViewConfig } from './native';
+import type { NativePlayerViewConfig } from './native';
+import { NativePlayerView } from './native';
 import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
-import { PlayerViewProps } from './properties';
-import { PictureInPictureAction } from './pictureInPictureAction';
+import type { PlayerViewProps } from './properties';
+import type { PictureInPictureAction } from './pictureInPictureAction';
 import { addPlatformToMetadataEvent } from '../../utils/metadataPlatform';
+import RNPlayerViewManagerModule from '../../modules/RNPlayerViewManagerModule';
 
 /**
  * Base style that initializes the native view frame when no width/height prop has been set.
@@ -42,14 +45,14 @@ export function PlayerView({
   // Keep the device awake while the PlayerView is mounted
   useKeepAwake();
 
-  const nativeView = useRef<InternalPlayerViewRef>(viewRef?.current || null);
+  const nativeView = useRef(viewRef?.current || null);
 
   // Native events proxy helper.
   const proxy = useProxy();
   // Style resulting from merging `baseStyle` and `props.style`.
   const nativeViewStyle = StyleSheet.flatten([styles.baseStyle, style]);
 
-  const fullscreenBridge: React.RefObject<FullscreenHandlerBridge | undefined> =
+  const fullscreenBridge: RefObject<FullscreenHandlerBridge | undefined> =
     useRef(undefined);
   if (fullscreenHandler && !fullscreenBridge.current) {
     fullscreenBridge.current = new FullscreenHandlerBridge();
@@ -58,7 +61,7 @@ export function PlayerView({
     fullscreenBridge.current.setFullscreenHandler(fullscreenHandler);
   }
 
-  const customMessageHandlerBridge: React.RefObject<
+  const customMessageHandlerBridge: RefObject<
     CustomMessageHandlerBridge | undefined
   > = useRef(undefined);
   if (customMessageHandler && !customMessageHandlerBridge.current) {
@@ -113,21 +116,29 @@ export function PlayerView({
     }
   }, [isPlayerInitialized, viewRef, nativeView, onPlayerViewReady]);
 
+  // Compare the actions by content, so passing a new array with the same actions on every render
+  // does not trigger a native update each time.
+  const pictureInPictureActionsJson =
+    pictureInPictureActions != null
+      ? JSON.stringify(pictureInPictureActions)
+      : undefined;
   useEffect(() => {
-    if (isPlayerInitialized && pictureInPictureActions != null) {
-      void nativeView.current?.updatePictureInPictureActions(
-        pictureInPictureActions
+    if (isPlayerInitialized && pictureInPictureActionsJson != null) {
+      void RNPlayerViewManagerModule.updatePictureInPictureActions(
+        player.nativeId,
+        JSON.parse(pictureInPictureActionsJson) as PictureInPictureAction[]
       );
     }
-  }, [isPlayerInitialized, pictureInPictureActions]);
+  }, [isPlayerInitialized, player.nativeId, pictureInPictureActionsJson]);
 
   useEffect(() => {
     if (isPlayerInitialized && isPictureInPictureEnabled != null) {
-      void nativeView.current?.setIsPictureInPictureEnabled(
+      void RNPlayerViewManagerModule.setIsPictureInPictureEnabled(
+        player.nativeId,
         isPictureInPictureEnabled
       );
     }
-  }, [isPlayerInitialized, isPictureInPictureEnabled]);
+  }, [isPlayerInitialized, player.nativeId, isPictureInPictureEnabled]);
 
   if (!isPlayerInitialized) {
     return null;
@@ -184,6 +195,9 @@ export function PlayerView({
       onBmpFullscreenEnter={proxy(props.onFullscreenEnter)}
       onBmpFullscreenExit={proxy(props.onFullscreenExit)}
       onBmpMuted={proxy(props.onMuted)}
+      onBmpNonLinearAdStarted={proxy(props.onNonLinearAdStarted)}
+      onBmpNonLinearAdSkipped={proxy(props.onNonLinearAdSkipped)}
+      onBmpNonLinearAdFinished={proxy(props.onNonLinearAdFinished)}
       onBmpPaused={proxy(props.onPaused)}
       onBmpPictureInPictureAvailabilityChanged={proxy(
         props.onPictureInPictureAvailabilityChanged
@@ -229,19 +243,4 @@ export function PlayerView({
       onBmpFairplayLicenseAcquired={proxy(props.onFairplayLicenseAcquired)}
     />
   );
-}
-
-interface InternalPlayerViewRef extends RefObject<any> {
-  /**
-   * Update Picture in Picture actions that should be displayed on the Picture in Picture window.
-   * Ideally we would just pass the props to the `NativePlayerView`, but due to a React Native limitation,
-   * the props aren't passed to the native module when PiP is active on Android.
-   */
-  updatePictureInPictureActions: (
-    actions: PictureInPictureAction[]
-  ) => Promise<void>;
-  /**
-   * Enables or disables Picture in Picture mode availability.
-   */
-  setIsPictureInPictureEnabled: (isEnabled: boolean) => Promise<void>;
 }

@@ -1,4 +1,4 @@
-import {
+import type {
   Ad,
   AdBreak,
   AdConfig,
@@ -6,12 +6,12 @@ import {
   AdQuartile,
   AdSourceType,
 } from './advertising';
-import { SubtitleTrack } from './subtitleTrack';
-import { VideoQuality } from './media';
-import { AudioTrack } from './audioTrack';
-import { LoadingState } from './source';
-import { HttpRequestType, HttpResponse } from './network/networkConfig';
-import {
+import type { SubtitleTrack } from './subtitleTrack';
+import type { VideoQuality } from './media';
+import type { AudioTrack } from './audioTrack';
+import type { LoadingState } from './source';
+import type { HttpRequestType, HttpResponse } from './network/networkConfig';
+import type {
   DateRangeMetadataEntry,
   EventMessageMetadataEntry,
   Id3MetadataEntry,
@@ -455,7 +455,9 @@ export interface AdBreakFinishedEvent extends Event {
 }
 
 /**
- * Emitted when the playback of an ad has started.
+ * Emitted when the playback of a linear ad has started.
+ * Non-linear ads, such as pause ads, emit {@link NonLinearAdStartedEvent} instead.
+ * See {@link AdItem} for the lifecycle of both ad types.
  */
 export interface AdStartedEvent extends Event {
   /**
@@ -493,7 +495,8 @@ export interface AdStartedEvent extends Event {
 }
 
 /**
- * Emitted when an ad has finished playback.
+ * Emitted when a linear ad has finished playback.
+ * Non-linear ads emit {@link NonLinearAdFinishedEvent} instead.
  */
 export interface AdFinishedEvent extends Event {
   /**
@@ -504,6 +507,9 @@ export interface AdFinishedEvent extends Event {
 
 /**
  * Emitted when an error with the ad playback occurs.
+ *
+ * Also emitted when a pause ad fails to load. In that case, `adItem.position` is `"pause"`.
+ * On Android, a pause ad image that fails to download is reported as a {@link PlayerWarningEvent} instead.
  */
 export interface AdErrorEvent extends ErrorEvent {
   /**
@@ -527,13 +533,61 @@ export interface AdClickedEvent extends Event {
 }
 
 /**
- * Emitted when an ad was skipped.
+ * Emitted when a linear ad was skipped.
+ * Non-linear ads emit {@link NonLinearAdSkippedEvent} instead.
  */
 export interface AdSkippedEvent extends Event {
   /**
    * The ad that was skipped.
    */
   ad?: Ad;
+}
+
+/**
+ * Emitted when a non-linear ad, such as a pause ad, is shown.
+ * Linear ads emit {@link AdStartedEvent} instead. See {@link AdItem} for the lifecycle of both ad types.
+ *
+ * The {@link NonLinearAdSkippedEvent} or {@link NonLinearAdFinishedEvent} that follows may not be delivered
+ * if the `PlayerView` is unmounted or the player is detached from it while the ad is shown.
+ *
+ * @experimental
+ */
+export interface NonLinearAdStartedEvent extends Event {
+  /**
+   * The {@link Ad} that is shown.
+   */
+  ad: Ad;
+}
+
+/**
+ * Emitted when a shown non-linear ad was skipped, e.g. through {@link Player.skipAd}
+ * or a dismiss control of the player UI.
+ *
+ * Skipping a pause ad leaves the main content paused.
+ * A non-linear ad that ends in any other way emits {@link NonLinearAdFinishedEvent} instead.
+ * Linear ads emit {@link AdSkippedEvent} instead.
+ *
+ * @experimental
+ */
+export interface NonLinearAdSkippedEvent extends Event {
+  /**
+   * The {@link Ad} that was skipped.
+   */
+  ad: Ad;
+}
+
+/**
+ * Emitted when a shown non-linear ad was taken down without being skipped,
+ * e.g. because playback resumed or the user seeked.
+ * Linear ads emit {@link AdFinishedEvent} instead.
+ *
+ * @experimental
+ */
+export interface NonLinearAdFinishedEvent extends Event {
+  /**
+   * The {@link Ad} that was taken down.
+   */
+  ad: Ad;
 }
 
 /**

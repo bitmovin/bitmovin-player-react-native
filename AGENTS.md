@@ -59,7 +59,7 @@
 
 - Environment
   - Node + Yarn (use Yarn across workspaces); macOS: Xcode + CocoaPods; Android: Android Studio + JDK 17+ (Gradle 8.2 wrapper).
-  - Platforms per README: Expo 53+, React Native 0.79+, React 17+.
+  - Platforms per README: Expo 57+, React Native 0.86.3+, React 17+.
 - Tooling & Hooks
   - Install hooks with `yarn setup-hooks`; verify with `yarn lint:all` and `yarn typecheck:all` before PRs.
   - SwiftLint/ktlint required for native; use `yarn format:ios` / `yarn format:android` for auto-fixes.

@@ -5,6 +5,7 @@ import { PlayerView } from 'bitmovin-player-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 const darkTextColor = '#11181C';
+const TestablePlayerView = wrap(PlayerView);
 
 interface TestablePlayerProps {
   playerTestWorld: PlayerTestWorld;
@@ -15,9 +16,10 @@ export default function TestablePlayer({
 }: TestablePlayerProps): React.JSX.Element {
   const generateTestHook = useCavy();
   const [renderCount, setRenderCount] = useState(0);
+  // The test world triggers re-renders through this callback, so it must be set during render.
+  // eslint-disable-next-line react-hooks/immutability
   playerTestWorld.onReRender = () => setRenderCount((count) => count + 1);
 
-  const TestablePlayerView = wrap(PlayerView);
   return (
     <SafeAreaView style={styles.container}>
       {(playerTestWorld.player && (

@@ -13,6 +13,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.SubtitleView
+import com.bitmovin.player.api.ExperimentalBitmovinApi
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
@@ -36,6 +37,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     var playerView: PlayerView? = null
         private set
     private var pictureInPictureHandler: RNPictureInPictureHandler? = null
+
+    private var pictureInPictureActions: List<PictureInPictureAction>? = null
     private var subtitleView: SubtitleView? = null
     private var playerContainer: FrameLayout? = null
     var enableBackgroundPlayback: Boolean = false
@@ -87,6 +90,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private val onBmpAdScheduled by EventDispatcher()
     private val onBmpAdSkipped by EventDispatcher()
     private val onBmpAdStarted by EventDispatcher()
+    private val onBmpNonLinearAdStarted by EventDispatcher()
+    private val onBmpNonLinearAdSkipped by EventDispatcher()
+    private val onBmpNonLinearAdFinished by EventDispatcher()
     private val onBmpVideoDownloadQualityChanged by EventDispatcher()
     private val onBmpVideoPlaybackQualityChanged by EventDispatcher()
     private val onBmpCastAvailable by EventDispatcher()
@@ -222,6 +228,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         activityLifecycle?.removeObserver(activityLifecycleObserver)
         viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
         reparentHelper.dispose()
+        pictureInPictureActions = null
 
         // cleanup all children views explicitly,
         // so that in case react native does some view caching we are 100% the child views of this view
@@ -348,6 +355,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 null
             }
             newPlayerView.setPictureInPictureHandler(pictureInPictureHandler)
+            applyPictureInPictureActions()
             setPlayerView(newPlayerView)
             attachPlayerViewListeners(newPlayerView)
 
@@ -550,6 +558,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         EventSubscription<PlayerEvent.AdScheduled> { onEvent(onBmpAdScheduled, it.toJson()) },
         EventSubscription<PlayerEvent.AdSkipped> { onEvent(onBmpAdSkipped, it.toJson()) },
         EventSubscription<PlayerEvent.AdStarted> { onEvent(onBmpAdStarted, it.toJson()) },
+        @OptIn(ExperimentalBitmovinApi::class)
+        EventSubscription<PlayerEvent.NonLinearAdStarted> { onEvent(onBmpNonLinearAdStarted, it.toJson()) },
+        @OptIn(ExperimentalBitmovinApi::class)
+        EventSubscription<PlayerEvent.NonLinearAdSkipped> { onEvent(onBmpNonLinearAdSkipped, it.toJson()) },
+        @OptIn(ExperimentalBitmovinApi::class)
+        EventSubscription<PlayerEvent.NonLinearAdFinished> { onEvent(onBmpNonLinearAdFinished, it.toJson()) },
         EventSubscription<SourceEvent.VideoDownloadQualityChanged> {
             onEvent(
                 onBmpVideoDownloadQualityChanged,
@@ -648,8 +662,14 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun updatePictureInPictureActions(pictureInPictureActions: List<PictureInPictureAction>) {
+        this.pictureInPictureActions = pictureInPictureActions
+        applyPictureInPictureActions()
+    }
+
+    private fun applyPictureInPictureActions() {
+        val actions = pictureInPictureActions ?: return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            pictureInPictureHandler?.updateActions(pictureInPictureActions)
+            pictureInPictureHandler?.updateActions(actions)
         }
     }
 
@@ -674,6 +694,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 },
             )
             playerView?.setPictureInPictureHandler(pictureInPictureHandler)
+            applyPictureInPictureActions()
         } else if (!isEnabled && pictureInPictureHandler != null) {
             pictureInPictureHandler?.dispose()
             pictureInPictureHandler = null

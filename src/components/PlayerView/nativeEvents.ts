@@ -1,4 +1,4 @@
-import {
+import type {
   AdBreakFinishedEvent,
   AdBreakStartedEvent,
   AdClickedEvent,
@@ -26,6 +26,9 @@ import {
   FullscreenEnterEvent,
   FullscreenExitEvent,
   MutedEvent,
+  NonLinearAdStartedEvent,
+  NonLinearAdSkippedEvent,
+  NonLinearAdFinishedEvent,
   PausedEvent,
   PictureInPictureAvailabilityChangedEvent,
   PictureInPictureEnterEvent,
@@ -244,6 +247,24 @@ export type NativePlayerViewEvents = {
    * Event emitted when the player has been muted.
    */
   onBmpMuted?: (event: { nativeEvent: MutedEvent }) => void;
+  /**
+   * Event emitted when a non-linear ad has started.
+   */
+  onBmpNonLinearAdStarted?: (event: {
+    nativeEvent: NonLinearAdStartedEvent;
+  }) => void;
+  /**
+   * Event emitted when a non-linear ad has been skipped.
+   */
+  onBmpNonLinearAdSkipped?: (event: {
+    nativeEvent: NonLinearAdSkippedEvent;
+  }) => void;
+  /**
+   * Event emitted when a non-linear ad has finished.
+   */
+  onBmpNonLinearAdFinished?: (event: {
+    nativeEvent: NonLinearAdFinishedEvent;
+  }) => void;
   /**
    * Event emitted when the player has been paused.
    */
