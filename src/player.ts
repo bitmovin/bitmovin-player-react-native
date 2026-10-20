@@ -16,6 +16,7 @@ import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
 import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
+import type { PlaylistConfig } from './playlist';
 import type { PlayerEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
 
@@ -57,6 +58,12 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, tvOS
    */
   mediaControls: MediaControlsApi = new MediaControlsApi(this.nativeId);
+
+  /**
+   * All {@link Source}s handed to the native player, keyed by {@link Source.nativeId}.
+   * Used to resolve native sources back to their JS instances.
+   */
+  private readonly knownSources = new Map<string, Source>();
 
   private network?: Network;
 
@@ -125,7 +132,8 @@ export class Player extends NativeInstance<PlayerConfig> {
       void PlayerModule.destroy(this.nativeId).finally(() => {
         this.eventListeners.removeAll();
       });
-      void this.source?.destroy();
+      this.knownSources.forEach((source) => void source.destroy());
+      this.knownSources.clear();
       void this.network?.destroy();
       void this.decoderConfig?.destroy();
       this.onShouldLoadAdItemSubscription?.remove();
@@ -195,9 +203,30 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   loadSource = (source: Source) => {
     this.source = source;
+    this.knownSources.set(source.nativeId, source);
     void source
       .initialize()
       .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
+  };
+
+  /**
+   * Starts a new playback session consisting of {@link PlaylistConfig.sources}.
+   * The first source becomes active immediately. An already active playback session is unloaded first.
+   *
+   * @returns a promise that rejects if the playlist could not be loaded, e.g. when `sources` is empty.
+   */
+  loadPlaylist = async (playlistConfig: PlaylistConfig): Promise<void> => {
+    playlistConfig.sources.forEach((source) =>
+      this.knownSources.set(source.nativeId, source)
+    );
+    await Promise.all(
+      playlistConfig.sources.map((source) => source.initialize())
+    );
+    await PlayerModule.loadPlaylist(
+      this.nativeId,
+      playlistConfig.sources.map((source) => source.nativeId),
+      playlistConfig.options
+    );
   };
 
   /**
