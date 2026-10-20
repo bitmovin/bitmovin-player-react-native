@@ -71,7 +71,7 @@ async function runIosApp(config, dependencies = {}) {
     artifactsDir,
     runtime,
     deviceType,
-    timeoutMs = 600000,
+    timeoutMs = Number(process.env.CAVY_TIMEOUT_MS || 600000),
     home = os.homedir(),
   } = config;
   if (!appPath || !fs.existsSync(path.join(appPath, 'Info.plist'))) {
@@ -173,9 +173,9 @@ async function runIosApp(config, dependencies = {}) {
       JSON.stringify({ udid, runtime, deviceType, appPath }, null, 2)
     );
     await command(['boot', udid]);
-    // Cold migration shares the existing whole-run budget. A shorter command
-    // cutoff can kill a healthy first boot; the overall signal still aborts it.
-    await command(['bootstatus', udid, '-b'], timeoutMs);
+    // Allow cold migration, but expanding the suite must not expand boot time.
+    // The overall signal can still abort boot sooner.
+    await command(['bootstatus', udid, '-b'], Math.min(timeoutMs, 600000));
     await command(['install', udid, appPath], 120000);
     appFd = fs.openSync(path.join(artifactsDir, 'app-console.log'), 'w');
     logFd = fs.openSync(path.join(artifactsDir, 'simulator.log'), 'w');

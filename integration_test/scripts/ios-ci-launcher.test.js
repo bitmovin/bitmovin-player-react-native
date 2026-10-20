@@ -136,6 +136,34 @@ test('allows cold migration within the overall budget without retrying boot', as
   assert.ok(f.calls.some(({ args }) => args[1] === 'install'));
 });
 
+test('keeps the simulator boot deadline bounded for a full-suite run', async (t) => {
+  const f = fixture(t);
+  f.config.timeoutMs = 1800000;
+  await assert.rejects(
+    implementation().runIosApp(f.config, f.dependencies),
+    /app exited/
+  );
+  const boot = f.calls.find(({ args }) => args[1] === 'bootstatus');
+  assert.equal(boot.config.timeout, 600000);
+});
+
+test('uses the supervisor CI budget when no explicit launcher timeout is supplied', async (t) => {
+  const previous = process.env.CAVY_TIMEOUT_MS;
+  t.after(() => {
+    if (previous === undefined) delete process.env.CAVY_TIMEOUT_MS;
+    else process.env.CAVY_TIMEOUT_MS = previous;
+  });
+  process.env.CAVY_TIMEOUT_MS = '2500';
+  const f = fixture(t);
+  delete f.config.timeoutMs;
+  await assert.rejects(
+    implementation().runIosApp(f.config, f.dependencies),
+    /app exited/
+  );
+  const boot = f.calls.find(({ args }) => args[1] === 'bootstatus');
+  assert.equal(boot.config.timeout, 2500);
+});
+
 test('retains migration output and timeout kill details before cleaning up a failed boot', async (t) => {
   const f = fixture(t);
   const run = f.dependencies.run;

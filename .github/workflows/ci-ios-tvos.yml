@@ -182,9 +182,9 @@ jobs:
           done
 
   ios-integration-build:
-    name: Build and smoke-test iOS Integration Host
+    name: Build and test iOS Integration Host
     runs-on: macos-26
-    timeout-minutes: 40
+    timeout-minutes: 75
     env:
       IOS_SMOKE_RUNTIME: com.apple.CoreSimulator.SimRuntime.iOS-26-5
       IOS_SMOKE_DEVICE_TYPE: com.apple.CoreSimulator.SimDeviceType.iPhone-17
@@ -194,7 +194,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set iOS smoke artifact paths
+      - name: Set iOS integration artifact paths
         run: |
           echo "IOS_SMOKE_APP_PATH=$RUNNER_TEMP/integration-host/Build/Products/Debug-iphonesimulator/IntegrationTest.app" >> "$GITHUB_ENV"
           echo "CAVY_ARTIFACTS_DIR=$RUNNER_TEMP/ios-cavy" >> "$GITHUB_ENV"
@@ -244,26 +244,26 @@ jobs:
           # Cavy must never invoke a second React Native build.
           XCODEBUILD_ARGS: "-destination 'generic/platform=iOS Simulator' -derivedDataPath ${{ runner.temp }}/integration-host ONLY_ACTIVE_ARCH=YES ARCHS=arm64 VALID_ARCHS=arm64 CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO"
 
-      - name: Run iOS playback and loading smoke
+      - name: Run all iOS simulator integration tests
         if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
-        timeout-minutes: 15
+        timeout-minutes: 35
         working-directory: integration_test
         env:
           CI: 'true'
           EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
-          EXPO_PUBLIC_CAVY_ONLY_TAGS: playback,loading-vod
+          CAVY_TIMEOUT_MS: '1800000'
         run: |
-          test -n "$EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY" || { echo '::error::INTEGRATION_TESTS_PLAYER_LICENSE_KEY is required for iOS smoke'; exit 1; }
+          test -n "$EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY" || { echo '::error::INTEGRATION_TESTS_PLAYER_LICENSE_KEY is required for iOS integration tests'; exit 1; }
           # The shared runner owns Metro, the test entry, Cavy reports and their
           # failure/zero-test checks. This adapter only installs and launches.
           # Simulator FairPlay and TV are excluded, never counted as passing.
-          node scripts/run-ci-tests.js ios --tags playback,loading-vod
+          node scripts/run-ci-tests.js ios
 
-      - name: Explain unavailable smoke credentials
+      - name: Explain unavailable integration test credentials
         if: github.event_name == 'pull_request' && (github.event.pull_request.head.repo.full_name != github.repository || github.actor == 'dependabot[bot]')
-        run: echo '::notice::iOS host build only. Playback smoke is skipped for fork and Dependabot PRs because no license secret is exposed.'
+        run: echo '::notice::iOS host build only. Integration execution is skipped for fork and Dependabot PRs because no license secret is exposed.'
 
-      - name: Save iOS smoke diagnostics
+      - name: Save iOS integration diagnostics
         if: always()
         uses: actions/upload-artifact@v7
         with:
