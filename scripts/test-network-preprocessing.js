@@ -1,78 +1,106 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
-const { test } = require('node:test');
-const vm = require('node:vm');
+const { after, before, test } = require('node:test');
 const ts = require(process.env.TYPESCRIPT_PATH || 'typescript');
 
-// Run the real TypeScript handlers in Node; only the Expo boundary is mocked.
-function fixture(config, completionFails = false) {
+const root = fs.mkdtempSync(path.join(os.tmpdir(), 'network-preprocessing-'));
+after(() => fs.rmSync(root, { recursive: true, force: true }));
+const compiled = path.join(root, 'compiled');
+// Emit the handler's import graph once, without Expo's app build or typecheck.
+// Node resolves and loads the emitted CommonJS files normally.
+before(() => {
+  const program = ts.createProgram(
+    [path.resolve(__dirname, '../src/network/index.ts')],
+    {
+      rootDir: path.resolve(__dirname, '../src'),
+      outDir: compiled,
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2020,
+      noCheck: true,
+      types: [],
+    }
+  );
+  const emission = program.emit();
+  assert.equal(emission.emitSkipped, false);
+  for (const diagnostic of ts
+    .getPreEmitDiagnostics(program)
+    .concat(emission.diagnostics)) {
+    assert.fail(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
+  }
+});
+
+// Each case gets separate Node module state and explicit Expo boundary doubles.
+function fixture(t, config, rejectAfterCompletion = false) {
+  const directory = fs.mkdtempSync(path.join(root, 'case-'));
+  t.after(() => {
+    for (const filename of Object.keys(require.cache)) {
+      if (filename.startsWith(`${directory}${path.sep}`)) {
+        delete require.cache[filename];
+      }
+    }
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+  fs.cpSync(compiled, directory, { recursive: true });
+  for (const name of ['expo-modules-core', 'expo-crypto']) {
+    const packageDirectory = path.join(directory, 'node_modules', name);
+    fs.mkdirSync(packageDirectory, { recursive: true });
+    fs.writeFileSync(
+      path.join(packageDirectory, 'index.js'),
+      'module.exports = {};'
+    );
+  }
   const listeners = new Map();
-  const submissions = [];
+  const attempts = [];
+  const completions = [];
   const logs = [];
+  const nativeError = new Error('native rejected after completing operation');
   const complete = (kind, id, payload) => {
-    submissions.push({ kind, id, payload });
-    return completionFails && submissions.length === 1
-      ? Promise.reject(new Error('native completion failed'))
+    const operation = { kind, id, payload };
+    attempts.push(operation);
+    // Model native completion BEFORE rejection. A pre-completion failure (e.g.
+    // Android invalid Base64 conversion) can still leave native work pending.
+    completions.push(operation);
+    return rejectAfterCompletion
+      ? Promise.reject(nativeError)
       : Promise.resolve();
   };
   const bridge = {
     addListener: (name, listener) => {
       listeners.set(name, listener);
-      return { remove() {} };
+      return { remove: () => listeners.delete(name) };
     },
     initializeWithConfig: async () => {},
+    destroy: async () => {},
     setPreprocessedHttpRequest: (id, payload) =>
       complete('Request', id, payload),
     setPreprocessedHttpResponse: (id, payload) =>
       complete('Response', id, payload),
   };
-  const cache = new Map();
-  function load(filename) {
-    if (cache.has(filename)) return cache.get(filename).exports;
-    const module = { exports: {} };
-    cache.set(filename, module);
-    const { outputText } = ts.transpileModule(
-      fs.readFileSync(filename, 'utf8'),
-      {
-        compilerOptions: {
-          module: ts.ModuleKind.CommonJS,
-          target: ts.ScriptTarget.ES2020,
-        },
-        fileName: filename,
-      }
-    );
-    const localRequire = (name) => {
-      if (name === 'expo-modules-core') {
-        return {
-          requireNativeModule: (moduleName) => {
-            assert.equal(moduleName, 'NetworkModule');
-            return bridge;
-          },
-        };
-      }
-      if (name === 'expo-crypto') return { randomUUID: () => 'network-id' };
-      if (name === '../debug') {
-        return { DebugConfig: { log: (...args) => logs.push(args) } };
-      }
-      const resolved = path.resolve(path.dirname(filename), name);
-      return load(
-        fs.existsSync(`${resolved}.ts`)
-          ? `${resolved}.ts`
-          : path.join(resolved, 'index.ts')
-      );
-    };
-    vm.runInThisContext(
-      `(function(require, module, exports) {${outputText}\n})`,
-      { filename }
-    )(localRequire, module, module.exports);
-    return module.exports;
-  }
-  const { Network, HttpRequestType } = load(
-    path.resolve(__dirname, '../src/network/index.ts')
-  );
+  require(
+    path.join(directory, 'node_modules/expo-modules-core')
+  ).requireNativeModule = (name) => {
+    if (name === 'NetworkModule') return bridge;
+    assert.equal(name, 'DebugModule');
+    return { setDebugLoggingEnabled: async () => {} };
+  };
+  require(path.join(directory, 'node_modules/expo-crypto')).randomUUID = () =>
+    'network-id';
+  const { DebugConfig } = require(path.join(directory, 'debug.js'));
+  t.mock.method(DebugConfig, 'log', (...args) => logs.push(args));
+  const { Network, HttpRequestType } = require(path.join(directory, 'network'));
   const network = new Network(config);
-  return { network, listeners, submissions, logs, HttpRequestType };
+  t.after(() => network.destroy());
+  return {
+    network,
+    listeners,
+    attempts,
+    completions,
+    logs,
+    nativeError,
+    HttpRequestType,
+  };
 }
 
 const request = {
@@ -100,8 +128,8 @@ for (const [kind, original] of [
     'missing',
     'no config',
   ]) {
-    for (const completionFails of [false, true]) {
-      test(`${kind}: ${behavior}, native completion ${completionFails ? 'rejects' : 'resolves'}`, async () => {
+    for (const rejectAfterCompletion of [false, true]) {
+      test(`${kind}: ${behavior}, native ${rejectAfterCompletion ? 'rejects after completion' : 'resolves'}`, async (t) => {
         const transformed = { ...original, headers: { Changed: 'yes' } };
         const callbackCalls = [];
         const config =
@@ -119,10 +147,15 @@ for (const [kind, original] of [
                     return Promise.resolve(transformed);
                   },
                 };
-        const { network, listeners, submissions, HttpRequestType } = fixture(
-          config,
-          completionFails
-        );
+        const {
+          network,
+          listeners,
+          attempts,
+          completions,
+          logs,
+          nativeError,
+          HttpRequestType,
+        } = fixture(t, config, rejectAfterCompletion);
         await network.initialize();
         const event = {
           nativeId: network.nativeId,
@@ -134,17 +167,33 @@ for (const [kind, original] of [
         listener({ ...event, nativeId: 'another-network' });
         await new Promise(setImmediate);
         assert.equal(callbackCalls.length, 0);
-        assert.equal(submissions.length, 0);
+        assert.equal(attempts.length, 0);
+        assert.equal(completions.length, 0);
 
         assert.doesNotThrow(() => listener(event));
         // Drain callback and completion promises, including rejection handlers.
         await new Promise(setImmediate);
-        assert.equal(submissions.length, 1);
-        assert.equal(submissions[0].kind, kind);
-        assert.equal(submissions[0].id, 'completion-id');
+        assert.equal(attempts.length, 1);
+        assert.equal(completions.length, 1);
+        assert.equal(completions[0].kind, kind);
+        assert.equal(completions[0].id, 'completion-id');
         assert.equal(
-          submissions[0].payload,
+          completions[0].payload,
           behavior === 'success' ? transformed : original
+        );
+        const failureLogs = logs.filter(([message]) =>
+          message.startsWith('Failed to complete HTTP')
+        );
+        assert.deepEqual(
+          failureLogs,
+          rejectAfterCompletion
+            ? [
+                [
+                  `Failed to complete HTTP ${kind.toLowerCase()} preprocessing:`,
+                  nativeError,
+                ],
+              ]
+            : []
         );
         if (behavior !== 'missing' && behavior !== 'no config') {
           assert.equal(callbackCalls.length, 1);
