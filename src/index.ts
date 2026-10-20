@@ -27,6 +27,7 @@ export * from './liveConfig';
 export * from './bufferApi';
 export * from './mediaControlsApi';
 export * from './network';
+export * from './playlist';
 export * from './mediaControlConfig';
 export * from './debug';
 export * from './decoder/decoderConfig';

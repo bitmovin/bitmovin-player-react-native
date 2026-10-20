@@ -71,6 +71,8 @@ import com.bitmovin.player.api.network.HttpResponse
 import com.bitmovin.player.api.network.NetworkConfig
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
+import com.bitmovin.player.api.playlist.PlaylistOptions
+import com.bitmovin.player.api.playlist.ReplayMode
 import com.bitmovin.player.api.source.LoadingState
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
@@ -155,6 +157,20 @@ fun Map<String, Any?>.toSourceOptions(): SourceOptions = SourceOptions(
     startOffset = getDoubleOrNull("startOffset"),
     startOffsetTimelineReference = getString("startOffsetTimelineReference")?.toTimelineReferencePoint(),
 )
+
+fun Map<String, Any?>.toPlaylistOptions(): PlaylistOptions {
+    val defaults = PlaylistOptions()
+    return PlaylistOptions(
+        preloadAllSources = getBooleanOrNull("preloadAllSources") ?: defaults.preloadAllSources,
+        replayMode = getString("replayMode")?.toReplayMode() ?: defaults.replayMode,
+    )
+}
+
+private fun String.toReplayMode(): ReplayMode? = when (this) {
+    "playlist" -> ReplayMode.Playlist
+    "lastSource" -> ReplayMode.LastSource
+    else -> null
+}
 
 private fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (this) {
     "start" -> TimelineReferencePoint.Start
