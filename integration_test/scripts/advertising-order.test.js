@@ -201,7 +201,7 @@ function advertisingHarness(platform, timing) {
         );
         assert.deepEqual(
           sequences.map(({ timeout }) => timeout),
-          [18, 15, 18]
+          [30, 30, 30]
         );
         for (const { expectation } of sequences) {
           assert.deepEqual(
