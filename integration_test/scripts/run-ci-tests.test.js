@@ -14,24 +14,23 @@ const {
 // Restricted workers can exercise real subprocess lifecycle without binding sockets.
 // Default validation always uses real HTTP/TCP; this mode explicitly omits it.
 const noNetwork = process.env.CAVY_TEST_NO_NETWORK === '1';
+function socketFreeDependencies(config) {
+  return {
+    assertPortFree: async () => {},
+    probe: async (_port, metro) => {
+      const events = path.join(config.artifactsDir, 'events');
+      return (
+        fs.existsSync(events) &&
+        fs
+          .readFileSync(events, 'utf8')
+          .includes(metro ? 'metro:ready' : 'reporter:ready')
+      );
+    },
+  };
+}
+
 function runCiTests(config) {
-  return supervise(
-    config,
-    noNetwork
-      ? {
-          assertPortFree: async () => {},
-          probe: async (_port, metro) => {
-            const events = path.join(config.artifactsDir, 'events');
-            return (
-              fs.existsSync(events) &&
-              fs
-                .readFileSync(events, 'utf8')
-                .includes(metro ? 'metro:ready' : 'reporter:ready')
-            );
-          },
-        }
-      : {}
-  );
+  return supervise(config, noNetwork ? socketFreeDependencies(config) : {});
 }
 
 const goodXml =
@@ -245,12 +244,15 @@ test('exits nonzero when process-group termination leaves live children', async 
         '-e',
         `
 const fs = require('node:fs');
+const path = require('node:path');
 const { runCiTests } = require(${JSON.stringify(require.resolve('./run-ci-tests'))});
 process.kill = (pid) => {
   fs.appendFileSync(${JSON.stringify(pidsPath)}, String(-pid) + '\\n');
   throw Object.assign(new Error('injected kill failure'), { code: 'EPERM' });
 };
-runCiTests(${JSON.stringify(config)}).catch((error) => {
+const config = ${JSON.stringify(config)};
+const dependencies = ${noNetwork ? `(${socketFreeDependencies.toString()})(config)` : '{}'};
+runCiTests(config, dependencies).catch((error) => {
   console.error(error.message);
   process.exitCode = 1;
 });
