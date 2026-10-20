@@ -15,6 +15,7 @@
 - Complete HTTP preprocessing with the original request or response when a user callback throws, and avoid retrying failed native completion calls
 - Wait for native player listeners before calling `onPlayerViewReady` to avoid losing events when loading from the callback.
 - Android: `onPlayerActive` not being emitted
+- Android: **Breaking change:** `PlayerActive` and `PlayerInactive` events being named `onActive` and `onInactive` instead of `onPlayerActive` and `onPlayerInactive`, as on iOS. Apps comparing `Event.name`, e.g. in `onEvent`, must use the new names.
 
 ## [1.29.0] - 2026-10-20
 
