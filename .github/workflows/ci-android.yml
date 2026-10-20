@@ -202,7 +202,7 @@ jobs:
           disable-animations: true
           script: |
             mkdir -p "$CAVY_ARTIFACTS_DIR"
-            "$ANDROID_HOME/emulator/emulator" -version > "$CAVY_ARTIFACTS_DIR/emulator-version.txt" 2>&1
+            cp "$ANDROID_HOME/emulator/source.properties" "$CAVY_ARTIFACTS_DIR/emulator-version.txt"
             cp "${ANDROID_AVD_HOME:-$HOME/.android/avd}/cavy-ci.avd/config.ini" "$CAVY_ARTIFACTS_DIR/emulator-config.ini"
             adb -s "$ANDROID_SERIAL" shell getprop ro.build.fingerprint > "$CAVY_ARTIFACTS_DIR/system-image.txt"
             cd integration_test && node scripts/run-ci-tests.js android
