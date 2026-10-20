@@ -1,5 +1,7 @@
 const androidAndIos = ['android', 'ios'];
 const iosOnly = ['ios'];
+// TODO: switch playlist to androidAndIos once the iOS playlist bridge is implemented
+const androidOnly = ['android'];
 
 function testSuite(name, platforms, load) {
   return { name, platforms, load };
@@ -40,6 +42,7 @@ const testRegistrations = [
   ),
   testSuite('network', androidAndIos, () => require('./networkTest').default),
   testSuite('playback', androidAndIos, () => require('./playbackTest').default),
+  testSuite('playlist', androidOnly, () => require('./playlistTest').default),
   testSuite(
     'unloading',
     androidAndIos,
