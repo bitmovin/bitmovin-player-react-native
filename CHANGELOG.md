@@ -25,6 +25,7 @@
 - Update Bitmovin's native iOS SDK version to [`3.131.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31310)
 - **Breaking change:** `SourceUnloadedEvent.source` is now optional. Android does not provide it for events received via `Player.on` or the `PlayerView` event props, as the native event does not carry the source. It is provided for events received via `Source.on`.
 - `PlayerView` event props are delivered through the player's event subscriptions on all platforms. The order of fullscreen and picture-in-picture events relative to player events can differ slightly. On Android, events emitted right after loading (e.g. `onPlayerActive`) are no longer lost, and two `PlayerView`s showing the same player now both receive the events. On iOS, `onEvent` now only receives the events of the documented `PlayerView` props, instead of every event of the native player.
+- **Breaking change:** Replace the `Player.source` property with `Player.getSource()`, which returns the currently active source of the native player
 
 ## [1.30.0] - 2026-10-29
 
