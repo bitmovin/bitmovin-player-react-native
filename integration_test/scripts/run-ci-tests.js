@@ -372,16 +372,21 @@ async function runCiTests(config, dependencies = {}) {
   }
 
   async function stop(entry, graceful = false) {
-    if (graceful && !entry.closed) {
-      entry.child.kill('SIGTERM');
-      await boundedWait(entry.done, config.stopTimeoutMs);
+    try {
+      if (graceful && !entry.closed) {
+        entry.child.kill('SIGTERM');
+        await boundedWait(entry.done, config.stopTimeoutMs);
+      }
+      // Even an exited group leader can leave live descendants.
+      signalGroup(entry, 'SIGTERM');
+      // Give descendants time to exit even if the group leader has already closed.
+      await delay(100);
+      signalGroup(entry, 'SIGKILL');
+      await boundedWait(entry.done, 1000);
+    } finally {
+      // A failed signal must not keep the supervisor alive past its deadline.
+      entry.child.unref();
     }
-    // Even an exited group leader can leave live descendants.
-    signalGroup(entry, 'SIGTERM');
-    // Give descendants time to exit even if the group leader has already closed.
-    await delay(100);
-    signalGroup(entry, 'SIGKILL');
-    await boundedWait(entry.done, 1000);
   }
 
   async function stopAll(app) {

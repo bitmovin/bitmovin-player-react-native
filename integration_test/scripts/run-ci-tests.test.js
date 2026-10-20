@@ -229,6 +229,60 @@ test('releases its lock and signal handlers even when a process cannot be cleane
   }
 });
 
+test('exits nonzero when process-group termination leaves live children', async (t) => {
+  const { root, config } = await fixture(t, 'timeout');
+  const pidsPath = path.join(root, 'unkillable-pids');
+  let result;
+  try {
+    result = spawnSync(
+      process.execPath,
+      [
+        '-e',
+        `
+const fs = require('node:fs');
+const { runCiTests } = require(${JSON.stringify(require.resolve('./run-ci-tests'))});
+process.kill = (pid) => {
+  fs.appendFileSync(${JSON.stringify(pidsPath)}, String(-pid) + '\\n');
+  throw Object.assign(new Error('injected kill failure'), { code: 'EPERM' });
+};
+runCiTests(${JSON.stringify(config)}).catch((error) => {
+  console.error(error.message);
+  process.exitCode = 1;
+});
+`,
+      ],
+      { timeout: 7000, encoding: 'utf8' }
+    );
+  } finally {
+    if (fs.existsSync(pidsPath)) {
+      const pids = new Set(
+        fs.readFileSync(pidsPath, 'utf8').trim().split('\n').map(Number)
+      );
+      let liveChildren = 0;
+      for (const pid of pids) {
+        try {
+          process.kill(-pid, 'SIGKILL');
+          liveChildren++;
+        } catch (error) {
+          if (error.code !== 'ESRCH') throw error;
+        }
+      }
+      assert.ok(
+        liveChildren > 0,
+        'termination failure must leave a live child'
+      );
+    }
+  }
+  assert.ifError(result.error);
+  assert.equal(result.status, 1, result.stderr);
+  assert.match(result.stderr, /whole run timed out/);
+  assert.match(
+    fs.readFileSync(path.join(root, 'supervisor.log'), 'utf8'),
+    /injected kill failure/
+  );
+  assert.ok(!fs.existsSync(path.join(root, '.supervisor-lock')));
+});
+
 test('does not signal completed Android operation PIDs during final cleanup', async (t) => {
   const { root, config } = await fixture(t, 'pass', 'android');
   const kill = process.kill;
