@@ -94,62 +94,71 @@ export default (spec: TestScope) => {
           schedule: adItems,
         } as AdvertisingConfig;
         await startPlayerTest({ advertisingConfig }, async () => {
-          await callPlayer(async (player) => {
-            player.load(Sources.artOfMotionHls);
-            player.play();
-          });
-          if (expectManifestLoaded) {
-            await expectEvent(EventType.AdManifestLoaded, 20);
-          }
-          await expectEvents(
-            EventSequence(
-              EventType.AdBreakStarted,
-              EventType.AdStarted,
-              EventType.AdQuartile,
-              EventType.AdQuartile,
-              EventType.AdQuartile,
-              EventType.AdFinished,
-              EventType.AdBreakFinished
+          // Observe load-triggered ads before loading, then play a ready source.
+          await Promise.all([
+            expectEvents(
+              EventSequence(
+                EventType.AdBreakStarted,
+                EventType.AdStarted,
+                EventType.AdQuartile,
+                EventType.AdQuartile,
+                EventType.AdQuartile,
+                EventType.AdFinished,
+                EventType.AdBreakFinished
+              ),
+              18
             ),
-            18
-          );
-          await callPlayerAndExpectEvent((player) => {
-            player.seek(13);
-          }, EventType.Seeked);
-          if (expectManifestLoadedAfterSeek) {
-            await expectEvent(EventType.AdManifestLoaded, 20);
-          }
-          await expectEvents(
-            EventSequence(
-              EventType.AdBreakStarted,
-              EventType.AdStarted,
-              EventType.AdQuartile,
-              EventType.AdQuartile,
-              EventType.AdQuartile,
-              EventType.AdFinished,
-              EventType.AdBreakFinished
+            expectManifestLoaded
+              ? expectEvent(EventType.AdManifestLoaded, 20)
+              : Promise.resolve(),
+            (async () => {
+              await loadSourceConfig(Sources.artOfMotionHls);
+              await callPlayer(async (player) => {
+                player.play();
+              });
+            })(),
+          ]);
+          await Promise.all([
+            expectEvents(
+              EventSequence(
+                EventType.AdBreakStarted,
+                EventType.AdStarted,
+                EventType.AdQuartile,
+                EventType.AdQuartile,
+                EventType.AdQuartile,
+                EventType.AdFinished,
+                EventType.AdBreakFinished
+              ),
+              15
             ),
-            15
-          );
-          await callPlayerAndExpectEvent(async (player) => {
-            const duration = await player.getDuration();
-            player.seek(duration - 5);
-          }, EventType.Seeked);
-          if (expectManifestLoadedAfterSeek) {
-            await expectEvent(EventType.AdManifestLoaded, 20);
-          }
-          await expectEvents(
-            EventSequence(
-              EventType.AdBreakStarted,
-              EventType.AdStarted,
-              EventType.AdQuartile,
-              EventType.AdQuartile,
-              EventType.AdQuartile,
-              EventType.AdFinished,
-              EventType.AdBreakFinished
+            expectManifestLoadedAfterSeek
+              ? expectEvent(EventType.AdManifestLoaded, 20)
+              : Promise.resolve(),
+            callPlayerAndExpectEvent((player) => {
+              player.seek(13);
+            }, EventType.Seeked),
+          ]);
+          await Promise.all([
+            expectEvents(
+              EventSequence(
+                EventType.AdBreakStarted,
+                EventType.AdStarted,
+                EventType.AdQuartile,
+                EventType.AdQuartile,
+                EventType.AdQuartile,
+                EventType.AdFinished,
+                EventType.AdBreakFinished
+              ),
+              18
             ),
-            18
-          );
+            expectManifestLoadedAfterSeek
+              ? expectEvent(EventType.AdManifestLoaded, 20)
+              : Promise.resolve(),
+            callPlayerAndExpectEvent(async (player) => {
+              const duration = await player.getDuration();
+              player.seek(duration - 5);
+            }, EventType.Seeked),
+          ]);
         });
       });
     });
