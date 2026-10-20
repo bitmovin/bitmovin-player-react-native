@@ -66,6 +66,7 @@ async function serve(t, middleware) {
               status: response.statusCode,
               headers: response.headers,
               body: Buffer.concat(chunks).toString(),
+              bytes: Buffer.concat(chunks),
             })
           );
         }
@@ -121,6 +122,64 @@ test('fixture routing preserves existing Metro middleware and next', async (t) =
     assert.equal(calls.at(-1), `${method} ${requestPath}`);
   }
   assert.equal(calls.length, 7);
+});
+
+test('serves the complete in-manifest WebVTT fixture through Metro', async (t) => {
+  const request = await serve(
+    t,
+    metroMiddleware()((_req, _res, next) => next())
+  );
+  const prefix = '/cavy-fixtures/positioned-webvtt/';
+  const files = {
+    'master.m3u8': 'application/vnd.apple.mpegurl',
+    'video.m3u8': 'application/vnd.apple.mpegurl',
+    'subtitles.m3u8': 'application/vnd.apple.mpegurl',
+    'positioned.vtt': 'text/vtt; charset=utf-8',
+    'video-0.mpegts': 'video/mp2t',
+  };
+  const responses = {};
+  for (const [file, contentType] of Object.entries(files)) {
+    const response = await request(`${prefix}${file}`, 'GET');
+    assert.equal(response.status, 200, file);
+    assert.equal(response.headers['content-type'], contentType);
+    assert.equal(
+      Number(response.headers['content-length']),
+      response.bytes.length
+    );
+    assert.equal(response.headers['cache-control'], 'no-store');
+    responses[file] = response;
+    const head = await request(`${prefix}${file}`, 'HEAD');
+    assert.equal(head.status, 200);
+    assert.equal(
+      head.headers['content-length'],
+      response.headers['content-length']
+    );
+    assert.equal(head.bytes.length, 0);
+  }
+  const master = responses['master.m3u8'].body;
+  assert.match(master, /TYPE=SUBTITLES,.*NAME="Debug"/);
+  assert.match(master, /SUBTITLES="positioned"/);
+  for (const file of ['master.m3u8', 'video.m3u8', 'subtitles.m3u8']) {
+    const manifest = responses[file].body;
+    const references = [
+      ...Array.from(manifest.matchAll(/URI="([^"]+)"/g), (match) => match[1]),
+      ...manifest.split('\n').filter((line) => line && !line.startsWith('#')),
+    ];
+    assert.ok(references.length > 0, file);
+    references.forEach((reference) => assert.ok(reference in files, reference));
+  }
+  assert.match(responses['positioned.vtt'].body, /MPEGTS:7200/);
+  assert.match(
+    responses['positioned.vtt'].body,
+    /line:10% position:10%,line-left align:start/
+  );
+  const video = responses['video-0.mpegts'].bytes;
+  assert.equal(video.length % 188, 0);
+  for (let offset = 0; offset < video.length; offset += 188) {
+    assert.equal(video[offset], 0x47, 'MPEG-TS packet sync');
+  }
+  assert.equal((await request(`${prefix}../README.md`, 'GET')).status, 404);
+  assert.equal((await request(`${prefix}master.m3u8`, 'POST')).status, 404);
 });
 
 test('serializes the real middleware response and routes without listening', async () => {
