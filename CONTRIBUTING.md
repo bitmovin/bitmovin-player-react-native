@@ -60,7 +60,7 @@ To edit the Kotlin files, open Android Studio via `yarn example open:android` an
 ## Development setup
 
 - For the Example app, see the relevant [`example/README`](example/README.md#development-setup) section.
-- For the integration tests, see the relevant [`integration_test/README`](README.md#2-environment-configuration) section.
+- For Cavy system tests, see the [`integration_test/README`](integration_test/README.md#2-environment-configuration) section.
 
 ## TypeScript Code Style
 
@@ -181,16 +181,13 @@ swiftlint ios --autocorrect
 
 ## Testing
 
-Remember to add tests for your change if possible. Run the player tests by:
+Use the [testing guide](docs/testing.md) to choose JS unit tests, Cavy system
+tests, or both. It includes decision examples, commands, coverage limits, and
+CI requirements. Cavy setup and license configuration are documented in the
+[test app README](integration_test/README.md).
 
-```sh
-yarn integration-test test:android
-yarn integration-test test:ios
-```
-
-To set the license key to be used for the tests, you can set the key `"licenseKey"` in `integration_test/app.json`.
-
-See available API for testing [here](/integration_test/playertesting/PlayerTesting.ts).
+The [PlayerTesting helpers](integration_test/playertesting/PlayerTesting.ts)
+provide the API used by Cavy tests.
 
 ### Config plugin and dependency tests
 
