@@ -1,5 +1,10 @@
 import { TestScope } from 'cavy';
-import { Event, Player, Source } from 'bitmovin-player-react-native';
+import {
+  Event,
+  Player,
+  Source,
+  SourceUnloadedEvent,
+} from 'bitmovin-player-react-native';
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 
@@ -127,6 +132,32 @@ export default (spec: TestScope) => {
       const countAfterDestroy = received.length;
       await delay(1000);
       expect(received.length, 'Events after destroy').toBe(countAfterDestroy);
+    });
+
+    spec.it('provides the unloaded source in sourceUnloaded', async () => {
+      await withPlayer(async (player) => {
+        const unloaded: SourceUnloadedEvent[] = [];
+        let isReady = false;
+        player.on('ready', () => {
+          isReady = true;
+        });
+        player.on('sourceUnloaded', (event) => unloaded.push(event));
+        await player.initialize();
+        const source = new Source(Sources.artOfMotionHls);
+        player.loadSource(source);
+        expect(
+          await waitUntil(() => isReady),
+          'Ready should be received'
+        ).toBeTruthy();
+
+        player.unload();
+
+        expect(
+          await waitUntil(() => unloaded.length > 0),
+          'SourceUnloaded should be received'
+        ).toBeTruthy();
+        expect(unloaded[0].source.nativeId).toBe(source.nativeId);
+      });
     });
   });
 };
