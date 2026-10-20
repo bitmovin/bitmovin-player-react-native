@@ -119,8 +119,8 @@ Android includes the Widevine license-error assertion, which requires a license
 request to reach the expected HTTP 403 response. It does not establish successful
 encrypted playback or hardware-backed DRM coverage.
 
-FairPlay cannot run on Apple simulators. The supervisor excludes that iOS test
-with an explicit log message; the assertion remains for a physical-device harness.
+FairPlay cannot run on Apple simulators. The suite excludes that iOS test
+with an explicit log message. Physical-device coverage requires a device-capable harness.
 The current simulator launcher is not a physical-device runner. Platform-only
 ID3, media-control and ad-break tests are registered only where applicable, so
 unsupported cases are not reported as passing no-ops. Existing platform-specific
@@ -151,3 +151,10 @@ The integration tests are located in the [`tests`](./tests) directory. Each file
 ## Platform Support
 
 Note: The tests are currently only supported on iOS simulators and Android emulators. Running them on real devices is not supported at the moment because the testing framework has hard-coded `localhost` as the server address.
+
+FairPlay requires a physical Apple device. The DRM license-error test is excluded
+on iOS before registration and logs an explicit exclusion message, so it does not
+count as a passing test. This also excludes physical iOS until the test runner supports
+physical-device execution. Physical-device FairPlay validation remains pending. Android's
+Widevine license-error test remains enabled. The example app hides its DRM sample
+on iOS and tvOS simulators; physical Apple devices and Android retain the sample.

@@ -487,6 +487,8 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Skips the current ad.
    * Has no effect if the current ad is not skippable or if no ad is being played back.
    *
+   * Also dismisses a visible pause ad. The main content stays paused.
+   *
    * @platform iOS, Android
    */
   skipAd = () => {
@@ -495,6 +497,8 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * @returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
+   * `false` while a pause ad is shown.
+   *
    * @platform iOS, Android
    */
   isAd = async (): Promise<boolean> => {
