@@ -14,6 +14,8 @@ if (!fs.existsSync(envPath)) {
 // Load environment variables from .env file
 dotenv.config({ path: envPath, quiet: true });
 
+// The sample apps exercise IMA screens, so they enable Google IMA unless the
+// variable is explicitly 'false'. The library itself defaults to disabled.
 const googleImaEnabled = process.env.BITMOVIN_ENABLE_GOOGLE_IMA !== 'false';
 
 const BITMOVIN_PLAYER_LICENSE_KEY =
