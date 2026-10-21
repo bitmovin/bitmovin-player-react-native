@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update Expo SDK version to `57.0.30`
+
 ### Fixed
 
 - iOS: Fix playback failing when HTTP response preprocessing is enabled with Expo SDK 57
