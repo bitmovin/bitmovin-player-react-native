@@ -32,6 +32,7 @@
 - Setup: `cp integration_test/.env.example integration_test/.env` and set `EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY`.
 - Run: `yarn integration-test test:ios` or `test:android` (simulator/emulator only).
 - Add per‑feature tests (e.g., `Playback.test.ts`) covering happy‑path and error events.
+- Before writing integration tests, follow [Writing reliable tests](CONTRIBUTING.md#writing-reliable-tests): observe events before triggering them, avoid sleeps, and register platform-specific cases only where they run.
 
 ## Commit & Pull Request Guidelines
 

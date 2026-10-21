@@ -262,6 +262,28 @@ export default (spec: TestScope) => {
 };
 ```
 
+### Writing reliable tests
+
+- Observe events before triggering them. Use `callPlayerAndExpectEvent(s)`, or
+  run `expectEvent(s)` and the trigger together in `Promise.all` when one action
+  causes several sequences, such as an ad break after `load` or `seek`. An
+  expectation awaited after the trigger can miss events emitted synchronously.
+- Do not add fixed sleeps before player calls. Player helpers already wait for
+  the mounted view through `onPlayerViewReady`.
+- Assert metadata through the typed `onMetadata` and `onMetadataParsed`
+  callbacks, which add the `platform` discriminator. `TestablePlayer` already
+  routes them; the raw `onEvent` copies omit `platform`.
+- Register platform-specific cases only where they run: gate `spec.describe`
+  with `Platform.OS`, or register the suite with `iosOnly`. An early `return`
+  inside `spec.it` reports a passing test that checked nothing.
+- When testing that a callback filters playback, assert that the callback ran.
+  A missing ad event alone also passes when nothing was scheduled.
+- Request ad tags with a fresh correlator in each test, as the `AdTags.pause`
+  getter does, so ad servers do not cap or reuse earlier responses.
+- Cover changes to test infrastructure with device-free tests in
+  `integration_test/scripts/*.test.js`, run with
+  `yarn integration-test test:runner`.
+
 ## Scripts
 
 The `package.json` file contains various scripts for common tasks:
