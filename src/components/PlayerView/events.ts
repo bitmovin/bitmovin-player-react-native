@@ -26,6 +26,9 @@ import type {
   FullscreenEnterEvent,
   FullscreenExitEvent,
   MutedEvent,
+  NonLinearAdStartedEvent,
+  NonLinearAdSkippedEvent,
+  NonLinearAdFinishedEvent,
   PausedEvent,
   PictureInPictureAvailabilityChangedEvent,
   PictureInPictureEnterEvent,
@@ -93,7 +96,7 @@ export type PlayerViewEvents = {
    */
   onAdError?: (event: AdErrorEvent) => void;
   /**
-   * Event emitted when an ad has finished.
+   * Event emitted when a linear ad has finished.
    */
   onAdFinished?: (event: AdFinishedEvent) => void;
   /**
@@ -113,11 +116,11 @@ export type PlayerViewEvents = {
    */
   onAdScheduled?: (event: AdScheduledEvent) => void;
   /**
-   * Event emitted when an ad has been skipped.
+   * Event emitted when a linear ad has been skipped.
    */
   onAdSkipped?: (event: AdSkippedEvent) => void;
   /**
-   * Event emitted when an ad has started.
+   * Event emitted when a linear ad has started.
    */
   onAdStarted?: (event: AdStartedEvent) => void;
   /**
@@ -231,6 +234,24 @@ export type PlayerViewEvents = {
    * Event emitted when the player has been muted.
    */
   onMuted?: (event: MutedEvent) => void;
+  /**
+   * Event emitted when a non-linear ad has started.
+   *
+   * @experimental
+   */
+  onNonLinearAdStarted?: (event: NonLinearAdStartedEvent) => void;
+  /**
+   * Event emitted when a non-linear ad has been skipped.
+   *
+   * @experimental
+   */
+  onNonLinearAdSkipped?: (event: NonLinearAdSkippedEvent) => void;
+  /**
+   * Event emitted when a non-linear ad has finished.
+   *
+   * @experimental
+   */
+  onNonLinearAdFinished?: (event: NonLinearAdFinishedEvent) => void;
   /**
    * Event emitted when the player has been paused.
    */

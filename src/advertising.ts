@@ -54,22 +54,38 @@ export interface AdSource {
 }
 
 /**
- * Represents an ad break which can be scheduled for playback.
+ * Represents an ad break or a pause ad which can be scheduled for playback.
  *
  * One single `AdItem` can have multiple `AdSource`s where all but the first act as fallback ad sources
- * if the first one fails to load. The start and end of an ad break are signaled via `AdBreakStartedEvent`
- * and `AdBreakFinishedEvent`.
+ * if the first one fails to load.
+ *
+ * An ad break contains linear ads, which interrupt the main content. The start and end of an ad break are
+ * signaled via `AdBreakStartedEvent` and `AdBreakFinishedEvent`, and each of its ads via `AdStartedEvent`
+ * followed by `AdSkippedEvent` or `AdFinishedEvent`.
+ *
+ * An `AdItem` with the position `"pause"` is a pause ad instead of an ad break. A pause ad is a non-linear ad:
+ * it does not interrupt the main content and is not part of an ad break, so none of the events above are
+ * emitted for it. Each time it is shown, `NonLinearAdStartedEvent` is emitted, followed by
+ * `NonLinearAdSkippedEvent` or `NonLinearAdFinishedEvent`.
  */
 export interface AdItem {
   /**
-   * The playback position at which the ad break is scheduled to start. Default value is "pre".
+   * The playback position at which the ad break is scheduled to start, or `"pause"` to schedule a pause ad.
+   * Default value is "pre".
    *
    * Possible values are:
    *  • "pre": pre-roll ad (for VoD and Live streaming)
    *  • "post": post-roll ad (for VoD streaming only)
+   *  • "pause": pause ad, shown while the main content is paused (experimental)
    *  • fractional seconds: "10", "12.5" (mid-roll ad, for VoD and Live streaming)
    *  • percentage of the entire video duration: "25%", "50%" (mid-roll ad, for VoD streaming only)
    *  • timecode hh:mm:ss.mmm: "00:10:30.000", "01:00:00.000" (mid-roll ad, for VoD streaming only)
+   *
+   * Pause ads require `AdSourceType.BITMOVIN` sources with a static PNG or JPEG VAST NonLinear creative.
+   * See the platform guides for more details.
+   *
+   * @see [Pause ads on Android](https://developer.bitmovin.com/playback/docs/pause-ads-android)
+   * @see [Pause ads on iOS](https://developer.bitmovin.com/playback/docs/pause-ads-ios)
    */
   position?: string;
   /**
@@ -86,6 +102,8 @@ export interface AdItem {
    * compared to when the ad break is scheduled for playback.
    *
    * Default value is 0.0
+   *
+   * Ignored for pause ads.
    *
    * @platform Android
    */
@@ -195,7 +213,8 @@ export interface ImaSettings {
  */
 export interface AdConfig {
   /**
-   * Specifies how many seconds of the main video content should be replaced by ad break(s).
+   * Specifies how many seconds of the main video content should be replaced by the AdConfig,
+   * or `NaN` if it doesn't apply.
    */
   replaceContentDuration: number;
 }
