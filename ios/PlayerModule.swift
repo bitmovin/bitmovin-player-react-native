@@ -22,6 +22,9 @@ public class PlayerModule: Module {
             imaSettingsWaiter.removeAll()
         }
         Events("onShouldLoadAdItem", "onImaBeforeInitialization")
+        Constant("isGoogleImaEnabled") {
+            NSClassFromString("IMAAdsLoader") != nil
+        }
         AsyncFunction("play") { (nativeId: NativeId) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.play()
         }.runOnQueue(.main)
@@ -298,14 +301,6 @@ public class PlayerModule: Module {
             let imaJson = advertisingJson["ima"] as? [String: Any],
             imaJson["beforeInitialization"] != nil
         else {
-            return
-        }
-        guard NSClassFromString("IMAAdsLoader") != nil else {
-            log.warn(
-                "advertisingConfig.ima.beforeInitialization is ignored because Google IMA is disabled. "
-                    + "Set features.googleIMA to true in the Bitmovin config plugin, "
-                    + "run pod install and rebuild the app."
-            )
             return
         }
 

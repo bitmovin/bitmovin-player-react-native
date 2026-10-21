@@ -48,6 +48,8 @@ class PlayerModule : Module() {
 
         Events("onShouldLoadAdItem", "onShouldPlayAdBreak", "onImaBeforeInitialization")
 
+        Constant("isGoogleImaEnabled") { ImaBeforeInitializationConfigurator.IS_GOOGLE_IMA_ENABLED }
+
         AsyncFunction("play") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
             player?.play()

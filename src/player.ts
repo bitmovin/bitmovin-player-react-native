@@ -292,6 +292,14 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (!callback) {
       return;
     }
+    if (!PlayerModule.isGoogleImaEnabled) {
+      console.warn(
+        'advertisingConfig.ima.beforeInitialization is ignored because Google IMA is disabled. ' +
+          'Set features.googleIMA to true in the Bitmovin config plugin and rebuild the native app. ' +
+          'See the "Google IMA" section of the bitmovin-player-react-native README.'
+      );
+      return;
+    }
     if (this.onImaBeforeInitializationSubscription) {
       return;
     }

@@ -8,6 +8,8 @@ import com.bitmovin.player.reactnative.converter.toMap
 import com.bitmovin.player.reactnative.extensions.getMap
 
 internal object ImaBeforeInitializationConfigurator {
+    const val IS_GOOGLE_IMA_ENABLED = true
+
     fun configure(
         nativeId: NativeId,
         configJson: Map<String, Any?>?,

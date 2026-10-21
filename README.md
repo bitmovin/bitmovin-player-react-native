@@ -59,8 +59,10 @@ BITMOVIN_ENABLE_GOOGLE_IMA=true
 `BITMOVIN_ENABLE_GOOGLE_IMA` accepts only `true` or `false` (case-insensitive).
 Any other value fails the native build.
 
-If Google IMA is disabled, the player skips IMA ad sources and ignores
-`advertisingConfig.ima.beforeInitialization`, logging a warning.
+If Google IMA is disabled, the player ignores
+`advertisingConfig.ima.beforeInitialization` and logs a JavaScript warning. IMA
+ad sources are skipped: Android emits a `PlayerWarning` event, iOS and tvOS only
+write a native log message.
 
 Manually maintained iOS and tvOS projects need additional SPM configuration.
 See [iOS SDK dependencies](docs/ios-dependencies.md).
