@@ -207,7 +207,7 @@ extension RCTConvert {
             let json = json as? [String: Any?],
             let request = RCTConvert.httpRequest(json["request"]),
             let url = RCTConvert.nsurl(json["url"]),
-            let status = json["status"] as? Int,
+            let status = (json["status"] as? Int) ?? (json["status"] as? Double).flatMap(Int.init(exactly:)),
             let headers = json["headers"] as? [String: String]
         else {
             return nil

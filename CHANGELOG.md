@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- iOS: Fix playback failing when HTTP response preprocessing is enabled with Expo SDK 57
 - Complete HTTP preprocessing with the original request or response when a user callback throws, and avoid retrying failed native completion calls
 
 ## [1.29.0] - 2026-10-20
