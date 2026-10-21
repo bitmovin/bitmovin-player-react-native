@@ -245,6 +245,7 @@ jobs:
           XCODEBUILD_ARGS: "-destination 'generic/platform=iOS Simulator' -derivedDataPath ${{ runner.temp }}/integration-host ONLY_ACTIVE_ARCH=YES ARCHS=arm64 VALID_ARCHS=arm64 CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO"
 
       - name: Run all iOS simulator integration tests
+        id: cavy
         if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
         timeout-minutes: 35
         working-directory: integration_test
@@ -264,6 +265,7 @@ jobs:
         run: echo '::notice::iOS host build only. Integration execution is skipped for fork and Dependabot PRs because no license secret is exposed.'
 
       - name: Save iOS integration diagnostics
+        id: cavy_artifacts
         if: always()
         uses: actions/upload-artifact@v7
         with:
@@ -271,6 +273,22 @@ jobs:
           path: ${{ env.CAVY_ARTIFACTS_DIR }}
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Summarize Cavy results
+        if: always()
+        timeout-minutes: 1
+        env:
+          CAVY_SUMMARY_PLATFORM: ios
+          CAVY_SUMMARY_OS: ${{ env.IOS_SMOKE_RUNTIME }}
+          CAVY_SUMMARY_DEVICE: ${{ env.IOS_SMOKE_DEVICE_TYPE }}
+          CAVY_SUMMARY_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          CAVY_SUMMARY_TEST_OUTCOME: ${{ steps.cavy.outcome }}
+          CAVY_SUMMARY_JOB_STATUS: ${{ job.status }}
+          CAVY_SUMMARY_RUN_ALLOWED: ${{ github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]') }}
+          CAVY_SUMMARY_ARTIFACT_NAME: ios-cavy-${{ github.run_id }}-${{ github.run_attempt }}
+          CAVY_SUMMARY_ARTIFACT_URL: ${{ steps.cavy_artifacts.outputs.artifact-url }}
+          CAVY_SUMMARY_ARTIFACT_OUTCOME: ${{ steps.cavy_artifacts.outcome }}
+        run: python3 .github/scripts/cavy_summary.py
 
   tvos-example-build:
     if: github.event_name != 'workflow_dispatch'
