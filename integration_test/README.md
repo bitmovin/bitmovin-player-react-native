@@ -65,6 +65,10 @@ runs the complete test suite.
 
 See [Adding new tests](../CONTRIBUTING.md#adding-new-tests) to register a suite.
 
+Platform-only ID3, media-control and ad-break tests are registered only where
+applicable, so unsupported cases are not reported as passing no-ops. Existing
+platform-specific ad and caption coverage remains intact.
+
 ## Architecture
 
 This integration test app is built as an Expo application using:

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCavy, wrap } from 'cavy';
 import { StyleSheet, Text } from 'react-native';
-import { PlayerView } from 'bitmovin-player-react-native';
+import { Event, PlayerView } from 'bitmovin-player-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 const darkTextColor = '#11181C';
@@ -16,6 +16,45 @@ export default function TestablePlayer({
 }: TestablePlayerProps): React.JSX.Element {
   const generateTestHook = useCavy();
   const [renderCount, setRenderCount] = useState(0);
+  const player = playerTestWorld.player;
+  const onEvent = (event: Event) => {
+    if (player && playerTestWorld.player === player) {
+      if (
+        /^(onAd|onNonLinearAd)/.test(event.name) ||
+        [
+          'onReady',
+          'onPaused',
+          'onStallStarted',
+          'onStallEnded',
+          'onPlayerError',
+          'onSourceError',
+        ].includes(event.name)
+      ) {
+        const detail = event as Event & {
+          duration?: number;
+          quartile?: string;
+          code?: number;
+        };
+        console.info(
+          '[Cavy event]',
+          JSON.stringify({
+            playerId: player.nativeId,
+            event: event.name,
+            observedAt: Date.now(),
+            duration:
+              typeof detail.duration === 'number' ? detail.duration : undefined,
+            quartile:
+              detail.quartile &&
+              ['first', 'mid_point', 'third'].includes(detail.quartile)
+                ? detail.quartile
+                : undefined,
+            code: typeof detail.code === 'number' ? detail.code : undefined,
+          })
+        );
+      }
+      playerTestWorld.onEvent(event);
+    }
+  };
   // The test world triggers re-renders through this callback, so it must be set during render.
   // eslint-disable-next-line react-hooks/immutability
   playerTestWorld.onReRender = () => setRenderCount((count) => count + 1);
@@ -30,7 +69,18 @@ export default function TestablePlayer({
             ref={generateTestHook('PlayerView')}
             player={playerTestWorld.player}
             style={styles.player}
-            onEvent={playerTestWorld.onEvent}
+            onEvent={(event: Event) => {
+              // Metadata's public callbacks add the platform discriminator.
+              // Ignore their raw catch-all copies to observe each event once.
+              if (
+                event.name !== 'onMetadata' &&
+                event.name !== 'onMetadataParsed'
+              ) {
+                onEvent(event);
+              }
+            }}
+            onMetadata={onEvent}
+            onMetadataParsed={onEvent}
           />
         </>
       )) || (

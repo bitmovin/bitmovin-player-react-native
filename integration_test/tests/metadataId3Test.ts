@@ -164,90 +164,77 @@ const expectIosFrameShape = (frame: Id3MetadataEntry) => {
 };
 
 export default (spec: TestScope) => {
-  spec.describe('ID3 metadata serialization (Android)', () => {
-    spec.it('emits Android ID3 frames with expected shape', async () => {
-      // Gate to Android since the shape expectations are Android-specific.
-      if (Platform.OS !== 'android') {
-        console.warn(
-          'Skipping Android ID3 metadata shape test on non-Android platform'
-        );
-        return;
-      }
+  if (Platform.OS === 'android') {
+    spec.describe('ID3 metadata serialization (Android)', () => {
+      spec.it('emits Android ID3 frames with expected shape', async () => {
+        await startPlayerTest({}, async () => {
+          await loadSourceConfig(Sources.id3MetadataHls, 30);
+          await callPlayer(async (player) => {
+            player.play();
+          });
 
-      await startPlayerTest({}, async () => {
-        await loadSourceConfig(Sources.id3MetadataHls, 30);
-        await callPlayer(async (player) => {
-          player.play();
-        });
-
-        const metadataParsed = await expectEvent<MetadataParsedEvent>(
-          EventType.MetadataParsed,
-          45
-        );
-
-        expect(metadataParsed.metadataType, 'metadataType').toBe(
-          MetadataType.ID3
-        );
-        expect(metadataParsed.metadata, 'metadata payload').toBeDefined();
-        expect(
-          metadataParsed.metadata.entries,
-          'metadata entries'
-        ).toBeInstanceOf(Array);
-        expect(
-          metadataParsed.metadata.entries.length,
-          'metadata entries length'
-        ).toBeGreaterThan(0);
-
-        if (metadataParsed.metadataType !== MetadataType.ID3) {
-          throw new Error(
-            `Expected ID3 metadata type, got ${metadataParsed.metadataType}`
+          const metadataParsed = await expectEvent<MetadataParsedEvent>(
+            EventType.MetadataParsed,
+            45
           );
-        }
 
-        metadataParsed.metadata.entries.forEach(expectAndroidFrameShape);
+          expect(metadataParsed.metadataType, 'metadataType').toBe(
+            MetadataType.ID3
+          );
+          expect(metadataParsed.metadata, 'metadata payload').toBeDefined();
+          expect(
+            metadataParsed.metadata.entries,
+            'metadata entries'
+          ).toBeInstanceOf(Array);
+          expect(
+            metadataParsed.metadata.entries.length,
+            'metadata entries length'
+          ).toBeGreaterThan(0);
+
+          if (metadataParsed.metadataType !== MetadataType.ID3) {
+            throw new Error(
+              `Expected ID3 metadata type, got ${metadataParsed.metadataType}`
+            );
+          }
+
+          metadataParsed.metadata.entries.forEach(expectAndroidFrameShape);
+        });
       });
     });
-  });
+  }
+  if (Platform.OS === 'ios') {
+    spec.describe('ID3 metadata serialization (iOS)', () => {
+      spec.it('emits iOS ID3 frames with expected shape', async () => {
+        await startPlayerTest({}, async () => {
+          await loadSourceConfig(Sources.id3MetadataHls, 30);
+          await callPlayer(async (player) => {
+            player.play();
+          });
 
-  spec.describe('ID3 metadata serialization (iOS)', () => {
-    spec.it('emits iOS ID3 frames with expected shape', async () => {
-      // Gate to iOS since the shape expectations are iOS-specific.
-      if (Platform.OS !== 'ios') {
-        console.warn(
-          'Skipping iOS ID3 metadata shape test on non-iOS platform'
-        );
-        return;
-      }
-
-      await startPlayerTest({}, async () => {
-        await loadSourceConfig(Sources.id3MetadataHls, 30);
-        await callPlayer(async (player) => {
-          player.play();
-        });
-
-        const metadataParsed = await expectEvent<MetadataParsedEvent>(
-          EventType.MetadataParsed,
-          45
-        );
-
-        if (metadataParsed.metadataType !== MetadataType.ID3) {
-          throw new Error(
-            `Expected ID3 metadata type, got ${metadataParsed.metadataType}`
+          const metadataParsed = await expectEvent<MetadataParsedEvent>(
+            EventType.MetadataParsed,
+            45
           );
-        }
 
-        expect(metadataParsed.metadata, 'metadata payload').toBeDefined();
-        expect(
-          metadataParsed.metadata.entries,
-          'metadata entries'
-        ).toBeInstanceOf(Array);
-        expect(
-          metadataParsed.metadata.entries.length,
-          'metadata entries length'
-        ).toBeGreaterThan(0);
+          if (metadataParsed.metadataType !== MetadataType.ID3) {
+            throw new Error(
+              `Expected ID3 metadata type, got ${metadataParsed.metadataType}`
+            );
+          }
 
-        metadataParsed.metadata.entries.forEach(expectIosFrameShape);
+          expect(metadataParsed.metadata, 'metadata payload').toBeDefined();
+          expect(
+            metadataParsed.metadata.entries,
+            'metadata entries'
+          ).toBeInstanceOf(Array);
+          expect(
+            metadataParsed.metadata.entries.length,
+            'metadata entries length'
+          ).toBeGreaterThan(0);
+
+          metadataParsed.metadata.entries.forEach(expectIosFrameShape);
+        });
       });
     });
-  });
+  }
 };
