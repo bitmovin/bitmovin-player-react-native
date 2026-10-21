@@ -232,6 +232,9 @@ public class PlayerModule: Module {
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
                   let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
                   let source = sourceModule.retrieve(sourceNativeId) else { return }
+#if DEBUG
+            self?.traceCavyLoadEntry(nativeId)
+#endif
             player.load(source: source)
         }.runOnQueue(.main)
     }
@@ -241,6 +244,19 @@ public class PlayerModule: Module {
     public func retrieve(_ nativeId: NativeId) -> Player? {
         PlayerRegistry.getPlayer(nativeId: nativeId)
     }
+
+#if DEBUG
+    // PRN-282 loading trace: Cavy IDs only; remove after the ordering experiment.
+    private func traceCavyLoadEntry(_ nativeId: NativeId) {
+        if nativeId.hasPrefix("cavy-player-") {
+            NSLog(
+                "[PRN-282 loading] playerId=%@ phase=native-load-entry observedAt=%.3f",
+                nativeId,
+                Date().timeIntervalSince1970 * 1_000
+            )
+        }
+    }
+#endif
 
     private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {
         remoteControlConfig.prepareSource = { [weak self] _, sourceConfig in

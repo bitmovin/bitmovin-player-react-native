@@ -108,7 +108,7 @@ export default class PlayerTestWorld {
     }
 
     const player = new Player({
-      nativeId: `player-${uuid.v4()}`,
+      nativeId: `cavy-player-${uuid.v4()}`,
       ...config,
     });
     await player.initialize();

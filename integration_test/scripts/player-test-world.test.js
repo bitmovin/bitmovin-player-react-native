@@ -102,7 +102,7 @@ test('waits for matching view readiness and receives synchronous source events',
   harness.world.onPlayerViewReady(harness.players[0]);
   await running;
   assert.equal(called, true);
-  assert.match(harness.players[0].nativeId, /^player-/);
+  assert.match(harness.players[0].nativeId, /^cavy-player-/);
   assert.equal(harness.players[0].isDestroyed, true);
   assert.equal(harness.timers.size, 0);
 });
