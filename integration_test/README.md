@@ -65,6 +65,14 @@ runs the complete test suite.
 
 See [Adding new tests](../CONTRIBUTING.md#adding-new-tests) to register a suite.
 
+Metro serves the fixed license-error response and the checked-in positioned
+WebVTT HLS fixture under `/cavy-fixtures/`. Local runs use the resolved Metro
+origin, so these cases require no external fixture credentials.
+
+Android includes the Widevine license-error assertion, which requires a license
+request to reach the expected HTTP 403 response. It does not establish successful
+encrypted playback or hardware-backed DRM coverage.
+
 ## Architecture
 
 This integration test app is built as an Expo application using:

@@ -1,8 +1,15 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
+const withFixtureMiddleware = require('./scripts/fixture-middleware');
 
 const config = getDefaultConfig(__dirname);
+
+const enhanceMiddleware = config.server.enhanceMiddleware;
+config.server.enhanceMiddleware = (middleware, server) =>
+  withFixtureMiddleware(
+    enhanceMiddleware ? enhanceMiddleware(middleware, server) : middleware
+  );
 
 // npm v7+ will install ../node_modules/react and ../node_modules/react-native because of peerDependencies.
 // To prevent the incompatible react-native between ./node_modules/react-native and ../node_modules/react-native,
