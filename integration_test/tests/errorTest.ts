@@ -10,6 +10,16 @@ import { expect } from './helper/Expect';
 import { Sources } from './helper/Sources';
 
 export default (spec: TestScope) => {
+  // TODO: Re-enable iOS FairPlay coverage when the test runner supports physical
+  // devices. AVContentKeySession throws a fatal exception on iOS simulators.
+  // Exclude the case before registration so it is not reported as a passing test.
+  if (Platform.OS === 'ios') {
+    console.warn(
+      'Excluded FairPlay DRM license-error test: requires a physical iOS device.'
+    );
+    return;
+  }
+
   spec.describe('error events with network details', () => {
     spec.it(
       'emits an error with httpResponse when a DRM license request fails',

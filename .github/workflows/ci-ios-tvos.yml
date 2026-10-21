@@ -1,6 +1,8 @@
 name: CI (iOS & tvOS)
 
 on:
+  workflow_dispatch:
+
   push:
     branches:
       - development
