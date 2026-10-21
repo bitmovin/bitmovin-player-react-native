@@ -24,7 +24,14 @@ export default class PlayerTestWorld {
   private player_: Player | undefined;
   private isFinished_: boolean = false;
   private eventListeners: { [key: string]: (event: Event) => void } = {};
-  private isPlayerInitialized: boolean = false;
+  private viewReadiness:
+    | {
+        player: Player;
+        promise: Promise<void>;
+        acknowledge: () => void;
+        retire: () => void;
+      }
+    | undefined;
 
   static get shared(): PlayerTestWorld {
     if (PlayerTestWorld.shared_ === undefined) {
@@ -42,10 +49,43 @@ export default class PlayerTestWorld {
   }
 
   private set player(player: Player | undefined) {
+    this.viewReadiness?.retire();
+    this.viewReadiness = undefined;
     this.player_ = player;
-    this.isPlayerInitialized = false;
+    if (player) {
+      let acknowledge = () => {};
+      let retire = () => {};
+      const promise = new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(
+          () =>
+            reject(new Error(`Player view was not ready: ${player.nativeId}`)),
+          10000
+        );
+        acknowledge = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
+        retire = () => {
+          clearTimeout(timeout);
+          reject(
+            new Error(
+              `Player retired before view readiness: ${player.nativeId}`
+            )
+          );
+        };
+      });
+      // Readiness may time out before a test makes its first player call.
+      void promise.catch(() => {});
+      this.viewReadiness = { player, promise, acknowledge, retire };
+    }
     this.reRender();
   }
+
+  onPlayerViewReady = (player: Player): void => {
+    if (this.viewReadiness?.player === player) {
+      this.viewReadiness.acknowledge();
+    }
+  };
 
   get isFinished(): boolean {
     return this.isFinished_;
@@ -168,14 +208,18 @@ export default class PlayerTestWorld {
   };
 
   private ensurePlayer = async (): Promise<Player> => {
-    if (this.player !== undefined) {
-      if (this.player.isDestroyed) {
+    const player = this.player;
+    if (player !== undefined) {
+      if (player.isDestroyed) {
         throw new Error(
           'Player was destroyed. Did you forget to call "startPlayerTest" again?'
         );
       }
-      await this.ensurePlayerInitialized();
-      return this.player;
+      await this.viewReadiness?.promise;
+      if (this.player !== player || player.isDestroyed) {
+        throw new Error('Player was retired while waiting for view readiness.');
+      }
+      return player;
     }
     throw new Error("It seems you forgot to call 'startPlayerTest' first.");
   };
@@ -285,14 +329,5 @@ export default class PlayerTestWorld {
     return () => {
       delete this.eventListeners[key];
     };
-  };
-
-  private ensurePlayerInitialized = async (): Promise<void> => {
-    if (!this.isPlayerInitialized) {
-      // Trick to make sure the player is initialized,
-      // otherwise method calls might have no effect.
-      await new Promise((resolve) => setTimeout(resolve, 150));
-      this.isPlayerInitialized = true;
-    }
   };
 }

@@ -8,12 +8,26 @@ const ts = require('typescript');
 
 function createWorld() {
   const timers = new Map();
+  const timerDelays = new Map();
   const modules = new Map();
+  const players = [];
+  class Player {
+    constructor(config) {
+      this.nativeId = config.nativeId;
+      this.isDestroyed = false;
+      players.push(this);
+    }
+    async initialize() {}
+    destroy() {
+      this.isDestroyed = true;
+    }
+  }
   let nextTimer = 0;
   const context = vm.createContext({
-    setTimeout(callback) {
+    setTimeout(callback, delay) {
       const handle = ++nextTimer;
       timers.set(handle, callback);
+      timerDelays.set(handle, delay);
       return handle;
     },
     clearTimeout(handle) {
@@ -35,7 +49,7 @@ function createWorld() {
     );
     execute(exports, (name) => {
       if (name === 'react-native-uuid') return { v4: randomUUID };
-      if (name === 'bitmovin-player-react-native') return {};
+      if (name === 'bitmovin-player-react-native') return { Player };
       assert.ok(name.startsWith('.'), `Unexpected import: ${name}`);
       return load(path.resolve(path.dirname(file), `${name}.ts`));
     });
@@ -55,14 +69,99 @@ function createWorld() {
     FilteredEvent,
     EventSequence,
     timers,
-    expireTimers() {
+    players,
+    expireTimers(delay) {
       for (const [handle, callback] of timers) {
+        if (delay !== undefined && timerDelays.get(handle) !== delay) continue;
         timers.delete(handle);
         callback();
       }
     },
   };
 }
+
+test('waits for matching view readiness and receives synchronous source events', async () => {
+  const harness = createWorld();
+  let called = false;
+  harness.world.onReRender = () => {};
+  const running = harness.world.startPlayerTest({}, async () => {
+    await harness.world.callPlayerAndExpectEvents(
+      () => {
+        called = true;
+        harness.world.onEvent({ name: 'onSourceLoad' });
+        harness.world.onEvent({ name: 'onSourceLoaded' });
+      },
+      ['onSourceLoad', 'onSourceLoaded'],
+      10
+    );
+  });
+  await new Promise(setImmediate);
+  harness.expireTimers(150);
+  await new Promise(setImmediate);
+  assert.equal(called, false, 'load must wait for the mounted view');
+  harness.world.onPlayerViewReady(harness.players[0]);
+  await running;
+  assert.equal(called, true);
+  assert.match(harness.players[0].nativeId, /^player-/);
+  assert.equal(harness.players[0].isDestroyed, true);
+  assert.equal(harness.timers.size, 0);
+});
+
+test('ignores readiness from a retired player', async () => {
+  const harness = createWorld();
+  harness.world.onReRender = () => {};
+  await harness.world.startPlayerTest({}, async () => {});
+  let called = false;
+  const running = harness.world.startPlayerTest({}, async () => {
+    await harness.world.callPlayer(async () => {
+      called = true;
+    });
+  });
+  await new Promise(setImmediate);
+  harness.world.onPlayerViewReady(harness.players[0]);
+  await new Promise(setImmediate);
+  assert.equal(called, false);
+  harness.world.onPlayerViewReady(harness.players[1]);
+  await running;
+  assert.equal(called, true);
+  assert.equal(harness.timers.size, 0);
+});
+
+test('accepts readiness during the render request before the first action', async () => {
+  const harness = createWorld();
+  harness.world.onReRender = () => {
+    if (harness.world.player) {
+      harness.world.onPlayerViewReady(harness.world.player);
+    }
+  };
+  let called = false;
+  await harness.world.startPlayerTest({}, async () => {
+    await harness.world.callPlayer(async () => {
+      called = true;
+    });
+  });
+  assert.equal(called, true);
+  assert.equal(harness.timers.size, 0);
+});
+
+test('reports missing view readiness separately and cleans up the player', async () => {
+  const harness = createWorld();
+  harness.world.onReRender = () => {};
+  let called = false;
+  const running = harness.world.startPlayerTest({}, async () => {
+    await harness.world.callPlayer(async () => {
+      called = true;
+    });
+  });
+  const rejected = assert.rejects(running, /Player view was not ready/);
+  await new Promise(setImmediate);
+  harness.expireTimers();
+  await rejected;
+  assert.equal(called, false);
+  assert.equal(harness.players[0].isDestroyed, true);
+  assert.equal(harness.world.player, undefined);
+  assert.equal(harness.timers.size, 0);
+});
 
 for (const multiple of [false, true]) {
   const label = multiple ? 'event sequence' : 'single event';
