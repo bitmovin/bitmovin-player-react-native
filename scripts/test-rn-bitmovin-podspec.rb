@@ -95,4 +95,27 @@ dependencies = JSON.parse(File.read(File.join(root, 'ios', 'dependencies.json'))
   end
 end
 
+def load_podspec_with_google_ima(podspec, value)
+  Dir.mktmpdir do |directory|
+    File.write(
+      File.join(directory, 'Podfile.properties.json'),
+      JSON.generate('BITMOVIN_APPLE_PLATFORM' => 'ios', 'BITMOVIN_ENABLE_GOOGLE_IMA' => value)
+    )
+    Pod::Config.installation_root = directory
+    $spm_dependencies = []
+    load podspec
+    $spm_dependencies.length
+  end
+end
+
+assert_equal(2, load_podspec_with_google_ima(podspec, ' True '), 'Expected a padded, capitalized true to enable Google IMA')
+
+begin
+  load_podspec_with_google_ima(podspec, 'yes')
+  raise 'Expected an invalid BITMOVIN_ENABLE_GOOGLE_IMA value to fail'
+rescue RuntimeError => error
+  raise error unless error.message.include?('must be true or false')
+end
+
 puts 'PASS RNBitmovinPlayer podspec selects optional Google IMA dependencies'
+

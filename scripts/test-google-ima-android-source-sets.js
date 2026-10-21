@@ -23,6 +23,10 @@ test('selects the Google IMA dependency and source set from the native property'
   );
   assert.match(
     gradle,
+    /\["true", "false"\]\.contains\(googleImaValue\)[^}]*throw new GradleException\([^)]*must be true or false/s
+  );
+  assert.match(
+    gradle,
     /googleImaEnabled\s*\?\s*["']src\/withGoogleIma\/java["']\s*:\s*["']src\/withoutGoogleIma\/java["']/
   );
   assert.match(

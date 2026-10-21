@@ -4,7 +4,12 @@ import groovy.json.JsonSlurper
 def packageJsonFile = new File("$rootDir/../package.json")
 def packageJson = new JsonSlurper().parseText(packageJsonFile.text)
 def packageVersion = packageJson.version
-def googleImaEnabled = (findProperty("BITMOVIN_ENABLE_GOOGLE_IMA") ?: "false").toBoolean()
+def googleImaProperty = (findProperty("BITMOVIN_ENABLE_GOOGLE_IMA") ?: "false").toString()
+def googleImaValue = googleImaProperty.trim().toLowerCase()
+if (!["true", "false"].contains(googleImaValue)) {
+    throw new GradleException("BITMOVIN_ENABLE_GOOGLE_IMA must be true or false, but was '" + googleImaProperty + "'.")
+}
+def googleImaEnabled = googleImaValue == "true"
 
 buildscript {
     // Buildscript is evaluated before everything else so we can't use getExtOrDefault

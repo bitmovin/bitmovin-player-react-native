@@ -56,6 +56,9 @@ rebuild the app:
 BITMOVIN_ENABLE_GOOGLE_IMA=true
 ```
 
+`BITMOVIN_ENABLE_GOOGLE_IMA` accepts only `true` or `false` (case-insensitive).
+Any other value fails the native build.
+
 Manually maintained iOS and tvOS projects need additional SPM configuration.
 See [iOS SDK dependencies](docs/ios-dependencies.md).
 
