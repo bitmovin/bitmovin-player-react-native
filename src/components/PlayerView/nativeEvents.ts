@@ -37,6 +37,7 @@ import type {
   PictureInPictureExitedEvent,
   PlaybackFinishedEvent,
   PlayerActiveEvent,
+  PlayerInactiveEvent,
   PlayerErrorEvent,
   PlayerWarningEvent,
   PlayEvent,
@@ -321,6 +322,13 @@ export type NativePlayerViewEvents = {
    * Seeking and time shifting are allowed as soon as this event is seen.
    */
   onBmpPlayerActive?: (event: { nativeEvent: PlayerActiveEvent }) => void;
+  /**
+   * Event emitted when a source is unloaded from the player.
+   * Seeking and time shifting are not allowed anymore after this event.
+   *
+   * @platform Android
+   */
+  onBmpPlayerInactive?: (event: { nativeEvent: PlayerInactiveEvent }) => void;
   /**
    * Event Emitted when a player error occurred.
    */

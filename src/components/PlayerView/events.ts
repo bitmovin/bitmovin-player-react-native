@@ -37,6 +37,7 @@ import type {
   PictureInPictureExitedEvent,
   PlaybackFinishedEvent,
   PlayerActiveEvent,
+  PlayerInactiveEvent,
   PlayerErrorEvent,
   PlayerWarningEvent,
   PlayEvent,
@@ -296,6 +297,13 @@ export type PlayerViewEvents = {
    * Seeking and time shifting are allowed as soon as this event is seen.
    */
   onPlayerActive?: (event: PlayerActiveEvent) => void;
+  /**
+   * Event emitted when the playback session has ended, e.g. via {@link Player.unload}.
+   * Seeking and time shifting are not allowed anymore after this event.
+   *
+   * @platform Android
+   */
+  onPlayerInactive?: (event: PlayerInactiveEvent) => void;
   /**
    * Event Emitted when a player error occurred.
    */
