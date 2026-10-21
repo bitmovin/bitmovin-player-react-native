@@ -300,6 +300,14 @@ public class PlayerModule: Module {
         else {
             return
         }
+        guard NSClassFromString("IMAAdsLoader") != nil else {
+            log.warn(
+                "advertisingConfig.ima.beforeInitialization is ignored because Google IMA is disabled. "
+                    + "Set features.googleIMA to true in the Bitmovin config plugin, "
+                    + "run pod install and rebuild the app."
+            )
+            return
+        }
 
         playerConfig.advertisingConfig.beforeInitialization = { [weak self] settings in
             guard let self else { return }
