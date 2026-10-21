@@ -4,6 +4,7 @@
 
 ### Changed
 
+- **Breaking change:** Google IMA is now disabled by default on Android, iOS, and tvOS. Apps that use IMA ad sources must set `features.googleIMA: true`, rerun Expo prebuild, and rebuild the native app. BAM and ordinary playback do not require Google IMA. See [Google IMA](README.md#google-ima) for migration steps.
 - Update Expo SDK version to `57.0.30`
 
 ## [1.29.0] - 2026-10-20
@@ -19,7 +20,6 @@
 
 ### Changed
 
-- **Breaking change:** Google IMA is now disabled by default on Android, iOS, and tvOS. Apps that use IMA ad sources must set `features.googleIMA: true`, rerun Expo prebuild, and rebuild the native app. BAM and ordinary playback do not require Google IMA. See [Google IMA](README.md#google-ima) for migration steps.
 - Update Bitmovin's native iOS SDK version to [`3.128.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31280)
 - Update Bitmovin's native Android SDK version to [`3.170.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31700)
 - Android: `AdConfig.replaceContentDuration` is now `NaN` instead of missing when it doesn't apply, matching iOS
