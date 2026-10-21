@@ -69,6 +69,11 @@ export default function TestablePlayer({
             ref={generateTestHook('PlayerView')}
             player={playerTestWorld.player}
             style={styles.player}
+            onPlayerViewReady={() => {
+              if (player && playerTestWorld.player === player) {
+                playerTestWorld.onPlayerViewReady(player);
+              }
+            }}
             onEvent={(event: Event) => {
               // Metadata's public callbacks add the platform discriminator.
               // Ignore their raw catch-all copies to observe each event once.
