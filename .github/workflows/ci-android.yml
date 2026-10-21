@@ -184,6 +184,7 @@ jobs:
           test -r /dev/kvm && test -w /dev/kvm
 
       - name: Run all Android integration tests
+        id: cavy
         if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
         timeout-minutes: 35
         uses: reactivecircus/android-emulator-runner@v2
@@ -208,6 +209,7 @@ jobs:
             cd integration_test && node scripts/run-ci-tests.js android
 
       - name: Upload Android integration diagnostics
+        id: cavy_artifacts
         if: always()
         uses: actions/upload-artifact@v7
         with:
@@ -218,6 +220,22 @@ jobs:
             integration_test/cavy_results.md
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Summarize Cavy results
+        if: always()
+        timeout-minutes: 1
+        env:
+          CAVY_SUMMARY_PLATFORM: android
+          CAVY_SUMMARY_OS: 'Android API 36 (google_apis/x86_64)'
+          CAVY_SUMMARY_DEVICE: 'pixel_2 / ${{ env.ANDROID_SERIAL }}'
+          CAVY_SUMMARY_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          CAVY_SUMMARY_TEST_OUTCOME: ${{ steps.cavy.outcome }}
+          CAVY_SUMMARY_JOB_STATUS: ${{ job.status }}
+          CAVY_SUMMARY_RUN_ALLOWED: ${{ github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]') }}
+          CAVY_SUMMARY_ARTIFACT_NAME: android-system-tests-${{ github.run_attempt }}
+          CAVY_SUMMARY_ARTIFACT_URL: ${{ steps.cavy_artifacts.outputs.artifact-url }}
+          CAVY_SUMMARY_ARTIFACT_OUTCOME: ${{ steps.cavy_artifacts.outcome }}
+        run: python3 .github/scripts/cavy_summary.py
 
   test-build-android-tv:
     if: github.event_name != 'workflow_dispatch'
