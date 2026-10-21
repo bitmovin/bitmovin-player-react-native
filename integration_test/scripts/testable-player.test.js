@@ -109,3 +109,23 @@ test('ignores queued events from a player retired by the next test', () => {
   current.onEvent(ready);
   assert.deepEqual(events, [ready]);
 });
+
+test('acknowledges the rendered player and ignores stale view readiness', () => {
+  const readyPlayers = [];
+  const world = {
+    player: {},
+    onPlayerViewReady: (player) => readyPlayers.push(player),
+  };
+  const oldPlayer = world.player;
+  const previous = renderPlayer(world);
+  world.player = {};
+  const current = renderPlayer(world);
+  previous.onPlayerViewReady();
+  assert.deepEqual(readyPlayers, []);
+  current.onPlayerViewReady();
+  assert.deepEqual(readyPlayers, [world.player]);
+  assert.notEqual(readyPlayers[0], oldPlayer);
+  world.player = undefined;
+  current.onPlayerViewReady();
+  assert.equal(readyPlayers.length, 1);
+});
