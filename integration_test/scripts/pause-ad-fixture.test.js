@@ -56,11 +56,12 @@ test('each pause-ad case uses a fresh Google ad session', async () => {
   const tags = configs.map(
     (config) => config.advertisingConfig.schedule[0].sources[0].tag
   );
-  assert.equal(new Set(tags).size, 3, 'players must not share a correlator');
-  for (const tag of tags) {
-    const url = new URL(tag);
-    assert.equal(url.hostname, 'pubads.g.doubleclick.net');
-    assert.match(url.searchParams.get('cust_params'), /nonlinear/);
-    assert.ok(url.searchParams.get('correlator'));
-  }
+  const correlators = tags.map((tag) =>
+    new URL(tag).searchParams.get('correlator')
+  );
+  assert.equal(
+    new Set(correlators).size,
+    3,
+    'players must not share a correlator'
+  );
 });

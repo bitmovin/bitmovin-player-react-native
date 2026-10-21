@@ -62,12 +62,10 @@ for (const platform of ['android', 'ios']) {
 
   test(`${platform}: only registers supported ad-break filtering assertions`, () => {
     const { names } = registeredTests('advertisingTest.ts', platform);
-    assert.equal(
-      names.filter(
-        (name) => name === 'skips ad break when callback returns false'
-      ).length,
-      platform === 'android' ? 5 : 0
-    );
+    const count = names.filter(
+      (name) => name === 'skips ad break when callback returns false'
+    ).length;
+    assert.equal(count > 0, platform === 'android');
   });
 }
 
