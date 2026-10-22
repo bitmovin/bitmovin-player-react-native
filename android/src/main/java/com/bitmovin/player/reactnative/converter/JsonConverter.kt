@@ -422,6 +422,11 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["targetPosition"] = target
         }
 
+        is PlayerEvent.PlaybackSpeedChanged -> {
+            baseMap["from"] = from.toDouble()
+            baseMap["to"] = to.toDouble()
+        }
+
         is PlayerEvent.PictureInPictureAvailabilityChanged -> {
             baseMap["isPictureInPictureAvailable"] = isPictureInPictureAvailable
         }
