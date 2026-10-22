@@ -1,5 +1,7 @@
 const androidAndIos = ['android', 'ios'];
 const iosOnly = ['ios'];
+// TODO: switch events to androidAndIos once the iOS bridge is implemented
+const androidOnly = ['android'];
 
 function testSuite(name, platforms, load) {
   return { name, platforms, load };
@@ -18,6 +20,7 @@ const testRegistrations = [
     () => require('./captionMetadataTest').default
   ),
   testSuite('error', androidAndIos, () => require('./errorTest').default),
+  testSuite('events', androidOnly, () => require('./eventsTest').default),
   testSuite('loading', androidAndIos, () => require('./loadingTest').default),
   {
     ...testSuite(
