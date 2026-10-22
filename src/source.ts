@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import type { CmcdConfig } from './cmcdConfig';
 import type { DrmConfig } from './drm';
 import { Drm } from './drm';
@@ -7,6 +8,8 @@ import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import SourceModule from './modules/SourceModule';
+import type { EventSubscription, SourceEventMap } from './eventMap';
+import { EventListeners } from './utils/eventListeners';
 
 /**
  * Types of media that can be handled by the player.
@@ -189,6 +192,12 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   isDestroyed = false;
 
+  private readonly eventListeners = new EventListeners<SourceEventMap>(
+    this.nativeId,
+    SourceModule,
+    (listener) => SourceModule.addListener('onSourceEvent', listener)
+  );
+
   /**
    * Allocates the native {@link Source} instance and its resources natively, or again if it has been released.
    */
@@ -216,11 +225,12 @@ export class Source extends NativeInstance<SourceConfig> {
     }
     this.isInitialized = true;
     this.isDestroyed = false;
+    await this.eventListeners.attachNative();
   };
 
   /**
    * Destroys the native {@link Source} and releases all of its allocated resources.
-   * The source can be initialized again afterwards.
+   * All listeners are removed. The source can be initialized again afterwards.
    *
    * @internal
    */
@@ -229,9 +239,49 @@ export class Source extends NativeInstance<SourceConfig> {
       void SourceModule.destroy(this.nativeId);
       void this.drm?.destroy();
       this.drm = undefined;
+      this.eventListeners.removeAll();
       this.isDestroyed = true;
       this.isInitialized = false;
     }
+  };
+
+  /**
+   * Registers `listener` to be called whenever this source emits `eventName`.
+   *
+   * Unlike {@link Player.on}, which only receives the source events of the active source, the source
+   * emits all of its events, including while it is inactive, e.g. `sourceLoaded` of a preloaded playlist
+   * source. Listeners registered before the source is initialized are attached during
+   * {@link Source.initialize}. Listeners are kept when the native source is released, e.g. once it is removed
+   * from a player, and are attached again when it is loaded again.
+   *
+   * @param eventName - The name of the event, e.g. `sourceLoaded`.
+   * @param listener - The function called with the event.
+   * @returns a subscription to remove the listener.
+   * @platform Android
+   */
+  on = <K extends keyof SourceEventMap>(
+    eventName: K,
+    listener: (event: SourceEventMap[K]) => void
+  ): EventSubscription => {
+    if (Platform.OS !== 'android' || this.isDestroyed) {
+      return { remove: () => {} };
+    }
+    return this.eventListeners.on(eventName, listener);
+  };
+
+  /**
+   * Removes a `listener` previously registered for `eventName` via {@link Source.on}.
+   * Has no effect if the listener is not registered.
+   *
+   * @param eventName - The name of the event.
+   * @param listener - The function passed to {@link Source.on}.
+   * @platform Android
+   */
+  off = <K extends keyof SourceEventMap>(
+    eventName: K,
+    listener: (event: SourceEventMap[K]) => void
+  ): void => {
+    this.eventListeners.off(eventName, listener);
   };
 
   /**

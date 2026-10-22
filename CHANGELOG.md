@@ -8,6 +8,7 @@
 - `onPlayerInactive` event prop on `PlayerView` to indicate when the active playback session ends and the player becomes inactive
 - Android: Playlist support via `Player.loadPlaylist`, `Player.playlist` and the `onPlaylistTransition`, `onSourceAdded` and `onSourceRemoved` events
 - Android: `EventSource.nativeId` to map sources in event payloads to their `Source` instances
+- Android: `Player.on`/`Player.off` and `Source.on`/`Source.off` to receive player and source events independently of a `PlayerView`
 
 ### Changed
 
