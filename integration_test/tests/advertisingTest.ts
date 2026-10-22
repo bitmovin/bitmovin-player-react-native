@@ -204,7 +204,6 @@ export default (spec: TestScope) => {
                     event.currentTime > 0.25 && callbackInvocationCount > 0
                 )
               );
-              expect(callbackInvocationCount).toBeGreaterThan(0);
               await callPlayer(async (player) => {
                 expect(await player.isAd()).toBeFalsy();
               });
@@ -245,7 +244,6 @@ export default (spec: TestScope) => {
                   )
                 );
 
-                expect(callbackInvocationCount).toBeGreaterThan(0);
                 await callPlayer(async (player) => {
                   expect(await player.isAd()).toBeFalsy();
                 });
