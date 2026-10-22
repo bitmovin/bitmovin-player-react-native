@@ -33,6 +33,12 @@ def text(value, limit=240):
     )
 
 
+class ReportTreeBuilder(ET.TreeBuilder):
+    def doctype(self, name, pubid, system):
+        # Reject real DTDs without mistaking CDATA or comments for declarations.
+        raise ValueError('XML declarations are not supported')
+
+
 def read_report(directory):
     try:
         with (Path(directory) / 'cavy_results.xml').open('rb') as source:
@@ -47,9 +53,7 @@ def read_report(directory):
         return 'Empty report', None
     try:
         xml = raw.decode('utf-8-sig')
-        if re.search(r'<!\s*(DOCTYPE|ENTITY)', xml, re.I):
-            raise ValueError('XML declarations are not supported')
-        root = ET.fromstring(xml)
+        root = ET.fromstring(xml, parser=ET.XMLParser(target=ReportTreeBuilder()))
         if root.tag != 'testsuite' or any(case.tag != 'testcase' for case in root):
             raise ValueError('Expected Cavy testsuite/testcase format')
         counts = {'tests': len(root), 'failures': 0, 'errors': 0, 'skipped': 0}
@@ -161,17 +165,10 @@ def build_summary(env):
     if problem or (counts and not counts['tests']):
         lines += ['Report unavailable or unusable: inspect supervisor, build, launcher and Cavy logs for infrastructure failures.', '']
 
-    lines += ['### Exclusions (not passed)', '',
-              '- TV runtime and physical devices are outside these emulator/simulator runs.',
-              '- Platform-only suites run only where supported; absent suites are not passes.']
-    if env.get('CAVY_SUMMARY_PLATFORM') == 'ios':
-        lines += ['- FairPlay license-error coverage is excluded on iOS simulators.']
-    else:
-        lines += ['- Android DRM assertions cover the license-error path, not successful encrypted playback or hardware-backed DRM.']
-    lines += ['', '### Diagnostics', '',
+    lines += ['Counts describe only the cases present in the XML report; absent suites are not passes.',
+              '', '### Diagnostics', '',
               f'Artifact upload: {text(env.get("CAVY_SUMMARY_ARTIFACT_OUTCOME", "unknown"))}.',
-              f'Artifact name: {text(env.get("CAVY_SUMMARY_ARTIFACT_NAME", "unknown"))}.',
-              'Includes cavy_results.xml, cavy_results.md and available build, supervisor, Metro, launcher and device logs.', '']
+              f'Artifact name: {text(env.get("CAVY_SUMMARY_ARTIFACT_NAME", "unknown"))}.', '']
     url = run_url(env)
     artifact = env.get('CAVY_SUMMARY_ARTIFACT_URL', '')
     if url:
@@ -183,5 +180,7 @@ def build_summary(env):
 
 
 if __name__ == '__main__':
-    with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a', encoding='utf-8') as summary:
-        summary.write(build_summary(os.environ))
+    # GitHub provides this path in Actions; local invocations have no summary sink.
+    if destination := os.environ.get('GITHUB_STEP_SUMMARY'):
+        with Path(destination).open('a', encoding='utf-8') as summary:
+            summary.write(build_summary(os.environ))

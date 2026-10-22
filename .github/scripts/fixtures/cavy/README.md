@@ -1,6 +1,8 @@
 # Cavy summary fixtures
 
-The XML files retain the cases, counts and assertion messages from integration test runs:
+The XML files retain the cases, counts and assertion messages from internal CI
+integration test runs. The run IDs below are provenance references; access
+requires the CI account:
 
 - `android-pass.xml`: Android run 39559415262, 64 passing cases.
 - `ios-failure.xml`: iOS run 39559427710, 52 passing cases and two source-event assertion failures.

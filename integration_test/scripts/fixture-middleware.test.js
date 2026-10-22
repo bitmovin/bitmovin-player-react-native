@@ -281,7 +281,8 @@ test('DRM fixture uses the resolved Metro origin only when requested', () => {
 
 test('Android DRM listens for SourceError and preserves network assertions', async () => {
   let observedEvent;
-  let assertions = 0;
+  const definedValues = new Set();
+  const equalValues = new Map();
   const source = {};
   const errorEvent = {
     code: 1,
@@ -310,11 +311,11 @@ test('Android DRM listens for SourceError and preserves network assertions', asy
       expect(value) {
         return {
           toBeDefined() {
-            assertions++;
+            definedValues.add(value);
             assert.notEqual(value, undefined);
           },
           toBe(expected) {
-            assertions++;
+            equalValues.set(value, expected);
             assert.equal(value, expected);
           },
         };
@@ -328,5 +329,20 @@ test('Android DRM listens for SourceError and preserves network assertions', asy
   });
   await run();
   assert.equal(observedEvent, 'source-error');
-  assert.equal(assertions, 7);
+  assert.ok(definedValues.has(errorEvent.code), 'Checks the error code');
+  assert.ok(definedValues.has(errorEvent.message), 'Checks the error message');
+  assert.ok(definedValues.has(errorEvent.data), 'Checks the error data');
+  assert.ok(
+    definedValues.has(errorEvent.data.httpResponse),
+    'Checks the HTTP response'
+  );
+  assert.equal(equalValues.get(errorEvent.data.httpResponse.status), 403);
+  assert.ok(
+    definedValues.has(errorEvent.data.httpResponse.url),
+    'Checks the request URL'
+  );
+  assert.ok(
+    definedValues.has(errorEvent.data.httpResponse.request),
+    'Checks the request details'
+  );
 });

@@ -1,6 +1,8 @@
 name: CI (Android)
 
 on:
+  workflow_dispatch:
+
   pull_request:
     paths:
       - '.github/workflows/ci-android.yml'
@@ -104,12 +106,26 @@ jobs:
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
 
+      - name: Verify Google IMA runtime dependency is present
+        run: |
+          cd example/android
+          ./gradlew :app:dependencies --configuration debugRuntimeClasspath \
+            --quiet --console=plain --no-daemon \
+            > "$RUNNER_TEMP/android-example-runtime-dependencies.txt"
+          if ! grep -q 'com.google.ads.interactivemedia.v3:interactivemedia' \
+            "$RUNNER_TEMP/android-example-runtime-dependencies.txt"; then
+            echo "::error::Missing Google IMA from the Android example runtime dependency graph"
+            exit 1
+          fi
+
       - name: Report build time
         run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
 
   test-build-android-integration-tests:
     name: Build Android Integration Tests
     runs-on: ubuntu-latest
+    env:
+      BITMOVIN_ENABLE_GOOGLE_IMA: 'false'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -136,6 +152,18 @@ jobs:
             -PreactNativeArchitectures=x86,x86_64
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
+
+      - name: Verify Google IMA runtime dependency is absent
+        run: |
+          cd integration_test/android
+          ./gradlew :app:dependencies --configuration debugRuntimeClasspath \
+            --quiet --console=plain --no-daemon \
+            > "$RUNNER_TEMP/android-integration-runtime-dependencies.txt"
+          if grep -q 'com.google.ads.interactivemedia.v3:interactivemedia' \
+            "$RUNNER_TEMP/android-integration-runtime-dependencies.txt"; then
+            echo "::error::Unexpected Google IMA in the Android integration runtime dependency graph"
+            exit 1
+          fi
 
       - name: Report build time
         run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
