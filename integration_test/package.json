@@ -40,7 +40,7 @@
   "dependencies": {
     "@react-native-tvos/config-tv": "^0.1.1",
     "cavy": "^4.0.2",
-    "expo": "~57.0.30",
+    "expo": "~57.0.31",
     "expo-build-properties": "~57.0.22",
     "expo-crypto": "~57.0.4",
     "expo-splash-screen": "~57.0.10",
