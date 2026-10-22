@@ -52,6 +52,33 @@ const availableTestTags = testRegistrations.map(({ name, platforms }) => ({
   platforms,
 }));
 
+// Like the native player suites, rerun a failed test once so slow external
+// streams or ad servers do not fail CI. Passing tests run once.
+function retryFailedTestsOnce(spec) {
+  const it = spec.it.bind(spec);
+  spec.it = (label, run, tag) => {
+    const test = `${spec.describeLabel}: ${label}`;
+    return it(
+      label,
+      async function () {
+        try {
+          await run.call(this);
+        } catch (error) {
+          console.warn(
+            '[Cavy retry]',
+            JSON.stringify({ test, error: String(error?.message ?? error) })
+          );
+          // Reset the app like Cavy does before every test.
+          await this.component.clearAsync();
+          this.component.reRender();
+          await run.call(this);
+        }
+      },
+      tag
+    );
+  };
+}
+
 function createSpecs() {
   return testRegistrations.map(({ name, load }) => {
     const registerSuite = load();
@@ -60,6 +87,7 @@ function createSpecs() {
       const describe = spec.describe.bind(spec);
       spec.describe = (label, defineTests) =>
         describe(label, defineTests, name);
+      retryFailedTestsOnce(spec);
 
       return registerSuite(spec);
     };
