@@ -284,15 +284,21 @@ expectEvent(AdManifestLoaded)`, the next `expectEvents(...)` attaches only once
   Start every expectation for one trigger together:
 
   ```ts
-  await Promise.all([
+  const expectations = [
     expectEvent(EventType.AdManifestLoaded, 20),
     expectEvents(EventSequence(EventType.AdBreakStarted /* ... */), 30),
     callPlayerAndExpectEvent((player) => player.seek(13), EventType.Seeked),
-  ]);
+  ];
+  try {
+    await Promise.all(expectations);
+  } finally {
+    await Promise.allSettled(expectations);
+  }
   ```
 
-  Size these timeouts to cover the trigger plus preparation, because they start
-  before it.
+  The `finally` block waits for sibling expectations to release their listeners
+  and timers before teardown, while preserving the original failure. Size these
+  timeouts to cover the trigger plus preparation, because they start before it.
 
 - **Sleeping instead of waiting.** Do not add fixed sleeps before player calls.
   Player helpers wait for the mounted view through `onPlayerViewReady`; wait for
