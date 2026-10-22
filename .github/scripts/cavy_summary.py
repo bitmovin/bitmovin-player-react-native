@@ -180,5 +180,7 @@ def build_summary(env):
 
 
 if __name__ == '__main__':
-    with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a', encoding='utf-8') as summary:
-        summary.write(build_summary(os.environ))
+    # GitHub provides this path in Actions; local invocations have no summary sink.
+    if destination := os.environ.get('GITHUB_STEP_SUMMARY'):
+        with Path(destination).open('a', encoding='utf-8') as summary:
+            summary.write(build_summary(os.environ))

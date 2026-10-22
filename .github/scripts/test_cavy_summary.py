@@ -23,7 +23,8 @@ class CavySummaryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             if xml is not None:
-                (root / 'cavy_results.xml').write_text(xml, encoding='utf-8')
+                raw = xml if isinstance(xml, bytes) else xml.encode('utf-8')
+                (root / 'cavy_results.xml').write_bytes(raw)
             summary = root / 'summary.md'
             env = {
                 **os.environ,
@@ -130,6 +131,33 @@ class CavySummaryTests(unittest.TestCase):
                     report('<other/>'), '<testsuites/>']:
             with self.subTest(xml=xml):
                 self.assertIn('Malformed report', self.render(xml, 'failure'))
+
+    def test_non_utf8_report_is_unavailable(self):
+        output = self.render(b'\xff\xfe' + report('<testcase/>').encode('utf-8'))
+        self.assertIn('Malformed report', output)
+        self.assertIn('Counts unavailable', output)
+        self.assertNotIn('**Passed**', output)
+
+    def test_unrecognized_case_children_do_not_hide_failure(self):
+        output = self.render(report(
+            '<testcase name="failure"><extra>diagnostic</extra>'
+            '<failure message="assertion failed"/></testcase>', failures='1'), 'failure')
+        self.assertIn('Assertion failures', output)
+        self.assertIn('assertion failed', output)
+        self.assertIn('| 1 | 0 | 1 | 0 | 0 |', output)
+
+    def test_unset_summary_destination_is_a_quiet_noop(self):
+        env = {key: value for key, value in os.environ.items()
+               if key != 'GITHUB_STEP_SUMMARY'}
+        with tempfile.TemporaryDirectory() as directory:
+            result = subprocess.run(
+                [sys.executable, str(SCRIPT)], env=env, cwd=directory,
+                capture_output=True, text=True, timeout=10,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout, '')
+            self.assertEqual(result.stderr, '')
+            self.assertEqual(list(Path(directory).iterdir()), [])
 
     def test_passing_cases_do_not_hide_infrastructure_failure(self):
         output = self.render(report('<testcase name="pass"/>'), 'failure')
