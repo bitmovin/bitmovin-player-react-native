@@ -35,6 +35,8 @@ export default (spec: TestScope) => {
               (player) => {
                 player.load(source);
               },
+              // Android reports Widevine license failures as source errors.
+              // Keep iOS PlayerError for device-only FairPlay coverage.
               Platform.OS === 'android'
                 ? EventType.SourceError
                 : EventType.PlayerError
