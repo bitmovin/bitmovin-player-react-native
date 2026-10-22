@@ -31,6 +31,17 @@ const currentPlatform = Platform.OS as SupportedTestPlatform;
 // Observations begin before load/seek, so include preparation and ad playback.
 const adLifecycleTimeoutSeconds = 30;
 
+async function waitForAdExpectations(
+  expectations: Promise<unknown>[]
+): Promise<void> {
+  try {
+    await Promise.all(expectations);
+  } finally {
+    // Drain sibling expectations before teardown, preserving the first error.
+    await Promise.allSettled(expectations);
+  }
+}
+
 function isEnabledForCurrentPlatform(
   enabledOn?: SupportedTestPlatform[]
 ): boolean {
@@ -97,7 +108,7 @@ export default (spec: TestScope) => {
         } as AdvertisingConfig;
         await startPlayerTest({ advertisingConfig }, async () => {
           // Observe load-triggered ads before loading, then play a ready source.
-          await Promise.all([
+          await waitForAdExpectations([
             expectEvents(
               EventSequence(
                 EventType.AdBreakStarted,
@@ -120,7 +131,7 @@ export default (spec: TestScope) => {
               });
             })(),
           ]);
-          await Promise.all([
+          await waitForAdExpectations([
             expectEvents(
               EventSequence(
                 EventType.AdBreakStarted,
@@ -140,7 +151,7 @@ export default (spec: TestScope) => {
               player.seek(13);
             }, EventType.Seeked),
           ]);
-          await Promise.all([
+          await waitForAdExpectations([
             expectEvents(
               EventSequence(
                 EventType.AdBreakStarted,
