@@ -70,6 +70,10 @@ spot flaky tests.
 
 See [Adding new tests](../CONTRIBUTING.md#adding-new-tests) to register a suite.
 
+Platform-only ID3, media-control and ad-break tests are registered only where
+applicable, so unsupported cases are not reported as passing no-ops. Existing
+platform-specific ad and caption coverage remains intact.
+
 ## Local HTTP fixtures
 
 Prefer small, versioned local fixtures when a test needs predictable media or an
