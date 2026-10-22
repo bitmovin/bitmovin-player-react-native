@@ -1,6 +1,7 @@
 import { Image } from 'react-native';
 
 export function fixtureUrl(path: string): string {
+  // The icon is used only to resolve Metro's origin; keep this asset dependency.
   const asset = Image.resolveAssetSource(
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     require('../../assets/images/icon.png')
