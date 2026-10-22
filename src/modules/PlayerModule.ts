@@ -34,6 +34,11 @@ export type PlayerModuleEvents = {
 
 declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
   /**
+   * Whether the native app was built with Google IMA.
+   */
+  readonly isGoogleImaEnabled: boolean;
+
+  /**
    * Call .play() on nativeId's player.
    */
   play(nativeId: string): Promise<void>;

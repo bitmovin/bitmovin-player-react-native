@@ -4,6 +4,12 @@ import groovy.json.JsonSlurper
 def packageJsonFile = new File("$rootDir/../package.json")
 def packageJson = new JsonSlurper().parseText(packageJsonFile.text)
 def packageVersion = packageJson.version
+def googleImaProperty = (findProperty("BITMOVIN_ENABLE_GOOGLE_IMA") ?: "false").toString()
+def googleImaValue = googleImaProperty.trim().toLowerCase()
+if (!["true", "false"].contains(googleImaValue)) {
+    throw new GradleException("BITMOVIN_ENABLE_GOOGLE_IMA must be true or false, but was '" + googleImaProperty + "'.")
+}
+def googleImaEnabled = googleImaValue == "true"
 
 buildscript {
     // Buildscript is evaluated before everything else so we can't use getExtOrDefault
@@ -60,6 +66,10 @@ if (useManagedAndroidSdkVersions) {
 android {
   namespace "com.bitmovin.player.reactnative"
 
+  sourceSets {
+    main.java.srcDirs += googleImaEnabled ? "src/withGoogleIma/java" : "src/withoutGoogleIma/java"
+  }
+
   defaultConfig {
     versionCode 1
     versionName packageVersion
@@ -102,8 +112,9 @@ dependencies {
   implementation "androidx.concurrent:concurrent-futures:1.1.0"
   implementation "androidx.concurrent:concurrent-futures-ktx:1.1.0"
 
-  // Google IMA
-  implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
+  if (googleImaEnabled) {
+    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
+  }
 
   // Bitmovin
   implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'

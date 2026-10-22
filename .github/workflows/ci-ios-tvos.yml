@@ -167,6 +167,8 @@ jobs:
     name: Build iOS Integration Tests
     runs-on: macos-26
     timeout-minutes: 25
+    env:
+      BITMOVIN_ENABLE_GOOGLE_IMA: 'false'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -177,7 +179,7 @@ jobs:
         with:
           path: |
             integration_test/ios
-          key: ${{ runner.os }}-ios-integration-prebuild-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.config.*', 'plugin/**', 'ios/**') }}
+          key: ${{ runner.os }}-ios-integration-prebuild-google-ima-disabled-${{ hashFiles('integration_test/yarn.lock', 'integration_test/app.config.*', 'plugin/**', 'ios/**') }}
           restore-keys: |
             ${{ runner.os }}-ios-integration-prebuild-
 
@@ -203,7 +205,7 @@ jobs:
           path: |
             ~/Library/Caches/CocoaPods
             integration_test/ios/Pods
-          key: ${{ runner.os }}-ios-integration-pods-${{ hashFiles('ios/dependencies.json', 'ios/RNBitmovinPlayer.podspec', 'integration_test/ios/Podfile.lock') }}
+          key: ${{ runner.os }}-ios-integration-pods-google-ima-disabled-${{ hashFiles('ios/dependencies.json', 'ios/RNBitmovinPlayer.podspec', 'integration_test/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-ios-integration-pods-
 
@@ -222,12 +224,44 @@ jobs:
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
           echo "✅ Build completed in $((END_TIME - START_TIME)) seconds"
         env:
-          XCODEBUILD_ARGS: "-destination '${{ env.IOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }}"
+          XCODEBUILD_ARGS: "-destination '${{ env.IOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }} -derivedDataPath ${{ runner.temp }}/bitmovin-integration-build"
+
+      - name: Verify Google IMA package and framework are absent
+        env:
+          APP_PATH: ${{ runner.temp }}/bitmovin-integration-build/Build/Products/Debug-iphonesimulator/IntegrationTest.app
+        run: |
+          PLAYER_BINARY="$APP_PATH/Frameworks/BitmovinPlayer.framework/BitmovinPlayer"
+          if [ ! -s "$PLAYER_BINARY" ]; then
+            echo "::error::Missing embedded Player binary: $PLAYER_BINARY"
+            exit 1
+          fi
+          PROJECT_FILE=integration_test/ios/IntegrationTest.xcodeproj/project.pbxproj
+          PACKAGE_RESOLVED=integration_test/ios/IntegrationTest.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          for file in "$PROJECT_FILE" "$PACKAGE_RESOLVED"; do
+            if [ -f "$file" ] && grep -q -E 'swift-package-manager-google-interactive-media-ads|GoogleInteractiveMediaAds' "$file"; then
+              echo "::error::Unexpected Google IMA package reference in $file"
+              exit 1
+            fi
+          done
+          if [ -e "$APP_PATH/Frameworks/GoogleInteractiveMediaAds.framework" ]; then
+            echo "::error::Unexpected Google IMA framework in the iOS integration app"
+            exit 1
+          fi
 
   tvos-example-build:
-    name: Build tvOS Example App
+    name: Build tvOS Example App (${{ matrix.variant }})
     runs-on: macos-26
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: with Google IMA
+            google-ima: 'true'
+          - variant: without Google IMA
+            google-ima: 'false'
+    env:
+      BITMOVIN_ENABLE_GOOGLE_IMA: ${{ matrix.google-ima }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -238,7 +272,7 @@ jobs:
         with:
           path: |
             example/ios
-          key: ${{ runner.os }}-tvos-prebuild-${{ hashFiles('example/yarn.lock', 'example/app.config.*', 'plugin/**', 'ios/**') }}
+          key: ${{ runner.os }}-tvos-prebuild-${{ matrix.google-ima }}-${{ hashFiles('example/yarn.lock', 'example/app.config.*', 'plugin/**', 'ios/**') }}
           restore-keys: |
             ${{ runner.os }}-tvos-prebuild-
 
@@ -265,7 +299,7 @@ jobs:
           path: |
             ~/Library/Caches/CocoaPods
             example/ios/Pods
-          key: ${{ runner.os }}-tvos-pods-${{ hashFiles('ios/dependencies.json', 'ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock') }}
+          key: ${{ runner.os }}-tvos-pods-${{ matrix.google-ima }}-${{ hashFiles('ios/dependencies.json', 'ios/RNBitmovinPlayer.podspec', 'example/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-tvos-pods-
 
@@ -278,7 +312,7 @@ jobs:
       - name: Save resolved Swift package versions
         uses: actions/upload-artifact@v7
         with:
-          name: tvos-example-swift-packages
+          name: tvos-example-swift-packages-${{ matrix.google-ima }}
           path: example/ios/BitmovinPlayerReactNativeExample.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
       - name: Build tvOS Example App
@@ -292,17 +326,37 @@ jobs:
         env:
           XCODEBUILD_ARGS: "-destination '${{ env.TVOS_DESTINATION }}' ${{ env.XCODEBUILD_COMMON_FLAGS }} -derivedDataPath ${{ runner.temp }}/bitmovin-build"
 
-      - name: Verify embedded SDK frameworks
+      - name: Verify Google IMA package and framework state
         env:
           APP_PATH: ${{ runner.temp }}/bitmovin-build/Build/Products/Debug-appletvsimulator/BitmovinPlayerReactNativeExample.app
         run: |
-          for framework in BitmovinPlayer BitmovinPlayerCore BitmovinPlayerAnalytics BitmovinCollector GoogleInteractiveMediaAds; do
+          for framework in BitmovinPlayer BitmovinPlayerCore BitmovinPlayerAnalytics BitmovinCollector; do
             binary="$APP_PATH/Frameworks/$framework.framework/$framework"
             if [ ! -s "$binary" ]; then
               echo "::error::Missing embedded SDK binary: $binary"
               exit 1
             fi
           done
+          PROJECT_FILE=example/ios/BitmovinPlayerReactNativeExample.xcodeproj/project.pbxproj
+          PACKAGE_RESOLVED=example/ios/BitmovinPlayerReactNativeExample.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          IMA_BINARY="$APP_PATH/Frameworks/GoogleInteractiveMediaAds.framework/GoogleInteractiveMediaAds"
+          if [ "${{ matrix.google-ima }}" = "true" ]; then
+            if ! grep -q 'GoogleInteractiveMediaAdsTvOS' "$PROJECT_FILE" || [ ! -s "$IMA_BINARY" ]; then
+              echo "::error::Missing Google IMA package or framework from the enabled tvOS app"
+              exit 1
+            fi
+          else
+            for file in "$PROJECT_FILE" "$PACKAGE_RESOLVED"; do
+              if [ -f "$file" ] && grep -q -E 'swift-package-manager-google-interactive-media-ads|GoogleInteractiveMediaAdsTvOS' "$file"; then
+                echo "::error::Unexpected Google IMA package reference in $file"
+                exit 1
+              fi
+            done
+            if [ -e "$APP_PATH/Frameworks/GoogleInteractiveMediaAds.framework" ]; then
+              echo "::error::Unexpected Google IMA framework in the disabled tvOS app"
+              exit 1
+            fi
+          fi
 
   example-archive:
     name: Archive ${{ matrix.platform }} (${{ matrix.configuration }})

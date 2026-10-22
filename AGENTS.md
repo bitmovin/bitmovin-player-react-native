@@ -95,6 +95,9 @@
   - Do not duplicate the same default in prose and `@defaultValue`.
   - If defaults differ by platform, describe that inside `@defaultValue`, e.g. `@defaultValue iOS: \`1.0\`, Android: \`0.2\``.
   - When touching public docs that already mention defaults in prose, convert the touched default to `@defaultValue` instead of preserving the older style.
+- Developer-facing warnings must be raised from JS with `console.warn` so they show in the Metro terminal and LogBox.
+  - Native logs do not reach Metro: Android `Log.w` goes only to logcat; ExpoModulesCore `log.warn` on iOS goes only to the Xcode console and Console.app.
+  - When the condition is only known natively, expose it to JS (e.g. a module `Constant`) and warn there. Example: `PlayerModule.isGoogleImaEnabled` with the warning in `src/player.ts`.
 - Match native names exactly on both platforms:
   - iOS: `Name("PlayerModule")` in `ios/PlayerModule.swift:7`; Android: `Name("PlayerModule")` in `android/src/main/java/com/bitmovin/player/reactnative/PlayerModule.kt:23`.
 - Bridge views via view managers:

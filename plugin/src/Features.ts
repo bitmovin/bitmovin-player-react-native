@@ -1,6 +1,13 @@
 export default interface Features {
   airPlay?: boolean;
   backgroundPlayback?: boolean;
+  /**
+   * Includes the Google Interactive Media Ads SDK in native builds.
+   * Required for IMA ad sources.
+   *
+   * @defaultValue `false`
+   */
+  googleIMA?: boolean;
   googleCastSDK?: {
     appId?: string;
     messageNamespace?: string;
