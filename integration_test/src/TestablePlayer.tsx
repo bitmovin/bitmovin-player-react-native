@@ -75,8 +75,10 @@ export default function TestablePlayer({
               }
             }}
             onEvent={(event: Event) => {
-              // Metadata's public callbacks add the platform discriminator.
-              // Ignore their raw catch-all copies to observe each event once.
+              // PlayerView in src/components/PlayerView/index.tsx attaches the
+              // metadata handlers only when their props are set and enriches
+              // their events with addPlatformToMetadataEvent. Ignore the raw
+              // catch-all copies here to observe each metadata event once.
               if (
                 event.name !== 'onMetadata' &&
                 event.name !== 'onMetadataParsed'
