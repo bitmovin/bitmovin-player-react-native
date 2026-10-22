@@ -66,8 +66,7 @@ class CavySummaryTests(unittest.TestCase):
         )
         for expected in ['Passed', '| 64 | 64 | 0 | 0 | 0 |',
                          'Android API 36', 'pixel', 'head', 'checkout',
-                         'actions/runs/123/artifacts/456', 'cavy_results.xml',
-                         'TV runtime', 'physical devices', 'encrypted playback']:
+                         'actions/runs/123/artifacts/456']:
             self.assertIn(expected, output)
 
     def test_saved_ios_assertions_include_suite_test_and_message(self):
@@ -75,9 +74,20 @@ class CavySummaryTests(unittest.TestCase):
         for expected in ['Assertion failures', '| 54 | 52 | 2 | 0 | 0 |',
                          'loading a VOD source', 'loading a live source',
                          'emits SourceLoad and SourceLoaded events',
-                         'Expectation was not met', 'onSourceLoad', 'FairPlay',
+                         'Expectation was not met', 'onSourceLoad',
                          'https://github.com/bitmovin/player/actions/runs/123#artifacts']:
             self.assertIn(expected, output)
+
+    def test_summary_does_not_claim_workflow_contents_or_suite_coverage(self):
+        for platform in ('ios', 'android', 'unknown'):
+            for outcome in ('success', 'skipped'):
+                with self.subTest(platform=platform, outcome=outcome):
+                    output = self.render(report('<testcase/>'), outcome,
+                                         CAVY_SUMMARY_PLATFORM=platform)
+                    for claim in ('### Exclusions', 'FairPlay', 'Android DRM',
+                                  'TV runtime', 'Includes cavy_results'):
+                        self.assertNotIn(claim, output)
+                    self.assertIn('absent suites are not passes', output)
 
     def test_missing_malformed_empty_and_zero_reports_are_distinct(self):
         for xml, expected in [(None, 'Missing report'), ('', 'Empty report'),

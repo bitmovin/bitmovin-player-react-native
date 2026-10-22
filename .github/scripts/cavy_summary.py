@@ -161,17 +161,10 @@ def build_summary(env):
     if problem or (counts and not counts['tests']):
         lines += ['Report unavailable or unusable: inspect supervisor, build, launcher and Cavy logs for infrastructure failures.', '']
 
-    lines += ['### Exclusions (not passed)', '',
-              '- TV runtime and physical devices are outside these emulator/simulator runs.',
-              '- Platform-only suites run only where supported; absent suites are not passes.']
-    if env.get('CAVY_SUMMARY_PLATFORM') == 'ios':
-        lines += ['- FairPlay license-error coverage is excluded on iOS simulators.']
-    else:
-        lines += ['- Android DRM assertions cover the license-error path, not successful encrypted playback or hardware-backed DRM.']
-    lines += ['', '### Diagnostics', '',
+    lines += ['Counts describe only the cases present in the XML report; absent suites are not passes.',
+              '', '### Diagnostics', '',
               f'Artifact upload: {text(env.get("CAVY_SUMMARY_ARTIFACT_OUTCOME", "unknown"))}.',
-              f'Artifact name: {text(env.get("CAVY_SUMMARY_ARTIFACT_NAME", "unknown"))}.',
-              'Includes cavy_results.xml, cavy_results.md and available build, supervisor, Metro, launcher and device logs.', '']
+              f'Artifact name: {text(env.get("CAVY_SUMMARY_ARTIFACT_NAME", "unknown"))}.', '']
     url = run_url(env)
     artifact = env.get('CAVY_SUMMARY_ARTIFACT_URL', '')
     if url:
