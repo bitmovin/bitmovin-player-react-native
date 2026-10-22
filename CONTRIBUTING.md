@@ -259,6 +259,72 @@ export default (spec: TestScope) => {
 };
 ```
 
+### Writing reliable tests
+
+#### How events reach expectations
+
+Player events are delivered to the expectations listening at that moment and
+then discarded. Nothing is buffered, so an event that arrives before its
+expectation is attached is lost and the test times out. Each expectation's
+timeout starts when it attaches, not when the trigger runs.
+
+#### Races to avoid
+
+- **Expecting after triggering.** `player.load(...)` followed by
+  `await expectEvent(...)` misses events emitted while the call runs. Use
+  `callPlayerAndExpectEvent(s)`, `loadSourceConfig` or `playUntil`; these attach
+  first, then trigger.
+- **Chaining awaits for events from one trigger.** After `await
+expectEvent(AdManifestLoaded)`, the next `expectEvents(...)` attaches only once
+  the first resolves, so it misses events emitted in between. Event order can
+  also differ by platform: an ad break may start before the manifest event.
+  Start every expectation for one trigger together:
+
+  ```ts
+  await Promise.all([
+    expectEvent(EventType.AdManifestLoaded, 20),
+    expectEvents(EventSequence(EventType.AdBreakStarted /* ... */), 30),
+    callPlayerAndExpectEvent((player) => player.seek(13), EventType.Seeked),
+  ]);
+  ```
+
+  Size these timeouts to cover the trigger plus preparation, because they start
+  before it.
+
+- **Sleeping instead of waiting.** Do not add fixed sleeps before player calls.
+  Player helpers wait for the mounted view through `onPlayerViewReady`; wait for
+  an event or condition instead of time.
+- **Asserting a callback before it runs.** Native callbacks such as
+  `shouldLoadAdItem` can run after the events you wait for. Fold the
+  callback state into the awaited condition, for example
+  `FilteredEvent(TimeChanged, (e) => e.currentTime > 0.25 && calls.length > 0)`,
+  then assert.
+- **Events from the previous test.** `TestablePlayer` drops events and view
+  readiness from a player that a newer test replaced. Keep events flowing
+  through it, not through listeners of your own.
+
+#### Assertions that prove behavior
+
+- Sequences match in order but ignore unrelated events in between, and nothing
+  fails on an unexpected event. A sequence therefore cannot prove that an event
+  did not happen or happened once. Prove absence with player state such as
+  `isAd()`, or by counting.
+- Record every invocation of a callback under test, with its arguments, and
+  assert the count: exactly when the schedule determines it, at least once
+  otherwise. A missing ad event alone also passes when the callback never ran or
+  nothing was scheduled.
+- Assert metadata through the typed `onMetadata` and `onMetadataParsed`
+  callbacks, which add the `platform` discriminator. `TestablePlayer` already
+  routes them; the raw `onEvent` copies omit `platform`.
+- Register platform-specific cases only where they run: gate `spec.describe`
+  with `Platform.OS`, or register the suite with `iosOnly`. An early `return`
+  inside `spec.it` reports a passing test that checked nothing.
+- Request ad tags with a fresh correlator in each test, as the `AdTags.pause`
+  getter does, so ad servers do not cap or reuse earlier responses.
+- Cover changes to test infrastructure with device-free tests in
+  `integration_test/scripts/*.test.js`, run with
+  `yarn integration-test test:runner`.
+
 ## Scripts
 
 The `package.json` file contains various scripts for common tasks:

@@ -352,15 +352,18 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
 
   config = withGradleProperties(config, (config) => {
     const properties = config.modResults;
+    AndroidConfig.BuildProperties.updateAndroidBuildProperty(
+      properties,
+      'BITMOVIN_ENABLE_GOOGLE_IMA',
+      String(!!features.googleIMA)
+    );
+
     const existingEntry = properties.find(
       (item) =>
         item.type === 'property' &&
         item.key === 'android.extraMavenRepos' &&
         item.value
     );
-    if (existingEntry) {
-      properties.splice(config.modResults.indexOf(existingEntry), 1);
-    }
     const mavenRepos = JSON.parse(
       existingEntry?.type == 'property' ? existingEntry.value : '[]'
     );
@@ -370,11 +373,11 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
     if (!mavenRepos.some((repo: any) => repo.url === bitmovinRepoUrl)) {
       mavenRepos.push({ url: bitmovinRepoUrl });
     }
-    properties.push({
-      type: 'property',
-      key: 'android.extraMavenRepos',
-      value: JSON.stringify(mavenRepos),
-    });
+    AndroidConfig.BuildProperties.updateAndroidBuildProperty(
+      properties,
+      'android.extraMavenRepos',
+      JSON.stringify(mavenRepos)
+    );
 
     // Files that are shipped by multiple transitive dependencies of the native
     // player and would otherwise fail the app packaging with duplicate entries.
