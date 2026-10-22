@@ -63,6 +63,11 @@ yarn integration-test test --tags advertising,media-controls
 Arguments other than `--tags` are forwarded to `cavy-cli`. Omitting `--tags`
 runs the complete test suite.
 
+A failed test runs once more with a fresh app and player, like the native player
+suites. It passes if the second attempt passes. Each retry logs a
+`[Cavy retry]` line with the first error, so search the Metro output for it to
+spot flaky tests.
+
 See [Adding new tests](../CONTRIBUTING.md#adding-new-tests) to register a suite.
 
 ## Architecture
