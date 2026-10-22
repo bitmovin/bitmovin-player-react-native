@@ -6,6 +6,7 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.analytics.create
+import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.playlist.PlaylistConfig
 import com.bitmovin.player.api.playlist.PlaylistOptions
 import com.bitmovin.player.reactnative.converter.toAdItem
@@ -16,6 +17,7 @@ import com.bitmovin.player.reactnative.converter.toMediaControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.converter.toPlaylistOptions
 import com.bitmovin.player.reactnative.extensions.getMap
+import com.bitmovin.player.reactnative.util.NonFiniteSanitizer
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -27,6 +29,16 @@ class PlayerModule : Module() {
     private val shouldPlayAdBreakWaiter = ResultWaiter<Boolean>()
     private val imaSettingsWaiter = ResultWaiter<Map<String, Any?>>()
     private val removedSourceReleaser = RemovedSourceReleaser { releaseSource(it) }
+
+    private val eventRelay = EventRelay<Event>(PlayerEventTypes.player) { nativeId, event ->
+        sendEvent(
+            "onPlayerEvent",
+            mapOf(
+                "nativeId" to nativeId,
+                "event" to NonFiniteSanitizer.sanitizeEventData(event.toJson()),
+            ),
+        )
+    }
 
     override fun definition() = ModuleDefinition {
         Name("PlayerModule")
@@ -47,11 +59,21 @@ class PlayerModule : Module() {
             shouldLoadAdItemWaiter.clear()
             shouldPlayAdBreakWaiter.clear()
             imaSettingsWaiter.clear()
+            eventRelay.clear()
             removedSourceReleaser.clear()
             PlayerRegistry.clear()
         }
 
-        Events("onShouldLoadAdItem", "onShouldPlayAdBreak", "onImaBeforeInitialization")
+        Events("onShouldLoadAdItem", "onShouldPlayAdBreak", "onImaBeforeInitialization", "onPlayerEvent")
+
+        AsyncFunction("subscribe") { nativeId: NativeId, eventName: String ->
+            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
+            eventRelay.subscribe(nativeId, player, eventName)
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("unsubscribe") { nativeId: NativeId, eventName: String ->
+            eventRelay.unsubscribe(nativeId, PlayerRegistry.getPlayer(nativeId), eventName)
+        }.runOnQueue(Queues.MAIN)
 
         Constant("isGoogleImaEnabled") { ImaBeforeInitializationConfigurator.IS_GOOGLE_IMA_ENABLED }
 
@@ -94,6 +116,7 @@ class PlayerModule : Module() {
                 player.destroy()
                 PlayerRegistry.unregister(nativeId)
             }
+            eventRelay.unsubscribeAll(nativeId, player)
             removedSourceReleaser.detach(nativeId, player)
             sourceNativeIds.forEach { releaseSource(it) }
         }.runOnQueue(Queues.MAIN)

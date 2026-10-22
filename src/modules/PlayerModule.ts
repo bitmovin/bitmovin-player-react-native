@@ -1,6 +1,7 @@
 import type { NativeModule } from 'expo-modules-core';
 import { requireNativeModule } from 'expo-modules-core';
 import type { AdBreak, AdItem, ImaSettings } from '../advertising';
+import type { NativeEventPayload } from '../utils/eventListeners';
 
 export type PlayerModuleEvents = {
   onShouldLoadAdItem: ({
@@ -30,6 +31,7 @@ export type PlayerModuleEvents = {
     id: number;
     settings: ImaSettings;
   }) => void;
+  onPlayerEvent: (payload: NativeEventPayload) => void;
 };
 
 declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
@@ -37,6 +39,20 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
    * Whether the native app was built with Google IMA.
    */
   readonly isGoogleImaEnabled: boolean;
+
+  /**
+   * Attaches a native listener for `eventName` to nativeId's player.
+   *
+   * @platform Android
+   */
+  subscribe(nativeId: string, eventName: string): Promise<void>;
+
+  /**
+   * Detaches the native listener for `eventName` from nativeId's player.
+   *
+   * @platform Android
+   */
+  unsubscribe(nativeId: string, eventName: string): Promise<void>;
 
   /**
    * Call .play() on nativeId's player.

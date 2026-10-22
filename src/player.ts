@@ -1,4 +1,4 @@
-import type { EventSubscription } from 'expo-modules-core';
+import type { EventSubscription as ModuleEventSubscription } from 'expo-modules-core';
 import { Platform } from 'react-native';
 import PlayerModule from './modules/PlayerModule';
 import NativeInstance from './nativeInstance';
@@ -18,6 +18,8 @@ import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
 import type { PlaylistConfig } from './playlist';
 import { PlaylistApi } from './playlist';
+import type { EventSubscription, PlayerEventMap } from './eventMap';
+import { EventListeners } from './utils/eventListeners';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -69,9 +71,14 @@ export class Player extends NativeInstance<PlayerConfig> {
   private network?: Network;
 
   private decoderConfig?: DecoderConfigBridge;
-  private onShouldLoadAdItemSubscription?: EventSubscription;
-  private onShouldPlayAdBreakSubscription?: EventSubscription;
-  private onImaBeforeInitializationSubscription?: EventSubscription;
+  private onShouldLoadAdItemSubscription?: ModuleEventSubscription;
+  private onShouldPlayAdBreakSubscription?: ModuleEventSubscription;
+  private onImaBeforeInitializationSubscription?: ModuleEventSubscription;
+  private readonly eventListeners = new EventListeners<PlayerEventMap>(
+    this.nativeId,
+    PlayerModule,
+    (listener) => PlayerModule.addListener('onPlayerEvent', listener)
+  );
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
@@ -105,6 +112,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       }
 
       this.isInitialized = true;
+      await this.eventListeners.attachNative();
     }
     return Promise.resolve();
   };
@@ -117,8 +125,11 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   destroy = () => {
     if (!this.isDestroyed) {
-      void PlayerModule.destroy(this.nativeId);
-      this.knownSources.clear();
+      // Remove the listeners only after the native destroy, so they still receive the `destroy` event.
+      void PlayerModule.destroy(this.nativeId).finally(() => {
+        this.knownSources.clear();
+        this.eventListeners.removeAll();
+      });
       void this.network?.destroy();
       void this.decoderConfig?.destroy();
       this.onShouldLoadAdItemSubscription?.remove();
@@ -188,8 +199,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   loadSource = (source: Source) => {
     const forgetNewSources = this.rememberSources([source]);
-    void source
-      .initialize()
+    void Promise.all([source.initialize(), this.eventListeners.settled()])
       .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId))
       .then(
         () => this.keepKnownSources([source]),
@@ -218,8 +228,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * Only one source is active at a time and all player APIs (e.g. time, duration, seeking) act on the active
    * source; there is no playlist-wide time. Source events of inactive sources, such as `SourceLoaded` of a
-   * preloaded source, are not emitted by the player. Only `sourceError` is also emitted for inactive sources,
-   * without identifying the source. Ads scheduled via the advertising config only apply to the first source.
+   * preloaded source, are not emitted by the player; use {@link Source.on} to receive them. Only `sourceError`
+   * is also emitted for inactive sources, without identifying the source. Ads scheduled
+   * via the advertising config only apply to the first source.
    *
    * @returns a promise that rejects if the playlist could not be loaded, e.g. when `sources` is empty.
    * @platform Android
@@ -227,9 +238,10 @@ export class Player extends NativeInstance<PlayerConfig> {
   loadPlaylist = async (playlistConfig: PlaylistConfig): Promise<void> => {
     const forgetNewSources = this.rememberSources(playlistConfig.sources);
     try {
-      await Promise.all(
-        playlistConfig.sources.map((source) => source.initialize())
-      );
+      await Promise.all([
+        ...playlistConfig.sources.map((source) => source.initialize()),
+        this.eventListeners.settled(),
+      ]);
       await PlayerModule.loadPlaylist(
         this.nativeId,
         playlistConfig.sources.map((source) => source.nativeId),
@@ -266,6 +278,45 @@ export class Player extends NativeInstance<PlayerConfig> {
       .filter((sourceNativeId) => !sessionSourceIds.has(sourceNativeId))
       .forEach((sourceNativeId) => this.knownSources.delete(sourceNativeId));
   }
+
+  /**
+   * Registers `listener` to be called whenever the player emits `eventName`, independent of any
+   * {@link PlayerView}. The player emits its own events and the source events of the active source only;
+   * use {@link Source.on} for events of a specific source, including while it is inactive.
+   *
+   * Listeners registered before the player is initialized are attached during {@link Player.initialize},
+   * and listeners registered before loading receive the events of that load, such as `playerActive`.
+   * All listeners are removed when the player is destroyed.
+   *
+   * @param eventName - The name of the event, e.g. `playerActive`.
+   * @param listener - The function called with the event.
+   * @returns a subscription to remove the listener.
+   * @platform Android
+   */
+  on = <K extends keyof PlayerEventMap>(
+    eventName: K,
+    listener: (event: PlayerEventMap[K]) => void
+  ): EventSubscription => {
+    if (Platform.OS !== 'android' || this.isDestroyed) {
+      return { remove: () => {} };
+    }
+    return this.eventListeners.on(eventName, listener);
+  };
+
+  /**
+   * Removes a `listener` previously registered for `eventName` via {@link Player.on}.
+   * Has no effect if the listener is not registered.
+   *
+   * @param eventName - The name of the event.
+   * @param listener - The function passed to {@link Player.on}.
+   * @platform Android
+   */
+  off = <K extends keyof PlayerEventMap>(
+    eventName: K,
+    listener: (event: PlayerEventMap[K]) => void
+  ): void => {
+    this.eventListeners.off(eventName, listener);
+  };
 
   /**
    * Unloads all {@link Source}s from the player.
