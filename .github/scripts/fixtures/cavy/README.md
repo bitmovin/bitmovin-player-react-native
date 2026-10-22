@@ -1,6 +1,6 @@
 # Cavy summary fixtures
 
-The XML files retain the cases, counts and assertion messages from PRN-282 runs:
+The XML files retain the cases, counts and assertion messages from integration test runs:
 
 - `android-pass.xml`: Android run 39559415262, 64 passing cases.
 - `ios-failure.xml`: iOS run 39559427710, 52 passing cases and two source-event assertion failures.
