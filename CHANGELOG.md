@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update Expo SDK version to `57.0.30`
+
 ## [1.29.0] - 2026-10-20
 
 ### Added
