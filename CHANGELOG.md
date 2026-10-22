@@ -14,6 +14,7 @@
 
 - **Breaking change:** Replace the `Player.source` property with `Player.getSource()`, which returns the currently active source of the native player
 - **Breaking change:** `Source.destroy()` is no longer part of the public API. `Player.destroy()` no longer destroys its source. As on native, the sources of the current playback session are detached and can be loaded again, e.g. into another player.
+- Android: `PlayerView` event props are delivered through the player's event subscriptions, so events emitted right after loading (e.g. `onPlayerActive`) are no longer lost. Two `PlayerView`s showing the same player now both receive the events, and the order of fullscreen and picture-in-picture events relative to player events can differ slightly. `onEvent` now also receives the `PlaybackSpeedChanged`, `PlayerInactive`, `SourceAdded`, `SourceRemoved` and `PlaylistTransition` events.
 
 ### Fixed
 
