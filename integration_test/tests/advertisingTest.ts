@@ -266,6 +266,8 @@ export default (spec: TestScope) => {
           position: '15',
         },
         {
+          // Not vast2: IMA's request for it was rejected by CORS (ad error
+          // 1005) on CI. BITMOVIN VAST still covers vast2.
           sources: [{ tag: AdTags.vast1, type: AdSourceType.IMA }],
           position: 'post',
         },
