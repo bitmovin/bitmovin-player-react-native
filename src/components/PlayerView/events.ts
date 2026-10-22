@@ -81,6 +81,9 @@ import type {
  *
  * Note the events of `PlayerView` are simply a proxy over
  * the events from `NativePlayerView` just removing RN's bubbling data.
+ *
+ * On Android, player and source events can also be received without a `PlayerView`
+ * via {@link Player.on} and {@link Source.on}.
  */
 export type PlayerViewEvents = {
   /**
