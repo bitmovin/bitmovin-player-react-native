@@ -2,10 +2,27 @@ import type { NativeModule } from 'expo-modules-core';
 import { requireNativeModule } from 'expo-modules-core';
 import type { LoadingState, SourceRemoteControlConfig } from '../source';
 import type { Thumbnail } from '../thumbnail';
+import type { NativeEventPayload } from '../utils/eventListeners';
 
-export type SourceModuleEvents = Record<string, any>;
+export type SourceModuleEvents = {
+  onSourceEvent: (payload: NativeEventPayload) => void;
+};
 
 declare class SourceModule extends NativeModule<SourceModuleEvents> {
+  /**
+   * Attaches a native listener for `eventName` to the source with the given nativeId.
+   *
+   * @platform Android
+   */
+  subscribe(nativeId: string, eventName: string): Promise<void>;
+
+  /**
+   * Detaches the native listener for `eventName` from the source with the given nativeId.
+   *
+   * @platform Android
+   */
+  unsubscribe(nativeId: string, eventName: string): Promise<void>;
+
   /**
    * Checks if the source is attached to a player.
    */
