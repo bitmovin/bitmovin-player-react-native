@@ -1,4 +1,4 @@
-import type { EventSubscription } from 'expo-modules-core';
+import type { EventSubscription as ModuleEventSubscription } from 'expo-modules-core';
 import { Platform } from 'react-native';
 import PlayerModule from './modules/PlayerModule';
 import NativeInstance from './nativeInstance';
@@ -16,6 +16,8 @@ import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
 import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
+import type { EventSubscription, PlayerEventMap } from './eventMap';
+import { EventListeners } from './utils/eventListeners';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -59,9 +61,14 @@ export class Player extends NativeInstance<PlayerConfig> {
   private network?: Network;
 
   private decoderConfig?: DecoderConfigBridge;
-  private onShouldLoadAdItemSubscription?: EventSubscription;
-  private onShouldPlayAdBreakSubscription?: EventSubscription;
-  private onImaBeforeInitializationSubscription?: EventSubscription;
+  private onShouldLoadAdItemSubscription?: ModuleEventSubscription;
+  private onShouldPlayAdBreakSubscription?: ModuleEventSubscription;
+  private onImaBeforeInitializationSubscription?: ModuleEventSubscription;
+  private readonly eventListeners = new EventListeners<PlayerEventMap>(
+    this.nativeId,
+    PlayerModule,
+    (listener) => PlayerModule.addListener('onPlayerEvent', listener)
+  );
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
@@ -95,6 +102,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       }
 
       this.isInitialized = true;
+      await this.eventListeners.attachNative();
     }
     return Promise.resolve();
   };
@@ -104,7 +112,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   destroy = () => {
     if (!this.isDestroyed) {
-      void PlayerModule.destroy(this.nativeId);
+      // Remove the listeners only after the native destroy, so they still receive the `destroy` event.
+      void PlayerModule.destroy(this.nativeId).finally(() => {
+        this.eventListeners.removeAll();
+      });
       void this.source?.destroy();
       void this.network?.destroy();
       void this.decoderConfig?.destroy();
@@ -175,9 +186,48 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   loadSource = (source: Source) => {
     this.source = source;
-    void source
-      .initialize()
-      .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
+    void Promise.all([source.initialize(), this.eventListeners.settled()]).then(
+      () => PlayerModule.loadSource(this.nativeId, source.nativeId)
+    );
+  };
+
+  /**
+   * Registers `listener` to be called whenever the player emits `eventName`, independent of any
+   * {@link PlayerView}. The player emits its own events and the source events of the active source only;
+   * use {@link Source.on} for events of a specific source, including while it is inactive.
+   *
+   * Listeners registered before the player is initialized are attached during {@link Player.initialize},
+   * and listeners registered before loading receive the events of that load, such as `playerActive`.
+   * All listeners are removed when the player is destroyed.
+   *
+   * @param eventName - The name of the event, e.g. `playerActive`.
+   * @param listener - The function called with the event.
+   * @returns a subscription to remove the listener.
+   * @platform Android
+   */
+  on = <K extends keyof PlayerEventMap>(
+    eventName: K,
+    listener: (event: PlayerEventMap[K]) => void
+  ): EventSubscription => {
+    if (Platform.OS !== 'android' || this.isDestroyed) {
+      return { remove: () => {} };
+    }
+    return this.eventListeners.on(eventName, listener);
+  };
+
+  /**
+   * Removes a `listener` previously registered for `eventName` via {@link Player.on}.
+   * Has no effect if the listener is not registered.
+   *
+   * @param eventName - The name of the event.
+   * @param listener - The function passed to {@link Player.on}.
+   * @platform Android
+   */
+  off = <K extends keyof PlayerEventMap>(
+    eventName: K,
+    listener: (event: PlayerEventMap[K]) => void
+  ): void => {
+    this.eventListeners.off(eventName, listener);
   };
 
   /**
