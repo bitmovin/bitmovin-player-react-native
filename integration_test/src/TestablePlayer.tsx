@@ -23,8 +23,6 @@ export default function TestablePlayer({
         /^(onAd|onNonLinearAd)/.test(event.name) ||
         [
           'onReady',
-          'onSourceLoad',
-          'onSourceLoaded',
           'onPaused',
           'onStallStarted',
           'onStallEnded',
@@ -73,15 +71,6 @@ export default function TestablePlayer({
             style={styles.player}
             onPlayerViewReady={() => {
               if (player && playerTestWorld.player === player) {
-                // PRN-282 loading trace: remove after the native ordering experiment.
-                console.info(
-                  '[PRN-282 loading]',
-                  JSON.stringify({
-                    playerId: player.nativeId,
-                    phase: 'js-view-ready',
-                    observedAt: Date.now(),
-                  })
-                );
                 playerTestWorld.onPlayerViewReady(player);
               }
             }}

@@ -129,27 +129,3 @@ test('acknowledges the rendered player and ignores stale view readiness', () => 
   current.onPlayerViewReady();
   assert.equal(readyPlayers.length, 1);
 });
-
-test('loading trace records readiness and source receipt without source payloads', () => {
-  const logs = [];
-  const world = {
-    player: { nativeId: 'cavy-player-loading' },
-    onPlayerViewReady: () => {},
-    onEvent: () => {},
-  };
-  const props = renderPlayer(world, logs);
-  props.onPlayerViewReady();
-  for (const name of ['onSourceLoad', 'onSourceLoaded']) {
-    props.onEvent({ name, source: { url: 'private-url', drm: 'private-key' } });
-  }
-  assert.equal(logs.length, 3);
-  const records = logs.map((entry) => JSON.parse(entry[1]));
-  assert.equal(records[0].phase, 'js-view-ready');
-  assert.equal(records[1].event, 'onSourceLoad');
-  assert.equal(records[2].event, 'onSourceLoaded');
-  for (const record of records) {
-    assert.equal(record.playerId, world.player.nativeId);
-    assert.equal(typeof record.observedAt, 'number');
-  }
-  assert.ok(!JSON.stringify(logs).includes('private-'));
-});

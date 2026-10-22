@@ -179,16 +179,6 @@ public class RNPlayerView: ExpoView {
 
         player.add(listener: self)
         playerView?.add(listener: self)
-#if DEBUG
-        // PRN-282 loading trace: Cavy IDs only; remove after the ordering experiment.
-        if playerId.hasPrefix("cavy-player-") {
-            NSLog(
-                "[PRN-282 loading] playerId=%@ phase=native-listener-attached observedAt=%.3f",
-                playerId,
-                Date().timeIntervalSince1970 * 1_000
-            )
-        }
-#endif
 
         shouldExitPictureInPictureOnForeground =
             playerViewConfigWrapper?.pictureInPictureConfig?.shouldExitOnForeground ?? false
@@ -629,18 +619,6 @@ extension RNPlayerView: UserInterfaceListener {
     }
 
     public func onEvent(_ event: any Event, player: any Player) {
-#if DEBUG
-        // This is the catch-all dispatch consumed by TestablePlayer's onEvent.
-        if let playerId, playerId.hasPrefix("cavy-player-"),
-           event is SourceLoadEvent || event is SourceLoadedEvent {
-            NSLog(
-                "[PRN-282 loading] playerId=%@ phase=native-dispatch event=%@ observedAt=%.3f",
-                playerId,
-                String(describing: type(of: event)),
-                Date().timeIntervalSince1970 * 1_000
-            )
-        }
-#endif
         onBmpEvent(event.eventPayload())
     }
 }
