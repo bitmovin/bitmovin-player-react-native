@@ -33,6 +33,12 @@ def text(value, limit=240):
     )
 
 
+class ReportTreeBuilder(ET.TreeBuilder):
+    def doctype(self, name, pubid, system):
+        # Reject real DTDs without mistaking CDATA or comments for declarations.
+        raise ValueError('XML declarations are not supported')
+
+
 def read_report(directory):
     try:
         with (Path(directory) / 'cavy_results.xml').open('rb') as source:
@@ -47,9 +53,7 @@ def read_report(directory):
         return 'Empty report', None
     try:
         xml = raw.decode('utf-8-sig')
-        if re.search(r'<!\s*(DOCTYPE|ENTITY)', xml, re.I):
-            raise ValueError('XML declarations are not supported')
-        root = ET.fromstring(xml)
+        root = ET.fromstring(xml, parser=ET.XMLParser(target=ReportTreeBuilder()))
         if root.tag != 'testsuite' or any(case.tag != 'testcase' for case in root):
             raise ValueError('Expected Cavy testsuite/testcase format')
         counts = {'tests': len(root), 'failures': 0, 'errors': 0, 'skipped': 0}

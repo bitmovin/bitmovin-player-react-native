@@ -97,6 +97,30 @@ class CavySummaryTests(unittest.TestCase):
                 self.assertIn(expected, output)
                 self.assertNotIn('**Passed**', output)
 
+    def test_declaration_text_in_cdata_and_comments_preserves_failures(self):
+        xml = report(
+            '<!-- <!DOCTYPE testsuite> -->'
+            '<testcase name="html response"><failure><![CDATA['
+            '<!DOCTYPE html> <!ENTITY example "text">'
+            ']]></failure></testcase>', failures='1')
+        output = self.render(xml, 'failure')
+        self.assertIn('Assertion failures', output)
+        self.assertIn('| 1 | 0 | 1 | 0 | 0 |', output)
+        self.assertIn('&#60;&#33;DOCTYPE html&#62;', output)
+        self.assertNotIn('Malformed report', output)
+
+    def test_actual_doctypes_are_rejected(self):
+        declarations = (
+            '<!DOCTYPE testsuite>',
+            '<!DOCTYPE testsuite SYSTEM "https://example.invalid/report.dtd">',
+            '<!DOCTYPE testsuite [<!ENTITY x "expanded">]>',
+        )
+        for declaration in declarations:
+            with self.subTest(declaration=declaration):
+                output = self.render(declaration + report('<testcase/>'))
+                self.assertIn('Malformed report', output)
+                self.assertNotIn('**Passed**', output)
+
     def test_invalid_xml_and_aggregate_counts_are_rejected(self):
         for xml in [report('<testcase/>') + '<extra/>',
                     '<!DOCTYPE testsuite [<!ENTITY x "x">]>' + report(),
