@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Platform, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -47,6 +47,9 @@ export default function Playlist() {
   });
   const [sources, setSources] = useState<Source[]>([]);
   const [activeSource, setActiveSource] = useState<Source>();
+  const [loadedSourceIds, setLoadedSourceIds] = useState<Set<string>>(
+    new Set()
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -61,27 +64,47 @@ export default function Playlist() {
     setActiveSource(await player.getSource());
   }, [player]);
 
-  // Refresh after loading, as the initial SourceAdded and PlayerActive events can be emitted
-  // before the native view is ready to deliver them.
-  const onPlayerViewReady = useCallback(() => {
-    void player
-      .loadPlaylist({
-        sources: [new Source(artOfMotion), new Source(sintel)],
-        options: {
-          preloadAllSources: true,
-          replayMode: ReplayMode.Playlist,
-        },
-      })
-      .then(refreshPlaylist);
+  useEffect(() => {
+    const onPlaylistEvent = (event: Event) => {
+      prettyPrint(`EVENT [${event.name}]`, event);
+      void refreshPlaylist();
+    };
+    const subscriptions = [
+      player.on('playerActive', onPlaylistEvent),
+      player.on('playlistTransition', onPlaylistEvent),
+      player.on('sourceAdded', onPlaylistEvent),
+      player.on('sourceRemoved', onPlaylistEvent),
+    ];
+    return () => subscriptions.forEach((subscription) => subscription.remove());
   }, [player, refreshPlaylist]);
 
-  const onPlaylistEvent = useCallback(
-    async (event: Event) => {
-      prettyPrint(`EVENT [${event.name}]`, event);
-      await refreshPlaylist();
-    },
-    [refreshPlaylist]
-  );
+  // Source events are also emitted while a source is inactive, e.g. when it has been preloaded.
+  const createSource = useCallback((config: SourceConfig) => {
+    const source = new Source(config);
+    const setLoaded = (isLoaded: boolean) =>
+      setLoadedSourceIds((ids) => {
+        const updated = new Set(ids);
+        if (isLoaded) {
+          updated.add(source.nativeId);
+        } else {
+          updated.delete(source.nativeId);
+        }
+        return updated;
+      });
+    source.on('sourceLoaded', () => setLoaded(true));
+    source.on('sourceUnloaded', () => setLoaded(false));
+    return source;
+  }, []);
+
+  const onPlayerViewReady = useCallback(() => {
+    void player.loadPlaylist({
+      sources: [createSource(artOfMotion), createSource(sintel)],
+      options: {
+        preloadAllSources: true,
+        replayMode: ReplayMode.Playlist,
+      },
+    });
+  }, [player, createSource]);
 
   const onEvent = useCallback((event: Event) => {
     prettyPrint(`EVENT [${event.name}]`, event);
@@ -105,11 +128,6 @@ export default function Playlist() {
         player={player}
         style={styles.player}
         onPlayerViewReady={onPlayerViewReady}
-        onPlayerActive={onPlaylistEvent}
-        onPlaylistTransition={onPlaylistEvent}
-        onSourceAdded={onPlaylistEvent}
-        onSourceRemoved={onPlaylistEvent}
-        onSourceLoaded={onEvent}
         onPlaybackFinished={onEvent}
       />
       <View style={styles.controls}>
@@ -117,6 +135,7 @@ export default function Playlist() {
           <Text key={source.nativeId} style={styles.sourceText}>
             {index === activeIndex ? '▶ ' : '   '}
             {index + 1}. {source.config?.title}
+            {loadedSourceIds.has(source.nativeId) ? ' (loaded)' : ''}
           </Text>
         ))}
         <View style={styles.buttons}>
@@ -132,7 +151,7 @@ export default function Playlist() {
             title="Add"
             onPress={() =>
               void player.playlist.add(
-                new Source({
+                createSource({
                   ...artOfMotion,
                   title: `Art of Motion #${sources.length + 1}`,
                 })
