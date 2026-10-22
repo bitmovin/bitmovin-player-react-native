@@ -202,7 +202,7 @@ export type PlayerViewEvents = {
    */
   onDownloadFinished?: (event: DownloadFinishedEvent) => void;
   /**
-   * All events emitted by the player and the `PlayerView`.
+   * All events emitted by the player.
    *
    * Intended for debugging and testing: setting it subscribes to every event, including
    * high-frequency ones like `onTimeChanged`. Otherwise, prefer the specific event props or

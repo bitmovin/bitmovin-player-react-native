@@ -217,7 +217,7 @@ export function PlayerView({
           : undefined
       }
       onBmpDestroy={playerEventProxy(props.onDestroy)}
-      onBmpEvent={proxy(props.onEvent)}
+      onBmpEvent={playerEventProxy(props.onEvent)}
       onBmpFullscreenEnabled={proxy(props.onFullscreenEnabled)}
       onBmpFullscreenDisabled={proxy(props.onFullscreenDisabled)}
       onBmpFullscreenEnter={proxy(props.onFullscreenEnter)}

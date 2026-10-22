@@ -14,8 +14,6 @@ import androidx.lifecycle.LifecycleOwner
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.SubtitleView
 import com.bitmovin.player.api.Player
-import com.bitmovin.player.api.event.Event
-import com.bitmovin.player.api.event.EventListener
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
@@ -23,12 +21,10 @@ import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toUserInterfaceType
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
-import com.bitmovin.player.reactnative.util.NonFiniteSanitizer
 import com.facebook.react.ReactRootView
 import com.facebook.react.views.view.ReactViewGroup
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
-import expo.modules.kotlin.viewevent.ViewEventCallback
 import expo.modules.kotlin.views.ExpoView
 
 @SuppressLint("ViewConstructor")
@@ -47,72 +43,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private var fullscreenBridgeId: NativeId? = null
 
     private val onBmpPlayerViewReady by EventDispatcher()
-    private val onBmpEvent by EventDispatcher()
-    private val onBmpPlayerActive by EventDispatcher()
-    private val onBmpPlayerInactive by EventDispatcher()
-    private val onBmpPlayerError by EventDispatcher()
-    private val onBmpPlayerWarning by EventDispatcher()
-    private val onBmpDestroy by EventDispatcher()
-    private val onBmpMuted by EventDispatcher()
-    private val onBmpUnmuted by EventDispatcher()
-    private val onBmpReady by EventDispatcher()
-    private val onBmpPaused by EventDispatcher()
-    private val onBmpPlay by EventDispatcher()
-    private val onBmpPlaying by EventDispatcher()
-    private val onBmpPlaybackFinished by EventDispatcher()
-    private val onBmpSeek by EventDispatcher()
-    private val onBmpSeeked by EventDispatcher()
-    private val onBmpTimeShift by EventDispatcher()
-    private val onBmpTimeShifted by EventDispatcher()
-    private val onBmpStallStarted by EventDispatcher()
-    private val onBmpStallEnded by EventDispatcher()
-    private val onBmpTimeChanged by EventDispatcher()
-    private val onBmpSourceLoad by EventDispatcher()
-    private val onBmpSourceLoaded by EventDispatcher()
-    private val onBmpSourceUnloaded by EventDispatcher()
-    private val onBmpSourceAdded by EventDispatcher()
-    private val onBmpSourceRemoved by EventDispatcher()
-    private val onBmpPlaylistTransition by EventDispatcher()
-    private val onBmpSourceError by EventDispatcher()
-    private val onBmpSourceWarning by EventDispatcher()
-    private val onBmpAudioAdded by EventDispatcher()
-    private val onBmpAudioRemoved by EventDispatcher()
-    private val onBmpAudioChanged by EventDispatcher()
-    private val onBmpSubtitleAdded by EventDispatcher()
-    private val onBmpSubtitleRemoved by EventDispatcher()
-    private val onBmpSubtitleChanged by EventDispatcher()
-    private val onBmpDownloadFinished by EventDispatcher()
-    private val onBmpAdBreakFinished by EventDispatcher()
-    private val onBmpAdBreakStarted by EventDispatcher()
-    private val onBmpAdClicked by EventDispatcher()
-    private val onBmpAdError by EventDispatcher()
-    private val onBmpAdFinished by EventDispatcher()
-    private val onBmpAdManifestLoad by EventDispatcher()
-    private val onBmpAdManifestLoaded by EventDispatcher()
-    private val onBmpAdQuartile by EventDispatcher()
-    private val onBmpAdScheduled by EventDispatcher()
-    private val onBmpAdSkipped by EventDispatcher()
-    private val onBmpAdStarted by EventDispatcher()
-    private val onBmpNonLinearAdStarted by EventDispatcher()
-    private val onBmpNonLinearAdSkipped by EventDispatcher()
-    private val onBmpNonLinearAdFinished by EventDispatcher()
-    private val onBmpVideoDownloadQualityChanged by EventDispatcher()
-    private val onBmpVideoPlaybackQualityChanged by EventDispatcher()
-    private val onBmpCastAvailable by EventDispatcher()
-    private val onBmpCastPaused by EventDispatcher()
-    private val onBmpCastPlaybackFinished by EventDispatcher()
-    private val onBmpCastPlaying by EventDispatcher()
-    private val onBmpCastStarted by EventDispatcher()
-    private val onBmpCastStart by EventDispatcher()
-    private val onBmpCastStopped by EventDispatcher()
-    private val onBmpCastTimeUpdated by EventDispatcher()
-    private val onBmpCastWaitingForDevice by EventDispatcher()
-    private val onBmpPlaybackSpeedChanged by EventDispatcher()
-    private val onBmpCueEnter by EventDispatcher()
-    private val onBmpCueExit by EventDispatcher()
-    private val onBmpMetadata by EventDispatcher()
-    private val onBmpMetadataParsed by EventDispatcher()
-
     private val onBmpFullscreenEnabled by EventDispatcher()
     private val onBmpFullscreenDisabled by EventDispatcher()
     private val onBmpFullscreenEnter by EventDispatcher()
@@ -201,9 +131,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
     fun dispose() {
         playerView?.let { view ->
-            view.player?.let {
-                detachPlayerListeners(it)
-            }
             view.setPictureInPictureHandler(null)
             // keep the player alive (before calling PlayerView.onDestroy,
             // as this would internally destroy the player)
@@ -242,9 +169,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private fun setPlayerView(playerView: PlayerView) {
         // Remove existing playerView if it exists
         this.playerView?.let { oldPlayerView ->
-            oldPlayerView.player?.let {
-                detachPlayerListeners(it)
-            }
             (oldPlayerView.parent as? ViewGroup)?.removeView(oldPlayerView)
             oldPlayerView.player = null
         }
@@ -313,10 +237,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             return
         }
 
-        playerView?.player?.let {
-            detachPlayerListeners(it)
-        }
-        attachPlayerListeners(player)
         if (playerView != null) {
             playerView?.player = player
         } else {
@@ -516,97 +436,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         playerView.on(PlayerEvent.PictureInPictureExited::class) {
             onBmpPictureInPictureExited(it.toJson())
         }
-    }
-
-    private val playerEventDispatchers: Map<String, ViewEventCallback<Map<String, Any>>> = mapOf(
-        "playerActive" to onBmpPlayerActive,
-        "playerInactive" to onBmpPlayerInactive,
-        "playerError" to onBmpPlayerError,
-        "playerWarning" to onBmpPlayerWarning,
-        "destroy" to onBmpDestroy,
-        "muted" to onBmpMuted,
-        "unmuted" to onBmpUnmuted,
-        "ready" to onBmpReady,
-        "paused" to onBmpPaused,
-        "play" to onBmpPlay,
-        "playing" to onBmpPlaying,
-        "playbackFinished" to onBmpPlaybackFinished,
-        "seek" to onBmpSeek,
-        "seeked" to onBmpSeeked,
-        "timeShift" to onBmpTimeShift,
-        "timeShifted" to onBmpTimeShifted,
-        "stallStarted" to onBmpStallStarted,
-        "stallEnded" to onBmpStallEnded,
-        "timeChanged" to onBmpTimeChanged,
-        "sourceLoad" to onBmpSourceLoad,
-        "sourceLoaded" to onBmpSourceLoaded,
-        "sourceUnloaded" to onBmpSourceUnloaded,
-        "sourceAdded" to onBmpSourceAdded,
-        "sourceRemoved" to onBmpSourceRemoved,
-        "playlistTransition" to onBmpPlaylistTransition,
-        "sourceError" to onBmpSourceError,
-        "sourceWarning" to onBmpSourceWarning,
-        "audioAdded" to onBmpAudioAdded,
-        "audioChanged" to onBmpAudioChanged,
-        "audioRemoved" to onBmpAudioRemoved,
-        "subtitleAdded" to onBmpSubtitleAdded,
-        "subtitleChanged" to onBmpSubtitleChanged,
-        "subtitleRemoved" to onBmpSubtitleRemoved,
-        "downloadFinished" to onBmpDownloadFinished,
-        "adBreakFinished" to onBmpAdBreakFinished,
-        "adBreakStarted" to onBmpAdBreakStarted,
-        "adClicked" to onBmpAdClicked,
-        "adError" to onBmpAdError,
-        "adFinished" to onBmpAdFinished,
-        "adManifestLoad" to onBmpAdManifestLoad,
-        "adManifestLoaded" to onBmpAdManifestLoaded,
-        "adQuartile" to onBmpAdQuartile,
-        "adScheduled" to onBmpAdScheduled,
-        "adSkipped" to onBmpAdSkipped,
-        "adStarted" to onBmpAdStarted,
-        "nonLinearAdStarted" to onBmpNonLinearAdStarted,
-        "nonLinearAdSkipped" to onBmpNonLinearAdSkipped,
-        "nonLinearAdFinished" to onBmpNonLinearAdFinished,
-        "videoDownloadQualityChanged" to onBmpVideoDownloadQualityChanged,
-        "videoPlaybackQualityChanged" to onBmpVideoPlaybackQualityChanged,
-        "castAvailable" to onBmpCastAvailable,
-        "castPaused" to onBmpCastPaused,
-        "castPlaybackFinished" to onBmpCastPlaybackFinished,
-        "castPlaying" to onBmpCastPlaying,
-        "castStarted" to onBmpCastStarted,
-        "castStart" to onBmpCastStart,
-        "castStopped" to onBmpCastStopped,
-        "castTimeUpdated" to onBmpCastTimeUpdated,
-        "castWaitingForDevice" to onBmpCastWaitingForDevice,
-        "cueEnter" to onBmpCueEnter,
-        "cueExit" to onBmpCueExit,
-        "metadata" to onBmpMetadata,
-        "metadataParsed" to onBmpMetadataParsed,
-        "playbackSpeedChanged" to onBmpPlaybackSpeedChanged,
-    )
-
-    private val playerEventSubscriptions: List<EventSubscription<Event>> =
-        PlayerEventTypes.player.map { (eventName, eventClass) ->
-            val dispatcher = playerEventDispatchers.getValue(eventName)
-            EventSubscription(eventClass, EventListener<Event> { onEvent(dispatcher, it.toJson()) })
-        }
-
-    private fun detachPlayerListeners(player: Player) {
-        playerEventSubscriptions.forEach {
-            player.off(it.eventClass, it.eventListener)
-        }
-    }
-
-    private fun attachPlayerListeners(player: Player) {
-        playerEventSubscriptions.forEach {
-            player.on(it.eventClass, it.eventListener)
-        }
-    }
-
-    private fun onEvent(dispatcher: ViewEventCallback<Map<String, Any>>, eventData: Map<String, Any>) {
-        val sanitized = NonFiniteSanitizer.sanitizeEventData(eventData)
-        dispatcher(sanitized)
-        onBmpEvent(sanitized)
     }
 
     fun setFullscreen(isFullscreen: Boolean) {
