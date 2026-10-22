@@ -6,6 +6,8 @@ import {
   SourceAddedEvent,
   SourceLoadedEvent,
 } from 'bitmovin-player-react-native';
+import { loadSourceConfig, startPlayerTest } from '../playertesting';
+import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 
@@ -180,6 +182,18 @@ export default (spec: TestScope) => {
             ),
             'Player SourceLoaded of the inactive source'
           ).toBeFalsy();
+        });
+      }
+    );
+  });
+
+  spec.describe('PlayerView event props', () => {
+    spec.it(
+      'deliver PlayerActive when the view is mounted before loading',
+      async () => {
+        await startPlayerTest({}, async () => {
+          await loadSourceConfig(Sources.artOfMotionHls);
+          expect(PlayerTestWorld.shared.playerActivePropEvents).toHaveLength(1);
         });
       }
     );
