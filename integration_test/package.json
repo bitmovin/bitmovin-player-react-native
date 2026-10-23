@@ -59,7 +59,7 @@
     "@react-native/metro-config": "0.86.3",
     "@types/react": "~19.2.4",
     "babel-plugin-module-resolver": "^5.0.0",
-    "cavy-cli": "github:bitmovin-engineering/cavy-cli#a288754",
+    "cavy-cli": "github:bitmovin-engineering/cavy-cli#833199422418fa72ba6f977b190f46beb23fbba2",
     "dotenv": "^17.2.0",
     "eslint": "^8.57.0",
     "eslint-config-expo": "~57.0.2",

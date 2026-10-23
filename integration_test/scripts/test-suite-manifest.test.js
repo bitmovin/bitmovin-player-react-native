@@ -51,7 +51,9 @@ describe('test suite manifest', () => {
 
       assert.deepEqual(
         registeredTags,
-        availableTestTags.map(({ name }) => name)
+        availableTestTags
+          .map(({ name }) => name)
+          .filter((name) => name !== 'loading-vod')
       );
     } finally {
       for (const modulePath of loadedModulePaths) {
@@ -63,6 +65,41 @@ describe('test suite manifest', () => {
       } else {
         delete require.extensions['.ts'];
       }
+    }
+  });
+
+  it('offers a VOD-only loading selector without duplicating the full loading suite', () => {
+    assert.ok(availableTestTags.some(({ name }) => name === 'loading-vod'));
+    const originalTypeScriptLoader = require.extensions['.ts'];
+    const originalTags = process.env.EXPO_PUBLIC_CAVY_ONLY_TAGS;
+    const loaded = [];
+    const calls = [];
+    require.extensions['.ts'] = (module, filename) => {
+      loaded.push(filename);
+      module.exports = {
+        default: () => calls.push('full'),
+        loadingVodTests: () => calls.push('vod'),
+      };
+    };
+    try {
+      process.env.EXPO_PUBLIC_CAVY_ONLY_TAGS = 'playback,loading-vod';
+      for (const register of createSpecs())
+        register({ describe() {}, it() {} });
+      assert.equal(calls.filter((call) => call === 'vod').length, 1);
+      delete process.env.EXPO_PUBLIC_CAVY_ONLY_TAGS;
+      calls.length = 0;
+      for (const register of createSpecs())
+        register({ describe() {}, it() {} });
+      assert.ok(calls.length > 0);
+      assert.ok(calls.every((call) => call === 'full'));
+    } finally {
+      for (const filename of loaded) delete require.cache[filename];
+      if (originalTypeScriptLoader)
+        require.extensions['.ts'] = originalTypeScriptLoader;
+      else delete require.extensions['.ts'];
+      if (originalTags === undefined)
+        delete process.env.EXPO_PUBLIC_CAVY_ONLY_TAGS;
+      else process.env.EXPO_PUBLIC_CAVY_ONLY_TAGS = originalTags;
     }
   });
 
