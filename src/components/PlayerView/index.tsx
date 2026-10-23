@@ -84,16 +84,26 @@ export function PlayerView({
     playerViewConfig: config,
   };
 
-  const [isPlayerInitialized, setIsPlayerInitialized] = useState(false);
-  const didNotifyPlayerViewReady = useRef(false);
+  const [initializedPlayer, setInitializedPlayer] = useState<typeof player>();
+  const isPlayerInitialized = initializedPlayer === player;
+  const didNotifyPlayerViewReady = useRef<typeof player | undefined>(undefined);
+  const currentPlayer = useRef<typeof player | undefined>(player);
+  currentPlayer.current = player;
 
   useEffect(() => {
+    let cancelled = false;
+    currentPlayer.current = player;
     void player.initialize().then(() => {
-      setIsPlayerInitialized(true);
-      // call attach player on native view if switched to AsyncFunction for RNPlayerViewExpo
+      if (!cancelled) {
+        setInitializedPlayer(player);
+      }
     });
 
     return () => {
+      cancelled = true;
+      if (currentPlayer.current === player) {
+        currentPlayer.current = undefined;
+      }
       fullscreenBridge.current?.destroy();
       fullscreenBridge.current = undefined;
       customMessageHandlerBridge.current?.destroy();
@@ -109,12 +119,7 @@ export function PlayerView({
     if (viewRef) {
       viewRef.current = nativeView.current;
     }
-
-    if (!didNotifyPlayerViewReady.current) {
-      didNotifyPlayerViewReady.current = true;
-      onPlayerViewReady?.();
-    }
-  }, [isPlayerInitialized, viewRef, nativeView, onPlayerViewReady]);
+  }, [isPlayerInitialized, viewRef, nativeView]);
 
   // Compare the actions by content, so passing a new array with the same actions on every render
   // does not trigger a native update each time.
@@ -153,6 +158,20 @@ export function PlayerView({
       isPictureInPictureRequested={isPictureInPictureRequested}
       scalingMode={scalingMode}
       fullscreenBridgeId={fullscreenBridge.current?.nativeId}
+      onBmpPlayerViewReady={(event) => {
+        if (
+          currentPlayer.current !== player ||
+          event.nativeEvent.playerId !== player.nativeId ||
+          didNotifyPlayerViewReady.current === player
+        ) {
+          return;
+        }
+        if (viewRef) {
+          viewRef.current = nativeView.current;
+        }
+        didNotifyPlayerViewReady.current = player;
+        onPlayerViewReady?.();
+      }}
       onBmpAdBreakFinished={proxy(props.onAdBreakFinished)}
       onBmpAdBreakStarted={proxy(props.onAdBreakStarted)}
       onBmpAdClicked={proxy(props.onAdClicked)}
