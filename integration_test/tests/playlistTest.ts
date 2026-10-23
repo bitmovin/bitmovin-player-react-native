@@ -1,6 +1,7 @@
 import { TestScope } from 'cavy';
 import {
   LoadingState,
+  Player,
   PlaylistTransitionEvent,
   SeekEvent,
   Source,
@@ -278,6 +279,36 @@ export default (spec: TestScope) => {
       });
     });
 
+    spec.it('releases a removed source, which can be added again', async () => {
+      await startPlayerTest({}, async () => {
+        const first = new Source(Sources.artOfMotionHls);
+        const second = new Source(Sources.sintel);
+
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.loadPlaylist({ sources: [first, second] });
+        }, EventType.Ready);
+
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.playlist.remove(second);
+        }, EventType.SourceRemoved);
+        // The source is released before `remove` resolves, so adding it again re-creates it natively.
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.playlist.add(second);
+        }, EventType.SourceAdded);
+        await callPlayer(async (player) => {
+          const sources = await player.playlist.getSources();
+          expect(sources.map((source) => source.nativeId)).toEqual([
+            first.nativeId,
+            second.nativeId,
+          ]);
+          await player.playlist.seek(second, 0);
+        });
+
+        const isActive = await waitUntil(async () => await second.isActive());
+        expect(isActive, 'Re-added source after seeking').toBeTruthy();
+      });
+    });
+
     spec.it('does not remove the active source', async () => {
       await startPlayerTest({}, async () => {
         const first = new Source(Sources.artOfMotionHls);
@@ -326,5 +357,34 @@ export default (spec: TestScope) => {
         });
       });
     });
+  });
+
+  spec.describe('destroying a player', () => {
+    spec.it(
+      'releases the sources of its current session, which can be loaded again',
+      async () => {
+        const playerA = new Player();
+        const playerB = new Player();
+        try {
+          await playerA.initialize();
+          await playerB.initialize();
+          const moved = new Source(Sources.artOfMotionHls);
+          const current = new Source(Sources.sintel);
+          await playerA.loadPlaylist({ sources: [moved] });
+          await playerA.loadPlaylist({ sources: [current] });
+          await playerB.loadPlaylist({ sources: [moved] });
+
+          playerA.destroy();
+
+          expect(await playerB.getSource()).toBe(moved);
+          await playerB.loadPlaylist({ sources: [current] });
+          expect(await playerB.getSource()).toBe(current);
+          expect(await current.isActive(), 'Reloaded source').toBeTruthy();
+        } finally {
+          playerA.destroy();
+          playerB.destroy();
+        }
+      }
+    );
   });
 };

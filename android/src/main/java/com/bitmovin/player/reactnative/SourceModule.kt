@@ -6,6 +6,7 @@ import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toSourceConfig
 import expo.modules.kotlin.exception.CodedException
+import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -24,18 +25,16 @@ class SourceModule : Module() {
         AsyncFunction("initializeWithConfig") { nativeId: NativeId, drmNativeId: NativeId?,
             config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?, ->
             initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, null)
-        }
+        }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("initializeWithAnalyticsConfig") { nativeId: NativeId, drmNativeId: NativeId?,
             config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?,
             analyticsSourceMetadata: Map<String, Any>?, ->
             initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, analyticsSourceMetadata)
-        }
+        }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("destroy") { nativeId: NativeId ->
-            SourceRegistry.unregister(nativeId)
-            // Don't return the removed value: Expo can't convert it to a JS value and rejects the promise.
-            Unit
+            releaseSource(nativeId)
         }
 
         AsyncFunction("isAttachedToPlayer") { nativeId: NativeId ->
@@ -100,6 +99,14 @@ class SourceModule : Module() {
     // CRITICAL: This method must remain available for cross-module access
     // Called by PlayerModule.loadSource()
     fun getSourceOrNull(nativeId: NativeId): Source? = SourceRegistry.getSource(nativeId)
+
+    /**
+     * Releases the bridge's handle of a source: removes it from the [SourceRegistry]. The native [Source]
+     * itself is not affected.
+     */
+    fun releaseSource(nativeId: NativeId) {
+        SourceRegistry.unregister(nativeId)
+    }
 }
 
 // MARK: - Exception Definitions

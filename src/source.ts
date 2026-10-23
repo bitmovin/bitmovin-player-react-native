@@ -178,52 +178,59 @@ export class Source extends NativeInstance<SourceConfig> {
   remoteControl: SourceRemoteControlConfig | null = null;
   /**
    * Whether the native {@link Source} object has been created.
+   * The native source is released once it is removed from a player or its player is destroyed, and
+   * {@link Source.initialize} creates it again, e.g. when the source is loaded again.
    */
   isInitialized = false;
   /**
-   * Whether the native {@link Source} object has been disposed.
+   * Whether the native {@link Source} object has been disposed via {@link Source.destroy}.
+   *
+   * @internal
    */
   isDestroyed = false;
 
   /**
-   * Allocates the native {@link Source} instance and its resources natively.
+   * Allocates the native {@link Source} instance and its resources natively, or again if it has been released.
    */
   initialize = async (): Promise<void> => {
-    if (!this.isInitialized) {
-      const sourceMetadata = this.config?.analyticsSourceMetadata;
-      if (this.config?.drmConfig) {
-        this.drm = new Drm(this.config.drmConfig, this.nativeId);
-        await this.drm.initialize();
-      }
-      if (sourceMetadata) {
-        await SourceModule.initializeWithAnalyticsConfig(
-          this.nativeId,
-          this.drm?.nativeId,
-          this.config,
-          this.remoteControl || undefined,
-          sourceMetadata
-        );
-      } else {
-        await SourceModule.initializeWithConfig(
-          this.nativeId,
-          this.drm?.nativeId,
-          this.config,
-          this.remoteControl || undefined
-        );
-      }
-      this.isInitialized = true;
+    const sourceMetadata = this.config?.analyticsSourceMetadata;
+    if (this.config?.drmConfig && !this.drm) {
+      this.drm = new Drm(this.config.drmConfig, this.nativeId);
+      await this.drm.initialize();
     }
-    return Promise.resolve();
+    if (sourceMetadata) {
+      await SourceModule.initializeWithAnalyticsConfig(
+        this.nativeId,
+        this.drm?.nativeId,
+        this.config,
+        this.remoteControl || undefined,
+        sourceMetadata
+      );
+    } else {
+      await SourceModule.initializeWithConfig(
+        this.nativeId,
+        this.drm?.nativeId,
+        this.config,
+        this.remoteControl || undefined
+      );
+    }
+    this.isInitialized = true;
+    this.isDestroyed = false;
   };
 
   /**
    * Destroys the native {@link Source} and releases all of its allocated resources.
+   * The source can be initialized again afterwards.
+   *
+   * @internal
    */
   destroy = () => {
     if (!this.isDestroyed) {
       void SourceModule.destroy(this.nativeId);
       void this.drm?.destroy();
+      this.drm = undefined;
       this.isDestroyed = true;
+      this.isInitialized = false;
     }
   };
 

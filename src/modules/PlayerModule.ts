@@ -70,6 +70,7 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
 
   /**
    * Call .destroy() on nativeId's player and remove from registry.
+   * Releases the sources of the current playback session.
    */
   destroy(nativeId: string): Promise<void>;
 

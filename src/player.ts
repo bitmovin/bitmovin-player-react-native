@@ -108,11 +108,13 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Destroys the native `Player` and releases all of its allocated resources.
+   *
+   * The {@link Source}s of the current playback session are released as well, and can be loaded again, e.g. into
+   * another player.
    */
   destroy = () => {
     if (!this.isDestroyed) {
       void PlayerModule.destroy(this.nativeId);
-      this.knownSources.forEach((source) => void source.destroy());
       this.knownSources.clear();
       void this.network?.destroy();
       void this.decoderConfig?.destroy();

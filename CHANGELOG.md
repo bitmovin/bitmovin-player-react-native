@@ -12,6 +12,7 @@
 ### Changed
 
 - **Breaking change:** Replace the `Player.source` property with `Player.getSource()`, which returns the currently active source of the native player
+- **Breaking change:** `Source.destroy()` is no longer part of the public API. `Player.destroy()` no longer destroys its source. As on native, the sources of the current playback session are detached and can be loaded again, e.g. into another player.
 
 ### Fixed
 

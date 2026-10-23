@@ -26,6 +26,7 @@ class PlayerModule : Module() {
     private val shouldLoadAdItemWaiter = ResultWaiter<Boolean>()
     private val shouldPlayAdBreakWaiter = ResultWaiter<Boolean>()
     private val imaSettingsWaiter = ResultWaiter<Map<String, Any?>>()
+    private val removedSourceReleaser = RemovedSourceReleaser { releaseSource(it) }
 
     override fun definition() = ModuleDefinition {
         Name("PlayerModule")
@@ -46,6 +47,7 @@ class PlayerModule : Module() {
             shouldLoadAdItemWaiter.clear()
             shouldPlayAdBreakWaiter.clear()
             imaSettingsWaiter.clear()
+            removedSourceReleaser.clear()
             PlayerRegistry.clear()
         }
 
@@ -85,12 +87,15 @@ class PlayerModule : Module() {
 
         AsyncFunction("destroy") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
+            // Read the sources of the current playback session before destroy() stops it, to release them afterwards.
+            val sourceNativeIds = player?.playlist?.sources.orEmpty().mapNotNull { SourceRegistry.getNativeId(it) }
             if (player != null) {
                 // Note: MediaSession cleanup would need to be handled here
-                // For now, just destroy the player and remove from registry
                 player.destroy()
                 PlayerRegistry.unregister(nativeId)
             }
+            removedSourceReleaser.detach(nativeId, player)
+            sourceNativeIds.forEach { releaseSource(it) }
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("setVolume") { nativeId: NativeId, volume: Double ->
@@ -327,6 +332,10 @@ class PlayerModule : Module() {
         }.runOnQueue(Queues.MAIN)
     }
 
+    private fun releaseSource(nativeId: NativeId) {
+        appContext.registry.getModule<SourceModule>()?.releaseSource(nativeId)
+    }
+
     private fun initializePlayer(
         nativeId: NativeId,
         config: Map<String, Any>?,
@@ -392,6 +401,7 @@ class PlayerModule : Module() {
             Player.create(applicationContext, playerConfig)
         }
         PlayerRegistry.register(player, nativeId)
+        removedSourceReleaser.attach(nativeId, player)
 
         if (enableMediaSession) {
             mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
