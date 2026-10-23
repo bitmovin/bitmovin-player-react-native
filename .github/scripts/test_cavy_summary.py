@@ -23,7 +23,8 @@ class CavySummaryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             if xml is not None:
-                (root / 'cavy_results.xml').write_text(xml, encoding='utf-8')
+                raw = xml if isinstance(xml, bytes) else xml.encode('utf-8')
+                (root / 'cavy_results.xml').write_bytes(raw)
             summary = root / 'summary.md'
             env = {
                 **os.environ,
@@ -66,8 +67,7 @@ class CavySummaryTests(unittest.TestCase):
         )
         for expected in ['Passed', '| 64 | 64 | 0 | 0 | 0 |',
                          'Android API 36', 'pixel', 'head', 'checkout',
-                         'actions/runs/123/artifacts/456', 'cavy_results.xml',
-                         'TV runtime', 'physical devices', 'encrypted playback']:
+                         'actions/runs/123/artifacts/456']:
             self.assertIn(expected, output)
 
     def test_saved_ios_assertions_include_suite_test_and_message(self):
@@ -75,9 +75,20 @@ class CavySummaryTests(unittest.TestCase):
         for expected in ['Assertion failures', '| 54 | 52 | 2 | 0 | 0 |',
                          'loading a VOD source', 'loading a live source',
                          'emits SourceLoad and SourceLoaded events',
-                         'Expectation was not met', 'onSourceLoad', 'FairPlay',
+                         'Expectation was not met', 'onSourceLoad',
                          'https://github.com/bitmovin/player/actions/runs/123#artifacts']:
             self.assertIn(expected, output)
+
+    def test_summary_does_not_claim_workflow_contents_or_suite_coverage(self):
+        for platform in ('ios', 'android', 'unknown'):
+            for outcome in ('success', 'skipped'):
+                with self.subTest(platform=platform, outcome=outcome):
+                    output = self.render(report('<testcase/>'), outcome,
+                                         CAVY_SUMMARY_PLATFORM=platform)
+                    for claim in ('### Exclusions', 'FairPlay', 'Android DRM',
+                                  'TV runtime', 'Includes cavy_results'):
+                        self.assertNotIn(claim, output)
+                    self.assertIn('absent suites are not passes', output)
 
     def test_missing_malformed_empty_and_zero_reports_are_distinct(self):
         for xml, expected in [(None, 'Missing report'), ('', 'Empty report'),
@@ -85,6 +96,30 @@ class CavySummaryTests(unittest.TestCase):
             with self.subTest(expected=expected):
                 output = self.render(xml, 'failure')
                 self.assertIn(expected, output)
+                self.assertNotIn('**Passed**', output)
+
+    def test_declaration_text_in_cdata_and_comments_preserves_failures(self):
+        xml = report(
+            '<!-- <!DOCTYPE testsuite> -->'
+            '<testcase name="html response"><failure><![CDATA['
+            '<!DOCTYPE html> <!ENTITY example "text">'
+            ']]></failure></testcase>', failures='1')
+        output = self.render(xml, 'failure')
+        self.assertIn('Assertion failures', output)
+        self.assertIn('| 1 | 0 | 1 | 0 | 0 |', output)
+        self.assertIn('&#60;&#33;DOCTYPE html&#62;', output)
+        self.assertNotIn('Malformed report', output)
+
+    def test_actual_doctypes_are_rejected(self):
+        declarations = (
+            '<!DOCTYPE testsuite>',
+            '<!DOCTYPE testsuite SYSTEM "https://example.invalid/report.dtd">',
+            '<!DOCTYPE testsuite [<!ENTITY x "expanded">]>',
+        )
+        for declaration in declarations:
+            with self.subTest(declaration=declaration):
+                output = self.render(declaration + report('<testcase/>'))
+                self.assertIn('Malformed report', output)
                 self.assertNotIn('**Passed**', output)
 
     def test_invalid_xml_and_aggregate_counts_are_rejected(self):
@@ -96,6 +131,33 @@ class CavySummaryTests(unittest.TestCase):
                     report('<other/>'), '<testsuites/>']:
             with self.subTest(xml=xml):
                 self.assertIn('Malformed report', self.render(xml, 'failure'))
+
+    def test_non_utf8_report_is_unavailable(self):
+        output = self.render(b'\xff\xfe' + report('<testcase/>').encode('utf-8'))
+        self.assertIn('Malformed report', output)
+        self.assertIn('Counts unavailable', output)
+        self.assertNotIn('**Passed**', output)
+
+    def test_unrecognized_case_children_do_not_hide_failure(self):
+        output = self.render(report(
+            '<testcase name="failure"><extra>diagnostic</extra>'
+            '<failure message="assertion failed"/></testcase>', failures='1'), 'failure')
+        self.assertIn('Assertion failures', output)
+        self.assertIn('assertion failed', output)
+        self.assertIn('| 1 | 0 | 1 | 0 | 0 |', output)
+
+    def test_unset_summary_destination_is_a_quiet_noop(self):
+        env = {key: value for key, value in os.environ.items()
+               if key != 'GITHUB_STEP_SUMMARY'}
+        with tempfile.TemporaryDirectory() as directory:
+            result = subprocess.run(
+                [sys.executable, str(SCRIPT)], env=env, cwd=directory,
+                capture_output=True, text=True, timeout=10,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout, '')
+            self.assertEqual(result.stderr, '')
+            self.assertEqual(list(Path(directory).iterdir()), [])
 
     def test_passing_cases_do_not_hide_infrastructure_failure(self):
         output = self.render(report('<testcase name="pass"/>'), 'failure')

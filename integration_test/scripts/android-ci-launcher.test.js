@@ -6,6 +6,20 @@ const test = require('node:test');
 
 const launcherPath = path.join(__dirname, 'android-ci-launcher.js');
 
+test('full Android suites use an IMA-enabled host alongside the no-IMA build', () => {
+  const workflow = require('yaml').parse(
+    fs.readFileSync(
+      path.join(__dirname, '../../.github/workflows/ci-android.yml'),
+      'utf8'
+    )
+  );
+  const build = workflow.jobs['test-build-android-integration-tests'];
+  const runtime = workflow.jobs['android-system-tests'];
+  assert.ok(runtime, 'Full-suite execution must have its own job');
+  assert.equal(build.env.BITMOVIN_ENABLE_GOOGLE_IMA, 'false');
+  assert.equal(runtime.env.BITMOVIN_ENABLE_GOOGLE_IMA, 'true');
+});
+
 function fixture(t, overrides = {}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'android-ci-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));

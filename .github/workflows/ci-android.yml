@@ -1,6 +1,8 @@
 name: CI (Android)
 
 on:
+  workflow_dispatch:
+
   pull_request:
     paths:
       - '.github/workflows/ci-android.yml'
@@ -54,8 +56,6 @@ on:
       - '**/gradle-wrapper.properties'
       - '**/gradle/**'
       - '**/gradlew*'
-
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -114,14 +114,74 @@ jobs:
           END_TIME=$(date +%s)
           echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
 
+      - name: Verify Google IMA runtime dependency is present
+        run: |
+          cd example/android
+          ./gradlew :app:dependencies --configuration debugRuntimeClasspath \
+            --quiet --console=plain --no-daemon \
+            > "$RUNNER_TEMP/android-example-runtime-dependencies.txt"
+          if ! grep -q 'com.google.ads.interactivemedia.v3:interactivemedia' \
+            "$RUNNER_TEMP/android-example-runtime-dependencies.txt"; then
+            echo "::error::Missing Google IMA from the Android example runtime dependency graph"
+            exit 1
+          fi
+
       - name: Report build time
         run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
 
   test-build-android-integration-tests:
-    name: Build and test Android integration host
+    name: Build Android Integration Tests
+    runs-on: ubuntu-latest
+    env:
+      BITMOVIN_ENABLE_GOOGLE_IMA: 'false'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          java: true
+          node: true
+          subprojects: true
+          skip-prebuild: true
+
+      - name: Prebuild Android Integration
+        run: yarn integration-test prebuild --clean --platform android
+
+      - name: Build Android integration test host app
+        id: build
+        run: |
+          START_TIME=$(date +%s)
+          cd integration_test/android
+          ./gradlew assembleDebug --quiet --console=plain \
+            --build-cache --parallel --max-workers=4 --no-daemon \
+            --no-configuration-cache \
+            -PreactNativeArchitectures=x86,x86_64
+          END_TIME=$(date +%s)
+          echo "duration=$((END_TIME - START_TIME))" >> $GITHUB_OUTPUT
+
+      - name: Verify Google IMA runtime dependency is absent
+        run: |
+          cd integration_test/android
+          ./gradlew :app:dependencies --configuration debugRuntimeClasspath \
+            --quiet --console=plain --no-daemon \
+            > "$RUNNER_TEMP/android-integration-runtime-dependencies.txt"
+          if grep -q 'com.google.ads.interactivemedia.v3:interactivemedia' \
+            "$RUNNER_TEMP/android-integration-runtime-dependencies.txt"; then
+            echo "::error::Unexpected Google IMA in the Android integration runtime dependency graph"
+            exit 1
+          fi
+
+      - name: Report build time
+        run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
+
+  android-system-tests:
+    name: Run Android integration suites
     runs-on: ubuntu-latest
     timeout-minutes: 75
     env:
+      BITMOVIN_ENABLE_GOOGLE_IMA: 'true'
       ANDROID_SERIAL: emulator-5554
       CAVY_ANDROID_APK: ${{ github.workspace }}/integration_test/android/app/build/outputs/apk/debug/app-debug.apk
       CAVY_ARTIFACTS_DIR: ${{ github.workspace }}/integration_test/artifacts/android-system-tests
