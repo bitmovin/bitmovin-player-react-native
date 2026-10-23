@@ -32,6 +32,7 @@
 - Setup: `cp integration_test/.env.example integration_test/.env` and set `EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY`.
 - Run: `yarn integration-test test:ios` or `test:android` (simulator/emulator only).
 - Add per‑feature tests (e.g., `Playback.test.ts`) covering happy‑path and error events.
+- Before writing integration tests, follow [Writing reliable tests](CONTRIBUTING.md#writing-reliable-tests): observe events before triggering them, avoid sleeps, and register platform-specific cases only where they run.
 
 ## Commit & Pull Request Guidelines
 
@@ -95,6 +96,9 @@
   - Do not duplicate the same default in prose and `@defaultValue`.
   - If defaults differ by platform, describe that inside `@defaultValue`, e.g. `@defaultValue iOS: \`1.0\`, Android: \`0.2\``.
   - When touching public docs that already mention defaults in prose, convert the touched default to `@defaultValue` instead of preserving the older style.
+- Developer-facing warnings must be raised from JS with `console.warn` so they show in the Metro terminal and LogBox.
+  - Native logs do not reach Metro: Android `Log.w` goes only to logcat; ExpoModulesCore `log.warn` on iOS goes only to the Xcode console and Console.app.
+  - When the condition is only known natively, expose it to JS (e.g. a module `Constant`) and warn there. Example: `PlayerModule.isGoogleImaEnabled` with the warning in `src/player.ts`.
 - Match native names exactly on both platforms:
   - iOS: `Name("PlayerModule")` in `ios/PlayerModule.swift:7`; Android: `Name("PlayerModule")` in `android/src/main/java/com/bitmovin/player/reactnative/PlayerModule.kt:23`.
 - Bridge views via view managers:

@@ -5,6 +5,26 @@ const path = require('node:path');
 const { EventEmitter } = require('node:events');
 const test = require('node:test');
 
+test('full iOS suites use an IMA-enabled host alongside the no-IMA build', () => {
+  const workflow = require('yaml').parse(
+    fs.readFileSync(
+      path.join(__dirname, '../../.github/workflows/ci-ios-tvos.yml'),
+      'utf8'
+    )
+  );
+  const build = workflow.jobs['ios-integration-build'];
+  const runtime = workflow.jobs['ios-system-tests'];
+  assert.ok(runtime, 'Full-suite execution must have its own job');
+  assert.equal(build.env.BITMOVIN_ENABLE_GOOGLE_IMA, 'false');
+  assert.equal(runtime.env.BITMOVIN_ENABLE_GOOGLE_IMA, 'true');
+  assert.ok(
+    runtime.steps
+      .filter((step) => step.uses?.startsWith('actions/cache@'))
+      .every((step) => !step.with.key.includes('google-ima-disabled')),
+    'Runtime builds must not reuse the disabled-IMA Pod cache'
+  );
+});
+
 // Native calls are injected: these tests never build, boot, or contact a simulator.
 function fixture(t, options = {}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'ios-ci-launcher-'));

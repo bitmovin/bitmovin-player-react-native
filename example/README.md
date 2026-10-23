@@ -68,6 +68,7 @@ To run the example app for local development, you need to provide a Bitmovin Pla
    - The `BITMOVIN_PLAYER_LICENSE_KEY` is required.
    - The `BITMOVIN_ANALYTICS_LICENSE_KEY` is optional. It is used in the "Basic Analytics" screen.
    - The `APPLE_DEVELOPMENT_TEAM_ID` is optional and only needed if you want to build the app on a physical iOS or tvOS device. You can find your Apple Team ID on the [Apple Developer website](https://developer.apple.com/account/) under "Membership details".
+   - The `BITMOVIN_ENABLE_GOOGLE_IMA` is optional. Unlike the library, which disables Google IMA by default, the example app enables it unless this is set to `false`. Rerun `yarn example prebuild` after changing it.
 
 These values are loaded automatically by `example/app.config.ts` during the prebuild process and are not committed to version control. **This method is for internal development only.**
 
