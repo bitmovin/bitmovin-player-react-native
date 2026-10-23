@@ -185,8 +185,10 @@ jobs:
   android-system-tests:
     name: Run Android integration suites
     runs-on: ubuntu-latest
+    # Includes dependency setup, APK build, emulator execution and artifact upload.
     timeout-minutes: 90
     env:
+      # Runtime suites cover IMA; the separate integration build covers its absence.
       BITMOVIN_ENABLE_GOOGLE_IMA: 'true'
       ANDROID_SERIAL: emulator-5554
       CAVY_ANDROID_APK: ${{ github.workspace }}/integration_test/android/app/build/outputs/apk/debug/app-debug.apk
@@ -232,6 +234,7 @@ jobs:
           EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')) && secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY || 'YOUR_LICENSE_KEY_HERE' }}
         run: yarn integration-test prebuild --clean --platform android
 
+      # Build only the ABI used by the runtime emulator below.
       - name: Build Android integration test host app once
         timeout-minutes: 25
         working-directory: integration_test/android
@@ -247,17 +250,20 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
+          # Wait for the triggered permission rule before checking KVM access.
           sudo udevadm settle
           test -r /dev/kvm && test -w /dev/kvm
 
       - name: Run all Android integration tests
         id: cavy
         if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        # The 30-minute supervisor deadline excludes image setup/boot and finalization.
         timeout-minutes: 45
         uses: reactivecircus/android-emulator-runner@v2
         env:
           EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
         with:
+          # One CI baseline, not a supported-OS/device matrix. See integration_test/README.md.
           api-level: 36
           target: google_apis
           arch: x86_64
@@ -266,6 +272,7 @@ jobs:
           cores: 2
           emulator-port: 5554
           emulator-boot-timeout: 300
+          # Software graphics avoids host-GPU dependence; each run cold-boots without snapshots.
           emulator-options: -no-window -gpu swiftshader -noaudio -no-boot-anim -no-snapshot -camera-back none
           disable-animations: true
           script: |
