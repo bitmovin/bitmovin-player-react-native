@@ -125,15 +125,17 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Destroys the native `Player` and releases all of its allocated resources.
+   *
+   * The {@link Source}s of the current playback session are released as well, and can be loaded again, e.g. into
+   * another player.
    */
   destroy = () => {
     if (!this.isDestroyed) {
       // Remove the listeners only after the native destroy, so they still receive the `destroy` event.
       void PlayerModule.destroy(this.nativeId).finally(() => {
+        this.knownSources.clear();
         this.eventListeners.removeAll();
       });
-      this.knownSources.forEach((source) => void source.destroy());
-      this.knownSources.clear();
       void this.network?.destroy();
       void this.decoderConfig?.destroy();
       this.onShouldLoadAdItemSubscription?.remove();
@@ -231,8 +233,8 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * On iOS and tvOS, only HLS, progressive and `movpkg` sources can be part of a playlist.
    *
-   * @returns a promise that rejects if the playlist could not be loaded, e.g. when `sources` is empty, a source
-   * was destroyed, or (on iOS and tvOS) a source has an unsupported type.
+   * @returns a promise that rejects if the playlist could not be loaded, e.g. when `sources` is empty or (on iOS
+   * and tvOS) a source has an unsupported type.
    */
   loadPlaylist = async (playlistConfig: PlaylistConfig): Promise<void> => {
     playlistConfig.sources.forEach((source) =>

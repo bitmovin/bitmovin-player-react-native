@@ -124,6 +124,17 @@ export class EventListeners<EventMap> {
   };
 
   /**
+   * Attaches the native listeners of this instance and of all other instances sharing its native instance again,
+   * e.g. once a released native source was created again without the native listeners of the released one.
+   */
+  reattachNative = () => {
+    new Set([this, ...this.sharingInstances()]).forEach((instance) => {
+      instance.isNativeAttached = false;
+      instance.attachNative();
+    });
+  };
+
+  /**
    * Removes all listeners of this instance and of all other instances sharing its native instance, as the native
    * listeners are released with the native instance, e.g. when the player is destroyed.
    */

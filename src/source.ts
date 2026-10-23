@@ -180,10 +180,14 @@ export class Source extends NativeInstance<SourceConfig> {
   remoteControl: SourceRemoteControlConfig | null = null;
   /**
    * Whether the native {@link Source} object has been created.
+   * The native source is released once it is removed from a player or its player is destroyed, and
+   * {@link Source.initialize} creates it again, e.g. when the source is loaded again.
    */
   isInitialized = false;
   /**
-   * Whether the native {@link Source} object has been disposed.
+   * Whether the native {@link Source} object has been disposed via {@link Source.destroy}.
+   *
+   * @internal
    */
   isDestroyed = false;
 
@@ -195,7 +199,7 @@ export class Source extends NativeInstance<SourceConfig> {
   );
 
   /**
-   * Allocates the native {@link Source} instance and its resources natively.
+   * Allocates the native {@link Source} instance and its resources natively, or again if it has been released.
    * Calls made while an initialization is in progress share it.
    */
   initialize = (): Promise<void> => {
@@ -206,44 +210,49 @@ export class Source extends NativeInstance<SourceConfig> {
   };
 
   private initializeNative = async (): Promise<void> => {
-    if (!this.isInitialized) {
-      const sourceMetadata = this.config?.analyticsSourceMetadata;
-      if (this.config?.drmConfig) {
-        this.drm = new Drm(this.config.drmConfig, this.nativeId);
-        await this.drm.initialize();
-      }
-      if (sourceMetadata) {
-        await SourceModule.initializeWithAnalyticsConfig(
+    const sourceMetadata = this.config?.analyticsSourceMetadata;
+    if (this.config?.drmConfig && !this.drm) {
+      this.drm = new Drm(this.config.drmConfig, this.nativeId);
+      await this.drm.initialize();
+    }
+    const isCreated = sourceMetadata
+      ? await SourceModule.initializeWithAnalyticsConfig(
           this.nativeId,
           this.drm?.nativeId,
           this.config,
           this.remoteControl || undefined,
           sourceMetadata
-        );
-      } else {
-        await SourceModule.initializeWithConfig(
+        )
+      : await SourceModule.initializeWithConfig(
           this.nativeId,
           this.drm?.nativeId,
           this.config,
           this.remoteControl || undefined
         );
-      }
-      this.isInitialized = true;
+    this.isInitialized = true;
+    this.isDestroyed = false;
+    if (isCreated) {
+      // A released native source is created again without the native listeners of the released one.
+      this.eventListeners.reattachNative();
+    } else {
       this.eventListeners.attachNative();
     }
-    return Promise.resolve();
   };
 
   /**
    * Destroys the native {@link Source} and releases all of its allocated resources.
-   * All listeners are removed.
+   * All listeners are removed. The source can be initialized again afterwards.
+   *
+   * @internal
    */
   destroy = () => {
     if (!this.isDestroyed) {
       void SourceModule.destroy(this.nativeId);
       void this.drm?.destroy();
+      this.drm = undefined;
       this.eventListeners.removeAll();
       this.isDestroyed = true;
+      this.isInitialized = false;
     }
   };
 
@@ -253,7 +262,9 @@ export class Source extends NativeInstance<SourceConfig> {
    * Unlike {@link Player.on}, which only receives the source events of the active source, the source
    * emits all of its events, including while it is inactive, e.g. `sourceLoaded` of a preloaded playlist
    * source. Listeners registered before the source is initialized are attached during
-   * {@link Source.initialize}. Calling it on a destroyed source has no effect and logs a warning.
+   * {@link Source.initialize}. Listeners are kept when the native source is released, e.g. once it is removed
+   * from a player, and are attached again when it is loaded again. Calling it on a destroyed source has no
+   * effect and logs a warning.
    * Registering the same `listener` again for `eventName` has no effect; use {@link Source.off} to remove it.
    *
    * @param eventName - The name of the event, e.g. `sourceLoaded`.

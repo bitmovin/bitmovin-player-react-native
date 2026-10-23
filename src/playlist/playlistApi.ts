@@ -48,8 +48,8 @@ export class PlaylistApi {
    *
    * On iOS and tvOS, only HLS, progressive and `movpkg` sources can be part of a playlist.
    *
-   * @returns a promise that rejects if the `source` is already attached to a player, was destroyed, or (on iOS
-   * and tvOS) has an unsupported type.
+   * @returns a promise that rejects if the `source` is already attached to a player or, on iOS and tvOS, has an
+   * unsupported type.
    */
   add = async (source: Source, index?: number): Promise<void> => {
     await source.initialize();
