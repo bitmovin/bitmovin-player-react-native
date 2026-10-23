@@ -6,10 +6,12 @@ on:
   pull_request:
     paths:
       - '.github/workflows/ci-android.yml'
-      - '.github/actions/**'
-      - '.github/scripts/**'
+      - '.github/actions/setup-environment/**'
+      - '.github/scripts/setup-gradle-properties.sh'
+      - '.github/scripts/cavy_summary.py'
       - 'package.json'
       - 'yarn.lock'
+      # Shared plugin and script inputs can affect Android prebuild too.
       - 'plugin/**'
       - 'src/**'
       - 'scripts/**'
@@ -17,9 +19,7 @@ on:
       - 'expo-module.config.json'
       - 'app.plugin.js'
       - 'android/**'
-      - 'example/android/**'
-      - 'example/package.json'
-      - 'example/yarn.lock'
+      - 'example/**'
       - 'integration_test/**'
       - '**/app.config.*'
       - '**/expo.json'
@@ -28,16 +28,21 @@ on:
       - '**/gradle-wrapper.properties'
       - '**/gradle/**'
       - '**/gradlew*'
+      - '!example/ios/**'
+      - '!integration_test/ios/**'
+      - '!**/*.md'
 
   push:
     branches:
       - development
     paths:
       - '.github/workflows/ci-android.yml'
-      - '.github/actions/**'
-      - '.github/scripts/**'
+      - '.github/actions/setup-environment/**'
+      - '.github/scripts/setup-gradle-properties.sh'
+      - '.github/scripts/cavy_summary.py'
       - 'package.json'
       - 'yarn.lock'
+      # Shared plugin and script inputs can affect Android prebuild too.
       - 'plugin/**'
       - 'src/**'
       - 'scripts/**'
@@ -45,9 +50,7 @@ on:
       - 'expo-module.config.json'
       - 'app.plugin.js'
       - 'android/**'
-      - 'example/android/**'
-      - 'example/package.json'
-      - 'example/yarn.lock'
+      - 'example/**'
       - 'integration_test/**'
       - '**/app.config.*'
       - '**/expo.json'
@@ -56,6 +59,9 @@ on:
       - '**/gradle-wrapper.properties'
       - '**/gradle/**'
       - '**/gradlew*'
+      - '!example/ios/**'
+      - '!integration_test/ios/**'
+      - '!**/*.md'
 
 permissions:
   contents: read
