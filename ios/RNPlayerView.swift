@@ -53,6 +53,7 @@ public class RNPlayerView: ExpoView {
     private var shouldExitPictureInPictureOnForeground = false
     private var foregroundObserver: NSObjectProtocol?
 
+    let onBmpPlayerViewReady = EventDispatcher()
     let onBmpEvent = EventDispatcher()
     let onBmpPlayerActive = EventDispatcher()
     let onBmpPlayerError = EventDispatcher()
@@ -187,6 +188,7 @@ public class RNPlayerView: ExpoView {
         self.maybeEmitPictureInPictureAvailabilityEvent(
             previousState: previousPictureInPictureAvailableValue
         )
+        onBmpPlayerViewReady(["playerId": playerId])
     }
 
     internal func attachFullscreenBridge(fullscreenBridgeId: NativeId) {

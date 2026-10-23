@@ -8,6 +8,13 @@ on:
       - development
     paths:
       - 'ios/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'tsconfig*.json'
+      - 'app.plugin.js'
+      - 'integration_test/**'
+      - 'patches/**'
+      - 'expo-module.config.json'
       - 'plugin/**'
       - 'example/ios/**'
       - 'example/package.json'
@@ -36,6 +43,13 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'ios/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'tsconfig*.json'
+      - 'app.plugin.js'
+      - 'integration_test/**'
+      - 'patches/**'
+      - 'expo-module.config.json'
       - 'plugin/**'
       - 'example/ios/**'
       - 'example/package.json'
@@ -59,6 +73,9 @@ on:
       - '**/build-tvos.sh'
       - 'example/scripts/**'
       - 'integration_test/scripts/**'
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-ios-tvos-${{ github.event.pull_request.number || github.ref }}
@@ -85,6 +102,7 @@ jobs:
           args: ios --strict
 
   ios-example-build:
+    if: github.event_name != 'workflow_dispatch'
     name: Build iOS Example App
     runs-on: macos-26
     timeout-minutes: 25
@@ -248,8 +266,119 @@ jobs:
             exit 1
           fi
 
+  ios-system-tests:
+    name: Run iOS simulator integration suites
+    runs-on: macos-26
+    timeout-minutes: 75
+    env:
+      BITMOVIN_ENABLE_GOOGLE_IMA: 'true'
+      IOS_SMOKE_RUNTIME: com.apple.CoreSimulator.SimRuntime.iOS-26-5
+      IOS_SMOKE_DEVICE_TYPE: com.apple.CoreSimulator.SimDeviceType.iPhone-17
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set iOS integration artifact paths
+        run: |
+          echo "IOS_SMOKE_APP_PATH=$RUNNER_TEMP/integration-host/Build/Products/Debug-iphonesimulator/IntegrationTest.app" >> "$GITHUB_ENV"
+          echo "CAVY_ARTIFACTS_DIR=$RUNNER_TEMP/ios-cavy" >> "$GITHUB_ENV"
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node: true
+          node-version: '22'
+          subprojects: true
+          ios: true
+          skip-prebuild: true
+
+      - name: Check iOS CI launcher failure handling
+        run: node --test integration_test/scripts/ios-ci-launcher.test.js
+
+      - name: Build config plugin
+        run: yarn build:plugin
+
+      - name: Configure iOS Integration
+        run: yarn integration-test prebuild --clean --platform ios --no-install
+
+      - name: Cache CocoaPods Dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            integration_test/ios/Pods
+          key: ${{ runner.os }}-ios-integration-arm64-pods-google-ima-enabled-v1-${{ hashFiles('ios/dependencies.json', 'ios/RNBitmovinPlayer.podspec', 'integration_test/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-integration-arm64-pods-google-ima-enabled-v1-
+
+      - name: Install CocoaPods Dependencies
+        run: yarn integration-test pods
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -workspace integration_test/ios/IntegrationTest.xcworkspace -scheme IntegrationTest
+
+      - name: Build iOS Integration Tests
+        id: build
+        run: |
+          mkdir -p "$CAVY_ARTIFACTS_DIR"
+          set -o pipefail
+          yarn integration-test build:ios --renderer github-actions 2>&1 | tee "$CAVY_ARTIFACTS_DIR/build.log"
+        env:
+          # macos-26 is arm64. Keep this Debug product and install it below;
+          # Cavy must never invoke a second React Native build.
+          XCODEBUILD_ARGS: "-destination 'generic/platform=iOS Simulator' -derivedDataPath ${{ runner.temp }}/integration-host ONLY_ACTIVE_ARCH=YES ARCHS=arm64 VALID_ARCHS=arm64 CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO"
+
+      - name: Run all iOS simulator integration tests
+        id: cavy
+        if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        timeout-minutes: 35
+        working-directory: integration_test
+        env:
+          CI: 'true'
+          EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
+          CAVY_TIMEOUT_MS: '1800000'
+        run: |
+          test -n "$EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY" || { echo '::error::INTEGRATION_TESTS_PLAYER_LICENSE_KEY is required for iOS integration tests'; exit 1; }
+          # The shared runner owns Metro, the test entry, Cavy reports and their
+          # failure/zero-test checks. This adapter only installs and launches.
+          # Simulator FairPlay and TV are excluded, never counted as passing.
+          node scripts/run-ci-tests.js ios
+
+      - name: Explain unavailable integration test credentials
+        if: github.event_name == 'pull_request' && (github.event.pull_request.head.repo.full_name != github.repository || github.actor == 'dependabot[bot]')
+        run: echo '::notice::iOS host build only. Integration execution is skipped for fork and Dependabot PRs because no license secret is exposed.'
+
+      - name: Save iOS integration diagnostics
+        id: cavy_artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-cavy-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.CAVY_ARTIFACTS_DIR }}
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Summarize Cavy results
+        if: always()
+        timeout-minutes: 1
+        env:
+          CAVY_SUMMARY_PLATFORM: ios
+          CAVY_SUMMARY_OS: ${{ env.IOS_SMOKE_RUNTIME }}
+          CAVY_SUMMARY_DEVICE: ${{ env.IOS_SMOKE_DEVICE_TYPE }}
+          CAVY_SUMMARY_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          CAVY_SUMMARY_TEST_OUTCOME: ${{ steps.cavy.outcome }}
+          CAVY_SUMMARY_JOB_STATUS: ${{ job.status }}
+          CAVY_SUMMARY_RUN_ALLOWED: ${{ github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]') }}
+          CAVY_SUMMARY_ARTIFACT_NAME: ios-cavy-${{ github.run_id }}-${{ github.run_attempt }}
+          CAVY_SUMMARY_ARTIFACT_URL: ${{ steps.cavy_artifacts.outputs.artifact-url }}
+          CAVY_SUMMARY_ARTIFACT_OUTCOME: ${{ steps.cavy_artifacts.outcome }}
+        run: python3 .github/scripts/cavy_summary.py
+
   tvos-example-build:
-    name: Build tvOS Example App (${{ matrix.variant }})
+    if: github.event_name != 'workflow_dispatch'
+    name: Build tvOS Example App
     runs-on: macos-26
     timeout-minutes: 30
     strategy:
@@ -359,6 +488,7 @@ jobs:
           fi
 
   example-archive:
+    if: github.event_name != 'workflow_dispatch'
     name: Archive ${{ matrix.platform }} (${{ matrix.configuration }})
     runs-on: macos-26
     timeout-minutes: 45

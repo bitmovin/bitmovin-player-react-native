@@ -1,5 +1,5 @@
 import { requireNativeViewManager } from 'expo-modules-core';
-import type { ViewStyle } from 'react-native';
+import type { NativeSyntheticEvent, ViewStyle } from 'react-native';
 import type { NativePlayerViewEvents } from './nativeEvents';
 import type { ScalingMode } from '../../styleConfig';
 import type { PlayerViewConfig } from './playerViewConfig';
@@ -20,6 +20,9 @@ export interface NativePlayerViewConfig {
  */
 export interface NativePlayerViewProps extends NativePlayerViewEvents {
   ref?: RefObject<any>;
+  onBmpPlayerViewReady?: (
+    event: NativeSyntheticEvent<{ playerId: string }>
+  ) => void;
   isFullscreenRequested?: boolean;
   scalingMode?: ScalingMode;
   isPictureInPictureRequested?: boolean;

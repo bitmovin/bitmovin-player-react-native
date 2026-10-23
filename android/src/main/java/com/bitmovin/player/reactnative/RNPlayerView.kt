@@ -47,6 +47,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private var requestedPictureInPictureValue: Boolean? = null
     private var fullscreenBridgeId: NativeId? = null
 
+    private val onBmpPlayerViewReady by EventDispatcher()
     private val onBmpEvent by EventDispatcher()
     private val onBmpPlayerActive by EventDispatcher()
     private val onBmpPlayerInactive by EventDispatcher()
@@ -374,6 +375,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                     playerView?.setCustomMessageHandler(customMessageHandlerBridge.customMessageHandler)
                 }
         }
+        onBmpPlayerViewReady(mapOf("playerId" to playerId))
     }
 
     internal fun shouldEnterPictureInPictureOnBackground() = pictureInPictureConfig.let {
