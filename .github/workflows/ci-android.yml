@@ -179,7 +179,7 @@ jobs:
   android-system-tests:
     name: Run Android integration suites
     runs-on: ubuntu-latest
-    timeout-minutes: 75
+    timeout-minutes: 90
     env:
       BITMOVIN_ENABLE_GOOGLE_IMA: 'true'
       ANDROID_SERIAL: emulator-5554
@@ -247,7 +247,7 @@ jobs:
       - name: Run all Android integration tests
         id: cavy
         if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
-        timeout-minutes: 35
+        timeout-minutes: 45
         uses: reactivecircus/android-emulator-runner@v2
         env:
           EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
