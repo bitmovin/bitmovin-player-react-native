@@ -134,31 +134,66 @@ test('dispatches events by the event name they were attached for', () => {
   assert.deepEqual(received, [['sourceAdded', event]]);
 });
 
-test('initializes a source natively once for overlapping initialize calls', async (t) => {
+// Models native creating the source on the first initialization and after
+// `release` only, as the Android bridge reports.
+function sourceFixture(t) {
   const { nativeModules } = require(
     path.join(root, 'node_modules/expo-modules-core')
   );
-  t.after(() => delete nativeModules.SourceModule);
   const calls = [];
+  let exists = false;
   nativeModules.SourceModule = {
     addListener: () => ({ remove: () => {} }),
     initializeWithConfig: async (nativeId) => {
       calls.push(['initializeWithConfig', nativeId]);
       // Let the other initialize call run while this one is in progress.
       await new Promise(setImmediate);
+      const isCreated = !exists;
+      exists = true;
+      return isCreated;
     },
     on: async (nativeId, eventName) => calls.push(['on', nativeId, eventName]),
     off: async () => {},
+    destroy: async () => {},
   };
   const { Source } = require(path.join(root, 'source'));
   const source = new Source({ url: 'https://example.com/a.m3u8', type: 'hls' });
+  // All sources get the same `nativeId`, so destroy it to not share it with the next test.
+  t.after(() => {
+    source.destroy();
+    delete nativeModules.SourceModule;
+  });
+  const release = () => (exists = false);
+  return { source, calls, release };
+}
+
+test('initializes a source natively once for overlapping initialize calls', async (t) => {
+  const { source, calls } = sourceFixture(t);
   source.on('sourceLoaded', () => {});
 
   // E.g. `source.initialize()` followed by `player.loadSource(source)`.
   await Promise.all([source.initialize(), source.initialize()]);
+
+  assert.deepEqual(calls, [
+    ['initializeWithConfig', 'random-id'],
+    ['on', 'random-id', 'sourceLoaded'],
+  ]);
+});
+
+test('attaches the native listeners of a source again only once it was created again', async (t) => {
+  const { source, calls, release } = sourceFixture(t);
+  source.on('sourceLoaded', () => {});
+  await source.initialize();
+
+  // Loading an existing source initializes it again without creating it.
+  await source.initialize();
+  release();
   await source.initialize();
 
   assert.deepEqual(calls, [
+    ['initializeWithConfig', 'random-id'],
+    ['on', 'random-id', 'sourceLoaded'],
+    ['initializeWithConfig', 'random-id'],
     ['initializeWithConfig', 'random-id'],
     ['on', 'random-id', 'sourceLoaded'],
   ]);
@@ -238,4 +273,23 @@ test('only keeps instances while they have listeners', () => {
 
   // Implementation detail, checked so that unused instances are not retained.
   assert.equal(EventListeners.withListeners.get(nativeModule)?.size ?? 0, 0);
+});
+
+test('attaches the native listeners of all instances sharing a re-created native instance again', () => {
+  const { calls, create } = sharedFixture();
+  const initializing = create('source-id');
+  const sharing = create('source-id');
+  initializing.on('sourceLoaded', () => {});
+  sharing.on('sourceUnloaded', () => {});
+  initializing.attachNative();
+  sharing.attachNative();
+  calls.length = 0;
+
+  // The native source was released and created again without native listeners.
+  initializing.reattachNative();
+
+  assert.deepEqual(calls, [
+    ['on', 'source-id', 'sourceLoaded'],
+    ['on', 'source-id', 'sourceUnloaded'],
+  ]);
 });
