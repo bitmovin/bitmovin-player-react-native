@@ -7,6 +7,7 @@ import {
 export type PluginProps = {
   spacing?: string;
   dependencies?: string[];
+  coreLibraryDesugaring?: boolean;
 };
 
 const DEFAULT_SPACING = '    ';
@@ -14,6 +15,7 @@ const DEFAULT_SPACING = '    ';
 const defaultProps: PluginProps = {
   spacing: DEFAULT_SPACING,
   dependencies: [],
+  coreLibraryDesugaring: false,
 };
 
 const CORE_LIBRARY_DESUGARING_DEPENDENCY =
@@ -190,12 +192,14 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
       return config;
     }
     const androidPosition = androidBlockStart + androidBlockEnd;
-    config.modResults.contents = ensureCoreLibraryDesugaringCompileOptions(
-      config.modResults.contents,
-      spacing,
-      androidBlockStart,
-      androidPosition
-    );
+    if (combinedProps.coreLibraryDesugaring) {
+      config.modResults.contents = ensureCoreLibraryDesugaringCompileOptions(
+        config.modResults.contents,
+        spacing,
+        androidBlockStart,
+        androidPosition
+      );
+    }
 
     const updatedDependenciesBlockStart =
       config.modResults.contents.search(/^dependencies \{$/m);
@@ -210,7 +214,8 @@ const withAppGradleDependencies: ConfigPlugin<PluginProps> = (
       position
     );
     const dependencyDeclarations = [
-      ...(!hasCoreLibraryDesugaringDependency(dependenciesBlock)
+      ...(combinedProps.coreLibraryDesugaring &&
+      !hasCoreLibraryDesugaringDependency(dependenciesBlock)
         ? [`${spacing}${CORE_LIBRARY_DESUGARING_DEPENDENCY}`]
         : []),
       ...Array.from(new Set(combinedProps.dependencies))
