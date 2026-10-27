@@ -116,6 +116,8 @@ export function PlayerView({
       return;
     }
 
+    // Also populate a replacement ref supplied after readiness, when the ready event
+    // will not be replayed. A mounted view ref alone does not imply native readiness.
     if (viewRef) {
       viewRef.current = nativeView.current;
     }
@@ -166,6 +168,7 @@ export function PlayerView({
         ) {
           return;
         }
+        // Make the ref available inside the callback even if the effect has not run.
         if (viewRef) {
           viewRef.current = nativeView.current;
         }
