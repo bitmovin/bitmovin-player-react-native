@@ -57,7 +57,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
+          check-latest: true
           cache: 'yarn'
 
       - name: Install node_modules
@@ -85,7 +86,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
+          check-latest: true
           cache: 'yarn'
 
       - name: Install node_modules
@@ -99,6 +101,9 @@ jobs:
 
       - name: Typecheck TypeScript
         run: yarn typecheck:all
+
+      - name: Test network preprocessing
+        run: node --test scripts/test-network-preprocessing.js
 
       - name: Build TypeScript (Module)
         run: yarn build:module

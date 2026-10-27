@@ -128,6 +128,9 @@ jobs:
           ios: true
           skip-prebuild: true
 
+      - name: Test iOS HTTP response conversion
+        run: node --test scripts/test-ios-http-response-conversion.js
+
       - name: Build config plugin
         if: ${{ steps.ios-example-prebuild-cache.outputs.cache-hit != 'true' }}
         run: yarn build:plugin

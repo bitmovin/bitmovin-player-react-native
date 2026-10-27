@@ -5,7 +5,8 @@ const path = require('node:path');
 const net = require('node:net');
 const http = require('node:http');
 const { spawn } = require('node:child_process');
-const { createRequire } = require('node:module');
+const sax = require('sax');
+const { parseStringPromise } = require('xml2js');
 const { createTestRun, parseTestArguments } = require('./run-selected-tests');
 
 function positiveInteger(value, fallback, label) {
@@ -100,16 +101,12 @@ function createCiConfig(args, environment = process.env) {
 }
 
 async function validateReport(xml) {
-  // Reuse the parser shipped with the pinned CLI, including strict XML parsing.
-  const cliRequire = createRequire(require.resolve('cavy-cli/cavy.js'));
   if (/<!DOCTYPE/i.test(xml))
     throw new Error('Invalid Cavy XML report: DOCTYPE');
   let parsed;
   try {
     // xml2js stops at the first closing root and can ignore broken trailing XML.
-    // Validate the entire document with its own SAX dependency first.
-    const xmlRequire = createRequire(cliRequire.resolve('xml2js'));
-    const sax = xmlRequire('sax');
+    // Validate the entire document with SAX first.
     const parser = sax.parser(true);
     let depth = 0;
     let roots = 0;
@@ -123,7 +120,7 @@ async function validateReport(xml) {
     if (parser.state !== sax.STATE.TEXT) throw new Error('Incomplete XML');
     parser.close();
     if (roots !== 1) throw new Error('Expected exactly one XML root');
-    parsed = await cliRequire('xml2js').parseStringPromise(xml, {
+    parsed = await parseStringPromise(xml, {
       strict: true,
     });
   } catch (error) {
@@ -360,7 +357,10 @@ async function runCiTests(config, dependencies = {}) {
       clearTimeout(timer);
       // These adapter commands finish their synchronous device operations before
       // exiting. Forget their PIDs immediately; a long run may outlive PID reuse.
-      if (entry.closed) children.splice(children.indexOf(entry), 1);
+      if (entry.closed) {
+        const index = children.indexOf(entry);
+        if (index >= 0) children.splice(index, 1);
+      }
     }
   }
 
@@ -395,7 +395,8 @@ async function runCiTests(config, dependencies = {}) {
       signalGroup(entry, 'SIGKILL');
       await boundedWait(entry.done, 1000);
       // A later cleanup pass must not signal a process-group ID that was reused.
-      children.splice(children.indexOf(entry), 1);
+      const index = children.indexOf(entry);
+      if (index >= 0) children.splice(index, 1);
     } finally {
       // A failed signal must not keep the supervisor alive past its deadline.
       entry.child.unref();
