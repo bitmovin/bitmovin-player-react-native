@@ -106,7 +106,11 @@ The adapters require these environment variables:
 and cannot be used for Metro. Occupied ports and existing Cavy reports are rejected. Metro uses IPv4-first DNS resolution for Android's
 reverse port mapping. `CAVY_TIMEOUT_MS` bounds startup and test execution
 (default 600000 ms; full-suite CI uses 1800000 ms); startup readiness also has a 120-second limit. Bounded
-adapter cleanup runs afterward.
+adapter cleanup runs afterward, outside `CAVY_TIMEOUT_MS`: Android diagnostics
+and cleanup each have a 100-second limit, while iOS graceful shutdown has a
+35-second limit. Process-group termination adds a short wait on either platform,
+and artifact redaction runs after cleanup. Allow extra time for teardown when
+setting an outer CI job timeout.
 
 `CAVY_ARTIFACTS_DIR` defaults to `cavy-artifacts/` in the current directory.
 It retains `metro.log`, `cavy.log`, `app.log`, Cavy XML/Markdown reports, and
