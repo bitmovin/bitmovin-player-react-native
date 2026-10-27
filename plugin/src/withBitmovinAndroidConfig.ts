@@ -332,7 +332,11 @@ const withBitmovinAndroidConfig: ConfigPlugin<BitmovinConfigOptions> = (
     );
   }
 
-  config = withAppGradleDependencies(config, { dependencies });
+  config = withAppGradleDependencies(config, {
+    dependencies,
+    // The Android player only requires core library desugaring for Google IMA.
+    coreLibraryDesugaring: !!features.googleIMA,
+  });
 
   // TODO: remove with expo 58: START
   config = withProjectBuildGradle(config, (config) => {

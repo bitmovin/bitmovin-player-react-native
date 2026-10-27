@@ -6,19 +6,21 @@ on:
   pull_request:
     paths:
       - '.github/workflows/ci-android.yml'
-      - '.github/actions/**'
-      - '.github/scripts/**'
+      - '.github/actions/setup-environment/**'
+      - '.github/scripts/setup-gradle-properties.sh'
+      - '.github/scripts/cavy_summary.py'
       - 'package.json'
       - 'yarn.lock'
+      # Shared plugin and script inputs can affect Android prebuild too.
       - 'plugin/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'tsconfig*.json'
+      - 'expo-module.config.json'
+      - 'app.plugin.js'
       - 'android/**'
-      - 'example/android/**'
-      - 'example/package.json'
-      - 'example/yarn.lock'
-      - 'integration_test/android/**'
-      - 'integration_test/scripts/build-android.sh'
-      - 'integration_test/package.json'
-      - 'integration_test/yarn.lock'
+      - 'example/**'
+      - 'integration_test/**'
       - '**/app.config.*'
       - '**/expo.json'
       - '**/*.gradle*'
@@ -26,25 +28,30 @@ on:
       - '**/gradle-wrapper.properties'
       - '**/gradle/**'
       - '**/gradlew*'
+      - '!example/ios/**'
+      - '!integration_test/ios/**'
+      - '!**/*.md'
 
   push:
     branches:
       - development
     paths:
       - '.github/workflows/ci-android.yml'
-      - '.github/actions/**'
-      - '.github/scripts/**'
+      - '.github/actions/setup-environment/**'
+      - '.github/scripts/setup-gradle-properties.sh'
+      - '.github/scripts/cavy_summary.py'
       - 'package.json'
       - 'yarn.lock'
+      # Shared plugin and script inputs can affect Android prebuild too.
       - 'plugin/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'tsconfig*.json'
+      - 'expo-module.config.json'
+      - 'app.plugin.js'
       - 'android/**'
-      - 'example/android/**'
-      - 'example/package.json'
-      - 'example/yarn.lock'
-      - 'integration_test/android/**'
-      - 'integration_test/scripts/build-android.sh'
-      - 'integration_test/package.json'
-      - 'integration_test/yarn.lock'
+      - 'example/**'
+      - 'integration_test/**'
       - '**/app.config.*'
       - '**/expo.json'
       - '**/*.gradle*'
@@ -52,6 +59,12 @@ on:
       - '**/gradle-wrapper.properties'
       - '**/gradle/**'
       - '**/gradlew*'
+      - '!example/ios/**'
+      - '!integration_test/ios/**'
+      - '!**/*.md'
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-android-${{ github.event.pull_request.number || github.ref }}
@@ -77,6 +90,7 @@ jobs:
         run: yarn lint:android
 
   test-build-android:
+    if: github.event_name != 'workflow_dispatch'
     name: Build Android Example App
     runs-on: ubuntu-latest
     steps:
@@ -168,7 +182,138 @@ jobs:
       - name: Report build time
         run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
 
+  android-system-tests:
+    name: Run Android integration suites
+    runs-on: ubuntu-latest
+    # Includes dependency setup, APK build, emulator execution and artifact upload.
+    timeout-minutes: 90
+    env:
+      # Runtime suites cover IMA; the separate integration build covers its absence.
+      BITMOVIN_ENABLE_GOOGLE_IMA: 'true'
+      ANDROID_SERIAL: emulator-5554
+      CAVY_ANDROID_APK: ${{ github.workspace }}/integration_test/android/app/build/outputs/apk/debug/app-debug.apk
+      CAVY_ARTIFACTS_DIR: ${{ github.workspace }}/integration_test/artifacts/android-system-tests
+      CAVY_TIMEOUT_MS: '1800000'
+      RCT_METRO_PORT: '8081'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check integration test license
+        if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        env:
+          EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
+        run: |
+          if [ -z "$EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY" ]; then
+            echo "::error::Configure INTEGRATION_TESTS_PLAYER_LICENSE_KEY to run Android integration tests."
+            exit 1
+          fi
+
+      - name: Explain fork integration test policy
+        if: github.event_name == 'pull_request' && (github.event.pull_request.head.repo.full_name != github.repository || github.actor == 'dependabot[bot]')
+        run: echo "Android host build and launcher tests run for fork PRs. Integration execution requires a trusted branch with the player license secret." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          java: true
+          node: true
+          subprojects: true
+          skip-prebuild: true
+
+      - name: Check integration test runners
+        timeout-minutes: 5
+        run: yarn integration-test check:runner
+
+      - name: Prebuild Android Integration
+        if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        timeout-minutes: 5
+        env:
+          EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
+        run: yarn integration-test prebuild --clean --platform android
+
+      # Build only the ABI used by the runtime emulator below.
+      - name: Build Android integration test host app once
+        if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        timeout-minutes: 25
+        working-directory: integration_test/android
+        run: |
+          ./gradlew assembleDebug --quiet --console=plain \
+            --build-cache --parallel --max-workers=4 --no-daemon \
+            --no-configuration-cache \
+            -PreactNativeArchitectures=x86_64
+
+      - name: Enable KVM
+        if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          # Wait for the triggered permission rule before checking KVM access.
+          sudo udevadm settle
+          test -r /dev/kvm && test -w /dev/kvm
+
+      - name: Run all Android integration tests
+        id: cavy
+        if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        # The 30-minute supervisor deadline excludes image setup/boot and finalization.
+        timeout-minutes: 45
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
+        with:
+          # One CI baseline, not a supported-OS/device matrix. See integration_test/README.md.
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          avd-name: cavy-ci
+          cores: 2
+          emulator-port: 5554
+          emulator-boot-timeout: 300
+          # Software graphics avoids host-GPU dependence; each run cold-boots without snapshots.
+          emulator-options: -no-window -gpu swiftshader -noaudio -no-boot-anim -no-snapshot -camera-back none
+          disable-animations: true
+          script: |
+            mkdir -p "$CAVY_ARTIFACTS_DIR"
+            cp "$ANDROID_HOME/emulator/source.properties" "$CAVY_ARTIFACTS_DIR/emulator-version.txt"
+            cp "${ANDROID_AVD_HOME:-$HOME/.android/avd}/cavy-ci.avd/config.ini" "$CAVY_ARTIFACTS_DIR/emulator-config.ini"
+            adb -s "$ANDROID_SERIAL" shell getprop ro.build.fingerprint > "$CAVY_ARTIFACTS_DIR/system-image.txt"
+            cd integration_test && node scripts/run-ci-tests.js android
+
+      - name: Upload Android integration diagnostics
+        id: cavy_artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-system-tests-${{ github.run_attempt }}
+          path: |
+            integration_test/artifacts/android-system-tests/
+            integration_test/cavy_results.xml
+            integration_test/cavy_results.md
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Summarize Cavy results
+        if: always()
+        timeout-minutes: 1
+        env:
+          CAVY_SUMMARY_PLATFORM: android
+          CAVY_SUMMARY_OS: 'Android API 36 (google_apis/x86_64)'
+          CAVY_SUMMARY_DEVICE: 'pixel_2 / ${{ env.ANDROID_SERIAL }}'
+          CAVY_SUMMARY_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          CAVY_SUMMARY_TEST_OUTCOME: ${{ steps.cavy.outcome }}
+          CAVY_SUMMARY_JOB_STATUS: ${{ job.status }}
+          CAVY_SUMMARY_RUN_ALLOWED: ${{ github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]') }}
+          CAVY_SUMMARY_ARTIFACT_NAME: android-system-tests-${{ github.run_attempt }}
+          CAVY_SUMMARY_ARTIFACT_URL: ${{ steps.cavy_artifacts.outputs.artifact-url }}
+          CAVY_SUMMARY_ARTIFACT_OUTCOME: ${{ steps.cavy_artifacts.outcome }}
+        run: python3 .github/scripts/cavy_summary.py
+
   test-build-android-tv:
+    if: github.event_name != 'workflow_dispatch'
     name: Build Android TV Example App
     runs-on: ubuntu-latest
     steps:
