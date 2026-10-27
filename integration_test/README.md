@@ -102,8 +102,8 @@ The adapters require these environment variables:
 | iOS      | `IOS_SMOKE_APP_PATH`, `IOS_SMOKE_RUNTIME`, and `IOS_SMOKE_DEVICE_TYPE` for a prebuilt simulator app and the simulator to create |
 | Both     | `EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY`; CI maps the existing `INTEGRATION_TESTS_PLAYER_LICENSE_KEY` secret to this variable  |
 
-`RCT_METRO_PORT` defaults to 8081; Cavy uses 8082. Occupied ports and existing
-Cavy reports are rejected. Metro uses IPv4-first DNS resolution for Android's
+`RCT_METRO_PORT` defaults to 8081. Port 8082 is reserved for the Cavy reporter
+and cannot be used for Metro. Occupied ports and existing Cavy reports are rejected. Metro uses IPv4-first DNS resolution for Android's
 reverse port mapping. `CAVY_TIMEOUT_MS` bounds startup and test execution
 (default 600000 ms; full-suite CI uses 1800000 ms); startup readiness also has a 120-second limit. Bounded
 adapter cleanup runs afterward.
