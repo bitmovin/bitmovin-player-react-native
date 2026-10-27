@@ -10,6 +10,7 @@ import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.playlist.PlaylistConfig
 import com.bitmovin.player.api.playlist.PlaylistOptions
+import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
@@ -29,11 +30,10 @@ class PlayerModule : Module() {
     private val shouldLoadAdItemWaiter = ResultWaiter<Boolean>()
     private val shouldPlayAdBreakWaiter = ResultWaiter<Boolean>()
     private val imaSettingsWaiter = ResultWaiter<Map<String, Any?>>()
-    private val unloadedSourceResolver = UnloadedSourceResolver()
-    private val removedSourceReleaser = RemovedSourceReleaser { releaseSource(it) }
+    private val sourceTracker = PlayerSourceTracker { appContext.registry.getModule<SourceModule>()?.releaseSource(it) }
 
     private val eventRelay = EventRelay<Event>(PlayerEventTypes.player) { nativeId, event ->
-        val unloadedSource = (event as? SourceEvent.Unloaded)?.let { unloadedSourceResolver.resolve(it) }
+        val unloadedSource = (event as? SourceEvent.Unloaded)?.let { sourceTracker.resolveUnloadedSource(it) }
         val eventJson = event.toJson().let { json ->
             if (unloadedSource == null) json else json + ("source" to unloadedSource.toJson())
         }
@@ -66,8 +66,7 @@ class PlayerModule : Module() {
             shouldPlayAdBreakWaiter.clear()
             imaSettingsWaiter.clear()
             eventRelay.clear()
-            unloadedSourceResolver.clear()
-            removedSourceReleaser.clear()
+            sourceTracker.clear()
             PlayerRegistry.clear()
         }
 
@@ -116,17 +115,13 @@ class PlayerModule : Module() {
 
         AsyncFunction("destroy") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
-            // Read the sources of the current playback session before destroy() stops it, to release them afterwards.
-            val sourceNativeIds = player?.playlist?.sources.orEmpty().mapNotNull { SourceRegistry.getNativeId(it) }
             if (player != null) {
                 // Note: MediaSession cleanup would need to be handled here
                 player.destroy()
                 PlayerRegistry.unregister(nativeId)
             }
             eventRelay.unsubscribeAll(nativeId, player)
-            unloadedSourceResolver.detach(nativeId, player)
-            removedSourceReleaser.detach(nativeId, player)
-            sourceNativeIds.forEach { releaseSource(it) }
+            sourceTracker.detach(nativeId, player)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("setVolume") { nativeId: NativeId, volume: Double ->
@@ -363,9 +358,10 @@ class PlayerModule : Module() {
         }.runOnQueue(Queues.MAIN)
     }
 
-    private fun releaseSource(nativeId: NativeId) {
-        appContext.registry.getModule<SourceModule>()?.releaseSource(nativeId)
-    }
+    /**
+     * Keeps [source] registered if its release is pending, see [PlayerSourceTracker.keep].
+     */
+    fun keepSource(source: Source) = sourceTracker.keep(source)
 
     private fun initializePlayer(
         nativeId: NativeId,
@@ -432,8 +428,7 @@ class PlayerModule : Module() {
             Player.create(applicationContext, playerConfig)
         }
         PlayerRegistry.register(player, nativeId)
-        unloadedSourceResolver.attach(nativeId, player)
-        removedSourceReleaser.attach(nativeId, player)
+        sourceTracker.attach(nativeId, player)
 
         if (enableMediaSession) {
             mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)

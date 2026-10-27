@@ -102,8 +102,10 @@ class SourceModule : Module() {
         sourceRemoteControlConfig: Map<String, Any>?,
         analyticsSourceMetadata: Map<String, Any>?,
     ) {
-        if (SourceRegistry.getSource(nativeId) != null) {
-            return // Source already exists
+        val existingSource = SourceRegistry.getSource(nativeId)
+        if (existingSource != null) {
+            appContext.registry.getModule<PlayerModule>()?.keepSource(existingSource)
+            return
         }
 
         val sourceConfig = config?.toSourceConfig()
