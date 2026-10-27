@@ -44,8 +44,12 @@ class UnloadedSourceResolver {
 
     fun resolve(event: SourceEvent.Unloaded): Source? = lastUnloadedSource.takeIf { lastUnloadedEvent === event }
 
-    fun clear() {
-        playerListeners.clear()
+    /**
+     * Detaches all listeners, resolving each player via [playerOf].
+     */
+    fun clear(playerOf: (NativeId) -> Player?) {
+        playerListeners.keys.toList().forEach { detach(it, playerOf(it)) }
+        sourceListeners.forEach { (source, listener) -> source.off(SourceEvent.Unloaded::class, listener) }
         sourceListeners.clear()
         lastUnloadedEvent = null
         lastUnloadedSource = null
