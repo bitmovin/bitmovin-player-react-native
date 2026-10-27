@@ -357,7 +357,10 @@ async function runCiTests(config, dependencies = {}) {
       clearTimeout(timer);
       // These adapter commands finish their synchronous device operations before
       // exiting. Forget their PIDs immediately; a long run may outlive PID reuse.
-      if (entry.closed) children.splice(children.indexOf(entry), 1);
+      if (entry.closed) {
+        const index = children.indexOf(entry);
+        if (index >= 0) children.splice(index, 1);
+      }
     }
   }
 
@@ -392,7 +395,8 @@ async function runCiTests(config, dependencies = {}) {
       signalGroup(entry, 'SIGKILL');
       await boundedWait(entry.done, 1000);
       // A later cleanup pass must not signal a process-group ID that was reused.
-      children.splice(children.indexOf(entry), 1);
+      const index = children.indexOf(entry);
+      if (index >= 0) children.splice(index, 1);
     } finally {
       // A failed signal must not keep the supervisor alive past its deadline.
       entry.child.unref();
