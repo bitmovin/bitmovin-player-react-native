@@ -8,7 +8,7 @@ inputs:
     required: false
   node-version:
     description: Node.js version to use when setting up node
-    default: '20'
+    default: '24'
     required: false
   subprojects:
     description: Setup node and install root and subproject node modules (overrides `node` input)
@@ -56,8 +56,21 @@ runs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs['node-version'] }}
+        check-latest: true
         registry-url: 'https://registry.npmjs.org/'
         cache: 'yarn'
+
+    # Cached native projects keep the absolute Node path from the run that generated them,
+    # and pod install never rewrites an existing .xcode.env.local
+    - name: Point cached iOS projects at the current Node binary
+      if: ${{ inputs.ios == 'true' && (inputs.node == 'true' || inputs.subprojects == 'true') }}
+      shell: bash
+      run: |
+        for project in example/ios integration_test/ios; do
+          if [ -d "$project" ]; then
+            echo "export NODE_BINARY=$(command -v node)" > "$project/.xcode.env.local"
+          fi
+        done
 
     - name: Install node_modules
       if: ${{ inputs.node == 'true' || inputs.subprojects == 'true' }}
