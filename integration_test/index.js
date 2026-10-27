@@ -1,4 +1,4 @@
-// CI serves the same Cavy entry used by the local CLI without swapping files.
+// Metro inlines EXPO_PUBLIC_CAVY_CI when bundling JavaScript to select the Cavy entry.
 if (process.env.EXPO_PUBLIC_CAVY_CI === '1') {
   require('./index.test');
 } else {
