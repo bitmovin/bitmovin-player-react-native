@@ -226,6 +226,24 @@ test('detects am start errors even when adb exits zero', async (t) => {
   await assert.rejects(launcher.launch(), /start|Activity/i);
 });
 
+test('does not mistake activity names for launch errors', async (t) => {
+  const { launcher, outputs } = fixture(t);
+  launcher.prepare();
+  outputs[
+    'shell am start -W -n com.bitmovin.player.reactnative.integrationtests/.MainActivity'
+  ] = 'Status: ok\nActivity: com.example.error/.ExceptionActivity\n';
+  await launcher.launch();
+});
+
+test('rejects explicit launch errors even alongside an ok status', async (t) => {
+  const { launcher, outputs } = fixture(t);
+  launcher.prepare();
+  outputs[
+    'shell am start -W -n com.bitmovin.player.reactnative.integrationtests/.MainActivity'
+  ] = 'Status: ok\nError: Activity could not be started.\n';
+  await assert.rejects(launcher.launch(), /failed to start/);
+});
+
 test('defers a live app display timeout to bounded Cavy readiness without relaunching', async (t) => {
   const { launcher, outputs, calls, env } = fixture(t);
   launcher.prepare();

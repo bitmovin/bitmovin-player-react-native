@@ -155,7 +155,7 @@ function createAndroidLauncher(
     ).toString();
     fs.writeFileSync(path.join(artifactDirectory, 'launch.txt'), output);
     if (
-      /\bError\b|Exception/i.test(output) ||
+      /^Error:/im.test(output) ||
       !/^Status:\s*(?:ok|timeout)\s*$/im.test(output)
     ) {
       throw new Error(`Android application failed to start: ${output.trim()}`);
