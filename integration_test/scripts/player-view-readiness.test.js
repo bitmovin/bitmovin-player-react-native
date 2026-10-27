@@ -264,3 +264,21 @@ test('readiness waits for native listeners and follows the current player', asyn
   acknowledge(silentPlayer.nativeId, unmountedView);
   assert.equal(notifications, 3, 'unmounted views cannot announce readiness');
 });
+
+test('switching A to B to A announces each attachment once', async () => {
+  const first = { nativeId: 'A', config: {}, initialize: async () => {} };
+  const second = { nativeId: 'B', config: {}, initialize: async () => {} };
+  const notifications = [];
+  for (const player of [first, second, first]) {
+    render({
+      player,
+      onPlayerViewReady: () => notifications.push(player.nativeId),
+    });
+    await flush();
+    acknowledge(player.nativeId);
+    acknowledge(player.nativeId);
+  }
+  assert.deepEqual(notifications, ['A', 'B', 'A']);
+  rendererModule.exports.render(null, 11, null, true, {});
+  await flush();
+});
