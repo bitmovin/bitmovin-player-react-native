@@ -372,10 +372,16 @@ test('copies native crash reports before deleting the simulator', async (t) => {
     'DiagnosticReports'
   );
   fs.mkdirSync(crashDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(crashDir, 'IntegrationTest-fixture.ips'),
-    'crash evidence'
-  );
+  const spawn = f.dependencies.spawn;
+  f.dependencies.spawn = (command, args) => {
+    if (args[1] === 'launch') {
+      fs.writeFileSync(
+        path.join(crashDir, 'IntegrationTest-fixture.ips'),
+        'crash evidence'
+      );
+    }
+    return spawn(command, args);
+  };
   await assert.rejects(
     implementation().runIosApp(f.config, f.dependencies),
     /exited/i
@@ -392,6 +398,41 @@ test('copies native crash reports before deleting the simulator', async (t) => {
     ),
     'crash evidence'
   );
+});
+
+test('excludes crash reports from before this run on the host and simulator', async (t) => {
+  const f = fixture(t);
+  for (const directory of [
+    path.join(f.directory, 'Library/Logs/DiagnosticReports'),
+    path.join(
+      f.directory,
+      'Library/Developer/CoreSimulator/Devices/owned-udid/data/Library/Logs/CrashReporter'
+    ),
+  ]) {
+    fs.mkdirSync(directory, { recursive: true });
+    const stale = path.join(directory, 'IntegrationTest-previous.ips');
+    fs.writeFileSync(stale, 'previous run');
+    const previousRun = new Date(Date.now() - 60000);
+    fs.utimesSync(stale, previousRun, previousRun);
+  }
+  await assert.rejects(
+    implementation().runIosApp(f.config, f.dependencies),
+    /exited/i
+  );
+  for (const source of ['host', 'simulator']) {
+    assert.equal(
+      fs.existsSync(
+        path.join(
+          f.config.artifactsDir,
+          'crashes',
+          source,
+          'IntegrationTest-previous.ips'
+        )
+      ),
+      false,
+      `${source} reports from a previous run must not be attributed to this run`
+    );
+  }
 });
 
 test('cancellation interrupts native startup and still disposes the owned simulator', async (t) => {

@@ -32,7 +32,7 @@ async function stopChild(child) {
   });
 }
 
-function collectCrashes(home, udid, artifactsDir) {
+function collectCrashes(home, udid, artifactsDir, startedAt) {
   const sources = {
     host: path.join(home, 'Library/Logs/DiagnosticReports'),
     simulator: path.join(
@@ -51,16 +51,16 @@ function collectCrashes(home, udid, artifactsDir) {
         entry.isFile() &&
         /^IntegrationTest.*\.(ips|crash)$/.test(entry.name)
       ) {
-        fs.copyFileSync(
-          path.join(directory, entry.name),
-          path.join(destination, entry.name)
-        );
+        const report = path.join(directory, entry.name);
+        if (fs.statSync(report).mtimeMs < startedAt) continue;
+        fs.copyFileSync(report, path.join(destination, entry.name));
       }
     }
   }
 }
 
 async function runIosApp(config, dependencies = {}) {
+  const startedAt = Date.now();
   const {
     run = runCommand,
     spawn: spawnChild = spawn,
@@ -231,7 +231,7 @@ async function runIosApp(config, dependencies = {}) {
     if (logFd !== undefined) fs.closeSync(logFd);
     if (udid) {
       try {
-        collectCrashes(home, udid, artifactsDir);
+        collectCrashes(home, udid, artifactsDir, startedAt);
       } catch (error) {
         fs.appendFileSync(
           commandLog,
