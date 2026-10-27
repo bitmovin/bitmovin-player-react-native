@@ -70,9 +70,83 @@ spot flaky tests.
 
 See [Adding new tests](../CONTRIBUTING.md#adding-new-tests) to register a suite.
 
-Platform-only ID3, media-control and ad-break tests are registered only where
-applicable, so unsupported cases are not reported as passing no-ops. Existing
-platform-specific ad and caption coverage remains intact.
+### Run a prebuilt app locally or in CI
+
+From `integration_test/`, use the shared supervisor with a fresh artifact
+directory:
+
+```sh
+CAVY_TIMEOUT_MS=1800000 CAVY_ARTIFACTS_DIR=/tmp/cavy-android-run node scripts/run-ci-tests.js android
+CAVY_TIMEOUT_MS=1800000 CAVY_ARTIFACTS_DIR=/tmp/cavy-ios-run node scripts/run-ci-tests.js ios
+```
+
+CI runs every registered suite supported by its platform, including live loading,
+advertising, captions, cue metadata, ID3, unloading, audio tracks and video quality.
+For a short local smoke run, append `--tags playback,loading-vod` to use the
+existing Art of Motion VOD tests. The `loading`
+selector still includes both VOD and live loading tests. `loading-vod` is an
+explicit subset selector; omitting tags runs the original full suite without
+duplicating its VOD tests.
+
+Install the pinned dependencies first. The supervisor starts Metro and the
+installed Cavy CLI, waits for Metro's `/status` response and the Cavy reporter
+port, then invokes the platform adapter. `EXPO_PUBLIC_CAVY_CI=1` selects
+the existing Cavy entry without swapping source files. It never builds the app. Both local
+and CI runs use this same command.
+
+The adapters require these environment variables:
+
+| Platform | Variables                                                                                                                       |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Android  | `ANDROID_SERIAL` for a booted emulator and `CAVY_ANDROID_APK` for a prebuilt APK                                                |
+| iOS      | `IOS_SMOKE_APP_PATH`, `IOS_SMOKE_RUNTIME`, and `IOS_SMOKE_DEVICE_TYPE` for a prebuilt simulator app and the simulator to create |
+| Both     | `EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY`; CI maps the existing `INTEGRATION_TESTS_PLAYER_LICENSE_KEY` secret to this variable  |
+
+`RCT_METRO_PORT` defaults to 8081. Port 8082 is reserved for the Cavy reporter
+and cannot be used for Metro. Occupied ports and existing Cavy reports are rejected. Metro uses IPv4-first DNS resolution for Android's
+reverse port mapping. `CAVY_TIMEOUT_MS` bounds startup and test execution
+(default 600000 ms; full-suite CI uses 1800000 ms); startup readiness also has a 120-second limit. Bounded
+adapter cleanup runs afterward, outside `CAVY_TIMEOUT_MS`: Android diagnostics
+and cleanup each have a 100-second limit, while iOS graceful shutdown has a
+35-second limit. Process-group termination adds a short wait on either platform,
+and artifact redaction runs after cleanup. Allow extra time for teardown when
+setting an outer CI job timeout.
+
+`CAVY_ARTIFACTS_DIR` defaults to `cavy-artifacts/` in the current directory.
+It retains `metro.log`, `cavy.log`, `app.log`, Cavy XML/Markdown reports, and
+adapter diagnostics. Success requires Cavy to exit successfully with a valid,
+nonempty XML report containing no failures, errors, or skipped tests. Missing
+reports, early process exits, startup failures, and timeouts fail the command.
+Cleanup signals only processes started by this run; adapters own their device
+cleanup. Keep `patches/cavy+4.0.2.patch`: the CLI fork does not replace the
+runtime fixes. The canonical CLI is
+[`bitmovin-engineering/cavy-cli`](https://github.com/bitmovin-engineering/cavy-cli),
+pinned to `833199422418fa72ba6f977b190f46beb23fbba2` in the lockfile; the
+runtime remains upstream `cavy@4.0.2`.
+
+Android includes the Widevine license-error assertion, which requires a license
+request to reach the expected HTTP 403 response. It does not establish successful
+encrypted playback or hardware-backed DRM coverage.
+
+Metro serves the fixed license-error response and the checked-in positioned
+WebVTT HLS fixture under `/cavy-fixtures/`. Both local runs and CI use the
+resolved Metro origin, so these cases require no external fixture credentials.
+
+FairPlay cannot run on Apple simulators. The suite excludes that iOS test
+with an explicit log message. Physical-device coverage requires a device-capable harness.
+The current simulator launcher is not a physical-device runner. Platform-only
+ID3, media-control and ad-break tests are registered only where applicable, so
+unsupported cases are not reported as passing no-ops. Existing platform-specific
+ad and caption coverage remains intact. TV runtime execution remains outside CI.
+
+The Android adapter exposes `prepare`, `launch`, `check`, `diagnostics`, and
+`cleanup` operations. The iOS adapter stays alive while the app runs and fails
+if it exits early; the supervisor sends SIGTERM after validating the report.
+The iOS adapter records disposal in `ios-cleanup.json`; failed or missing
+disposal acknowledgement fails the run. Text diagnostics redact the configured
+player license before artifact upload.
+The pinned CLI spells its no-build flag `--skipbuild`, so the supervisor uses
+that spelling with `--no-screenshots --xml`.
 
 ## Local HTTP fixtures
 

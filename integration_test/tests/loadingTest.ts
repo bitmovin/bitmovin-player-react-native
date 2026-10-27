@@ -17,7 +17,7 @@ import {
 } from 'bitmovin-player-react-native';
 import { expect } from './helper/Expect';
 
-export default (spec: TestScope) => {
+function registerLoadingTests(spec: TestScope, vodOnly = false) {
   function loadingSourceTests(sourceConfig: SourceConfig, label: string) {
     spec.describe(`loading a ${label} source`, () => {
       spec.it('emits ReadyEvent event', async () => {
@@ -122,5 +122,11 @@ export default (spec: TestScope) => {
   }
 
   loadingSourceTests(Sources.artOfMotionHls, 'VOD');
-  loadingSourceTests(Sources.iReplayTestLiveHls, 'live');
-};
+  if (!vodOnly) loadingSourceTests(Sources.iReplayTestLiveHls, 'live');
+}
+
+export function loadingVodTests(spec: TestScope) {
+  registerLoadingTests(spec, true);
+}
+
+export default (spec: TestScope) => registerLoadingTests(spec);
