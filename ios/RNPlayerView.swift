@@ -152,6 +152,8 @@ public class RNPlayerView: ExpoView {
             detachCurrentPlayer()
             return
         }
+        // PlayerView renders this native view only after player.initialize() resolves,
+        // so the player is already registered on the normal attachment path.
         guard let player = self.appContext?.moduleRegistry.get(PlayerModule.self)?.retrieve(playerId) else {
             return
         }

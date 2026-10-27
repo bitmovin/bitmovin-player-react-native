@@ -302,8 +302,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         userInterfaceTypeName: String?,
     ) {
         val playerModule = appContext.registry.getModule<PlayerModule>()
-        // Player might not be initialized yet, this is a timing issue
-        // Return early without throwing to avoid crash
+        // PlayerView renders this native view only after player.initialize() resolves,
+        // so the player is already registered on the normal attachment path.
         val player = playerModule?.getPlayerOrNull(playerId) ?: return
 
         if (playerView?.player == player) {
