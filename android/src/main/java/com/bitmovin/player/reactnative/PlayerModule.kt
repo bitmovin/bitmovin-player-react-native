@@ -50,6 +50,9 @@ class PlayerModule : Module() {
         }
 
         OnDestroy {
+            // Detach the listeners first, so destroying the players does not emit into this module.
+            eventRelay.clear { PlayerRegistry.getPlayer(it) }
+            unloadedSourceResolver.clear { PlayerRegistry.getPlayer(it) }
             // Clean up all players when module is destroyed
             PlayerRegistry.getAllPlayers().forEach { player ->
                 try {
@@ -61,8 +64,6 @@ class PlayerModule : Module() {
             shouldLoadAdItemWaiter.clear()
             shouldPlayAdBreakWaiter.clear()
             imaSettingsWaiter.clear()
-            eventRelay.clear()
-            unloadedSourceResolver.clear()
             PlayerRegistry.clear()
         }
 

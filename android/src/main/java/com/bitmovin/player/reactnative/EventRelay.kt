@@ -38,7 +38,13 @@ class EventRelay<T : Event>(
         instanceListeners.values.forEach { emitter.off(it) }
     }
 
-    fun clear() {
+    /**
+     * Detaches all native listeners, resolving each instance's emitter via [emitterOf].
+     */
+    fun clear(emitterOf: (NativeId) -> JavaEventEmitter<T>?) {
+        listeners.forEach { (nativeId, instanceListeners) ->
+            emitterOf(nativeId)?.let { emitter -> instanceListeners.values.forEach { emitter.off(it) } }
+        }
         listeners.clear()
     }
 }

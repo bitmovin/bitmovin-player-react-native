@@ -36,7 +36,7 @@ class SourceModule : Module() {
         }
 
         OnDestroy {
-            eventRelay.clear()
+            eventRelay.clear { SourceRegistry.getSource(it) }
             SourceRegistry.clear()
         }
 
