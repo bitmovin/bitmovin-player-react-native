@@ -135,9 +135,20 @@ async function runIosApp(config, dependencies = {}) {
       ['shutdown', 'delete'].includes(args[0]) &&
       (result.error || result.status !== 0)
     ) {
-      cleanupErrors.push(
-        `simctl ${args[0]} failed: ${result.error?.message || result.stderr || result.status}`
-      );
+      // A failed boot may leave the device shut down already. Still attempt both
+      // shutdown and deletion so partially booted devices are cleaned up too.
+      const alreadyShutdown =
+        args[0] === 'shutdown' &&
+        !result.error?.killed &&
+        !result.error?.signal &&
+        /Unable to shutdown device in current state: Shutdown(?:\r?\n|$)/.test(
+          `${result.stderr || ''}\n${result.error?.message || ''}`
+        );
+      if (!alreadyShutdown) {
+        cleanupErrors.push(
+          `simctl ${args[0]} failed: ${result.error?.message || result.stderr || result.status}`
+        );
+      }
     }
     return result.stdout || '';
   };

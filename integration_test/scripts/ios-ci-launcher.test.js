@@ -480,3 +480,29 @@ test('records successful disposal after coordinator cancellation', async (t) => 
   );
   assert.deepEqual(cleanup, { success: true, errors: [] });
 });
+
+test('an already-shutdown device after boot failure does not count as a cleanup failure', async (t) => {
+  const f = fixture(t, { fail: 'boot' });
+  const run = f.dependencies.run;
+  f.dependencies.run = (command, args, options) => {
+    if (args[1] === 'shutdown') {
+      return {
+        status: 1,
+        stderr: 'Unable to shutdown device in current state: Shutdown',
+      };
+    }
+    return run(command, args, options);
+  };
+  await assert.rejects(
+    implementation().runIosApp(f.config, f.dependencies),
+    /simctl boot failed/
+  );
+  assert.ok(f.calls.some(({ args }) => args[1] === 'delete'));
+  const cleanup = JSON.parse(
+    fs.readFileSync(
+      path.join(f.config.artifactsDir, 'ios-cleanup.json'),
+      'utf8'
+    )
+  );
+  assert.deepEqual(cleanup, { success: true, errors: [] });
+});
