@@ -75,7 +75,7 @@ export interface NetworkConfig extends NativeInstanceConfig {
    * @param request The HTTP request to process.
    * @returns A Promise that resolves to an `HttpRequest` object.
    *          - If the promise resolves, the player will use the processed request.
-   *          - If the promise rejects, the player will fall back to using the original request.
+   *          - If the callback throws or the promise rejects, the player will fall back to using the original request.
    *
    * @example
    * ```
@@ -120,7 +120,7 @@ export interface NetworkConfig extends NativeInstanceConfig {
    * @param response The HTTP response to process.
    * @returns A Promise that resolves to an `HttpResponse` object.
    *          - If the promise resolves, the player will use the processed response.
-   *          - If the promise rejects, the player will fall back to using the original response.
+   *          - If the callback throws or the promise rejects, the player will fall back to using the original response.
    *
    * @example
    * ```

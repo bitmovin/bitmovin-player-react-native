@@ -8,6 +8,11 @@
 - **Breaking change:** Google IMA is now disabled by default on Android, iOS, and tvOS. Apps that use IMA ad sources must set `features.googleIMA: true`, rerun Expo prebuild, and rebuild the native app. Bitmovin Advertising Module and ordinary playback do not require Google IMA. See [Google IMA](README.md#google-ima) for migration steps.
 - Update Expo SDK version to `57.0.30`
 
+### Fixed
+
+- iOS: Fix playback failing when HTTP response preprocessing is enabled with Expo SDK 57
+- Complete HTTP preprocessing with the original request or response when a user callback throws, and avoid retrying failed native completion calls
+
 ## [1.29.0] - 2026-10-20
 
 ### Added
