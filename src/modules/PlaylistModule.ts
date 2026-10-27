@@ -12,18 +12,28 @@ declare class PlaylistModule extends NativeModule<PlaylistModuleEvents> {
 
   /**
    * Add a source to the playback session, optionally at `index`.
+   *
+   * @returns whether the source was added.
    */
-  add(nativeId: string, sourceNativeId: string, index?: number): Promise<void>;
+  add(
+    nativeId: string,
+    sourceNativeId: string,
+    index?: number
+  ): Promise<boolean>;
 
   /**
    * Remove a source from the playback session.
+   *
+   * @returns the native id of the removed source, or `null` if nothing was removed.
    */
-  remove(nativeId: string, sourceNativeId: string): Promise<void>;
+  remove(nativeId: string, sourceNativeId: string): Promise<string | null>;
 
   /**
    * Remove the source at `index` from the playback session.
+   *
+   * @returns the native id of the removed source, or `null` if nothing was removed.
    */
-  removeAt(nativeId: string, index: number): Promise<void>;
+  removeAt(nativeId: string, index: number): Promise<string | null>;
 
   /**
    * Seek to `time` in a source of the playback session.

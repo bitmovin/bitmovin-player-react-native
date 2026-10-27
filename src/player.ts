@@ -54,8 +54,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   mediaControls: MediaControlsApi = new MediaControlsApi(this.nativeId);
   /**
-   * All {@link Source}s handed to the native player, keyed by {@link Source.nativeId}.
-   * Used to resolve native sources back to their JS instances.
+   * The {@link Source}s of the current playback session, keyed by {@link Source.nativeId}.
+   * Used to resolve native sources back to their JS instances. Loading or unloading replaces the whole
+   * session natively, so it replaces these as well.
    */
   private readonly knownSources = new Map<string, Source>();
   /**
@@ -177,17 +178,24 @@ export class Player extends NativeInstance<PlayerConfig> {
       this.nativeId,
       offlineContentManager.nativeId,
       options
-    );
+    ).then(() => this.keepKnownSources([]));
   };
 
   /**
    * Loads the given {@link Source} into the player.
    */
   loadSource = (source: Source) => {
-    this.knownSources.set(source.nativeId, source);
+    const forgetNewSources = this.rememberSources([source]);
     void source
       .initialize()
-      .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
+      .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId))
+      .then(
+        () => this.keepKnownSources([source]),
+        (error) => {
+          forgetNewSources();
+          throw error;
+        }
+      );
   };
 
   /**
@@ -214,23 +222,53 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform Android
    */
   loadPlaylist = async (playlistConfig: PlaylistConfig): Promise<void> => {
-    playlistConfig.sources.forEach((source) =>
-      this.knownSources.set(source.nativeId, source)
-    );
-    await Promise.all(
-      playlistConfig.sources.map((source) => source.initialize())
-    );
-    await PlayerModule.loadPlaylist(
-      this.nativeId,
-      playlistConfig.sources.map((source) => source.nativeId),
-      playlistConfig.options
-    );
+    const forgetNewSources = this.rememberSources(playlistConfig.sources);
+    try {
+      await Promise.all(
+        playlistConfig.sources.map((source) => source.initialize())
+      );
+      await PlayerModule.loadPlaylist(
+        this.nativeId,
+        playlistConfig.sources.map((source) => source.nativeId),
+        playlistConfig.options
+      );
+    } catch (error) {
+      forgetNewSources();
+      throw error;
+    }
+    this.keepKnownSources(playlistConfig.sources);
   };
+
+  /**
+   * Removes the known sources of the previous playback session once a load replaced it.
+   * Only after the load, as a rejected load keeps the previous session.
+   */
+  /**
+   * Makes `sources` known before they are loaded, so that event listeners can resolve them.
+   *
+   * @returns a function that forgets the sources that were not known before, e.g. if loading them fails.
+   */
+  private rememberSources(sources: Source[]): () => void {
+    const newSources = sources.filter(
+      (source) => !this.knownSources.has(source.nativeId)
+    );
+    sources.forEach((source) => this.knownSources.set(source.nativeId, source));
+    return () =>
+      newSources.forEach((source) => this.knownSources.delete(source.nativeId));
+  }
+
+  private keepKnownSources(sources: Source[]) {
+    const sessionSourceIds = new Set(sources.map((source) => source.nativeId));
+    [...this.knownSources.keys()]
+      .filter((sourceNativeId) => !sessionSourceIds.has(sourceNativeId))
+      .forEach((sourceNativeId) => this.knownSources.delete(sourceNativeId));
+  }
 
   /**
    * Unloads all {@link Source}s from the player.
    */
   unload = () => {
+    this.knownSources.clear();
     void PlayerModule.unload(this.nativeId);
   };
 

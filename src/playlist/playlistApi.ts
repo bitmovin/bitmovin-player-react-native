@@ -46,9 +46,20 @@ export class PlaylistApi {
    * Has no effect if there is no active playback session or if `index` is < 0 or > the number of sources.
    */
   add = async (source: Source, index?: number): Promise<void> => {
-    await source.initialize();
+    const wasKnown = this.knownSources.has(source.nativeId);
+    // Known before the native call, so that `SourceAdded` listeners can resolve it via `getSources`.
     this.knownSources.set(source.nativeId, source);
-    return PlaylistModule?.add(this.nativeId, source.nativeId, index);
+    let isAdded = false;
+    try {
+      await source.initialize();
+      isAdded =
+        (await PlaylistModule?.add(this.nativeId, source.nativeId, index)) ??
+        false;
+    } finally {
+      if (!isAdded && !wasKnown) {
+        this.knownSources.delete(source.nativeId);
+      }
+    }
   };
 
   /**
@@ -58,7 +69,9 @@ export class PlaylistApi {
    * Has no effect if there is no active playback session or if the `source` is not part of it.
    */
   remove = async (source: Source): Promise<void> => {
-    return PlaylistModule?.remove(this.nativeId, source.nativeId);
+    this.forgetSource(
+      await PlaylistModule?.remove(this.nativeId, source.nativeId)
+    );
   };
 
   /**
@@ -68,7 +81,7 @@ export class PlaylistApi {
    * Has no effect if there is no active playback session or if `index` is < 0 or > the number of sources.
    */
   removeAt = async (index: number): Promise<void> => {
-    return PlaylistModule?.removeAt(this.nativeId, index);
+    this.forgetSource(await PlaylistModule?.removeAt(this.nativeId, index));
   };
 
   /**
@@ -95,4 +108,10 @@ export class PlaylistApi {
   seekTo = async (source: Source, seekTarget?: SeekTarget): Promise<void> => {
     return PlaylistModule?.seekTo(this.nativeId, source.nativeId, seekTarget);
   };
+
+  private forgetSource(removedSourceNativeId: string | null | undefined) {
+    if (removedSourceNativeId) {
+      this.knownSources.delete(removedSourceNativeId);
+    }
+  }
 }

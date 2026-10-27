@@ -87,19 +87,28 @@ export default (spec: TestScope) => {
       });
     });
 
-    spec.it('rejects an empty playlist', async () => {
-      await startPlayerTest({}, async () => {
-        await callPlayer(async (player) => {
-          let error: unknown;
-          try {
-            await player.loadPlaylist({ sources: [] });
-          } catch (e) {
-            error = e;
-          }
-          expect(error, 'loadPlaylist should reject').toBeDefined();
+    spec.it(
+      'rejects an empty playlist and keeps the current session',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const source = new Source(Sources.artOfMotionHls);
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.loadPlaylist({ sources: [source] });
+          }, EventType.Ready);
+
+          await callPlayer(async (player) => {
+            let error: unknown;
+            try {
+              await player.loadPlaylist({ sources: [] });
+            } catch (e) {
+              error = e;
+            }
+            expect(error, 'loadPlaylist should reject').toBeDefined();
+            expect(await player.getSource()).toBe(source);
+          });
         });
-      });
-    });
+      }
+    );
 
     spec.it('preloads all sources when enabled', async () => {
       await startPlayerTest({}, async () => {
