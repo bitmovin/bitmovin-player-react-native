@@ -60,10 +60,14 @@ class PlayerSourceTracker(private val release: (NativeId) -> Unit) {
         pendingReleases.remove(source)
     }
 
-    fun clear() {
+    /**
+     * Detaches all listeners, resolving each player via [playerOf], and drops pending releases.
+     */
+    fun clear(playerOf: (NativeId) -> Player?) {
         handler.removeCallbacksAndMessages(null)
-        playerListeners.clear()
+        playerListeners.keys.toList().forEach { detach(it, playerOf(it)) }
         pendingReleases.clear()
+        unloadedListeners.forEach { (source, listener) -> source.off(SourceEvent.Unloaded::class, listener) }
         unloadedListeners.clear()
         lastUnloadedEvent = null
         lastUnloadedSource = null
