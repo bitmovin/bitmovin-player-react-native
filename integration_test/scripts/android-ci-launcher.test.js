@@ -15,6 +15,7 @@ test('full Android suites use an IMA-enabled host alongside the no-IMA build', (
   );
   const build = workflow.jobs['test-build-android-integration-tests'];
   const runtime = workflow.jobs['android-system-tests'];
+  assert.ok(build, 'The no-IMA host must retain its own build job');
   assert.ok(runtime, 'Full-suite execution must have its own job');
   assert.equal(build.env.BITMOVIN_ENABLE_GOOGLE_IMA, 'false');
   assert.equal(runtime.env.BITMOVIN_ENABLE_GOOGLE_IMA, 'true');
