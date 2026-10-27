@@ -228,14 +228,15 @@ jobs:
         run: yarn integration-test check:runner
 
       - name: Prebuild Android Integration
+        if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
         timeout-minutes: 5
         env:
-          # Forks retain build coverage using the same placeholder as .env.example.
-          EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')) && secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY || 'YOUR_LICENSE_KEY_HERE' }}
+          EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
         run: yarn integration-test prebuild --clean --platform android
 
       # Build only the ABI used by the runtime emulator below.
       - name: Build Android integration test host app once
+        if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
         timeout-minutes: 25
         working-directory: integration_test/android
         run: |
