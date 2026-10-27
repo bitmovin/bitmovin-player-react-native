@@ -1,0 +1,66 @@
+<testsuite name="cavy" failures="0" errors="0" time="415.629" timestamp="2026-10-21T07:13:35.199Z">
+  <testcase classname="scheduling IMA VMAP ads via AdvertisingConfig" name="scheduling IMA VMAP ads via AdvertisingConfig: emits AdScheduled events" time="4.012" />
+  <testcase classname="scheduling IMA VMAP ads via scheduleAd API" name="scheduling IMA VMAP ads via scheduleAd API: emits AdScheduled events" time="5.173" />
+  <testcase classname="playing IMA VMAP ads" name="playing IMA VMAP ads: emits Ad events" time="66.526" />
+  <testcase classname="filtering scheduled IMA VMAP ads via shouldLoadAdItem" name="filtering scheduled IMA VMAP ads via shouldLoadAdItem: does not play preroll when filtered" time="3.609" />
+  <testcase classname="filtering scheduled IMA VMAP ad breaks via shouldPlayAdBreak" name="filtering scheduled IMA VMAP ad breaks via shouldPlayAdBreak: skips ad break when callback returns false" time="8.433" />
+  <testcase classname="scheduling IMA VAST ads via AdvertisingConfig" name="scheduling IMA VAST ads via AdvertisingConfig: emits AdScheduled events" time="0.916" />
+  <testcase classname="scheduling IMA VAST ads via scheduleAd API" name="scheduling IMA VAST ads via scheduleAd API: emits AdScheduled events" time="2.19" />
+  <testcase classname="playing IMA VAST ads" name="playing IMA VAST ads: emits Ad events" time="55.1" />
+  <testcase classname="filtering scheduled IMA VAST ads via shouldLoadAdItem" name="filtering scheduled IMA VAST ads via shouldLoadAdItem: does not play preroll when filtered" time="3.03" />
+  <testcase classname="filtering scheduled IMA VAST ad breaks via shouldPlayAdBreak" name="filtering scheduled IMA VAST ad breaks via shouldPlayAdBreak: skips ad break when callback returns false" time="5.299" />
+  <testcase classname="scheduling Progressive ads via AdvertisingConfig" name="scheduling Progressive ads via AdvertisingConfig: emits AdScheduled events" time="0.915" />
+  <testcase classname="scheduling Progressive ads via scheduleAd API" name="scheduling Progressive ads via scheduleAd API: emits AdScheduled events" time="2.096" />
+  <testcase classname="playing Progressive ads" name="playing Progressive ads: emits Ad events" time="24.005" />
+  <testcase classname="filtering scheduled Progressive ads via shouldLoadAdItem" name="filtering scheduled Progressive ads via shouldLoadAdItem: does not play preroll when filtered" time="2.051" />
+  <testcase classname="filtering scheduled Progressive ad breaks via shouldPlayAdBreak" name="filtering scheduled Progressive ad breaks via shouldPlayAdBreak: skips ad break when callback returns false" time="2.526" />
+  <testcase classname="scheduling BITMOVIN VAST ads via AdvertisingConfig" name="scheduling BITMOVIN VAST ads via AdvertisingConfig: emits AdScheduled events" time="0.513" />
+  <testcase classname="scheduling BITMOVIN VAST ads via scheduleAd API" name="scheduling BITMOVIN VAST ads via scheduleAd API: emits AdScheduled events" time="1.783" />
+  <testcase classname="playing BITMOVIN VAST ads" name="playing BITMOVIN VAST ads: emits Ad events" time="47.191" />
+  <testcase classname="filtering scheduled BITMOVIN VAST ads via shouldLoadAdItem" name="filtering scheduled BITMOVIN VAST ads via shouldLoadAdItem: does not play preroll when filtered" time="1.731" />
+  <testcase classname="filtering scheduled BITMOVIN VAST ad breaks via shouldPlayAdBreak" name="filtering scheduled BITMOVIN VAST ad breaks via shouldPlayAdBreak: skips ad break when callback returns false" time="1.755" />
+  <testcase classname="scheduling BITMOVIN VMAP ads via AdvertisingConfig" name="scheduling BITMOVIN VMAP ads via AdvertisingConfig: emits AdScheduled events" time="0.536" />
+  <testcase classname="scheduling BITMOVIN VMAP ads via scheduleAd API" name="scheduling BITMOVIN VMAP ads via scheduleAd API: emits AdScheduled events" time="1.666" />
+  <testcase classname="playing BITMOVIN VMAP ads" name="playing BITMOVIN VMAP ads: emits Ad events" time="46.29" />
+  <testcase classname="filtering scheduled BITMOVIN VMAP ads via shouldLoadAdItem" name="filtering scheduled BITMOVIN VMAP ads via shouldLoadAdItem: does not play preroll when filtered" time="2.431" />
+  <testcase classname="filtering scheduled BITMOVIN VMAP ad breaks via shouldPlayAdBreak" name="filtering scheduled BITMOVIN VMAP ad breaks via shouldPlayAdBreak: skips ad break when callback returns false" time="2.356" />
+  <testcase classname="scheduling erroneous IMA ad" name="scheduling erroneous IMA ad: emits AdError events" time="3.383" />
+  <testcase classname="scheduling erroneous BITMOVIN ad" name="scheduling erroneous BITMOVIN ad: emits AdError events" time="2.326" />
+  <testcase classname="playing pause ads" name="playing pause ads: emits NonLinearAdStarted when paused" time="4.632" />
+  <testcase classname="playing pause ads" name="playing pause ads: emits NonLinearAdSkipped when skipped" time="4.511" />
+  <testcase classname="playing pause ads" name="playing pause ads: emits NonLinearAdFinished when playback resumes" time="4.52" />
+  <testcase classname="playing pause ads" name="playing pause ads: emits AdError when the ad fails to load" time="4.15" />
+  <testcase classname="playing captions" name="playing captions: emits CueEnter and CueExit events" time="16.714" />
+  <testcase classname="playing captions" name="playing captions: validates subtitle track properties" time="1.325" />
+  <testcase classname="playing captions" name="playing captions: validates CueEnter event properties" time="6.514" />
+  <testcase classname="playing captions" name="playing captions: validates CueExit event properties" time="10.017" />
+  <testcase classname="playing captions" name="playing captions: disables subtitles when calling setSubtitleTrack with undefined" time="1.698" />
+  <testcase classname="Android cue geometry fields" name="Android cue geometry fields: CueEnter and CueExit expose bitmap height for image TTML cues" time="1.922" />
+  <testcase classname="Android cue geometry fields" name="Android cue geometry fields: CueEnter layout field reflects geometry authored in the VTT" time="3.033" />
+  <testcase classname="Android cue geometry fields" name="Android cue geometry fields: CueEnter html field is present for a cue with inline styling" time="3.555" />
+  <testcase classname="Android cue geometry fields" name="Android cue geometry fields: CueExit carries the same layout and html as its paired CueEnter" time="6.067" />
+  <testcase classname="error events with network details" name="error events with network details: emits an error with httpResponse when a DRM license request fails" time="4.223" />
+  <testcase classname="loading a VOD source" name="loading a VOD source: emits ReadyEvent event" time="0.888" />
+  <testcase classname="loading a VOD source" name="loading a VOD source: emits SourceLoad and SourceLoaded events" time="0.572" />
+  <testcase classname="loading a VOD source" name="loading a VOD source: emits DownloadFinished events" time="0.506" />
+  <testcase classname="loading a VOD source" name="loading a VOD source: validates DownloadFinished event properties" time="0.376" />
+  <testcase classname="loading a live source" name="loading a live source: emits ReadyEvent event" time="3.712" />
+  <testcase classname="loading a live source" name="loading a live source: emits SourceLoad and SourceLoaded events" time="0.757" />
+  <testcase classname="loading a live source" name="loading a live source: emits DownloadFinished events" time="1.083" />
+  <testcase classname="loading a live source" name="loading a live source: validates DownloadFinished event properties" time="0.745" />
+  <testcase classname="ID3 metadata serialization (Android)" name="ID3 metadata serialization (Android): emits Android ID3 frames with expected shape" time="1.472" />
+  <testcase classname="calling play when a source is loaded" name="calling play when a source is loaded: emits a Play and Playing events" time="1.586" />
+  <testcase classname="calling pause when a source is loaded" name="calling pause when a source is loaded: emits a Paused event" time="2.766" />
+  <testcase classname="playing a source" name="playing a source: emits TimeChanged events" time="3.184" />
+  <testcase classname="playing a source" name="playing a source: validates TimeChanged event properties" time="1.81" />
+  <testcase classname="playing a source to its end" name="playing a source to its end: emits PlaybackFinished event" time="7.275" />
+  <testcase classname="playing a source to its end" name="playing a source to its end: validates PlaybackFinished event properties" time="6.376" />
+  <testcase classname="unloading the player" name="unloading the player: emits SourceUnloaded event" time="1.067" />
+  <testcase classname="unloading the player" name="unloading the player: validates SourceUnloaded event properties" time="1.147" />
+  <testcase classname="unloading the player" name="unloading the player: validates player state after unload" time="1.161" />
+  <testcase classname="loading a source with audio tracks" name="loading a source with audio tracks: emits AudioAdded event" time="0.649" />
+  <testcase classname="when Platform is Android" name="when Platform is Android: AudioTrack contains qualities information" time="0.697" />
+  <testcase classname="loading a source with video qualities" name="loading a source with video qualities: exposes colorInfo.dynamicRange on available video qualities" time="1.468" />
+  <testcase classname="loading a source with video qualities" name="loading a source with video qualities: exposes colorInfo.dynamicRange on the active video quality" time="3.718" />
+  <testcase classname="loading a source with video qualities" name="loading a source with video qualities: exposes colorInfo.dynamicRange on VideoPlaybackQualityChangedEvent" time="1.358" />
+</testsuite>

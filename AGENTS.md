@@ -6,7 +6,7 @@
 - `ios/`, `android/`: Native bridges (Swift/Kotlin) used by the Expo Module.
 - `plugin/`: Expo Config Plugin code used during prebuild.
 - `example/`: Runnable sample app (Expo) to develop and validate changes.
-- `integration_test/`: Expo app + Cavy-based integration tests.
+- `integration_test/`: Expo app + Cavy system tests.
 - `scripts/`: Repo tooling (lint/format hooks, helpers). `build/`: transpiled output.
 
 ## Build, Test, and Development Commands
@@ -28,10 +28,10 @@
 
 ## Testing Guidelines
 
-- Framework: Cavy; tests live under `integration_test/tests`.
-- Setup: `cp integration_test/.env.example integration_test/.env` and set `EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY`.
-- Run: `yarn integration-test test:ios` or `test:android` (simulator/emulator only).
+- Before choosing or adding tests, read [Testing](docs/testing.md): use JS unit tests for JS orchestration and Cavy system tests (or focused native tests) for native behavior.
 - Add per‑feature tests (e.g., `Playback.test.ts`) covering happy‑path and error events.
+- A mocked bridge does not prove native completion, decoding, or playback. Report excluded or unrun cases separately from passes.
+- Before writing integration tests, follow [Writing reliable tests](CONTRIBUTING.md#writing-reliable-tests): observe events before triggering them, avoid sleeps, and register platform-specific cases only where they run.
 
 ## Commit & Pull Request Guidelines
 
@@ -90,11 +90,14 @@
   - Android TV does not need a separate platform distinction; treat it as Android.
   - If an API is available on all platforms, omit `@platform` entirely. Do not write `@platform iOS/tvOS/Android`.
 - Public API docs should use TypeDoc's `@defaultValue` tag for documented defaults on properties, accessors, and config fields.
-  - Prefer `@defaultValue \`false\`` over prose like `Default is \`false\`.` because TypeDoc renders the tag explicitly.
+  - Prefer `` @defaultValue `false` `` over prose like ``Default is `false`.`` because TypeDoc renders the tag explicitly.
   - Put `@defaultValue` near other tags, before or next to `@platform`.
   - Do not duplicate the same default in prose and `@defaultValue`.
   - If defaults differ by platform, describe that inside `@defaultValue`, e.g. `@defaultValue iOS: \`1.0\`, Android: \`0.2\``.
   - When touching public docs that already mention defaults in prose, convert the touched default to `@defaultValue` instead of preserving the older style.
+- Developer-facing warnings must be raised from JS with `console.warn` so they show in the Metro terminal and LogBox.
+  - Native logs do not reach Metro: Android `Log.w` goes only to logcat; ExpoModulesCore `log.warn` on iOS goes only to the Xcode console and Console.app.
+  - When the condition is only known natively, expose it to JS (e.g. a module `Constant`) and warn there. Example: `PlayerModule.isGoogleImaEnabled` with the warning in `src/player.ts`.
 - Match native names exactly on both platforms:
   - iOS: `Name("PlayerModule")` in `ios/PlayerModule.swift:7`; Android: `Name("PlayerModule")` in `android/src/main/java/com/bitmovin/player/reactnative/PlayerModule.kt:23`.
 - Bridge views via view managers:
@@ -109,6 +112,6 @@
   - TS: add method on a `src/modules/<Feature>Module.ts` wrapper, export from `src/index.ts`.
   - iOS/Android: add matching `AsyncFunction("methodName")` to Expo `ModuleDefinition`; emit events if needed.
   - Views: add `Prop(...)`/`Events(...)` in native managers and extend `NativePlayerViewProps`.
-  - Tests: extend integration tests; validate on at least one platform.
+  - Tests: choose coverage using [Testing](docs/testing.md); validate native behavior on at least one platform.
   - Naming: keep method/event names identical across TS, iOS, Android.
 - Example screens should reuse existing Bitmovin sample streams rather than introducing third-party test streams.

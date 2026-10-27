@@ -28,6 +28,19 @@ import { Platform } from 'react-native';
 type SupportedTestPlatform = 'ios' | 'android';
 
 const currentPlatform = Platform.OS as SupportedTestPlatform;
+// Observations begin before load/seek, so include preparation and ad playback.
+const adLifecycleTimeoutSeconds = 30;
+
+async function waitForAdExpectations(
+  expectations: Promise<unknown>[]
+): Promise<void> {
+  try {
+    await Promise.all(expectations);
+  } finally {
+    // Drain sibling expectations before teardown, preserving the first error.
+    await Promise.allSettled(expectations);
+  }
+}
 
 function isEnabledForCurrentPlatform(
   enabledOn?: SupportedTestPlatform[]
@@ -94,62 +107,71 @@ export default (spec: TestScope) => {
           schedule: adItems,
         } as AdvertisingConfig;
         await startPlayerTest({ advertisingConfig }, async () => {
-          await callPlayer(async (player) => {
-            player.load(Sources.artOfMotionHls);
-            player.play();
-          });
-          if (expectManifestLoaded) {
-            await expectEvent(EventType.AdManifestLoaded, 20);
-          }
-          await expectEvents(
-            EventSequence(
-              EventType.AdBreakStarted,
-              EventType.AdStarted,
-              EventType.AdQuartile,
-              EventType.AdQuartile,
-              EventType.AdQuartile,
-              EventType.AdFinished,
-              EventType.AdBreakFinished
+          // Observe load-triggered ads before loading, then play a ready source.
+          await waitForAdExpectations([
+            expectEvents(
+              EventSequence(
+                EventType.AdBreakStarted,
+                EventType.AdStarted,
+                EventType.AdQuartile,
+                EventType.AdQuartile,
+                EventType.AdQuartile,
+                EventType.AdFinished,
+                EventType.AdBreakFinished
+              ),
+              adLifecycleTimeoutSeconds
             ),
-            18
-          );
-          await callPlayerAndExpectEvent((player) => {
-            player.seek(13);
-          }, EventType.Seeked);
-          if (expectManifestLoadedAfterSeek) {
-            await expectEvent(EventType.AdManifestLoaded, 20);
-          }
-          await expectEvents(
-            EventSequence(
-              EventType.AdBreakStarted,
-              EventType.AdStarted,
-              EventType.AdQuartile,
-              EventType.AdQuartile,
-              EventType.AdQuartile,
-              EventType.AdFinished,
-              EventType.AdBreakFinished
+            expectManifestLoaded
+              ? expectEvent(EventType.AdManifestLoaded, 20)
+              : Promise.resolve(),
+            (async () => {
+              await loadSourceConfig(Sources.artOfMotionHls);
+              await callPlayer(async (player) => {
+                player.play();
+              });
+            })(),
+          ]);
+          await waitForAdExpectations([
+            expectEvents(
+              EventSequence(
+                EventType.AdBreakStarted,
+                EventType.AdStarted,
+                EventType.AdQuartile,
+                EventType.AdQuartile,
+                EventType.AdQuartile,
+                EventType.AdFinished,
+                EventType.AdBreakFinished
+              ),
+              adLifecycleTimeoutSeconds
             ),
-            15
-          );
-          await callPlayerAndExpectEvent(async (player) => {
-            const duration = await player.getDuration();
-            player.seek(duration - 5);
-          }, EventType.Seeked);
-          if (expectManifestLoadedAfterSeek) {
-            await expectEvent(EventType.AdManifestLoaded, 20);
-          }
-          await expectEvents(
-            EventSequence(
-              EventType.AdBreakStarted,
-              EventType.AdStarted,
-              EventType.AdQuartile,
-              EventType.AdQuartile,
-              EventType.AdQuartile,
-              EventType.AdFinished,
-              EventType.AdBreakFinished
+            expectManifestLoadedAfterSeek
+              ? expectEvent(EventType.AdManifestLoaded, 20)
+              : Promise.resolve(),
+            callPlayerAndExpectEvent((player) => {
+              player.seek(13);
+            }, EventType.Seeked),
+          ]);
+          await waitForAdExpectations([
+            expectEvents(
+              EventSequence(
+                EventType.AdBreakStarted,
+                EventType.AdStarted,
+                EventType.AdQuartile,
+                EventType.AdQuartile,
+                EventType.AdQuartile,
+                EventType.AdFinished,
+                EventType.AdBreakFinished
+              ),
+              adLifecycleTimeoutSeconds
             ),
-            18
-          );
+            expectManifestLoadedAfterSeek
+              ? expectEvent(EventType.AdManifestLoaded, 20)
+              : Promise.resolve(),
+            callPlayerAndExpectEvent(async (player) => {
+              const duration = await player.getDuration();
+              player.seek(duration - 5);
+            }, EventType.Seeked),
+          ]);
         });
       });
     });
@@ -158,53 +180,10 @@ export default (spec: TestScope) => {
       `filtering scheduled ${name} ads via shouldLoadAdItem`,
       () => {
         spec.it('does not play preroll when filtered', async () => {
-          const advertisingConfig: AdvertisingConfig = {
-            schedule: [
-              {
-                sources: [
-                  { tag: AdTags.vastSkippable, type: AdSourceType.IMA },
-                ],
-                position: 'pre',
-              },
-            ],
-            shouldLoadAdItem: () => false,
-          };
-          const playbackConfig: PlaybackConfig = {
-            isAutoplayEnabled: true,
-          };
-          await startPlayerTest(
-            { playbackConfig, advertisingConfig },
-            async () => {
-              await callPlayerAndExpectEvent(
-                (player) => {
-                  player.load(Sources.artOfMotionHls);
-                },
-                FilteredEvent<TimeChangedEvent>(
-                  EventType.TimeChanged,
-                  (event) => event.currentTime > 0.25
-                )
-              );
-              await callPlayer(async (player) => {
-                expect(await player.isAd()).toBeFalsy();
-              });
-            }
-          );
-        });
-      }
-    );
-
-    spec.describe(
-      `filtering scheduled ${name} ad breaks via shouldPlayAdBreak`,
-      () => {
-        spec.it('skips ad break when callback returns false', async () => {
-          if (currentPlatform !== 'android') {
-            return;
-          }
-
           let callbackInvocationCount = 0;
           const advertisingConfig: AdvertisingConfig = {
             schedule: adItems,
-            shouldPlayAdBreak: () => {
+            shouldLoadAdItem: () => {
               callbackInvocationCount += 1;
               return false;
             },
@@ -212,7 +191,6 @@ export default (spec: TestScope) => {
           const playbackConfig: PlaybackConfig = {
             isAutoplayEnabled: true,
           };
-
           await startPlayerTest(
             { playbackConfig, advertisingConfig },
             async () => {
@@ -222,11 +200,10 @@ export default (spec: TestScope) => {
                 },
                 FilteredEvent<TimeChangedEvent>(
                   EventType.TimeChanged,
-                  (event) => event.currentTime > 0.25
+                  (event) =>
+                    event.currentTime > 0.25 && callbackInvocationCount > 0
                 )
               );
-
-              expect(callbackInvocationCount).toBeGreaterThan(0);
               await callPlayer(async (player) => {
                 expect(await player.isAd()).toBeFalsy();
               });
@@ -235,6 +212,47 @@ export default (spec: TestScope) => {
         });
       }
     );
+
+    if (currentPlatform === 'android') {
+      spec.describe(
+        `filtering scheduled ${name} ad breaks via shouldPlayAdBreak`,
+        () => {
+          spec.it('skips ad break when callback returns false', async () => {
+            let callbackInvocationCount = 0;
+            const advertisingConfig: AdvertisingConfig = {
+              schedule: adItems,
+              shouldPlayAdBreak: () => {
+                callbackInvocationCount += 1;
+                return false;
+              },
+            };
+            const playbackConfig: PlaybackConfig = {
+              isAutoplayEnabled: true,
+            };
+
+            await startPlayerTest(
+              { playbackConfig, advertisingConfig },
+              async () => {
+                await callPlayerAndExpectEvent(
+                  (player) => {
+                    player.load(Sources.artOfMotionHls);
+                  },
+                  FilteredEvent<TimeChangedEvent>(
+                    EventType.TimeChanged,
+                    (event) =>
+                      event.currentTime > 0.25 && callbackInvocationCount > 0
+                  )
+                );
+
+                await callPlayer(async (player) => {
+                  expect(await player.isAd()).toBeFalsy();
+                });
+              }
+            );
+          });
+        }
+      );
+    }
   }
 
   const adScenarios: AdScenario[] = [
@@ -257,7 +275,9 @@ export default (spec: TestScope) => {
           position: '15',
         },
         {
-          sources: [{ tag: AdTags.vast2, type: AdSourceType.IMA }],
+          // Not vast2: IMA's request for it was rejected by CORS (ad error
+          // 1005) on CI. BITMOVIN VAST still covers vast2.
+          sources: [{ tag: AdTags.vast1, type: AdSourceType.IMA }],
           position: 'post',
         },
       ],
@@ -381,8 +401,6 @@ export default (spec: TestScope) => {
         },
       ],
     });
-    const advertisingConfig = pauseAdvertisingConfig(AdTags.pause);
-
     const pauseAndExpect = async (eventType: EventType) => {
       await loadSourceConfig(Sources.artOfMotionHls);
       await playUntil(1);
@@ -399,25 +417,34 @@ export default (spec: TestScope) => {
       pauseAndExpect(EventType.NonLinearAdStarted);
 
     spec.it('emits NonLinearAdStarted when paused', async () => {
-      await startPlayerTest({ advertisingConfig }, pauseAndExpectPauseAd);
+      await startPlayerTest(
+        { advertisingConfig: pauseAdvertisingConfig(AdTags.pause) },
+        pauseAndExpectPauseAd
+      );
     });
 
     spec.it('emits NonLinearAdSkipped when skipped', async () => {
-      await startPlayerTest({ advertisingConfig }, async () => {
-        await pauseAndExpectPauseAd();
-        await callPlayerAndExpectEvent((player) => {
-          player.skipAd();
-        }, EventType.NonLinearAdSkipped);
-      });
+      await startPlayerTest(
+        { advertisingConfig: pauseAdvertisingConfig(AdTags.pause) },
+        async () => {
+          await pauseAndExpectPauseAd();
+          await callPlayerAndExpectEvent((player) => {
+            player.skipAd();
+          }, EventType.NonLinearAdSkipped);
+        }
+      );
     });
 
     spec.it('emits NonLinearAdFinished when playback resumes', async () => {
-      await startPlayerTest({ advertisingConfig }, async () => {
-        await pauseAndExpectPauseAd();
-        await callPlayerAndExpectEvent((player) => {
-          player.play();
-        }, EventType.NonLinearAdFinished);
-      });
+      await startPlayerTest(
+        { advertisingConfig: pauseAdvertisingConfig(AdTags.pause) },
+        async () => {
+          await pauseAndExpectPauseAd();
+          await callPlayerAndExpectEvent((player) => {
+            player.play();
+          }, EventType.NonLinearAdFinished);
+        }
+      );
     });
 
     spec.it('emits AdError when the ad fails to load', async () => {

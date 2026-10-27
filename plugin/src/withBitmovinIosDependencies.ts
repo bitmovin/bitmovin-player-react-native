@@ -32,6 +32,11 @@ interface AppleDependencies {
   ima: Record<ApplePlatform, SwiftPackageDependency>;
 }
 
+interface AppleDependencyOptions {
+  platform: ApplePlatform;
+  googleIMA: boolean;
+}
+
 interface PbxReference {
   value: string;
   comment: string;
@@ -339,6 +344,7 @@ const removePackageDependency = (
 export const addBitmovinIosDependenciesToAppTarget = (
   project: XcodeProject,
   platform: ApplePlatform,
+  googleImaEnabled: boolean,
   targetName?: string
 ) => {
   const targets = IOSConfig.Target.getNativeTargets(project).filter(
@@ -376,10 +382,22 @@ export const addBitmovinIosDependenciesToAppTarget = (
     managed
   );
 
-  for (const dependency of [
-    appleDependencies.player,
-    appleDependencies.ima[platform],
-  ]) {
+  if (!googleImaEnabled) {
+    removePackageDependency(
+      project,
+      targetUuid,
+      packageReferences,
+      productDependencies,
+      appleDependencies.ima[platform],
+      managed
+    );
+  }
+
+  const dependencies = [appleDependencies.player];
+  if (googleImaEnabled) {
+    dependencies.push(appleDependencies.ima[platform]);
+  }
+  for (const dependency of dependencies) {
     const packageReference = addPackageReference(
       project,
       dependency,
@@ -398,14 +416,15 @@ export const addBitmovinIosDependenciesToAppTarget = (
   }
 };
 
-const withBitmovinIosDependencies: ConfigPlugin<ApplePlatform> = (
+const withBitmovinIosDependencies: ConfigPlugin<AppleDependencyOptions> = (
   config,
-  platform
+  options
 ) =>
   withXcodeProject(config, (config) => {
     addBitmovinIosDependenciesToAppTarget(
       config.modResults,
-      platform,
+      options.platform,
+      options.googleIMA,
       config.modRequest.projectName
     );
     return config;

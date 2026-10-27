@@ -93,6 +93,9 @@ const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
 
   config = withPodfileProperties(config, (config) => {
     config.modResults['BITMOVIN_APPLE_PLATFORM'] = isTV ? 'tvos' : 'ios';
+    config.modResults['BITMOVIN_ENABLE_GOOGLE_IMA'] = String(
+      !!features.googleIMA
+    );
     if (!isTV && googleCastVersion != null) {
       config.modResults['BITMOVIN_GOOGLE_CAST_SDK_VERSION'] = googleCastVersion;
     } else {
@@ -101,7 +104,10 @@ const withBitmovinIosConfig: ConfigPlugin<BitmovinConfigOptions> = (
     return config;
   });
 
-  config = withBitmovinIosDependencies(config, isTV ? 'tvos' : 'ios');
+  config = withBitmovinIosDependencies(config, {
+    platform: isTV ? 'tvos' : 'ios',
+    googleIMA: !!features.googleIMA,
+  });
 
   return config;
 };
