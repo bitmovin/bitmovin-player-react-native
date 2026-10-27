@@ -78,16 +78,25 @@ export default (spec: TestScope) => {
       });
     });
 
-    spec.it('throws for an empty playlist', async () => {
-      await startPlayerTest({}, async () => {
-        await callPlayer(async (player) => {
-          expect(
-            getError(() => player.loadPlaylist({ sources: [] })),
-            'loadPlaylist should throw'
-          ).toBeDefined();
+    spec.it(
+      'throws for an empty playlist and keeps the current session',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const source = new Source(Sources.artOfMotionHls);
+          await callPlayerAndExpectEvent((player) => {
+            player.loadPlaylist({ sources: [source] });
+          }, EventType.Ready);
+
+          await callPlayer(async (player) => {
+            expect(
+              getError(() => player.loadPlaylist({ sources: [] })),
+              'loadPlaylist should throw'
+            ).toBeDefined();
+            expect(await player.getSource()).toBe(source);
+          });
         });
-      });
-    });
+      }
+    );
 
     spec.it('throws for an unknown replay mode', async () => {
       await startPlayerTest({}, async () => {

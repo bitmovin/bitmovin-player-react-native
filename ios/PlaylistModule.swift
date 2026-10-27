@@ -11,8 +11,8 @@ public class PlaylistModule: Module {
             return player.playlist.sources.compactMap { SourceRegistry.nativeId(of: $0) }
         }.runOnQueue(.main)
 
-        AsyncFunction("add") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId, index: Int?) in
-            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId) else { return }
+        AsyncFunction("add") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId, index: Int?) -> Bool in
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId) else { return false }
             guard let source = self?.retrieveSource(sourceNativeId) else {
                 throw Exception(
                     name: "SOURCE_NOT_INITIALIZED",
@@ -34,19 +34,26 @@ public class PlaylistModule: Module {
             } else {
                 player.playlist.add(source: source)
             }
+            // The SDK ignores the source without an active playback session or with an invalid index.
+            return Self.contains(player.playlist, source)
         }.runOnQueue(.main)
 
-        AsyncFunction("remove") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) in
+        AsyncFunction("remove") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) -> NativeId? in
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-                  let source = self?.retrieveSource(sourceNativeId) else { return }
+                  let source = self?.retrieveSource(sourceNativeId) else { return nil }
             // The SDK can only remove sources by index.
             let index = player.playlist.sources.firstIndex { ($0 as AnyObject) === (source as AnyObject) }
-            guard let index else { return }
+            guard let index else { return nil }
             player.playlist.remove(sourceAt: index)
+            return Self.removedNativeId(of: source, from: player.playlist)
         }.runOnQueue(.main)
 
-        AsyncFunction("removeAt") { (nativeId: NativeId, index: Int) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.playlist.remove(sourceAt: index)
+        AsyncFunction("removeAt") { (nativeId: NativeId, index: Int) -> NativeId? in
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
+                  player.playlist.sources.indices.contains(index) else { return nil }
+            let source = player.playlist.sources[index]
+            player.playlist.remove(sourceAt: index)
+            return Self.removedNativeId(of: source, from: player.playlist)
         }.runOnQueue(.main)
 
         AsyncFunction("seek") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId, time: Double) in
@@ -58,5 +65,17 @@ public class PlaylistModule: Module {
 
     private func retrieveSource(_ nativeId: NativeId) -> Source? {
         appContext?.moduleRegistry.get(SourceModule.self)?.retrieve(nativeId)
+    }
+
+    private static func contains(_ playlist: PlaylistApi, _ source: Source) -> Bool {
+        playlist.sources.contains { ($0 as AnyObject) === (source as AnyObject) }
+    }
+
+    /**
+     * The `nativeId` of `source` if it was removed from `playlist`, e.g. not if it is the active source, which the SDK
+     * does not remove.
+     */
+    private static func removedNativeId(of source: Source, from playlist: PlaylistApi) -> NativeId? {
+        contains(playlist, source) ? nil : SourceRegistry.nativeId(of: source)
     }
 }

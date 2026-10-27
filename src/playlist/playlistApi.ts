@@ -51,9 +51,20 @@ export class PlaylistApi {
    * unsupported type.
    */
   add = async (source: Source, index?: number): Promise<void> => {
-    await source.initialize();
+    const wasKnown = this.knownSources.has(source.nativeId);
+    // Known before the native call, so that `SourceAdded` listeners can resolve it via `getSources`.
     this.knownSources.set(source.nativeId, source);
-    return PlaylistModule.add(this.nativeId, source.nativeId, index);
+    let isAdded = false;
+    try {
+      await source.initialize();
+      isAdded =
+        (await PlaylistModule.add(this.nativeId, source.nativeId, index)) ??
+        false;
+    } finally {
+      if (!isAdded && !wasKnown) {
+        this.knownSources.delete(source.nativeId);
+      }
+    }
   };
 
   /**
@@ -64,7 +75,9 @@ export class PlaylistApi {
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    */
   remove = async (source: Source): Promise<void> => {
-    return PlaylistModule.remove(this.nativeId, source.nativeId);
+    this.forgetSource(
+      await PlaylistModule.remove(this.nativeId, source.nativeId)
+    );
   };
 
   /**
@@ -75,7 +88,7 @@ export class PlaylistApi {
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    */
   removeAt = async (index: number): Promise<void> => {
-    return PlaylistModule.removeAt(this.nativeId, index);
+    this.forgetSource(await PlaylistModule.removeAt(this.nativeId, index));
   };
 
   /**
@@ -89,4 +102,10 @@ export class PlaylistApi {
   seek = async (source: Source, time: number): Promise<void> => {
     return PlaylistModule.seek(this.nativeId, source.nativeId, time);
   };
+
+  private forgetSource(removedSourceNativeId: string | null | undefined) {
+    if (removedSourceNativeId) {
+      this.knownSources.delete(removedSourceNativeId);
+    }
+  }
 }
