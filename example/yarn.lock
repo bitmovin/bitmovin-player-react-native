@@ -861,14 +861,14 @@
     ws "^8.12.1"
     zod "^3.25.76"
 
-"@expo/cli@^57.0.31":
-  version "57.0.31"
-  resolved "https://registry.yarnpkg.com/@expo/cli/-/cli-57.0.31.tgz#46090a634ad0e4efb65bec911f111fab67a13280"
-  integrity sha512-NPTMPGQ9i3KzULyP1bzp8hMggoe3QlkfICw388zJuj0UhqfGHEZURkJFuHBksb/ndTjfrCrCBOO0HQz/9QzXIw==
+"@expo/cli@^57.0.32":
+  version "57.0.32"
+  resolved "https://registry.yarnpkg.com/@expo/cli/-/cli-57.0.32.tgz#2ad7cf4d7cef441a566b8ee90912f093a7b5e644"
+  integrity sha512-3p1qL/pvWblGNwDE1bt2wh/NUiGpSer61s5GKKFfpEpBkZTYnqve0pdK1UvEFzJGT6PW9vX2RofQQ2LP6MgvDQ==
   dependencies:
     "@expo/code-signing-certificates" "^0.0.6"
     "@expo/config" "~57.0.10"
-    "@expo/config-plugins" "~57.0.10"
+    "@expo/config-plugins" "~57.0.11"
     "@expo/devcert" "^1.2.1"
     "@expo/env" "~2.4.3"
     "@expo/image-utils" "^0.11.6"
@@ -883,7 +883,7 @@
     "@expo/plist" "^0.8.1"
     "@expo/prebuild-config" "^57.0.19"
     "@expo/require-utils" "^57.0.6"
-    "@expo/router-server" "^57.0.13"
+    "@expo/router-server" "^57.0.14"
     "@expo/schema-utils" "^57.0.2"
     "@expo/spawn-async" "^1.8.0"
     "@expo/ws-tunnel" "^2.0.0"
@@ -950,6 +950,25 @@
     semver "^7.5.4"
     slugify "^1.6.6"
     xcode "^3.0.1"
+    xml2js "0.6.0"
+
+"@expo/config-plugins@~57.0.11":
+  version "57.0.11"
+  resolved "https://registry.yarnpkg.com/@expo/config-plugins/-/config-plugins-57.0.11.tgz#8ede13d2b3bea6fa02873439fc0a350562b4ca3e"
+  integrity sha512-lnNF0cNXqLQPpQVeb/AAu7O0KhdwMFx99rJkO11mrd0IbQDhnOVObpgaR/Ja2D1jAOoKuqk55jwS4l+ZD1j7aw==
+  dependencies:
+    "@expo/config-types" "^57.0.2"
+    "@expo/json-file" "~11.0.1"
+    "@expo/plist" "^0.8.1"
+    "@expo/require-utils" "^57.0.6"
+    "@expo/sdk-runtime-versions" "^1.0.0"
+    chalk "^4.1.2"
+    debug "^4.3.5"
+    getenv "^2.0.0"
+    glob "^13.0.0"
+    semver "^7.5.4"
+    slugify "^1.6.6"
+    xcode "^4.0.0"
     xml2js "0.6.0"
 
 "@expo/config-plugins@~57.0.9":
@@ -1310,10 +1329,10 @@
   dependencies:
     debug "^4.3.4"
 
-"@expo/router-server@^57.0.13":
-  version "57.0.13"
-  resolved "https://registry.yarnpkg.com/@expo/router-server/-/router-server-57.0.13.tgz#a5ff4817b1a37ef541e908aea833051e10f16acc"
-  integrity sha512-A25869lSp6916GiYjz1y1S/Kfi5qn7S1xepycFv8x8VOrulLBbv0byXl6o3BSLh5nLBx5RiMTjBFM2u+K7JsrA==
+"@expo/router-server@^57.0.14":
+  version "57.0.14"
+  resolved "https://registry.yarnpkg.com/@expo/router-server/-/router-server-57.0.14.tgz#8960404f9d23fc15d3b90cd75c3f1e0bd20705ed"
+  integrity sha512-8776d+wDmkGCg0KqefAb/zwu5s2ieRg5UK3CbltrplhdzIXf+BDBlttu9p9R+fBOxg+Rrf0HKedInjn83yEeFg==
   dependencies:
     debug "^4.3.4"
 
@@ -3308,19 +3327,19 @@ expo-modules-autolinking@~57.0.16:
     chalk "^4.1.0"
     commander "^7.2.0"
 
-expo-modules-core@~57.0.23:
-  version "57.0.23"
-  resolved "https://registry.yarnpkg.com/expo-modules-core/-/expo-modules-core-57.0.23.tgz#6abb5cf49b0c9aee0d165d50944c504979ad7d9a"
-  integrity sha512-vZQoSlhqU6me5K4KCl42yXB0x3zqAiG2FAjzHmbuez77CslJJQ+82cmJoHC3tN5X8o/KxRArJejKNQIeciyoXA==
+expo-modules-core@~57.0.24:
+  version "57.0.24"
+  resolved "https://registry.yarnpkg.com/expo-modules-core/-/expo-modules-core-57.0.24.tgz#0da4fd35d84ba58e65c114b29a52abac0146f60d"
+  integrity sha512-2AY+JgjZiWXIx1zXVhx2JaLEsZOH2NDAqJCSnPQyoCcUa9QEHAzpn2++omq+OvrsmsQCJcVrHe6cKz8FSnpLLQ==
   dependencies:
     "@expo/expo-modules-macros-plugin" "0.6.1"
-    expo-modules-jsi "~57.1.2"
+    expo-modules-jsi "~57.1.3"
     invariant "^2.2.4"
 
-expo-modules-jsi@~57.1.2:
-  version "57.1.2"
-  resolved "https://registry.yarnpkg.com/expo-modules-jsi/-/expo-modules-jsi-57.1.2.tgz#7c4639c900ecf036b212dc08558c3ce8fce407b1"
-  integrity sha512-DYhBwO0fqcKIUma4jF16zRDP/m6ZbawEZbo4eX3gdekREIFqrrz8HKWXydgNUqOyOQcUkdrkZatxi2I9+V6E8g==
+expo-modules-jsi@~57.1.3:
+  version "57.1.3"
+  resolved "https://registry.yarnpkg.com/expo-modules-jsi/-/expo-modules-jsi-57.1.3.tgz#c8919a700db642ce25a24ae7aa8450b5b92b8d80"
+  integrity sha512-pwVO1gvObX2tpIjfJzGn86yBOmOBhMLxAD81n2SHnfZk6lvbbqQhag64MHEeh29E/8vg23/Dzmf3JTmJSwbQYQ==
 
 expo-notifications@~57.0.23:
   version "57.0.23"
@@ -3365,15 +3384,15 @@ expo-updates-interface@~57.0.2:
   resolved "https://registry.yarnpkg.com/expo-updates-interface/-/expo-updates-interface-57.0.2.tgz#b3d357aee2a618e6e38b275d7de9886776338fd3"
   integrity sha512-x3SA5toiHZEkW+5oeNdUM1Rvt6M3ExegQsSwS3Z1+S9gn9utGYTGBkb8MBQivhjIZiRlQYDIhauxA8kySQEWtQ==
 
-expo@~57.0.30:
-  version "57.0.30"
-  resolved "https://registry.yarnpkg.com/expo/-/expo-57.0.30.tgz#240d2e35d0317b6ad1b37edfb347ec87bfcbec35"
-  integrity sha512-dpNWbsqiAHkgInOBClv5PxKCSMAly1n0oBVoIjS/yv8LQtRgDqSkWAnJq16cExndKrgONxdItY+O3J8u6MNYlw==
+expo@~57.0.31:
+  version "57.0.31"
+  resolved "https://registry.yarnpkg.com/expo/-/expo-57.0.31.tgz#8bb6dad6146877be097882449b6bb7718f017cd1"
+  integrity sha512-+9AJvHZMLIY/Tv6r5Tpu84vWfI75FBTnineYqjjlHAU138IPg2gYQKn9FQFetCB9YScwyc7STk7WGHSCHAdTiQ==
   dependencies:
     "@babel/runtime" "^7.20.0"
-    "@expo/cli" "^57.0.31"
+    "@expo/cli" "^57.0.32"
     "@expo/config" "~57.0.10"
-    "@expo/config-plugins" "~57.0.10"
+    "@expo/config-plugins" "~57.0.11"
     "@expo/devtools" "~57.0.1"
     "@expo/dom-webview" "~57.0.1"
     "@expo/fingerprint" "^0.20.14"
@@ -3389,7 +3408,7 @@ expo@~57.0.30:
     expo-font "~57.0.4"
     expo-keep-awake "~57.0.2"
     expo-modules-autolinking "~57.0.16"
-    expo-modules-core "~57.0.23"
+    expo-modules-core "~57.0.24"
     pretty-format "^29.7.0"
     react-refresh "^0.14.2"
     whatwg-url-minimum "^0.1.2"
@@ -5742,7 +5761,7 @@ signal-exit@^3.0.2:
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.7.tgz#a9a1767f8af84155114eaabd73f99273c8f59ad9"
   integrity sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==
 
-simple-plist@^1.1.0:
+simple-plist@^1.1.0, simple-plist@^1.3.1:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/simple-plist/-/simple-plist-1.3.1.tgz#16e1d8f62c6c9b691b8383127663d834112fb017"
   integrity sha512-iMSw5i0XseMnrhtIzRb7XpQEXepa9xhWxGUojHBL43SIpQuDQkh3Wpy67ZbDzZVr6EKxvwVChnVpdl8hEVLDiw==
@@ -6368,6 +6387,13 @@ xcode@^3.0.1:
   dependencies:
     simple-plist "^1.1.0"
     uuid "^7.0.3"
+
+xcode@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/xcode/-/xcode-4.0.0.tgz#cbcd6125a712d32478b27ee730afc4db4122b902"
+  integrity sha512-dDaoWzc9EP2fp9FS9PVZUkyvFxY4y1TOV9pcKaKLk++Ei/qb97XDFEVP7GnW7Osii/TzVABJ0jq2F+9/lq0TVA==
+  dependencies:
+    simple-plist "^1.3.1"
 
 xml2js@0.6.0:
   version "0.6.0"
