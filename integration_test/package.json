@@ -68,7 +68,8 @@
     "patch-package": "^8.0.1",
     "pod-install": "^0.3.10",
     "prettier": "^3.6.2",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "yaml": "^2.8.3"
   },
   "resolutions": {
     "react-native": "npm:react-native-tvos@0.86.3-0"
