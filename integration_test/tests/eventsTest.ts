@@ -86,6 +86,28 @@ export default (spec: TestScope) => {
       }
     );
 
+    spec.it(
+      'delivers events to the other listeners when a listener throws',
+      async () => {
+        await withPlayer(async (player) => {
+          let isReceived = false;
+          player.on('ready', () => {
+            throw new Error('Expected test error');
+          });
+          player.on('ready', () => {
+            isReceived = true;
+          });
+          await player.initialize();
+          player.load(Sources.artOfMotionHls);
+
+          expect(
+            await waitUntil(() => isReceived),
+            'Ready after a throwing listener'
+          ).toBeTruthy();
+        });
+      }
+    );
+
     spec.it('stops delivering events after off and remove', async () => {
       await withPlayer(async (player) => {
         let removedCount = 0;
