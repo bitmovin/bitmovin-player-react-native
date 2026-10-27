@@ -24,6 +24,21 @@ type Listener = (event: any) => void;
 const noop = () => {};
 
 /**
+ * Calls `listener` with `event`. A throwing listener is reported and does not prevent the other listeners
+ * from receiving the event.
+ */
+export const callListener = <T extends Event>(
+  listener: (event: T) => void,
+  event: T
+) => {
+  try {
+    listener(event);
+  } catch (error) {
+    console.error(`Error in a listener for ${event.name}:`, error);
+  }
+};
+
+/**
  * Converts a native event name to its event map key, e.g. `onPlayerActive` -> `playerActive`.
  */
 const toEventMapKey = (name: string) =>
@@ -128,6 +143,8 @@ export class EventListeners<EventMap> {
       return;
     }
     const normalized = normalizeNonFinite(event);
-    [...eventListeners].forEach((listener) => listener(normalized));
+    [...eventListeners].forEach((listener) =>
+      callListener(listener, normalized)
+    );
   };
 }
