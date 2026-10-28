@@ -148,6 +148,31 @@ player license before artifact upload.
 The pinned CLI spells its no-build flag `--skipbuild`, so the supervisor uses
 that spelling with `--no-screenshots --xml`.
 
+### Android CI configuration
+
+The Android runtime job uses one baseline: API 36, a `google_apis` x86_64 image,
+the `pixel_2` device profile and two emulator cores on `ubuntu-latest`. These
+are CI choices, not minimum SDK requirements or an OS/device coverage matrix.
+The job saves the emulator version, image fingerprint and AVD configuration
+with its diagnostics to identify the environment used by a run.
+
+- The runtime APK is built only for x86_64 to match the emulator and avoid
+  compiling unused ABIs. Google IMA is enabled for advertising coverage; the
+  separate integration build checks that the app also builds without IMA.
+- KVM accelerates emulator execution. The job waits for udev to finish applying
+  its permission rule, then checks access before starting the emulator.
+- SwiftShader provides software graphics without relying on a host GPU.
+  Snapshots are disabled so each run cold-boots; animations are disabled to
+  reduce UI timing variability. The window, host audio and back camera are
+  disabled for unattended execution.
+- Emulator port 5554 matches `ANDROID_SERIAL=emulator-5554`, keeping the action
+  and adapter on the same device. The adapter reverses the Metro and Cavy ports
+  so the app can reach services on the runner.
+- Emulator boot has a five-minute limit. The supervisor then allows 30 minutes
+  for preparation and tests, with diagnostics and cleanup afterward. The
+  45-minute emulator step also covers image setup and boot; the 90-minute job
+  leaves room for dependency setup, the APK build and artifact upload.
+
 ## Local HTTP fixtures
 
 Prefer small, versioned local fixtures when a test needs predictable media or an
