@@ -21,8 +21,6 @@ interface NativeEventModule {
 
 type Listener = (event: any) => void;
 
-const noop = () => {};
-
 /**
  * Calls `listener` with `event`. A throwing listener is reported and does not prevent the other listeners
  * from receiving the event.
@@ -50,10 +48,12 @@ const toEventMapKey = (name: string) =>
  *
  * Native listeners can only be attached once the native instance exists. Listeners registered
  * before are attached by {@link EventListeners.attachNative}.
+ *
+ * Native subscription changes are not awaited: they run on the native main queue in call order, so they are
+ * applied before any later native call on that queue, e.g. a load.
  */
 export class EventListeners<EventMap> {
   private readonly listeners = new Map<string, Set<Listener>>();
-  private readonly pending = new Set<Promise<void>>();
   private moduleSubscription?: ModuleSubscription;
   private isNativeAttached = false;
 
@@ -75,7 +75,7 @@ export class EventListeners<EventMap> {
       this.listeners.set(eventName, eventListeners);
       this.moduleSubscription ??= this.addModuleListener(this.dispatch);
       if (this.isNativeAttached) {
-        this.track(this.nativeModule.subscribe(this.nativeId, eventName));
+        void this.nativeModule.subscribe(this.nativeId, eventName);
       }
     }
     eventListeners.add(listener);
@@ -92,7 +92,7 @@ export class EventListeners<EventMap> {
     }
     this.listeners.delete(eventName);
     if (this.isNativeAttached) {
-      this.track(this.nativeModule.unsubscribe(this.nativeId, eventName));
+      void this.nativeModule.unsubscribe(this.nativeId, eventName);
     }
     if (this.listeners.size === 0) {
       this.moduleSubscription?.remove();
@@ -103,19 +103,12 @@ export class EventListeners<EventMap> {
   /**
    * Attaches the native listeners for all registered event names. Call once the native instance exists.
    */
-  attachNative = (): Promise<void> => {
+  attachNative = () => {
     this.isNativeAttached = true;
-    this.listeners.forEach((_, eventName) =>
-      this.track(this.nativeModule.subscribe(this.nativeId, eventName))
+    this.listeners.forEach(
+      (_, eventName) =>
+        void this.nativeModule.subscribe(this.nativeId, eventName)
     );
-    return this.settled();
-  };
-
-  /**
-   * Resolves once all pending native subscription changes have been applied.
-   */
-  settled = async (): Promise<void> => {
-    await Promise.all(this.pending);
   };
 
   /**
@@ -127,12 +120,6 @@ export class EventListeners<EventMap> {
     this.moduleSubscription = undefined;
     this.isNativeAttached = false;
   };
-
-  private track(promise: Promise<void>) {
-    const settled = promise.then(noop, noop);
-    this.pending.add(settled);
-    void settled.then(() => this.pending.delete(settled));
-  }
 
   private dispatch = ({ nativeId, event }: NativeEventPayload) => {
     if (nativeId !== this.nativeId) {
