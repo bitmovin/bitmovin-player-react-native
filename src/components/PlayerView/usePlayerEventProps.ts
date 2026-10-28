@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import type { Event, MetadataEvent } from '../../events';
-import type { PlayerEventMap } from '../../eventMap';
+import type { EventSubscription, PlayerEventMap } from '../../eventMap';
 import type { Player } from '../../player';
 import { addPlatformToMetadataEvent } from '../../utils/metadataPlatform';
 import { callListener } from '../../utils/eventListeners';
@@ -93,7 +93,8 @@ const toPropName = (eventName: keyof PlayerEventMap) =>
  * (e.g. `playerActive` to `onPlayerActive`) and to `onEvent` via {@link Player.on}.
  *
  * Only events with a set prop are subscribed, or all of them if `onEvent` is set. Changing the
- * function identity of a prop does not resubscribe.
+ * function identity of a prop does not resubscribe, and setting or unsetting a prop only (un)subscribes
+ * the affected events.
  * Does nothing unless {@link usesPlayerEvents} is set.
  */
 export function usePlayerEventProps(player: Player, props: PlayerViewEvents) {
@@ -111,29 +112,54 @@ export function usePlayerEventProps(player: Player, props: PlayerViewEvents) {
         .join(',')
     : '';
 
+  const subscriptionsRef = useRef(
+    new Map<keyof PlayerEventMap, EventSubscription>()
+  );
   useEffect(() => {
-    if (!subscribedEventNames) {
-      return;
-    }
-    const subscriptions = (
-      subscribedEventNames.split(',') as (keyof PlayerEventMap)[]
-    ).map((eventName) => {
-      const propName = toPropName(eventName);
-      return player.on(eventName, (event: Event) => {
-        const listener = propsRef.current[propName] as
-          | ((event: Event) => void)
-          | undefined;
-        if (listener) {
-          callListener(
-            listener,
-            metadataEventNames.has(eventName)
-              ? addPlatformToMetadataEvent(event as MetadataEvent)
-              : event
-          );
-        }
-        propsRef.current.onEvent?.(event);
-      });
+    const subscriptions = subscriptionsRef.current;
+    const eventNames = new Set(
+      subscribedEventNames
+        ? (subscribedEventNames.split(',') as (keyof PlayerEventMap)[])
+        : []
+    );
+    subscriptions.forEach((subscription, eventName) => {
+      if (!eventNames.has(eventName)) {
+        subscription.remove();
+        subscriptions.delete(eventName);
+      }
     });
-    return () => subscriptions.forEach((subscription) => subscription.remove());
+    eventNames.forEach((eventName) => {
+      if (subscriptions.has(eventName)) {
+        return;
+      }
+      const propName = toPropName(eventName);
+      subscriptions.set(
+        eventName,
+        player.on(eventName, (event: Event) => {
+          const listener = propsRef.current[propName] as
+            | ((event: Event) => void)
+            | undefined;
+          if (listener) {
+            callListener(
+              listener,
+              metadataEventNames.has(eventName)
+                ? addPlatformToMetadataEvent(event as MetadataEvent)
+                : event
+            );
+          }
+          propsRef.current.onEvent?.(event);
+        })
+      );
+    });
   }, [player, subscribedEventNames]);
+
+  // Declared after the effect above, but React runs all cleanups before re-running effects, so a new
+  // `player` is subscribed from scratch.
+  useEffect(() => {
+    const subscriptions = subscriptionsRef.current;
+    return () => {
+      subscriptions.forEach((subscription) => subscription.remove());
+      subscriptions.clear();
+    };
+  }, [player]);
 }
