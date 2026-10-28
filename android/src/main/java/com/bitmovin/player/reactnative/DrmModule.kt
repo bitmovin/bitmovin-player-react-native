@@ -7,6 +7,7 @@ import com.bitmovin.player.api.drm.PrepareMessageCallback
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.reactnative.converter.toWidevineConfig
 import expo.modules.kotlin.Promise
+import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.security.InvalidParameterException
@@ -58,13 +59,13 @@ class DrmModule : Module() {
             } catch (e: Exception) {
                 promise.reject("DrmError", "Failed to initialize DRM config", e)
             }
-        }
+        }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("destroy") { nativeId: NativeId ->
             drmConfigs.remove(nativeId)
             // Don't return the removed value: Expo can't convert it to a JS value and rejects the promise.
             Unit
-        }
+        }.runOnQueue(Queues.MAIN)
 
         Function("setPreparedMessage") { id: Int, message: String ->
             waiter.complete(id, message)

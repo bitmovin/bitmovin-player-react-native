@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { TestScope } from 'cavy';
 import {
   callPlayer,
@@ -14,6 +15,7 @@ import { Sources } from './helper/Sources';
 import {
   DownloadFinishedEvent,
   HttpRequestType,
+  Source,
   SourceConfig,
 } from 'bitmovin-player-react-native';
 import { expect } from './helper/Expect';
@@ -154,7 +156,51 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
   }
 
   loadingSourceTests(Sources.artOfMotionHls, 'VOD');
-  if (!vodOnly) loadingSourceTests(Sources.iReplayTestLiveHls, 'live');
+  if (vodOnly) return;
+
+  loadingSourceTests(Sources.iReplayTestLiveHls, 'live');
+
+  spec.describe('loading a DRM source', () => {
+    spec.it(
+      'applies the DRM config of a source that is initialized concurrently',
+      async () => {
+        // Gate to Android since the source uses Widevine.
+        if (Platform.OS !== 'android') {
+          console.warn('Skipping Widevine DRM test on non-Android platform');
+          return;
+        }
+
+        await startPlayerTest({}, async () => {
+          const config = Sources.widevineDrmWithBrokenLicense;
+          let isLicenseRequested = false;
+          const source = new Source({
+            ...config,
+            drmConfig: {
+              widevine: {
+                ...config.drmConfig!.widevine!,
+                // Only called if the native source was created with its DRM config.
+                prepareMessage: (message) => {
+                  isLicenseRequested = true;
+                  return message;
+                },
+              },
+            },
+          });
+
+          await callPlayer(async (player) => {
+            void source.initialize();
+            player.loadSource(source);
+          });
+
+          const deadline = Date.now() + 10000;
+          while (!isLicenseRequested && Date.now() < deadline) {
+            await new Promise((resolve) => setTimeout(resolve, 250));
+          }
+          expect(isLicenseRequested, 'License requested').toBeTruthy();
+        });
+      }
+    );
+  });
 }
 
 export function loadingVodTests(spec: TestScope) {
