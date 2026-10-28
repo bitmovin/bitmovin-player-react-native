@@ -104,7 +104,7 @@ export interface SourceEventMap {
  * All events a {@link Player} emits, keyed by event name.
  * Used with {@link Player.on} and {@link Player.off}.
  *
- * Includes the {@link SourceEventMap} events of the active source.
+ * Includes the {@link SourceEventMap} events of the active source, and `sourceError` of inactive sources.
  */
 export interface PlayerEventMap extends SourceEventMap {
   /**

@@ -281,7 +281,8 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Registers `listener` to be called whenever the player emits `eventName`, independent of any
-   * {@link PlayerView}. The player emits its own events and the source events of the active source only;
+   * {@link PlayerView}. The player emits its own events and the source events of the active source only,
+   * except `sourceError`, which it also emits for inactive sources without identifying the source;
    * use {@link Source.on} for events of a specific source, including while it is inactive.
    *
    * Listeners registered before the player is initialized are attached during {@link Player.initialize},

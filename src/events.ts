@@ -156,6 +156,8 @@ export interface EventSource {
   /**
    * The {@link Source.nativeId} of this event's source.
    * Not set for sources that were not created through a {@link Source} instance (e.g. offline content).
+   *
+   * @platform Android
    */
   nativeId?: string;
   /**
