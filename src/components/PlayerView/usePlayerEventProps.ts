@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import type { Event, MetadataEvent } from '../../events';
-import type { EventSubscription, PlayerEventMap } from '../../eventMap';
+import type { BitmovinEventSubscription, PlayerEventMap } from '../../eventMap';
 import type { Player } from '../../player';
 import { addPlatformToMetadataEvent } from '../../utils/metadataPlatform';
 import { callListener } from '../../utils/eventListeners';
@@ -113,7 +113,7 @@ export function usePlayerEventProps(player: Player, props: PlayerViewEvents) {
     : '';
 
   const subscriptionsRef = useRef(
-    new Map<keyof PlayerEventMap, EventSubscription>()
+    new Map<keyof PlayerEventMap, BitmovinEventSubscription>()
   );
   useEffect(() => {
     const subscriptions = subscriptionsRef.current;

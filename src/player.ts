@@ -1,4 +1,4 @@
-import type { EventSubscription as ModuleEventSubscription } from 'expo-modules-core';
+import type { EventSubscription } from 'expo-modules-core';
 import { Platform } from 'react-native';
 import PlayerModule from './modules/PlayerModule';
 import NativeInstance from './nativeInstance';
@@ -18,7 +18,7 @@ import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
 import type { PlaylistConfig } from './playlist';
 import { PlaylistApi } from './playlist';
-import type { EventSubscription, PlayerEventMap } from './eventMap';
+import type { BitmovinEventSubscription, PlayerEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
 
 /**
@@ -71,9 +71,9 @@ export class Player extends NativeInstance<PlayerConfig> {
   private network?: Network;
 
   private decoderConfig?: DecoderConfigBridge;
-  private onShouldLoadAdItemSubscription?: ModuleEventSubscription;
-  private onShouldPlayAdBreakSubscription?: ModuleEventSubscription;
-  private onImaBeforeInitializationSubscription?: ModuleEventSubscription;
+  private onShouldLoadAdItemSubscription?: EventSubscription;
+  private onShouldPlayAdBreakSubscription?: EventSubscription;
+  private onImaBeforeInitializationSubscription?: EventSubscription;
   private readonly eventListeners = new EventListeners<PlayerEventMap>(
     this.nativeId,
     PlayerModule,
@@ -296,7 +296,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   on = <K extends keyof PlayerEventMap>(
     eventName: K,
     listener: (event: PlayerEventMap[K]) => void
-  ): EventSubscription => {
+  ): BitmovinEventSubscription => {
     if (Platform.OS !== 'android' || this.isDestroyed) {
       return { remove: () => {} };
     }

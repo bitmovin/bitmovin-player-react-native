@@ -8,7 +8,7 @@ import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import SourceModule from './modules/SourceModule';
-import type { EventSubscription, SourceEventMap } from './eventMap';
+import type { BitmovinEventSubscription, SourceEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
 
 /**
@@ -262,7 +262,7 @@ export class Source extends NativeInstance<SourceConfig> {
   on = <K extends keyof SourceEventMap>(
     eventName: K,
     listener: (event: SourceEventMap[K]) => void
-  ): EventSubscription => {
+  ): BitmovinEventSubscription => {
     if (Platform.OS !== 'android' || this.isDestroyed) {
       return { remove: () => {} };
     }

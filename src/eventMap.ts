@@ -227,7 +227,7 @@ export interface PlayerEventMap extends SourceEventMap {
 /**
  * A subscription returned by `on` that removes the registered listener.
  */
-export interface EventSubscription {
+export interface BitmovinEventSubscription {
   /**
    * Removes the listener. Calling it more than once has no effect.
    */

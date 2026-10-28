@@ -1,6 +1,6 @@
-import type { EventSubscription as ModuleSubscription } from 'expo-modules-core';
+import type { EventSubscription } from 'expo-modules-core';
 import type { Event } from '../events';
-import type { EventSubscription } from '../eventMap';
+import type { BitmovinEventSubscription } from '../eventMap';
 import { normalizeNonFinite } from './normalizeNonFinite';
 
 /**
@@ -54,7 +54,7 @@ const toEventMapKey = (name: string) =>
  */
 export class EventListeners<EventMap> {
   private readonly listeners = new Map<string, Set<Listener>>();
-  private moduleSubscription?: ModuleSubscription;
+  private moduleSubscription?: EventSubscription;
   private isNativeAttached = false;
 
   constructor(
@@ -62,13 +62,13 @@ export class EventListeners<EventMap> {
     private readonly nativeModule: NativeEventModule,
     private readonly addModuleListener: (
       listener: (payload: NativeEventPayload) => void
-    ) => ModuleSubscription
+    ) => EventSubscription
   ) {}
 
   on<K extends keyof EventMap & string>(
     eventName: K,
     listener: (event: EventMap[K]) => void
-  ): EventSubscription {
+  ): BitmovinEventSubscription {
     let eventListeners = this.listeners.get(eventName);
     if (!eventListeners) {
       eventListeners = new Set();
