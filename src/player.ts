@@ -102,7 +102,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       }
 
       this.isInitialized = true;
-      await this.eventListeners.attachNative();
+      this.eventListeners.attachNative();
     }
     return Promise.resolve();
   };
@@ -186,9 +186,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   loadSource = (source: Source) => {
     this.source = source;
-    void Promise.all([source.initialize(), this.eventListeners.settled()]).then(
-      () => PlayerModule.loadSource(this.nativeId, source.nativeId)
-    );
+    void source
+      .initialize()
+      .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
   };
 
   /**

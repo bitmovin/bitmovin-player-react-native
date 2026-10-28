@@ -221,7 +221,7 @@ export class Source extends NativeInstance<SourceConfig> {
         );
       }
       this.isInitialized = true;
-      await this.eventListeners.attachNative();
+      this.eventListeners.attachNative();
     }
     return Promise.resolve();
   };
