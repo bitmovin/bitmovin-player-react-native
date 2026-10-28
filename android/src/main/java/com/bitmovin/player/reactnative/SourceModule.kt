@@ -127,10 +127,6 @@ class SourceModule : Module() {
         }
     }
 
-    // CRITICAL: This method must remain available for cross-module access
-    // Called by PlayerModule.loadSource()
-    fun getSourceOrNull(nativeId: NativeId): Source? = SourceRegistry.getSource(nativeId)
-
     /**
      * Releases the bridge's handle of a source: detaches its event listeners and removes it from the
      * [SourceRegistry]. The native [Source] itself is not affected.

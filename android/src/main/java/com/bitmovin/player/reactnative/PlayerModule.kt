@@ -341,7 +341,7 @@ class PlayerModule : Module() {
 
         AsyncFunction("loadSource") { nativeId: NativeId, sourceNativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
-            val source = appContext.registry.getModule<SourceModule>()?.getSourceOrNull(sourceNativeId)
+            val source = SourceRegistry.getSource(sourceNativeId)
             if (player != null && source != null) {
                 player.load(source)
             }
