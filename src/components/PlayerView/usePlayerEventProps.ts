@@ -90,7 +90,8 @@ const toPropName = (eventName: keyof PlayerEventMap) =>
  * (e.g. `playerActive` to `onPlayerActive`) and to `onEvent` via {@link Player.on}.
  *
  * Only events with a set prop are subscribed, or all of them if `onEvent` is set. Changing the
- * function identity of a prop does not resubscribe.
+ * function identity of a prop does not resubscribe, and setting or unsetting a prop only (un)subscribes
+ * the affected events.
  * Does nothing unless {@link usesPlayerEvents} is set.
  */
 export function usePlayerEventProps(player: Player, props: PlayerViewEvents) {
@@ -108,13 +109,26 @@ export function usePlayerEventProps(player: Player, props: PlayerViewEvents) {
         .join(',')
     : '';
 
+  const listenersRef = useRef(
+    new Map<keyof PlayerEventMap, (event: Event) => void>()
+  );
   useEffect(() => {
-    if (!subscribedEventNames) {
-      return;
-    }
-    const listeners = (
-      subscribedEventNames.split(',') as (keyof PlayerEventMap)[]
-    ).map((eventName) => {
+    const listeners = listenersRef.current;
+    const eventNames = new Set(
+      subscribedEventNames
+        ? (subscribedEventNames.split(',') as (keyof PlayerEventMap)[])
+        : []
+    );
+    listeners.forEach((listener, eventName) => {
+      if (!eventNames.has(eventName)) {
+        player.off(eventName, listener);
+        listeners.delete(eventName);
+      }
+    });
+    eventNames.forEach((eventName) => {
+      if (listeners.has(eventName)) {
+        return;
+      }
       const propName = toPropName(eventName);
       const listener = (event: Event) => {
         const propListener = propsRef.current[propName] as
@@ -131,11 +145,19 @@ export function usePlayerEventProps(player: Player, props: PlayerViewEvents) {
         propsRef.current.onEvent?.(event);
       };
       player.on(eventName, listener);
-      return [eventName, listener] as const;
+      listeners.set(eventName, listener);
     });
-    return () =>
-      listeners.forEach(([eventName, listener]) =>
+  }, [player, subscribedEventNames]);
+
+  // Declared after the effect above, but React runs all cleanups before re-running effects, so a new
+  // `player` is subscribed from scratch.
+  useEffect(() => {
+    const listeners = listenersRef.current;
+    return () => {
+      listeners.forEach((listener, eventName) =>
         player.off(eventName, listener)
       );
-  }, [player, subscribedEventNames]);
+      listeners.clear();
+    };
+  }, [player]);
 }
