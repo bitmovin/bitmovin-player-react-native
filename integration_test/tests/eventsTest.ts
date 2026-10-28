@@ -141,6 +141,36 @@ export default (spec: TestScope) => {
       });
     });
 
+    spec.it(
+      'keeps delivering events when another Player with the same nativeId unsubscribes',
+      async () => {
+        const nativeId = `shared-player-${Date.now()}`;
+        const player = new Player({ nativeId });
+        const samePlayer = new Player({ nativeId });
+        try {
+          let isMuted = false;
+          player.on('muted', () => {
+            isMuted = true;
+          });
+          await player.initialize();
+          await samePlayer.initialize();
+          samePlayer.on('muted', () => {}).remove();
+          await playWhenReady(player, () =>
+            player.load(Sources.artOfMotionHls)
+          );
+
+          player.mute();
+          expect(
+            await waitUntil(() => isMuted),
+            'Muted after the other Player unsubscribed'
+          ).toBeTruthy();
+        } finally {
+          player.destroy();
+          samePlayer.destroy();
+        }
+      }
+    );
+
     spec.it('removes all listeners when the player is destroyed', async () => {
       const player = new Player();
       const received: Event[] = [];
