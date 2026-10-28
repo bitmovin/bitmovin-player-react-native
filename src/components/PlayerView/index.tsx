@@ -236,7 +236,7 @@ export function PlayerView({
       onBmpPictureInPictureExited={proxy(props.onPictureInPictureExited)}
       onBmpPlay={playerEventProxy(props.onPlay)}
       onBmpPlaybackFinished={playerEventProxy(props.onPlaybackFinished)}
-      onBmpPlaybackSpeedChanged={proxy(props.onPlaybackSpeedChanged)}
+      onBmpPlaybackSpeedChanged={playerEventProxy(props.onPlaybackSpeedChanged)}
       onBmpPlayerActive={playerEventProxy(props.onPlayerActive)}
       onBmpPlayerInactive={playerEventProxy(props.onPlayerInactive)}
       onBmpPlayerError={playerEventProxy(props.onPlayerError)}
