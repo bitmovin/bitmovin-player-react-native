@@ -148,10 +148,6 @@ class SourceModule : Module() {
             throw SourceException.SourceCreationFailed(e.message ?: "Unknown error")
         }
     }
-
-    // CRITICAL: This method must remain available for cross-module access
-    // Called by PlayerModule.loadSource()
-    fun getSourceOrNull(nativeId: NativeId): Source? = SourceRegistry.getSource(nativeId)
 }
 
 // MARK: - Exception Definitions
