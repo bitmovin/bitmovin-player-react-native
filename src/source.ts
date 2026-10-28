@@ -225,7 +225,7 @@ export class Source extends NativeInstance<SourceConfig> {
     }
     this.isInitialized = true;
     this.isDestroyed = false;
-    await this.eventListeners.attachNative();
+    this.eventListeners.attachNative();
   };
 
   /**

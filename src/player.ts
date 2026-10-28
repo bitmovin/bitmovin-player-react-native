@@ -112,7 +112,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       }
 
       this.isInitialized = true;
-      await this.eventListeners.attachNative();
+      this.eventListeners.attachNative();
     }
     return Promise.resolve();
   };
@@ -199,7 +199,8 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   loadSource = (source: Source) => {
     const forgetNewSources = this.rememberSources([source]);
-    void Promise.all([source.initialize(), this.eventListeners.settled()])
+    void source
+      .initialize()
       .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId))
       .then(
         () => this.keepKnownSources([source]),
@@ -238,10 +239,9 @@ export class Player extends NativeInstance<PlayerConfig> {
   loadPlaylist = async (playlistConfig: PlaylistConfig): Promise<void> => {
     const forgetNewSources = this.rememberSources(playlistConfig.sources);
     try {
-      await Promise.all([
-        ...playlistConfig.sources.map((source) => source.initialize()),
-        this.eventListeners.settled(),
-      ]);
+      await Promise.all(
+        playlistConfig.sources.map((source) => source.initialize())
+      );
       await PlayerModule.loadPlaylist(
         this.nativeId,
         playlistConfig.sources.map((source) => source.nativeId),
