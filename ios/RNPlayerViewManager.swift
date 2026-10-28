@@ -63,6 +63,7 @@ public class RNPlayerViewManager: Module {
                 view.attachFullscreenBridge(fullscreenBridgeId: fullscreenBridgeId)
             }
             Events(
+                "onBmpPlayerViewReady",
                 "onBmpEvent",
                 "onBmpPlayerActive",
                 "onBmpPlayerError",

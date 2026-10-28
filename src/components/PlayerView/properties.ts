@@ -83,8 +83,9 @@ export interface BasePlayerViewProps {
   isPictureInPictureEnabled?: boolean;
 
   /**
-   * Event-style callback called once after the {@link PlayerView} has initialized its player and mounted the
-   * native view.
+   * Event-style callback called once per player attachment, after the native view has attached its player
+   * and event listeners. Switching players, including switching back to a previous player, invokes it again.
+   * Loading a source from this callback allows the view to receive loading events.
    *
    * Like other event callbacks, this is only invoked if provided when readiness happens; it is not replayed if
    * assigned later.

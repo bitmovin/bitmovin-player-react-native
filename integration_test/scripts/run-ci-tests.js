@@ -65,8 +65,9 @@ function createCiConfig(args, environment = process.env) {
     timeoutMs,
     startupTimeoutMs: 120000,
     pollMs: 200,
-    // iOS owns simulator teardown and needs time to finish it after SIGTERM.
-    stopTimeoutMs: 35000,
+    // iOS can spend 32s stopping the app and simulator, plus crash collection.
+    // Keep graceful teardown comfortably inside the workflow's five-minute margin.
+    stopTimeoutMs: 60000,
     cleanupTimeoutMs: 100000,
     metroCommand: [
       process.execPath,
