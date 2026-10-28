@@ -31,6 +31,7 @@ export class PlaylistApi {
    * playback session.
    *
    * @returns the sources of the playback session, or an empty list if there is no active playback session.
+   * Sources that were not created through a {@link Source} instance (e.g. offline content) are not included.
    */
   getSources = async (): Promise<Source[]> => {
     const nativeIds = (await PlaylistModule?.sources(this.nativeId)) ?? [];
@@ -43,7 +44,10 @@ export class PlaylistApi {
   /**
    * Adds the `source` to the active playback session, either at `index` or at the end if `index` is omitted.
    *
-   * Has no effect if there is no active playback session or if `index` is < 0 or > the number of sources.
+   * Has no effect if `index` is < 0 or > the number of sources. Has no effect and emits a `PlayerWarning` if
+   * there is no active playback session.
+   *
+   * @returns a promise that rejects if the `source` is already attached to a player.
    */
   add = async (source: Source, index?: number): Promise<void> => {
     const wasKnown = this.knownSources.has(source.nativeId);
@@ -64,9 +68,9 @@ export class PlaylistApi {
 
   /**
    * Removes the `source` from the active playback session.
-   * Trying to remove the active source has no effect.
    *
-   * Has no effect if there is no active playback session or if the `source` is not part of it.
+   * Has no effect if the `source` is not part of the playback session. Has no effect and emits a `PlayerWarning`
+   * if there is no active playback session or if the `source` is the active source.
    */
   remove = async (source: Source): Promise<void> => {
     this.forgetSource(
@@ -76,9 +80,9 @@ export class PlaylistApi {
 
   /**
    * Removes the source at `index` from the active playback session.
-   * Trying to remove the active source has no effect.
    *
-   * Has no effect if there is no active playback session or if `index` is < 0 or > the number of sources.
+   * Has no effect if `index` is < 0 or >= the number of sources. Has no effect and emits a `PlayerWarning` if
+   * there is no active playback session or if the source at `index` is the active source.
    */
   removeAt = async (index: number): Promise<void> => {
     this.forgetSource(await PlaylistModule?.removeAt(this.nativeId, index));
@@ -88,8 +92,8 @@ export class PlaylistApi {
    * Seeks to the specified `time` in seconds in the specified `source`.
    * The `source` must be part of the playback session.
    *
-   * Has no effect if there is no active playback session, or if `source` is the active source and a live stream
-   * (use {@link Player.timeShift} instead).
+   * Has no effect and emits a `PlayerWarning` if there is no active playback session, or if `source` is the
+   * active source and a live stream (use {@link Player.timeShift} instead).
    */
   seek = async (source: Source, time: number): Promise<void> => {
     return PlaylistModule?.seek(this.nativeId, source.nativeId, time);
@@ -103,7 +107,7 @@ export class PlaylistApi {
    * - If `seekTarget` is set, the `source` must be loaded. See {@link PlaylistOptions.preloadAllSources}.
    * - Not supported while casting.
    *
-   * Has no effect if there is no active playback session.
+   * Has no effect and emits a `PlayerWarning` if there is no active playback session.
    */
   seekTo = async (source: Source, seekTarget?: SeekTarget): Promise<void> => {
     return PlaylistModule?.seekTo(this.nativeId, source.nativeId, seekTarget);

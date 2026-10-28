@@ -61,6 +61,8 @@ export class Player extends NativeInstance<PlayerConfig> {
   private readonly knownSources = new Map<string, Source>();
   /**
    * The {@link PlaylistApi} for interactions regarding the playlist of the playback session.
+   *
+   * @platform Android
    */
   playlist: PlaylistApi = new PlaylistApi(this.nativeId, this.knownSources);
 
@@ -203,6 +205,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * @returns the active source, or `undefined` if there is no active playback session or the active source was
    * not created through a {@link Source} instance (e.g. offline content).
+   * @platform Android
    */
   getSource = async (): Promise<Source | undefined> => {
     const sourceNativeId = await PlayerModule.source(this.nativeId);
@@ -215,8 +218,8 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * Only one source is active at a time and all player APIs (e.g. time, duration, seeking) act on the active
    * source; there is no playlist-wide time. Source events of inactive sources, such as `SourceLoaded` of a
-   * preloaded source, are not emitted by the player. Ads scheduled via the advertising config only apply to the
-   * first source.
+   * preloaded source, are not emitted by the player. Only `sourceError` is also emitted for inactive sources,
+   * without identifying the source. Ads scheduled via the advertising config only apply to the first source.
    *
    * @returns a promise that rejects if the playlist could not be loaded, e.g. when `sources` is empty.
    * @platform Android
