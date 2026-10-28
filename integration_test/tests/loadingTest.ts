@@ -34,8 +34,9 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
           await startPlayerTest({}, async () => {
             // Observe before the native mount can acknowledge readiness. This crosses
             // the real Expo bridge; no synthetic readiness event is injected.
+            // Ready can arrive before SourceLoaded on iOS.
             await expectEvents(
-              EventSequence(
+              EventBag(
                 EventType.SourceLoad,
                 EventType.SourceLoaded,
                 EventType.Ready
