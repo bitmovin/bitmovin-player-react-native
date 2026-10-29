@@ -318,15 +318,12 @@ export type NativePlayerViewEvents = {
     nativeEvent: PlaybackSpeedChangedEvent;
   }) => void;
   /**
-   * Event emitted when a source is loaded into the player.
-   * Seeking and time shifting are allowed as soon as this event is seen.
+   * Event emitted when a playback session was started. This event is emitted immediately after the
+   * {@link Player.load} call and does not wait for actual data to be loaded.
    */
   onBmpPlayerActive?: (event: { nativeEvent: PlayerActiveEvent }) => void;
   /**
-   * Event emitted when a source is unloaded from the player.
-   * Seeking and time shifting are not allowed anymore after this event.
-   *
-   * @platform Android
+   * Event emitted when the active playback session was stopped via {@link Player.unload}.
    */
   onBmpPlayerInactive?: (event: { nativeEvent: PlayerInactiveEvent }) => void;
   /**

@@ -4,7 +4,7 @@
 
 ### Added
 
-- Android: `onPlayerInactive` event prop on `PlayerView`
+- `onPlayerInactive` event prop on `PlayerView`
 
 ### Changed
 
