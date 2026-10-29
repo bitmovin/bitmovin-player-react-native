@@ -1,0 +1,60 @@
+<testsuite name="cavy" failures="2" errors="0" time="272.339" timestamp="2026-10-21T07:46:15.910Z">
+  <testcase classname="scheduling IMA VMAP ads via AdvertisingConfig" name="scheduling IMA VMAP ads via AdvertisingConfig: emits AdScheduled events" time="4.152" />
+  <testcase classname="scheduling IMA VMAP ads via scheduleAd API" name="scheduling IMA VMAP ads via scheduleAd API: emits AdScheduled events" time="2.401" />
+  <testcase classname="playing IMA VMAP ads" name="playing IMA VMAP ads: emits Ad events" time="48.188" />
+  <testcase classname="filtering scheduled IMA VMAP ads via shouldLoadAdItem" name="filtering scheduled IMA VMAP ads via shouldLoadAdItem: does not play preroll when filtered" time="1.895" />
+  <testcase classname="scheduling IMA VAST ads via AdvertisingConfig" name="scheduling IMA VAST ads via AdvertisingConfig: emits AdScheduled events" time="0.36" />
+  <testcase classname="scheduling IMA VAST ads via scheduleAd API" name="scheduling IMA VAST ads via scheduleAd API: emits AdScheduled events" time="0.567" />
+  <testcase classname="playing IMA VAST ads" name="playing IMA VAST ads: emits Ad events" time="41.387" />
+  <testcase classname="filtering scheduled IMA VAST ads via shouldLoadAdItem" name="filtering scheduled IMA VAST ads via shouldLoadAdItem: does not play preroll when filtered" time="2.116" />
+  <testcase classname="scheduling Progressive ads via AdvertisingConfig" name="scheduling Progressive ads via AdvertisingConfig: emits AdScheduled events" time="0.391" />
+  <testcase classname="scheduling Progressive ads via scheduleAd API" name="scheduling Progressive ads via scheduleAd API: emits AdScheduled events" time="0.405" />
+  <testcase classname="playing Progressive ads" name="playing Progressive ads: emits Ad events" time="15.619" />
+  <testcase classname="filtering scheduled Progressive ads via shouldLoadAdItem" name="filtering scheduled Progressive ads via shouldLoadAdItem: does not play preroll when filtered" time="1.499" />
+  <testcase classname="scheduling BITMOVIN VAST ads via AdvertisingConfig" name="scheduling BITMOVIN VAST ads via AdvertisingConfig: emits AdScheduled events" time="0.287" />
+  <testcase classname="scheduling BITMOVIN VAST ads via scheduleAd API" name="scheduling BITMOVIN VAST ads via scheduleAd API: emits AdScheduled events" time="0.369" />
+  <testcase classname="playing BITMOVIN VAST ads" name="playing BITMOVIN VAST ads: emits Ad events" time="48.214" />
+  <testcase classname="filtering scheduled BITMOVIN VAST ads via shouldLoadAdItem" name="filtering scheduled BITMOVIN VAST ads via shouldLoadAdItem: does not play preroll when filtered" time="1.516" />
+  <testcase classname="scheduling erroneous IMA ad" name="scheduling erroneous IMA ad: emits AdError events" time="7.122" />
+  <testcase classname="scheduling erroneous progressive ad" name="scheduling erroneous progressive ad: emits AdError events" time="1.536" />
+  <testcase classname="scheduling erroneous BITMOVIN ad" name="scheduling erroneous BITMOVIN ad: emits AdError events" time="1.523" />
+  <testcase classname="playing pause ads" name="playing pause ads: emits NonLinearAdStarted when paused" time="4.275" />
+  <testcase classname="playing pause ads" name="playing pause ads: emits NonLinearAdSkipped when skipped" time="3.909" />
+  <testcase classname="playing pause ads" name="playing pause ads: emits NonLinearAdFinished when playback resumes" time="3.56" />
+  <testcase classname="playing pause ads" name="playing pause ads: emits AdError when the ad fails to load" time="3.164" />
+  <testcase classname="playing captions" name="playing captions: emits CueEnter and CueExit events" time="12.811" />
+  <testcase classname="playing captions" name="playing captions: validates subtitle track properties" time="1.724" />
+  <testcase classname="playing captions" name="playing captions: validates CueEnter event properties" time="1.373" />
+  <testcase classname="playing captions" name="playing captions: validates CueExit event properties" time="2.32" />
+  <testcase classname="playing captions" name="playing captions: disables subtitles when calling setSubtitleTrack with undefined" time="0.747" />
+  <testcase classname="iOS cue metadata fields" name="iOS cue metadata fields: CueEnter carries in-manifest WebVTT layout metadata" time="4.667" />
+  <testcase classname="iOS cue metadata fields" name="iOS cue metadata fields: CueEnter carries CEA-608 grid position metadata" time="3.132" />
+  <testcase classname="loading a VOD source" name="loading a VOD source: emits ReadyEvent event" time="0.446" />
+  <testcase classname="loading a VOD source" name="loading a VOD source: emits SourceLoad and SourceLoaded events" time="10.034">
+    <failure message="Expectation was not met: ❌ onSourceLoad - ➖ onSourceLoaded" type="cavy test failure" />
+  </testcase>
+  <testcase classname="loading a VOD source" name="loading a VOD source: emits DownloadFinished events" time="0.36" />
+  <testcase classname="loading a VOD source" name="loading a VOD source: validates DownloadFinished event properties" time="0.227" />
+  <testcase classname="loading a live source" name="loading a live source: emits ReadyEvent event" time="2.808" />
+  <testcase classname="loading a live source" name="loading a live source: emits SourceLoad and SourceLoaded events" time="10.019">
+    <failure message="Expectation was not met: ❌ onSourceLoad - ➖ onSourceLoaded" type="cavy test failure" />
+  </testcase>
+  <testcase classname="loading a live source" name="loading a live source: emits DownloadFinished events" time="0.562" />
+  <testcase classname="loading a live source" name="loading a live source: validates DownloadFinished event properties" time="0.333" />
+  <testcase classname="media controls API" name="media controls API: reflects configured state and runtime changes" time="0.183" />
+  <testcase classname="ID3 metadata serialization (iOS)" name="ID3 metadata serialization (iOS): emits iOS ID3 frames with expected shape" time="4.465" />
+  <testcase classname="calling play when a source is loaded" name="calling play when a source is loaded: emits a Play and Playing events" time="0.746" />
+  <testcase classname="calling pause when a source is loaded" name="calling pause when a source is loaded: emits a Paused event" time="1.538" />
+  <testcase classname="playing a source" name="playing a source: emits TimeChanged events" time="4.571" />
+  <testcase classname="playing a source" name="playing a source: validates TimeChanged event properties" time="0.557" />
+  <testcase classname="playing a source to its end" name="playing a source to its end: emits PlaybackFinished event" time="4.273" />
+  <testcase classname="playing a source to its end" name="playing a source to its end: validates PlaybackFinished event properties" time="4.7" />
+  <testcase classname="unloading the player" name="unloading the player: emits SourceUnloaded event" time="0.55" />
+  <testcase classname="unloading the player" name="unloading the player: validates SourceUnloaded event properties" time="0.539" />
+  <testcase classname="unloading the player" name="unloading the player: validates player state after unload" time="0.505" />
+  <testcase classname="loading a source with audio tracks" name="loading a source with audio tracks: emits AudioAdded event" time="0.313" />
+  <testcase classname="when Platform is iOS" name="when Platform is iOS: AudioTrack does not contain qualities information" time="0.576" />
+  <testcase classname="loading a source with video qualities" name="loading a source with video qualities: exposes colorInfo.dynamicRange on available video qualities" time="0.567" />
+  <testcase classname="loading a source with video qualities" name="loading a source with video qualities: exposes colorInfo.dynamicRange on the active video quality" time="1.586" />
+  <testcase classname="loading a source with video qualities" name="loading a source with video qualities: exposes colorInfo.dynamicRange on VideoPlaybackQualityChangedEvent" time="0.614" />
+</testsuite>

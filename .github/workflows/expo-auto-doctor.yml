@@ -12,9 +12,32 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 
 jobs:
+  check-open-pr:
+    name: Preserve open Expo update PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      number: ${{ steps.pr.outputs.number }}
+    steps:
+      - name: Look up open update PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pr_number="$(gh pr list --repo "$GITHUB_REPOSITORY" \
+            --state open --base development --head feature/expo-install-fix \
+            --json number --jq '.[0].number // empty')"
+          echo "number=$pr_number" >> "$GITHUB_OUTPUT"
+          if [[ -n "$pr_number" ]]; then
+            echo "Leaving open PR #$pr_number unchanged for review"
+          fi
+
   nightly-fix-pr:
+    needs: check-open-pr
+    if: ${{ needs.check-open-pr.outputs.number == '' }}
     name: Nightly Expo Fix PR
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -32,7 +55,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
+          check-latest: true
           cache: 'yarn'
           cache-dependency-path: |
             yarn.lock
@@ -84,6 +108,12 @@ jobs:
             EXPO_NONINTERACTIVE=1 npx --yes expo-doctor@latest
           )
 
+      - name: Update Expo changelog entry
+        run: |
+          if ! git diff --quiet -- package.json yarn.lock example/package.json example/yarn.lock integration_test/package.json integration_test/yarn.lock; then
+            python3 .github/scripts/update_expo_changelog.py
+          fi
+
       - name: Check for tracked changes
         id: changed
         run: |
@@ -108,9 +138,10 @@ jobs:
         if: ${{ steps.changed.outputs.has_changes == 'true' }}
         run: |
           git add -u
-          git commit -m "Update Expo dependencies via `expo install --fix`"
+          git commit -m 'Align Expo dependencies with compatible patch releases'
 
       - name: Push branch
+        if: ${{ steps.changed.outputs.has_changes == 'true' }}
         run: git push --force-with-lease origin "$BOT_BRANCH"
 
       - name: Create or update draft PR
@@ -118,7 +149,7 @@ jobs:
         run: |
           pr_number="${{ steps.pr.outputs.number }}"
           pr_title="Nightly Expo dependency alignment"
-          pr_body=$'Automated nightly run:\n\n- reset branch from latest `development`\n- run `expo install --fix` in `./`, `example`, and `integration_test`\n- verify all three with `expo-doctor`\n\nPlease review dependency and lockfile updates before merging.'
+          pr_body=$'Automated nightly run:\n\n- reset branch from latest `development`\n- run `expo install --fix` in `./`, `example`, and `integration_test`\n- verify all three with `expo-doctor`\n- leave this PR unchanged until it is merged or closed\n\nPlease review dependency and lockfile updates before merging.'
           if [[ -z "$pr_number" ]]; then
             gh pr create \
               --base "$BASE_BRANCH" \
@@ -129,3 +160,10 @@ jobs:
           else
             gh pr edit "$pr_number" --title "$pr_title" --body "$pr_body"
           fi
+
+      - name: Run CI for the bot update
+        if: ${{ steps.changed.outputs.has_changes == 'true' }}
+        run: |
+          for workflow in ci-typescript.yml ci-android.yml ci-ios-tvos.yml expo-doctor.yml; do
+            gh workflow run "$workflow" --ref "$BOT_BRANCH"
+          done

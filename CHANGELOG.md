@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.30.0]
+
+### Changed
+
+- **Breaking change:** Google IMA is now disabled by default on Android, iOS, and tvOS. Apps that use IMA ad sources must set `features.googleIMA: true`, rerun Expo prebuild, and rebuild the native app. Bitmovin Advertising Module and ordinary playback do not require Google IMA. See [Google IMA](README.md#google-ima) for migration steps.
+- Android: The Expo config plugin now enables core library desugaring only when `features.googleIMA` is `true`, as the Android SDK only requires it for Google IMA. Apps that rely on desugaring for other reasons need to enable it in their own `app/build.gradle`.
+- Update Bitmovin's native iOS SDK version to [`3.129.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31290)
+- Update Expo SDK version to `57.0.30`
+
+### Fixed
+
+- iOS: Fix playback failing when HTTP response preprocessing is enabled with Expo SDK 57
+- Complete HTTP preprocessing with the original request or response when a user callback throws, and avoid retrying failed native completion calls
+- Wait for native player listeners before calling `onPlayerViewReady` to avoid losing events when loading from the callback.
+
 ## [1.29.0] - 2026-10-20
 
 ### Added

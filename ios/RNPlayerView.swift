@@ -53,6 +53,7 @@ public class RNPlayerView: ExpoView {
     private var shouldExitPictureInPictureOnForeground = false
     private var foregroundObserver: NSObjectProtocol?
 
+    let onBmpPlayerViewReady = EventDispatcher()
     let onBmpEvent = EventDispatcher()
     let onBmpPlayerActive = EventDispatcher()
     let onBmpPlayerError = EventDispatcher()
@@ -151,6 +152,8 @@ public class RNPlayerView: ExpoView {
             detachCurrentPlayer()
             return
         }
+        // PlayerView renders this native view only after player.initialize() resolves,
+        // so the player is already registered on the normal attachment path.
         guard let player = self.appContext?.moduleRegistry.get(PlayerModule.self)?.retrieve(playerId) else {
             return
         }
@@ -187,6 +190,7 @@ public class RNPlayerView: ExpoView {
         self.maybeEmitPictureInPictureAvailabilityEvent(
             previousState: previousPictureInPictureAvailableValue
         )
+        onBmpPlayerViewReady(["playerId": playerId])
     }
 
     internal func attachFullscreenBridge(fullscreenBridgeId: NativeId) {

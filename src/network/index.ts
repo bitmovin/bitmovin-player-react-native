@@ -91,13 +91,16 @@ export class Network extends NativeInstance<NetworkConfig> {
     type: HttpRequestType,
     request: HttpRequest
   ) => {
-    this.config
-      ?.preprocessHttpRequest?.(type, request)
+    Promise.resolve()
+      .then(
+        () => this.config?.preprocessHttpRequest?.(type, request) ?? request
+      )
+      .catch(() => request)
       .then((resultRequest) =>
         NetworkModule.setPreprocessedHttpRequest(requestId, resultRequest)
       )
-      .catch(() =>
-        NetworkModule.setPreprocessedHttpRequest(requestId, request)
+      .catch((error) =>
+        DebugConfig.log('Failed to complete HTTP request preprocessing:', error)
       );
   };
 
@@ -116,13 +119,19 @@ export class Network extends NativeInstance<NetworkConfig> {
     type: HttpRequestType,
     response: HttpResponse
   ) => {
-    this.config
-      ?.preprocessHttpResponse?.(type, response)
+    Promise.resolve()
+      .then(
+        () => this.config?.preprocessHttpResponse?.(type, response) ?? response
+      )
+      .catch(() => response)
       .then((resultResponse) =>
         NetworkModule.setPreprocessedHttpResponse(responseId, resultResponse)
       )
-      .catch(() =>
-        NetworkModule.setPreprocessedHttpResponse(responseId, response)
+      .catch((error) =>
+        DebugConfig.log(
+          'Failed to complete HTTP response preprocessing:',
+          error
+        )
       );
   };
 }

@@ -5,14 +5,11 @@ import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.advertising.AdvertisingConfig
-import com.bitmovin.player.api.advertising.BeforeInitializationCallback
 import com.bitmovin.player.api.analytics.create
-import com.bitmovin.player.reactnative.converter.applyOnImaSettings
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
-import com.bitmovin.player.reactnative.converter.toMap
 import com.bitmovin.player.reactnative.converter.toMediaControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.getMap
@@ -50,6 +47,8 @@ class PlayerModule : Module() {
         }
 
         Events("onShouldLoadAdItem", "onShouldPlayAdBreak", "onImaBeforeInitialization")
+
+        Constant("isGoogleImaEnabled") { ImaBeforeInitializationConfigurator.IS_GOOGLE_IMA_ENABLED }
 
         AsyncFunction("play") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
@@ -336,7 +335,21 @@ class PlayerModule : Module() {
         val configJson = config as? Map<String, Any?>
         setupShouldLoadAdItem(nativeId, configJson, playerConfig)
         setupShouldPlayAdBreak(nativeId, configJson, playerConfig)
-        setupImaBeforeInitialization(nativeId, configJson, playerConfig)
+        ImaBeforeInitializationConfigurator.configure(
+            nativeId = nativeId,
+            configJson = configJson,
+            playerConfig = playerConfig,
+            imaSettingsWaiter = imaSettingsWaiter,
+        ) { eventNativeId, id, payload ->
+            sendEvent(
+                "onImaBeforeInitialization",
+                bundleOf(
+                    "nativeId" to eventNativeId,
+                    "id" to id,
+                    "settings" to payload,
+                ),
+            )
+        }
         val enableMediaSession = config?.getMap("mediaControlConfig")
             ?.toMediaControlConfig()?.isEnabled ?: true
 
@@ -374,22 +387,6 @@ class PlayerModule : Module() {
         if (enableMediaSession) {
             mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
         }
-    }
-
-    private fun setupImaBeforeInitialization(
-        nativeId: NativeId,
-        configJson: Map<String, Any?>?,
-        playerConfig: PlayerConfig,
-    ) {
-        val advertisingConfigJson = configJson?.getMap("advertisingConfig") ?: return
-        val imaJson = advertisingConfigJson.getMap("ima") ?: return
-        if (!imaJson.containsKey("beforeInitialization")) {
-            return
-        }
-        val advertisingConfig = playerConfig.advertisingConfig ?: AdvertisingConfig()
-        val callback = createBeforeInitializationCallback(nativeId)
-        val updatedIma = advertisingConfig.ima.copy(beforeInitialization = callback)
-        playerConfig.advertisingConfig = advertisingConfig.copy(ima = updatedIma)
     }
 
     private fun setupShouldLoadAdItem(
@@ -443,21 +440,6 @@ class PlayerModule : Module() {
             },
         )
     }
-
-    private fun createBeforeInitializationCallback(nativeId: NativeId): BeforeInitializationCallback =
-        BeforeInitializationCallback { settings ->
-            val (id, wait) = imaSettingsWaiter.make(250)
-            val payload = settings.toMap()
-            sendEvent(
-                "onImaBeforeInitialization",
-                bundleOf(
-                    "nativeId" to nativeId,
-                    "id" to id,
-                    "settings" to payload,
-                ),
-            )
-            wait()?.applyOnImaSettings(settings)
-        }
 
     // CRITICAL: This method must remain available for cross-module access
     fun getPlayerOrNull(nativeId: NativeId): Player? = PlayerRegistry.getPlayer(nativeId)

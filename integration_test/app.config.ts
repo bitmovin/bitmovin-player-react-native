@@ -14,6 +14,10 @@ if (!fs.existsSync(envPath)) {
 // Load environment variables from .env file
 dotenv.config({ path: envPath, quiet: true });
 
+// The sample apps exercise IMA screens, so they enable Google IMA unless the
+// variable is explicitly 'false'. The library itself defaults to disabled.
+const googleImaEnabled = process.env.BITMOVIN_ENABLE_GOOGLE_IMA !== 'false';
+
 const BITMOVIN_PLAYER_LICENSE_KEY =
   process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY;
 
@@ -43,6 +47,7 @@ const config: ExpoConfig = {
     package: 'com.bitmovin.player.reactnative.integrationtests',
   },
   plugins: [
+    '../scripts/with-ios-scene-lifecycle',
     [
       'expo-splash-screen',
       {
@@ -75,6 +80,7 @@ const config: ExpoConfig = {
         features: {
           airPlay: true,
           backgroundPlayback: true,
+          googleIMA: googleImaEnabled,
           googleCastSDK: { android: '21.3.0', ios: '4.8.1.2' },
           offline: true,
           pictureInPicture: true,

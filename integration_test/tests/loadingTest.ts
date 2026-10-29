@@ -6,6 +6,7 @@ import {
   EventBag,
   EventSequence,
   EventType,
+  expectEvents,
   FilteredEvent,
   startPlayerTest,
 } from '../playertesting';
@@ -16,8 +17,39 @@ import {
   SourceConfig,
 } from 'bitmovin-player-react-native';
 import { expect } from './helper/Expect';
+import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 
-export default (spec: TestScope) => {
+function registerLoadingTests(spec: TestScope, vodOnly = false) {
+  spec.describe('native player view readiness', () => {
+    spec.it(
+      'receives loading events when loading directly from the ready callback',
+      async () => {
+        const world = PlayerTestWorld.shared;
+        const acknowledge = world.onPlayerViewReady;
+        world.onPlayerViewReady = (player) => {
+          acknowledge(player);
+          player.load(Sources.artOfMotionHls);
+        };
+        try {
+          await startPlayerTest({}, async () => {
+            // Observe before the native mount can acknowledge readiness. This crosses
+            // the real Expo bridge; no synthetic readiness event is injected.
+            // Ready can arrive before SourceLoaded on iOS.
+            await expectEvents(
+              EventBag(
+                EventType.SourceLoad,
+                EventType.SourceLoaded,
+                EventType.Ready
+              )
+            );
+          });
+        } finally {
+          world.onPlayerViewReady = acknowledge;
+        }
+      }
+    );
+  });
+
   function loadingSourceTests(sourceConfig: SourceConfig, label: string) {
     spec.describe(`loading a ${label} source`, () => {
       spec.it('emits ReadyEvent event', async () => {
@@ -122,5 +154,11 @@ export default (spec: TestScope) => {
   }
 
   loadingSourceTests(Sources.artOfMotionHls, 'VOD');
-  loadingSourceTests(Sources.iReplayTestLiveHls, 'live');
-};
+  if (!vodOnly) loadingSourceTests(Sources.iReplayTestLiveHls, 'live');
+}
+
+export function loadingVodTests(spec: TestScope) {
+  registerLoadingTests(spec, true);
+}
+
+export default (spec: TestScope) => registerLoadingTests(spec);

@@ -1,6 +1,6 @@
 {
   "name": "bitmovin-player-react-native",
-  "version": "1.29.0",
+  "version": "1.30.0",
   "description": "Official React Native bindings for Bitmovin's mobile Player SDKs.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -23,7 +23,7 @@
     "setup-hooks": "./scripts/setup-hooks.sh",
     "lint:ios": "swiftlint ios --strict --quiet",
     "lint:android": "cd android && ./gradlew -b ktlint.gradle ktlintCheck --quiet --console=plain",
-    "test:plugin": "yarn build:plugin && node scripts/test-with-app-gradle-dependencies.js && node --test scripts/test-with-bitmovin-android-config.js scripts/test-with-bitmovin-ios-dependencies.js scripts/test-ios-archive-signatures.js",
+    "test:plugin": "yarn build:plugin && node --test scripts/test-*.js && ruby scripts/test-rn-bitmovin-podspec.rb",
     "prepare": "yarn build",
     "prepublishOnly": "expo-module prepublishOnly",
     "module": "expo-module",
@@ -57,7 +57,7 @@
   "license": "MIT",
   "homepage": "https://bitmovin.com/video-player/react-native-sdk",
   "dependencies": {
-    "expo-crypto": "~57.0.3",
+    "expo-crypto": "~57.0.4",
     "expo-keep-awake": "~57.0.2"
   },
   "devDependencies": {
@@ -68,7 +68,7 @@
     "eslint-config-expo": "~57.0.2",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.5.1",
-    "expo": "~57.0.27",
+    "expo": "~57.0.30",
     "expo-module-scripts": "^56.0.3",
     "lint-staged": "13.0.3",
     "prettier": "^3.6.2",

@@ -22,6 +22,9 @@ public class PlayerModule: Module {
             imaSettingsWaiter.removeAll()
         }
         Events("onShouldLoadAdItem", "onImaBeforeInitialization")
+        Constant("isGoogleImaEnabled") {
+            NSClassFromString("IMAAdsLoader") != nil
+        }
         AsyncFunction("play") { (nativeId: NativeId) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.play()
         }.runOnQueue(.main)

@@ -2,6 +2,8 @@ const assert = require('node:assert/strict');
 
 const withAppGradleDependencies =
   require('../plugin/build/withAppGradleDependencies').default;
+const withBitmovinAndroidConfig =
+  require('../plugin/build/withBitmovinAndroidConfig').default;
 
 const desugaringDependency =
   "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'";
@@ -58,8 +60,110 @@ const test = (name, run) => {
   tests.push({ name, run });
 };
 
-test('adds desugaring when no feature dependencies are requested', async () => {
+const applyGradleProperties = async (features) => {
+  const config = withBitmovinAndroidConfig(
+    { name: 'test-app', slug: 'test-app' },
+    { features }
+  );
+  const gradlePropertiesMod = config.mods?.android?.gradleProperties;
+  assert.equal(typeof gradlePropertiesMod, 'function');
+
+  const result = await gradlePropertiesMod({
+    ...config,
+    modResults: [],
+    modRequest: {
+      projectRoot: process.cwd(),
+      platform: 'android',
+      modName: 'gradleProperties',
+      introspect: true,
+    },
+  });
+
+  return result.modResults;
+};
+
+const applyAppBuildGradle = async (features) => {
+  const config = withBitmovinAndroidConfig(
+    { name: 'test-app', slug: 'test-app' },
+    { features }
+  );
+  const appBuildGradleMod = config.mods?.android?.appBuildGradle;
+  assert.equal(typeof appBuildGradleMod, 'function');
+
+  const result = await appBuildGradleMod({
+    ...config,
+    modResults: { language: 'groovy', contents: gradle({}) },
+    modRequest: {
+      projectRoot: process.cwd(),
+      platform: 'android',
+      modName: 'appBuildGradle',
+      introspect: true,
+    },
+  });
+
+  return result.modResults.contents;
+};
+
+const propertyValue = (properties, key) =>
+  properties.find((item) => item.type === 'property' && item.key === key)
+    ?.value;
+
+test('disables Google IMA in Gradle properties when omitted', async () => {
+  const properties = await applyGradleProperties({});
+  assert.equal(
+    propertyValue(properties, 'BITMOVIN_ENABLE_GOOGLE_IMA'),
+    'false'
+  );
+});
+
+test('disables Google IMA in Gradle properties when explicitly false', async () => {
+  const properties = await applyGradleProperties({ googleIMA: false });
+  assert.equal(
+    propertyValue(properties, 'BITMOVIN_ENABLE_GOOGLE_IMA'),
+    'false'
+  );
+});
+
+test('enables Google IMA in Gradle properties when true', async () => {
+  const properties = await applyGradleProperties({ googleIMA: true });
+  assert.equal(propertyValue(properties, 'BITMOVIN_ENABLE_GOOGLE_IMA'), 'true');
+});
+
+test('skips desugaring in app/build.gradle when Google IMA is disabled', async () => {
+  const result = await applyAppBuildGradle({ googleIMA: false });
+  assert.ok(!result.includes('desugar_jdk_libs'));
+});
+
+test('adds desugaring to app/build.gradle when Google IMA is enabled', async () => {
+  const result = await applyAppBuildGradle({ googleIMA: true });
+  assert.match(result, /setCoreLibraryDesugaringEnabled\(true\)/);
+  assert.ok(result.includes(desugaringDependency));
+});
+
+test('does not add desugaring unless requested', async () => {
   const result = await applyPlugin(gradle({}));
+
+  assert.doesNotMatch(result, /CoreLibraryDesugaring/i);
+  assert.ok(!result.includes('desugar_jdk_libs'));
+  assert.doesNotMatch(result, /compileOptions/);
+});
+
+test('does not touch existing desugaring setup when not requested', async () => {
+  const contents = gradle({
+    android: `    namespace 'com.example'
+    compileOptions {
+        setCoreLibraryDesugaringEnabled(true)
+    }`,
+    dependencies: `    ${desugaringDependency}`,
+  });
+
+  assert.equal(await applyPlugin(contents), contents);
+});
+
+test('adds desugaring when requested without feature dependencies', async () => {
+  const result = await applyPlugin(gradle({}), {
+    coreLibraryDesugaring: true,
+  });
 
   assert.match(result, /setCoreLibraryDesugaringEnabled\(true\)/);
   assert.ok(result.includes(desugaringDependency));
@@ -73,7 +177,8 @@ test('inserts desugaring inside existing compileOptions with surrounding whitesp
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
     }`,
-    })
+    }),
+    { coreLibraryDesugaring: true }
   );
 
   assert.equal(countOccurrences(result, 'compileOptions {'), 1);
@@ -96,7 +201,8 @@ test('does not duplicate existing desugaring dependency', async () => {
     }`,
       dependencies:
         "    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'",
-    })
+    }),
+    { coreLibraryDesugaring: true }
   );
 
   assert.equal(

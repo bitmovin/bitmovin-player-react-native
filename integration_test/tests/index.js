@@ -19,6 +19,14 @@ const testRegistrations = [
   ),
   testSuite('error', androidAndIos, () => require('./errorTest').default),
   testSuite('loading', androidAndIos, () => require('./loadingTest').default),
+  {
+    ...testSuite(
+      'loading-vod',
+      androidAndIos,
+      () => require('./loadingTest').loadingVodTests
+    ),
+    selectionOnly: true,
+  },
   testSuite(
     'media-controls',
     iosOnly,
@@ -52,18 +60,53 @@ const availableTestTags = testRegistrations.map(({ name, platforms }) => ({
   platforms,
 }));
 
+// Like the native player suites, rerun a failed test once so slow external
+// streams or ad servers do not fail CI. Passing tests run once.
+function retryFailedTestsOnce(spec) {
+  const it = spec.it.bind(spec);
+  spec.it = (label, run, tag) => {
+    const test = `${spec.describeLabel}: ${label}`;
+    return it(
+      label,
+      async function () {
+        try {
+          await run.call(this);
+        } catch (error) {
+          console.warn(
+            '[Cavy retry]',
+            JSON.stringify({ test, error: String(error?.message ?? error) })
+          );
+          // Reset the app like Cavy does before every test.
+          await this.component.clearAsync();
+          this.component.reRender();
+          await run.call(this);
+        }
+      },
+      tag
+    );
+  };
+}
+
 function createSpecs() {
-  return testRegistrations.map(({ name, load }) => {
-    const registerSuite = load();
+  const selectedTags = (process.env.EXPO_PUBLIC_CAVY_ONLY_TAGS || '')
+    .split(',')
+    .map((tag) => tag.trim());
+  return testRegistrations
+    .filter(
+      ({ name, selectionOnly }) => !selectionOnly || selectedTags.includes(name)
+    )
+    .map(({ name, load }) => {
+      const registerSuite = load();
 
-    return (spec) => {
-      const describe = spec.describe.bind(spec);
-      spec.describe = (label, defineTests) =>
-        describe(label, defineTests, name);
+      return (spec) => {
+        const describe = spec.describe.bind(spec);
+        spec.describe = (label, defineTests) =>
+          describe(label, defineTests, name);
+        retryFailedTestsOnce(spec);
 
-      return registerSuite(spec);
-    };
-  });
+        return registerSuite(spec);
+      };
+    });
 }
 
 module.exports = {
