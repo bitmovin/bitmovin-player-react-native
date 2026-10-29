@@ -364,6 +364,8 @@ test('coordinator cancellation terminates the app and removes its simulator', as
 });
 
 test('copies native crash reports before deleting the simulator', async (t) => {
+  const startedAt = Date.UTC(2026, 0, 1);
+  t.mock.method(Date, 'now', () => startedAt);
   const f = fixture(t);
   const crashDir = path.join(
     f.directory,
@@ -375,10 +377,11 @@ test('copies native crash reports before deleting the simulator', async (t) => {
   const spawn = f.dependencies.spawn;
   f.dependencies.spawn = (command, args) => {
     if (args[1] === 'launch') {
-      fs.writeFileSync(
-        path.join(crashDir, 'IntegrationTest-fixture.ips'),
-        'crash evidence'
-      );
+      const report = path.join(crashDir, 'IntegrationTest-fixture.ips');
+      fs.writeFileSync(report, 'crash evidence');
+      // Model a report from this run without relying on filesystem clock precision.
+      const reportedAt = new Date(startedAt + 1000);
+      fs.utimesSync(report, reportedAt, reportedAt);
     }
     return spawn(command, args);
   };

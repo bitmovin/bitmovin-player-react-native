@@ -24,6 +24,7 @@ import {
 import { AdTags } from './helper/Ads';
 import { expect } from './helper/Expect';
 import { Platform } from 'react-native';
+import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 
 type SupportedTestPlatform = 'ios' | 'android';
 
@@ -73,29 +74,33 @@ export default (spec: TestScope) => {
     const expectManifestLoadedAfterSeek =
       expectManifestLoadedAfterSeekByPlatform?.[currentPlatform] ?? false;
 
-    // TODO: Re-enable Android VAST configuration-scheduling checks after
-    // onPlayerViewReady waits for native listener attachment. CI captured the
-    // SDK emitting all three events before the view subscribed, losing them.
-    if (
-      currentPlatform !== 'android' ||
-      (name !== 'IMA VAST' && name !== 'BITMOVIN VAST')
-    ) {
-      spec.describe(`scheduling ${name} ads via AdvertisingConfig`, () => {
-        spec.it('emits AdScheduled events', async () => {
+    spec.describe(`scheduling ${name} ads via AdvertisingConfig`, () => {
+      spec.it(
+        'emits AdScheduled events when loading from the ready callback',
+        async () => {
           const advertisingConfig = {
             schedule: adItems,
           } as AdvertisingConfig;
-          await startPlayerTest({ advertisingConfig }, async () => {
-            await callPlayerAndExpectEvents(
-              (player) => {
-                player.load(Sources.artOfMotionHls);
-              },
-              RepeatedEvent(EventType.AdScheduled, adItems.length)
-            );
-          });
-        });
-      });
-    }
+          const world = PlayerTestWorld.shared;
+          const acknowledge = world.onPlayerViewReady;
+          world.onPlayerViewReady = (player) => {
+            acknowledge(player);
+            player.load(Sources.artOfMotionHls);
+          };
+          try {
+            await startPlayerTest({ advertisingConfig }, async () => {
+              // Observe before native readiness, then load immediately in its
+              // callback to verify the native ad listeners are already attached.
+              await expectEvents(
+                RepeatedEvent(EventType.AdScheduled, adItems.length)
+              );
+            });
+          } finally {
+            world.onPlayerViewReady = acknowledge;
+          }
+        }
+      );
+    });
 
     spec.describe(`scheduling ${name} ads via scheduleAd API`, () => {
       spec.it('emits AdScheduled events', async () => {

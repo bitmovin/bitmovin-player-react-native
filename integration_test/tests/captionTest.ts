@@ -6,18 +6,18 @@ import {
   EventType,
   expectEvent,
   expectEvents,
-  loadSourceConfig,
   startPlayerTest,
 } from '../playertesting';
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
+import { loadCaptionSource } from './helper/Caption';
 import { CueEnterEvent, CueExitEvent } from 'bitmovin-player-react-native';
 
 export default (spec: TestScope) => {
   spec.describe('playing captions', () => {
     spec.it('emits CueEnter and CueExit events', async () => {
       await startPlayerTest({}, async () => {
-        await loadSourceConfig(Sources.sintel);
+        await loadCaptionSource(Sources.sintel);
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
           await player.setSubtitleTrack(subtitleTrack.identifier);
@@ -42,7 +42,7 @@ export default (spec: TestScope) => {
 
     spec.it('validates subtitle track properties', async () => {
       await startPlayerTest({}, async () => {
-        await loadSourceConfig(Sources.sintel);
+        await loadCaptionSource(Sources.sintel);
         await callPlayer(async (player) => {
           const subtitleTracks = await player.getAvailableSubtitles();
           expect(
@@ -93,7 +93,7 @@ export default (spec: TestScope) => {
 
     spec.it('validates CueEnter event properties', async () => {
       await startPlayerTest({}, async () => {
-        await loadSourceConfig(Sources.sintel);
+        await loadCaptionSource(Sources.sintel);
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
           await player.setSubtitleTrack(subtitleTrack.identifier);
@@ -158,7 +158,7 @@ export default (spec: TestScope) => {
 
     spec.it('validates CueExit event properties', async () => {
       await startPlayerTest({}, async () => {
-        await loadSourceConfig(Sources.sintel);
+        await loadCaptionSource(Sources.sintel);
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
           await player.setSubtitleTrack(subtitleTrack.identifier);
@@ -221,7 +221,7 @@ export default (spec: TestScope) => {
       'disables subtitles when calling setSubtitleTrack with undefined',
       async () => {
         await startPlayerTest({}, async () => {
-          await loadSourceConfig(Sources.sintel);
+          await loadCaptionSource(Sources.sintel);
 
           const initialSelectedSubtitle = await callPlayer((player) =>
             player.getSubtitleTrack()

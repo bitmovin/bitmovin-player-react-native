@@ -11,6 +11,7 @@ import {
 import { Sources } from './helper/Sources';
 import { fixtureUrl } from './helper/FixtureUrl';
 import { expect } from './helper/Expect';
+import { loadCaptionSource } from './helper/Caption';
 import {
   CueEnterEvent,
   CueExitEvent,
@@ -231,7 +232,7 @@ export default (spec: TestScope) => {
           'CueEnter carries in-manifest WebVTT layout metadata',
           async () => {
             await startPlayerTest({}, async () => {
-              await loadSourceConfig(sourceWithInManifestPositionedSubs);
+              await loadCaptionSource(sourceWithInManifestPositionedSubs);
               await callPlayer(async (player) => {
                 const subtitleTracks = await player.getAvailableSubtitles();
                 const subtitleTrack =
@@ -293,7 +294,7 @@ export default (spec: TestScope) => {
 
         spec.it('CueEnter carries CEA-608 grid position metadata', async () => {
           await startPlayerTest({}, async () => {
-            await loadSourceConfig(sourceWithCea608Captions);
+            await loadCaptionSource(sourceWithCea608Captions);
             await callPlayer(async (player) => {
               const subtitleTracks = await player.getAvailableSubtitles();
               const cea608Track = subtitleTracks.find(
