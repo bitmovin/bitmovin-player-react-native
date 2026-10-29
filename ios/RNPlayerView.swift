@@ -138,11 +138,10 @@ public class RNPlayerView: ExpoView {
 
     deinit {
 #if DEBUG
+        // Deinitialization can run outside the main actor; log only the stored identity.
         LoadEventTrace.record(
             "view.deinit",
-            playerId: loadTraceAttachedPlayerId,
-            source: playerView?.player?.source,
-            view: self
+            playerId: loadTraceAttachedPlayerId
         )
 #endif
         if let foregroundObserver {
