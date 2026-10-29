@@ -4,6 +4,7 @@ import { StyleSheet, Text } from 'react-native';
 import { Event, PlayerView } from 'bitmovin-player-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
+import { traceLoadEvent } from '../../src/utils/loadEventTrace';
 const darkTextColor = '#11181C';
 const TestablePlayerView = wrap(PlayerView);
 
@@ -18,6 +19,13 @@ export default function TestablePlayer({
   const [renderCount, setRenderCount] = useState(0);
   const player = playerTestWorld.player;
   const onEvent = (event: Event) => {
+    traceLoadEvent('js.test.receive', {
+      event,
+      playerId: player?.nativeId,
+      currentPlayerId: playerTestWorld.player?.nativeId,
+      currentSourceId: player?.source?.nativeId,
+      accepted: !!player && playerTestWorld.player === player,
+    });
     if (player && playerTestWorld.player === player) {
       if (
         /^(onAd|onNonLinearAd)/.test(event.name) ||
@@ -70,6 +78,11 @@ export default function TestablePlayer({
             player={playerTestWorld.player}
             style={styles.player}
             onPlayerViewReady={() => {
+              traceLoadEvent('js.test.view-ready', {
+                playerId: player?.nativeId,
+                currentPlayerId: playerTestWorld.player?.nativeId,
+                accepted: !!player && playerTestWorld.player === player,
+              });
               if (player && playerTestWorld.player === player) {
                 playerTestWorld.onPlayerViewReady(player);
               }

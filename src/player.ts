@@ -16,6 +16,7 @@ import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
 import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
+import { traceLoadEvent } from './utils/loadEventTrace';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -174,16 +175,28 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Loads the given {@link Source} into the player.
    */
   loadSource = (source: Source) => {
+    traceLoadEvent('js.command.load.request', {
+      playerId: this.nativeId,
+      sourceId: source.nativeId,
+    });
     this.source = source;
-    void source
-      .initialize()
-      .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
+    void source.initialize().then(() => {
+      traceLoadEvent('js.command.load.submit', {
+        playerId: this.nativeId,
+        sourceId: source.nativeId,
+      });
+      return PlayerModule.loadSource(this.nativeId, source.nativeId);
+    });
   };
 
   /**
    * Unloads all {@link Source}s from the player.
    */
   unload = () => {
+    traceLoadEvent('js.command.unload.submit', {
+      playerId: this.nativeId,
+      sourceId: this.source?.nativeId,
+    });
     void PlayerModule.unload(this.nativeId);
   };
 

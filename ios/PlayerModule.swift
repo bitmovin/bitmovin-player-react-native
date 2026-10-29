@@ -55,6 +55,9 @@ public class PlayerModule: Module {
             PlayerRegistry.getPlayer(nativeId: nativeId)?.volume = volume
         }.runOnQueue(.main)
         AsyncFunction("unload") { (nativeId: NativeId) in
+#if DEBUG
+            LoadEventTrace.recordUnloadEntry(playerId: nativeId)
+#endif
             PlayerRegistry.getPlayer(nativeId: nativeId)?.unload()
         }.runOnQueue(.main)
         AsyncFunction("setPlaybackSpeed") { (nativeId: NativeId, playbackSpeed: Float) in
@@ -232,9 +235,23 @@ public class PlayerModule: Module {
             PlayerRegistry.register(player: player, nativeId: nativeId)
         }.runOnQueue(.main)
         AsyncFunction("loadSource") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) in
+#if DEBUG
+            LoadEventTrace.record("loadSource.entry", playerId: nativeId, sourceId: sourceNativeId)
+#endif
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
                   let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
-                  let source = sourceModule.retrieve(sourceNativeId) else { return }
+                  let source = sourceModule.retrieve(sourceNativeId) else {
+#if DEBUG
+                LoadEventTrace.record(
+                    "loadSource.rejected.registryLookup", playerId: nativeId, sourceId: sourceNativeId
+                )
+#endif
+                return
+            }
+#if DEBUG
+            LoadEventTrace.bind(source, playerId: nativeId)
+            LoadEventTrace.record("loadSource.resolved", playerId: nativeId, sourceId: sourceNativeId, source: source)
+#endif
             player.load(source: source)
         }.runOnQueue(.main)
     }

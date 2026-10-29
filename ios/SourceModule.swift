@@ -11,6 +11,9 @@ public class SourceModule: Module {
     private let fairplayRegistry = FairplayContentKeyRequestRegistry()
     /// Combine cancellables for FairPlay license acquired events, keyed by source nativeId.
     private var fairplayCancellables: [NativeId: AnyCancellable] = [:]
+#if DEBUG
+    private var loadTraceCancellables: [NativeId: Set<AnyCancellable>] = [:]
+#endif
 
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
@@ -19,6 +22,14 @@ public class SourceModule: Module {
             // Module initialization
         }
         OnDestroy {
+#if DEBUG
+            loadTraceCancellables.values.forEach { $0.forEach { $0.cancel() } }
+            loadTraceCancellables.removeAll()
+            sources.forEach { nativeId, source in
+                LoadEventTrace.record("source.moduleDestroy", sourceId: nativeId, source: source)
+                LoadEventTrace.remove(source)
+            }
+#endif
             sources.removeAll()
             castSourceConfigs.removeAll()
             fairplayCancellables.values.forEach { $0.cancel() }
@@ -140,6 +151,30 @@ public class SourceModule: Module {
             source = SourceFactory.createSource(from: sourceConfig)
         }
         sources[nativeId] = source
+#if DEBUG
+        LoadEventTrace.register(source, nativeId: nativeId)
+        LoadEventTrace.record("source.create", sourceId: nativeId, source: source)
+        var subscriptions = Set<AnyCancellable>()
+        source.events
+            .on(SourceLoadEvent.self)
+            .sink { [weak source] event in
+                LoadEventTrace.record("source.callback", sourceId: nativeId, source: source, event: event)
+            }
+            .store(in: &subscriptions)
+        source.events
+            .on(SourceLoadedEvent.self)
+            .sink { [weak source] event in
+                LoadEventTrace.record("source.callback", sourceId: nativeId, source: source, event: event)
+            }
+            .store(in: &subscriptions)
+        source.events
+            .on(SourceUnloadedEvent.self)
+            .sink { [weak source] event in
+                LoadEventTrace.record("source.callback", sourceId: nativeId, source: source, event: event)
+            }
+            .store(in: &subscriptions)
+        loadTraceCancellables[nativeId] = subscriptions
+#endif
         // Attach Combine listener to populate the FairPlay registry when a license is acquired
         fairplayCancellables[nativeId] = source.events
             .on(FairplayLicenseAcquiredEvent.self)
@@ -158,6 +193,13 @@ public class SourceModule: Module {
      Destroys the source instance with the given `nativeId`.
      */
     private func destroySource(nativeId: NativeId) {
+#if DEBUG
+        LoadEventTrace.record("source.destroy", sourceId: nativeId, source: sources[nativeId])
+        loadTraceCancellables.removeValue(forKey: nativeId)?.forEach { $0.cancel() }
+        if let source = sources[nativeId] {
+            LoadEventTrace.remove(source)
+        }
+#endif
         sources.removeValue(forKey: nativeId)
         castSourceConfigs.removeValue(forKey: nativeId)
         fairplayCancellables[nativeId]?.cancel()

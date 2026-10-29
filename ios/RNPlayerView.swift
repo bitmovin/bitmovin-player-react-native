@@ -4,6 +4,8 @@ import BitmovinPlayer
 import BitmovinPlayerCore
 import ExpoModulesCore
 
+// Temporary Debug trace exceeds the existing view body budget.
+// swiftlint:disable:next type_body_length
 public class RNPlayerView: ExpoView {
     var playerView: PlayerView? {
         willSet {
@@ -43,6 +45,9 @@ public class RNPlayerView: ExpoView {
 
     private var customMessageHandlerBridgeId: NativeId?
     private var playerId: NativeId?
+#if DEBUG
+    private var loadTraceAttachedPlayerId: NativeId?
+#endif
     private var fullscreenBridgeId: NativeId?
     private var scalingMode: ScalingMode?
     private var requestedFullscreenValue: Bool?
@@ -132,6 +137,14 @@ public class RNPlayerView: ExpoView {
     }
 
     deinit {
+#if DEBUG
+        LoadEventTrace.record(
+            "view.deinit",
+            playerId: loadTraceAttachedPlayerId,
+            source: playerView?.player?.source,
+            view: self
+        )
+#endif
         if let foregroundObserver {
             NotificationCenter.default.removeObserver(foregroundObserver)
         }
@@ -142,11 +155,26 @@ public class RNPlayerView: ExpoView {
         maybeFixAVPlayerViewControllerVisibility()
     }
 
+#if DEBUG
+    override public func didMoveToWindow() {
+        super.didMoveToWindow()
+        LoadEventTrace.record(
+            "view.windowChanged",
+            playerId: loadTraceAttachedPlayerId,
+            source: playerView?.player?.source,
+            view: self
+        )
+    }
+#endif
+
     internal func attachPlayer(
         playerId: NativeId?,
         playerViewConfigWrapper: RNPlayerViewConfig?,
         customMessageHandlerBridgeId: NativeId?
     ) {
+#if DEBUG
+        LoadEventTrace.record("view.attach.entry", playerId: playerId, view: self)
+#endif
         self.playerId = playerId
         guard let playerId else {
             detachCurrentPlayer()
@@ -155,6 +183,9 @@ public class RNPlayerView: ExpoView {
         // PlayerView renders this native view only after player.initialize() resolves,
         // so the player is already registered on the normal attachment path.
         guard let player = self.appContext?.moduleRegistry.get(PlayerModule.self)?.retrieve(playerId) else {
+#if DEBUG
+            LoadEventTrace.record("view.attach.rejected.playerLookup", playerId: playerId, view: self)
+#endif
             return
         }
         if let playerView, let currentPlayer = playerView.player, currentPlayer === player {
@@ -179,9 +210,16 @@ public class RNPlayerView: ExpoView {
             frame: bounds,
             playerViewConfig: playerViewConfigWrapper?.playerViewConfig ?? PlayerViewConfig()
         )
+#if DEBUG
+        loadTraceAttachedPlayerId = playerId
+        LoadEventTrace.record("view.attached", playerId: playerId, source: player.source, view: self)
+#endif
 
         player.add(listener: self)
         playerView?.add(listener: self)
+#if DEBUG
+        LoadEventTrace.record("view.listenerReady", playerId: playerId, source: player.source, view: self)
+#endif
 
         shouldExitPictureInPictureOnForeground =
             playerViewConfigWrapper?.pictureInPictureConfig?.shouldExitOnForeground ?? false
@@ -276,6 +314,15 @@ private extension RNPlayerView {
         guard let playerView else {
             return
         }
+#if DEBUG
+        LoadEventTrace.record(
+            "view.detach",
+            playerId: loadTraceAttachedPlayerId,
+            source: playerView.player?.source,
+            view: self
+        )
+        loadTraceAttachedPlayerId = nil
+#endif
         playerView.player?.remove(listener: self)
         playerView.remove(listener: self)
         playerView.player = nil
@@ -623,7 +670,27 @@ extension RNPlayerView: UserInterfaceListener {
     }
 
     public func onEvent(_ event: any Event, player: any Player) {
+#if DEBUG
+        let source = LoadEventTrace.source(for: event, player: player)
+        LoadEventTrace.record(
+            "view.onEvent.beforeSerialization",
+            playerId: loadTraceAttachedPlayerId,
+            source: source,
+            event: event,
+            view: self
+        )
+        let payload = event.eventPayload()
+        LoadEventTrace.record(
+            "view.onEvent.beforeDispatch",
+            playerId: loadTraceAttachedPlayerId,
+            source: source,
+            event: event,
+            view: self
+        )
+        onBmpEvent(payload)
+#else
         onBmpEvent(event.eventPayload())
+#endif
     }
 }
 

@@ -5,7 +5,7 @@ const test = require('node:test');
 const vm = require('node:vm');
 const ts = require('typescript');
 
-function renderPlayer(world, logs = []) {
+function renderPlayer(world, logs = [], development = true) {
   const source = fs.readFileSync(
     path.join(__dirname, '../src/TestablePlayer.tsx'),
     'utf8'
@@ -28,8 +28,27 @@ function renderPlayer(world, logs = []) {
   const exports = {};
   vm.runInNewContext(outputText, {
     exports,
+    __DEV__: development,
     console: { info: (...args) => logs.push(args) },
     require(name) {
+      if (name.endsWith('/loadEventTrace')) {
+        const trace = {};
+        const source = fs.readFileSync(
+          path.resolve(__dirname, '../../src/utils/loadEventTrace.ts'),
+          'utf8'
+        );
+        vm.runInNewContext(
+          ts.transpileModule(source, {
+            compilerOptions: { module: ts.ModuleKind.CommonJS },
+          }).outputText,
+          {
+            exports: trace,
+            __DEV__: development,
+            console: { info: (...args) => logs.push(args) },
+          }
+        );
+        return trace;
+      }
       if (name === 'react') return react;
       if (name === 'cavy') {
         return { useCavy: () => () => {}, wrap: (component) => component };
@@ -128,4 +147,76 @@ test('acknowledges the rendered player and ignores stale view readiness', () => 
   world.player = undefined;
   current.onPlayerViewReady();
   assert.equal(readyPlayers.length, 1);
+});
+
+test('traces source delivery without changing the event or logging private payloads', () => {
+  const logs = [];
+  const events = [];
+  const player = {
+    nativeId: 'player-attempt-1',
+    source: { nativeId: 'source-1' },
+  };
+  const props = renderPlayer(
+    { player, onEvent: (event) => events.push(event) },
+    logs
+  );
+  const event = {
+    name: 'onSourceLoaded',
+    timestamp: 12345,
+    source: {
+      isActive: true,
+      loadingState: 2,
+      metadata: { token: 'private-token' },
+    },
+    message: 'private-message',
+    url: 'private-url',
+  };
+  props.onEvent(event);
+  const trace = logs.filter(([tag]) => tag === '[PRN_LOAD_TRACE]');
+  assert.equal(trace.length, 1);
+  const record = JSON.parse(trace[0][1]);
+  assert.equal(record.stage, 'js.test.receive');
+  assert.equal(record.playerId, player.nativeId);
+  assert.equal(record.currentSourceId, 'source-1');
+  assert.equal(record.eventTimestamp, event.timestamp);
+  assert.equal(record.accepted, true);
+  assert.equal(record.loadingState, 2);
+  assert.deepEqual(events, [event]);
+  assert.ok(!JSON.stringify(logs).includes('private-'));
+});
+
+test('traces a stale source callback before dropping it', () => {
+  const logs = [];
+  const events = [];
+  const world = {
+    player: { nativeId: 'previous-player' },
+    onEvent: (e) => events.push(e),
+  };
+  const props = renderPlayer(world, logs);
+  world.player = { nativeId: 'current-player' };
+  props.onEvent({ name: 'onSourceUnloaded', timestamp: 12345 });
+  const trace = logs.filter(([tag]) => tag === '[PRN_LOAD_TRACE]');
+  assert.equal(trace.length, 1);
+  const record = JSON.parse(trace[0][1]);
+  assert.equal(record.playerId, 'previous-player');
+  assert.equal(record.currentPlayerId, 'current-player');
+  assert.equal(record.accepted, false);
+  assert.deepEqual(events, []);
+});
+
+test('source tracing is silent outside development builds', () => {
+  const logs = [];
+  const events = [];
+  const props = renderPlayer(
+    {
+      player: { nativeId: 'test-player' },
+      onEvent: (event) => events.push(event),
+    },
+    logs,
+    false
+  );
+  const event = { name: 'onSourceLoaded', timestamp: 12345 };
+  props.onEvent(event);
+  assert.deepEqual(events, [event]);
+  assert.equal(logs.length, 0);
 });

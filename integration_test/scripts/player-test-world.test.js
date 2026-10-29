@@ -7,6 +7,7 @@ const vm = require('node:vm');
 const ts = require('typescript');
 
 function createWorld() {
+  const logs = [];
   const timers = new Map();
   const timerDelays = new Map();
   const modules = new Map();
@@ -24,6 +25,8 @@ function createWorld() {
   }
   let nextTimer = 0;
   const context = vm.createContext({
+    __DEV__: true,
+    console: { info: (...args) => logs.push(args) },
     setTimeout(callback, delay) {
       const handle = ++nextTimer;
       timers.set(handle, callback);
@@ -65,6 +68,7 @@ function createWorld() {
     `${directory}/expectations/MultipleEventsExpectation.ts`
   );
   return {
+    logs,
     world: new PlayerTestWorld(),
     FilteredEvent,
     EventSequence,
@@ -79,6 +83,33 @@ function createWorld() {
     },
   };
 }
+
+test('traces matching and pending source events without fulfilling them twice', async () => {
+  const harness = createWorld();
+  const event = { name: 'onSourceLoad', timestamp: 12345 };
+  const running = harness.world.expectEventsCalling(
+    ['onSourceLoad', 'onSourceLoaded'],
+    10,
+    async () => {
+      harness.world.onEvent(event);
+      harness.expireTimers(10000);
+    }
+  );
+  await assert.rejects(running, /Expectation was not met/);
+  const records = harness.logs
+    .filter(([tag]) => tag === '[PRN_LOAD_TRACE]')
+    .map(([, json]) => JSON.parse(json));
+  const match = records.find((r) => r.stage === 'js.expectation.event');
+  const timeout = records.find((r) => r.stage === 'js.expectation.timeout');
+  assert.ok(match, 'missing expectation decision trace');
+  assert.equal(match.matched, true);
+  assert.equal(match.eventTimestamp, event.timestamp);
+  assert.deepEqual(match.pending, ['onSourceLoaded']);
+  assert.ok(timeout, 'missing timeout trace');
+  assert.equal(timeout.expectationId, match.expectationId);
+  assert.deepEqual(timeout.pending, ['onSourceLoaded']);
+  assert.equal(harness.timers.size, 0);
+});
 
 test('waits for matching view readiness and receives synchronous source events', async () => {
   const harness = createWorld();

@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type { Event } from '../events';
 import { normalizeNonFinite } from '../utils/normalizeNonFinite';
+import { traceLoadEvent } from '../utils/loadEventTrace';
 
 /**
  * A function that takes a generic event as argument.
@@ -21,10 +22,12 @@ export function useProxy(): <E extends Event>(
   return useCallback(
     <E extends Event>(callback?: Callback<E>) =>
       (event: { nativeEvent: E }) => {
+        traceLoadEvent('js.proxy.receive', { event: event.nativeEvent });
         // Remove the target field from the event as it's React Native internal metadata
         const { target: _target, ...eventWithoutTarget } =
           event.nativeEvent as any;
         const sanitized = normalizeNonFinite(eventWithoutTarget);
+        traceLoadEvent('js.proxy.normalized', { event: sanitized as E });
         callback?.(sanitized as E);
       },
     []

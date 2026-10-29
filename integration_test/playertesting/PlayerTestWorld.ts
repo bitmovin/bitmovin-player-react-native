@@ -8,6 +8,7 @@ import {
 import uuid from 'react-native-uuid';
 import { Event } from 'bitmovin-player-react-native';
 import { EventType } from './EventType';
+import { traceLoadEvent } from '../../src/utils/loadEventTrace';
 import {
   SingleEventExpectation,
   PlainEvent,
@@ -94,6 +95,12 @@ export default class PlayerTestWorld {
   onReRender: (() => void) | undefined;
 
   onEvent = (event: Event): void => {
+    traceLoadEvent('js.world.receive', {
+      event,
+      playerId: this.player?.nativeId,
+      currentSourceId: this.player?.source?.nativeId,
+      listenerCount: Object.keys(this.eventListeners).length,
+    });
     Object.entries(this.eventListeners).forEach(([_, listener]) =>
       listener(event)
     );
@@ -112,9 +119,14 @@ export default class PlayerTestWorld {
       ...config,
     });
     await player.initialize();
+    traceLoadEvent('js.test.start', { playerId: player.nativeId });
     this.player = player;
 
     await fn().finally(() => {
+      traceLoadEvent('js.test.teardown', {
+        playerId: player.nativeId,
+        currentSourceId: player.source?.nativeId,
+      });
       player.destroy();
       this.isFinished_ = true;
       this.player = undefined;
@@ -242,6 +254,19 @@ export default class PlayerTestWorld {
     } else {
       actualExpectation = PlainEvent(expectationConvertible as EventType);
     }
+    const expectationId = uuid.v4() as string;
+    const trace = (stage: string, event?: Event, matched?: boolean) =>
+      traceLoadEvent(stage, {
+        expectationId,
+        playerId: this.player?.nativeId,
+        currentSourceId: this.player?.source?.nativeId,
+        expected: [actualExpectation.eventType],
+        pending: actualExpectation.isFulfilled
+          ? []
+          : [actualExpectation.eventType],
+        event,
+        matched,
+      });
     let resolve: (event: T) => void = () => {};
     let reject: (error: Error) => void = () => {};
     const future = new Promise<T>((res, rej) => {
@@ -249,19 +274,24 @@ export default class PlayerTestWorld {
       reject = rej;
     });
     const removeListener = this.addEventListener((event) => {
-      if (actualExpectation.maybeFulfillExpectation(event)) {
+      const matched = actualExpectation.maybeFulfillExpectation(event);
+      trace('js.expectation.event', event, matched);
+      if (matched) {
         resolve(event as T);
       }
     });
     const timeoutHandle = setTimeout(() => {
       if (!actualExpectation.isFulfilled) {
+        trace('js.expectation.timeout');
         removeListener();
         reject(new Error(`Expectation was not met: ${actualExpectation}`));
       }
     }, timeoutSeconds * 1000);
+    trace('js.expectation.attach');
     // The expectation can time out while the trigger is still running.
     void future.catch(() => {});
     try {
+      trace('js.expectation.trigger');
       await afterListenerAttached();
       return await future;
     } finally {
@@ -285,6 +315,19 @@ export default class PlayerTestWorld {
         )
       );
     }
+    const expectationId = uuid.v4() as string;
+    const trace = (stage: string, event?: Event, matched?: boolean) =>
+      traceLoadEvent(stage, {
+        expectationId,
+        playerId: this.player?.nativeId,
+        currentSourceId: this.player?.source?.nativeId,
+        expected: actualExpectation.singleExpectations.map((e) => e.eventType),
+        pending: actualExpectation.singleExpectations
+          .filter((e) => !e.isFulfilled)
+          .map((e) => e.eventType),
+        event,
+        matched,
+      });
     let fulfilledExpectations = 0;
     const receivedEvents: Event[] = [];
     let resolve: (event: Event[]) => void = () => {};
@@ -294,7 +337,9 @@ export default class PlayerTestWorld {
       reject = rej;
     });
     const removeListener = this.addEventListener((event) => {
-      if (actualExpectation.isNextExpectationMet(event)) {
+      const matched = actualExpectation.isNextExpectationMet(event);
+      trace('js.expectation.event', event, matched);
+      if (matched) {
         fulfilledExpectations++;
         receivedEvents.push(event);
         if (
@@ -306,13 +351,16 @@ export default class PlayerTestWorld {
     });
     const timeoutHandle = setTimeout(() => {
       if (fulfilledExpectations < actualExpectation.expectedFulfillmentCount) {
+        trace('js.expectation.timeout');
         removeListener();
         reject(new Error(`Expectation was not met: ${actualExpectation}`));
       }
     }, timeoutSeconds * 1000);
+    trace('js.expectation.attach');
     // The expectation can time out while the trigger is still running.
     void future.catch(() => {});
     try {
+      trace('js.expectation.trigger');
       await afterListenerAttached();
       return await future;
     } finally {
