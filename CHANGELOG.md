@@ -10,6 +10,10 @@
 
 - Android: `Source.loadingState()` returning the state name instead of a `LoadingState` value
 
+### Changed
+
+- Update Bitmovin's native Android SDK version to [`3.173.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31730)
+
 ## [1.30.0] - 2026-10-29
 
 ### Changed
