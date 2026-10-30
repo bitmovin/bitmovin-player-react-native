@@ -323,7 +323,7 @@ export type NativePlayerViewEvents = {
    */
   onBmpPlayerActive?: (event: { nativeEvent: PlayerActiveEvent }) => void;
   /**
-   * Event emitted when the active playback session was stopped via {@link Player.unload}.
+   * Event emitted when the active playback session ends and the player becomes inactive.
    */
   onBmpPlayerInactive?: (event: { nativeEvent: PlayerInactiveEvent }) => void;
   /**

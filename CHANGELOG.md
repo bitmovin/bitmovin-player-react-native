@@ -4,7 +4,7 @@
 
 ### Added
 
-- `onPlayerInactive` event prop on `PlayerView`
+- `onPlayerInactive` event prop on `PlayerView` to indicate when the active playback session ends and the player becomes inactive
 
 ### Fixed
 
