@@ -4,7 +4,7 @@
 
 ### Added
 
-- Android: `onPlaybackSpeedChanged` event
+- Android: `onPlaybackSpeedChanged` event to indicate playback speed changes. The event is already available in iOS
 
 ### Fixed
 
