@@ -312,7 +312,6 @@ export type NativePlayerViewEvents = {
   }) => void;
   /**
    * Emitted when the player transitions from one playback speed to another.
-   * @platform iOS, tvOS
    */
   onBmpPlaybackSpeedChanged?: (event: {
     nativeEvent: PlaybackSpeedChangedEvent;

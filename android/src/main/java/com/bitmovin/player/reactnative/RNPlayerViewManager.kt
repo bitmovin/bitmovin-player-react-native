@@ -189,6 +189,7 @@ class RNPlayerViewManager : Module() {
                 "onBmpCueExit",
                 "onBmpMetadata",
                 "onBmpMetadataParsed",
+                "onBmpPlaybackSpeedChanged",
             )
         }
     }
