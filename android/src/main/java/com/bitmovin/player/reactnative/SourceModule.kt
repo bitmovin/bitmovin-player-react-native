@@ -58,7 +58,7 @@ class SourceModule : Module() {
         }
 
         AsyncFunction("loadingState") { nativeId: NativeId ->
-            sources[nativeId]?.loadingState?.name
+            sources[nativeId]?.loadingState?.toJson()
         }
 
         AsyncFunction("getMetadata") { nativeId: NativeId ->

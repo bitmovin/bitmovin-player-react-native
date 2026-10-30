@@ -6,6 +6,13 @@
 
 - `onPlayerInactive` event prop on `PlayerView`
 
+### Fixed
+
+- Android: `onPlayerActive` not being emitted
+- Android: **Breaking change:** `PlayerActive` and `PlayerInactive` events being named `onActive` and `onInactive` instead of `onPlayerActive` and `onPlayerInactive`, as on iOS. Apps comparing `Event.name`, e.g. in `onEvent`, must use the new names.
+
+## [1.30.0] - 2026-10-29
+
 ### Changed
 
 - **Breaking change:** Google IMA is now disabled by default on Android, iOS, and tvOS. Apps that use IMA ad sources must set `features.googleIMA: true`, rerun Expo prebuild, and rebuild the native app. Bitmovin Advertising Module and ordinary playback do not require Google IMA. See [Google IMA](README.md#google-ima) for migration steps.
@@ -18,8 +25,7 @@
 - iOS: Fix playback failing when HTTP response preprocessing is enabled with Expo SDK 57
 - Complete HTTP preprocessing with the original request or response when a user callback throws, and avoid retrying failed native completion calls
 - Wait for native player listeners before calling `onPlayerViewReady` to avoid losing events when loading from the callback.
-- Android: `onPlayerActive` not being emitted
-- Android: **Breaking change:** `PlayerActive` and `PlayerInactive` events being named `onActive` and `onInactive` instead of `onPlayerActive` and `onPlayerInactive`, as on iOS. Apps comparing `Event.name`, e.g. in `onEvent`, must use the new names.
+- Android: `Source.loadingState()` returning the state name instead of a `LoadingState` value
 
 ## [1.29.0] - 2026-10-20
 
