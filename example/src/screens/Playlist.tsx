@@ -66,14 +66,30 @@ export default function Playlist() {
 
   useEffect(() => {
     const onPlaylistEvent = (event: Event) => {
-      prettyPrint(`EVENT [${event.name}]`, event);
+      prettyPrint(`EVENT (playlist) [${event.name}]`, event);
       void refreshPlaylist();
+    };
+    const onEvent = (event: Event) => {
+      prettyPrint(`EVENT [${event.name}]`, event);
     };
     const subscriptions = [
       player.on('playerActive', onPlaylistEvent),
       player.on('playlistTransition', onPlaylistEvent),
       player.on('sourceAdded', onPlaylistEvent),
       player.on('sourceRemoved', onPlaylistEvent),
+
+      player.on('play', onEvent),
+      player.on('playing', onEvent),
+      player.on('paused', onEvent),
+      player.on('ready', onEvent),
+      player.on('sourceLoaded', onEvent),
+      player.on('seek', onEvent),
+      player.on('seeked', onEvent),
+      player.on('stallStarted', onEvent),
+      player.on('stallEnded', onEvent),
+      player.on('videoPlaybackQualityChanged', onEvent),
+      player.on('audioAdded', onEvent),
+      player.on('audioChanged', onEvent),
     ];
     return () => subscriptions.forEach((subscription) => subscription.remove());
   }, [player, refreshPlaylist]);
