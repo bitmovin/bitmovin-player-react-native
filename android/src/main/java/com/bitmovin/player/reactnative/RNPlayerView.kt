@@ -591,6 +591,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         EventSubscription<PlayerEvent.CueExit> { onEvent(onBmpCueExit, it.toJson()) },
         EventSubscription<PlayerEvent.Metadata> { onEvent(onBmpMetadata, it.toJson()) },
         EventSubscription<SourceEvent.MetadataParsed> { onEvent(onBmpMetadataParsed, it.toJson()) },
+        EventSubscription<PlayerEvent.PlaybackSpeedChanged> { onEvent(onBmpPlaybackSpeedChanged, it.toJson()) },
     ) as List<EventSubscription<Event>>
 
     private fun detachPlayerListeners(player: Player) {

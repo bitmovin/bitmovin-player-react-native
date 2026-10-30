@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Android: `onPlaybackSpeedChanged` event to indicate playback speed changes. The event is already available in iOS
+
 ### Fixed
 
 - Android: `Source.loadingState()` returning the state name instead of a `LoadingState` value

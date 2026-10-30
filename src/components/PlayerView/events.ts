@@ -288,7 +288,6 @@ export type PlayerViewEvents = {
   onPlaybackFinished?: (event: PlaybackFinishedEvent) => void;
   /**
    * Emitted when the player transitions from one playback speed to another.
-   * @platform iOS, tvOS
    */
   onPlaybackSpeedChanged?: (event: PlaybackSpeedChangedEvent) => void;
   /**
