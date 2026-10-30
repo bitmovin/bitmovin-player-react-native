@@ -5,10 +5,13 @@
 ### Added
 
 - Android: `onPlaybackSpeedChanged` event to indicate playback speed changes. The event is already available in iOS
+- `onPlayerInactive` event prop on `PlayerView` to indicate when the active playback session ends and the player becomes inactive
 
 ### Fixed
 
+- Android: **Breaking change:** `PlayerActive` and `PlayerInactive` events being named `onActive` and `onInactive` instead of `onPlayerActive` and `onPlayerInactive`, as on iOS. Apps comparing `Event.name`, e.g. in `onEvent`, must use the new names.
 - Android: `Source.loadingState()` returning the state name instead of a `LoadingState` value
+- Android: `onPlayerActive` not being emitted
 
 ## [1.30.0] - 2026-10-29
 

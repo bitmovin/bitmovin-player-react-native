@@ -68,14 +68,13 @@ export interface ErrorEvent extends Event {
 }
 
 /**
- * Emitted when a source is loaded into the player.
- * Seeking and time shifting are allowed as soon as this event is seen.
+ * Emitted when a playback session was started. This event is emitted immediately after the
+ * {@link Player.load} call and does not wait for actual data to be loaded.
  */
 export type PlayerActiveEvent = Event;
 
 /**
- * Emitted when a source is unloaded from the player.
- * Seeking and time shifting are not allowed anymore after this event.
+ * Emitted when the active playback session ends and the player becomes inactive.
  */
 export type PlayerInactiveEvent = Event;
 

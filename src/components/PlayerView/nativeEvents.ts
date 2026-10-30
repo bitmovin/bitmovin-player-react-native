@@ -37,6 +37,7 @@ import type {
   PictureInPictureExitedEvent,
   PlaybackFinishedEvent,
   PlayerActiveEvent,
+  PlayerInactiveEvent,
   PlayerErrorEvent,
   PlayerWarningEvent,
   PlayEvent,
@@ -316,10 +317,14 @@ export type NativePlayerViewEvents = {
     nativeEvent: PlaybackSpeedChangedEvent;
   }) => void;
   /**
-   * Event emitted when a source is loaded into the player.
-   * Seeking and time shifting are allowed as soon as this event is seen.
+   * Event emitted when a playback session was started. This event is emitted immediately after the
+   * {@link Player.load} call and does not wait for actual data to be loaded.
    */
   onBmpPlayerActive?: (event: { nativeEvent: PlayerActiveEvent }) => void;
+  /**
+   * Event emitted when the active playback session ends and the player becomes inactive.
+   */
+  onBmpPlayerInactive?: (event: { nativeEvent: PlayerInactiveEvent }) => void;
   /**
    * Event Emitted when a player error occurred.
    */

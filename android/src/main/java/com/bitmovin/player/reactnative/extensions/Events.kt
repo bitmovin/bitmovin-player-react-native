@@ -4,7 +4,9 @@ import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 
 fun PlayerEvent.getName(): String {
-    if (this is PlayerEvent.Error || this is PlayerEvent.Warning) {
+    if (this is PlayerEvent.Error || this is PlayerEvent.Warning ||
+        this is PlayerEvent.Active || this is PlayerEvent.Inactive
+    ) {
         return "onPlayer${this.javaClass.simpleName}"
     }
     return "on${this.javaClass.simpleName}"
