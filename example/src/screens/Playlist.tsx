@@ -67,14 +67,30 @@ export default function Playlist() {
 
   useEffect(() => {
     const onPlaylistEvent = (event: Event) => {
-      prettyPrint(`EVENT [${event.name}]`, event);
+      prettyPrint(`EVENT (playlist) [${event.name}]`, event);
       void refreshPlaylist();
+    };
+    const onEvent = (event: Event) => {
+      prettyPrint(`EVENT [${event.name}]`, event);
     };
     const listeners: [keyof PlayerEventMap, (event: Event) => void][] = [
       ['playerActive', onPlaylistEvent],
       ['playlistTransition', onPlaylistEvent],
       ['sourceAdded', onPlaylistEvent],
       ['sourceRemoved', onPlaylistEvent],
+
+      ['play', onEvent],
+      ['playing', onEvent],
+      ['paused', onEvent],
+      ['ready', onEvent],
+      ['sourceLoaded', onEvent],
+      ['seek', onEvent],
+      ['seeked', onEvent],
+      ['stallStarted', onEvent],
+      ['stallEnded', onEvent],
+      ['videoPlaybackQualityChanged', onEvent],
+      ['audioAdded', onEvent],
+      ['audioChanged', onEvent],
     ];
     listeners.forEach(([eventName, listener]) =>
       player.on(eventName, listener)
