@@ -298,7 +298,7 @@ export type PlayerViewEvents = {
    */
   onPlayerActive?: (event: PlayerActiveEvent) => void;
   /**
-   * Event emitted when the active playback session was stopped via {@link Player.unload}.
+   * Event emitted when the active playback session ends and the player becomes inactive.
    */
   onPlayerInactive?: (event: PlayerInactiveEvent) => void;
   /**

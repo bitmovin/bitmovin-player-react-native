@@ -74,7 +74,7 @@ export interface ErrorEvent extends Event {
 export type PlayerActiveEvent = Event;
 
 /**
- * Emitted when the active playback session was stopped via {@link Player.unload}.
+ * Emitted when the active playback session ends and the player becomes inactive.
  */
 export type PlayerInactiveEvent = Event;
 
