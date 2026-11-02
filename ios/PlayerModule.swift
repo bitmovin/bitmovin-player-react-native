@@ -5,23 +5,43 @@ import ExpoModulesCore
 public class PlayerModule: Module {
     private let shouldLoadAdItemWaiter = ResultWaiter<Bool>()
     private let imaSettingsWaiter = ResultWaiter<[String: Any]>()
+    private lazy var eventRelay = EventRelay<Player>(
+        subscribers: PlayerEventTypes.player
+    ) { [weak self] nativeId, event in
+        self?.sendEvent("onPlayerEvent", [
+            "nativeId": nativeId,
+            "event": event.eventPayload(),
+        ])
+    }
 
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("PlayerModule")
         OnCreate {}
         OnDestroy {
+            let eventRelay = self.eventRelay
             // Destroy all players on the main thread when the module is deallocated.
             // This is necessary when the IMA SDK is present in the app,
             // as it may crash if the players are destroyed on a background thread.
             DispatchQueue.main.async {
+                // Cancel the event subscriptions first, so destroying the players does not emit into this module.
+                eventRelay.clear()
                 PlayerRegistry.getAllPlayers().forEach { $0.destroy() }
                 PlayerRegistry.clear()
             }
             shouldLoadAdItemWaiter.removeAll()
             imaSettingsWaiter.removeAll()
         }
-        Events("onShouldLoadAdItem", "onImaBeforeInitialization")
+        Events("onShouldLoadAdItem", "onImaBeforeInitialization", "onPlayerEvent")
+        AsyncFunction("subscribe") { [weak self] (nativeId: NativeId, eventName: String) in
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId) else {
+                return
+            }
+            self?.eventRelay.subscribe(nativeId: nativeId, emitter: player, eventName: eventName)
+        }.runOnQueue(.main)
+        AsyncFunction("unsubscribe") { [weak self] (nativeId: NativeId, eventName: String) in
+            self?.eventRelay.unsubscribe(nativeId: nativeId, eventName: eventName)
+        }.runOnQueue(.main)
         Constant("isGoogleImaEnabled") {
             NSClassFromString("IMAAdsLoader") != nil
         }
@@ -48,6 +68,7 @@ public class PlayerModule: Module {
                 player.destroy()
                 PlayerRegistry.unregister(nativeId: nativeId)
             }
+            self?.eventRelay.unsubscribeAll(nativeId: nativeId)
             self?.appContext?.moduleRegistry.get(RNPlayerViewManager.self)?
                 .discardPendingPictureInPictureValues(playerId: nativeId)
         }.runOnQueue(.main)

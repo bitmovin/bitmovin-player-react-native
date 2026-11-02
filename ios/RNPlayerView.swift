@@ -324,21 +324,6 @@ private extension RNPlayerView {
     }
 }
 
-private extension Event {
-    func eventPayload() -> [String: Any] {
-        guard let jsonConvertible = self as? JsonConvertible else {
-            return [:]
-        }
-        let anyHashableKeyedPayload = jsonConvertible.toJSON()
-        let stringKeyedPayload = anyHashableKeyedPayload.reduce(into: [String: Any]()) { result, pair in
-            if let key = pair.key as? String {
-                result[key] = pair.value
-            }
-        }
-        return NonFiniteSanitizer.sanitizeEventData(stringKeyedPayload)
-    }
-}
-
 extension RNPlayerView: PlayerListener {
     public func onPlayerActive(_ event: PlayerActiveEvent, player: Player) {
         onBmpPlayerActive(event.eventPayload())
