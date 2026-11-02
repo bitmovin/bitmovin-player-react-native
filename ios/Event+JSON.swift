@@ -47,6 +47,22 @@ extension DeficiencyData: JsonConvertible {
     }
 }
 
+extension Event {
+    /// The JSON payload sent to JS, with non-finite numbers sanitized. Empty if the event is not `JsonConvertible`.
+    func eventPayload() -> [String: Any] {
+        guard let jsonConvertible = self as? JsonConvertible else {
+            return [:]
+        }
+        let anyHashableKeyedPayload = jsonConvertible.toJSON()
+        let stringKeyedPayload = anyHashableKeyedPayload.reduce(into: [String: Any]()) { result, pair in
+            if let key = pair.key as? String {
+                result[key] = pair.value
+            }
+        }
+        return NonFiniteSanitizer.sanitizeEventData(stringKeyedPayload)
+    }
+}
+
 extension Event where Self: JsonConvertible {
     func toEventJSON(_ eventPayloadBuilder: () -> [AnyHashable: Any]) -> [AnyHashable: Any] {
         var json: [AnyHashable: Any] = [

@@ -213,7 +213,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * @param eventName - The name of the event, e.g. `playerActive`.
    * @param listener - The function called with the event.
-   * @platform Android
    */
   on = <K extends keyof PlayerEventMap>(
     eventName: K,
@@ -225,10 +224,6 @@ export class Player extends NativeInstance<PlayerConfig> {
       );
       return;
     }
-    // TODO(#1157): Remove, once the iOS bridge supports Player.on.
-    if (Platform.OS !== 'android') {
-      return;
-    }
     this.eventListeners.on(eventName, listener);
   };
 
@@ -238,7 +233,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * @param eventName - The name of the event.
    * @param listener - The function passed to {@link Player.on}.
-   * @platform Android
    */
   off = <K extends keyof PlayerEventMap>(
     eventName: K,
