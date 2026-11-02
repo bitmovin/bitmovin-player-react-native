@@ -82,6 +82,24 @@ internal enum PlayerEventTypes {
         return subscribers
     }()
 
+    /// All events a native `Source` emits.
+    static let source: [String: EventSubscriber<Source>] = [
+        "sourceLoad": sourceEvent(SourceLoadEvent.self),
+        "sourceLoaded": sourceEvent(SourceLoadedEvent.self),
+        "sourceUnloaded": sourceEvent(SourceUnloadedEvent.self),
+        "sourceError": sourceEvent(SourceErrorEvent.self),
+        "sourceWarning": sourceEvent(SourceWarningEvent.self),
+        "audioAdded": sourceEvent(AudioAddedEvent.self),
+        "audioChanged": sourceEvent(AudioChangedEvent.self),
+        "audioRemoved": sourceEvent(AudioRemovedEvent.self),
+        "subtitleAdded": sourceEvent(SubtitleAddedEvent.self),
+        "subtitleChanged": sourceEvent(SubtitleChangedEvent.self),
+        "subtitleRemoved": sourceEvent(SubtitleRemovedEvent.self),
+        "downloadFinished": sourceEvent(DownloadFinishedEvent.self),
+        "videoDownloadQualityChanged": sourceEvent(VideoDownloadQualityChangedEvent.self),
+        "metadataParsed": sourceEvent(MetadataParsedEvent.self),
+    ]
+
     private static func playerEvent<T: PlayerEvent>(_ eventType: T.Type) -> EventSubscriber<Player> {
         { player, forward in
             player.events.on(eventType).sink { forward($0) }
@@ -91,6 +109,12 @@ internal enum PlayerEventTypes {
     private static func activeSourceEvent<T: SourceEvent>(_ eventType: T.Type) -> EventSubscriber<Player> {
         { player, forward in
             player.events.on(eventType).sink { forward($0) }
+        }
+    }
+
+    private static func sourceEvent<T: SourceEvent>(_ eventType: T.Type) -> EventSubscriber<Source> {
+        { source, forward in
+            source.events.on(eventType).sink { forward($0) }
         }
     }
 }
