@@ -11,15 +11,11 @@ export type SourceModuleEvents = {
 declare class SourceModule extends NativeModule<SourceModuleEvents> {
   /**
    * Attaches a native listener for `eventName` to the source with the given nativeId.
-   *
-   * @platform Android
    */
   on(nativeId: string, eventName: string): Promise<void>;
 
   /**
    * Detaches the native listener for `eventName` from the source with the given nativeId.
-   *
-   * @platform Android
    */
   off(nativeId: string, eventName: string): Promise<void>;
 

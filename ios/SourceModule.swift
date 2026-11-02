@@ -11,6 +11,14 @@ public class SourceModule: Module {
     private let fairplayRegistry = FairplayContentKeyRequestRegistry()
     /// Combine cancellables for FairPlay license acquired events, keyed by source nativeId.
     private var fairplayCancellables: [NativeId: AnyCancellable] = [:]
+    private lazy var eventRelay = EventRelay<Source>(
+        subscribers: PlayerEventTypes.source
+    ) { [weak self] nativeId, event in
+        self?.sendEvent("onSourceEvent", [
+            "nativeId": nativeId,
+            "event": event.eventPayload(),
+        ])
+    }
 
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
@@ -19,6 +27,7 @@ public class SourceModule: Module {
             // Module initialization
         }
         OnDestroy {
+            eventRelay.clear()
             sources.removeAll()
             SourceNativeIdRegistry.clear()
             castSourceConfigs.removeAll()
@@ -26,7 +35,18 @@ public class SourceModule: Module {
             fairplayCancellables.removeAll()
         }
 
+        Events("onSourceEvent")
+
         // MARK: - Module methods
+        AsyncFunction("subscribe") { [weak self] (nativeId: NativeId, eventName: String) in
+            guard let source = self?.sources[nativeId] else {
+                return
+            }
+            self?.eventRelay.subscribe(nativeId: nativeId, emitter: source, eventName: eventName)
+        }.runOnQueue(.main)
+        AsyncFunction("unsubscribe") { [weak self] (nativeId: NativeId, eventName: String) in
+            self?.eventRelay.unsubscribe(nativeId: nativeId, eventName: eventName)
+        }.runOnQueue(.main)
         AsyncFunction("initializeWithConfig") { [weak self] (nativeId: NativeId, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?) in // swiftlint:disable:this line_length
             self?.createSource(
                 nativeId: nativeId,
@@ -160,6 +180,7 @@ public class SourceModule: Module {
      Destroys the source instance with the given `nativeId`.
      */
     private func destroySource(nativeId: NativeId) {
+        eventRelay.unsubscribeAll(nativeId: nativeId)
         if let source = sources.removeValue(forKey: nativeId) {
             SourceNativeIdRegistry.unregister(source)
         }
