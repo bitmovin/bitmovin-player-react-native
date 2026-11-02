@@ -9,6 +9,7 @@
 ### Fixed
 
 - Android: `Source.loadingState()` returning the state name instead of a `LoadingState` value
+- iOS: Data race in `NetworkConfig` HTTP request and response preprocessing now that the native SDK invokes the callbacks on a background thread
 
 ### Changed
 
