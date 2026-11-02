@@ -20,6 +20,7 @@ public class SourceModule: Module {
         }
         OnDestroy {
             sources.removeAll()
+            SourceNativeIdRegistry.clear()
             castSourceConfigs.removeAll()
             fairplayCancellables.values.forEach { $0.cancel() }
             fairplayCancellables.removeAll()
@@ -140,6 +141,7 @@ public class SourceModule: Module {
             source = SourceFactory.createSource(from: sourceConfig)
         }
         sources[nativeId] = source
+        SourceNativeIdRegistry.register(source, nativeId: nativeId)
         // Attach Combine listener to populate the FairPlay registry when a license is acquired
         fairplayCancellables[nativeId] = source.events
             .on(FairplayLicenseAcquiredEvent.self)
@@ -158,7 +160,9 @@ public class SourceModule: Module {
      Destroys the source instance with the given `nativeId`.
      */
     private func destroySource(nativeId: NativeId) {
-        sources.removeValue(forKey: nativeId)
+        if let source = sources.removeValue(forKey: nativeId) {
+            SourceNativeIdRegistry.unregister(source)
+        }
         castSourceConfigs.removeValue(forKey: nativeId)
         fairplayCancellables[nativeId]?.cancel()
         fairplayCancellables.removeValue(forKey: nativeId)
