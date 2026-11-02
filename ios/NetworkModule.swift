@@ -12,8 +12,8 @@ public class NetworkModule: Module {
     private var preprocessHttpRequestCompletionHandlers: Registry<(_ request: HttpRequest) -> Void> = [:]
     private var preprocessHttpResponseCompletionHandlers: Registry<(_ response: HttpResponse) -> Void> = [:]
     /// Guards the completion handler registries: the SDK invokes the preprocessing callbacks on a background thread,
-    /// while the module functions below run on the main queue.
-    private let completionHandlersLock = NSLock()
+    /// while the module functions below (including the completion functions called from JS) run on other threads.
+    private let completionHandlersLock = NSRecursiveLock()
 
     public func definition() -> ModuleDefinition {
         Name("NetworkModule")
