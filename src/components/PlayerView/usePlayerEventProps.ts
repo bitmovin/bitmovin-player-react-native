@@ -4,6 +4,7 @@ import type { Event, MetadataEvent } from '../../events';
 import type { PlayerEventMap } from '../../eventMap';
 import type { Player } from '../../player';
 import { addPlatformToMetadataEvent } from '../../utils/metadataPlatform';
+import { callListener } from '../../utils/eventListeners';
 import type { PlayerViewEvents } from './events';
 
 // TODO: Use the player event subscriptions on iOS too once its bridge supports them
@@ -119,11 +120,14 @@ export function usePlayerEventProps(player: Player, props: PlayerViewEvents) {
         const propListener = propsRef.current[propName] as
           | ((event: Event) => void)
           | undefined;
-        propListener?.(
-          metadataEventNames.has(eventName)
-            ? addPlatformToMetadataEvent(event as MetadataEvent)
-            : event
-        );
+        if (propListener) {
+          callListener(
+            propListener,
+            metadataEventNames.has(eventName)
+              ? addPlatformToMetadataEvent(event as MetadataEvent)
+              : event
+          );
+        }
         propsRef.current.onEvent?.(event);
       };
       player.on(eventName, listener);
