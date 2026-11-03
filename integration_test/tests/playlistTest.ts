@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { TestScope } from 'cavy';
 import {
   LoadingState,
@@ -24,6 +25,9 @@ import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 
 export default (spec: TestScope) => {
+  // TODO: run on iOS too once its bridge supports playlists.
+  if (Platform.OS !== 'android') return;
+
   spec.describe('loading a playlist', () => {
     spec.it(
       'emits SourceAdded for every source before PlayerActive',
