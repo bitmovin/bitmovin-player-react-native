@@ -34,10 +34,11 @@ public class PlayerModule: Module {
         }
         Events("onShouldLoadAdItem", "onImaBeforeInitialization", "onPlayerEvent")
         AsyncFunction("subscribe") { [weak self] (nativeId: NativeId, eventName: String) in
-            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId) else {
-                return
-            }
-            self?.eventRelay.subscribe(nativeId: nativeId, emitter: player, eventName: eventName)
+            self?.eventRelay.subscribe(
+                nativeId: nativeId,
+                emitter: PlayerRegistry.getPlayer(nativeId: nativeId),
+                eventName: eventName
+            )
         }.runOnQueue(.main)
         AsyncFunction("unsubscribe") { [weak self] (nativeId: NativeId, eventName: String) in
             self?.eventRelay.unsubscribe(nativeId: nativeId, eventName: eventName)

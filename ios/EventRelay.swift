@@ -17,7 +17,7 @@ internal typealias EventSubscriber<Emitter> = (Emitter, @escaping (any Event) ->
 internal final class EventRelay<Emitter> {
     private final class Subscription {
         let cancellable: AnyCancellable
-        var count = 1
+        var referenceCount = 1
 
         init(cancellable: AnyCancellable) {
             self.cancellable = cancellable
@@ -38,12 +38,16 @@ internal final class EventRelay<Emitter> {
         self.forward = forward
     }
 
-    func subscribe(nativeId: NativeId, emitter: Emitter, eventName: String) {
-        guard let subscriber = subscribers[eventName] else {
+    /**
+     * Subscribes to the `eventName` events of `emitter`. Does nothing if `emitter` is `nil`, e.g. because the native
+     * instance was already destroyed, or if the event name is not supported.
+     */
+    func subscribe(nativeId: NativeId, emitter: Emitter?, eventName: String) {
+        guard let emitter, let subscriber = subscribers[eventName] else {
             return
         }
         if let subscription = subscriptions[nativeId]?[eventName] {
-            subscription.count += 1
+            subscription.referenceCount += 1
             return
         }
         let cancellable = subscriber(emitter) { [weak self] event in
@@ -56,8 +60,8 @@ internal final class EventRelay<Emitter> {
         guard let subscription = subscriptions[nativeId]?[eventName] else {
             return
         }
-        subscription.count -= 1
-        guard subscription.count == 0 else {
+        subscription.referenceCount -= 1
+        guard subscription.referenceCount <= 0 else {
             return
         }
         subscription.cancellable.cancel()
