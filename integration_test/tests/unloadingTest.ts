@@ -2,7 +2,12 @@ import { TestScope } from 'cavy';
 import {
   callPlayer,
   callPlayerAndExpectEvent,
+  callPlayerAndExpectEvents,
+  CatchAllEvent,
+  DedicatedPropEvent,
+  EventBag,
   EventType,
+  PlainEvent,
   startPlayerTest,
 } from '../playertesting';
 import { Sources } from './helper/Sources';
@@ -85,5 +90,48 @@ export default (spec: TestScope) => {
         });
       });
     });
+  });
+
+  spec.describe('the player activity', () => {
+    spec.it(
+      'is delivered to the onPlayerActive and onPlayerInactive props',
+      async () => {
+        await startPlayerTest({}, async () => {
+          await callPlayerAndExpectEvents(
+            (player) => {
+              player.load(Sources.artOfMotionHls);
+            },
+            EventBag(
+              DedicatedPropEvent(EventType.PlayerActive),
+              PlainEvent(EventType.Ready)
+            )
+          );
+          await callPlayerAndExpectEvent((player) => {
+            player.unload();
+          }, DedicatedPropEvent(EventType.PlayerInactive));
+        });
+      }
+    );
+
+    spec.it(
+      'is delivered to onEvent as onPlayerActive and onPlayerInactive',
+      async () => {
+        // Expectations match the event name, so other names time out.
+        await startPlayerTest({}, async () => {
+          await callPlayerAndExpectEvents(
+            (player) => {
+              player.load(Sources.artOfMotionHls);
+            },
+            EventBag(
+              CatchAllEvent(EventType.PlayerActive),
+              PlainEvent(EventType.Ready)
+            )
+          );
+          await callPlayerAndExpectEvent((player) => {
+            player.unload();
+          }, CatchAllEvent(EventType.PlayerInactive));
+        });
+      }
+    );
   });
 };

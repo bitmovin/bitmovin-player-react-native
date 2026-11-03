@@ -41,6 +41,7 @@ export enum EventType {
   PictureInPictureExited = 'onPictureInPictureExited',
   PlaybackFinished = 'onPlaybackFinished',
   PlayerActive = 'onPlayerActive',
+  PlayerInactive = 'onPlayerInactive',
   PlayerError = 'onPlayerError',
   PlayerWarning = 'onPlayerWarning',
   Play = 'onPlay',

@@ -120,6 +120,8 @@ class RNPlayerViewManager : Module() {
             Events(
                 "onBmpPlayerViewReady",
                 "onBmpEvent",
+                "onBmpPlayerActive",
+                "onBmpPlayerInactive",
                 "onBmpPlayerError",
                 "onBmpPlayerWarning",
                 "onBmpDestroy",

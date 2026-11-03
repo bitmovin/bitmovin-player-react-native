@@ -4,6 +4,7 @@ import { StyleSheet, Text } from 'react-native';
 import { Event, PlayerView } from 'bitmovin-player-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
+import { fromDedicatedProp } from '../playertesting/expectations';
 const darkTextColor = '#11181C';
 const TestablePlayerView = wrap(PlayerView);
 
@@ -88,6 +89,11 @@ export default function TestablePlayer({
             }}
             onMetadata={onEvent}
             onMetadataParsed={onEvent}
+            // Also received through onEvent; marked to tell the dedicated props apart.
+            onPlayerActive={(event: Event) => onEvent(fromDedicatedProp(event))}
+            onPlayerInactive={(event: Event) =>
+              onEvent(fromDedicatedProp(event))
+            }
           />
         </>
       )) || (

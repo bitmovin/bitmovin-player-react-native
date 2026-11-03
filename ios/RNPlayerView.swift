@@ -56,6 +56,7 @@ public class RNPlayerView: ExpoView {
     let onBmpPlayerViewReady = EventDispatcher()
     let onBmpEvent = EventDispatcher()
     let onBmpPlayerActive = EventDispatcher()
+    let onBmpPlayerInactive = EventDispatcher()
     let onBmpPlayerError = EventDispatcher()
     let onBmpPlayerWarning = EventDispatcher()
     let onBmpDestroy = EventDispatcher()
@@ -341,6 +342,10 @@ private extension Event {
 extension RNPlayerView: PlayerListener {
     public func onPlayerActive(_ event: PlayerActiveEvent, player: Player) {
         onBmpPlayerActive(event.eventPayload())
+    }
+
+    public func onPlayerInactive(_ event: PlayerInactiveEvent, player: Player) {
+        onBmpPlayerInactive(event.eventPayload())
     }
 
     public func onPlayerError(_ event: PlayerErrorEvent, player: Player) {
