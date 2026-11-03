@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { TestScope } from 'cavy';
 import {
   Event,
@@ -52,6 +53,9 @@ const withPlayer = async (fn: (player: Player) => Promise<void>) => {
 };
 
 export default (spec: TestScope) => {
+  // TODO: run on iOS too once its bridge supports Player.on and Source.on.
+  if (Platform.OS !== 'android') return;
+
   spec.describe('player events without a PlayerView', () => {
     spec.it(
       'delivers PlayerActive to listeners registered before loading',
