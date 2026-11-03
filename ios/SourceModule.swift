@@ -39,10 +39,7 @@ public class SourceModule: Module {
 
         // MARK: - Module methods
         AsyncFunction("subscribe") { [weak self] (nativeId: NativeId, eventName: String) in
-            guard let source = self?.sources[nativeId] else {
-                return
-            }
-            self?.eventRelay.subscribe(nativeId: nativeId, emitter: source, eventName: eventName)
+            self?.eventRelay.subscribe(nativeId: nativeId, emitter: self?.sources[nativeId], eventName: eventName)
         }.runOnQueue(.main)
         AsyncFunction("unsubscribe") { [weak self] (nativeId: NativeId, eventName: String) in
             self?.eventRelay.unsubscribe(nativeId: nativeId, eventName: eventName)
