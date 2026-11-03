@@ -11,14 +11,16 @@ public class NetworkModule: Module {
     private var networkConfigs: Registry<NetworkConfig> = [:]
     private var preprocessHttpRequestCompletionHandlers: Registry<(_ request: HttpRequest) -> Void> = [:]
     private var preprocessHttpResponseCompletionHandlers: Registry<(_ response: HttpResponse) -> Void> = [:]
+    /// Guards the completion handler registries: the SDK invokes the preprocessing callbacks on a background thread,
+    /// while the module functions below (including the completion functions called from JS) run on other threads.
+    private let completionHandlersLock = NSRecursiveLock()
 
     public func definition() -> ModuleDefinition {
         Name("NetworkModule")
 
         OnDestroy {
             networkConfigs.removeAll()
-            preprocessHttpRequestCompletionHandlers.removeAll()
-            preprocessHttpResponseCompletionHandlers.removeAll()
+            removeCompletionHandlers()
         }
 
         Events(
@@ -41,32 +43,46 @@ public class NetworkModule: Module {
             self?.networkConfigs.removeValue(forKey: nativeId)
 
             // Clean up completion handlers
-            self?.preprocessHttpRequestCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
-                self?.preprocessHttpRequestCompletionHandlers.removeValue(forKey: $0)
-            }
-            self?.preprocessHttpResponseCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
-                self?.preprocessHttpResponseCompletionHandlers.removeValue(forKey: $0)
-            }
+            self?.removeCompletionHandlers(forNativeId: nativeId)
         }.runOnQueue(.main)
 
         AsyncFunction("setPreprocessedHttpRequest") { [weak self] (requestId: String, request: [String: Any]) in
-            guard let completionHandler = self?.preprocessHttpRequestCompletionHandlers[requestId],
-                  let httpRequest = RCTConvert.httpRequest(request) else {
+            guard let httpRequest = RCTConvert.httpRequest(request),
+                  let completionHandler = self?.completionHandlersLock.withLock({
+                      self?.preprocessHttpRequestCompletionHandlers.removeValue(forKey: requestId)
+                  }) else {
                 return
             }
 
-            self?.preprocessHttpRequestCompletionHandlers.removeValue(forKey: requestId)
             completionHandler(httpRequest)
-        }.runOnQueue(.main)
+        }
 
         AsyncFunction("setPreprocessedHttpResponse") { [weak self] (responseId: String, response: [String: Any]) in
-            guard let completionHandler = self?.preprocessHttpResponseCompletionHandlers[responseId],
-                  let httpResponse = RCTConvert.httpResponse(response) else {
+            guard let httpResponse = RCTConvert.httpResponse(response),
+                  let completionHandler = self?.completionHandlersLock.withLock({
+                      self?.preprocessHttpResponseCompletionHandlers.removeValue(forKey: responseId)
+                  }) else {
                 return
             }
-            self?.preprocessHttpResponseCompletionHandlers.removeValue(forKey: responseId)
             completionHandler(httpResponse)
-        }.runOnQueue(.main)
+        }
+    }
+
+    /// Removes the pending completion handlers of the given `nativeId`, or all of them when it is `nil`.
+    private func removeCompletionHandlers(forNativeId nativeId: NativeId? = nil) {
+        completionHandlersLock.withLock {
+            guard let nativeId else {
+                preprocessHttpRequestCompletionHandlers.removeAll()
+                preprocessHttpResponseCompletionHandlers.removeAll()
+                return
+            }
+            preprocessHttpRequestCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
+                preprocessHttpRequestCompletionHandlers.removeValue(forKey: $0)
+            }
+            preprocessHttpResponseCompletionHandlers.keys.filter { $0.starts(with: nativeId) }.forEach {
+                preprocessHttpResponseCompletionHandlers.removeValue(forKey: $0)
+            }
+        }
     }
 
     func retrieve(_ nativeId: NativeId) -> NetworkConfig? {
@@ -118,7 +134,9 @@ public class NetworkModule: Module {
         ) -> Void
     ) {
         let requestId = "\(nativeId)-\(UUID().uuidString)"
-        preprocessHttpRequestCompletionHandlers[requestId] = completionHandler
+        completionHandlersLock.withLock {
+            preprocessHttpRequestCompletionHandlers[requestId] = completionHandler
+        }
         sendEvent("onPreprocessHttpRequest", [
             "nativeId": nativeId,
             "requestId": requestId,
@@ -136,7 +154,9 @@ public class NetworkModule: Module {
         ) -> Void
     ) {
         let responseId = "\(nativeId)-\(UUID().uuidString)"
-        preprocessHttpResponseCompletionHandlers[responseId] = completionHandler
+        completionHandlersLock.withLock {
+            preprocessHttpResponseCompletionHandlers[responseId] = completionHandler
+        }
         sendEvent("onPreprocessHttpResponse", [
             "nativeId": nativeId,
             "responseId": responseId,
