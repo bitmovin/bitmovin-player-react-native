@@ -190,6 +190,31 @@ export default (spec: TestScope) => {
       expect(received.length, 'Events after destroy').toBe(countAfterDestroy);
     });
 
+    spec.it('warns when registering a listener after destroying', async () => {
+      const player = new Player();
+      const source = new Source(Sources.artOfMotionHls);
+      await player.initialize();
+      player.destroy();
+      source.destroy();
+      const warnings: string[] = [];
+      const warn = console.warn;
+      console.warn = (...args: unknown[]) => warnings.push(args.join(' '));
+      try {
+        player.on('ready', () => {}).remove();
+        source.on('sourceLoaded', () => {}).remove();
+      } finally {
+        console.warn = warn;
+      }
+      expect(
+        warnings.some((warning) => warning.includes('player was destroyed')),
+        'Warning for the destroyed player'
+      ).toBeTruthy();
+      expect(
+        warnings.some((warning) => warning.includes('source was destroyed')),
+        'Warning for the destroyed source'
+      ).toBeTruthy();
+    });
+
     spec.it('provides the unloaded source in sourceUnloaded', async () => {
       await withPlayer(async (player) => {
         const unloaded: SourceUnloadedEvent[] = [];

@@ -244,7 +244,8 @@ export class Source extends NativeInstance<SourceConfig> {
    *
    * Unlike {@link Player.on}, which only receives the source events of the active source, the source
    * emits all of its events, including while it is inactive. Listeners registered before the source is
-   * initialized are attached during {@link Source.initialize}.
+   * initialized are attached during {@link Source.initialize}. Calling it on a destroyed source has no effect
+   * and logs a warning.
    *
    * @param eventName - The name of the event, e.g. `sourceLoaded`.
    * @param listener - The function called with the event.
@@ -255,7 +256,13 @@ export class Source extends NativeInstance<SourceConfig> {
     eventName: K,
     listener: (event: SourceEventMap[K]) => void
   ): BitmovinEventSubscription => {
-    if (Platform.OS !== 'android' || this.isDestroyed) {
+    if (this.isDestroyed) {
+      console.warn(
+        `[Source ${this.nativeId}] The source was destroyed and must not be used any more, therefore on has no effect.`
+      );
+      return { remove: () => {} };
+    }
+    if (Platform.OS !== 'android') {
       return { remove: () => {} };
     }
     return this.eventListeners.on(eventName, listener);

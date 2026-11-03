@@ -198,7 +198,8 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * Listeners registered before the player is initialized are attached during {@link Player.initialize},
    * and listeners registered before loading receive the events of that load, such as `playerActive`.
-   * All listeners are removed when the player is destroyed.
+   * All listeners are removed when the player is destroyed. Calling it on a destroyed player has no effect
+   * and logs a warning.
    *
    * @param eventName - The name of the event, e.g. `playerActive`.
    * @param listener - The function called with the event.
@@ -209,7 +210,13 @@ export class Player extends NativeInstance<PlayerConfig> {
     eventName: K,
     listener: (event: PlayerEventMap[K]) => void
   ): BitmovinEventSubscription => {
-    if (Platform.OS !== 'android' || this.isDestroyed) {
+    if (this.isDestroyed) {
+      console.warn(
+        `[Player ${this.nativeId}] The player was destroyed and must not be used any more, therefore on has no effect.`
+      );
+      return { remove: () => {} };
+    }
+    if (Platform.OS !== 'android') {
       return { remove: () => {} };
     }
     return this.eventListeners.on(eventName, listener);
