@@ -106,6 +106,10 @@ const playerViewContext = vm.createContext({
     if (name.endsWith('/custommessagehandlerbridge')) return {};
     if (name.endsWith('/metadataPlatform')) return {};
     if (name.endsWith('/RNPlayerViewManagerModule')) return {};
+    // Player and source event props are covered by the Cavy suites.
+    if (name === './usePlayerEventProps') {
+      return { usePlayerEventProps() {}, usesPlayerEvents: false };
+    }
     throw new Error('Unexpected PlayerView dependency: ' + name);
   },
 });
