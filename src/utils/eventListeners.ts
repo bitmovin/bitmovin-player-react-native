@@ -15,8 +15,8 @@ export interface NativeEventPayload {
  * The native module functions that attach and detach native event listeners.
  */
 interface NativeEventModule {
-  subscribe(nativeId: string, eventName: string): Promise<void>;
-  unsubscribe(nativeId: string, eventName: string): Promise<void>;
+  on(nativeId: string, eventName: string): Promise<void>;
+  off(nativeId: string, eventName: string): Promise<void>;
 }
 
 type Listener = (event: any) => void;
@@ -75,7 +75,7 @@ export class EventListeners<EventMap> {
       this.listeners.set(eventName, eventListeners);
       this.moduleSubscription ??= this.addModuleListener(this.dispatch);
       if (this.isNativeAttached) {
-        void this.nativeModule.subscribe(this.nativeId, eventName);
+        void this.nativeModule.on(this.nativeId, eventName);
       }
     }
     eventListeners.add(listener);
@@ -92,7 +92,7 @@ export class EventListeners<EventMap> {
     }
     this.listeners.delete(eventName);
     if (this.isNativeAttached) {
-      void this.nativeModule.unsubscribe(this.nativeId, eventName);
+      void this.nativeModule.off(this.nativeId, eventName);
     }
     if (this.listeners.size === 0) {
       this.moduleSubscription?.remove();
@@ -106,8 +106,7 @@ export class EventListeners<EventMap> {
   attachNative = () => {
     this.isNativeAttached = true;
     this.listeners.forEach(
-      (_, eventName) =>
-        void this.nativeModule.subscribe(this.nativeId, eventName)
+      (_, eventName) => void this.nativeModule.on(this.nativeId, eventName)
     );
   };
 

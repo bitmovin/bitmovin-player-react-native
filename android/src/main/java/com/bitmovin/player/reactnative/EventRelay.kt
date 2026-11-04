@@ -10,7 +10,7 @@ import com.bitmovin.player.api.event.JavaEventEmitter
  *
  * Subscriptions are counted: the native listener is attached on the first subscription and detached once the last
  * one is gone. This is necessary when the app creates several JS instances (e.g. `Player`s) with the same
- * `nativeId`, which each subscribe and unsubscribe on their own.
+ * `nativeId`, which each attach and detach their listeners on their own.
  *
  * @param eventTypes The supported event classes, keyed by their React Native event name.
  */
@@ -22,7 +22,7 @@ class EventRelay<T : Event>(
 
     private val subscriptions = mutableMapOf<NativeId, MutableMap<String, Subscription<T>>>()
 
-    fun subscribe(nativeId: NativeId, emitter: JavaEventEmitter<T>, eventName: String) {
+    fun on(nativeId: NativeId, emitter: JavaEventEmitter<T>, eventName: String) {
         val eventClass = eventTypes[eventName] ?: return
         val instanceSubscriptions = subscriptions.getOrPut(nativeId) { mutableMapOf() }
         instanceSubscriptions[eventName]?.let {
@@ -36,7 +36,7 @@ class EventRelay<T : Event>(
         instanceSubscriptions[eventName] = Subscription(listener, count = 1)
     }
 
-    fun unsubscribe(nativeId: NativeId, emitter: JavaEventEmitter<T>?, eventName: String) {
+    fun off(nativeId: NativeId, emitter: JavaEventEmitter<T>?, eventName: String) {
         val instanceSubscriptions = subscriptions[nativeId] ?: return
         val subscription = instanceSubscriptions[eventName] ?: return
         if (--subscription.count > 0) return
@@ -44,7 +44,7 @@ class EventRelay<T : Event>(
         emitter?.off(subscription.listener)
     }
 
-    fun unsubscribeAll(nativeId: NativeId, emitter: JavaEventEmitter<T>?) {
+    fun offAll(nativeId: NativeId, emitter: JavaEventEmitter<T>?) {
         val instanceSubscriptions = subscriptions.remove(nativeId) ?: return
         emitter ?: return
         instanceSubscriptions.values.forEach { emitter.off(it.listener) }
