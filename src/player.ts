@@ -16,7 +16,7 @@ import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
 import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
-import type { BitmovinEventSubscription, PlayerEventMap } from './eventMap';
+import type { PlayerEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
 
 /**
@@ -200,26 +200,26 @@ export class Player extends NativeInstance<PlayerConfig> {
    * and listeners registered before loading receive the events of that load, such as `playerActive`.
    * All listeners are removed when the player is destroyed. Calling it on a destroyed player has no effect
    * and logs a warning.
+   * Registering the same `listener` again for `eventName` has no effect; use {@link Player.off} to remove it.
    *
    * @param eventName - The name of the event, e.g. `playerActive`.
    * @param listener - The function called with the event.
-   * @returns a subscription to remove the listener.
    * @platform Android
    */
   on = <K extends keyof PlayerEventMap>(
     eventName: K,
     listener: (event: PlayerEventMap[K]) => void
-  ): BitmovinEventSubscription => {
+  ): void => {
     if (this.isDestroyed) {
       console.warn(
         `[Player ${this.nativeId}] The player was destroyed and must not be used any more, therefore on has no effect.`
       );
-      return { remove: () => {} };
+      return;
     }
     if (Platform.OS !== 'android') {
-      return { remove: () => {} };
+      return;
     }
-    return this.eventListeners.on(eventName, listener);
+    this.eventListeners.on(eventName, listener);
   };
 
   /**

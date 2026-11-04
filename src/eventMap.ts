@@ -214,13 +214,3 @@ export interface PlayerEventMap extends SourceEventMap {
   /** Emitted when metadata is encountered during playback. */
   metadata: MetadataEvent;
 }
-
-/**
- * A subscription returned by `on` that removes the registered listener.
- */
-export interface BitmovinEventSubscription {
-  /**
-   * Removes the listener. Calling it more than once has no effect.
-   */
-  remove(): void;
-}

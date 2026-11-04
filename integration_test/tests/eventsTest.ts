@@ -59,35 +59,30 @@ export default (spec: TestScope) => {
       }
     );
 
-    spec.it('stops delivering events after off and remove', async () => {
+    spec.it('stops delivering events after off', async () => {
       await withPlayer(async (player) => {
-        let removedCount = 0;
         let offCount = 0;
         let keptCount = 0;
         const offListener = () => offCount++;
-        const subscription = player.on('timeChanged', () => removedCount++);
         player.on('timeChanged', offListener);
         player.on('timeChanged', () => keptCount++);
         await player.initialize();
         await playWhenReady(player, () => player.load(Sources.artOfMotionHls));
 
         const isPlaying = await waitUntil(
-          () => removedCount > 0 && offCount > 0 && keptCount > 0,
+          () => offCount > 0 && keptCount > 0,
           20000
         );
         expect(isPlaying, 'TimeChanged should be received').toBeTruthy();
 
-        subscription.remove();
         player.off('timeChanged', offListener);
-        const removedCountAfterRemove = removedCount;
         const offCountAfterOff = offCount;
-        const keptCountAfterRemove = keptCount;
+        const keptCountAfterOff = keptCount;
         await delay(2000);
 
-        expect(removedCount, 'Removed listener').toBe(removedCountAfterRemove);
         expect(offCount, 'Listener removed via off').toBe(offCountAfterOff);
         expect(keptCount, 'Remaining listener').toBeGreaterThan(
-          keptCountAfterRemove
+          keptCountAfterOff
         );
       });
     });
@@ -105,7 +100,9 @@ export default (spec: TestScope) => {
           });
           await player.initialize();
           await samePlayer.initialize();
-          samePlayer.on('muted', () => {}).remove();
+          const noop = () => {};
+          samePlayer.on('muted', noop);
+          samePlayer.off('muted', noop);
           await playWhenReady(player, () =>
             player.load(Sources.artOfMotionHls)
           );
@@ -158,8 +155,8 @@ export default (spec: TestScope) => {
       const warn = console.warn;
       console.warn = (...args: unknown[]) => warnings.push(args.join(' '));
       try {
-        player.on('ready', () => {}).remove();
-        source.on('sourceLoaded', () => {}).remove();
+        player.on('ready', () => {});
+        source.on('sourceLoaded', () => {});
       } finally {
         console.warn = warn;
       }
