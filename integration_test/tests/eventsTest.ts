@@ -6,51 +6,9 @@ import {
   Source,
   SourceUnloadedEvent,
 } from 'bitmovin-player-react-native';
+import { delay, playWhenReady, waitUntil, withPlayer } from '../playertesting';
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
-
-const waitUntil = async (
-  condition: () => boolean | Promise<boolean>,
-  timeoutMs: number = 10000
-): Promise<boolean> => {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    if (await condition()) {
-      return true;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  return false;
-};
-
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/**
- * Loads via `load` and starts playback once the player is ready, as `play` has no effect before.
- */
-const playWhenReady = async (player: Player, load: () => void) => {
-  let isReady = false;
-  const subscription = player.on('ready', () => {
-    isReady = true;
-  });
-  load();
-  const ready = await waitUntil(() => isReady);
-  subscription.remove();
-  expect(ready, 'Ready should be received').toBeTruthy();
-  player.play();
-};
-
-/**
- * Runs `fn` with a player that is not attached to any `PlayerView`.
- */
-const withPlayer = async (fn: (player: Player) => Promise<void>) => {
-  const player = new Player();
-  try {
-    await fn(player);
-  } finally {
-    player.destroy();
-  }
-};
 
 export default (spec: TestScope) => {
   // TODO: run on iOS too once its bridge supports Player.on and Source.on.
