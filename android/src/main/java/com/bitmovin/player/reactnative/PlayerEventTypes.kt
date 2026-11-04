@@ -7,7 +7,7 @@ import com.bitmovin.player.api.event.SourceEvent
 
 /**
  * Native event classes bridged to React Native, keyed by their React Native event name
- * (the event's `name` without the `on` prefix, e.g. `onPlayerActive` -> `playerActive`).
+ * (the keys of `PlayerEventMap` and `SourceEventMap`, e.g. `playerActive`).
  */
 object PlayerEventTypes {
     /**

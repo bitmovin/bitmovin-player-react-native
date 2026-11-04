@@ -26,11 +26,12 @@ class PlayerModule : Module() {
     private val shouldPlayAdBreakWaiter = ResultWaiter<Boolean>()
     private val imaSettingsWaiter = ResultWaiter<Map<String, Any?>>()
 
-    private val eventRelay = EventRelay<Event>(PlayerEventTypes.player) { nativeId, event ->
+    private val eventRelay = EventRelay<Event>(PlayerEventTypes.player) { nativeId, eventName, event ->
         sendEvent(
             "onPlayerEvent",
             mapOf(
                 "nativeId" to nativeId,
+                "eventName" to eventName,
                 "event" to NonFiniteSanitizer.sanitizeEventData(event.toJson()),
             ),
         )

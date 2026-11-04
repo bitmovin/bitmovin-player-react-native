@@ -8,6 +8,10 @@ import { normalizeNonFinite } from './normalizeNonFinite';
  */
 export interface NativeEventPayload {
   nativeId: string;
+  /**
+   * The event map key the native listener was attached for, e.g. `playerActive`.
+   */
+  eventName: string;
   event: Event;
 }
 
@@ -35,12 +39,6 @@ export const callListener = <T extends Event>(
     console.error(`Error in a listener for ${event.name}:`, error);
   }
 };
-
-/**
- * Converts a native event name to its event map key, e.g. `onPlayerActive` -> `playerActive`.
- */
-const toEventMapKey = (name: string) =>
-  name.charAt(2).toLowerCase() + name.slice(3);
 
 /**
  * Keeps the JS listeners of one native instance and attaches a native listener per event name
@@ -120,11 +118,11 @@ export class EventListeners<EventMap> {
     this.isNativeAttached = false;
   };
 
-  private dispatch = ({ nativeId, event }: NativeEventPayload) => {
+  private dispatch = ({ nativeId, eventName, event }: NativeEventPayload) => {
     if (nativeId !== this.nativeId) {
       return;
     }
-    const eventListeners = this.listeners.get(toEventMapKey(event.name));
+    const eventListeners = this.listeners.get(eventName);
     if (!eventListeners) {
       return;
     }

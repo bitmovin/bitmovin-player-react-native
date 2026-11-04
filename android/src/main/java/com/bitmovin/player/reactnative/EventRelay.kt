@@ -6,7 +6,8 @@ import com.bitmovin.player.api.event.JavaEventEmitter
 
 /**
  * Attaches one native listener per instance and event name on demand and forwards the received
- * events via [forward]. Must only be used from the main thread.
+ * events via [forward], together with the event name they were attached for. Must only be used from the main
+ * thread.
  *
  * Subscriptions are counted: the native listener is attached on the first subscription and detached once the last
  * one is gone. This is necessary when the app creates several JS instances (e.g. `Player`s) with the same
@@ -16,7 +17,7 @@ import com.bitmovin.player.api.event.JavaEventEmitter
  */
 class EventRelay<T : Event>(
     private val eventTypes: Map<String, Class<out T>>,
-    private val forward: (NativeId, T) -> Unit,
+    private val forward: (nativeId: NativeId, eventName: String, event: T) -> Unit,
 ) {
     private class Subscription<T : Event>(val listener: EventListener<T>, var count: Int)
 
@@ -30,7 +31,7 @@ class EventRelay<T : Event>(
             return
         }
 
-        val listener = EventListener<T> { forward(nativeId, it) }
+        val listener = EventListener<T> { forward(nativeId, eventName, it) }
         @Suppress("UNCHECKED_CAST")
         emitter.on(eventClass as Class<T>, listener)
         instanceSubscriptions[eventName] = Subscription(listener, count = 1)
