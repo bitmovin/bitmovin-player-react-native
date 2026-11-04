@@ -176,6 +176,33 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
   loadingSourceTests(Sources.artOfMotionHls, 'VOD');
   if (vodOnly) return;
 
+  spec.describe('getting the active source', () => {
+    spec.it(
+      'returns the loaded source and nothing after unloading',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const source = new Source(Sources.artOfMotionHls);
+          await callPlayerAndExpectEvent((player) => {
+            player.loadSource(source);
+          }, EventType.Ready);
+          await callPlayer(async (player) => {
+            expect(await player.getSource(), 'Active source').toBe(source);
+          });
+
+          await callPlayerAndExpectEvent((player) => {
+            player.unload();
+          }, EventType.SourceUnloaded);
+          await callPlayer(async (player) => {
+            expect(
+              await player.getSource(),
+              'Active source after unloading'
+            ).toBeUndefined();
+          });
+        });
+      }
+    );
+  });
+
   loadingSourceTests(Sources.iReplayTestLiveHls, 'live');
 
   spec.describe('loading a DRM source', () => {

@@ -215,7 +215,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * @returns the active source, or `undefined` if there is no active playback session or the active source was
    * not created through a {@link Source} instance (e.g. offline content).
-   * @platform Android
    */
   getSource = async (): Promise<Source | undefined> => {
     const sourceNativeId = await PlayerModule.source(this.nativeId);

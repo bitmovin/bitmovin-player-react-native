@@ -260,6 +260,9 @@ public class PlayerModule: Module {
                   let source = sourceModule.retrieve(sourceNativeId) else { return }
             player.load(source: source)
         }.runOnQueue(.main)
+        AsyncFunction("source") { (nativeId: NativeId) -> NativeId? in
+            PlayerRegistry.getPlayer(nativeId: nativeId)?.source.flatMap { SourceRegistry.nativeId(of: $0) }
+        }.runOnQueue(.main)
     }
 
     /// This needs to stay stable to maintain compatibility for cross-module access..
