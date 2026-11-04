@@ -215,30 +215,33 @@ export default (spec: TestScope) => {
       ).toBeTruthy();
     });
 
-    spec.it('provides the unloaded source in sourceUnloaded', async () => {
-      await withPlayer(async (player) => {
-        const unloaded: SourceUnloadedEvent[] = [];
-        let isReady = false;
-        player.on('ready', () => {
-          isReady = true;
+    spec.it(
+      'provides the unloaded source in sourceUnloaded via Source.on',
+      async () => {
+        await withPlayer(async (player) => {
+          const unloaded: SourceUnloadedEvent[] = [];
+          let isReady = false;
+          player.on('ready', () => {
+            isReady = true;
+          });
+          await player.initialize();
+          const source = new Source(Sources.artOfMotionHls);
+          source.on('sourceUnloaded', (event) => unloaded.push(event));
+          player.loadSource(source);
+          expect(
+            await waitUntil(() => isReady),
+            'Ready should be received'
+          ).toBeTruthy();
+
+          player.unload();
+
+          expect(
+            await waitUntil(() => unloaded.length > 0),
+            'SourceUnloaded should be received'
+          ).toBeTruthy();
+          expect(unloaded[0].source?.nativeId).toBe(source.nativeId);
         });
-        player.on('sourceUnloaded', (event) => unloaded.push(event));
-        await player.initialize();
-        const source = new Source(Sources.artOfMotionHls);
-        player.loadSource(source);
-        expect(
-          await waitUntil(() => isReady),
-          'Ready should be received'
-        ).toBeTruthy();
-
-        player.unload();
-
-        expect(
-          await waitUntil(() => unloaded.length > 0),
-          'SourceUnloaded should be received'
-        ).toBeTruthy();
-        expect(unloaded[0].source.nativeId).toBe(source.nativeId);
-      });
-    });
+      }
+    );
   });
 };

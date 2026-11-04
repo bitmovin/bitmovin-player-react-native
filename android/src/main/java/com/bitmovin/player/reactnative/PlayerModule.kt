@@ -7,7 +7,6 @@ import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.event.Event
-import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
@@ -26,18 +25,13 @@ class PlayerModule : Module() {
     private val shouldLoadAdItemWaiter = ResultWaiter<Boolean>()
     private val shouldPlayAdBreakWaiter = ResultWaiter<Boolean>()
     private val imaSettingsWaiter = ResultWaiter<Map<String, Any?>>()
-    private val unloadedSourceResolver = UnloadedSourceResolver()
 
     private val eventRelay = EventRelay<Event>(PlayerEventTypes.player) { nativeId, event ->
-        val unloadedSource = (event as? SourceEvent.Unloaded)?.let { unloadedSourceResolver.resolve(it) }
-        val eventJson = event.toJson().let { json ->
-            if (unloadedSource == null) json else json + ("source" to unloadedSource.toJson())
-        }
         sendEvent(
             "onPlayerEvent",
             mapOf(
                 "nativeId" to nativeId,
-                "event" to NonFiniteSanitizer.sanitizeEventData(eventJson),
+                "event" to NonFiniteSanitizer.sanitizeEventData(event.toJson()),
             ),
         )
     }
@@ -52,7 +46,6 @@ class PlayerModule : Module() {
         OnDestroy {
             // Detach the listeners first, so destroying the players does not emit into this module.
             eventRelay.clear { PlayerRegistry.getPlayer(it) }
-            unloadedSourceResolver.clear { PlayerRegistry.getPlayer(it) }
             // Clean up all players when module is destroyed
             PlayerRegistry.getAllPlayers().forEach { player ->
                 try {
@@ -119,7 +112,6 @@ class PlayerModule : Module() {
                 PlayerRegistry.unregister(nativeId)
             }
             eventRelay.unsubscribeAll(nativeId, player)
-            unloadedSourceResolver.detach(nativeId, player)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("setVolume") { nativeId: NativeId, volume: Double ->
@@ -415,7 +407,6 @@ class PlayerModule : Module() {
             Player.create(applicationContext, playerConfig)
         }
         PlayerRegistry.register(player, nativeId)
-        unloadedSourceResolver.attach(nativeId, player)
 
         if (enableMediaSession) {
             mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
