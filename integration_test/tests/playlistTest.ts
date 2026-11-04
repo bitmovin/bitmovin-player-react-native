@@ -28,9 +28,6 @@ import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 
 export default (spec: TestScope) => {
-  // TODO(#1161): Run on iOS too, once its bridge supports playlists.
-  if (Platform.OS !== 'android') return;
-
   spec.describe('loading a playlist', () => {
     spec.it(
       'emits SourceAdded for every source before PlayerActive',
@@ -109,6 +106,31 @@ export default (spec: TestScope) => {
             error = e;
           }
           expect(error, 'loadPlaylist should reject').toBeDefined();
+        });
+      });
+    });
+
+    spec.it('rejects a DASH source on iOS', async () => {
+      // The iOS SDK only supports HLS, progressive and movpkg sources in a playlist.
+      if (Platform.OS !== 'ios') {
+        console.warn('Skipping the iOS playlist source type test on Android');
+        return;
+      }
+      await startPlayerTest({}, async () => {
+        await callPlayer(async (player) => {
+          let error: unknown;
+          try {
+            await player.loadPlaylist({
+              sources: [
+                new Source(Sources.artOfMotionHls),
+                new Source(Sources.artOfMotionDash),
+              ],
+            });
+          } catch (e) {
+            error = e;
+          }
+          expect(error, 'loadPlaylist should reject').toBeDefined();
+          expect(await player.getSource(), 'Active source').toBeUndefined();
         });
       });
     });
@@ -218,6 +240,13 @@ export default (spec: TestScope) => {
     });
 
     spec.it('emits PlaylistTransition when seeking to a target', async () => {
+      // Seeking to a seek target is only supported on Android.
+      if (Platform.OS !== 'android') {
+        console.warn(
+          'Skipping PlaylistApi.seekTo test on non-Android platform'
+        );
+        return;
+      }
       await startPlayerTest({}, async () => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
@@ -247,6 +276,13 @@ export default (spec: TestScope) => {
     spec.it(
       'rejects seeking to a target with an unknown timeline reference point',
       async () => {
+        // Seeking to a seek target is only supported on Android.
+        if (Platform.OS !== 'android') {
+          console.warn(
+            'Skipping PlaylistApi.seekTo test on non-Android platform'
+          );
+          return;
+        }
         await startPlayerTest({}, async () => {
           const first = new Source(Sources.artOfMotionHls);
           const second = new Source(Sources.sintel);
@@ -271,6 +307,32 @@ export default (spec: TestScope) => {
         });
       }
     );
+
+    spec.it('rejects seeking to a target on iOS', async () => {
+      if (Platform.OS !== 'ios') {
+        console.warn('Skipping the iOS PlaylistApi.seekTo test on Android');
+        return;
+      }
+      await startPlayerTest({}, async () => {
+        const first = new Source(Sources.artOfMotionHls);
+        const second = new Source(Sources.sintel);
+
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.loadPlaylist({ sources: [first, second] });
+        }, EventType.Ready);
+
+        await callPlayer(async (player) => {
+          let error: unknown;
+          try {
+            await player.playlist.seekTo(second, { offset: 10 });
+          } catch (e) {
+            error = e;
+          }
+          expect(error, 'seekTo should reject').toBeDefined();
+          expect(await player.getSource(), 'Active source').toBe(first);
+        });
+      });
+    });
 
     spec.it(
       'transitions to the next source at the end of a source',
@@ -362,9 +424,19 @@ export default (spec: TestScope) => {
           await player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
-        await callPlayerAndExpectEvent(async (player) => {
-          await player.playlist.remove(first);
-        }, EventType.PlayerWarning);
+        // Both SDKs keep the active source, but they report the rejected removal differently:
+        // Android emits PlayerWarning, while the iOS SDK only logs a warning ("Removing the currently
+        // active source is not supported.") because PlayerWarningEvent is deprecated there. The log
+        // is not observable from JS, so iOS only checks that the source was not removed.
+        if (Platform.OS === 'android') {
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.playlist.remove(first);
+          }, EventType.PlayerWarning);
+        } else {
+          await callPlayer(async (player) => {
+            await player.playlist.remove(first);
+          });
+        }
 
         await callPlayer(async (player) => {
           const sources = await player.playlist.getSources();
