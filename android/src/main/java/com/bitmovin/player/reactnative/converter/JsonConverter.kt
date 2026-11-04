@@ -164,7 +164,7 @@ fun Map<String, Any?>.toPlaylistOptions(): PlaylistOptions {
     val defaults = PlaylistOptions()
     return PlaylistOptions(
         preloadAllSources = getBooleanOrNull("preloadAllSources") ?: defaults.preloadAllSources,
-        replayMode = getString("replayMode")?.toReplayMode() ?: defaults.replayMode,
+        replayMode = getString("replayMode")?.toReplayModeOrThrow() ?: defaults.replayMode,
     )
 }
 
@@ -175,10 +175,10 @@ fun Map<String, Any?>.toSeekTarget(): SeekTarget? {
     )
 }
 
-private fun String.toReplayMode(): ReplayMode? = when (this) {
+private fun String.toReplayModeOrThrow(): ReplayMode = when (this) {
     "playlist" -> ReplayMode.Playlist
     "lastSource" -> ReplayMode.LastSource
-    else -> null
+    else -> throw IllegalArgumentException("Unknown replay mode: $this")
 }
 
 private fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (this) {
