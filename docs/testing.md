@@ -72,8 +72,9 @@ completion rejection. They do not run a native decoder or completer.
 
 The [event listener tests](../scripts/test-event-listeners.js) use the same
 setup for the JS listeners behind `Player.on` and `Source.on`. They cover which
-native `on`/`off` calls JS submits and how payloads are routed to listeners.
-They do not prove that native attaches a listener or emits an event.
+native `on`/`off` and initialization calls JS submits, including for overlapping
+`Source.initialize` calls, and how payloads are routed to listeners. They do not
+prove that native attaches a listener or emits an event.
 
 `yarn test:plugin` builds and tests the config plugin. The Python command tests
 repository automation. Neither establishes Player runtime behavior. There is

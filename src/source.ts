@@ -188,6 +188,7 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   isDestroyed = false;
 
+  private initialization?: Promise<void>;
   private readonly eventListeners = new EventListeners<SourceEventMap>(
     this.nativeId,
     SourceModule,
@@ -196,8 +197,16 @@ export class Source extends NativeInstance<SourceConfig> {
 
   /**
    * Allocates the native {@link Source} instance and its resources natively.
+   * Calls made while an initialization is in progress share it.
    */
-  initialize = async (): Promise<void> => {
+  initialize = (): Promise<void> => {
+    this.initialization ??= this.initializeNative().finally(() => {
+      this.initialization = undefined;
+    });
+    return this.initialization;
+  };
+
+  private initializeNative = async (): Promise<void> => {
     if (!this.isInitialized) {
       const sourceMetadata = this.config?.analyticsSourceMetadata;
       if (this.config?.drmConfig) {
