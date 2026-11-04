@@ -4,6 +4,7 @@ import {
   LoadingState,
   Player,
   PlaylistTransitionEvent,
+  ReplayMode,
   SeekEvent,
   Source,
   SourceAddedEvent,
@@ -85,6 +86,23 @@ export default (spec: TestScope) => {
           let error: unknown;
           try {
             await player.loadPlaylist({ sources: [] });
+          } catch (e) {
+            error = e;
+          }
+          expect(error, 'loadPlaylist should reject').toBeDefined();
+        });
+      });
+    });
+
+    spec.it('rejects an unknown replay mode', async () => {
+      await startPlayerTest({}, async () => {
+        await callPlayer(async (player) => {
+          let error: unknown;
+          try {
+            await player.loadPlaylist({
+              sources: [new Source(Sources.artOfMotionHls)],
+              options: { replayMode: 'unknown' as ReplayMode },
+            });
           } catch (e) {
             error = e;
           }
