@@ -9,8 +9,6 @@ import type { Source } from '../source';
  * inactive.
  *
  * Accessible through {@link Player.playlist}.
- *
- * @platform Android
  */
 export class PlaylistApi {
   /**
@@ -33,7 +31,7 @@ export class PlaylistApi {
    * Sources that were not created through a {@link Source} instance (e.g. offline content) are not included.
    */
   getSources = async (): Promise<Source[]> => {
-    const nativeIds = (await PlaylistModule?.sources(this.nativeId)) ?? [];
+    const nativeIds = await PlaylistModule.sources(this.nativeId);
     return nativeIds.flatMap((nativeId) => {
       const source = this.knownSources.get(nativeId);
       return source ? [source] : [];
@@ -51,7 +49,7 @@ export class PlaylistApi {
   add = async (source: Source, index?: number): Promise<void> => {
     await source.initialize();
     this.knownSources.set(source.nativeId, source);
-    return PlaylistModule?.add(this.nativeId, source.nativeId, index);
+    return PlaylistModule.add(this.nativeId, source.nativeId, index);
   };
 
   /**
@@ -61,7 +59,7 @@ export class PlaylistApi {
    * if there is no active playback session or if the `source` is the active source.
    */
   remove = async (source: Source): Promise<void> => {
-    return PlaylistModule?.remove(this.nativeId, source.nativeId);
+    return PlaylistModule.remove(this.nativeId, source.nativeId);
   };
 
   /**
@@ -71,7 +69,7 @@ export class PlaylistApi {
    * there is no active playback session or if the source at `index` is the active source.
    */
   removeAt = async (index: number): Promise<void> => {
-    return PlaylistModule?.removeAt(this.nativeId, index);
+    return PlaylistModule.removeAt(this.nativeId, index);
   };
 
   /**
@@ -82,6 +80,6 @@ export class PlaylistApi {
    * active source and a live stream (use {@link Player.timeShift} instead).
    */
   seek = async (source: Source, time: number): Promise<void> => {
-    return PlaylistModule?.seek(this.nativeId, source.nativeId, time);
+    return PlaylistModule.seek(this.nativeId, source.nativeId, time);
   };
 }
