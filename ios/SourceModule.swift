@@ -3,8 +3,6 @@ import Combine
 import ExpoModulesCore
 
 public class SourceModule: Module {
-    /// In-memory mapping from `nativeId`s to `Source` instances.
-    private var sources: Registry<Source> = [:]
     /// In-memory mapping from `nativeId`s to `SourceConfig` instances for casting.
     private var castSourceConfigs: Registry<SourceConfig> = [:]
     /// Registry retaining native `FairplayContentKeyRequest` instances keyed by source nativeId + skdUri.
@@ -29,8 +27,7 @@ public class SourceModule: Module {
         }
         OnDestroy {
             eventRelay.clear()
-            sources.removeAll()
-            SourceNativeIdRegistry.clear()
+            SourceRegistry.clear()
             castSourceConfigs.removeAll()
             fairplayCancellables.values.forEach { $0.cancel() }
             fairplayCancellables.removeAll()
@@ -40,7 +37,7 @@ public class SourceModule: Module {
 
         // MARK: - Module methods
         AsyncFunction("on") { [weak self] (nativeId: NativeId, eventName: String) in
-            self?.eventRelay.on(nativeId: nativeId, emitter: self?.sources[nativeId], eventName: eventName)
+            self?.eventRelay.on(nativeId: nativeId, emitter: self?.retrieve(nativeId), eventName: eventName)
         }.runOnQueue(.main)
         AsyncFunction("off") { [weak self] (nativeId: NativeId, eventName: String) in
             self?.eventRelay.off(nativeId: nativeId, eventName: eventName)
@@ -66,16 +63,16 @@ public class SourceModule: Module {
             self?.destroySource(nativeId: nativeId)
         }.runOnQueue(.main)
         AsyncFunction("isAttachedToPlayer") { [weak self] (nativeId: NativeId) -> Bool? in
-            self?.sources[nativeId]?.isAttachedToPlayer
+            self?.retrieve(nativeId)?.isAttachedToPlayer
         }.runOnQueue(.main)
         AsyncFunction("isActive") { [weak self] (nativeId: NativeId) -> Bool? in
-            self?.sources[nativeId]?.isActive
+            self?.retrieve(nativeId)?.isActive
         }.runOnQueue(.main)
         AsyncFunction("duration") { [weak self] (nativeId: NativeId) -> Double? in
-            self?.sources[nativeId]?.duration
+            self?.retrieve(nativeId)?.duration
         }.runOnQueue(.main)
         AsyncFunction("loadingState") { [weak self] (nativeId: NativeId) -> Int? in
-            self?.sources[nativeId]?.loadingState.rawValue
+            self?.retrieve(nativeId)?.loadingState.rawValue
         }.runOnQueue(.main)
         AsyncFunction("getMetadata") { [weak self] (nativeId: NativeId) -> [String: Any]? in
             self?.getSourceMetadata(nativeId: nativeId)
@@ -87,7 +84,7 @@ public class SourceModule: Module {
             self?.getSourceThumbnail(nativeId: nativeId, time: time)
         }.runOnQueue(.main)
         AsyncFunction("drmFairplayRenewExpiringLicense") { [weak self] (nativeId: NativeId, skdUri: String) in
-            guard let source = self?.sources[nativeId],
+            guard let source = self?.retrieve(nativeId),
                   let contentKeyRequest = self?.fairplayRegistry.retrieve(nativeId: nativeId, skdUri: skdUri) else {
                 return
             }
@@ -97,14 +94,12 @@ public class SourceModule: Module {
 
     // MARK: - Public methods
     public func retrieve(_ nativeId: NativeId) -> Source? {
-        sources[nativeId]
+        SourceRegistry.source(nativeId: nativeId)
     }
 
     // Finds `NativeId` based on predicate ran on `Source` instances
     public func nativeId(where predicate: (Source) -> Bool) -> NativeId? {
-        sources.first { _, value in
-            predicate(value)
-        }?.key
+        SourceRegistry.nativeId(where: predicate)
     }
 
     public func retrieveCastSourceConfig(_ nativeId: NativeId) -> SourceConfig? {
@@ -113,20 +108,20 @@ public class SourceModule: Module {
 
     // MARK: - Private methods
     private func getSourceMetadata(nativeId: NativeId) -> [String: Any]? {
-        sources[nativeId]?.metadata
+        retrieve(nativeId)?.metadata
     }
 
     private func setSourceMetadata(nativeId: NativeId, metadata: [String: Any]?) {
         guard let metadata else {
-            sources[nativeId]?.metadata = nil
+            retrieve(nativeId)?.metadata = nil
             return
         }
         let metadataObjects = metadata as [String: AnyObject]
-        sources[nativeId]?.metadata = metadataObjects
+        retrieve(nativeId)?.metadata = metadataObjects
     }
 
     private func getSourceThumbnail(nativeId: NativeId, time: Double) -> [String: Any]? {
-        guard let thumbnail = sources[nativeId]?.thumbnail(forTime: time) else {
+        guard let thumbnail = retrieve(nativeId)?.thumbnail(forTime: time) else {
             return nil
         }
         return RCTConvert.toJson(thumbnail: thumbnail)
@@ -139,7 +134,7 @@ public class SourceModule: Module {
         sourceRemoteControlConfig: [String: Any]?,
         analyticsSourceMetadata: [String: Any]? = nil
     ) {
-        guard sources[nativeId] == nil else {
+        guard retrieve(nativeId) == nil else {
             // Source already exists
             return
         }
@@ -158,8 +153,7 @@ public class SourceModule: Module {
         } else {
             source = SourceFactory.createSource(from: sourceConfig)
         }
-        sources[nativeId] = source
-        SourceNativeIdRegistry.register(source, nativeId: nativeId)
+        SourceRegistry.register(source, nativeId: nativeId)
         // Attach Combine listener to populate the FairPlay registry when a license is acquired
         fairplayCancellables[nativeId] = source.events
             .on(FairplayLicenseAcquiredEvent.self)
@@ -179,9 +173,7 @@ public class SourceModule: Module {
      */
     private func destroySource(nativeId: NativeId) {
         eventRelay.offAll(nativeId: nativeId)
-        if let source = sources.removeValue(forKey: nativeId) {
-            SourceNativeIdRegistry.unregister(source)
-        }
+        SourceRegistry.unregister(nativeId: nativeId)
         castSourceConfigs.removeValue(forKey: nativeId)
         fairplayCancellables[nativeId]?.cancel()
         fairplayCancellables.removeValue(forKey: nativeId)
