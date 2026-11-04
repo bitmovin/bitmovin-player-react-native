@@ -10,6 +10,7 @@ import {
   SourceAddedEvent,
   SourceLoadedEvent,
   SourceRemovedEvent,
+  TimelineReferencePoint,
 } from 'bitmovin-player-react-native';
 import {
   callPlayer,
@@ -241,6 +242,34 @@ export default (spec: TestScope) => {
         );
       });
     });
+
+    spec.it(
+      'rejects seeking to a target with an unknown timeline reference point',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const first = new Source(Sources.artOfMotionHls);
+          const second = new Source(Sources.sintel);
+
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.loadPlaylist({ sources: [first, second] });
+          }, EventType.Ready);
+
+          await callPlayer(async (player) => {
+            let error: unknown;
+            try {
+              await player.playlist.seekTo(second, {
+                offset: 0,
+                startOffsetTimelineReference:
+                  'unknown' as TimelineReferencePoint,
+              });
+            } catch (e) {
+              error = e;
+            }
+            expect(error, 'seekTo should reject').toBeDefined();
+          });
+        });
+      }
+    );
 
     spec.it(
       'transitions to the next source at the end of a source',
