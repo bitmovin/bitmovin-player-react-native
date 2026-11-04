@@ -232,8 +232,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    * is also emitted for inactive sources, without identifying the source. Ads scheduled
    * via the advertising config only apply to the first source.
    *
+   * On iOS and tvOS, only HLS, progressive and `movpkg` sources can be part of a playlist.
+   *
    * @throws if `sources` is empty, `options.replayMode` is unknown or a source was destroyed.
-   * @platform Android
    */
   loadPlaylist = (playlistConfig: PlaylistConfig) => {
     validatePlaylistConfig(playlistConfig);
