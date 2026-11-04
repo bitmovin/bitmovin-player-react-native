@@ -45,14 +45,14 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
    *
    * @platform Android
    */
-  subscribe(nativeId: string, eventName: string): Promise<void>;
+  on(nativeId: string, eventName: string): Promise<void>;
 
   /**
    * Detaches the native listener for `eventName` from nativeId's player.
    *
    * @platform Android
    */
-  unsubscribe(nativeId: string, eventName: string): Promise<void>;
+  off(nativeId: string, eventName: string): Promise<void>;
 
   /**
    * Call .play() on nativeId's player.

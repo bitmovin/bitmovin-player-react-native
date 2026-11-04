@@ -54,13 +54,13 @@ class SourceModule : Module() {
 
         Events("onSourceEvent")
 
-        AsyncFunction("subscribe") { nativeId: NativeId, eventName: String ->
+        AsyncFunction("on") { nativeId: NativeId, eventName: String ->
             val source = SourceRegistry.getSource(nativeId) ?: return@AsyncFunction
-            eventRelay.subscribe(nativeId, source, eventName)
+            eventRelay.on(nativeId, source, eventName)
         }.runOnQueue(Queues.MAIN)
 
-        AsyncFunction("unsubscribe") { nativeId: NativeId, eventName: String ->
-            eventRelay.unsubscribe(nativeId, SourceRegistry.getSource(nativeId), eventName)
+        AsyncFunction("off") { nativeId: NativeId, eventName: String ->
+            eventRelay.off(nativeId, SourceRegistry.getSource(nativeId), eventName)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("initializeWithConfig") { nativeId: NativeId, drmNativeId: NativeId?,
@@ -75,7 +75,7 @@ class SourceModule : Module() {
         }
 
         AsyncFunction("destroy") { nativeId: NativeId ->
-            eventRelay.unsubscribeAll(nativeId, SourceRegistry.getSource(nativeId))
+            eventRelay.offAll(nativeId, SourceRegistry.getSource(nativeId))
             SourceRegistry.unregister(nativeId)
             // Don't return the removed value: Expo can't convert it to a JS value and rejects the promise.
             Unit

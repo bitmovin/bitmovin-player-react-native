@@ -14,14 +14,14 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
    *
    * @platform Android
    */
-  subscribe(nativeId: string, eventName: string): Promise<void>;
+  on(nativeId: string, eventName: string): Promise<void>;
 
   /**
    * Detaches the native listener for `eventName` from the source with the given nativeId.
    *
    * @platform Android
    */
-  unsubscribe(nativeId: string, eventName: string): Promise<void>;
+  off(nativeId: string, eventName: string): Promise<void>;
 
   /**
    * Checks if the source is attached to a player.

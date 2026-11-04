@@ -62,13 +62,13 @@ class PlayerModule : Module() {
 
         Events("onShouldLoadAdItem", "onShouldPlayAdBreak", "onImaBeforeInitialization", "onPlayerEvent")
 
-        AsyncFunction("subscribe") { nativeId: NativeId, eventName: String ->
+        AsyncFunction("on") { nativeId: NativeId, eventName: String ->
             val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
-            eventRelay.subscribe(nativeId, player, eventName)
+            eventRelay.on(nativeId, player, eventName)
         }.runOnQueue(Queues.MAIN)
 
-        AsyncFunction("unsubscribe") { nativeId: NativeId, eventName: String ->
-            eventRelay.unsubscribe(nativeId, PlayerRegistry.getPlayer(nativeId), eventName)
+        AsyncFunction("off") { nativeId: NativeId, eventName: String ->
+            eventRelay.off(nativeId, PlayerRegistry.getPlayer(nativeId), eventName)
         }.runOnQueue(Queues.MAIN)
 
         Constant("isGoogleImaEnabled") { ImaBeforeInitializationConfigurator.IS_GOOGLE_IMA_ENABLED }
@@ -111,7 +111,7 @@ class PlayerModule : Module() {
                 player.destroy()
                 PlayerRegistry.unregister(nativeId)
             }
-            eventRelay.unsubscribeAll(nativeId, player)
+            eventRelay.offAll(nativeId, player)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("setVolume") { nativeId: NativeId, volume: Double ->
