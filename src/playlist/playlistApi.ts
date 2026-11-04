@@ -44,6 +44,7 @@ export class PlaylistApi {
    *
    * Has no effect if `index` is < 0 or > the number of sources. Has no effect and emits a `PlayerWarning` if
    * there is no active playback session.
+   * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    *
    * @returns a promise that rejects if the `source` is already attached to a player or was destroyed.
    */
@@ -58,6 +59,7 @@ export class PlaylistApi {
    *
    * Has no effect if the `source` is not part of the playback session. Has no effect and emits a `PlayerWarning`
    * if there is no active playback session or if the `source` is the active source.
+   * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    */
   remove = async (source: Source): Promise<void> => {
     return PlaylistModule.remove(this.nativeId, source.nativeId);
@@ -68,6 +70,7 @@ export class PlaylistApi {
    *
    * Has no effect if `index` is < 0 or >= the number of sources. Has no effect and emits a `PlayerWarning` if
    * there is no active playback session or if the source at `index` is the active source.
+   * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    */
   removeAt = async (index: number): Promise<void> => {
     return PlaylistModule.removeAt(this.nativeId, index);
@@ -79,6 +82,7 @@ export class PlaylistApi {
    *
    * Has no effect and emits a `PlayerWarning` if there is no active playback session, or if `source` is the
    * active source and a live stream (use {@link Player.timeShift} instead).
+   * On iOS and tvOS, no `PlayerWarning` is emitted.
    */
   seek = async (source: Source, time: number): Promise<void> => {
     return PlaylistModule.seek(this.nativeId, source.nativeId, time);
