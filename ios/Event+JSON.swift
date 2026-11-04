@@ -91,6 +91,45 @@ extension SeekEvent: JsonConvertible {
     }
 }
 
+// The iOS SDK names of `SourceAddedEvent` and `SourceRemovedEvent` end in `Event`. They are replaced with the names
+// used on Android because apps and the integration tests compare `Event.name`.
+extension SourceAddedEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        var json = toEventJSON {
+            [
+                "source": source.toJSON(),
+                "index": index
+            ]
+        }
+        json["name"] = "onSourceAdded"
+        return json
+    }
+}
+
+extension SourceRemovedEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        var json = toEventJSON {
+            [
+                "source": source.toJSON(),
+                "index": index
+            ]
+        }
+        json["name"] = "onSourceRemoved"
+        return json
+    }
+}
+
+extension PlaylistTransitionEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON {
+            [
+                "from": from.toJSON(),
+                "to": to.toJSON()
+            ]
+        }
+    }
+}
+
 extension TimeShiftEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
         toEventJSON {
