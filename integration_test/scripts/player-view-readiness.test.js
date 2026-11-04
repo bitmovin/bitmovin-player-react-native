@@ -107,7 +107,7 @@ const playerViewContext = vm.createContext({
     if (name.endsWith('/metadataPlatform')) return {};
     if (name.endsWith('/RNPlayerViewManagerModule')) return {};
     if (name === './usePlayerEventProps') {
-      return { usePlayerEventProps() {}, usesPlayerEvents: false };
+      return { usePlayerEventProps() {} };
     }
     throw new Error('Unexpected PlayerView dependency: ' + name);
   },
