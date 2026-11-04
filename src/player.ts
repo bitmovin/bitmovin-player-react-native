@@ -62,8 +62,6 @@ export class Player extends NativeInstance<PlayerConfig> {
   private readonly knownSources = new Map<string, Source>();
   /**
    * The {@link PlaylistApi} for interactions regarding the playlist of the playback session.
-   *
-   * @platform Android
    */
   playlist: PlaylistApi = new PlaylistApi(this.nativeId, this.knownSources);
 
