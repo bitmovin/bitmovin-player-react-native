@@ -8,7 +8,7 @@ internal typealias EventSubscriber<Emitter> = (Emitter, @escaping (any Event) ->
 
 /**
  * Subscribes to the native events of an instance per event name on demand and forwards the received events via
- * `forward`. Must only be used from the main thread.
+ * `forward`, together with the event name they were subscribed for. Must only be used from the main thread.
  *
  * Subscriptions are counted: the native subscription is made on the first subscription and cancelled once the last
  * one is gone. This is necessary when the app creates several JS instances (e.g. `Player`s) with the same
@@ -25,15 +25,18 @@ internal final class EventRelay<Emitter> {
     }
 
     private let subscribers: [String: EventSubscriber<Emitter>]
-    private let forward: (NativeId, any Event) -> Void
+    private let forward: (_ nativeId: NativeId, _ eventName: String, _ event: any Event) -> Void
     private var subscriptions: [NativeId: [String: Subscription]] = [:]
 
     /**
      * - Parameters:
      *   - subscribers: The supported event types, keyed by their React Native event name.
-     *   - forward: Called with the `nativeId` of the emitting instance and the event.
+     *   - forward: Called with the `nativeId` of the emitting instance, the event name and the event.
      */
-    init(subscribers: [String: EventSubscriber<Emitter>], forward: @escaping (NativeId, any Event) -> Void) {
+    init(
+        subscribers: [String: EventSubscriber<Emitter>],
+        forward: @escaping (_ nativeId: NativeId, _ eventName: String, _ event: any Event) -> Void
+    ) {
         self.subscribers = subscribers
         self.forward = forward
     }
@@ -51,7 +54,7 @@ internal final class EventRelay<Emitter> {
             return
         }
         let cancellable = subscriber(emitter) { [weak self] event in
-            self?.forward(nativeId, event)
+            self?.forward(nativeId, eventName, event)
         }
         subscriptions[nativeId, default: [:]][eventName] = Subscription(cancellable: cancellable)
     }
