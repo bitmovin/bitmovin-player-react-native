@@ -74,6 +74,7 @@ const playerEventNames = Object.keys({
   cueExit: true,
   metadata: true,
   metadataParsed: true,
+  fairplayLicenseAcquired: true,
 } satisfies Record<keyof PlayerEventMap, true>) as (keyof PlayerEventMap)[];
 
 const metadataEventNames = new Set<keyof PlayerEventMap>([

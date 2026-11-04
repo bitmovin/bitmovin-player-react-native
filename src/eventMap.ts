@@ -26,6 +26,7 @@ import type {
   CueExitEvent,
   DestroyEvent,
   DownloadFinishedEvent,
+  FairplayLicenseAcquiredEvent,
   MetadataEvent,
   MetadataParsedEvent,
   MutedEvent,
@@ -95,6 +96,12 @@ export interface SourceEventMap {
   videoDownloadQualityChanged: VideoDownloadQualityChangedEvent;
   /** Emitted when metadata is first seen and parsed. */
   metadataParsed: MetadataParsedEvent;
+  /**
+   * Emitted when a FairPlay license has been acquired successfully.
+   *
+   * @platform iOS/tvOS
+   */
+  fairplayLicenseAcquired: FairplayLicenseAcquiredEvent;
 }
 
 /**
