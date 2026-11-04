@@ -8,7 +8,7 @@ import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import SourceModule from './modules/SourceModule';
-import type { BitmovinEventSubscription, SourceEventMap } from './eventMap';
+import type { SourceEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
 
 /**
@@ -246,26 +246,26 @@ export class Source extends NativeInstance<SourceConfig> {
    * emits all of its events, including while it is inactive. Listeners registered before the source is
    * initialized are attached during {@link Source.initialize}. Calling it on a destroyed source has no effect
    * and logs a warning.
+   * Registering the same `listener` again for `eventName` has no effect; use {@link Source.off} to remove it.
    *
    * @param eventName - The name of the event, e.g. `sourceLoaded`.
    * @param listener - The function called with the event.
-   * @returns a subscription to remove the listener.
    * @platform Android
    */
   on = <K extends keyof SourceEventMap>(
     eventName: K,
     listener: (event: SourceEventMap[K]) => void
-  ): BitmovinEventSubscription => {
+  ): void => {
     if (this.isDestroyed) {
       console.warn(
         `[Source ${this.nativeId}] The source was destroyed and must not be used any more, therefore on has no effect.`
       );
-      return { remove: () => {} };
+      return;
     }
     if (Platform.OS !== 'android') {
-      return { remove: () => {} };
+      return;
     }
-    return this.eventListeners.on(eventName, listener);
+    this.eventListeners.on(eventName, listener);
   };
 
   /**

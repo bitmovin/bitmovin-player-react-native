@@ -1,6 +1,5 @@
 import type { EventSubscription } from 'expo-modules-core';
 import type { Event } from '../events';
-import type { BitmovinEventSubscription } from '../eventMap';
 import { normalizeNonFinite } from './normalizeNonFinite';
 
 /**
@@ -66,7 +65,7 @@ export class EventListeners<EventMap> {
   on<K extends keyof EventMap & string>(
     eventName: K,
     listener: (event: EventMap[K]) => void
-  ): BitmovinEventSubscription {
+  ): void {
     let eventListeners = this.listeners.get(eventName);
     if (!eventListeners) {
       eventListeners = new Set();
@@ -77,7 +76,6 @@ export class EventListeners<EventMap> {
       }
     }
     eventListeners.add(listener);
-    return { remove: () => this.off(eventName, listener) };
   }
 
   off<K extends keyof EventMap & string>(
