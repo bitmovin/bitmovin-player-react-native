@@ -105,6 +105,9 @@ jobs:
       - name: Test network preprocessing
         run: node --test scripts/test-network-preprocessing.js
 
+      - name: Test event listeners
+        run: node --test scripts/test-event-listeners.js
+
       - name: Build TypeScript (Module)
         run: yarn build:module
 

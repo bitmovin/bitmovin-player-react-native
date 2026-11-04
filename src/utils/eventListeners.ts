@@ -97,9 +97,13 @@ export class EventListeners<EventMap> {
   }
 
   /**
-   * Attaches the native listeners for all registered event names. Call once the native instance exists.
+   * Attaches the native listeners for all registered event names once the native instance exists.
+   * Has no effect if they are already attached, e.g. when initializing again.
    */
   attachNative = () => {
+    if (this.isNativeAttached) {
+      return;
+    }
     this.isNativeAttached = true;
     this.listeners.forEach(
       (_, eventName) => void this.nativeModule.on(this.nativeId, eventName)
