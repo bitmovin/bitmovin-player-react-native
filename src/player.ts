@@ -64,6 +64,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   private onShouldLoadAdItemSubscription?: EventSubscription;
   private onShouldPlayAdBreakSubscription?: EventSubscription;
   private onImaBeforeInitializationSubscription?: EventSubscription;
+  private initialization?: Promise<void>;
   private readonly eventListeners = new EventListeners<PlayerEventMap>(
     this.nativeId,
     PlayerModule,
@@ -71,8 +72,16 @@ export class Player extends NativeInstance<PlayerConfig> {
   );
   /**
    * Allocates the native `Player` instance and its resources natively.
+   * Calls made while an initialization is in progress share it.
    */
-  initialize = async (): Promise<void> => {
+  initialize = (): Promise<void> => {
+    this.initialization ??= this.initializeNative().finally(() => {
+      this.initialization = undefined;
+    });
+    return this.initialization;
+  };
+
+  private initializeNative = async (): Promise<void> => {
     if (!this.isInitialized) {
       this.ensureShouldLoadAdItemListener();
       this.ensureShouldPlayAdBreakListener();

@@ -7,11 +7,14 @@ const ts = require(process.env.TYPESCRIPT_PATH || 'typescript');
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'event-listeners-'));
 after(() => fs.rmSync(root, { recursive: true, force: true }));
-// Emit the listeners' import graph once, without Expo's app build or typecheck.
-// It only has type imports of Expo, so no Expo doubles are needed.
+// Emit the import graphs once, without Expo's app build or typecheck. The Expo
+// and React Native packages are replaced by the doubles below.
 before(() => {
   const program = ts.createProgram(
-    [path.resolve(__dirname, '../src/utils/eventListeners.ts')],
+    [
+      path.resolve(__dirname, '../src/utils/eventListeners.ts'),
+      path.resolve(__dirname, '../src/source.ts'),
+    ],
     {
       rootDir: path.resolve(__dirname, '../src'),
       outDir: root,
@@ -27,6 +30,23 @@ before(() => {
     .getPreEmitDiagnostics(program)
     .concat(emission.diagnostics)) {
     assert.fail(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
+  }
+  const doubles = {
+    'react-native': "module.exports = { Platform: { OS: 'android' } };",
+    'expo-crypto': "module.exports = { randomUUID: () => 'random-id' };",
+    // Each test sets the native module it needs on `nativeModules`.
+    'expo-modules-core': `
+      module.exports = {
+        nativeModules: {},
+        requireNativeModule(name) {
+          return new Proxy({}, { get: (_, key) => module.exports.nativeModules[name]?.[key] });
+        },
+      };`,
+  };
+  for (const [name, source] of Object.entries(doubles)) {
+    const directory = path.join(root, 'node_modules', name);
+    fs.mkdirSync(directory, { recursive: true });
+    fs.writeFileSync(path.join(directory, 'index.js'), source);
   }
 });
 
@@ -112,4 +132,34 @@ test('dispatches events by the event name they were attached for', () => {
   emit({ nativeId: 'player-id', eventName: 'sourceAdded', event });
 
   assert.deepEqual(received, [['sourceAdded', event]]);
+});
+
+test('initializes a source natively once for overlapping initialize calls', async (t) => {
+  const { nativeModules } = require(
+    path.join(root, 'node_modules/expo-modules-core')
+  );
+  t.after(() => delete nativeModules.SourceModule);
+  const calls = [];
+  nativeModules.SourceModule = {
+    addListener: () => ({ remove: () => {} }),
+    initializeWithConfig: async (nativeId) => {
+      calls.push(['initializeWithConfig', nativeId]);
+      // Let the other initialize call run while this one is in progress.
+      await new Promise(setImmediate);
+    },
+    on: async (nativeId, eventName) => calls.push(['on', nativeId, eventName]),
+    off: async () => {},
+  };
+  const { Source } = require(path.join(root, 'source'));
+  const source = new Source({ url: 'https://example.com/a.m3u8', type: 'hls' });
+  source.on('sourceLoaded', () => {});
+
+  // E.g. `source.initialize()` followed by `player.loadSource(source)`.
+  await Promise.all([source.initialize(), source.initialize()]);
+  await source.initialize();
+
+  assert.deepEqual(calls, [
+    ['initializeWithConfig', 'random-id'],
+    ['on', 'random-id', 'sourceLoaded'],
+  ]);
 });
