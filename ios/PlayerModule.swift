@@ -7,9 +7,10 @@ public class PlayerModule: Module {
     private let imaSettingsWaiter = ResultWaiter<[String: Any]>()
     private lazy var eventRelay = EventRelay<Player>(
         subscribers: PlayerEventTypes.player
-    ) { [weak self] nativeId, event in
+    ) { [weak self] nativeId, eventName, event in
         self?.sendEvent("onPlayerEvent", [
             "nativeId": nativeId,
+            "eventName": eventName,
             "event": event.eventPayload(),
         ])
     }

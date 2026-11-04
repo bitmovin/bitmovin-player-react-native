@@ -13,9 +13,10 @@ public class SourceModule: Module {
     private var fairplayCancellables: [NativeId: AnyCancellable] = [:]
     private lazy var eventRelay = EventRelay<Source>(
         subscribers: PlayerEventTypes.source
-    ) { [weak self] nativeId, event in
+    ) { [weak self] nativeId, eventName, event in
         self?.sendEvent("onSourceEvent", [
             "nativeId": nativeId,
+            "eventName": eventName,
             "event": event.eventPayload(),
         ])
     }
