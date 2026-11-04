@@ -6,9 +6,9 @@ export type PlaylistModuleEvents = Record<string, any>;
 
 declare class PlaylistModule extends NativeModule<PlaylistModuleEvents> {
   /**
-   * Get the native ids of the sources in the playback session.
+   * Get the native ids of the sources in the playback session, or an empty list if there is none.
    */
-  sources(nativeId: string): Promise<string[] | null>;
+  sources(nativeId: string): Promise<string[]>;
 
   /**
    * Add a source to the playback session, optionally at `index`.

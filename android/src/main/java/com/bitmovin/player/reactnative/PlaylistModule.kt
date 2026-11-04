@@ -10,7 +10,9 @@ class PlaylistModule : Module() {
         Name("PlaylistModule")
 
         AsyncFunction("sources") { nativeId: NativeId ->
-            PlayerRegistry.getPlayer(nativeId)?.playlist?.sources?.mapNotNull { SourceRegistry.getNativeId(it) }
+            // A destroyed player has no playback session, for which native returns no sources.
+            val sources = PlayerRegistry.getPlayer(nativeId)?.playlist?.sources.orEmpty()
+            sources.mapNotNull { SourceRegistry.getNativeId(it) }
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("add") { nativeId: NativeId, sourceNativeId: NativeId, index: Int? ->
