@@ -260,6 +260,9 @@ public class PlayerModule: Module {
                   let source = sourceModule.retrieve(sourceNativeId) else { return }
             player.load(source: source)
         }.runOnQueue(.main)
+        AsyncFunction("loadPlaylist") { [weak self] (nativeId: NativeId, sourceNativeIds: [NativeId], options: [String: Any]?) in // swiftlint:disable:this line_length
+            try self?.loadPlaylist(nativeId: nativeId, sourceNativeIds: sourceNativeIds, options: options)
+        }.runOnQueue(.main)
         AsyncFunction("source") { (nativeId: NativeId) -> NativeId? in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.source.flatMap { SourceRegistry.nativeId(of: $0) }
         }.runOnQueue(.main)
@@ -269,6 +272,40 @@ public class PlayerModule: Module {
     @objc
     public func retrieve(_ nativeId: NativeId) -> Player? {
         PlayerRegistry.getPlayer(nativeId: nativeId)
+    }
+
+    private func loadPlaylist(nativeId: NativeId, sourceNativeIds: [NativeId], options: [String: Any]?) throws {
+        guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
+              let sourceModule = appContext?.moduleRegistry.get(SourceModule.self) else { return }
+        let sources = try sourceNativeIds.map { sourceNativeId in
+            guard let source = sourceModule.retrieve(sourceNativeId) else {
+                throw Exception(
+                    name: "SOURCE_NOT_INITIALIZED",
+                    description: "Source \(sourceNativeId) is not initialized"
+                )
+            }
+            return source
+        }
+        // The SDK unloads the current session and then raises a `fatalError` for an invalid playlist config,
+        // so everything is validated before loading.
+        try Self.validatePlaylistSources(sources, sourceNativeIds: sourceNativeIds)
+        let playlistOptions = try RCTConvert.playlistOptions(options)
+        player.load(playlistConfig: PlaylistConfig(sources: sources, options: playlistOptions))
+    }
+
+    private static let supportedPlaylistSourceTypes: [SourceType] = [.hls, .progressive, .movpkg]
+
+    private static func validatePlaylistSources(_ sources: [Source], sourceNativeIds: [NativeId]) throws {
+        guard !sources.isEmpty else {
+            throw Exception(name: "EMPTY_PLAYLIST", description: "Playlist config has no sources")
+        }
+        for (source, sourceNativeId) in zip(sources, sourceNativeIds)
+        where !supportedPlaylistSourceTypes.contains(source.sourceConfig.type) {
+            throw Exception(
+                name: "UNSUPPORTED_PLAYLIST_SOURCE",
+                description: "Source \(sourceNativeId) cannot be part of a playlist on iOS: only HLS, progressive and movpkg sources are supported" // swiftlint:disable:this line_length
+            )
+        }
     }
 
     private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {
