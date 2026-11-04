@@ -1,38 +1,34 @@
 package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.source.Source
-import java.util.IdentityHashMap
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Global registry for [Source] instances, allowing the [NativeId] of a native [Source] to be
  * resolved from anywhere in native code (e.g. when serializing events).
- *
- * Keeps a reverse map by identity, so that resolving the [NativeId] of a [Source] does not scan all sources.
  */
 object SourceRegistry {
-    private val sources: Registry<Source> = mutableMapOf()
-    private val nativeIds = IdentityHashMap<Source, NativeId>()
+    // Must be thread-safe: sources are registered and read on Expo's background queue
+    // (e.g. `initializeWithConfig`, `duration`) and read on the main thread (e.g. `on`, `destroy`,
+    // and when serializing events).
+    private val sources: Registry<Source> = ConcurrentHashMap()
 
-    @Synchronized
     fun register(nativeId: NativeId, source: Source) {
-        sources.put(nativeId, source)?.let { nativeIds.remove(it, nativeId) }
-        nativeIds[source] = nativeId
+        sources[nativeId] = source
     }
 
-    @Synchronized
     fun unregister(nativeId: NativeId) {
-        sources.remove(nativeId)?.let { nativeIds.remove(it, nativeId) }
+        sources.remove(nativeId)
     }
 
-    @Synchronized
     fun getSource(nativeId: NativeId): Source? = sources[nativeId]
 
-    @Synchronized
-    fun getNativeId(source: Source): NativeId? = nativeIds[source]
+    /**
+     * Resolves the [NativeId] of [source] by iterating all sources, as an app only has a few of them.
+     */
+    fun getNativeId(source: Source): NativeId? = sources.entries.firstOrNull { it.value === source }?.key
 
-    @Synchronized
     fun clear() {
         sources.clear()
-        nativeIds.clear()
     }
 }
