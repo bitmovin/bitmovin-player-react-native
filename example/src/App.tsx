@@ -203,13 +203,10 @@ export default function App() {
     });
   }
 
-  // TODO(#1161): Show on all platforms, once the iOS bridge supports playlists.
-  if (Platform.OS === 'android') {
-    stackParams.data.push({
-      title: 'Playlist',
-      routeName: 'Playlist',
-    });
-  }
+  stackParams.data.push({
+    title: 'Playlist',
+    routeName: 'Playlist',
+  });
 
   if (Platform.OS === 'ios') {
     stackParams.data.push({
@@ -365,14 +362,11 @@ export default function App() {
           component={AudioFocusHandling}
           options={{ title: 'Audio Focus Handling' }}
         />
-        {/* TODO(#1161): Register on all platforms, once the iOS bridge supports playlists. */}
-        {Platform.OS === 'android' && (
-          <RootStack.Screen
-            name="Playlist"
-            component={Playlist}
-            options={{ title: 'Playlist' }}
-          />
-        )}
+        <RootStack.Screen
+          name="Playlist"
+          component={Playlist}
+          options={{ title: 'Playlist' }}
+        />
         {Platform.OS === 'ios' && (
           <RootStack.Screen
             name="EnableDisableMediaControls"
