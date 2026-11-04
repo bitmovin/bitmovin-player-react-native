@@ -38,11 +38,11 @@ public class SourceModule: Module {
         Events("onSourceEvent")
 
         // MARK: - Module methods
-        AsyncFunction("subscribe") { [weak self] (nativeId: NativeId, eventName: String) in
-            self?.eventRelay.subscribe(nativeId: nativeId, emitter: self?.sources[nativeId], eventName: eventName)
+        AsyncFunction("on") { [weak self] (nativeId: NativeId, eventName: String) in
+            self?.eventRelay.on(nativeId: nativeId, emitter: self?.sources[nativeId], eventName: eventName)
         }.runOnQueue(.main)
-        AsyncFunction("unsubscribe") { [weak self] (nativeId: NativeId, eventName: String) in
-            self?.eventRelay.unsubscribe(nativeId: nativeId, eventName: eventName)
+        AsyncFunction("off") { [weak self] (nativeId: NativeId, eventName: String) in
+            self?.eventRelay.off(nativeId: nativeId, eventName: eventName)
         }.runOnQueue(.main)
         AsyncFunction("initializeWithConfig") { [weak self] (nativeId: NativeId, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?) in // swiftlint:disable:this line_length
             self?.createSource(
@@ -177,7 +177,7 @@ public class SourceModule: Module {
      Destroys the source instance with the given `nativeId`.
      */
     private func destroySource(nativeId: NativeId) {
-        eventRelay.unsubscribeAll(nativeId: nativeId)
+        eventRelay.offAll(nativeId: nativeId)
         if let source = sources.removeValue(forKey: nativeId) {
             SourceNativeIdRegistry.unregister(source)
         }

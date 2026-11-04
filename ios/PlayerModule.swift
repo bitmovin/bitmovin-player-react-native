@@ -33,15 +33,15 @@ public class PlayerModule: Module {
             imaSettingsWaiter.removeAll()
         }
         Events("onShouldLoadAdItem", "onImaBeforeInitialization", "onPlayerEvent")
-        AsyncFunction("subscribe") { [weak self] (nativeId: NativeId, eventName: String) in
-            self?.eventRelay.subscribe(
+        AsyncFunction("on") { [weak self] (nativeId: NativeId, eventName: String) in
+            self?.eventRelay.on(
                 nativeId: nativeId,
                 emitter: PlayerRegistry.getPlayer(nativeId: nativeId),
                 eventName: eventName
             )
         }.runOnQueue(.main)
-        AsyncFunction("unsubscribe") { [weak self] (nativeId: NativeId, eventName: String) in
-            self?.eventRelay.unsubscribe(nativeId: nativeId, eventName: eventName)
+        AsyncFunction("off") { [weak self] (nativeId: NativeId, eventName: String) in
+            self?.eventRelay.off(nativeId: nativeId, eventName: eventName)
         }.runOnQueue(.main)
         Constant("isGoogleImaEnabled") {
             NSClassFromString("IMAAdsLoader") != nil
@@ -69,7 +69,7 @@ public class PlayerModule: Module {
                 player.destroy()
                 PlayerRegistry.unregister(nativeId: nativeId)
             }
-            self?.eventRelay.unsubscribeAll(nativeId: nativeId)
+            self?.eventRelay.offAll(nativeId: nativeId)
             self?.appContext?.moduleRegistry.get(RNPlayerViewManager.self)?
                 .discardPendingPictureInPictureValues(playerId: nativeId)
         }.runOnQueue(.main)

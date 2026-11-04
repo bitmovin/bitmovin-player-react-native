@@ -12,7 +12,7 @@ internal typealias EventSubscriber<Emitter> = (Emitter, @escaping (any Event) ->
  *
  * Subscriptions are counted: the native subscription is made on the first subscription and cancelled once the last
  * one is gone. This is necessary when the app creates several JS instances (e.g. `Player`s) with the same
- * `nativeId`, which each subscribe and unsubscribe on their own.
+ * `nativeId`, which each attach and detach their listeners on their own.
  */
 internal final class EventRelay<Emitter> {
     private final class Subscription {
@@ -42,7 +42,7 @@ internal final class EventRelay<Emitter> {
      * Subscribes to the `eventName` events of `emitter`. Does nothing if `emitter` is `nil`, e.g. because the native
      * instance was already destroyed, or if the event name is not supported.
      */
-    func subscribe(nativeId: NativeId, emitter: Emitter?, eventName: String) {
+    func on(nativeId: NativeId, emitter: Emitter?, eventName: String) {
         guard let emitter, let subscriber = subscribers[eventName] else {
             return
         }
@@ -56,7 +56,7 @@ internal final class EventRelay<Emitter> {
         subscriptions[nativeId, default: [:]][eventName] = Subscription(cancellable: cancellable)
     }
 
-    func unsubscribe(nativeId: NativeId, eventName: String) {
+    func off(nativeId: NativeId, eventName: String) {
         guard let subscription = subscriptions[nativeId]?[eventName] else {
             return
         }
@@ -71,7 +71,7 @@ internal final class EventRelay<Emitter> {
         }
     }
 
-    func unsubscribeAll(nativeId: NativeId) {
+    func offAll(nativeId: NativeId) {
         subscriptions.removeValue(forKey: nativeId)?.values.forEach { $0.cancellable.cancel() }
     }
 
