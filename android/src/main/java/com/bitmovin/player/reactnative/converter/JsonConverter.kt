@@ -171,7 +171,7 @@ fun Map<String, Any?>.toPlaylistOptions(): PlaylistOptions {
 fun Map<String, Any?>.toSeekTarget(): SeekTarget? {
     return SeekTarget(
         offset = getDoubleOrNull("offset") ?: return null,
-        startOffsetTimelineReference = getString("startOffsetTimelineReference")?.toTimelineReferencePoint(),
+        startOffsetTimelineReference = getString("startOffsetTimelineReference")?.toTimelineReferencePointOrThrow(),
     )
 }
 
@@ -186,6 +186,9 @@ private fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (t
     "end" -> TimelineReferencePoint.End
     else -> null
 }
+
+private fun String.toTimelineReferencePointOrThrow(): TimelineReferencePoint =
+    toTimelineReferencePoint() ?: throw IllegalArgumentException("Unknown timeline reference point: $this")
 
 private fun Map<String, Any?>.toAdaptationConfig(): AdaptationConfig = AdaptationConfig().apply {
     withInt("maxSelectableBitrate") { maxSelectableVideoBitrate = it }
