@@ -15,7 +15,7 @@ extension Source {
         if let metadata {
             json["metadata"] = metadata
         }
-        if let nativeId = SourceNativeIdRegistry.nativeId(of: self) {
+        if let nativeId = SourceRegistry.nativeId(of: self) {
             json["nativeId"] = nativeId
         }
         return json
