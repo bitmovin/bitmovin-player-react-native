@@ -14,7 +14,7 @@ object PlayerEventTypes {
      * All events a native `Player` emits, including the source events of its active source.
      */
     @OptIn(ExperimentalBitmovinApi::class)
-    val player: Map<String, Class<out Event>> = linkedMapOf(
+    val player: Map<String, Class<out Event>> = mapOf(
         "playerActive" to PlayerEvent.Active::class.java,
         "playerInactive" to PlayerEvent.Inactive::class.java,
         "playerError" to PlayerEvent.Error::class.java,
