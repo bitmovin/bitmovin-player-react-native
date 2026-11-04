@@ -11,6 +11,7 @@ import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.playlist.PlaylistConfig
 import com.bitmovin.player.api.playlist.PlaylistOptions
+import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
@@ -30,7 +31,9 @@ class PlayerModule : Module() {
     private val shouldLoadAdItemWaiter = ResultWaiter<Boolean>()
     private val shouldPlayAdBreakWaiter = ResultWaiter<Boolean>()
     private val imaSettingsWaiter = ResultWaiter<Map<String, Any?>>()
-    private val removedSourceReleaser = RemovedSourceReleaser { releaseSource(it) }
+    private val removedSourceReleaser = RemovedSourceReleaser {
+        appContext.registry.getModule<SourceModule>()?.releaseSource(it)
+    }
 
     private val eventRelay = EventRelay<Event>(PlayerEventTypes.player) { nativeId, eventName, event ->
         sendEvent(
@@ -57,6 +60,7 @@ class PlayerModule : Module() {
             Handler(Looper.getMainLooper()).post {
                 // Detach the listeners first, so destroying the players does not emit into this module.
                 eventRelay.clear { PlayerRegistry.getPlayer(it) }
+                removedSourceReleaser.clear { PlayerRegistry.getPlayer(it) }
                 // Clean up all players when module is destroyed
                 PlayerRegistry.getAllPlayers().forEach { player ->
                     try {
@@ -65,7 +69,6 @@ class PlayerModule : Module() {
                         // Log but don't crash on cleanup
                     }
                 }
-                removedSourceReleaser.clear()
                 PlayerRegistry.clear()
             }
             shouldLoadAdItemWaiter.clear()
@@ -118,8 +121,6 @@ class PlayerModule : Module() {
 
         AsyncFunction("destroy") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
-            // Read the sources of the current playback session before destroy() stops it, to release them afterwards.
-            val sourceNativeIds = player?.playlist?.sources.orEmpty().mapNotNull { SourceRegistry.getNativeId(it) }
             if (player != null) {
                 // Note: MediaSession cleanup would need to be handled here
                 player.destroy()
@@ -127,7 +128,6 @@ class PlayerModule : Module() {
             }
             eventRelay.offAll(nativeId, player)
             removedSourceReleaser.detach(nativeId, player)
-            sourceNativeIds.forEach { releaseSource(it) }
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("setVolume") { nativeId: NativeId, volume: Double ->
@@ -366,9 +366,10 @@ class PlayerModule : Module() {
         }.runOnQueue(Queues.MAIN)
     }
 
-    private fun releaseSource(nativeId: NativeId) {
-        appContext.registry.getModule<SourceModule>()?.releaseSource(nativeId)
-    }
+    /**
+     * Keeps [source] registered if its release is pending, see [RemovedSourceReleaser.keep].
+     */
+    fun keepSource(source: Source) = removedSourceReleaser.keep(source)
 
     private fun initializePlayer(
         nativeId: NativeId,
