@@ -1,6 +1,5 @@
 import type { NativeModule } from 'expo-modules-core';
 import { requireNativeModule } from 'expo-modules-core';
-import { Platform } from 'react-native';
 
 export type PlaylistModuleEvents = Record<string, any>;
 
@@ -31,7 +30,4 @@ declare class PlaylistModule extends NativeModule<PlaylistModuleEvents> {
   seek(nativeId: string, sourceNativeId: string, time: number): Promise<void>;
 }
 
-// TODO(#1161): Load on all platforms, once the iOS bridge supports playlists.
-export default Platform.OS === 'android'
-  ? requireNativeModule<PlaylistModule>('PlaylistModule')
-  : null;
+export default requireNativeModule<PlaylistModule>('PlaylistModule');
