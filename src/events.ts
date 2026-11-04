@@ -288,8 +288,11 @@ export interface SourceLoadedEvent extends Event {
 export interface SourceUnloadedEvent extends Event {
   /**
    * Source that was unloaded from player.
+   *
+   * Not set on Android for events received via {@link Player.on} or the `PlayerView` event props,
+   * as the native event does not carry the source. Set for events received via {@link Source.on}.
    */
-  source: EventSource;
+  source?: EventSource;
 }
 
 /**
