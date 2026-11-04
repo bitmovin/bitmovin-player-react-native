@@ -350,7 +350,9 @@ class PlayerModule : Module() {
         AsyncFunction("loadPlaylist") { nativeId: NativeId, sourceNativeIds: List<NativeId>,
             options: Map<String, Any?>?, ->
             val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
-            val sources = sourceNativeIds.mapNotNull { SourceRegistry.getSource(it) }
+            val sources = sourceNativeIds.map {
+                SourceRegistry.getSource(it) ?: throw SourceException.SourceNotInitialized(it)
+            }
             player.load(PlaylistConfig(sources, options?.toPlaylistOptions() ?: PlaylistOptions()))
         }.runOnQueue(Queues.MAIN)
 

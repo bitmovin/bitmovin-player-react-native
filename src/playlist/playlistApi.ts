@@ -47,7 +47,7 @@ export class PlaylistApi {
    * Has no effect if `index` is < 0 or > the number of sources. Has no effect and emits a `PlayerWarning` if
    * there is no active playback session.
    *
-   * @returns a promise that rejects if the `source` is already attached to a player.
+   * @returns a promise that rejects if the `source` is already attached to a player or was destroyed.
    */
   add = async (source: Source, index?: number): Promise<void> => {
     await source.initialize();

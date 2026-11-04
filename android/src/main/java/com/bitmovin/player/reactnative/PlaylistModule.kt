@@ -17,7 +17,8 @@ class PlaylistModule : Module() {
 
         AsyncFunction("add") { nativeId: NativeId, sourceNativeId: NativeId, index: Int? ->
             val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
-            val source = SourceRegistry.getSource(sourceNativeId) ?: return@AsyncFunction
+            val source = SourceRegistry.getSource(sourceNativeId)
+                ?: throw SourceException.SourceNotInitialized(sourceNativeId)
             if (index == null) {
                 player.playlist.add(source)
             } else {
