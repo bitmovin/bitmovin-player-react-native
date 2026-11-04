@@ -27,9 +27,6 @@ import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 
 export default (spec: TestScope) => {
-  // TODO(#1161): Run on iOS too, once its bridge supports playlists.
-  if (Platform.OS !== 'android') return;
-
   spec.describe('loading a playlist', () => {
     spec.it(
       'emits SourceAdded for every source before PlayerActive',
@@ -118,6 +115,31 @@ export default (spec: TestScope) => {
             getError(() => player.loadPlaylist({ sources: [source] })),
             'loadPlaylist should throw'
           ).toBeDefined();
+        });
+      });
+    });
+
+    spec.it('rejects a DASH source on iOS', async () => {
+      // The iOS SDK only supports HLS, progressive and movpkg sources in a playlist.
+      if (Platform.OS !== 'ios') {
+        console.warn('Skipping the iOS playlist source type test on Android');
+        return;
+      }
+      await startPlayerTest({}, async () => {
+        await callPlayer(async (player) => {
+          let error: unknown;
+          try {
+            await player.loadPlaylist({
+              sources: [
+                new Source(Sources.artOfMotionHls),
+                new Source(Sources.artOfMotionDash),
+              ],
+            });
+          } catch (e) {
+            error = e;
+          }
+          expect(error, 'loadPlaylist should reject').toBeDefined();
+          expect(await player.getSource(), 'Active source').toBeUndefined();
         });
       });
     });
@@ -316,9 +338,19 @@ export default (spec: TestScope) => {
           player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
-        await callPlayerAndExpectEvent(async (player) => {
-          await player.playlist.remove(first);
-        }, EventType.PlayerWarning);
+        // Both SDKs keep the active source, but they report the rejected removal differently:
+        // Android emits PlayerWarning, while the iOS SDK only logs a warning ("Removing the currently
+        // active source is not supported.") because PlayerWarningEvent is deprecated there. The log
+        // is not observable from JS, so iOS only checks that the source was not removed.
+        if (Platform.OS === 'android') {
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.playlist.remove(first);
+          }, EventType.PlayerWarning);
+        } else {
+          await callPlayer(async (player) => {
+            await player.playlist.remove(first);
+          });
+        }
 
         await callPlayer(async (player) => {
           const sources = await player.playlist.getSources();
