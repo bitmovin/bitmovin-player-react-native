@@ -4,6 +4,7 @@
 
 ### Added
 
+- iOS: Support for VMAP ad tags with the Bitmovin Advertising Module (`AdSourceType.BITMOVIN`). VMAP is already supported on Android
 - Android: `onPlaybackSpeedChanged` event to indicate playback speed changes. The event is already available in iOS
 - `onPlayerInactive` event prop on `PlayerView` to indicate when the active playback session ends and the player becomes inactive
 
