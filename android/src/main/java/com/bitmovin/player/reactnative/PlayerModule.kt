@@ -1,5 +1,7 @@
 package com.bitmovin.player.reactnative
 
+import android.os.Handler
+import android.os.Looper
 import androidx.core.os.bundleOf
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
@@ -45,20 +47,25 @@ class PlayerModule : Module() {
         }
 
         OnDestroy {
-            // Detach the listeners first, so destroying the players does not emit into this module.
-            eventRelay.clear { PlayerRegistry.getPlayer(it) }
-            // Clean up all players when module is destroyed
-            PlayerRegistry.getAllPlayers().forEach { player ->
-                try {
-                    player.destroy()
-                } catch (e: Exception) {
-                    // Log but don't crash on cleanup
+            // `OnDestroy` has no `runOnQueue` and is not guaranteed to run on the main thread, which the event relay
+            // and the players require. Post to the main looper directly: Expo cancels its `mainQueue` right after
+            // `OnDestroy`, which would drop a block launched on it.
+            Handler(Looper.getMainLooper()).post {
+                // Detach the listeners first, so destroying the players does not emit into this module.
+                eventRelay.clear { PlayerRegistry.getPlayer(it) }
+                // Clean up all players when module is destroyed
+                PlayerRegistry.getAllPlayers().forEach { player ->
+                    try {
+                        player.destroy()
+                    } catch (e: Exception) {
+                        // Log but don't crash on cleanup
+                    }
                 }
+                PlayerRegistry.clear()
             }
             shouldLoadAdItemWaiter.clear()
             shouldPlayAdBreakWaiter.clear()
             imaSettingsWaiter.clear()
-            PlayerRegistry.clear()
         }
 
         Events("onShouldLoadAdItem", "onShouldPlayAdBreak", "onImaBeforeInitialization", "onPlayerEvent")

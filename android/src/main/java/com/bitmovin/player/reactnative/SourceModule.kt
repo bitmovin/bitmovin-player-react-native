@@ -1,5 +1,7 @@
 package com.bitmovin.player.reactnative
 
+import android.os.Handler
+import android.os.Looper
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.source.Source
@@ -49,9 +51,14 @@ class SourceModule : Module() {
         }
 
         OnDestroy {
-            eventRelay.clear { SourceRegistry.getSource(it) }
-            // Only this module's sources, not those of a new module instance, e.g. after a reload.
-            SourceRegistry.unregisterAll(owner = this@SourceModule)
+            // `OnDestroy` has no `runOnQueue` and is not guaranteed to run on the main thread, which the event relay
+            // requires. Post to the main looper directly: Expo cancels its `mainQueue` right after `OnDestroy`, which
+            // would drop a block launched on it.
+            Handler(Looper.getMainLooper()).post {
+                eventRelay.clear { SourceRegistry.getSource(it) }
+                // Only this module's sources, not those of a new module instance, e.g. after a reload.
+                SourceRegistry.unregisterAll(owner = this@SourceModule)
+            }
         }
 
         Events("onSourceEvent")
