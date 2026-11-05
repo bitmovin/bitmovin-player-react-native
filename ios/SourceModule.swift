@@ -26,12 +26,17 @@ public class SourceModule: Module {
             // Module initialization
         }
         OnDestroy {
-            eventRelay.clear()
-            // Only this module's sources, not those of a new module instance, e.g. after a reload.
-            SourceRegistry.unregisterAll(owner: self)
-            castSourceConfigs.removeAll()
-            fairplayCancellables.values.forEach { $0.cancel() }
-            fairplayCancellables.removeAll()
+            // The event relay and the other state of this module must only be used on the main thread, which
+            // `OnDestroy` is not guaranteed to run on. This also keeps the lazy event relay from being created on
+            // another thread.
+            DispatchQueue.main.async { [self] in
+                eventRelay.clear()
+                // Only this module's sources, not those of a new module instance, e.g. after a reload.
+                SourceRegistry.unregisterAll(owner: self)
+                castSourceConfigs.removeAll()
+                fairplayCancellables.values.forEach { $0.cancel() }
+                fairplayCancellables.removeAll()
+            }
         }
 
         Events("onSourceEvent")
