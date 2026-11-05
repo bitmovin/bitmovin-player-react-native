@@ -9,13 +9,10 @@ import {
 import {
   createPlayer,
   delay,
-  loadSourceConfig,
   playWhenReady,
-  startPlayerTest,
   waitUntil,
   withPlayer,
 } from '../playertesting';
-import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 
@@ -285,18 +282,6 @@ export default (spec: TestScope) => {
             'SourceUnloaded should be received'
           ).toBeTruthy();
           expect(unloaded[0].source?.nativeId).toBe(source.nativeId);
-        });
-      }
-    );
-  });
-
-  spec.describe('PlayerView event props', () => {
-    spec.it(
-      'deliver PlayerActive when the view is mounted before loading',
-      async () => {
-        await startPlayerTest({}, async () => {
-          await loadSourceConfig(Sources.artOfMotionHls);
-          expect(PlayerTestWorld.shared.playerActivePropEvents).toHaveLength(1);
         });
       }
     );

@@ -8,6 +8,7 @@ import {
   EventType,
   expectEvents,
   FilteredEvent,
+  loadSourceConfig,
   startPlayerTest,
 } from '../playertesting';
 import { Sources } from './helper/Sources';
@@ -49,6 +50,23 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
       }
     );
   });
+
+  if (!vodOnly) {
+    spec.describe('PlayerView event props', () => {
+      spec.it(
+        'deliver PlayerActive when the view is mounted before loading',
+        async () => {
+          await startPlayerTest({}, async () => {
+            await loadSourceConfig(Sources.artOfMotionHls);
+            expect(
+              PlayerTestWorld.shared.playerActivePropEvents,
+              'PlayerActive received by the onPlayerActive prop'
+            ).toHaveLength(1);
+          });
+        }
+      );
+    });
+  }
 
   function loadingSourceTests(sourceConfig: SourceConfig, label: string) {
     spec.describe(`loading a ${label} source`, () => {
