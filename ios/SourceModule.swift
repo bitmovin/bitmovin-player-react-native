@@ -27,7 +27,8 @@ public class SourceModule: Module {
         }
         OnDestroy {
             eventRelay.clear()
-            SourceRegistry.clear()
+            // Only this module's sources, not those of a new module instance, e.g. after a reload.
+            SourceRegistry.unregisterAll(owner: self)
             castSourceConfigs.removeAll()
             fairplayCancellables.values.forEach { $0.cancel() }
             fairplayCancellables.removeAll()
@@ -153,7 +154,7 @@ public class SourceModule: Module {
         } else {
             source = SourceFactory.createSource(from: sourceConfig)
         }
-        SourceRegistry.register(source, nativeId: nativeId)
+        SourceRegistry.register(source, nativeId: nativeId, owner: self)
         // Attach Combine listener to populate the FairPlay registry when a license is acquired
         fairplayCancellables[nativeId] = source.events
             .on(FairplayLicenseAcquiredEvent.self)
