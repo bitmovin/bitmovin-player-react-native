@@ -59,6 +59,7 @@ Run commands from the repository root after the documented development setup.
 ```sh
 node --test scripts/test-network-preprocessing.js
 node --test scripts/test-event-listeners.js
+node --test scripts/test-player-event-props.js
 yarn test:plugin
 python3 -m unittest discover -s .github/scripts -p 'test_*.py'
 ```
@@ -75,6 +76,12 @@ setup for the JS listeners behind `Player.on` and `Source.on`. They cover which
 native `on`/`off` and initialization calls JS submits, including for overlapping
 `Source.initialize` calls, and how payloads are routed to listeners. They do not
 prove that native attaches a listener or emits an event.
+
+The [PlayerView event prop tests](../scripts/test-player-event-props.js) render
+the real `usePlayerEventProps` hook with `react-test-renderer` and a player
+double. They cover which events are attached for the set props, moving the
+listeners to a new player, unmounting, and a throwing prop. They do not prove
+that the native `PlayerView` renders or that events are emitted.
 
 `yarn test:plugin` builds and tests the config plugin. The Python command tests
 repository automation. Neither establishes Player runtime behavior. There is
@@ -135,7 +142,7 @@ and tests. Confirm execution from the job's steps and results. A test file,
 suite registration, typecheck, or successful app build alone is insufficient.
 
 Currently, [TypeScript CI](../.github/workflows/ci-typescript.yml) runs the network
-preprocessing and event listener scripts and plugin tests. The
+preprocessing, event listener and PlayerView event prop scripts and plugin tests. The
 [integration-test workflow](../.github/workflows/integration-tests.yml) is a
 manually dispatched stub and does not run Cavy. Do not report Cavy coverage from
 that workflow's success. Any automated Cavy coverage needs actual runner steps,
