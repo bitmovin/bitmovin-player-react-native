@@ -50,7 +50,8 @@ class SourceModule : Module() {
 
         OnDestroy {
             eventRelay.clear { SourceRegistry.getSource(it) }
-            SourceRegistry.clear()
+            // Only this module's sources, not those of a new module instance, e.g. after a reload.
+            SourceRegistry.unregisterAll(owner = this@SourceModule)
         }
 
         Events("onSourceEvent")
@@ -135,7 +136,7 @@ class SourceModule : Module() {
             } else {
                 Source.create(sourceConfig)
             }
-            SourceRegistry.register(nativeId, source)
+            SourceRegistry.register(nativeId, source, owner = this)
         } catch (e: Exception) {
             throw SourceException.SourceCreationFailed(e.message ?: "Unknown error")
         }
