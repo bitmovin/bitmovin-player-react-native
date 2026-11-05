@@ -83,6 +83,19 @@ const metadataEventNames = new Set<keyof PlayerEventMap>([
 
 type PlayerEventPropName = `on${Capitalize<keyof PlayerEventMap>}`;
 
+/**
+ * The listeners attached to `player` for the event props, by event name.
+ */
+type Subscription = {
+  player: Player;
+  listeners: Map<keyof PlayerEventMap, (event: Event) => void>;
+};
+
+const detachAll = ({ player, listeners }: Subscription) => {
+  listeners.forEach((listener, eventName) => player.off(eventName, listener));
+  listeners.clear();
+};
+
 const toPropName = (eventName: keyof PlayerEventMap) =>
   `on${eventName.charAt(0).toUpperCase()}${eventName.slice(1)}` as PlayerEventPropName;
 
@@ -110,11 +123,18 @@ export function usePlayerEventProps(player: Player, props: PlayerViewEvents) {
         .join(',')
     : '';
 
-  const listenersRef = useRef(
-    new Map<keyof PlayerEventMap, (event: Event) => void>()
-  );
+  const subscriptionRef = useRef<Subscription | undefined>(undefined);
   useEffect(() => {
-    const listeners = listenersRef.current;
+    let subscription = subscriptionRef.current;
+    if (subscription?.player !== player) {
+      // A new player: detach the listeners from the previous one before attaching them anew.
+      if (subscription) {
+        detachAll(subscription);
+      }
+      subscription = { player, listeners: new Map() };
+      subscriptionRef.current = subscription;
+    }
+    const { listeners } = subscription;
     const eventNames = new Set(
       subscribedEventNames
         ? (subscribedEventNames.split(',') as (keyof PlayerEventMap)[])
@@ -150,15 +170,14 @@ export function usePlayerEventProps(player: Player, props: PlayerViewEvents) {
     });
   }, [player, subscribedEventNames]);
 
-  // Declared after the effect above, but React runs all cleanups before re-running effects, so a new
-  // `player` is subscribed from scratch.
-  useEffect(() => {
-    const listeners = listenersRef.current;
-    return () => {
-      listeners.forEach((listener, eventName) =>
-        player.off(eventName, listener)
-      );
-      listeners.clear();
-    };
-  }, [player]);
+  // Detach everything when the view unmounts.
+  useEffect(
+    () => () => {
+      if (subscriptionRef.current) {
+        detachAll(subscriptionRef.current);
+        subscriptionRef.current = undefined;
+      }
+    },
+    []
+  );
 }
