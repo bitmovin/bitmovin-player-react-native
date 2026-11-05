@@ -10,6 +10,22 @@ import { delay, playWhenReady, waitUntil, withPlayer } from '../playertesting';
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 
+/**
+ * Runs `fn` with a new player using `nativeId` and destroys it afterwards.
+ */
+const withPlayerWithNativeId = async (
+  nativeId: string,
+  fn: (player: Player) => Promise<void>
+) => {
+  const player = new Player({ nativeId });
+  try {
+    await player.initialize();
+    await fn(player);
+  } finally {
+    player.destroy();
+  }
+};
+
 export default (spec: TestScope) => {
   // TODO: run on iOS too once its bridge supports Player.on and Source.on.
   if (Platform.OS !== 'android') return;
@@ -116,6 +132,36 @@ export default (spec: TestScope) => {
           player.destroy();
           samePlayer.destroy();
         }
+      }
+    );
+
+    spec.it(
+      'removes the listeners of another Player with the same nativeId when the player is destroyed',
+      async () => {
+        const nativeId = `destroyed-player-${Date.now()}`;
+        const player = new Player({ nativeId });
+        const samePlayer = new Player({ nativeId });
+        let isDestroyed = false;
+        let samePlayerReadyCount = 0;
+        player.on('destroy', () => {
+          isDestroyed = true;
+        });
+        samePlayer.on('ready', () => samePlayerReadyCount++);
+        await player.initialize();
+        player.destroy();
+        expect(
+          await waitUntil(() => isDestroyed),
+          'Destroy should be received'
+        ).toBeTruthy();
+
+        // A new player reusing the nativeId must not reach the listeners of the destroyed one. Its initialization
+        // runs on the native main queue after the destroy, so the listeners are removed by then.
+        await withPlayerWithNativeId(nativeId, async (newPlayer) => {
+          await playWhenReady(newPlayer, () =>
+            newPlayer.load(Sources.artOfMotionHls)
+          );
+        });
+        expect(samePlayerReadyCount, 'Ready of the new player').toBe(0);
       }
     );
 
