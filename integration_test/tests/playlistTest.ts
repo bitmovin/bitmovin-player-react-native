@@ -655,8 +655,8 @@ export default (spec: TestScope) => {
     spec.it(
       'releases the sources of its current session, which can be loaded again',
       async () => {
-        const playerA = new Player();
-        const playerB = new Player();
+        const playerA = createPlayer();
+        const playerB = createPlayer();
         try {
           await playerA.initialize();
           await playerB.initialize();
