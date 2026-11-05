@@ -95,7 +95,9 @@ export default function TestablePlayer({
             onMetadataParsed={onEvent}
             // Also received through onEvent; marked to tell the dedicated props apart.
             onPlayerActive={(event: PlayerActiveEvent) => {
-              playerTestWorld.onPlayerActive(event);
+              if (player && playerTestWorld.player === player) {
+                playerTestWorld.onPlayerActive(event);
+              }
               onEvent(fromDedicatedProp(event));
             }}
             onPlayerInactive={(event: Event) =>
