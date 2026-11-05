@@ -4,6 +4,7 @@ import {
   Event,
   Player,
   Source,
+  SourceLoadedEvent,
   SourceUnloadedEvent,
 } from 'bitmovin-player-react-native';
 import {
@@ -196,6 +197,44 @@ export default (spec: TestScope) => {
       await delay(1000);
       expect(received.length, 'Events after destroy').toBe(countAfterDestroy);
     });
+
+    spec.it(
+      'delivers source events via Source.on until the listener is removed',
+      async () => {
+        await withPlayer(async (player) => {
+          const source = new Source(Sources.artOfMotionHls);
+          const loaded: SourceLoadedEvent[] = [];
+          let removedCount = 0;
+          let isUnloaded = false;
+          const removedListener = () => removedCount++;
+          // Registered before the source is initialized.
+          source.on('sourceLoaded', (event) => loaded.push(event));
+          source.on('sourceUnloaded', removedListener);
+          source.on('sourceUnloaded', () => {
+            isUnloaded = true;
+          });
+          await player.initialize();
+          player.loadSource(source);
+
+          expect(
+            await waitUntil(() => loaded.length > 0),
+            'SourceLoaded should be received'
+          ).toBeTruthy();
+          expect(loaded[0].source.nativeId, 'Source of SourceLoaded').toBe(
+            source.nativeId
+          );
+
+          source.off('sourceUnloaded', removedListener);
+          player.unload();
+
+          expect(
+            await waitUntil(() => isUnloaded),
+            'SourceUnloaded should be received'
+          ).toBeTruthy();
+          expect(removedCount, 'Listener removed via off').toBe(0);
+        });
+      }
+    );
 
     spec.it('warns when registering a listener after destroying', async () => {
       const player = createPlayer();
