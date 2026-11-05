@@ -10,6 +10,8 @@ import type { PlayerViewEvents } from './events';
 // TODO: Use the player event subscriptions on iOS too once its bridge supports them.
 export const usesPlayerEvents = Platform.OS === 'android';
 
+// Listed as an object so that `satisfies` makes the compiler require every event of `PlayerEventMap`;
+// the values are unused.
 const playerEventNames = Object.keys({
   playerActive: true,
   playerInactive: true,
