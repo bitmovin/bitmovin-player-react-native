@@ -1,4 +1,5 @@
-import { Player } from 'bitmovin-player-react-native';
+import { Player, PlayerConfig } from 'bitmovin-player-react-native';
+import PlayerTestWorld from './PlayerTestWorld';
 
 /**
  * Helpers for tests that use a {@link Player} without a `PlayerView`, e.g. via {@link Player.on}.
@@ -48,10 +49,16 @@ export const playWhenReady = async (player: Player, load: () => void) => {
 };
 
 /**
+ * Creates a player with the license key of the test app, as `startPlayerTest` does, unless `config` sets one.
+ */
+export const createPlayer = (config: PlayerConfig = {}) =>
+  new Player({ licenseKey: PlayerTestWorld.defaultLicenseKey, ...config });
+
+/**
  * Runs `fn` with a player that is not attached to any `PlayerView` and destroys it afterwards.
  */
 export const withPlayer = async (fn: (player: Player) => Promise<void>) => {
-  const player = new Player();
+  const player = createPlayer();
   try {
     await fn(player);
   } finally {
