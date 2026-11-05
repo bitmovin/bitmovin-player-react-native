@@ -6,7 +6,13 @@ import {
   Source,
   SourceUnloadedEvent,
 } from 'bitmovin-player-react-native';
-import { delay, playWhenReady, waitUntil, withPlayer } from '../playertesting';
+import {
+  createPlayer,
+  delay,
+  playWhenReady,
+  waitUntil,
+  withPlayer,
+} from '../playertesting';
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 
@@ -17,7 +23,7 @@ const withPlayerWithNativeId = async (
   nativeId: string,
   fn: (player: Player) => Promise<void>
 ) => {
-  const player = new Player({ nativeId });
+  const player = createPlayer({ nativeId });
   try {
     await player.initialize();
     await fn(player);
@@ -107,8 +113,8 @@ export default (spec: TestScope) => {
       'keeps delivering events when another Player with the same nativeId unsubscribes',
       async () => {
         const nativeId = `shared-player-${Date.now()}`;
-        const player = new Player({ nativeId });
-        const samePlayer = new Player({ nativeId });
+        const player = createPlayer({ nativeId });
+        const samePlayer = createPlayer({ nativeId });
         try {
           let isMuted = false;
           player.on('muted', () => {
@@ -139,8 +145,8 @@ export default (spec: TestScope) => {
       'removes the listeners of another Player with the same nativeId when the player is destroyed',
       async () => {
         const nativeId = `destroyed-player-${Date.now()}`;
-        const player = new Player({ nativeId });
-        const samePlayer = new Player({ nativeId });
+        const player = createPlayer({ nativeId });
+        const samePlayer = createPlayer({ nativeId });
         let isDestroyed = false;
         let samePlayerReadyCount = 0;
         player.on('destroy', () => {
@@ -166,7 +172,7 @@ export default (spec: TestScope) => {
     );
 
     spec.it('removes all listeners when the player is destroyed', async () => {
-      const player = new Player();
+      const player = createPlayer();
       const received: Event[] = [];
       const record = (event: Event) => received.push(event);
       player.on('timeChanged', record);
@@ -192,7 +198,7 @@ export default (spec: TestScope) => {
     });
 
     spec.it('warns when registering a listener after destroying', async () => {
-      const player = new Player();
+      const player = createPlayer();
       const source = new Source(Sources.artOfMotionHls);
       await player.initialize();
       player.destroy();
