@@ -48,22 +48,22 @@ public class SourceModule: Module {
         AsyncFunction("off") { [weak self] (nativeId: NativeId, eventName: String) in
             self?.eventRelay.off(nativeId: nativeId, eventName: eventName)
         }.runOnQueue(.main)
-        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: NativeId, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?) in // swiftlint:disable:this line_length
+        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: NativeId, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?) -> Bool in // swiftlint:disable:this line_length
             self?.createSource(
                 nativeId: nativeId,
                 drmNativeId: drmNativeId,
                 config: config,
                 sourceRemoteControlConfig: sourceRemoteControlConfig
-            )
+            ) ?? false
         }.runOnQueue(.main)
-        AsyncFunction("initializeWithAnalyticsConfig") { [weak self] (nativeId: NativeId, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?, analyticsSourceMetadata: [String: Any]?) in // swiftlint:disable:this line_length
+        AsyncFunction("initializeWithAnalyticsConfig") { [weak self] (nativeId: NativeId, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?, analyticsSourceMetadata: [String: Any]?) -> Bool in // swiftlint:disable:this line_length
             self?.createSource(
                 nativeId: nativeId,
                 drmNativeId: drmNativeId,
                 config: config,
                 sourceRemoteControlConfig: sourceRemoteControlConfig,
                 analyticsSourceMetadata: analyticsSourceMetadata
-            )
+            ) ?? false
         }.runOnQueue(.main)
         AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
             self?.destroySource(nativeId: nativeId)
@@ -133,22 +133,27 @@ public class SourceModule: Module {
         return RCTConvert.toJson(thumbnail: thumbnail)
     }
 
+    /**
+     Creates and registers the source with the given `nativeId`.
+
+     - Returns: Whether a new source was created, `false` if it already exists or `config` is invalid.
+     */
     private func createSource(
         nativeId: NativeId,
         drmNativeId: NativeId?,
         config: [String: Any]?,
         sourceRemoteControlConfig: [String: Any]?,
         analyticsSourceMetadata: [String: Any]? = nil
-    ) {
+    ) -> Bool {
         guard retrieve(nativeId) == nil else {
             // Source already exists
-            return
+            return false
         }
         // Get DRM config if provided
         let drmModule = appContext?.moduleRegistry.get(DrmModule.self)
         let drmConfig = drmNativeId.flatMap { drmModule?.retrieve($0) }
         guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig) else {
-            return
+            return false
         }
         // Add analytics metadata if provided
         let sourceMetadata = RCTConvert.analyticsSourceMetadata(analyticsSourceMetadata)
@@ -172,6 +177,7 @@ public class SourceModule: Module {
             castSourceConfigs[nativeId] = remoteConfig.castSourceConfig
         }
 #endif
+        return true
     }
 
     /**
