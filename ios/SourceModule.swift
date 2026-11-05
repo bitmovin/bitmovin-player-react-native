@@ -66,7 +66,7 @@ public class SourceModule: Module {
             ) ?? false
         }.runOnQueue(.main)
         AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
-            self?.destroySource(nativeId: nativeId)
+            self?.releaseSource(nativeId: nativeId)
         }.runOnQueue(.main)
         AsyncFunction("isAttachedToPlayer") { [weak self] (nativeId: NativeId) -> Bool? in
             self?.retrieve(nativeId)?.isAttachedToPlayer
@@ -145,8 +145,9 @@ public class SourceModule: Module {
         sourceRemoteControlConfig: [String: Any]?,
         analyticsSourceMetadata: [String: Any]? = nil
     ) -> Bool {
-        guard retrieve(nativeId) == nil else {
-            // Source already exists
+        if let existingSource = retrieve(nativeId) {
+            // Keep the source if its release is pending, e.g. because it is added again right after it was removed.
+            appContext?.moduleRegistry.get(PlayerModule.self)?.keepSource(existingSource)
             return false
         }
         // Get DRM config if provided
@@ -181,9 +182,10 @@ public class SourceModule: Module {
     }
 
     /**
-     Destroys the source instance with the given `nativeId`.
+     Releases the bridge's handle of the source with the given `nativeId`: detaches its event listeners and removes it
+     from the `SourceRegistry`. The native `Source` itself is not touched.
      */
-    private func destroySource(nativeId: NativeId) {
+    internal func releaseSource(nativeId: NativeId) {
         eventRelay.offAll(nativeId: nativeId)
         SourceRegistry.unregister(nativeId: nativeId)
         castSourceConfigs.removeValue(forKey: nativeId)
