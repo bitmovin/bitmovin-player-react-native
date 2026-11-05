@@ -48,8 +48,19 @@ export const callListener = <T extends Event>(
  *
  * Native subscription changes are not awaited: they run on the native main queue in call order, so they are
  * applied before any later native call on that queue, e.g. a load.
+ *
+ * Several instances can share a native instance, e.g. two `Player`s created with the same `nativeId`.
  */
 export class EventListeners<EventMap> {
+  /**
+   * The instances that have listeners, per native module and `nativeId`. Instances without listeners are not kept,
+   * so that unused ones (e.g. one `Player` per render of `usePlayer`) can be garbage collected.
+   */
+  private static readonly withListeners = new Map<
+    NativeEventModule,
+    Map<string, Set<EventListeners<unknown>>>
+  >();
+
   private readonly listeners = new Map<string, Set<Listener>>();
   private moduleSubscription?: EventSubscription;
   private isNativeAttached = false;
@@ -70,7 +81,10 @@ export class EventListeners<EventMap> {
     if (!eventListeners) {
       eventListeners = new Set();
       this.listeners.set(eventName, eventListeners);
-      this.moduleSubscription ??= this.addModuleListener(this.dispatch);
+      if (!this.moduleSubscription) {
+        this.moduleSubscription = this.addModuleListener(this.dispatch);
+        this.sharingInstances(true).add(this);
+      }
       if (this.isNativeAttached) {
         void this.nativeModule.on(this.nativeId, eventName);
       }
@@ -91,8 +105,7 @@ export class EventListeners<EventMap> {
       void this.nativeModule.off(this.nativeId, eventName);
     }
     if (this.listeners.size === 0) {
-      this.moduleSubscription?.remove();
-      this.moduleSubscription = undefined;
+      this.removeModuleSubscription();
     }
   }
 
@@ -111,14 +124,56 @@ export class EventListeners<EventMap> {
   };
 
   /**
-   * Removes all listeners. The native listeners are expected to be released with the native instance.
+   * Removes all listeners of this instance and of all other instances sharing its native instance, as the native
+   * listeners are released with the native instance, e.g. when the player is destroyed.
    */
   removeAll = () => {
-    this.listeners.clear();
-    this.moduleSubscription?.remove();
-    this.moduleSubscription = undefined;
-    this.isNativeAttached = false;
+    new Set([this, ...this.sharingInstances()]).forEach((instance) =>
+      instance.clear()
+    );
   };
+
+  private clear() {
+    this.listeners.clear();
+    this.removeModuleSubscription();
+    this.isNativeAttached = false;
+  }
+
+  private removeModuleSubscription() {
+    if (!this.moduleSubscription) {
+      return;
+    }
+    this.moduleSubscription.remove();
+    this.moduleSubscription = undefined;
+    const instances = this.sharingInstances();
+    instances.delete(this);
+    if (instances.size === 0) {
+      EventListeners.withListeners
+        .get(this.nativeModule)
+        ?.delete(this.nativeId);
+    }
+  }
+
+  /**
+   * The instances with listeners that share the native instance of this one, including this one if it has listeners.
+   */
+  private sharingInstances(create = false): Set<EventListeners<unknown>> {
+    let byNativeId = EventListeners.withListeners.get(this.nativeModule);
+    if (!byNativeId) {
+      byNativeId = new Map();
+      if (create) {
+        EventListeners.withListeners.set(this.nativeModule, byNativeId);
+      }
+    }
+    let instances = byNativeId.get(this.nativeId);
+    if (!instances) {
+      instances = new Set();
+      if (create) {
+        byNativeId.set(this.nativeId, instances);
+      }
+    }
+    return instances;
+  }
 
   private dispatch = ({ nativeId, eventName, event }: NativeEventPayload) => {
     if (nativeId !== this.nativeId) {

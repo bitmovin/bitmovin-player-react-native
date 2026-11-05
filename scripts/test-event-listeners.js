@@ -163,3 +163,79 @@ test('initializes a source natively once for overlapping initialize calls', asyn
     ['on', 'random-id', 'sourceLoaded'],
   ]);
 });
+
+// Several JS instances (e.g. `Player`s created with the same `nativeId`) can
+// share one native instance and its native module.
+function sharedFixture() {
+  const { EventListeners } = require(path.join(root, 'utils/eventListeners'));
+  const calls = [];
+  const nativeModule = {
+    on: async (nativeId, eventName) => calls.push(['on', nativeId, eventName]),
+    off: async (nativeId, eventName) =>
+      calls.push(['off', nativeId, eventName]),
+  };
+  const moduleListeners = new Set();
+  const create = (nativeId, module = nativeModule) =>
+    new EventListeners(nativeId, module, (listener) => {
+      moduleListeners.add(listener);
+      return { remove: () => moduleListeners.delete(listener) };
+    });
+  const emit = (payload) =>
+    [...moduleListeners].forEach((listener) => listener(payload));
+  return { EventListeners, nativeModule, calls, create, emit };
+}
+
+test('removes the listeners of all instances sharing the native instance', () => {
+  const { calls, create, emit } = sharedFixture();
+  const destroyed = create('player-id');
+  const sharing = create('player-id');
+  const other = create('other-player');
+  const received = [];
+  destroyed.on('ready', () => received.push('destroyed'));
+  sharing.on('ready', () => received.push('sharing'));
+  other.on('ready', () => received.push('other'));
+  [destroyed, sharing, other].forEach((listeners) => listeners.attachNative());
+  calls.length = 0;
+
+  destroyed.removeAll();
+  const event = { name: 'onReady', timestamp: 1 };
+  emit({ nativeId: 'player-id', eventName: 'ready', event });
+  emit({ nativeId: 'other-player', eventName: 'ready', event });
+
+  assert.deepEqual(received, ['other']);
+  // The native listeners are released with the native instance.
+  assert.deepEqual(calls, []);
+});
+
+test('does not remove the listeners of another native module', () => {
+  const { nativeModule, create, emit } = sharedFixture();
+  const otherModule = { ...nativeModule };
+  const player = create('same-id');
+  const source = create('same-id', otherModule);
+  const received = [];
+  player.on('ready', () => received.push('player'));
+  source.on('ready', () => received.push('source'));
+
+  player.removeAll();
+  emit({
+    nativeId: 'same-id',
+    eventName: 'ready',
+    event: { name: 'onReady', timestamp: 1 },
+  });
+
+  assert.deepEqual(received, ['source']);
+});
+
+test('only keeps instances while they have listeners', () => {
+  const { EventListeners, nativeModule, create } = sharedFixture();
+  const listener = () => {};
+  const first = create('player-id');
+  const second = create('player-id');
+  first.on('ready', listener);
+  second.on('ready', listener);
+  first.off('ready', listener);
+  second.removeAll();
+
+  // Implementation detail, checked so that unused instances are not retained.
+  assert.equal(EventListeners.withListeners.get(nativeModule)?.size ?? 0, 0);
+});
