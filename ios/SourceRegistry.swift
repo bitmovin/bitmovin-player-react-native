@@ -39,12 +39,13 @@ internal enum SourceRegistry {
 
     /**
      * Resolves the `nativeId` of the first source matching `predicate` by iterating all sources, as an app only has
-     * a few of them.
+     * a few of them. `predicate` runs outside the lock, so it may use the registry itself.
      */
     static func nativeId(where predicate: (Source) -> Bool) -> NativeId? {
         lock.lock()
-        defer { lock.unlock() }
-        return sources.first { predicate($0.value.source) }?.key
+        let entries = sources
+        lock.unlock()
+        return entries.first { predicate($0.value.source) }?.key
     }
 
     static func nativeId(of source: Source) -> NativeId? {
