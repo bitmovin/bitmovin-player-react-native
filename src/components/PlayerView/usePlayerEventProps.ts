@@ -7,8 +7,7 @@ import { addPlatformToMetadataEvent } from '../../utils/metadataPlatform';
 import { callListener } from '../../utils/eventListeners';
 import type { PlayerViewEvents } from './events';
 
-// TODO: Use the player event subscriptions on iOS too once its bridge supports them
-// (iOS phase 2 in docs/events-plan.md, section 11).
+// TODO: Use the player event subscriptions on iOS too once its bridge supports them.
 export const usesPlayerEvents = Platform.OS === 'android';
 
 const playerEventNames = Object.keys({
