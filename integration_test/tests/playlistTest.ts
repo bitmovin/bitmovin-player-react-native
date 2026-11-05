@@ -22,6 +22,7 @@ import {
   PlainEvent,
   startPlayerTest,
   waitUntil,
+  createPlayer,
 } from '../playertesting';
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
@@ -135,7 +136,7 @@ export default (spec: TestScope) => {
     spec.it(
       'delivers SourceLoaded of a preloaded inactive source via Source.on',
       async () => {
-        const player = new Player();
+        const player = createPlayer();
         try {
           const first = new Source(Sources.artOfMotionHls);
           const second = new Source(Sources.sintel);
