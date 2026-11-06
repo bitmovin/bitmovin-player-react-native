@@ -34,7 +34,7 @@ const withPlayerWithNativeId = async (
 };
 
 export default (spec: TestScope) => {
-  // TODO: run on iOS too once its bridge supports Player.on and Source.on.
+  // TODO(#1157): Run on iOS too, once its bridge supports Player.on and Source.on.
   if (Platform.OS !== 'android') return;
 
   spec.describe('player events without a PlayerView', () => {
