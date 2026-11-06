@@ -295,6 +295,16 @@ public class PlayerModule: Module {
 
     private static let supportedPlaylistSourceTypes: [SourceType] = [.hls, .progressive, .movpkg]
 
+    /// Throws if the iOS SDK cannot play `source` as part of a playlist.
+    internal static func validatePlaylistSourceType(_ source: Source, sourceNativeId: NativeId) throws {
+        guard supportedPlaylistSourceTypes.contains(source.sourceConfig.type) else {
+            throw Exception(
+                name: "UNSUPPORTED_PLAYLIST_SOURCE",
+                description: "Source \(sourceNativeId) cannot be part of a playlist on iOS: only HLS, progressive and movpkg sources are supported" // swiftlint:disable:this line_length
+            )
+        }
+    }
+
     private static func validatePlaylistSources(
         _ sources: [Source],
         sourceNativeIds: [NativeId],
@@ -304,12 +314,8 @@ public class PlayerModule: Module {
             throw Exception(name: "EMPTY_PLAYLIST", description: "Playlist config has no sources")
         }
         let sourcesWithNativeIds = zip(sources, sourceNativeIds)
-        for (source, sourceNativeId) in sourcesWithNativeIds
-        where !supportedPlaylistSourceTypes.contains(source.sourceConfig.type) {
-            throw Exception(
-                name: "UNSUPPORTED_PLAYLIST_SOURCE",
-                description: "Source \(sourceNativeId) cannot be part of a playlist on iOS: only HLS, progressive and movpkg sources are supported" // swiftlint:disable:this line_length
-            )
+        for (source, sourceNativeId) in sourcesWithNativeIds {
+            try validatePlaylistSourceType(source, sourceNativeId: sourceNativeId)
         }
         // The SDK ignores a source listed more than once and only logs a warning.
         var seenSources = Set<ObjectIdentifier>()
