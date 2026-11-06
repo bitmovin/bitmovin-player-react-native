@@ -231,7 +231,8 @@ export class Source extends NativeInstance<SourceConfig> {
         );
     this.isInitialized = true;
     this.isDestroyed = false;
-    if (isCreated) {
+    // Android resolves the instance id of a newly created source, which starts at 0, and iOS whether it created it.
+    if (typeof isCreated === 'number' || isCreated === true) {
       // A released native source is created again without the native listeners of the released one.
       this.eventListeners.reattachNative();
     } else {

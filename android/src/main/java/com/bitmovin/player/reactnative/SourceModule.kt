@@ -61,7 +61,7 @@ class SourceModule : Module() {
             }
         }
 
-        Events("onSourceEvent")
+        Events("onSourceEvent", "onSourceReleased")
 
         AsyncFunction("on") { nativeId: NativeId, eventName: String ->
             val source = SourceRegistry.getSource(nativeId) ?: return@AsyncFunction
@@ -119,7 +119,8 @@ class SourceModule : Module() {
     /**
      * Creates the native [Source] of [nativeId] unless it already exists.
      *
-     * @return Whether a new native [Source] was created, e.g. again after it was released.
+     * @return The instance id of the new native [Source], e.g. created again after it was released, or `null` if it
+     * already existed.
      */
     private fun initializeSource(
         nativeId: NativeId,
@@ -127,11 +128,11 @@ class SourceModule : Module() {
         config: Map<String, Any>?,
         sourceRemoteControlConfig: Map<String, Any>?,
         analyticsSourceMetadata: Map<String, Any>?,
-    ): Boolean {
+    ): Int? {
         val existingSource = SourceRegistry.getSource(nativeId)
         if (existingSource != null) {
             appContext.registry.getModule<PlayerModule>()?.keepSource(existingSource)
-            return false
+            return null
         }
 
         val sourceConfig = config?.toSourceConfig()
@@ -147,20 +148,22 @@ class SourceModule : Module() {
             } else {
                 Source.create(sourceConfig)
             }
-            SourceRegistry.register(nativeId, source, owner = this)
+            return SourceRegistry.register(nativeId, source, owner = this)
         } catch (e: Exception) {
             throw SourceException.SourceCreationFailed(e.message ?: "Unknown error")
         }
-        return true
     }
 
     /**
      * Releases the bridge's handle of a source: detaches its event listeners and removes it from the
      * [SourceRegistry]. The native [Source] itself is not affected.
+     *
+     * Emits `onSourceReleased`, so that JS releases its resources of the source as well, e.g. its DRM config.
      */
     fun releaseSource(nativeId: NativeId) {
         eventRelay.offAll(nativeId, SourceRegistry.getSource(nativeId))
-        SourceRegistry.unregister(nativeId)
+        val instanceId = SourceRegistry.unregister(nativeId) ?: return
+        sendEvent("onSourceReleased", mapOf("nativeId" to nativeId, "instanceId" to instanceId))
     }
 }
 

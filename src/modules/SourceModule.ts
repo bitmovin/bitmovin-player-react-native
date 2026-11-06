@@ -33,22 +33,22 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
    * Initializes a source with the given nativeId, optional DRM nativeId, configuration object,
    * and remote control object.
    *
-   * Resolves whether a new native source was created, e.g. again after it was released.
-   * Resolves nothing on iOS, which does not release sources.
+   * Resolves the instance id of the newly created native source, e.g. created again after it was released, or
+   * nothing if it already existed. Resolves nothing on iOS, which does not release sources.
    */
   initializeWithConfig(
     nativeId: string,
     drmNativeId?: string,
     config?: Record<string, any>,
     remoteControl?: SourceRemoteControlConfig
-  ): Promise<boolean | null>;
+  ): Promise<number | boolean | null>;
 
   /**
    * Initializes a source with the given nativeId, optional DRM nativeId, configuration object,
    * remote control object, and analytics source metadata.
    *
-   * Resolves whether a new native source was created, e.g. again after it was released.
-   * Resolves nothing on iOS, which does not release sources.
+   * Resolves the instance id of the newly created native source, e.g. created again after it was released, or
+   * nothing if it already existed. Resolves nothing on iOS, which does not release sources.
    */
   initializeWithAnalyticsConfig(
     nativeId: string,
@@ -56,7 +56,7 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
     config?: Record<string, any>,
     remoteControl?: SourceRemoteControlConfig,
     analyticsSourceMetadata?: Record<string, any>
-  ): Promise<boolean | null>;
+  ): Promise<number | boolean | null>;
 
   /**
    * Destroys the source with the given nativeId.
