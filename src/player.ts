@@ -20,6 +20,7 @@ import type { PlaylistConfig } from './playlist';
 import { PlaylistApi } from './playlist';
 import type { PlayerEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
+import { SourceRegistry } from './utils/sourceRegistry';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -56,14 +57,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   mediaControls: MediaControlsApi = new MediaControlsApi(this.nativeId);
   /**
-   * All {@link Source}s handed to the native player, keyed by {@link Source.nativeId}.
-   * Used to resolve native sources back to their JS instances.
-   */
-  private readonly knownSources = new Map<string, Source>();
-  /**
    * The {@link PlaylistApi} for interactions regarding the playlist of the playback session.
    */
-  playlist: PlaylistApi = new PlaylistApi(this.nativeId, this.knownSources);
+  playlist: PlaylistApi = new PlaylistApi(this.nativeId);
 
   private network?: Network;
 
@@ -125,6 +121,9 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Destroys the native `Player` and releases all of its allocated resources.
+   *
+   * The {@link Source}s of the current playback session are released as well, and can be loaded again, e.g. into
+   * another player.
    */
   destroy = () => {
     if (!this.isDestroyed) {
@@ -132,8 +131,6 @@ export class Player extends NativeInstance<PlayerConfig> {
       void PlayerModule.destroy(this.nativeId).finally(() => {
         this.eventListeners.removeAll();
       });
-      this.knownSources.forEach((source) => void source.destroy());
-      this.knownSources.clear();
       void this.network?.destroy();
       void this.decoderConfig?.destroy();
       this.onShouldLoadAdItemSubscription?.remove();
@@ -202,7 +199,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Loads the given {@link Source} into the player.
    */
   loadSource = (source: Source) => {
-    this.knownSources.set(source.nativeId, source);
     void source
       .initialize()
       .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
@@ -216,7 +212,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   getSource = async (): Promise<Source | undefined> => {
     const sourceNativeId = await PlayerModule.source(this.nativeId);
-    return sourceNativeId ? this.knownSources.get(sourceNativeId) : undefined;
+    return sourceNativeId ? SourceRegistry.get(sourceNativeId) : undefined;
   };
 
   /**
@@ -231,13 +227,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * On iOS and tvOS, only HLS, progressive and `movpkg` sources can be part of a playlist.
    *
-   * @returns a promise that rejects if the playlist could not be loaded, e.g. when `sources` is empty, a source
-   * was destroyed, or (on iOS and tvOS) a source has an unsupported type.
+   * @returns a promise that rejects if the playlist could not be loaded, e.g. when `sources` is empty or (on iOS
+   * and tvOS) a source has an unsupported type.
    */
   loadPlaylist = async (playlistConfig: PlaylistConfig): Promise<void> => {
-    playlistConfig.sources.forEach((source) =>
-      this.knownSources.set(source.nativeId, source)
-    );
     await Promise.all(
       playlistConfig.sources.map((source) => source.initialize())
     );

@@ -74,8 +74,11 @@ completion rejection. They do not run a native decoder or completer.
 The [event listener tests](../scripts/test-event-listeners.js) use the same
 setup for the JS listeners behind `Player.on` and `Source.on`. They cover which
 native `on`/`off` and initialization calls JS submits, including for overlapping
-`Source.initialize` calls, and how payloads are routed to listeners. They do not
-prove that native attaches a listener or emits an event.
+`Source.initialize` calls, and how payloads are routed to listeners. They also
+cover the JS source registry: unregistering a source and releasing its DRM once
+native reports its release, and ignoring the release of a native source that was
+created again since. They do not prove that native attaches a listener, emits an
+event, or releases a source.
 
 The [PlayerView event prop tests](../scripts/test-player-event-props.js) render
 the real `usePlayerEventProps` hook with `react-test-renderer` and a player

@@ -2,7 +2,6 @@ import { Platform } from 'react-native';
 import { TestScope } from 'cavy';
 import {
   LoadingState,
-  Player,
   PlaylistTransitionEvent,
   ReplayMode,
   SeekEvent,
@@ -79,19 +78,28 @@ export default (spec: TestScope) => {
       });
     });
 
-    spec.it('rejects an empty playlist', async () => {
-      await startPlayerTest({}, async () => {
-        await callPlayer(async (player) => {
-          let error: unknown;
-          try {
-            await player.loadPlaylist({ sources: [] });
-          } catch (e) {
-            error = e;
-          }
-          expect(error, 'loadPlaylist should reject').toBeDefined();
+    spec.it(
+      'rejects an empty playlist and keeps the current session',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const source = new Source(Sources.artOfMotionHls);
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.loadPlaylist({ sources: [source] });
+          }, EventType.Ready);
+
+          await callPlayer(async (player) => {
+            let error: unknown;
+            try {
+              await player.loadPlaylist({ sources: [] });
+            } catch (e) {
+              error = e;
+            }
+            expect(error, 'loadPlaylist should reject').toBeDefined();
+            expect(await player.getSource()).toBe(source);
+          });
         });
-      });
-    });
+      }
+    );
 
     spec.it('rejects an unknown replay mode', async () => {
       await startPlayerTest({}, async () => {
@@ -191,8 +199,6 @@ export default (spec: TestScope) => {
             'Active source of the other player'
           ).toBeUndefined();
 
-          // Checked before destroying the other player, which destroys every source passed to its
-          // `loadPlaylist`, including the rejected one.
           await callPlayer(async (player) => {
             expect(await player.getSource(), 'Active source').toBe(source);
             expect(await source.isActive(), 'Source is active').toBeTruthy();
@@ -200,6 +206,26 @@ export default (spec: TestScope) => {
         } finally {
           otherPlayer.destroy();
         }
+      });
+    });
+
+    spec.it('resolves the active source after overlapping loads', async () => {
+      await startPlayerTest({}, async () => {
+        const first = new Source(Sources.artOfMotionHls);
+        const second = new Source(Sources.sintel);
+
+        await callPlayer(async (player) => {
+          await Promise.all([
+            player.loadPlaylist({ sources: [first] }),
+            player.loadPlaylist({ sources: [second] }),
+          ]);
+          expect(await player.getSource(), 'Active source').toBe(second);
+          const sources = await player.playlist.getSources();
+          expect(
+            sources.map((source) => source.nativeId),
+            'Sources of the playlist'
+          ).toEqual([second.nativeId]);
+        });
       });
     });
 
@@ -483,6 +509,70 @@ export default (spec: TestScope) => {
       });
     });
 
+    spec.it(
+      'keeps the listeners of a removed source that is added again',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const first = new Source(Sources.artOfMotionHls);
+          const second = new Source(Sources.sintel);
+          const secondLoaded: SourceLoadedEvent[] = [];
+          second.on('sourceLoaded', (event) => secondLoaded.push(event));
+
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.loadPlaylist({ sources: [first, second] });
+          }, EventType.Ready);
+
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.playlist.remove(second);
+          }, EventType.SourceRemoved);
+          // The source is released before `remove` resolves, so adding it again re-creates it natively.
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.playlist.add(second);
+          }, EventType.SourceAdded);
+          await callPlayer(async (player) => {
+            const sources = await player.playlist.getSources();
+            expect(sources.map((source) => source.nativeId)).toEqual([
+              first.nativeId,
+              second.nativeId,
+            ]);
+            // Only count the events of the re-added source from here on.
+            secondLoaded.length = 0;
+            await player.playlist.seek(second, 0);
+          });
+
+          const isLoaded = await waitUntil(async () => secondLoaded.length > 0);
+          expect(isLoaded, 'SourceLoaded of the re-added source').toBeTruthy();
+        });
+      }
+    );
+
+    spec.it(
+      'resolves a source that is removed and added again at the same time',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const first = new Source(Sources.artOfMotionHls);
+          const second = new Source(Sources.sintel);
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.loadPlaylist({ sources: [first, second] });
+          }, EventType.Ready);
+
+          await callPlayer(async (player) => {
+            await Promise.all([
+              player.playlist.remove(second),
+              player.playlist.add(second),
+            ]);
+            const isReAdded = await waitUntil(async () => {
+              const sources = await player.playlist.getSources();
+              return sources.length === 2;
+            });
+            expect(isReAdded, 'Both sources in the playlist').toBeTruthy();
+            const sources = await player.playlist.getSources();
+            expect(sources[1], 'Re-added source').toBe(second);
+          });
+        });
+      }
+    );
+
     spec.it('does not remove the active source', async () => {
       await startPlayerTest({}, async () => {
         const first = new Source(Sources.artOfMotionHls);
@@ -605,5 +695,34 @@ export default (spec: TestScope) => {
         });
       });
     });
+  });
+
+  spec.describe('destroying a player', () => {
+    spec.it(
+      'leaves the source of another player intact, and its own sources can be loaded again',
+      async () => {
+        const playerA = createPlayer();
+        const playerB = createPlayer();
+        try {
+          await playerA.initialize();
+          await playerB.initialize();
+          const moved = new Source(Sources.artOfMotionHls);
+          const current = new Source(Sources.sintel);
+          await playerA.loadPlaylist({ sources: [moved] });
+          await playerA.loadPlaylist({ sources: [current] });
+          await playerB.loadPlaylist({ sources: [moved] });
+
+          playerA.destroy();
+
+          expect(await playerB.getSource()).toBe(moved);
+          await playerB.loadPlaylist({ sources: [current] });
+          expect(await playerB.getSource()).toBe(current);
+          expect(await current.isActive(), 'Reloaded source').toBeTruthy();
+        } finally {
+          playerA.destroy();
+          playerB.destroy();
+        }
+      }
+    );
   });
 };

@@ -9,6 +9,7 @@ import type { SourceMetadata } from './analytics';
 import SourceModule from './modules/SourceModule';
 import type { SourceEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
+import { SourceRegistry } from './utils/sourceRegistry';
 
 /**
  * Types of media that can be handled by the player.
@@ -180,14 +181,23 @@ export class Source extends NativeInstance<SourceConfig> {
   remoteControl: SourceRemoteControlConfig | null = null;
   /**
    * Whether the native {@link Source} object has been created.
+   * The native source is released once it is removed from a player or its player is destroyed, and
+   * {@link Source.initialize} creates it again, e.g. when the source is loaded again.
    */
   isInitialized = false;
   /**
-   * Whether the native {@link Source} object has been disposed.
+   * Whether the native {@link Source} object has been disposed via {@link Source.destroy}.
+   *
+   * @internal
    */
   isDestroyed = false;
 
   private initialization?: Promise<void>;
+  /**
+   * The instance id of the native source, as resolved by its creation.
+   */
+  // TODO(#1163): Set on iOS too, once its bridge reports instance ids.
+  private nativeInstanceId?: number;
   private readonly eventListeners = new EventListeners<SourceEventMap>(
     this.nativeId,
     SourceModule,
@@ -195,7 +205,7 @@ export class Source extends NativeInstance<SourceConfig> {
   );
 
   /**
-   * Allocates the native {@link Source} instance and its resources natively.
+   * Allocates the native {@link Source} instance and its resources natively, or again if it has been released.
    * Calls made while an initialization is in progress share it.
    */
   initialize = (): Promise<void> => {
@@ -206,44 +216,89 @@ export class Source extends NativeInstance<SourceConfig> {
   };
 
   private initializeNative = async (): Promise<void> => {
-    if (!this.isInitialized) {
-      const sourceMetadata = this.config?.analyticsSourceMetadata;
-      if (this.config?.drmConfig) {
-        this.drm = new Drm(this.config.drmConfig, this.nativeId);
-        await this.drm.initialize();
+    const sourceMetadata = this.config?.analyticsSourceMetadata;
+    if (this.config?.drmConfig && !this.drm) {
+      const drm = new Drm(this.config.drmConfig, this.nativeId);
+      try {
+        await drm.initialize();
+      } catch (error) {
+        // Release its subscriptions, so that a later initialization starts over.
+        void drm.destroy();
+        throw error;
       }
-      if (sourceMetadata) {
-        await SourceModule.initializeWithAnalyticsConfig(
+      this.drm = drm;
+    }
+    const instanceId = sourceMetadata
+      ? await SourceModule.initializeWithAnalyticsConfig(
           this.nativeId,
           this.drm?.nativeId,
           this.config,
           this.remoteControl || undefined,
           sourceMetadata
-        );
-      } else {
-        await SourceModule.initializeWithConfig(
+        )
+      : await SourceModule.initializeWithConfig(
           this.nativeId,
           this.drm?.nativeId,
           this.config,
           this.remoteControl || undefined
         );
-      }
-      this.isInitialized = true;
+    // TODO(#1163): Only accept an instance id, once the iOS bridge reports instance ids instead of whether it
+    // created the source.
+    const isCreated = typeof instanceId === 'number' || instanceId === true;
+    if (typeof instanceId === 'number') {
+      this.nativeInstanceId = instanceId;
+    }
+    SourceRegistry.register(this);
+    this.isInitialized = true;
+    this.isDestroyed = false;
+    if (isCreated) {
+      // A released native source is created again without the native listeners of the released one.
+      this.eventListeners.reattachNative();
+    } else {
       this.eventListeners.attachNative();
     }
-    return Promise.resolve();
+  };
+
+  /**
+   * Releases the JS resources of the native source once native released it, e.g. after its player removed it.
+   * {@link Source.initialize} allocates them again. Ignores the release of a previous native source, as the
+   * source may have been created again for the same `nativeId` since.
+   *
+   * @internal
+   */
+  handleNativeRelease = (instanceId: number) => {
+    if (this.initialization) {
+      // Decide once it is known whether the initialization created a new native source.
+      const handle = () => this.handleNativeRelease(instanceId);
+      void this.initialization.then(handle, handle);
+      return;
+    }
+    if (instanceId !== this.nativeInstanceId) {
+      return;
+    }
+    this.nativeInstanceId = undefined;
+    SourceRegistry.unregister(this);
+    this.isInitialized = false;
+    void this.drm?.destroy();
+    this.drm = undefined;
   };
 
   /**
    * Destroys the native {@link Source} and releases all of its allocated resources.
-   * All listeners are removed.
+   * All listeners are removed. The source can be initialized again afterwards.
+   *
+   * @internal
    */
   destroy = () => {
     if (!this.isDestroyed) {
+      SourceRegistry.unregister(this);
+      this.nativeInstanceId = undefined;
       void SourceModule.destroy(this.nativeId);
       void this.drm?.destroy();
+      this.drm = undefined;
       this.eventListeners.removeAll();
       this.isDestroyed = true;
+      this.isInitialized = false;
     }
   };
 
@@ -253,7 +308,9 @@ export class Source extends NativeInstance<SourceConfig> {
    * Unlike {@link Player.on}, which only receives the source events of the active source, the source
    * emits all of its events, including while it is inactive, e.g. `sourceLoaded` of a preloaded playlist
    * source. Listeners registered before the source is initialized are attached during
-   * {@link Source.initialize}. Calling it on a destroyed source has no effect and logs a warning.
+   * {@link Source.initialize}. Listeners are kept when the native source is released, e.g. once it is removed
+   * from a player, and are attached again when it is loaded again. Calling it on a destroyed source has no
+   * effect and logs a warning.
    * Registering the same `listener` again for `eventName` has no effect; use {@link Source.off} to remove it.
    *
    * @param eventName - The name of the event, e.g. `sourceLoaded`.

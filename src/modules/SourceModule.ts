@@ -6,6 +6,11 @@ import type { NativeEventPayload } from '../utils/eventListeners';
 
 export type SourceModuleEvents = {
   onSourceEvent: (payload: NativeEventPayload) => void;
+  /**
+   * Emitted once native released a source, e.g. after its player removed it. `instanceId` identifies the released
+   * native source, as resolved by its initialization.
+   */
+  onSourceReleased: (payload: { nativeId: string; instanceId: number }) => void;
 };
 
 declare class SourceModule extends NativeModule<SourceModuleEvents> {
@@ -32,17 +37,25 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
   /**
    * Initializes a source with the given nativeId, optional DRM nativeId, configuration object,
    * and remote control object.
+   *
+   * Resolves the instance id of the newly created native source, e.g. created again after it was released, or
+   * nothing if it already existed.
+   * TODO(#1163): iOS resolves no instance id yet, as it does not report releases.
    */
   initializeWithConfig(
     nativeId: string,
     drmNativeId?: string,
     config?: Record<string, any>,
     remoteControl?: SourceRemoteControlConfig
-  ): Promise<void>;
+  ): Promise<number | boolean | null>;
 
   /**
    * Initializes a source with the given nativeId, optional DRM nativeId, configuration object,
    * remote control object, and analytics source metadata.
+   *
+   * Resolves the instance id of the newly created native source, e.g. created again after it was released, or
+   * nothing if it already existed.
+   * TODO(#1163): iOS resolves no instance id yet, as it does not report releases.
    */
   initializeWithAnalyticsConfig(
     nativeId: string,
@@ -50,7 +63,7 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
     config?: Record<string, any>,
     remoteControl?: SourceRemoteControlConfig,
     analyticsSourceMetadata?: Record<string, any>
-  ): Promise<void>;
+  ): Promise<number | boolean | null>;
 
   /**
    * Destroys the source with the given nativeId.
