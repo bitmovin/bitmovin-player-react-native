@@ -39,7 +39,8 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
    * and remote control object.
    *
    * Resolves the instance id of the newly created native source, e.g. created again after it was released, or
-   * nothing if it already existed. iOS, which does not report releases, resolves no instance id.
+   * nothing if it already existed.
+   * TODO(#1163): iOS resolves no instance id yet, as it does not report releases.
    */
   initializeWithConfig(
     nativeId: string,
@@ -53,7 +54,8 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
    * remote control object, and analytics source metadata.
    *
    * Resolves the instance id of the newly created native source, e.g. created again after it was released, or
-   * nothing if it already existed. iOS, which does not report releases, resolves no instance id.
+   * nothing if it already existed.
+   * TODO(#1163): iOS resolves no instance id yet, as it does not report releases.
    */
   initializeWithAnalyticsConfig(
     nativeId: string,
