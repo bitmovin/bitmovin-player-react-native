@@ -23,12 +23,12 @@ public class PlayerModule: Module {
         Name("PlayerModule")
         OnCreate {}
         OnDestroy {
-            let eventRelay = self.eventRelay
-            let removedSourceReleaser = self.removedSourceReleaser
             // Destroy all players on the main thread when the module is deallocated.
             // This is necessary when the IMA SDK is present in the app,
             // as it may crash if the players are destroyed on a background thread.
-            DispatchQueue.main.async {
+            // The lazy event relay and source releaser are read on the main thread as well, so they are not created
+            // on another thread if no player was ever created.
+            DispatchQueue.main.async { [self] in
                 // Cancel the event subscriptions first, so destroying the players does not emit into this module.
                 eventRelay.clear()
                 removedSourceReleaser.clear()
