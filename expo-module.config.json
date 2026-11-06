@@ -2,6 +2,7 @@
   "platforms": ["apple", "android"],
   "apple": {
     "modules": [
+      "NativeCallbacksModule",
       "DebugModule",
       "AudioSessionModule",
       "BitmovinCastManagerModule",
@@ -18,6 +19,7 @@
   },
   "android": {
     "modules": [
+      "com.bitmovin.player.reactnative.NativeCallbacksModule",
       "com.bitmovin.player.reactnative.DebugModule",
       "com.bitmovin.player.reactnative.BitmovinCastManagerModule",
       "com.bitmovin.player.reactnative.PlayerModule",

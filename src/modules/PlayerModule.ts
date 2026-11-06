@@ -1,27 +1,14 @@
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
-import type { AdBreak, AdItem, ImaSettings } from '../advertising';
+import type { NativeCallback } from '../nativeCallbacks';
+import type { NativeNetwork } from '../network/networkModule';
+import type { NativeDecoder } from '../decoder/decoderConfigModule';
+import type { NativeOffline } from '../offline/offlineModule';
 import type { NativeSource } from './SourceModule';
 import type { BufferLevels } from '../bufferApi';
 
-export type PlayerModuleEvents = {
-  onShouldLoadAdItem: ({ id, adItem }: { id: number; adItem: AdItem }) => void;
-  onShouldPlayAdBreak: ({
-    id,
-    adBreak,
-  }: {
-    id: number;
-    adBreak: AdBreak;
-  }) => void;
-  onImaBeforeInitialization: ({
-    id,
-    settings,
-  }: {
-    id: number;
-    settings: ImaSettings;
-  }) => void;
-};
+export type PlayerModuleEvents = Record<string, never>;
 
 /** @internal */
 export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
@@ -97,31 +84,12 @@ export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
 
   skipAd(): Promise<void>;
 
-  setShouldLoadAdItem(id: number, shouldLoad: boolean): Promise<void>;
-
-  setShouldPlayAdBreak(id: number, shouldPlay: boolean): Promise<void>;
-
-  setPreparedImaSettings(id: number, settings: ImaSettings): Promise<void>;
-
   canPlayAtPlaybackSpeed(playbackSpeed: number): Promise<boolean | null>;
-
-  initializeWithConfig(
-    config?: Record<string, any>,
-    networkNativeId?: string,
-    decoderNativeId?: string
-  ): Promise<void>;
-
-  initializeWithAnalyticsConfig(
-    analyticsConfig: Record<string, any>,
-    config?: Record<string, any>,
-    networkNativeId?: string,
-    decoderNativeId?: string
-  ): Promise<void>;
 
   loadSource(source: NativeSource): Promise<void>;
 
   loadOfflineContent(
-    offlineContentId: string,
+    offlineContent: NativeOffline | undefined,
     options?: Record<string, any>
   ): Promise<void>;
 
@@ -150,7 +118,14 @@ export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
 
 declare class PlayerModule extends NativeModule {
   readonly isGoogleImaEnabled: boolean;
-  create(nativeId: string): NativePlayer;
+  createEmpty(): NativePlayer;
+  create(
+    config?: Record<string, any>,
+    analyticsConfig?: Record<string, any>,
+    network?: NativeNetwork,
+    decoder?: NativeDecoder,
+    callback?: NativeCallback
+  ): Promise<NativePlayer>;
 }
 
 export default requireNativeModule<PlayerModule>('PlayerModule');

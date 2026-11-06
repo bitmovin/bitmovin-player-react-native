@@ -108,6 +108,9 @@ jobs:
       - name: Test native instance compatibility registry
         run: node --test scripts/test-native-instance-registry.js
 
+      - name: Test offline public API compatibility
+        run: node --test scripts/test-offline-compatibility.js
+
       - name: Test SharedObject public API compatibility
         run: node --test scripts/test-shared-object-compatibility.js
 

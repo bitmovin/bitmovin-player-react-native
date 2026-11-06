@@ -1,9 +1,13 @@
-import type { EventSubscription } from 'expo-modules-core';
 import { Platform } from 'react-native';
 import PlayerModule, { type NativePlayer } from './modules/PlayerModule';
 import type { NativeSource } from './modules/SourceModule';
 import NativeInstance from './nativeInstance';
-import { getOrCreate, lookup, remove } from './nativeInstanceRegistry';
+import {
+  getOrCreateAsync,
+  lookup,
+  lookupPending,
+  remove,
+} from './nativeInstanceRegistry';
 import type { SourceConfig } from './source';
 import { Source } from './source';
 import type { AudioTrack } from './audioTrack';
@@ -12,12 +16,16 @@ import type { OfflineContentManager, OfflineSourceOptions } from './offline';
 import type { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/player';
 import type { PlayerConfig } from './playerConfig';
-import type { AdBreak, AdItem, ImaSettings } from './advertising';
+import type { AdItem, ImaSettings } from './advertising';
 import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
 import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
+import { getNativeNetwork } from './network/networkModule';
+import { getNativeDecoder } from './decoder/decoderConfigModule';
+import { getNativeOffline } from './offline/offlineModule';
+import { nativeCallback, nativeConfig } from './nativeCallbacks';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -35,7 +43,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   private get native(): NativePlayer {
     return (
       lookup<NativePlayer>('player', this.nativeId) ??
-      (this.nativeInstance ??= PlayerModule.create(this.nativeId))
+      (this.nativeInstance ??= PlayerModule.createEmpty())
     );
   }
 
@@ -71,46 +79,70 @@ export class Player extends NativeInstance<PlayerConfig> {
   private network?: Network;
 
   private decoderConfig?: DecoderConfigBridge;
-  private onShouldLoadAdItemSubscription?: EventSubscription;
-  private onShouldPlayAdBreakSubscription?: EventSubscription;
-  private onImaBeforeInitializationSubscription?: EventSubscription;
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
   initialize = async (): Promise<void> => {
-    if (!this.isInitialized) {
-      getOrCreate('player', this.nativeId, () =>
-        PlayerModule.create(this.nativeId)
-      );
-      this.nativeInstance = undefined;
-      this.ensureShouldLoadAdItemListener();
-      this.ensureShouldPlayAdBreakListener();
-      this.ensureImaBeforeInitializationListener();
-      if (this.config?.networkConfig) {
-        this.network = new Network(this.config.networkConfig);
-        await this.network.initialize();
+    if (this.isInitialized || this.isDestroyed) return;
+    const native = await getOrCreateAsync(
+      'player',
+      this.nativeId,
+      async () => {
+        if (this.isDestroyed) return PlayerModule.createEmpty();
+        try {
+          if (this.config?.networkConfig) {
+            this.network = new Network(this.config.networkConfig);
+            await this.network.initialize();
+          }
+          await this.maybeInitDecoderConfig();
+          const advertising = this.config?.advertisingConfig;
+          const beforeInitialization = advertising?.ima?.beforeInitialization;
+          if (beforeInitialization && !PlayerModule.isGoogleImaEnabled) {
+            console.warn(
+              'advertisingConfig.ima.beforeInitialization is ignored because Google IMA is disabled. ' +
+                'Set features.googleIMA to true in the Bitmovin config plugin and rebuild the native app. ' +
+                'See the "Google IMA" section of the bitmovin-player-react-native README.'
+            );
+          }
+          return await PlayerModule.create(
+            nativeConfig(this.config),
+            nativeConfig(this.config?.analyticsConfig),
+            this.network && getNativeNetwork(this.network.nativeId),
+            this.decoderConfig && getNativeDecoder(this.decoderConfig.nativeId),
+            nativeCallback({
+              shouldLoadAdItem: advertising?.shouldLoadAdItem,
+              shouldPlayAdBreak:
+                Platform.OS === 'android'
+                  ? advertising?.shouldPlayAdBreak
+                  : undefined,
+              imaBeforeInitialization:
+                beforeInitialization && PlayerModule.isGoogleImaEnabled
+                  ? (settings: ImaSettings) => {
+                      const result = beforeInitialization(settings);
+                      return result && typeof result === 'object'
+                        ? { ...settings, ...result }
+                        : settings;
+                    }
+                  : undefined,
+            })
+          );
+        } catch (error) {
+          await this.network?.destroy();
+          this.decoderConfig?.destroy();
+          throw error;
+        }
+      },
+      async (created) => {
+        await created.destroy();
+        await this.network?.destroy();
+        this.decoderConfig?.destroy();
       }
-      await this.maybeInitDecoderConfig();
-      const analyticsConfig = this.config?.analyticsConfig;
-      if (analyticsConfig) {
-        await this.native.initializeWithAnalyticsConfig(
-          analyticsConfig,
-          this.config,
-          this.network?.nativeId,
-          this.decoderConfig?.nativeId
-        );
-        this.analytics = new AnalyticsApi(this.nativeId);
-      } else {
-        await this.native.initializeWithConfig(
-          this.config,
-          this.network?.nativeId,
-          this.decoderConfig?.nativeId
-        );
-      }
-
-      this.isInitialized = true;
-    }
-    return Promise.resolve();
+    );
+    if (lookup('player', this.nativeId) !== native || this.isDestroyed) return;
+    this.nativeInstance = undefined;
+    if (this.config?.analyticsConfig)
+      this.analytics = new AnalyticsApi(this.nativeId);
+    this.isInitialized = true;
   };
 
   /**
@@ -120,52 +152,18 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (!this.isDestroyed) {
       const native =
         lookup<NativePlayer>('player', this.nativeId) ?? this.nativeInstance;
+      const pending = lookupPending('player', this.nativeId);
+      if (pending) remove('player', this.nativeId, pending);
       void native?.destroy();
       this.nativeInstance = undefined;
       void this.source?.destroy();
       void this.network?.destroy();
       void this.decoderConfig?.destroy();
-      this.onShouldLoadAdItemSubscription?.remove();
-      this.onShouldPlayAdBreakSubscription?.remove();
-      this.onImaBeforeInitializationSubscription?.remove();
-      this.onShouldLoadAdItemSubscription = undefined;
-      this.onShouldPlayAdBreakSubscription = undefined;
-      this.onImaBeforeInitializationSubscription = undefined;
       this.isDestroyed = true;
       if (native) {
         remove('player', this.nativeId, native);
       }
     }
-  };
-
-  private ensureShouldLoadAdItemListener = () => {
-    const callback = this.config?.advertisingConfig?.shouldLoadAdItem;
-    if (!callback) {
-      return;
-    }
-    if (this.onShouldLoadAdItemSubscription) {
-      return;
-    }
-    // Complete on the emitting object even if another player reuses this ID.
-    const native = this.native;
-    this.onShouldLoadAdItemSubscription = native.addListener(
-      'onShouldLoadAdItem',
-      ({ id, adItem }) => {
-        const cloned: AdItem = {
-          ...adItem,
-          sources: adItem.sources.map((source) => ({ ...source })),
-        };
-        let shouldLoad = true;
-        try {
-          const shouldLoadResult = callback(cloned);
-          shouldLoad =
-            typeof shouldLoadResult === 'boolean' ? shouldLoadResult : true;
-        } catch {
-          shouldLoad = true;
-        }
-        void native.setShouldLoadAdItem(id, shouldLoad);
-      }
-    );
   };
 
   /**
@@ -183,7 +181,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     options?: OfflineSourceOptions
   ) => {
     void this.native.loadOfflineContent(
-      offlineContentManager.nativeId,
+      getNativeOffline(offlineContentManager.nativeId),
       options
     );
   };
@@ -267,77 +265,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   setVolume = (volume: number) => {
     void this.native.setVolume(volume);
-  };
-
-  private ensureShouldPlayAdBreakListener = () => {
-    if (Platform.OS !== 'android') {
-      return;
-    }
-    const callback = this.config?.advertisingConfig?.shouldPlayAdBreak;
-    if (!callback) {
-      return;
-    }
-    if (this.onShouldPlayAdBreakSubscription) {
-      return;
-    }
-    const native = this.native;
-    this.onShouldPlayAdBreakSubscription = native.addListener(
-      'onShouldPlayAdBreak',
-      ({ id, adBreak }) => {
-        const cloned: AdBreak = {
-          ...adBreak,
-          ads: adBreak.ads.map((ad) => ({
-            ...ad,
-            data: ad.data ? { ...ad.data } : undefined,
-          })),
-        };
-        let shouldPlay = true;
-        try {
-          const shouldPlayResult = callback(cloned);
-          shouldPlay =
-            typeof shouldPlayResult === 'boolean' ? shouldPlayResult : true;
-        } catch {
-          shouldPlay = true;
-        }
-        void native.setShouldPlayAdBreak(id, shouldPlay);
-      }
-    );
-  };
-
-  private ensureImaBeforeInitializationListener = () => {
-    const callback = this.config?.advertisingConfig?.ima?.beforeInitialization;
-    if (!callback) {
-      return;
-    }
-    if (!PlayerModule.isGoogleImaEnabled) {
-      console.warn(
-        'advertisingConfig.ima.beforeInitialization is ignored because Google IMA is disabled. ' +
-          'Set features.googleIMA to true in the Bitmovin config plugin and rebuild the native app. ' +
-          'See the "Google IMA" section of the bitmovin-player-react-native README.'
-      );
-      return;
-    }
-    if (this.onImaBeforeInitializationSubscription) {
-      return;
-    }
-    const native = this.native;
-    this.onImaBeforeInitializationSubscription = native.addListener(
-      'onImaBeforeInitialization',
-      ({ id, settings }) => {
-        const cloned: ImaSettings = { ...settings };
-        let prepared = cloned;
-        try {
-          const result = callback(cloned);
-          prepared =
-            result && typeof result === 'object'
-              ? { ...cloned, ...result }
-              : cloned;
-        } catch {
-          prepared = cloned;
-        }
-        void native.setPreparedImaSettings(id, prepared);
-      }
-    );
   };
 
   /**
@@ -692,6 +619,6 @@ export class Player extends NativeInstance<PlayerConfig> {
     this.decoderConfig = new DecoderConfigBridge(
       this.config.playbackConfig.decoderConfig
     );
-    this.decoderConfig.initialize();
+    return this.decoderConfig.initialize();
   };
 }

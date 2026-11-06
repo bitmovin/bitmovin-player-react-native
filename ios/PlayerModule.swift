@@ -1,6 +1,7 @@
 import BitmovinCollector
 import BitmovinPlayer
 import ExpoModulesCore
+import ExpoModulesJSI
 
 public class PlayerModule: Module {
     // swiftlint:disable:next function_body_length
@@ -9,9 +10,13 @@ public class PlayerModule: Module {
         Constant("isGoogleImaEnabled") {
             NSClassFromString("IMAAdsLoader") != nil
         }
-        Function("create") { (nativeId: NativeId) in
-            SharedPlayer(nativeId: nativeId)
-        }
+        Function("createEmpty") { SharedPlayer() }
+        AsyncFunction("create") { (config: [String: Any]?, analytics: [String: Any]?, network: SharedNetwork?, _: SharedObject?, callback: JavaScriptValue?) -> SharedPlayer in // swiftlint:disable:this line_length
+            let owner = SharedPlayer()
+            owner.callback = try callback.map { try CallbackScope(callback: $0, context: appContext) }
+            owner.initialize(config: config, network: network, analyticsConfig: analytics)
+            return owner
+        }.runOnQueue(.main)
         Class("Player", SharedPlayer.self) {
             AsyncFunction("play") { (owner: SharedPlayer) in
                 owner.player?.play()
@@ -119,11 +124,10 @@ public class PlayerModule: Module {
             AsyncFunction("getThumbnail") { (owner: SharedPlayer, time: Double) -> [String: Any]? in
                 RCTConvert.toJson(thumbnail: owner.player?.thumbnail(forTime: time))
             }.runOnQueue(.main)
-            AsyncFunction("loadOfflineContent") { (owner: SharedPlayer, bridgeId: String, options: [String: Any]?) in // swiftlint:disable:this line_length
+            AsyncFunction("loadOfflineContent") { (owner: SharedPlayer, offline: SharedOffline, options: [String: Any]?) in // swiftlint:disable:this line_length
                 #if os(iOS)
                 guard let player = owner.player,
-                      let offlineModule = owner.appContext?.moduleRegistry.get(OfflineModule.self),
-                      let offlineContentManagerBridge = offlineModule.retrieve(bridgeId) else { return }
+                      let offlineContentManagerBridge = offline.bridge else { return }
                 let optionsDictionary = options ?? [:]
                 let restrictedToAssetCache = optionsDictionary["restrictedToAssetCache"] as? Bool ?? true
                 let offlineSourceConfig = offlineContentManagerBridge.offlineContentManager.createOfflineSourceConfig(
@@ -171,12 +175,6 @@ public class PlayerModule: Module {
             AsyncFunction("skipAd") { (owner: SharedPlayer) in
                 owner.player?.skipAd()
             }.runOnQueue(.main)
-            AsyncFunction("setPreparedImaSettings") { (owner: SharedPlayer, id: Int, settings: [String: Any]?) in
-                owner.imaSettingsWaiter.complete(id: id, with: settings ?? [:])
-            }
-            AsyncFunction("setShouldLoadAdItem") { (owner: SharedPlayer, id: Int, shouldLoad: Bool) in
-                owner.shouldLoadAdItemWaiter.complete(id: id, with: shouldLoad)
-            }
             AsyncFunction("getBufferLevel") { (owner: SharedPlayer, type: String) -> [String: Any]? in
                 guard let player = owner.player, let bufferType = RCTConvert.bufferType(type) else { return nil }
                 let level = player.buffer.getLevel(bufferType)
@@ -200,13 +198,6 @@ public class PlayerModule: Module {
             AsyncFunction("setMediaControlsEnabled") { (owner: SharedPlayer, enabled: Bool) in
                 owner.player?.nowPlaying.isEnabled = enabled
             }.runOnQueue(.main)
-            AsyncFunction("initializeWithConfig") { (owner: SharedPlayer, config: [String: Any]?, networkId: NativeId?, _: String?) in // swiftlint:disable:this line_length
-                owner.initialize(config: config, networkId: networkId)
-            }.runOnQueue(.main)
-            AsyncFunction("initializeWithAnalyticsConfig") { (owner: SharedPlayer, analyticsConfig: [String: Any]?, config: [String: Any]?, networkId: NativeId?, _: String?) in // swiftlint:disable:this line_length
-                guard let analyticsConfig else { return }
-                owner.initialize(config: config, networkId: networkId, analyticsConfig: analyticsConfig)
-            }.runOnQueue(.main)
             AsyncFunction("loadSource") { (owner: SharedPlayer, source: SharedSource) in
                 guard let player = owner.player, let nativeSource = source.source else { return }
                 owner.source = source
@@ -217,7 +208,6 @@ public class PlayerModule: Module {
 }
 
 public final class SharedPlayer: SharedObject {
-    let nativeId: NativeId
     private var nativePlayer: Player?
     var player: Player? {
         get { isClosed.value ? nil : nativePlayer }
@@ -230,18 +220,9 @@ public final class SharedPlayer: SharedObject {
         }
     }
     var source: SharedSource?
-    weak var view: RNPlayerView?
-    var pendingPictureInPictureActions: [RNPictureInPictureAction]?
-    var pendingIsPictureInPictureEnabled: Bool?
+    private var network: SharedNetwork?
+    fileprivate var callback: CallbackScope?
     fileprivate let isClosed = LockedBox(value: false)
-    fileprivate let shouldLoadAdItemWaiter = ResultWaiter<Bool>()
-    fileprivate let imaSettingsWaiter = ResultWaiter<[String: Any]>()
-
-    init(nativeId: NativeId) {
-        self.nativeId = nativeId
-        super.init()
-    }
-
     deinit {
         // Runtime shutdown clears Expo's association registry without invoking release hooks.
         // Capture only the SDK resource so its final destruction still happens on the main thread.
@@ -250,14 +231,12 @@ public final class SharedPlayer: SharedObject {
                 playerToDestroy.destroy()
             }
         }
-        shouldLoadAdItemWaiter.removeAll()
-        imaSettingsWaiter.removeAll()
+        callback?.close()
     }
 
     override public func sharedObjectWillRelease() {
         isClosed.update(true)
-        shouldLoadAdItemWaiter.removeAll()
-        imaSettingsWaiter.removeAll()
+        callback?.close()
         // IMA requires player destruction on the main thread. Keep the owner alive until cleanup runs.
         DispatchQueue.main.async {
             self.destroy()
@@ -268,20 +247,17 @@ public final class SharedPlayer: SharedObject {
         isClosed.update(true)
         let playerToDestroy = nativePlayer
         nativePlayer = nil
-        shouldLoadAdItemWaiter.removeAll()
-        imaSettingsWaiter.removeAll()
+        callback?.close()
         // Keep listeners attached for the SDK's final DestroyEvent.
         playerToDestroy?.destroy()
-        view?.detachSharedPlayer()
-        view = nil
         source = nil
-        pendingPictureInPictureActions = nil
-        pendingIsPictureInPictureEnabled = nil
+        network = nil
+        callback = nil
     }
 
     fileprivate func initialize(
         config: [String: Any]?,
-        networkId: NativeId?,
+        network: SharedNetwork?,
         analyticsConfig: [String: Any]? = nil
     ) {
         guard !isClosed.value, player == nil, let playerConfig = RCTConvert.playerConfig(config) else { return }
@@ -290,9 +266,8 @@ public final class SharedPlayer: SharedObject {
 #if os(iOS)
         setupRemoteControlConfig(playerConfig.remoteControlConfig)
 #endif
-        if let networkId, let networkConfig = setupNetworkConfig(nativeId: networkId) {
-            playerConfig.networkConfig = networkConfig
-        }
+        self.network = network
+        if let networkConfig = network?.config { playerConfig.networkConfig = networkConfig }
         setupShouldLoadAdItem(config: config, playerConfig: playerConfig)
         setupImaBeforeInitialization(config: config, playerConfig: playerConfig)
         if let analytics {
@@ -316,13 +291,6 @@ public final class SharedPlayer: SharedObject {
         }
     }
 
-    fileprivate func setupNetworkConfig(nativeId: NativeId) -> NetworkConfig? {
-        guard let networkModule = self.appContext?.moduleRegistry.get(NetworkModule.self) else {
-            return nil
-        }
-        return networkModule.retrieve(nativeId)
-    }
-
     fileprivate func setupShouldLoadAdItem(
         config: [String: Any]?,
         playerConfig: PlayerConfig
@@ -335,16 +303,9 @@ public final class SharedPlayer: SharedObject {
         }
 
         playerConfig.advertisingConfig.shouldLoadAdItem = { [weak self] adItem in
-            guard let self, !isClosed.value else { return true }
-            let (id, wait) = shouldLoadAdItemWaiter.make(timeout: 0.25)
-            self.emit(
-                event: "onShouldLoadAdItem",
-                payload: [
-                    "id": id,
-                    "adItem": RCTConvert.toJson(adItem: adItem) as Any
-                ]
-            )
-            return wait() ?? true
+            self?.callback?.call(
+                "shouldLoadAdItem", arguments: [RCTConvert.toJson(adItem: adItem) as Any]
+            ) as? Bool ?? true
         }
     }
 
@@ -361,18 +322,10 @@ public final class SharedPlayer: SharedObject {
         }
 
         playerConfig.advertisingConfig.beforeInitialization = { [weak self] settings in
-            guard let self, !isClosed.value else { return }
-            let (id, wait) = imaSettingsWaiter.make(timeout: 0.25)
-            let payload = RCTConvert.imaSettingsDictionary(settings)
-            self.emit(
-                event: "onImaBeforeInitialization",
-                payload: [
-                    "id": id,
-                    "settings": payload
-                ]
-            )
-            guard let updated = wait() else { return }
-            RCTConvert.applyImaSettings(settings, from: updated)
+            guard let value = self?.callback?.call(
+                "imaBeforeInitialization", arguments: [RCTConvert.imaSettingsDictionary(settings)]
+            ) as? [String: Any] else { return }
+            RCTConvert.applyImaSettings(settings, from: value)
         }
     }
 }

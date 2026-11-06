@@ -66,7 +66,7 @@
 - Workflow
   - Bootstrap from repo root: `yarn bootstrap`. Re-run prebuilds after env/native/config changes (`yarn example prebuild`, `yarn integration-test prebuild`).
   - Public API: export via `src/index.ts`; keep native module/view names identical to TS wrappers; maintain event parity with TS types.
-  - Player/Source compatibility IDs live in `src/nativeInstanceRegistry.ts`; their native methods use SharedObjects directly. Unmigrated configuration/offline modules still use native registries.
+  - Compatibility IDs live only in `src/nativeInstanceRegistry.ts`; native methods and view props use SharedObjects directly. Configuration callbacks use `src/nativeCallbacks.ts` and per-call completion objects, without identity registries.
 - Secrets
   - Never commit keys. Store license keys only in `.env` under `example/` and `integration_test/` as documented.
 - Validation
@@ -106,9 +106,11 @@
 - Events flow native → JS via Expo `Events(...)` lists; keep parity with TS props:
   - Android events list: `android/.../RNPlayerViewManager.kt:50-112`; iOS: `ios/RNPlayerViewManager.swift:33-60`.
   - TS event typings live in `src/components/PlayerView/nativeEvents.ts:72-160` (extend as needed).
-- Player/Source `nativeId` values remain public compatibility labels. Resolve them only at the JS compatibility boundary and pass native SharedObjects to methods/views.
-  - Do not reintroduce native player/source lookup maps. Use `src/nativeInstanceRegistry.ts` for aliases and legacy helper constructors.
-  - Configuration/offline modules still use their existing native registries until migrated.
+- Public `nativeId` values remain compatibility labels in TS. Resolve them only at the JS compatibility boundary and pass native SharedObjects to methods/views.
+  - Do not introduce native identity lookup maps. Use `src/nativeInstanceRegistry.ts` for aliases and legacy helper constructors.
+  - Keep SDK content, track, and quality identifiers distinct from binding compatibility IDs.
+  - Keep attachment and PiP state in the native view. The player must not retain or look up views.
+  - Resolve synchronous callback completion objects on the JS thread so blocked SDK callbacks can continue.
 - Adding a new API (happy path):
   - TS: add method on a `src/modules/<Feature>Module.ts` wrapper, export from `src/index.ts`.
   - iOS/Android: add matching `AsyncFunction("methodName")` to Expo `ModuleDefinition`; emit events if needed.

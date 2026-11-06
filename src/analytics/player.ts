@@ -23,7 +23,7 @@ export class AnalyticsApi {
   sendCustomDataEvent = async (customData: CustomDataConfig) => {
     await (
       lookup<NativePlayer>('player', this.playerId) ??
-      PlayerModule.create(this.playerId)
+      PlayerModule.createEmpty()
     ).sendCustomDataEvent(customData);
   };
 
@@ -35,7 +35,7 @@ export class AnalyticsApi {
   getUserId = async (): Promise<string | null> => {
     return (
       lookup<NativePlayer>('player', this.playerId) ??
-      PlayerModule.create(this.playerId)
+      PlayerModule.createEmpty()
     ).getAnalyticsUserId();
   };
 }

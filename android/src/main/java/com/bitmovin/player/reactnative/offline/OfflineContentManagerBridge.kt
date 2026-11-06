@@ -9,18 +9,28 @@ import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryAction
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.api.source.SourceConfig
-import com.bitmovin.player.reactnative.NativeId
-import com.bitmovin.player.reactnative.OfflineModule
 import com.bitmovin.player.reactnative.converter.toJson
+import expo.modules.kotlin.AppContext
+import expo.modules.kotlin.sharedobjects.SharedObject
+import java.util.concurrent.atomic.AtomicBoolean
 
-class OfflineContentManagerBridge(
-    private val nativeId: NativeId,
-    context: Context,
-    private val offlineModule: OfflineModule,
-    private val identifier: String,
-    source: SourceConfig,
-    location: String,
-) : OfflineContentManagerListener {
+class OfflineContentManagerBridge(appContext: AppContext) : SharedObject(appContext), OfflineContentManagerListener {
+    private val released = AtomicBoolean(false)
+    private var identifier = ""
+    lateinit var offlineContentManager: OfflineContentManager
+        private set
+
+    fun initialize(context: Context, identifier: String, source: SourceConfig, location: String) {
+        if (::offlineContentManager.isInitialized || released.get()) return
+        this.identifier = identifier
+        offlineContentManager = OfflineContentManager.getOfflineContentManager(
+            source,
+            location,
+            identifier,
+            this,
+            context,
+        )
+    }
 
     enum class OfflineEventType(val eventName: String) {
         ON_COMPLETED("onCompleted"),
@@ -33,13 +43,6 @@ class OfflineContentManagerBridge(
         ON_CANCELED("onCanceled"),
     }
 
-    val offlineContentManager: OfflineContentManager = OfflineContentManager.getOfflineContentManager(
-        source,
-        location,
-        identifier,
-        this,
-        context,
-    )
     private var contentOptions: OfflineContentOptions? = null
 
     val state: OfflineOptionEntryState
@@ -120,8 +123,12 @@ class OfflineContentManagerBridge(
     }
 
     fun release() {
-        offlineContentManager.release()
+        if (released.compareAndSet(false, true) && ::offlineContentManager.isInitialized) {
+            offlineContentManager.release()
+        }
     }
+
+    override fun sharedObjectDidRelease() = release()
 
     /**
      * Produces an aggregate state of the `OfflineOptionEntryState` for the `OfflineContentOptions`
@@ -191,10 +198,9 @@ class OfflineContentManagerBridge(
 
     private fun sendEvent(eventType: OfflineEventType, event: Map<String, Any> = mapOf()) {
         val mutableEvent = event.toMutableMap()
-        mutableEvent["nativeId"] = nativeId
         mutableEvent["identifier"] = identifier
         mutableEvent["eventType"] = eventType.eventName
         mutableEvent["state"] = aggregateState(contentOptions).name
-        offlineModule.sendEvent("onBitmovinOfflineEvent", mutableEvent)
+        emit("onBitmovinOfflineEvent", mutableEvent)
     }
 }

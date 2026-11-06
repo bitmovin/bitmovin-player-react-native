@@ -49,7 +49,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private var scalingMode: ScalingMode? = null
     private var requestedFullscreenValue: Boolean? = null
     private var requestedPictureInPictureValue: Boolean? = null
-    private var fullscreenBridgeId: NativeId? = null
+    private var fullscreenHandler: SharedFullscreen? = null
+    private var customMessageHandler: SharedCustomMessage? = null
 
     private val onBmpPlayerViewReady by EventDispatcher()
     private val onBmpEvent by EventDispatcher()
@@ -204,7 +205,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun dispose() {
-        sharedPlayer?.detachView(this)
         sharedPlayer = null
         (playerView?.player ?: playerInMediaSessionService)?.let { detachPlayerListeners(it) }
         playerInMediaSessionService = null
@@ -289,9 +289,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         scalingMode?.let {
             playerView.scalingMode = it
         }
-        fullscreenBridgeId?.let {
-            attachFullscreenBridge(it)
-        }
+        fullscreenHandler?.let { playerView.setFullscreenHandler(it) }
         requestedFullscreenValue?.let {
             setFullscreen(it)
         }
@@ -304,7 +302,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         if (sharedPlayer !== shared) {
             (playerView?.player ?: playerInMediaSessionService)?.let { detachPlayerListeners(it) }
             playerInMediaSessionService = null
-            sharedPlayer?.detachView(this)
         }
         sharedPlayer = shared
         if (shared == null) dispose()
@@ -320,32 +317,20 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         attachPlayer(
             shared,
             config.getMap("playerViewConfig")?.toRNPlayerViewConfigWrapper(),
-            config.getString("customMessageHandlerBridgeId"),
             config.getBooleanOrNull("enableBackgroundPlayback") ?: false,
             config.getBooleanOrNull("isPictureInPictureEnabledOnPlayer") ?: false,
             config.getString("userInterfaceTypeName"),
         )
-        if (shared.attachedView !== this) return
-        shared.pendingIsPictureInPictureEnabled?.let {
-            shared.pendingIsPictureInPictureEnabled = null
-            setIsPictureInPictureEnabled(it)
-        }
-        shared.pendingPictureInPictureActions?.let {
-            shared.pendingPictureInPictureActions = null
-            updatePictureInPictureActions(it)
-        }
     }
 
     private fun attachPlayer(
         shared: SharedPlayer,
         playerViewConfigWrapper: RNPlayerViewConfigWrapper?,
-        customMessageHandlerBridgeId: NativeId?,
         enableBackgroundPlayback: Boolean,
         isPictureInPictureEnabledOnPlayer: Boolean,
         userInterfaceTypeName: String?,
     ) {
         val player = shared.player ?: return
-        shared.attachView(this)
 
         if (playerView?.player == player) {
             // Player is already attached to the PlayerView
@@ -410,13 +395,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 }
             }
         }
-        customMessageHandlerBridgeId?.let {
-            appContext.registry.getModule<CustomMessageHandlerModule>()?.getInstance(it)
-                ?.let { customMessageHandlerBridge ->
-                    playerView?.setCustomMessageHandler(customMessageHandlerBridge.customMessageHandler)
-                }
-        }
-        onBmpPlayerViewReady(mapOf("playerId" to shared.nativeId))
+        customMessageHandler?.let { playerView?.setCustomMessageHandler(it.customMessageHandler) }
+        onBmpPlayerViewReady(emptyMap<String, Any>())
     }
 
     internal fun shouldEnterPictureInPictureOnBackground() = pictureInPictureConfig.let {
@@ -563,7 +543,10 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         EventSubscription<PlayerEvent.Inactive> { onEvent(onBmpPlayerInactive, it.toJson()) },
         EventSubscription<PlayerEvent.Error> { onEvent(onBmpPlayerError, it.toJson()) },
         EventSubscription<PlayerEvent.Warning> { onEvent(onBmpPlayerWarning, it.toJson()) },
-        EventSubscription<PlayerEvent.Destroy> { onEvent(onBmpDestroy, it.toJson()) },
+        EventSubscription<PlayerEvent.Destroy> {
+            onEvent(onBmpDestroy, it.toJson())
+            dispose()
+        },
         EventSubscription<PlayerEvent.Muted> { onEvent(onBmpMuted, it.toJson()) },
         EventSubscription<PlayerEvent.Unmuted> { onEvent(onBmpUnmuted, it.toJson()) },
         EventSubscription<PlayerEvent.Ready> { onEvent(onBmpReady, it.toJson()) },
@@ -687,22 +670,14 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         playerView?.scalingMode = this.scalingMode ?: ScalingMode.Fit
     }
 
-    fun attachFullscreenBridge(fullscreenBridgeId: NativeId) {
-        this.fullscreenBridgeId = fullscreenBridgeId
-        val playerView = playerView ?: return
-        appContext.registry.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId)
-            ?.let { fullscreenBridge ->
-                playerView.setFullscreenHandler(fullscreenBridge)
-            } ?: throw IllegalArgumentException("Fullscreen bridge with ID $fullscreenBridgeId not found")
-        requestedFullscreenValue?.let { isFullscreen ->
-            playerView.let {
-                if (isFullscreen) {
-                    it.enterFullscreen()
-                } else {
-                    it.exitFullscreen()
-                }
-            }
-        }
+    fun attachFullscreenHandler(handler: SharedFullscreen?) {
+        fullscreenHandler = handler
+        handler?.let { playerView?.setFullscreenHandler(it) }
+    }
+
+    fun attachCustomMessageHandler(handler: SharedCustomMessage?) {
+        customMessageHandler = handler
+        handler?.let { playerView?.setCustomMessageHandler(it.customMessageHandler) }
     }
 
     fun updatePictureInPictureActions(pictureInPictureActions: List<PictureInPictureAction>) {

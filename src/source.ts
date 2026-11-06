@@ -3,11 +3,18 @@ import type { DrmConfig } from './drm';
 import { Drm } from './drm';
 import type { NativeInstanceConfig } from './nativeInstance';
 import NativeInstance from './nativeInstance';
-import { getOrCreate, lookup, remove } from './nativeInstanceRegistry';
+import {
+  getOrCreateAsync,
+  lookup,
+  lookupPending,
+  remove,
+} from './nativeInstanceRegistry';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import SourceModule, { type NativeSource } from './modules/SourceModule';
+import { getNativeDrm } from './drm/drmModule';
+import { nativeConfig } from './nativeCallbacks';
 
 /**
  * Types of media that can be handled by the player.
@@ -168,7 +175,7 @@ function getNativeSource(source: Source): NativeSource {
   }
   let native = nativeInstances.get(source);
   if (!native) {
-    native = SourceModule.create();
+    native = SourceModule.createEmpty();
     nativeInstances.set(source, native);
   }
   return native;
@@ -205,31 +212,39 @@ export class Source extends NativeInstance<SourceConfig> {
    * Allocates the native {@link Source} instance and its resources natively.
    */
   initialize = async (): Promise<void> => {
-    if (!this.isInitialized) {
-      getOrCreate('source', this.nativeId, () => SourceModule.create());
-      nativeInstances.delete(this);
-      const sourceMetadata = this.config?.analyticsSourceMetadata;
-      if (this.config?.drmConfig) {
-        this.drm = new Drm(this.config.drmConfig, this.nativeId);
-        await this.drm.initialize();
-      }
-      if (sourceMetadata) {
-        await getNativeSource(this).initializeWithAnalyticsConfig(
-          this.drm?.nativeId,
-          this.config,
-          this.remoteControl || undefined,
-          sourceMetadata
-        );
-      } else {
-        await getNativeSource(this).initializeWithConfig(
-          this.drm?.nativeId,
-          this.config,
-          this.remoteControl || undefined
-        );
-      }
-      this.isInitialized = true;
-    }
-    return Promise.resolve();
+    if (this.isInitialized || this.isDestroyed) return;
+    if (this.config?.drmConfig && (!this.drm || this.drm.isDestroyed))
+      this.drm = new Drm(this.config.drmConfig, this.nativeId);
+    const drmInitialization = this.drm?.initialize();
+    const [native] = await Promise.all([
+      getOrCreateAsync(
+        'source',
+        this.nativeId,
+        async () => {
+          await drmInitialization;
+          if (this.isDestroyed) return SourceModule.createEmpty();
+          try {
+            return await SourceModule.create(
+              nativeConfig(this.config),
+              this.drm && getNativeDrm(this.drm.nativeId),
+              nativeConfig(this.remoteControl || undefined),
+              nativeConfig(this.config?.analyticsSourceMetadata)
+            );
+          } catch (error) {
+            await this.drm?.destroy();
+            throw error;
+          }
+        },
+        async (created) => {
+          await created.destroy();
+          await this.drm?.destroy();
+        }
+      ),
+      drmInitialization,
+    ]);
+    if (lookup('source', this.nativeId) !== native || this.isDestroyed) return;
+    nativeInstances.delete(this);
+    this.isInitialized = true;
   };
 
   /**
@@ -240,6 +255,8 @@ export class Source extends NativeInstance<SourceConfig> {
       const native =
         lookup<NativeSource>('source', this.nativeId) ??
         nativeInstances.get(this);
+      const pending = lookupPending('source', this.nativeId);
+      if (pending) remove('source', this.nativeId, pending);
       void native?.destroy();
       nativeInstances.delete(this);
       void this.drm?.destroy();

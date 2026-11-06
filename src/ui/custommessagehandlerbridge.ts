@@ -1,104 +1,58 @@
-import type { EventSubscription } from 'expo-modules-core';
 import type { CustomMessageHandler } from './custommessagehandler';
 import type { CustomMessageSender } from './custommessagesender';
 import * as Crypto from 'expo-crypto';
-import CustomMessageHandlerModule from './customMessageHandlerModule';
+import CustomMessageHandlerModule, {
+  getNativeCustomMessage,
+} from './customMessageHandlerModule';
+import { getOrCreate, remove } from '../nativeInstanceRegistry';
+import { createNativeCallback } from '../nativeCallbacks';
 
-/**
- * Takes care of JS/Native communication for a CustomMessageHandler.
- */
+/** Takes care of JS/Native communication for a CustomMessageHandler. */
 export class CustomMessageHandlerBridge implements CustomMessageSender {
   readonly nativeId: string;
   private customMessageHandler?: CustomMessageHandler;
-  private isDestroyed: boolean;
-
-  private onReceivedSynchronousMessageSubscription?: EventSubscription;
-  private onReceivedAsynchronousMessageSubscription?: EventSubscription;
+  private isDestroyed = false;
 
   constructor(nativeId?: string) {
     this.nativeId = nativeId ?? Crypto.randomUUID();
-    this.isDestroyed = false;
-
-    // Set up event listeners for synchronous and asynchronous messages
-    this.onReceivedSynchronousMessageSubscription =
-      CustomMessageHandlerModule.addListener(
-        'onReceivedSynchronousMessage',
-        ({ nativeId, id, message, data }) => {
-          if (nativeId !== this.nativeId) {
-            return;
+    getOrCreate('customMessage', this.nativeId, () =>
+      CustomMessageHandlerModule.create(
+        createNativeCallback((operation, [message, data]) => {
+          if (operation === 'synchronousMessage') {
+            return this.customMessageHandler?.receivedSynchronousMessage(
+              message,
+              data ?? undefined
+            );
           }
-          this.receivedSynchronousMessage(id, message, data);
-        }
-      );
-
-    this.onReceivedAsynchronousMessageSubscription =
-      CustomMessageHandlerModule.addListener(
-        'onReceivedAsynchronousMessage',
-        ({ nativeId, message, data }) => {
-          if (nativeId !== this.nativeId) {
-            return;
+          if (operation === 'asynchronousMessage') {
+            this.customMessageHandler?.receivedAsynchronousMessage(
+              message,
+              data ?? undefined
+            );
           }
-          this.receivedAsynchronousMessage(message, data);
-        }
-      );
-
-    void CustomMessageHandlerModule.registerHandler(this.nativeId);
+          return null;
+        })
+      )
+    );
   }
 
   setCustomMessageHandler(customMessageHandler: CustomMessageHandler) {
     this.customMessageHandler = customMessageHandler;
-    this.customMessageHandler.customMessageSender = this;
+    customMessageHandler.customMessageSender = this;
   }
 
-  /**
-   * Destroys the native CustomMessageHandler
-   */
   destroy() {
     if (!this.isDestroyed) {
-      void CustomMessageHandlerModule.destroy(this.nativeId);
-      this.onReceivedSynchronousMessageSubscription?.remove();
-      this.onReceivedAsynchronousMessageSubscription?.remove();
-      this.onReceivedSynchronousMessageSubscription = undefined;
-      this.onReceivedAsynchronousMessageSubscription = undefined;
+      const native = getNativeCustomMessage(this.nativeId);
+      if (native) {
+        void native.destroy();
+        remove('customMessage', this.nativeId, native);
+      }
       this.isDestroyed = true;
     }
   }
 
-  /**
-   * Called by native code, when the UI sends a synchronous message.
-   * @internal
-   */
-  private receivedSynchronousMessage(
-    id: number,
-    message: string,
-    data: string | undefined
-  ): void {
-    const result = this.customMessageHandler?.receivedSynchronousMessage(
-      message,
-      data
-    );
-    void CustomMessageHandlerModule.onReceivedSynchronousMessageResult(
-      id,
-      result
-    );
-  }
-
-  /**
-   * Called by native code, when the UI sends an asynchronous message.
-   * @internal
-   */
-  private receivedAsynchronousMessage(
-    message: string,
-    data: string | undefined
-  ): void {
-    this.customMessageHandler?.receivedAsynchronousMessage(message, data);
-  }
-
-  // noinspection JSUnusedGlobalSymbols
-  /**
-   * Called by CustomMessageHandler, when sending a message to the UI.
-   */
   sendMessage(message: string, data: string | undefined): void {
-    void CustomMessageHandlerModule.sendMessage(this.nativeId, message, data);
+    void getNativeCustomMessage(this.nativeId)?.sendMessage(message, data);
   }
 }

@@ -2,7 +2,6 @@ package com.bitmovin.player.reactnative
 
 import android.os.Build
 import com.bitmovin.player.reactnative.converter.toPictureInPictureActions
-import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.Collections
@@ -25,24 +24,6 @@ class RNPlayerViewManager : Module() {
                 requestAutoPictureInPicture()
             }
         }
-
-        AsyncFunction("updatePictureInPictureActions") { shared: SharedPlayer?, pictureInPictureActions: List<String> ->
-            val actions = pictureInPictureActions.toPictureInPictureActions()
-            shared?.attachedView?.let { view ->
-                view.updatePictureInPictureActions(actions)
-            } ?: run {
-                shared?.pendingPictureInPictureActions = actions
-            }
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("setIsPictureInPictureEnabled") { shared: SharedPlayer?, isEnabled: Boolean ->
-            shared?.attachedView?.let { view ->
-                view.setIsPictureInPictureEnabled(isEnabled)
-                updateAutoPictureInPictureRegistration(view)
-            } ?: run {
-                shared?.pendingIsPictureInPictureEnabled = isEnabled
-            }
-        }.runOnQueue(Queues.MAIN)
 
         View(RNPlayerView::class) {
             OnViewDestroys { view: RNPlayerView ->
@@ -75,8 +56,20 @@ class RNPlayerViewManager : Module() {
                 view.setPictureInPicture(isPictureInPicture)
             }
 
-            Prop("fullscreenBridgeId") { view: RNPlayerView, fullscreenBridgeId: String ->
-                view.attachFullscreenBridge(fullscreenBridgeId)
+            Prop("fullscreenHandler") { view: RNPlayerView, handler: SharedFullscreen? ->
+                view.attachFullscreenHandler(handler)
+            }
+
+            Prop("customMessageHandler") { view: RNPlayerView, handler: SharedCustomMessage? ->
+                view.attachCustomMessageHandler(handler)
+            }
+
+            AsyncFunction("updatePictureInPictureActions") { view: RNPlayerView, actions: List<String> ->
+                view.updatePictureInPictureActions(actions.toPictureInPictureActions())
+            }
+            AsyncFunction("setIsPictureInPictureEnabled") { view: RNPlayerView, enabled: Boolean ->
+                view.setIsPictureInPictureEnabled(enabled)
+                updateAutoPictureInPictureRegistration(view)
             }
 
             Events(

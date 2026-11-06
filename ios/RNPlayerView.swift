@@ -4,7 +4,6 @@ import BitmovinPlayer
 import BitmovinPlayerCore
 import ExpoModulesCore
 
-// swiftlint:disable:next type_body_length
 public class RNPlayerView: ExpoView {
     var playerView: PlayerView? {
         willSet {
@@ -21,9 +20,7 @@ public class RNPlayerView: ExpoView {
             }
             addSubview(playerView)
             maybeFixAVPlayerViewControllerVisibility()
-            if let fullscreenBridgeId {
-                attachFullscreenBridge(fullscreenBridgeId: fullscreenBridgeId)
-            }
+            playerView.fullscreenHandler = fullscreenHandler?.handler
             if let scalingMode {
                 playerView.scalingMode = scalingMode
             }
@@ -42,10 +39,10 @@ public class RNPlayerView: ExpoView {
         }
     }
 
-    private var customMessageHandlerBridgeId: NativeId?
+    private var customMessageHandler: SharedCustomMessage?
     private var sharedPlayer: SharedPlayer?
     private var playerViewConfigWrapper: RNPlayerViewConfig?
-    private var fullscreenBridgeId: NativeId?
+    private var fullscreenHandler: SharedFullscreen?
     private var scalingMode: ScalingMode?
     private var requestedFullscreenValue: Bool?
     private var requestedPictureInPictureValue: Bool?
@@ -152,27 +149,18 @@ public class RNPlayerView: ExpoView {
     }
 
     internal func configurePlayer(
-        playerViewConfig: RNPlayerViewConfig?,
-        customMessageHandlerBridgeId: NativeId?
+        playerViewConfig: RNPlayerViewConfig?
     ) {
         playerViewConfigWrapper = playerViewConfig
-        self.customMessageHandlerBridgeId = customMessageHandlerBridgeId
     }
 
     internal func detachSharedPlayer() {
-        if sharedPlayer?.view === self {
-            sharedPlayer?.view = nil
-        }
         prepareForNewPlayerAttachment()
         sharedPlayer = nil
     }
 
     internal func attachConfiguredPlayer() {
         guard let owner = sharedPlayer, let player = owner.player else { return }
-        if let previousView = owner.view, previousView !== self {
-            previousView.detachSharedPlayer()
-        }
-        owner.view = self
         if let playerView, let currentPlayer = playerView.player, currentPlayer === player {
             // Player is already attached to the PlayerView
             return
@@ -180,8 +168,7 @@ public class RNPlayerView: ExpoView {
 
         if let userInterfaceConfig = maybeCreateUserInterfaceConfig(
             styleConfig: player.config.styleConfig,
-            playerViewConfig: playerViewConfigWrapper,
-            customMessageHandlerBridgeId: customMessageHandlerBridgeId
+            playerViewConfig: playerViewConfigWrapper
         ) {
             player.config.styleConfig.userInterfaceConfig = userInterfaceConfig
         }
@@ -203,24 +190,16 @@ public class RNPlayerView: ExpoView {
         self.maybeEmitPictureInPictureAvailabilityEvent(
             previousState: previousPictureInPictureAvailableValue
         )
-        if let isEnabled = owner.pendingIsPictureInPictureEnabled {
-            owner.pendingIsPictureInPictureEnabled = nil
-            setIsPictureInPictureEnabled(isEnabled)
-        }
-        if let actions = owner.pendingPictureInPictureActions {
-            owner.pendingPictureInPictureActions = nil
-            updatePictureInPictureActions(actions: actions)
-        }
-        onBmpPlayerViewReady(["playerId": owner.nativeId])
+        onBmpPlayerViewReady([:])
     }
 
-    internal func attachFullscreenBridge(fullscreenBridgeId: NativeId) {
-        self.fullscreenBridgeId = fullscreenBridgeId
-        guard let fullscreenBridgeModule = self.appContext?.moduleRegistry.get(FullscreenHandlerModule.self),
-              let fullscreenBridge = fullscreenBridgeModule.retrieve(fullscreenBridgeId) else {
-            return
-        }
-        playerView?.fullscreenHandler = fullscreenBridge
+    internal func setFullscreenHandler(_ handler: SharedFullscreen?) {
+        fullscreenHandler = handler
+        playerView?.fullscreenHandler = handler?.handler
+    }
+
+    internal func setCustomMessageHandler(_ handler: SharedCustomMessage?) {
+        customMessageHandler = handler
     }
 
     internal func setFullscreenRequested(isFullscreen: Bool) {
@@ -378,6 +357,7 @@ extension RNPlayerView: PlayerListener {
 
     public func onDestroy(_ event: DestroyEvent, player: Player) {
         onBmpDestroy(event.eventPayload())
+        detachSharedPlayer()
     }
 
     public func onMuted(_ event: MutedEvent, player: Player) {
@@ -669,8 +649,7 @@ private extension RNPlayerView {
 
     func maybeCreateUserInterfaceConfig(
         styleConfig: StyleConfig,
-        playerViewConfig: RNPlayerViewConfig?,
-        customMessageHandlerBridgeId: NativeId?
+        playerViewConfig: RNPlayerViewConfig?
     ) -> UserInterfaceConfig? {
         #if os(iOS)
         if styleConfig.userInterfaceType == .bitmovin {
@@ -687,9 +666,7 @@ private extension RNPlayerView {
                 bitmovinUserInterfaceConfig.hideFirstFrame = hideFirstFrame
             }
 
-            if let customMessageHandlerBridgeId {
-                attachCustomMessageHandlerBridge(id: customMessageHandlerBridgeId, to: bitmovinUserInterfaceConfig)
-            }
+            bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandler?.handler.customMessageHandler
 
             return bitmovinUserInterfaceConfig
         }
@@ -707,24 +684,6 @@ private extension RNPlayerView {
 
         return nil
     }
-
-    #if os(iOS)
-    func attachCustomMessageHandlerBridge(
-        id customMessageHandlerBridgeId: NativeId,
-        to bitmovinUserInterfaceConfig: BitmovinUserInterfaceConfig
-    ) {
-        guard let customMessageHandlerBridgeModule = self.appContext?.moduleRegistry
-            .get(CustomMessageHandlerModule.self) else {
-            return
-        }
-        guard let customMessageHandlerBridge = customMessageHandlerBridgeModule
-            .retrieve(customMessageHandlerBridgeId) else {
-            return
-        }
-
-        bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
-    }
-    #endif
 
     @MainActor
     func maybeEmitPictureInPictureAvailabilityEvent(previousState: Bool) {

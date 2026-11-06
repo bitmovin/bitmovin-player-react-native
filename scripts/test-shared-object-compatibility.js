@@ -123,7 +123,8 @@ function fixture(t, platform = 'ios') {
       calls.push({ target, method, args });
       return Promise.resolve().then(() => implementation(...args));
     };
-  const create = (kind, nativeId) => {
+  const callbacks = new Map();
+  const create = (kind, config, callback, configured = false) => {
     const native = {
       __expo_shared_object_id__: creations.length + 1,
       release: () => assert.fail('Public destroy must not release Expo'),
@@ -136,7 +137,8 @@ function fixture(t, platform = 'ios') {
       },
     };
     listeners.set(native, new Map());
-    let initialized = false;
+    let initialized = configured;
+    if (callback) callbacks.set(native, callback);
     const values = {
       getVolume: 37,
       duration: 123,
@@ -148,8 +150,6 @@ function fixture(t, platform = 'ios') {
       getMetadata: { title: 'native metadata' },
     };
     for (const method of [
-      'initializeWithConfig',
-      'initializeWithAnalyticsConfig',
       'destroy',
       'play',
       'pause',
@@ -158,9 +158,6 @@ function fixture(t, platform = 'ios') {
       'unload',
       'setVolume',
       'setMetadata',
-      'setShouldLoadAdItem',
-      'setShouldPlayAdBreak',
-      'setPreparedImaSettings',
       'getBufferLevel',
       'setBufferTargetLevel',
       'sendCustomDataEvent',
@@ -170,8 +167,10 @@ function fixture(t, platform = 'ios') {
       ...Object.keys(values),
     ]) {
       native[method] = track(native, method, () => {
-        if (method.startsWith('initializeWith')) initialized = true;
-        if (method === 'destroy') initialized = false;
+        if (method === 'destroy') {
+          initialized = false;
+          callbacks.delete(native);
+        }
         if (method === 'getBufferLevel') return initialized ? levels : null;
         if (method === 'isMediaControlsEnabled')
           return initialized ? true : null;
@@ -193,26 +192,39 @@ function fixture(t, platform = 'ios') {
         return values[method];
       });
     }
-    creations.push({ kind, nativeId, native });
+    creations.push({ kind, config, native });
     return native;
   };
 
   const levels = { audio: { level: 3 }, video: { level: 5 } };
   const modules = {
     PlayerModule: {
-      create: (id) => create('player', id),
+      createEmpty: () => create('player'),
+      create: async (...args) => {
+        const native = create('player', args[0], args[4], true);
+        calls.push({ target: native, method: 'create', args });
+        return native;
+      },
       isGoogleImaEnabled: true,
     },
     SourceModule: {
-      create: (...args) => {
-        assert.equal(args.length, 0);
-        return create('source');
+      createEmpty: () => create('source'),
+      create: async (...args) => {
+        const native = create('source', args[0], undefined, true);
+        calls.push({ target: native, method: 'create', args });
+        return native;
       },
     },
+    NativeCallbacksModule: {},
+    OfflineModule: {},
     DebugModule: { setDebugLoggingEnabled: async () => {} },
-    NetworkModule: {},
-    DecoderConfigModule: {},
-    DrmModule: { initializeWithConfig: async () => {} },
+    NetworkModule: {
+      create: (config, callback) => create('network', config, callback, true),
+    },
+    DecoderConfigModule: {
+      create: (config, callback) => create('decoder', config, callback, true),
+    },
+    DrmModule: { create: () => ({ destroy: async () => {} }) },
   };
   for (const module of Object.values(modules)) {
     module.addListener = () => ({ remove() {} });
@@ -254,10 +266,12 @@ function fixture(t, platform = 'ios') {
     calls,
     creations,
     levels,
-    emit: (native, eventName, payload) => {
-      for (const listener of listeners.get(native).get(eventName) ?? []) {
-        listener(payload);
-      }
+    invoke: async (native, operation, args) => {
+      const callback = callbacks.get(native);
+      if (!callback) return null;
+      return new Promise((resolve) =>
+        callback(operation, structuredClone(args), { resolve })
+      );
     },
   };
 }
@@ -287,11 +301,11 @@ test('public wrappers preserve named and generated IDs', async (t) => {
     await instance.initialize();
   }
   assert.deepEqual(
-    creations.map(({ kind, nativeId }) => ({ kind, nativeId })),
+    creations.map(({ kind, config }) => ({ kind, nativeId: config?.nativeId })),
     [
-      { kind: 'player', nativeId: 'named' },
+      { kind: 'player', nativeId: undefined },
       { kind: 'source', nativeId: undefined },
-      { kind: 'player', nativeId: generatedPlayer.nativeId },
+      { kind: 'player', nativeId: undefined },
       { kind: 'source', nativeId: undefined },
     ]
   );
@@ -383,21 +397,19 @@ test('uninitialized construction is not retained and the first initializing wrap
     lookup('source', firstSource.nativeId),
     nativeOf(configuredSource)
   );
-  assert.equal(
+  assert.deepEqual(
     calls.find(
       ({ target, method }) =>
-        target === nativeOf(configuredPlayer) &&
-        method === 'initializeWithConfig'
+        target === nativeOf(configuredPlayer) && method === 'create'
     ).args[0],
-    playerConfig
+    { licenseKey: playerConfig.licenseKey }
   );
-  assert.equal(
+  assert.deepEqual(
     calls.find(
       ({ target, method }) =>
-        target === nativeOf(configuredSource) &&
-        method === 'initializeWithConfig'
-    ).args[1],
-    sourceConfig
+        target === nativeOf(configuredSource) && method === 'create'
+    ).args[0],
+    { url: sourceConfig.url, drmConfig: sourceConfig.drmConfig }
   );
   assert.equal(firstPlayer.isInitialized, false);
   assert.equal(firstSource.isInitialized, false);
@@ -538,44 +550,36 @@ test('a synchronous native factory failure does not register an instance', async
   assert.equal(lookup('player', player.nativeId), nativeOf(player));
 });
 
-test('one alias failing initialization does not unregister another alias successful backend', async (t) => {
+test('overlapping aliases share creation and can retry after a failed factory', async (t) => {
   const { nativeOf, Player, modules, lookup } = fixture(t);
-  const failure = new Error('First initialization attempt failed');
+  const failure = new Error('First creation failed');
   let rejectFirstAttempt;
   const firstAttempt = new Promise((_, reject) => {
     rejectFirstAttempt = reject;
   });
   const create = modules.PlayerModule.create;
-  modules.PlayerModule.create = (id) => {
-    const native = create(id);
-    const initialize = native.initializeWithConfig;
-    native.initializeWithConfig = (config, ...args) =>
-      config?.licenseKey === 'failing-fixture'
-        ? firstAttempt
-        : initialize(config, ...args);
-    return native;
-  };
-  const first = new Player({
-    nativeId: 'overlapping-initialization',
-    licenseKey: 'failing-fixture',
-  });
-  const failedInitialization = assert.rejects(
+  let attempts = 0;
+  modules.PlayerModule.create = (...args) =>
+    ++attempts === 1 ? firstAttempt : create(...args);
+  const first = new Player({ nativeId: 'overlapping' });
+  const alias = new Player({ nativeId: first.nativeId });
+  const firstFailure = assert.rejects(
     first.initialize(),
     (error) => error === failure
   );
+  const aliasFailure = assert.rejects(
+    alias.initialize(),
+    (error) => error === failure
+  );
   await new Promise(setImmediate);
-  const alias = new Player({ nativeId: first.nativeId });
-  await alias.initialize();
-  const native = nativeOf(alias);
+  assert.equal(attempts, 1);
   rejectFirstAttempt(failure);
-  await failedInitialization;
-
-  assert.equal(first.isInitialized, false);
-  assert.equal(alias.isInitialized, true);
-  assert.equal(lookup('player', first.nativeId), native);
-  assert.equal(nativeOf(first), native);
-  alias.destroy();
+  await Promise.all([firstFailure, aliasFailure]);
   assert.equal(lookup('player', first.nativeId), undefined);
+  await alias.initialize();
+  assert.equal(alias.isInitialized, true);
+  assert.equal(first.isInitialized, false);
+  assert.equal(nativeOf(first), nativeOf(alias));
 });
 
 test('legacy feature facades resolve their player on every call', async (t) => {
@@ -703,135 +707,128 @@ for (const platform of ['ios', 'android']) {
 }
 
 for (const platform of ['ios', 'android']) {
-  test(`${platform}: advertising callbacks and completions stay on their player object`, async (t) => {
-    const { nativeOf, Player, calls, emit } = fixture(t, platform);
-    const decisions = [];
-    const beforeInitialization = [];
-    const callbackName =
-      platform === 'android' ? 'shouldPlayAdBreak' : 'shouldLoadAdItem';
-    const eventName =
-      platform === 'android' ? 'onShouldPlayAdBreak' : 'onShouldLoadAdItem';
-    const completionName =
-      platform === 'android' ? 'setShouldPlayAdBreak' : 'setShouldLoadAdItem';
-    const eventValue =
-      platform === 'android'
-        ? { ads: [{ id: 'ad', data: { custom: 'original' } }] }
-        : { sources: [{ type: 'vast', uri: 'https://test/ad' }] };
-    const payload = {
-      id: 1,
-      [platform === 'android' ? 'adBreak' : 'adItem']: eventValue,
-    };
-    const makeConfig = (id, result) => ({
-      nativeId: id,
-      advertisingConfig: {
-        [callbackName]: (value) => {
-          decisions.push({ id, value });
-          return result;
-        },
-        ima: {
-          beforeInitialization: (settings) => {
-            beforeInitialization.push(id);
-            return { ...settings, language: id };
+  test(`${platform}: direct advertising callbacks stay with their configured player`, async (t) => {
+    const { nativeOf, Player, invoke } = fixture(t, platform);
+    const received = [];
+    const make = (nativeId, decision) =>
+      new Player({
+        nativeId,
+        advertisingConfig: {
+          shouldLoadAdItem: (item) => {
+            received.push([nativeId, item]);
+            return decision;
+          },
+          ima: {
+            beforeInitialization: (settings) => {
+              settings.language = nativeId;
+              return { playerType: 'custom' };
+            },
           },
         },
-      },
-    });
-    const first = new Player(makeConfig('first', false));
-    const second = new Player(makeConfig('second', true));
-    await first.initialize();
-    await second.initialize();
-    calls.length = 0;
-    const firstNative = nativeOf(first);
-
-    // No string ID routing is needed inside an object-scoped event. Reusing a
-    // completion ID on another object must still call the corresponding object.
-    emit(firstNative, eventName, payload);
-    assert.equal(decisions.length, 1);
-    assert.equal(decisions[0].id, 'first');
-    assert.deepEqual(decisions[0].value, eventValue);
-    assert.notEqual(decisions[0].value, eventValue);
-    emit(nativeOf(second), eventName, payload);
-    emit(firstNative, 'onImaBeforeInitialization', {
-      id: 1,
-      settings: { language: 'original' },
-    });
-    assert.deepEqual(beforeInitialization, ['first']);
-    assert.deepEqual(
-      calls.map(({ target, method, args }) => ({ target, method, args })),
-      [
-        { target: nativeOf(first), method: completionName, args: [1, false] },
-        { target: nativeOf(second), method: completionName, args: [1, true] },
-        {
-          target: nativeOf(first),
-          method: 'setPreparedImaSettings',
-          args: [1, { language: 'first' }],
-        },
-      ]
+      });
+    const first = make('first', false);
+    const second = make('second', true);
+    await Promise.all([first.initialize(), second.initialize()]);
+    const item = { sources: [{ uri: 'https://test/ad' }] };
+    assert.equal(
+      await invoke(nativeOf(first), 'shouldLoadAdItem', [item]),
+      false
     );
-
+    assert.equal(
+      await invoke(nativeOf(second), 'shouldLoadAdItem', [item]),
+      true
+    );
+    assert.deepEqual(
+      received.map(([id]) => id),
+      ['first', 'second']
+    );
+    assert.deepEqual(received[0][1], item);
+    assert.notEqual(received[0][1], item);
+    assert.deepEqual(
+      await invoke(nativeOf(first), 'imaBeforeInitialization', [
+        { language: 'original' },
+      ]),
+      {
+        language: 'first',
+        playerType: 'custom',
+      }
+    );
+    const original = nativeOf(first);
     first.destroy();
-    calls.length = 0;
-    emit(firstNative, eventName, payload);
-    emit(firstNative, 'onImaBeforeInitialization', {
-      id: 2,
-      settings: {},
-    });
-    assert.equal(decisions.length, 2);
-    assert.equal(beforeInitialization.length, 1);
-    assert.deepEqual(calls, []);
+    await new Promise(setImmediate);
+    assert.equal(await invoke(original, 'shouldLoadAdItem', [item]), null);
   });
 }
 
-test('queued callbacks complete on their original object after the player ID is reused', async (t) => {
-  const { nativeOf, Player, calls, emit } = fixture(t, 'android');
-  const owner = new Player({
-    nativeId: 'reused-callback-id',
-    advertisingConfig: {
-      shouldLoadAdItem: () => false,
-      shouldPlayAdBreak: () => false,
-      ima: { beforeInitialization: () => ({ language: 'original' }) },
-    },
+test('a canceled creation cannot replace a player reusing its public ID', async (t) => {
+  const { Player, modules, nativeOf } = fixture(t);
+  const create = modules.PlayerModule.create;
+  let finish;
+  const pending = new Promise((resolve) => {
+    finish = resolve;
   });
-  await owner.initialize();
-  const originalNative = nativeOf(owner);
-  // Lifecycle flags and subscriptions remain per wrapper, as in the legacy API.
-  // Retiring through another wrapper leaves the original wrapper's listeners.
-  new Player({ nativeId: owner.nativeId }).destroy();
-  const replacement = new Player({ nativeId: owner.nativeId });
+  modules.PlayerModule.create = () => pending;
+  const old = new Player({ nativeId: 'reuse-during-creation' });
+  const initialization = old.initialize();
+  await new Promise(setImmediate);
+  old.destroy();
+  modules.PlayerModule.create = create;
+  const replacement = new Player({ nativeId: old.nativeId });
   await replacement.initialize();
-  assert.notEqual(nativeOf(replacement), originalNative);
-  calls.length = 0;
+  const retired = await create();
+  finish(retired);
+  await initialization;
+  assert.notEqual(nativeOf(replacement), retired);
+  assert.equal(old.isDestroyed, true);
+  assert.equal(replacement.isInitialized, true);
+});
 
-  emit(originalNative, 'onShouldLoadAdItem', {
-    id: 1,
-    adItem: { sources: [] },
+test('destroying before deferred creation starts allocates no configuration owners', async (t) => {
+  const { Player, creations, lookup } = fixture(t, 'android');
+  const player = new Player({
+    nativeId: 'cancel-before-start',
+    networkConfig: { preprocessHttpRequest: (_type, request) => request },
+    playbackConfig: { decoderConfig: {} },
   });
-  emit(originalNative, 'onShouldPlayAdBreak', {
-    id: 1,
-    adBreak: { ads: [] },
-  });
-  emit(originalNative, 'onImaBeforeInitialization', {
-    id: 1,
-    settings: {},
-  });
-  assert.deepEqual(
-    calls.map(({ target, method, args }) => ({ target, method, args })),
-    [
-      {
-        target: originalNative,
-        method: 'setShouldLoadAdItem',
-        args: [1, false],
-      },
-      {
-        target: originalNative,
-        method: 'setShouldPlayAdBreak',
-        args: [1, false],
-      },
-      {
-        target: originalNative,
-        method: 'setPreparedImaSettings',
-        args: [1, { language: 'original' }],
-      },
-    ]
+  const initialization = player.initialize();
+  player.destroy();
+  await initialization;
+  assert.equal(
+    creations.filter(({ kind }) => kind === 'network' || kind === 'decoder')
+      .length,
+    0
   );
+  assert.equal(lookup('player', player.nativeId), undefined);
+});
+
+test('canceling an alias during creation disposes its configuration owners', async (t) => {
+  const { Player, modules, creations, calls, lookup } = fixture(t, 'android');
+  const create = modules.PlayerModule.create;
+  let finish;
+  const pending = new Promise((resolve) => {
+    finish = resolve;
+  });
+  modules.PlayerModule.create = () => pending;
+  const player = new Player({
+    nativeId: 'cancel-with-configuration',
+    networkConfig: { preprocessHttpRequest: (_type, request) => request },
+    playbackConfig: { decoderConfig: {} },
+  });
+  const initialization = player.initialize();
+  await new Promise(setImmediate);
+  new Player({ nativeId: player.nativeId }).destroy();
+  finish(await create());
+  await initialization;
+  for (const { kind, native } of creations.filter(
+    ({ kind }) => kind === 'network' || kind === 'decoder'
+  )) {
+    assert.equal(
+      calls.filter(
+        (call) => call.target === native && call.method === 'destroy'
+      ).length,
+      1,
+      kind
+    );
+  }
+  assert.equal(lookup('player', player.nativeId), undefined);
 });

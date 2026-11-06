@@ -3,28 +3,17 @@ import Combine
 import ExpoModulesCore
 
 public class SourceModule: Module {
-    // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("SourceModule")
-        Function("create") {
-            SharedSource()
-        }
+        Function("createEmpty") { SharedSource() }
+        AsyncFunction("create") { (config: [String: Any]?, drm: SharedDrm?, remote: [String: Any]?, analytics: [String: Any]?) -> SharedSource in // swiftlint:disable:this line_length
+            let owner = SharedSource()
+            owner.createSource(
+                drm: drm, config: config, sourceRemoteControlConfig: remote, analyticsSourceMetadata: analytics
+            )
+            return owner
+        }.runOnQueue(.main)
         Class("Source", SharedSource.self) {
-            AsyncFunction("initializeWithConfig") { (owner: SharedSource, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?) in // swiftlint:disable:this line_length
-                owner.createSource(
-                    drmNativeId: drmNativeId,
-                    config: config,
-                    sourceRemoteControlConfig: sourceRemoteControlConfig
-                )
-            }.runOnQueue(.main)
-            AsyncFunction("initializeWithAnalyticsConfig") { (owner: SharedSource, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?, analyticsSourceMetadata: [String: Any]?) in // swiftlint:disable:this line_length
-                owner.createSource(
-                    drmNativeId: drmNativeId,
-                    config: config,
-                    sourceRemoteControlConfig: sourceRemoteControlConfig,
-                    analyticsSourceMetadata: analyticsSourceMetadata
-                )
-            }.runOnQueue(.main)
             AsyncFunction("destroy") { (owner: SharedSource) in
                 owner.destroy()
             }.runOnQueue(.main)
@@ -71,19 +60,19 @@ public final class SharedSource: SharedObject {
     fileprivate let fairplayRequests = LockedBox(value: [String: FairplayContentKeyRequest]())
     private var fairplayCancellable: AnyCancellable?
     private var isClosed = false
+    private var drm: SharedDrm?
 
     // The player retains this owner while its source is loaded. JS association release must not
     // invalidate the SDK source or callbacks. ARC releases the source and subscription together.
     fileprivate func createSource(
-        drmNativeId: NativeId?,
+        drm: SharedDrm?,
         config: [String: Any]?,
         sourceRemoteControlConfig: [String: Any]?,
         analyticsSourceMetadata: [String: Any]? = nil
     ) {
         guard !isClosed, source == nil else { return }
-        let drmModule = appContext?.moduleRegistry.get(DrmModule.self)
-        let drmConfig = drmNativeId.flatMap { drmModule?.retrieve($0) }
-        guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig) else { return }
+        self.drm = drm
+        guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drm?.config) else { return }
         let sourceMetadata = RCTConvert.analyticsSourceMetadata(analyticsSourceMetadata)
         let nativeSource: Source
         if let sourceMetadata {
@@ -107,6 +96,7 @@ public final class SharedSource: SharedObject {
     fileprivate func destroy() {
         isClosed = true
         source = nil
+        drm = nil
         castSourceConfig = nil
         fairplayCancellable?.cancel()
         fairplayCancellable = nil

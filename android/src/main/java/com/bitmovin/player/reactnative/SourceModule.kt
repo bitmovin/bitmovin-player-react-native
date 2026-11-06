@@ -8,21 +8,14 @@ import expo.modules.kotlin.modules.ModuleDefinition
 class SourceModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("SourceModule")
-        Function("create") { SharedSource(appContext) }
+        Function("createEmpty") { SharedSource(appContext) }
+        AsyncFunction("create") { config: Map<String, Any>?, drm: SharedDrm?,
+            remoteControl: Map<String, Any>?, analytics: Map<String, Any>?, ->
+            SharedSource.create(appContext, config, drm, remoteControl, analytics)
+        }.runOnQueue(Queues.MAIN)
 
         Class(SharedSource::class) {
             Constructor { SharedSource(appContext) }
-            AsyncFunction("initializeWithConfig") { shared: SharedSource, drmNativeId: NativeId?,
-                config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?, ->
-                shared.initialize(drmNativeId, config, sourceRemoteControlConfig, null)
-            }.runOnQueue(Queues.MAIN)
-
-            AsyncFunction("initializeWithAnalyticsConfig") { shared: SharedSource, drmNativeId: NativeId?,
-                config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?,
-                analyticsSourceMetadata: Map<String, Any>?, ->
-                shared.initialize(drmNativeId, config, sourceRemoteControlConfig, analyticsSourceMetadata)
-            }.runOnQueue(Queues.MAIN)
-
             AsyncFunction("destroy") { shared: SharedSource ->
                 shared.destroy()
             }.runOnQueue(Queues.MAIN)

@@ -6,8 +6,10 @@ import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
 import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
 import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.functions.Queues
+import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -17,15 +19,14 @@ class PlayerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("PlayerModule")
         Constant("isGoogleImaEnabled") { ImaBeforeInitializationConfigurator.IS_GOOGLE_IMA_ENABLED }
-        Function("create") { nativeId: NativeId ->
-            SharedPlayer(appContext, nativeId, mediaSessionPlaybackManager)
-        }
+        Function("createEmpty") { SharedPlayer.empty(appContext, mediaSessionPlaybackManager) }
+        AsyncFunction("create") { config: Map<String, Any>?, analytics: Map<String, Any>?,
+            network: SharedNetwork?, decoder: SharedDecoder?, callback: JavaScriptFunction<Any?>?, ->
+            SharedPlayer.create(appContext, config, analytics, network, decoder, callback, mediaSessionPlaybackManager)
+        }.runOnQueue(Queues.MAIN)
 
         Class(SharedPlayer::class) {
-            Constructor { nativeId: NativeId ->
-                SharedPlayer(appContext, nativeId, mediaSessionPlaybackManager)
-            }
-            Events("onShouldLoadAdItem", "onShouldPlayAdBreak", "onImaBeforeInitialization")
+            Constructor { SharedPlayer.empty(appContext, mediaSessionPlaybackManager) }
             AsyncFunction("getBufferLevel") { shared: SharedPlayer, type: String ->
                 shared.player?.buffer?.let { buffer ->
                     type.toBufferTypeOrThrow().let { bufferType ->
@@ -238,41 +239,13 @@ class PlayerModule : Module() {
             AsyncFunction("getThumbnail") { shared: SharedPlayer, time: Double ->
                 return@AsyncFunction shared.player?.getThumbnail(time)?.toJson()
             }.runOnQueue(Queues.MAIN)
-            AsyncFunction("loadOfflineContent") { shared: SharedPlayer, offlineContentManagerBridgeId: String,
+            AsyncFunction("loadOfflineContent") { shared: SharedPlayer, offline: OfflineContentManagerBridge,
                 options: Map<String, Any>?, ->
-                if (shared.player == null) return@AsyncFunction
-                appContext.registry.getModule<OfflineModule>()
-                    ?.getOfflineContentManagerBridge(offlineContentManagerBridgeId)
-                    ?.offlineContentManager?.offlineSourceConfig?.let {
-                        shared.player?.load(it)
-                    }
+                offline.offlineContentManager.offlineSourceConfig?.let { shared.player?.load(it) }
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("scheduleAd") { shared: SharedPlayer, adItemJson: Map<String, Any> ->
                 adItemJson.toAdItem()?.let { shared.player?.scheduleAd(it) }
-            }.runOnQueue(Queues.MAIN)
-
-            AsyncFunction("setPreparedImaSettings") { shared: SharedPlayer, id: Int, settings: Map<String, Any?>? ->
-                shared.imaSettingsWaiter.complete(id, settings ?: emptyMap())
-            }
-
-            AsyncFunction("setShouldLoadAdItem") { shared: SharedPlayer, id: Int, shouldLoad: Boolean ->
-                shared.shouldLoadAdItemWaiter.complete(id, shouldLoad)
-            }
-
-            AsyncFunction("setShouldPlayAdBreak") { shared: SharedPlayer, id: Int, shouldPlay: Boolean ->
-                shared.shouldPlayAdBreakWaiter.complete(id, shouldPlay)
-            }
-
-            AsyncFunction("initializeWithConfig") { shared: SharedPlayer, config: Map<String, Any>?,
-                networkNativeId: NativeId?, decoderNativeId: NativeId?, ->
-                shared.initialize(config, networkNativeId, decoderNativeId, null)
-            }.runOnQueue(Queues.MAIN)
-
-            AsyncFunction("initializeWithAnalyticsConfig") { shared: SharedPlayer,
-                analyticsConfigJson: Map<String, Any>,
-                config: Map<String, Any>?, networkNativeId: NativeId?, decoderNativeId: NativeId?, ->
-                shared.initialize(config, networkNativeId, decoderNativeId, analyticsConfigJson)
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("loadSource") { shared: SharedPlayer, sharedSource: SharedSource ->

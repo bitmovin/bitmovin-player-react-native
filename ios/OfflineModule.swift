@@ -3,152 +3,123 @@ import ExpoModulesCore
 import Foundation
 
 public class OfflineModule: Module {
-    #if os(iOS)
-    private var offlineContentManagerBridges: Registry<OfflineContentManagerBridge> = [:]
-    #endif
-
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("OfflineModule")
-        Events("onBitmovinOfflineEvent")
-        OnCreate {
-            // Module initialization
-        }
-        OnDestroy {
-            #if os(iOS)
-            self.offlineContentManagerBridges.removeAll()
-            #endif
-        }
-        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: NativeId, config: [String: Any?]?, drmNativeId: NativeId?) in // swiftlint:disable:this line_length
-            #if os(iOS)
-            self?.createOfflineManager(nativeId: nativeId, config: config, drmNativeId: drmNativeId)
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("getState") { [weak self] (nativeId: NativeId) -> String? in
-            #if os(iOS)
-            let offlineState = self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.offlineState
-            return RCTConvert.toJson(offlineState: offlineState)
-            #else
-            return nil
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("getOptions") { [weak self] (nativeId: NativeId) in
-            #if os(iOS)
-            self?.offlineContentManagerBridges[nativeId]?.fetchAvailableTracks()
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("usedStorage") { [weak self] (nativeId: NativeId) -> Int? in
-            #if os(iOS)
-            return self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.usedStorage
-            #else
-            return nil
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("deleteAll") { [weak self] (nativeId: NativeId) in
-            #if os(iOS)
-            self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.deleteOfflineData()
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("release") { [weak self] (nativeId: NativeId) in
-            #if os(iOS)
-            self?.offlineContentManagerBridges[nativeId]?.release()
-            self?.offlineContentManagerBridges[nativeId] = nil
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("download") { [weak self] (nativeId: NativeId, request: [String: Any?]?) in
-            #if os(iOS)
-            self?.download(nativeId: nativeId, request: request)
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("resume") { [weak self] (nativeId: NativeId) in
-            #if os(iOS)
-            self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.resumeDownload()
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("suspend") { [weak self] (nativeId: NativeId) in
-            #if os(iOS)
-            self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.suspendDownload()
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("cancelDownload") { [weak self] (nativeId: NativeId) in
-            #if os(iOS)
-            self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.cancelDownload()
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("downloadLicense") { [weak self] (nativeId: NativeId) in
-            #if os(iOS)
-            self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.syncOfflineDrmLicenseInformation()
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("renewOfflineLicense") { [weak self] (nativeId: NativeId) in
-            #if os(iOS)
-            self?.offlineContentManagerBridges[nativeId]?.offlineContentManager.renewOfflineLicense()
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("releaseLicense") { (_: String) in
-            // No-op on iOS
-        }.runOnQueue(.main)
-    }
-
+        Function("create") { SharedOffline() }
+        Class("OfflineContentManager", SharedOffline.self) {
+            AsyncFunction("initialize") { (owner: SharedOffline, config: [String: Any], drm: SharedDrm?) in
+                owner.initialize(config: config, drm: drm)
+            }.runOnQueue(.main)
+            AsyncFunction("getState") { (owner: SharedOffline) -> String? in
 #if os(iOS)
-    private func createOfflineManager(nativeId: NativeId, config: [String: Any?]?, drmNativeId: NativeId?) {
-        if self.offlineContentManagerBridges[nativeId] != nil {
-            return
+                RCTConvert.toJson(offlineState: owner.bridge?.offlineContentManager.offlineState)
+#else
+                nil
+#endif
+            }.runOnQueue(.main)
+            AsyncFunction("getOptions") { (owner: SharedOffline) in
+#if os(iOS)
+                owner.bridge?.fetchAvailableTracks()
+#endif
+            }.runOnQueue(.main)
+            AsyncFunction("usedStorage") { (owner: SharedOffline) -> Int? in
+#if os(iOS)
+                owner.bridge?.offlineContentManager.usedStorage
+#else
+                nil
+#endif
+            }.runOnQueue(.main)
+            AsyncFunction("deleteAll") { (owner: SharedOffline) in
+#if os(iOS)
+                owner.bridge?.offlineContentManager.deleteOfflineData()
+#endif
+            }.runOnQueue(.main)
+            AsyncFunction("destroy") { (owner: SharedOffline) in owner.destroy() }.runOnQueue(.main)
+            AsyncFunction("download") { (owner: SharedOffline, request: [String: Any]?) in
+                owner.download(request)
+            }.runOnQueue(.main)
+            AsyncFunction("resume") { (owner: SharedOffline) in
+#if os(iOS)
+                owner.bridge?.offlineContentManager.resumeDownload()
+#endif
+            }.runOnQueue(.main)
+            AsyncFunction("suspend") { (owner: SharedOffline) in
+#if os(iOS)
+                owner.bridge?.offlineContentManager.suspendDownload()
+#endif
+            }.runOnQueue(.main)
+            AsyncFunction("cancelDownload") { (owner: SharedOffline) in
+#if os(iOS)
+                owner.bridge?.offlineContentManager.cancelDownload()
+#endif
+            }.runOnQueue(.main)
+            AsyncFunction("downloadLicense") { (owner: SharedOffline) in
+#if os(iOS)
+                owner.bridge?.offlineContentManager.syncOfflineDrmLicenseInformation()
+#endif
+            }.runOnQueue(.main)
+            AsyncFunction("renewOfflineLicense") { (owner: SharedOffline) in
+#if os(iOS)
+                owner.bridge?.offlineContentManager.renewOfflineLicense()
+#endif
+            }.runOnQueue(.main)
+            AsyncFunction("releaseLicense") { (_: SharedOffline) in }.runOnQueue(.main)
         }
-        guard let config, let identifier = config["identifier"] as? String else {
-            return
-        }
-        let fairplayConfig = drmNativeId.flatMap { appContext?.moduleRegistry.get(DrmModule.self)?.retrieve($0) }
-        guard let sourceConfigDict = config["sourceConfig"],
-              let sourceConfig = RCTConvert.sourceConfig(sourceConfigDict, drmConfig: fairplayConfig) else {
-            return
-        }
+    }
+}
+
+public final class SharedOffline: SharedObject {
+#if os(iOS)
+    private(set) var bridge: OfflineContentManagerBridge?
+#endif
+    private var drm: SharedDrm?
+    private var isClosed = false
+
+    func initialize(config: [String: Any], drm: SharedDrm?) {
+#if os(iOS)
+        guard !isClosed, bridge == nil, let identifier = config["identifier"] as? String,
+              let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], drmConfig: drm?.config) else { return }
+        self.drm = drm
         do {
-            let offlineContentManager = try OfflineManager.sharedInstance()
-                .offlineContentManager(for: sourceConfig, id: identifier)
-            let offlineContentManagerBridge = OfflineContentManagerBridge(
-                forManager: offlineContentManager,
-                module: self,
-                nativeId: nativeId,
-                identifier: identifier
-            )
-            self.offlineContentManagerBridges[nativeId] = offlineContentManagerBridge
+            let manager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
+            bridge = OfflineContentManagerBridge(forManager: manager, owner: self, identifier: identifier)
         } catch {}
+#endif
     }
 
-    private func download(nativeId: NativeId, request: [String: Any?]?) {
-        guard let offlineContentManagerBridge = self.offlineContentManagerBridges[nativeId], let request else {
-            return
-        }
-        guard offlineContentManagerBridge.offlineContentManager.offlineState == .notDownloaded else {
-            return
-        }
+    func destroy() {
+        isClosed = true
+#if os(iOS)
+        bridge?.release()
+        bridge = nil
+#endif
+        drm = nil
+    }
 
-        guard let currentTrackSelection = offlineContentManagerBridge.currentTrackSelection else {
-            return
-        }
+    deinit {
+#if os(iOS)
+        if let bridge { DispatchQueue.main.async { bridge.release() } }
+#endif
+    }
+
+    override public func sharedObjectWillRelease() {
+        DispatchQueue.main.async { self.destroy() }
+    }
+
+    func download(_ request: [String: Any]?) {
+#if os(iOS)
+        guard let bridge, let request, bridge.offlineContentManager.offlineState == .notDownloaded,
+              let tracks = bridge.currentTrackSelection else { return }
         if let audioOptionIds = request["audioOptionIds"] as? [String], !audioOptionIds.isEmpty {
-            currentTrackSelection.audioTracks.forEach {
-                $0.action = audioOptionIds.contains($0.label) ? .download : .none
-            }
+            tracks.audioTracks.forEach { $0.action = audioOptionIds.contains($0.label) ? .download : .none }
         }
         if let textOptionIds = request["textOptionIds"] as? [String], !textOptionIds.isEmpty {
-            currentTrackSelection.textTracks.forEach {
-                $0.action = textOptionIds.contains($0.label) ? .download : .none
-            }
+            tracks.textTracks.forEach { $0.action = textOptionIds.contains($0.label) ? .download : .none }
         }
         let config = DownloadConfig()
-        if let minimumBitrate = request["minimumBitrate"] as? NSNumber {
-            config.minimumBitrate = minimumBitrate
-        }
-        offlineContentManagerBridge.offlineContentManager.download(
-            tracks: currentTrackSelection,
-            downloadConfig: config
-        )
-    }
-
-    internal func retrieve(_ nativeId: NativeId) -> OfflineContentManagerBridge? {
-        self.offlineContentManagerBridges[nativeId]
-    }
+        config.minimumBitrate = request["minimumBitrate"] as? NSNumber
+        bridge.offlineContentManager.download(tracks: tracks, downloadConfig: config)
 #endif
+    }
 }

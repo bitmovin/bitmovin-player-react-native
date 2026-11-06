@@ -12,10 +12,8 @@ import expo.modules.kotlin.sharedobjects.SharedObject
 import java.util.concurrent.atomic.AtomicBoolean
 
 /** Owns the source wrapper, without unloading a source retained by an SDK player. */
-class SharedSource(appContext: AppContext) : SharedObject(appContext) {
-    private var resource: Source? = null
+class SharedSource(appContext: AppContext, private var resource: Source? = null) : SharedObject(appContext) {
     private val closed = AtomicBoolean(false)
-    private val mainHandler = Handler(Looper.getMainLooper())
     val source: Source?
         get() = if (closed.get()) null else resource
 
@@ -24,43 +22,32 @@ class SharedSource(appContext: AppContext) : SharedObject(appContext) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             resource = null
         } else {
-            mainHandler.post { resource = null }
+            Handler(Looper.getMainLooper()).post { resource = null }
         }
     }
-
     override fun sharedObjectDidRelease() = destroy()
 
-    fun initialize(
-        drmNativeId: NativeId?,
-        config: Map<String, Any>?,
-        sourceRemoteControlConfig: Map<String, Any>?,
-        analyticsSourceMetadata: Map<String, Any>?,
-    ) {
-        if (closed.get() || source != null) {
-            return
-        }
-
-        val sourceConfig = config?.toSourceConfig()
-            ?: throw SourceException.InvalidSourceConfig()
-
-        // Get DRM config if provided
-        sourceConfig.drmConfig = requireNotNull(appContext).registry.getModule<DrmModule>()?.getConfig(drmNativeId)
-
-        val sourceMetadata = analyticsSourceMetadata?.toAnalyticsSourceMetadata()
-        try {
-            resource = if (sourceMetadata != null) {
-                Source.create(sourceConfig, sourceMetadata)
-            } else {
-                Source.create(sourceConfig)
+    companion object {
+        fun create(
+            appContext: AppContext,
+            config: Map<String, Any>?,
+            drm: SharedDrm?,
+            sourceRemoteControlConfig: Map<String, Any>?,
+            analyticsSourceMetadata: Map<String, Any>?,
+        ): SharedSource {
+            val sourceConfig = config?.toSourceConfig() ?: throw SourceException.InvalidSourceConfig()
+            sourceConfig.drmConfig = drm?.config
+            try {
+                val source = analyticsSourceMetadata?.toAnalyticsSourceMetadata()?.let {
+                    Source.create(sourceConfig, it)
+                } ?: Source.create(sourceConfig)
+                return SharedSource(appContext, source)
+            } catch (error: Exception) {
+                throw SourceException.SourceCreationFailed(error.message ?: "Unknown error")
             }
-            if (closed.get()) resource = null
-        } catch (e: Exception) {
-            throw SourceException.SourceCreationFailed(e.message ?: "Unknown error")
         }
     }
 }
-
-// MARK: - Exception Definitions
 
 sealed class SourceException(message: String) : CodedException(message) {
     class InvalidSourceConfig : SourceException("Invalid source configuration")

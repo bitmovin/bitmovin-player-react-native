@@ -11,7 +11,7 @@ native test target is available.
 JS unit tests run in Node without a simulator or emulator. They can run real
 TypeScript code while replacing the Expo boundary with a controlled mock. Use
 them for callback invocation, synchronous throws and rejected promises,
-fallback selection, payload routing, and handling bridge-promise failures.
+fallback selection, callback selection, and handling completion failures.
 Assertions about arguments submitted to a mock prove the JS submission only.
 
 An integration test checks cooperating components across a chosen boundary.
@@ -28,19 +28,19 @@ also includes delivery across Expo or SDK behavior in the app.
 
 ## Decision examples
 
-| Behavior to verify                                                                            | Choose                          | Evidence to assert                                                                                                   |
-| --------------------------------------------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| A preprocessing callback resolves to a transformed request or response                        | JS unit                         | Correct callback arguments and transformed payload submitted to the bridge mock                                      |
-| A callback throws synchronously or returns a rejected promise                                 | JS unit                         | JS selects the intended fallback and handles the failure                                                             |
-| An event belongs to another `nativeId`, or a request/response completion ID must be forwarded | JS unit                         | Foreign events are ignored; matching events route the correct kind, ID, and payload                                  |
-| The bridge completion promise rejects                                                         | JS unit                         | JS handles rejection according to the explicit fixture state; submission counts alone do not prove native completion |
-| Missing fields, null values, or encoded bodies reach a native decoder                         | Focused native test and/or Cavy | Real conversion accepts or rejects the payload as specified; Cavy for the actual Expo boundary                       |
-| A native completer receives a duplicate or stale ID, or a decoded result                      | Focused native test and/or Cavy | Native completion, cleanup, and error behavior; Cavy if SDK resumption is part of the claim                          |
-| The Player emits events after loading, playing, unloading, or failing                         | Cavy system                     | Actual platform SDK events and observable player state                                                               |
-| A transformed manifest, segment, or license request must still allow playback                 | Both                            | Unit tests cover JS transformation/fallback branches; Cavy proves the native round trip and resulting playback       |
+| Behavior to verify                                                            | Choose                          | Evidence to assert                                                                                             |
+| ----------------------------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| A preprocessing callback resolves to a transformed request or response        | JS unit                         | Correct callback arguments and transformed payload submitted to the bridge mock                                |
+| A callback throws synchronously or returns a rejected promise                 | JS unit                         | JS selects the intended fallback and handles the failure                                                       |
+| A callback belongs to a configured object and receives a completion value     | JS unit                         | Matching callbacks receive the correct arguments and complete their own invocation                             |
+| The native completion call throws                                             | JS unit                         | JS handles the completion failure without retrying; submission counts alone do not prove native completion     |
+| Missing fields, null values, or encoded bodies reach a native decoder         | Focused native test and/or Cavy | Real conversion accepts or rejects the payload as specified; Cavy for the actual Expo boundary                 |
+| A per-call completion receives a duplicate, late, or decoded result           | Focused native test and/or Cavy | Native completion, cleanup, and error behavior; Cavy if SDK resumption is part of the claim                    |
+| The Player emits events after loading, playing, unloading, or failing         | Cavy system                     | Actual platform SDK events and observable player state                                                         |
+| A transformed manifest, segment, or license request must still allow playback | Both                            | Unit tests cover JS transformation/fallback branches; Cavy proves the native round trip and resulting playback |
 
-For bridge-error cases, state whether the fixture models rejection before or after
-completion, and track attempts separately from modeled completions. A rejection
+For completion-error cases, state whether the fixture models failure before or after
+completion, and track attempts separately from modeled completions. A thrown call
 alone does not reveal real native state. Native recovery guarantees need evidence
 at the native boundary.
 
@@ -68,21 +68,23 @@ The [network preprocessing tests](../scripts/test-network-preprocessing.js)
 use Node's test runner, TypeScript transpilation, and a mocked Expo module.
 They need installed root dependencies, including TypeScript, but no native
 build or Player license. They exercise the real JS handlers for request and
-response routing, callback success/failure, absent callbacks, and mocked
-completion rejection. They do not run a native decoder or completer.
+response callbacks, synchronous throws, rejected promises, absent callbacks, and
+completion failures. The fixtures use direct callback functions and per-call
+completion objects. They do not run a native decoder or completion object.
 
 The [native instance registry tests](../scripts/test-native-instance-registry.js)
 verify JavaScript compatibility for aliases with the same instance type and
 `nativeId`, separation between types, constructor retries, and removal after
-destruction. They exercise the real registry without a native bridge and do not
+destruction. They also cover concurrent creation, retries, and disposing canceled
+creations without replacing a reused ID. They exercise the real registry without a native bridge and do not
 prove native resource cleanup or Expo SharedObject release behavior.
 
 The [SharedObject compatibility tests](../scripts/test-shared-object-compatibility.js)
 run the public Player, Source, buffer, analytics, and media controls wrappers with
 mocked Expo modules. They check IDs, separate alias configurations and flags,
 shared backend routing, destruction and ID reuse, hook rerenders, public return
-shapes, and advertising callback routing and listener removal in the iOS and
-Android JavaScript branches. Native
+shapes, direct advertising callbacks, and clearing callbacks after destruction in
+the iOS and Android JavaScript branches. Native
 destruction, release, serialization, and playback remain outside this fixture's
 coverage.
 
@@ -131,7 +133,7 @@ native completion, SDK resumption, event timing, or playback. A resolved mock
 promise is only the fixture's chosen result. A rejected mock promise does not
 prove that a particular payload causes a real native rejection.
 
-Treat payload shapes, defaults, nullability, byte encoding, duplicate/stale
+Treat payload shapes, defaults, nullability, byte encoding, duplicate/late
 completion handling, and platform differences as unverified until supported by
 the relevant native implementation or contract and tests at that boundary.
 Do not turn synthetic fixture behavior into a public native contract. If a

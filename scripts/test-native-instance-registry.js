@@ -141,3 +141,90 @@ test('removal of an unregistered ID is harmless', (t) => {
   assert.equal(remove('Player', 'never-registered', {}), false);
   assert.equal(remove('MissingKind', 'never-registered', {}), false);
 });
+
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((yes, no) => {
+    resolve = yes;
+    reject = no;
+  });
+  return { promise, resolve, reject };
+}
+
+test('async construction shares one pending promise and publishes only its resolved object', async () => {
+  const pending = deferred();
+  const backend = {};
+  const first = registry.getOrCreateAsync(
+    'Async',
+    'shared',
+    () => pending.promise,
+    () => assert.fail()
+  );
+  const alias = registry.getOrCreateAsync(
+    'Async',
+    'shared',
+    () => assert.fail(),
+    () => assert.fail()
+  );
+  assert.equal(first, alias);
+  assert.equal(registry.lookup('Async', 'shared'), undefined);
+  assert.equal(registry.lookupPending('Async', 'shared'), first);
+  pending.resolve(backend);
+  assert.equal(await first, backend);
+  assert.equal(registry.lookupPending('Async', 'shared'), undefined);
+  assert.equal(registry.lookup('Async', 'shared'), backend);
+  registry.remove('Async', 'shared', backend);
+});
+
+test('failed async creation clears its pending entry and allows retry', async () => {
+  const failure = new Error('creation failed');
+  const first = registry.getOrCreateAsync(
+    'Async',
+    'retry',
+    async () => {
+      throw failure;
+    },
+    () => assert.fail()
+  );
+  await assert.rejects(first, (error) => error === failure);
+  assert.equal(registry.lookupPending('Async', 'retry'), undefined);
+  const backend = {};
+  assert.equal(
+    await registry.getOrCreateAsync(
+      'Async',
+      'retry',
+      async () => backend,
+      () => assert.fail()
+    ),
+    backend
+  );
+  registry.remove('Async', 'retry', backend);
+});
+
+test('removing pending creation disposes its eventual object without replacing a newer object', async () => {
+  const pending = deferred();
+  const old = {};
+  const disposed = [];
+  const first = registry.getOrCreateAsync(
+    'Async',
+    'replacement',
+    () => pending.promise,
+    (value) => disposed.push(value)
+  );
+  assert.equal(registry.remove('Async', 'replacement', first), true);
+  assert.equal(registry.lookupPending('Async', 'replacement'), undefined);
+  const replacement = {};
+  await registry.getOrCreateAsync(
+    'Async',
+    'replacement',
+    async () => replacement,
+    () => assert.fail()
+  );
+  pending.resolve(old);
+  assert.equal(await first, old);
+  assert.deepEqual(disposed, [old]);
+  assert.equal(registry.lookup('Async', 'replacement'), replacement);
+  assert.equal(registry.remove('Async', 'replacement', first), false);
+  registry.remove('Async', 'replacement', replacement);
+});

@@ -1,63 +1,24 @@
 import type { NativeModule } from 'expo-modules-core';
+import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 import { Platform } from 'react-native';
+import type { NativeCallback } from '../nativeCallbacks';
+import { lookup } from '../nativeInstanceRegistry';
 
-export type DecoderConfigModuleEvents = {
-  onOverrideDecodersPriority: ({
-    nativeId,
-    context,
-    preferredDecoders,
-  }: {
-    nativeId: string;
-    context: any;
-    preferredDecoders: any[];
-  }) => void;
-};
-
-/**
- * Native DecoderConfigModule using Expo modules API.
- * Android-only module for decoder configuration.
- */
-declare class DecoderConfigModule extends NativeModule<DecoderConfigModuleEvents> {
-  initializeWithConfig(
-    nativeId: string,
-    config: Record<string, any>
-  ): Promise<void>;
-  overrideDecoderPriorityProviderComplete(
-    nativeId: string,
-    response: any[]
-  ): Promise<void>;
-  destroy(nativeId: string): Promise<void>;
+/** @internal */
+export interface NativeDecoder extends SharedObject {
+  destroy(): Promise<void>;
 }
 
-/**
- * Expo-based DecoderConfigModule implementation.
- * Android-only module that gracefully handles iOS by providing no-op implementations.
- */
-let DecoderConfigModuleInstance: any;
-
-if (Platform.OS === 'android') {
-  DecoderConfigModuleInstance = requireNativeModule<DecoderConfigModule>(
-    'DecoderConfigModule'
-  );
-} else {
-  // iOS graceful fallback - provide no-op implementations
-  DecoderConfigModuleInstance = {
-    initializeWithConfig: async () => {
-      // No-op on iOS
-    },
-    overrideDecoderPriorityProviderComplete: async () => {
-      // No-op on iOS
-    },
-    destroy: async () => {
-      // No-op on iOS
-    },
-    addListener: () => ({ remove: () => {} }),
-    removeListener: () => {},
-    removeAllListeners: () => {},
-    emit: () => {},
-    listenerCount: () => 0,
-  };
+/** @internal */
+export function getNativeDecoder(id: string): NativeDecoder | undefined {
+  return lookup<NativeDecoder>('decoder', id);
 }
 
-export default DecoderConfigModuleInstance;
+declare class DecoderConfigModule extends NativeModule {
+  create(config: Record<string, any>, callback: NativeCallback): NativeDecoder;
+}
+
+export default Platform.OS === 'android'
+  ? requireNativeModule<DecoderConfigModule>('DecoderConfigModule')
+  : undefined;

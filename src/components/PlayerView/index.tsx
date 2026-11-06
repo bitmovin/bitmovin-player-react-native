@@ -2,7 +2,7 @@ import type { RefObject } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
-import type { NativePlayerViewConfig } from './native';
+import type { NativePlayerViewConfig, NativePlayerViewRef } from './native';
 import { NativePlayerView } from './native';
 import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
@@ -10,7 +10,8 @@ import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge'
 import type { PlayerViewProps } from './properties';
 import type { PictureInPictureAction } from './pictureInPictureAction';
 import { addPlatformToMetadataEvent } from '../../utils/metadataPlatform';
-import RNPlayerViewManagerModule from '../../modules/RNPlayerViewManagerModule';
+import { getNativeFullscreen } from '../../ui/fullscreenHandlerModule';
+import { getNativeCustomMessage } from '../../ui/customMessageHandlerModule';
 import type { NativePlayer } from '../../modules/PlayerModule';
 import { lookup } from '../../nativeInstanceRegistry';
 
@@ -49,7 +50,9 @@ export function PlayerView({
   // Keep the device awake while the PlayerView is mounted
   useKeepAwake();
 
-  const nativeView = useRef(viewRef?.current || null);
+  const nativeView = useRef<NativePlayerViewRef | null>(
+    viewRef?.current || null
+  );
 
   // Native events proxy helper.
   const proxy = useProxy();
@@ -78,8 +81,6 @@ export function PlayerView({
   }
 
   const nativePlayerViewConfig: NativePlayerViewConfig = {
-    playerId: player.nativeId,
-    customMessageHandlerBridgeId: customMessageHandlerBridge.current?.nativeId,
     enableBackgroundPlayback:
       player.config?.playbackConfig?.isBackgroundPlaybackEnabled,
     isPictureInPictureEnabledOnPlayer:
@@ -135,8 +136,7 @@ export function PlayerView({
       : undefined;
   useEffect(() => {
     if (isPlayerInitialized && pictureInPictureActionsJson != null) {
-      void RNPlayerViewManagerModule.updatePictureInPictureActions(
-        nativePlayer,
+      void nativeView.current?.updatePictureInPictureActions(
         JSON.parse(pictureInPictureActionsJson) as PictureInPictureAction[]
       );
     }
@@ -144,8 +144,7 @@ export function PlayerView({
 
   useEffect(() => {
     if (isPlayerInitialized && isPictureInPictureEnabled != null) {
-      void RNPlayerViewManagerModule.setIsPictureInPictureEnabled(
-        nativePlayer,
+      void nativeView.current?.setIsPictureInPictureEnabled(
         isPictureInPictureEnabled
       );
     }
@@ -159,19 +158,23 @@ export function PlayerView({
     <NativePlayerView
       ref={nativeView}
       style={nativeViewStyle}
-      player={
-        (nativePlayer as unknown as { __expo_shared_object_id__: number })
-          .__expo_shared_object_id__
-      }
+      key={player.nativeId}
+      player={nativePlayer}
       config={nativePlayerViewConfig}
       isFullscreenRequested={isFullscreenRequested}
       isPictureInPictureRequested={isPictureInPictureRequested}
       scalingMode={scalingMode}
-      fullscreenBridgeId={fullscreenBridge.current?.nativeId}
-      onBmpPlayerViewReady={(event) => {
+      fullscreenHandler={
+        fullscreenBridge.current &&
+        getNativeFullscreen(fullscreenBridge.current.nativeId)
+      }
+      customMessageHandler={
+        customMessageHandlerBridge.current &&
+        getNativeCustomMessage(customMessageHandlerBridge.current.nativeId)
+      }
+      onBmpPlayerViewReady={() => {
         if (
           currentPlayer.current !== player ||
-          event.nativeEvent.playerId !== player.nativeId ||
           didNotifyPlayerViewReady.current === player
         ) {
           return;
@@ -179,6 +182,16 @@ export function PlayerView({
         // Make the ref available inside the callback even if the effect has not run.
         if (viewRef) {
           viewRef.current = nativeView.current;
+        }
+        if (pictureInPictureActionsJson != null) {
+          void nativeView.current?.updatePictureInPictureActions(
+            JSON.parse(pictureInPictureActionsJson)
+          );
+        }
+        if (isPictureInPictureEnabled != null) {
+          void nativeView.current?.setIsPictureInPictureEnabled(
+            isPictureInPictureEnabled
+          );
         }
         didNotifyPlayerViewReady.current = player;
         onPlayerViewReady?.();

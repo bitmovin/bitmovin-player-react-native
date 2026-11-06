@@ -3,6 +3,7 @@ import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 import type { LoadingState, SourceRemoteControlConfig } from '../source';
 import type { Thumbnail } from '../thumbnail';
+import type { NativeDrm } from '../drm/drmModule';
 
 export type SourceModuleEvents = Record<string, never>;
 
@@ -11,19 +12,6 @@ export interface NativeSource extends SharedObject<SourceModuleEvents> {
   isAttachedToPlayer(): Promise<boolean | null>;
 
   isActive(): Promise<boolean | null>;
-
-  initializeWithConfig(
-    drmNativeId?: string,
-    config?: Record<string, any>,
-    remoteControl?: SourceRemoteControlConfig
-  ): Promise<void>;
-
-  initializeWithAnalyticsConfig(
-    drmNativeId?: string,
-    config?: Record<string, any>,
-    remoteControl?: SourceRemoteControlConfig,
-    analyticsSourceMetadata?: Record<string, any>
-  ): Promise<void>;
 
   destroy(): Promise<void>;
 
@@ -41,7 +29,13 @@ export interface NativeSource extends SharedObject<SourceModuleEvents> {
 }
 
 declare class SourceModule extends NativeModule {
-  create(): NativeSource;
+  createEmpty(): NativeSource;
+  create(
+    config?: Record<string, any>,
+    drm?: NativeDrm,
+    remoteControl?: SourceRemoteControlConfig,
+    analyticsSourceMetadata?: Record<string, any>
+  ): Promise<NativeSource>;
 }
 
 export default requireNativeModule<SourceModule>('SourceModule');
