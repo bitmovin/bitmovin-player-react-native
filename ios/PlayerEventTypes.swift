@@ -64,6 +64,7 @@ internal enum PlayerEventTypes {
             "metadata": playerEvent(MetadataEvent.self),
             "metadataParsed": activeSourceEvent(MetadataParsedEvent.self),
             "playbackSpeedChanged": playerEvent(PlaybackSpeedChangedEvent.self),
+            "fairplayLicenseAcquired": activeSourceEvent(FairplayLicenseAcquiredEvent.self),
         ]
 #if os(iOS)
         // Casting is only supported on iOS.
@@ -98,6 +99,7 @@ internal enum PlayerEventTypes {
         "downloadFinished": sourceEvent(DownloadFinishedEvent.self),
         "videoDownloadQualityChanged": sourceEvent(VideoDownloadQualityChangedEvent.self),
         "metadataParsed": sourceEvent(MetadataParsedEvent.self),
+        "fairplayLicenseAcquired": sourceEvent(FairplayLicenseAcquiredEvent.self),
     ]
 
     private static func playerEvent<T: PlayerEvent>(_ eventType: T.Type) -> EventSubscriber<Player> {

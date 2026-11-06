@@ -1,14 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
 import type { Event, MetadataEvent } from '../../events';
 import type { PlayerEventMap } from '../../eventMap';
 import type { Player } from '../../player';
 import { addPlatformToMetadataEvent } from '../../utils/metadataPlatform';
 import { callListener } from '../../utils/eventListeners';
 import type { PlayerViewEvents } from './events';
-
-// TODO(#1159): Use the player event subscriptions on iOS too, once its bridge supports them.
-export const usesPlayerEvents = Platform.OS === 'android';
 
 // Listed as an object so that `satisfies` makes the compiler require every event of `PlayerEventMap`;
 // the values are unused.
@@ -74,6 +70,7 @@ const playerEventNames = Object.keys({
   cueExit: true,
   metadata: true,
   metadataParsed: true,
+  fairplayLicenseAcquired: true,
 } satisfies Record<keyof PlayerEventMap, true>) as (keyof PlayerEventMap)[];
 
 const metadataEventNames = new Set<keyof PlayerEventMap>([
@@ -106,7 +103,6 @@ const toPropName = (eventName: keyof PlayerEventMap) =>
  * Only events with a set prop are subscribed, or all of them if `onEvent` is set. Changing the
  * function identity of a prop does not resubscribe, and setting or unsetting a prop only (un)subscribes
  * the affected events.
- * Does nothing unless {@link usesPlayerEvents} is set.
  */
 export function usePlayerEventProps(player: Player, props: PlayerViewEvents) {
   const propsRef = useRef(props);
@@ -114,14 +110,12 @@ export function usePlayerEventProps(player: Player, props: PlayerViewEvents) {
     propsRef.current = props;
   });
 
-  const subscribedEventNames = usesPlayerEvents
-    ? playerEventNames
-        .filter(
-          (eventName) =>
-            props.onEvent != null || props[toPropName(eventName)] != null
-        )
-        .join(',')
-    : '';
+  const subscribedEventNames = playerEventNames
+    .filter(
+      (eventName) =>
+        props.onEvent != null || props[toPropName(eventName)] != null
+    )
+    .join(',');
 
   const subscriptionRef = useRef<Subscription | undefined>(undefined);
   useEffect(() => {

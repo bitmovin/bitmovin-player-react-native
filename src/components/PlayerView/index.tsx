@@ -9,10 +9,8 @@ import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
 import type { PlayerViewProps } from './properties';
 import type { PictureInPictureAction } from './pictureInPictureAction';
-import { addPlatformToMetadataEvent } from '../../utils/metadataPlatform';
 import RNPlayerViewManagerModule from '../../modules/RNPlayerViewManagerModule';
-import type { Event } from '../../events';
-import { usePlayerEventProps, usesPlayerEvents } from './usePlayerEventProps';
+import { usePlayerEventProps } from './usePlayerEventProps';
 
 /**
  * Base style that initializes the native view frame when no width/height prop has been set.
@@ -52,9 +50,6 @@ export function PlayerView({
   // Native events proxy helper.
   const proxy = useProxy();
   usePlayerEventProps(player, props);
-  // Player and source events are delivered via `Player.on` when `usesPlayerEvents` is set.
-  const playerEventProxy = <E extends Event>(callback?: (event: E) => void) =>
-    usesPlayerEvents ? undefined : proxy(callback);
   // Style resulting from merging `baseStyle` and `props.style`.
   const nativeViewStyle = StyleSheet.flatten([styles.baseStyle, style]);
 
@@ -181,52 +176,10 @@ export function PlayerView({
         didNotifyPlayerViewReady.current = player;
         onPlayerViewReady?.();
       }}
-      onBmpAdBreakFinished={playerEventProxy(props.onAdBreakFinished)}
-      onBmpAdBreakStarted={playerEventProxy(props.onAdBreakStarted)}
-      onBmpAdClicked={playerEventProxy(props.onAdClicked)}
-      onBmpAdError={playerEventProxy(props.onAdError)}
-      onBmpAdFinished={playerEventProxy(props.onAdFinished)}
-      onBmpAdManifestLoad={playerEventProxy(props.onAdManifestLoad)}
-      onBmpAdManifestLoaded={playerEventProxy(props.onAdManifestLoaded)}
-      onBmpAdQuartile={playerEventProxy(props.onAdQuartile)}
-      onBmpAdScheduled={playerEventProxy(props.onAdScheduled)}
-      onBmpAdSkipped={playerEventProxy(props.onAdSkipped)}
-      onBmpAdStarted={playerEventProxy(props.onAdStarted)}
-      onBmpCastAvailable={playerEventProxy(props.onCastAvailable)}
-      onBmpCastPaused={playerEventProxy(props.onCastPaused)}
-      onBmpCastPlaybackFinished={playerEventProxy(props.onCastPlaybackFinished)}
-      onBmpCastPlaying={playerEventProxy(props.onCastPlaying)}
-      onBmpCastStarted={playerEventProxy(props.onCastStarted)}
-      onBmpCastStart={playerEventProxy(props.onCastStart)}
-      onBmpCastStopped={playerEventProxy(props.onCastStopped)}
-      onBmpCastTimeUpdated={playerEventProxy(props.onCastTimeUpdated)}
-      onBmpCastWaitingForDevice={playerEventProxy(props.onCastWaitingForDevice)}
-      onBmpCueEnter={playerEventProxy(props.onCueEnter)}
-      onBmpCueExit={playerEventProxy(props.onCueExit)}
-      onBmpMetadata={
-        !usesPlayerEvents && props.onMetadata
-          ? (e) => props.onMetadata?.(addPlatformToMetadataEvent(e.nativeEvent))
-          : undefined
-      }
-      onBmpMetadataParsed={
-        !usesPlayerEvents && props.onMetadataParsed
-          ? (e) =>
-              props.onMetadataParsed?.(
-                addPlatformToMetadataEvent(e.nativeEvent)
-              )
-          : undefined
-      }
-      onBmpDestroy={playerEventProxy(props.onDestroy)}
-      onBmpEvent={playerEventProxy(props.onEvent)}
       onBmpFullscreenEnabled={proxy(props.onFullscreenEnabled)}
       onBmpFullscreenDisabled={proxy(props.onFullscreenDisabled)}
       onBmpFullscreenEnter={proxy(props.onFullscreenEnter)}
       onBmpFullscreenExit={proxy(props.onFullscreenExit)}
-      onBmpMuted={playerEventProxy(props.onMuted)}
-      onBmpNonLinearAdStarted={playerEventProxy(props.onNonLinearAdStarted)}
-      onBmpNonLinearAdSkipped={playerEventProxy(props.onNonLinearAdSkipped)}
-      onBmpNonLinearAdFinished={playerEventProxy(props.onNonLinearAdFinished)}
-      onBmpPaused={playerEventProxy(props.onPaused)}
       onBmpPictureInPictureAvailabilityChanged={proxy(
         props.onPictureInPictureAvailabilityChanged
       )}
@@ -234,42 +187,6 @@ export function PlayerView({
       onBmpPictureInPictureEntered={proxy(props.onPictureInPictureEntered)}
       onBmpPictureInPictureExit={proxy(props.onPictureInPictureExit)}
       onBmpPictureInPictureExited={proxy(props.onPictureInPictureExited)}
-      onBmpPlay={playerEventProxy(props.onPlay)}
-      onBmpPlaybackFinished={playerEventProxy(props.onPlaybackFinished)}
-      onBmpPlaybackSpeedChanged={playerEventProxy(props.onPlaybackSpeedChanged)}
-      onBmpPlayerActive={playerEventProxy(props.onPlayerActive)}
-      onBmpPlayerInactive={playerEventProxy(props.onPlayerInactive)}
-      onBmpPlayerError={playerEventProxy(props.onPlayerError)}
-      onBmpPlayerWarning={playerEventProxy(props.onPlayerWarning)}
-      onBmpPlaying={playerEventProxy(props.onPlaying)}
-      onBmpReady={playerEventProxy(props.onReady)}
-      onBmpSeek={playerEventProxy(props.onSeek)}
-      onBmpSeeked={playerEventProxy(props.onSeeked)}
-      onBmpTimeShift={playerEventProxy(props.onTimeShift)}
-      onBmpTimeShifted={playerEventProxy(props.onTimeShifted)}
-      onBmpStallStarted={playerEventProxy(props.onStallStarted)}
-      onBmpStallEnded={playerEventProxy(props.onStallEnded)}
-      onBmpSourceError={playerEventProxy(props.onSourceError)}
-      onBmpSourceLoad={playerEventProxy(props.onSourceLoad)}
-      onBmpSourceLoaded={playerEventProxy(props.onSourceLoaded)}
-      onBmpSourceUnloaded={playerEventProxy(props.onSourceUnloaded)}
-      onBmpSourceWarning={playerEventProxy(props.onSourceWarning)}
-      onBmpAudioAdded={playerEventProxy(props.onAudioAdded)}
-      onBmpAudioChanged={playerEventProxy(props.onAudioChanged)}
-      onBmpAudioRemoved={playerEventProxy(props.onAudioRemoved)}
-      onBmpSubtitleAdded={playerEventProxy(props.onSubtitleAdded)}
-      onBmpSubtitleChanged={playerEventProxy(props.onSubtitleChanged)}
-      onBmpSubtitleRemoved={playerEventProxy(props.onSubtitleRemoved)}
-      onBmpTimeChanged={playerEventProxy(props.onTimeChanged)}
-      onBmpUnmuted={playerEventProxy(props.onUnmuted)}
-      onBmpVideoDownloadQualityChanged={playerEventProxy(
-        props.onVideoDownloadQualityChanged
-      )}
-      onBmpVideoPlaybackQualityChanged={playerEventProxy(
-        props.onVideoPlaybackQualityChanged
-      )}
-      onBmpDownloadFinished={playerEventProxy(props.onDownloadFinished)}
-      onBmpFairplayLicenseAcquired={proxy(props.onFairplayLicenseAcquired)}
     />
   );
 }

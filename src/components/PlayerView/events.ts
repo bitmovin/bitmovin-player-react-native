@@ -76,9 +76,9 @@ import type {
 /**
  * Event props for `PlayerView`.
  *
- * On iOS, the events of `PlayerView` are a proxy over the events from `NativePlayerView`,
- * just removing RN's bubbling data. On Android, the player and source events are delivered
- * via {@link Player.on}. {@link Player.on} and {@link Source.on} can also be used without a `PlayerView`.
+ * The player and source events are delivered via {@link Player.on}. {@link Player.on} and
+ * {@link Source.on} can also be used without a `PlayerView`. Fullscreen and picture-in-picture events come
+ * from the native view.
  */
 export type PlayerViewEvents = {
   /**
@@ -197,7 +197,8 @@ export type PlayerViewEvents = {
    */
   onDownloadFinished?: (event: DownloadFinishedEvent) => void;
   /**
-   * All events emitted by the player.
+   * The events of all player and source event props of `PlayerView`, e.g. `onReady` or `onTimeChanged`.
+   * Fullscreen and picture-in-picture events are not included.
    *
    * Intended for debugging and testing: setting it subscribes to every event, including
    * high-frequency ones like `onTimeChanged`. Otherwise, prefer the specific event props or
