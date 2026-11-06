@@ -6,6 +6,7 @@
 
 - Android: `onPlaybackSpeedChanged` event to indicate playback speed changes. The event is already available in iOS
 - `onPlayerInactive` event prop on `PlayerView` to indicate when the active playback session ends and the player becomes inactive
+- Android: Playlist support via `Player.loadPlaylist`, `Player.playlist` and the `onPlaylistTransition`, `onSourceAdded` and `onSourceRemoved` events
 - `EventSource.nativeId` to map sources in event payloads to their `Source` instances
 - `Player.on`/`Player.off` and `Source.on`/`Source.off` to receive player and source events independently of a `PlayerView`
 
@@ -21,6 +22,7 @@
 - **Breaking change:** `SourceUnloadedEvent.source` is now optional. Android does not provide it for events received via `Player.on` or the `PlayerView` event props, as the native event does not carry the source. It is provided for events received via `Source.on`.
 - `PlayerView` event props are delivered through the player's event subscriptions on all platforms. The order of fullscreen and picture-in-picture events relative to player events can differ slightly. On Android, events emitted right after loading (e.g. `onPlayerActive`) are no longer lost, and two `PlayerView`s showing the same player now both receive the events. On iOS, `onEvent` now only receives the events of the documented `PlayerView` props, instead of every event of the native player.
 - Update Bitmovin's native iOS SDK version to [`3.130.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31300)
+- **Breaking change:** Replace the `Player.source` property with `Player.getSource()`, which returns the currently active source of the native player
 
 ## [1.30.0] - 2026-10-29
 

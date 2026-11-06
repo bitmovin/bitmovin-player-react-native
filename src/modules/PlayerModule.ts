@@ -251,6 +251,21 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
   loadSource(nativeId: string, sourceNativeId: string): Promise<void>;
 
   /**
+   * Load a playlist into the player.
+   * Requires SourceModule dependency.
+   */
+  loadPlaylist(
+    nativeId: string,
+    sourceNativeIds: string[],
+    options?: Record<string, any>
+  ): Promise<void>;
+
+  /**
+   * Get the native id of the active source.
+   */
+  source(nativeId: string): Promise<string | null>;
+
+  /**
    * Load offline content into the player.
    */
   loadOfflineContent(

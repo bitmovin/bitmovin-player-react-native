@@ -9,12 +9,15 @@ import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.event.Event
+import com.bitmovin.player.api.playlist.PlaylistConfig
+import com.bitmovin.player.api.playlist.PlaylistOptions
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toMediaControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
+import com.bitmovin.player.reactnative.converter.toPlaylistOptions
 import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.util.NonFiniteSanitizer
 import expo.modules.kotlin.functions.Queues
@@ -344,10 +347,18 @@ class PlayerModule : Module() {
             }
         }.runOnQueue(Queues.MAIN)
 
+        AsyncFunction("loadPlaylist") { nativeId: NativeId, sourceNativeIds: List<NativeId>,
+            options: Map<String, Any?>?, ->
+            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
+            val sources = sourceNativeIds.map {
+                SourceRegistry.getSource(it) ?: throw SourceException.SourceNotInitialized(it)
+            }
+            player.load(PlaylistConfig(sources, options?.toPlaylistOptions() ?: PlaylistOptions()))
+        }.runOnQueue(Queues.MAIN)
+
         AsyncFunction("source") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.source?.toJson()
-        }
+            PlayerRegistry.getPlayer(nativeId)?.source?.let { SourceRegistry.getNativeId(it) }
+        }.runOnQueue(Queues.MAIN)
     }
 
     private fun initializePlayer(

@@ -72,6 +72,9 @@ import com.bitmovin.player.api.network.HttpResponse
 import com.bitmovin.player.api.network.NetworkConfig
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
+import com.bitmovin.player.api.playlist.PlaylistOptions
+import com.bitmovin.player.api.playlist.ReplayMode
+import com.bitmovin.player.api.playlist.SeekTarget
 import com.bitmovin.player.api.source.LoadingState
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
@@ -157,11 +160,35 @@ fun Map<String, Any?>.toSourceOptions(): SourceOptions = SourceOptions(
     startOffsetTimelineReference = getString("startOffsetTimelineReference")?.toTimelineReferencePoint(),
 )
 
+fun Map<String, Any?>.toPlaylistOptions(): PlaylistOptions {
+    val defaults = PlaylistOptions()
+    return PlaylistOptions(
+        preloadAllSources = getBooleanOrNull("preloadAllSources") ?: defaults.preloadAllSources,
+        replayMode = getString("replayMode")?.toReplayModeOrThrow() ?: defaults.replayMode,
+    )
+}
+
+fun Map<String, Any?>.toSeekTarget(): SeekTarget? {
+    return SeekTarget(
+        offset = getDoubleOrNull("offset") ?: return null,
+        startOffsetTimelineReference = getString("startOffsetTimelineReference")?.toTimelineReferencePointOrThrow(),
+    )
+}
+
+private fun String.toReplayModeOrThrow(): ReplayMode = when (this) {
+    "playlist" -> ReplayMode.Playlist
+    "lastSource" -> ReplayMode.LastSource
+    else -> throw IllegalArgumentException("Unknown replay mode: $this")
+}
+
 private fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (this) {
     "start" -> TimelineReferencePoint.Start
     "end" -> TimelineReferencePoint.End
     else -> null
 }
+
+private fun String.toTimelineReferencePointOrThrow(): TimelineReferencePoint =
+    toTimelineReferencePoint() ?: throw IllegalArgumentException("Unknown timeline reference point: $this")
 
 private fun Map<String, Any?>.toAdaptationConfig(): AdaptationConfig = AdaptationConfig().apply {
     withInt("maxSelectableBitrate") { maxSelectableVideoBitrate = it }
@@ -429,6 +456,21 @@ fun PlayerEvent.toJson(): Map<String, Any> {
         }
 
         is PlayerEvent.Seek -> {
+            baseMap["from"] = from.toJson()
+            baseMap["to"] = to.toJson()
+        }
+
+        is PlayerEvent.SourceAdded -> {
+            baseMap["source"] = source.toJson()
+            baseMap["index"] = index
+        }
+
+        is PlayerEvent.SourceRemoved -> {
+            baseMap["source"] = source.toJson()
+            baseMap["index"] = index
+        }
+
+        is PlayerEvent.PlaylistTransition -> {
             baseMap["from"] = from.toJson()
             baseMap["to"] = to.toJson()
         }
