@@ -225,6 +225,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       );
       return;
     }
+    // TODO(#1157): Remove, once the iOS bridge supports Player.on.
     if (Platform.OS !== 'android') {
       return;
     }

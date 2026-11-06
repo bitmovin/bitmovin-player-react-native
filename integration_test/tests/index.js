@@ -1,6 +1,6 @@
 const androidAndIos = ['android', 'ios'];
 const iosOnly = ['ios'];
-// TODO: switch events to androidAndIos once the iOS bridge is implemented
+// TODO(#1157): Switch events to androidAndIos, once the iOS bridge supports Player.on and Source.on.
 const androidOnly = ['android'];
 
 function testSuite(name, platforms, load) {

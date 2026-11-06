@@ -271,6 +271,7 @@ export class Source extends NativeInstance<SourceConfig> {
       );
       return;
     }
+    // TODO(#1157): Remove, once the iOS bridge supports Source.on.
     if (Platform.OS !== 'android') {
       return;
     }
