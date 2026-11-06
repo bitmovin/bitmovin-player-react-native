@@ -178,6 +178,11 @@ jobs:
             echo "::error::Unexpected Google IMA in the Android integration runtime dependency graph"
             exit 1
           fi
+          if grep -q 'com.google.android.gms:play-services-ads-identifier' \
+            "$RUNNER_TEMP/android-integration-runtime-dependencies.txt"; then
+            echo "::error::Unexpected advertising ID library in the Android integration runtime dependency graph; it adds the AD_ID permission"
+            exit 1
+          fi
 
       - name: Report build time
         run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
