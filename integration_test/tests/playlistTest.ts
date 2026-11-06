@@ -144,6 +144,74 @@ export default (spec: TestScope) => {
       });
     });
 
+    spec.it(
+      'rejects a playlist with a source listed twice on iOS',
+      async () => {
+        // The iOS SDK ignores a source listed more than once, so the bridge rejects such a playlist.
+        if (Platform.OS !== 'ios') {
+          console.warn(
+            'Skipping the iOS duplicate playlist source test on Android'
+          );
+          return;
+        }
+        await startPlayerTest({}, async () => {
+          await callPlayer(async (player) => {
+            const source = new Source(Sources.artOfMotionHls);
+            let error: unknown;
+            try {
+              await player.loadPlaylist({ sources: [source, source] });
+            } catch (e) {
+              error = e;
+            }
+            expect(error, 'loadPlaylist should reject').toBeDefined();
+            expect(await player.getSource(), 'Active source').toBeUndefined();
+          });
+        });
+      }
+    );
+
+    spec.it('rejects a source attached to another player on iOS', async () => {
+      // Loading a source attached to another player crashes the iOS SDK, so the bridge rejects it.
+      if (Platform.OS !== 'ios') {
+        console.warn(
+          'Skipping the iOS attached playlist source test on Android'
+        );
+        return;
+      }
+      await startPlayerTest({}, async () => {
+        const source = new Source(Sources.artOfMotionHls);
+
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.loadPlaylist({ sources: [source] });
+        }, EventType.Ready);
+
+        const otherPlayer = createPlayer();
+        try {
+          await otherPlayer.initialize();
+          let error: unknown;
+          try {
+            await otherPlayer.loadPlaylist({ sources: [source] });
+          } catch (e) {
+            error = e;
+          }
+          expect(error, 'loadPlaylist should reject').toBeDefined();
+          expect(
+            await otherPlayer.getSource(),
+            'Active source of the other player'
+          ).toBeUndefined();
+
+          // Checked before destroying the other player, which destroys every source passed to its
+          // `loadPlaylist`, including the rejected one.
+          await callPlayer(async (player) => {
+            expect(await player.getSource(), 'Active source').toBe(source);
+            expect(await source.isActive(), 'Source is active').toBeTruthy();
+          });
+        } finally {
+          otherPlayer.destroy();
+        }
+      });
+    });
+
     spec.it('preloads all sources when enabled', async () => {
       await startPlayerTest({}, async () => {
         const first = new Source(Sources.artOfMotionHls);
