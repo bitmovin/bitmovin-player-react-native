@@ -95,27 +95,25 @@ extension SeekEvent: JsonConvertible {
 // used on Android because apps and the integration tests compare `Event.name`.
 extension SourceAddedEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
-        var json = toEventJSON {
+        toEventJSON {
             [
+                "name": "onSourceAdded",
                 "source": source.toJSON(),
                 "index": index
             ]
         }
-        json["name"] = "onSourceAdded"
-        return json
     }
 }
 
 extension SourceRemovedEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
-        var json = toEventJSON {
+        toEventJSON {
             [
+                "name": "onSourceRemoved",
                 "source": source.toJSON(),
                 "index": index
             ]
         }
-        json["name"] = "onSourceRemoved"
-        return json
     }
 }
 
