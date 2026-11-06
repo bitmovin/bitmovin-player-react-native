@@ -37,6 +37,9 @@ test('Android integration build disables Google IMA and verifies its absence', (
     /com\.google\.android\.gms:play-services-ads-identifier/
   );
   assert.match(runs(job), /Unexpected advertising ID library/);
+  assert.match(runs(job), /merged_manifest\/debug/);
+  assert.match(runs(job), /com\.google\.android\.gms\.permission\.AD_ID/);
+  assert.match(runs(job), /Unexpected AD_ID permission/);
 });
 
 test('iOS integration build disables Google IMA and verifies package and framework absence', () => {

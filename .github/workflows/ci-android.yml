@@ -184,6 +184,19 @@ jobs:
             exit 1
           fi
 
+      - name: Verify AD_ID permission is absent from the merged manifest
+        run: |
+          MANIFEST=$(find integration_test/android/app/build/intermediates/merged_manifest/debug \
+            -name AndroidManifest.xml -print -quit 2>/dev/null)
+          if [ -z "$MANIFEST" ]; then
+            echo "::error::Merged debug manifest of the Android integration app not found"
+            exit 1
+          fi
+          if grep -q 'com.google.android.gms.permission.AD_ID' "$MANIFEST"; then
+            echo "::error::Unexpected AD_ID permission in the Android integration merged manifest"
+            exit 1
+          fi
+
       - name: Report build time
         run: echo "✅ Build completed in ${{ steps.build.outputs.duration }} seconds"
 
