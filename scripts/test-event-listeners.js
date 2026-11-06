@@ -395,3 +395,29 @@ test('releases the DRM of a released source and creates it again', async (t) => 
   );
   assert.notEqual(source.drm, drm);
 });
+
+test('initializes the DRM again after its initialization failed', async (t) => {
+  const { nativeModules } = require(
+    path.join(root, 'node_modules/expo-modules-core')
+  );
+  const { source, calls } = sourceFixture(t, {
+    url: 'https://example.com/a.mpd',
+    type: 'dash',
+    drmConfig: { widevine: { licenseUrl: 'https://example.com/license' } },
+  });
+  const initialize = nativeModules.DrmModule.initializeWithConfig;
+  nativeModules.DrmModule.initializeWithConfig = async () => {
+    calls.push(['drm.initialize']);
+    throw new Error('DRM initialization failed');
+  };
+
+  await assert.rejects(source.initialize(), /DRM initialization failed/);
+  nativeModules.DrmModule.initializeWithConfig = initialize;
+  await source.initialize();
+
+  assert.deepEqual(
+    calls.filter(([call]) => call.startsWith('drm.')),
+    [['drm.initialize'], ['drm.destroy'], ['drm.initialize']]
+  );
+  assert.ok(source.drm, 'DRM of the source');
+});

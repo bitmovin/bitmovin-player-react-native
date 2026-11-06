@@ -217,8 +217,15 @@ export class Source extends NativeInstance<SourceConfig> {
   private initializeNative = async (): Promise<void> => {
     const sourceMetadata = this.config?.analyticsSourceMetadata;
     if (this.config?.drmConfig && !this.drm) {
-      this.drm = new Drm(this.config.drmConfig, this.nativeId);
-      await this.drm.initialize();
+      const drm = new Drm(this.config.drmConfig, this.nativeId);
+      try {
+        await drm.initialize();
+      } catch (error) {
+        // Release its subscriptions, so that a later initialization starts over.
+        void drm.destroy();
+        throw error;
+      }
+      this.drm = drm;
     }
     const instanceId = sourceMetadata
       ? await SourceModule.initializeWithAnalyticsConfig(
