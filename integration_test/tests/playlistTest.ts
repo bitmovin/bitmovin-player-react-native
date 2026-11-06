@@ -28,7 +28,7 @@ import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 
 export default (spec: TestScope) => {
-  // TODO: run on iOS too once its bridge supports playlists.
+  // TODO(#1161): Run on iOS too, once its bridge supports playlists.
   if (Platform.OS !== 'android') return;
 
   spec.describe('loading a playlist', () => {

@@ -1,6 +1,6 @@
 const androidAndIos = ['android', 'ios'];
 const iosOnly = ['ios'];
-// TODO: switch playlist to androidAndIos once the iOS playlist bridge is implemented
+// TODO(#1161): Switch playlist to androidAndIos, once the iOS bridge supports playlists.
 const androidOnly = ['android'];
 
 function testSuite(name, platforms, load) {
