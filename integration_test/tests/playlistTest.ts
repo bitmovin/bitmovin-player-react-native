@@ -512,6 +512,70 @@ export default (spec: TestScope) => {
         });
       });
     });
+
+    spec.it('rejects adding a DASH source on iOS', async () => {
+      // The iOS SDK only supports HLS, progressive and movpkg sources in a playlist.
+      if (Platform.OS !== 'ios') {
+        console.warn(
+          'Skipping the iOS playlist add source type test on Android'
+        );
+        return;
+      }
+      await startPlayerTest({}, async () => {
+        const first = new Source(Sources.artOfMotionHls);
+        const second = new Source(Sources.sintel);
+
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.loadPlaylist({ sources: [first, second] });
+        }, EventType.Ready);
+
+        await callPlayer(async (player) => {
+          let error: unknown;
+          try {
+            await player.playlist.add(new Source(Sources.artOfMotionDash));
+          } catch (e) {
+            error = e;
+          }
+          expect(error, 'add should reject').toBeDefined();
+          const sources = await player.playlist.getSources();
+          expect(sources).toHaveLength(2);
+          expect(sources[0]).toBe(first);
+          expect(sources[1]).toBe(second);
+        });
+      });
+    });
+
+    spec.it('rejects adding an attached source on iOS', async () => {
+      // The iOS SDK only logs a warning for a source that is already part of the playlist.
+      if (Platform.OS !== 'ios') {
+        console.warn(
+          'Skipping the iOS playlist add attached source test on Android'
+        );
+        return;
+      }
+      await startPlayerTest({}, async () => {
+        const first = new Source(Sources.artOfMotionHls);
+        const second = new Source(Sources.sintel);
+
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.loadPlaylist({ sources: [first, second] });
+        }, EventType.Ready);
+
+        await callPlayer(async (player) => {
+          let error: unknown;
+          try {
+            await player.playlist.add(second);
+          } catch (e) {
+            error = e;
+          }
+          expect(error, 'add should reject').toBeDefined();
+          const sources = await player.playlist.getSources();
+          expect(sources).toHaveLength(2);
+          expect(sources[0]).toBe(first);
+          expect(sources[1]).toBe(second);
+        });
+      });
+    });
   });
 
   spec.describe('unloading a playlist', () => {
