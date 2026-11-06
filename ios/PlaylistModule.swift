@@ -19,6 +19,16 @@ public class PlaylistModule: Module {
                     description: "Source \(sourceNativeId) is not initialized"
                 )
             }
+            // `load(playlistConfig:)` rejects these sources, but `add` does not check the source type.
+            try PlayerModule.validatePlaylistSourceType(source, sourceNativeId: sourceNativeId)
+            // The SDK raises a `fatalError` for a source attached to another player and only logs a warning for a
+            // source that is already part of this playlist.
+            guard !source.isAttachedToPlayer else {
+                throw Exception(
+                    name: "SOURCE_ALREADY_ATTACHED",
+                    description: "Source \(sourceNativeId) is already attached to a player"
+                )
+            }
             if let index {
                 player.playlist.add(source: source, at: index)
             } else {
