@@ -154,6 +154,11 @@ export type PlaybackFinishedEvent = Event;
  */
 export interface EventSource {
   /**
+   * The {@link Source.nativeId} of this event's source.
+   * Not set for sources that were not created through a {@link Source} instance (e.g. offline content).
+   */
+  nativeId?: string;
+  /**
    * Event's source duration in seconds.
    */
   duration: number;
@@ -283,8 +288,11 @@ export interface SourceLoadedEvent extends Event {
 export interface SourceUnloadedEvent extends Event {
   /**
    * Source that was unloaded from player.
+   *
+   * Not set on Android for events received via {@link Player.on} or the `PlayerView` event props,
+   * as the native event does not carry the source. Set for events received via {@link Source.on}.
    */
-  source: EventSource;
+  source?: EventSource;
 }
 
 /**
