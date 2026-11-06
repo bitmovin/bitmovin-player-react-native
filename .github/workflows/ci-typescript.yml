@@ -108,6 +108,9 @@ jobs:
       - name: Test event listeners
         run: node --test scripts/test-event-listeners.js
 
+      - name: Test PlayerView event props
+        run: node --test scripts/test-player-event-props.js
+
       - name: Build TypeScript (Module)
         run: yarn build:module
 

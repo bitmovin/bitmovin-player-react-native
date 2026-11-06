@@ -76,11 +76,9 @@ import type {
 /**
  * Event props for `PlayerView`.
  *
- * Note the events of `PlayerView` are simply a proxy over
- * the events from `NativePlayerView` just removing RN's bubbling data.
- *
- * Player and source events can also be received without a `PlayerView` via {@link Player.on} and
- * {@link Source.on}.
+ * On iOS, the events of `PlayerView` are a proxy over the events from `NativePlayerView`,
+ * just removing RN's bubbling data. On Android, the player and source events are delivered
+ * via {@link Player.on}. {@link Player.on} and {@link Source.on} can also be used without a `PlayerView`.
  */
 export type PlayerViewEvents = {
   /**
@@ -200,6 +198,10 @@ export type PlayerViewEvents = {
   onDownloadFinished?: (event: DownloadFinishedEvent) => void;
   /**
    * All events emitted by the player.
+   *
+   * Intended for debugging and testing: setting it subscribes to every event, including
+   * high-frequency ones like `onTimeChanged`. Otherwise, prefer the specific event props or
+   * {@link Player.on}, so only the events you need cross the bridge.
    */
   onEvent?: (event: Event) => void;
   /**
