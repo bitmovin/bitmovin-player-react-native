@@ -42,8 +42,7 @@ class PlaylistModule : Module() {
             player.playlist.seek(source, time)
         }.runOnQueue(Queues.MAIN)
 
-        AsyncFunction("seekTo") { nativeId: NativeId, sourceNativeId: NativeId,
-            seekTarget: Map<String, Any?>?, ->
+        AsyncFunction("seekTo") { nativeId: NativeId, sourceNativeId: NativeId, seekTarget: Map<String, Any?>? ->
             val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
             val source = SourceRegistry.getSource(sourceNativeId) ?: return@AsyncFunction
             player.playlist.seek(source, seekTarget?.toSeekTarget())
