@@ -39,7 +39,7 @@ public class SourceModule: Module {
             }
         }
 
-        Events("onSourceEvent")
+        Events("onSourceEvent", "onSourceReleased")
 
         // MARK: - Module methods
         AsyncFunction("on") { [weak self] (nativeId: NativeId, eventName: String) in
@@ -48,22 +48,22 @@ public class SourceModule: Module {
         AsyncFunction("off") { [weak self] (nativeId: NativeId, eventName: String) in
             self?.eventRelay.off(nativeId: nativeId, eventName: eventName)
         }.runOnQueue(.main)
-        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: NativeId, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?) -> Bool in // swiftlint:disable:this line_length
+        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: NativeId, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?) -> Int? in // swiftlint:disable:this line_length
             self?.createSource(
                 nativeId: nativeId,
                 drmNativeId: drmNativeId,
                 config: config,
                 sourceRemoteControlConfig: sourceRemoteControlConfig
-            ) ?? false
+            )
         }.runOnQueue(.main)
-        AsyncFunction("initializeWithAnalyticsConfig") { [weak self] (nativeId: NativeId, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?, analyticsSourceMetadata: [String: Any]?) -> Bool in // swiftlint:disable:this line_length
+        AsyncFunction("initializeWithAnalyticsConfig") { [weak self] (nativeId: NativeId, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?, analyticsSourceMetadata: [String: Any]?) -> Int? in // swiftlint:disable:this line_length
             self?.createSource(
                 nativeId: nativeId,
                 drmNativeId: drmNativeId,
                 config: config,
                 sourceRemoteControlConfig: sourceRemoteControlConfig,
                 analyticsSourceMetadata: analyticsSourceMetadata
-            ) ?? false
+            )
         }.runOnQueue(.main)
         AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
             self?.releaseSource(nativeId: nativeId)
@@ -136,7 +136,7 @@ public class SourceModule: Module {
     /**
      Creates and registers the source with the given `nativeId`.
 
-     - Returns: Whether a new source was created, `false` if it already exists or `config` is invalid.
+     - Returns: The instance id of the newly created source, or `nil` if it already exists or `config` is invalid.
      */
     private func createSource(
         nativeId: NativeId,
@@ -144,17 +144,17 @@ public class SourceModule: Module {
         config: [String: Any]?,
         sourceRemoteControlConfig: [String: Any]?,
         analyticsSourceMetadata: [String: Any]? = nil
-    ) -> Bool {
+    ) -> Int? {
         if let existingSource = retrieve(nativeId) {
             // Keep the source if its release is pending, e.g. because it is added again right after it was removed.
             appContext?.moduleRegistry.get(PlayerModule.self)?.keepSource(existingSource)
-            return false
+            return nil
         }
         // Get DRM config if provided
         let drmModule = appContext?.moduleRegistry.get(DrmModule.self)
         let drmConfig = drmNativeId.flatMap { drmModule?.retrieve($0) }
         guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig) else {
-            return false
+            return nil
         }
         // Add analytics metadata if provided
         let sourceMetadata = RCTConvert.analyticsSourceMetadata(analyticsSourceMetadata)
@@ -165,7 +165,7 @@ public class SourceModule: Module {
         } else {
             source = SourceFactory.createSource(from: sourceConfig)
         }
-        SourceRegistry.register(source, nativeId: nativeId, owner: self)
+        let instanceId = SourceRegistry.register(source, nativeId: nativeId, owner: self)
         // Attach Combine listener to populate the FairPlay registry when a license is acquired
         fairplayCancellables[nativeId] = source.events
             .on(FairplayLicenseAcquiredEvent.self)
@@ -178,20 +178,26 @@ public class SourceModule: Module {
             castSourceConfigs[nativeId] = remoteConfig.castSourceConfig
         }
 #endif
-        return true
+        return instanceId
     }
 
     /**
      Releases the bridge's handle of the source with the given `nativeId`: detaches its event listeners and removes it
      from the `SourceRegistry`. The native `Source` itself is not touched.
+
+     Emits `onSourceReleased` if the source was registered, so that JS releases its resources of the source as well,
+     e.g. its DRM config.
      */
     internal func releaseSource(nativeId: NativeId) {
         eventRelay.offAll(nativeId: nativeId)
-        SourceRegistry.unregister(nativeId: nativeId)
+        let removed = SourceRegistry.unregister(nativeId: nativeId)
         castSourceConfigs.removeValue(forKey: nativeId)
         fairplayCancellables[nativeId]?.cancel()
         fairplayCancellables.removeValue(forKey: nativeId)
         fairplayRegistry.removeAll(nativeId: nativeId)
+        if let removed {
+            sendEvent("onSourceReleased", ["nativeId": nativeId, "instanceId": removed.instanceId])
+        }
     }
 }
 

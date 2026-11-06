@@ -7,28 +7,46 @@ import Foundation
  *
  * Each source is registered by an owner, e.g. a `SourceModule` instance, which can unregister all of its sources
  * without affecting the sources of another owner, e.g. of a new module instance after a reload.
+ *
+ * Each registration gets a new instance id, which tells a source created again for the same `nativeId` apart from
+ * the released one.
  */
 internal enum SourceRegistry {
     private struct Entry {
         let source: Source
         let owner: ObjectIdentifier
+        let instanceId: Int
     }
 
     // Guarded by a lock, as the registry is global and can be accessed from any thread.
     private static let lock = NSLock()
     private static var sources: Registry<Entry> = [:]
+    private static var nextInstanceId = 0
 
-    static func register(_ source: Source, nativeId: NativeId, owner: AnyObject) {
+    /**
+     - Returns: The instance id of this registration.
+     */
+    @discardableResult
+    static func register(_ source: Source, nativeId: NativeId, owner: AnyObject) -> Int {
         lock.lock()
         defer { lock.unlock() }
-        sources[nativeId] = Entry(source: source, owner: ObjectIdentifier(owner))
+        let instanceId = nextInstanceId
+        nextInstanceId += 1
+        sources[nativeId] = Entry(source: source, owner: ObjectIdentifier(owner), instanceId: instanceId)
+        return instanceId
     }
 
+    /**
+     - Returns: The removed source and the instance id of its registration, or `nil` if `nativeId` was not registered.
+     */
     @discardableResult
-    static func unregister(nativeId: NativeId) -> Source? {
+    static func unregister(nativeId: NativeId) -> (source: Source, instanceId: Int)? {
         lock.lock()
         defer { lock.unlock() }
-        return sources.removeValue(forKey: nativeId)?.source
+        guard let entry = sources.removeValue(forKey: nativeId) else {
+            return nil
+        }
+        return (source: entry.source, instanceId: entry.instanceId)
     }
 
     static func source(nativeId: NativeId) -> Source? {
