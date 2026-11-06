@@ -2,6 +2,8 @@ import type { TimelineReferencePoint } from '../source';
 
 /**
  * Describes a position within a {@link Source} to seek to via {@link PlaylistApi.seekTo}.
+ *
+ * @platform Android
  */
 export interface SeekTarget {
   /**

@@ -62,8 +62,6 @@ export class Player extends NativeInstance<PlayerConfig> {
   private readonly knownSources = new Map<string, Source>();
   /**
    * The {@link PlaylistApi} for interactions regarding the playlist of the playback session.
-   *
-   * @platform Android
    */
   playlist: PlaylistApi = new PlaylistApi(this.nativeId, this.knownSources);
 
@@ -231,9 +229,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    * is also emitted for inactive sources, without identifying the source. Ads scheduled
    * via the advertising config only apply to the first source.
    *
-   * @returns a promise that rejects if the playlist could not be loaded, e.g. when `sources` is empty or a source
-   * was destroyed.
-   * @platform Android
+   * On iOS and tvOS, only HLS, progressive and `movpkg` sources can be part of a playlist.
+   *
+   * @returns a promise that rejects if the playlist could not be loaded, e.g. when `sources` is empty, a source
+   * was destroyed, or (on iOS and tvOS) a source has an unsupported type.
    */
   loadPlaylist = async (playlistConfig: PlaylistConfig): Promise<void> => {
     playlistConfig.sources.forEach((source) =>
