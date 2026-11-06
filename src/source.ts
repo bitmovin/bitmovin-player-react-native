@@ -9,6 +9,7 @@ import type { SourceMetadata } from './analytics';
 import SourceModule from './modules/SourceModule';
 import type { SourceEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
+import { SourceRegistry } from './utils/sourceRegistry';
 
 /**
  * Types of media that can be handled by the player.
@@ -192,6 +193,10 @@ export class Source extends NativeInstance<SourceConfig> {
   isDestroyed = false;
 
   private initialization?: Promise<void>;
+  /**
+   * The instance id of the native source, as resolved by its creation. Unset on iOS, which does not release sources.
+   */
+  private nativeInstanceId?: number;
   private readonly eventListeners = new EventListeners<SourceEventMap>(
     this.nativeId,
     SourceModule,
@@ -215,7 +220,7 @@ export class Source extends NativeInstance<SourceConfig> {
       this.drm = new Drm(this.config.drmConfig, this.nativeId);
       await this.drm.initialize();
     }
-    const isCreated = sourceMetadata
+    const instanceId = sourceMetadata
       ? await SourceModule.initializeWithAnalyticsConfig(
           this.nativeId,
           this.drm?.nativeId,
@@ -229,15 +234,44 @@ export class Source extends NativeInstance<SourceConfig> {
           this.config,
           this.remoteControl || undefined
         );
+    // iOS resolves whether it created the source instead of an instance id, as it does not report releases.
+    const isCreated = typeof instanceId === 'number' || instanceId === true;
+    if (typeof instanceId === 'number') {
+      this.nativeInstanceId = instanceId;
+    }
+    SourceRegistry.register(this);
     this.isInitialized = true;
     this.isDestroyed = false;
-    // Android resolves the instance id of a newly created source, which starts at 0, and iOS whether it created it.
-    if (typeof isCreated === 'number' || isCreated === true) {
+    if (isCreated) {
       // A released native source is created again without the native listeners of the released one.
       this.eventListeners.reattachNative();
     } else {
       this.eventListeners.attachNative();
     }
+  };
+
+  /**
+   * Releases the JS resources of the native source once native released it, e.g. after its player removed it.
+   * {@link Source.initialize} allocates them again. Ignores the release of a previous native source, as the
+   * source may have been created again for the same `nativeId` since.
+   *
+   * @internal
+   */
+  handleNativeRelease = (instanceId: number) => {
+    if (this.initialization) {
+      // Decide once it is known whether the initialization created a new native source.
+      const handle = () => this.handleNativeRelease(instanceId);
+      void this.initialization.then(handle, handle);
+      return;
+    }
+    if (instanceId !== this.nativeInstanceId) {
+      return;
+    }
+    this.nativeInstanceId = undefined;
+    SourceRegistry.unregister(this);
+    this.isInitialized = false;
+    void this.drm?.destroy();
+    this.drm = undefined;
   };
 
   /**
@@ -248,6 +282,8 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   destroy = () => {
     if (!this.isDestroyed) {
+      SourceRegistry.unregister(this);
+      this.nativeInstanceId = undefined;
       void SourceModule.destroy(this.nativeId);
       void this.drm?.destroy();
       this.drm = undefined;

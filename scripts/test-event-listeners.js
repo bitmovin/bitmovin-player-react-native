@@ -134,37 +134,69 @@ test('dispatches events by the event name they were attached for', () => {
   assert.deepEqual(received, [['sourceAdded', event]]);
 });
 
+// The module listeners the doubles received, shared across the tests, as the source
+// registry subscribes to source releases only once.
+const moduleListeners = new Map();
+let nextInstanceId = 0;
+
 // Models native creating the source on the first initialization and after
-// `release` only, as the Android bridge reports.
-function sourceFixture(t) {
+// `release` only, and reporting the instance id of a created source, as the
+// Android bridge does. DRM configs are recorded in `calls`.
+function sourceFixture(
+  t,
+  config = { url: 'https://example.com/a.m3u8', type: 'hls' }
+) {
   const { nativeModules } = require(
     path.join(root, 'node_modules/expo-modules-core')
   );
   const calls = [];
-  let exists = false;
+  let instanceId;
   nativeModules.SourceModule = {
-    addListener: () => ({ remove: () => {} }),
+    addListener: (name, listener) => {
+      moduleListeners.set(name, listener);
+      return { remove: () => {} };
+    },
     initializeWithConfig: async (nativeId) => {
       calls.push(['initializeWithConfig', nativeId]);
       // Let the other initialize call run while this one is in progress.
       await new Promise(setImmediate);
-      const isCreated = !exists;
-      exists = true;
-      return isCreated;
+      if (instanceId !== undefined) {
+        return null;
+      }
+      instanceId = nextInstanceId++;
+      return instanceId;
     },
     on: async (nativeId, eventName) => calls.push(['on', nativeId, eventName]),
     off: async () => {},
     destroy: async () => {},
   };
+  nativeModules.DrmModule = {
+    addListener: () => ({ remove: () => {} }),
+    initializeWithConfig: async () => calls.push(['drm.initialize']),
+    destroy: async () => calls.push(['drm.destroy']),
+  };
   const { Source } = require(path.join(root, 'source'));
-  const source = new Source({ url: 'https://example.com/a.m3u8', type: 'hls' });
+  const { SourceRegistry } = require(path.join(root, 'utils/sourceRegistry'));
+  const source = new Source(config);
   // All sources get the same `nativeId`, so destroy it to not share it with the next test.
   t.after(() => {
     source.destroy();
     delete nativeModules.SourceModule;
+    delete nativeModules.DrmModule;
   });
-  const release = () => (exists = false);
-  return { source, calls, release };
+  // Releases the native source, as a player removing it does.
+  const release = () => {
+    const released = instanceId;
+    instanceId = undefined;
+    return released;
+  };
+  // Emits `onSourceReleased` for the released native source.
+  const emitRelease = (released) =>
+    moduleListeners.get('onSourceReleased')?.({
+      nativeId: source.nativeId,
+      instanceId: released,
+    });
+  return { source, calls, release, emitRelease, SourceRegistry };
 }
 
 test('initializes a source natively once for overlapping initialize calls', async (t) => {
@@ -292,4 +324,74 @@ test('attaches the native listeners of all instances sharing a re-created native
     ['on', 'source-id', 'sourceLoaded'],
     ['on', 'source-id', 'sourceUnloaded'],
   ]);
+});
+
+test('unregisters a source once native released it', async (t) => {
+  const { source, release, emitRelease, SourceRegistry } = sourceFixture(t);
+  await source.initialize();
+  assert.equal(SourceRegistry.get(source.nativeId), source);
+
+  emitRelease(release());
+
+  assert.equal(SourceRegistry.get(source.nativeId), undefined);
+  assert.equal(source.isInitialized, false);
+});
+
+test('ignores the release of a native source that was created again since', async (t) => {
+  const { source, release, emitRelease, SourceRegistry } = sourceFixture(t);
+  await source.initialize();
+  const released = release();
+  await source.initialize();
+
+  // The release arrives after the initialization that created the source again.
+  emitRelease(released);
+
+  assert.equal(SourceRegistry.get(source.nativeId), source);
+  assert.equal(source.isInitialized, true);
+});
+
+test('handles a release that arrives during an initialization once it finished', async (t) => {
+  const { source, calls, release, emitRelease, SourceRegistry } = sourceFixture(
+    t,
+    {
+      url: 'https://example.com/a.mpd',
+      type: 'dash',
+      drmConfig: { widevine: { licenseUrl: 'https://example.com/license' } },
+    }
+  );
+  await source.initialize();
+  const released = release();
+
+  // The initialization creates the source again with the existing DRM config, so
+  // the late release must not release that DRM config.
+  const initialization = source.initialize();
+  emitRelease(released);
+  await initialization;
+  await new Promise(setImmediate);
+
+  assert.equal(SourceRegistry.get(source.nativeId), source);
+  assert.equal(source.isInitialized, true);
+  assert.deepEqual(
+    calls.filter(([call]) => call.startsWith('drm.')),
+    [['drm.initialize']]
+  );
+});
+
+test('releases the DRM of a released source and creates it again', async (t) => {
+  const { source, calls, release, emitRelease } = sourceFixture(t, {
+    url: 'https://example.com/a.mpd',
+    type: 'dash',
+    drmConfig: { widevine: { licenseUrl: 'https://example.com/license' } },
+  });
+  await source.initialize();
+  const drm = source.drm;
+
+  emitRelease(release());
+  await source.initialize();
+
+  assert.deepEqual(
+    calls.filter(([call]) => call.startsWith('drm.')),
+    [['drm.initialize'], ['drm.destroy'], ['drm.initialize']]
+  );
+  assert.notEqual(source.drm, drm);
 });

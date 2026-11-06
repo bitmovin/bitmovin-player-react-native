@@ -6,6 +6,11 @@ import type { NativeEventPayload } from '../utils/eventListeners';
 
 export type SourceModuleEvents = {
   onSourceEvent: (payload: NativeEventPayload) => void;
+  /**
+   * Emitted once native released a source, e.g. after its player removed it. `instanceId` identifies the released
+   * native source, as resolved by its initialization.
+   */
+  onSourceReleased: (payload: { nativeId: string; instanceId: number }) => void;
 };
 
 declare class SourceModule extends NativeModule<SourceModuleEvents> {
@@ -34,7 +39,7 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
    * and remote control object.
    *
    * Resolves the instance id of the newly created native source, e.g. created again after it was released, or
-   * nothing if it already existed. Resolves nothing on iOS, which does not release sources.
+   * nothing if it already existed. iOS, which does not report releases, resolves no instance id.
    */
   initializeWithConfig(
     nativeId: string,
@@ -48,7 +53,7 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
    * remote control object, and analytics source metadata.
    *
    * Resolves the instance id of the newly created native source, e.g. created again after it was released, or
-   * nothing if it already existed. Resolves nothing on iOS, which does not release sources.
+   * nothing if it already existed. iOS, which does not report releases, resolves no instance id.
    */
   initializeWithAnalyticsConfig(
     nativeId: string,
