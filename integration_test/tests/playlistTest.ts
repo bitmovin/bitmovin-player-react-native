@@ -199,8 +199,6 @@ export default (spec: TestScope) => {
             'Active source of the other player'
           ).toBeUndefined();
 
-          // Checked before destroying the other player, which destroys every source passed to its
-          // `loadPlaylist`, including the rejected one.
           await callPlayer(async (player) => {
             expect(await player.getSource(), 'Active source').toBe(source);
             expect(await source.isActive(), 'Source is active').toBeTruthy();
