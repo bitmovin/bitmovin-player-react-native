@@ -352,7 +352,6 @@ export default (spec: TestScope) => {
         },
       ],
       expectManifestLoaded: false,
-      enabledOn: ['android'],
     },
   ];
 

@@ -22,6 +22,9 @@ export enum AdQuartile {
 export enum AdSourceType {
   /**
    * Bitmovin Advertising Module.
+   *
+   * Supports VAST and VMAP ad tags. A VMAP ad tag defines the positions of its own ad breaks,
+   * so the `position` of the containing `AdItem` does not replace those offsets.
    */
   BITMOVIN = 'bitmovin',
   /**
