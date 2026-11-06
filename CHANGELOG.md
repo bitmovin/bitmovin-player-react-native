@@ -17,6 +17,7 @@
 
 ### Changed
 
+- Update Bitmovin's native Android SDK version to [`3.174.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31740)
 - iOS: Bitmovin Advertising Module ads no longer start with the subtitle track marked as default in the ad manifest. The ad subtitle now follows the subtitle selected for the main content, and stays off if the main content subtitles are off. This comes with native iOS SDK `3.131.0`
 - Update Bitmovin's native iOS SDK version to [`3.131.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31310)
 
