@@ -15,6 +15,9 @@ extension Source {
         if let metadata {
             json["metadata"] = metadata
         }
+        if let nativeId = SourceRegistry.nativeId(of: self) {
+            json["nativeId"] = nativeId
+        }
         return json
     }
 }
@@ -41,6 +44,22 @@ extension DeficiencyData: JsonConvertible {
             json["httpResponse"] = RCTConvert.toJson(httpResponse: response)
         }
         return json
+    }
+}
+
+extension Event {
+    /// The JSON payload sent to JS, with non-finite numbers sanitized. Empty if the event is not `JsonConvertible`.
+    func eventPayload() -> [String: Any] {
+        guard let jsonConvertible = self as? JsonConvertible else {
+            return [:]
+        }
+        let anyHashableKeyedPayload = jsonConvertible.toJSON()
+        let stringKeyedPayload = anyHashableKeyedPayload.reduce(into: [String: Any]()) { result, pair in
+            if let key = pair.key as? String {
+                result[key] = pair.value
+            }
+        }
+        return NonFiniteSanitizer.sanitizeEventData(stringKeyedPayload)
     }
 }
 

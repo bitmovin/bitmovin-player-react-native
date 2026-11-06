@@ -1,4 +1,3 @@
-import { Platform } from 'react-native';
 import type { CmcdConfig } from './cmcdConfig';
 import type { DrmConfig } from './drm';
 import { Drm } from './drm';
@@ -259,7 +258,6 @@ export class Source extends NativeInstance<SourceConfig> {
    *
    * @param eventName - The name of the event, e.g. `sourceLoaded`.
    * @param listener - The function called with the event.
-   * @platform Android
    */
   on = <K extends keyof SourceEventMap>(
     eventName: K,
@@ -271,10 +269,6 @@ export class Source extends NativeInstance<SourceConfig> {
       );
       return;
     }
-    // TODO(#1157): Remove, once the iOS bridge supports Source.on.
-    if (Platform.OS !== 'android') {
-      return;
-    }
     this.eventListeners.on(eventName, listener);
   };
 
@@ -284,7 +278,6 @@ export class Source extends NativeInstance<SourceConfig> {
    *
    * @param eventName - The name of the event.
    * @param listener - The function passed to {@link Source.on}.
-   * @platform Android
    */
   off = <K extends keyof SourceEventMap>(
     eventName: K,
