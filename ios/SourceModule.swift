@@ -41,10 +41,15 @@ public class SourceModule: Module {
                 owner.source?.loadingState.rawValue
             }.runOnQueue(.main)
             AsyncFunction("getMetadata") { (owner: SharedSource) -> [String: Any]? in
-                owner.source?.metadata
+                guard let source = owner.source else { return nil }
+                if let metadata = source.metadata { return metadata }
+                let metadata = source.sourceConfig.metadata
+                return metadata.isEmpty ? nil : metadata
             }.runOnQueue(.main)
             AsyncFunction("setMetadata") { (owner: SharedSource, metadata: [String: Any]?) in
-                owner.source?.metadata = metadata as [String: AnyObject]?
+                guard let source = owner.source else { return }
+                source.sourceConfig.metadata = metadata ?? [:]
+                source.metadata = metadata as [String: AnyObject]?
             }.runOnQueue(.main)
             AsyncFunction("getThumbnail") { (owner: SharedSource, time: Double) -> [String: Any]? in
                 guard let thumbnail = owner.source?.thumbnail(forTime: time) else { return nil }
