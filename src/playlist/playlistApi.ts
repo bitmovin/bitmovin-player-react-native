@@ -1,6 +1,7 @@
 import PlaylistModule from '../modules/PlaylistModule';
 import type { Source } from '../source';
 import type { SeekTarget } from './seekTarget';
+import { SourceRegistry } from '../utils/sourceRegistry';
 
 /**
  * Provides the means to manage multiple {@link Source}s inside a playback session.
@@ -17,11 +18,8 @@ export class PlaylistApi {
    */
   readonly nativeId: string;
 
-  private readonly knownSources: Map<string, Source>;
-
-  constructor(playerId: string, knownSources: Map<string, Source>) {
+  constructor(playerId: string) {
     this.nativeId = playerId;
-    this.knownSources = knownSources;
   }
 
   /**
@@ -34,7 +32,7 @@ export class PlaylistApi {
   getSources = async (): Promise<Source[]> => {
     const nativeIds = await PlaylistModule.sources(this.nativeId);
     return nativeIds.flatMap((nativeId) => {
-      const source = this.knownSources.get(nativeId);
+      const source = SourceRegistry.get(nativeId);
       return source ? [source] : [];
     });
   };
@@ -52,20 +50,8 @@ export class PlaylistApi {
    * unsupported type.
    */
   add = async (source: Source, index?: number): Promise<void> => {
-    const wasKnown = this.knownSources.has(source.nativeId);
-    // Known before the native call, so that `SourceAdded` listeners can resolve it via `getSources`.
-    this.knownSources.set(source.nativeId, source);
-    let isAdded = false;
-    try {
-      await source.initialize();
-      isAdded =
-        (await PlaylistModule.add(this.nativeId, source.nativeId, index)) ??
-        false;
-    } finally {
-      if (!isAdded && !wasKnown) {
-        this.knownSources.delete(source.nativeId);
-      }
-    }
+    await source.initialize();
+    await PlaylistModule.add(this.nativeId, source.nativeId, index);
   };
 
   /**
@@ -76,9 +62,7 @@ export class PlaylistApi {
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    */
   remove = async (source: Source): Promise<void> => {
-    this.forgetSource(
-      await PlaylistModule.remove(this.nativeId, source.nativeId)
-    );
+    await PlaylistModule.remove(this.nativeId, source.nativeId);
   };
 
   /**
@@ -89,7 +73,7 @@ export class PlaylistApi {
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    */
   removeAt = async (index: number): Promise<void> => {
-    this.forgetSource(await PlaylistModule.removeAt(this.nativeId, index));
+    await PlaylistModule.removeAt(this.nativeId, index);
   };
 
   /**
@@ -120,10 +104,4 @@ export class PlaylistApi {
   seekTo = async (source: Source, seekTarget?: SeekTarget): Promise<void> => {
     return PlaylistModule.seekTo(this.nativeId, source.nativeId, seekTarget);
   };
-
-  private forgetSource(removedSourceNativeId: string | null | undefined) {
-    if (removedSourceNativeId) {
-      this.knownSources.delete(removedSourceNativeId);
-    }
-  }
 }
