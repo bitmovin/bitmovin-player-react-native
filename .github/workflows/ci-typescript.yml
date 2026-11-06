@@ -105,6 +105,12 @@ jobs:
       - name: Test network preprocessing
         run: node --test scripts/test-network-preprocessing.js
 
+      - name: Test native instance compatibility registry
+        run: node --test scripts/test-native-instance-registry.js
+
+      - name: Test SharedObject public API compatibility
+        run: node --test scripts/test-shared-object-compatibility.js
+
       - name: Build TypeScript (Module)
         run: yarn build:module
 

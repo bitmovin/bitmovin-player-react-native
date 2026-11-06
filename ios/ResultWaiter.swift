@@ -49,7 +49,10 @@ internal final class ResultWaiter<Value> {
     }
 
     func removeAll() {
-        queue.async(flags: .barrier) { self.table.removeAll() }
+        queue.async(flags: .barrier) {
+            self.table.values.forEach { $0.semaphore.signal() }
+            self.table.removeAll()
+        }
     }
 
     // MARK: – helpers ----------------------------------------------------------

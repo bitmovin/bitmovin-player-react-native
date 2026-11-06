@@ -11,9 +11,14 @@ const React = req('react');
 const ts = req('typescript');
 const scheduler = req('scheduler/unstable_mock');
 let committedView;
+const nativePlayers = new Map(
+  ['first', 'replacement', 'obsolete', 'current', 'silent', 'A', 'B'].map(
+    (nativeId, index) => [nativeId, { __expo_shared_object_id__: index + 1 }]
+  )
+);
 const viewConfig = {
   uiViewClassName: 'ProbePlayerView',
-  validAttributes: { config: true },
+  validAttributes: { config: true, player: true },
   directEventTypes: {},
   bubblingEventTypes: {},
 };
@@ -106,6 +111,8 @@ const playerViewContext = vm.createContext({
     if (name.endsWith('/custommessagehandlerbridge')) return {};
     if (name.endsWith('/metadataPlatform')) return {};
     if (name.endsWith('/RNPlayerViewManagerModule')) return {};
+    if (name.endsWith('/nativeInstanceRegistry'))
+      return { lookup: (kind, nativeId) => nativePlayers.get(nativeId) };
     throw new Error('Unexpected PlayerView dependency: ' + name);
   },
 });
@@ -153,6 +160,10 @@ test('readiness waits for native listeners and follows the current player', asyn
   render(props);
   await flush();
   assert.ok(committedView, 'initialized player renders a native view');
+  assert.equal(
+    committedView.props.player,
+    nativePlayers.get(player.nativeId).__expo_shared_object_id__
+  );
   assert.equal(
     notifications,
     0,

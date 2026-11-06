@@ -4,6 +4,7 @@ import BitmovinPlayer
 import BitmovinPlayerCore
 import ExpoModulesCore
 
+// swiftlint:disable:next type_body_length
 public class RNPlayerView: ExpoView {
     var playerView: PlayerView? {
         willSet {
@@ -42,7 +43,8 @@ public class RNPlayerView: ExpoView {
     }
 
     private var customMessageHandlerBridgeId: NativeId?
-    private var playerId: NativeId?
+    private var sharedPlayer: SharedPlayer?
+    private var playerViewConfigWrapper: RNPlayerViewConfig?
     private var fullscreenBridgeId: NativeId?
     private var scalingMode: ScalingMode?
     private var requestedFullscreenValue: Bool?
@@ -143,21 +145,34 @@ public class RNPlayerView: ExpoView {
         maybeFixAVPlayerViewControllerVisibility()
     }
 
-    internal func attachPlayer(
-        playerId: NativeId?,
-        playerViewConfigWrapper: RNPlayerViewConfig?,
+    internal func setSharedPlayer(_ owner: SharedPlayer?) {
+        guard sharedPlayer !== owner else { return }
+        detachSharedPlayer()
+        sharedPlayer = owner
+    }
+
+    internal func configurePlayer(
+        playerViewConfig: RNPlayerViewConfig?,
         customMessageHandlerBridgeId: NativeId?
     ) {
-        self.playerId = playerId
-        guard let playerId else {
-            detachCurrentPlayer()
-            return
+        playerViewConfigWrapper = playerViewConfig
+        self.customMessageHandlerBridgeId = customMessageHandlerBridgeId
+    }
+
+    internal func detachSharedPlayer() {
+        if sharedPlayer?.view === self {
+            sharedPlayer?.view = nil
         }
-        // PlayerView renders this native view only after player.initialize() resolves,
-        // so the player is already registered on the normal attachment path.
-        guard let player = self.appContext?.moduleRegistry.get(PlayerModule.self)?.retrieve(playerId) else {
-            return
+        prepareForNewPlayerAttachment()
+        sharedPlayer = nil
+    }
+
+    internal func attachConfiguredPlayer() {
+        guard let owner = sharedPlayer, let player = owner.player else { return }
+        if let previousView = owner.view, previousView !== self {
+            previousView.detachSharedPlayer()
         }
+        owner.view = self
         if let playerView, let currentPlayer = playerView.player, currentPlayer === player {
             // Player is already attached to the PlayerView
             return
@@ -172,9 +187,6 @@ public class RNPlayerView: ExpoView {
         }
 
         let previousPictureInPictureAvailableValue = playerView?.isPictureInPictureAvailable ?? false
-        if playerView?.player != nil {
-            prepareForNewPlayerAttachment()
-        }
         self.playerView = PlayerView(
             player: player,
             frame: bounds,
@@ -191,7 +203,15 @@ public class RNPlayerView: ExpoView {
         self.maybeEmitPictureInPictureAvailabilityEvent(
             previousState: previousPictureInPictureAvailableValue
         )
-        onBmpPlayerViewReady(["playerId": playerId])
+        if let isEnabled = owner.pendingIsPictureInPictureEnabled {
+            owner.pendingIsPictureInPictureEnabled = nil
+            setIsPictureInPictureEnabled(isEnabled)
+        }
+        if let actions = owner.pendingPictureInPictureActions {
+            owner.pendingPictureInPictureActions = nil
+            updatePictureInPictureActions(actions: actions)
+        }
+        onBmpPlayerViewReady(["playerId": owner.nativeId])
     }
 
     internal func attachFullscreenBridge(fullscreenBridgeId: NativeId) {

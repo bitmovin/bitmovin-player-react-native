@@ -19,6 +19,7 @@ export interface NativePlayerViewConfig {
  * Mostly maps the event props defined in native code.
  */
 export interface NativePlayerViewProps extends NativePlayerViewEvents {
+  player: number;
   ref?: RefObject<any>;
   onBmpPlayerViewReady?: (
     event: NativeSyntheticEvent<{ playerId: string }>

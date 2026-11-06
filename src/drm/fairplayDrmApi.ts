@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import type { FairplayContentKeyRequest } from '../events';
-import SourceModule from '../modules/SourceModule';
+import { lookup } from '../nativeInstanceRegistry';
+import type { NativeSource } from '../modules/SourceModule';
 
 /**
  * Provides FairPlay-specific DRM runtime APIs for an active {@link Source}.
@@ -28,9 +29,9 @@ export class FairplayDrmApi {
       );
       return;
     }
-    return SourceModule.drmFairplayRenewExpiringLicense(
-      this.sourceNativeId,
-      contentKeyRequest.skdUri
-    );
+    return lookup<NativeSource>(
+      'source',
+      this.sourceNativeId
+    )?.drmFairplayRenewExpiringLicense(contentKeyRequest.skdUri);
   };
 }

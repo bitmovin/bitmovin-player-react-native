@@ -58,6 +58,8 @@ Run commands from the repository root after the documented development setup.
 
 ```sh
 node --test scripts/test-network-preprocessing.js
+node --test scripts/test-native-instance-registry.js
+node --test scripts/test-shared-object-compatibility.js
 yarn test:plugin
 python3 -m unittest discover -s .github/scripts -p 'test_*.py'
 ```
@@ -68,6 +70,21 @@ They need installed root dependencies, including TypeScript, but no native
 build or Player license. They exercise the real JS handlers for request and
 response routing, callback success/failure, absent callbacks, and mocked
 completion rejection. They do not run a native decoder or completer.
+
+The [native instance registry tests](../scripts/test-native-instance-registry.js)
+verify JavaScript compatibility for aliases with the same instance type and
+`nativeId`, separation between types, constructor retries, and removal after
+destruction. They exercise the real registry without a native bridge and do not
+prove native resource cleanup or Expo SharedObject release behavior.
+
+The [SharedObject compatibility tests](../scripts/test-shared-object-compatibility.js)
+run the public Player, Source, buffer, analytics, and media controls wrappers with
+mocked Expo modules. They check IDs, separate alias configurations and flags,
+shared backend routing, destruction and ID reuse, hook rerenders, public return
+shapes, and advertising callback routing and listener removal in the iOS and
+Android JavaScript branches. Native
+destruction, release, serialization, and playback remain outside this fixture's
+coverage.
 
 `yarn test:plugin` builds and tests the config plugin. The Python command tests
 repository automation. Neither establishes Player runtime behavior. There is
@@ -83,6 +100,8 @@ simulator or Android emulator and the native test app:
 yarn integration-test list-tags
 yarn integration-test test:ios --tags playback,unloading
 yarn integration-test test:android --tags playback
+yarn integration-test test:ios --tags shared-object-lifecycle
+yarn integration-test test:android --tags shared-object-lifecycle
 yarn integration-test test:ios
 yarn integration-test test:android
 ```
@@ -128,8 +147,8 @@ and tests. Confirm execution from the job's steps and results. A test file,
 suite registration, typecheck, or successful app build alone is insufficient.
 
 Currently, [TypeScript CI](../.github/workflows/ci-typescript.yml) runs the network
-preprocessing script and plugin tests. The
-[integration-test workflow](../.github/workflows/integration-tests.yml) is a
+preprocessing script, native instance registry tests, SharedObject compatibility
+tests, and plugin tests. The [integration-test workflow](../.github/workflows/integration-tests.yml) is a
 manually dispatched stub and does not run Cavy. Do not report Cavy coverage from
 that workflow's success. Any automated Cavy coverage needs actual runner steps,
 environment setup, and results for the selected platforms and suites.

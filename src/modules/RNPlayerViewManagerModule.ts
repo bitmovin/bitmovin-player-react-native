@@ -1,3 +1,4 @@
+import type { NativePlayer } from './PlayerModule';
 import type { NativeModule } from 'expo-modules-core';
 import { requireNativeModule } from 'expo-modules-core';
 import type { PictureInPictureAction } from '../components/PlayerView/pictureInPictureAction';
@@ -16,14 +17,14 @@ declare class RNPlayerViewManagerModule extends NativeModule<RNPlayerViewManager
    * native view while Picture in Picture is active.
    */
   updatePictureInPictureActions(
-    playerId: string,
+    player: NativePlayer | undefined,
     actions: PictureInPictureAction[]
   ): Promise<void>;
   /**
    * Enables or disables Picture in Picture for the player view showing the player with `playerId`.
    */
   setIsPictureInPictureEnabled(
-    playerId: string,
+    player: NativePlayer | undefined,
     isEnabled: boolean
   ): Promise<void>;
 }

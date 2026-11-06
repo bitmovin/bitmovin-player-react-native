@@ -1,5 +1,6 @@
+import { lookup } from '../nativeInstanceRegistry';
+import PlayerModule, { type NativePlayer } from '../modules/PlayerModule';
 import type { CustomDataConfig } from './config';
-import PlayerAnalyticsModule from './playerAnalyticsModule';
 
 /**
  * Provides the means to control the analytics collected by a `Player`.
@@ -20,7 +21,10 @@ export class AnalyticsApi {
    * Does not change the configured custom data of the collector or source.
    */
   sendCustomDataEvent = async (customData: CustomDataConfig) => {
-    await PlayerAnalyticsModule.sendCustomDataEvent(this.playerId, customData);
+    await (
+      lookup<NativePlayer>('player', this.playerId) ??
+      PlayerModule.create(this.playerId)
+    ).sendCustomDataEvent(customData);
   };
 
   /**
@@ -29,6 +33,9 @@ export class AnalyticsApi {
    * @returns The current user id.
    */
   getUserId = async (): Promise<string | null> => {
-    return PlayerAnalyticsModule.getUserId(this.playerId);
+    return (
+      lookup<NativePlayer>('player', this.playerId) ??
+      PlayerModule.create(this.playerId)
+    ).getAnalyticsUserId();
   };
 }

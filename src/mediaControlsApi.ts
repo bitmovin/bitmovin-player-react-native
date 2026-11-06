@@ -1,5 +1,6 @@
+import { lookup } from './nativeInstanceRegistry';
+import type { NativePlayer } from './modules/PlayerModule';
 import { Platform } from 'react-native';
-import MediaControlsModule from './modules/MediaControlsModule';
 
 /**
  * Provides control for the Player's media controls integration.
@@ -40,7 +41,12 @@ export class MediaControlsApi {
       );
       return false;
     }
-    return (await MediaControlsModule?.isEnabled(this.nativeId)) ?? false;
+    return (
+      (await lookup<NativePlayer>(
+        'player',
+        this.nativeId
+      )?.isMediaControlsEnabled()) ?? false
+    );
   };
 
   /**
@@ -56,6 +62,9 @@ export class MediaControlsApi {
       );
       return;
     }
-    return MediaControlsModule?.setEnabled(this.nativeId, enabled);
+    return lookup<NativePlayer>(
+      'player',
+      this.nativeId
+    )?.setMediaControlsEnabled(enabled);
   };
 }

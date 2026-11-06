@@ -9,47 +9,53 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.reactnative.services.MediaSessionPlaybackService
 import expo.modules.kotlin.AppContext
 
-class MediaSessionPlaybackManager(val appContext: AppContext) {
+/** Keeps the selected player connected to Android's single media-session service. */
+class MediaSessionPlaybackManager(private val appContext: AppContext) {
     private var serviceBinder: MediaSessionPlaybackService.ServiceBinder? = null
-    private var playerId: NativeId? = null
+    private var serviceConnection: ServiceConnection? = null
+    private var boundContext: Context? = null
+    private var selectedPlayer: Player? = null
     val player: Player?
         get() = serviceBinder?.player
 
-    inner class MediaSessionPlaybackServiceConnection : ServiceConnection {
-        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            val binder = service as MediaSessionPlaybackService.ServiceBinder
-            serviceBinder = binder
-            binder.player = getPlayer()
-        }
-
-        override fun onServiceDisconnected(name: ComponentName) {
-            playerId?.let {
-                destroy(it)
-            }
-        }
-    }
-
-    fun setupMediaSessionPlayback(playerId: NativeId) {
-        this.playerId = playerId
-
-        val context = appContext.reactContext
-            ?: throw IllegalStateException("React context is not available")
-        val intent = Intent(context, MediaSessionPlaybackService::class.java)
-        intent.action = Intent.ACTION_MEDIA_BUTTON
-        val connection: ServiceConnection = MediaSessionPlaybackServiceConnection()
-        context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
-    }
-
-    fun destroy(nativeId: NativeId) {
-        if (nativeId != playerId) {
+    fun setupMediaSessionPlayback(player: Player) {
+        selectedPlayer = player
+        serviceBinder?.let {
+            it.player = player
             return
         }
-        serviceBinder?.player = null
-        serviceBinder = null
+        if (serviceConnection != null) return
+        val context = appContext.reactContext
+            ?: throw IllegalStateException("React context is not available")
+        val connection = object : ServiceConnection {
+            override fun onServiceConnected(className: ComponentName, service: IBinder) {
+                if (serviceConnection !== this) return
+                val binder = service as MediaSessionPlaybackService.ServiceBinder
+                serviceBinder = binder
+                binder.player = selectedPlayer
+            }
+
+            override fun onServiceDisconnected(name: ComponentName) {
+                if (serviceConnection === this) serviceBinder = null
+            }
+        }
+        val intent = Intent(context, MediaSessionPlaybackService::class.java)
+        intent.action = Intent.ACTION_MEDIA_BUTTON
+        serviceConnection = connection
+        boundContext = context
+        if (!context.bindService(intent, connection, Context.BIND_AUTO_CREATE)) {
+            serviceConnection = null
+            boundContext = null
+        }
     }
 
-    private fun getPlayer(
-        nativeId: NativeId? = playerId,
-    ): Player = playerId?.let { appContext.registry.getModule<PlayerModule>()?.getPlayerOrNull(it) }
-        ?: throw IllegalArgumentException("Invalid PlayerId $nativeId")
+    fun destroy(player: Player) {
+        if (selectedPlayer !== player) return
+        selectedPlayer = null
+        serviceBinder?.player = null
+        serviceBinder = null
+        serviceConnection?.let { connection -> boundContext?.unbindService(connection) }
+        serviceConnection = null
+        boundContext = null
+    }
 }

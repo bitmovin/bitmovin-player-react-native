@@ -22,7 +22,11 @@ import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.converter.toRNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.converter.toUserInterfaceType
+import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
+import com.bitmovin.player.reactnative.extensions.getMap
+import com.bitmovin.player.reactnative.extensions.getString
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.bitmovin.player.reactnative.util.NonFiniteSanitizer
 import com.facebook.react.ReactRootView
@@ -124,6 +128,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private var pictureInPictureConfig: PictureInPictureConfig = PictureInPictureConfig()
 
     private var playerInMediaSessionService: Player? = null
+    private var sharedPlayer: SharedPlayer? = null
+    private var playerInfo: Map<String, Any>? = null
 
     // Setting this flag to `true` in order for React Native to re-render our view when [requestLayout] is triggered
     override val shouldUseAndroidLayout: Boolean = true
@@ -167,7 +173,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             if (!enableBackgroundPlayback) {
                 return
             }
-            if (appContext.registry.getModule<PlayerModule>()?.mediaSessionPlaybackManager?.player != player) {
+            if (sharedPlayer?.mediaSessionPlaybackManager?.player != player) {
                 return
             }
 
@@ -198,10 +204,11 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun dispose() {
+        sharedPlayer?.detachView(this)
+        sharedPlayer = null
+        (playerView?.player ?: playerInMediaSessionService)?.let { detachPlayerListeners(it) }
+        playerInMediaSessionService = null
         playerView?.let { view ->
-            view.player?.let {
-                detachPlayerListeners(it)
-            }
             view.setPictureInPictureHandler(null)
             // keep the player alive (before calling PlayerView.onDestroy,
             // as this would internally destroy the player)
@@ -293,18 +300,52 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
     }
 
-    fun attachPlayer(
-        playerId: NativeId,
+    fun bindSharedPlayer(shared: SharedPlayer?) {
+        if (sharedPlayer !== shared) {
+            (playerView?.player ?: playerInMediaSessionService)?.let { detachPlayerListeners(it) }
+            playerInMediaSessionService = null
+            sharedPlayer?.detachView(this)
+        }
+        sharedPlayer = shared
+        if (shared == null) dispose()
+    }
+
+    fun configure(config: Map<String, Any>?) {
+        playerInfo = config
+    }
+
+    fun attachConfiguredPlayer() {
+        val shared = sharedPlayer ?: return
+        val config = playerInfo ?: return
+        attachPlayer(
+            shared,
+            config.getMap("playerViewConfig")?.toRNPlayerViewConfigWrapper(),
+            config.getString("customMessageHandlerBridgeId"),
+            config.getBooleanOrNull("enableBackgroundPlayback") ?: false,
+            config.getBooleanOrNull("isPictureInPictureEnabledOnPlayer") ?: false,
+            config.getString("userInterfaceTypeName"),
+        )
+        if (shared.attachedView !== this) return
+        shared.pendingIsPictureInPictureEnabled?.let {
+            shared.pendingIsPictureInPictureEnabled = null
+            setIsPictureInPictureEnabled(it)
+        }
+        shared.pendingPictureInPictureActions?.let {
+            shared.pendingPictureInPictureActions = null
+            updatePictureInPictureActions(it)
+        }
+    }
+
+    private fun attachPlayer(
+        shared: SharedPlayer,
         playerViewConfigWrapper: RNPlayerViewConfigWrapper?,
         customMessageHandlerBridgeId: NativeId?,
         enableBackgroundPlayback: Boolean,
         isPictureInPictureEnabledOnPlayer: Boolean,
         userInterfaceTypeName: String?,
     ) {
-        val playerModule = appContext.registry.getModule<PlayerModule>()
-        // PlayerView renders this native view only after player.initialize() resolves,
-        // so the player is already registered on the normal attachment path.
-        val player = playerModule?.getPlayerOrNull(playerId) ?: return
+        val player = shared.player ?: return
+        shared.attachView(this)
 
         if (playerView?.player == player) {
             // Player is already attached to the PlayerView
@@ -375,7 +416,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                     playerView?.setCustomMessageHandler(customMessageHandlerBridge.customMessageHandler)
                 }
         }
-        onBmpPlayerViewReady(mapOf("playerId" to playerId))
+        onBmpPlayerViewReady(mapOf("playerId" to shared.nativeId))
     }
 
     internal fun shouldEnterPictureInPictureOnBackground() = pictureInPictureConfig.let {
@@ -625,7 +666,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun setPictureInPicture(isPictureInPicture: Boolean) {
-        if (isPictureInPicture && !pictureInPictureConfig.isEnabled) {
+        if (playerView != null && isPictureInPicture && !pictureInPictureConfig.isEnabled) {
             return
         }
         requestedPictureInPictureValue = isPictureInPicture

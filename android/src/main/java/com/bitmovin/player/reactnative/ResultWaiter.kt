@@ -53,6 +53,7 @@ class ResultWaiter<T> {
     }
 
     fun clear() {
+        table.values.forEach { it.latch.countDown() }
         table.clear()
     }
 }

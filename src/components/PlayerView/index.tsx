@@ -11,6 +11,8 @@ import type { PlayerViewProps } from './properties';
 import type { PictureInPictureAction } from './pictureInPictureAction';
 import { addPlatformToMetadataEvent } from '../../utils/metadataPlatform';
 import RNPlayerViewManagerModule from '../../modules/RNPlayerViewManagerModule';
+import type { NativePlayer } from '../../modules/PlayerModule';
+import { lookup } from '../../nativeInstanceRegistry';
 
 /**
  * Base style that initializes the native view frame when no width/height prop has been set.
@@ -42,6 +44,8 @@ export function PlayerView({
   onPlayerViewReady,
   ...props
 }: PlayerViewProps) {
+  const nativePlayer = lookup<NativePlayer>('player', player.nativeId);
+
   // Keep the device awake while the PlayerView is mounted
   useKeepAwake();
 
@@ -132,22 +136,22 @@ export function PlayerView({
   useEffect(() => {
     if (isPlayerInitialized && pictureInPictureActionsJson != null) {
       void RNPlayerViewManagerModule.updatePictureInPictureActions(
-        player.nativeId,
+        nativePlayer,
         JSON.parse(pictureInPictureActionsJson) as PictureInPictureAction[]
       );
     }
-  }, [isPlayerInitialized, player.nativeId, pictureInPictureActionsJson]);
+  }, [isPlayerInitialized, nativePlayer, pictureInPictureActionsJson]);
 
   useEffect(() => {
     if (isPlayerInitialized && isPictureInPictureEnabled != null) {
       void RNPlayerViewManagerModule.setIsPictureInPictureEnabled(
-        player.nativeId,
+        nativePlayer,
         isPictureInPictureEnabled
       );
     }
-  }, [isPlayerInitialized, player.nativeId, isPictureInPictureEnabled]);
+  }, [isPlayerInitialized, nativePlayer, isPictureInPictureEnabled]);
 
-  if (!isPlayerInitialized) {
+  if (!isPlayerInitialized || !nativePlayer) {
     return null;
   }
 
@@ -155,6 +159,10 @@ export function PlayerView({
     <NativePlayerView
       ref={nativeView}
       style={nativeViewStyle}
+      player={
+        (nativePlayer as unknown as { __expo_shared_object_id__: number })
+          .__expo_shared_object_id__
+      }
       config={nativePlayerViewConfig}
       isFullscreenRequested={isFullscreenRequested}
       isPictureInPictureRequested={isPictureInPictureRequested}

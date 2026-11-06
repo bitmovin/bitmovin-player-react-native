@@ -11,11 +11,10 @@ internal object ImaBeforeInitializationConfigurator {
     const val IS_GOOGLE_IMA_ENABLED = true
 
     fun configure(
-        nativeId: NativeId,
         configJson: Map<String, Any?>?,
         playerConfig: PlayerConfig,
         imaSettingsWaiter: ResultWaiter<Map<String, Any?>>,
-        emitEvent: (nativeId: NativeId, id: Int, payload: Map<String, Any?>) -> Unit,
+        emitEvent: (id: Int, payload: Map<String, Any?>) -> Unit,
     ) {
         val advertisingConfigJson = configJson?.getMap("advertisingConfig") ?: return
         val imaJson = advertisingConfigJson.getMap("ima") ?: return
@@ -26,7 +25,7 @@ internal object ImaBeforeInitializationConfigurator {
         val advertisingConfig = playerConfig.advertisingConfig ?: AdvertisingConfig()
         val callback = BeforeInitializationCallback { settings ->
             val (id, wait) = imaSettingsWaiter.make(250)
-            emitEvent(nativeId, id, settings.toMap())
+            emitEvent(id, settings.toMap())
             wait()?.applyOnImaSettings(settings)
         }
         val updatedIma = advertisingConfig.ima.copy(beforeInitialization = callback)
