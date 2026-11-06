@@ -14,19 +14,24 @@ public class PlayerModule: Module {
             "event": event.eventPayload(),
         ])
     }
+    private lazy var removedSourceReleaser = RemovedSourceReleaser { [weak self] nativeId in
+        self?.appContext?.moduleRegistry.get(SourceModule.self)?.releaseSource(nativeId: nativeId)
+    }
 
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("PlayerModule")
         OnCreate {}
         OnDestroy {
-            let eventRelay = self.eventRelay
             // Destroy all players on the main thread when the module is deallocated.
             // This is necessary when the IMA SDK is present in the app,
             // as it may crash if the players are destroyed on a background thread.
-            DispatchQueue.main.async {
+            // The lazy event relay and source releaser are read on the main thread as well, so they are not created
+            // on another thread if no player was ever created.
+            DispatchQueue.main.async { [self] in
                 // Cancel the event subscriptions first, so destroying the players does not emit into this module.
                 eventRelay.clear()
+                removedSourceReleaser.clear()
                 PlayerRegistry.getAllPlayers().forEach { $0.destroy() }
                 PlayerRegistry.clear()
             }
@@ -70,6 +75,8 @@ public class PlayerModule: Module {
                 player.destroy()
                 PlayerRegistry.unregister(nativeId: nativeId)
             }
+            // Detach only after destroying, so the sources that `destroy` removes while unloading are released.
+            self?.removedSourceReleaser.detach(nativeId: nativeId)
             self?.eventRelay.offAll(nativeId: nativeId)
             self?.appContext?.moduleRegistry.get(RNPlayerViewManager.self)?
                 .discardPendingPictureInPictureValues(playerId: nativeId)
@@ -231,6 +238,7 @@ public class PlayerModule: Module {
             self?.setupImaBeforeInitialization(nativeId: nativeId, config: config, playerConfig: playerConfig)
             let player = PlayerFactory.create(playerConfig: playerConfig)
             PlayerRegistry.register(player: player, nativeId: nativeId)
+            self?.removedSourceReleaser.attach(nativeId: nativeId, player: player)
         }.runOnQueue(.main)
         AsyncFunction(
             "initializeWithAnalyticsConfig"
@@ -253,6 +261,7 @@ public class PlayerModule: Module {
                 defaultMetadata: defaultMetadata ?? DefaultMetadata()
             )
             PlayerRegistry.register(player: player, nativeId: nativeId)
+            self?.removedSourceReleaser.attach(nativeId: nativeId, player: player)
         }.runOnQueue(.main)
         AsyncFunction("loadSource") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) in
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
@@ -336,6 +345,13 @@ public class PlayerModule: Module {
                 description: "Source \(sourceNativeId) is already attached to another player"
             )
         }
+    }
+
+    /**
+     Keeps `source` registered if its release is pending, see `RemovedSourceReleaser.keep(_:)`.
+     */
+    internal func keepSource(_ source: Source) {
+        removedSourceReleaser.keep(source)
     }
 
     private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {

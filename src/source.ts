@@ -196,7 +196,6 @@ export class Source extends NativeInstance<SourceConfig> {
   /**
    * The instance id of the native source, as resolved by its creation.
    */
-  // TODO(#1163): Set on iOS too, once its bridge reports instance ids.
   private nativeInstanceId?: number;
   private readonly eventListeners = new EventListeners<SourceEventMap>(
     this.nativeId,
@@ -242,10 +241,8 @@ export class Source extends NativeInstance<SourceConfig> {
           this.config,
           this.remoteControl || undefined
         );
-    // TODO(#1163): Only accept an instance id, once the iOS bridge reports instance ids instead of whether it
-    // created the source.
-    const isCreated = typeof instanceId === 'number' || instanceId === true;
-    if (typeof instanceId === 'number') {
+    const isCreated = typeof instanceId === 'number';
+    if (isCreated) {
       this.nativeInstanceId = instanceId;
     }
     SourceRegistry.register(this);

@@ -40,14 +40,13 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
    *
    * Resolves the instance id of the newly created native source, e.g. created again after it was released, or
    * nothing if it already existed.
-   * TODO(#1163): iOS resolves no instance id yet, as it does not report releases.
    */
   initializeWithConfig(
     nativeId: string,
     drmNativeId?: string,
     config?: Record<string, any>,
     remoteControl?: SourceRemoteControlConfig
-  ): Promise<number | boolean | null>;
+  ): Promise<number | null>;
 
   /**
    * Initializes a source with the given nativeId, optional DRM nativeId, configuration object,
@@ -55,7 +54,6 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
    *
    * Resolves the instance id of the newly created native source, e.g. created again after it was released, or
    * nothing if it already existed.
-   * TODO(#1163): iOS resolves no instance id yet, as it does not report releases.
    */
   initializeWithAnalyticsConfig(
     nativeId: string,
@@ -63,7 +61,7 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
     config?: Record<string, any>,
     remoteControl?: SourceRemoteControlConfig,
     analyticsSourceMetadata?: Record<string, any>
-  ): Promise<number | boolean | null>;
+  ): Promise<number | null>;
 
   /**
    * Destroys the source with the given nativeId.
