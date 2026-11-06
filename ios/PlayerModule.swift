@@ -288,22 +288,46 @@ public class PlayerModule: Module {
         }
         // The SDK unloads the current session and then raises a `fatalError` for an invalid playlist config,
         // so everything is validated before loading.
-        try Self.validatePlaylistSources(sources, sourceNativeIds: sourceNativeIds)
+        try Self.validatePlaylistSources(sources, sourceNativeIds: sourceNativeIds, player: player)
         let playlistOptions = try RCTConvert.playlistOptions(options)
         player.load(playlistConfig: PlaylistConfig(sources: sources, options: playlistOptions))
     }
 
     private static let supportedPlaylistSourceTypes: [SourceType] = [.hls, .progressive, .movpkg]
 
-    private static func validatePlaylistSources(_ sources: [Source], sourceNativeIds: [NativeId]) throws {
+    private static func validatePlaylistSources(
+        _ sources: [Source],
+        sourceNativeIds: [NativeId],
+        player: Player
+    ) throws {
         guard !sources.isEmpty else {
             throw Exception(name: "EMPTY_PLAYLIST", description: "Playlist config has no sources")
         }
-        for (source, sourceNativeId) in zip(sources, sourceNativeIds)
+        let sourcesWithNativeIds = zip(sources, sourceNativeIds)
+        for (source, sourceNativeId) in sourcesWithNativeIds
         where !supportedPlaylistSourceTypes.contains(source.sourceConfig.type) {
             throw Exception(
                 name: "UNSUPPORTED_PLAYLIST_SOURCE",
                 description: "Source \(sourceNativeId) cannot be part of a playlist on iOS: only HLS, progressive and movpkg sources are supported" // swiftlint:disable:this line_length
+            )
+        }
+        // The SDK ignores a source listed more than once and only logs a warning.
+        var seenSources = Set<ObjectIdentifier>()
+        for (source, sourceNativeId) in sourcesWithNativeIds
+        where !seenSources.insert(ObjectIdentifier(source as AnyObject)).inserted {
+            throw Exception(
+                name: "DUPLICATE_PLAYLIST_SOURCE",
+                description: "Source \(sourceNativeId) is part of the playlist more than once"
+            )
+        }
+        // The SDK raises a `fatalError` for a source attached to another player. Sources of this player's
+        // current session are fine, as loading unloads the session first.
+        let sessionSources = Set(player.playlist.sources.map { ObjectIdentifier($0 as AnyObject) })
+        for (source, sourceNativeId) in sourcesWithNativeIds
+        where source.isAttachedToPlayer && !sessionSources.contains(ObjectIdentifier(source as AnyObject)) {
+            throw Exception(
+                name: "SOURCE_ALREADY_ATTACHED",
+                description: "Source \(sourceNativeId) is already attached to another player"
             )
         }
     }
