@@ -203,7 +203,7 @@ export default function App() {
     });
   }
 
-  // TODO: show on all platforms once the iOS playlist bridge is implemented
+  // TODO(#1161): Show on all platforms, once the iOS bridge supports playlists.
   if (Platform.OS === 'android') {
     stackParams.data.push({
       title: 'Playlist',
@@ -365,6 +365,7 @@ export default function App() {
           component={AudioFocusHandling}
           options={{ title: 'Audio Focus Handling' }}
         />
+        {/* TODO(#1161): Register on all platforms, once the iOS bridge supports playlists. */}
         {Platform.OS === 'android' && (
           <RootStack.Screen
             name="Playlist"

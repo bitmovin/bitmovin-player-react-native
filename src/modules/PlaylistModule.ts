@@ -40,7 +40,7 @@ declare class PlaylistModule extends NativeModule<PlaylistModuleEvents> {
   ): Promise<void>;
 }
 
-// Android-only until the iOS playlist bridge is implemented
+// TODO(#1161): Load on all platforms, once the iOS bridge supports playlists.
 export default Platform.OS === 'android'
   ? requireNativeModule<PlaylistModule>('PlaylistModule')
   : null;
