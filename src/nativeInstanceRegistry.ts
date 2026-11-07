@@ -30,19 +30,6 @@ export function lookupPending<T extends object>(
 }
 
 /** @internal */
-export function getOrCreate<T extends object>(
-  kind: string,
-  nativeId: string,
-  factory: () => T
-): T {
-  const existing = lookup<T>(kind, nativeId);
-  if (existing) return existing;
-  const instance = factory();
-  store(kind, nativeId, instance);
-  return instance;
-}
-
-/** @internal */
 export function getOrCreateAsync<T extends object>(
   kind: string,
   nativeId: string,

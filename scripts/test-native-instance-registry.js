@@ -34,8 +34,13 @@ before(() => {
 
 function fixture(t) {
   const entries = [];
-  const getOrCreate = (kind, id, factory) => {
-    const instance = registry.getOrCreate(kind, id, factory);
+  const getOrCreate = async (kind, id, factory) => {
+    const instance = await registry.getOrCreateAsync(
+      kind,
+      id,
+      async () => factory(),
+      () => {}
+    );
     entries.push({ kind, id, instance });
     return instance;
   };
@@ -47,12 +52,12 @@ function fixture(t) {
   return { ...registry, getOrCreate };
 }
 
-test('lookups with the same kind and ID reuse their registry entry', (t) => {
+test('lookups with the same kind and ID reuse their registry entry', async (t) => {
   const { getOrCreate, lookup } = fixture(t);
   const config = { licenseKey: 'first-config' };
   const wrapper = { native: {}, config, isDestroyed: false };
-  const first = getOrCreate('Player', 'shared-player', () => wrapper);
-  const alias = getOrCreate('Player', 'shared-player', () => {
+  const first = await getOrCreate('Player', 'shared-player', () => wrapper);
+  const alias = await getOrCreate('Player', 'shared-player', () => {
     assert.fail('An alias must not construct another backend');
   });
 
@@ -64,13 +69,13 @@ test('lookups with the same kind and ID reuse their registry entry', (t) => {
   assert.equal(alias.config, config);
 });
 
-test('types and IDs have separate namespaces without delimiter collisions', (t) => {
+test('types and IDs have separate namespaces without delimiter collisions', async (t) => {
   const { getOrCreate, lookup } = fixture(t);
-  const player = getOrCreate('Player', 'same-id', () => ({}));
-  const source = getOrCreate('Source', 'same-id', () => ({}));
-  const otherPlayer = getOrCreate('Player', 'other-id', () => ({}));
-  const kindWithSeparator = getOrCreate('kind:one', 'id', () => ({}));
-  const idWithSeparator = getOrCreate('kind', 'one:id', () => ({}));
+  const player = await getOrCreate('Player', 'same-id', () => ({}));
+  const source = await getOrCreate('Source', 'same-id', () => ({}));
+  const otherPlayer = await getOrCreate('Player', 'other-id', () => ({}));
+  const kindWithSeparator = await getOrCreate('kind:one', 'id', () => ({}));
+  const idWithSeparator = await getOrCreate('kind', 'one:id', () => ({}));
 
   assert.equal(lookup('Player', 'same-id'), player);
   assert.equal(lookup('Source', 'same-id'), source);
@@ -82,16 +87,16 @@ test('types and IDs have separate namespaces without delimiter collisions', (t) 
   assert.equal(lookup('MissingKind', 'same-id'), undefined);
 });
 
-test('removal lets aliases destroy a shared SDK object exactly once', (t) => {
+test('removal lets aliases destroy a shared SDK object exactly once', async (t) => {
   const { getOrCreate, lookup, remove } = fixture(t);
   let destructions = 0;
-  const wrapper = getOrCreate('Player', 'destroy-once', () => ({
+  const wrapper = await getOrCreate('Player', 'destroy-once', () => ({
     native: {
       destroy: () => destructions++,
       release: () => assert.fail('Registry removal must not release Expo'),
     },
   }));
-  const alias = getOrCreate('Player', 'destroy-once', () => ({}));
+  const alias = await getOrCreate('Player', 'destroy-once', () => ({}));
   const destroy = (instance) => {
     if (remove('Player', 'destroy-once', instance)) {
       instance.native.destroy();
@@ -105,12 +110,12 @@ test('removal lets aliases destroy a shared SDK object exactly once', (t) => {
   assert.equal(lookup('Player', 'destroy-once'), undefined);
 });
 
-test('a stale alias cannot remove a replacement or another kind', (t) => {
+test('a stale alias cannot remove a replacement or another kind', async (t) => {
   const { getOrCreate, lookup, remove } = fixture(t);
-  const retired = getOrCreate('Player', 'reused-id', () => ({}));
-  const source = getOrCreate('Source', 'reused-id', () => ({}));
+  const retired = await getOrCreate('Player', 'reused-id', () => ({}));
+  const source = await getOrCreate('Source', 'reused-id', () => ({}));
   assert.equal(remove('Player', 'reused-id', retired), true);
-  const replacement = getOrCreate('Player', 'reused-id', () => ({}));
+  const replacement = await getOrCreate('Player', 'reused-id', () => ({}));
 
   assert.equal(remove('Player', 'reused-id', retired), false);
   assert.equal(remove('Source', 'reused-id', replacement), false);
@@ -120,10 +125,10 @@ test('a stale alias cannot remove a replacement or another kind', (t) => {
   assert.equal(remove('Player', 'reused-id', replacement), false);
 });
 
-test('a constructor failure leaves the ID available for a later retry', (t) => {
+test('a constructor failure leaves the ID available for a later retry', async (t) => {
   const { getOrCreate, lookup } = fixture(t);
   const failure = new Error('Native construction failed');
-  assert.throws(
+  await assert.rejects(
     () =>
       getOrCreate('Player', 'retry-id', () => {
         throw failure;
@@ -132,11 +137,11 @@ test('a constructor failure leaves the ID available for a later retry', (t) => {
   );
   assert.equal(lookup('Player', 'retry-id'), undefined);
 
-  const backend = getOrCreate('Player', 'retry-id', () => ({}));
+  const backend = await getOrCreate('Player', 'retry-id', () => ({}));
   assert.equal(lookup('Player', 'retry-id'), backend);
 });
 
-test('removal of an unregistered ID is harmless', (t) => {
+test('removal of an unregistered ID is harmless', async (t) => {
   const { remove } = fixture(t);
   assert.equal(remove('Player', 'never-registered', {}), false);
   assert.equal(remove('MissingKind', 'never-registered', {}), false);
