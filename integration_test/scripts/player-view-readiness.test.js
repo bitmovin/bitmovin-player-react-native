@@ -11,9 +11,14 @@ const React = req('react');
 const ts = req('typescript');
 const scheduler = req('scheduler/unstable_mock');
 let committedView;
+const nativePlayers = new Map(
+  ['first', 'replacement', 'obsolete', 'current', 'silent', 'A', 'B'].map(
+    (nativeId, index) => [nativeId, { __expo_shared_object_id__: index + 1 }]
+  )
+);
 const viewConfig = {
   uiViewClassName: 'ProbePlayerView',
-  validAttributes: { config: true },
+  validAttributes: { config: true, player: true },
   directEventTypes: {},
   bubblingEventTypes: {},
 };
@@ -105,7 +110,12 @@ const playerViewContext = vm.createContext({
     if (name.endsWith('/fullscreenhandlerbridge')) return {};
     if (name.endsWith('/custommessagehandlerbridge')) return {};
     if (name.endsWith('/metadataPlatform')) return {};
-    if (name.endsWith('/RNPlayerViewManagerModule')) return {};
+    if (name.endsWith('/fullscreenHandlerModule'))
+      return { getNativeFullscreen: () => undefined };
+    if (name.endsWith('/customMessageHandlerModule'))
+      return { getNativeCustomMessage: () => undefined };
+    if (name.endsWith('/nativeInstanceRegistry'))
+      return { lookup: (kind, nativeId) => nativePlayers.get(nativeId) };
     throw new Error('Unexpected PlayerView dependency: ' + name);
   },
 });
@@ -134,8 +144,8 @@ function render(props) {
   );
 }
 
-function acknowledge(playerId, view = committedView) {
-  view.props.onBmpPlayerViewReady({ nativeEvent: { playerId } });
+function acknowledge(view = committedView) {
+  view.props.onBmpPlayerViewReady({ nativeEvent: {} });
 }
 
 test('readiness waits for native listeners and follows the current player', async () => {
@@ -153,16 +163,15 @@ test('readiness waits for native listeners and follows the current player', asyn
   render(props);
   await flush();
   assert.ok(committedView, 'initialized player renders a native view');
+  assert.equal(committedView.props.player, nativePlayers.get(player.nativeId));
   assert.equal(
     notifications,
     0,
     'JS effects must not announce native readiness'
   );
-  acknowledge('other');
-  assert.equal(notifications, 0, 'stale native events are ignored');
-  acknowledge(player.nativeId);
+  acknowledge();
   assert.equal(notifications, 1);
-  acknowledge(player.nativeId);
+  acknowledge();
   assert.equal(notifications, 1, 'duplicate acknowledgments are ignored');
   render({
     ...props,
@@ -171,7 +180,7 @@ test('readiness waits for native listeners and follows the current player', asyn
     },
   });
   await flush();
-  acknowledge(player.nativeId);
+  acknowledge();
   assert.equal(
     notifications,
     1,
@@ -195,13 +204,13 @@ test('readiness waits for native listeners and follows the current player', asyn
     undefined,
     'replacement waits for its own initialization'
   );
-  acknowledge(player.nativeId, previousView);
+  acknowledge(previousView);
   assert.equal(notifications, 1, 'retired player cannot notify a replacement');
   finishInitialization();
   await flush();
-  acknowledge(player.nativeId);
+  acknowledge(previousView);
   assert.equal(notifications, 1);
-  acknowledge(replacement.nativeId);
+  acknowledge();
   assert.equal(
     notifications,
     2,
@@ -236,8 +245,8 @@ test('readiness waits for native listeners and follows the current player', asyn
   assert.equal(committedView, undefined, 'obsolete initialization is ignored');
   finishCurrent();
   await flush();
-  assert.equal(committedView.props.config.playerId, current.nativeId);
-  acknowledge(current.nativeId);
+  assert.equal(committedView.props.player, nativePlayers.get(current.nativeId));
+  acknowledge();
   assert.equal(notifications, 3);
   const retiredView = committedView;
   const silentPlayer = {
@@ -247,12 +256,12 @@ test('readiness waits for native listeners and follows the current player', asyn
   };
   render({ player: silentPlayer });
   await flush();
-  acknowledge(current.nativeId, retiredView);
+  acknowledge(retiredView);
   assert.equal(notifications, 3, 'a retired handler cannot announce readiness');
-  acknowledge(silentPlayer.nativeId);
+  acknowledge();
   render({ ...props, player: silentPlayer });
   await flush();
-  acknowledge(silentPlayer.nativeId);
+  acknowledge();
   assert.equal(
     notifications,
     3,
@@ -261,7 +270,7 @@ test('readiness waits for native listeners and follows the current player', asyn
   const unmountedView = committedView;
   rendererModule.exports.render(null, 11, null, true, {});
   await flush();
-  acknowledge(silentPlayer.nativeId, unmountedView);
+  acknowledge(unmountedView);
   assert.equal(notifications, 3, 'unmounted views cannot announce readiness');
 });
 
@@ -275,8 +284,8 @@ test('switching A to B to A announces each attachment once', async () => {
       onPlayerViewReady: () => notifications.push(player.nativeId),
     });
     await flush();
-    acknowledge(player.nativeId);
-    acknowledge(player.nativeId);
+    acknowledge();
+    acknowledge();
   }
   assert.deepEqual(notifications, ['A', 'B', 'A']);
   rendererModule.exports.render(null, 11, null, true, {});

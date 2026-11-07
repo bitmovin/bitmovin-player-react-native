@@ -1,85 +1,51 @@
 import type { NativeModule } from 'expo-modules-core';
+import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
-import type { LoadingState, SourceRemoteControlConfig } from '../source';
+import type {
+  LoadingState,
+  Source,
+  SourceRemoteControlConfig,
+} from '../source';
+import { lookup } from '../nativeInstanceRegistry';
 import type { Thumbnail } from '../thumbnail';
+import type { NativeDrm } from '../drm/drmModule';
 
-export type SourceModuleEvents = Record<string, any>;
+export type SourceModuleEvents = Record<string, never>;
 
-declare class SourceModule extends NativeModule<SourceModuleEvents> {
-  /**
-   * Checks if the source is attached to a player.
-   */
-  isAttachedToPlayer(nativeId: string): Promise<boolean | null>;
+/** @internal */
+export interface NativeSource extends SharedObject<SourceModuleEvents> {
+  isAttachedToPlayer(): Promise<boolean | null>;
 
-  /**
-   * Checks if the source is currently active.
-   */
-  isActive(nativeId: string): Promise<boolean | null>;
+  isActive(): Promise<boolean | null>;
 
-  /**
-   * Initializes a source with the given nativeId, optional DRM nativeId, configuration object,
-   * and remote control object.
-   */
-  initializeWithConfig(
-    nativeId: string,
-    drmNativeId?: string,
+  destroy(): Promise<void>;
+
+  duration(): Promise<number | null>;
+
+  loadingState(): Promise<LoadingState | null>;
+
+  getMetadata(): Promise<Record<string, any> | null>;
+
+  setMetadata(metadata: Record<string, any> | null): Promise<void>;
+
+  getThumbnail(time: number): Promise<Thumbnail | null>;
+
+  drmFairplayRenewExpiringLicense(skdUri: string): Promise<void>;
+}
+
+/** @internal */
+export function getNativeSource(source: Source): NativeSource | undefined {
+  return lookup<NativeSource>('source', source.nativeId);
+}
+
+declare class SourceModule extends NativeModule {
+  createEmpty(): NativeSource;
+  create(
     config?: Record<string, any>,
-    remoteControl?: SourceRemoteControlConfig
-  ): Promise<void>;
-
-  /**
-   * Initializes a source with the given nativeId, optional DRM nativeId, configuration object,
-   * remote control object, and analytics source metadata.
-   */
-  initializeWithAnalyticsConfig(
-    nativeId: string,
-    drmNativeId?: string,
-    config?: Record<string, any>,
+    drm?: NativeDrm,
     remoteControl?: SourceRemoteControlConfig,
     analyticsSourceMetadata?: Record<string, any>
-  ): Promise<void>;
-
-  /**
-   * Destroys the source with the given nativeId.
-   */
-  destroy(nativeId: string): Promise<void>;
-
-  /**
-   * Returns the native DRM config reference of the source with the given nativeId.
-   */
-  duration(nativeId: string): Promise<number | null>;
-  /**
-   * Returns the current loading state of the source with the given nativeId.
-   */
-  loadingState(nativeId: string): Promise<LoadingState | null>;
-
-  /**
-   * Returns the metadata of the source with the given nativeId.
-   */
-  getMetadata(nativeId: string): Promise<Record<string, any> | null>;
-
-  /**
-   * Sets the metadata of the source with the given nativeId.
-   */
-  setMetadata(
-    nativeId: string,
-    metadata: Record<string, any> | null
-  ): Promise<void>;
-
-  /**
-   * Returns a thumbnail for the specified playback time.
-   */
-  getThumbnail(nativeId: string, time: number): Promise<Thumbnail | null>;
-
-  /**
-   * Renews an expiring FairPlay license for the given content key request.
-   *
-   * @platform iOS, tvOS
-   */
-  drmFairplayRenewExpiringLicense(
-    nativeId: string,
-    skdUri: string
-  ): Promise<void>;
+  ): Promise<NativeSource>;
 }
 
 export default requireNativeModule<SourceModule>('SourceModule');

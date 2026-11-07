@@ -1,52 +1,21 @@
+import { getNativeOwner } from '../nativeOwner';
 import type { NativeModule } from 'expo-modules-core';
+import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
-import type {
-  HttpRequest,
-  HttpResponse,
-  NetworkConfig,
-  HttpRequestType,
-} from './networkConfig';
+import type { NativeCallback } from '../nativeCallbacks';
 
-export type NetworkModuleEvents = {
-  onPreprocessHttpRequest: ({
-    nativeId,
-    requestId,
-    type,
-    request,
-  }: {
-    nativeId: string;
-    requestId: string;
-    type: HttpRequestType;
-    request: HttpRequest;
-  }) => void;
-  onPreprocessHttpResponse: ({
-    nativeId,
-    responseId,
-    type,
-    response,
-  }: {
-    nativeId: string;
-    responseId: string;
-    type: HttpRequestType;
-    response: HttpResponse;
-  }) => void;
-};
+/** @internal */
+export interface NativeNetwork extends SharedObject {
+  destroy(): Promise<void>;
+}
 
-/**
- * Native NetworkModule using Expo modules API.
- * Provides modern async/await interface while maintaining backward compatibility.
- */
-declare class NetworkModule extends NativeModule<NetworkModuleEvents> {
-  initializeWithConfig(nativeId: string, config: NetworkConfig): Promise<void>;
-  destroy(nativeId: string): Promise<void>;
-  setPreprocessedHttpRequest(
-    requestId: string,
-    request: HttpRequest
-  ): Promise<void>;
-  setPreprocessedHttpResponse(
-    responseId: string,
-    response: HttpResponse
-  ): Promise<void>;
+/** @internal */
+export function getNativeNetwork(owner: object): NativeNetwork | undefined {
+  return getNativeOwner<NativeNetwork>(owner);
+}
+
+declare class NetworkModule extends NativeModule {
+  create(config: Record<string, any>, callback: NativeCallback): NativeNetwork;
 }
 
 export default requireNativeModule<NetworkModule>('NetworkModule');

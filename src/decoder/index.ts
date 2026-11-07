@@ -1,86 +1,55 @@
-import type { EventSubscription } from 'expo-modules-core';
-import type {
-  DecoderConfig,
-  DecoderContext,
-  MediaCodecInfo,
-} from './decoderConfig';
-import NativeInstance from '../nativeInstance';
-import DecoderConfigModule from './decoderConfigModule';
+import { setNativeOwner } from '../nativeOwner';
+import type { DecoderConfig } from './decoderConfig';
+import DecoderConfigModule, { getNativeDecoder } from './decoderConfigModule';
+import {
+  createNativeCallback,
+  serializeNativeConfig,
+} from '../nativeCallbacks';
 
-/**
- * Takes care of JS/Native communication for a `DecoderConfig`.
- */
-export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
-  /**
-   * Whether this object's native instance has been created.
-   */
+/** Takes care of JS/Native communication for a `DecoderConfig`. */
+export class DecoderConfigBridge {
+  readonly config?: DecoderConfig;
+
+  constructor(config?: DecoderConfig) {
+    this.config = config;
+  }
+
   isInitialized = false;
-  /**
-   * Whether this object's native instance has been disposed.
-   */
   isDestroyed = false;
-
-  private onOverrideDecodersPrioritySubscription?: EventSubscription;
 
   initialize() {
     if (!this.isInitialized) {
-      // Set up event listener for decoder priority override
-      this.onOverrideDecodersPrioritySubscription =
-        DecoderConfigModule.addListener(
-          'onOverrideDecodersPriority',
-          ({
-            nativeId,
-            context,
-            preferredDecoders,
-          }: {
-            nativeId: string;
-            context: DecoderContext;
-            preferredDecoders: MediaCodecInfo[];
-          }) => {
-            if (nativeId !== this.nativeId) {
-              return;
-            }
-            this.overrideDecodersPriority(context, preferredDecoders);
-          }
+      const module = DecoderConfigModule;
+      if (module) {
+        const config = this.config;
+        setNativeOwner(
+          this,
+          module.create(
+            serializeNativeConfig(config ?? {}),
+            createNativeCallback((operation, [context, preferredDecoders]) => {
+              if (operation !== 'overrideDecodersPriority') return null;
+              return (
+                config?.decoderPriorityProvider?.overrideDecodersPriority(
+                  context,
+                  preferredDecoders
+                ) ?? preferredDecoders
+              );
+            })
+          )
         );
-
-      // Create native configuration object.
-      DecoderConfigModule.initializeWithConfig(
-        this.nativeId,
-        this.config || {}
-      );
+      }
       this.isInitialized = true;
     }
   }
 
-  /**
-   * Destroys the native `DecoderConfig`
-   */
   destroy() {
     if (!this.isDestroyed) {
-      DecoderConfigModule.destroy(this.nativeId);
-      this.onOverrideDecodersPrioritySubscription?.remove();
-      this.onOverrideDecodersPrioritySubscription = undefined;
+      const native = getNativeDecoder(this);
+      if (native) {
+        void native.destroy();
+        setNativeOwner(this);
+      }
       this.isDestroyed = true;
     }
-  }
-
-  /**
-   * Called by native code, when the decoder priority should be evaluated.
-   */
-  private overrideDecodersPriority(
-    context: DecoderContext,
-    preferredDecoders: MediaCodecInfo[]
-  ): void {
-    const orderedPriority =
-      this.config?.decoderPriorityProvider?.overrideDecodersPriority(
-        context,
-        preferredDecoders
-      ) ?? preferredDecoders;
-
-    DecoderConfigModule.overrideDecoderPriorityProviderComplete(
-      this.nativeId,
-      orderedPriority
-    );
   }
 }

@@ -1,5 +1,3 @@
-import type { NativeInstanceConfig } from '../nativeInstance';
-
 /**
  * Available HTTP request types.
  */
@@ -66,7 +64,7 @@ export interface HttpResponse {
  * The network API gives the ability to influence network requests.
  * It enables preprocessing requests and preprocessing responses.
  */
-export interface NetworkConfig extends NativeInstanceConfig {
+export interface NetworkConfig {
   /**
    * Called before an HTTP request is made.
    * Can be used to change request parameters.

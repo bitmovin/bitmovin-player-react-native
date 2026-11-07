@@ -10,6 +10,7 @@
 
 ### Fixed
 
+- iOS: Read and update source metadata before the source is loaded
 - Android: **Breaking change:** `PlayerActive` and `PlayerInactive` events being named `onActive` and `onInactive` instead of `onPlayerActive` and `onPlayerInactive`, as on iOS. Apps comparing `Event.name`, e.g. in `onEvent`, must use the new names.
 - Android: `Source.loadingState()` returning the state name instead of a `LoadingState` value
 - Android: `onPlayerActive` not being emitted
@@ -17,6 +18,11 @@
 
 ### Changed
 
+- Return synchronous configuration callback values directly and simplify native resource teardown
+- Use Expo SharedObjects for native bindings and direct configuration callbacks. Keep Player, Source, and OfflineContentManager `nativeId` compatibility in TypeScript, and give player views independent ownership
+- **Breaking change:** Remove `nativeId` from Network, DRM, and Decoder configuration types and configuration wrappers. Configuration and internal UI adapters now use object ownership instead of named aliases
+- **Breaking change:** BufferApi, AnalyticsApi, and MediaControlsApi constructors now accept a Player object instead of an ID string. Remove their stored `nativeId`/`playerId` properties
+- **Breaking change:** FairplayDrmApi and Drm source parameters now accept a Source object instead of a source ID string
 - iOS: Bitmovin Advertising Module ads no longer start with the subtitle track marked as default in the ad manifest. The ad subtitle now follows the subtitle selected for the main content, and stays off if the main content subtitles are off. This comes with native iOS SDK `3.131.0`
 - Update Bitmovin's native iOS SDK version to [`3.131.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31310)
 

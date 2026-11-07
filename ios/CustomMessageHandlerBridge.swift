@@ -1,37 +1,21 @@
 import BitmovinPlayer
-import ExpoModulesCore
 
 internal class CustomMessageHandlerBridge: NSObject {
+    weak var owner: SharedCustomMessage?
 #if os(iOS)
     private(set) lazy var customMessageHandler: CustomMessageHandler = {
-        let customMessageHandler = CustomMessageHandler()
-        customMessageHandler.delegate = self
-        return customMessageHandler
+        let handler = CustomMessageHandler()
+        handler.delegate = self
+        return handler
     }()
 #endif
 
-    private let nativeId: NativeId
-    private weak var delegate: CustomMessageHandlerBridgeDelegate?
-
-    init(_ nativeId: NativeId, delegate: CustomMessageHandlerBridgeDelegate?) {
-        self.nativeId = nativeId
-        self.delegate = delegate
-    }
-
     func receivedSynchronousMessage(_ message: String, withData data: String?) -> String? {
-        delegate?.receivedSynchronousMessage(
-            nativeId: nativeId,
-            message: message,
-            withData: data
-        )
+        owner?.synchronousMessage(message, data: data)
     }
 
     func receivedAsynchronousMessage(_ message: String, withData data: String?) {
-        delegate?.receivedAsynchronousMessage(
-            nativeId: nativeId,
-            message: message,
-            withData: data
-        )
+        owner?.asynchronousMessage(message, data: data)
     }
 
     func sendMessage(_ message: String, withData data: String?) {
@@ -44,8 +28,3 @@ internal class CustomMessageHandlerBridge: NSObject {
 #if os(iOS)
 extension CustomMessageHandlerBridge: CustomMessageHandlerDelegate {}
 #endif
-
-internal protocol CustomMessageHandlerBridgeDelegate: AnyObject {
-    func receivedSynchronousMessage(nativeId: NativeId, message: String, withData data: String?) -> String?
-    func receivedAsynchronousMessage(nativeId: NativeId, message: String, withData data: String?)
-}

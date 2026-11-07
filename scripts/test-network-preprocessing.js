@@ -43,7 +43,7 @@ function fixture(t, config, rejectAfterCompletion = false) {
     fs.rmSync(directory, { recursive: true, force: true });
   });
   fs.cpSync(compiled, directory, { recursive: true });
-  for (const name of ['expo-modules-core', 'expo-crypto']) {
+  for (const name of ['expo-modules-core']) {
     const packageDirectory = path.join(directory, 'node_modules', name);
     fs.mkdirSync(packageDirectory, { recursive: true });
     fs.writeFileSync(
@@ -51,57 +51,62 @@ function fixture(t, config, rejectAfterCompletion = false) {
       'module.exports = {};'
     );
   }
-  const listeners = new Map();
   const attempts = [];
   const completions = [];
-  const logs = [];
-  const nativeError = new Error('native rejected after completing operation');
-  const complete = (kind, id, payload) => {
-    const operation = { kind, id, payload };
-    attempts.push(operation);
-    // Model native completion BEFORE rejection. A pre-completion failure (e.g.
-    // Android invalid Base64 conversion) can still leave native work pending.
-    completions.push(operation);
-    return rejectAfterCompletion
-      ? Promise.reject(nativeError)
-      : Promise.resolve();
+  const nativeError = new Error('native threw after completing operation');
+  let callback;
+  let destroyed = false;
+  const native = {
+    destroy: async () => {
+      destroyed = true;
+    },
   };
   const bridge = {
-    addListener: (name, listener) => {
-      listeners.set(name, listener);
-      return { remove: () => listeners.delete(name) };
+    create: (serialized, handler) => {
+      assert.equal(Object.hasOwn(serialized, 'nativeId'), false);
+      callback = handler;
+      return native;
     },
-    initializeWithConfig: async () => {},
-    destroy: async () => {},
-    setPreprocessedHttpRequest: (id, payload) =>
-      complete('Request', id, payload),
-    setPreprocessedHttpResponse: (id, payload) =>
-      complete('Response', id, payload),
   };
   require(
     path.join(directory, 'node_modules/expo-modules-core')
   ).requireNativeModule = (name) => {
     if (name === 'NetworkModule') return bridge;
-    assert.equal(name, 'DebugModule');
-    return { setDebugLoggingEnabled: async () => {} };
+    assert.equal(name, 'NativeCallbacksModule');
+    return {};
   };
-  require(path.join(directory, 'node_modules/expo-crypto')).randomUUID = () =>
-    'network-id';
-  const { DebugConfig } = require(path.join(directory, 'debug.js'));
-  t.mock.method(DebugConfig, 'log', (...args) => logs.push(args));
   const { Network, HttpRequestType } = require(path.join(directory, 'network'));
+  const helpers = require(path.join(directory, 'nativeCallbacks.js'));
   const network = new Network(config);
   t.after(() => network.destroy());
+  const invoke = (kind, type, payload) => {
+    callback(`preprocessHttp${kind}`, [type, payload], {
+      resolve: (result) => {
+        const operation = { kind, payload: result };
+        attempts.push(operation);
+        // This fixture models completion before the synchronous resolve failure.
+        completions.push(operation);
+        if (rejectAfterCompletion) throw nativeError;
+      },
+    });
+  };
   return {
     network,
-    listeners,
+    invoke,
     attempts,
     completions,
-    logs,
-    nativeError,
     HttpRequestType,
+    helpers,
+    isDestroyed: () => destroyed,
   };
 }
+
+test('network configuration owners do not generate compatibility IDs', async (t) => {
+  const { network } = fixture(t, {});
+  assert.equal('nativeId' in network, false);
+  await network.initialize();
+  assert.equal('nativeId' in network, false);
+});
 
 const request = {
   url: 'https://example.com/manifest.mpd',
@@ -129,7 +134,7 @@ for (const [kind, original] of [
     'no config',
   ]) {
     for (const rejectAfterCompletion of [false, true]) {
-      test(`${kind}: ${behavior}, native ${rejectAfterCompletion ? 'rejects after completion' : 'resolves'}`, async (t) => {
+      test(`${kind}: ${behavior}, native ${rejectAfterCompletion ? 'throws after completion' : 'resolves'}`, async (t) => {
         const transformed = { ...original, headers: { Changed: 'yes' } };
         const callbackCalls = [];
         const config =
@@ -147,53 +152,19 @@ for (const [kind, original] of [
                     return Promise.resolve(transformed);
                   },
                 };
-        const {
-          network,
-          listeners,
-          attempts,
-          completions,
-          logs,
-          nativeError,
-          HttpRequestType,
-        } = fixture(t, config, rejectAfterCompletion);
+        const { network, invoke, attempts, completions, HttpRequestType } =
+          fixture(t, config, rejectAfterCompletion);
         await network.initialize();
-        const event = {
-          nativeId: network.nativeId,
-          [`${kind.toLowerCase()}Id`]: 'completion-id',
-          type: HttpRequestType.ManifestDash,
-          [kind.toLowerCase()]: original,
-        };
-        const listener = listeners.get(`onPreprocessHttp${kind}`);
-        listener({ ...event, nativeId: 'another-network' });
-        await new Promise(setImmediate);
-        assert.equal(callbackCalls.length, 0);
-        assert.equal(attempts.length, 0);
-        assert.equal(completions.length, 0);
-
-        assert.doesNotThrow(() => listener(event));
-        // Drain callback and completion promises, including rejection handlers.
+        assert.doesNotThrow(() =>
+          invoke(kind, HttpRequestType.ManifestDash, original)
+        );
         await new Promise(setImmediate);
         assert.equal(attempts.length, 1);
         assert.equal(completions.length, 1);
         assert.equal(completions[0].kind, kind);
-        assert.equal(completions[0].id, 'completion-id');
         assert.equal(
           completions[0].payload,
           behavior === 'success' ? transformed : original
-        );
-        const failureLogs = logs.filter(([message]) =>
-          message.startsWith('Failed to complete HTTP')
-        );
-        assert.deepEqual(
-          failureLogs,
-          rejectAfterCompletion
-            ? [
-                [
-                  `Failed to complete HTTP ${kind.toLowerCase()} preprocessing:`,
-                  nativeError,
-                ],
-              ]
-            : []
         );
         if (behavior !== 'missing' && behavior !== 'no config') {
           assert.equal(callbackCalls.length, 1);
@@ -205,3 +176,86 @@ for (const [kind, original] of [
     }
   }
 }
+
+test('direct callbacks settle synchronous values before returning and normalize failures', async (t) => {
+  const { helpers } = fixture(t, {});
+  const values = [];
+  const completion = { resolve: (value) => values.push(value) };
+  const callback = helpers.nativeCallback({
+    value: () => 42,
+    absent: () => undefined,
+    throws: () => {
+      throw new Error('failure');
+    },
+    rejects: () => Promise.reject(new Error('failure')),
+  });
+  callback('value', [], completion);
+  assert.deepEqual(values, [42]);
+  callback('absent', [], completion);
+  callback('throws', [], completion);
+  callback('missing', [], completion);
+  assert.deepEqual(values, [42, null, null, null]);
+  callback('rejects', [], completion);
+  await new Promise(setImmediate);
+  assert.deepEqual(values, [42, null, null, null, null]);
+});
+
+test('configuration serialization removes compatibility labels while preserving arbitrary data', (t) => {
+  const { helpers } = fixture(t, {});
+  const metadata = {
+    nativeId: 'metadata-value',
+    networkConfig: { nativeId: 'data-value' },
+  };
+  const config = {
+    nativeId: 'player',
+    networkConfig: { preprocessHttpRequest: () => {} },
+    playbackConfig: { decoderConfig: {} },
+    sourceConfig: {
+      nativeId: 'source',
+      drmConfig: {},
+      metadata,
+    },
+    metadata,
+    customData: { nativeId: 'custom-data' },
+    headers: { nativeId: 'header' },
+  };
+  assert.deepEqual(helpers.nativeConfig(config), {
+    networkConfig: { preprocessHttpRequest: true },
+    playbackConfig: { decoderConfig: {} },
+    sourceConfig: { drmConfig: {}, metadata },
+    metadata,
+    customData: { nativeId: 'custom-data' },
+    headers: { nativeId: 'header' },
+  });
+  assert.equal(config.nativeId, 'player');
+});
+
+test('synchronous callbacks return scalars and structured values without a completion object', (t) => {
+  const { helpers } = fixture(t, {});
+  const structured = [{ name: 'decoder', isSoftware: false }];
+  const callback = helpers.nativeCallback({
+    decision: () => false,
+    text: () => 'prepared',
+    structured: () => structured,
+    absent: () => undefined,
+    throws: () => {
+      throw new Error('synchronous failure');
+    },
+  });
+  assert.equal(callback('decision', []), false);
+  assert.equal(callback('text', []), 'prepared');
+  assert.equal(callback('structured', []), structured);
+  assert.equal(callback('absent', []), null);
+  assert.equal(callback('throws', []), null);
+});
+
+test('synchronous callbacks fall back for promises and consume rejected notifications', async (t) => {
+  const { helpers } = fixture(t, {});
+  const callback = helpers.nativeCallback({
+    resolves: () => Promise.resolve(false),
+    rejects: () => Promise.reject(new Error('asynchronous failure')),
+  });
+  assert.equal(callback('resolves', []), null);
+  assert.equal(callback('rejects', []), null);
+  await new Promise(setImmediate);
+});

@@ -271,6 +271,16 @@ This integration test app is built as an Expo application using:
 
 The integration tests are located in the [`tests`](./tests) directory. Each file in this directory corresponds to a feature or a set of related features being tested. Please refer to the contents of this directory for an up-to-date list of what is covered.
 
+The `shared-object-lifecycle` selector runs a focused native-boundary smoke suite
+on Android and iOS. It covers source metadata round trips, same-ID aliases and
+separation between player and source types, legacy buffer facades created before
+their player, source loading and playback through object-backed wrappers,
+delivery of the destroy event and ID reuse, and native view remounting.
+Run it with `yarn integration-test test:android --tags shared-object-lifecycle`
+or `yarn integration-test test:ios --tags shared-object-lifecycle` from the root.
+It does not establish garbage-collection timing, memory leak freedom, DRM or
+offline manager lifetimes, or physical-device behavior.
+
 ## Platform Support
 
 Note: The tests are currently only supported on iOS simulators and Android emulators. Running them on real devices is not supported at the moment because the testing framework has hard-coded `localhost` as the server address.

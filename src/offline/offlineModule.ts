@@ -1,47 +1,75 @@
 import type { NativeModule } from 'expo-modules-core';
+import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 import type { SourceConfig } from '../source';
+import type { NativeDrm } from '../drm/drmModule';
 import type { OfflineDownloadRequest } from './offlineDownloadRequest';
 import type { BitmovinNativeOfflineEventData } from './offlineContentManagerListener';
+import { lookup } from '../nativeInstanceRegistry';
+import { Platform } from 'react-native';
 
-export type OfflineModuleEvents = {
-  onBitmovinOfflineEvent: (event: BitmovinNativeOfflineEventData) => void;
+type OfflineEvents = {
+  onBitmovinOfflineEvent: (
+    event: Omit<BitmovinNativeOfflineEventData, 'nativeId'>
+  ) => void;
 };
 
-/**
- * Native OfflineModule using Expo modules API.
- * Provides modern async/await interface while maintaining backward compatibility.
- */
-declare class OfflineModule extends NativeModule<OfflineModuleEvents> {
-  initializeWithConfig(
-    nativeId: string,
+/** @internal */
+export interface NativeOffline extends SharedObject<OfflineEvents> {
+  initialize(
     config: { identifier: string; sourceConfig: SourceConfig },
-    drmNativeId: string | undefined
+    drm?: NativeDrm
   ): Promise<void>;
+  getState(): Promise<string | null>;
+  getOptions(): Promise<void>;
+  download(request: OfflineDownloadRequest): Promise<void>;
+  resume(): Promise<void>;
+  suspend(): Promise<void>;
+  cancelDownload(): Promise<void>;
+  usedStorage(): Promise<number | null>;
+  deleteAll(): Promise<void>;
+  downloadLicense(): Promise<void>;
+  releaseLicense(): Promise<void>;
+  renewOfflineLicense(): Promise<void>;
+  destroy(): Promise<void>;
+}
 
-  getState(nativeId: string): Promise<string>;
+/** @internal */
+export function getNativeOffline(id: string): NativeOffline | undefined {
+  return lookup<NativeOffline>('offline', id);
+}
 
-  getOptions(nativeId: string): Promise<void>;
+/** @internal */
+export function offlineCompatibilityError(
+  method: string,
+  id: string,
+  duplicate = false
+): Error & { code: string } {
+  const reason = duplicate
+    ? `Content manager bridge id already exists: ${id}`
+    : `No offline content manager bridge for id ${id}`;
+  return Object.assign(
+    new Error(
+      `Call to function 'OfflineModule.${method}' has been rejected.\n→ Caused by: ${reason}`
+    ),
+    { code: duplicate ? 'ERR_MANAGER_ALREADY_EXISTS' : 'ERR_MANAGER_NOT_FOUND' }
+  );
+}
 
-  download(nativeId: string, request: OfflineDownloadRequest): Promise<void>;
+/** @internal */
+export function getOfflineForOperation(
+  id: string,
+  method: string
+): NativeOffline | undefined {
+  const native = getNativeOffline(id);
+  if (!native && Platform.OS === 'android') {
+    throw offlineCompatibilityError(method, id);
+  }
+  return native;
+}
 
-  resume(nativeId: string): Promise<void>;
-
-  suspend(nativeId: string): Promise<void>;
-
-  cancelDownload(nativeId: string): Promise<void>;
-
-  usedStorage(nativeId: string): Promise<number>;
-
-  deleteAll(nativeId: string): Promise<void>;
-
-  downloadLicense(nativeId: string): Promise<void>;
-
-  releaseLicense(nativeId: string): Promise<void>;
-
-  renewOfflineLicense(nativeId: string): Promise<void>;
-
-  release(nativeId: string): Promise<void>;
+declare class OfflineModule extends NativeModule {
+  create(): NativeOffline;
 }
 
 export default requireNativeModule<OfflineModule>('OfflineModule');

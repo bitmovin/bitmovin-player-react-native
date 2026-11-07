@@ -40,6 +40,11 @@ const testRegistrations = [
   testSuite('network', androidAndIos, () => require('./networkTest').default),
   testSuite('playback', androidAndIos, () => require('./playbackTest').default),
   testSuite(
+    'shared-object-lifecycle',
+    androidAndIos,
+    () => require('./sharedObjectLifecycleTest').default
+  ),
+  testSuite(
     'unloading',
     androidAndIos,
     () => require('./unloadingTest').default

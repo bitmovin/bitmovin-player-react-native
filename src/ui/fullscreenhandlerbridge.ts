@@ -1,93 +1,42 @@
-import type { EventSubscription } from 'expo-modules-core';
 import type { FullscreenHandler } from './fullscreenhandler';
-import * as Crypto from 'expo-crypto';
-import FullscreenHandlerModule from './fullscreenHandlerModule';
+import FullscreenHandlerModule, {
+  type NativeFullscreen,
+} from './fullscreenHandlerModule';
+import { createNativeCallback } from '../nativeCallbacks';
 
-/**
- * Takes care of JS/Native communication for a FullscreenHandler.
- */
+/** Takes care of JS/Native communication for a FullscreenHandler. */
 export class FullscreenHandlerBridge {
-  readonly nativeId: string;
+  /** @internal */
+  native?: NativeFullscreen;
   fullscreenHandler?: FullscreenHandler;
-  isDestroyed: boolean;
+  isDestroyed = false;
 
-  private onEnterFullScreenSubscription?: EventSubscription;
-  private onExitFullScreenSubscription?: EventSubscription;
-
-  constructor(nativeId?: string) {
-    this.nativeId = nativeId ?? Crypto.randomUUID();
-    this.isDestroyed = false;
-
-    this.onEnterFullScreenSubscription = FullscreenHandlerModule.addListener(
-      'onEnterFullscreen',
-      ({ nativeId, id }) => {
-        if (nativeId !== this.nativeId) {
-          return;
-        }
-        this.enterFullscreen(id);
-      }
+  constructor() {
+    this.native = FullscreenHandlerModule.create(
+      createNativeCallback((operation) => {
+        if (operation === 'enterFullscreen')
+          this.fullscreenHandler?.enterFullscreen();
+        if (operation === 'exitFullscreen')
+          this.fullscreenHandler?.exitFullscreen();
+        return this.fullscreenHandler?.isFullscreenActive ?? false;
+      })
     );
-    this.onExitFullScreenSubscription = FullscreenHandlerModule.addListener(
-      'onExitFullscreen',
-      ({ nativeId, id }) => {
-        if (nativeId !== this.nativeId) {
-          return;
-        }
-        this.exitFullscreen(id);
-      }
-    );
-    void FullscreenHandlerModule.registerHandler(this.nativeId);
   }
 
   setFullscreenHandler(fullscreenHandler: FullscreenHandler | undefined) {
-    if (this.fullscreenHandler === fullscreenHandler) {
-      return;
-    }
-
+    if (this.fullscreenHandler === fullscreenHandler) return;
     this.fullscreenHandler = fullscreenHandler;
-
-    // synchronize current state from fullscreenHandler to native
-    void FullscreenHandlerModule.setIsFullscreenActive(
-      this.nativeId,
+    void this.native?.setIsFullscreenActive(
       fullscreenHandler?.isFullscreenActive ?? false
     );
   }
 
-  /**
-   * Destroys the native FullscreenHandler
-   */
   destroy() {
     if (!this.isDestroyed) {
-      void FullscreenHandlerModule.destroy(this.nativeId);
-      this.onEnterFullScreenSubscription?.remove();
-      this.onExitFullScreenSubscription?.remove();
-      this.onEnterFullScreenSubscription = undefined;
-      this.onExitFullScreenSubscription = undefined;
+      const native = this.native;
+      this.native = undefined;
       this.isDestroyed = true;
+      void native?.destroy();
     }
-  }
-
-  // noinspection JSUnusedGlobalSymbols
-  /**
-   * Called by native code, when the UI should enter fullscreen.
-   */
-  private enterFullscreen(id: number): void {
-    this.fullscreenHandler?.enterFullscreen();
-    void FullscreenHandlerModule.notifyFullscreenChanged(
-      id,
-      this.fullscreenHandler?.isFullscreenActive ?? false
-    );
-  }
-
-  // noinspection JSUnusedGlobalSymbols
-  /**
-   * Called by native code, when the UI should exit fullscreen.
-   */
-  private exitFullscreen(id: number): void {
-    this.fullscreenHandler?.exitFullscreen();
-    void FullscreenHandlerModule.notifyFullscreenChanged(
-      id,
-      this.fullscreenHandler?.isFullscreenActive ?? false
-    );
   }
 }

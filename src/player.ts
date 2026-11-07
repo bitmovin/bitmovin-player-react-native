@@ -1,7 +1,15 @@
-import type { EventSubscription } from 'expo-modules-core';
 import { Platform } from 'react-native';
-import PlayerModule from './modules/PlayerModule';
+import PlayerModule, { type NativePlayer } from './modules/PlayerModule';
+import type { NativeSource } from './modules/SourceModule';
 import NativeInstance from './nativeInstance';
+import {
+  getOrCreateAsync,
+  holdDependencies,
+  destroyDependencies,
+  lookup,
+  lookupPending,
+  remove,
+} from './nativeInstanceRegistry';
 import type { SourceConfig } from './source';
 import { Source } from './source';
 import type { AudioTrack } from './audioTrack';
@@ -10,12 +18,16 @@ import type { OfflineContentManager, OfflineSourceOptions } from './offline';
 import type { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/player';
 import type { PlayerConfig } from './playerConfig';
-import type { AdBreak, AdItem, ImaSettings } from './advertising';
+import type { AdItem, ImaSettings } from './advertising';
 import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
 import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
+import { getNativeNetwork } from './network/networkModule';
+import { getNativeDecoder } from './decoder/decoderConfigModule';
+import { getNativeOffline } from './offline/offlineModule';
+import { nativeCallback, nativeConfig } from './nativeCallbacks';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -27,6 +39,16 @@ import { DecoderConfigBridge } from './decoder';
  * @see PlayerView
  */
 export class Player extends NativeInstance<PlayerConfig> {
+  private nativeInstance?: NativePlayer;
+
+  /** @internal */
+  private get native(): NativePlayer {
+    return (
+      lookup<NativePlayer>('player', this.nativeId) ??
+      (this.nativeInstance ??= PlayerModule.createEmpty())
+    );
+  }
+
   /**
    * Whether the native `Player` object has been created.
    */
@@ -48,55 +70,83 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * The {@link BufferApi} for interactions regarding the buffer.
    */
-  buffer: BufferApi = new BufferApi(this.nativeId);
+  buffer: BufferApi = new BufferApi(this);
   /**
    * The {@link MediaControlsApi} for interactions regarding the Player's media controls integration.
    *
    * @platform iOS, tvOS
    */
-  mediaControls: MediaControlsApi = new MediaControlsApi(this.nativeId);
+  mediaControls: MediaControlsApi = new MediaControlsApi(this);
 
   private network?: Network;
 
   private decoderConfig?: DecoderConfigBridge;
-  private onShouldLoadAdItemSubscription?: EventSubscription;
-  private onShouldPlayAdBreakSubscription?: EventSubscription;
-  private onImaBeforeInitializationSubscription?: EventSubscription;
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
   initialize = async (): Promise<void> => {
-    if (!this.isInitialized) {
-      this.ensureShouldLoadAdItemListener();
-      this.ensureShouldPlayAdBreakListener();
-      this.ensureImaBeforeInitializationListener();
-      if (this.config?.networkConfig) {
-        this.network = new Network(this.config.networkConfig);
-        await this.network.initialize();
+    if (this.isInitialized || this.isDestroyed) return;
+    const native = await getOrCreateAsync(
+      'player',
+      this.nativeId,
+      async () => {
+        if (this.isDestroyed) return PlayerModule.createEmpty();
+        try {
+          if (this.config?.networkConfig) {
+            this.network = new Network(this.config.networkConfig);
+            await this.network.initialize();
+          }
+          await this.maybeInitDecoderConfig();
+          const advertising = this.config?.advertisingConfig;
+          const beforeInitialization = advertising?.ima?.beforeInitialization;
+          if (beforeInitialization && !PlayerModule.isGoogleImaEnabled) {
+            console.warn(
+              'advertisingConfig.ima.beforeInitialization is ignored because Google IMA is disabled. ' +
+                'Set features.googleIMA to true in the Bitmovin config plugin and rebuild the native app. ' +
+                'See the "Google IMA" section of the bitmovin-player-react-native README.'
+            );
+          }
+          const created = await PlayerModule.create(
+            nativeConfig(this.config),
+            nativeConfig(this.config?.analyticsConfig),
+            this.network && getNativeNetwork(this.network),
+            this.decoderConfig && getNativeDecoder(this.decoderConfig),
+            nativeCallback({
+              shouldLoadAdItem: advertising?.shouldLoadAdItem,
+              shouldPlayAdBreak:
+                Platform.OS === 'android'
+                  ? advertising?.shouldPlayAdBreak
+                  : undefined,
+              imaBeforeInitialization:
+                beforeInitialization && PlayerModule.isGoogleImaEnabled
+                  ? (settings: ImaSettings) => {
+                      const result = beforeInitialization(settings);
+                      return result && typeof result === 'object'
+                        ? { ...settings, ...result }
+                        : settings;
+                    }
+                  : undefined,
+            })
+          );
+          holdDependencies(created, [this.network, this.decoderConfig]);
+          return created;
+        } catch (error) {
+          await this.network?.destroy();
+          this.decoderConfig?.destroy();
+          throw error;
+        }
+      },
+      async (created) => {
+        await created.destroy();
+        destroyDependencies(created);
+        await this.network?.destroy();
+        this.decoderConfig?.destroy();
       }
-      await this.maybeInitDecoderConfig();
-      const analyticsConfig = this.config?.analyticsConfig;
-      if (analyticsConfig) {
-        await PlayerModule.initializeWithAnalyticsConfig(
-          this.nativeId,
-          analyticsConfig,
-          this.config,
-          this.network?.nativeId,
-          this.decoderConfig?.nativeId
-        );
-        this.analytics = new AnalyticsApi(this.nativeId);
-      } else {
-        await PlayerModule.initializeWithConfig(
-          this.nativeId,
-          this.config,
-          this.network?.nativeId,
-          this.decoderConfig?.nativeId
-        );
-      }
-
-      this.isInitialized = true;
-    }
-    return Promise.resolve();
+    );
+    if (lookup('player', this.nativeId) !== native || this.isDestroyed) return;
+    this.nativeInstance = undefined;
+    if (this.config?.analyticsConfig) this.analytics = new AnalyticsApi(this);
+    this.isInitialized = true;
   };
 
   /**
@@ -104,49 +154,21 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   destroy = () => {
     if (!this.isDestroyed) {
-      void PlayerModule.destroy(this.nativeId);
+      const native =
+        lookup<NativePlayer>('player', this.nativeId) ?? this.nativeInstance;
+      const pending = lookupPending('player', this.nativeId);
+      if (pending) remove('player', this.nativeId, pending);
+      void native?.destroy();
+      if (native) destroyDependencies(native);
+      this.nativeInstance = undefined;
       void this.source?.destroy();
       void this.network?.destroy();
       void this.decoderConfig?.destroy();
-      this.onShouldLoadAdItemSubscription?.remove();
-      this.onShouldPlayAdBreakSubscription?.remove();
-      this.onImaBeforeInitializationSubscription?.remove();
-      this.onShouldLoadAdItemSubscription = undefined;
-      this.onShouldPlayAdBreakSubscription = undefined;
-      this.onImaBeforeInitializationSubscription = undefined;
       this.isDestroyed = true;
-    }
-  };
-
-  private ensureShouldLoadAdItemListener = () => {
-    const callback = this.config?.advertisingConfig?.shouldLoadAdItem;
-    if (!callback) {
-      return;
-    }
-    if (this.onShouldLoadAdItemSubscription) {
-      return;
-    }
-    this.onShouldLoadAdItemSubscription = PlayerModule.addListener(
-      'onShouldLoadAdItem',
-      ({ nativeId, id, adItem }) => {
-        if (nativeId !== this.nativeId) {
-          return;
-        }
-        const cloned: AdItem = {
-          ...adItem,
-          sources: adItem.sources.map((source) => ({ ...source })),
-        };
-        let shouldLoad = true;
-        try {
-          const shouldLoadResult = callback(cloned);
-          shouldLoad =
-            typeof shouldLoadResult === 'boolean' ? shouldLoadResult : true;
-        } catch {
-          shouldLoad = true;
-        }
-        void PlayerModule.setShouldLoadAdItem(id, shouldLoad);
+      if (native) {
+        remove('player', this.nativeId, native);
       }
-    );
+    }
   };
 
   /**
@@ -163,9 +185,8 @@ export class Player extends NativeInstance<PlayerConfig> {
     offlineContentManager: OfflineContentManager,
     options?: OfflineSourceOptions
   ) => {
-    void PlayerModule.loadOfflineContent(
-      this.nativeId,
-      offlineContentManager.nativeId,
+    void this.native.loadOfflineContent(
+      getNativeOffline(offlineContentManager.nativeId),
       options
     );
   };
@@ -175,30 +196,31 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   loadSource = (source: Source) => {
     this.source = source;
-    void source
-      .initialize()
-      .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
+    void source.initialize().then(() => {
+      const nativeSource = lookup<NativeSource>('source', source.nativeId);
+      return nativeSource ? this.native.loadSource(nativeSource) : undefined;
+    });
   };
 
   /**
    * Unloads all {@link Source}s from the player.
    */
   unload = () => {
-    void PlayerModule.unload(this.nativeId);
+    void this.native.unload();
   };
 
   /**
    * Starts or resumes playback after being paused. Has no effect if the player is already playing.
    */
   play = () => {
-    void PlayerModule.play(this.nativeId);
+    void this.native.play();
   };
 
   /**
    * Pauses the video if it is playing. Has no effect if the player is already paused.
    */
   pause = () => {
-    void PlayerModule.pause(this.nativeId);
+    void this.native.pause();
   };
 
   /**
@@ -209,7 +231,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @param time - The time to seek to in seconds.
    */
   seek = (time: number) => {
-    void PlayerModule.seek(this.nativeId, time);
+    void this.native.seek(time);
   };
 
   /**
@@ -224,21 +246,21 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @param offset - Target offset from the live edge in seconds.
    */
   timeShift = (offset: number) => {
-    void PlayerModule.timeShift(this.nativeId, offset);
+    void this.native.timeShift(offset);
   };
 
   /**
    * Mutes the player if an audio track is available. Has no effect if the player is already muted.
    */
   mute = () => {
-    void PlayerModule.mute(this.nativeId);
+    void this.native.mute();
   };
 
   /**
    * Unmutes the player if it is muted. Has no effect if the player is already unmuted.
    */
   unmute = () => {
-    void PlayerModule.unmute(this.nativeId);
+    void this.native.unmute();
   };
 
   /**
@@ -247,89 +269,14 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @param volume - The volume level to set.
    */
   setVolume = (volume: number) => {
-    void PlayerModule.setVolume(this.nativeId, volume);
-  };
-
-  private ensureShouldPlayAdBreakListener = () => {
-    if (Platform.OS !== 'android') {
-      return;
-    }
-    const callback = this.config?.advertisingConfig?.shouldPlayAdBreak;
-    if (!callback) {
-      return;
-    }
-    if (this.onShouldPlayAdBreakSubscription) {
-      return;
-    }
-    this.onShouldPlayAdBreakSubscription = PlayerModule.addListener(
-      'onShouldPlayAdBreak',
-      ({ nativeId, id, adBreak }) => {
-        if (nativeId !== this.nativeId) {
-          return;
-        }
-        const cloned: AdBreak = {
-          ...adBreak,
-          ads: adBreak.ads.map((ad) => ({
-            ...ad,
-            data: ad.data ? { ...ad.data } : undefined,
-          })),
-        };
-        let shouldPlay = true;
-        try {
-          const shouldPlayResult = callback(cloned);
-          shouldPlay =
-            typeof shouldPlayResult === 'boolean' ? shouldPlayResult : true;
-        } catch {
-          shouldPlay = true;
-        }
-        void PlayerModule.setShouldPlayAdBreak(id, shouldPlay);
-      }
-    );
-  };
-
-  private ensureImaBeforeInitializationListener = () => {
-    const callback = this.config?.advertisingConfig?.ima?.beforeInitialization;
-    if (!callback) {
-      return;
-    }
-    if (!PlayerModule.isGoogleImaEnabled) {
-      console.warn(
-        'advertisingConfig.ima.beforeInitialization is ignored because Google IMA is disabled. ' +
-          'Set features.googleIMA to true in the Bitmovin config plugin and rebuild the native app. ' +
-          'See the "Google IMA" section of the bitmovin-player-react-native README.'
-      );
-      return;
-    }
-    if (this.onImaBeforeInitializationSubscription) {
-      return;
-    }
-    this.onImaBeforeInitializationSubscription = PlayerModule.addListener(
-      'onImaBeforeInitialization',
-      ({ nativeId, id, settings }) => {
-        if (nativeId !== this.nativeId) {
-          return;
-        }
-        const cloned: ImaSettings = { ...settings };
-        let prepared = cloned;
-        try {
-          const result = callback(cloned);
-          prepared =
-            result && typeof result === 'object'
-              ? { ...cloned, ...result }
-              : cloned;
-        } catch {
-          prepared = cloned;
-        }
-        void PlayerModule.setPreparedImaSettings(id, prepared);
-      }
-    );
+    void this.native.setVolume(volume);
   };
 
   /**
    * @returns The player's current volume level.
    */
   getVolume = async (): Promise<number> => {
-    return (await PlayerModule.getVolume(this.nativeId)) ?? 0;
+    return (await this.native.getVolume()) ?? 0;
   };
 
   /**
@@ -345,42 +292,42 @@ export class Player extends NativeInstance<PlayerConfig> {
   getCurrentTime = async (
     mode: 'relative' | 'absolute' = 'absolute'
   ): Promise<number> => {
-    return (await PlayerModule.currentTime(this.nativeId, mode)) ?? 0;
+    return (await this.native.currentTime(mode)) ?? 0;
   };
 
   /**
    * @returns The total duration in seconds of the current video or INFINITY if it’s a live stream.
    */
   getDuration = async (): Promise<number> => {
-    return (await PlayerModule.duration(this.nativeId)) ?? 0;
+    return (await this.native.duration()) ?? 0;
   };
 
   /**
    * @returns `true` if the player is muted.
    */
   isMuted = async (): Promise<boolean> => {
-    return (await PlayerModule.isMuted(this.nativeId)) ?? false;
+    return (await this.native.isMuted()) ?? false;
   };
 
   /**
    * @returns `true` if the player is currently playing, i.e. has started and is not paused.
    */
   isPlaying = async (): Promise<boolean> => {
-    return (await PlayerModule.isPlaying(this.nativeId)) ?? false;
+    return (await this.native.isPlaying()) ?? false;
   };
 
   /**
    * @returns `true` if the player has started playback but it's currently paused.
    */
   isPaused = async (): Promise<boolean> => {
-    return (await PlayerModule.isPaused(this.nativeId)) ?? false;
+    return (await this.native.isPaused()) ?? false;
   };
 
   /**
    * @returns `true` if the displayed video is a live stream.
    */
   isLive = async (): Promise<boolean> => {
-    return (await PlayerModule.isLive(this.nativeId)) ?? false;
+    return (await this.native.isLive()) ?? false;
   };
 
   /**
@@ -394,7 +341,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       );
       return false;
     }
-    return (await PlayerModule.isAirPlayActive(this.nativeId)) ?? false;
+    return (await this.native.isAirPlayActive()) ?? false;
   };
 
   /**
@@ -408,7 +355,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       );
       return false;
     }
-    return (await PlayerModule.isAirPlayAvailable(this.nativeId)) ?? false;
+    return (await this.native.isAirPlayAvailable()) ?? false;
   };
 
   /**
@@ -424,21 +371,21 @@ export class Player extends NativeInstance<PlayerConfig> {
       );
       return;
     }
-    void PlayerModule.showAirPlayTargetPicker(this.nativeId);
+    void this.native.showAirPlayTargetPicker();
   };
 
   /**
    * @returns The currently selected audio track or `null`.
    */
   getAudioTrack = async (): Promise<AudioTrack | null> => {
-    return PlayerModule.getAudioTrack(this.nativeId);
+    return this.native.getAudioTrack();
   };
 
   /**
    * @returns An array containing {@link AudioTrack} objects for all available audio tracks.
    */
   getAvailableAudioTracks = async (): Promise<AudioTrack[]> => {
-    return PlayerModule.getAvailableAudioTracks(this.nativeId);
+    return this.native.getAvailableAudioTracks();
   };
 
   /**
@@ -447,21 +394,21 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @param trackIdentifier - The {@link AudioTrack.identifier} to be set.
    */
   setAudioTrack = async (trackIdentifier: string): Promise<void> => {
-    return PlayerModule.setAudioTrack(this.nativeId, trackIdentifier);
+    return this.native.setAudioTrack(trackIdentifier);
   };
 
   /**
    * @returns The currently selected {@link SubtitleTrack} or `null`.
    */
   getSubtitleTrack = async (): Promise<SubtitleTrack | null> => {
-    return PlayerModule.getSubtitleTrack(this.nativeId);
+    return this.native.getSubtitleTrack();
   };
 
   /**
    * @returns An array containing SubtitleTrack objects for all available subtitle tracks.
    */
   getAvailableSubtitles = async (): Promise<SubtitleTrack[]> => {
-    return PlayerModule.getAvailableSubtitles(this.nativeId);
+    return this.native.getAvailableSubtitles();
   };
 
   /**
@@ -473,10 +420,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   setSubtitleTrack = async (
     trackIdentifier: string | undefined
   ): Promise<void> => {
-    return PlayerModule.setSubtitleTrack(
-      this.nativeId,
-      trackIdentifier ?? null
-    );
+    return this.native.setSubtitleTrack(trackIdentifier ?? null);
   };
 
   /**
@@ -488,7 +432,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, Android
    */
   scheduleAd = (adItem: AdItem) => {
-    void PlayerModule.scheduleAd(this.nativeId, adItem);
+    void this.native.scheduleAd(adItem);
   };
 
   /**
@@ -500,7 +444,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, Android
    */
   skipAd = () => {
-    void PlayerModule.skipAd(this.nativeId);
+    void this.native.skipAd();
   };
 
   /**
@@ -510,7 +454,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, Android
    */
   isAd = async (): Promise<boolean> => {
-    return (await PlayerModule.isAd(this.nativeId)) ?? false;
+    return (await this.native.isAd()) ?? false;
   };
 
   /**
@@ -518,7 +462,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * live stream or no sources are loaded.
    */
   getTimeShift = async (): Promise<number> => {
-    return (await PlayerModule.getTimeShift(this.nativeId)) ?? 0;
+    return (await this.native.getTimeShift()) ?? 0;
   };
 
   /**
@@ -526,7 +470,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * {@link Source} is not a live stream or no sources are loaded.
    */
   getMaxTimeShift = async (): Promise<number> => {
-    return (await PlayerModule.getMaxTimeShift(this.nativeId)) ?? 0;
+    return (await this.native.getMaxTimeShift()) ?? 0;
   };
 
   /**
@@ -536,7 +480,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Can be set to `null` for no limitation.
    */
   setMaxSelectableBitrate = (bitrate: number | null) => {
-    void PlayerModule.setMaxSelectableBitrate(this.nativeId, bitrate || -1);
+    void this.native.setMaxSelectableBitrate(bitrate || -1);
   };
 
   /**
@@ -550,7 +494,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @param time - The time in seconds for which to retrieve the thumbnail.
    */
   getThumbnail = async (time: number): Promise<Thumbnail | null> => {
-    return PlayerModule.getThumbnail(this.nativeId, time);
+    return this.native.getThumbnail(time);
   };
 
   /**
@@ -560,7 +504,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, Android
    */
   isCastAvailable = async (): Promise<boolean> => {
-    return (await PlayerModule.isCastAvailable(this.nativeId)) ?? false;
+    return (await this.native.isCastAvailable()) ?? false;
   };
 
   /**
@@ -569,7 +513,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, Android
    */
   isCasting = async (): Promise<boolean> => {
-    return (await PlayerModule.isCasting(this.nativeId)) ?? false;
+    return (await this.native.isCasting()) ?? false;
   };
 
   /**
@@ -579,7 +523,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, Android
    */
   castVideo = () => {
-    void PlayerModule.castVideo(this.nativeId);
+    void this.native.castVideo();
   };
 
   /**
@@ -588,7 +532,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, Android
    */
   castStop = () => {
-    void PlayerModule.castStop(this.nativeId);
+    void this.native.castStop();
   };
 
   /**
@@ -596,7 +540,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @returns The currently selected video quality.
    */
   getVideoQuality = async (): Promise<VideoQuality> => {
-    return PlayerModule.getVideoQuality(this.nativeId);
+    return this.native.getVideoQuality();
   };
 
   /**
@@ -604,7 +548,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @returns An array containing all available video qualities the player can adapt between.
    */
   getAvailableVideoQualities = async (): Promise<VideoQuality[]> => {
-    return PlayerModule.getAvailableVideoQualities(this.nativeId);
+    return this.native.getAvailableVideoQualities();
   };
 
   /**
@@ -620,7 +564,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       );
       return;
     }
-    void PlayerModule.setVideoQuality(this.nativeId, qualityId);
+    void this.native.setVideoQuality(qualityId);
   };
 
   /**
@@ -640,7 +584,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @param playbackSpeed - The playback speed to set.
    */
   setPlaybackSpeed = (playbackSpeed: number) => {
-    void PlayerModule.setPlaybackSpeed(this.nativeId, playbackSpeed);
+    void this.native.setPlaybackSpeed(playbackSpeed);
   };
 
   /**
@@ -648,7 +592,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @returns The player's current playback speed.
    */
   getPlaybackSpeed = async (): Promise<number> => {
-    return (await PlayerModule.getPlaybackSpeed(this.nativeId)) ?? 0;
+    return (await this.native.getPlaybackSpeed()) ?? 0;
   };
 
   /**
@@ -666,12 +610,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       );
       return undefined;
     }
-    return (
-      (await PlayerModule.canPlayAtPlaybackSpeed(
-        this.nativeId,
-        playbackSpeed
-      )) ?? false
-    );
+    return (await this.native.canPlayAtPlaybackSpeed(playbackSpeed)) ?? false;
   };
 
   private maybeInitDecoderConfig = () => {
@@ -685,6 +624,6 @@ export class Player extends NativeInstance<PlayerConfig> {
     this.decoderConfig = new DecoderConfigBridge(
       this.config.playbackConfig.decoderConfig
     );
-    this.decoderConfig.initialize();
+    return this.decoderConfig.initialize();
   };
 }
