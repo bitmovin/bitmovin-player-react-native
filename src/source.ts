@@ -14,9 +14,10 @@ import {
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
-import SourceModule, { type NativeSource } from './modules/SourceModule';
+import SourceModule, { getNativeSource } from './modules/SourceModule';
 import { getNativeDrm } from './drm/drmModule';
 import { nativeConfig } from './nativeCallbacks';
+import { setNativeOwner } from './nativeOwner';
 
 /**
  * Types of media that can be handled by the player.
@@ -168,21 +169,6 @@ export interface SourceRemoteControlConfig {
   castSourceConfig?: SourceConfig | null;
 }
 
-const nativeInstances = new WeakMap<Source, NativeSource>();
-
-function getNativeSource(source: Source): NativeSource {
-  const registered = lookup<NativeSource>('source', source.nativeId);
-  if (registered) {
-    return registered;
-  }
-  let native = nativeInstances.get(source);
-  if (!native) {
-    native = SourceModule.createEmpty();
-    nativeInstances.set(source, native);
-  }
-  return native;
-}
-
 /**
  * Represents audio and video content that can be loaded into a player.
  */
@@ -224,7 +210,7 @@ export class Source extends NativeInstance<SourceConfig> {
         this.nativeId,
         async () => {
           await drmInitialization;
-          if (this.isDestroyed) return SourceModule.createEmpty();
+          if (this.isDestroyed) return;
           try {
             const created = await SourceModule.create(
               nativeConfig(this.config),
@@ -240,15 +226,19 @@ export class Source extends NativeInstance<SourceConfig> {
           }
         },
         async (created) => {
-          await created.destroy();
           destroyDependencies(created);
           await this.drm?.destroy();
         }
       ),
       drmInitialization,
     ]);
-    if (lookup('source', this.nativeId) !== native || this.isDestroyed) return;
-    nativeInstances.delete(this);
+    if (
+      !native ||
+      lookup('source', this.nativeId) !== native ||
+      this.isDestroyed
+    )
+      return;
+    setNativeOwner(this, native);
     this.isInitialized = true;
   };
 
@@ -257,14 +247,10 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   destroy = () => {
     if (!this.isDestroyed) {
-      const native =
-        lookup<NativeSource>('source', this.nativeId) ??
-        nativeInstances.get(this);
+      const native = getNativeSource(this);
       const pending = lookupPending('source', this.nativeId);
       if (pending) remove('source', this.nativeId, pending);
-      void native?.destroy();
       if (native) destroyDependencies(native);
-      nativeInstances.delete(this);
       void this.drm?.destroy();
       this.isDestroyed = true;
       if (native) {
@@ -278,7 +264,7 @@ export class Source extends NativeInstance<SourceConfig> {
    * Default value is `0` if the duration is not available or not known.
    */
   duration = async (): Promise<number> => {
-    return (await getNativeSource(this).duration()) || 0;
+    return (await getNativeSource(this)?.duration()) || 0;
   };
 
   /**
@@ -286,21 +272,21 @@ export class Source extends NativeInstance<SourceConfig> {
    * Only one source can be active in the same player instance at any time.
    */
   isActive = async (): Promise<boolean> => {
-    return (await getNativeSource(this).isActive()) ?? false;
+    return (await getNativeSource(this)?.isActive()) ?? false;
   };
 
   /**
    * Whether the source is currently attached to a player instance.
    */
   isAttachedToPlayer = async (): Promise<boolean> => {
-    return (await getNativeSource(this).isAttachedToPlayer()) ?? false;
+    return (await getNativeSource(this)?.isAttachedToPlayer()) ?? false;
   };
 
   /**
    * Metadata for the currently loaded source.
    */
   metadata = async (): Promise<Record<string, any> | null> => {
-    return getNativeSource(this).getMetadata();
+    return (await getNativeSource(this)?.getMetadata()) ?? null;
   };
 
   /**
@@ -310,7 +296,7 @@ export class Source extends NativeInstance<SourceConfig> {
    * @param metadata metadata to be set.
    */
   setMetadata = (metadata: Record<string, any> | null): void => {
-    void getNativeSource(this).setMetadata(metadata);
+    void getNativeSource(this)?.setMetadata(metadata);
   };
 
   /**
@@ -318,7 +304,7 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   loadingState = async (): Promise<LoadingState> => {
     return (
-      (await getNativeSource(this).loadingState()) || LoadingState.UNLOADED
+      (await getNativeSource(this)?.loadingState()) || LoadingState.UNLOADED
     );
   };
 
@@ -333,6 +319,6 @@ export class Source extends NativeInstance<SourceConfig> {
    * @param time - The time in seconds for which to retrieve the thumbnail.
    */
   getThumbnail = async (time: number): Promise<Thumbnail | null> => {
-    return getNativeSource(this).getThumbnail(time);
+    return (await getNativeSource(this)?.getThumbnail(time)) ?? null;
   };
 }

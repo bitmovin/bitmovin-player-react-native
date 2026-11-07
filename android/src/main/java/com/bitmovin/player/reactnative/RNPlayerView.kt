@@ -330,7 +330,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         isPictureInPictureEnabledOnPlayer: Boolean,
         userInterfaceTypeName: String?,
     ) {
-        val player = shared.player ?: return
+        val player = shared.player
 
         if (playerView?.player == player) {
             // Player is already attached to the PlayerView

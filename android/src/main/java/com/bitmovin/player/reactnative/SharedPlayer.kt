@@ -14,28 +14,26 @@ import com.bitmovin.player.reactnative.extensions.getMap
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.jni.JavaScriptValue
-import expo.modules.kotlin.sharedobjects.SharedObject
+import expo.modules.kotlin.sharedobjects.SharedRef
 import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.EmptyCoroutineContext
 
 /** Owns one configured SDK player. Views retain this object, never the reverse. */
 class SharedPlayer private constructor(
     appContext: AppContext,
-    player: Player?,
+    player: Player,
     private val callbacks: CallbackScope,
     val mediaSessionPlaybackManager: MediaSessionPlaybackManager,
-) : SharedObject(appContext) {
-    var player: Player? = player
-        private set
+) : SharedRef<Player>(player, appContext) {
+    val player: Player
+        get() = ref
 
     fun destroy() {
         callbacks.close()
-        val releasedPlayer = player ?: return
-        player = null
         try {
-            mediaSessionPlaybackManager.destroy(releasedPlayer)
+            mediaSessionPlaybackManager.destroy(player)
         } finally {
-            releasedPlayer.destroy()
+            if (!player.isDestroyed) player.destroy()
         }
     }
 
@@ -45,9 +43,6 @@ class SharedPlayer private constructor(
     }
 
     companion object {
-        fun empty(appContext: AppContext, manager: MediaSessionPlaybackManager) =
-            SharedPlayer(appContext, null, CallbackScope(appContext, null), manager)
-
         fun create(
             appContext: AppContext,
             config: Map<String, Any>?,

@@ -1,4 +1,5 @@
-import PlayerModule, { getNativePlayer } from '../modules/PlayerModule';
+import { getNativePlayer } from '../modules/PlayerModule';
+import { Platform } from 'react-native';
 import type { Player } from '../player';
 import type { CustomDataConfig } from './config';
 
@@ -9,14 +10,22 @@ import type { CustomDataConfig } from './config';
 export class AnalyticsApi {
   constructor(private readonly player: Player) {}
 
+  private get native() {
+    const native = getNativePlayer(this.player);
+    if (!native && Platform.OS === 'android') {
+      throw Object.assign(new Error('Player is not initialized'), {
+        code: 'PlayerAnalyticsError',
+      });
+    }
+    return native;
+  }
+
   /**
    * Sends a sample with the provided custom data.
    * Does not change the configured custom data of the collector or source.
    */
   sendCustomDataEvent = async (customData: CustomDataConfig) => {
-    await (
-      getNativePlayer(this.player) ?? PlayerModule.createEmpty()
-    ).sendCustomDataEvent(customData);
+    await this.native?.sendCustomDataEvent(customData);
   };
 
   /**
@@ -25,8 +34,6 @@ export class AnalyticsApi {
    * @returns The current user id.
    */
   getUserId = async (): Promise<string | null> => {
-    return (
-      getNativePlayer(this.player) ?? PlayerModule.createEmpty()
-    ).getAnalyticsUserId();
+    return (await this.native?.getAnalyticsUserId()) ?? null;
   };
 }

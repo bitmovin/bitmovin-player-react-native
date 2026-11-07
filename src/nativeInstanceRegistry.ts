@@ -33,16 +33,18 @@ export function lookupPending<T extends object>(
 export function getOrCreateAsync<T extends object>(
   kind: string,
   nativeId: string,
-  factory: () => Promise<T>,
+  factory: () => Promise<T | undefined>,
   dispose: (instance: T) => void | Promise<void>
-): Promise<T> {
+): Promise<T | undefined> {
   const existing = entry(kind, nativeId);
   if (existing) return Promise.resolve(existing as T | Promise<T>);
   const creation = Promise.resolve()
     .then(factory)
     .then(
       async (instance) => {
-        if (entry(kind, nativeId) !== creation) {
+        if (!instance) {
+          remove(kind, nativeId, creation);
+        } else if (entry(kind, nativeId) !== creation) {
           await dispose(instance);
         } else {
           store(kind, nativeId, instance);

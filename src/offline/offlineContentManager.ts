@@ -109,7 +109,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
           destroyDependencies(created);
         }
       );
-      if (getNativeOffline(this.nativeId) !== native) return;
+      if (!native || getNativeOffline(this.nativeId) !== native) return;
       this.observeNative(native);
       if (existing) await this.initializeNative(native);
     }

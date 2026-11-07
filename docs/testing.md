@@ -72,21 +72,9 @@ response callbacks, synchronous throws, rejected promises, absent callbacks, and
 completion failures. The fixtures use direct callback functions and per-call
 completion objects. They do not run a native decoder or completion object.
 
-The [native instance registry tests](../scripts/test-native-instance-registry.js)
-verify JavaScript compatibility for aliases with the same instance type and
-`nativeId`, separation between types, constructor retries, and removal after
-destruction. They also cover concurrent creation, retries, and disposing canceled
-creations without replacing a reused ID. They exercise the real registry without a native bridge and do not
-prove native resource cleanup or Expo SharedObject release behavior.
-
-The [SharedObject compatibility tests](../scripts/test-shared-object-compatibility.js)
-run the public Player, Source, buffer, analytics, and media controls wrappers with
-mocked Expo modules. They check IDs, separate alias configurations and flags,
-shared backend routing, destruction and ID reuse, hook rerenders, public return
-shapes, direct advertising callbacks, and clearing callbacks after destruction in
-the iOS and Android JavaScript branches. Native
-destruction, release, serialization, and playback remain outside this fixture's
-coverage.
+The [registry](../scripts/test-native-instance-registry.js) and
+[SharedObject compatibility](../scripts/test-shared-object-compatibility.js)
+suites check TS alias and ownership behavior against controlled native doubles.
 
 `yarn test:plugin` builds and tests the config plugin. The Python command tests
 repository automation. Neither establishes Player runtime behavior. There is

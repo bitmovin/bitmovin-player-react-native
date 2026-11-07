@@ -66,7 +66,7 @@
 - Workflow
   - Bootstrap from repo root: `yarn bootstrap`. Re-run prebuilds after env/native/config changes (`yarn example prebuild`, `yarn integration-test prebuild`).
   - Public API: export via `src/index.ts`; keep native module/view names identical to TS wrappers; maintain event parity with TS types.
-  - Compatibility IDs live only in `src/nativeInstanceRegistry.ts`; native methods and view props use SharedObjects directly. Configuration callbacks use `src/nativeCallbacks.ts` and per-call completion objects, without identity registries.
+  - Compatibility IDs live only in `src/nativeInstanceRegistry.ts`; native methods and view props use SharedObjects directly. Configuration callbacks use `src/nativeCallbacks.ts`, without request-ID tables.
 - Secrets
   - Never commit keys. Store license keys only in `.env` under `example/` and `integration_test/` as documented.
 - Validation
@@ -110,7 +110,7 @@
   - Do not introduce native identity lookup maps. Use `src/nativeInstanceRegistry.ts` for aliases and legacy helper constructors.
   - Keep SDK content, track, and quality identifiers distinct from binding compatibility IDs.
   - Keep attachment and PiP state in the native view. The player must not retain or look up views.
-  - Resolve synchronous callback completion objects on the JS thread so blocked SDK callbacks can continue.
+  - Consume synchronous callback return values on the JS thread so blocked SDK callbacks can continue. Only asynchronous replies need completion objects.
 - Adding a new API (happy path):
   - TS: add method on a `src/modules/<Feature>Module.ts` wrapper, export from `src/index.ts`.
   - iOS/Android: add matching `AsyncFunction("methodName")` to Expo `ModuleDefinition`; emit events if needed.

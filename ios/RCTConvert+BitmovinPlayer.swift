@@ -7,7 +7,7 @@ import BitmovinPlayerCore
 import Foundation
 
 extension RCTConvert {
-    static func playerConfig(_ json: Any?) -> PlayerConfig? { // swiftlint:disable:this cyclomatic_complexity
+    static func playerConfig(_ json: Any?) -> PlayerConfig { // swiftlint:disable:this cyclomatic_complexity
         let playerConfig = PlayerConfig()
         guard let json = json as? [String: Any?] else {
             return playerConfig

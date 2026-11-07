@@ -6,15 +6,12 @@ import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
 import com.bitmovin.player.reactnative.converter.toSourceConfig
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.exception.CodedException
-import expo.modules.kotlin.sharedobjects.SharedObject
+import expo.modules.kotlin.sharedobjects.SharedRef
 
 /** Owns the source wrapper, without unloading a source retained by an SDK player. */
-class SharedSource(appContext: AppContext, source: Source? = null) : SharedObject(appContext) {
-    var source: Source? = source
-        private set
-
-    fun destroy() { source = null }
-    override fun sharedObjectDidRelease() = destroy()
+class SharedSource(appContext: AppContext, source: Source) : SharedRef<Source>(source, appContext) {
+    val source: Source
+        get() = ref
 
     companion object {
         fun create(

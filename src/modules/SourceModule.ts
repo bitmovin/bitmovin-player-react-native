@@ -7,6 +7,7 @@ import type {
   SourceRemoteControlConfig,
 } from '../source';
 import { lookup } from '../nativeInstanceRegistry';
+import { getNativeOwner, setNativeOwner } from '../nativeOwner';
 import type { Thumbnail } from '../thumbnail';
 import type { NativeDrm } from '../drm/drmModule';
 
@@ -17,8 +18,6 @@ export interface NativeSource extends SharedObject<SourceModuleEvents> {
   isAttachedToPlayer(): Promise<boolean | null>;
 
   isActive(): Promise<boolean | null>;
-
-  destroy(): Promise<void>;
 
   duration(): Promise<number | null>;
 
@@ -35,11 +34,14 @@ export interface NativeSource extends SharedObject<SourceModuleEvents> {
 
 /** @internal */
 export function getNativeSource(source: Source): NativeSource | undefined {
-  return lookup<NativeSource>('source', source.nativeId);
+  const native =
+    lookup<NativeSource>('source', source.nativeId) ??
+    getNativeOwner<NativeSource>(source);
+  if (native) setNativeOwner(source, native);
+  return native;
 }
 
 declare class SourceModule extends NativeModule {
-  createEmpty(): NativeSource;
   create(
     config?: Record<string, any>,
     drm?: NativeDrm,

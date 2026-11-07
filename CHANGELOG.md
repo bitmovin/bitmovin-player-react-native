@@ -10,6 +10,8 @@
 
 ### Fixed
 
+- iOS: Reject invalid source or analytics configuration during initialization instead of exposing an empty native binding
+
 - iOS: Read and update source metadata before the source is loaded
 - Android: **Breaking change:** `PlayerActive` and `PlayerInactive` events being named `onActive` and `onInactive` instead of `onPlayerActive` and `onPlayerInactive`, as on iOS. Apps comparing `Event.name`, e.g. in `onEvent`, must use the new names.
 - Android: `Source.loadingState()` returning the state name instead of a `LoadingState` value
@@ -19,6 +21,7 @@
 ### Changed
 
 - Return synchronous configuration callback values directly and simplify native resource teardown
+- Keep native Player and Source references while their TypeScript wrappers remain reachable after `destroy()`. Direct methods follow native SDK behavior after destruction instead of substituting binding defaults. Preserve lazy asynchronous initialization without empty native objects
 - Use Expo SharedObjects for native bindings and direct configuration callbacks. Keep Player, Source, and OfflineContentManager `nativeId` compatibility in TypeScript, and give player views independent ownership
 - **Breaking change:** Remove `nativeId` from Network, DRM, and Decoder configuration types and configuration wrappers. Configuration and internal UI adapters now use object ownership instead of named aliases
 - **Breaking change:** BufferApi, AnalyticsApi, and MediaControlsApi constructors now accept a Player object instead of an ID string. Remove their stored `nativeId`/`playerId` properties

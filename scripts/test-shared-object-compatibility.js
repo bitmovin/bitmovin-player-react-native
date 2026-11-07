@@ -124,7 +124,7 @@ function fixture(t, platform = 'ios') {
       return Promise.resolve().then(() => implementation(...args));
     };
   const callbacks = new Map();
-  const create = (kind, config, callback, configured = false) => {
+  const create = (kind, config, callback) => {
     const native = {
       __expo_shared_object_id__: creations.length + 1,
       release: () => assert.fail('Public destroy must not release Expo'),
@@ -137,7 +137,7 @@ function fixture(t, platform = 'ios') {
       },
     };
     listeners.set(native, new Map());
-    let initialized = configured;
+    let initialized = true;
     if (callback) callbacks.set(native, callback);
     const values = {
       getVolume: 37,
@@ -150,7 +150,7 @@ function fixture(t, platform = 'ios') {
       getMetadata: { title: 'native metadata' },
     };
     for (const method of [
-      'destroy',
+      ...(kind === 'source' ? [] : ['destroy']),
       'play',
       'pause',
       'seek',
@@ -200,18 +200,16 @@ function fixture(t, platform = 'ios') {
   const levels = { audio: { level: 3 }, video: { level: 5 } };
   const modules = {
     PlayerModule: {
-      createEmpty: () => create('player'),
       create: async (...args) => {
-        const native = create('player', args[0], args[4], true);
+        const native = create('player', args[0], args[4]);
         calls.push({ target: native, method: 'create', args });
         return native;
       },
       isGoogleImaEnabled: true,
     },
     SourceModule: {
-      createEmpty: () => create('source'),
       create: async (...args) => {
-        const native = create('source', args[0], undefined, true);
+        const native = create('source', args[0]);
         calls.push({ target: native, method: 'create', args });
         return native;
       },
@@ -220,10 +218,10 @@ function fixture(t, platform = 'ios') {
     OfflineModule: {},
     DebugModule: { setDebugLoggingEnabled: async () => {} },
     NetworkModule: {
-      create: (config, callback) => create('network', config, callback, true),
+      create: (config, callback) => create('network', config, callback),
     },
     DecoderConfigModule: {
-      create: (config, callback) => create('decoder', config, callback, true),
+      create: (config, callback) => create('decoder', config, callback),
     },
     DrmModule: { create: () => ({ destroy: async () => {} }) },
   };
@@ -325,6 +323,66 @@ test('usePlayer rerenders create one player and preserve the initial config', as
   assert.equal(creations.length, 1);
   assert.equal(creations[0].native, nativeOf(first));
   assert.equal(first.nativeId, 'generated-1');
+});
+
+test('methods before initialization preserve defaults without allocating native objects', async (t) => {
+  const { Player, Source, creations, calls, lookup } = fixture(t);
+  const player = new Player({ nativeId: 'not-created' });
+  const source = new Source({
+    nativeId: 'not-created',
+    url: 'https://test/source',
+  });
+
+  assert.equal(player.play(), undefined);
+  assert.equal(player.seek(12), undefined);
+  assert.equal(source.setMetadata({ title: 'before creation' }), undefined);
+  assert.equal(await player.getVolume(), 0);
+  assert.equal(await player.getDuration(), 0);
+  assert.equal(await source.duration(), 0);
+  assert.equal(await source.metadata(), null);
+  assert.equal(creations.length, 0);
+  assert.deepEqual(calls, []);
+  assert.equal(lookup('player', player.nativeId), undefined);
+  assert.equal(lookup('source', source.nativeId), undefined);
+
+  await player.initialize();
+  await source.initialize();
+  assert.equal(creations.length, 2);
+  assert.equal(await player.getVolume(), 37);
+  assert.equal(await source.duration(), 123);
+});
+
+test('destroyed wrappers retain their native objects and forward SDK getter results', async (t) => {
+  const { Player, Source, nativeOf, creations, calls, lookup } = fixture(t);
+  const player = new Player({ nativeId: 'retained-player' });
+  const source = new Source({
+    nativeId: 'retained-source',
+    url: 'https://test/source',
+  });
+  await player.initialize();
+  await source.initialize();
+  const nativePlayer = nativeOf(player);
+  const nativeSource = nativeOf(source);
+
+  player.destroy();
+  source.destroy();
+  assert.equal(lookup('player', player.nativeId), undefined);
+  assert.equal(lookup('source', source.nativeId), undefined);
+  await new Promise(setImmediate);
+  calls.length = 0;
+
+  // These values come from the controlled SDK boundary. This verifies retained
+  // forwarding, not the real SDK's post-destroy values or native GC behavior.
+  assert.equal(await player.getVolume(), 37);
+  assert.equal(await source.duration(), 123);
+  assert.deepEqual(
+    calls.map(({ target, method }) => ({ target, method })),
+    [
+      { target: nativePlayer, method: 'getVolume' },
+      { target: nativeSource, method: 'duration' },
+    ]
+  );
+  assert.equal(creations.length, 2);
 });
 
 test('same-ID wrappers keep separate configs and flags while routing to the same initialized backend', async (t) => {
@@ -487,12 +545,15 @@ test('destroy is idempotent and stale wrappers cannot unregister replacements', 
     nativeOf(new Source({ nativeId: 'source', url: 'ignored' })),
     nativeOf(replacementSource)
   );
-  for (const native of [retiredNative, retiredSourceNative]) {
+  for (const [native, destructions] of [
+    [retiredNative, 1],
+    [retiredSourceNative, 0],
+  ]) {
     assert.equal(
       calls.filter(
         (call) => call.target === native && call.method === 'destroy'
       ).length,
-      1
+      destructions
     );
   }
   await new BufferApi(new Player({ nativeId: 'reusable' })).getLevel(
@@ -523,7 +584,7 @@ test('destroying a precreated alias retires the current backend without changing
       calls.filter(
         (call) => call.target === native && call.method === 'destroy'
       ).length,
-      1
+      kind === 'player' ? 1 : 0
     );
 
     const replacement = make();
@@ -639,7 +700,17 @@ test('feature helpers resolve their Player reference on every call', async (t) =
     ]
   );
 
+  const retained = nativeOf(player);
   player.destroy();
+  await new Promise(setImmediate);
+  calls.length = 0;
+  await buffer.getLevel(BufferType.FORWARD_DURATION);
+  await analytics.getUserId();
+  await controls.isEnabled();
+  assert.equal(calls.length, 3);
+  for (const call of calls) {
+    assert.equal(call.target, retained);
+  }
   const replacement = new Player({ nativeId: 'late-player' });
   await replacement.initialize();
   calls.length = 0;
@@ -694,7 +765,7 @@ for (const platform of ['ios', 'android']) {
       assert.equal(await analytics.sendCustomDataEvent({}), undefined);
       assert.equal(warnings.length, 0);
     }
-    assert.equal(creations.length, 2);
+    assert.equal(creations.length, 0);
     assert.equal(lookup('player', 'missing-player'), undefined);
 
     const player = new Player({ nativeId: 'missing-player' });
@@ -800,12 +871,23 @@ test('destroying before deferred creation starts allocates no configuration owne
   const initialization = player.initialize();
   player.destroy();
   await initialization;
-  assert.equal(
-    creations.filter(({ kind }) => kind === 'network' || kind === 'decoder')
-      .length,
-    0
-  );
+  assert.equal(creations.length, 0);
   assert.equal(lookup('player', player.nativeId), undefined);
+});
+
+test('destroying a source before creation starts publishes no native placeholder', async (t) => {
+  const { Source, creations, lookup } = fixture(t);
+  const source = new Source({
+    nativeId: 'cancel-source-before-start',
+    url: 'https://test/source',
+  });
+  const initialization = source.initialize();
+  source.destroy();
+  await initialization;
+  assert.equal(creations.length, 0);
+  assert.equal(lookup('source', source.nativeId), undefined);
+  assert.equal(source.isInitialized, false);
+  assert.equal(source.isDestroyed, true);
 });
 
 test('canceling an alias during creation disposes its configuration owners', async (t) => {
@@ -893,5 +975,47 @@ test('FairPlay runtime helper forwards through its Source object', async (t) => 
   await new Promise(setImmediate);
   calls.length = 0;
   await source.drm.fairplay.renewExpiringLicense({ skdUri: 'skd://content' });
-  assert.deepEqual(calls, []);
+  // The SDK Source has no destroy operation. Its retained native object remains
+  // the target of public FairPlay calls after the compatibility label is removed.
+  assert.deepEqual(
+    calls.map(({ target, method, args }) => ({ target, method, args })),
+    [
+      {
+        target: native,
+        method: 'drmFairplayRenewExpiringLicense',
+        args: ['skd://content'],
+      },
+    ]
+  );
+});
+
+test('loadSource forwards a retained SDK Source after its public destroy call', async (t) => {
+  const { Player, Source, nativeOf, creations, calls, lookup } = fixture(t);
+  const player = new Player({ nativeId: 'retained-source-player' });
+  const source = new Source({
+    nativeId: 'retained-load-source',
+    url: 'https://test/source',
+  });
+  await player.initialize();
+  await source.initialize();
+  const nativePlayer = nativeOf(player);
+  const nativeSource = nativeOf(source);
+  source.destroy();
+  assert.equal(lookup('source', source.nativeId), undefined);
+  calls.length = 0;
+
+  assert.equal(player.loadSource(source), undefined);
+  await new Promise(setImmediate);
+  assert.deepEqual(
+    calls.map(({ target, method, args }) => ({ target, method, args })),
+    [
+      {
+        target: nativePlayer,
+        method: 'loadSource',
+        args: [nativeSource],
+      },
+    ]
+  );
+  assert.equal(player.source, source);
+  assert.equal(creations.length, 2);
 });

@@ -207,6 +207,59 @@ test('failed async creation clears its pending entry and allows retry', async ()
   registry.remove('Async', 'retry', backend);
 });
 
+test('a skipped factory clears its pending entry without publishing or disposing an object', async () => {
+  const first = registry.getOrCreateAsync(
+    'Async',
+    'skipped',
+    async () => undefined,
+    () => assert.fail('A skipped factory has no object to dispose')
+  );
+  assert.equal(registry.lookupPending('Async', 'skipped'), first);
+  assert.equal(await first, undefined);
+  assert.equal(registry.lookup('Async', 'skipped'), undefined);
+  assert.equal(registry.lookupPending('Async', 'skipped'), undefined);
+
+  const backend = {};
+  assert.equal(
+    await registry.getOrCreateAsync(
+      'Async',
+      'skipped',
+      async () => backend,
+      () => assert.fail()
+    ),
+    backend
+  );
+  assert.equal(registry.lookup('Async', 'skipped'), backend);
+  registry.remove('Async', 'skipped', backend);
+});
+
+test('a canceled skipped factory cannot remove a replacement sharing its ID', async () => {
+  const pending = deferred();
+  const first = registry.getOrCreateAsync(
+    'Async',
+    'skipped-replacement',
+    () => pending.promise,
+    () => assert.fail('A skipped factory has no object to dispose')
+  );
+  assert.equal(registry.remove('Async', 'skipped-replacement', first), true);
+  const backend = {};
+  await registry.getOrCreateAsync(
+    'Async',
+    'skipped-replacement',
+    async () => backend,
+    () => assert.fail()
+  );
+
+  pending.resolve(undefined);
+  assert.equal(await first, undefined);
+  assert.equal(registry.lookup('Async', 'skipped-replacement'), backend);
+  assert.equal(
+    registry.lookupPending('Async', 'skipped-replacement'),
+    undefined
+  );
+  registry.remove('Async', 'skipped-replacement', backend);
+});
+
 test('removing pending creation disposes its eventual object without replacing a newer object', async () => {
   const pending = deferred();
   const old = {};

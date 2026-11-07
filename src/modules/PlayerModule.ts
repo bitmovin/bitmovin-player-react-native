@@ -9,6 +9,7 @@ import type { NativeSource } from './SourceModule';
 import type { BufferLevels } from '../bufferApi';
 import type { Player } from '../player';
 import { lookup } from '../nativeInstanceRegistry';
+import { getNativeOwner, setNativeOwner } from '../nativeOwner';
 
 export type PlayerModuleEvents = Record<string, never>;
 
@@ -120,12 +121,15 @@ export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
 
 /** @internal */
 export function getNativePlayer(player: Player): NativePlayer | undefined {
-  return lookup<NativePlayer>('player', player.nativeId);
+  const native =
+    lookup<NativePlayer>('player', player.nativeId) ??
+    getNativeOwner<NativePlayer>(player);
+  if (native) setNativeOwner(player, native);
+  return native;
 }
 
 declare class PlayerModule extends NativeModule {
   readonly isGoogleImaEnabled: boolean;
-  createEmpty(): NativePlayer;
   create(
     config?: Record<string, any>,
     analyticsConfig?: Record<string, any>,

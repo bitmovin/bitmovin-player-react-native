@@ -1,4 +1,3 @@
-// State for ID-free TS wrappers. Weak keys do not retain abandoned wrappers.
 const owners = new WeakMap<object, object>();
 
 /** @internal */
