@@ -1,14 +1,19 @@
+import { setNativeOwner } from '../nativeOwner';
 import type { DecoderConfig } from './decoderConfig';
-import NativeInstance from '../nativeInstance';
 import DecoderConfigModule, { getNativeDecoder } from './decoderConfigModule';
-import { getOrCreate, remove } from '../nativeInstanceRegistry';
 import {
   createNativeCallback,
   serializeNativeConfig,
 } from '../nativeCallbacks';
 
 /** Takes care of JS/Native communication for a `DecoderConfig`. */
-export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
+export class DecoderConfigBridge {
+  readonly config?: DecoderConfig;
+
+  constructor(config?: DecoderConfig) {
+    this.config = config;
+  }
+
   isInitialized = false;
   isDestroyed = false;
 
@@ -16,13 +21,15 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
     if (!this.isInitialized) {
       const module = DecoderConfigModule;
       if (module) {
-        getOrCreate('decoder', this.nativeId, () =>
+        const config = this.config;
+        setNativeOwner(
+          this,
           module.create(
-            serializeNativeConfig(this.config ?? {}),
+            serializeNativeConfig(config ?? {}),
             createNativeCallback((operation, [context, preferredDecoders]) => {
               if (operation !== 'overrideDecodersPriority') return null;
               return (
-                this.config?.decoderPriorityProvider?.overrideDecodersPriority(
+                config?.decoderPriorityProvider?.overrideDecodersPriority(
                   context,
                   preferredDecoders
                 ) ?? preferredDecoders
@@ -37,10 +44,10 @@ export class DecoderConfigBridge extends NativeInstance<DecoderConfig> {
 
   destroy() {
     if (!this.isDestroyed) {
-      const native = getNativeDecoder(this.nativeId);
+      const native = getNativeDecoder(this);
       if (native) {
         void native.destroy();
-        remove('decoder', this.nativeId, native);
+        setNativeOwner(this);
       }
       this.isDestroyed = true;
     }

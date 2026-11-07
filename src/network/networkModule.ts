@@ -1,8 +1,8 @@
+import { getNativeOwner } from '../nativeOwner';
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 import type { NativeCallback } from '../nativeCallbacks';
-import { lookup } from '../nativeInstanceRegistry';
 
 /** @internal */
 export interface NativeNetwork extends SharedObject {
@@ -10,8 +10,8 @@ export interface NativeNetwork extends SharedObject {
 }
 
 /** @internal */
-export function getNativeNetwork(id: string): NativeNetwork | undefined {
-  return lookup<NativeNetwork>('network', id);
+export function getNativeNetwork(owner: object): NativeNetwork | undefined {
+  return getNativeOwner<NativeNetwork>(owner);
 }
 
 declare class NetworkModule extends NativeModule {

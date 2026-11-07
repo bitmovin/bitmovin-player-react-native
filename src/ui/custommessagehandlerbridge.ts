@@ -1,38 +1,34 @@
 import type { CustomMessageHandler } from './custommessagehandler';
 import type { CustomMessageSender } from './custommessagesender';
-import * as Crypto from 'expo-crypto';
 import CustomMessageHandlerModule, {
-  getNativeCustomMessage,
+  type NativeCustomMessage,
 } from './customMessageHandlerModule';
-import { getOrCreate, remove } from '../nativeInstanceRegistry';
 import { createNativeCallback } from '../nativeCallbacks';
 
 /** Takes care of JS/Native communication for a CustomMessageHandler. */
 export class CustomMessageHandlerBridge implements CustomMessageSender {
-  readonly nativeId: string;
+  /** @internal */
+  native?: NativeCustomMessage;
   private customMessageHandler?: CustomMessageHandler;
   private isDestroyed = false;
 
-  constructor(nativeId?: string) {
-    this.nativeId = nativeId ?? Crypto.randomUUID();
-    getOrCreate('customMessage', this.nativeId, () =>
-      CustomMessageHandlerModule.create(
-        createNativeCallback((operation, [message, data]) => {
-          if (operation === 'synchronousMessage') {
-            return this.customMessageHandler?.receivedSynchronousMessage(
-              message,
-              data ?? undefined
-            );
-          }
-          if (operation === 'asynchronousMessage') {
-            this.customMessageHandler?.receivedAsynchronousMessage(
-              message,
-              data ?? undefined
-            );
-          }
-          return null;
-        })
-      )
+  constructor() {
+    this.native = CustomMessageHandlerModule.create(
+      createNativeCallback((operation, [message, data]) => {
+        if (operation === 'synchronousMessage') {
+          return this.customMessageHandler?.receivedSynchronousMessage(
+            message,
+            data ?? undefined
+          );
+        }
+        if (operation === 'asynchronousMessage') {
+          this.customMessageHandler?.receivedAsynchronousMessage(
+            message,
+            data ?? undefined
+          );
+        }
+        return null;
+      })
     );
   }
 
@@ -43,16 +39,14 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
 
   destroy() {
     if (!this.isDestroyed) {
-      const native = getNativeCustomMessage(this.nativeId);
-      if (native) {
-        void native.destroy();
-        remove('customMessage', this.nativeId, native);
-      }
+      const native = this.native;
+      this.native = undefined;
       this.isDestroyed = true;
+      void native?.destroy();
     }
   }
 
   sendMessage(message: string, data: string | undefined): void {
-    void getNativeCustomMessage(this.nativeId)?.sendMessage(message, data);
+    void this.native?.sendMessage(message, data);
   }
 }

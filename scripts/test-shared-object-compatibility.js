@@ -158,6 +158,7 @@ function fixture(t, platform = 'ios') {
       'unload',
       'setVolume',
       'setMetadata',
+      'drmFairplayRenewExpiringLicense',
       'getBufferLevel',
       'setBufferTargetLevel',
       'sendCustomDataEvent',
@@ -496,7 +497,9 @@ test('destroy is idempotent and stale wrappers cannot unregister replacements', 
       1
     );
   }
-  await new BufferApi('reusable').getLevel(BufferType.FORWARD_DURATION);
+  await new BufferApi(new Player({ nativeId: 'reusable' })).getLevel(
+    BufferType.FORWARD_DURATION
+  );
   assert.equal(calls.at(-1).target, nativeOf(replacement));
 });
 
@@ -582,7 +585,7 @@ test('overlapping aliases share creation and can retry after a failed factory', 
   assert.equal(nativeOf(first), nativeOf(alias));
 });
 
-test('legacy feature facades resolve their player on every call', async (t) => {
+test('feature helpers resolve their Player reference on every call', async (t) => {
   const {
     nativeOf,
     Player,
@@ -593,9 +596,11 @@ test('legacy feature facades resolve their player on every call', async (t) => {
     calls,
     levels,
   } = fixture(t);
-  const buffer = new BufferApi('late-player');
-  const analytics = new AnalyticsApi('late-player');
-  const controls = new MediaControlsApi('late-player');
+  const buffer = new BufferApi(new Player({ nativeId: 'late-player' }));
+  const analytics = new AnalyticsApi(new Player({ nativeId: 'late-player' }));
+  const controls = new MediaControlsApi(
+    new Player({ nativeId: 'late-player' })
+  );
   const player = new Player({ nativeId: 'late-player' });
   await player.initialize();
   calls.length = 0;
@@ -662,9 +667,13 @@ for (const platform of ['ios', 'android']) {
     } = fixture(t, platform);
     const warnings = [];
     t.mock.method(console, 'warn', (message) => warnings.push(message));
-    const buffer = new BufferApi('missing-player');
-    const analytics = new AnalyticsApi('missing-player');
-    const controls = new MediaControlsApi('missing-player');
+    const buffer = new BufferApi(new Player({ nativeId: 'missing-player' }));
+    const analytics = new AnalyticsApi(
+      new Player({ nativeId: 'missing-player' })
+    );
+    const controls = new MediaControlsApi(
+      new Player({ nativeId: 'missing-player' })
+    );
     assert.equal(await buffer.getLevel(BufferType.FORWARD_DURATION), null);
     assert.equal(
       await buffer.setTargetLevel(BufferType.FORWARD_DURATION, 4),
@@ -831,4 +840,60 @@ test('canceling an alias during creation disposes its configuration owners', asy
     );
   }
   assert.equal(lookup('player', player.nativeId), undefined);
+});
+
+test('destroying a player alias closes the configured backend owners', async (t) => {
+  const { Player, creations, calls } = fixture(t, 'android');
+  const owner = new Player({
+    nativeId: 'alias-configuration-ownership',
+    networkConfig: { preprocessHttpRequest: (_type, request) => request },
+    playbackConfig: { decoderConfig: {} },
+  });
+  await owner.initialize();
+  new Player({ nativeId: owner.nativeId }).destroy();
+  await new Promise(setImmediate);
+  for (const { kind, native } of creations.filter(
+    ({ kind }) => kind === 'network' || kind === 'decoder'
+  )) {
+    assert.equal(
+      calls.filter(
+        (call) => call.target === native && call.method === 'destroy'
+      ).length,
+      1,
+      kind
+    );
+  }
+  assert.equal(
+    owner.isDestroyed,
+    false,
+    'the alias does not mutate another player wrapper flags'
+  );
+});
+
+test('FairPlay runtime helper forwards through its Source object', async (t) => {
+  const { Source, nativeOf, calls } = fixture(t, 'ios');
+  const source = new Source({
+    nativeId: 'fairplay-source-owner',
+    url: 'https://test/source',
+    drmConfig: { fairplay: { licenseUrl: 'https://test/license' } },
+  });
+  await source.initialize();
+  const native = nativeOf(source);
+  calls.length = 0;
+  await source.drm.fairplay.renewExpiringLicense({ skdUri: 'skd://content' });
+  assert.deepEqual(
+    calls.map(({ target, method, args }) => ({ target, method, args })),
+    [
+      {
+        target: native,
+        method: 'drmFairplayRenewExpiringLicense',
+        args: ['skd://content'],
+      },
+    ]
+  );
+  source.destroy();
+  await new Promise(setImmediate);
+  calls.length = 0;
+  await source.drm.fairplay.renewExpiringLicense({ skdUri: 'skd://content' });
+  assert.deepEqual(calls, []);
 });

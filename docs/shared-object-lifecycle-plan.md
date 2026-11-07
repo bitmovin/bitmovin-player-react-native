@@ -1,7 +1,9 @@
 # SharedObject binding architecture
 
-Public constructors, `nativeId`, lifecycle methods, events, and method return
-shapes stay compatible. Native methods and view props receive Expo SharedObjects.
+Player, Source, and OfflineContentManager retain `nativeId` compatibility because
+the identity test suites exercise those APIs. Configuration wrappers and internal
+UI adapters have no binding IDs. Native methods and view props receive Expo
+SharedObjects.
 
 ```mermaid
 flowchart LR
@@ -16,7 +18,7 @@ flowchart LR
 
 `src/nativeInstanceRegistry.ts` is the only binding identity index. Its entries
 contain either an initialized SharedObject or its pending creation promise.
-Same-kind aliases resolve to the same native backend while keeping their own
+Player, Source, and OfflineContentManager aliases resolve to the same native backend while keeping their own
 public configuration and lifecycle flags. Removing a pending entry disposes its
 result when creation finishes, without replacing a newer object using that ID.
 
@@ -32,7 +34,12 @@ calls made before initialization or after destruction.
 
 Configuration, DRM, offline, fullscreen, and custom-message adapters also use
 SharedObjects. They are passed directly to their consumers. Offline event labels
-are added in TS to preserve the public event shape.
+are added in TS to preserve the public event shape. Configuration and UI wrappers
+keep their native owners by object reference. Buffer, analytics, and media-control
+helpers take a Player reference instead of storing an ID string. FairPlay runtime
+helpers take a Source reference; the SDK content `skdUri` remains unchanged. A named backend retains its
+configuration dependencies so they remain alive after its original TS wrapper is
+dropped; destruction through any alias closes those dependencies.
 
 Views retain their player. The player has no view reference, attachment lookup,
 or pending PiP settings. View attachment, SDK event listeners, PiP settings, and

@@ -10,8 +10,6 @@ import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge'
 import type { PlayerViewProps } from './properties';
 import type { PictureInPictureAction } from './pictureInPictureAction';
 import { addPlatformToMetadataEvent } from '../../utils/metadataPlatform';
-import { getNativeFullscreen } from '../../ui/fullscreenHandlerModule';
-import { getNativeCustomMessage } from '../../ui/customMessageHandlerModule';
 import type { NativePlayer } from '../../modules/PlayerModule';
 import { lookup } from '../../nativeInstanceRegistry';
 
@@ -164,14 +162,8 @@ export function PlayerView({
       isFullscreenRequested={isFullscreenRequested}
       isPictureInPictureRequested={isPictureInPictureRequested}
       scalingMode={scalingMode}
-      fullscreenHandler={
-        fullscreenBridge.current &&
-        getNativeFullscreen(fullscreenBridge.current.nativeId)
-      }
-      customMessageHandler={
-        customMessageHandlerBridge.current &&
-        getNativeCustomMessage(customMessageHandlerBridge.current.nativeId)
-      }
+      fullscreenHandler={fullscreenBridge.current?.native}
+      customMessageHandler={customMessageHandlerBridge.current?.native}
       onBmpPlayerViewReady={() => {
         if (
           currentPlayer.current !== player ||

@@ -1,5 +1,5 @@
-import { lookup } from '../nativeInstanceRegistry';
-import PlayerModule, { type NativePlayer } from '../modules/PlayerModule';
+import PlayerModule, { getNativePlayer } from '../modules/PlayerModule';
+import type { Player } from '../player';
 import type { CustomDataConfig } from './config';
 
 /**
@@ -7,14 +7,7 @@ import type { CustomDataConfig } from './config';
  * Use the `Player.analytics` property to access a `Player`'s `AnalyticsApi`.
  */
 export class AnalyticsApi {
-  /**
-   * The native player id that this analytics api is attached to.
-   */
-  playerId: string;
-
-  constructor(playerId: string) {
-    this.playerId = playerId;
-  }
+  constructor(private readonly player: Player) {}
 
   /**
    * Sends a sample with the provided custom data.
@@ -22,8 +15,7 @@ export class AnalyticsApi {
    */
   sendCustomDataEvent = async (customData: CustomDataConfig) => {
     await (
-      lookup<NativePlayer>('player', this.playerId) ??
-      PlayerModule.createEmpty()
+      getNativePlayer(this.player) ?? PlayerModule.createEmpty()
     ).sendCustomDataEvent(customData);
   };
 
@@ -34,8 +26,7 @@ export class AnalyticsApi {
    */
   getUserId = async (): Promise<string | null> => {
     return (
-      lookup<NativePlayer>('player', this.playerId) ??
-      PlayerModule.createEmpty()
+      getNativePlayer(this.player) ?? PlayerModule.createEmpty()
     ).getAnalyticsUserId();
   };
 }

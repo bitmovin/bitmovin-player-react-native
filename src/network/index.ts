@@ -1,6 +1,5 @@
-import NativeInstance from '../nativeInstance';
+import { setNativeOwner } from '../nativeOwner';
 import NetworkModule, { getNativeNetwork } from './networkModule';
-import { getOrCreate, remove } from '../nativeInstanceRegistry';
 import {
   createNativeCallback,
   serializeNativeConfig,
@@ -15,19 +14,27 @@ export type { HttpRequest, HttpResponse, NetworkConfig };
  * Represents a native Network configuration object.
  * @internal
  */
-export class Network extends NativeInstance<NetworkConfig> {
+export class Network {
+  readonly config?: NetworkConfig;
+
+  constructor(config?: NetworkConfig) {
+    this.config = config;
+  }
+
   isInitialized = false;
   isDestroyed = false;
 
   initialize = async () => {
     if (!this.isInitialized) {
-      getOrCreate('network', this.nativeId, () =>
+      const config = this.config;
+      setNativeOwner(
+        this,
         NetworkModule.create(
-          serializeNativeConfig(this.config ?? {}),
+          serializeNativeConfig(config ?? {}),
           createNativeCallback((operation, [type, value]) => {
             if (operation === 'preprocessHttpRequest') {
               return Promise.resolve()
-                .then(() => this.config?.preprocessHttpRequest?.(type, value))
+                .then(() => config?.preprocessHttpRequest?.(type, value))
                 .then(
                   (result) => result ?? value,
                   () => value
@@ -35,7 +42,7 @@ export class Network extends NativeInstance<NetworkConfig> {
             }
             if (operation === 'preprocessHttpResponse') {
               return Promise.resolve()
-                .then(() => this.config?.preprocessHttpResponse?.(type, value))
+                .then(() => config?.preprocessHttpResponse?.(type, value))
                 .then(
                   (result) => result ?? value,
                   () => value
@@ -51,9 +58,9 @@ export class Network extends NativeInstance<NetworkConfig> {
 
   destroy = async () => {
     if (!this.isDestroyed) {
-      const native = getNativeNetwork(this.nativeId);
+      const native = getNativeNetwork(this);
       if (native) {
-        remove('network', this.nativeId, native);
+        setNativeOwner(this);
         await native.destroy();
       }
       this.isDestroyed = true;

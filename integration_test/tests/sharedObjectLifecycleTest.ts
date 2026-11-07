@@ -56,7 +56,7 @@ export default (spec: TestScope) => {
       'keeps same-ID player and source objects separate and round-trips source metadata',
       async () => {
         const nativeId = 'shared-object-lifecycle-types';
-        const buffer = new BufferApi(nativeId);
+        const buffer = new BufferApi(new Player({ nativeId }));
         await startPlayerTest({ nativeId }, async () => {
           await callPlayer(async (player) => {
             const levels = await buffer.getLevel(BufferType.FORWARD_DURATION);

@@ -5,6 +5,8 @@ import type { NativeInstanceConfig } from './nativeInstance';
 import NativeInstance from './nativeInstance';
 import {
   getOrCreateAsync,
+  holdDependencies,
+  destroyDependencies,
   lookup,
   lookupPending,
   remove,
@@ -214,7 +216,7 @@ export class Source extends NativeInstance<SourceConfig> {
   initialize = async (): Promise<void> => {
     if (this.isInitialized || this.isDestroyed) return;
     if (this.config?.drmConfig && (!this.drm || this.drm.isDestroyed))
-      this.drm = new Drm(this.config.drmConfig, this.nativeId);
+      this.drm = new Drm(this.config.drmConfig, this);
     const drmInitialization = this.drm?.initialize();
     const [native] = await Promise.all([
       getOrCreateAsync(
@@ -224,12 +226,14 @@ export class Source extends NativeInstance<SourceConfig> {
           await drmInitialization;
           if (this.isDestroyed) return SourceModule.createEmpty();
           try {
-            return await SourceModule.create(
+            const created = await SourceModule.create(
               nativeConfig(this.config),
-              this.drm && getNativeDrm(this.drm.nativeId),
+              this.drm && getNativeDrm(this.drm),
               nativeConfig(this.remoteControl || undefined),
               nativeConfig(this.config?.analyticsSourceMetadata)
             );
+            holdDependencies(created, [this.drm]);
+            return created;
           } catch (error) {
             await this.drm?.destroy();
             throw error;
@@ -237,6 +241,7 @@ export class Source extends NativeInstance<SourceConfig> {
         },
         async (created) => {
           await created.destroy();
+          destroyDependencies(created);
           await this.drm?.destroy();
         }
       ),
@@ -258,6 +263,7 @@ export class Source extends NativeInstance<SourceConfig> {
       const pending = lookupPending('source', this.nativeId);
       if (pending) remove('source', this.nativeId, pending);
       void native?.destroy();
+      if (native) destroyDependencies(native);
       nativeInstances.delete(this);
       void this.drm?.destroy();
       this.isDestroyed = true;

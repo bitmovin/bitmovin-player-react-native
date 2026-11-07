@@ -4,6 +4,8 @@ import type { NativeSource } from './modules/SourceModule';
 import NativeInstance from './nativeInstance';
 import {
   getOrCreateAsync,
+  holdDependencies,
+  destroyDependencies,
   lookup,
   lookupPending,
   remove,
@@ -68,13 +70,13 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * The {@link BufferApi} for interactions regarding the buffer.
    */
-  buffer: BufferApi = new BufferApi(this.nativeId);
+  buffer: BufferApi = new BufferApi(this);
   /**
    * The {@link MediaControlsApi} for interactions regarding the Player's media controls integration.
    *
    * @platform iOS, tvOS
    */
-  mediaControls: MediaControlsApi = new MediaControlsApi(this.nativeId);
+  mediaControls: MediaControlsApi = new MediaControlsApi(this);
 
   private network?: Network;
 
@@ -104,11 +106,11 @@ export class Player extends NativeInstance<PlayerConfig> {
                 'See the "Google IMA" section of the bitmovin-player-react-native README.'
             );
           }
-          return await PlayerModule.create(
+          const created = await PlayerModule.create(
             nativeConfig(this.config),
             nativeConfig(this.config?.analyticsConfig),
-            this.network && getNativeNetwork(this.network.nativeId),
-            this.decoderConfig && getNativeDecoder(this.decoderConfig.nativeId),
+            this.network && getNativeNetwork(this.network),
+            this.decoderConfig && getNativeDecoder(this.decoderConfig),
             nativeCallback({
               shouldLoadAdItem: advertising?.shouldLoadAdItem,
               shouldPlayAdBreak:
@@ -126,6 +128,8 @@ export class Player extends NativeInstance<PlayerConfig> {
                   : undefined,
             })
           );
+          holdDependencies(created, [this.network, this.decoderConfig]);
+          return created;
         } catch (error) {
           await this.network?.destroy();
           this.decoderConfig?.destroy();
@@ -134,14 +138,14 @@ export class Player extends NativeInstance<PlayerConfig> {
       },
       async (created) => {
         await created.destroy();
+        destroyDependencies(created);
         await this.network?.destroy();
         this.decoderConfig?.destroy();
       }
     );
     if (lookup('player', this.nativeId) !== native || this.isDestroyed) return;
     this.nativeInstance = undefined;
-    if (this.config?.analyticsConfig)
-      this.analytics = new AnalyticsApi(this.nativeId);
+    if (this.config?.analyticsConfig) this.analytics = new AnalyticsApi(this);
     this.isInitialized = true;
   };
 
@@ -155,6 +159,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       const pending = lookupPending('player', this.nativeId);
       if (pending) remove('player', this.nativeId, pending);
       void native?.destroy();
+      if (native) destroyDependencies(native);
       this.nativeInstance = undefined;
       void this.source?.destroy();
       void this.network?.destroy();

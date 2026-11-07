@@ -1,11 +1,10 @@
+import { setNativeOwner } from '../nativeOwner';
 import { Platform } from 'react-native';
-import type { NativeInstanceConfig } from '../nativeInstance';
-import NativeInstance from '../nativeInstance';
+import type { Source } from '../source';
 import type { FairplayConfig } from './fairplayConfig';
 import type { WidevineConfig } from './widevineConfig';
 import { FairplayDrmApi } from './fairplayDrmApi';
 import DrmModule, { getNativeDrm } from './drmModule';
-import { getOrCreate, remove } from '../nativeInstanceRegistry';
 import {
   createNativeCallback,
   serializeNativeConfig,
@@ -18,7 +17,7 @@ export { FairplayDrmApi };
 /**
  * Represents the general Streaming DRM config.
  */
-export interface DrmConfig extends NativeInstanceConfig {
+export interface DrmConfig {
   /**
    * FairPlay specific configuration.
    *
@@ -37,7 +36,8 @@ export interface DrmConfig extends NativeInstanceConfig {
  * Represents a native DRM configuration object.
  * @internal
  */
-export class Drm extends NativeInstance<DrmConfig> {
+export class Drm {
+  readonly config?: DrmConfig;
   /**
    * Provides FairPlay-specific DRM runtime APIs such as {@link FairplayDrmApi.renewExpiringLicense}.
    *
@@ -53,24 +53,28 @@ export class Drm extends NativeInstance<DrmConfig> {
    */
   isDestroyed = false;
 
-  constructor(config?: DrmConfig, sourceNativeId?: string) {
-    super(config);
-    this.fairplay = new FairplayDrmApi(sourceNativeId ?? '');
+  constructor(config?: DrmConfig, source?: Source) {
+    this.config = config;
+    this.fairplay = new FairplayDrmApi(source);
   }
 
   initialize = async () => {
     if (!this.isInitialized) {
-      getOrCreate('drm', this.nativeId, () =>
+      const config = this.config;
+      setNativeOwner(
+        this,
         DrmModule.create(
-          serializeNativeConfig(this.config ?? {}),
+          serializeNativeConfig(config ?? {}),
           createNativeCallback((operation, args) => {
-            const config =
-              Platform.OS === 'ios'
-                ? this.config?.fairplay
-                : this.config?.widevine;
-            const callback = config?.[operation as keyof typeof config];
+            const platformConfig =
+              Platform.OS === 'ios' ? config?.fairplay : config?.widevine;
+            const callback =
+              platformConfig?.[operation as keyof typeof platformConfig];
             return typeof callback === 'function'
-              ? (callback as (...values: any[]) => any).apply(config, args)
+              ? (callback as (...values: any[]) => any).apply(
+                  platformConfig,
+                  args
+                )
               : null;
           })
         )
@@ -81,9 +85,9 @@ export class Drm extends NativeInstance<DrmConfig> {
 
   destroy = async () => {
     if (!this.isDestroyed) {
-      const native = getNativeDrm(this.nativeId);
+      const native = getNativeDrm(this);
       if (native) {
-        remove('drm', this.nativeId, native);
+        setNativeOwner(this);
         await native.destroy();
       }
       this.isDestroyed = true;

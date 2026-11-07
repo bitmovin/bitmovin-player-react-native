@@ -7,6 +7,8 @@ import type { NativeDecoder } from '../decoder/decoderConfigModule';
 import type { NativeOffline } from '../offline/offlineModule';
 import type { NativeSource } from './SourceModule';
 import type { BufferLevels } from '../bufferApi';
+import type { Player } from '../player';
+import { lookup } from '../nativeInstanceRegistry';
 
 export type PlayerModuleEvents = Record<string, never>;
 
@@ -114,6 +116,11 @@ export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
   getAvailableVideoQualities(): Promise<any[]>;
 
   setVideoQuality(qualityId: string): Promise<void>;
+}
+
+/** @internal */
+export function getNativePlayer(player: Player): NativePlayer | undefined {
+  return lookup<NativePlayer>('player', player.nativeId);
 }
 
 declare class PlayerModule extends NativeModule {

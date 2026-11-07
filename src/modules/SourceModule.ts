@@ -1,7 +1,12 @@
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
-import type { LoadingState, SourceRemoteControlConfig } from '../source';
+import type {
+  LoadingState,
+  Source,
+  SourceRemoteControlConfig,
+} from '../source';
+import { lookup } from '../nativeInstanceRegistry';
 import type { Thumbnail } from '../thumbnail';
 import type { NativeDrm } from '../drm/drmModule';
 
@@ -26,6 +31,11 @@ export interface NativeSource extends SharedObject<SourceModuleEvents> {
   getThumbnail(time: number): Promise<Thumbnail | null>;
 
   drmFairplayRenewExpiringLicense(skdUri: string): Promise<void>;
+}
+
+/** @internal */
+export function getNativeSource(source: Source): NativeSource | undefined {
+  return lookup<NativeSource>('source', source.nativeId);
 }
 
 declare class SourceModule extends NativeModule {

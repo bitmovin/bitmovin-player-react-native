@@ -43,7 +43,7 @@ function fixture(t, config, rejectAfterCompletion = false) {
     fs.rmSync(directory, { recursive: true, force: true });
   });
   fs.cpSync(compiled, directory, { recursive: true });
-  for (const name of ['expo-modules-core', 'expo-crypto']) {
+  for (const name of ['expo-modules-core']) {
     const packageDirectory = path.join(directory, 'node_modules', name);
     fs.mkdirSync(packageDirectory, { recursive: true });
     fs.writeFileSync(
@@ -75,8 +75,6 @@ function fixture(t, config, rejectAfterCompletion = false) {
     assert.equal(name, 'NativeCallbacksModule');
     return {};
   };
-  require(path.join(directory, 'node_modules/expo-crypto')).randomUUID = () =>
-    'network-id';
   const { Network, HttpRequestType } = require(path.join(directory, 'network'));
   const helpers = require(path.join(directory, 'nativeCallbacks.js'));
   const network = new Network(config);
@@ -102,6 +100,13 @@ function fixture(t, config, rejectAfterCompletion = false) {
     isDestroyed: () => destroyed,
   };
 }
+
+test('network configuration owners do not generate compatibility IDs', async (t) => {
+  const { network } = fixture(t, {});
+  assert.equal('nativeId' in network, false);
+  await network.initialize();
+  assert.equal('nativeId' in network, false);
+});
 
 const request = {
   url: 'https://example.com/manifest.mpd',
@@ -203,11 +208,11 @@ test('configuration serialization removes compatibility labels while preserving 
   };
   const config = {
     nativeId: 'player',
-    networkConfig: { nativeId: 'network', preprocessHttpRequest: () => {} },
-    playbackConfig: { decoderConfig: { nativeId: 'decoder' } },
+    networkConfig: { preprocessHttpRequest: () => {} },
+    playbackConfig: { decoderConfig: {} },
     sourceConfig: {
       nativeId: 'source',
-      drmConfig: { nativeId: 'drm' },
+      drmConfig: {},
       metadata,
     },
     metadata,
