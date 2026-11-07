@@ -270,9 +270,7 @@ function fixture(t, platform = 'ios') {
     invoke: async (native, operation, args) => {
       const callback = callbacks.get(native);
       if (!callback) return null;
-      return new Promise((resolve) =>
-        callback(operation, structuredClone(args), { resolve })
-      );
+      return callback(operation, structuredClone(args));
     },
   };
 }

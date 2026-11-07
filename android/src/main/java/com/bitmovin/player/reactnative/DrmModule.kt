@@ -7,11 +7,12 @@ import com.bitmovin.player.reactnative.converter.toWidevineConfig
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.jni.JavaScriptFunction
+import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.sharedobjects.SharedObject
 
-class SharedDrm(appContext: AppContext, config: Map<String, Any?>, callback: JavaScriptFunction<Any?>?) :
+class SharedDrm(appContext: AppContext, config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>?) :
     SharedObject(appContext) {
     private val callbacks = CallbackScope(appContext, callback)
     val config = requireNotNull(config.toWidevineConfig()) { "Invalid widevine config" }.apply {
@@ -32,7 +33,7 @@ class SharedDrm(appContext: AppContext, config: Map<String, Any?>, callback: Jav
 }
 
 class DrmModule : Module() {
-    private fun create(config: Map<String, Any?>, callback: JavaScriptFunction<Any?>?): SharedDrm =
+    private fun create(config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>?): SharedDrm =
         try {
             SharedDrm(appContext, config, callback)
         } catch (error: Exception) {
@@ -41,11 +42,11 @@ class DrmModule : Module() {
 
     override fun definition() = ModuleDefinition {
         Name("DrmModule")
-        Function("create") { config: Map<String, Any?>, callback: JavaScriptFunction<Any?>? ->
+        Function("create") { config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>? ->
             create(config, callback)
         }
         Class(SharedDrm::class) {
-            Constructor { config: Map<String, Any?>, callback: JavaScriptFunction<Any?>? ->
+            Constructor { config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>? ->
                 create(config, callback)
             }
             AsyncFunction("destroy") { owner: SharedDrm -> owner.destroy() }

@@ -208,25 +208,14 @@ public class PlayerModule: Module {
 }
 
 public final class SharedPlayer: SharedObject {
-    private var nativePlayer: Player?
-    var player: Player? {
-        get { isClosed.value ? nil : nativePlayer }
-        set {
-            guard !isClosed.value else {
-                newValue?.destroy()
-                return
-            }
-            nativePlayer = newValue
-        }
-    }
+    var player: Player?
     var source: SharedSource?
     private var network: SharedNetwork?
     fileprivate var callback: CallbackScope?
-    fileprivate let isClosed = LockedBox(value: false)
     deinit {
         // Runtime shutdown clears Expo's association registry without invoking release hooks.
         // Capture only the SDK resource so its final destruction still happens on the main thread.
-        if let playerToDestroy = nativePlayer {
+        if let playerToDestroy = player {
             DispatchQueue.main.async {
                 playerToDestroy.destroy()
             }
@@ -234,19 +223,9 @@ public final class SharedPlayer: SharedObject {
         callback?.close()
     }
 
-    override public func sharedObjectWillRelease() {
-        isClosed.update(true)
-        callback?.close()
-        // IMA requires player destruction on the main thread. Keep the owner alive until cleanup runs.
-        DispatchQueue.main.async {
-            self.destroy()
-        }
-    }
-
     func destroy() {
-        isClosed.update(true)
-        let playerToDestroy = nativePlayer
-        nativePlayer = nil
+        let playerToDestroy = player
+        player = nil
         callback?.close()
         // Keep listeners attached for the SDK's final DestroyEvent.
         playerToDestroy?.destroy()
@@ -260,7 +239,7 @@ public final class SharedPlayer: SharedObject {
         network: SharedNetwork?,
         analyticsConfig: [String: Any]? = nil
     ) {
-        guard !isClosed.value, player == nil, let playerConfig = RCTConvert.playerConfig(config) else { return }
+        guard let playerConfig = RCTConvert.playerConfig(config) else { return }
         let analytics = analyticsConfig.flatMap { RCTConvert.analyticsConfig($0) }
         guard analyticsConfig == nil || analytics != nil else { return }
 #if os(iOS)

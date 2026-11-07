@@ -18,6 +18,7 @@
 
 ### Changed
 
+- Return synchronous configuration callback values directly and simplify native resource teardown
 - Use Expo SharedObjects for native bindings and direct configuration callbacks. Keep Player, Source, and OfflineContentManager `nativeId` compatibility in TypeScript, and give player views independent ownership
 - **Breaking change:** Remove `nativeId` from Network, DRM, and Decoder configuration types and configuration wrappers. Configuration and internal UI adapters now use object ownership instead of named aliases
 - **Breaking change:** BufferApi, AnalyticsApi, and MediaControlsApi constructors now accept a Player object instead of an ID string. Remove their stored `nativeId`/`playerId` properties

@@ -16,7 +16,7 @@ public class NativeCallbacksModule: Module {
 /// Owns the JS dispatcher and one cancellation condition, never a table of callback requests.
 nonisolated internal final class CallbackScope: LongLivedObject {
     let condition = NSCondition()
-    private(set) var isClosed = false
+    fileprivate var isClosed: Bool { function == nil }
     private weak var context: AppContext?
     private weak var runtime: JavaScriptRuntime?
     private var function: JavaScriptRef<JavaScriptFunction>?
@@ -39,32 +39,39 @@ nonisolated internal final class CallbackScope: LongLivedObject {
 
     func close() {
         condition.lock()
-        guard !isClosed else { condition.unlock(); return }
-        isClosed = true
+        let function = self.function
+        self.function = nil
         condition.broadcast()
         condition.unlock()
+        guard let function else { return }
         if let runtime {
             try? runtime.execute {
-                self.function?.release()
-                self.function = nil
+                function.release()
                 runtime.longLivedObjects.remove(self)
             }
-        } else {
-            function = nil
         }
     }
 
     func call(_ operation: String, arguments: [Any], timeout: TimeInterval = 0.25) -> Any? {
-        let result = SharedCallbackResult(scope: self)
-        dispatch(operation, arguments: arguments, result: result)
+        let result = CallbackReturn()
+        dispatch(operation, arguments: arguments) { value in
+            self.condition.lock()
+            if !result.isComplete {
+                result.value = value
+                result.isComplete = true
+                self.condition.broadcast()
+            }
+            self.condition.unlock()
+        }
         condition.lock()
         let deadline = Date(timeIntervalSinceNow: timeout)
         while !result.isComplete && !isClosed {
             if !condition.wait(until: deadline) { break }
         }
         let value = isClosed ? nil : result.value
+        result.isComplete = true
+        result.value = nil
         condition.unlock()
-        result.resolve(nil)
         return value
     }
 
@@ -74,41 +81,51 @@ nonisolated internal final class CallbackScope: LongLivedObject {
     }
 
     func notify(_ operation: String, arguments: [Any]) {
-        dispatch(operation, arguments: arguments, result: nil)
+        dispatch(operation, arguments: arguments)
     }
 
-    private func dispatch(_ operation: String, arguments: [Any], result: SharedCallbackResult?) {
-        guard let runtime, let context else { result?.resolve(nil); return }
+    private func dispatch(
+        _ operation: String,
+        arguments: [Any],
+        result: SharedCallbackResult? = nil,
+        completion: ((Any?) -> Void)? = nil
+    ) {
+        guard let runtime, let context else { result?.resolve(nil); completion?(nil); return }
         runtime.schedule { [weak self, weak context] in
-            guard let self, let context else { result?.resolve(nil); return }
+            guard let self, let context else { result?.resolve(nil); completion?(nil); return }
             self.condition.lock()
-            let isClosed = self.isClosed
+            let function = self.function
             self.condition.unlock()
-            guard !isClosed, let function = self.function else { result?.resolve(nil); return }
+            guard let function else { result?.resolve(nil); completion?(nil); return }
             do {
                 let values = try [Any].getDynamicType().castToJS(arguments, appContext: context, in: runtime)
                 let reply = try result.map {
                     try SharedCallbackResult.getDynamicType().castToJS($0, appContext: context, in: runtime)
                 } ?? JavaScriptValue.undefined
-                try function.withValue { callback in
+                let value = try function.withValue { callback in
                     try callback?.call(arguments: JavaScriptValuesBuffer.copying(in: runtime, values: [
                         JavaScriptValue(runtime, operation), values, reply
                     ]))
                 }
+                completion?(value?.getAny())
             } catch {
                 result?.resolve(nil)
+                completion?(nil)
             }
         }
     }
 }
 
+private final class CallbackReturn {
+    var isComplete = false
+    var value: Any?
+}
+
 public final class SharedCallbackResult: SharedObject {
     private let scope: CallbackScope
-    fileprivate var isComplete = false
-    fileprivate var value: Any?
     private var completion: ((Any?) -> Void)?
 
-    fileprivate init(scope: CallbackScope, completion: ((Any?) -> Void)? = nil) {
+    fileprivate init(scope: CallbackScope, completion: @escaping (Any?) -> Void) {
         self.scope = scope
         self.completion = completion
         super.init()
@@ -116,17 +133,11 @@ public final class SharedCallbackResult: SharedObject {
 
     func resolve(_ value: Any?) {
         scope.condition.lock()
-        guard !isComplete else { scope.condition.unlock(); return }
-        isComplete = true
-        self.value = scope.isClosed ? nil : value
-        let completion = completion
+        guard let completion else { scope.condition.unlock(); return }
         self.completion = nil
-        let result = self.value
-        scope.condition.broadcast()
+        let result = scope.isClosed ? nil : value
         scope.condition.unlock()
-        if let completion {
-            DispatchQueue.global().async { completion(result) }
-        }
+        DispatchQueue.global().async { completion(result) }
     }
 
     deinit {

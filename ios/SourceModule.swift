@@ -59,7 +59,6 @@ public final class SharedSource: SharedObject {
     // The public API returns plain skdUri metadata; renewal still needs its native AVContentKeyRequest.
     fileprivate let fairplayRequests = LockedBox(value: [String: FairplayContentKeyRequest]())
     private var fairplayCancellable: AnyCancellable?
-    private var isClosed = false
     private var drm: SharedDrm?
 
     // The player retains this owner while its source is loaded. JS association release must not
@@ -70,7 +69,6 @@ public final class SharedSource: SharedObject {
         sourceRemoteControlConfig: [String: Any]?,
         analyticsSourceMetadata: [String: Any]? = nil
     ) {
-        guard !isClosed, source == nil else { return }
         self.drm = drm
         guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drm?.config) else { return }
         let sourceMetadata = RCTConvert.analyticsSourceMetadata(analyticsSourceMetadata)
@@ -94,7 +92,6 @@ public final class SharedSource: SharedObject {
     }
 
     fileprivate func destroy() {
-        isClosed = true
         source = nil
         drm = nil
         castSourceConfig = nil

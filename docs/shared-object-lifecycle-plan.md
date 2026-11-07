@@ -46,27 +46,34 @@ or pending PiP settings. View attachment, SDK event listeners, PiP settings, and
 view cleanup belong to the view. Expo view ref methods update PiP settings while
 Android is in PiP, and readiness reapplies initial settings.
 
-Explicit destruction closes callbacks and releases SDK resources. Expo release
-hooks provide cleanup when associations are released. JS compatibility entries
-retain initialized resources until explicit destruction, as required by legacy
-ID lookup. This does not promise one JS wrapper per native instance: aliases are
-part of the public API.
+Native owners use their nullable SDK reference as the resource lifetime indicator.
+There is no separate closed flag. Clearing the reference preserves the public
+post-destroy defaults without calling a destroyed SDK instance.
+
+Explicit player destruction runs directly in Expo's main-queue AsyncFunction and
+resolves after SDK cleanup. Automatic GC/finalization has no async executor guarantee;
+resources whose SDK requires the main thread retain one final main-thread handoff.
+JS compatibility entries retain initialized resources until explicit destruction,
+as required by legacy ID lookup. This does not promise one JS wrapper per native
+instance: aliases are part of the public API.
 
 ## Direct callbacks
 
 A configuration owner receives one JS callback dispatcher. Native code schedules
-it through Expo with the operation's arguments and a per-call completion
-SharedObject. JS resolves that object directly; no request ID or completion lookup
-map is needed. Promise-returning preprocessing callbacks use the same contract.
+it through Expo. Synchronous SDK callbacks consume the JS function's return value
+on the JS thread, signal a local native waiter, and preserve the existing timeout
+and fallback. They create no completion SharedObject or Expo registry association.
+Unexpected Promise returns use the synchronous fallback and consume rejection.
 
-Synchronous SDK callbacks wait for their local result with the existing timeout
-and fallback. Completion runs on the JS thread, so it can unblock an SDK callback
-waiting on the native main thread. Destruction wakes synchronous waiters and
-clears retained callback functions. Late and duplicate results are ignored.
+Asynchronous network preprocessing receives a per-call completion SharedObject.
+JS resolves that object directly; no application request ID or completion lookup
+map is needed. The native completion function is cleared after settlement so it
+cannot complete twice or retain its captured work until GC.
 
-Retained callbacks can capture application objects. Explicit destruction and
-runtime teardown must release them. Native collection and reload behavior need
-runtime checks; bridge mocks cannot establish cross-heap collection.
+The callback function reference also indicates callback availability. Destruction
+clears it and wakes synchronous waiters. Late synchronous results and duplicate
+async completions are ignored. Native collection and runtime reload still need
+focused checks; bridge mocks cannot establish cross-heap collection.
 
 ## Validation boundaries
 

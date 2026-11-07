@@ -229,3 +229,33 @@ test('configuration serialization removes compatibility labels while preserving 
   });
   assert.equal(config.nativeId, 'player');
 });
+
+test('synchronous callbacks return scalars and structured values without a completion object', (t) => {
+  const { helpers } = fixture(t, {});
+  const structured = [{ name: 'decoder', isSoftware: false }];
+  const callback = helpers.nativeCallback({
+    decision: () => false,
+    text: () => 'prepared',
+    structured: () => structured,
+    absent: () => undefined,
+    throws: () => {
+      throw new Error('synchronous failure');
+    },
+  });
+  assert.equal(callback('decision', []), false);
+  assert.equal(callback('text', []), 'prepared');
+  assert.equal(callback('structured', []), structured);
+  assert.equal(callback('absent', []), null);
+  assert.equal(callback('throws', []), null);
+});
+
+test('synchronous callbacks fall back for promises and consume rejected notifications', async (t) => {
+  const { helpers } = fixture(t, {});
+  const callback = helpers.nativeCallback({
+    resolves: () => Promise.resolve(false),
+    rejects: () => Promise.reject(new Error('asynchronous failure')),
+  });
+  assert.equal(callback('resolves', []), null);
+  assert.equal(callback('rejects', []), null);
+  await new Promise(setImmediate);
+});

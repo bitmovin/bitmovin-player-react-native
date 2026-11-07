@@ -74,11 +74,10 @@ public final class SharedOffline: SharedObject {
     private(set) var bridge: OfflineContentManagerBridge?
 #endif
     private var drm: SharedDrm?
-    private var isClosed = false
 
     func initialize(config: [String: Any], drm: SharedDrm?) {
 #if os(iOS)
-        guard !isClosed, bridge == nil, let identifier = config["identifier"] as? String,
+        guard bridge == nil, let identifier = config["identifier"] as? String,
               let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], drmConfig: drm?.config) else { return }
         self.drm = drm
         do {
@@ -89,7 +88,6 @@ public final class SharedOffline: SharedObject {
     }
 
     func destroy() {
-        isClosed = true
 #if os(iOS)
         bridge?.release()
         bridge = nil
@@ -101,10 +99,6 @@ public final class SharedOffline: SharedObject {
 #if os(iOS)
         if let bridge { DispatchQueue.main.async { bridge.release() } }
 #endif
-    }
-
-    override public func sharedObjectWillRelease() {
-        DispatchQueue.main.async { self.destroy() }
     }
 
     func download(_ request: [String: Any]?) {

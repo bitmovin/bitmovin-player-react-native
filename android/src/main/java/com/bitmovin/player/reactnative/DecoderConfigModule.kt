@@ -7,11 +7,12 @@ import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toMediaCodecInfoList
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.jni.JavaScriptFunction
+import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.sharedobjects.SharedObject
 
-class SharedDecoder(appContext: AppContext, config: Map<String, Any?>, callback: JavaScriptFunction<Any?>?) :
+class SharedDecoder(appContext: AppContext, config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>?) :
     SharedObject(appContext) {
     private val callbacks = CallbackScope(appContext, callback)
     val config = DecoderConfig(
@@ -37,11 +38,11 @@ class SharedDecoder(appContext: AppContext, config: Map<String, Any?>, callback:
 class DecoderConfigModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("DecoderConfigModule")
-        Function("create") { config: Map<String, Any?>, callback: JavaScriptFunction<Any?>? ->
+        Function("create") { config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>? ->
             SharedDecoder(appContext, config, callback)
         }
         Class(SharedDecoder::class) {
-            Constructor { config: Map<String, Any?>, callback: JavaScriptFunction<Any?>? ->
+            Constructor { config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>? ->
                 SharedDecoder(appContext, config, callback)
             }
             AsyncFunction("destroy") { owner: SharedDecoder -> owner.destroy() }

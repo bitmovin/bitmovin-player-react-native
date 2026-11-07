@@ -10,6 +10,7 @@ import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.jni.JavaScriptFunction
+import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -21,7 +22,7 @@ class PlayerModule : Module() {
         Constant("isGoogleImaEnabled") { ImaBeforeInitializationConfigurator.IS_GOOGLE_IMA_ENABLED }
         Function("createEmpty") { SharedPlayer.empty(appContext, mediaSessionPlaybackManager) }
         AsyncFunction("create") { config: Map<String, Any>?, analytics: Map<String, Any>?,
-            network: SharedNetwork?, decoder: SharedDecoder?, callback: JavaScriptFunction<Any?>?, ->
+            network: SharedNetwork?, decoder: SharedDecoder?, callback: JavaScriptFunction<JavaScriptValue>?, ->
             SharedPlayer.create(appContext, config, analytics, network, decoder, callback, mediaSessionPlaybackManager)
         }.runOnQueue(Queues.MAIN)
 

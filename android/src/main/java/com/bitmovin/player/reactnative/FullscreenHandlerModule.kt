@@ -3,11 +3,12 @@ package com.bitmovin.player.reactnative
 import com.bitmovin.player.api.ui.FullscreenHandler
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.jni.JavaScriptFunction
+import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.sharedobjects.SharedObject
 
-class SharedFullscreen(appContext: AppContext, callback: JavaScriptFunction<Any?>?) :
+class SharedFullscreen(appContext: AppContext, callback: JavaScriptFunction<JavaScriptValue>?) :
     SharedObject(appContext), FullscreenHandler {
     private val callbacks = CallbackScope(appContext, callback)
     override var isFullscreen = false
@@ -27,9 +28,9 @@ class SharedFullscreen(appContext: AppContext, callback: JavaScriptFunction<Any?
 class FullscreenHandlerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("FullscreenHandlerModule")
-        Function("create") { callback: JavaScriptFunction<Any?>? -> SharedFullscreen(appContext, callback) }
+        Function("create") { callback: JavaScriptFunction<JavaScriptValue>? -> SharedFullscreen(appContext, callback) }
         Class(SharedFullscreen::class) {
-            Constructor { callback: JavaScriptFunction<Any?>? -> SharedFullscreen(appContext, callback) }
+            Constructor { callback: JavaScriptFunction<JavaScriptValue>? -> SharedFullscreen(appContext, callback) }
             AsyncFunction("setIsFullscreenActive") { owner: SharedFullscreen, enabled: Boolean ->
                 owner.isFullscreen = enabled
             }

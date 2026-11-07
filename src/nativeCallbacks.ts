@@ -13,30 +13,47 @@ export type NativeCallback = (
   operation: string,
   args: any[],
   completion?: NativeCallbackResult
-) => void;
+) => any;
+
+function resolveCallback(
+  completion: NativeCallbackResult | undefined,
+  value: any
+): void {
+  try {
+    completion?.resolve(value ?? null);
+  } catch {
+    // A late completion may already have been released.
+  }
+}
 
 /** @internal */
 export function createNativeCallback(
   invoke: (operation: string, args: any[]) => any
 ): NativeCallback {
   return (operation, args, completion) => {
-    const resolve = (value: any) => {
-      try {
-        completion?.resolve(value ?? null);
-      } catch {
-        // The native operation may already have timed out or been destroyed.
-      }
-    };
     try {
       const value = invoke(operation, args);
-      if (value != null && typeof value.then === 'function') {
-        void Promise.resolve(value).then(resolve, () => resolve(null));
+      const asynchronous = value != null && typeof value.then === 'function';
+      if (!completion) {
+        if (asynchronous) {
+          // SDK decisions are synchronous; consume unexpected Promise failures.
+          void Promise.resolve(value).catch(() => {});
+          return null;
+        }
+        return value ?? null;
+      }
+      if (asynchronous) {
+        void Promise.resolve(value).then(
+          (result) => resolveCallback(completion, result),
+          () => resolveCallback(completion, null)
+        );
       } else {
-        resolve(value);
+        resolveCallback(completion, value);
       }
     } catch {
-      resolve(null);
+      resolveCallback(completion, null);
     }
+    return null;
   };
 }
 

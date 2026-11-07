@@ -1,7 +1,5 @@
 package com.bitmovin.player.reactnative
 
-import android.os.Handler
-import android.os.Looper
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
@@ -15,44 +13,36 @@ import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.getMap
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.jni.JavaScriptFunction
+import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.sharedobjects.SharedObject
-import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.Dispatchers
+import kotlin.coroutines.EmptyCoroutineContext
 
 /** Owns one configured SDK player. Views retain this object, never the reverse. */
 class SharedPlayer private constructor(
     appContext: AppContext,
-    private var resource: Player?,
+    player: Player?,
     private val callbacks: CallbackScope,
     val mediaSessionPlaybackManager: MediaSessionPlaybackManager,
 ) : SharedObject(appContext) {
-    private val closed = AtomicBoolean(false)
-    val player: Player?
-        get() = if (closed.get()) null else resource
+    var player: Player? = player
+        private set
 
     fun destroy() {
-        if (!closed.compareAndSet(false, true)) return
         callbacks.close()
-        val cleanup = Runnable {
-            val releasedPlayer = resource
-            resource = null
-            releasedPlayer?.let {
-                try {
-                    mediaSessionPlaybackManager.destroy(it)
-                } finally {
-                    it.destroy()
-                }
-            }
-        }
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            cleanup.run()
-        } else {
-            Handler(Looper.getMainLooper()).post(
-                cleanup,
-            )
+        val releasedPlayer = player ?: return
+        player = null
+        try {
+            mediaSessionPlaybackManager.destroy(releasedPlayer)
+        } finally {
+            releasedPlayer.destroy()
         }
     }
 
-    override fun sharedObjectDidRelease() = destroy()
+    override fun sharedObjectDidRelease() {
+        callbacks.close()
+        Dispatchers.Main.dispatch(EmptyCoroutineContext) { destroy() }
+    }
 
     companion object {
         fun empty(appContext: AppContext, manager: MediaSessionPlaybackManager) =
@@ -64,7 +54,7 @@ class SharedPlayer private constructor(
             analytics: Map<String, Any>?,
             network: SharedNetwork?,
             decoder: SharedDecoder?,
-            callback: JavaScriptFunction<Any?>?,
+            callback: JavaScriptFunction<JavaScriptValue>?,
             manager: MediaSessionPlaybackManager,
         ): SharedPlayer {
             val callbacks = CallbackScope(appContext, callback)

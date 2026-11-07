@@ -8,17 +8,14 @@ import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.sharedobjects.SharedObject
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /** A completion belongs to one invocation; no identity or lookup table crosses the bridge. */
-class CallbackResult(appContext: AppContext, private val complete: (Any?) -> Unit = {}) : SharedObject(appContext) {
-    private val completed = AtomicBoolean(false)
-    fun resolve(value: Any?) {
-        if (completed.compareAndSet(false, true)) complete(value)
-    }
-    fun expire() { completed.set(true) }
+class CallbackResult(appContext: AppContext, complete: (Any?) -> Unit = {}) : SharedObject(appContext) {
+    private val complete = AtomicReference<((Any?) -> Unit)?>(complete)
+    fun resolve(value: Any?) { complete.getAndSet(null)?.invoke(value) }
     override fun sharedObjectDidRelease() = resolve(null)
 }
 
@@ -48,51 +45,59 @@ private fun JavaScriptValue.toCallbackValue(): Any? = when {
 }
 
 /** Owns callback lifetime and wakes synchronous SDK calls when their owner is destroyed. */
-class CallbackScope(private val context: AppContext, callback: JavaScriptFunction<Any?>?) {
+class CallbackScope(private val context: AppContext, callback: JavaScriptFunction<JavaScriptValue>?) {
     private val lock = ReentrantLock()
     private val changed = lock.newCondition()
-    private var closed = false
-    private var callback: JavaScriptFunction<Any?>? = callback
+    private var callback: JavaScriptFunction<JavaScriptValue>? = callback
 
     fun close() = lock.withLock {
-        closed = true
         callback = null
         changed.signalAll()
     }
 
-    private fun schedule(operation: String, args: List<Any?>, result: CallbackResult?) {
+    private fun schedule(
+        operation: String,
+        args: List<Any?>,
+        result: CallbackResult? = null,
+        completion: ((Any?) -> Unit)? = null,
+    ) {
         context.runtime.schedule {
-            val function = lock.withLock { if (closed) null else callback }
+            val function = lock.withLock { callback }
             try {
                 if (function?.isValid() == true) {
-                    function(operation, args, result, appContext = context)
+                    val value = if (result == null) {
+                        function(operation, args, appContext = context)
+                    } else {
+                        function(operation, args, result, appContext = context)
+                    }
+                    completion?.invoke(value.toCallbackValue())
                 } else {
                     result?.resolve(null)
+                    completion?.invoke(null)
                 }
             } catch (_: Throwable) {
                 result?.resolve(null)
+                completion?.invoke(null)
             }
         }
     }
 
-    fun notify(operation: String, args: List<Any?>) = schedule(operation, args, null)
+    fun notify(operation: String, args: List<Any?>) = schedule(operation, args)
 
     fun call(operation: String, args: List<Any?>, timeoutMs: Long): Any? {
         var completed = false
         var value: Any? = null
-        val result = CallbackResult(context) { response ->
+        schedule(operation, args) { response ->
             lock.withLock {
                 value = response
                 completed = true
                 changed.signalAll()
             }
         }
-        schedule(operation, args, result)
         lock.withLock {
             var remaining = TimeUnit.MILLISECONDS.toNanos(timeoutMs)
-            while (!completed && !closed && remaining > 0) remaining = changed.awaitNanos(remaining)
-            result.expire()
-            return value
+            while (!completed && callback != null && remaining > 0) remaining = changed.awaitNanos(remaining)
+            return if (callback == null) null else value
         }
     }
 

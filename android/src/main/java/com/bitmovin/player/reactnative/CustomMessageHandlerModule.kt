@@ -4,11 +4,14 @@ import android.webkit.JavascriptInterface
 import com.bitmovin.player.ui.CustomMessageHandler
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.jni.JavaScriptFunction
+import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.sharedobjects.SharedObject
 
-class SharedCustomMessage(appContext: AppContext, callback: JavaScriptFunction<Any?>?) : SharedObject(appContext) {
+class SharedCustomMessage(appContext: AppContext, callback: JavaScriptFunction<JavaScriptValue>?) : SharedObject(
+    appContext,
+) {
     private val callbacks = CallbackScope(appContext, callback)
     val customMessageHandler = CustomMessageHandler(
         object : Any() {
@@ -28,9 +31,11 @@ class SharedCustomMessage(appContext: AppContext, callback: JavaScriptFunction<A
 class CustomMessageHandlerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("CustomMessageHandlerModule")
-        Function("create") { callback: JavaScriptFunction<Any?>? -> SharedCustomMessage(appContext, callback) }
+        Function("create") { callback: JavaScriptFunction<JavaScriptValue>? ->
+            SharedCustomMessage(appContext, callback)
+        }
         Class(SharedCustomMessage::class) {
-            Constructor { callback: JavaScriptFunction<Any?>? -> SharedCustomMessage(appContext, callback) }
+            Constructor { callback: JavaScriptFunction<JavaScriptValue>? -> SharedCustomMessage(appContext, callback) }
             AsyncFunction("sendMessage") { owner: SharedCustomMessage, message: String, data: String? ->
                 owner.customMessageHandler.sendMessage(message, data)
             }

@@ -1,7 +1,5 @@
 package com.bitmovin.player.reactnative
 
-import android.os.Handler
-import android.os.Looper
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
@@ -9,22 +7,13 @@ import com.bitmovin.player.reactnative.converter.toSourceConfig
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.sharedobjects.SharedObject
-import java.util.concurrent.atomic.AtomicBoolean
 
 /** Owns the source wrapper, without unloading a source retained by an SDK player. */
-class SharedSource(appContext: AppContext, private var resource: Source? = null) : SharedObject(appContext) {
-    private val closed = AtomicBoolean(false)
-    val source: Source?
-        get() = if (closed.get()) null else resource
+class SharedSource(appContext: AppContext, source: Source? = null) : SharedObject(appContext) {
+    var source: Source? = source
+        private set
 
-    fun destroy() {
-        if (!closed.compareAndSet(false, true)) return
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            resource = null
-        } else {
-            Handler(Looper.getMainLooper()).post { resource = null }
-        }
-    }
+    fun destroy() { source = null }
     override fun sharedObjectDidRelease() = destroy()
 
     companion object {

@@ -12,18 +12,17 @@ import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.reactnative.converter.toJson
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.sharedobjects.SharedObject
-import java.util.concurrent.atomic.AtomicBoolean
 
 class OfflineContentManagerBridge(appContext: AppContext) : SharedObject(appContext), OfflineContentManagerListener {
-    private val released = AtomicBoolean(false)
     private var identifier = ""
-    lateinit var offlineContentManager: OfflineContentManager
-        private set
+    private var resource: OfflineContentManager? = null
+    val offlineContentManager: OfflineContentManager
+        get() = checkNotNull(resource) { "Offline content manager is not initialized" }
 
     fun initialize(context: Context, identifier: String, source: SourceConfig, location: String) {
-        if (::offlineContentManager.isInitialized || released.get()) return
+        if (resource != null) return
         this.identifier = identifier
-        offlineContentManager = OfflineContentManager.getOfflineContentManager(
+        resource = OfflineContentManager.getOfflineContentManager(
             source,
             location,
             identifier,
@@ -122,10 +121,11 @@ class OfflineContentManagerBridge(appContext: AppContext) : SharedObject(appCont
         offlineContentManager.renewOfflineLicense()
     }
 
+    @Synchronized
     fun release() {
-        if (released.compareAndSet(false, true) && ::offlineContentManager.isInitialized) {
-            offlineContentManager.release()
-        }
+        val releasedManager = resource ?: return
+        resource = null
+        releasedManager.release()
     }
 
     override fun sharedObjectDidRelease() = release()
