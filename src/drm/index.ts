@@ -37,7 +37,6 @@ export interface DrmConfig {
  * @internal
  */
 export class Drm {
-  readonly config?: DrmConfig;
   /**
    * Provides FairPlay-specific DRM runtime APIs such as {@link FairplayDrmApi.renewExpiringLicense}.
    *
@@ -53,8 +52,10 @@ export class Drm {
    */
   isDestroyed = false;
 
-  constructor(config?: DrmConfig, source?: Source) {
-    this.config = config;
+  constructor(
+    readonly config?: DrmConfig,
+    source?: Source
+  ) {
     this.fairplay = new FairplayDrmApi(source);
   }
 

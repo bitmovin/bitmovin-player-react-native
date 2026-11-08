@@ -16,7 +16,7 @@ import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import SourceModule, { getNativeSource } from './modules/SourceModule';
 import { getNativeDrm } from './drm/drmModule';
-import { nativeConfig } from './nativeCallbacks';
+import { serializeNativeConfig } from './nativeCallbacks';
 import { setNativeOwner } from './nativeOwner';
 
 /**
@@ -213,10 +213,10 @@ export class Source extends NativeInstance<SourceConfig> {
           if (this.isDestroyed) return;
           try {
             const created = await SourceModule.create(
-              nativeConfig(this.config),
+              serializeNativeConfig(this.config),
               this.drm && getNativeDrm(this.drm),
-              nativeConfig(this.remoteControl || undefined),
-              nativeConfig(this.config?.analyticsSourceMetadata)
+              serializeNativeConfig(this.remoteControl || undefined),
+              serializeNativeConfig(this.config?.analyticsSourceMetadata)
             );
             holdDependencies(created, [this.drm]);
             return created;

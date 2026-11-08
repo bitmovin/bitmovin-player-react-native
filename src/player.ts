@@ -18,7 +18,12 @@ import type { OfflineContentManager, OfflineSourceOptions } from './offline';
 import type { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/player';
 import type { PlayerConfig } from './playerConfig';
-import type { AdItem, ImaSettings } from './advertising';
+import type {
+  AdItem,
+  AdvertisingConfig,
+  ImaAdvertisingConfig,
+  ImaSettings,
+} from './advertising';
 import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
@@ -27,7 +32,7 @@ import { DecoderConfigBridge } from './decoder';
 import { getNativeNetwork } from './network/networkModule';
 import { getNativeDecoder } from './decoder/decoderConfigModule';
 import { getNativeOffline } from './offline/offlineModule';
-import { nativeCallback, nativeConfig } from './nativeCallbacks';
+import { nativeCallback, serializeNativeConfig } from './nativeCallbacks';
 import { setNativeOwner } from './nativeOwner';
 
 /**
@@ -85,53 +90,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     const native = await getOrCreateAsync(
       'player',
       this.nativeId,
-      async () => {
-        if (this.isDestroyed) return;
-        try {
-          if (this.config?.networkConfig) {
-            this.network = new Network(this.config.networkConfig);
-            await this.network.initialize();
-          }
-          await this.maybeInitDecoderConfig();
-          const advertising = this.config?.advertisingConfig;
-          const beforeInitialization = advertising?.ima?.beforeInitialization;
-          if (beforeInitialization && !PlayerModule.isGoogleImaEnabled) {
-            console.warn(
-              'advertisingConfig.ima.beforeInitialization is ignored because Google IMA is disabled. ' +
-                'Set features.googleIMA to true in the Bitmovin config plugin and rebuild the native app. ' +
-                'See the "Google IMA" section of the bitmovin-player-react-native README.'
-            );
-          }
-          const created = await PlayerModule.create(
-            nativeConfig(this.config),
-            nativeConfig(this.config?.analyticsConfig),
-            this.network && getNativeNetwork(this.network),
-            this.decoderConfig && getNativeDecoder(this.decoderConfig),
-            nativeCallback({
-              shouldLoadAdItem: advertising?.shouldLoadAdItem,
-              shouldPlayAdBreak:
-                Platform.OS === 'android'
-                  ? advertising?.shouldPlayAdBreak
-                  : undefined,
-              imaBeforeInitialization:
-                beforeInitialization && PlayerModule.isGoogleImaEnabled
-                  ? (settings: ImaSettings) => {
-                      const result = beforeInitialization(settings);
-                      return result && typeof result === 'object'
-                        ? { ...settings, ...result }
-                        : settings;
-                    }
-                  : undefined,
-            })
-          );
-          holdDependencies(created, [this.network, this.decoderConfig]);
-          return created;
-        } catch (error) {
-          await this.network?.destroy();
-          this.decoderConfig?.destroy();
-          throw error;
-        }
-      },
+      () => this.createNativePlayer(),
       async (created) => {
         await created.destroy();
         destroyDependencies(created);
@@ -149,6 +108,59 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (this.config?.analyticsConfig) this.analytics = new AnalyticsApi(this);
     this.isInitialized = true;
   };
+
+  private async createNativePlayer() {
+    if (this.isDestroyed) return;
+    try {
+      if (this.config?.networkConfig) {
+        this.network = new Network(this.config.networkConfig);
+        await this.network.initialize();
+      }
+      await this.maybeInitDecoderConfig();
+      const advertising = this.config?.advertisingConfig;
+      const beforeInitialization = advertising?.ima?.beforeInitialization;
+      if (beforeInitialization && !PlayerModule.isGoogleImaEnabled) {
+        console.warn(
+          'advertisingConfig.ima.beforeInitialization is ignored because Google IMA is disabled. ' +
+            'Set features.googleIMA to true in the Bitmovin config plugin and rebuild the native app. ' +
+            'See the "Google IMA" section of the bitmovin-player-react-native README.'
+        );
+      }
+      const created = await PlayerModule.create(
+        serializeNativeConfig(this.config),
+        serializeNativeConfig(this.config?.analyticsConfig),
+        this.network && getNativeNetwork(this.network),
+        this.decoderConfig && getNativeDecoder(this.decoderConfig),
+        this.createPlayerCallback(advertising, beforeInitialization)
+      );
+      holdDependencies(created, [this.network, this.decoderConfig]);
+      return created;
+    } catch (error) {
+      await this.network?.destroy();
+      this.decoderConfig?.destroy();
+      throw error;
+    }
+  }
+
+  private createPlayerCallback(
+    advertising: AdvertisingConfig | undefined,
+    beforeInitialization: ImaAdvertisingConfig['beforeInitialization']
+  ) {
+    return nativeCallback({
+      shouldLoadAdItem: advertising?.shouldLoadAdItem,
+      shouldPlayAdBreak:
+        Platform.OS === 'android' ? advertising?.shouldPlayAdBreak : undefined,
+      imaBeforeInitialization:
+        beforeInitialization && PlayerModule.isGoogleImaEnabled
+          ? (settings: ImaSettings) => {
+              const result = beforeInitialization(settings);
+              return result && typeof result === 'object'
+                ? { ...settings, ...result }
+                : settings;
+            }
+          : undefined,
+    });
+  }
 
   /**
    * Destroys the native `Player` and releases all of its allocated resources.

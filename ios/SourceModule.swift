@@ -65,7 +65,7 @@ public final class SharedSource: SharedObject {
         self.source = source
         self.drm = drm
 #if os(iOS)
-        castSourceConfig = RCTConvert.sourceRemoteControlConfig(remote)?.castSourceConfig
+        castSourceConfig = RCTConvert.sourceRemoteControlConfig(remote)
 #else
         castSourceConfig = nil
 #endif
@@ -78,8 +78,4 @@ public final class SharedSource: SharedObject {
                 }
             }
     }
-}
-
-internal struct SourceRemoteControlConfig {
-    let castSourceConfig: SourceConfig?
 }

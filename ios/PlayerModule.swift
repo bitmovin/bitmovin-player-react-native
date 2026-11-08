@@ -249,7 +249,7 @@ public final class SharedPlayer: SharedObject {
             callback?.close()
             throw Exception(name: "InvalidAnalyticsConfig", description: "Invalid analytics configuration")
         }
-        if let networkConfig = network?.config { playerConfig.networkConfig = networkConfig }
+        if let network { playerConfig.networkConfig = network.config }
         setupShouldLoadAdItem(config: config, playerConfig: playerConfig, callback: callback)
         setupImaBeforeInitialization(config: config, playerConfig: playerConfig, callback: callback)
 #if os(iOS)

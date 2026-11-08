@@ -90,20 +90,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
       const native = await getOrCreateAsync(
         'offline',
         this.nativeId,
-        async () => {
-          const created = OfflineModule.create();
-          this.observeNative(created);
-          try {
-            await this.initializeNative(created);
-            return created;
-          } catch (error) {
-            this.eventSubscription?.remove();
-            this.eventSubscription = undefined;
-            await created.destroy();
-            destroyDependencies(created);
-            throw error;
-          }
-        },
+        () => this.createNativeOffline(),
         async (created) => {
           await created.destroy();
           destroyDependencies(created);
@@ -115,6 +102,21 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
     }
     this.isInitialized = true;
   };
+
+  private async createNativeOffline() {
+    const created = OfflineModule.create();
+    this.observeNative(created);
+    try {
+      await this.initializeNative(created);
+      return created;
+    } catch (error) {
+      this.eventSubscription?.remove();
+      this.eventSubscription = undefined;
+      await created.destroy();
+      destroyDependencies(created);
+      throw error;
+    }
+  }
 
   private async initializeNative(
     native: NonNullable<ReturnType<typeof getNativeOffline>>

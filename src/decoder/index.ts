@@ -8,11 +8,7 @@ import {
 
 /** Takes care of JS/Native communication for a `DecoderConfig`. */
 export class DecoderConfigBridge {
-  readonly config?: DecoderConfig;
-
-  constructor(config?: DecoderConfig) {
-    this.config = config;
-  }
+  constructor(readonly config?: DecoderConfig) {}
 
   isInitialized = false;
   isDestroyed = false;

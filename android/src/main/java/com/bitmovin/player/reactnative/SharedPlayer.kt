@@ -54,30 +54,7 @@ class SharedPlayer private constructor(
         ): SharedPlayer {
             val callbacks = CallbackScope(appContext, callback)
             try {
-                val playerConfig = config?.toPlayerConfig() ?: PlayerConfig()
-                val advertising = config?.getMap("advertisingConfig")
-                var advertisingConfig = playerConfig.advertisingConfig ?: AdvertisingConfig()
-                if (advertising?.containsKey("shouldLoadAdItem") == true) {
-                    advertisingConfig = advertisingConfig.copy(
-                        shouldLoadAdItem = {
-                            callbacks.call("shouldLoadAdItem", listOf(it.toJson()), 250) as? Boolean ?: true
-                        },
-                    )
-                }
-                if (advertising?.containsKey("shouldPlayAdBreak") == true) {
-                    advertisingConfig = advertisingConfig.copy(
-                        shouldPlayAdBreak = {
-                            callbacks.call("shouldPlayAdBreak", listOf(it.toJson()), 250) as? Boolean ?: true
-                        },
-                    )
-                }
-                if (advertising != null) playerConfig.advertisingConfig = advertisingConfig
-                @Suppress("UNCHECKED_CAST")
-                ImaBeforeInitializationConfigurator.configure(config as? Map<String, Any?>, playerConfig, callbacks)
-                network?.let { playerConfig.networkConfig = it.config }
-                decoder?.let {
-                    playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = it.config)
-                }
+                val playerConfig = preparePlayerConfig(config, network, decoder, callbacks)
                 val context = requireNotNull(appContext.reactContext?.applicationContext) {
                     "Application context is not available"
                 }
@@ -105,4 +82,37 @@ class SharedPlayer private constructor(
             }
         }
     }
+}
+
+private fun preparePlayerConfig(
+    config: Map<String, Any>?,
+    network: SharedNetwork?,
+    decoder: SharedDecoder?,
+    callbacks: CallbackScope,
+): PlayerConfig {
+    val playerConfig = config?.toPlayerConfig() ?: PlayerConfig()
+    val advertising = config?.getMap("advertisingConfig")
+    var advertisingConfig = playerConfig.advertisingConfig ?: AdvertisingConfig()
+    if (advertising?.containsKey("shouldLoadAdItem") == true) {
+        advertisingConfig = advertisingConfig.copy(
+            shouldLoadAdItem = {
+                callbacks.call("shouldLoadAdItem", listOf(it.toJson()), 250) as? Boolean ?: true
+            },
+        )
+    }
+    if (advertising?.containsKey("shouldPlayAdBreak") == true) {
+        advertisingConfig = advertisingConfig.copy(
+            shouldPlayAdBreak = {
+                callbacks.call("shouldPlayAdBreak", listOf(it.toJson()), 250) as? Boolean ?: true
+            },
+        )
+    }
+    if (advertising != null) playerConfig.advertisingConfig = advertisingConfig
+    @Suppress("UNCHECKED_CAST")
+    ImaBeforeInitializationConfigurator.configure(config as? Map<String, Any?>, playerConfig, callbacks)
+    network?.let { playerConfig.networkConfig = it.config }
+    decoder?.let {
+        playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = it.config)
+    }
+    return playerConfig
 }

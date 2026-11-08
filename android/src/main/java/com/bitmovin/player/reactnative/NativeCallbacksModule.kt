@@ -65,11 +65,7 @@ class CallbackScope(private val context: AppContext, callback: JavaScriptFunctio
             val function = lock.withLock { callback }
             try {
                 if (function?.isValid() == true) {
-                    val value = if (result == null) {
-                        function(operation, args, appContext = context)
-                    } else {
-                        function(operation, args, result, appContext = context)
-                    }
+                    val value = function(operation, args, result, appContext = context)
                     completion?.invoke(value.toCallbackValue())
                 } else {
                     result?.resolve(null)

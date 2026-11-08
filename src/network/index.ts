@@ -15,11 +15,7 @@ export type { HttpRequest, HttpResponse, NetworkConfig };
  * @internal
  */
 export class Network {
-  readonly config?: NetworkConfig;
-
-  constructor(config?: NetworkConfig) {
-    this.config = config;
-  }
+  constructor(readonly config?: NetworkConfig) {}
 
   isInitialized = false;
   isDestroyed = false;

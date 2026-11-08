@@ -9,8 +9,8 @@ class SourceModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("SourceModule")
         AsyncFunction("create") { config: Map<String, Any>?, drm: SharedDrm?,
-            remoteControl: Map<String, Any>?, analytics: Map<String, Any>?, ->
-            SharedSource.create(appContext, config, drm, remoteControl, analytics)
+            _: Map<String, Any>?, analytics: Map<String, Any>?, ->
+            SharedSource.create(appContext, config, drm, analytics)
         }.runOnQueue(Queues.MAIN)
 
         Class(SharedSource::class) {

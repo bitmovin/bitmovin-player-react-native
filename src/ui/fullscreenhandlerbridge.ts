@@ -9,7 +9,6 @@ export class FullscreenHandlerBridge {
   /** @internal */
   native?: NativeFullscreen;
   fullscreenHandler?: FullscreenHandler;
-  isDestroyed = false;
 
   constructor() {
     this.native = FullscreenHandlerModule.create(
@@ -32,11 +31,8 @@ export class FullscreenHandlerBridge {
   }
 
   destroy() {
-    if (!this.isDestroyed) {
-      const native = this.native;
-      this.native = undefined;
-      this.isDestroyed = true;
-      void native?.destroy();
-    }
+    const native = this.native;
+    this.native = undefined;
+    void native?.destroy();
   }
 }

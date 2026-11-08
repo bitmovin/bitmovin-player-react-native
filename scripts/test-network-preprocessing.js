@@ -219,7 +219,7 @@ test('configuration serialization removes compatibility labels while preserving 
     customData: { nativeId: 'custom-data' },
     headers: { nativeId: 'header' },
   };
-  assert.deepEqual(helpers.nativeConfig(config), {
+  assert.deepEqual(helpers.serializeNativeConfig(config), {
     networkConfig: { preprocessHttpRequest: true },
     playbackConfig: { decoderConfig: {} },
     sourceConfig: { drmConfig: {}, metadata },

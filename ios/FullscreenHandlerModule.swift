@@ -10,8 +10,8 @@ public class FullscreenHandlerModule: Module {
         }
         Class("FullscreenHandler", SharedFullscreen.self) {
             AsyncFunction("setIsFullscreenActive") { (owner: SharedFullscreen, value: Bool) in
-                owner.handler.isFullscreenValueBox.update(value)
-            }
+                MainActor.assumeIsolated { owner.handler.isFullscreen = value }
+            }.runOnQueue(.main)
             AsyncFunction("destroy") { (owner: SharedFullscreen) in owner.destroy() }
         }
     }
@@ -27,9 +27,10 @@ public final class SharedFullscreen: SharedObject {
         handler.owner = self
     }
 
+    @MainActor
     func request(_ operation: String) {
         if let value = callback.call(operation, arguments: []) as? Bool {
-            handler.isFullscreenValueBox.update(value)
+            handler.isFullscreen = value
         }
     }
 

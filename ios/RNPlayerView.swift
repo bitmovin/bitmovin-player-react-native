@@ -49,7 +49,6 @@ public class RNPlayerView: ExpoView {
     private var isPictureInPictureEnabledValue: Bool?
     private var pictureInPictureActions: [RNPictureInPictureAction]?
     private var avPlayerViewControllerTransitionForced = false
-    private var shouldExitPictureInPictureOnForeground = false
     private var foregroundObserver: NSObjectProtocol?
 
     let onBmpPlayerViewReady = EventDispatcher()
@@ -184,9 +183,9 @@ public class RNPlayerView: ExpoView {
         player.add(listener: self)
         playerView?.add(listener: self)
 
-        shouldExitPictureInPictureOnForeground =
-            playerViewConfigWrapper?.pictureInPictureConfig?.shouldExitOnForeground ?? false
-        updateForegroundObserver()
+        updateForegroundObserver(
+            shouldExitOnForeground: playerViewConfigWrapper?.pictureInPictureConfig?.shouldExitOnForeground ?? false
+        )
 
         self.maybeEmitPictureInPictureAvailabilityEvent(
             previousState: previousPictureInPictureAvailableValue
@@ -280,16 +279,15 @@ private extension RNPlayerView {
         playerView.player?.remove(listener: self)
         playerView.remove(listener: self)
         playerView.player = nil
-        shouldExitPictureInPictureOnForeground = false
         updateForegroundObserver()
     }
 
-    func updateForegroundObserver() {
+    func updateForegroundObserver(shouldExitOnForeground: Bool = false) {
         if let foregroundObserver {
             NotificationCenter.default.removeObserver(foregroundObserver)
             self.foregroundObserver = nil
         }
-        guard shouldExitPictureInPictureOnForeground else { return }
+        guard shouldExitOnForeground else { return }
 #if os(iOS)
         foregroundObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didBecomeActiveNotification,
@@ -667,7 +665,7 @@ private extension RNPlayerView {
                 bitmovinUserInterfaceConfig.hideFirstFrame = hideFirstFrame
             }
 
-            bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandler?.handler.customMessageHandler
+            bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandler?.customMessageHandler
 
             return bitmovinUserInterfaceConfig
         }

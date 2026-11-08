@@ -1,3 +1,4 @@
+import BitmovinPlayer
 import ExpoModulesCore
 import ExpoModulesJSI
 
@@ -9,7 +10,9 @@ public class CustomMessageHandlerModule: Module {
         }
         Class("CustomMessageHandler", SharedCustomMessage.self) {
             AsyncFunction("sendMessage") { (owner: SharedCustomMessage, message: String, data: String?) in
-                owner.handler.sendMessage(message, withData: data)
+#if os(iOS)
+                owner.customMessageHandler.sendMessage(message, withData: data)
+#endif
             }.runOnQueue(.main)
             AsyncFunction("destroy") { (owner: SharedCustomMessage) in owner.destroy() }
         }
@@ -17,20 +20,25 @@ public class CustomMessageHandlerModule: Module {
 }
 
 public final class SharedCustomMessage: SharedObject {
-    let handler = CustomMessageHandlerBridge()
-    fileprivate let callback: CallbackScope
+    private let callback: CallbackScope
+#if os(iOS)
+    private(set) lazy var customMessageHandler: CustomMessageHandler = {
+        let handler = CustomMessageHandler()
+        handler.delegate = self
+        return handler
+    }()
+#endif
 
     init(callback: CallbackScope) {
         self.callback = callback
         super.init()
-        handler.owner = self
     }
 
-    func synchronousMessage(_ message: String, data: String?) -> String? {
+    public func receivedSynchronousMessage(_ message: String, withData data: String?) -> String? {
         callback.call("synchronousMessage", arguments: [message, data.map { $0 as Any } ?? NSNull()]) as? String ?? ""
     }
 
-    func asynchronousMessage(_ message: String, data: String?) {
+    public func receivedAsynchronousMessage(_ message: String, withData data: String?) {
         callback.notify("asynchronousMessage", arguments: [message, data.map { $0 as Any } ?? NSNull()])
     }
 
@@ -38,3 +46,7 @@ public final class SharedCustomMessage: SharedObject {
     deinit { callback.close() }
     override public func sharedObjectWillRelease() { callback.close() }
 }
+
+#if os(iOS)
+extension SharedCustomMessage: CustomMessageHandlerDelegate {}
+#endif

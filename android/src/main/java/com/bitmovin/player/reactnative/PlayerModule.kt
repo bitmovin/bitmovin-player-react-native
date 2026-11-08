@@ -27,14 +27,12 @@ class PlayerModule : Module() {
 
         Class(SharedPlayer::class) {
             AsyncFunction("getBufferLevel") { shared: SharedPlayer, type: String ->
-                shared.player.buffer.let { buffer ->
-                    type.toBufferTypeOrThrow().let { bufferType ->
-                        mapOf(
-                            "audio" to buffer.getLevel(bufferType, MediaType.Audio).toJson(),
-                            "video" to buffer.getLevel(bufferType, MediaType.Video).toJson(),
-                        )
-                    }
-                }
+                val buffer = shared.player.buffer
+                val bufferType = type.toBufferTypeOrThrow()
+                mapOf(
+                    "audio" to buffer.getLevel(bufferType, MediaType.Audio).toJson(),
+                    "video" to buffer.getLevel(bufferType, MediaType.Video).toJson(),
+                )
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("setBufferTargetLevel") { shared: SharedPlayer, type: String, value: Double ->
@@ -99,33 +97,32 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getVolume") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.volume.toDouble()
+                shared.player.volume.toDouble()
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("currentTime") { shared: SharedPlayer, mode: String? ->
-                shared.player.let {
-                    when (mode) {
-                        "relative" -> it.currentTime + it.playbackTimeOffsetToRelativeTime
-                        "absolute" -> it.currentTime + it.playbackTimeOffsetToAbsoluteTime
-                        else -> it.currentTime
-                    }
+                val player = shared.player
+                when (mode) {
+                    "relative" -> player.currentTime + player.playbackTimeOffsetToRelativeTime
+                    "absolute" -> player.currentTime + player.playbackTimeOffsetToAbsoluteTime
+                    else -> player.currentTime
                 }
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("isPlaying") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.isPlaying
+                shared.player.isPlaying
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("isPaused") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.isPaused
+                shared.player.isPaused
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("duration") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.duration
+                shared.player.duration
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("isMuted") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.isMuted
+                shared.player.isMuted
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("unload") { shared: SharedPlayer ->
@@ -133,19 +130,19 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getTimeShift") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.timeShift
+                shared.player.timeShift
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("isLive") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.isLive
+                shared.player.isLive
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getMaxTimeShift") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.maxTimeShift
+                shared.player.maxTimeShift
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getPlaybackSpeed") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.playbackSpeed.toDouble()
+                shared.player.playbackSpeed.toDouble()
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("setPlaybackSpeed") { shared: SharedPlayer, playbackSpeed: Double ->
@@ -153,7 +150,7 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("isAd") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.isAd
+                shared.player.isAd
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("setMaxSelectableBitrate") { shared: SharedPlayer, maxBitrate: Double ->
@@ -175,11 +172,11 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("isCastAvailable") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.isCastAvailable
+                shared.player.isCastAvailable
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("isCasting") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.isCasting
+                shared.player.isCasting
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("castVideo") { shared: SharedPlayer ->
@@ -200,11 +197,11 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getAudioTrack") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.source?.selectedAudioTrack?.toJson()
+                shared.player.source?.selectedAudioTrack?.toJson()
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getAvailableAudioTracks") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.source?.availableAudioTracks?.map { it.toJson() } ?: emptyList()
+                shared.player.source?.availableAudioTracks?.map { it.toJson() } ?: emptyList()
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("setAudioTrack") { shared: SharedPlayer, trackIdentifier: String ->
@@ -212,11 +209,11 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getSubtitleTrack") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.source?.selectedSubtitleTrack?.toJson()
+                shared.player.source?.selectedSubtitleTrack?.toJson()
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getAvailableSubtitles") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.source?.availableSubtitleTracks?.map { it.toJson() } ?: emptyList()
+                shared.player.source?.availableSubtitleTracks?.map { it.toJson() } ?: emptyList()
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("setSubtitleTrack") { shared: SharedPlayer, trackIdentifier: String? ->
@@ -224,11 +221,11 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getVideoQuality") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.videoQuality?.toJson()
+                shared.player.videoQuality?.toJson()
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getAvailableVideoQualities") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.availableVideoQualities.map { it.toJson() }
+                shared.player.availableVideoQualities.map { it.toJson() }
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("setVideoQuality") { shared: SharedPlayer, qualityId: String ->
@@ -236,7 +233,7 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getThumbnail") { shared: SharedPlayer, time: Double ->
-                return@AsyncFunction shared.player.getThumbnail(time)?.toJson()
+                shared.player.getThumbnail(time)?.toJson()
             }.runOnQueue(Queues.MAIN)
             AsyncFunction("loadOfflineContent") { shared: SharedPlayer, offline: OfflineContentManagerBridge,
                 options: Map<String, Any>?, ->
@@ -249,10 +246,6 @@ class PlayerModule : Module() {
 
             AsyncFunction("loadSource") { shared: SharedPlayer, sharedSource: SharedSource ->
                 shared.player.load(sharedSource.source)
-            }.runOnQueue(Queues.MAIN)
-
-            AsyncFunction("source") { shared: SharedPlayer ->
-                return@AsyncFunction shared.player.source?.toJson()
             }.runOnQueue(Queues.MAIN)
         }
     }

@@ -16,15 +16,14 @@ public class NetworkModule: Module {
 }
 
 public final class SharedNetwork: SharedObject {
-    private(set) var config: NetworkConfig?
+    let config = NetworkConfig()
     private let callback: CallbackScope
 
     init(config json: [String: Any], callback: CallbackScope) {
         self.callback = callback
-        config = RCTConvert.networkConfig(json)
         super.init()
         if json["preprocessHttpRequest"] != nil {
-            config?.preprocessHttpRequest = { [weak self] type, request, completion in
+            config.preprocessHttpRequest = { [weak self] type, request, completion in
                 guard let self else { completion(request); return }
                 self.callback.request("preprocessHttpRequest", arguments: [
                     RCTConvert.toJson(httpRequestType: type), RCTConvert.toJson(httpRequest: request)
@@ -34,7 +33,7 @@ public final class SharedNetwork: SharedObject {
             }
         }
         if json["preprocessHttpResponse"] != nil {
-            config?.preprocessHttpResponse = { [weak self] type, response, completion in
+            config.preprocessHttpResponse = { [weak self] type, response, completion in
                 guard let self else { completion(response); return }
                 self.callback.request("preprocessHttpResponse", arguments: [
                     RCTConvert.toJson(httpRequestType: type), RCTConvert.toJson(httpResponse: response)

@@ -1,10 +1,11 @@
 import BitmovinPlayer
 
 nonisolated internal class FullscreenHandlerBridge: NSObject, FullscreenHandler {
-    nonisolated let isFullscreenValueBox = LockedBox(value: false)
+    @MainActor var isFullscreen = false
     weak var owner: SharedFullscreen?
 
-    var isFullscreen: Bool { isFullscreenValueBox.value }
+    @MainActor
     func onFullscreenRequested() { owner?.request("enterFullscreen") }
+    @MainActor
     func onFullscreenExitRequested() { owner?.request("exitFullscreen") }
 }

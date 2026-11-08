@@ -1038,17 +1038,15 @@ extension RCTConvert {
         ]
     }
 
-    static func sourceRemoteControlConfig(_ json: Any?) -> SourceRemoteControlConfig? {
+    static func sourceRemoteControlConfig(_ json: Any?) -> SourceConfig? {
         guard let json = json as? [String: Any?],
               let castSourceConfigJson = json["castSourceConfig"] as? [String: Any?] else {
             return nil
         }
 
-        return SourceRemoteControlConfig(
-            castSourceConfig: Self.sourceConfig(
-                castSourceConfigJson,
-                drmConfig: castSourceConfigJson["drmConfig"].flatMap(Self.drmConfig)?.widevine
-            )
+        return Self.sourceConfig(
+            castSourceConfigJson,
+            drmConfig: castSourceConfigJson["drmConfig"].flatMap(Self.drmConfig)?.widevine
         )
     }
 #endif

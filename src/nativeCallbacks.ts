@@ -109,6 +109,3 @@ export function nativeCallback(
     return handler?.(...args);
   });
 }
-
-/** @internal */
-export const nativeConfig = serializeNativeConfig;

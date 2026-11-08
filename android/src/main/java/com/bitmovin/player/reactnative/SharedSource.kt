@@ -18,7 +18,6 @@ class SharedSource(appContext: AppContext, source: Source) : SharedRef<Source>(s
             appContext: AppContext,
             config: Map<String, Any>?,
             drm: SharedDrm?,
-            sourceRemoteControlConfig: Map<String, Any>?,
             analyticsSourceMetadata: Map<String, Any>?,
         ): SharedSource {
             val sourceConfig = config?.toSourceConfig() ?: throw SourceException.InvalidSourceConfig()

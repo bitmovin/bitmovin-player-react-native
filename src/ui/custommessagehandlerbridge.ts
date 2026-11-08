@@ -10,7 +10,6 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
   /** @internal */
   native?: NativeCustomMessage;
   private customMessageHandler?: CustomMessageHandler;
-  private isDestroyed = false;
 
   constructor() {
     this.native = CustomMessageHandlerModule.create(
@@ -38,12 +37,9 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
   }
 
   destroy() {
-    if (!this.isDestroyed) {
-      const native = this.native;
-      this.native = undefined;
-      this.isDestroyed = true;
-      void native?.destroy();
-    }
+    const native = this.native;
+    this.native = undefined;
+    void native?.destroy();
   }
 
   sendMessage(message: string, data: string | undefined): void {
