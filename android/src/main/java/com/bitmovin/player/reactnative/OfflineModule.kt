@@ -4,15 +4,10 @@ import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.reactnative.converter.toSourceConfig
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
-import expo.modules.kotlin.AppContext
-import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import expo.modules.kotlin.sharedobjects.SharedObject
 import java.security.InvalidParameterException
-
-class SharedOfflineEvents(appContext: AppContext) : SharedObject(appContext)
 
 class OfflineModule : Module() {
     private fun create(
@@ -109,15 +104,4 @@ class OfflineModule : Module() {
             }
         }
     }
-}
-
-// MARK: - Exception Definitions
-
-sealed class OfflineException(message: String) : CodedException(message) {
-    class InvalidIdentifier : OfflineException("Invalid identifier")
-    class InvalidSourceConfig : OfflineException("Invalid source config")
-    class InvalidRequest : OfflineException("Invalid download request")
-    class DownloadAlreadyCompleted : OfflineException("Download already completed")
-    class DownloadInProgress : OfflineException("Download already in progress")
-    class DownloadSuspended : OfflineException("Download is suspended")
 }

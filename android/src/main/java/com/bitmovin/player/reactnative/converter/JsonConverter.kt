@@ -8,8 +8,6 @@ import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.analytics.api.RetryPolicy
 import com.bitmovin.analytics.api.SourceMetadata
-import com.bitmovin.player.reactnative.extensions.get
-import com.bitmovin.player.reactnative.extensions.set
 import com.bitmovin.player.api.BandwidthMeterType
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.ExperimentalBitmovinApi
@@ -33,6 +31,7 @@ import com.bitmovin.player.api.buffer.BufferType
 import com.bitmovin.player.api.casting.RemoteControlConfig
 import com.bitmovin.player.api.decoder.DecoderPriorityProvider.DecoderContext
 import com.bitmovin.player.api.decoder.MediaCodecInfo
+import com.bitmovin.player.api.deficiency.DeficiencyData
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
@@ -64,7 +63,6 @@ import com.bitmovin.player.api.metadata.id3.PrivFrame
 import com.bitmovin.player.api.metadata.id3.TextInformationFrame
 import com.bitmovin.player.api.metadata.id3.UrlLinkFrame
 import com.bitmovin.player.api.metadata.scte.ScteMessage
-import com.bitmovin.player.api.deficiency.DeficiencyData
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.network.HttpResponse
@@ -88,7 +86,7 @@ import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.RNStyleConfigWrapper
 import com.bitmovin.player.reactnative.UserInterfaceType
-import com.bitmovin.player.reactnative.converter.toPictureInPictureActions
+import com.bitmovin.player.reactnative.extensions.get
 import com.bitmovin.player.reactnative.extensions.getArray
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getDoubleOrNull
@@ -96,7 +94,7 @@ import com.bitmovin.player.reactnative.extensions.getInt
 import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.getString
-import com.bitmovin.player.reactnative.extensions.getStringArray
+import com.bitmovin.player.reactnative.extensions.set
 import com.bitmovin.player.reactnative.extensions.toBase64DataUri
 import com.bitmovin.player.reactnative.extensions.toMap
 import com.bitmovin.player.reactnative.extensions.toMapList
@@ -197,7 +195,7 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig =
             setBandwidthMeterType(
                 BandwidthMeterType.Default(
                     bandwidthEstimateWeightLimit = it,
-                )
+                ),
             )
         }
         withMap("devicesThatRequireSurfaceWorkaround") { devices ->
@@ -219,7 +217,7 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig =
                 it
                     .filterNotNull()
                     .mapNotNull(String::toForceReuseVideoCodecReason)
-                    .toSet()
+                    .toSet(),
             )
         }
     }.build()
@@ -920,10 +918,6 @@ fun String.toMediaType(): MediaType? = when (this) {
     else -> null
 }
 
-data class MediaControlConfig(
-    var isEnabled: Boolean = true,
-)
-
 fun Map<String, Any?>.toMediaControlConfig(): MediaControlConfig = MediaControlConfig().apply {
     withBoolean("isEnabled") { isEnabled = it }
 }
@@ -985,7 +979,7 @@ fun Metadata.toJson(type: String): Map<String, Any> {
 
     return mapOf(
         "startTime" to startTime,
-        "entries" to entriesArray
+        "entries" to entriesArray,
     ).filterNotNullValues()
 }
 
@@ -1001,7 +995,7 @@ fun Metadata.Entry.toJson(): Map<String, Any> {
             Log.w(
                 "JsonConverter",
                 "Unsupported metadata entry type: ${this::class.simpleName}. " +
-                        "This metadata type is supported on native, but not yet on the React Native SDK"
+                    "This metadata type is supported on native, but not yet on the React Native SDK",
             )
             mapOf(
                 "metadataType" to "NONE",
@@ -1018,7 +1012,7 @@ fun DateRangeMetadata.toJson(): Map<String, Any> {
     val endSeconds = (duration ?: plannedDuration)?.let { startTime + it }
 
     val relativeTimeRange = mutableMapOf<String, Any>(
-        "start" to startTime
+        "start" to startTime,
     )
     if (endSeconds != null) {
         relativeTimeRange["end"] = endSeconds
@@ -1042,7 +1036,7 @@ fun EventMessage.toJson(): Map<String, Any> = mapOf(
     "schemeIdUri" to schemeIdUri,
     "value" to value,
     "duration" to durationMs?.div(1000.0),
-    "messageData" to messageData.toBase64String()
+    "messageData" to messageData.toBase64String(),
 ).filterNotNullValues()
 
 private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
@@ -1122,7 +1116,7 @@ private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
 fun ScteMessage.toJson(): Map<String, Any> = mapOf(
     "metadataType" to "SCTE",
     "key" to key,
-    "value" to value
+    "value" to value,
 ).filterNotNullValues()
 
 private fun Cue.toLayoutJson(): Map<String, Any>? {
@@ -1149,7 +1143,6 @@ private fun Cue.toLayoutLineJson(): Map<String, Any>? = when {
     lineType == Cue.LineType.LineTypeNumber -> mapOf("value" to line.toDouble(), "unit" to "line")
     else -> mapOf("value" to line.toPercent(), "unit" to "percent")
 }
-
 
 private fun Float.toPercent(): Double = (this * 100).toDouble()
 
