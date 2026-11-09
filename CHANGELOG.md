@@ -20,6 +20,7 @@
 
 ### Changed
 
+- **Breaking change:** Make `Source.drm` an always-present `SourceDrmApi`, including for clear sources. Read `source.config?.drmConfig` to inspect configuration. `FairplayDrmApi` requires a Source. `Drm` is configuration-only: its Source constructor parameter, `fairplay`, lifecycle methods, and lifecycle flags are removed. Continue renewing licenses through `source.drm.fairplay.renewExpiringLicense(request)`
 - Return synchronous configuration callback values directly and simplify native resource teardown
 - Keep native Player and Source references while their TypeScript wrappers remain reachable after `destroy()`. Direct methods follow native SDK behavior after destruction instead of substituting binding defaults. Preserve lazy asynchronous initialization without empty native objects
 - Use Expo SharedObjects for native bindings and direct configuration callbacks. Keep Player, Source, and OfflineContentManager `nativeId` compatibility in TypeScript, and give player views independent ownership

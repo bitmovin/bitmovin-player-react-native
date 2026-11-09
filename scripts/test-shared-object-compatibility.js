@@ -223,7 +223,9 @@ function fixture(t, platform = 'ios') {
     DecoderConfigModule: {
       create: (config, callback) => create('decoder', config, callback),
     },
-    DrmModule: { create: () => ({ destroy: async () => {} }) },
+    DrmModule: {
+      create: (config, callback) => create('drm', config, callback),
+    },
   };
   for (const module of Object.values(modules)) {
     module.addListener = () => ({ remove() {} });
@@ -237,6 +239,9 @@ function fixture(t, platform = 'ios') {
 
   const { Player } = require(path.join(directory, 'player.js'));
   const { Source, SourceType } = require(path.join(directory, 'source.js'));
+  const { Drm, SourceDrmApi, FairplayDrmApi } = require(
+    path.join(directory, 'drm/index.js')
+  );
   const { BufferApi, BufferType } = require(
     path.join(directory, 'bufferApi.js')
   );
@@ -250,6 +255,9 @@ function fixture(t, platform = 'ios') {
     Player,
     Source,
     SourceType,
+    Drm,
+    SourceDrmApi,
+    FairplayDrmApi,
     BufferApi,
     BufferType,
     AnalyticsApi,
@@ -985,6 +993,121 @@ test('destroying an alias with a retired backend closes its pending replacement 
   finish(await create());
   await initialization;
   assert.equal(lookup('player', owner.nativeId), undefined);
+});
+
+test('every Source exposes a stable runtime DRM API independently of configuration', async (t) => {
+  const { Source, SourceDrmApi, FairplayDrmApi, creations } = fixture(t);
+  for (const drmConfig of [
+    undefined,
+    { fairplay: { licenseUrl: 'https://test/license' } },
+  ]) {
+    const source = new Source({ url: 'https://test/source', drmConfig });
+    const runtime = source.drm;
+    assert.ok(runtime instanceof SourceDrmApi);
+    assert.ok(runtime.fairplay instanceof FairplayDrmApi);
+    assert.deepEqual(Object.keys(runtime), ['fairplay']);
+    await runtime.fairplay.renewExpiringLicense({
+      skdUri: 'skd://before-initialization',
+    });
+    await source.initialize();
+    assert.equal(source.drm, runtime);
+    source.destroy();
+    assert.equal(source.drm, runtime);
+  }
+  assert.equal(creations.filter(({ kind }) => kind === 'drm').length, 1);
+});
+
+test('Drm is a configuration value without native allocation or lifecycle', (t) => {
+  const { Drm, creations } = fixture(t);
+  const config = { widevine: { licenseUrl: 'https://test/license' } };
+  const drm = new Drm(config);
+  assert.equal(drm.config, config);
+  assert.deepEqual(Object.keys(drm), ['config']);
+  for (const removed of [
+    'fairplay',
+    'initialize',
+    'destroy',
+    'isInitialized',
+    'isDestroyed',
+  ]) {
+    assert.equal(removed in drm, false, removed);
+  }
+  assert.equal(creations.length, 0);
+});
+
+test('source aliases share one native DRM configuration and closing an alias closes its callbacks', async (t) => {
+  const { Source, creations, invoke } = fixture(t);
+  const config = {
+    nativeId: 'drm-source-aliases',
+    url: 'https://test/source',
+    drmConfig: {
+      fairplay: { prepareMessage: (message) => `prepared:${message}` },
+    },
+  };
+  const first = new Source(config);
+  const alias = new Source(config);
+  await Promise.all([first.initialize(), alias.initialize()]);
+  const owners = creations.filter(({ kind }) => kind === 'drm');
+  assert.equal(owners.length, 1);
+  assert.equal(
+    await invoke(owners[0].native, 'prepareMessage', ['message']),
+    'prepared:message'
+  );
+  alias.destroy();
+  await new Promise(setImmediate);
+  assert.equal(
+    await invoke(owners[0].native, 'prepareMessage', ['message']),
+    null
+  );
+  assert.equal(first.isDestroyed, false);
+});
+
+test('source creation failure closes DRM callbacks and retries without replacing its runtime API', async (t) => {
+  const { Source, modules, creations, invoke } = fixture(t);
+  const source = new Source({
+    url: 'https://test/source',
+    drmConfig: { fairplay: { prepareMessage: (message) => message } },
+  });
+  const runtime = source.drm;
+  const create = modules.SourceModule.create;
+  const failure = new Error('SDK Source creation failed');
+  modules.SourceModule.create = async () => {
+    throw failure;
+  };
+  await assert.rejects(source.initialize(), (error) => error === failure);
+  const failedDrm = creations.find(({ kind }) => kind === 'drm').native;
+  assert.equal(await invoke(failedDrm, 'prepareMessage', ['message']), null);
+  assert.equal(source.isInitialized, false);
+  modules.SourceModule.create = create;
+  await source.initialize();
+  assert.equal(source.drm, runtime);
+  const liveDrm = creations.filter(({ kind }) => kind === 'drm').at(-1).native;
+  assert.equal(await invoke(liveDrm, 'prepareMessage', ['message']), 'message');
+  source.destroy();
+});
+
+test('canceling a source during SDK creation closes its DRM callbacks before creation finishes', async (t) => {
+  const { Source, modules, creations, invoke, lookup } = fixture(t);
+  const create = modules.SourceModule.create;
+  let finish;
+  modules.SourceModule.create = () =>
+    new Promise((resolve) => {
+      finish = resolve;
+    });
+  const source = new Source({
+    nativeId: 'cancel-drm-source',
+    url: 'https://test/source',
+    drmConfig: { fairplay: { prepareMessage: (message) => message } },
+  });
+  const initialization = source.initialize();
+  await new Promise(setImmediate);
+  const drm = creations.find(({ kind }) => kind === 'drm').native;
+  source.destroy();
+  await new Promise(setImmediate);
+  assert.equal(await invoke(drm, 'prepareMessage', ['message']), null);
+  finish(await create());
+  await initialization;
+  assert.equal(lookup('source', source.nativeId), undefined);
 });
 
 test('FairPlay runtime helper forwards through its Source object', async (t) => {
