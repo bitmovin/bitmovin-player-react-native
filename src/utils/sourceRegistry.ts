@@ -34,4 +34,10 @@ export const SourceRegistry = {
   get(nativeId: string): Source | undefined {
     return sources.get(nativeId);
   },
+
+  ownedBy(playerNativeId: string): Source[] {
+    return [...sources.values()].filter(
+      (source) => source.ownerNativeId === playerNativeId
+    );
+  },
 };

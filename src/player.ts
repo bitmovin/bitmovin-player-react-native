@@ -71,10 +71,6 @@ export class Player extends NativeInstance<PlayerConfig> {
   private onShouldPlayAdBreakSubscription?: EventSubscription;
   private onImaBeforeInitializationSubscription?: EventSubscription;
   private initialization?: Promise<void>;
-  /**
-   * The {@link Source}s created in {@link Player.load}, which the app cannot destroy once they are replaced.
-   */
-  private readonly createdSources = new Set<Source>();
   private readonly eventListeners = new EventListeners<PlayerEventMap>(
     this.nativeId,
     PlayerModule,
@@ -141,9 +137,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       // Remove the listeners only after the native destroy, so they still receive the `destroy` event.
       void PlayerModule.destroy(
         this.nativeId,
-        [...this.createdSources]
-          .filter((source) => !source.isDestroyed)
-          .map((source) => source.nativeId)
+        SourceRegistry.ownedBy(this.nativeId).map((source) => source.nativeId)
       )
         .then((sourceNativeIds) =>
           sourceNativeIds.forEach((sourceNativeId) =>
@@ -204,7 +198,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   load = (sourceConfig: SourceConfig) => {
     const source = new Source(sourceConfig);
-    this.createdSources.add(source);
+    source.ownerNativeId = this.nativeId;
     this.loadSource(source);
   };
 

@@ -114,10 +114,10 @@ class PlayerModule : Module() {
             player?.timeShift(offset)
         }.runOnQueue(Queues.MAIN)
 
-        AsyncFunction("destroy") { nativeId: NativeId, createdSourceNativeIds: List<NativeId> ->
+        AsyncFunction("destroy") { nativeId: NativeId, ownedSourceNativeIds: List<NativeId> ->
             val player = PlayerRegistry.getPlayer(nativeId)
             val sourceNativeIds = player?.playlist?.sources.orEmpty().mapNotNull { SourceRegistry.getNativeId(it) } +
-                createdSourceNativeIds.filter { SourceRegistry.getSource(it)?.isAttachedToPlayer == false }
+                ownedSourceNativeIds.filter { SourceRegistry.getSource(it)?.isAttachedToPlayer == false }
             if (player != null) {
                 // Note: MediaSession cleanup would need to be handled here
                 // For now, just destroy the player and remove from registry

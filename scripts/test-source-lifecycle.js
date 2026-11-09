@@ -367,7 +367,7 @@ test('destroys the sources of a destroyed player that native returns or it is st
   await settle();
 
   assert.deepEqual(callsTo('PlayerModule.destroy'), [
-    ['PlayerModule.destroy', 'player', ['created', 'created-pending']],
+    ['PlayerModule.destroy', 'player', ['created']],
   ]);
   const event = { name: 'onDestroy', timestamp: 1 };
   emit('PlayerModule', { nativeId: 'player', eventName: 'destroy', event });
