@@ -14,7 +14,6 @@ import OfflineModule, {
   type NativeOfflineEvents,
 } from './offlineModule';
 import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
-import { offlineNativeOwner } from '../nativeOwner';
 import {
   createConfigurationCallbacks,
   createSharedObjectWithCallback,
@@ -58,22 +57,20 @@ const handleBitmovinNativeOfflineEvent = (
  */
 export class OfflineContentManager extends NativeInstance<NativeOffline> {
   constructor(readonly config: OfflineContentConfig) {
-    super(config.nativeId, legacyOfflineRegistry, () =>
-      this.createNativeOffline()
+    super(config.nativeId);
+    this.native = this.registerNative(
+      config.nativeId,
+      legacyOfflineRegistry,
+      () => this.createNativeOffline()
     );
     void this.native.then(
-      (native) => {
-        offlineNativeOwner.set(this, native);
-        this.observeEvents(native.events);
-      },
+      (native) => this.observeEvents(native.events),
       () => {}
     );
   }
 
-  /** Whether native creation has completed successfully. */
-  get isInitialized(): boolean {
-    return offlineNativeOwner.get(this) !== undefined;
-  }
+  /** @internal */
+  readonly native: Promise<NativeOffline>;
 
   /** Whether `destroy()` has been called on this wrapper. */
   isDestroyed = false;

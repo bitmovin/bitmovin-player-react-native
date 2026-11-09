@@ -1,7 +1,4 @@
 import type { SharedObject } from 'expo-modules-core/types';
-import type { Player } from './player';
-import type { Source } from './source';
-import type { OfflineContentManager } from './offline/offlineContentManager';
 import type { NativePlayer } from './modules/PlayerModule';
 import type { NativeSource } from './modules/SourceModule';
 import type { NativeOffline } from './offline/offlineModule';
@@ -11,7 +8,7 @@ import type { NativeOffline } from './offline/offlineModule';
  * Weak keys let callback capture cycles be collected; the global instances do
  * not keep owners alive. Native forwarding callbacks reference their dispatchers weakly.
  */
-class NativeOwner<Owner extends object, Native extends SharedObject> {
+class NativeOwner<Owner extends SharedObject, Native extends SharedObject> {
   private readonly owners = new WeakMap<Owner, Native>();
 
   get(owner: Owner): Native | undefined {
@@ -23,16 +20,6 @@ class NativeOwner<Owner extends object, Native extends SharedObject> {
     else this.owners.delete(owner);
   }
 }
-
-/** Resolved backend for Player's compatibility isInitialized getter. @internal */
-export const playerNativeOwner = new NativeOwner<Player, NativePlayer>();
-/** Resolved backend for Source's compatibility isInitialized getter. @internal */
-export const sourceNativeOwner = new NativeOwner<Source, NativeSource>();
-/** Resolved backend for OfflineContentManager's compatibility isInitialized getter. @internal */
-export const offlineNativeOwner = new NativeOwner<
-  OfflineContentManager,
-  NativeOffline
->();
 
 /** Keeps loaded Source callbacks reachable across Player aliases. @internal */
 export const playerSourceOwner = new NativeOwner<NativePlayer, NativeSource>();

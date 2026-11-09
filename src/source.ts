@@ -1,5 +1,4 @@
 import type { CmcdConfig } from './cmcdConfig';
-import { sourceNativeOwner } from './nativeOwner';
 import type { DrmConfig } from './drm';
 import { SourceDrmApi } from './drm/sourceDrmApi';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
@@ -176,7 +175,8 @@ export class Source {
   }
 
   private async createNative(): Promise<NativeSource> {
-    // Preserve synchronous remoteControl assignments made just after construction.
+    // Existing casting setup assigns source.remoteControl just after new Source().
+    // Read that configuration on the next microtask before creating the native Source.
     await Promise.resolve();
     const callbacks = createConfigurationCallbacks();
     const native = await createSharedObjectWithCallback(
@@ -189,7 +189,7 @@ export class Source {
         ),
       callbacks.callback
     );
-    sourceNativeOwner.set(this, native);
+    this.isInitialized = true;
     return native;
   }
 
@@ -210,9 +210,7 @@ export class Source {
   /**
    * Whether the native {@link Source} object has been created.
    */
-  get isInitialized(): boolean {
-    return sourceNativeOwner.get(this) !== undefined;
-  }
+  isInitialized = false;
 
   /**
    * Waits for the native {@link Source} creation started by the constructor.

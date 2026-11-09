@@ -23,19 +23,18 @@ export class NativeInstanceRegistry<T extends SharedObject> {
     for (const [id, reference] of this.instances) {
       if (!reference.deref()) this.instances.delete(id);
     }
-    const creation = (async () => {
-      // Registration runs inside super(); the concrete wrapper's fields are not ready yet.
-      await Promise.resolve();
-      return factory();
-    })();
+    const creation = factory();
     this.instances.set(nativeId, new WeakRef(creation));
     void creation.catch(() => this.remove(nativeId, creation));
     return creation;
   }
 
-  /** A stale alias cannot remove a replacement. */
-  remove(nativeId: string, expected: Promise<T>): boolean {
-    if (this.instances.get(nativeId)?.deref() !== expected) return false;
+  /**
+   * The caller passes its native creation Promise. After destruction, the ID may
+   * belong to a new wrapper while an old alias still holds the original Promise.
+   */
+  remove(nativeId: string, creation: Promise<T>): boolean {
+    if (this.instances.get(nativeId)?.deref() !== creation) return false;
     return this.instances.delete(nativeId);
   }
 }

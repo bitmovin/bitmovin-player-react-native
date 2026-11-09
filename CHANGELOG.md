@@ -24,8 +24,6 @@
 
 - Forward repeated Player and OfflineContentManager destruction and pending Source loads to native instead of suppressing them using TypeScript lifecycle flags
 
-- **Breaking change:** Make `isInitialized` a read-only getter derived from the resolved native object on Player, Source, and OfflineContentManager
-
 - **Breaking change:** Remove `Source.nativeId`, `SourceConfig.nativeId`, and same-ID Source aliasing. Each Source owns its native object directly; Player and OfflineContentManager IDs remain supported
 - **Breaking change:** Player command methods, including `play()`, `load()`, and `destroy()`, and `Source.setMetadata()` now return `Promise<void>` so callers can await native completion and catch failures
 - **Breaking change:** Require configuration when constructing `Source` and `OfflineContentManager`, and require `SourceConfig.type`. `Player` configuration remains optional

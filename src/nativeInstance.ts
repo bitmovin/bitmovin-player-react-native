@@ -12,23 +12,37 @@ export interface NativeInstanceConfig {
   nativeId?: string;
 }
 
-/** Only preserves backward-compatible nativeId-based construction. */
+/** Backward-compatible construction identity and creation status. */
 export default abstract class NativeInstance<T extends SharedObject> {
   /** User-defined compatibility ID, or a generated UUIDv4. */
   readonly nativeId: string;
 
-  /** @internal */
-  readonly native: Promise<T>;
+  /** Whether the constructor's native creation attempt has completed successfully. */
+  isInitialized = false;
 
-  constructor(
+  /** @internal */
+  abstract readonly native: Promise<T>;
+
+  constructor(nativeId?: string) {
+    this.nativeId = nativeId ?? Crypto.randomUUID();
+  }
+
+  /** Call after the concrete wrapper has initialized its fields. */
+  protected registerNative(
     nativeId: string | undefined,
     registry: NativeInstanceRegistry<T>,
     create: () => Promise<T>
-  ) {
-    this.nativeId = nativeId ?? Crypto.randomUUID();
-    this.native =
+  ): Promise<T> {
+    const creation =
       nativeId == null
         ? registry.register(this.nativeId, create)
         : registry.getOrCreate(nativeId, create);
+    void creation.then(
+      () => {
+        this.isInitialized = true;
+      },
+      () => {}
+    );
+    return creation;
   }
 }

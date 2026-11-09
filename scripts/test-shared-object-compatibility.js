@@ -117,10 +117,12 @@ test('Player aliases share eager native creation', async (t) => {
   const { Player, creations } = fixture(t);
   const player = new Player({ nativeId: 'shared' });
   const alias = new Player({ nativeId: 'shared' });
+  assert.equal(player.isInitialized, false);
   await new Promise(setImmediate);
   assert.equal(creations.length, 1);
   assert.equal(await player.native, await alias.native);
   assert.equal(await alias.getVolume(), 37);
+  assert.equal(player.isInitialized, true);
   await player.destroy();
 });
 
@@ -172,6 +174,7 @@ test('a Source can be loaded by another Player and still use its DRM API', async
   });
   const first = new Player();
   await first.loadSource(source);
+  assert.equal(source.isInitialized, true);
   await first.destroy();
   const second = new Player();
   await second.loadSource(source);

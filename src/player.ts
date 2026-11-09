@@ -22,7 +22,6 @@ import {
   createConfigurationCallbacks,
   createSharedObjectWithCallback,
 } from './nativeCallbacks';
-import { playerNativeOwner } from './nativeOwner';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -35,22 +34,21 @@ import { playerNativeOwner } from './nativeOwner';
  */
 export class Player extends NativeInstance<NativePlayer> {
   constructor(readonly config: PlayerConfig = {}) {
-    super(config.nativeId, legacyPlayerRegistry, () =>
-      this.createNativePlayer()
+    super(config.nativeId);
+    this.native = this.registerNative(
+      config.nativeId,
+      legacyPlayerRegistry,
+      () => this.createNativePlayer()
     );
     this.analytics = config.analyticsConfig
       ? new AnalyticsApi(this.native)
       : undefined;
-    void this.native.then(
-      (native) => playerNativeOwner.set(this, native),
-      () => {}
-    );
+    this.buffer = new BufferApi(this.native);
+    this.mediaControls = new MediaControlsApi(this.native);
   }
 
-  /** Whether native creation has completed successfully. */
-  get isInitialized(): boolean {
-    return playerNativeOwner.get(this) !== undefined;
-  }
+  /** @internal */
+  readonly native: Promise<NativePlayer>;
 
   /**
    * Whether `destroy()` has been called on this wrapper.
@@ -69,13 +67,13 @@ export class Player extends NativeInstance<NativePlayer> {
   /**
    * The {@link BufferApi} for interactions regarding the buffer.
    */
-  buffer: BufferApi = new BufferApi(this.native);
+  buffer: BufferApi;
   /**
    * The {@link MediaControlsApi} for interactions regarding the Player's media controls integration.
    *
    * @platform iOS, tvOS
    */
-  mediaControls: MediaControlsApi = new MediaControlsApi(this.native);
+  mediaControls: MediaControlsApi;
 
   /**
    * Waits for the native `Player` creation started by the constructor.
@@ -119,7 +117,8 @@ export class Player extends NativeInstance<NativePlayer> {
       // A failed constructor has no native player to destroy.
       return;
     }
-    await retainLoadedSource(native, undefined, native.destroy());
+    await native.destroy();
+    retainLoadedSource(native, undefined);
   };
 
   /**
@@ -138,11 +137,9 @@ export class Player extends NativeInstance<NativePlayer> {
   ): Promise<void> => {
     const offline = await offlineContentManager.native;
     const native = await this.native;
-    await retainLoadedOfflineContent(
-      native,
-      offline,
-      native.loadOfflineContent(offline, options)
-    );
+    if (await native.loadOfflineContent(offline, options)) {
+      retainLoadedOfflineContent(native, offline);
+    }
   };
 
   /**
@@ -152,11 +149,8 @@ export class Player extends NativeInstance<NativePlayer> {
     this.source = source;
     const nativeSource = await source.native;
     const native = await this.native;
-    await retainLoadedSource(
-      native,
-      nativeSource,
-      native.loadSource(nativeSource)
-    );
+    await native.loadSource(nativeSource);
+    retainLoadedSource(native, nativeSource);
   };
 
   /**
@@ -164,7 +158,8 @@ export class Player extends NativeInstance<NativePlayer> {
    */
   unload = async (): Promise<void> => {
     const native = await this.native;
-    await retainLoadedSource(native, undefined, native.unload());
+    await native.unload();
+    retainLoadedSource(native, undefined);
   };
 
   /**

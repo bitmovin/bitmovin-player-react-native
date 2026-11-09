@@ -24,6 +24,8 @@ import com.bitmovin.player.api.advertising.AdQuartile
 import com.bitmovin.player.api.advertising.AdSource
 import com.bitmovin.player.api.advertising.AdSourceType
 import com.bitmovin.player.api.advertising.AdvertisingConfig
+import com.bitmovin.player.api.advertising.ShouldLoadAdItemCallback
+import com.bitmovin.player.api.advertising.ShouldPlayAdBreakCallback
 import com.bitmovin.player.api.buffer.BufferConfig
 import com.bitmovin.player.api.buffer.BufferLevel
 import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
@@ -234,19 +236,19 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig =
 
 fun Map<String, Any?>.toAdvertisingConfig(callbacks: CallbackScope): AdvertisingConfig {
     val schedule = getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: emptyList()
-    var config = AdvertisingConfig(schedule)
-    withFunction("shouldLoadAdItem") { token ->
-        config = config.copy(
-            shouldLoadAdItem = {
-                callbacks.call(token, listOf(it.toJson())) as? Boolean ?: true
-            },
-        )
-    }
-    withFunction("shouldPlayAdBreak") { token ->
-        config = config.copy(
-            shouldPlayAdBreak = {
-                callbacks.call(token, listOf(it.toJson())) as? Boolean ?: true
-            },
+    // SDK callback properties are immutable; copy returns the configured value.
+    val config = AdvertisingConfig(schedule).run {
+        copy(
+            shouldLoadAdItem = withFunction("shouldLoadAdItem") { token ->
+                ShouldLoadAdItemCallback {
+                    callbacks.call(token, listOf(it.toJson())) as? Boolean ?: true
+                }
+            } ?: shouldLoadAdItem,
+            shouldPlayAdBreak = withFunction("shouldPlayAdBreak") { token ->
+                ShouldPlayAdBreakCallback {
+                    callbacks.call(token, listOf(it.toJson())) as? Boolean ?: true
+                }
+            } ?: shouldPlayAdBreak,
         )
     }
     return ImaBeforeInitializationConfigurator.configure(this, config, callbacks)

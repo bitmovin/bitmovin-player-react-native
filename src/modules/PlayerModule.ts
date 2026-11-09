@@ -127,23 +127,19 @@ declare class PlayerModule extends NativeModule {
 export default requireNativeModule<PlayerModule>('PlayerModule');
 
 /** @internal */
-export async function retainLoadedSource(
+export function retainLoadedSource(
   player: NativePlayer,
-  source: NativeSource | undefined,
-  operation: Promise<void | boolean>
-): Promise<void> {
-  if ((await operation) === false) return;
+  source: NativeSource | undefined
+): void {
   playerSourceOwner.set(player, source);
   playerOfflineOwner.set(player, undefined);
 }
 
 /** @internal */
-export async function retainLoadedOfflineContent(
+export function retainLoadedOfflineContent(
   player: NativePlayer,
-  offline: NativeOffline,
-  operation: Promise<void | boolean>
-): Promise<void> {
-  if ((await operation) === false) return;
+  offline: NativeOffline
+): void {
   playerOfflineOwner.set(player, offline);
   playerSourceOwner.set(player, undefined);
 }
