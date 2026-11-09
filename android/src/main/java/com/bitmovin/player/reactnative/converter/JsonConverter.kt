@@ -74,7 +74,6 @@ import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.playlist.PlaylistOptions
 import com.bitmovin.player.api.playlist.ReplayMode
-import com.bitmovin.player.api.playlist.SeekTarget
 import com.bitmovin.player.api.source.LoadingState
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
@@ -168,13 +167,6 @@ fun Map<String, Any?>.toPlaylistOptions(): PlaylistOptions {
     )
 }
 
-fun Map<String, Any?>.toSeekTarget(): SeekTarget? {
-    return SeekTarget(
-        offset = getDoubleOrNull("offset") ?: return null,
-        startOffsetTimelineReference = getString("startOffsetTimelineReference")?.toTimelineReferencePointOrThrow(),
-    )
-}
-
 private fun String.toReplayModeOrThrow(): ReplayMode = when (this) {
     "playlist" -> ReplayMode.Playlist
     "lastSource" -> ReplayMode.LastSource
@@ -186,9 +178,6 @@ private fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (t
     "end" -> TimelineReferencePoint.End
     else -> null
 }
-
-private fun String.toTimelineReferencePointOrThrow(): TimelineReferencePoint =
-    toTimelineReferencePoint() ?: throw IllegalArgumentException("Unknown timeline reference point: $this")
 
 private fun Map<String, Any?>.toAdaptationConfig(): AdaptationConfig = AdaptationConfig().apply {
     withInt("maxSelectableBitrate") { maxSelectableVideoBitrate = it }

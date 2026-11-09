@@ -1,6 +1,5 @@
 package com.bitmovin.player.reactnative
 
-import com.bitmovin.player.reactnative.converter.toSeekTarget
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -40,12 +39,6 @@ class PlaylistModule : Module() {
             val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
             val source = SourceRegistry.getSource(sourceNativeId) ?: return@AsyncFunction
             player.playlist.seek(source, time)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("seekTo") { nativeId: NativeId, sourceNativeId: NativeId, seekTarget: Map<String, Any?>? ->
-            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
-            val source = SourceRegistry.getSource(sourceNativeId) ?: return@AsyncFunction
-            player.playlist.seek(source, seekTarget?.toSeekTarget())
         }.runOnQueue(Queues.MAIN)
     }
 }
