@@ -4,11 +4,15 @@
 
 ### Added
 
+- `Player.on` and `Source.on` subscriptions for native object events, including without a mounted `PlayerView`
+
 - iOS: Support for VMAP ad tags with the Bitmovin Advertising Module (`AdSourceType.BITMOVIN`), included in native iOS SDK `3.131.0`. VMAP no longer requires Google IMA on iOS, matching Android
 - Android: `onPlaybackSpeedChanged` event to indicate playback speed changes. The event is already available in iOS
 - `onPlayerInactive` event prop on `PlayerView` to indicate when the active playback session ends and the player becomes inactive
 
 ### Fixed
+
+- Deliver `PlayerView` playback and source callbacks through the attached Player's public event API
 
 - iOS: Reject invalid source or analytics configuration during initialization instead of exposing an empty native binding
 - iOS: Reject offline initialization when configuration is invalid or the SDK cannot create the content manager
@@ -25,17 +29,22 @@
 - **Breaking change:** Remove `Source.destroy()` and `Source.isDestroyed`. Sources follow SDK ownership and remain reusable after player destruction. Source IDs stay valid while their objects remain reachable
 - **Breaking change:** Make `Network` configuration-only, removing `initialize()`, `destroy()`, `isInitialized`, and `isDestroyed`
 - **Breaking change:** Make `Source.drm` an always-present, read-only `SourceDrmApi`, including for clear sources. Read `source.config?.drmConfig` to inspect configuration. `FairplayDrmApi` requires a Source. `Drm` is configuration-only: its Source constructor parameter, `fairplay`, lifecycle methods, and lifecycle flags are removed. Continue renewing licenses through `source.drm.fairplay.renewExpiringLicense(request)`
-- Return synchronous configuration callback values directly and simplify native resource teardown
 - Android: Use a uniform 250 ms timeout for synchronous JavaScript callbacks, matching iOS. DRM, decoder-priority, and custom-message callbacks previously waited up to 5 seconds
 - Forward offline download requests without additional bitrate or download-state validation in the binding
 - Android: Forward native source-creation and analytics failures through Expo without replacing their exceptions
-- Report callback-result conversion failures in JavaScript while completing native network requests with their fallback
-- Keep native Player and OfflineContentManager references while their TypeScript wrappers remain reachable after `destroy()`. Direct methods follow native SDK behavior after destruction instead of substituting binding defaults. Preserve lazy asynchronous initialization without empty native objects
-- Use Expo SharedObjects for native bindings and direct configuration callbacks. Keep Player, Source, and OfflineContentManager `nativeId` compatibility in a shared weak TypeScript registry. IDs alone no longer retain unused native objects. Give player views independent ownership
+- Player and OfflineContentManager methods follow native SDK behavior after `destroy()` instead of returning binding defaults
+- Player, Source, and OfflineContentManager `nativeId` values alone no longer retain unused native objects
 - **Breaking change:** Remove `nativeId` from Network, DRM, and Decoder configuration types and configuration wrappers. Configuration and internal UI adapters now use object ownership instead of named aliases
 - **Breaking change:** BufferApi, AnalyticsApi, and MediaControlsApi constructors now accept a Player object instead of an ID string. Remove their stored `nativeId`/`playerId` properties
 - iOS: Bitmovin Advertising Module ads no longer start with the subtitle track marked as default in the ad manifest. The ad subtitle now follows the subtitle selected for the main content, and stays off if the main content subtitles are off. This comes with native iOS SDK `3.131.0`
 - Update Bitmovin's native iOS SDK version to [`3.131.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31310)
+
+### Internal
+
+- Return synchronous configuration callback values directly and simplify native resource teardown
+- Report callback-result conversion failures in JavaScript while completing native network requests with their fallback
+- Keep native Player and OfflineContentManager references while their TypeScript wrappers remain reachable after `destroy()`. Preserve lazy asynchronous initialization without empty native objects
+- Use Expo SharedObjects for native bindings and direct configuration callbacks. Resolve compatibility IDs in a shared weak TypeScript registry. Give player views independent ownership
 
 ## [1.30.0] - 2026-10-29
 
