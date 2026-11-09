@@ -110,10 +110,7 @@ export class Player extends NativeInstance<NativePlayer> {
    */
   destroy = async (): Promise<void> => {
     this.isDestroyed = true;
-    legacyPlayerRegistry.remove(
-      this.nativeId,
-      nativeOwner.get(this) ?? this.native
-    );
+    legacyPlayerRegistry.remove(this.nativeId, this.native);
     let native;
     try {
       native = await this.native;
@@ -121,7 +118,6 @@ export class Player extends NativeInstance<NativePlayer> {
       // A failed constructor has no native player to destroy.
       return;
     }
-    legacyPlayerRegistry.remove(this.nativeId, native);
     await retainLoadedSource(native, undefined, native.destroy());
   };
 

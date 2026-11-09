@@ -2,7 +2,7 @@ import type { SharedObject } from 'expo-modules-core/types';
 
 /**
  * Keeps JS ownership links without keeping their owners alive:
- * - Public wrapper -> resolved SharedObject, for isInitialized and legacy ID cleanup.
+ * - Public wrapper -> resolved SharedObject, for the compatibility isInitialized getter.
  * - NativePlayer's JS object -> loaded Source/offline JS object and its callbacks.
  *
  * Weak keys let callback capture cycles be collected. Native code holds only
@@ -12,8 +12,8 @@ import type { SharedObject } from 'expo-modules-core/types';
 class NativeOwner {
   private readonly owners = new WeakMap<object, SharedObject>();
 
-  get<T extends SharedObject>(owner: object): T | undefined {
-    return this.owners.get(owner) as T | undefined;
+  get(owner: object): SharedObject | undefined {
+    return this.owners.get(owner);
   }
 
   set(owner: object, native?: SharedObject): void {

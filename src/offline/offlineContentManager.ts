@@ -148,10 +148,7 @@ export class OfflineContentManager extends NativeInstance<NativeOffline> {
     this.isDestroyed = true;
     this.eventSubscription?.remove();
     this.listeners.clear();
-    legacyOfflineRegistry.remove(
-      this.nativeId,
-      nativeOwner.get(this) ?? this.native
-    );
+    legacyOfflineRegistry.remove(this.nativeId, this.native);
     let native;
     try {
       native = await this.native;
@@ -161,7 +158,6 @@ export class OfflineContentManager extends NativeInstance<NativeOffline> {
     }
     // Creation can subscribe after destroy() starts; detach it before cleanup completes.
     this.eventSubscription?.remove();
-    legacyOfflineRegistry.remove(this.nativeId, native);
     await native.destroy();
   };
 

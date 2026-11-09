@@ -6,8 +6,8 @@
   and configuration remain
   independent. Reusing an ID redirects compatibility lookup to its current
   registration; an existing SharedObject never changes its SDK object. Each
-  registry holds ready objects weakly, so keep an owning TS wrapper reachable
-  while using its ID. Pending creation remains strongly retained until settlement.
+  registry holds creation Promises weakly. Keep an owning TS wrapper reachable
+  while using its ID; the registry does not keep pending or ready objects alive.
 - Player, Source, and OfflineContentManager constructors start one native creation
   attempt. Methods and `initialize()` await the same Promise; a failed attempt
   requires a new wrapper. Destruction removes the ID registration and waits for

@@ -3,56 +3,39 @@ import type { NativePlayer } from './modules/PlayerModule';
 import type { NativeOffline } from './offline/offlineModule';
 
 /**
- * Backward compatibility for nativeId-based construction: wrappers created with
+ * Backward compatibility for nativeId-based construction: live wrappers created with
  * the same ID share one native object. Methods and views use their owned
  * SharedObjects directly; these registries only resolve constructor aliases.
- * Pending creations share one Promise; completed entries hold only a WeakRef.
+ * Each wrapper owns its fixed creation Promise; the registry references it weakly.
  * @internal
  */
 export class NativeInstanceRegistry<T extends SharedObject> {
-  private readonly instances = new Map<string, WeakRef<T> | Promise<T>>();
+  private readonly instances = new Map<string, WeakRef<Promise<T>>>();
 
   getOrCreate(nativeId: string, factory: () => Promise<T>): Promise<T> {
-    const entry = this.instances.get(nativeId);
-    const existing = entry instanceof WeakRef ? entry.deref() : entry;
-    return existing
-      ? Promise.resolve(existing)
-      : this.register(nativeId, factory);
+    return (
+      this.instances.get(nativeId)?.deref() ?? this.register(nativeId, factory)
+    );
   }
 
   /** Register a new ID directly, without looking for an existing alias. */
   register(nativeId: string, factory: () => Promise<T>): Promise<T> {
-    // Prune collected labels without timers or finalizers.
     for (const [id, reference] of this.instances) {
-      if (reference instanceof WeakRef && !reference.deref()) {
-        this.instances.delete(id);
-      }
+      if (!reference.deref()) this.instances.delete(id);
     }
-
-    const createInstance = async (): Promise<T> => {
-      // The wrapper's constructor must finish initializing before its factory runs.
+    const creation = (async () => {
+      // Registration runs inside super(); the concrete wrapper's fields are not ready yet.
       await Promise.resolve();
-      try {
-        const instance = await factory();
-        if (this.instances.get(nativeId) === creation) {
-          this.instances.set(nativeId, new WeakRef(instance));
-        }
-        return instance;
-      } catch (error) {
-        this.remove(nativeId, creation);
-        throw error;
-      }
-    };
-    const creation = createInstance();
-    this.instances.set(nativeId, creation);
+      return factory();
+    })();
+    this.instances.set(nativeId, new WeakRef(creation));
+    void creation.catch(() => this.remove(nativeId, creation));
     return creation;
   }
 
   /** A stale alias cannot remove a replacement. */
-  remove(nativeId: string, expected: T | Promise<T>): boolean {
-    const entry = this.instances.get(nativeId);
-    const existing = entry instanceof WeakRef ? entry.deref() : entry;
-    if (existing !== expected) return false;
+  remove(nativeId: string, expected: Promise<T>): boolean {
+    if (this.instances.get(nativeId)?.deref() !== expected) return false;
     return this.instances.delete(nativeId);
   }
 }
