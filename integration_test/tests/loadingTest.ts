@@ -4,6 +4,7 @@ import {
   callPlayer,
   callPlayerAndExpectEvent,
   callPlayerAndExpectEvents,
+  createPlayer,
   EventBag,
   EventSequence,
   EventType,
@@ -11,11 +12,14 @@ import {
   FilteredEvent,
   loadSourceConfig,
   startPlayerTest,
+  untilActive,
+  waitUntil,
 } from '../playertesting';
 import { Sources } from './helper/Sources';
 import {
   DownloadFinishedEvent,
   HttpRequestType,
+  Player,
   Source,
   SourceConfig,
 } from 'bitmovin-player-react-native';
@@ -201,6 +205,118 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
         });
       }
     );
+
+    spec.it('returns nothing once the active source is destroyed', async () => {
+      await startPlayerTest({}, async () => {
+        const source = new Source(Sources.artOfMotionHls);
+        await callPlayerAndExpectEvent((player) => {
+          player.loadSource(source);
+        }, EventType.Ready);
+
+        await callPlayer(async (player) => {
+          expect(await player.getSource(), 'Active source').toBe(source);
+          source.destroy();
+          expect(
+            await player.getSource(),
+            'Active source after destroying it'
+          ).toBeUndefined();
+        });
+      });
+    });
+  });
+
+  spec.describe('loading a destroyed source', () => {
+    spec.it('throws', async () => {
+      await startPlayerTest({}, async () => {
+        const source = new Source(Sources.artOfMotionHls);
+        source.destroy();
+
+        await callPlayer(async (player) => {
+          expect(
+            getError(() => player.loadSource(source)),
+            'loadSource should throw'
+          ).toBeDefined();
+        });
+      });
+    });
+  });
+
+  spec.describe('destroying the player', () => {
+    spec.it(
+      'destroys the sources it created, including a replaced one',
+      async () => {
+        const player = createPlayer();
+        try {
+          await player.initialize();
+          player.load(Sources.artOfMotionHls);
+          expect(await untilLoaded(player), 'First source loaded').toBeTruthy();
+          const first = await player.getSource();
+          player.load(Sources.sintel);
+          expect(
+            await untilLoaded(player, first),
+            'Second source loaded'
+          ).toBeTruthy();
+          const second = await player.getSource();
+
+          player.destroy();
+
+          expect(
+            await waitUntil(
+              () => first?.isDestroyed === true && second?.isDestroyed === true
+            ),
+            'Created sources destroyed'
+          ).toBeTruthy();
+        } finally {
+          player.destroy();
+        }
+      }
+    );
+
+    spec.it(
+      'does not destroy an unloaded source, which another player can load',
+      async () => {
+        const player = createPlayer();
+        const otherPlayer = createPlayer();
+        const source = new Source(Sources.artOfMotionHls);
+        try {
+          await player.initialize();
+          await otherPlayer.initialize();
+          player.loadSource(source);
+          expect(await untilActive(player, source), 'Loaded').toBeTruthy();
+          player.unload();
+          expect(
+            await waitUntil(
+              async () => (await player.getSource()) === undefined
+            ),
+            'Unloaded'
+          ).toBeTruthy();
+          player.load(Sources.sintel);
+          expect(
+            await untilLoaded(player),
+            'Created source loaded'
+          ).toBeTruthy();
+          const created = await player.getSource();
+
+          player.destroy();
+
+          // The created source is destroyed in the same step that would destroy the unloaded one.
+          expect(
+            await waitUntil(() => created?.isDestroyed === true),
+            'Created source destroyed'
+          ).toBeTruthy();
+          expect(source.isDestroyed, 'Unloaded source destroyed').toBeFalsy();
+          otherPlayer.loadSource(source);
+          expect(
+            await untilActive(otherPlayer, source),
+            'Loaded into the other player'
+          ).toBeTruthy();
+        } finally {
+          player.destroy();
+          otherPlayer.destroy();
+          source.destroy();
+        }
+      }
+    );
   });
 
   loadingSourceTests(Sources.iReplayTestLiveHls, 'live');
@@ -250,3 +366,18 @@ export function loadingVodTests(spec: TestScope) {
 }
 
 export default (spec: TestScope) => registerLoadingTests(spec);
+
+const getError = (fn: () => void): unknown => {
+  try {
+    fn();
+  } catch (error) {
+    return error;
+  }
+  return undefined;
+};
+
+const untilLoaded = (player: Player, previous?: Source) =>
+  waitUntil(async () => {
+    const source = await player.getSource();
+    return source !== undefined && source !== previous;
+  });

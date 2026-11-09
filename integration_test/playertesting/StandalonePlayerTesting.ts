@@ -1,4 +1,4 @@
-import { Player, PlayerConfig } from 'bitmovin-player-react-native';
+import { Player, PlayerConfig, Source } from 'bitmovin-player-react-native';
 import PlayerTestWorld from './PlayerTestWorld';
 
 /**
@@ -23,6 +23,14 @@ export const waitUntil = async (
   }
   return false;
 };
+
+/**
+ * Waits until `source` is the active source of `player`, e.g. after loading it.
+ *
+ * @returns Whether `source` became active.
+ */
+export const untilActive = (player: Player, source: Source) =>
+  waitUntil(async () => (await player.getSource()) === source);
 
 /**
  * Resolves after `ms` milliseconds.
