@@ -6,8 +6,8 @@ import com.bitmovin.player.api.drm.PrepareMessageCallback
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.reactnative.CallbackScope
 
-fun Map<String, Any?>.toWidevineConfig(callbacks: CallbackScope, path: String): WidevineConfig =
-    requireNotNull(toWidevineConfig()) { "Invalid widevine config" }.apply {
+fun Map<String, Any?>.toWidevineConfig(callbacks: CallbackScope, path: String): WidevineConfig? =
+    toWidevineConfig()?.apply {
         val config = this@toWidevineConfig
         val widevine = config["widevine"] as? Map<*, *>
         if (widevine?.containsKey("prepareMessage") == true) {

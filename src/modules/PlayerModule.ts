@@ -92,7 +92,7 @@ export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
   loadOfflineContent(
     offlineContent: NativeOffline | undefined,
     options?: Record<string, any>
-  ): Promise<void>;
+  ): Promise<boolean>;
 
   getAudioTrack(): Promise<any | null>;
 
@@ -138,11 +138,25 @@ declare class PlayerModule extends NativeModule {
 export default requireNativeModule<PlayerModule>('PlayerModule');
 
 /** @internal */
-export type NativePlayerReference = () => NativePlayer | undefined;
+export type NativePlayerReference = () => Promise<NativePlayer | undefined>;
 
 /** @internal */
 export function nativePlayerReference(
   player: Player | NativePlayerReference
 ): NativePlayerReference {
-  return typeof player === 'function' ? player : () => getNativePlayer(player);
+  return typeof player === 'function'
+    ? player
+    : async () => {
+        await player.initialize();
+        return getNativePlayer(player);
+      };
+}
+
+/** @internal */
+export async function retainLoadedSource(
+  player: NativePlayer,
+  source: NativeSource | NativeOffline | undefined,
+  operation: Promise<void | boolean>
+): Promise<void> {
+  if ((await operation) !== false) setNativeOwner(player, source);
 }

@@ -86,7 +86,7 @@ export class BufferApi {
    */
   getLevel = async (type: BufferType): Promise<BufferLevels> => {
     // Preserve the legacy null result without changing the public annotation.
-    return ((await this.nativePlayer()?.getBufferLevel(type)) ??
+    return ((await (await this.nativePlayer())?.getBufferLevel(type)) ??
       null) as BufferLevels;
   };
 
@@ -97,6 +97,6 @@ export class BufferApi {
    * @param value The value to set. On iOS and tvOS when passing `0`, the player will choose an appropriate forward buffer duration suitable for most use-cases. On Android setting to `0` will have no effect.
    */
   setTargetLevel = async (type: BufferType, value: number): Promise<void> => {
-    return this.nativePlayer()?.setBufferTargetLevel(type, value);
+    return (await this.nativePlayer())?.setBufferTargetLevel(type, value);
   };
 }

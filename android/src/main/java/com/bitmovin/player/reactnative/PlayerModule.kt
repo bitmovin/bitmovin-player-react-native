@@ -186,7 +186,9 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
             AsyncFunction("loadOfflineContent") { shared: SharedPlayer, offline: OfflineContentManagerBridge,
                 options: Map<String, Any>?, ->
-                offline.offlineContentManager.offlineSourceConfig?.let { shared.player.load(it) }
+                val config = offline.offlineContentManager.offlineSourceConfig ?: return@AsyncFunction false
+                shared.player.load(config)
+                true
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("scheduleAd") { shared: SharedPlayer, adItemJson: Map<String, Any> ->

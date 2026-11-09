@@ -6,12 +6,17 @@
   registration; an existing SharedObject never changes its SDK object. The generic
   registry holds ready objects weakly, so keep an owning TS wrapper reachable
   while using its ID. Pending creation remains strongly retained until settlement.
-- Creation stays lazy to preserve configuration supplied before `initialize()`,
-  including Source remote-control settings. The TS method awaits a factory that
-  returns a fully constructed native owner; there is no native initializing state.
+- Player, Source, and OfflineContentManager creation stays lazy until
+  `initialize()` or the first runtime method. Methods await their configured
+  native owner; mutations made before that first use are observed. Destruction
+  cancels pending creation or releases an existing object without allocating one.
 - Destruction keeps the SDK reference reachable while its TS wrapper is retained.
-  Direct methods inherit SDK behavior after destruction. Source has no SDK destroy
-  method; its public destroy method removes the alias and closes owned callbacks.
+  Direct methods inherit SDK behavior after destruction. Source has no destruction
+  API; its compatibility ID remains associated while the object is reachable.
+- Source's JS SharedObject owns its dispatcher; native retains only a weak JS
+  forwarding callback. A callback capturing its Source forms a collectible JS
+  cycle. The canonical JS Player retains its loaded Source/offline backend until
+  replacement, unload, or destruction completes, including when used by aliases.
 - Configuration callbacks share their consuming native object's scope. They
   have no independent SharedObject, lifecycle, or TS dependency list.
 - Offline factories receive an event endpoint subscribed before SDK creation.

@@ -1,3 +1,4 @@
+import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 
 // Registers the native class used for one invocation's completion value.
@@ -23,8 +24,8 @@ function resolveCallback(
 ): void {
   try {
     completion?.resolve(value ?? null);
-  } catch {
-    // A late completion may already have been released.
+  } catch (error) {
+    console.warn('Could not deliver the native callback result.', error);
   }
 }
 
@@ -74,6 +75,34 @@ export function createNativeCallback(
     }
     return null;
   };
+}
+
+const callbackOwner = Symbol('callbackOwner');
+
+// This scope receives only the WeakRef, so the native function cannot retain the dispatcher.
+function weakNativeCallback(
+  reference: WeakRef<NativeCallback>
+): NativeCallback {
+  return (operation, args, completion, mutating, fallbackArgument) => {
+    const callback = reference.deref();
+    if (callback)
+      return callback(operation, args, completion, mutating, fallbackArgument);
+    resolveCallback(
+      completion,
+      fallbackArgument == null ? null : args[fallbackArgument]
+    );
+    return null;
+  };
+}
+
+/** @internal */
+export async function createSharedObjectWithCallback<T extends SharedObject>(
+  create: (callback: NativeCallback) => Promise<T>,
+  callback: NativeCallback
+): Promise<T> {
+  const native = await create(weakNativeCallback(new WeakRef(callback)));
+  Object.defineProperty(native, callbackOwner, { value: callback });
+  return native;
 }
 
 const configurationFields = new Set([

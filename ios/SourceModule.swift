@@ -23,13 +23,12 @@ public class SourceModule: Module {
             return SharedSource(source: source, callback: callback, remote: remote)
         }.runOnQueue(.main)
         Class("Source", SharedSource.self) {
-            AsyncFunction("closeCallbacks") { (owner: SharedSource) in owner.closeCallbacks() }
-            AsyncFunction("isAttachedToPlayer") { (owner: SharedSource) -> Bool? in
+            AsyncFunction("isAttachedToPlayer") { (owner: SharedSource) -> Bool in
                 owner.source.isAttachedToPlayer
             }.runOnQueue(.main)
-            AsyncFunction("isActive") { (owner: SharedSource) -> Bool? in owner.source.isActive }.runOnQueue(.main)
-            AsyncFunction("duration") { (owner: SharedSource) -> Double? in owner.source.duration }.runOnQueue(.main)
-            AsyncFunction("loadingState") { (owner: SharedSource) -> Int? in
+            AsyncFunction("isActive") { (owner: SharedSource) -> Bool in owner.source.isActive }.runOnQueue(.main)
+            AsyncFunction("duration") { (owner: SharedSource) -> Double in owner.source.duration }.runOnQueue(.main)
+            AsyncFunction("loadingState") { (owner: SharedSource) -> Int in
                 owner.source.loadingState.rawValue
             }.runOnQueue(.main)
             AsyncFunction("getMetadata") { (owner: SharedSource) -> [String: Any]? in

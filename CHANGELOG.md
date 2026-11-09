@@ -20,12 +20,15 @@
 
 ### Changed
 
+- **Breaking change:** Player, Source, and OfflineContentManager runtime methods now initialize and await their native object on first use instead of returning pre-initialization defaults, dropping calls, or reporting an uninitialized manager. `initialize()` remains available to await creation explicitly; `destroy()` never creates a native object
+- **Breaking change:** Remove `Source.destroy()` and `Source.isDestroyed`. Sources follow SDK ownership and remain reusable after player destruction. Source IDs stay valid while their objects remain reachable
 - **Breaking change:** Make `Network` configuration-only, removing `initialize()`, `destroy()`, `isInitialized`, and `isDestroyed`
 - **Breaking change:** Make `Source.drm` an always-present, read-only `SourceDrmApi`, including for clear sources. Read `source.config?.drmConfig` to inspect configuration. `FairplayDrmApi` requires a Source. `Drm` is configuration-only: its Source constructor parameter, `fairplay`, lifecycle methods, and lifecycle flags are removed. Continue renewing licenses through `source.drm.fairplay.renewExpiringLicense(request)`
 - Return synchronous configuration callback values directly and simplify native resource teardown
 - Forward offline download requests without additional bitrate or download-state validation in the binding
 - Android: Forward native source-creation and analytics failures through Expo without replacing their exceptions
-- Keep native Player and Source references while their TypeScript wrappers remain reachable after `destroy()`. Direct methods follow native SDK behavior after destruction instead of substituting binding defaults. Preserve lazy asynchronous initialization without empty native objects
+- Report callback-result conversion failures in JavaScript while completing native network requests with their fallback
+- Keep native Player and OfflineContentManager references while their TypeScript wrappers remain reachable after `destroy()`. Direct methods follow native SDK behavior after destruction instead of substituting binding defaults. Preserve lazy asynchronous initialization without empty native objects
 - Use Expo SharedObjects for native bindings and direct configuration callbacks. Keep Player, Source, and OfflineContentManager `nativeId` compatibility in a shared weak TypeScript registry. IDs alone no longer retain unused native objects. Give player views independent ownership
 - **Breaking change:** Remove `nativeId` from Network, DRM, and Decoder configuration types and configuration wrappers. Configuration and internal UI adapters now use object ownership instead of named aliases
 - **Breaking change:** BufferApi, AnalyticsApi, and MediaControlsApi constructors now accept a Player object instead of an ID string. Remove their stored `nativeId`/`playerId` properties

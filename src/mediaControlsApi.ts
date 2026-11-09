@@ -41,7 +41,9 @@ export class MediaControlsApi {
       );
       return false;
     }
-    return (await this.nativePlayer()?.isMediaControlsEnabled()) ?? false;
+    return (
+      (await (await this.nativePlayer())?.isMediaControlsEnabled()) ?? false
+    );
   };
 
   /**
@@ -57,6 +59,6 @@ export class MediaControlsApi {
       );
       return;
     }
-    return this.nativePlayer()?.setMediaControlsEnabled(enabled);
+    return (await this.nativePlayer())?.setMediaControlsEnabled(enabled);
   };
 }

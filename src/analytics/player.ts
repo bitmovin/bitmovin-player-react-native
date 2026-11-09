@@ -17,8 +17,8 @@ export class AnalyticsApi {
     this.nativePlayer = nativePlayerReference(player);
   }
 
-  private get native() {
-    const native = this.nativePlayer();
+  private async getNative() {
+    const native = await this.nativePlayer();
     if (!native && Platform.OS === 'android') {
       throw Object.assign(new Error('Player is not initialized'), {
         code: 'PlayerAnalyticsError',
@@ -32,7 +32,7 @@ export class AnalyticsApi {
    * Does not change the configured custom data of the collector or source.
    */
   sendCustomDataEvent = async (customData: CustomDataConfig) => {
-    await this.native?.sendCustomDataEvent(customData);
+    await (await this.getNative())?.sendCustomDataEvent(customData);
   };
 
   /**
@@ -41,6 +41,6 @@ export class AnalyticsApi {
    * @returns The current user id.
    */
   getUserId = async (): Promise<string | null> => {
-    return (await this.native?.getAnalyticsUserId()) ?? null;
+    return (await (await this.getNative())?.getAnalyticsUserId()) ?? null;
   };
 }

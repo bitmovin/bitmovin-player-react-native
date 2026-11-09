@@ -27,7 +27,6 @@ public final class SharedSource: SharedObject {
                 }
             }
     }
-    func closeCallbacks() { callback?.close() }
     deinit { callback?.close() }
     override public func sharedObjectWillRelease() { callback?.close() }
 }

@@ -52,12 +52,13 @@ export function lookupPending<T extends SharedObject>(
 }
 
 /** @internal */
-export function getOrCreateAsync<T extends SharedObject>(
+export function getOrCreateAsync<T extends SharedObject | undefined>(
   kind: string,
   nativeId: string,
-  factory: () => Promise<T | undefined>,
-  dispose: (instance: T) => void | Promise<void>
-): Promise<T | undefined> {
+  factory: () => Promise<T>,
+  dispose: (instance: NonNullable<T>) => void | Promise<void> = (instance) =>
+    instance.release()
+): Promise<T> {
   const existing = entry(kind, nativeId);
   if (existing) return Promise.resolve(existing as T | Promise<T>);
   const creation = Promise.resolve()

@@ -60,7 +60,8 @@ function fixture(t) {
       destroy: async () => {
         callbacks.delete(native);
       },
-      closeCallbacks: async () => callbacks.delete(native),
+      loadSource: async () => {},
+      unload: async () => {},
       getVolume: async () => 37,
       getMetadata: async () => ({ title: 'shared source' }),
       drmFairplayRenewExpiringLicense: async (skdUri) => {
@@ -120,13 +121,17 @@ for (const kind of ['player', 'source']) {
         : new Source({ nativeId: 'shared', url: 'https://test/source' });
     const first = make();
     const alias = make();
-    await Promise.all([first.initialize(), alias.initialize()]);
+    await Promise.all(
+      kind === 'player'
+        ? [first.getVolume(), alias.getVolume()]
+        : [first.metadata(), alias.metadata()]
+    );
     assert.equal(creations.filter((item) => item.kind === kind).length, 1);
     assert.deepEqual(
       kind === 'player' ? await alias.getVolume() : await alias.metadata(),
       kind === 'player' ? 37 : { title: 'shared source' }
     );
-    first.destroy();
+    if (kind === 'player') first.destroy();
   });
 }
 
@@ -221,27 +226,41 @@ test('failed Source creation permits retry with DRM callbacks', async (t) => {
   modules.SourceModule.create = async () => {
     throw failure;
   };
-  await assert.rejects(source.initialize(), (error) => error === failure);
+  await assert.rejects(source.metadata(), (error) => error === failure);
   modules.SourceModule.create = create;
-  await source.initialize();
+  await source.metadata();
   assert.equal(
     invoke(nativeOf(source), 'drmConfig.fairplay.prepareMessage', ['message']),
     'message'
   );
-  source.destroy();
 });
 
-test('FairPlay runtime operations remain Source-owned without DRM configuration', async (t) => {
-  const { Source, nativeOf, calls } = fixture(t);
-  const source = new Source({ url: 'https://test/source' });
-  assert.equal(typeof source.drm.fairplay.renewExpiringLicense, 'function');
-  await source.initialize();
+test('a Source retains its DRM callbacks after player destruction and reuse', async (t) => {
+  const { Player, Source, nativeOf, calls, invoke } = fixture(t);
+  const source = new Source({
+    url: 'https://test/source',
+    drmConfig: { fairplay: { prepareMessage: (message) => message } },
+  });
+  const first = new Player();
+  await first.initialize();
+  first.loadSource(source);
+  await new Promise(setImmediate);
   const native = nativeOf(source);
+  first.destroy();
   await source.drm.fairplay.renewExpiringLicense({ skdUri: 'skd://content' });
-  source.destroy();
+  assert.equal(
+    invoke(native, 'drmConfig.fairplay.prepareMessage', ['message']),
+    'message'
+  );
+  const second = new Player();
+  await second.initialize();
+  second.loadSource(source);
+  await new Promise(setImmediate);
+  assert.equal(nativeOf(source), native);
   await source.drm.fairplay.renewExpiringLicense({ skdUri: 'skd://content' });
   assert.deepEqual(calls, [
     { native, skdUri: 'skd://content' },
     { native, skdUri: 'skd://content' },
   ]);
+  second.destroy();
 });

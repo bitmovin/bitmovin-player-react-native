@@ -91,8 +91,9 @@ class CallbackScope(private val context: AppContext, callback: JavaScriptFunctio
         val result = CallbackResult(context) { value ->
             try {
                 future.complete(if (value == null) fallback else convert(value))
-            } catch (_: Exception) {
+            } catch (error: Exception) {
                 future.complete(fallback)
+                throw error
             }
         }
         schedule(operation, args, result, fallbackArgument = fallbackArgument)

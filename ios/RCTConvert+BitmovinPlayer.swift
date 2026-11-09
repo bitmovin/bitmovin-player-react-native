@@ -1144,13 +1144,6 @@ extension RCTConvert {
         ]
     }
 
-    static func toJson(bufferLevels: RNBufferLevels) -> [String: Any] {
-        [
-            "audio": toJson(bufferLevel: bufferLevels.audio, mediaType: "audio"),
-            "video": toJson(bufferLevel: bufferLevels.video, mediaType: "video"),
-        ]
-    }
-
     static func toJson(httpRequestType: HttpRequestType) -> String {
         httpRequestType.rawValue
     }

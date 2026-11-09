@@ -10,7 +10,11 @@ class NativeCallbacksModule : Module() {
         Class(CallbackResult::class) {
             Constructor { CallbackResult(appContext) }
             Function("resolve") { result: CallbackResult, value: JavaScriptValue ->
-                result.resolve(runCatching { value.toCallbackValue() }.getOrNull())
+                result.resolve(
+                    runCatching { value.toCallbackValue() }
+                        .onFailure { result.resolve(null) }
+                        .getOrThrow(),
+                )
             }
         }
     }

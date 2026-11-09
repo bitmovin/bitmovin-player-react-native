@@ -108,7 +108,7 @@ test('offline progress reaches listeners during creation and through iOS aliases
   const first = new OfflineContentManager(config);
   const received = [];
   first.addListener({ onProgress: (value) => received.push(value) });
-  await first.initialize();
+  await first.state();
   assert.deepEqual(received, [{ ...event, nativeId: config.nativeId }]);
 
   const alias = new OfflineContentManager(config);
@@ -130,7 +130,7 @@ test('iOS offline creation errors reject and permit retry', async (t) => {
     throw failure;
   };
   const manager = new OfflineContentManager(config);
-  await assert.rejects(manager.initialize(), (error) => error === failure);
+  await assert.rejects(manager.state(), (error) => error === failure);
   offlineModule.create = create;
   await manager.initialize();
   assert.equal(await manager.state(), 'Downloaded');

@@ -17,8 +17,7 @@ class SharedSource(appContext: AppContext, source: Source, private val callbacks
     source,
     appContext,
 ) {
-    fun closeCallbacks() = callbacks.close()
-    override fun sharedObjectDidRelease() = closeCallbacks()
+    override fun sharedObjectDidRelease() = callbacks.close()
 
     val source: Source
         get() = ref

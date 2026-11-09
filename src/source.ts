@@ -3,18 +3,14 @@ import type { DrmConfig } from './drm';
 import { SourceDrmApi } from './drm/sourceDrmApi';
 import type { NativeInstanceConfig } from './nativeInstance';
 import NativeInstance from './nativeInstance';
-import {
-  getOrCreateAsync,
-  lookup,
-  lookupPending,
-  remove,
-} from './nativeInstanceRegistry';
+import { getOrCreateAsync } from './nativeInstanceRegistry';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
-import SourceModule, { getNativeSource } from './modules/SourceModule';
+import SourceModule from './modules/SourceModule';
 import {
   configurationCallback,
+  createSharedObjectWithCallback,
   serializeNativeConfig,
 } from './nativeCallbacks';
 import { setNativeOwner } from './nativeOwner';
@@ -174,7 +170,22 @@ export interface SourceRemoteControlConfig {
  */
 export class Source extends NativeInstance<SourceConfig> {
   private get native() {
-    return getNativeSource(this);
+    return getOrCreateAsync('source', this.nativeId, () =>
+      createSharedObjectWithCallback(
+        (callback) =>
+          SourceModule.create(
+            serializeNativeConfig(this.config),
+            serializeNativeConfig(this.remoteControl || undefined),
+            serializeNativeConfig(this.config?.analyticsSourceMetadata),
+            callback
+          ),
+        configurationCallback(this.config)
+      )
+    ).then((native) => {
+      setNativeOwner(this, native);
+      this.isInitialized = true;
+      return native;
+    });
   }
 
   /**
@@ -195,54 +206,12 @@ export class Source extends NativeInstance<SourceConfig> {
    * Whether the native {@link Source} object has been created.
    */
   isInitialized = false;
-  /**
-   * Whether the native {@link Source} object has been disposed.
-   */
-  isDestroyed = false;
 
   /**
    * Allocates the native {@link Source} instance and its resources natively.
    */
   initialize = async (): Promise<void> => {
-    if (this.isInitialized || this.isDestroyed) return;
-    const native = await getOrCreateAsync(
-      'source',
-      this.nativeId,
-      async () => {
-        if (this.isDestroyed) return;
-        return SourceModule.create(
-          serializeNativeConfig(this.config),
-          serializeNativeConfig(this.remoteControl || undefined),
-          serializeNativeConfig(this.config?.analyticsSourceMetadata),
-          configurationCallback(this.config)
-        );
-      },
-      (created) => created.closeCallbacks()
-    );
-    if (
-      !native ||
-      lookup('source', this.nativeId) !== native ||
-      this.isDestroyed
-    )
-      return;
-    setNativeOwner(this, native);
-    this.isInitialized = true;
-  };
-
-  /**
-   * Destroys the native {@link Source} and releases all of its allocated resources.
-   */
-  destroy = () => {
-    if (!this.isDestroyed) {
-      const native = this.native;
-      const pending = lookupPending('source', this.nativeId);
-      if (pending) remove('source', this.nativeId, pending);
-      void native?.closeCallbacks();
-      this.isDestroyed = true;
-      if (native) {
-        remove('source', this.nativeId, native);
-      }
-    }
+    await this.native;
   };
 
   /**
@@ -250,7 +219,7 @@ export class Source extends NativeInstance<SourceConfig> {
    * Default value is `0` if the duration is not available or not known.
    */
   duration = async (): Promise<number> => {
-    return (await this.native?.duration()) || 0;
+    return (await this.native).duration();
   };
 
   /**
@@ -258,21 +227,21 @@ export class Source extends NativeInstance<SourceConfig> {
    * Only one source can be active in the same player instance at any time.
    */
   isActive = async (): Promise<boolean> => {
-    return (await this.native?.isActive()) ?? false;
+    return (await this.native).isActive();
   };
 
   /**
    * Whether the source is currently attached to a player instance.
    */
   isAttachedToPlayer = async (): Promise<boolean> => {
-    return (await this.native?.isAttachedToPlayer()) ?? false;
+    return (await this.native).isAttachedToPlayer();
   };
 
   /**
    * Metadata for the currently loaded source.
    */
   metadata = async (): Promise<Record<string, any> | null> => {
-    return (await this.native?.getMetadata()) ?? null;
+    return (await this.native).getMetadata();
   };
 
   /**
@@ -282,14 +251,14 @@ export class Source extends NativeInstance<SourceConfig> {
    * @param metadata metadata to be set.
    */
   setMetadata = (metadata: Record<string, any> | null): void => {
-    void this.native?.setMetadata(metadata);
+    void this.native.then((native) => native.setMetadata(metadata));
   };
 
   /**
    * The current `LoadingState` of the source.
    */
   loadingState = async (): Promise<LoadingState> => {
-    return (await this.native?.loadingState()) || LoadingState.UNLOADED;
+    return (await this.native).loadingState();
   };
 
   /**
@@ -303,6 +272,6 @@ export class Source extends NativeInstance<SourceConfig> {
    * @param time - The time in seconds for which to retrieve the thumbnail.
    */
   getThumbnail = async (time: number): Promise<Thumbnail | null> => {
-    return (await this.native?.getThumbnail(time)) ?? null;
+    return (await this.native).getThumbnail(time);
   };
 }

@@ -34,7 +34,7 @@ export class FairplayDrmApi {
       console.warn('renewExpiringLicense is not available on Android.');
       return;
     }
-    return this.nativeSource()?.drmFairplayRenewExpiringLicense(
+    return (await this.nativeSource())?.drmFairplayRenewExpiringLicense(
       contentKeyRequest.skdUri
     );
   };

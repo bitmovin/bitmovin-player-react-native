@@ -48,15 +48,4 @@ export default abstract class NativeInstance<
    * Create the native object/resources that will be managed by this instance.
    */
   abstract initialize(): void;
-
-  /**
-   * Flag indicating whether the native resources of this object have been disposed .i.e
-   * `destroy` has been called.
-   */
-  abstract isDestroyed: boolean;
-
-  /**
-   * Dispose the native object/resources created by this instance during `initialize`.
-   */
-  abstract destroy(): void;
 }

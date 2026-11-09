@@ -100,12 +100,16 @@ public class PlayerModule: Module {
             AsyncFunction("getThumbnail") { (owner: SharedPlayer, time: Double) -> [String: Any]? in
                 RCTConvert.toJson(thumbnail: owner.player.thumbnail(forTime: time))
             }.runOnQueue(.main)
-            AsyncFunction("loadOfflineContent") { (owner: SharedPlayer, offline: SharedOffline, options: [String: Any]?) in // swiftlint:disable:this line_length
+            AsyncFunction("loadOfflineContent") { (owner: SharedPlayer, offline: SharedOffline, options: [String: Any]?) -> Bool in // swiftlint:disable:this line_length
                 #if os(iOS)
                 guard let config = offline.offlineContentManager.createOfflineSourceConfig(
                     restrictedToAssetCache: options?["restrictedToAssetCache"] as? Bool ?? true
-                ) else { return }
+                ) else { return false }
                 owner.player.load(sourceConfig: config)
+                owner.source = nil
+                return true
+                #else
+                return false
                 #endif
             }.runOnQueue(.main)
             AsyncFunction("scheduleAd") { (owner: SharedPlayer, adItemJson: [String: Any]) in
@@ -142,7 +146,10 @@ public class PlayerModule: Module {
                 guard let bufferType = RCTConvert.bufferType(type) else { return nil }
                 let player = owner.player
                 let level = player.buffer.getLevel(bufferType)
-                return RCTConvert.toJson(bufferLevels: RNBufferLevels(audio: level, video: level))
+                return [
+                    "audio": RCTConvert.toJson(bufferLevel: level, mediaType: "audio"),
+                    "video": RCTConvert.toJson(bufferLevel: level, mediaType: "video")
+                ]
             }.runOnQueue(.main)
             AsyncFunction("setBufferTargetLevel") { (owner: SharedPlayer, type: String, value: Double) in
                 guard RCTConvert.bufferType(type) == .forwardDuration else { return }

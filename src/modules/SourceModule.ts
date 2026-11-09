@@ -15,15 +15,13 @@ export type SourceModuleEvents = Record<string, never>;
 
 /** @internal */
 export interface NativeSource extends SharedObject<SourceModuleEvents> {
-  closeCallbacks(): Promise<void>;
+  isAttachedToPlayer(): Promise<boolean>;
 
-  isAttachedToPlayer(): Promise<boolean | null>;
+  isActive(): Promise<boolean>;
 
-  isActive(): Promise<boolean | null>;
+  duration(): Promise<number>;
 
-  duration(): Promise<number | null>;
-
-  loadingState(): Promise<LoadingState | null>;
+  loadingState(): Promise<LoadingState>;
 
   getMetadata(): Promise<Record<string, any> | null>;
 
@@ -55,11 +53,16 @@ declare class SourceModule extends NativeModule {
 export default requireNativeModule<SourceModule>('SourceModule');
 
 /** @internal */
-export type NativeSourceReference = () => NativeSource | undefined;
+export type NativeSourceReference = () =>
+  | NativeSource
+  | undefined
+  | Promise<NativeSource | undefined>;
 
 /** @internal */
 export function nativeSourceReference(
   source: Source | NativeSourceReference
 ): NativeSourceReference {
-  return typeof source === 'function' ? source : () => getNativeSource(source);
+  return typeof source === 'function'
+    ? source
+    : () => source.initialize().then(() => getNativeSource(source));
 }
