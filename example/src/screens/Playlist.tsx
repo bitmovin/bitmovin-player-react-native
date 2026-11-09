@@ -120,7 +120,7 @@ export default function Playlist() {
   }, []);
 
   const onPlayerViewReady = useCallback(() => {
-    void player.loadPlaylist({
+    player.loadPlaylist({
       sources: [createSource(artOfMotion), createSource(sintel)],
       options: {
         preloadAllSources: true,

@@ -39,8 +39,8 @@ export default (spec: TestScope) => {
           const second = new Source(Sources.sintel);
 
           const events = await callPlayerAndExpectEvents(
-            async (player) => {
-              await player.loadPlaylist({ sources: [first, second] });
+            (player) => {
+              player.loadPlaylist({ sources: [first, second] });
             },
             EventSequence(
               FilteredEvent<SourceAddedEvent>(
@@ -67,8 +67,8 @@ export default (spec: TestScope) => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
 
-        await callPlayerAndExpectEvent(async (player) => {
-          await player.loadPlaylist({ sources: [first, second] });
+        await callPlayerAndExpectEvent((player) => {
+          player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         await callPlayer(async (player) => {
@@ -81,33 +81,43 @@ export default (spec: TestScope) => {
       });
     });
 
-    spec.it('rejects an empty playlist', async () => {
+    spec.it('throws for an empty playlist', async () => {
       await startPlayerTest({}, async () => {
         await callPlayer(async (player) => {
-          let error: unknown;
-          try {
-            await player.loadPlaylist({ sources: [] });
-          } catch (e) {
-            error = e;
-          }
-          expect(error, 'loadPlaylist should reject').toBeDefined();
+          expect(
+            getError(() => player.loadPlaylist({ sources: [] })),
+            'loadPlaylist should throw'
+          ).toBeDefined();
         });
       });
     });
 
-    spec.it('rejects an unknown replay mode', async () => {
+    spec.it('throws for an unknown replay mode', async () => {
       await startPlayerTest({}, async () => {
         await callPlayer(async (player) => {
-          let error: unknown;
-          try {
-            await player.loadPlaylist({
-              sources: [new Source(Sources.artOfMotionHls)],
-              options: { replayMode: 'unknown' as ReplayMode },
-            });
-          } catch (e) {
-            error = e;
-          }
-          expect(error, 'loadPlaylist should reject').toBeDefined();
+          expect(
+            getError(() =>
+              player.loadPlaylist({
+                sources: [new Source(Sources.artOfMotionHls)],
+                options: { replayMode: 'unknown' as ReplayMode },
+              })
+            ),
+            'loadPlaylist should throw'
+          ).toBeDefined();
+        });
+      });
+    });
+
+    spec.it('throws for a destroyed source', async () => {
+      await startPlayerTest({}, async () => {
+        const source = new Source(Sources.artOfMotionHls);
+        source.destroy();
+
+        await callPlayer(async (player) => {
+          expect(
+            getError(() => player.loadPlaylist({ sources: [source] })),
+            'loadPlaylist should throw'
+          ).toBeDefined();
         });
       });
     });
@@ -117,8 +127,8 @@ export default (spec: TestScope) => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
 
-        await callPlayerAndExpectEvent(async (player) => {
-          await player.loadPlaylist({
+        await callPlayerAndExpectEvent((player) => {
+          player.loadPlaylist({
             sources: [first, second],
             options: { preloadAllSources: true },
           });
@@ -145,7 +155,7 @@ export default (spec: TestScope) => {
           player.on('sourceLoaded', (event) => playerLoaded.push(event));
           await player.initialize();
 
-          await player.loadPlaylist({
+          player.loadPlaylist({
             sources: [first, second],
             options: { preloadAllSources: true },
           });
@@ -175,8 +185,8 @@ export default (spec: TestScope) => {
           const first = new Source(Sources.artOfMotionHls);
           const second = new Source(Sources.sintel);
 
-          await callPlayerAndExpectEvent(async (player) => {
-            await player.loadPlaylist({ sources: [first, second] });
+          await callPlayerAndExpectEvent((player) => {
+            player.loadPlaylist({ sources: [first, second] });
           }, EventType.Ready);
 
           const transition =
@@ -201,8 +211,8 @@ export default (spec: TestScope) => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
 
-        await callPlayerAndExpectEvent(async (player) => {
-          await player.loadPlaylist({ sources: [first, second] });
+        await callPlayerAndExpectEvent((player) => {
+          player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         const seek = await callPlayerAndExpectEvent<SeekEvent>(
@@ -223,8 +233,8 @@ export default (spec: TestScope) => {
           const first = new Source(Sources.artOfMotionHls);
           const second = new Source(Sources.sintel);
 
-          await callPlayerAndExpectEvent(async (player) => {
-            await player.loadPlaylist({ sources: [first, second] });
+          await callPlayerAndExpectEvent((player) => {
+            player.loadPlaylist({ sources: [first, second] });
           }, EventType.Ready);
 
           const duration = await first.duration();
@@ -251,8 +261,8 @@ export default (spec: TestScope) => {
         const second = new Source(Sources.sintel);
         const third = new Source(Sources.artOfMotionHls);
 
-        await callPlayerAndExpectEvent(async (player) => {
-          await player.loadPlaylist({ sources: [first, second] });
+        await callPlayerAndExpectEvent((player) => {
+          player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         const added = await callPlayerAndExpectEvent<SourceAddedEvent>(
@@ -302,8 +312,8 @@ export default (spec: TestScope) => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
 
-        await callPlayerAndExpectEvent(async (player) => {
-          await player.loadPlaylist({ sources: [first, second] });
+        await callPlayerAndExpectEvent((player) => {
+          player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         await callPlayerAndExpectEvent(async (player) => {
@@ -324,8 +334,8 @@ export default (spec: TestScope) => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
 
-        await callPlayerAndExpectEvent(async (player) => {
-          await player.loadPlaylist({ sources: [first, second] });
+        await callPlayerAndExpectEvent((player) => {
+          player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         await callPlayerAndExpectEvents(
@@ -346,4 +356,13 @@ export default (spec: TestScope) => {
       });
     });
   });
+};
+
+const getError = (fn: () => void): unknown => {
+  try {
+    fn();
+  } catch (error) {
+    return error;
+  }
+  return undefined;
 };
