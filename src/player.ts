@@ -125,9 +125,11 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Destroys the native `Player` and releases all of its allocated resources.
    *
-   * Also destroys the {@link Source}s it owns: every source loaded into it, including ones it is still loading and
-   * ones it no longer plays, e.g. after {@link Player.unload} or a later load, unless another player loaded it or
-   * added it to its playlist since, or it was removed via {@link PlaylistApi.remove} or {@link PlaylistApi.removeAt}.
+   * Also destroys the {@link Source}s it owns once the native player is destroyed: every source loaded into it or
+   * added to its playlist, including ones it is still loading and ones it no longer plays, e.g. after
+   * {@link Player.unload} or a later load. It does not destroy a source that another player loaded or added to its
+   * playlist since, or that was removed via {@link PlaylistApi.remove} or {@link PlaylistApi.removeAt} and not
+   * loaded or added again.
    */
   destroy = () => {
     if (!this.isDestroyed) {
@@ -184,6 +186,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Loads a new {@link Source} from `sourceConfig` into the player.
    */
   load = (sourceConfig: SourceConfig) => {
+    if (this.isDestroyed) {
+      return;
+    }
     this.loadSource(new Source(sourceConfig));
   };
 

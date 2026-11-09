@@ -45,16 +45,18 @@ export const SourceRegistry = {
 
   /**
    * Makes `player` the owner of the sources it loads, also if another player owned them before.
-   * A destroyed player takes no sources.
+   * A destroyed player takes no sources, and destroyed sources are not taken.
    */
   own(player: Player, loadedSources: Source[]) {
     if (player.isDestroyed) {
       return;
     }
     ownerships += 1;
-    loadedSources.forEach((source) =>
-      owners.set(source, { player, ownership: ownerships })
-    );
+    loadedSources
+      .filter((source) => !source.isDestroyed)
+      .forEach((source) =>
+        owners.set(source, { player, ownership: ownerships })
+      );
   },
 
   /**

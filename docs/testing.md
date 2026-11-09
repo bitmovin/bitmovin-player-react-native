@@ -91,8 +91,8 @@ modules. They cover how JS resolves native source ids to `Source` instances,
 rejects destroyed sources, sends the native destroy right away, also while an
 initialization is in progress, and which sources `Player.destroy` destroys: the
 ones it owns, including ones it is still loading, but not ones another player
-loaded since or that were removed from its playlist. They do not prove that
-native creates, loads, removes or destroys a source.
+loaded or added to its playlist since, or that were removed from its playlist.
+They do not prove that native creates, loads, removes or destroys a source.
 
 `yarn test:plugin` builds and tests the config plugin. The Python command tests
 repository automation. Neither establishes Player runtime behavior. There is

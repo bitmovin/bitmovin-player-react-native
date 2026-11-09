@@ -573,6 +573,18 @@ test('does not let a destroyed player take a source from another player', async 
   assert.equal(source.isDestroyed, true);
 });
 
+test('creates no source when loading a config into a destroyed player', async () => {
+  const { Player, callsTo } = fixture();
+  const player = new Player({ nativeId: 'player' });
+  player.destroy();
+  await settle();
+
+  player.load({ nativeId: 'a', url });
+  await settle();
+
+  assert.deepEqual(callsTo('SourceModule.initializeWithConfig'), []);
+});
+
 test('throws synchronously when loading a destroyed source', () => {
   const { Player, Source, callsTo } = fixture();
   const player = new Player({ nativeId: 'player' });
