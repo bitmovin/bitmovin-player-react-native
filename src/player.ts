@@ -198,7 +198,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   load = (sourceConfig: SourceConfig) => {
     const source = new Source(sourceConfig);
-    source.ownerNativeId = this.nativeId;
+    SourceRegistry.setOwner(source, this.nativeId);
     this.loadSource(source);
   };
 

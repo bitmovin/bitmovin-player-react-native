@@ -6,6 +6,11 @@ import type { Source } from '../source';
  * releases a source on its own.
  */
 const sources = new Map<string, Source>();
+/**
+ * The {@link Player.nativeId} of the player that created a source in {@link Player.load} and destroys it.
+ * Set before the source is registered, so it is weak to not keep sources that are never registered.
+ */
+const owners = new WeakMap<Source, string>();
 
 export const SourceRegistry = {
   /**
@@ -35,9 +40,13 @@ export const SourceRegistry = {
     return sources.get(nativeId);
   },
 
+  setOwner(source: Source, playerNativeId: string) {
+    owners.set(source, playerNativeId);
+  },
+
   ownedBy(playerNativeId: string): Source[] {
     return [...sources.values()].filter(
-      (source) => source.ownerNativeId === playerNativeId
+      (source) => owners.get(source) === playerNativeId
     );
   },
 };

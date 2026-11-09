@@ -180,12 +180,6 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   remoteControl: SourceRemoteControlConfig | null = null;
   /**
-   * The {@link Player.nativeId} of the player that created this source in {@link Player.load} and destroys it.
-   *
-   * @internal
-   */
-  ownerNativeId?: string;
-  /**
    * Whether the native {@link Source} object has been created.
    */
   isInitialized = false;
