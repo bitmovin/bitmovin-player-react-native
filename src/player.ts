@@ -36,7 +36,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   );
 
   /**
-   * Whether the native `Player` object has been disposed.
+   * Whether `destroy()` has been called on this wrapper.
    */
   isDestroyed = false;
   /**
@@ -95,7 +95,6 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    * Destroys the native `Player` and releases all of its allocated resources.
    */
   destroy = async (): Promise<void> => {
-    if (this.isDestroyed) return;
     this.isDestroyed = true;
     remove('player', this.nativeId, getNativeOwner(this) ?? this.native);
     let native;
@@ -138,9 +137,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   loadSource = async (source: Source): Promise<void> => {
     this.source = source;
     const nativeSource = await source.native;
-    if (this.isDestroyed) return;
     const native = await this.native;
-    if (this.isDestroyed) return;
     await retainLoadedSource(
       native,
       nativeSource,

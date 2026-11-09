@@ -31,13 +31,15 @@ class SharedPlayer private constructor(
         try {
             mediaSessionPlaybackManager.destroy(player)
         } finally {
-            if (!player.isDestroyed) player.destroy()
+            player.destroy()
         }
     }
 
     override fun sharedObjectDidRelease() {
         callbacks.close()
-        Dispatchers.Main.dispatch(EmptyCoroutineContext) { destroy() }
+        Dispatchers.Main.dispatch(EmptyCoroutineContext) {
+            if (!player.isDestroyed) destroy()
+        }
     }
 
     companion object {

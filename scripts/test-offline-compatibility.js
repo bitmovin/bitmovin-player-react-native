@@ -139,8 +139,8 @@ test('iOS offline creation stays rejected; a new wrapper can retry', async (t) =
   await replacement.destroy();
 });
 
-test('destroy during eager offline creation releases its eventual backend', async (t) => {
-  const { OfflineContentManager, config, offlineModule } = fixture(t);
+test('destroy during eager offline creation forwards each request and detaches listeners', async (t) => {
+  const { OfflineContentManager, config, offlineModule, owners } = fixture(t);
   const create = offlineModule.create;
   let finish;
   offlineModule.create = (...args) =>
@@ -155,9 +155,13 @@ test('destroy during eager offline creation releases its eventual backend', asyn
     });
   let releases = 0;
   const manager = new OfflineContentManager(config);
-  const destruction = manager.destroy();
+  const destruction = Promise.all([manager.destroy(), manager.destroy()]);
   await new Promise(setImmediate);
   await finish();
   await destruction;
-  assert.equal(releases, 1);
+  assert.equal(releases, 2);
+  let events = 0;
+  manager.addListener({ onProgress: () => events++ });
+  owners[0].emit({ eventType: 'onProgress' });
+  assert.equal(events, 0);
 });

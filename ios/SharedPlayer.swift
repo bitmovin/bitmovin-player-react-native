@@ -26,7 +26,7 @@ public final class SharedPlayer: SharedObject {
     func destroy() {
         callback?.close()
         // Keep listeners attached for the SDK's final DestroyEvent.
-        if !player.isDestroyed { player.destroy() }
+        player.destroy()
         source = nil
     }
 

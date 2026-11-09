@@ -57,6 +57,7 @@ const handleBitmovinNativeOfflineEvent = (
  * @platform Android, iOS
  */
 export class OfflineContentManager extends NativeInstance<OfflineContentConfig> {
+  /** Whether `destroy()` has been called on this wrapper. */
   isDestroyed = false;
   private eventSubscription?: EventSubscription;
   private listeners: Set<OfflineContentManagerListener> =
@@ -103,7 +104,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   }
 
   private observeEvents(events: NativeOfflineEvents) {
-    if (this.isDestroyed || this.eventSubscription) return;
+    if (this.eventSubscription) return;
     this.eventSubscription = events.addListener(
       'onBitmovinOfflineEvent',
       (event) => {
@@ -134,7 +135,6 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Destroys the native `OfflineManager` and releases all of its allocated resources.
    */
   destroy = async (): Promise<void> => {
-    if (this.isDestroyed) return;
     this.isDestroyed = true;
     this.eventSubscription?.remove();
     this.listeners.clear();
@@ -146,6 +146,8 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
       // A failed constructor has no native manager to destroy.
       return;
     }
+    // Creation can subscribe after destroy() starts; detach it before cleanup completes.
+    this.eventSubscription?.remove();
     remove('offline', this.nativeId, native);
     await native.destroy();
   };

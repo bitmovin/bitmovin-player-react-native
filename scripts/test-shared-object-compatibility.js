@@ -311,5 +311,41 @@ test('Player commands await native completion and propagate errors', async (t) =
     throw failure;
   };
   await assert.rejects(player.play(), (error) => error === failure);
+  const completions = [];
+  native.destroy = () => new Promise((resolve) => completions.push(resolve));
+  let destroyed = 0;
+  const destructions = [player.destroy(), player.destroy()].map(
+    async (call) => {
+      await call;
+      destroyed++;
+    }
+  );
+  await new Promise(setImmediate);
+  assert.equal(completions.length, 2);
+  assert.equal(destroyed, 0);
+  completions.forEach((complete) => complete());
+  await Promise.all(destructions);
+  assert.equal(destroyed, 2);
+});
+
+test('a pending Source load reaches native after Player destruction', async (t) => {
+  const { Player, Source, modules } = fixture(t);
+  const player = new Player();
+  const native = await player.native;
+  const create = modules.SourceModule.create;
+  let finish;
+  modules.SourceModule.create = (...args) =>
+    new Promise((resolve) => {
+      finish = async () => resolve(await create(...args));
+    });
+  const source = new Source({ url: 'https://test/source', type: 'hls' });
+  let loaded;
+  native.loadSource = async (value) => {
+    loaded = value;
+  };
+  const loading = player.loadSource(source);
   await player.destroy();
+  await finish();
+  await loading;
+  assert.equal(loaded, await source.native);
 });
