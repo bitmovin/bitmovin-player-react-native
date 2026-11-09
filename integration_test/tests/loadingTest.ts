@@ -241,6 +241,31 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
     });
   });
 
+  spec.describe('reusing the nativeId of a destroyed source', () => {
+    spec.it(
+      'loads a new source when the destroyed one was still initializing',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const nativeId = 'reused-source';
+          const reused = new Source({ ...Sources.artOfMotionHls, nativeId });
+          await callPlayerAndExpectEvent((player) => {
+            const destroyed = new Source({
+              ...Sources.artOfMotionHls,
+              nativeId,
+            });
+            player.loadSource(destroyed);
+            destroyed.destroy();
+            player.loadSource(reused);
+          }, EventType.Ready);
+
+          await callPlayer(async (player) => {
+            expect(await player.getSource(), 'Active source').toBe(reused);
+          });
+        });
+      }
+    );
+  });
+
   spec.describe('destroying the player', () => {
     spec.it(
       'destroys the sources it created, including a replaced one',
