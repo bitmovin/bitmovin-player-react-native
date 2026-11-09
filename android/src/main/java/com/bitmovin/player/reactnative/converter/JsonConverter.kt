@@ -74,6 +74,7 @@ import com.bitmovin.player.api.network.PreprocessHttpRequestCallback
 import com.bitmovin.player.api.network.PreprocessHttpResponseCallback
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
+import com.bitmovin.player.api.playlist.ReplayMode
 import com.bitmovin.player.api.source.LoadingState
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
@@ -160,6 +161,12 @@ fun Map<String, Any?>.toSourceOptions(): SourceOptions = SourceOptions(
     startOffset = getDoubleOrNull("startOffset"),
     startOffsetTimelineReference = getString("startOffsetTimelineReference")?.toTimelineReferencePoint(),
 )
+
+fun Any?.toReplayMode(): ReplayMode = when (this) {
+    null, "playlist" -> ReplayMode.Playlist
+    "lastSource" -> ReplayMode.LastSource
+    else -> throw IllegalArgumentException("Unknown replay mode")
+}
 
 fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (this) {
     "start" -> TimelineReferencePoint.Start

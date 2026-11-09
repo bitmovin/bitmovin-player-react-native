@@ -4,6 +4,7 @@ import BitmovinCollector
 import BitmovinPlayer
 @_spi(ExperimentalApi)
 import BitmovinPlayerCore
+import ExpoModulesCore
 import Foundation
 
 extension RCTConvert {
@@ -405,6 +406,17 @@ extension RCTConvert {
         sourceOptions.startOffsetTimelineReference = Self
             .timelineReferencePoint(json["startOffsetTimelineReference"])
         return sourceOptions
+    }
+
+    static func toReplayMode(_ json: Any?) throws -> ReplayMode {
+        switch json as? String {
+        case nil, "playlist":
+            return .playlist
+        case "lastSource":
+            return .lastSource
+        default:
+            throw Exception(name: "InvalidReplayMode", description: "Unknown replay mode")
+        }
     }
 
     static func timelineReferencePoint(_ json: Any?) -> TimelineReferencePoint {

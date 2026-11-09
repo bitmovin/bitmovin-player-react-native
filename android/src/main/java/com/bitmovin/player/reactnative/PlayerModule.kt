@@ -4,12 +4,12 @@ import com.bitmovin.player.api.analytics.AnalyticsApi.Companion.analytics
 import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.playlist.PlaylistConfig
 import com.bitmovin.player.api.playlist.PlaylistOptions
-import com.bitmovin.player.api.playlist.ReplayMode
 import com.bitmovin.player.api.playlist.SeekTarget
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
 import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
 import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.converter.toReplayMode
 import com.bitmovin.player.reactnative.converter.toTimelineReferencePoint
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import expo.modules.kotlin.functions.Queues
@@ -32,17 +32,12 @@ class PlayerModule : Module() {
         Class(SharedPlayer::class) {
             AsyncFunction("loadPlaylist") { shared: SharedPlayer, sources: List<SharedSource>,
                 options: Map<String, Any>?, ->
-                val replayMode = when (options?.get("replayMode")) {
-                    null, "playlist" -> ReplayMode.Playlist
-                    "lastSource" -> ReplayMode.LastSource
-                    else -> throw IllegalArgumentException("Unknown replay mode")
-                }
                 shared.player.load(
                     PlaylistConfig(
                         sources.map { it.source },
                         PlaylistOptions(
                             preloadAllSources = options?.get("preloadAllSources") as? Boolean ?: false,
-                            replayMode = replayMode,
+                            replayMode = options?.get("replayMode").toReplayMode(),
                         ),
                     ),
                 )

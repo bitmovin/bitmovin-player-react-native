@@ -218,17 +218,8 @@ private func playlistConfig(sources: [SharedSource], options: [String: Any]?) th
     guard !sources.isEmpty else {
         throw Exception(name: "InvalidPlaylist", description: "A playlist requires at least one source")
     }
-    let replayMode: ReplayMode
-    switch options?["replayMode"] as? String {
-    case nil, "playlist":
-        replayMode = .playlist
-    case "lastSource":
-        replayMode = .lastSource
-    default:
-        throw Exception(name: "InvalidReplayMode", description: "Unknown replay mode")
-    }
     return PlaylistConfig(sources: sources.map(\.source), options: PlaylistOptions(
         preloadAllSources: options?["preloadAllSources"] as? Bool ?? false,
-        replayMode: replayMode
+        replayMode: try RCTConvert.toReplayMode(options?["replayMode"])
     ))
 }
