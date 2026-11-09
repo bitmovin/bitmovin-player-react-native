@@ -1,6 +1,5 @@
 import { Platform } from 'react-native';
 import PlayerModule, { retainLoadedSource } from './modules/PlayerModule';
-import { getNativeSource } from './modules/SourceModule';
 import NativeInstance from './nativeInstance';
 import { getOrCreateAsync, remove } from './nativeInstanceRegistry';
 import type { SourceConfig } from './source';
@@ -99,85 +98,81 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   /**
    * Destroys the native `Player` and releases all of its allocated resources.
    */
-  destroy = () => {
+  destroy = async (): Promise<void> => {
     if (this.isDestroyed) return;
     this.isDestroyed = true;
     remove('player', this.nativeId, getNativeOwner(this) ?? this.native);
-    void this.native.then(
-      (native) => {
-        remove('player', this.nativeId, native);
-        return retainLoadedSource(native, undefined, native.destroy());
-      },
-      () => {}
-    );
+    let native;
+    try {
+      native = await this.native;
+    } catch {
+      // A failed constructor has no native player to destroy.
+      return;
+    }
+    remove('player', this.nativeId, native);
+    await retainLoadedSource(native, undefined, native.destroy());
   };
 
   /**
    * Loads a new {@link Source} from `sourceConfig` into the player.
    */
-  load = (sourceConfig: SourceConfig) => {
-    this.loadSource(new Source(sourceConfig));
+  load = async (sourceConfig: SourceConfig): Promise<void> => {
+    await this.loadSource(new Source(sourceConfig));
   };
 
   /**
    * Loads the downloaded content from {@link OfflineContentManager} into the player.
    */
-  loadOfflineContent = (
+  loadOfflineContent = async (
     offlineContentManager: OfflineContentManager,
     options?: OfflineSourceOptions
-  ) => {
-    void offlineContentManager.initialize().then(async () => {
-      const native = await this.native;
-      const offline = getNativeOffline(offlineContentManager);
-      return retainLoadedSource(
-        native,
-        offline,
-        native.loadOfflineContent(offline, options)
-      );
-    });
+  ): Promise<void> => {
+    await offlineContentManager.initialize();
+    const native = await this.native;
+    const offline = getNativeOffline(offlineContentManager);
+    await retainLoadedSource(
+      native,
+      offline,
+      native.loadOfflineContent(offline, options)
+    );
   };
 
   /**
    * Loads the given {@link Source} into the player.
    */
-  loadSource = (source: Source) => {
+  loadSource = async (source: Source): Promise<void> => {
     this.source = source;
-    void source.initialize().then(async () => {
-      if (this.isDestroyed) return;
-      const native = await this.native;
-      if (this.isDestroyed) return;
-      const nativeSource = getNativeSource(source);
-      return nativeSource
-        ? retainLoadedSource(
-            native,
-            nativeSource,
-            native.loadSource(nativeSource)
-          )
-        : undefined;
-    });
+    const nativeSource = await source.native;
+    if (this.isDestroyed) return;
+    const native = await this.native;
+    if (this.isDestroyed) return;
+    await retainLoadedSource(
+      native,
+      nativeSource,
+      native.loadSource(nativeSource)
+    );
   };
 
   /**
    * Unloads all {@link Source}s from the player.
    */
-  unload = () => {
-    void this.native.then((native) =>
-      retainLoadedSource(native, undefined, native.unload())
-    );
+  unload = async (): Promise<void> => {
+    const native = await this.native;
+    await retainLoadedSource(native, undefined, native.unload());
   };
 
   /**
    * Starts or resumes playback after being paused. Has no effect if the player is already playing.
    */
-  play = () => {
-    void this.native.then((native) => native.play());
+  play = async (): Promise<void> => {
+    await (await this.native).play();
   };
 
   /**
    * Pauses the video if it is playing. Has no effect if the player is already paused.
    */
-  pause = () => {
-    void this.native.then((native) => native.pause());
+  pause = async (): Promise<void> => {
+    await (await this.native).pause();
   };
 
   /**
@@ -187,8 +182,8 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    *
    * @param time - The time to seek to in seconds.
    */
-  seek = (time: number) => {
-    void this.native.then((native) => native.seek(time));
+  seek = async (time: number): Promise<void> => {
+    await (await this.native).seek(time);
   };
 
   /**
@@ -202,22 +197,22 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    *
    * @param offset - Target offset from the live edge in seconds.
    */
-  timeShift = (offset: number) => {
-    void this.native.then((native) => native.timeShift(offset));
+  timeShift = async (offset: number): Promise<void> => {
+    await (await this.native).timeShift(offset);
   };
 
   /**
    * Mutes the player if an audio track is available. Has no effect if the player is already muted.
    */
-  mute = () => {
-    void this.native.then((native) => native.mute());
+  mute = async (): Promise<void> => {
+    await (await this.native).mute();
   };
 
   /**
    * Unmutes the player if it is muted. Has no effect if the player is already unmuted.
    */
-  unmute = () => {
-    void this.native.then((native) => native.unmute());
+  unmute = async (): Promise<void> => {
+    await (await this.native).unmute();
   };
 
   /**
@@ -225,8 +220,8 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    *
    * @param volume - The volume level to set.
    */
-  setVolume = (volume: number) => {
-    void this.native.then((native) => native.setVolume(volume));
+  setVolume = async (volume: number): Promise<void> => {
+    await (await this.native).setVolume(volume);
   };
 
   /**
@@ -321,14 +316,14 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    *
    * @platform iOS
    */
-  showAirPlayTargetPicker = () => {
+  showAirPlayTargetPicker = async (): Promise<void> => {
     if (Platform.OS !== 'ios' || Platform.isTV) {
       console.warn(
         `[Player ${this.nativeId}] Method showAirPlayTargetPicker is only available on iOS (not Android/tvOS).`
       );
       return;
     }
-    void this.native.then((native) => native.showAirPlayTargetPicker());
+    await (await this.native).showAirPlayTargetPicker();
   };
 
   /**
@@ -388,8 +383,8 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    *
    * @platform iOS, Android
    */
-  scheduleAd = (adItem: AdItem) => {
-    void this.native.then((native) => native.scheduleAd(adItem));
+  scheduleAd = async (adItem: AdItem): Promise<void> => {
+    await (await this.native).scheduleAd(adItem);
   };
 
   /**
@@ -400,8 +395,8 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    *
    * @platform iOS, Android
    */
-  skipAd = () => {
-    void this.native.then((native) => native.skipAd());
+  skipAd = async (): Promise<void> => {
+    await (await this.native).skipAd();
   };
 
   /**
@@ -436,10 +431,8 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    *
    * Can be set to `null` for no limitation.
    */
-  setMaxSelectableBitrate = (bitrate: number | null) => {
-    void this.native.then((native) =>
-      native.setMaxSelectableBitrate(bitrate || -1)
-    );
+  setMaxSelectableBitrate = async (bitrate: number | null): Promise<void> => {
+    await (await this.native).setMaxSelectableBitrate(bitrate || -1);
   };
 
   /**
@@ -481,8 +474,8 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    *
    * @platform iOS, Android
    */
-  castVideo = () => {
-    void this.native.then((native) => native.castVideo());
+  castVideo = async (): Promise<void> => {
+    await (await this.native).castVideo();
   };
 
   /**
@@ -490,8 +483,8 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    *
    * @platform iOS, Android
    */
-  castStop = () => {
-    void this.native.then((native) => native.castStop());
+  castStop = async (): Promise<void> => {
+    await (await this.native).castStop();
   };
 
   /**
@@ -516,14 +509,14 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    *
    * @param qualityId value obtained from {@link VideoQuality}'s `id` property, which can be obtained via `Player.getAvailableVideoQualities()` to select a specific quality. To use automatic quality selection, 'auto' can be passed here.
    */
-  setVideoQuality = (qualityId: string) => {
+  setVideoQuality = async (qualityId: string): Promise<void> => {
     if (Platform.OS !== 'android') {
       console.warn(
         `[Player ${this.nativeId}] Method setVideoQuality is not available for iOS and tvOS devices. Only Android devices.`
       );
       return;
     }
-    void this.native.then((native) => native.setVideoQuality(qualityId));
+    await (await this.native).setVideoQuality(qualityId);
   };
 
   /**
@@ -542,8 +535,8 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    *
    * @param playbackSpeed - The playback speed to set.
    */
-  setPlaybackSpeed = (playbackSpeed: number) => {
-    void this.native.then((native) => native.setPlaybackSpeed(playbackSpeed));
+  setPlaybackSpeed = async (playbackSpeed: number): Promise<void> => {
+    await (await this.native).setPlaybackSpeed(playbackSpeed);
   };
 
   /**

@@ -1,13 +1,10 @@
 import type { CmcdConfig } from './cmcdConfig';
 import type { DrmConfig } from './drm';
 import { SourceDrmApi } from './drm/sourceDrmApi';
-import type { NativeInstanceConfig } from './nativeInstance';
-import NativeInstance from './nativeInstance';
-import { getOrCreateAsync } from './nativeInstanceRegistry';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
-import SourceModule from './modules/SourceModule';
+import SourceModule, { type NativeSource } from './modules/SourceModule';
 import {
   createConfigurationCallbacks,
   createSharedObjectWithCallback,
@@ -90,7 +87,7 @@ export enum TimelineReferencePoint {
 /**
  * Represents a source configuration that be loaded into a player instance.
  */
-export interface SourceConfig extends NativeInstanceConfig {
+export interface SourceConfig {
   /**
    *  The url for this source configuration.
    */
@@ -166,29 +163,41 @@ export interface SourceRemoteControlConfig {
 /**
  * Represents audio and video content that can be loaded into a player.
  */
-export class Source extends NativeInstance<SourceConfig> {
-  private readonly native = this.retainNative(
-    getOrCreateAsync('source', this.nativeId, () => {
-      const callbacks = createConfigurationCallbacks();
-      return createSharedObjectWithCallback(
-        (callback) =>
-          SourceModule.create(
-            callbacks.serialize(this.config),
-            callbacks.serialize(this.remoteControl || undefined),
-            callbacks.serialize(this.config.analyticsSourceMetadata),
-            callback
-          ),
-        callbacks.callback
-      );
-    })
-  );
+export class Source {
+  /** @internal */
+  readonly native: Promise<NativeSource>;
+
+  constructor(readonly config: SourceConfig) {
+    this.native = this.createNative();
+    this.drm = new SourceDrmApi(this.native);
+    // Keep the original rejection available to initialize() and runtime methods.
+    void this.native.catch(() => {});
+  }
+
+  private async createNative(): Promise<NativeSource> {
+    // Preserve synchronous remoteControl assignments made just after construction.
+    await Promise.resolve();
+    const callbacks = createConfigurationCallbacks();
+    const native = await createSharedObjectWithCallback(
+      (callback) =>
+        SourceModule.create(
+          callbacks.serialize(this.config),
+          callbacks.serialize(this.remoteControl || undefined),
+          callbacks.serialize(this.config.analyticsSourceMetadata),
+          callback
+        ),
+      callbacks.callback
+    );
+    this.isInitialized = true;
+    return native;
+  }
 
   /**
    * Provides access to DRM runtime APIs for this source.
    * Use `drm.fairplay` to access {@link FairplayDrmApi} for FairPlay-specific APIs such as {@link FairplayDrmApi.renewExpiringLicense}.
    * Available for every source. Read {@link SourceConfig.drmConfig} to inspect DRM configuration.
    */
-  readonly drm = new SourceDrmApi(this.native);
+  readonly drm: SourceDrmApi;
 
   /**
    * The remote control config for this source.
@@ -245,8 +254,8 @@ export class Source extends NativeInstance<SourceConfig> {
    *
    * @param metadata metadata to be set.
    */
-  setMetadata = (metadata: Record<string, any> | null): void => {
-    void this.native.then((native) => native.setMetadata(metadata));
+  setMetadata = async (metadata: Record<string, any> | null): Promise<void> => {
+    await (await this.native).setMetadata(metadata);
   };
 
   /**

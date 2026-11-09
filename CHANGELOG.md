@@ -20,9 +20,11 @@
 
 ### Changed
 
+- **Breaking change:** Remove `Source.nativeId`, `SourceConfig.nativeId`, and same-ID Source aliasing. Each Source owns its native object directly; Player and OfflineContentManager IDs remain supported
+- **Breaking change:** Player command methods, including `play()`, `load()`, and `destroy()`, and `Source.setMetadata()` now return `Promise<void>` so callers can await native completion and catch failures
 - **Breaking change:** Require configuration when constructing `Source` and `OfflineContentManager`, and require `SourceConfig.type`. `Player` configuration remains optional
 - **Breaking change:** Player, Source, and OfflineContentManager constructors start native creation immediately. Methods and `initialize()` await that single creation attempt. Retry failed creation by constructing a new wrapper. Destruction waits for pending creation before releasing the SDK object
-- **Breaking change:** Remove `Source.destroy()` and `Source.isDestroyed`. Sources follow SDK ownership and remain reusable after player destruction. Source IDs stay valid while their objects remain reachable
+- **Breaking change:** Remove `Source.destroy()` and `Source.isDestroyed`. Sources follow SDK ownership and remain reusable after player destruction
 - **Breaking change:** Android OfflineContentManager aliases share initialization instead of rejecting duplicate `initialize()` calls
 - **Breaking change:** Make `Network` configuration-only, removing `initialize()`, `destroy()`, `isInitialized`, and `isDestroyed`
 - **Breaking change:** Make `Source.drm` an always-present, read-only `SourceDrmApi`, including for clear sources. Read `source.config?.drmConfig` to inspect configuration. `Drm` is configuration-only: its Source constructor parameter, `fairplay`, lifecycle methods, and lifecycle flags are removed. Continue renewing licenses through `source.drm.fairplay.renewExpiringLicense(request)`
@@ -30,7 +32,7 @@
 - Forward offline download requests without additional bitrate or download-state validation in the binding
 - Android: Forward native source-creation and analytics failures through Expo without replacing their exceptions
 - Player and OfflineContentManager methods follow native SDK behavior after `destroy()` instead of returning binding defaults
-- Player, Source, and OfflineContentManager `nativeId` values alone no longer retain unused native objects
+- Player and OfflineContentManager `nativeId` values alone no longer retain unused native objects
 - **Breaking change:** Remove `nativeId` from Network, DRM, and Decoder configuration types and configuration wrappers. Configuration and internal UI adapters now use object ownership instead of named aliases
 - **Breaking change:** Export BufferApi, AnalyticsApi, MediaControlsApi, SourceDrmApi, and FairplayDrmApi as types only; their constructors are internal. Access these APIs through `player.buffer`, `player.analytics`, `player.mediaControls`, and `source.drm`. Remove the helpers' public `nativeId`/`playerId` properties
 - iOS: Bitmovin Advertising Module ads no longer start with the subtitle track marked as default in the ad manifest. The ad subtitle now follows the subtitle selected for the main content, and stays off if the main content subtitles are off. This comes with native iOS SDK `3.131.0`
