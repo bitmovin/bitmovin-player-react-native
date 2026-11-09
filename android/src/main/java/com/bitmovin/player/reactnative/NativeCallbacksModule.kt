@@ -59,13 +59,15 @@ class CallbackScope(private val context: AppContext, callback: JavaScriptFunctio
         operation: String,
         args: List<Any?>,
         result: CallbackResult? = null,
+        mutating: Boolean = false,
+        fallbackArgument: Int? = null,
         completion: ((Any?) -> Unit)? = null,
     ) {
         context.runtime.schedule {
             val function = lock.withLock { callback }
             try {
                 if (function?.isValid() == true) {
-                    val value = function(operation, args, result, appContext = context)
+                    val value = function(operation, args, result, mutating, fallbackArgument, appContext = context)
                     completion?.invoke(value.toCallbackValue())
                 } else {
                     result?.resolve(null)
@@ -80,10 +82,10 @@ class CallbackScope(private val context: AppContext, callback: JavaScriptFunctio
 
     fun notify(operation: String, args: List<Any?>) = schedule(operation, args)
 
-    fun call(operation: String, args: List<Any?>, timeoutMs: Long): Any? {
+    fun call(operation: String, args: List<Any?>, timeoutMs: Long, mutating: Boolean = false): Any? {
         var completed = false
         var value: Any? = null
-        schedule(operation, args) { response ->
+        schedule(operation, args, mutating = mutating) { response ->
             lock.withLock {
                 value = response
                 completed = true
@@ -97,7 +99,13 @@ class CallbackScope(private val context: AppContext, callback: JavaScriptFunctio
         }
     }
 
-    fun <T> future(operation: String, args: List<Any?>, fallback: T, convert: (Any) -> T): CompletableFuture<T> {
+    fun <T> future(
+        operation: String,
+        args: List<Any?>,
+        fallback: T,
+        fallbackArgument: Int? = null,
+        convert: (Any) -> T,
+    ): CompletableFuture<T> {
         val future = CompletableFuture<T>()
         val result = CallbackResult(context) { value ->
             try {
@@ -106,7 +114,7 @@ class CallbackScope(private val context: AppContext, callback: JavaScriptFunctio
                 future.complete(fallback)
             }
         }
-        schedule(operation, args, result)
+        schedule(operation, args, result, fallbackArgument = fallbackArgument)
         return future
     }
 }

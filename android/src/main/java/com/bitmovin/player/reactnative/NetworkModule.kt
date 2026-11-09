@@ -24,7 +24,12 @@ class SharedNetworkConfig(
     val config = config.toNetworkConfig().apply {
         if (config.containsKey("preprocessHttpRequest")) {
             preprocessHttpRequestCallback = PreprocessHttpRequestCallback { type, request ->
-                callbacks.future("preprocessHttpRequest", listOf(type.toJson(), request.toJson()), request) {
+                callbacks.future(
+                    "preprocessHttpRequest",
+                    listOf(type.toJson(), request.toJson()),
+                    request,
+                    fallbackArgument = 1,
+                ) {
                     @Suppress("UNCHECKED_CAST")
                     (it as Map<String, Any?>).toHttpRequest()
                 }
@@ -32,7 +37,12 @@ class SharedNetworkConfig(
         }
         if (config.containsKey("preprocessHttpResponse")) {
             preprocessHttpResponseCallback = PreprocessHttpResponseCallback { type, response ->
-                callbacks.future("preprocessHttpResponse", listOf(type.toJson(), response.toJson()), response) {
+                callbacks.future(
+                    "preprocessHttpResponse",
+                    listOf(type.toJson(), response.toJson()),
+                    response,
+                    fallbackArgument = 1,
+                ) {
                     @Suppress("UNCHECKED_CAST")
                     (it as Map<String, Any?>).toHttpResponse()
                 }

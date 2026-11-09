@@ -96,14 +96,14 @@ private fun preparePlayerConfig(
     if (advertising?.containsKey("shouldLoadAdItem") == true) {
         advertisingConfig = advertisingConfig.copy(
             shouldLoadAdItem = {
-                callbacks.call("shouldLoadAdItem", listOf(it.toJson()), 250) as? Boolean ?: true
+                callbacks.call("advertisingConfig.shouldLoadAdItem", listOf(it.toJson()), 250) as? Boolean ?: true
             },
         )
     }
     if (advertising?.containsKey("shouldPlayAdBreak") == true) {
         advertisingConfig = advertisingConfig.copy(
             shouldPlayAdBreak = {
-                callbacks.call("shouldPlayAdBreak", listOf(it.toJson()), 250) as? Boolean ?: true
+                callbacks.call("advertisingConfig.shouldPlayAdBreak", listOf(it.toJson()), 250) as? Boolean ?: true
             },
         )
     }

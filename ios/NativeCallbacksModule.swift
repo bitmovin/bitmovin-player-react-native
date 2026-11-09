@@ -52,9 +52,9 @@ nonisolated internal final class CallbackScope: LongLivedObject {
         }
     }
 
-    func call(_ operation: String, arguments: [Any], timeout: TimeInterval = 0.25) -> Any? {
+    func call(_ operation: String, arguments: [Any], timeout: TimeInterval = 0.25, mutating: Bool = false) -> Any? {
         let result = CallbackReturn()
-        dispatch(operation, arguments: arguments) { value in
+        dispatch(operation, arguments: arguments, mutating: mutating) { value in
             self.condition.lock()
             if !result.isComplete {
                 result.value = value
@@ -75,9 +75,14 @@ nonisolated internal final class CallbackScope: LongLivedObject {
         return value
     }
 
-    func request(_ operation: String, arguments: [Any], completion: @escaping (Any?) -> Void) {
+    func request(
+        _ operation: String,
+        arguments: [Any],
+        fallbackArgument: Int? = nil,
+        completion: @escaping (Any?) -> Void
+    ) {
         let result = SharedCallbackResult(scope: self, completion: completion)
-        dispatch(operation, arguments: arguments, result: result)
+        dispatch(operation, arguments: arguments, result: result, fallbackArgument: fallbackArgument)
     }
 
     func notify(_ operation: String, arguments: [Any]) {
@@ -88,6 +93,8 @@ nonisolated internal final class CallbackScope: LongLivedObject {
         _ operation: String,
         arguments: [Any],
         result: SharedCallbackResult? = nil,
+        mutating: Bool = false,
+        fallbackArgument: Int? = nil,
         completion: ((Any?) -> Void)? = nil
     ) {
         guard let runtime, let context else { result?.resolve(nil); completion?(nil); return }
@@ -104,7 +111,8 @@ nonisolated internal final class CallbackScope: LongLivedObject {
                 } ?? JavaScriptValue.undefined
                 let value = try function.withValue { callback in
                     try callback?.call(arguments: JavaScriptValuesBuffer.copying(in: runtime, values: [
-                        JavaScriptValue(runtime, operation), values, reply
+                        JavaScriptValue(runtime, operation), values, reply, JavaScriptValue(runtime, mutating),
+                        fallbackArgument.map { JavaScriptValue(runtime, $0) } ?? JavaScriptValue.undefined
                     ]))
                 }
                 completion?(value?.getAny())

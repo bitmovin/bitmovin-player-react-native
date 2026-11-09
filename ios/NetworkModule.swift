@@ -25,9 +25,11 @@ public final class SharedNetworkConfig: SharedObject {
         if json["preprocessHttpRequest"] != nil {
             config.preprocessHttpRequest = { [weak self] type, request, completion in
                 guard let self else { completion(request); return }
-                self.callback.request("preprocessHttpRequest", arguments: [
-                    RCTConvert.toJson(httpRequestType: type), RCTConvert.toJson(httpRequest: request)
-                ]) { value in
+                self.callback.request(
+                    "preprocessHttpRequest",
+                    arguments: [RCTConvert.toJson(httpRequestType: type), RCTConvert.toJson(httpRequest: request)],
+                    fallbackArgument: 1
+                ) { value in
                     completion((value as? [String: Any]).flatMap(RCTConvert.httpRequest) ?? request)
                 }
             }
@@ -35,9 +37,11 @@ public final class SharedNetworkConfig: SharedObject {
         if json["preprocessHttpResponse"] != nil {
             config.preprocessHttpResponse = { [weak self] type, response, completion in
                 guard let self else { completion(response); return }
-                self.callback.request("preprocessHttpResponse", arguments: [
-                    RCTConvert.toJson(httpRequestType: type), RCTConvert.toJson(httpResponse: response)
-                ]) { value in
+                self.callback.request(
+                    "preprocessHttpResponse",
+                    arguments: [RCTConvert.toJson(httpRequestType: type), RCTConvert.toJson(httpResponse: response)],
+                    fallbackArgument: 1
+                ) { value in
                     completion((value as? [String: Any]).flatMap(RCTConvert.httpResponse) ?? response)
                 }
             }

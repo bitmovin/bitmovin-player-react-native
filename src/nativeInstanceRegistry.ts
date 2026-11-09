@@ -1,14 +1,27 @@
 /** Legacy IDs live only here; native methods receive SharedObjects. @internal */
-const instances = new Map<string, Map<string, object>>();
+type Entry = WeakRef<object> | Promise<object | undefined>;
+const instances = new Map<string, Map<string, Entry>>();
 
 function entry(kind: string, nativeId: string): object | undefined {
-  return instances.get(kind)?.get(nativeId);
+  const entries = instances.get(kind);
+  const value = entries?.get(nativeId);
+  if (!(value instanceof WeakRef)) return value;
+  const instance = value.deref();
+  if (!instance) {
+    entries!.delete(nativeId);
+    if (entries!.size === 0) instances.delete(kind);
+  }
+  return instance;
 }
 
 function store(kind: string, nativeId: string, value: object): void {
   let entries = instances.get(kind);
   if (!entries) instances.set(kind, (entries = new Map()));
-  entries.set(nativeId, value);
+  // Prune collected labels during registration without timers or finalizers.
+  for (const [id, reference] of entries) {
+    if (reference instanceof WeakRef && !reference.deref()) entries.delete(id);
+  }
+  entries.set(nativeId, value instanceof Promise ? value : new WeakRef(value));
 }
 
 /** @internal */

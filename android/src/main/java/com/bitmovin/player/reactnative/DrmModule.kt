@@ -21,10 +21,10 @@ class SharedDrmConfig(
     val config = requireNotNull(config.toWidevineConfig()) { "Invalid widevine config" }.apply {
         val widevine = config["widevine"] as? Map<*, *>
         if (widevine?.containsKey("prepareMessage") == true) {
-            prepareMessageCallback = PrepareMessageCallback { prepare("prepareMessage", it) }
+            prepareMessageCallback = PrepareMessageCallback { prepare("widevine.prepareMessage", it) }
         }
         if (widevine?.containsKey("prepareLicense") == true) {
-            prepareLicenseCallback = PrepareLicenseCallback { prepare("prepareLicense", it) }
+            prepareLicenseCallback = PrepareLicenseCallback { prepare("widevine.prepareLicense", it) }
         }
     }
     private fun prepare(operation: String, data: ByteArray): ByteArray {

@@ -3,10 +3,9 @@ import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 import type { NativeCallback } from '../nativeCallbacks';
 import {
-  createNativeCallback,
+  configurationCallback,
   serializeNativeConfig,
 } from '../nativeCallbacks';
-import { Platform } from 'react-native';
 import type { DrmConfig } from './index';
 
 /** @internal */
@@ -27,15 +26,7 @@ const nativeModule = requireNativeModule<DrmModule>('DrmModule');
 export function createNativeDrmConfig(config?: DrmConfig): NativeDrmConfig {
   return nativeModule.create(
     serializeNativeConfig(config ?? {}),
-    createNativeCallback((operation, args) => {
-      const platformConfig =
-        Platform.OS === 'ios' ? config?.fairplay : config?.widevine;
-      const callback =
-        platformConfig?.[operation as keyof typeof platformConfig];
-      return typeof callback === 'function'
-        ? (callback as (...values: any[]) => any).apply(platformConfig, args)
-        : null;
-    })
+    configurationCallback(config)
   );
 }
 

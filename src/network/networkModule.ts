@@ -4,7 +4,7 @@ import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 import type { NativeCallback } from '../nativeCallbacks';
 import {
-  createNativeCallback,
+  configurationCallback,
   serializeNativeConfig,
 } from '../nativeCallbacks';
 import type { NetworkConfig } from './networkConfig';
@@ -36,25 +36,7 @@ export function createNativeNetworkConfig(
 ): NativeNetworkConfig {
   return nativeModule.create(
     serializeNativeConfig(config ?? {}),
-    createNativeCallback((operation, [type, value]) => {
-      if (operation === 'preprocessHttpRequest') {
-        return Promise.resolve()
-          .then(() => config?.preprocessHttpRequest?.(type, value))
-          .then(
-            (result) => result ?? value,
-            () => value
-          );
-      }
-      if (operation === 'preprocessHttpResponse') {
-        return Promise.resolve()
-          .then(() => config?.preprocessHttpResponse?.(type, value))
-          .then(
-            (result) => result ?? value,
-            () => value
-          );
-      }
-      return null;
-    })
+    configurationCallback(config)
   );
 }
 

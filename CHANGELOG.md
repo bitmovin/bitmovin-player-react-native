@@ -23,10 +23,9 @@
 - **Breaking change:** Make `Source.drm` an always-present, read-only `SourceDrmApi`, including for clear sources. Read `source.config?.drmConfig` to inspect configuration. `FairplayDrmApi` requires a Source. `Drm` is configuration-only: its Source constructor parameter, `fairplay`, lifecycle methods, and lifecycle flags are removed. Continue renewing licenses through `source.drm.fairplay.renewExpiringLicense(request)`
 - Return synchronous configuration callback values directly and simplify native resource teardown
 - Keep native Player and Source references while their TypeScript wrappers remain reachable after `destroy()`. Direct methods follow native SDK behavior after destruction instead of substituting binding defaults. Preserve lazy asynchronous initialization without empty native objects
-- Use Expo SharedObjects for native bindings and direct configuration callbacks. Keep Player, Source, and OfflineContentManager `nativeId` compatibility in TypeScript, and give player views independent ownership
+- Use Expo SharedObjects for native bindings and direct configuration callbacks. Keep Player, Source, and OfflineContentManager `nativeId` compatibility in a shared weak TypeScript registry. IDs alone no longer retain unused native objects. Give player views independent ownership
 - **Breaking change:** Remove `nativeId` from Network, DRM, and Decoder configuration types and configuration wrappers. Configuration and internal UI adapters now use object ownership instead of named aliases
 - **Breaking change:** BufferApi, AnalyticsApi, and MediaControlsApi constructors now accept a Player object instead of an ID string. Remove their stored `nativeId`/`playerId` properties
-- **Breaking change:** FairplayDrmApi and Drm source parameters now accept a Source object instead of a source ID string
 - iOS: Bitmovin Advertising Module ads no longer start with the subtitle track marked as default in the ad manifest. The ad subtitle now follows the subtitle selected for the main content, and stays off if the main content subtitles are off. This comes with native iOS SDK `3.131.0`
 - Update Bitmovin's native iOS SDK version to [`3.131.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31310)
 

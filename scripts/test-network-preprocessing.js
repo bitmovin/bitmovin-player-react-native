@@ -80,15 +80,21 @@ function fixture(t, config, rejectAfterCompletion = false) {
   const network = new Network(config);
   t.after(() => network.destroy());
   const invoke = (kind, type, payload) => {
-    callback(`preprocessHttp${kind}`, [type, payload], {
-      resolve: (result) => {
-        const operation = { kind, payload: result };
-        attempts.push(operation);
-        // This fixture models completion before the synchronous resolve failure.
-        completions.push(operation);
-        if (rejectAfterCompletion) throw nativeError;
+    callback(
+      `preprocessHttp${kind}`,
+      [type, payload],
+      {
+        resolve: (result) => {
+          const operation = { kind, payload: result };
+          attempts.push(operation);
+          // This fixture models completion before the synchronous resolve failure.
+          completions.push(operation);
+          if (rejectAfterCompletion) throw nativeError;
+        },
       },
-    });
+      false,
+      1
+    );
   };
   return {
     network,
@@ -100,13 +106,6 @@ function fixture(t, config, rejectAfterCompletion = false) {
     isDestroyed: () => destroyed,
   };
 }
-
-test('network configuration owners do not generate compatibility IDs', async (t) => {
-  const { network } = fixture(t, {});
-  assert.equal('nativeId' in network, false);
-  await network.initialize();
-  assert.equal('nativeId' in network, false);
-});
 
 const request = {
   url: 'https://example.com/manifest.mpd',
@@ -177,85 +176,64 @@ for (const [kind, original] of [
   }
 }
 
-test('direct callbacks settle synchronous values before returning and normalize failures', async (t) => {
+test('configuration paths route newly added nested callbacks without registration', (t) => {
   const { helpers } = fixture(t, {});
-  const values = [];
-  const completion = { resolve: (value) => values.push(value) };
-  const callback = helpers.nativeCallback({
-    value: () => 42,
-    absent: () => undefined,
-    throws: () => {
-      throw new Error('failure');
+  const config = { provider: { choose: () => false } };
+  const callback = helpers.configurationCallback(config);
+  assert.equal(callback('provider.choose', []), false);
+  config.provider.choose = () => true;
+  assert.equal(callback('provider.choose', []), true);
+});
+
+test('mutation callbacks preserve settings changes and partial returned settings', (t) => {
+  const { helpers } = fixture(t, {});
+  const callback = helpers.configurationCallback(
+    {
+      ima: {
+        beforeInitialization(settings) {
+          settings.language = 'de';
+          return { playerType: 'custom' };
+        },
+      },
     },
-    rejects: () => Promise.reject(new Error('failure')),
+    { capture: true }
+  );
+  assert.deepEqual(
+    callback(
+      'ima.beforeInitialization',
+      [{ language: 'en', autoPlay: false }],
+      undefined,
+      true
+    ),
+    {
+      language: 'de',
+      autoPlay: false,
+      playerType: 'custom',
+    }
+  );
+});
+
+test('synchronous decisions fall back for unexpected promises and consume rejection', async (t) => {
+  const { helpers } = fixture(t, {});
+  const callback = helpers.configurationCallback({
+    decision: () => Promise.reject(new Error('unexpected async decision')),
   });
-  callback('value', [], completion);
-  assert.deepEqual(values, [42]);
-  callback('absent', [], completion);
-  callback('throws', [], completion);
-  callback('missing', [], completion);
-  assert.deepEqual(values, [42, null, null, null]);
-  callback('rejects', [], completion);
+  assert.equal(callback('decision', []), null);
   await new Promise(setImmediate);
-  assert.deepEqual(values, [42, null, null, null, null]);
 });
 
-test('configuration serialization removes compatibility labels while preserving arbitrary data', (t) => {
+test('configuration labels are removed without stripping content metadata', (t) => {
   const { helpers } = fixture(t, {});
-  const metadata = {
-    nativeId: 'metadata-value',
-    networkConfig: { nativeId: 'data-value' },
-  };
-  const config = {
-    nativeId: 'player',
-    networkConfig: { preprocessHttpRequest: () => {} },
-    playbackConfig: { decoderConfig: {} },
-    sourceConfig: {
-      nativeId: 'source',
-      drmConfig: {},
-      metadata,
-    },
-    metadata,
-    customData: { nativeId: 'custom-data' },
-    headers: { nativeId: 'header' },
-  };
-  assert.deepEqual(helpers.serializeNativeConfig(config), {
-    networkConfig: { preprocessHttpRequest: true },
-    playbackConfig: { decoderConfig: {} },
-    sourceConfig: { drmConfig: {}, metadata },
-    metadata,
-    customData: { nativeId: 'custom-data' },
-    headers: { nativeId: 'header' },
-  });
-  assert.equal(config.nativeId, 'player');
-});
-
-test('synchronous callbacks return scalars and structured values without a completion object', (t) => {
-  const { helpers } = fixture(t, {});
-  const structured = [{ name: 'decoder', isSoftware: false }];
-  const callback = helpers.nativeCallback({
-    decision: () => false,
-    text: () => 'prepared',
-    structured: () => structured,
-    absent: () => undefined,
-    throws: () => {
-      throw new Error('synchronous failure');
-    },
-  });
-  assert.equal(callback('decision', []), false);
-  assert.equal(callback('text', []), 'prepared');
-  assert.equal(callback('structured', []), structured);
-  assert.equal(callback('absent', []), null);
-  assert.equal(callback('throws', []), null);
-});
-
-test('synchronous callbacks fall back for promises and consume rejected notifications', async (t) => {
-  const { helpers } = fixture(t, {});
-  const callback = helpers.nativeCallback({
-    resolves: () => Promise.resolve(false),
-    rejects: () => Promise.reject(new Error('asynchronous failure')),
-  });
-  assert.equal(callback('resolves', []), null);
-  assert.equal(callback('rejects', []), null);
-  await new Promise(setImmediate);
+  const metadata = { nativeId: 'user-data' };
+  assert.deepEqual(
+    helpers.serializeNativeConfig({
+      nativeId: 'binding-label',
+      sourceConfig: { nativeId: 'source-label', metadata },
+      networkConfig: { preprocessHttpRequest: () => {} },
+    }),
+    {
+      sourceConfig: { metadata },
+      networkConfig: { preprocessHttpRequest: true },
+    }
+  );
 });

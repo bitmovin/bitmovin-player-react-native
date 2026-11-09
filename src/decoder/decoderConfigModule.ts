@@ -4,7 +4,7 @@ import { requireNativeModule } from 'expo-modules-core';
 import { Platform } from 'react-native';
 import type { NativeCallback } from '../nativeCallbacks';
 import {
-  createNativeCallback,
+  configurationCallback,
   serializeNativeConfig,
 } from '../nativeCallbacks';
 import type { DecoderConfig } from './decoderConfig';
@@ -32,15 +32,7 @@ export function createNativeDecoderConfig(
 ): NativeDecoderConfig | undefined {
   return nativeModule?.create(
     serializeNativeConfig(config ?? {}),
-    createNativeCallback((operation, [context, preferredDecoders]) => {
-      if (operation !== 'overrideDecodersPriority') return null;
-      return (
-        config?.decoderPriorityProvider?.overrideDecodersPriority(
-          context,
-          preferredDecoders
-        ) ?? preferredDecoders
-      );
-    })
+    configurationCallback(config)
   );
 }
 

@@ -18,12 +18,7 @@ import type { OfflineContentManager, OfflineSourceOptions } from './offline';
 import type { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/player';
 import type { PlayerConfig } from './playerConfig';
-import type {
-  AdItem,
-  AdvertisingConfig,
-  ImaAdvertisingConfig,
-  ImaSettings,
-} from './advertising';
+import type { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
@@ -36,7 +31,10 @@ import {
   type NativeDecoderConfig,
 } from './decoder/decoderConfigModule';
 import { getNativeOffline } from './offline/offlineModule';
-import { nativeCallback, serializeNativeConfig } from './nativeCallbacks';
+import {
+  configurationCallback,
+  serializeNativeConfig,
+} from './nativeCallbacks';
 import { setNativeOwner } from './nativeOwner';
 
 /**
@@ -132,7 +130,7 @@ export class Player extends NativeInstance<PlayerConfig> {
         serializeNativeConfig(this.config?.analyticsConfig),
         this.network,
         this.decoderConfig,
-        this.createPlayerCallback(advertising, beforeInitialization)
+        configurationCallback(this.config, { capture: true })
       );
       holdDependencies(created, [this.network, this.decoderConfig]);
       return created;
@@ -141,26 +139,6 @@ export class Player extends NativeInstance<PlayerConfig> {
       this.destroyDecoder();
       throw error;
     }
-  }
-
-  private createPlayerCallback(
-    advertising: AdvertisingConfig | undefined,
-    beforeInitialization: ImaAdvertisingConfig['beforeInitialization']
-  ) {
-    return nativeCallback({
-      shouldLoadAdItem: advertising?.shouldLoadAdItem,
-      shouldPlayAdBreak:
-        Platform.OS === 'android' ? advertising?.shouldPlayAdBreak : undefined,
-      imaBeforeInitialization:
-        beforeInitialization && PlayerModule.isGoogleImaEnabled
-          ? (settings: ImaSettings) => {
-              const result = beforeInitialization(settings);
-              return result && typeof result === 'object'
-                ? { ...settings, ...result }
-                : settings;
-            }
-          : undefined,
-    });
   }
 
   /**
@@ -198,7 +176,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     options?: OfflineSourceOptions
   ) => {
     void this.native?.loadOfflineContent(
-      getNativeOffline(offlineContentManager.nativeId),
+      getNativeOffline(offlineContentManager),
       options
     );
   };

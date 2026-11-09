@@ -6,6 +6,7 @@ import type { NativeDrmConfig } from '../drm/drmModule';
 import type { OfflineDownloadRequest } from './offlineDownloadRequest';
 import type { BitmovinNativeOfflineEventData } from './offlineContentManagerListener';
 import { lookup } from '../nativeInstanceRegistry';
+import { setNativeOwner } from '../nativeOwner';
 import { Platform } from 'react-native';
 
 type OfflineEvents = {
@@ -39,8 +40,12 @@ export type NativeOffline = NativeOfflineBackend & {
 };
 
 /** @internal */
-export function getNativeOffline(id: string): NativeOffline | undefined {
-  return lookup<NativeOffline>('offline', id);
+export function getNativeOffline(owner: {
+  readonly nativeId: string;
+}): NativeOffline | undefined {
+  const native = lookup<NativeOffline>('offline', owner.nativeId);
+  if (native) setNativeOwner(owner, native);
+  return native;
 }
 
 /** @internal */
@@ -62,12 +67,12 @@ export function offlineCompatibilityError(
 
 /** @internal */
 export function getOfflineForOperation(
-  id: string,
+  owner: { readonly nativeId: string },
   method: string
 ): NativeOffline | undefined {
-  const native = getNativeOffline(id);
+  const native = getNativeOffline(owner);
   if (!native && Platform.OS === 'android') {
-    throw offlineCompatibilityError(method, id);
+    throw offlineCompatibilityError(method, owner.nativeId);
   }
   return native;
 }

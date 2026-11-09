@@ -25,32 +25,32 @@ public final class SharedDrmConfig: SharedObject {
         guard let fairplay = json["fairplay"] as? [String: Any], let config else { return }
         if fairplay["prepareCertificate"] != nil {
             config.prepareCertificate = { [weak self] data in
-                self?.transform("prepareCertificate", data: data) ?? data
+                self?.transform("fairplay.prepareCertificate", data: data) ?? data
             }
         }
         if fairplay["prepareMessage"] != nil {
             config.prepareMessage = { [weak self] data, assetId in
-                self?.transform("prepareMessage", data: data, arguments: [assetId]) ?? data
+                self?.transform("fairplay.prepareMessage", data: data, arguments: [assetId]) ?? data
             }
         }
         if fairplay["prepareSyncMessage"] != nil {
             config.prepareSyncMessage = { [weak self] data, assetId in
-                self?.transform("prepareSyncMessage", data: data, arguments: [assetId]) ?? data
+                self?.transform("fairplay.prepareSyncMessage", data: data, arguments: [assetId]) ?? data
             }
         }
         if fairplay["prepareLicense"] != nil {
             config.prepareLicense = { [weak self] data in
-                self?.transform("prepareLicense", data: data) ?? data
+                self?.transform("fairplay.prepareLicense", data: data) ?? data
             }
         }
         if fairplay["prepareLicenseServerUrl"] != nil {
             config.prepareLicenseServerUrl = { [weak self] url in
-                self?.callback.call("prepareLicenseServerUrl", arguments: [url]) as? String ?? url
+                self?.callback.call("fairplay.prepareLicenseServerUrl", arguments: [url]) as? String ?? url
             }
         }
         if fairplay["prepareContentId"] != nil {
             config.prepareContentId = { [weak self] contentId in
-                self?.callback.call("prepareContentId", arguments: [contentId]) as? String ?? contentId
+                self?.callback.call("fairplay.prepareContentId", arguments: [contentId]) as? String ?? contentId
             }
         }
     }

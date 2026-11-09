@@ -27,7 +27,7 @@ class SharedDecoderConfig(
             ): List<MediaCodecInfo> {
                 @Suppress("UNCHECKED_CAST")
                 val result = callbacks.call(
-                    "overrideDecodersPriority",
+                    "decoderPriorityProvider.overrideDecodersPriority",
                     listOf(context.toJson(), preferredDecoders.map { it.toJson() }),
                     5000,
                 ) as? List<Map<String, Any?>>

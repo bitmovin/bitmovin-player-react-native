@@ -17,7 +17,14 @@ internal object ImaBeforeInitializationConfigurator {
             ima = advertising.ima.copy(
                 beforeInitialization = BeforeInitializationCallback { settings ->
                     @Suppress("UNCHECKED_CAST")
-                    (callbacks.call("imaBeforeInitialization", listOf(settings.toMap()), 250) as? Map<String, Any?>)
+                    (
+                        callbacks.call(
+                            "advertisingConfig.ima.beforeInitialization",
+                            listOf(settings.toMap()),
+                            250,
+                            mutating = true,
+                        ) as? Map<String, Any?>
+                        )
                         ?.applyOnImaSettings(settings)
                 },
             ),

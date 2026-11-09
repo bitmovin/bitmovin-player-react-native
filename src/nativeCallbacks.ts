@@ -12,7 +12,9 @@ export interface NativeCallbackResult {
 export type NativeCallback = (
   operation: string,
   args: any[],
-  completion?: NativeCallbackResult
+  completion?: NativeCallbackResult,
+  mutating?: boolean,
+  fallbackArgument?: number
 ) => any;
 
 function resolveCallback(
@@ -30,10 +32,27 @@ function resolveCallback(
 export function createNativeCallback(
   invoke: (operation: string, args: any[]) => any
 ): NativeCallback {
-  return (operation, args, completion) => {
+  return (operation, args, completion, mutating = false, fallbackArgument) => {
+    if (completion && fallbackArgument != null) {
+      void Promise.resolve()
+        .then(() => invoke(operation, args))
+        .then(
+          (value) =>
+            resolveCallback(completion, value ?? args[fallbackArgument]),
+          () => resolveCallback(completion, args[fallbackArgument])
+        );
+      return null;
+    }
     try {
-      const value = invoke(operation, args);
-      const asynchronous = value != null && typeof value.then === 'function';
+      const result = invoke(operation, args);
+      const asynchronous = result != null && typeof result.then === 'function';
+      const value =
+        mutating && !asynchronous
+          ? {
+              ...args[0],
+              ...(result && typeof result === 'object' ? result : {}),
+            }
+          : result;
       if (!completion) {
         if (asynchronous) {
           // SDK decisions are synchronous; consume unexpected Promise failures.
@@ -101,11 +120,32 @@ export function serializeNativeConfig(value: any): any {
 }
 
 /** @internal */
-export function nativeCallback(
-  handlers: Record<string, ((...args: any[]) => any) | undefined>
+export function configurationCallback(
+  config: any,
+  { capture = false }: { capture?: boolean } = {}
 ): NativeCallback {
-  return createNativeCallback((operation, args) => {
-    const handler = handlers[operation];
-    return handler?.(...args);
+  const handlers: Record<string, (...args: any[]) => any> | undefined = capture
+    ? {}
+    : undefined;
+  if (handlers) {
+    const collect = (value: any, path: string) => {
+      if (typeof value === 'function') handlers[path] = value;
+      else if (value && typeof value === 'object') {
+        for (const [key, child] of Object.entries(value))
+          collect(child, path ? `${path}.${key}` : key);
+      }
+    };
+    collect(config, '');
+  }
+  return createNativeCallback((path, args) => {
+    if (handlers) {
+      const handler = handlers[path];
+      return handler?.(...args);
+    }
+    const keys = path.split('.');
+    const key = keys.pop()!;
+    const owner = keys.reduce((value, key) => value?.[key], config);
+    const handler = owner?.[key];
+    return typeof handler === 'function' ? handler.apply(owner, args) : null;
   });
 }

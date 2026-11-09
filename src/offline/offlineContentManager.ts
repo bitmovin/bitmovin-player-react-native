@@ -77,7 +77,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    */
   initialize = async (): Promise<void> => {
     if (!this.isInitialized && this.config) {
-      const existing = getNativeOffline(this.nativeId);
+      const existing = getNativeOffline(this);
       if (existing) this.observeEvents(existing.events);
       if (
         Platform.OS === 'android' &&
@@ -98,7 +98,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
           destroyDependencies(created);
         }
       );
-      if (!native || getNativeOffline(this.nativeId) !== native) return;
+      if (!native || getNativeOffline(this) !== native) return;
       this.observeEvents(native.events);
       if (existing) {
         await this.initializeDrm();
@@ -190,7 +190,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
         remove('offline', this.nativeId, pending);
         await pending;
       } else {
-        const native = getOfflineForOperation(this.nativeId, 'release');
+        const native = getOfflineForOperation(this, 'release');
         if (native) {
           remove('offline', this.nativeId, native);
           try {
@@ -207,7 +207,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Gets the current state of the `OfflineContentManager`
    */
   state = async (): Promise<OfflineState> => {
-    const native = getOfflineForOperation(this.nativeId, 'getState');
+    const native = getOfflineForOperation(this, 'getState');
     return (
       native
         ? await native.getState()
@@ -222,7 +222,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * When the options are loaded the data will be passed to the `OfflineContentManagerListener.onOptionsAvailable`.
    */
   getOptions = async (): Promise<void> => {
-    return getOfflineForOperation(this.nativeId, 'getOptions')?.getOptions();
+    return getOfflineForOperation(this, 'getOptions')?.getOptions();
   };
 
   /**
@@ -232,31 +232,28 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * The promise will resolve when the download has been queued. The download will is not finished when the promise resolves.
    */
   download = async (request: OfflineDownloadRequest): Promise<void> => {
-    return getOfflineForOperation(this.nativeId, 'download')?.download(request);
+    return getOfflineForOperation(this, 'download')?.download(request);
   };
 
   /**
    * Resumes all suspended actions.
    */
   resume = async (): Promise<void> => {
-    return getOfflineForOperation(this.nativeId, 'resume')?.resume();
+    return getOfflineForOperation(this, 'resume')?.resume();
   };
 
   /**
    * Suspends all active actions.
    */
   suspend = async (): Promise<void> => {
-    return getOfflineForOperation(this.nativeId, 'suspend')?.suspend();
+    return getOfflineForOperation(this, 'suspend')?.suspend();
   };
 
   /**
    * Cancels and deletes the active download.
    */
   cancelDownload = async (): Promise<void> => {
-    return getOfflineForOperation(
-      this.nativeId,
-      'cancelDownload'
-    )?.cancelDownload();
+    return getOfflineForOperation(this, 'cancelDownload')?.cancelDownload();
   };
 
   /**
@@ -264,7 +261,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    */
   usedStorage = async (): Promise<number> => {
     return ((await getOfflineForOperation(
-      this.nativeId,
+      this,
       'usedStorage'
     )?.usedStorage()) ?? null) as number;
   };
@@ -273,7 +270,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Deletes everything related to the related content ID.
    */
   deleteAll = async (): Promise<void> => {
-    return getOfflineForOperation(this.nativeId, 'deleteAll')?.deleteAll();
+    return getOfflineForOperation(this, 'deleteAll')?.deleteAll();
   };
 
   /**
@@ -282,10 +279,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
   downloadLicense = async (): Promise<void> => {
-    return getOfflineForOperation(
-      this.nativeId,
-      'downloadLicense'
-    )?.downloadLicense();
+    return getOfflineForOperation(this, 'downloadLicense')?.downloadLicense();
   };
 
   /**
@@ -296,10 +290,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * @platform Android
    */
   releaseLicense = async (): Promise<void> => {
-    return getOfflineForOperation(
-      this.nativeId,
-      'releaseLicense'
-    )?.releaseLicense();
+    return getOfflineForOperation(this, 'releaseLicense')?.releaseLicense();
   };
 
   /**
@@ -309,7 +300,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    */
   renewOfflineLicense = async (): Promise<void> => {
     return getOfflineForOperation(
-      this.nativeId,
+      this,
       'renewOfflineLicense'
     )?.renewOfflineLicense();
   };

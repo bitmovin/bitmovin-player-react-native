@@ -58,7 +58,6 @@ Run commands from the repository root after the documented development setup.
 
 ```sh
 node --test scripts/test-network-preprocessing.js
-node --test scripts/test-native-instance-registry.js
 node --test scripts/test-shared-object-compatibility.js
 yarn test:plugin
 python3 -m unittest discover -s .github/scripts -p 'test_*.py'
@@ -72,9 +71,9 @@ response callbacks, synchronous throws, rejected promises, absent callbacks, and
 completion failures. The fixtures use direct callback functions and per-call
 completion objects. They do not run a native decoder or completion object.
 
-The [registry](../scripts/test-native-instance-registry.js) and
-[SharedObject compatibility](../scripts/test-shared-object-compatibility.js)
-suites check TS alias and ownership behavior against controlled native doubles.
+The [SharedObject compatibility](../scripts/test-shared-object-compatibility.js)
+suite checks public TS aliases, creation recovery, and callback ownership against
+controlled native doubles.
 
 `yarn test:plugin` builds and tests the config plugin. The Python command tests
 repository automation. Neither establishes Player runtime behavior. There is
@@ -137,8 +136,8 @@ and tests. Confirm execution from the job's steps and results. A test file,
 suite registration, typecheck, or successful app build alone is insufficient.
 
 Currently, [TypeScript CI](../.github/workflows/ci-typescript.yml) runs the network
-preprocessing script, native instance registry tests, SharedObject compatibility
-tests, and plugin tests. The [integration-test workflow](../.github/workflows/integration-tests.yml) is a
+preprocessing script, SharedObject and offline compatibility tests, and plugin
+tests. The [integration-test workflow](../.github/workflows/integration-tests.yml) is a
 manually dispatched stub and does not run Cavy. Do not report Cavy coverage from
 that workflow's success. Any automated Cavy coverage needs actual runner steps,
 environment setup, and results for the selected platforms and suites.

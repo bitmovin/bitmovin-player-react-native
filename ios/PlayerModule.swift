@@ -285,7 +285,10 @@ public final class SharedPlayer: SharedObject {
         guard let advertising = config?["advertisingConfig"] as? [String: Any],
               advertising["shouldLoadAdItem"] != nil else { return }
         playerConfig.advertisingConfig.shouldLoadAdItem = { adItem in
-            callback?.call("shouldLoadAdItem", arguments: [RCTConvert.toJson(adItem: adItem) as Any]) as? Bool ?? true
+            callback?.call(
+                "advertisingConfig.shouldLoadAdItem",
+                arguments: [RCTConvert.toJson(adItem: adItem) as Any]
+            ) as? Bool ?? true
         }
     }
 
@@ -298,7 +301,9 @@ public final class SharedPlayer: SharedObject {
               let ima = advertising["ima"] as? [String: Any], ima["beforeInitialization"] != nil else { return }
         playerConfig.advertisingConfig.beforeInitialization = { settings in
             guard let value = callback?.call(
-                "imaBeforeInitialization", arguments: [RCTConvert.imaSettingsDictionary(settings)]
+                "advertisingConfig.ima.beforeInitialization",
+                arguments: [RCTConvert.imaSettingsDictionary(settings)],
+                mutating: true
             ) as? [String: Any] else { return }
             RCTConvert.applyImaSettings(settings, from: value)
         }
