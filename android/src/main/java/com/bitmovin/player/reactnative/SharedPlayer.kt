@@ -51,7 +51,7 @@ class SharedPlayer private constructor(
             val callbacks = CallbackScope(appContext, callback)
             return callbacks.createSharedObject {
                 val playerConfig = config?.toPlayerConfig(callbacks) ?: PlayerConfig()
-                val context = requireNotNull(appContext.reactContext?.applicationContext) {
+                val context = checkNotNull(appContext.reactContext?.applicationContext) {
                     "Application context is not available"
                 }
                 val player = analytics?.toAnalyticsConfig()?.let {

@@ -39,12 +39,12 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("sendCustomDataEvent") { shared: SharedPlayer, json: Map<String, Any?> ->
-                requireNotNull(shared.player.analytics) { "Analytics is disabled" }
+                checkNotNull(shared.player.analytics) { "Analytics is disabled" }
                     .sendCustomDataEvent(json.toAnalyticsCustomData())
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getAnalyticsUserId") { shared: SharedPlayer ->
-                requireNotNull(shared.player.analytics) { "Analytics is disabled" }.userId
+                checkNotNull(shared.player.analytics) { "Analytics is disabled" }.userId
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("play") { shared: SharedPlayer -> shared.player.play() }.runOnQueue(Queues.MAIN)

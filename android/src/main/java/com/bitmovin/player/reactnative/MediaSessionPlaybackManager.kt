@@ -25,8 +25,7 @@ class MediaSessionPlaybackManager(private val appContext: AppContext) {
             return
         }
         if (serviceConnection != null) return
-        val context = appContext.reactContext
-            ?: throw IllegalStateException("React context is not available")
+        val context = checkNotNull(appContext.reactContext) { "React context is not available" }
         val connection = object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName, service: IBinder) {
                 if (serviceConnection !== this) return

@@ -10,7 +10,6 @@ import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import java.security.InvalidParameterException
 
 class OfflineModule : Module() {
     private fun create(
@@ -24,8 +23,7 @@ class OfflineModule : Module() {
         return callbacks.createSharedObject {
             val sourceConfig = config.getMap("sourceConfig")?.toSourceConfig(callbacks)
                 ?: throw OfflineException.InvalidSourceConfig()
-            val context = appContext.reactContext
-                ?: throw InvalidParameterException("ReactApplicationContext is not available")
+            val context = checkNotNull(appContext.reactContext) { "ReactApplicationContext is not available" }
             OfflineContentManagerBridge(
                 appContext,
                 context,

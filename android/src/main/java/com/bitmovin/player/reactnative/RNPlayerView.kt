@@ -370,8 +370,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         val userInterfaceType = userInterfaceTypeName?.toUserInterfaceType() ?: UserInterfaceType.Bitmovin
         val configuredPlayerViewConfig = playerViewConfigWrapper?.playerViewConfig ?: PlayerViewConfig()
 
-        val currentActivity = appContext.currentActivity
-            ?: throw IllegalStateException("Cannot create a PlayerView, because no activity is attached.")
+        val currentActivity = checkNotNull(appContext.currentActivity) {
+            "Cannot create a PlayerView, because no activity is attached."
+        }
         val playerViewConfig: PlayerViewConfig = if (userInterfaceType != UserInterfaceType.Bitmovin) {
             configuredPlayerViewConfig.copy(uiConfig = UiConfig.Disabled)
         } else {
