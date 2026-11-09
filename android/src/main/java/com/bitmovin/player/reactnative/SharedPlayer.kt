@@ -106,8 +106,8 @@ private fun preparePlayerConfig(
     @Suppress("UNCHECKED_CAST")
     ImaBeforeInitializationConfigurator.configure(config as? Map<String, Any?>, playerConfig, callbacks)
     config?.getMap("networkConfig")?.let { playerConfig.networkConfig = it.toNetworkConfig(callbacks) }
-    config?.getMap("playbackConfig")?.getMap("decoderConfig")?.let {
-        playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = toDecoderConfig(callbacks))
+    config?.getMap("playbackConfig")?.getMap("decoderConfig").toDecoderConfig(callbacks)?.let {
+        playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = it)
     }
     return playerConfig
 }

@@ -5,19 +5,22 @@ import com.bitmovin.player.api.decoder.DecoderPriorityProvider
 import com.bitmovin.player.api.decoder.MediaCodecInfo
 import com.bitmovin.player.reactnative.CallbackScope
 
-fun toDecoderConfig(callbacks: CallbackScope): DecoderConfig = DecoderConfig(
-    decoderPriorityProvider = object : DecoderPriorityProvider {
-        override fun overrideDecodersPriority(
-            context: DecoderPriorityProvider.DecoderContext,
-            preferredDecoders: List<MediaCodecInfo>,
-        ): List<MediaCodecInfo> {
-            @Suppress("UNCHECKED_CAST")
-            val result = callbacks.call(
-                "playbackConfig.decoderConfig.decoderPriorityProvider.overrideDecodersPriority",
-                listOf(context.toJson(), preferredDecoders.map { it.toJson() }),
-                5000,
-            ) as? List<Map<String, Any?>>
-            return result?.toMediaCodecInfoList() ?: preferredDecoders
-        }
-    },
-)
+fun Map<String, Any?>?.toDecoderConfig(callbacks: CallbackScope): DecoderConfig? {
+    if (this == null) return null
+    return DecoderConfig(
+        decoderPriorityProvider = object : DecoderPriorityProvider {
+            override fun overrideDecodersPriority(
+                context: DecoderPriorityProvider.DecoderContext,
+                preferredDecoders: List<MediaCodecInfo>,
+            ): List<MediaCodecInfo> {
+                @Suppress("UNCHECKED_CAST")
+                val result = callbacks.call(
+                    "playbackConfig.decoderConfig.decoderPriorityProvider.overrideDecodersPriority",
+                    listOf(context.toJson(), preferredDecoders.map { it.toJson() }),
+                    5000,
+                ) as? List<Map<String, Any?>>
+                return result?.toMediaCodecInfoList() ?: preferredDecoders
+            }
+        },
+    )
+}
