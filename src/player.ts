@@ -46,19 +46,16 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
 
   /**
    * Subscribes to native events, even without a PlayerView. For example,
-   * `player.on('play', listener)`.
+   * `await player.on('play', listener)`.
    * Use `event` to listen to all supported native object events.
-   * Call `remove()` on the returned subscription to stop listening.
+   * Await registration before triggering events. Call `remove()` on the resolved
+   * subscription to stop listening.
    */
-  on = <Name extends keyof PlayerEvents>(
+  on = async <Name extends keyof PlayerEvents>(
     event: Name,
     listener: PlayerEvents[Name]
-  ): EventSubscription =>
-    subscribeToNativeEvent(
-      getNativePlayer(this) ?? this.native,
-      event,
-      listener
-    );
+  ): Promise<EventSubscription> =>
+    subscribeToNativeEvent(this.native, event, listener);
 
   /** @internal */
   private get native() {

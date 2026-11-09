@@ -3,35 +3,29 @@ import type { SharedObject } from 'expo-modules-core/types';
 import { addPlatformToMetadataEvent } from './utils/metadataPlatform';
 import type { MetadataEvent, MetadataParsedEvent } from './events';
 
-/** Attach directly to the native SharedObject once lazy creation completes. */
-export function subscribeToNativeEvent<
+/** Await lazy creation, then attach directly to the native SharedObject. */
+export async function subscribeToNativeEvent<
   Events extends Record<string, (payload: any) => void>,
   Name extends keyof Events,
 >(
-  native: SharedObject<Events> | Promise<SharedObject<Events> | undefined>,
+  native: Promise<SharedObject<Events> | undefined>,
   event: Name,
   listener: Events[Name]
-): EventSubscription {
-  let removed = false;
-  let subscription: EventSubscription | undefined;
-  const attach = (owner: SharedObject<Events> | undefined) => {
-    if (removed || !owner) return;
-    subscription = owner.addListener(event, ((payload: unknown) => {
-      listener(
-        event === 'metadata' || event === 'metadataParsed'
-          ? addPlatformToMetadataEvent(
-              payload as MetadataEvent | MetadataParsedEvent
-            )
-          : payload
-      );
-    }) as Events[Name]);
-  };
-  if (native instanceof Promise) void native.then(attach);
-  else attach(native);
-  return {
-    remove() {
-      removed = true;
-      subscription?.remove();
-    },
-  };
+): Promise<EventSubscription> {
+  const owner = await native;
+  if (!owner) {
+    console.warn(
+      `Cannot subscribe to '${String(event)}': the native object is unavailable. It may have been destroyed during registration.`
+    );
+    return { remove() {} };
+  }
+  return owner.addListener(event, ((payload: unknown) => {
+    listener(
+      event === 'metadata' || event === 'metadataParsed'
+        ? addPlatformToMetadataEvent(
+            payload as MetadataEvent | MetadataParsedEvent
+          )
+        : payload
+    );
+  }) as Events[Name]);
 }

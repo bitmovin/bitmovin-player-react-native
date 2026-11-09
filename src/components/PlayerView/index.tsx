@@ -182,7 +182,11 @@ export function PlayerView({
         props.onFairplayLicenseAcquired?.(event)
       ),
     ];
-    return () => subscriptions.forEach((subscription) => subscription.remove());
+    return () => {
+      subscriptions.forEach((pending) => {
+        void pending.then((subscription) => subscription.remove());
+      });
+    };
   }, [player, props]);
 
   useEffect(() => {

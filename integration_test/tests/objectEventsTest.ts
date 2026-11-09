@@ -14,19 +14,21 @@ import { Sources } from './helper/Sources';
 
 // Register before the trigger, and always release the listener and deadline.
 async function receiving(
-  subscribe: (listener: (event: Event) => void) => EventSubscription,
+  subscribe: (listener: (event: Event) => void) => Promise<EventSubscription>,
   trigger: () => void | Promise<void>
 ): Promise<Event> {
   let subscription: EventSubscription | undefined;
   let timeout: ReturnType<typeof setTimeout> | undefined;
+  let listener: (event: Event) => void = () => {};
   const received = new Promise<Event>((resolve, reject) => {
     timeout = setTimeout(
       () => reject(new Error('Object event timed out')),
       15000
     );
-    subscription = subscribe(resolve);
+    listener = resolve;
   });
   try {
+    subscription = await subscribe(listener);
     await trigger();
     return await received;
   } finally {
@@ -51,12 +53,12 @@ export default (spec: TestScope) => {
             let wrongSourceEvents = 0;
             let sourceLoads = 0;
             let playerLoads = 0;
-            const subscriptions = [
+            const subscriptions = await Promise.all([
               viewPlayer.on('sourceLoaded', () => wrongPlayerEvents++),
               idleSource.on('sourceLoaded', () => wrongSourceEvents++),
               source.on('sourceLoaded', () => sourceLoads++),
               player.on('sourceLoaded', () => playerLoads++),
-            ];
+            ]);
             try {
               // Readiness is a barrier for checking load delivery and isolation.
               await receiving(
@@ -94,9 +96,9 @@ export default (spec: TestScope) => {
           const source = new Source(Sources.artOfMotionHls);
           let loads = 0;
           let removedCalls = 0;
-          const subscription = source.on('sourceLoaded', () => loads++);
-          // Removing before lazy initialization finishes must also cancel registration.
-          const removed = source.on('sourceLoaded', () => removedCalls++);
+          const subscription = await source.on('sourceLoaded', () => loads++);
+          // A removed subscription must stay silent during both attachments.
+          const removed = await source.on('sourceLoaded', () => removedCalls++);
           removed.remove();
           try {
             await callPlayerAndExpectEvent((player) => {

@@ -130,7 +130,7 @@ async function flush() {
   }
 }
 
-function mockEventSubscription() {
+async function mockEventSubscription() {
   return { remove() {} };
 }
 

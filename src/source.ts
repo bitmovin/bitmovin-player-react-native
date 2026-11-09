@@ -10,7 +10,7 @@ import { getOrCreateAsync } from './nativeInstanceRegistry';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
-import SourceModule, { getNativeSource } from './modules/SourceModule';
+import SourceModule from './modules/SourceModule';
 import {
   createConfigurationCallbacks,
   createSharedObjectWithCallback,
@@ -173,19 +173,16 @@ export interface SourceRemoteControlConfig {
 export class Source extends NativeInstance<SourceConfig> {
   /**
    * Subscribes to native events, even without a PlayerView. For example,
-   * `source.on('sourceLoaded', listener)`.
+   * `await source.on('sourceLoaded', listener)`.
    * Use `event` to listen to all supported native object events.
-   * Call `remove()` on the returned subscription to stop listening.
+   * Await registration before triggering events. Call `remove()` on the resolved
+   * subscription to stop listening.
    */
-  on = <Name extends keyof SourceEvents>(
+  on = async <Name extends keyof SourceEvents>(
     event: Name,
     listener: SourceEvents[Name]
-  ): EventSubscription =>
-    subscribeToNativeEvent(
-      getNativeSource(this) ?? this.native,
-      event,
-      listener
-    );
+  ): Promise<EventSubscription> =>
+    subscribeToNativeEvent(this.native, event, listener);
 
   private get native() {
     return getOrCreateAsync('source', this.nativeId, () => {

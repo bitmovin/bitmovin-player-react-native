@@ -283,7 +283,7 @@ test('a Source retains its DRM callbacks after player destruction and reuse', as
   second.destroy();
 });
 
-test('object subscriptions use their native owner and can be removed before creation', async (t) => {
+test('awaited object subscriptions use their native owner and can be removed', async (t) => {
   const { Player, Source, nativeOf } = fixture(t);
   const player = new Player();
   const other = new Player();
@@ -294,15 +294,14 @@ test('object subscriptions use their native owner and can be removed before crea
   let playerCalls = 0;
   let sourceCalls = 0;
   let removedCalls = 0;
-  const playerSubscription = player.on('ready', () => playerCalls++);
-  const sourceSubscription = source.on('sourceLoaded', () => sourceCalls++);
-  const removed = player.on('ready', () => removedCalls++);
+  const playerSubscription = await player.on('ready', () => playerCalls++);
+  const sourceSubscription = await source.on(
+    'sourceLoaded',
+    () => sourceCalls++
+  );
+  const removed = await player.on('ready', () => removedCalls++);
   removed.remove();
-  await Promise.all([
-    player.initialize(),
-    source.initialize(),
-    other.initialize(),
-  ]);
+  await other.initialize();
   nativeOf(other).emit('ready', { name: 'onReady' });
   nativeOf(player).emit('ready', { name: 'onReady' });
   assert.equal(playerCalls, 1);
@@ -314,10 +313,31 @@ test('object subscriptions use their native owner and can be removed before crea
   nativeOf(source).emit('sourceLoaded', { name: 'onSourceLoaded' });
   assert.equal(sourceCalls, 1);
   sourceSubscription.remove();
-  // An initialized object must register synchronously before destroy() can emit.
   let destroyed = 0;
-  const destroyedSubscription = player.on('destroy', () => destroyed++);
+  const destroyedSubscription = await player.on('destroy', () => destroyed++);
   nativeOf(player).emit('destroy', { name: 'onDestroy' });
   assert.equal(destroyed, 1);
   destroyedSubscription.remove();
+});
+
+test('concurrent destruction warns when it prevents event registration', async (t) => {
+  const { Player, nativeOf } = fixture(t);
+  const player = new Player();
+  await player.initialize();
+  const native = nativeOf(player);
+  let calls = 0;
+  const warnings = [];
+  t.mock.method(console, 'warn', (message) => warnings.push(message));
+  const pending = player.on('destroy', () => calls++);
+  assert.equal(typeof pending.then, 'function');
+  player.destroy();
+  const subscription = await pending;
+  native.emit('destroy', { name: 'onDestroy' });
+  assert.equal(calls, 0);
+  assert.equal(warnings.length, 1);
+  assert.match(
+    warnings[0],
+    /Cannot subscribe to 'destroy'.*destroyed during registration/
+  );
+  subscription.remove();
 });
