@@ -74,8 +74,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    * Returns a fresh JS handle to the SDK source.
    */
   getSource = async (): Promise<Source | undefined> => {
-    const player = await this.native;
-    const source = await player.getSource();
+    const source = await (await this.native).getSource();
     return source ? Source.fromNative(source) : undefined;
   };
 
@@ -88,8 +87,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
     const sources = await Promise.all(
       config.sources.map((source) => source.native)
     );
-    const player = await this.native;
-    await player.loadPlaylist(sources, config.options);
+    await (await this.native).loadPlaylist(sources, config.options);
   };
   /**
    * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.

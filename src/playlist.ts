@@ -48,8 +48,9 @@ export class PlaylistApi {
    * Each query returns fresh JS handles to the SDK sources.
    */
   getSources = async (): Promise<Source[]> => {
-    const player = await this.native;
-    return (await player.getPlaylistSources()).map(Source.fromNative);
+    return (await (await this.native).getPlaylistSources()).map(
+      Source.fromNative
+    );
   };
 
   /** Adds a source at the given index, or appends it when omitted. */
@@ -61,8 +62,7 @@ export class PlaylistApi {
   /** Removes a source. The active source cannot be removed. */
   remove = async (source: Source): Promise<void> => {
     const nativeSource = await source.native;
-    const player = await this.native;
-    await player.playlistRemove(nativeSource);
+    await (await this.native).playlistRemove(nativeSource);
   };
 
   /** Removes the source at the given index. The active source cannot be removed. */
