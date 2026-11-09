@@ -60,6 +60,7 @@ class NativeInstanceRegistry<T extends SharedObject> {
 }
 
 /** @internal */
-export const playerRegistry = new NativeInstanceRegistry<NativePlayer>();
+export const legacyPlayerRegistry = new NativeInstanceRegistry<NativePlayer>();
 /** @internal */
-export const offlineRegistry = new NativeInstanceRegistry<NativeOffline>();
+export const legacyOfflineRegistry =
+  new NativeInstanceRegistry<NativeOffline>();
