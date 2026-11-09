@@ -9,27 +9,29 @@ import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryAction
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.api.source.SourceConfig
+import com.bitmovin.player.reactnative.SharedOfflineEvents
 import com.bitmovin.player.reactnative.converter.toJson
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.sharedobjects.SharedObject
 
-class OfflineContentManagerBridge(appContext: AppContext) : SharedObject(appContext), OfflineContentManagerListener {
-    private var identifier = ""
-    private var resource: OfflineContentManager? = null
+class OfflineContentManagerBridge(
+    appContext: AppContext,
+    context: Context,
+    private val identifier: String,
+    source: SourceConfig,
+    location: String,
+    private val events: SharedOfflineEvents,
+) : SharedObject(appContext), OfflineContentManagerListener {
+    private var contentOptions: OfflineContentOptions? = null
+    private var resource: OfflineContentManager? = OfflineContentManager.getOfflineContentManager(
+        source,
+        location,
+        identifier,
+        this,
+        context,
+    )
     val offlineContentManager: OfflineContentManager
         get() = checkNotNull(resource) { "Offline content manager is not initialized" }
-
-    fun initialize(context: Context, identifier: String, source: SourceConfig, location: String) {
-        if (resource != null) return
-        this.identifier = identifier
-        resource = OfflineContentManager.getOfflineContentManager(
-            source,
-            location,
-            identifier,
-            this,
-            context,
-        )
-    }
 
     enum class OfflineEventType(val eventName: String) {
         ON_COMPLETED("onCompleted"),
@@ -41,8 +43,6 @@ class OfflineContentManagerBridge(appContext: AppContext) : SharedObject(appCont
         ON_RESUMED("onResumed"),
         ON_CANCELED("onCanceled"),
     }
-
-    private var contentOptions: OfflineContentOptions? = null
 
     val state: OfflineOptionEntryState
         get() = aggregateState(contentOptions)
@@ -201,6 +201,6 @@ class OfflineContentManagerBridge(appContext: AppContext) : SharedObject(appCont
         mutableEvent["identifier"] = identifier
         mutableEvent["eventType"] = eventType.eventName
         mutableEvent["state"] = aggregateState(contentOptions).name
-        emit("onBitmovinOfflineEvent", mutableEvent)
+        events.emit("onBitmovinOfflineEvent", mutableEvent)
     }
 }

@@ -11,7 +11,7 @@
 ### Fixed
 
 - iOS: Reject invalid source or analytics configuration during initialization instead of exposing an empty native binding
-
+- iOS: Reject offline initialization when configuration is invalid or the SDK cannot create the content manager
 - iOS: Read and update source metadata before the source is loaded
 - Android: **Breaking change:** `PlayerActive` and `PlayerInactive` events being named `onActive` and `onInactive` instead of `onPlayerActive` and `onPlayerInactive`, as on iOS. Apps comparing `Event.name`, e.g. in `onEvent`, must use the new names.
 - Android: `Source.loadingState()` returning the state name instead of a `LoadingState` value

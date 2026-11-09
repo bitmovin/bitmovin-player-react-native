@@ -950,6 +950,43 @@ test('destroying a player alias closes the configured backend owners', async (t)
   );
 });
 
+test('destroying an alias with a retired backend closes its pending replacement configuration', async (t) => {
+  const { Player, modules, creations, calls, lookup } = fixture(t, 'android');
+  const owner = new Player({ nativeId: 'retired-alias-replacement' });
+  await owner.initialize();
+  const alias = new Player({
+    nativeId: owner.nativeId,
+    networkConfig: { preprocessHttpRequest: (_type, request) => request },
+    playbackConfig: { decoderConfig: {} },
+  });
+  await alias.getVolume();
+  owner.destroy();
+  const create = modules.PlayerModule.create;
+  let finish;
+  modules.PlayerModule.create = () =>
+    new Promise((resolve) => {
+      finish = resolve;
+    });
+  const initialization = alias.initialize();
+  await new Promise(setImmediate);
+  alias.destroy();
+  await new Promise(setImmediate);
+  for (const { kind, native } of creations.filter(
+    ({ kind }) => kind === 'network' || kind === 'decoder'
+  )) {
+    assert.equal(
+      calls.filter(
+        (call) => call.target === native && call.method === 'destroy'
+      ).length,
+      1,
+      kind
+    );
+  }
+  finish(await create());
+  await initialization;
+  assert.equal(lookup('player', owner.nativeId), undefined);
+});
+
 test('FairPlay runtime helper forwards through its Source object', async (t) => {
   const { Source, nativeOf, calls } = fixture(t, 'ios');
   const source = new Source({

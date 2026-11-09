@@ -18,17 +18,17 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
     }
 
     let offlineContentManager: OfflineContentManager
-    private weak var owner: SharedOffline?
+    private let events: SharedOfflineEvents
     let identifier: String
     var currentTrackSelection: OfflineTrackSelection?
 
     init(
         forManager offlineContentManager: OfflineContentManager,
-        owner: SharedOffline,
+        events: SharedOfflineEvents,
         identifier: String
     ) {
         self.offlineContentManager = offlineContentManager
-        self.owner = owner
+        self.events = events
         self.identifier = identifier
         super.init()
 
@@ -133,7 +133,7 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
 
         let eventBody = baseEvent.merging(body) { current, _ in current }
 
-        owner?.emit(event: "onBitmovinOfflineEvent", payload: eventBody)
+        events.emit(event: "onBitmovinOfflineEvent", payload: eventBody)
     }
 }
 #endif

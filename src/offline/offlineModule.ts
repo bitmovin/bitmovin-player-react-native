@@ -15,11 +15,10 @@ type OfflineEvents = {
 };
 
 /** @internal */
-export interface NativeOffline extends SharedObject<OfflineEvents> {
-  initialize(
-    config: { identifier: string; sourceConfig: SourceConfig },
-    drm?: NativeDrm
-  ): Promise<void>;
+export type NativeOfflineEvents = SharedObject<OfflineEvents>;
+
+/** @internal */
+export interface NativeOfflineBackend extends SharedObject {
   getState(): Promise<string | null>;
   getOptions(): Promise<void>;
   download(request: OfflineDownloadRequest): Promise<void>;
@@ -33,6 +32,11 @@ export interface NativeOffline extends SharedObject<OfflineEvents> {
   renewOfflineLicense(): Promise<void>;
   destroy(): Promise<void>;
 }
+
+/** @internal */
+export type NativeOffline = NativeOfflineBackend & {
+  readonly events: NativeOfflineEvents;
+};
 
 /** @internal */
 export function getNativeOffline(id: string): NativeOffline | undefined {
@@ -69,7 +73,12 @@ export function getOfflineForOperation(
 }
 
 declare class OfflineModule extends NativeModule {
-  create(): NativeOffline;
+  createEvents(): NativeOfflineEvents;
+  create(
+    config: { identifier: string; sourceConfig: SourceConfig },
+    drm: NativeDrm | undefined,
+    events: NativeOfflineEvents
+  ): Promise<NativeOfflineBackend>;
 }
 
 export default requireNativeModule<OfflineModule>('OfflineModule');

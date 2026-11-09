@@ -1,9 +1,5 @@
 import { setNativeOwner } from '../nativeOwner';
-import NetworkModule, { getNativeNetwork } from './networkModule';
-import {
-  createNativeCallback,
-  serializeNativeConfig,
-} from '../nativeCallbacks';
+import { createNativeNetwork, getNativeNetwork } from './networkModule';
 import type { HttpRequest, HttpResponse, NetworkConfig } from './networkConfig';
 import { HttpRequestType } from './networkConfig';
 
@@ -22,32 +18,7 @@ export class Network {
 
   initialize = async () => {
     if (!this.isInitialized) {
-      const config = this.config;
-      setNativeOwner(
-        this,
-        NetworkModule.create(
-          serializeNativeConfig(config ?? {}),
-          createNativeCallback((operation, [type, value]) => {
-            if (operation === 'preprocessHttpRequest') {
-              return Promise.resolve()
-                .then(() => config?.preprocessHttpRequest?.(type, value))
-                .then(
-                  (result) => result ?? value,
-                  () => value
-                );
-            }
-            if (operation === 'preprocessHttpResponse') {
-              return Promise.resolve()
-                .then(() => config?.preprocessHttpResponse?.(type, value))
-                .then(
-                  (result) => result ?? value,
-                  () => value
-                );
-            }
-            return null;
-          })
-        )
-      );
+      setNativeOwner(this, createNativeNetwork(this.config));
       this.isInitialized = true;
     }
   };

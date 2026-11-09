@@ -1,14 +1,9 @@
 import { setNativeOwner } from '../nativeOwner';
-import { Platform } from 'react-native';
 import type { Source } from '../source';
 import type { FairplayConfig } from './fairplayConfig';
 import type { WidevineConfig } from './widevineConfig';
 import { FairplayDrmApi } from './fairplayDrmApi';
-import DrmModule, { getNativeDrm } from './drmModule';
-import {
-  createNativeCallback,
-  serializeNativeConfig,
-} from '../nativeCallbacks';
+import { createNativeDrm, getNativeDrm } from './drmModule';
 
 // Export config types and API classes from DRM module.
 export type { FairplayConfig, WidevineConfig };
@@ -61,25 +56,7 @@ export class Drm {
 
   initialize = async () => {
     if (!this.isInitialized) {
-      const config = this.config;
-      setNativeOwner(
-        this,
-        DrmModule.create(
-          serializeNativeConfig(config ?? {}),
-          createNativeCallback((operation, args) => {
-            const platformConfig =
-              Platform.OS === 'ios' ? config?.fairplay : config?.widevine;
-            const callback =
-              platformConfig?.[operation as keyof typeof platformConfig];
-            return typeof callback === 'function'
-              ? (callback as (...values: any[]) => any).apply(
-                  platformConfig,
-                  args
-                )
-              : null;
-          })
-        )
-      );
+      setNativeOwner(this, createNativeDrm(this.config));
       this.isInitialized = true;
     }
   };

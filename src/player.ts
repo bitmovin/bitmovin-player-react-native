@@ -27,10 +27,14 @@ import type {
 import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
-import { Network } from './network';
-import { DecoderConfigBridge } from './decoder';
-import { getNativeNetwork } from './network/networkModule';
-import { getNativeDecoder } from './decoder/decoderConfigModule';
+import {
+  createNativeNetwork,
+  type NativeNetwork,
+} from './network/networkModule';
+import {
+  createNativeDecoder,
+  type NativeDecoder,
+} from './decoder/decoderConfigModule';
 import { getNativeOffline } from './offline/offlineModule';
 import { nativeCallback, serializeNativeConfig } from './nativeCallbacks';
 import { setNativeOwner } from './nativeOwner';
@@ -79,9 +83,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   mediaControls: MediaControlsApi = new MediaControlsApi(this);
 
-  private network?: Network;
+  private network?: NativeNetwork;
 
-  private decoderConfig?: DecoderConfigBridge;
+  private decoderConfig?: NativeDecoder;
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
@@ -94,8 +98,8 @@ export class Player extends NativeInstance<PlayerConfig> {
       async (created) => {
         await created.destroy();
         destroyDependencies(created);
-        await this.network?.destroy();
-        this.decoderConfig?.destroy();
+        this.network = undefined;
+        this.decoderConfig = undefined;
       }
     );
     if (
@@ -112,10 +116,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   private async createNativePlayer() {
     if (this.isDestroyed) return;
     try {
-      if (this.config?.networkConfig) {
-        this.network = new Network(this.config.networkConfig);
-        await this.network.initialize();
-      }
+      if (this.config?.networkConfig) await this.initializeNetwork();
       await this.maybeInitDecoderConfig();
       const advertising = this.config?.advertisingConfig;
       const beforeInitialization = advertising?.ima?.beforeInitialization;
@@ -129,15 +130,15 @@ export class Player extends NativeInstance<PlayerConfig> {
       const created = await PlayerModule.create(
         serializeNativeConfig(this.config),
         serializeNativeConfig(this.config?.analyticsConfig),
-        this.network && getNativeNetwork(this.network),
-        this.decoderConfig && getNativeDecoder(this.decoderConfig),
+        this.network,
+        this.decoderConfig,
         this.createPlayerCallback(advertising, beforeInitialization)
       );
       holdDependencies(created, [this.network, this.decoderConfig]);
       return created;
     } catch (error) {
-      await this.network?.destroy();
-      this.decoderConfig?.destroy();
+      await this.destroyNetwork();
+      this.destroyDecoder();
       throw error;
     }
   }
@@ -173,8 +174,8 @@ export class Player extends NativeInstance<PlayerConfig> {
       void native?.destroy();
       if (native) destroyDependencies(native);
       void this.source?.destroy();
-      void this.network?.destroy();
-      void this.decoderConfig?.destroy();
+      void this.destroyNetwork();
+      this.destroyDecoder();
       this.isDestroyed = true;
       if (native) {
         remove('player', this.nativeId, native);
@@ -624,7 +625,23 @@ export class Player extends NativeInstance<PlayerConfig> {
     return (await this.native?.canPlayAtPlaybackSpeed(playbackSpeed)) ?? false;
   };
 
-  private maybeInitDecoderConfig = () => {
+  private async initializeNetwork() {
+    this.network = createNativeNetwork(this.config?.networkConfig);
+  }
+
+  private async destroyNetwork() {
+    const network = this.network;
+    this.network = undefined;
+    await network?.destroy();
+  }
+
+  private destroyDecoder() {
+    const decoder = this.decoderConfig;
+    this.decoderConfig = undefined;
+    void decoder?.destroy();
+  }
+
+  private maybeInitDecoderConfig() {
     if (this.config?.playbackConfig?.decoderConfig == null) {
       return;
     }
@@ -632,9 +649,8 @@ export class Player extends NativeInstance<PlayerConfig> {
       return;
     }
 
-    this.decoderConfig = new DecoderConfigBridge(
+    this.decoderConfig = createNativeDecoder(
       this.config.playbackConfig.decoderConfig
     );
-    return this.decoderConfig.initialize();
-  };
+  }
 }

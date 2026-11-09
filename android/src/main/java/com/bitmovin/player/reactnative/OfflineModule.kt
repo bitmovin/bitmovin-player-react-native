@@ -4,37 +4,54 @@ import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.reactnative.converter.toSourceConfig
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
+import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.exception.CodedException
+import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.sharedobjects.SharedObject
 import java.security.InvalidParameterException
 
+class SharedOfflineEvents(appContext: AppContext) : SharedObject(appContext)
+
 class OfflineModule : Module() {
+    private fun create(
+        config: Map<String, Any?>?,
+        drm: SharedDrm?,
+        events: SharedOfflineEvents,
+    ): OfflineContentManagerBridge {
+        val identifier = config?.get("identifier") as? String
+            ?: throw OfflineException.InvalidIdentifier()
+        val sourceConfig = (config["sourceConfig"] as? Map<String, Any?>)?.toSourceConfig()
+            ?: throw OfflineException.InvalidSourceConfig()
+        sourceConfig.drmConfig = drm?.config
+        val context = appContext.reactContext
+            ?: throw InvalidParameterException("ReactApplicationContext is not available")
+        return OfflineContentManagerBridge(
+            appContext,
+            context,
+            identifier,
+            sourceConfig,
+            appContext.cacheDirectory.path,
+            events,
+        )
+    }
 
     override fun definition() = ModuleDefinition {
         Name("OfflineModule")
-        Function("create") { OfflineContentManagerBridge(appContext) }
-        Class(OfflineContentManagerBridge::class) {
-            Constructor { OfflineContentManagerBridge(appContext) }
+        Function("createEvents") { SharedOfflineEvents(appContext) }
+        AsyncFunction("create") { config: Map<String, Any?>?, drm: SharedDrm?, events: SharedOfflineEvents ->
+            create(config, drm, events)
+        }.runOnQueue(Queues.MAIN)
+        Class("OfflineEvents", SharedOfflineEvents::class) {
+            Constructor { SharedOfflineEvents(appContext) }
             Events("onBitmovinOfflineEvent")
-
-            AsyncFunction("initialize") { owner: OfflineContentManagerBridge,
-                config: Map<String, Any?>?, drm: SharedDrm?, ->
-
-                val identifier = config?.get("identifier") as? String
-                    ?: throw OfflineException.InvalidIdentifier()
-
-                val sourceConfig = (config["sourceConfig"] as? Map<String, Any?>)?.toSourceConfig()
-                    ?: throw OfflineException.InvalidSourceConfig()
-
-                // Use the configuration owned by the supplied DRM object
-                sourceConfig.drmConfig = drm?.config
-
-                val context = appContext.reactContext
-                    ?: throw InvalidParameterException("ReactApplicationContext is not available")
-
-                owner.initialize(context, identifier, sourceConfig, appContext.cacheDirectory.path)
+        }
+        Class(OfflineContentManagerBridge::class) {
+            Constructor { config: Map<String, Any?>?, drm: SharedDrm?, events: SharedOfflineEvents ->
+                create(config, drm, events)
             }
+
             AsyncFunction("getState") { owner: OfflineContentManagerBridge ->
                 owner.state.name
             }

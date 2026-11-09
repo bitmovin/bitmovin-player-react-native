@@ -6,14 +6,27 @@ public class OfflineModule: Module {
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("OfflineModule")
-        Function("create") { SharedOffline() }
+        Function("createEvents") { SharedOfflineEvents() }
+        Class("OfflineEvents", SharedOfflineEvents.self) {}
+        AsyncFunction("create") { (config: [String: Any], drm: SharedDrm?, events: SharedOfflineEvents) in
+#if os(iOS)
+            guard let identifier = config["identifier"] as? String,
+                  let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], drmConfig: drm?.config) else {
+                throw Exception(
+                    name: "InvalidOfflineConfig",
+                    description: "Invalid offline identifier or source configuration"
+                )
+            }
+            let manager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
+            return SharedOffline(manager: manager, identifier: identifier, drm: drm, events: events)
+#else
+            return SharedOffline(events: events)
+#endif
+        }.runOnQueue(.main)
         Class("OfflineContentManager", SharedOffline.self) {
-            AsyncFunction("initialize") { (owner: SharedOffline, config: [String: Any], drm: SharedDrm?) in
-                owner.initialize(config: config, drm: drm)
-            }.runOnQueue(.main)
             AsyncFunction("getState") { (owner: SharedOffline) -> String? in
 #if os(iOS)
-                RCTConvert.toJson(offlineState: owner.bridge?.offlineContentManager.offlineState)
+                RCTConvert.toJson(offlineState: owner.offlineContentManager.offlineState)
 #else
                 nil
 #endif
@@ -25,14 +38,14 @@ public class OfflineModule: Module {
             }.runOnQueue(.main)
             AsyncFunction("usedStorage") { (owner: SharedOffline) -> Int? in
 #if os(iOS)
-                owner.bridge?.offlineContentManager.usedStorage
+                owner.offlineContentManager.usedStorage
 #else
                 nil
 #endif
             }.runOnQueue(.main)
             AsyncFunction("deleteAll") { (owner: SharedOffline) in
 #if os(iOS)
-                owner.bridge?.offlineContentManager.deleteOfflineData()
+                owner.offlineContentManager.deleteOfflineData()
 #endif
             }.runOnQueue(.main)
             AsyncFunction("destroy") { (owner: SharedOffline) in owner.destroy() }.runOnQueue(.main)
@@ -41,27 +54,27 @@ public class OfflineModule: Module {
             }.runOnQueue(.main)
             AsyncFunction("resume") { (owner: SharedOffline) in
 #if os(iOS)
-                owner.bridge?.offlineContentManager.resumeDownload()
+                owner.offlineContentManager.resumeDownload()
 #endif
             }.runOnQueue(.main)
             AsyncFunction("suspend") { (owner: SharedOffline) in
 #if os(iOS)
-                owner.bridge?.offlineContentManager.suspendDownload()
+                owner.offlineContentManager.suspendDownload()
 #endif
             }.runOnQueue(.main)
             AsyncFunction("cancelDownload") { (owner: SharedOffline) in
 #if os(iOS)
-                owner.bridge?.offlineContentManager.cancelDownload()
+                owner.offlineContentManager.cancelDownload()
 #endif
             }.runOnQueue(.main)
             AsyncFunction("downloadLicense") { (owner: SharedOffline) in
 #if os(iOS)
-                owner.bridge?.offlineContentManager.syncOfflineDrmLicenseInformation()
+                owner.offlineContentManager.syncOfflineDrmLicenseInformation()
 #endif
             }.runOnQueue(.main)
             AsyncFunction("renewOfflineLicense") { (owner: SharedOffline) in
 #if os(iOS)
-                owner.bridge?.offlineContentManager.renewOfflineLicense()
+                owner.offlineContentManager.renewOfflineLicense()
 #endif
             }.runOnQueue(.main)
             AsyncFunction("releaseLicense") { (_: SharedOffline) in }.runOnQueue(.main)
@@ -69,41 +82,50 @@ public class OfflineModule: Module {
     }
 }
 
-public final class SharedOffline: SharedObject {
-#if os(iOS)
-    private(set) var bridge: OfflineContentManagerBridge?
-#endif
-    private var drm: SharedDrm?
+public final class SharedOfflineEvents: SharedObject {}
 
-    func initialize(config: [String: Any], drm: SharedDrm?) {
+public final class SharedOffline: SharedObject {
+    private let events: SharedOfflineEvents
 #if os(iOS)
-        guard bridge == nil, let identifier = config["identifier"] as? String,
-              let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], drmConfig: drm?.config) else { return }
+    let offlineContentManager: OfflineContentManager
+    private(set) var bridge: OfflineContentManagerBridge?
+    private let drm: SharedDrm?
+
+    init(manager: OfflineContentManager, identifier: String, drm: SharedDrm?, events: SharedOfflineEvents) {
+        offlineContentManager = manager
         self.drm = drm
-        do {
-            let manager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
-            bridge = OfflineContentManagerBridge(forManager: manager, owner: self, identifier: identifier)
-        } catch {}
-#endif
+        self.events = events
+        super.init()
+        bridge = OfflineContentManagerBridge(forManager: manager, events: events, identifier: identifier)
     }
+#else
+    init(events: SharedOfflineEvents) {
+        self.events = events
+        super.init()
+    }
+#endif
 
     func destroy() {
 #if os(iOS)
         bridge?.release()
         bridge = nil
 #endif
-        drm = nil
     }
 
     deinit {
 #if os(iOS)
-        if let bridge { DispatchQueue.main.async { bridge.release() } }
+        let manager = offlineContentManager
+        let bridge = bridge
+        DispatchQueue.main.async {
+            bridge?.release()
+            withExtendedLifetime(manager) {}
+        }
 #endif
     }
 
     func download(_ request: [String: Any]?) {
 #if os(iOS)
-        guard let bridge, let request, bridge.offlineContentManager.offlineState == .notDownloaded,
+        guard let bridge, let request, offlineContentManager.offlineState == .notDownloaded,
               let tracks = bridge.currentTrackSelection else { return }
         if let audioOptionIds = request["audioOptionIds"] as? [String], !audioOptionIds.isEmpty {
             tracks.audioTracks.forEach { $0.action = audioOptionIds.contains($0.label) ? .download : .none }
@@ -113,7 +135,7 @@ public final class SharedOffline: SharedObject {
         }
         let config = DownloadConfig()
         config.minimumBitrate = request["minimumBitrate"] as? NSNumber
-        bridge.offlineContentManager.download(tracks: tracks, downloadConfig: config)
+        offlineContentManager.download(tracks: tracks, downloadConfig: config)
 #endif
     }
 }
