@@ -17,7 +17,8 @@ import type { VideoQuality } from './media';
 import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
 import type { PlaylistConfig } from './playlist';
-import { PlaylistApi, ReplayMode } from './playlist';
+import { PlaylistApi } from './playlist';
+import { validatePlaylistConfig } from './playlist/validatePlaylistConfig';
 import type { PlayerEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
 
@@ -799,24 +800,4 @@ export class Player extends NativeInstance<PlayerConfig> {
     );
     this.decoderConfig.initialize();
   };
-}
-
-const replayModes: readonly string[] = Object.values(ReplayMode);
-
-/**
- * Throws for the invalid playlist configs that can be detected before loading, as the load itself reports no
- * errors to the caller.
- */
-function validatePlaylistConfig({ sources, options }: PlaylistConfig) {
-  if (sources.length === 0) {
-    throw new Error('Playlist config has no sources');
-  }
-  const replayMode = options?.replayMode;
-  if (replayMode !== undefined && !replayModes.includes(replayMode)) {
-    throw new Error(`Unknown replay mode: ${replayMode}`);
-  }
-  const destroyedSource = sources.find((source) => source.isDestroyed);
-  if (destroyedSource) {
-    throw new Error(`Source ${destroyedSource.nativeId} was destroyed`);
-  }
 }
