@@ -186,16 +186,12 @@ test('destroys the DRM config of a failed DRM initialization and initializes it 
       'DrmModule.initializeWithConfig',
       'DrmModule.destroy',
       'SourceModule.initializeWithConfig'
-    ).map(([name, nativeId, drmNativeId]) =>
-      name === 'SourceModule.initializeWithConfig'
-        ? [name, nativeId, drmNativeId]
-        : [name, nativeId]
-    ),
+    ).map(([name, nativeId]) => [name, nativeId]),
     [
       ['DrmModule.initializeWithConfig', 'drm'],
       ['DrmModule.destroy', 'drm'],
       ['DrmModule.initializeWithConfig', 'drm'],
-      ['SourceModule.initializeWithConfig', 'a', 'drm'],
+      ['SourceModule.initializeWithConfig', 'a'],
     ]
   );
   assert.equal(source.isInitialized, true);
@@ -336,11 +332,11 @@ test('resolves the known playlist sources in native order and omits unknown ones
   assert.equal(sources[1], a);
 });
 
-test('destroys the sources of a destroyed player that native returns, then removes its listeners', async () => {
+test('destroys the sources of a destroyed player that native returns or it is still loading, then removes its listeners', async () => {
   const { Player, Source, calls, callsTo, results, emit } = fixture();
   const pendingInitialization = deferred();
   results['SourceModule.initializeWithConfig'] = (nativeId) =>
-    nativeId === 'created-pending' ? pendingInitialization.promise : undefined;
+    nativeId.endsWith('pending') ? pendingInitialization.promise : undefined;
   let activeSource;
   results['PlayerModule.source'] = () => activeSource;
   const nativeDestroy = deferred();
@@ -359,9 +355,11 @@ test('destroys the sources of a destroyed player that native returns, then remov
   const created = await player.getSource();
   const session = new Source({ nativeId: 'session', url });
   const kept = new Source({ nativeId: 'kept', url });
+  const pending = new Source({ nativeId: 'app-pending', url });
   player.loadSource(session);
   player.loadSource(kept);
   player.load({ nativeId: 'created-pending', url });
+  player.loadSource(pending);
   await settle();
   calls.length = 0;
 
@@ -369,22 +367,25 @@ test('destroys the sources of a destroyed player that native returns, then remov
   await settle();
 
   assert.deepEqual(callsTo('PlayerModule.destroy'), [
-    ['PlayerModule.destroy', 'player', ['created']],
+    ['PlayerModule.destroy', 'player', ['created', 'created-pending']],
   ]);
-  assert.deepEqual(
-    callsTo('SourceModule.destroy', 'PlayerModule.removeListener'),
-    [['SourceModule.destroy', 'created-pending']]
-  );
   const event = { name: 'onDestroy', timestamp: 1 };
   emit('PlayerModule', { nativeId: 'player', eventName: 'destroy', event });
   assert.deepEqual(received, [event]);
 
-  assert.deepEqual(callsTo('SourceModule.destroy'), [
-    ['SourceModule.destroy', 'created-pending'],
-  ]);
   pendingInitialization.resolve();
   await settle();
-  assert.deepEqual(callsTo('PlayerModule.loadSource'), []);
+  assert.deepEqual(
+    callsTo(
+      'SourceModule.destroy',
+      'PlayerModule.loadSource',
+      'PlayerModule.removeListener'
+    ),
+    [
+      ['SourceModule.destroy', 'created-pending'],
+      ['SourceModule.destroy', 'app-pending'],
+    ]
+  );
 
   calls.length = 0;
   nativeDestroy.resolve(['created', 'session', 'unknown']);
@@ -400,6 +401,7 @@ test('destroys the sources of a destroyed player that native returns, then remov
   );
   assert.equal(created.isDestroyed, true);
   assert.equal(session.isDestroyed, true);
+  assert.equal(pending.isDestroyed, true);
   assert.equal(kept.isDestroyed, false);
 });
 

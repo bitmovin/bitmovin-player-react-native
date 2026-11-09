@@ -129,7 +129,8 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Destroys the native `Player` and releases all of its allocated resources.
    *
-   * Also destroys the {@link Source}s of its playback session, and the sources it created in {@link Player.load}
+   * Also destroys the {@link Source}s of its playback session, including ones it is still loading, and the sources
+   * it created in {@link Player.load}
    * that are not attached to another player. Other sources, e.g. ones removed from the player before, are not
    * destroyed; destroy them via {@link Source.destroy} once they are no longer needed.
    * To keep using a source that was passed to the player, e.g. in another player, unload the player before
@@ -137,19 +138,11 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   destroy = () => {
     if (!this.isDestroyed) {
-      const createdSources = [...this.createdSources].filter(
-        (source) => !source.isDestroyed
-      );
-      this.createdSources.clear();
-      // A source that is not initialized yet cannot be resolved, and therefore not be loaded by another player.
-      createdSources
-        .filter((source) => !source.isInitialized)
-        .forEach((source) => source.destroy());
       // Remove the listeners only after the native destroy, so they still receive the `destroy` event.
       void PlayerModule.destroy(
         this.nativeId,
-        createdSources
-          .filter((source) => source.isInitialized)
+        [...this.createdSources]
+          .filter((source) => !source.isDestroyed)
           .map((source) => source.nativeId)
       )
         .then((sourceNativeIds) =>
@@ -239,7 +232,10 @@ export class Player extends NativeInstance<PlayerConfig> {
       throw new Error(`Source ${source.nativeId} was destroyed`);
     }
     void source.initialize().then(
-      () => PlayerModule.loadSource(this.nativeId, source.nativeId),
+      () =>
+        this.isDestroyed
+          ? source.destroy()
+          : PlayerModule.loadSource(this.nativeId, source.nativeId),
       (error) => ignoreIfDestroyed(error, [source])
     );
   };
@@ -274,11 +270,13 @@ export class Player extends NativeInstance<PlayerConfig> {
       playlistConfig.sources.map((source) => source.initialize())
     ).then(
       () =>
-        PlayerModule.loadPlaylist(
-          this.nativeId,
-          playlistConfig.sources.map((source) => source.nativeId),
-          playlistConfig.options
-        ),
+        this.isDestroyed
+          ? playlistConfig.sources.forEach((source) => source.destroy())
+          : PlayerModule.loadPlaylist(
+              this.nativeId,
+              playlistConfig.sources.map((source) => source.nativeId),
+              playlistConfig.options
+            ),
       (error) => ignoreIfDestroyed(error, playlistConfig.sources)
     );
   };
