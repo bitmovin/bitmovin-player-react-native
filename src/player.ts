@@ -125,19 +125,15 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Destroys the native `Player` and releases all of its allocated resources.
    *
-   * Also destroys the {@link Source}s that were last loaded into it, including ones it is still loading and ones
-   * it no longer plays, e.g. after {@link Player.unload} or a later load. To keep using a source, load it into
-   * another player before destroying this one.
+   * Also destroys the {@link Source}s it owns: every source loaded into it, including ones it is still loading and
+   * ones it no longer plays, e.g. after {@link Player.unload} or a later load, unless another player loaded it since
+   * or it was removed via {@link PlaylistApi.remove} or {@link PlaylistApi.removeAt}.
    */
   destroy = () => {
     if (!this.isDestroyed) {
       // Remove the listeners only after the native destroy, so they still receive the `destroy` event.
       void PlayerModule.destroy(this.nativeId)
-        .then(() =>
-          SourceRegistry.ownedBy(this.nativeId).forEach((source) =>
-            source.destroy()
-          )
-        )
+        .then(() => SourceRegistry.destroyOwned(this.nativeId))
         .finally(() => {
           this.eventListeners.removeAll();
         });
@@ -214,7 +210,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (source.isDestroyed) {
       throw new Error(`Source ${source.nativeId} was destroyed`);
     }
-    SourceRegistry.setOwner(source, this.nativeId);
+    SourceRegistry.own(this.nativeId, [source]);
     void source.initialize().then(
       () =>
         this.isDestroyed
@@ -250,9 +246,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   loadPlaylist = (playlistConfig: PlaylistConfig) => {
     validatePlaylistConfig(playlistConfig);
-    playlistConfig.sources.forEach((source) =>
-      SourceRegistry.setOwner(source, this.nativeId)
-    );
+    SourceRegistry.own(this.nativeId, playlistConfig.sources);
     void Promise.all(
       playlistConfig.sources.map((source) => source.initialize())
     ).then(
@@ -311,7 +305,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   /**
-   * Unloads all {@link Source}s from the player.
+   * Unloads all {@link Source}s from the player. The player still owns them, see {@link Player.destroy}.
    */
   unload = () => {
     void PlayerModule.unload(this.nativeId);

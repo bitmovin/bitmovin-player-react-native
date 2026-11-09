@@ -415,6 +415,30 @@ test('keeps a source created by a player that another player loaded since, and d
   ]);
 });
 
+test('hands sources that the playlist removed back to the app, so the player does not destroy them', async () => {
+  const { Player, Source, callsTo, results } = fixture();
+  const player = new Player({ nativeId: 'player' });
+  const active = new Source({ nativeId: 'active', url });
+  const removed = new Source({ nativeId: 'removed', url });
+  const removedAt = new Source({ nativeId: 'removed-at', url });
+  player.loadPlaylist({ sources: [active, removed, removedAt] });
+  await settle();
+  results['PlaylistModule.remove'] = (_, nativeId) => nativeId === 'removed';
+  results['PlaylistModule.removeAt'] = () => 'removed-at';
+
+  await player.playlist.remove(active);
+  await player.playlist.remove(removed);
+  assert.equal(await player.playlist.removeAt(2), removedAt);
+  player.destroy();
+  await settle();
+
+  assert.deepEqual(callsTo('SourceModule.destroy'), [
+    ['SourceModule.destroy', 'active'],
+  ]);
+  assert.equal(removed.isDestroyed, false);
+  assert.equal(removedAt.isDestroyed, false);
+});
+
 test('throws synchronously when loading a destroyed source', () => {
   const { Player, Source, callsTo } = fixture();
   const player = new Player({ nativeId: 'player' });

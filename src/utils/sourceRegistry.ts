@@ -7,8 +7,8 @@ import type { Source } from '../source';
  */
 const sources = new Map<string, Source>();
 /**
- * The {@link Player.nativeId} of the player that a source was last loaded into, which destroys it.
- * Set before the source is registered, so it is weak to not keep sources that are never registered.
+ * The {@link Player.nativeId} of the player that owns a source and destroys it with itself.
+ * Set when a source is loaded, before it is registered, so it is weak to not keep sources that are never registered.
  */
 const owners = new WeakMap<Source, string>();
 
@@ -41,15 +41,27 @@ export const SourceRegistry = {
   },
 
   /**
-   * Makes the player that loads `source` its owner, also if another player owned it before.
+   * Makes the player that loads `loadedSources` their owner, also if another player owned them before.
    */
-  setOwner(source: Source, playerNativeId: string) {
-    owners.set(source, playerNativeId);
+  own(playerNativeId: string, loadedSources: Source[]) {
+    loadedSources.forEach((source) => owners.set(source, playerNativeId));
   },
 
-  ownedBy(playerNativeId: string): Source[] {
-    return [...sources.values()].filter(
-      (source) => owners.get(source) === playerNativeId
-    );
+  /**
+   * Hands `source` back to the app once its player removed it, so the player no longer destroys it.
+   */
+  disown(playerNativeId: string, source: Source) {
+    if (owners.get(source) === playerNativeId) {
+      owners.delete(source);
+    }
+  },
+
+  /**
+   * Destroys the sources the player owns, once it is destroyed.
+   */
+  destroyOwned(playerNativeId: string) {
+    [...sources.values()]
+      .filter((source) => owners.get(source) === playerNativeId)
+      .forEach((source) => source.destroy());
   },
 };

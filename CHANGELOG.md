@@ -24,7 +24,7 @@
 - `PlayerView` event props are delivered through the player's event subscriptions on all platforms. The order of fullscreen and picture-in-picture events relative to player events can differ slightly. On Android, events emitted right after loading (e.g. `onPlayerActive`) are no longer lost, and two `PlayerView`s showing the same player now both receive the events. On iOS, `onEvent` now only receives the events of the documented `PlayerView` props, instead of every event of the native player.
 - Update Bitmovin's native iOS SDK version to [`3.130.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31300)
 - **Breaking change:** Replace the `Player.source` property with `Player.getSource()`, which returns the currently active source of the native player
-- **Breaking change:** `Player.destroy()` destroys every source that was last loaded into the player, including ones it is still loading or no longer plays, e.g. after `Player.unload()` or a later load, instead of only the source loaded last. To keep using a source, load it into another player before destroying the player
+- **Breaking change:** `Player.destroy()` destroys every source loaded into the player, including ones it is still loading or no longer plays, e.g. after `Player.unload()` or a later load, instead of only the source loaded last. Sources that another player loaded since, or that were removed from the playlist via `PlaylistApi.remove` or `PlaylistApi.removeAt`, are not destroyed
 - **Breaking change:** `Player.loadSource()` throws and `Source.initialize()` rejects for a destroyed source, instead of silently loading nothing, or creating it natively again if it was destroyed before it was initialized
 
 ## [1.30.0] - 2026-10-29

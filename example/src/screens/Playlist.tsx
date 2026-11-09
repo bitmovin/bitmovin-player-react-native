@@ -183,7 +183,11 @@ export default function Playlist() {
           />
           <Button
             title="Remove last"
-            onPress={() => void player.playlist.removeAt(sources.length - 1)}
+            onPress={() =>
+              void player.playlist
+                .removeAt(sources.length - 1)
+                .then((source) => source?.destroy())
+            }
           />
         </View>
       </View>

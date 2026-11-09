@@ -364,6 +364,39 @@ export default (spec: TestScope) => {
       }
     );
 
+    spec.it(
+      'does not destroy the removed sources with the player',
+      async () => {
+        const player = createPlayer();
+        const first = new Source(Sources.artOfMotionHls);
+        const second = new Source(Sources.sintel);
+        const third = new Source(Sources.artOfMotionHls);
+        try {
+          await player.initialize();
+          player.loadPlaylist({ sources: [first, second, third] });
+          expect(await untilActive(player, first), 'Loaded').toBeTruthy();
+          await player.playlist.remove(second);
+          expect(
+            await player.playlist.removeAt(1),
+            'Source removed at index 1'
+          ).toBe(third);
+
+          player.destroy();
+
+          expect(
+            await waitUntil(() => first.isDestroyed),
+            'Active source destroyed with the player'
+          ).toBeTruthy();
+          expect(second.isDestroyed, 'Removed source destroyed').toBeFalsy();
+          expect(third.isDestroyed, 'Source removed at index').toBeFalsy();
+        } finally {
+          player.destroy();
+          second.destroy();
+          third.destroy();
+        }
+      }
+    );
+
     spec.it('does not remove the active source', async () => {
       await startPlayerTest({}, async () => {
         const first = new Source(Sources.artOfMotionHls);
