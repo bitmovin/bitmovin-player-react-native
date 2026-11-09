@@ -118,7 +118,7 @@ function fixture(t) {
 }
 
 for (const kind of ['player', 'source']) {
-  test(`same-ID wrappers control the same ${kind}`, async (t) => {
+  test(`same-ID constructors eagerly share the same ${kind}`, async (t) => {
     const { Player, Source, creations } = fixture(t);
     const make = () =>
       kind === 'player'
@@ -130,6 +130,8 @@ for (const kind of ['player', 'source']) {
           });
     const first = make();
     const alias = make();
+    await new Promise(setImmediate);
+    assert.equal(creations.filter((item) => item.kind === kind).length, 1);
     await Promise.all(
       kind === 'player'
         ? [first.getVolume(), alias.getVolume()]
@@ -144,7 +146,7 @@ for (const kind of ['player', 'source']) {
   });
 }
 
-test('a failed shared player creation can be retried', async (t) => {
+test('a failed player creation stays rejected; a new wrapper can retry', async (t) => {
   const { Player, modules } = fixture(t);
   const create = modules.PlayerModule.create;
   const failure = new Error('Native creation failed');
@@ -158,9 +160,11 @@ test('a failed shared player creation can be retried', async (t) => {
     assert.rejects(alias.initialize(), (error) => error === failure),
   ]);
   modules.PlayerModule.create = create;
-  await alias.initialize();
-  assert.equal(await alias.getVolume(), 37);
-  alias.destroy();
+  await assert.rejects(alias.initialize(), (error) => error === failure);
+  const replacement = new Player({ nativeId: first.nativeId });
+  await replacement.initialize();
+  assert.equal(await replacement.getVolume(), 37);
+  replacement.destroy();
 });
 
 test('a canceled creation cannot replace a player reusing its ID', async (t) => {
@@ -179,8 +183,14 @@ test('a canceled creation cannot replace a player reusing its ID', async (t) => 
   const replacement = new Player({ nativeId: old.nativeId });
   await replacement.initialize();
   const retired = await create();
+  let retiredDestroyed = false;
+  retired.destroy = async () => {
+    retiredDestroyed = true;
+  };
   finish(retired);
   await initialization;
+  await new Promise(setImmediate);
+  assert.equal(retiredDestroyed, true);
   assert.notEqual(nativeOf(replacement), retired);
   assert.equal(await replacement.getVolume(), 37);
   replacement.destroy();
@@ -224,7 +234,7 @@ test('advertising decisions and IMA settings use their own player configuration'
   second.destroy();
 });
 
-test('failed Source creation permits retry with DRM callbacks', async (t) => {
+test('a new Source can retry failed creation with DRM callbacks', async (t) => {
   const { Source, modules, nativeOf, invoke } = fixture(t);
   const source = new Source({
     url: 'https://test/source',
@@ -238,9 +248,13 @@ test('failed Source creation permits retry with DRM callbacks', async (t) => {
   };
   await assert.rejects(source.metadata(), (error) => error === failure);
   modules.SourceModule.create = create;
-  await source.metadata();
+  await assert.rejects(source.initialize(), (error) => error === failure);
+  const replacement = new Source(source.config);
+  await replacement.initialize();
   assert.equal(
-    invoke(nativeOf(source), 'drmConfig.fairplay.prepareMessage', ['message']),
+    invoke(nativeOf(replacement), 'drmConfig.fairplay.prepareMessage', [
+      'message',
+    ]),
     'message'
   );
 });

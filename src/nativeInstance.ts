@@ -1,4 +1,6 @@
 import * as Crypto from 'expo-crypto';
+import type { SharedObject } from 'expo-modules-core/types';
+import { setNativeOwner } from './nativeOwner';
 
 export interface NativeInstanceConfig {
   /**
@@ -33,19 +35,36 @@ export default abstract class NativeInstance<
   /**
    * Generate UUID in case the user-defined `nativeId` is empty.
    */
-  constructor(config: Config) {
-    this.config = config;
+  constructor(
+    ...[config]: undefined extends Config ? [config?: Config] : [config: Config]
+  ) {
+    this.config = config as Config;
     this.nativeId = config?.nativeId ?? Crypto.randomUUID();
   }
 
+  /** Retain one eager creation attempt; callers still observe its original rejection. */
+  protected retainNative<T extends SharedObject>(
+    creation: Promise<T>,
+    onReady?: (native: T) => void
+  ): Promise<T> {
+    void creation.then(
+      (native) => {
+        setNativeOwner(this, native);
+        this.isInitialized = true;
+        onReady?.(native);
+      },
+      () => {}
+    );
+    return creation;
+  }
+
   /**
-   * Flag indicating whether the native resources of this object have been created internally
-   * .i.e `initialize` has been called.
+   * Whether the native creation started by the constructor has completed successfully.
    */
   abstract isInitialized: boolean;
 
   /**
-   * Create the native object/resources that will be managed by this instance.
+   * Wait for the native object/resources created by the constructor.
    */
-  abstract initialize(): void;
+  abstract initialize(): Promise<void>;
 }

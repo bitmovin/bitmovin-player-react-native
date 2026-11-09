@@ -35,8 +35,8 @@ export interface NativeSource extends SharedObject<SourceModuleEvents> {
 /** @internal */
 export function getNativeSource(source: Source): NativeSource | undefined {
   const native =
-    lookup<NativeSource>('source', source.nativeId) ??
-    getNativeOwner<NativeSource>(source);
+    getNativeOwner<NativeSource>(source) ??
+    lookup<NativeSource>('source', source.nativeId);
   if (native) setNativeOwner(source, native);
   return native;
 }
@@ -51,18 +51,3 @@ declare class SourceModule extends NativeModule {
 }
 
 export default requireNativeModule<SourceModule>('SourceModule');
-
-/** @internal */
-export type NativeSourceReference = () =>
-  | NativeSource
-  | undefined
-  | Promise<NativeSource | undefined>;
-
-/** @internal */
-export function nativeSourceReference(
-  source: Source | NativeSourceReference
-): NativeSourceReference {
-  return typeof source === 'function'
-    ? source
-    : () => source.initialize().then(() => getNativeSource(source));
-}
