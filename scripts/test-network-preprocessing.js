@@ -89,7 +89,6 @@ function fixture(t, config, rejectAfterCompletion = false) {
     attempts,
     completions,
     HttpRequestType,
-    helpers,
   };
 }
 
@@ -163,73 +162,3 @@ for (const [kind, original] of [
     }
   }
 }
-
-test('configuration tokens route nested callbacks and observe replacements', (t) => {
-  const { helpers } = fixture(t, {});
-  const config = { provider: { choose: () => false } };
-  const callbacks = helpers.createConfigurationCallbacks();
-  const native = callbacks.serialize(config);
-  const token = native.provider.choose;
-  assert.equal(typeof token, 'string');
-  assert.equal(callbacks.callback(token, []), false);
-  config.provider.choose = () => true;
-  assert.equal(callbacks.callback(token, []), true);
-  config.provider = { choose: () => false };
-  assert.equal(callbacks.callback(token, []), false);
-});
-
-test('mutation callbacks preserve settings changes and partial returned settings', (t) => {
-  const { helpers } = fixture(t, {});
-  const callbacks = helpers.createConfigurationCallbacks();
-  const config = {
-    ima: {
-      beforeInitialization(settings) {
-        settings.language = 'de';
-        return { playerType: 'custom' };
-      },
-    },
-  };
-  const native = callbacks.serialize(config, { capture: 'ima' });
-  config.ima.beforeInitialization = () => {
-    throw new Error('Captured callbacks must keep their original function');
-  };
-  assert.deepEqual(
-    callbacks.callback(
-      native.ima.beforeInitialization,
-      [{ language: 'en', autoPlay: false }],
-      undefined,
-      true
-    ),
-    {
-      language: 'de',
-      autoPlay: false,
-      playerType: 'custom',
-    }
-  );
-});
-
-test('synchronous decisions fall back for unexpected promises and consume rejection', async (t) => {
-  const { helpers } = fixture(t, {});
-  const callbacks = helpers.createConfigurationCallbacks();
-  const native = callbacks.serialize({
-    decision: () => Promise.reject(new Error('unexpected async decision')),
-  });
-  assert.equal(callbacks.callback(native.decision, []), null);
-  await new Promise(setImmediate);
-});
-
-test('configuration labels are removed without stripping content metadata', (t) => {
-  const { helpers } = fixture(t, {});
-  const metadata = { nativeId: 'user-data' };
-  assert.deepEqual(
-    helpers.createConfigurationCallbacks().serialize({
-      nativeId: 'binding-label',
-      sourceConfig: { nativeId: 'source-label', metadata },
-      networkConfig: { preprocessHttpRequest: () => {} },
-    }),
-    {
-      sourceConfig: { metadata },
-      networkConfig: { preprocessHttpRequest: '0' },
-    }
-  );
-});

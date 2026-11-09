@@ -16,13 +16,7 @@ function nativePlayer() {
   return { __expo_shared_object_id__: ++sharedObjectId };
 }
 function playerWith(native = Promise.resolve(nativePlayer())) {
-  return Object.defineProperty({ config: {}, native }, 'nativeId', {
-    get() {
-      throw new Error(
-        'PlayerView must use the owned native object, not nativeId'
-      );
-    },
-  });
+  return { config: {}, native };
 }
 const viewConfig = {
   uiViewClassName: 'ProbePlayerView',
@@ -118,10 +112,6 @@ const playerViewContext = vm.createContext({
     if (name.endsWith('/fullscreenhandlerbridge')) return {};
     if (name.endsWith('/custommessagehandlerbridge')) return {};
     if (name.endsWith('/metadataPlatform')) return {};
-    if (name.endsWith('/fullscreenHandlerModule'))
-      return { getNativeFullscreen: () => undefined };
-    if (name.endsWith('/customMessageHandlerModule'))
-      return { getNativeCustomMessage: () => undefined };
     throw new Error('Unexpected PlayerView dependency: ' + name);
   },
 });

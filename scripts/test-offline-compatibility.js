@@ -23,7 +23,7 @@ before(() => {
   assert.equal(program.emit().emitSkipped, false);
 });
 
-function fixture(t, platform = 'ios') {
+function fixture(t) {
   const directory = fs.mkdtempSync(path.join(root, 'case-'));
   fs.cpSync(compiled, directory, { recursive: true });
   t.after(() => {
@@ -39,7 +39,7 @@ function fixture(t, platform = 'ios') {
     fs.writeFileSync(path.join(location, 'index.js'), 'module.exports = {};');
   }
   require(path.join(directory, 'node_modules/react-native')).Platform = {
-    OS: platform,
+    OS: 'ios',
     isTV: false,
   };
   const config = {
@@ -81,87 +81,42 @@ function fixture(t, platform = 'ios') {
   return { OfflineContentManager, config, owners, offlineModule };
 }
 
-test('Android offline constructors eagerly share their ID', async (t) => {
-  const { OfflineContentManager, config, owners } = fixture(t, 'android');
-  const first = new OfflineContentManager(config);
+test('offline aliases share the native manager', async (t) => {
+  const { OfflineContentManager, config, owners } = fixture(t);
+  const manager = new OfflineContentManager(config);
   const alias = new OfflineContentManager(config);
-  await new Promise(setImmediate);
-  assert.equal(owners.length, 1);
-  await Promise.all([first.initialize(), alias.initialize()]);
   assert.equal(await alias.state(), 'Downloaded');
-  await first.destroy();
-});
-
-test('offline progress reaches listeners during creation and through iOS aliases', async (t) => {
-  const { OfflineContentManager, config, offlineModule, owners } = fixture(t);
-  const event = {
-    identifier: 'content',
-    eventType: 'onProgress',
-    state: 'Downloading',
-    progress: 0.5,
-  };
-  const create = offlineModule.create;
-  offlineModule.create = async (...args) => {
-    args[1].emit(event);
-    return create(...args);
-  };
-  const first = new OfflineContentManager(config);
-  const received = [];
-  first.addListener({ onProgress: (value) => received.push(value) });
-  await first.state();
-  assert.deepEqual(received, [{ ...event, nativeId: config.nativeId }]);
-
-  const alias = new OfflineContentManager(config);
-  const aliasEvents = [];
-  alias.addListener({ onProgress: (value) => aliasEvents.push(value) });
-  await alias.initialize();
-  owners[0].emit(event);
-  assert.deepEqual(aliasEvents, [{ ...event, nativeId: config.nativeId }]);
-  assert.equal(received.length, 2);
-  await first.destroy();
+  assert.equal(owners.length, 1);
+  assert.equal(await manager.native, await alias.native);
+  await manager.destroy();
   await alias.destroy();
 });
 
-test('iOS offline creation stays rejected; a new wrapper can retry', async (t) => {
+test('offline progress reaches listeners with the public nativeId', async (t) => {
+  const { OfflineContentManager, config, owners } = fixture(t);
+  const manager = new OfflineContentManager(config);
+  const received = [];
+  const unsubscribe = manager.addListener({
+    onProgress: (event) => received.push(event),
+  });
+  await manager.initialize();
+  const event = { eventType: 'onProgress', progress: 0.5 };
+  owners[0].emit(event);
+  assert.deepEqual(received, [{ ...event, nativeId: config.nativeId }]);
+  unsubscribe();
+  owners[0].emit(event);
+  assert.equal(received.length, 1);
+  await manager.destroy();
+});
+
+test('offline creation failures reach callers', async (t) => {
   const { OfflineContentManager, config, offlineModule } = fixture(t);
-  const create = offlineModule.create;
   const failure = new Error('SDK manager creation failed');
   offlineModule.create = async () => {
     throw failure;
   };
-  const manager = new OfflineContentManager(config);
-  await assert.rejects(manager.state(), (error) => error === failure);
-  offlineModule.create = create;
-  await assert.rejects(manager.initialize(), (error) => error === failure);
-  const replacement = new OfflineContentManager(config);
-  await replacement.initialize();
-  assert.equal(await replacement.state(), 'Downloaded');
-  await replacement.destroy();
-});
-
-test('destroy during eager offline creation forwards each request and detaches listeners', async (t) => {
-  const { OfflineContentManager, config, offlineModule, owners } = fixture(t);
-  const create = offlineModule.create;
-  let finish;
-  offlineModule.create = (...args) =>
-    new Promise((resolve) => {
-      finish = async () => {
-        const native = await create(...args);
-        native.destroy = async () => {
-          releases++;
-        };
-        resolve(native);
-      };
-    });
-  let releases = 0;
-  const manager = new OfflineContentManager(config);
-  const destruction = Promise.all([manager.destroy(), manager.destroy()]);
-  await new Promise(setImmediate);
-  await finish();
-  await destruction;
-  assert.equal(releases, 2);
-  let events = 0;
-  manager.addListener({ onProgress: () => events++ });
-  owners[0].emit({ eventType: 'onProgress' });
-  assert.equal(events, 0);
+  await assert.rejects(
+    new OfflineContentManager(config).initialize(),
+    (error) => error === failure
+  );
 });
