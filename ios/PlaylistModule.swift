@@ -54,11 +54,6 @@ public class PlaylistModule: Module {
                   let source = self?.retrieveSource(sourceNativeId) else { return }
             player.playlist.seek(source: source, time: time)
         }.runOnQueue(.main)
-
-        AsyncFunction("seekTo") { (_: NativeId, _: NativeId, _: [String: Any]?) in
-            // The iOS SDK cannot seek to a seek target.
-            throw Exception(name: "NOT_SUPPORTED", description: "PlaylistApi.seekTo is not supported on iOS")
-        }.runOnQueue(.main)
     }
 
     private func retrieveSource(_ nativeId: NativeId) -> Source? {

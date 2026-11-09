@@ -8,7 +8,6 @@
 - Android: `onPlaybackSpeedChanged` event to indicate playback speed changes. The event is already available in iOS
 - `onPlayerInactive` event prop on `PlayerView` to indicate when the active playback session ends and the player becomes inactive
 - Playlist support via `Player.loadPlaylist`, `Player.playlist` and the `onPlaylistTransition`, `onSourceAdded` and `onSourceRemoved` events. On iOS, playlists support HLS, progressive and `movpkg` sources
-- Android: `PlaylistApi.seekTo` to seek to a `SeekTarget` in a playlist source
 - `EventSource.nativeId` to map sources in event payloads to their `Source` instances
 - `Player.on`/`Player.off` and `Source.on`/`Source.off` to receive player and source events independently of a `PlayerView`
 
