@@ -44,6 +44,15 @@ export const SourceRegistry = {
     owners.set(source, playerNativeId);
   },
 
+  /**
+   * Makes the player that loads `source` its owner, if `source` is owned by a player.
+   */
+  transferOwner(source: Source, playerNativeId: string) {
+    if (owners.has(source)) {
+      owners.set(source, playerNativeId);
+    }
+  },
+
   ownedBy(playerNativeId: string): Source[] {
     return [...sources.values()].filter(
       (source) => owners.get(source) === playerNativeId

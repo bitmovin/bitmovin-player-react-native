@@ -367,7 +367,7 @@ test('destroys the sources of a destroyed player that native returns or it is st
   await settle();
 
   assert.deepEqual(callsTo('PlayerModule.destroy'), [
-    ['PlayerModule.destroy', 'player', ['created']],
+    ['PlayerModule.destroy', 'player'],
   ]);
   const event = { name: 'onDestroy', timestamp: 1 };
   emit('PlayerModule', { nativeId: 'player', eventName: 'destroy', event });
@@ -388,14 +388,14 @@ test('destroys the sources of a destroyed player that native returns or it is st
   );
 
   calls.length = 0;
-  nativeDestroy.resolve(['created', 'session', 'unknown']);
+  nativeDestroy.resolve(['session', 'unknown']);
   await settle();
 
   assert.deepEqual(
     callsTo('SourceModule.destroy', 'PlayerModule.removeListener'),
     [
-      ['SourceModule.destroy', 'created'],
       ['SourceModule.destroy', 'session'],
+      ['SourceModule.destroy', 'created'],
       ['PlayerModule.removeListener', 'onPlayerEvent'],
     ]
   );
@@ -403,6 +403,29 @@ test('destroys the sources of a destroyed player that native returns or it is st
   assert.equal(session.isDestroyed, true);
   assert.equal(pending.isDestroyed, true);
   assert.equal(kept.isDestroyed, false);
+});
+
+test('keeps a created source that another player loaded since, and destroys it with that player', async () => {
+  const { Player, callsTo, results } = fixture();
+  results['PlayerModule.source'] = () => 'created';
+  results['PlayerModule.destroy'] = () => [];
+  const first = new Player({ nativeId: 'first' });
+  const second = new Player({ nativeId: 'second' });
+  first.load({ nativeId: 'created', url });
+  await settle();
+  const created = await first.getSource();
+
+  second.loadSource(created);
+  first.destroy();
+  await settle();
+  assert.equal(created.isDestroyed, false);
+
+  second.destroy();
+  await settle();
+  assert.equal(created.isDestroyed, true);
+  assert.deepEqual(callsTo('SourceModule.destroy'), [
+    ['SourceModule.destroy', 'created'],
+  ]);
 });
 
 test('throws synchronously when loading a destroyed source', () => {

@@ -65,10 +65,9 @@ public class PlayerModule: Module {
         AsyncFunction("timeShift") { (nativeId: NativeId, offset: Double) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.timeShift = offset
         }.runOnQueue(.main)
-        AsyncFunction("destroy") { [weak self] (nativeId: NativeId, ownedSourceNativeIds: [NativeId]) -> [NativeId] in // swiftlint:disable:this line_length
+        AsyncFunction("destroy") { [weak self] (nativeId: NativeId) -> [NativeId] in
             let player = PlayerRegistry.getPlayer(nativeId: nativeId)
-            let sourceNativeIds = (player?.playlist.sources.compactMap { SourceRegistry.nativeId(of: $0) } ?? [])
-                + ownedSourceNativeIds.filter { SourceRegistry.source(nativeId: $0)?.isAttachedToPlayer == false }
+            let sourceNativeIds = player?.playlist.sources.compactMap { SourceRegistry.nativeId(of: $0) } ?? []
             if let player {
                 player.destroy()
                 PlayerRegistry.unregister(nativeId: nativeId)

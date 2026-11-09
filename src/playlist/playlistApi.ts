@@ -47,6 +47,7 @@ export class PlaylistApi {
    * @returns a promise that rejects if the `source` is already attached to a player or was destroyed.
    */
   add = async (source: Source, index?: number): Promise<void> => {
+    SourceRegistry.transferOwner(source, this.nativeId);
     await source.initialize();
     return PlaylistModule?.add(this.nativeId, source.nativeId, index);
   };

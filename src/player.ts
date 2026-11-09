@@ -126,24 +126,24 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Destroys the native `Player` and releases all of its allocated resources.
    *
    * Also destroys the {@link Source}s of its playback session, including ones it is still loading, and the sources
-   * it created in {@link Player.load}
-   * that are not attached to another player. Other sources, e.g. ones removed from the player before, are not
-   * destroyed; destroy them via {@link Source.destroy} once they are no longer needed.
+   * it created in {@link Player.load}, unless another player loaded them since. Other sources, e.g. ones removed
+   * from the player before, are not destroyed; destroy them via {@link Source.destroy} once they are no longer
+   * needed.
    * To keep using a source that was passed to the player, e.g. in another player, unload the player before
    * destroying it.
    */
   destroy = () => {
     if (!this.isDestroyed) {
       // Remove the listeners only after the native destroy, so they still receive the `destroy` event.
-      void PlayerModule.destroy(
-        this.nativeId,
-        SourceRegistry.ownedBy(this.nativeId).map((source) => source.nativeId)
-      )
-        .then((sourceNativeIds) =>
+      void PlayerModule.destroy(this.nativeId)
+        .then((sourceNativeIds) => {
           sourceNativeIds.forEach((sourceNativeId) =>
             SourceRegistry.get(sourceNativeId)?.destroy()
-          )
-        )
+          );
+          SourceRegistry.ownedBy(this.nativeId).forEach((source) =>
+            source.destroy()
+          );
+        })
         .finally(() => {
           this.eventListeners.removeAll();
         });
@@ -225,6 +225,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (source.isDestroyed) {
       throw new Error(`Source ${source.nativeId} was destroyed`);
     }
+    SourceRegistry.transferOwner(source, this.nativeId);
     void source.initialize().then(
       () =>
         this.isDestroyed
@@ -260,6 +261,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   loadPlaylist = (playlistConfig: PlaylistConfig) => {
     validatePlaylistConfig(playlistConfig);
+    playlistConfig.sources.forEach((source) =>
+      SourceRegistry.transferOwner(source, this.nativeId)
+    );
     void Promise.all(
       playlistConfig.sources.map((source) => source.initialize())
     ).then(
