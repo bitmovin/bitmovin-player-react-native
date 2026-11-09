@@ -44,8 +44,7 @@ public final class SharedOffline: SharedObject {
 
     func download(_ request: [String: Any]?) {
 #if os(iOS)
-        guard let request, offlineContentManager.offlineState == .notDownloaded,
-              let tracks = bridge.currentTrackSelection else { return }
+        guard let request, let tracks = bridge.currentTrackSelection else { return }
         if let audioOptionIds = request["audioOptionIds"] as? [String], !audioOptionIds.isEmpty {
             tracks.audioTracks.forEach { $0.action = audioOptionIds.contains($0.label) ? .download : .none }
         }

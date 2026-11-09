@@ -199,9 +199,9 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
 
   /**
    * Enqueues downloads according to the `OfflineDownloadRequest`.
-   * The promise will reject in the event of null or invalid request parameters.
-   * The promise will reject when calling this method when download has already started or is completed.
-   * The promise will resolve when the download has been queued. The download will is not finished when the promise resolves.
+   * The native SDK handles requests according to the current download state.
+   * A resolved promise does not indicate that the download has finished.
+   * Observe `OfflineContentManagerListener` for download completion and errors.
    */
   download = async (request: OfflineDownloadRequest): Promise<void> => {
     return getOfflineForOperation(this, 'download')?.download(request);

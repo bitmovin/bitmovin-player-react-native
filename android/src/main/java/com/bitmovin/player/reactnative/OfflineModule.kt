@@ -1,6 +1,5 @@
 package com.bitmovin.player.reactnative
 
-import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.reactnative.converter.toOfflineDownloadRequest
 import com.bitmovin.player.reactnative.converter.toSourceConfig
 import com.bitmovin.player.reactnative.converter.toWidevineConfig
@@ -62,15 +61,6 @@ class OfflineModule : Module() {
             AsyncFunction("getState") { owner: OfflineContentManagerBridge -> owner.state.name }
             AsyncFunction("getOptions", OfflineContentManagerBridge::getOptions)
             AsyncFunction("download") { owner: OfflineContentManagerBridge, request: Map<String, Any?> ->
-
-                when (owner.state) {
-                    OfflineOptionEntryState.Downloaded -> throw OfflineException.DownloadAlreadyCompleted()
-                    OfflineOptionEntryState.Downloading, OfflineOptionEntryState.Failed ->
-                        throw OfflineException.DownloadInProgress()
-                    OfflineOptionEntryState.Suspended -> throw OfflineException.DownloadSuspended()
-                    else -> {}
-                }
-
                 owner.process(request.toOfflineDownloadRequest())
             }
             AsyncFunction("resume", OfflineContentManagerBridge::resume)
