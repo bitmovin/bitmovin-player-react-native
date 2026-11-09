@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import PlayerModule, {
   type NativePlayer,
+  retainLoadedOfflineContent,
   retainLoadedSource,
 } from './modules/PlayerModule';
 import NativeInstance from './nativeInstance';
@@ -21,7 +22,7 @@ import {
   createConfigurationCallbacks,
   createSharedObjectWithCallback,
 } from './nativeCallbacks';
-import { nativeOwner } from './nativeOwner';
+import { playerNativeOwner } from './nativeOwner';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -41,14 +42,14 @@ export class Player extends NativeInstance<NativePlayer> {
       ? new AnalyticsApi(this.native)
       : undefined;
     void this.native.then(
-      (native) => nativeOwner.set(this, native),
+      (native) => playerNativeOwner.set(this, native),
       () => {}
     );
   }
 
   /** Whether native creation has completed successfully. */
   get isInitialized(): boolean {
-    return nativeOwner.get(this) !== undefined;
+    return playerNativeOwner.get(this) !== undefined;
   }
 
   /**
@@ -137,7 +138,7 @@ export class Player extends NativeInstance<NativePlayer> {
   ): Promise<void> => {
     const offline = await offlineContentManager.native;
     const native = await this.native;
-    await retainLoadedSource(
+    await retainLoadedOfflineContent(
       native,
       offline,
       native.loadOfflineContent(offline, options)

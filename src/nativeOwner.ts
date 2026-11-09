@@ -1,26 +1,43 @@
 import type { SharedObject } from 'expo-modules-core/types';
+import type { Player } from './player';
+import type { Source } from './source';
+import type { OfflineContentManager } from './offline/offlineContentManager';
+import type { NativePlayer } from './modules/PlayerModule';
+import type { NativeSource } from './modules/SourceModule';
+import type { NativeOffline } from './offline/offlineModule';
 
 /**
- * Keeps JS ownership links without keeping their owners alive:
- * - Public wrapper -> resolved SharedObject, for the compatibility isInitialized getter.
- * - NativePlayer's JS object -> loaded Source/offline JS object and its callbacks.
- *
- * Weak keys let callback capture cycles be collected. Native code holds only
- * weak forwarding callbacks, so the loaded JS object must retain its dispatcher.
- * The loaded-object link is replaced on load and cleared on unload or Player destruction.
+ * Keeps a JS SharedObject dependency alive while its owner remains reachable.
+ * Weak keys let callback capture cycles be collected; the global instances do
+ * not keep owners alive. Native forwarding callbacks reference their dispatchers weakly.
  */
-class NativeOwner {
-  private readonly owners = new WeakMap<object, SharedObject>();
+class NativeOwner<Owner extends object, Native extends SharedObject> {
+  private readonly owners = new WeakMap<Owner, Native>();
 
-  get(owner: object): SharedObject | undefined {
+  get(owner: Owner): Native | undefined {
     return this.owners.get(owner);
   }
 
-  set(owner: object, native?: SharedObject): void {
+  set(owner: Owner, native?: Native): void {
     if (native) this.owners.set(owner, native);
     else this.owners.delete(owner);
   }
 }
 
-/** @internal */
-export const nativeOwner = new NativeOwner();
+/** Resolved backend for Player's compatibility isInitialized getter. @internal */
+export const playerNativeOwner = new NativeOwner<Player, NativePlayer>();
+/** Resolved backend for Source's compatibility isInitialized getter. @internal */
+export const sourceNativeOwner = new NativeOwner<Source, NativeSource>();
+/** Resolved backend for OfflineContentManager's compatibility isInitialized getter. @internal */
+export const offlineNativeOwner = new NativeOwner<
+  OfflineContentManager,
+  NativeOffline
+>();
+
+/** Keeps loaded Source callbacks reachable across Player aliases. @internal */
+export const playerSourceOwner = new NativeOwner<NativePlayer, NativeSource>();
+/** Keeps offline Source callbacks reachable through the manager's JS backend. @internal */
+export const playerOfflineOwner = new NativeOwner<
+  NativePlayer,
+  NativeOffline
+>();

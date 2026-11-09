@@ -14,7 +14,7 @@ import OfflineModule, {
   type NativeOfflineEvents,
 } from './offlineModule';
 import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
-import { nativeOwner } from '../nativeOwner';
+import { offlineNativeOwner } from '../nativeOwner';
 import {
   createConfigurationCallbacks,
   createSharedObjectWithCallback,
@@ -63,7 +63,7 @@ export class OfflineContentManager extends NativeInstance<NativeOffline> {
     );
     void this.native.then(
       (native) => {
-        nativeOwner.set(this, native);
+        offlineNativeOwner.set(this, native);
         this.observeEvents(native.events);
       },
       () => {}
@@ -72,7 +72,7 @@ export class OfflineContentManager extends NativeInstance<NativeOffline> {
 
   /** Whether native creation has completed successfully. */
   get isInitialized(): boolean {
-    return nativeOwner.get(this) !== undefined;
+    return offlineNativeOwner.get(this) !== undefined;
   }
 
   /** Whether `destroy()` has been called on this wrapper. */
