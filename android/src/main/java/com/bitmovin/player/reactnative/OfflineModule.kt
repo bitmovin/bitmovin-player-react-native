@@ -2,7 +2,6 @@ package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.reactnative.converter.toOfflineDownloadRequest
 import com.bitmovin.player.reactnative.converter.toSourceConfig
-import com.bitmovin.player.reactnative.converter.toWidevineConfig
 import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import expo.modules.kotlin.exception.CodedException
@@ -21,12 +20,10 @@ class OfflineModule : Module() {
     ): OfflineContentManagerBridge {
         val identifier = config?.get("identifier") as? String
             ?: throw OfflineException.InvalidIdentifier()
-        val sourceConfig = (config["sourceConfig"] as? Map<String, Any?>)?.toSourceConfig()
-            ?: throw OfflineException.InvalidSourceConfig()
         val callbacks = CallbackScope(appContext, callback)
         return callbacks.createSharedObject {
-            sourceConfig.drmConfig = config.getMap("sourceConfig")?.getMap("drmConfig")
-                ?.toWidevineConfig(callbacks, "sourceConfig.drmConfig")
+            val sourceConfig = config.getMap("sourceConfig")?.toSourceConfig(callbacks, "sourceConfig.drmConfig")
+                ?: throw OfflineException.InvalidSourceConfig()
             val context = appContext.reactContext
                 ?: throw InvalidParameterException("ReactApplicationContext is not available")
             OfflineContentManagerBridge(

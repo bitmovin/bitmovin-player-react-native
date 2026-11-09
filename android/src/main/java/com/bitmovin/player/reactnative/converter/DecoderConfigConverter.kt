@@ -17,7 +17,6 @@ fun Map<String, Any?>?.toDecoderConfig(callbacks: CallbackScope): DecoderConfig?
                 val result = callbacks.call(
                     "playbackConfig.decoderConfig.decoderPriorityProvider.overrideDecodersPriority",
                     listOf(context.toJson(), preferredDecoders.map { it.toJson() }),
-                    5000,
                 ) as? List<Map<String, Any?>>
                 return result?.toMediaCodecInfoList() ?: preferredDecoders
             }

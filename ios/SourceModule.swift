@@ -7,10 +7,7 @@ public class SourceModule: Module {
         Name("SourceModule")
         AsyncFunction("create") { (config: [String: Any]?, remote: [String: Any]?, analytics: [String: Any]?, callback: JavaScriptValue?) -> SharedSource in // swiftlint:disable:this line_length
             let callback = try callback.map { try CallbackScope(callback: $0, context: appContext) }
-            let drm = (config?["drmConfig"] as? [String: Any]).flatMap {
-                RCTConvert.fairplayConfig($0, callback: callback, path: "drmConfig")
-            }
-            guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drm) else {
+            guard let sourceConfig = RCTConvert.sourceConfig(config, callback: callback) else {
                 callback?.close()
                 throw Exception(name: "InvalidSourceConfig", description: "Invalid source configuration")
             }

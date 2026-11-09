@@ -12,11 +12,10 @@ public class OfflineModule: Module {
         AsyncFunction("create") { (config: [String: Any], events: SharedOfflineEvents, callback: JavaScriptValue?) in
 #if os(iOS)
             let callback = try callback.map { try CallbackScope(callback: $0, context: appContext) }
-            let drm = ((config["sourceConfig"] as? [String: Any])?["drmConfig"] as? [String: Any]).flatMap {
-                RCTConvert.fairplayConfig($0, callback: callback, path: "sourceConfig.drmConfig")
-            }
             guard let identifier = config["identifier"] as? String,
-                  let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], drmConfig: drm) else {
+                  let sourceConfig = RCTConvert.sourceConfig(
+                    config["sourceConfig"], callback: callback, path: "sourceConfig.drmConfig"
+                  ) else {
                 callback?.close()
                 throw Exception(
                     name: "InvalidOfflineConfig",

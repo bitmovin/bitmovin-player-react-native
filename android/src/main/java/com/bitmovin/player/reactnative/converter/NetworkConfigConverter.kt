@@ -7,7 +7,7 @@ import com.bitmovin.player.reactnative.CallbackScope
 
 fun Map<String, Any?>.toNetworkConfig(callbacks: CallbackScope): NetworkConfig {
     val config = this
-    return toNetworkConfig().apply {
+    return NetworkConfig().apply {
         if (config.containsKey("preprocessHttpRequest")) {
             preprocessHttpRequestCallback = PreprocessHttpRequestCallback { type, request ->
                 callbacks.future(

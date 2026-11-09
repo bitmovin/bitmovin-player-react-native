@@ -29,10 +29,10 @@ import com.bitmovin.player.api.buffer.BufferLevel
 import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
 import com.bitmovin.player.api.buffer.BufferType
 import com.bitmovin.player.api.casting.RemoteControlConfig
+import com.bitmovin.player.api.decoder.DecoderConfig
 import com.bitmovin.player.api.decoder.DecoderPriorityProvider.DecoderContext
 import com.bitmovin.player.api.decoder.MediaCodecInfo
 import com.bitmovin.player.api.deficiency.DeficiencyData
-import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.CastPayload
@@ -66,7 +66,6 @@ import com.bitmovin.player.api.metadata.scte.ScteMessage
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.network.HttpResponse
-import com.bitmovin.player.api.network.NetworkConfig
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.LoadingState
@@ -80,6 +79,8 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.api.ui.SurfaceType
 import com.bitmovin.player.api.ui.UiConfig
+import com.bitmovin.player.reactnative.CallbackScope
+import com.bitmovin.player.reactnative.ImaBeforeInitializationConfigurator
 import com.bitmovin.player.reactnative.PictureInPictureAction
 import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
@@ -115,16 +116,18 @@ private inline fun MutableMap<String, Any>.putIfNotNull(key: String, value: Any?
     value?.let { put(key, it) }
 }
 
-fun Map<String, Any?>.toPlayerConfig(): PlayerConfig = PlayerConfig(key = getString("licenseKey")).apply {
-    withMap("playbackConfig") { playbackConfig = it.toPlaybackConfig() }
+fun Map<String, Any?>.toPlayerConfig(callbacks: CallbackScope): PlayerConfig = PlayerConfig(
+    key = getString("licenseKey"),
+).apply {
+    withMap("playbackConfig") { playbackConfig = it.toPlaybackConfig(callbacks) }
     withMap("styleConfig") { styleConfig = it.toStyleConfig() }
     withMap("tweaksConfig") { tweaksConfig = it.toTweaksConfig() }
-    getMap("advertisingConfig")?.toAdvertisingConfig()?.let { advertisingConfig = it }
+    withMap("advertisingConfig") { advertisingConfig = it.toAdvertisingConfig(callbacks) }
     withMap("adaptationConfig") { adaptationConfig = it.toAdaptationConfig() }
     withMap("remoteControlConfig") { remoteControlConfig = it.toRemoteControlConfig() }
     withMap("bufferConfig") { bufferConfig = it.toBufferConfig() }
     withMap("liveConfig") { liveConfig = it.toLiveConfig() }
-    withMap("networkConfig") { networkConfig = it.toNetworkConfig() }
+    withMap("networkConfig") { networkConfig = it.toNetworkConfig(callbacks) }
 }
 
 fun Map<String, Any?>.toBufferMediaTypeConfig(): BufferMediaTypeConfig = BufferMediaTypeConfig().apply {
@@ -162,7 +165,9 @@ private fun Map<String, Any?>.toAdaptationConfig(): AdaptationConfig = Adaptatio
     withInt("initialBandwidthEstimateOverride") { initialBandwidthEstimateOverride = it.toLong(); }
 }
 
-fun Map<String, Any?>.toPlaybackConfig(): PlaybackConfig = PlaybackConfig().apply {
+fun Map<String, Any?>.toPlaybackConfig(callbacks: CallbackScope): PlaybackConfig = PlaybackConfig(
+    decoderConfig = getMap("decoderConfig").toDecoderConfig(callbacks) ?: DecoderConfig(),
+).apply {
     withBoolean("isAutoplayEnabled") { isAutoplayEnabled = it }
     withBoolean("isMuted") { isMuted = it }
     withBoolean("isTimeShiftEnabled") { isTimeShiftEnabled = it }
@@ -220,9 +225,24 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig =
         }
     }.build()
 
-fun Map<String, Any?>.toAdvertisingConfig(): AdvertisingConfig? {
+fun Map<String, Any?>.toAdvertisingConfig(callbacks: CallbackScope): AdvertisingConfig {
     val schedule = getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: emptyList()
-    return AdvertisingConfig(schedule)
+    var config = AdvertisingConfig(schedule)
+    if (containsKey("shouldLoadAdItem")) {
+        config = config.copy(
+            shouldLoadAdItem = {
+                callbacks.call("advertisingConfig.shouldLoadAdItem", listOf(it.toJson())) as? Boolean ?: true
+            },
+        )
+    }
+    if (containsKey("shouldPlayAdBreak")) {
+        config = config.copy(
+            shouldPlayAdBreak = {
+                callbacks.call("advertisingConfig.shouldPlayAdBreak", listOf(it.toJson())) as? Boolean ?: true
+            },
+        )
+    }
+    return ImaBeforeInitializationConfigurator.configure(this, config, callbacks)
 }
 
 fun Map<String, Any?>.toAdItem(): AdItem? {
@@ -248,10 +268,11 @@ private fun String.toAdSourceType(): AdSourceType? = when (this) {
     else -> null
 }
 
-fun Map<String, Any?>.toSourceConfig(): SourceConfig? {
+fun Map<String, Any?>.toSourceConfig(callbacks: CallbackScope, path: String = "drmConfig"): SourceConfig? {
     val url = getString("url") ?: return null
     val type = getString("type")?.toSourceType() ?: return null
     return SourceConfig(url, type).apply {
+        drmConfig = getMap("drmConfig")?.toWidevineConfig(callbacks, path)
         withString("title") { title = it }
         withString("description") { description = it }
         withString("poster") { posterSource = it }
@@ -546,14 +567,6 @@ fun PlayerEvent.toJson(): Map<String, Any> {
     return baseMap.filterNotNullValues()
 }
 
-fun Map<String, Any?>.toWidevineConfig(): WidevineConfig? = getMap("widevine")?.run {
-    WidevineConfig(getString("licenseUrl")).apply {
-        withString("preferredSecurityLevel") { preferredSecurityLevel = it }
-        withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
-        withMap("httpHeaders") { httpHeaders = it.mapValues { entry -> entry.value as String }.toMutableMap() }
-    }
-}
-
 fun String.toThumbnailTrack(): ThumbnailTrack = ThumbnailTrack(this)
 
 fun AudioTrack.toJson(): Map<String, Any> = mapOf(
@@ -846,8 +859,6 @@ fun Map<String, Any?>.toHttpResponse(): HttpResponse? {
         body = getString("body")?.toByteArrayFromBase64() ?: return null,
     )
 }
-
-fun Map<String, Any?>.toNetworkConfig(): NetworkConfig = NetworkConfig()
 
 fun HttpRequest.toJson(): Map<String, Any> = mapOf(
     "url" to url,

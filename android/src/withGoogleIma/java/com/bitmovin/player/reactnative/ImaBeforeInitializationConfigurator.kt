@@ -1,6 +1,5 @@
 package com.bitmovin.player.reactnative
 
-import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.advertising.BeforeInitializationCallback
 import com.bitmovin.player.reactnative.converter.applyOnImaSettings
@@ -10,10 +9,13 @@ import com.bitmovin.player.reactnative.extensions.getMap
 internal object ImaBeforeInitializationConfigurator {
     const val IS_GOOGLE_IMA_ENABLED = true
 
-    fun configure(config: Map<String, Any?>?, playerConfig: PlayerConfig, callbacks: CallbackScope) {
-        if (config?.getMap("advertisingConfig")?.getMap("ima")?.containsKey("beforeInitialization") != true) return
-        val advertising = playerConfig.advertisingConfig ?: AdvertisingConfig()
-        playerConfig.advertisingConfig = advertising.copy(
+    fun configure(
+        config: Map<String, Any?>,
+        advertising: AdvertisingConfig,
+        callbacks: CallbackScope,
+    ): AdvertisingConfig {
+        if (config.getMap("ima")?.containsKey("beforeInitialization") != true) return advertising
+        return advertising.copy(
             ima = advertising.ima.copy(
                 beforeInitialization = BeforeInitializationCallback { settings ->
                     @Suppress("UNCHECKED_CAST")
@@ -21,7 +23,6 @@ internal object ImaBeforeInitializationConfigurator {
                         callbacks.call(
                             "advertisingConfig.ima.beforeInitialization",
                             listOf(settings.toMap()),
-                            250,
                             mutating = true,
                         ) as? Map<String, Any?>
                         )

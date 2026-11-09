@@ -11,10 +11,10 @@ class SharedFullscreen(appContext: AppContext, callback: JavaScriptFunction<Java
     private val callbacks = CallbackScope(appContext, callback)
     override var isFullscreen = false
     override fun onFullscreenRequested() {
-        (callbacks.call("enterFullscreen", emptyList(), 250) as? Boolean)?.let { isFullscreen = it }
+        (callbacks.call("enterFullscreen", emptyList()) as? Boolean)?.let { isFullscreen = it }
     }
     override fun onFullscreenExitRequested() {
-        (callbacks.call("exitFullscreen", emptyList(), 250) as? Boolean)?.let { isFullscreen = it }
+        (callbacks.call("exitFullscreen", emptyList()) as? Boolean)?.let { isFullscreen = it }
     }
     override fun onDestroy() = Unit
     override fun onPause() = Unit

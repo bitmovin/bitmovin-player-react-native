@@ -3,7 +3,8 @@ import BitmovinPlayerCore
 import ExpoModulesCore
 
 extension RCTConvert {
-    static func networkConfig(_ json: [String: Any], callback: CallbackScope?) -> NetworkConfig {
+    static func networkConfig(_ json: Any?, callback: CallbackScope?) -> NetworkConfig? {
+        guard let json = json as? [String: Any] else { return nil }
         let config = NetworkConfig()
         if json["preprocessHttpRequest"] != nil {
             config.preprocessHttpRequest = { type, request, completion in

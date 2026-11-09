@@ -4,6 +4,7 @@ import Foundation
 
 /// Owns the JS dispatcher and one cancellation condition, never a table of callback requests.
 nonisolated internal final class CallbackScope: LongLivedObject {
+    private let timeout: TimeInterval = 0.25
     let condition = NSCondition()
     var isClosed: Bool { function == nil }
     private weak var context: AppContext?
@@ -41,7 +42,7 @@ nonisolated internal final class CallbackScope: LongLivedObject {
         }
     }
 
-    func call(_ operation: String, arguments: [Any], timeout: TimeInterval = 0.25, mutating: Bool = false) -> Any? {
+    func call(_ operation: String, arguments: [Any], mutating: Bool = false) -> Any? {
         let result = CallbackReturn()
         dispatch(operation, arguments: arguments, mutating: mutating) { value in
             self.condition.lock()

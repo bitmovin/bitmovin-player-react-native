@@ -7,7 +7,8 @@ import BitmovinPlayerCore
 import Foundation
 
 extension RCTConvert {
-    static func playerConfig(_ json: Any?) -> PlayerConfig { // swiftlint:disable:this cyclomatic_complexity
+    // swiftlint:disable:next cyclomatic_complexity
+    static func playerConfig(_ json: Any?, callback: CallbackScope?) -> PlayerConfig {
         let playerConfig = PlayerConfig()
         guard let json = json as? [String: Any?] else {
             return playerConfig
@@ -24,7 +25,7 @@ extension RCTConvert {
         if let tweaksConfig = Self.tweaksConfig(json["tweaksConfig"]) {
             playerConfig.tweaksConfig = tweaksConfig
         }
-        if let advertisingConfig = Self.advertisingConfig(json["advertisingConfig"]) {
+        if let advertisingConfig = Self.advertisingConfig(json["advertisingConfig"], callback: callback) {
             playerConfig.advertisingConfig = advertisingConfig
         }
         if let adaptationConfig = Self.adaptationConfig(json["adaptationConfig"]) {
@@ -36,7 +37,7 @@ extension RCTConvert {
         if let liveConfig = Self.liveConfig(json["liveConfig"]) {
             playerConfig.liveConfig = liveConfig
         }
-        if let networkConfig = Self.networkConfig(json["networkConfig"]) {
+        if let networkConfig = Self.networkConfig(json["networkConfig"], callback: callback) {
             playerConfig.networkConfig = networkConfig
         }
         if let nowPlayingConfig = Self.mediaControlConfig(json["mediaControlConfig"]) {
@@ -227,21 +228,33 @@ extension RCTConvert {
         )
     }
 
-    static func networkConfig(_ json: Any?) -> NetworkConfig? {
-        guard json is [String: Any?] else {
-            return nil
+    static func advertisingConfig(_ json: Any?, callback: CallbackScope?) -> AdvertisingConfig? {
+        guard let json = json as? [String: Any?] else { return nil }
+        let config: AdvertisingConfig
+        if let schedule = json["schedule"] as? [[String: Any?]] {
+            config = AdvertisingConfig(schedule: schedule.compactMap { Self.adItem($0) })
+        } else {
+            config = AdvertisingConfig()
         }
-        return NetworkConfig()
-    }
-
-    static func advertisingConfig(_ json: Any?) -> AdvertisingConfig? {
-        guard
-            let json = json as? [String: Any?],
-            let schedule = json["schedule"] as? [[String: Any?]]
-        else {
-            return nil
+        if json["shouldLoadAdItem"] != nil {
+            config.shouldLoadAdItem = { adItem in
+                callback?.call(
+                    "advertisingConfig.shouldLoadAdItem",
+                    arguments: [Self.toJson(adItem: adItem) as Any]
+                ) as? Bool ?? true
+            }
         }
-        return AdvertisingConfig(schedule: schedule.compactMap { Self.adItem($0) })
+        if let ima = json["ima"] as? [String: Any], ima["beforeInitialization"] != nil {
+            config.beforeInitialization = { settings in
+                guard let value = callback?.call(
+                    "advertisingConfig.ima.beforeInitialization",
+                    arguments: [Self.imaSettingsDictionary(settings)],
+                    mutating: true
+                ) as? [String: Any] else { return }
+                Self.applyImaSettings(settings, from: value)
+            }
+        }
+        return config
     }
 
     static func imaSettingsDictionary(_ settings: ImaSettings) -> [String: Any] {

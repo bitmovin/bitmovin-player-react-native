@@ -35,17 +35,12 @@ public final class SharedPlayer: SharedObject {
         analyticsConfig: [String: Any]?,
         callback: CallbackScope?
     ) throws -> SharedPlayer {
-        let playerConfig = RCTConvert.playerConfig(config)
+        let playerConfig = RCTConvert.playerConfig(config, callback: callback)
         let analytics = analyticsConfig.flatMap { RCTConvert.analyticsConfig($0) }
         guard analyticsConfig == nil || analytics != nil else {
             callback?.close()
             throw Exception(name: "InvalidAnalyticsConfig", description: "Invalid analytics configuration")
         }
-        if let network = config?["networkConfig"] as? [String: Any] {
-            playerConfig.networkConfig = RCTConvert.networkConfig(network, callback: callback)
-        }
-        setupShouldLoadAdItem(config: config, playerConfig: playerConfig, callback: callback)
-        setupImaBeforeInitialization(config: config, playerConfig: playerConfig, callback: callback)
 #if os(iOS)
         weak var owner: SharedPlayer?
         playerConfig.remoteControlConfig.prepareSource = { _, sourceConfig in
@@ -69,37 +64,5 @@ public final class SharedPlayer: SharedObject {
         owner = shared
 #endif
         return shared
-    }
-
-    private static func setupShouldLoadAdItem(
-        config: [String: Any]?,
-        playerConfig: PlayerConfig,
-        callback: CallbackScope?
-    ) {
-        guard let advertising = config?["advertisingConfig"] as? [String: Any],
-              advertising["shouldLoadAdItem"] != nil else { return }
-        playerConfig.advertisingConfig.shouldLoadAdItem = { adItem in
-            callback?.call(
-                "advertisingConfig.shouldLoadAdItem",
-                arguments: [RCTConvert.toJson(adItem: adItem) as Any]
-            ) as? Bool ?? true
-        }
-    }
-
-    private static func setupImaBeforeInitialization(
-        config: [String: Any]?,
-        playerConfig: PlayerConfig,
-        callback: CallbackScope?
-    ) {
-        guard let advertising = config?["advertisingConfig"] as? [String: Any],
-              let ima = advertising["ima"] as? [String: Any], ima["beforeInitialization"] != nil else { return }
-        playerConfig.advertisingConfig.beforeInitialization = { settings in
-            guard let value = callback?.call(
-                "advertisingConfig.ima.beforeInitialization",
-                arguments: [RCTConvert.imaSettingsDictionary(settings)],
-                mutating: true
-            ) as? [String: Any] else { return }
-            RCTConvert.applyImaSettings(settings, from: value)
-        }
     }
 }

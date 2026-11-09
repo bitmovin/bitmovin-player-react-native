@@ -3,6 +3,13 @@ import ExpoModulesCore
 import Foundation
 
 extension RCTConvert {
+    static func sourceConfig(_ json: Any?, callback: CallbackScope?, path: String = "drmConfig") -> SourceConfig? {
+        let drm = ((json as? [String: Any])?["drmConfig"] as? [String: Any]).flatMap {
+            Self.fairplayConfig($0, callback: callback, path: path)
+        }
+        return Self.sourceConfig(json, drmConfig: drm)
+    }
+
     static func fairplayConfig(_ json: [String: Any], callback: CallbackScope?, path: String) -> FairplayConfig? {
         let config = Self.drmConfig(json).fairplay
         guard let fairplay = json["fairplay"] as? [String: Any], let config else { return config }

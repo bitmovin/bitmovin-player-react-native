@@ -24,6 +24,7 @@ internal fun JavaScriptValue.toCallbackValue(): Any? = when {
 
 /** Owns callback lifetime and wakes synchronous SDK calls when their owner is destroyed. */
 class CallbackScope(private val context: AppContext, callback: JavaScriptFunction<JavaScriptValue>?) {
+    private val timeoutMs = 250L
     private val lock = ReentrantLock()
     private val changed = lock.newCondition()
     private var callback: JavaScriptFunction<JavaScriptValue>? = callback
@@ -63,7 +64,7 @@ class CallbackScope(private val context: AppContext, callback: JavaScriptFunctio
 
     fun notify(operation: String, args: List<Any?>) = schedule(operation, args)
 
-    fun call(operation: String, args: List<Any?>, timeoutMs: Long, mutating: Boolean = false): Any? {
+    fun call(operation: String, args: List<Any?>, mutating: Boolean = false): Any? {
         var completed = false
         var value: Any? = null
         schedule(operation, args, mutating = mutating) { response ->

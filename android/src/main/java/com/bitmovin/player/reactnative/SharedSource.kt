@@ -4,8 +4,6 @@ import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
 import com.bitmovin.player.reactnative.converter.toSourceConfig
-import com.bitmovin.player.reactnative.converter.toWidevineConfig
-import com.bitmovin.player.reactnative.extensions.getMap
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.jni.JavaScriptFunction
@@ -29,10 +27,9 @@ class SharedSource(appContext: AppContext, source: Source, private val callbacks
             analyticsSourceMetadata: Map<String, Any>?,
             callback: JavaScriptFunction<JavaScriptValue>?,
         ): SharedSource {
-            val sourceConfig = config?.toSourceConfig() ?: throw SourceException.InvalidSourceConfig()
             val callbacks = CallbackScope(appContext, callback)
             return callbacks.createSharedObject {
-                sourceConfig.drmConfig = config.getMap("drmConfig")?.toWidevineConfig(callbacks, "drmConfig")
+                val sourceConfig = config?.toSourceConfig(callbacks) ?: throw SourceException.InvalidSourceConfig()
                 val source = analyticsSourceMetadata?.toAnalyticsSourceMetadata()?.let {
                     Source.create(sourceConfig, it)
                 } ?: Source.create(sourceConfig)

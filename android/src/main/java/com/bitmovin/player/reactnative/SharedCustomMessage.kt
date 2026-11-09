@@ -15,7 +15,7 @@ class SharedCustomMessage(appContext: AppContext, callback: JavaScriptFunction<J
         object : Any() {
             @JavascriptInterface
             fun sendSynchronous(name: String, data: String?): String? =
-                callbacks.call("synchronousMessage", listOf(name, data), 5000) as? String
+                callbacks.call("synchronousMessage", listOf(name, data)) as? String
 
             @JavascriptInterface
             fun sendAsynchronous(name: String, data: String?) =

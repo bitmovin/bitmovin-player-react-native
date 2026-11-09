@@ -25,6 +25,7 @@
 - **Breaking change:** Make `Network` configuration-only, removing `initialize()`, `destroy()`, `isInitialized`, and `isDestroyed`
 - **Breaking change:** Make `Source.drm` an always-present, read-only `SourceDrmApi`, including for clear sources. Read `source.config?.drmConfig` to inspect configuration. `FairplayDrmApi` requires a Source. `Drm` is configuration-only: its Source constructor parameter, `fairplay`, lifecycle methods, and lifecycle flags are removed. Continue renewing licenses through `source.drm.fairplay.renewExpiringLicense(request)`
 - Return synchronous configuration callback values directly and simplify native resource teardown
+- Android: Use a uniform 250 ms timeout for synchronous JavaScript callbacks, matching iOS. DRM, decoder-priority, and custom-message callbacks previously waited up to 5 seconds
 - Forward offline download requests without additional bitrate or download-state validation in the binding
 - Android: Forward native source-creation and analytics failures through Expo without replacing their exceptions
 - Report callback-result conversion failures in JavaScript while completing native network requests with their fallback
