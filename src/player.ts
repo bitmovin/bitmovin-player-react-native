@@ -5,8 +5,6 @@ import { Platform } from 'react-native';
 import PlayerModule, {
   getNativePlayer,
   retainLoadedSource,
-  refreshLoadedSources,
-  resolveLoadedSource,
 } from './modules/PlayerModule';
 import { getNativeSource } from './modules/SourceModule';
 import NativeInstance from './nativeInstance';
@@ -105,29 +103,27 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   /** Provides access to the native playlist. */
   readonly playlist = new PlaylistApi(() => this.native);
 
-  /** Returns the currently active native source, including after playlist transitions. */
+  /**
+   * Queries the currently active native source, including after playlist transitions.
+   * Returns a fresh JS handle to the SDK source.
+   */
   getSource = async (): Promise<Source | undefined> => {
     const player = await this.native;
     const source = await player?.getSource();
-    return player && source
-      ? Source.fromNative(resolveLoadedSource(player, source))
-      : undefined;
+    return source ? Source.fromNative(source) : undefined;
   };
 
   /**
    * Loads a playlist. Resolution means the SDK accepted the call; observe Ready for playback readiness.
    * The native SDK controls validation, preloading, replay and transitions.
+   * Keep the supplied Source objects reachable while their JS configuration callbacks are needed.
    */
   loadPlaylist = async (config: PlaylistConfig): Promise<void> => {
     await Promise.all(config.sources.map((source) => source.initialize()));
     const player = await this.native;
     if (!player) return;
     const sources = config.sources.map((source) => getNativeSource(source)!);
-    await refreshLoadedSources(
-      player,
-      sources,
-      player.loadPlaylist(sources, config.options)
-    );
+    await player.loadPlaylist(sources, config.options);
   };
   /**
    * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.

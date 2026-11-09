@@ -16,10 +16,6 @@ class SourceModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         Class(SharedSource::class) {
-            Function("isSameSource") { shared: SharedSource, other: SharedSource ->
-                shared.source === other.source
-            }
-
             AsyncFunction("isAttachedToPlayer") { shared: SharedSource ->
                 shared.source.isAttachedToPlayer
             }.runOnQueue(Queues.MAIN)

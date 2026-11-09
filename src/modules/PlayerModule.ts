@@ -8,12 +8,7 @@ import type { NativeSource } from './SourceModule';
 import type { BufferLevels } from '../bufferApi';
 import type { Player } from '../player';
 import { lookup } from '../nativeInstanceRegistry';
-import {
-  getNativeOwner,
-  setNativeOwner,
-  getNativeOwners,
-  setNativeOwners,
-} from '../nativeOwner';
+import { getNativeOwner, setNativeOwner } from '../nativeOwner';
 import type { PlaylistOptions, SeekTarget } from '../playlist';
 
 export type PlayerModuleEvents = PlayerEvents;
@@ -178,40 +173,4 @@ export async function retainLoadedSource(
   operation: Promise<void | boolean>
 ): Promise<void> {
   if ((await operation) !== false) setNativeOwner(player, source);
-}
-
-/** @internal */
-export function resolveLoadedSource(
-  player: NativePlayer,
-  source: NativeSource
-): NativeSource {
-  return (
-    getNativeOwners(player).find(
-      (owner): owner is NativeSource =>
-        'isSameSource' in owner && source.isSameSource(owner as NativeSource)
-    ) ?? source
-  );
-}
-
-/** Retains callback owners for exactly the SDK's current sources. @internal */
-export async function refreshLoadedSources(
-  player: NativePlayer,
-  added: NativeSource[],
-  operation: Promise<void>
-): Promise<void> {
-  // Capture ownership before awaiting; concurrent mutations may replace the ownership links.
-  const candidates = [...getNativeOwners(player), ...added];
-  await operation;
-  const sources = await player.getPlaylistSources();
-  setNativeOwners(
-    player,
-    sources.map(
-      (source) =>
-        candidates.find(
-          (owner): owner is NativeSource =>
-            'isSameSource' in owner &&
-            source.isSameSource(owner as NativeSource)
-        ) ?? resolveLoadedSource(player, source)
-    )
-  );
 }

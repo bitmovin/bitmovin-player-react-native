@@ -66,7 +66,6 @@ function fixture(t) {
       },
       emit: (event, payload) => emitter.emit(event, payload),
       sdkSource: Symbol(kind),
-      isSameSource: (other) => other.sdkSource === native.sdkSource,
       destroy: async () => {
         callbacks.delete(native);
       },
@@ -80,7 +79,6 @@ function fixture(t) {
       getPlaylistSources: async () =>
         playlist.map((source) => ({
           sdkSource: source.sdkSource,
-          isSameSource: (other) => other.sdkSource === source.sdkSource,
           getMetadata: source.getMetadata,
         })),
       getSource: async () => (await native.getPlaylistSources())[0] ?? null,
@@ -88,7 +86,9 @@ function fixture(t) {
         playlist.splice(index, 0, source);
       },
       playlistRemove: async (source) => {
-        playlist = playlist.filter((item) => !item.isSameSource(source));
+        playlist = playlist.filter(
+          (item) => item.sdkSource !== source.sdkSource
+        );
       },
       playlistRemoveAt: async (index) => {
         playlist.splice(index, 1);
@@ -375,32 +375,57 @@ test('concurrent destruction warns when it prevents event registration', async (
   subscription.remove();
 });
 
-test('playlist queries wrap SDK sources without creating replacement sources', async (t) => {
-  const { Player, Source, calls, creations, nativeOf } = fixture(t);
+test('playlist mutations delegate without querying or reconciling native sources', async (t) => {
+  const { Player, Source, calls, nativeOf } = fixture(t);
   const player = new Player();
   const first = new Source({ url: 'https://test/first' });
   const second = new Source({ url: 'https://test/second' });
+  await player.initialize();
+  const native = nativeOf(player);
+  native.getPlaylistSources = async () =>
+    assert.fail('Mutation queried native sources');
+  native.getSource = async () =>
+    assert.fail('Mutation queried the active source');
   const options = { preloadAllSources: true, replayMode: 'lastSource' };
-  await player.loadPlaylist({ sources: [first, second], options });
-  assert.deepEqual(calls[0], {
-    sources: [nativeOf(first), nativeOf(second)],
-    options,
-  });
-  assert.deepEqual(await player.playlist.getSources(), [first, second]);
-  assert.equal(await player.getSource(), first);
+  await player.loadPlaylist({ sources: [first], options });
+  assert.deepEqual(calls[0], { sources: [nativeOf(first)], options });
+  await player.playlist.add(second);
   await player.playlist.seek(second, 12);
   assert.deepEqual(calls[1], { source: nativeOf(second), time: 12 });
   await player.playlist.remove(second);
-  assert.deepEqual(await player.playlist.getSources(), [first]);
-  await player.playlist.add(second, 0);
-  assert.deepEqual(await player.playlist.getSources(), [second, first]);
-  await player.playlist.removeAt(1);
-  assert.deepEqual(await player.playlist.getSources(), [second]);
+  await player.playlist.removeAt(0);
+  player.destroy();
+});
+
+test('playlist queries return fresh handles to current SDK sources without creating SDK sources', async (t) => {
+  const { Player, Source, creations, nativeOf } = fixture(t);
+  const player = new Player();
+  const first = new Source({ url: 'https://test/first' });
+  const second = new Source({ url: 'https://test/second' });
+  await player.loadPlaylist({ sources: [first, second] });
+  nativeOf(first).getMetadata = async () => ({ title: 'first' });
+  nativeOf(second).getMetadata = async () => ({ title: 'second' });
+  const sources = await player.playlist.getSources();
+  assert.deepEqual(
+    await Promise.all(sources.map((source) => source.metadata())),
+    [{ title: 'first' }, { title: 'second' }]
+  );
+  assert.notEqual(sources[0], first);
+  assert.notEqual((await player.playlist.getSources())[0], sources[0]);
+  assert.deepEqual(await (await player.getSource()).metadata(), {
+    title: 'first',
+  });
+  await player.playlist.remove(sources[1]);
+  assert.equal((await player.playlist.getSources()).length, 1);
+  // The SDK double changes state independently of the JS wrapper.
+  await nativeOf(player).playlistRemoveAt(0);
+  assert.deepEqual(await player.playlist.getSources(), []);
+  assert.equal(await player.getSource(), undefined);
   assert.equal(creations.filter(({ kind }) => kind === 'source').length, 2);
   player.destroy();
 });
 
-test('playlist query uses native state and does not overwrite ownership after a rejected load', async (t) => {
+test('playlist queries expose native state after a rejected load', async (t) => {
   const { Player, Source, nativeOf } = fixture(t);
   const player = new Player();
   const source = new Source({ url: 'https://test/first' });
@@ -412,11 +437,9 @@ test('playlist query uses native state and does not overwrite ownership after a 
     player.loadPlaylist({ sources: [] }),
     /SDK rejected load/
   );
-  assert.equal(await player.getSource(), source);
-  // The native double changes its playlist independently of the wrapper.
-  await nativeOf(player).playlistRemoveAt(0);
-  assert.deepEqual(await player.playlist.getSources(), []);
-  assert.equal(await player.getSource(), undefined);
+  assert.deepEqual(await (await player.getSource()).metadata(), {
+    title: 'shared source',
+  });
   player.destroy();
 });
 

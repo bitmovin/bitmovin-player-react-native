@@ -30,13 +30,15 @@ const sourceRemoved =
     ? EventType.SourceRemovedEvent
     : EventType.SourceRemoved;
 
+const sourceMetadata = async (sources: Source[]) =>
+  Promise.all(sources.map((source) => source.metadata()));
+
 const makeSources = () => [
   new Source({ ...Sources.artOfMotionHls, metadata: { item: 'first' } }),
   new Source({ ...Sources.sintel, metadata: { item: 'second' } }),
 ];
 
-// Adapted from the previous playlist stack's tests. Assertions use SDK state
-// and the existing EventSource snapshots, without requiring native ID maps.
+// Assert SDK state and events. Source queries return independent JS handles.
 export default (spec: TestScope) => {
   spec.describe('native playlist', () => {
     spec.it('delivers playlist events without a mounted view', async () => {
@@ -83,7 +85,9 @@ export default (spec: TestScope) => {
           (listener) => player.on('playlistTransition', listener),
           () => player.playlist.seek(second, 0)
         );
-        expect(await player.getSource()).toBe(second);
+        expect(await (await player.getSource())?.metadata()).toEqual({
+          item: 'second',
+        });
         await receiving(
           (listener) =>
             player.on(
@@ -92,7 +96,9 @@ export default (spec: TestScope) => {
             ),
           () => player.playlist.remove(first)
         );
-        expect(await player.playlist.getSources()).toEqual([second]);
+        expect(
+          await sourceMetadata(await player.playlist.getSources())
+        ).toEqual([{ item: 'second' }]);
       } finally {
         addedSubscription.remove();
         player.destroy();
@@ -125,8 +131,15 @@ export default (spec: TestScope) => {
             (events[1] as SourceAddedEvent).source.isAttachedToPlayer
           ).toBeTruthy();
           await callPlayer(async (player) => {
-            expect(await player.playlist.getSources()).toEqual([first, second]);
-            expect(await player.getSource()).toBe(first);
+            expect(
+              await sourceMetadata(await player.playlist.getSources())
+            ).toEqual([{ item: 'first' }, { item: 'second' }]);
+            const active = await player.getSource();
+            expect(await active?.isActive()).toBeTruthy();
+            expect(await active?.isAttachedToPlayer()).toBeTruthy();
+            expect(await (await player.getSource())?.metadata()).toEqual({
+              item: 'first',
+            });
             expect(await first.isAttachedToPlayer()).toBeTruthy();
             expect(await second.isActive()).toBeFalsy();
           });
@@ -143,14 +156,19 @@ export default (spec: TestScope) => {
             (player) => player.loadPlaylist({ sources: [first, second] }),
             EventType.Ready
           );
+          const target = await callPlayer(
+            async (player) => (await player.playlist.getSources())[1]
+          );
           const event = await callPlayerAndExpectEvent<PlaylistTransitionEvent>(
-            (player) => player.playlist.seek(second, 10),
+            (player) => player.playlist.seek(target!, 10),
             EventType.PlaylistTransition
           );
           expect(event.from.metadata?.item).toBe('first');
           expect(event.to.metadata?.item).toBe('second');
           await callPlayer(async (player) => {
-            expect(await player.getSource()).toBe(second);
+            expect(await (await player.getSource())?.metadata()).toEqual({
+              item: 'second',
+            });
             expect(await second.isActive()).toBeTruthy();
             expect(await first.isActive()).toBeFalsy();
           });
@@ -178,7 +196,9 @@ export default (spec: TestScope) => {
           30
         );
         await callPlayer(async (player) => {
-          expect(await player.getSource()).toBe(second);
+          expect(await (await player.getSource())?.metadata()).toEqual({
+            item: 'second',
+          });
         });
       });
     });
@@ -188,7 +208,10 @@ export default (spec: TestScope) => {
       async () => {
         await startPlayerTest({}, async () => {
           const [first, second] = makeSources();
-          const third = new Source(Sources.artOfMotionHls);
+          const third = new Source({
+            ...Sources.artOfMotionHls,
+            metadata: { item: 'third' },
+          });
           await callPlayerAndExpectEvent(
             (player) => player.loadPlaylist({ sources: [first, second] }),
             EventType.Ready
@@ -199,14 +222,19 @@ export default (spec: TestScope) => {
           );
           expect(added.index).toBe(1);
           await callPlayer(async (player) => {
-            expect(await player.playlist.getSources()).toEqual([
-              first,
-              third,
-              second,
+            expect(
+              await sourceMetadata(await player.playlist.getSources())
+            ).toEqual([
+              { item: 'first' },
+              { item: 'third' },
+              { item: 'second' },
             ]);
           });
+          const queriedThird = await callPlayer(
+            async (player) => (await player.playlist.getSources())[1]
+          );
           const removed = await callPlayerAndExpectEvent<SourceRemovedEvent>(
-            (player) => player.playlist.remove(third),
+            (player) => player.playlist.remove(queriedThird!),
             sourceRemoved
           );
           expect(removed.index).toBe(1);
@@ -220,7 +248,9 @@ export default (spec: TestScope) => {
             sourceRemoved
           );
           await callPlayer(async (player) => {
-            expect(await player.playlist.getSources()).toEqual([first, third]);
+            expect(
+              await sourceMetadata(await player.playlist.getSources())
+            ).toEqual([{ item: 'first' }, { item: 'third' }]);
           });
         });
       }
@@ -284,7 +314,9 @@ export default (spec: TestScope) => {
           EventType.Ready
         );
         await callPlayer(async (player) => {
-          expect(await player.getSource()).toBe(second);
+          expect(await (await player.getSource())?.metadata()).toEqual({
+            item: 'second',
+          });
         });
       });
     });
