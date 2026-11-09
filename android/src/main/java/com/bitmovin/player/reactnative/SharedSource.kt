@@ -17,7 +17,7 @@ class SharedSource(appContext: AppContext, source: Source) : SharedRef<Source>(s
         fun create(
             appContext: AppContext,
             config: Map<String, Any>?,
-            drm: SharedDrm?,
+            drm: SharedDrmConfig?,
             analyticsSourceMetadata: Map<String, Any>?,
         ): SharedSource {
             val sourceConfig = config?.toSourceConfig() ?: throw SourceException.InvalidSourceConfig()

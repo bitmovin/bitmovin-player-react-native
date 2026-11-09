@@ -7,15 +7,15 @@ public class NetworkModule: Module {
     public func definition() -> ModuleDefinition {
         Name("NetworkModule")
         Function("create") { (config: [String: Any], callback: JavaScriptValue) in
-            try SharedNetwork(config: config, callback: CallbackScope(callback: callback, context: appContext))
+            try SharedNetworkConfig(config: config, callback: CallbackScope(callback: callback, context: appContext))
         }
-        Class("Network", SharedNetwork.self) {
-            AsyncFunction("destroy") { (owner: SharedNetwork) in owner.destroy() }
+        Class("NetworkConfig", SharedNetworkConfig.self) {
+            AsyncFunction("destroy") { (owner: SharedNetworkConfig) in owner.destroy() }
         }
     }
 }
 
-public final class SharedNetwork: SharedObject {
+public final class SharedNetworkConfig: SharedObject {
     let config = NetworkConfig()
     private let callback: CallbackScope
 

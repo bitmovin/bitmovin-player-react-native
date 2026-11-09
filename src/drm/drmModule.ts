@@ -10,18 +10,21 @@ import { Platform } from 'react-native';
 import type { DrmConfig } from './index';
 
 /** @internal */
-export interface NativeDrm extends SharedObject {
+export interface NativeDrmConfig extends SharedObject {
   destroy(): Promise<void>;
 }
 
 declare class DrmModule extends NativeModule {
-  create(config: Record<string, any>, callback: NativeCallback): NativeDrm;
+  create(
+    config: Record<string, any>,
+    callback: NativeCallback
+  ): NativeDrmConfig;
 }
 
 const nativeModule = requireNativeModule<DrmModule>('DrmModule');
 
 /** @internal */
-export function createNativeDrm(config?: DrmConfig): NativeDrm {
+export function createNativeDrmConfig(config?: DrmConfig): NativeDrmConfig {
   return nativeModule.create(
     serializeNativeConfig(config ?? {}),
     createNativeCallback((operation, args) => {

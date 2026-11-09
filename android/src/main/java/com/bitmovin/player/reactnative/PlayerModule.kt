@@ -21,7 +21,8 @@ class PlayerModule : Module() {
         Name("PlayerModule")
         Constant("isGoogleImaEnabled") { ImaBeforeInitializationConfigurator.IS_GOOGLE_IMA_ENABLED }
         AsyncFunction("create") { config: Map<String, Any>?, analytics: Map<String, Any>?,
-            network: SharedNetwork?, decoder: SharedDecoder?, callback: JavaScriptFunction<JavaScriptValue>?, ->
+            network: SharedNetworkConfig?, decoder: SharedDecoderConfig?,
+            callback: JavaScriptFunction<JavaScriptValue>?, ->
             SharedPlayer.create(appContext, config, analytics, network, decoder, callback, mediaSessionPlaybackManager)
         }.runOnQueue(Queues.MAIN)
 

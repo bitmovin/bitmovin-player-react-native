@@ -47,8 +47,8 @@ class SharedPlayer private constructor(
             appContext: AppContext,
             config: Map<String, Any>?,
             analytics: Map<String, Any>?,
-            network: SharedNetwork?,
-            decoder: SharedDecoder?,
+            network: SharedNetworkConfig?,
+            decoder: SharedDecoderConfig?,
             callback: JavaScriptFunction<JavaScriptValue>?,
             manager: MediaSessionPlaybackManager,
         ): SharedPlayer {
@@ -86,8 +86,8 @@ class SharedPlayer private constructor(
 
 private fun preparePlayerConfig(
     config: Map<String, Any>?,
-    network: SharedNetwork?,
-    decoder: SharedDecoder?,
+    network: SharedNetworkConfig?,
+    decoder: SharedDecoderConfig?,
     callbacks: CallbackScope,
 ): PlayerConfig {
     val playerConfig = config?.toPlayerConfig() ?: PlayerConfig()

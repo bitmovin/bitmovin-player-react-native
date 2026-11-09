@@ -8,7 +8,7 @@ public class OfflineModule: Module {
         Name("OfflineModule")
         Function("createEvents") { SharedOfflineEvents() }
         Class("OfflineEvents", SharedOfflineEvents.self) {}
-        AsyncFunction("create") { (config: [String: Any], drm: SharedDrm?, events: SharedOfflineEvents) in
+        AsyncFunction("create") { (config: [String: Any], drm: SharedDrmConfig?, events: SharedOfflineEvents) in
 #if os(iOS)
             guard let identifier = config["identifier"] as? String,
                   let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], drmConfig: drm?.config) else {
@@ -89,9 +89,9 @@ public final class SharedOffline: SharedObject {
 #if os(iOS)
     let offlineContentManager: OfflineContentManager
     private(set) var bridge: OfflineContentManagerBridge?
-    private let drm: SharedDrm?
+    private let drm: SharedDrmConfig?
 
-    init(manager: OfflineContentManager, identifier: String, drm: SharedDrm?, events: SharedOfflineEvents) {
+    init(manager: OfflineContentManager, identifier: String, drm: SharedDrmConfig?, events: SharedOfflineEvents) {
         offlineContentManager = manager
         self.drm = drm
         self.events = events

@@ -15,7 +15,7 @@ import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import SourceModule, { getNativeSource } from './modules/SourceModule';
-import { createNativeDrm, type NativeDrm } from './drm/drmModule';
+import { createNativeDrmConfig, type NativeDrmConfig } from './drm/drmModule';
 import { serializeNativeConfig } from './nativeCallbacks';
 import { setNativeOwner } from './nativeOwner';
 
@@ -180,7 +180,7 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   readonly drm = new SourceDrmApi(this);
 
-  private drmConfig?: NativeDrm;
+  private drmConfig?: NativeDrmConfig;
   /**
    * The remote control config for this source.
    * This is only supported on iOS.
@@ -209,7 +209,7 @@ export class Source extends NativeInstance<SourceConfig> {
         if (this.isDestroyed) return;
         try {
           if (this.config?.drmConfig)
-            this.drmConfig = createNativeDrm(this.config.drmConfig);
+            this.drmConfig = createNativeDrmConfig(this.config.drmConfig);
           const created = await SourceModule.create(
             serializeNativeConfig(this.config),
             this.drmConfig,

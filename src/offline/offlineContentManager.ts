@@ -17,7 +17,7 @@ import OfflineModule, {
   type NativeOfflineBackend,
   type NativeOfflineEvents,
 } from './offlineModule';
-import { createNativeDrm, type NativeDrm } from '../drm/drmModule';
+import { createNativeDrmConfig, type NativeDrmConfig } from '../drm/drmModule';
 import {
   getOrCreateAsync,
   holdDependencies,
@@ -69,7 +69,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   private eventSubscription?: EventSubscription;
   private listeners: Set<OfflineContentManagerListener> =
     new Set<OfflineContentManagerListener>();
-  private drm?: NativeDrm;
+  private drm?: NativeDrmConfig;
 
   /**
    * Allocates the native `OfflineManager` instance and its resources natively.
@@ -138,7 +138,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
 
   private async initializeDrm() {
     if (this.config?.sourceConfig.drmConfig) {
-      this.drm = createNativeDrm(this.config.sourceConfig.drmConfig);
+      this.drm = createNativeDrmConfig(this.config.sourceConfig.drmConfig);
     }
   }
 

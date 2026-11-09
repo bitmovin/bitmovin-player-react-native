@@ -14,7 +14,11 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.sharedobjects.SharedObject
 
-class SharedNetwork(appContext: AppContext, config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>?) :
+class SharedNetworkConfig(
+    appContext: AppContext,
+    config: Map<String, Any?>,
+    callback: JavaScriptFunction<JavaScriptValue>?,
+) :
     SharedObject(appContext) {
     private val callbacks = CallbackScope(appContext, callback)
     val config = config.toNetworkConfig().apply {
@@ -40,9 +44,9 @@ class SharedNetwork(appContext: AppContext, config: Map<String, Any?>, callback:
 }
 
 class NetworkModule : Module() {
-    private fun create(config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>?): SharedNetwork =
+    private fun create(config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>?): SharedNetworkConfig =
         try {
-            SharedNetwork(appContext, config, callback)
+            SharedNetworkConfig(appContext, config, callback)
         } catch (error: Exception) {
             throw CodedException("NetworkError", "Failed to initialize network config", error)
         }
@@ -52,11 +56,11 @@ class NetworkModule : Module() {
         Function("create") { config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>? ->
             create(config, callback)
         }
-        Class(SharedNetwork::class) {
+        Class(SharedNetworkConfig::class) {
             Constructor { config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>? ->
                 create(config, callback)
             }
-            AsyncFunction("destroy") { owner: SharedNetwork -> owner.destroy() }
+            AsyncFunction("destroy") { owner: SharedNetworkConfig -> owner.destroy() }
         }
     }
 }
