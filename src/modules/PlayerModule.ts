@@ -6,9 +6,7 @@ import type { NativeCallback } from '../nativeCallbacks';
 import type { NativeOffline } from '../offline/offlineModule';
 import type { NativeSource } from './SourceModule';
 import type { BufferLevels } from '../bufferApi';
-import type { Player } from '../player';
-import { lookup } from '../nativeInstanceRegistry';
-import { getNativeOwner, setNativeOwner } from '../nativeOwner';
+import { setNativeOwner } from '../nativeOwner';
 
 export type PlayerModuleEvents = PlayerEvents;
 
@@ -116,15 +114,6 @@ export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
   getAvailableVideoQualities(): Promise<any[]>;
 
   setVideoQuality(qualityId: string): Promise<void>;
-}
-
-/** @internal */
-export function getNativePlayer(player: Player): NativePlayer | undefined {
-  const native =
-    getNativeOwner<NativePlayer>(player) ??
-    lookup<NativePlayer>('player', player.nativeId);
-  if (native) setNativeOwner(player, native);
-  return native;
 }
 
 declare class PlayerModule extends NativeModule {

@@ -135,6 +135,10 @@ async function mockEventSubscription() {
 }
 
 function render(props) {
+  // Model the eager native Promise exposed by Player, including controlled creation.
+  props.player.native ??= props.player
+    .initialize()
+    .then(() => nativePlayers.get(props.player.nativeId));
   rendererModule.exports.render(
     React.createElement(PlayerView, props),
     11,
