@@ -29,15 +29,6 @@ declare class PlaylistModule extends NativeModule<PlaylistModuleEvents> {
    * Seek to `time` in a source of the playback session.
    */
   seek(nativeId: string, sourceNativeId: string, time: number): Promise<void>;
-
-  /**
-   * Seek to `seekTarget` in a source of the playback session.
-   */
-  seekTo(
-    nativeId: string,
-    sourceNativeId: string,
-    seekTarget?: Record<string, any>
-  ): Promise<void>;
 }
 
 // TODO(#1161): Load on all platforms, once the iOS bridge supports playlists.

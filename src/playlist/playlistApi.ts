@@ -1,6 +1,5 @@
 import PlaylistModule from '../modules/PlaylistModule';
 import type { Source } from '../source';
-import type { SeekTarget } from './seekTarget';
 
 /**
  * Provides the means to manage multiple {@link Source}s inside a playback session.
@@ -84,19 +83,5 @@ export class PlaylistApi {
    */
   seek = async (source: Source, time: number): Promise<void> => {
     return PlaylistModule?.seek(this.nativeId, source.nativeId, time);
-  };
-
-  /**
-   * Seeks in the specified `source` to the position specified by `seekTarget`.
-   * If `seekTarget` is omitted, seeks to the source's default position (see {@link SourceOptions}).
-   *
-   * Limitations:
-   * - If `seekTarget` is set, the `source` must be loaded. See {@link PlaylistOptions.preloadAllSources}.
-   * - Not supported while casting.
-   *
-   * Has no effect and emits a `PlayerWarning` if there is no active playback session.
-   */
-  seekTo = async (source: Source, seekTarget?: SeekTarget): Promise<void> => {
-    return PlaylistModule?.seekTo(this.nativeId, source.nativeId, seekTarget);
   };
 }
