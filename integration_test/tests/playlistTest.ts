@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import { TestScope } from 'cavy';
 import {
   LoadingState,
+  Player,
   PlaylistTransitionEvent,
   ReplayMode,
   SeekEvent,
@@ -419,8 +420,8 @@ export default (spec: TestScope) => {
           const secondLoaded: SourceLoadedEvent[] = [];
           second.on('sourceLoaded', (event) => secondLoaded.push(event));
 
-          await callPlayerAndExpectEvent(async (player) => {
-            await player.loadPlaylist({ sources: [first, second] });
+          await callPlayerAndExpectEvent((player) => {
+            player.loadPlaylist({ sources: [first, second] });
           }, EventType.Ready);
 
           await callPlayerAndExpectEvent(async (player) => {
@@ -453,8 +454,8 @@ export default (spec: TestScope) => {
         await startPlayerTest({}, async () => {
           const first = new Source(Sources.artOfMotionHls);
           const second = new Source(Sources.sintel);
-          await callPlayerAndExpectEvent(async (player) => {
-            await player.loadPlaylist({ sources: [first, second] });
+          await callPlayerAndExpectEvent((player) => {
+            player.loadPlaylist({ sources: [first, second] });
           }, EventType.Ready);
 
           await callPlayer(async (player) => {
@@ -609,15 +610,24 @@ export default (spec: TestScope) => {
           await playerB.initialize();
           const moved = new Source(Sources.artOfMotionHls);
           const current = new Source(Sources.sintel);
-          await playerA.loadPlaylist({ sources: [moved] });
-          await playerA.loadPlaylist({ sources: [current] });
-          await playerB.loadPlaylist({ sources: [moved] });
+          playerA.loadPlaylist({ sources: [moved] });
+          expect(await untilActive(playerA, moved), 'Loaded in A').toBeTruthy();
+          playerA.loadPlaylist({ sources: [current] });
+          expect(
+            await untilActive(playerA, current),
+            'Replaced in A'
+          ).toBeTruthy();
+          playerB.loadPlaylist({ sources: [moved] });
+          expect(await untilActive(playerB, moved), 'Moved to B').toBeTruthy();
 
           playerA.destroy();
 
           expect(await playerB.getSource()).toBe(moved);
-          await playerB.loadPlaylist({ sources: [current] });
-          expect(await playerB.getSource()).toBe(current);
+          playerB.loadPlaylist({ sources: [current] });
+          expect(
+            await untilActive(playerB, current),
+            'Reloaded source'
+          ).toBeTruthy();
           expect(await current.isActive(), 'Reloaded source').toBeTruthy();
         } finally {
           playerA.destroy();
@@ -645,3 +655,9 @@ const untilPlaylistLoadIsSent = async (source: Source) => {
   await source.initialize();
   await new Promise((resolve) => setTimeout(resolve, 0));
 };
+
+/**
+ * Waits until `source` is the active source of `player`, e.g. after loading it.
+ */
+const untilActive = (player: Player, source: Source) =>
+  waitUntil(async () => (await player.getSource()) === source);
