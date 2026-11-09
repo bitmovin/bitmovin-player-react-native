@@ -4,21 +4,14 @@ import { subscribeToNativeEvent } from './nativeEvents';
 import type { CmcdConfig } from './cmcdConfig';
 import type { DrmConfig } from './drm';
 import { SourceDrmApi } from './drm/sourceDrmApi';
-import type { NativeInstanceConfig } from './nativeInstance';
-import NativeInstance from './nativeInstance';
-import { getOrCreateAsync } from './nativeInstanceRegistry';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
-import SourceModule, {
-  getNativeSource,
-  type NativeSource,
-} from './modules/SourceModule';
+import SourceModule, { type NativeSource } from './modules/SourceModule';
 import {
   createConfigurationCallbacks,
   createSharedObjectWithCallback,
 } from './nativeCallbacks';
-import { setNativeOwner } from './nativeOwner';
 
 /**
  * Types of media that can be handled by the player.
@@ -97,7 +90,7 @@ export enum TimelineReferencePoint {
 /**
  * Represents a source configuration that be loaded into a player instance.
  */
-export interface SourceConfig extends NativeInstanceConfig {
+export interface SourceConfig {
   /**
    *  The url for this source configuration.
    */
@@ -173,23 +166,7 @@ export interface SourceRemoteControlConfig {
 /**
  * Represents audio and video content that can be loaded into a player.
  */
-export class Source extends NativeInstance<SourceConfig | undefined> {
-  constructor(config: SourceConfig);
-  /** @internal Adopts a native-owned source without a JS configuration snapshot. */
-  constructor(config: undefined, native: NativeSource);
-  constructor(config: SourceConfig | undefined, native?: NativeSource) {
-    super(config);
-    if (native) {
-      setNativeOwner(this, native);
-      this.isInitialized = true;
-    }
-  }
-
-  /** @internal Wraps an SDK source without creating a second native source. */
-  static fromNative(native: NativeSource): Source {
-    return new Source(undefined, native);
-  }
-
+export class Source {
   /**
    * Subscribes to native events, even without a PlayerView. For example,
    * `await source.on('sourceLoaded', listener)`.
@@ -203,29 +180,44 @@ export class Source extends NativeInstance<SourceConfig | undefined> {
   ): Promise<EventSubscription> =>
     subscribeToNativeEvent(this.native, event, listener);
 
-  private get native() {
-    const existing = getNativeSource(this);
-    if (existing) {
-      this.isInitialized = true;
-      return Promise.resolve(existing);
-    }
-    return getOrCreateAsync('source', this.nativeId, () => {
-      const callbacks = createConfigurationCallbacks();
-      return createSharedObjectWithCallback(
-        (callback) =>
-          SourceModule.create(
-            callbacks.serialize(this.config),
-            callbacks.serialize(this.remoteControl || undefined),
-            callbacks.serialize(this.config?.analyticsSourceMetadata),
-            callback
-          ),
-        callbacks.callback
-      );
-    }).then((native) => {
-      setNativeOwner(this, native);
-      this.isInitialized = true;
-      return native;
-    });
+  /** @internal */
+  readonly native: Promise<NativeSource>;
+
+  constructor(config: SourceConfig);
+  /** @internal Adopts a native-owned source without a JS configuration snapshot. */
+  constructor(config: undefined, native: NativeSource);
+  constructor(
+    readonly config: SourceConfig | undefined,
+    native?: NativeSource
+  ) {
+    this.native = native ? Promise.resolve(native) : this.createNative();
+    this.isInitialized = native !== undefined;
+    this.drm = new SourceDrmApi(this.native);
+    // Keep the original rejection available to initialize() and runtime methods.
+    void this.native.catch(() => {});
+  }
+
+  /** @internal Wraps an SDK source without creating a second native source. */
+  static fromNative(native: NativeSource): Source {
+    return new Source(undefined, native);
+  }
+
+  private async createNative(): Promise<NativeSource> {
+    // Preserve synchronous remoteControl assignments made just after construction.
+    await Promise.resolve();
+    const callbacks = createConfigurationCallbacks();
+    const native = await createSharedObjectWithCallback(
+      (callback) =>
+        SourceModule.create(
+          callbacks.serialize(this.config),
+          callbacks.serialize(this.remoteControl || undefined),
+          callbacks.serialize(this.config?.analyticsSourceMetadata),
+          callback
+        ),
+      callbacks.callback
+    );
+    this.isInitialized = true;
+    return native;
   }
 
   /**
@@ -233,7 +225,7 @@ export class Source extends NativeInstance<SourceConfig | undefined> {
    * Use `drm.fairplay` to access {@link FairplayDrmApi} for FairPlay-specific APIs such as {@link FairplayDrmApi.renewExpiringLicense}.
    * Available for every source. Read {@link SourceConfig.drmConfig} to inspect DRM configuration.
    */
-  readonly drm = new SourceDrmApi(() => this.native);
+  readonly drm: SourceDrmApi;
 
   /**
    * The remote control config for this source.
@@ -290,8 +282,8 @@ export class Source extends NativeInstance<SourceConfig | undefined> {
    *
    * @param metadata metadata to be set.
    */
-  setMetadata = (metadata: Record<string, any> | null): void => {
-    void this.native.then((native) => native.setMetadata(metadata));
+  setMetadata = async (metadata: Record<string, any> | null): Promise<void> => {
+    await (await this.native).setMetadata(metadata);
   };
 
   /**

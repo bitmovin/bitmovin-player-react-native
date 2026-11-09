@@ -6,9 +6,7 @@ import type { NativeCallback } from '../nativeCallbacks';
 import type { NativeOffline } from '../offline/offlineModule';
 import type { NativeSource } from './SourceModule';
 import type { BufferLevels } from '../bufferApi';
-import type { Player } from '../player';
-import { lookup } from '../nativeInstanceRegistry';
-import { getNativeOwner, setNativeOwner } from '../nativeOwner';
+import { setNativeOwner } from '../nativeOwner';
 import type { PlaylistOptions, SeekTarget } from '../playlist';
 
 export type PlayerModuleEvents = PlayerEvents;
@@ -131,15 +129,6 @@ export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
   setVideoQuality(qualityId: string): Promise<void>;
 }
 
-/** @internal */
-export function getNativePlayer(player: Player): NativePlayer | undefined {
-  const native =
-    lookup<NativePlayer>('player', player.nativeId) ??
-    getNativeOwner<NativePlayer>(player);
-  if (native) setNativeOwner(player, native);
-  return native;
-}
-
 declare class PlayerModule extends NativeModule {
   readonly isGoogleImaEnabled: boolean;
   create(
@@ -150,21 +139,6 @@ declare class PlayerModule extends NativeModule {
 }
 
 export default requireNativeModule<PlayerModule>('PlayerModule');
-
-/** @internal */
-export type NativePlayerReference = () => Promise<NativePlayer | undefined>;
-
-/** @internal */
-export function nativePlayerReference(
-  player: Player | NativePlayerReference
-): NativePlayerReference {
-  return typeof player === 'function'
-    ? player
-    : async () => {
-        await player.initialize();
-        return getNativePlayer(player);
-      };
-}
 
 /** @internal */
 export async function retainLoadedSource(

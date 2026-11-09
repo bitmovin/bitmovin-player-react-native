@@ -1,19 +1,21 @@
 # SharedObject compatibility decisions
 
-- `nativeId` aliases remain a TS compatibility contract, so multiple public
-  wrappers can reference one SDK object. Alias flags and configuration remain
+- Player and OfflineContentManager `nativeId` aliases remain a TS compatibility
+  contract, so multiple public wrappers can reference one SDK object. Alias flags
+  and configuration remain
   independent. Reusing an ID redirects compatibility lookup to its current
   registration; an existing SharedObject never changes its SDK object. The generic
   registry holds ready objects weakly, so keep an owning TS wrapper reachable
   while using its ID. Pending creation remains strongly retained until settlement.
-- Player, Source, and OfflineContentManager creation stays lazy until
-  `initialize()` or the first runtime method. Methods await their configured
-  native owner; mutations made before that first use are observed. Destruction
-  cancels pending creation or releases an existing object without allocating one.
+- Player, Source, and OfflineContentManager constructors start one native creation
+  attempt. Methods and `initialize()` await the same Promise; a failed attempt
+  requires a new wrapper. Destruction removes the ID registration and waits for
+  that object's creation before releasing it. The registry only resolves aliases;
+  resource cleanup belongs to the owner.
 - Destruction keeps the SDK reference reachable while its TS wrapper is retained.
   Direct methods inherit SDK behavior after destruction. Source has no destruction
-  API; its compatibility ID remains associated while the object is reachable.
-- Source's JS SharedObject owns its dispatcher; native retains only a weak JS
+  API or binding ID; each wrapper owns one native Source directly.
+- Each JS SharedObject owns its configuration dispatcher; native retains only a weak JS
   forwarding callback. A callback capturing its Source forms a collectible JS
   cycle. The canonical JS Player retains its loaded Source/offline backend until
   replacement, unload, or destruction completes, including when used by aliases.

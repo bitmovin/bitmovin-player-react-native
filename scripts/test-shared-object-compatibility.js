@@ -139,11 +139,7 @@ function fixture(t) {
     modules,
     calls,
     creations,
-    nativeOf: (instance) =>
-      lookup(
-        instance instanceof Source ? 'source' : 'player',
-        instance.nativeId
-      ),
+    nativeOf: (player) => lookup('player', player.nativeId),
     invoke: (native, field, args, mutating = false) => {
       const entry = callbacks.get(native);
       const token = field
@@ -157,34 +153,28 @@ function fixture(t) {
   };
 }
 
-for (const kind of ['player', 'source']) {
-  test(`same-ID wrappers control the same ${kind}`, async (t) => {
-    const { Player, Source, creations } = fixture(t);
-    const make = () =>
-      kind === 'player'
-        ? new Player({ nativeId: 'shared' })
-        : new Source({
-            nativeId: 'shared',
-            url: 'https://test/source',
-            type: 'hls',
-          });
-    const first = make();
-    const alias = make();
-    await Promise.all(
-      kind === 'player'
-        ? [first.getVolume(), alias.getVolume()]
-        : [first.metadata(), alias.metadata()]
-    );
-    assert.equal(creations.filter((item) => item.kind === kind).length, 1);
-    assert.deepEqual(
-      kind === 'player' ? await alias.getVolume() : await alias.metadata(),
-      kind === 'player' ? 37 : { title: 'shared source' }
-    );
-    if (kind === 'player') first.destroy();
-  });
-}
+test('same-ID constructors eagerly share the same player', async (t) => {
+  const { Player, creations } = fixture(t);
+  const first = new Player({ nativeId: 'shared' });
+  const alias = new Player({ nativeId: 'shared' });
+  await new Promise(setImmediate);
+  assert.equal(creations.filter((item) => item.kind === 'player').length, 1);
+  assert.equal(await alias.getVolume(), 37);
+  await first.destroy();
+});
 
-test('a failed shared player creation can be retried', async (t) => {
+test('each Source eagerly owns a distinct native object without an ID', async (t) => {
+  const { Source, creations } = fixture(t);
+  const config = { url: 'https://test/source', type: 'hls' };
+  const first = new Source(config);
+  const second = new Source(config);
+  await new Promise(setImmediate);
+  assert.equal(creations.filter((item) => item.kind === 'source').length, 2);
+  assert.notEqual(await first.native, await second.native);
+  assert.equal('nativeId' in first, false);
+});
+
+test('a failed player creation stays rejected; a new wrapper can retry', async (t) => {
   const { Player, modules } = fixture(t);
   const create = modules.PlayerModule.create;
   const failure = new Error('Native creation failed');
@@ -198,9 +188,11 @@ test('a failed shared player creation can be retried', async (t) => {
     assert.rejects(alias.initialize(), (error) => error === failure),
   ]);
   modules.PlayerModule.create = create;
-  await alias.initialize();
-  assert.equal(await alias.getVolume(), 37);
-  alias.destroy();
+  await assert.rejects(alias.initialize(), (error) => error === failure);
+  const replacement = new Player({ nativeId: first.nativeId });
+  await replacement.initialize();
+  assert.equal(await replacement.getVolume(), 37);
+  replacement.destroy();
 });
 
 test('a canceled creation cannot replace a player reusing its ID', async (t) => {
@@ -219,8 +211,14 @@ test('a canceled creation cannot replace a player reusing its ID', async (t) => 
   const replacement = new Player({ nativeId: old.nativeId });
   await replacement.initialize();
   const retired = await create();
+  let retiredDestroyed = false;
+  retired.destroy = async () => {
+    retiredDestroyed = true;
+  };
   finish(retired);
   await initialization;
+  await new Promise(setImmediate);
+  assert.equal(retiredDestroyed, true);
   assert.notEqual(nativeOf(replacement), retired);
   assert.equal(await replacement.getVolume(), 37);
   replacement.destroy();
@@ -264,8 +262,8 @@ test('advertising decisions and IMA settings use their own player configuration'
   second.destroy();
 });
 
-test('failed Source creation permits retry with DRM callbacks', async (t) => {
-  const { Source, modules, nativeOf, invoke } = fixture(t);
+test('a new Source can retry failed creation with DRM callbacks', async (t) => {
+  const { Source, modules, invoke } = fixture(t);
   const source = new Source({
     url: 'https://test/source',
     type: 'hls',
@@ -278,15 +276,19 @@ test('failed Source creation permits retry with DRM callbacks', async (t) => {
   };
   await assert.rejects(source.metadata(), (error) => error === failure);
   modules.SourceModule.create = create;
-  await source.metadata();
+  await assert.rejects(source.initialize(), (error) => error === failure);
+  const replacement = new Source(source.config);
+  await replacement.initialize();
   assert.equal(
-    invoke(nativeOf(source), 'drmConfig.fairplay.prepareMessage', ['message']),
+    invoke(await replacement.native, 'drmConfig.fairplay.prepareMessage', [
+      'message',
+    ]),
     'message'
   );
 });
 
 test('a Source retains its DRM callbacks after player destruction and reuse', async (t) => {
-  const { Player, Source, nativeOf, calls, invoke } = fixture(t);
+  const { Player, Source, calls, invoke } = fixture(t);
   const source = new Source({
     url: 'https://test/source',
     type: 'hls',
@@ -296,7 +298,7 @@ test('a Source retains its DRM callbacks after player destruction and reuse', as
   await first.initialize();
   first.loadSource(source);
   await new Promise(setImmediate);
-  const native = nativeOf(source);
+  const native = await source.native;
   first.destroy();
   await source.drm.fairplay.renewExpiringLicense({ skdUri: 'skd://content' });
   assert.equal(
@@ -307,13 +309,40 @@ test('a Source retains its DRM callbacks after player destruction and reuse', as
   await second.initialize();
   second.loadSource(source);
   await new Promise(setImmediate);
-  assert.equal(nativeOf(source), native);
+  assert.equal(await source.native, native);
   await source.drm.fairplay.renewExpiringLicense({ skdUri: 'skd://content' });
   assert.deepEqual(calls, [
     { native, skdUri: 'skd://content' },
     { native, skdUri: 'skd://content' },
   ]);
   second.destroy();
+});
+
+test('Player commands await native completion and propagate errors', async (t) => {
+  const { Player, nativeOf } = fixture(t);
+  const player = new Player();
+  await player.initialize();
+  const native = nativeOf(player);
+  let finish;
+  native.play = () =>
+    new Promise((resolve) => {
+      finish = resolve;
+    });
+  let completed = false;
+  const playing = player.play().then(() => {
+    completed = true;
+  });
+  await new Promise(setImmediate);
+  assert.equal(completed, false);
+  finish();
+  await playing;
+  assert.equal(completed, true);
+  const failure = new Error('SDK playback failure');
+  native.play = async () => {
+    throw failure;
+  };
+  await assert.rejects(player.play(), (error) => error === failure);
+  await player.destroy();
 });
 
 test('awaited object subscriptions use their native owner and can be removed', async (t) => {
@@ -343,7 +372,7 @@ test('awaited object subscriptions use their native owner and can be removed', a
   playerSubscription.remove();
   nativeOf(player).emit('ready', { name: 'onReady' });
   assert.equal(playerCalls, 1);
-  nativeOf(source).emit('sourceLoaded', { name: 'onSourceLoaded' });
+  (await source.native).emit('sourceLoaded', { name: 'onSourceLoaded' });
   assert.equal(sourceCalls, 1);
   sourceSubscription.remove();
   let destroyed = 0;
@@ -353,25 +382,22 @@ test('awaited object subscriptions use their native owner and can be removed', a
   destroyedSubscription.remove();
 });
 
-test('concurrent destruction warns when it prevents event registration', async (t) => {
-  const { Player, nativeOf } = fixture(t);
+test('registration and destruction await the same native creation promise', async (t) => {
+  const { Player, modules } = fixture(t);
+  const create = modules.PlayerModule.create;
+  modules.PlayerModule.create = async (...args) => {
+    const native = await create(...args);
+    native.destroy = async () => native.emit('destroy', { name: 'onDestroy' });
+    return native;
+  };
   const player = new Player();
-  await player.initialize();
-  const native = nativeOf(player);
   let calls = 0;
-  const warnings = [];
-  t.mock.method(console, 'warn', (message) => warnings.push(message));
   const pending = player.on('destroy', () => calls++);
   assert.equal(typeof pending.then, 'function');
-  player.destroy();
+  const destruction = player.destroy();
   const subscription = await pending;
-  native.emit('destroy', { name: 'onDestroy' });
-  assert.equal(calls, 0);
-  assert.equal(warnings.length, 1);
-  assert.match(
-    warnings[0],
-    /Cannot subscribe to 'destroy'.*destroyed during registration/
-  );
+  await destruction;
+  assert.equal(calls, 1);
   subscription.remove();
 });
 
@@ -388,10 +414,10 @@ test('playlist mutations delegate without querying or reconciling native sources
     assert.fail('Mutation queried the active source');
   const options = { preloadAllSources: true, replayMode: 'lastSource' };
   await player.loadPlaylist({ sources: [first], options });
-  assert.deepEqual(calls[0], { sources: [nativeOf(first)], options });
+  assert.deepEqual(calls[0], { sources: [await first.native], options });
   await player.playlist.add(second);
   await player.playlist.seek(second, 12);
-  assert.deepEqual(calls[1], { source: nativeOf(second), time: 12 });
+  assert.deepEqual(calls[1], { source: await second.native, time: 12 });
   await player.playlist.remove(second);
   await player.playlist.removeAt(0);
   player.destroy();
@@ -403,8 +429,8 @@ test('playlist queries return fresh handles to current SDK sources without creat
   const first = new Source({ url: 'https://test/first' });
   const second = new Source({ url: 'https://test/second' });
   await player.loadPlaylist({ sources: [first, second] });
-  nativeOf(first).getMetadata = async () => ({ title: 'first' });
-  nativeOf(second).getMetadata = async () => ({ title: 'second' });
+  (await first.native).getMetadata = async () => ({ title: 'first' });
+  (await second.native).getMetadata = async () => ({ title: 'second' });
   const sources = await player.playlist.getSources();
   assert.deepEqual(
     await Promise.all(sources.map((source) => source.metadata())),
@@ -469,11 +495,14 @@ test('source event subscriptions register before playlist loading and can be rem
   const player = new Player();
   await player.loadPlaylist({ sources: [source] });
   const event = { name: 'onSourceLoaded', timestamp: 1 };
-  nativeOf(source).emit('sourceLoad', { name: 'onSourceLoad', timestamp: 0 });
-  nativeOf(source).emit('sourceLoaded', event);
+  (await source.native).emit('sourceLoad', {
+    name: 'onSourceLoad',
+    timestamp: 0,
+  });
+  (await source.native).emit('sourceLoaded', event);
   assert.deepEqual(received, [event]);
   active.remove();
-  nativeOf(source).emit('sourceLoaded', event);
+  (await source.native).emit('sourceLoaded', event);
   assert.deepEqual(received, [event]);
   player.destroy();
 });

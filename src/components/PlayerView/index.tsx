@@ -10,7 +10,6 @@ import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge'
 import type { PlayerViewProps } from './properties';
 import type { PictureInPictureAction } from './pictureInPictureAction';
 import type { NativePlayer } from '../../modules/PlayerModule';
-import { lookup } from '../../nativeInstanceRegistry';
 
 /**
  * Base style that initializes the native view frame when no width/height prop has been set.
@@ -42,8 +41,6 @@ export function PlayerView({
   onPlayerViewReady,
   ...props
 }: PlayerViewProps) {
-  const nativePlayer = lookup<NativePlayer>('player', player.nativeId);
-
   // Keep the device awake while the PlayerView is mounted
   useKeepAwake();
 
@@ -86,8 +83,12 @@ export function PlayerView({
     playerViewConfig: config,
   };
 
-  const [initializedPlayer, setInitializedPlayer] = useState<typeof player>();
-  const isPlayerInitialized = initializedPlayer === player;
+  const [resolvedPlayer, setResolvedPlayer] = useState<{
+    player: typeof player;
+    native: NativePlayer;
+  }>();
+  const nativePlayer =
+    resolvedPlayer?.player === player ? resolvedPlayer.native : undefined;
   const didNotifyPlayerViewReady = useRef<typeof player | undefined>(undefined);
   const currentPlayer = useRef<typeof player | undefined>(player);
   currentPlayer.current = player;
@@ -203,11 +204,13 @@ export function PlayerView({
   useEffect(() => {
     let cancelled = false;
     currentPlayer.current = player;
-    void player.initialize().then(() => {
+    async function resolvePlayer() {
+      const native = await player.native;
       if (!cancelled) {
-        setInitializedPlayer(player);
+        setResolvedPlayer({ player, native });
       }
-    });
+    }
+    void resolvePlayer();
 
     return () => {
       cancelled = true;
@@ -222,7 +225,7 @@ export function PlayerView({
   }, [player, fullscreenBridge, customMessageHandlerBridge]);
 
   useEffect(() => {
-    if (!isPlayerInitialized || !nativeView.current) {
+    if (!nativePlayer || !nativeView.current) {
       return;
     }
 
@@ -231,7 +234,7 @@ export function PlayerView({
     if (viewRef) {
       viewRef.current = nativeView.current;
     }
-  }, [isPlayerInitialized, viewRef, nativeView]);
+  }, [nativePlayer, viewRef, nativeView]);
 
   // Compare the actions by content, so passing a new array with the same actions on every render
   // does not trigger a native update each time.
@@ -240,22 +243,22 @@ export function PlayerView({
       ? JSON.stringify(pictureInPictureActions)
       : undefined;
   useEffect(() => {
-    if (isPlayerInitialized && pictureInPictureActionsJson != null) {
+    if (nativePlayer && pictureInPictureActionsJson != null) {
       void nativeView.current?.updatePictureInPictureActions(
         JSON.parse(pictureInPictureActionsJson) as PictureInPictureAction[]
       );
     }
-  }, [isPlayerInitialized, nativePlayer, pictureInPictureActionsJson]);
+  }, [nativePlayer, pictureInPictureActionsJson]);
 
   useEffect(() => {
-    if (isPlayerInitialized && isPictureInPictureEnabled != null) {
+    if (nativePlayer && isPictureInPictureEnabled != null) {
       void nativeView.current?.setIsPictureInPictureEnabled(
         isPictureInPictureEnabled
       );
     }
-  }, [isPlayerInitialized, nativePlayer, isPictureInPictureEnabled]);
+  }, [nativePlayer, isPictureInPictureEnabled]);
 
-  if (!isPlayerInitialized || !nativePlayer) {
+  if (!nativePlayer) {
     return null;
   }
 
@@ -263,7 +266,6 @@ export function PlayerView({
     <NativePlayerView
       ref={nativeView}
       style={nativeViewStyle}
-      key={player.nativeId}
       player={nativePlayer}
       config={nativePlayerViewConfig}
       isFullscreenRequested={isFullscreenRequested}

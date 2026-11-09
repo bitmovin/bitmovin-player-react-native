@@ -1,10 +1,6 @@
 import { Platform } from 'react-native';
 import type { FairplayContentKeyRequest } from '../events';
-import {
-  nativeSourceReference,
-  type NativeSourceReference,
-} from '../modules/SourceModule';
-import type { Source } from '../source';
+import type { NativeSource } from '../modules/SourceModule';
 
 /**
  * Provides FairPlay-specific DRM runtime APIs for an active {@link Source}.
@@ -14,11 +10,8 @@ import type { Source } from '../source';
  * @platform iOS, tvOS
  */
 export class FairplayDrmApi {
-  private readonly nativeSource: NativeSourceReference;
-
-  constructor(source: Source | NativeSourceReference) {
-    this.nativeSource = nativeSourceReference(source);
-  }
+  /** @internal */
+  constructor(private readonly nativeSource: Promise<NativeSource>) {}
 
   /**
    * Renews an expiring FairPlay license for the provided content key request.
@@ -34,7 +27,7 @@ export class FairplayDrmApi {
       console.warn('renewExpiringLicense is not available on Android.');
       return;
     }
-    return (await this.nativeSource())?.drmFairplayRenewExpiringLicense(
+    return (await this.nativeSource).drmFairplayRenewExpiringLicense(
       contentKeyRequest.skdUri
     );
   };

@@ -103,7 +103,10 @@ const playerViewContext = vm.createContext({
   require(name) {
     if (name === 'react' || name === 'react/jsx-runtime') return req(name);
     if (name === 'react-native')
-      return { StyleSheet: { create: (x) => x, flatten: (x) => x } };
+      return {
+        Platform: { OS: 'ios' },
+        StyleSheet: { create: (x) => x, flatten: (x) => x },
+      };
     if (name === 'expo-keep-awake') return { useKeepAwake() {} };
     if (name === './native') return { NativePlayerView: 'ProbePlayerView' };
     if (name.endsWith('/useProxy')) return { useProxy: () => (x) => x };
@@ -135,6 +138,10 @@ async function mockEventSubscription() {
 }
 
 function render(props) {
+  // Model the eager native Promise exposed by Player, including controlled creation.
+  props.player.native ??= props.player
+    .initialize()
+    .then(() => nativePlayers.get(props.player.nativeId));
   rendererModule.exports.render(
     React.createElement(PlayerView, props),
     11,

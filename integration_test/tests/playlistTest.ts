@@ -101,7 +101,7 @@ export default (spec: TestScope) => {
         ).toEqual([{ item: 'second' }]);
       } finally {
         addedSubscription.remove();
-        player.destroy();
+        await player.destroy();
       }
     });
 
@@ -185,9 +185,9 @@ export default (spec: TestScope) => {
         );
         const duration = await first.duration();
         await callPlayerAndExpectEvent<PlaylistTransitionEvent>(
-          (player) => {
-            player.seek(duration - 1);
-            player.play();
+          async (player) => {
+            await player.seek(duration - 1);
+            await player.play();
           },
           FilteredEvent<PlaylistTransitionEvent>(
             EventType.PlaylistTransition,

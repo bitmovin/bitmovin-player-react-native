@@ -5,8 +5,6 @@ import type { SourceConfig } from '../source';
 import type { NativeCallback } from '../nativeCallbacks';
 import type { OfflineDownloadRequest } from './offlineDownloadRequest';
 import type { BitmovinNativeOfflineEventData } from './offlineContentManagerListener';
-import { lookup } from '../nativeInstanceRegistry';
-import { getNativeOwner, setNativeOwner } from '../nativeOwner';
 
 type OfflineEvents = {
   onBitmovinOfflineEvent: (
@@ -37,34 +35,6 @@ export interface NativeOfflineBackend extends SharedObject {
 export type NativeOffline = NativeOfflineBackend & {
   readonly events: NativeOfflineEvents;
 };
-
-/** @internal */
-export function getNativeOffline(owner: {
-  readonly nativeId: string;
-}): NativeOffline | undefined {
-  const native =
-    lookup<NativeOffline>('offline', owner.nativeId) ??
-    getNativeOwner<NativeOffline>(owner);
-  if (native) setNativeOwner(owner, native);
-  return native;
-}
-
-/** @internal */
-export function offlineCompatibilityError(
-  method: string,
-  id: string,
-  duplicate = false
-): Error & { code: string } {
-  const reason = duplicate
-    ? `Content manager bridge id already exists: ${id}`
-    : `No offline content manager bridge for id ${id}`;
-  return Object.assign(
-    new Error(
-      `Call to function 'OfflineModule.${method}' has been rejected.\n→ Caused by: ${reason}`
-    ),
-    { code: duplicate ? 'ERR_MANAGER_ALREADY_EXISTS' : 'ERR_MANAGER_NOT_FOUND' }
-  );
-}
 
 declare class OfflineModule extends NativeModule {
   createEvents(): NativeOfflineEvents;

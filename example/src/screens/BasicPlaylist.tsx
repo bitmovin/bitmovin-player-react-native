@@ -36,7 +36,9 @@ export default function BasicPlaylist() {
       void player
         .loadPlaylist({ sources, options: { preloadAllSources: true } })
         .catch(reportError);
-      return () => player.destroy();
+      return () => {
+        void player.destroy();
+      };
     }, [player, sources])
   );
 
@@ -51,10 +53,15 @@ export default function BasicPlaylist() {
       />
       <Text style={styles.label}>Active source: {active}</Text>
       <Text style={styles.error}>{error}</Text>
-      <Button title="Play" onPress={() => player.play()} />
+      <Button
+        title="Play"
+        onPress={() => {
+          void player.play().catch(reportError);
+        }}
+      />
       {sources.map((source, index) => (
         <Button
-          key={source.nativeId}
+          key={source.config?.url}
           title={`Seek to ${source.config?.title}`}
           onPress={() => {
             void player.playlist.seek(sources[index], 0).catch(reportError);
