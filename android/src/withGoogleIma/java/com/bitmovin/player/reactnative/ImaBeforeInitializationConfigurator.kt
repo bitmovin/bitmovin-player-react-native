@@ -15,14 +15,14 @@ internal object ImaBeforeInitializationConfigurator {
         advertising: AdvertisingConfig,
         callbacks: CallbackScope,
     ): AdvertisingConfig {
-        return config.getMap("ima")?.withFunction("beforeInitialization") {
+        return config.getMap("ima")?.withFunction("beforeInitialization") { token ->
             advertising.copy(
                 ima = advertising.ima.copy(
                     beforeInitialization = BeforeInitializationCallback { settings ->
                         @Suppress("UNCHECKED_CAST")
                         (
                             callbacks.call(
-                                "advertisingConfig.ima.beforeInitialization",
+                                token,
                                 listOf(settings.toMap()),
                                 mutating = true,
                             ) as? Map<String, Any?>

@@ -21,10 +21,7 @@ import {
   lookupPending,
   remove,
 } from '../nativeInstanceRegistry';
-import {
-  configurationCallback,
-  serializeNativeConfig,
-} from '../nativeCallbacks';
+import { createConfigurationCallbacks } from '../nativeCallbacks';
 
 const handleBitmovinNativeOfflineEvent = (
   data: BitmovinNativeOfflineEventData,
@@ -112,17 +109,15 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   };
 
   private async createNativeOffline(): Promise<NativeOffline> {
+    const callbacks = createConfigurationCallbacks();
     const events = OfflineModule.createEvents();
     this.observeEvents(events);
     let native: NativeOfflineBackend | undefined;
     try {
       native = await OfflineModule.create(
-        serializeNativeConfig({
-          identifier: this.config?.identifier,
-          sourceConfig: this.config?.sourceConfig,
-        }),
+        callbacks.serialize(this.config),
         events,
-        configurationCallback(this.config)
+        callbacks.callback
       );
       const created = Object.defineProperty(native, 'events', {
         value: events,

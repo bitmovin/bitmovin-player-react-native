@@ -33,6 +33,9 @@ import com.bitmovin.player.api.decoder.DecoderConfig
 import com.bitmovin.player.api.decoder.DecoderPriorityProvider.DecoderContext
 import com.bitmovin.player.api.decoder.MediaCodecInfo
 import com.bitmovin.player.api.deficiency.DeficiencyData
+import com.bitmovin.player.api.drm.PrepareLicenseCallback
+import com.bitmovin.player.api.drm.PrepareMessageCallback
+import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.CastPayload
@@ -66,6 +69,9 @@ import com.bitmovin.player.api.metadata.scte.ScteMessage
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.network.HttpResponse
+import com.bitmovin.player.api.network.NetworkConfig
+import com.bitmovin.player.api.network.PreprocessHttpRequestCallback
+import com.bitmovin.player.api.network.PreprocessHttpResponseCallback
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.source.LoadingState
@@ -229,17 +235,17 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig =
 fun Map<String, Any?>.toAdvertisingConfig(callbacks: CallbackScope): AdvertisingConfig {
     val schedule = getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: emptyList()
     var config = AdvertisingConfig(schedule)
-    withFunction("shouldLoadAdItem") {
+    withFunction("shouldLoadAdItem") { token ->
         config = config.copy(
             shouldLoadAdItem = {
-                callbacks.call("advertisingConfig.shouldLoadAdItem", listOf(it.toJson())) as? Boolean ?: true
+                callbacks.call(token, listOf(it.toJson())) as? Boolean ?: true
             },
         )
     }
-    withFunction("shouldPlayAdBreak") {
+    withFunction("shouldPlayAdBreak") { token ->
         config = config.copy(
             shouldPlayAdBreak = {
-                callbacks.call("advertisingConfig.shouldPlayAdBreak", listOf(it.toJson())) as? Boolean ?: true
+                callbacks.call(token, listOf(it.toJson())) as? Boolean ?: true
             },
         )
     }
@@ -269,11 +275,11 @@ private fun String.toAdSourceType(): AdSourceType? = when (this) {
     else -> null
 }
 
-fun Map<String, Any?>.toSourceConfig(callbacks: CallbackScope, path: String = "drmConfig"): SourceConfig? {
+fun Map<String, Any?>.toSourceConfig(callbacks: CallbackScope): SourceConfig? {
     val url = getString("url") ?: return null
     val type = getString("type")?.toSourceType() ?: return null
     return SourceConfig(url, type).apply {
-        drmConfig = getMap("drmConfig")?.toWidevineConfig(callbacks, path)
+        drmConfig = getMap("drmConfig")?.toWidevineConfig(callbacks)
         withString("title") { title = it }
         withString("description") { description = it }
         withString("poster") { posterSource = it }
@@ -568,6 +574,29 @@ fun PlayerEvent.toJson(): Map<String, Any> {
     return baseMap.filterNotNullValues()
 }
 
+fun Map<String, Any?>.toWidevineConfig(callbacks: CallbackScope): WidevineConfig? =
+    getMap("widevine")?.run {
+        WidevineConfig(getString("licenseUrl")).apply {
+            withString("preferredSecurityLevel") { preferredSecurityLevel = it }
+            withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
+            withMap("httpHeaders") { httpHeaders = it.mapValues { entry -> entry.value as String }.toMutableMap() }
+            withFunction("prepareMessage") { token ->
+                prepareMessageCallback = PrepareMessageCallback {
+                    callbacks.prepare(token, it)
+                }
+            }
+            withFunction("prepareLicense") { token ->
+                prepareLicenseCallback = PrepareLicenseCallback {
+                    callbacks.prepare(token, it)
+                }
+            }
+        }
+    }
+private fun CallbackScope.prepare(token: String, data: ByteArray): ByteArray {
+    val result = call(token, listOf(Base64.encodeToString(data, Base64.NO_WRAP)))
+    return Base64.decode(result as? String ?: "", Base64.NO_WRAP)
+}
+
 fun String.toThumbnailTrack(): ThumbnailTrack = ThumbnailTrack(this)
 
 fun AudioTrack.toJson(): Map<String, Any> = mapOf(
@@ -860,6 +889,36 @@ fun Map<String, Any?>.toHttpResponse(): HttpResponse? {
         body = getString("body")?.toByteArrayFromBase64() ?: return null,
     )
 }
+
+fun Map<String, Any?>.toNetworkConfig(callbacks: CallbackScope): NetworkConfig =
+    NetworkConfig().apply {
+        withFunction("preprocessHttpRequest") { token ->
+            preprocessHttpRequestCallback = PreprocessHttpRequestCallback { type, request ->
+                callbacks.future(
+                    token,
+                    listOf(type.toJson(), request.toJson()),
+                    request,
+                    fallbackArgument = 1,
+                ) {
+                    @Suppress("UNCHECKED_CAST")
+                    (it as Map<String, Any?>).toHttpRequest()
+                }
+            }
+        }
+        withFunction("preprocessHttpResponse") { token ->
+            preprocessHttpResponseCallback = PreprocessHttpResponseCallback { type, response ->
+                callbacks.future(
+                    token,
+                    listOf(type.toJson(), response.toJson()),
+                    response,
+                    fallbackArgument = 1,
+                ) {
+                    @Suppress("UNCHECKED_CAST")
+                    (it as Map<String, Any?>).toHttpResponse()
+                }
+            }
+        }
+    }
 
 fun HttpRequest.toJson(): Map<String, Any> = mapOf(
     "url" to url,

@@ -55,7 +55,7 @@ function fixture(t) {
   const calls = [];
   const creations = [];
   const callbacks = new WeakMap();
-  const create = (kind, callback) => {
+  const create = (kind, config, callback) => {
     const native = {
       destroy: async () => {
         callbacks.delete(native);
@@ -68,16 +68,18 @@ function fixture(t) {
         calls.push({ native, skdUri });
       },
     };
-    if (callback) callbacks.set(native, callback);
+    if (callback) callbacks.set(native, { config, callback });
     creations.push({ kind, native });
     return native;
   };
   const modules = {
     PlayerModule: {
-      create: async (...args) => create('player', args[2]),
+      create: async (...args) => create('player', args[0], args[2]),
       isGoogleImaEnabled: true,
     },
-    SourceModule: { create: async (...args) => create('source', args[3]) },
+    SourceModule: {
+      create: async (...args) => create('source', args[0], args[3]),
+    },
     NativeCallbacksModule: {},
     OfflineModule: {},
     DebugModule: {},
@@ -102,13 +104,16 @@ function fixture(t) {
         instance instanceof Source ? 'source' : 'player',
         instance.nativeId
       ),
-    invoke: (native, operation, args, mutating = false) =>
-      callbacks.get(native)?.(
-        operation,
-        structuredClone(args),
-        undefined,
-        mutating
-      ) ?? null,
+    invoke: (native, field, args, mutating = false) => {
+      const entry = callbacks.get(native);
+      const token = field
+        .split('.')
+        .reduce((value, key) => value?.[key], entry?.config);
+      return (
+        entry?.callback(token, structuredClone(args), undefined, mutating) ??
+        null
+      );
+    },
   };
 }
 

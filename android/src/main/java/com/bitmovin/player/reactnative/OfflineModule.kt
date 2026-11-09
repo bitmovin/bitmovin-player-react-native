@@ -22,7 +22,7 @@ class OfflineModule : Module() {
             ?: throw OfflineException.InvalidIdentifier()
         val callbacks = CallbackScope(appContext, callback)
         return callbacks.createSharedObject {
-            val sourceConfig = config.getMap("sourceConfig")?.toSourceConfig(callbacks, "sourceConfig.drmConfig")
+            val sourceConfig = config.getMap("sourceConfig")?.toSourceConfig(callbacks)
                 ?: throw OfflineException.InvalidSourceConfig()
             val context = appContext.reactContext
                 ?: throw InvalidParameterException("ReactApplicationContext is not available")

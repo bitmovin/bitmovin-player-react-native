@@ -24,10 +24,7 @@ import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
 import { getNativeOffline } from './offline/offlineModule';
-import {
-  configurationCallback,
-  serializeNativeConfig,
-} from './nativeCallbacks';
+import { createConfigurationCallbacks } from './nativeCallbacks';
 import { setNativeOwner } from './nativeOwner';
 
 /**
@@ -115,10 +112,11 @@ export class Player extends NativeInstance<PlayerConfig> {
           'See the "Google IMA" section of the bitmovin-player-react-native README.'
       );
     }
+    const callbacks = createConfigurationCallbacks();
     return PlayerModule.create(
-      serializeNativeConfig(this.config),
-      serializeNativeConfig(this.config?.analyticsConfig),
-      configurationCallback(this.config, { capture: 'advertisingConfig' })
+      callbacks.serialize(this.config, { capture: 'advertisingConfig' }),
+      callbacks.serialize(this.config?.analyticsConfig),
+      callbacks.callback
     );
   }
 

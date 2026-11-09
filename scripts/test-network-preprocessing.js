@@ -65,10 +65,11 @@ function fixture(t, config, rejectAfterCompletion = false) {
   };
   const { HttpRequestType } = require(path.join(directory, 'network'));
   const helpers = require(path.join(directory, 'nativeCallbacks.js'));
-  const callback = helpers.configurationCallback({ networkConfig: config });
+  const callbacks = helpers.createConfigurationCallbacks();
+  const nativeConfig = callbacks.serialize({ networkConfig: config });
   const invoke = (kind, type, payload) => {
-    callback(
-      `networkConfig.preprocessHttp${kind}`,
+    callbacks.callback(
+      nativeConfig.networkConfig?.[`preprocessHttp${kind}`] ?? '-1',
       [type, payload],
       {
         resolve: (result) => {
@@ -163,31 +164,38 @@ for (const [kind, original] of [
   }
 }
 
-test('configuration paths route newly added nested callbacks without registration', (t) => {
+test('configuration tokens route nested callbacks and observe replacements', (t) => {
   const { helpers } = fixture(t, {});
   const config = { provider: { choose: () => false } };
-  const callback = helpers.configurationCallback(config);
-  assert.equal(callback('provider.choose', []), false);
+  const callbacks = helpers.createConfigurationCallbacks();
+  const native = callbacks.serialize(config);
+  const token = native.provider.choose;
+  assert.equal(typeof token, 'string');
+  assert.equal(callbacks.callback(token, []), false);
   config.provider.choose = () => true;
-  assert.equal(callback('provider.choose', []), true);
+  assert.equal(callbacks.callback(token, []), true);
+  config.provider = { choose: () => false };
+  assert.equal(callbacks.callback(token, []), false);
 });
 
 test('mutation callbacks preserve settings changes and partial returned settings', (t) => {
   const { helpers } = fixture(t, {});
-  const callback = helpers.configurationCallback(
-    {
-      ima: {
-        beforeInitialization(settings) {
-          settings.language = 'de';
-          return { playerType: 'custom' };
-        },
+  const callbacks = helpers.createConfigurationCallbacks();
+  const config = {
+    ima: {
+      beforeInitialization(settings) {
+        settings.language = 'de';
+        return { playerType: 'custom' };
       },
     },
-    { capture: 'ima' }
-  );
+  };
+  const native = callbacks.serialize(config, { capture: 'ima' });
+  config.ima.beforeInitialization = () => {
+    throw new Error('Captured callbacks must keep their original function');
+  };
   assert.deepEqual(
-    callback(
-      'ima.beforeInitialization',
+    callbacks.callback(
+      native.ima.beforeInitialization,
       [{ language: 'en', autoPlay: false }],
       undefined,
       true
@@ -202,10 +210,11 @@ test('mutation callbacks preserve settings changes and partial returned settings
 
 test('synchronous decisions fall back for unexpected promises and consume rejection', async (t) => {
   const { helpers } = fixture(t, {});
-  const callback = helpers.configurationCallback({
+  const callbacks = helpers.createConfigurationCallbacks();
+  const native = callbacks.serialize({
     decision: () => Promise.reject(new Error('unexpected async decision')),
   });
-  assert.equal(callback('decision', []), null);
+  assert.equal(callbacks.callback(native.decision, []), null);
   await new Promise(setImmediate);
 });
 
@@ -213,14 +222,14 @@ test('configuration labels are removed without stripping content metadata', (t) 
   const { helpers } = fixture(t, {});
   const metadata = { nativeId: 'user-data' };
   assert.deepEqual(
-    helpers.serializeNativeConfig({
+    helpers.createConfigurationCallbacks().serialize({
       nativeId: 'binding-label',
       sourceConfig: { nativeId: 'source-label', metadata },
       networkConfig: { preprocessHttpRequest: () => {} },
     }),
     {
       sourceConfig: { metadata },
-      networkConfig: { preprocessHttpRequest: true },
+      networkConfig: { preprocessHttpRequest: '0' },
     }
   );
 });

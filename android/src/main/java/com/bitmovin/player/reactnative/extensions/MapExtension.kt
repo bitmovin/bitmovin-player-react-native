@@ -40,9 +40,9 @@ inline fun <T> Map<String, Any?>.withBoolean(
     return if (value != null) block(value) else null
 }
 
-/** Function fields are serialized as markers; their implementations stay in the JS dispatcher. */
-inline fun <T> Map<String, Any?>.withFunction(key: String, block: () -> T): T? =
-    if (containsKey(key)) block() else null
+/** Function fields contain tokens for the owner's JS callback array. */
+inline fun <T> Map<String, Any?>.withFunction(key: String, block: (String) -> T): T? =
+    withString(key, block)
 
 inline fun <T> Map<String, Any?>.withString(
     key: String,

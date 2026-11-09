@@ -9,9 +9,8 @@ import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import SourceModule from './modules/SourceModule';
 import {
-  configurationCallback,
+  createConfigurationCallbacks,
   createSharedObjectWithCallback,
-  serializeNativeConfig,
 } from './nativeCallbacks';
 import { setNativeOwner } from './nativeOwner';
 
@@ -170,18 +169,19 @@ export interface SourceRemoteControlConfig {
  */
 export class Source extends NativeInstance<SourceConfig> {
   private get native() {
-    return getOrCreateAsync('source', this.nativeId, () =>
-      createSharedObjectWithCallback(
+    return getOrCreateAsync('source', this.nativeId, () => {
+      const callbacks = createConfigurationCallbacks();
+      return createSharedObjectWithCallback(
         (callback) =>
           SourceModule.create(
-            serializeNativeConfig(this.config),
-            serializeNativeConfig(this.remoteControl || undefined),
-            serializeNativeConfig(this.config?.analyticsSourceMetadata),
+            callbacks.serialize(this.config),
+            callbacks.serialize(this.remoteControl || undefined),
+            callbacks.serialize(this.config?.analyticsSourceMetadata),
             callback
           ),
-        configurationCallback(this.config)
-      )
-    ).then((native) => {
+        callbacks.callback
+      );
+    }).then((native) => {
       setNativeOwner(this, native);
       this.isInitialized = true;
       return native;

@@ -236,18 +236,18 @@ extension RCTConvert {
         } else {
             config = AdvertisingConfig()
         }
-        if json["shouldLoadAdItem"] != nil {
+        if let token = json["shouldLoadAdItem"] as? String {
             config.shouldLoadAdItem = { adItem in
                 callback?.call(
-                    "advertisingConfig.shouldLoadAdItem",
+                    token,
                     arguments: [Self.toJson(adItem: adItem) as Any]
                 ) as? Bool ?? true
             }
         }
-        if let ima = json["ima"] as? [String: Any], ima["beforeInitialization"] != nil {
+        if let ima = json["ima"] as? [String: Any], let token = ima["beforeInitialization"] as? String {
             config.beforeInitialization = { settings in
                 guard let value = callback?.call(
-                    "advertisingConfig.ima.beforeInitialization",
+                    token,
                     arguments: [Self.imaSettingsDictionary(settings)],
                     mutating: true
                 ) as? [String: Any] else { return }

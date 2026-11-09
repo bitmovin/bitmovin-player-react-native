@@ -6,11 +6,11 @@ extension RCTConvert {
     static func networkConfig(_ json: Any?, callback: CallbackScope?) -> NetworkConfig? {
         guard let json = json as? [String: Any] else { return nil }
         let config = NetworkConfig()
-        if json["preprocessHttpRequest"] != nil {
+        if let token = json["preprocessHttpRequest"] as? String {
             config.preprocessHttpRequest = { type, request, completion in
                 guard let callback else { completion(request); return }
                 callback.request(
-                    "networkConfig.preprocessHttpRequest",
+                    token,
                     arguments: [Self.toJson(httpRequestType: type), Self.toJson(httpRequest: request)],
                     fallbackArgument: 1
                 ) { value in
@@ -18,11 +18,11 @@ extension RCTConvert {
                 }
             }
         }
-        if json["preprocessHttpResponse"] != nil {
+        if let token = json["preprocessHttpResponse"] as? String {
             config.preprocessHttpResponse = { type, response, completion in
                 guard let callback else { completion(response); return }
                 callback.request(
-                    "networkConfig.preprocessHttpResponse",
+                    token,
                     arguments: [Self.toJson(httpRequestType: type), Self.toJson(httpResponse: response)],
                     fallbackArgument: 1
                 ) { value in

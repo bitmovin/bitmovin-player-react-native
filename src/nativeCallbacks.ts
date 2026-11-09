@@ -126,55 +126,57 @@ const dataFields = new Set([
 ]);
 
 /** @internal */
-export function serializeNativeConfig(value: any): any {
-  const serialize = (entry: any, configuration: boolean): any => {
-    if (typeof entry === 'function') return true;
-    if (Array.isArray(entry))
-      return entry.map((item) => serialize(item, false));
-    if (entry != null && typeof entry === 'object') {
-      return Object.fromEntries(
-        Object.entries(entry)
-          .filter(([key]) => !configuration || key !== 'nativeId')
-          .map(([key, item]) => [
-            key,
-            dataFields.has(key)
-              ? item
-              : serialize(item, configurationFields.has(key)),
-          ])
-      );
-    }
-    return entry;
+export function createConfigurationCallbacks() {
+  const handlers: ((args: any[]) => any)[] = [];
+  return {
+    callback: createNativeCallback((token, args) =>
+      handlers[Number(token)]?.(args)
+    ),
+    serialize(config: any, { capture }: { capture?: string } = {}): any {
+      const serialize = (
+        entry: any,
+        configuration: boolean,
+        read: () => any,
+        captured = false
+      ): any => {
+        const field = (
+          key: string | number,
+          value: any,
+          configuration: boolean
+        ): any => {
+          const snapshot = captured || (entry === config && key === capture);
+          if (typeof value === 'function') {
+            const handler = snapshot
+              ? (args: any[]) => value(...args)
+              : (args: any[]) => {
+                  const owner = read();
+                  const handler = owner?.[key];
+                  return typeof handler === 'function'
+                    ? handler.apply(owner, args)
+                    : null;
+                };
+            // String indices share the transport used by named UI callbacks.
+            return String(handlers.push(handler) - 1);
+          }
+          return serialize(value, configuration, () => read()?.[key], snapshot);
+        };
+        if (Array.isArray(entry))
+          return entry.map((item, index) => field(index, item, false));
+        if (entry != null && typeof entry === 'object') {
+          return Object.fromEntries(
+            Object.entries(entry)
+              .filter(([key]) => !configuration || key !== 'nativeId')
+              .map(([key, item]) => [
+                key,
+                dataFields.has(key)
+                  ? item
+                  : field(key, item, configurationFields.has(key)),
+              ])
+          );
+        }
+        return entry;
+      };
+      return serialize(config, true, () => config);
+    },
   };
-  return serialize(value, true);
-}
-
-/** @internal */
-export function configurationCallback(
-  config: any,
-  { capture }: { capture?: string } = {}
-): NativeCallback {
-  const handlers: Record<string, (...args: any[]) => any> | undefined = capture
-    ? {}
-    : undefined;
-  if (handlers) {
-    const collect = (value: any, path: string) => {
-      if (typeof value === 'function') handlers[path] = value;
-      else if (value && typeof value === 'object') {
-        for (const [key, child] of Object.entries(value))
-          collect(child, path ? `${path}.${key}` : key);
-      }
-    };
-    collect(config?.[capture!], capture!);
-  }
-  return createNativeCallback((path, args) => {
-    if (handlers && path.startsWith(`${capture}.`)) {
-      const handler = handlers[path];
-      return handler?.(...args);
-    }
-    const keys = path.split('.');
-    const key = keys.pop()!;
-    const owner = keys.reduce((value, key) => value?.[key], config);
-    const handler = owner?.[key];
-    return typeof handler === 'function' ? handler.apply(owner, args) : null;
-  });
 }

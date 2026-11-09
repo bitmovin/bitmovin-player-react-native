@@ -3,55 +3,55 @@ import ExpoModulesCore
 import Foundation
 
 extension RCTConvert {
-    static func sourceConfig(_ json: Any?, callback: CallbackScope?, path: String = "drmConfig") -> SourceConfig? {
+    static func sourceConfig(_ json: Any?, callback: CallbackScope?) -> SourceConfig? {
         let drm = ((json as? [String: Any])?["drmConfig"] as? [String: Any]).flatMap {
-            Self.fairplayConfig($0, callback: callback, path: path)
+            Self.fairplayConfig($0, callback: callback)
         }
         return Self.sourceConfig(json, drmConfig: drm)
     }
 
-    static func fairplayConfig(_ json: [String: Any], callback: CallbackScope?, path: String) -> FairplayConfig? {
+    static func fairplayConfig(_ json: [String: Any], callback: CallbackScope?) -> FairplayConfig? {
         let config = Self.drmConfig(json).fairplay
         guard let fairplay = json["fairplay"] as? [String: Any], let config else { return config }
-        if fairplay["prepareCertificate"] != nil {
+        if let token = fairplay["prepareCertificate"] as? String {
             config.prepareCertificate = { data in
-                transform(callback, "\(path).fairplay.prepareCertificate", data: data)
+                transform(callback, token, data: data)
             }
         }
-        if fairplay["prepareMessage"] != nil {
+        if let token = fairplay["prepareMessage"] as? String {
             config.prepareMessage = { data, assetId in
-                transform(callback, "\(path).fairplay.prepareMessage", data: data, arguments: [assetId])
+                transform(callback, token, data: data, arguments: [assetId])
             }
         }
-        if fairplay["prepareSyncMessage"] != nil {
+        if let token = fairplay["prepareSyncMessage"] as? String {
             config.prepareSyncMessage = { data, assetId in
-                transform(callback, "\(path).fairplay.prepareSyncMessage", data: data, arguments: [assetId])
+                transform(callback, token, data: data, arguments: [assetId])
             }
         }
-        if fairplay["prepareLicense"] != nil {
+        if let token = fairplay["prepareLicense"] as? String {
             config.prepareLicense = { data in
-                transform(callback, "\(path).fairplay.prepareLicense", data: data)
+                transform(callback, token, data: data)
             }
         }
-        if fairplay["prepareLicenseServerUrl"] != nil {
+        if let token = fairplay["prepareLicenseServerUrl"] as? String {
             config.prepareLicenseServerUrl = { url in
-                callback?.call("\(path).fairplay.prepareLicenseServerUrl", arguments: [url]) as? String ?? url
+                callback?.call(token, arguments: [url]) as? String ?? url
             }
         }
-        if fairplay["prepareContentId"] != nil {
+        if let token = fairplay["prepareContentId"] as? String {
             config.prepareContentId = { contentId in
-                callback?.call("\(path).fairplay.prepareContentId", arguments: [contentId]) as? String ?? contentId
+                callback?.call(token, arguments: [contentId]) as? String ?? contentId
             }
         }
         return config
     }
     private static func transform(
         _ callback: CallbackScope?,
-        _ operation: String,
+        _ token: String,
         data: Data,
         arguments: [Any] = []
     ) -> Data {
-        let result = callback?.call(operation, arguments: [data.base64EncodedString()] + arguments)
+        let result = callback?.call(token, arguments: [data.base64EncodedString()] + arguments)
         return (result as? String).flatMap { Data(base64Encoded: $0) } ?? data
     }
 }

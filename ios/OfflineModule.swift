@@ -14,7 +14,7 @@ public class OfflineModule: Module {
             let callback = try callback.map { try CallbackScope(callback: $0, context: appContext) }
             guard let identifier = config["identifier"] as? String,
                   let sourceConfig = RCTConvert.sourceConfig(
-                    config["sourceConfig"], callback: callback, path: "sourceConfig.drmConfig"
+                    config["sourceConfig"], callback: callback
                   ) else {
                 callback?.close()
                 throw Exception(
