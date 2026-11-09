@@ -19,7 +19,6 @@ import { Sources } from './helper/Sources';
 import {
   DownloadFinishedEvent,
   HttpRequestType,
-  Player,
   Source,
   SourceConfig,
 } from 'bitmovin-player-react-native';
@@ -246,11 +245,14 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
           player.loadSource(moved);
           expect(await untilActive(player, moved), 'Loaded').toBeTruthy();
           player.load(Sources.artOfMotionHls);
+          let created: Source | undefined;
           expect(
-            await untilLoaded(player, moved),
+            await waitUntil(async () => {
+              created = await player.getSource();
+              return created !== undefined && created !== moved;
+            }),
             'Created source loaded'
           ).toBeTruthy();
-          const created = await player.getSource();
           player.loadSource(session);
           expect(
             await untilActive(player, session),
@@ -278,7 +280,6 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
         } finally {
           player.destroy();
           otherPlayer.destroy();
-          moved.destroy();
         }
       }
     );
@@ -331,9 +332,3 @@ export function loadingVodTests(spec: TestScope) {
 }
 
 export default (spec: TestScope) => registerLoadingTests(spec);
-
-const untilLoaded = (player: Player, previous?: Source) =>
-  waitUntil(async () => {
-    const source = await player.getSource();
-    return source !== undefined && source !== previous;
-  });

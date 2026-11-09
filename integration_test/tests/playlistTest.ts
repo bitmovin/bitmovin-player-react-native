@@ -326,6 +326,8 @@ export default (spec: TestScope) => {
           expect(sources).toHaveLength(1);
           expect(sources[0]).toBe(first);
         });
+        second.destroy();
+        third.destroy();
       });
     });
 

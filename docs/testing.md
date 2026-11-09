@@ -60,6 +60,7 @@ Run commands from the repository root after the documented development setup.
 node --test scripts/test-network-preprocessing.js
 node --test scripts/test-event-listeners.js
 node --test scripts/test-player-event-props.js
+node --test scripts/test-playlist-config-validation.js
 node --test scripts/test-source-lifecycle.js
 yarn test:plugin
 python3 -m unittest discover -s .github/scripts -p 'test_*.py'
@@ -85,12 +86,13 @@ listeners to a new player, unmounting, and a throwing prop. They do not prove
 that the native `PlayerView` renders or that events are emitted.
 
 The [source lifecycle tests](../scripts/test-source-lifecycle.js) use the same
-setup with mocked Player, Source, DRM and playlist modules. They cover how JS
-resolves native source ids to `Source` instances, rejects destroyed sources,
-sends the native destroy right away, also while an initialization is in
-progress, and which sources `Player.destroy` passes to the native destroy and
-destroys afterwards. They do not
-prove that native creates, loads or destroys a source.
+setup as the event listener tests, with mocked Player, Source, DRM and playlist
+modules. They cover how JS resolves native source ids to `Source` instances,
+rejects destroyed sources, sends the native destroy right away, also while an
+initialization is in progress, and which sources `Player.destroy` destroys: the
+ones it owns, including ones it is still loading, but not ones another player
+loaded since or that were removed from its playlist. They do not prove that
+native creates, loads, removes or destroys a source.
 
 `yarn test:plugin` builds and tests the config plugin. The Python command tests
 repository automation. Neither establishes Player runtime behavior. There is
