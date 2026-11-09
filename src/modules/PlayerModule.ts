@@ -82,10 +82,8 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
 
   /**
    * Call .destroy() on nativeId's player and remove from registry.
-   *
-   * @returns the native ids of the sources of the player's playback session before it was destroyed.
    */
-  destroy(nativeId: string): Promise<string[]>;
+  destroy(nativeId: string): Promise<void>;
 
   /**
    * Call .setVolume(volume) on nativeId's player.

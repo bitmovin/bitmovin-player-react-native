@@ -7,7 +7,7 @@ import type { Source } from '../source';
  */
 const sources = new Map<string, Source>();
 /**
- * The {@link Player.nativeId} of the player that created a source in {@link Player.load} and destroys it.
+ * The {@link Player.nativeId} of the player that a source was last loaded into, which destroys it.
  * Set before the source is registered, so it is weak to not keep sources that are never registered.
  */
 const owners = new WeakMap<Source, string>();
@@ -40,17 +40,11 @@ export const SourceRegistry = {
     return sources.get(nativeId);
   },
 
+  /**
+   * Makes the player that loads `source` its owner, also if another player owned it before.
+   */
   setOwner(source: Source, playerNativeId: string) {
     owners.set(source, playerNativeId);
-  },
-
-  /**
-   * Makes the player that loads `source` its owner, if `source` is owned by a player.
-   */
-  transferOwner(source: Source, playerNativeId: string) {
-    if (owners.has(source)) {
-      owners.set(source, playerNativeId);
-    }
   },
 
   ownedBy(playerNativeId: string): Source[] {

@@ -47,14 +47,14 @@ export class PlaylistApi {
    * @returns a promise that rejects if the `source` is already attached to a player or was destroyed.
    */
   add = async (source: Source, index?: number): Promise<void> => {
-    SourceRegistry.transferOwner(source, this.nativeId);
+    SourceRegistry.setOwner(source, this.nativeId);
     await source.initialize();
     return PlaylistModule?.add(this.nativeId, source.nativeId, index);
   };
 
   /**
    * Removes the `source` from the active playback session.
-   * The `source` is not destroyed and can be added or loaded again; use {@link Source.destroy} to destroy it.
+   * The `source` is not destroyed, so it can be added or loaded again.
    *
    * Has no effect if the `source` is not part of the playback session. Has no effect and emits a `PlayerWarning`
    * if there is no active playback session or if the `source` is the active source.

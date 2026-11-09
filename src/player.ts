@@ -125,25 +125,19 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Destroys the native `Player` and releases all of its allocated resources.
    *
-   * Also destroys the {@link Source}s of its playback session, including ones it is still loading, and the sources
-   * it created in {@link Player.load}, unless another player loaded them since. Other sources, e.g. ones removed
-   * from the player before, are not destroyed; destroy them via {@link Source.destroy} once they are no longer
-   * needed.
-   * To keep using a source that was passed to the player, e.g. in another player, unload the player before
-   * destroying it.
+   * Also destroys the {@link Source}s that were last loaded into it, including ones it is still loading and ones
+   * it no longer plays, e.g. after {@link Player.unload} or a later load. To keep using a source, load it into
+   * another player before destroying this one.
    */
   destroy = () => {
     if (!this.isDestroyed) {
       // Remove the listeners only after the native destroy, so they still receive the `destroy` event.
       void PlayerModule.destroy(this.nativeId)
-        .then((sourceNativeIds) => {
-          sourceNativeIds.forEach((sourceNativeId) =>
-            SourceRegistry.get(sourceNativeId)?.destroy()
-          );
+        .then(() =>
           SourceRegistry.ownedBy(this.nativeId).forEach((source) =>
             source.destroy()
-          );
-        })
+          )
+        )
         .finally(() => {
           this.eventListeners.removeAll();
         });
@@ -192,14 +186,9 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Loads a new {@link Source} from `sourceConfig` into the player.
-   *
-   * The source stays allocated until the player is destroyed, even once a later load replaced it. Use
-   * {@link Player.loadSource} to destroy a replaced source earlier via {@link Source.destroy}.
    */
   load = (sourceConfig: SourceConfig) => {
-    const source = new Source(sourceConfig);
-    SourceRegistry.setOwner(source, this.nativeId);
-    this.loadSource(source);
+    this.loadSource(new Source(sourceConfig));
   };
 
   /**
@@ -225,7 +214,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (source.isDestroyed) {
       throw new Error(`Source ${source.nativeId} was destroyed`);
     }
-    SourceRegistry.transferOwner(source, this.nativeId);
+    SourceRegistry.setOwner(source, this.nativeId);
     void source.initialize().then(
       () =>
         this.isDestroyed
@@ -262,7 +251,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   loadPlaylist = (playlistConfig: PlaylistConfig) => {
     validatePlaylistConfig(playlistConfig);
     playlistConfig.sources.forEach((source) =>
-      SourceRegistry.transferOwner(source, this.nativeId)
+      SourceRegistry.setOwner(source, this.nativeId)
     );
     void Promise.all(
       playlistConfig.sources.map((source) => source.initialize())
