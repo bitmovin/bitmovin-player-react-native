@@ -39,7 +39,7 @@ before(() => {
   }
 });
 
-test('Source accepts a facade with only its public structural API', () => {
+function assertPublicTypes(name, source) {
   const projectRoot = path.resolve(__dirname, '..');
   const configuration = ts.readConfigFile(
     path.join(projectRoot, 'tsconfig.json'),
@@ -51,15 +51,8 @@ test('Source accepts a facade with only its public structural API', () => {
     ts.sys,
     projectRoot
   );
-  const filename = path.join(root, 'source-public-facade.ts');
-  fs.writeFileSync(
-    filename,
-    `import type { Source } from ${JSON.stringify(path.join(projectRoot, 'src/source'))};
-declare const facade: Pick<Source, keyof Source>;
-const source: Source = facade;
-void source;
-`
-  );
+  const filename = path.join(root, `${name}.ts`);
+  fs.writeFileSync(filename, source(projectRoot));
   const program = ts.createProgram([filename], {
     ...parsed.options,
     rootDir: undefined,
@@ -73,6 +66,58 @@ void source;
         ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
       ),
     []
+  );
+}
+
+test('Source accepts a facade with only its public structural API', () => {
+  assertPublicTypes(
+    'source-public-facade',
+    (projectRoot) => `
+import type { Source } from ${JSON.stringify(path.join(projectRoot, 'src/source'))};
+declare const facade: Pick<Source, keyof Source>;
+const source: Source = facade;
+void source;
+`
+  );
+});
+
+test('public DRM types separate required source ownership from configuration', () => {
+  assertPublicTypes(
+    'drm-public-api',
+    (projectRoot) => `
+import { Source, SourceDrmApi, FairplayDrmApi, Drm } from ${JSON.stringify(path.join(projectRoot, 'src/index'))};
+const source = new Source({ url: 'https://test/source' });
+const runtime: SourceDrmApi = source.drm;
+const fairplay: FairplayDrmApi = runtime.fairplay;
+new FairplayDrmApi(source);
+void fairplay.renewExpiringLicense({ skdUri: 'skd://content' });
+const config = new Drm({ fairplay: { licenseUrl: 'https://test/license' } });
+void config.config;
+// @ts-expect-error A FairPlay runtime API requires its Source.
+new FairplayDrmApi();
+// @ts-expect-error Undefined is not a Source.
+new FairplayDrmApi(undefined);
+// @ts-expect-error Runtime operations do not expose configuration.
+void runtime.config;
+// @ts-expect-error Runtime APIs have no independent initialization.
+void runtime.initialize();
+// @ts-expect-error Runtime APIs have no independent destruction.
+void runtime.destroy();
+// @ts-expect-error Source owns a permanent runtime API.
+source.drm = runtime;
+// @ts-expect-error Configuration no longer takes a Source.
+new Drm({}, source);
+// @ts-expect-error Configuration has no runtime API.
+void config.fairplay;
+// @ts-expect-error Configuration requires no initialization.
+void config.initialize();
+// @ts-expect-error Configuration requires no destruction.
+void config.destroy();
+// @ts-expect-error Configuration has no lifecycle state.
+void config.isInitialized;
+// @ts-expect-error Configuration has no lifecycle state.
+void config.isDestroyed;
+`
   );
 });
 
@@ -1147,6 +1192,21 @@ test('FairPlay runtime helper forwards through its Source object', async (t) => 
       },
     ]
   );
+});
+
+test('Android Source DRM runtime API preserves unsupported FairPlay renewal warning', async (t) => {
+  const { Source, calls } = fixture(t, 'android');
+  const warning = t.mock.method(console, 'warn', () => {});
+  const source = new Source({ url: 'https://test/source' });
+  await source.initialize();
+  calls.length = 0;
+  await source.drm.fairplay.renewExpiringLicense({ skdUri: 'skd://content' });
+  assert.deepEqual(
+    warning.mock.calls.map(({ arguments: args }) => args),
+    [['renewExpiringLicense is not available on Android.']]
+  );
+  assert.deepEqual(calls, []);
+  source.destroy();
 });
 
 test('loadSource forwards a retained SDK Source after its public destroy call', async (t) => {
