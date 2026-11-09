@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import {
+  Player,
   LoadingState,
   PlaylistTransitionEvent,
   ReplayMode,
@@ -20,6 +21,7 @@ import {
 } from '../playertesting';
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
+import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 
 const sourceAdded =
   Platform.OS === 'ios' ? EventType.SourceAddedEvent : EventType.SourceAdded;
@@ -37,6 +39,64 @@ const makeSources = () => [
 // and the existing EventSource snapshots, without requiring native ID maps.
 export default (spec: TestScope) => {
   spec.describe('native playlist', () => {
+    spec.it('delivers playlist events without a mounted view', async () => {
+      const player = new Player({
+        licenseKey: PlayerTestWorld.defaultLicenseKey,
+      });
+      const [first, second] = makeSources();
+      const added: number[] = [];
+      const addedSubscription = player.on(
+        Platform.OS === 'ios' ? 'sourceAddedEvent' : 'sourceAdded',
+        (event) => added.push(event.index)
+      );
+      const receiving = async (
+        subscribe: (listener: () => void) => { remove(): void },
+        trigger: () => Promise<void>
+      ) => {
+        let timeout: ReturnType<typeof setTimeout> | undefined;
+        let subscription: { remove(): void } | undefined;
+        const received = new Promise<void>((resolve, reject) => {
+          timeout = setTimeout(
+            () => reject(new Error('Headless playlist event timed out')),
+            15000
+          );
+          subscription = subscribe(resolve);
+        });
+        void received.catch(() => {});
+        try {
+          await trigger();
+          await received;
+        } finally {
+          clearTimeout(timeout);
+          subscription?.remove();
+        }
+      };
+      try {
+        await receiving(
+          (listener) => player.on('ready', listener),
+          () => player.loadPlaylist({ sources: [first, second] })
+        );
+        expect(added).toEqual([0, 1]);
+        await receiving(
+          (listener) => player.on('playlistTransition', listener),
+          () => player.playlist.seek(second, 0)
+        );
+        expect(await player.getSource()).toBe(second);
+        await receiving(
+          (listener) =>
+            player.on(
+              Platform.OS === 'ios' ? 'sourceRemovedEvent' : 'sourceRemoved',
+              listener
+            ),
+          () => player.playlist.remove(first)
+        );
+        expect(await player.playlist.getSources()).toEqual([second]);
+      } finally {
+        addedSubscription.remove();
+        player.destroy();
+      }
+    });
+
     spec.it(
       'loads sources in order and exposes the active SDK source',
       async () => {

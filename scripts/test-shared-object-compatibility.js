@@ -59,7 +59,6 @@ function fixture(t) {
   const create = (kind, config, callback) => {
     const emitter = new EventEmitter();
     let playlist = [];
-    const eventListeners = new Set();
     const native = {
       addListener(event, listener) {
         emitter.on(event, listener);
@@ -67,13 +66,6 @@ function fixture(t) {
       },
       emit: (event, payload) => emitter.emit(event, payload),
       sdkSource: Symbol(kind),
-      addListener: (name, listener) => {
-        assert.equal(name, 'sourceEvent');
-        eventListeners.add(listener);
-        return { remove: () => eventListeners.delete(listener) };
-      },
-      emitSourceEvent: (event) =>
-        eventListeners.forEach((listener) => listener(event)),
       isSameSource: (other) => other.sdkSource === native.sdkSource,
       destroy: async () => {
         callbacks.delete(native);
@@ -452,11 +444,36 @@ test('source event subscriptions attach before loading and can be canceled befor
   const player = new Player();
   await player.loadPlaylist({ sources: [source] });
   const event = { name: 'onSourceLoaded', timestamp: 1 };
-  nativeOf(source).emitSourceEvent({ name: 'onSourceLoad', timestamp: 0 });
-  nativeOf(source).emitSourceEvent(event);
+  nativeOf(source).emit('sourceLoad', { name: 'onSourceLoad', timestamp: 0 });
+  nativeOf(source).emit('sourceLoaded', event);
   assert.deepEqual(received, [event]);
   active.remove();
-  nativeOf(source).emitSourceEvent(event);
+  nativeOf(source).emit('sourceLoaded', event);
   assert.deepEqual(received, [event]);
+  player.destroy();
+});
+
+test('native-owned sources are adopted without creating another SDK source', async (t) => {
+  const { Player, modules, nativeOf, creations } = fixture(t);
+  const player = new Player();
+  await player.initialize();
+  const native = await modules.SourceModule.create({
+    url: 'https://test/native-source',
+  });
+  nativeOf(player).getSource = async () => native;
+  const count = creations.length;
+  const source = await player.getSource();
+  assert.equal(source.isInitialized, true);
+  assert.equal(source.config, undefined);
+  assert.deepEqual(await source.metadata(), { title: 'shared source' });
+  const received = [];
+  const subscription = source.on('sourceLoaded', (event) =>
+    received.push(event)
+  );
+  const event = { name: 'onSourceLoaded', timestamp: 1 };
+  native.emit('sourceLoaded', event);
+  assert.deepEqual(received, [event]);
+  subscription.remove();
+  assert.equal(creations.length, count);
   player.destroy();
 });
