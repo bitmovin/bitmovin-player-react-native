@@ -16,6 +16,7 @@
 - Android: `Source.loadingState()` returning the state name instead of a `LoadingState` value
 - Android: `onPlayerActive` not being emitted
 - iOS: Data race in `NetworkConfig` HTTP request and response preprocessing now that the native SDK invokes the callbacks on a background thread
+- A source destroyed while it was initializing being created natively afterwards, and a failed DRM initialization of a source keeping its DRM callbacks registered
 
 ### Changed
 
@@ -23,6 +24,8 @@
 - `PlayerView` event props are delivered through the player's event subscriptions on all platforms. The order of fullscreen and picture-in-picture events relative to player events can differ slightly. On Android, events emitted right after loading (e.g. `onPlayerActive`) are no longer lost, and two `PlayerView`s showing the same player now both receive the events. On iOS, `onEvent` now only receives the events of the documented `PlayerView` props, instead of every event of the native player.
 - Update Bitmovin's native iOS SDK version to [`3.130.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31300)
 - **Breaking change:** Replace the `Player.source` property with `Player.getSource()`, which returns the currently active source of the native player
+- **Breaking change:** `Player.destroy()` destroys the sources of its playback session and the sources it created in `Player.load()`, instead of the source loaded last. A source passed to `Player.loadSource()` that is no longer part of the playback session, e.g. after `Player.unload()`, is no longer destroyed with the player; destroy it via `Source.destroy()`
+- **Breaking change:** `Player.loadSource()` throws and `Source.initialize()` rejects for a destroyed source, instead of creating it natively again
 
 ## [1.30.0] - 2026-10-29
 
