@@ -135,7 +135,7 @@ test('rejects initializing a destroyed source without initializing it natively',
   );
 });
 
-test('destroys a source destroyed while initializing only once its native initialization resolved', async () => {
+test('destroys a source destroyed while initializing right after its native initialization was sent', async () => {
   const { Player, Source, callsTo, results } = fixture();
   const initialization = deferred();
   results['SourceModule.initializeWithConfig'] = () => initialization.promise;
@@ -146,18 +146,6 @@ test('destroys a source destroyed while initializing only once its native initia
   player.loadSource(source);
   const initialized = source.initialize();
   source.destroy();
-  await settle();
-
-  assert.deepEqual(
-    callsTo('SourceModule.initializeWithConfig', 'SourceModule.destroy').map(
-      ([name, nativeId]) => [name, nativeId]
-    ),
-    [['SourceModule.initializeWithConfig', 'a']]
-  );
-
-  initialization.resolve();
-  await assert.rejects(initialized, /Source a was destroyed/);
-  await settle();
 
   assert.deepEqual(
     callsTo('SourceModule.initializeWithConfig', 'SourceModule.destroy').map(
@@ -168,6 +156,11 @@ test('destroys a source destroyed while initializing only once its native initia
       ['SourceModule.destroy', 'a'],
     ]
   );
+
+  initialization.resolve();
+  await assert.rejects(initialized, /Source a was destroyed/);
+  await settle();
+
   assert.equal(source.isInitialized, false);
   assert.equal(await player.getSource(), undefined);
   assert.deepEqual(callsTo('PlayerModule.loadSource'), []);
@@ -209,7 +202,7 @@ test('destroys the DRM config of a failed DRM initialization and initializes it 
   assert.equal(source.drm.isDestroyed, false);
 });
 
-test('destroys the DRM config of a source destroyed while its DRM config initializes', async () => {
+test('destroys the DRM config and creates no source when destroyed while its DRM config initializes', async () => {
   const { Source, callsTo, results } = fixture();
   const drmInitialization = deferred();
   results['DrmModule.initializeWithConfig'] = () => drmInitialization.promise;
@@ -221,20 +214,19 @@ test('destroys the DRM config of a source destroyed while its DRM config initial
 
   const initialized = source.initialize();
   source.destroy();
-  await settle();
-  assert.deepEqual(callsTo('DrmModule.destroy', 'SourceModule.destroy'), []);
-
   drmInitialization.resolve();
   await assert.rejects(initialized, /Source a was destroyed/);
   await settle();
 
   assert.deepEqual(
     callsTo(
+      'DrmModule.initializeWithConfig',
+      'DrmModule.destroy',
       'SourceModule.initializeWithConfig',
-      'SourceModule.destroy',
-      'DrmModule.destroy'
+      'SourceModule.destroy'
     ).map(([name, nativeId]) => [name, nativeId]),
     [
+      ['DrmModule.initializeWithConfig', 'drm'],
       ['SourceModule.destroy', 'a'],
       ['DrmModule.destroy', 'drm'],
     ]
@@ -265,42 +257,31 @@ test('reuses the DRM config when initializing again after the source creation fa
   assert.equal(source.isInitialized, true);
 });
 
-test('creates a source with the nativeId of a destroyed one only once its destroy resolved', async () => {
+test('sends the creation of a source with the nativeId of a destroyed one after its destroy', async () => {
   const { Source, callsTo, results } = fixture();
   const firstInitialization = deferred();
-  const destroy = deferred();
   results['SourceModule.initializeWithConfig'] = () =>
     firstInitialization.promise;
-  results['SourceModule.destroy'] = () => destroy.promise;
   const first = new Source({ nativeId: 'a', url });
   const second = new Source({ nativeId: 'a', url });
 
   const firstInitialized = first.initialize();
   first.destroy();
-  const secondInitialized = second.initialize();
-  await settle();
+  delete results['SourceModule.initializeWithConfig'];
+  await second.initialize();
   firstInitialization.resolve();
   await assert.rejects(firstInitialized, /Source a was destroyed/);
-  await settle();
 
-  const calls = () =>
+  assert.deepEqual(
     callsTo('SourceModule.initializeWithConfig', 'SourceModule.destroy').map(
       ([name]) => name
-    );
-  assert.deepEqual(calls(), [
-    'SourceModule.initializeWithConfig',
-    'SourceModule.destroy',
-  ]);
-
-  delete results['SourceModule.initializeWithConfig'];
-  destroy.resolve();
-  await secondInitialized;
-
-  assert.deepEqual(calls(), [
-    'SourceModule.initializeWithConfig',
-    'SourceModule.destroy',
-    'SourceModule.initializeWithConfig',
-  ]);
+    ),
+    [
+      'SourceModule.initializeWithConfig',
+      'SourceModule.destroy',
+      'SourceModule.initializeWithConfig',
+    ]
+  );
   assert.equal(second.isInitialized, true);
 });
 
@@ -392,18 +373,18 @@ test('destroys the sources of a destroyed player that native returns, then remov
   ]);
   assert.deepEqual(
     callsTo('SourceModule.destroy', 'PlayerModule.removeListener'),
-    []
+    [['SourceModule.destroy', 'created-pending']]
   );
   const event = { name: 'onDestroy', timestamp: 1 };
   emit('PlayerModule', { nativeId: 'player', eventName: 'destroy', event });
   assert.deepEqual(received, [event]);
 
-  pendingInitialization.resolve();
-  await settle();
-
-  assert.deepEqual(callsTo('SourceModule.destroy', 'PlayerModule.loadSource'), [
+  assert.deepEqual(callsTo('SourceModule.destroy'), [
     ['SourceModule.destroy', 'created-pending'],
   ]);
+  pendingInitialization.resolve();
+  await settle();
+  assert.deepEqual(callsTo('PlayerModule.loadSource'), []);
 
   calls.length = 0;
   nativeDestroy.resolve(['created', 'session', 'unknown']);

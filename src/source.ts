@@ -217,24 +217,21 @@ export class Source extends NativeInstance<SourceConfig> {
     }
     const sourceMetadata = this.config?.analyticsSourceMetadata;
     if (this.config?.drmConfig && !this.drm) {
-      const drm = new Drm(this.config.drmConfig, this.nativeId);
+      this.drm = new Drm(this.config.drmConfig, this.nativeId);
+    }
+    if (this.drm && !this.drm.isInitialized) {
+      const drm = this.drm;
       try {
         await drm.initialize();
       } catch (error) {
         void drm.destroy();
+        this.drm = undefined;
         throw error;
       }
-      this.drm = drm;
     }
+    // Native runs the calls in the order they are made, so a destroy made from here on runs after the creation.
     if (this.isDestroyed) {
       throw destroyedSourceError(this);
-    }
-    const pendingDestroy = SourceRegistry.pendingDestroy(this.nativeId);
-    if (pendingDestroy) {
-      await pendingDestroy;
-      if (this.isDestroyed) {
-        throw destroyedSourceError(this);
-      }
     }
     if (sourceMetadata) {
       await SourceModule.initializeWithAnalyticsConfig(
@@ -275,15 +272,8 @@ export class Source extends NativeInstance<SourceConfig> {
     this.isDestroyed = true;
     SourceRegistry.unregister(this);
     this.eventListeners.removeAll();
-    const destroyNative = () =>
-      Promise.all([SourceModule.destroy(this.nativeId), this.drm?.destroy()]);
-    // Destroy natively only once an initialization in progress created the native source.
-    SourceRegistry.trackDestroy(
-      this.nativeId,
-      this.initialization
-        ? this.initialization.then(destroyNative, destroyNative)
-        : destroyNative()
-    );
+    void SourceModule.destroy(this.nativeId);
+    void this.drm?.destroy();
   };
 
   /**
