@@ -10,7 +10,12 @@ import { getOrCreateAsync } from './nativeInstanceRegistry';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
-import SourceModule from './modules/SourceModule';
+import SourceModule, {
+  getNativeSource,
+  getSourceOwner,
+  setSourceOwner,
+  type NativeSource,
+} from './modules/SourceModule';
 import {
   createConfigurationCallbacks,
   createSharedObjectWithCallback,
@@ -170,7 +175,24 @@ export interface SourceRemoteControlConfig {
 /**
  * Represents audio and video content that can be loaded into a player.
  */
-export class Source extends NativeInstance<SourceConfig> {
+export class Source extends NativeInstance<SourceConfig | undefined> {
+  constructor(config: SourceConfig);
+  /** @internal Adopts a native-owned source without a JS configuration snapshot. */
+  constructor(config: undefined, native: NativeSource);
+  constructor(config: SourceConfig | undefined, native?: NativeSource) {
+    super(config);
+    if (native) {
+      setNativeOwner(this, native);
+      setSourceOwner(native, this);
+      this.isInitialized = true;
+    }
+  }
+
+  /** @internal Wraps an SDK source without creating a second native source. */
+  static fromNative(native: NativeSource): Source {
+    return getSourceOwner(native) ?? new Source(undefined, native);
+  }
+
   /**
    * Subscribes to native events, even without a PlayerView. For example,
    * `await source.on('sourceLoaded', listener)`.
@@ -185,6 +207,12 @@ export class Source extends NativeInstance<SourceConfig> {
     subscribeToNativeEvent(this.native, event, listener);
 
   private get native() {
+    const existing = getNativeSource(this);
+    if (existing) {
+      this.isInitialized = true;
+      if (!getSourceOwner(existing)) setSourceOwner(existing, this);
+      return Promise.resolve(existing);
+    }
     return getOrCreateAsync('source', this.nativeId, () => {
       const callbacks = createConfigurationCallbacks();
       return createSharedObjectWithCallback(
@@ -192,13 +220,14 @@ export class Source extends NativeInstance<SourceConfig> {
           SourceModule.create(
             callbacks.serialize(this.config),
             callbacks.serialize(this.remoteControl || undefined),
-            callbacks.serialize(this.config.analyticsSourceMetadata),
+            callbacks.serialize(this.config?.analyticsSourceMetadata),
             callback
           ),
         callbacks.callback
       );
     }).then((native) => {
       setNativeOwner(this, native);
+      setSourceOwner(native, this);
       this.isInitialized = true;
       return native;
     });

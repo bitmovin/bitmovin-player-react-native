@@ -58,17 +58,50 @@ function fixture(t) {
   const callbacks = new WeakMap();
   const create = (kind, config, callback) => {
     const emitter = new EventEmitter();
+    let playlist = [];
     const native = {
       addListener(event, listener) {
         emitter.on(event, listener);
         return { remove: () => emitter.off(event, listener) };
       },
       emit: (event, payload) => emitter.emit(event, payload),
+      sdkSource: Symbol(kind),
+      isSameSource: (other) => other.sdkSource === native.sdkSource,
       destroy: async () => {
         callbacks.delete(native);
       },
-      loadSource: async () => {},
-      unload: async () => {},
+      loadSource: async (source) => {
+        playlist = [source];
+      },
+      loadPlaylist: async (sources, options) => {
+        playlist = sources;
+        calls.push({ sources, options });
+      },
+      getPlaylistSources: async () =>
+        playlist.map((source) => ({
+          sdkSource: source.sdkSource,
+          isSameSource: (other) => other.sdkSource === source.sdkSource,
+          getMetadata: source.getMetadata,
+        })),
+      getSource: async () => (await native.getPlaylistSources())[0] ?? null,
+      playlistAdd: async (source, index = playlist.length) => {
+        playlist.splice(index, 0, source);
+      },
+      playlistRemove: async (source) => {
+        playlist = playlist.filter((item) => !item.isSameSource(source));
+      },
+      playlistRemoveAt: async (index) => {
+        playlist.splice(index, 1);
+      },
+      playlistSeek: async (source, time) => {
+        calls.push({ source, time });
+      },
+      playlistSeekTo: async (source, target) => {
+        calls.push({ source, target });
+      },
+      unload: async () => {
+        playlist = [];
+      },
       getVolume: async () => 37,
       getMetadata: async () => ({ title: 'shared source' }),
       drmFairplayRenewExpiringLicense: async (skdUri) => {
@@ -340,4 +373,61 @@ test('concurrent destruction warns when it prevents event registration', async (
     /Cannot subscribe to 'destroy'.*destroyed during registration/
   );
   subscription.remove();
+});
+
+test('playlist queries wrap SDK sources without creating replacement sources', async (t) => {
+  const { Player, Source, calls, creations, nativeOf } = fixture(t);
+  const player = new Player();
+  const first = new Source({ url: 'https://test/first' });
+  const second = new Source({ url: 'https://test/second' });
+  const options = { preloadAllSources: true, replayMode: 'lastSource' };
+  await player.loadPlaylist({ sources: [first, second], options });
+  assert.deepEqual(calls[0], {
+    sources: [nativeOf(first), nativeOf(second)],
+    options,
+  });
+  assert.deepEqual(await player.playlist.getSources(), [first, second]);
+  assert.equal(await player.getSource(), first);
+  await player.playlist.seek(second, 12);
+  assert.deepEqual(calls[1], { source: nativeOf(second), time: 12 });
+  await player.playlist.remove(second);
+  assert.deepEqual(await player.playlist.getSources(), [first]);
+  await player.playlist.add(second, 0);
+  assert.deepEqual(await player.playlist.getSources(), [second, first]);
+  await player.playlist.removeAt(1);
+  assert.deepEqual(await player.playlist.getSources(), [second]);
+  assert.equal(creations.filter(({ kind }) => kind === 'source').length, 2);
+  player.destroy();
+});
+
+test('playlist query uses native state and does not overwrite ownership after a rejected load', async (t) => {
+  const { Player, Source, nativeOf } = fixture(t);
+  const player = new Player();
+  const source = new Source({ url: 'https://test/first' });
+  await player.loadPlaylist({ sources: [source] });
+  nativeOf(player).loadPlaylist = async () => {
+    throw new Error('SDK rejected load');
+  };
+  await assert.rejects(
+    player.loadPlaylist({ sources: [] }),
+    /SDK rejected load/
+  );
+  assert.equal(await player.getSource(), source);
+  // The native double changes its playlist independently of the wrapper.
+  await nativeOf(player).playlistRemoveAt(0);
+  assert.deepEqual(await player.playlist.getSources(), []);
+  assert.equal(await player.getSource(), undefined);
+  player.destroy();
+});
+
+test('playlist seekTo reports unsupported iOS use without submitting a native seek', async (t) => {
+  const { Player, Source, calls } = fixture(t);
+  const player = new Player();
+  const source = new Source({ url: 'https://test/first' });
+  await assert.rejects(
+    player.playlist.seekTo(source, { offset: 10 }),
+    /only supported on Android/
+  );
+  assert.deepEqual(calls, []);
+  player.destroy();
 });

@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
 import type { NativePlayerViewConfig, NativePlayerViewRef } from './native';
 import { NativePlayerView } from './native';
@@ -94,6 +94,17 @@ export function PlayerView({
 
   useEffect(() => {
     const subscriptions = [
+      player.on(
+        Platform.OS === 'ios' ? 'sourceAddedEvent' : 'sourceAdded',
+        (event) => props.onSourceAdded?.(event)
+      ),
+      player.on(
+        Platform.OS === 'ios' ? 'sourceRemovedEvent' : 'sourceRemoved',
+        (event) => props.onSourceRemoved?.(event)
+      ),
+      player.on('playlistTransition', (event) =>
+        props.onPlaylistTransition?.(event)
+      ),
       player.on('adBreakFinished', (event) => props.onAdBreakFinished?.(event)),
       player.on('adBreakStarted', (event) => props.onAdBreakStarted?.(event)),
       player.on('adClicked', (event) => props.onAdClicked?.(event)),

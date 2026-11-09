@@ -11,13 +11,13 @@ import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.sharedobjects.SharedRef
 
 /** Owns the source wrapper, without unloading a source retained by an SDK player. */
-class SharedSource(appContext: AppContext, source: Source, private val callbacks: CallbackScope) : SharedRef<Source>(
+class SharedSource(appContext: AppContext, source: Source, private val callbacks: CallbackScope? = null) : SharedRef<Source>(
     source,
     appContext,
 ) {
     init { observeSourceEvents(source) }
 
-    override fun sharedObjectDidRelease() = callbacks.close()
+    override fun sharedObjectDidRelease() { callbacks?.close() }
 
     val source: Source
         get() = ref

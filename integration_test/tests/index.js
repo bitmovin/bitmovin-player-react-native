@@ -6,6 +6,7 @@ function testSuite(name, platforms, load) {
 }
 
 const testRegistrations = [
+  testSuite('playlist', androidAndIos, () => require('./playlistTest').default),
   testSuite(
     'advertising',
     androidAndIos,

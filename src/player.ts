@@ -5,6 +5,8 @@ import { Platform } from 'react-native';
 import PlayerModule, {
   getNativePlayer,
   retainLoadedSource,
+  refreshLoadedSources,
+  resolveLoadedSource,
 } from './modules/PlayerModule';
 import { getNativeSource } from './modules/SourceModule';
 import NativeInstance from './nativeInstance';
@@ -29,6 +31,8 @@ import type { VideoQuality } from './media';
 import { getNativeOffline } from './offline/offlineModule';
 import { createConfigurationCallbacks } from './nativeCallbacks';
 import { setNativeOwner } from './nativeOwner';
+import { PlaylistApi } from './playlist';
+import type { PlaylistConfig } from './playlist';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -94,9 +98,37 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    */
   isDestroyed = false;
   /**
-   * Currently active source, or `null` if none is active.
+   * Most recent source passed to {@link loadSource}.
+   * @deprecated Use {@link getSource} to query the active native source after playlist transitions.
    */
   source?: Source;
+  /** Provides access to the native playlist. */
+  readonly playlist = new PlaylistApi(() => this.native);
+
+  /** Returns the currently active native source, including after playlist transitions. */
+  getSource = async (): Promise<Source | undefined> => {
+    const player = await this.native;
+    const source = await player?.getSource();
+    return player && source
+      ? Source.fromNative(resolveLoadedSource(player, source))
+      : undefined;
+  };
+
+  /**
+   * Loads a playlist. Resolution means the SDK accepted the call; observe Ready for playback readiness.
+   * The native SDK controls validation, preloading, replay and transitions.
+   */
+  loadPlaylist = async (config: PlaylistConfig): Promise<void> => {
+    await Promise.all(config.sources.map((source) => source.initialize()));
+    const player = await this.native;
+    if (!player) return;
+    const sources = config.sources.map((source) => getNativeSource(source)!);
+    await refreshLoadedSources(
+      player,
+      sources,
+      player.loadPlaylist(sources, config.options)
+    );
+  };
   /**
    * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.
    *

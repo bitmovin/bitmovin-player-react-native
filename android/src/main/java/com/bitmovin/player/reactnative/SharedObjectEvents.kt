@@ -33,6 +33,9 @@ internal fun SharedObject.observePlayerEvents(player: EventEmitter<Event>) {
     player.on(PlayerEvent.Play::class) { owner.get()?.forwardEvent(it.toJson()) }
     player.on(PlayerEvent.Playing::class) { owner.get()?.forwardEvent(it.toJson()) }
     player.on(PlayerEvent.PlaybackFinished::class) { owner.get()?.forwardEvent(it.toJson()) }
+    player.on(PlayerEvent.SourceAdded::class) { owner.get()?.forwardEvent(it.toJson()) }
+    player.on(PlayerEvent.SourceRemoved::class) { owner.get()?.forwardEvent(it.toJson()) }
+    player.on(PlayerEvent.PlaylistTransition::class) { owner.get()?.forwardEvent(it.toJson()) }
     player.on(PlayerEvent.Seek::class) { owner.get()?.forwardEvent(it.toJson()) }
     player.on(PlayerEvent.Seeked::class) { owner.get()?.forwardEvent(it.toJson()) }
     player.on(PlayerEvent.TimeShift::class) { owner.get()?.forwardEvent(it.toJson()) }

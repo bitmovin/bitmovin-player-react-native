@@ -20,6 +20,9 @@ public class SourceModule: Module {
             return SharedSource(source: source, callback: callback, remote: remote)
         }.runOnQueue(.main)
         Class("Source", SharedSource.self) {
+            Function("isSameSource") { (owner: SharedSource, other: SharedSource) -> Bool in
+                owner.source === other.source
+            }
             AsyncFunction("isAttachedToPlayer") { (owner: SharedSource) -> Bool in
                 owner.source.isAttachedToPlayer
             }.runOnQueue(.main)

@@ -1119,6 +1119,15 @@ export type SourceEvents = {
 
 /** Events emitted by a Player, including its sources. View UI events belong to PlayerView. */
 export type PlayerEvents = SourceEvents & {
+  /** @platform Android */
+  sourceAdded: (event: SourceAddedEvent) => void;
+  /** @platform Android */
+  sourceRemoved: (event: SourceRemovedEvent) => void;
+  /** @platform iOS/tvOS */
+  sourceAddedEvent: (event: SourceAddedEvent) => void;
+  /** @platform iOS/tvOS */
+  sourceRemovedEvent: (event: SourceRemovedEvent) => void;
+  playlistTransition: (event: PlaylistTransitionEvent) => void;
   adBreakFinished: (event: AdBreakFinishedEvent) => void;
   adBreakStarted: (event: AdBreakStartedEvent) => void;
   adClicked: (event: AdClickedEvent) => void;
@@ -1169,3 +1178,27 @@ export type PlayerEvents = SourceEvents & {
   ) => void;
   unmuted: (event: UnmutedEvent) => void;
 };
+
+/**
+ * Emitted when a source is added to the native playlist.
+ * The native name is `onSourceAddedEvent` on iOS/tvOS and `onSourceAdded` on Android.
+ */
+export interface SourceAddedEvent extends Event {
+  source: EventSource;
+  index: number;
+}
+
+/**
+ * Emitted when a source is removed from the native playlist.
+ * The native name is `onSourceRemovedEvent` on iOS/tvOS and `onSourceRemoved` on Android.
+ */
+export interface SourceRemovedEvent extends Event {
+  source: EventSource;
+  index: number;
+}
+
+/** Emitted when playback transitions between sources. */
+export interface PlaylistTransitionEvent extends Event {
+  from: EventSource;
+  to: EventSource;
+}

@@ -169,10 +169,66 @@ public class PlayerModule: Module {
             AsyncFunction("setMediaControlsEnabled") { (owner: SharedPlayer, enabled: Bool) in
                 owner.player.nowPlaying.isEnabled = enabled
             }.runOnQueue(.main)
+            AsyncFunction("loadPlaylist") { (owner: SharedPlayer, sources: [SharedSource], options: [String: Any]?) in
+                try sources.forEach { try ensureSourceAvailable($0.source, player: owner.player) }
+                let config = try playlistConfig(sources: sources, options: options)
+                owner.player.load(playlistConfig: config)
+                owner.source = nil
+            }.runOnQueue(.main)
+            AsyncFunction("getSource") { (owner: SharedPlayer) -> SharedSource? in
+                owner.player.source.map { SharedSource(source: $0, callback: nil, remote: nil) }
+            }.runOnQueue(.main)
+            AsyncFunction("getPlaylistSources") { (owner: SharedPlayer) -> [SharedSource] in
+                owner.player.playlist.sources.map { SharedSource(source: $0, callback: nil, remote: nil) }
+            }.runOnQueue(.main)
+            AsyncFunction("playlistAdd") { (owner: SharedPlayer, source: SharedSource, index: Int?) in
+                try ensureSourceAvailable(source.source, player: owner.player)
+                if let index {
+                    owner.player.playlist.add(source: source.source, at: index)
+                } else {
+                    owner.player.playlist.add(source: source.source)
+                }
+            }.runOnQueue(.main)
+            AsyncFunction("playlistRemove") { (owner: SharedPlayer, source: SharedSource) in
+                if let index = owner.player.playlist.sources.firstIndex(where: { $0 === source.source }) {
+                    owner.player.playlist.remove(sourceAt: index)
+                }
+            }.runOnQueue(.main)
+            AsyncFunction("playlistRemoveAt") { (owner: SharedPlayer, index: Int) in
+                owner.player.playlist.remove(sourceAt: index)
+            }.runOnQueue(.main)
+            AsyncFunction("playlistSeek") { (owner: SharedPlayer, source: SharedSource, time: Double) in
+                owner.player.playlist.seek(source: source.source, time: time)
+            }.runOnQueue(.main)
             AsyncFunction("loadSource") { (owner: SharedPlayer, source: SharedSource) in
                 owner.source = source
                 owner.player.load(source: source.source)
             }.runOnQueue(.main)
         }
     }
+}
+
+private func ensureSourceAvailable(_ source: Source, player: Player) throws {
+    guard !source.isAttachedToPlayer || player.playlist.sources.contains(where: { $0 === source }) else {
+        throw Exception(name: "SourceAlreadyAttached", description: "Source is attached to another player")
+    }
+}
+
+private func playlistConfig(sources: [SharedSource], options: [String: Any]?) throws -> PlaylistConfig {
+    guard !sources.isEmpty else {
+        throw Exception(name: "InvalidPlaylist", description: "A playlist requires at least one source")
+    }
+    let replayMode: ReplayMode
+    switch options?["replayMode"] as? String {
+    case nil, "playlist":
+        replayMode = .playlist
+    case "lastSource":
+        replayMode = .lastSource
+    default:
+        throw Exception(name: "InvalidReplayMode", description: "Unknown replay mode")
+    }
+    return PlaylistConfig(sources: sources.map(\.source), options: PlaylistOptions(
+        preloadAllSources: options?["preloadAllSources"] as? Bool ?? false,
+        replayMode: replayMode
+    ))
 }

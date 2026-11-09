@@ -16,6 +16,8 @@ export type SourceModuleEvents = SourceEvents;
 
 /** @internal */
 export interface NativeSource extends SharedObject<SourceModuleEvents> {
+  isSameSource(other: NativeSource): boolean;
+
   isAttachedToPlayer(): Promise<boolean>;
 
   isActive(): Promise<boolean>;
@@ -66,4 +68,17 @@ export function nativeSourceReference(
   return typeof source === 'function'
     ? source
     : () => source.initialize().then(() => getNativeSource(source));
+}
+
+const sourceOwner = Symbol('sourceOwner');
+type OwnedSource = NativeSource & { [sourceOwner]?: WeakRef<Source> };
+
+/** @internal */
+export function setSourceOwner(native: NativeSource, source: Source): void {
+  (native as OwnedSource)[sourceOwner] = new WeakRef(source);
+}
+
+/** @internal */
+export function getSourceOwner(native: NativeSource): Source | undefined {
+  return (native as OwnedSource)[sourceOwner]?.deref();
 }

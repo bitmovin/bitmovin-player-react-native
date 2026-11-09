@@ -2,6 +2,11 @@ package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.analytics.AnalyticsApi.Companion.analytics
 import com.bitmovin.player.api.media.MediaType
+import com.bitmovin.player.api.playlist.PlaylistConfig
+import com.bitmovin.player.api.playlist.PlaylistOptions
+import com.bitmovin.player.api.playlist.ReplayMode
+import com.bitmovin.player.api.playlist.SeekTarget
+import com.bitmovin.player.api.source.TimelineReferencePoint
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
 import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
@@ -25,6 +30,65 @@ class PlayerModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         Class(SharedPlayer::class) {
+            AsyncFunction("loadPlaylist") { shared: SharedPlayer, sources: List<SharedSource>,
+                options: Map<String, Any>?, ->
+                val replayMode = when (options?.get("replayMode")) {
+                    null, "playlist" -> ReplayMode.Playlist
+                    "lastSource" -> ReplayMode.LastSource
+                    else -> throw IllegalArgumentException("Unknown replay mode")
+                }
+                shared.player.load(
+                    PlaylistConfig(
+                        sources.map { it.source },
+                        PlaylistOptions(
+                            preloadAllSources = options?.get("preloadAllSources") as? Boolean ?: false,
+                            replayMode = replayMode,
+                        ),
+                    ),
+                )
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getSource") { shared: SharedPlayer ->
+                shared.player.source?.let { SharedSource(appContext, it) }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getPlaylistSources") { shared: SharedPlayer ->
+                shared.player.playlist.sources.map { SharedSource(appContext, it) }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("playlistAdd") { shared: SharedPlayer, source: SharedSource, index: Int? ->
+                if (index == null) {
+                    shared.player.playlist.add(source.source)
+                } else {
+                    shared.player.playlist.add(source.source, index)
+                }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("playlistRemove") { shared: SharedPlayer, source: SharedSource ->
+                shared.player.playlist.remove(source.source)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("playlistRemoveAt") { shared: SharedPlayer, index: Int ->
+                shared.player.playlist.remove(index)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("playlistSeek") { shared: SharedPlayer, source: SharedSource, time: Double ->
+                shared.player.playlist.seek(source.source, time)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("playlistSeekTo") { shared: SharedPlayer, source: SharedSource, target: Map<String, Any> ->
+                val reference = when (target["startOffsetTimelineReference"]) {
+                    null -> null
+                    "start" -> TimelineReferencePoint.Start
+                    "end" -> TimelineReferencePoint.End
+                    else -> throw IllegalArgumentException("Unknown timeline reference point")
+                }
+                shared.player.playlist.seek(
+                    source.source,
+                    SeekTarget((target["offset"] as Number).toDouble(), reference),
+                )
+            }.runOnQueue(Queues.MAIN)
+
             AsyncFunction("getBufferLevel") { shared: SharedPlayer, type: String ->
                 val buffer = shared.player.buffer
                 val bufferType = type.toBufferTypeOrThrow()

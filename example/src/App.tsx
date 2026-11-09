@@ -10,6 +10,7 @@ import PauseAds from './screens/PauseAds';
 import BasicAnalytics from './screens/BasicAnalytics';
 import BasicMetadata from './screens/BasicMetadata';
 import BasicPlayback from './screens/BasicPlayback';
+import BasicPlaylist from './screens/BasicPlaylist';
 import BasicTvPlayback from './screens/BasicTvPlayback';
 import BasicDrmPlayback from './screens/BasicDrmPlayback';
 import SubtitlePlayback from './screens/SubtitlePlayback';
@@ -43,6 +44,7 @@ export type RootStackParamsList = {
   BasicAnalytics: undefined;
   BasicMetadata: undefined;
   BasicPlayback: undefined;
+  BasicPlaylist: undefined;
   BasicTvPlayback: undefined;
   BasicDrmPlayback: undefined;
   BasicPictureInPicture: {
@@ -100,6 +102,10 @@ export default function App() {
 
   const stackParams = {
     data: [
+      {
+        title: 'Basic playlist',
+        routeName: 'BasicPlaylist' as keyof RootStackParamsList,
+      },
       {
         title: 'Basic playback',
         routeName: 'BasicPlayback' as keyof RootStackParamsList,
@@ -216,6 +222,7 @@ export default function App() {
         }}
         initialRouteName="ExamplesList"
       >
+        <RootStack.Screen name="BasicPlaylist" component={BasicPlaylist} />
         <RootStack.Screen
           name="ExamplesList"
           component={ExamplesList}

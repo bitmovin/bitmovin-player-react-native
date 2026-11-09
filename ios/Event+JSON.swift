@@ -709,3 +709,21 @@ extension FullscreenEnterEvent: DefaultJsonConvertibleEvent {}
 extension FullscreenExitEvent: DefaultJsonConvertibleEvent {}
 extension FullscreenEnabledEvent: DefaultJsonConvertibleEvent {}
 extension FullscreenDisabledEvent: DefaultJsonConvertibleEvent {}
+
+extension SourceAddedEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON { ["source": source.toJSON(), "index": index] }
+    }
+}
+
+extension SourceRemovedEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON { ["source": source.toJSON(), "index": index] }
+    }
+}
+
+extension PlaylistTransitionEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON { ["from": from.toJSON(), "to": to.toJSON()] }
+    }
+}

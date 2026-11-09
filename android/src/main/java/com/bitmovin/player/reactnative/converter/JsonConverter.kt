@@ -443,6 +443,18 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["currentTime"] = time
         }
 
+        is PlayerEvent.SourceAdded -> {
+            baseMap["source"] = source.toJson()
+            baseMap["index"] = index
+        }
+        is PlayerEvent.SourceRemoved -> {
+            baseMap["source"] = source.toJson()
+            baseMap["index"] = index
+        }
+        is PlayerEvent.PlaylistTransition -> {
+            baseMap["from"] = from.toJson()
+            baseMap["to"] = to.toJson()
+        }
         is PlayerEvent.Seek -> {
             baseMap["from"] = from.toJson()
             baseMap["to"] = to.toJson()
