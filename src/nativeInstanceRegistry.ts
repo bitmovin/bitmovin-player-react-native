@@ -15,8 +15,13 @@ export class NativeInstanceRegistry<T extends SharedObject> {
   getOrCreate(nativeId: string, factory: () => Promise<T>): Promise<T> {
     const entry = this.instances.get(nativeId);
     const existing = entry instanceof WeakRef ? entry.deref() : entry;
-    if (existing) return Promise.resolve(existing);
+    return existing
+      ? Promise.resolve(existing)
+      : this.register(nativeId, factory);
+  }
 
+  /** Register a new ID directly, without looking for an existing alias. */
+  register(nativeId: string, factory: () => Promise<T>): Promise<T> {
     // Prune collected labels without timers or finalizers.
     for (const [id, reference] of this.instances) {
       if (reference instanceof WeakRef && !reference.deref()) {

@@ -33,6 +33,9 @@ export default abstract class NativeInstance<T extends SharedObject> {
     create: () => Promise<T>
   ) {
     this.nativeId = nativeId ?? Crypto.randomUUID();
-    this.native = registry.getOrCreate(this.nativeId, create);
+    this.native =
+      nativeId == null
+        ? registry.register(this.nativeId, create)
+        : registry.getOrCreate(nativeId, create);
   }
 }
