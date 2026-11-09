@@ -7,7 +7,7 @@ import { createNativeCallback } from '../nativeCallbacks';
 /** Takes care of JS/Native communication for a FullscreenHandler. */
 export class FullscreenHandlerBridge {
   /** @internal */
-  native?: NativeFullscreen;
+  readonly native: NativeFullscreen;
   fullscreenHandler?: FullscreenHandler;
 
   constructor() {
@@ -25,14 +25,12 @@ export class FullscreenHandlerBridge {
   setFullscreenHandler(fullscreenHandler: FullscreenHandler | undefined) {
     if (this.fullscreenHandler === fullscreenHandler) return;
     this.fullscreenHandler = fullscreenHandler;
-    void this.native?.setIsFullscreenActive(
+    void this.native.setIsFullscreenActive(
       fullscreenHandler?.isFullscreenActive ?? false
     );
   }
 
   destroy() {
-    const native = this.native;
-    this.native = undefined;
-    void native?.destroy();
+    void this.native.destroy();
   }
 }

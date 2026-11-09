@@ -34,15 +34,6 @@ function store(
 }
 
 /** @internal */
-export function lookup<T extends SharedObject>(
-  kind: string,
-  nativeId: string
-): T | undefined {
-  const value = entry(kind, nativeId);
-  return value instanceof Promise ? undefined : (value as T | undefined);
-}
-
-/** @internal */
 export function getOrCreateAsync<T extends SharedObject>(
   kind: string,
   nativeId: string,

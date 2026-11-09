@@ -1,4 +1,5 @@
 import type { CmcdConfig } from './cmcdConfig';
+import { getNativeOwner, setNativeOwner } from './nativeOwner';
 import type { DrmConfig } from './drm';
 import { SourceDrmApi } from './drm/sourceDrmApi';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
@@ -188,7 +189,7 @@ export class Source {
         ),
       callbacks.callback
     );
-    this.isInitialized = true;
+    setNativeOwner(this, native);
     return native;
   }
 
@@ -209,10 +210,12 @@ export class Source {
   /**
    * Whether the native {@link Source} object has been created.
    */
-  isInitialized = false;
+  get isInitialized(): boolean {
+    return getNativeOwner(this) !== undefined;
+  }
 
   /**
-   * Allocates the native {@link Source} instance and its resources natively.
+   * Waits for the native {@link Source} creation started by the constructor.
    */
   initialize = async (): Promise<void> => {
     await this.native;

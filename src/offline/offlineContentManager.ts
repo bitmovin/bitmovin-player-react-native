@@ -57,7 +57,6 @@ const handleBitmovinNativeOfflineEvent = (
  * @platform Android, iOS
  */
 export class OfflineContentManager extends NativeInstance<OfflineContentConfig> {
-  isInitialized = false;
   isDestroyed = false;
   private eventSubscription?: EventSubscription;
   private listeners: Set<OfflineContentManagerListener> =

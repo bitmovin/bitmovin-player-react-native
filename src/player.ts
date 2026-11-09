@@ -36,10 +36,6 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   );
 
   /**
-   * Whether the native `Player` object has been created.
-   */
-  isInitialized = false;
-  /**
    * Whether the native `Player` object has been disposed.
    */
   isDestroyed = false;
@@ -288,7 +284,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   isAirPlayActive = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Method isAirPlayActive is not available for Android. Only iOS devices.`
+        'Method isAirPlayActive is not available for Android. Only iOS devices.'
       );
       return false;
     }
@@ -302,7 +298,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   isAirPlayAvailable = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Method isAirPlayAvailable is not available for Android. Only iOS devices.`
+        'Method isAirPlayAvailable is not available for Android. Only iOS devices.'
       );
       return false;
     }
@@ -318,7 +314,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   showAirPlayTargetPicker = async (): Promise<void> => {
     if (Platform.OS !== 'ios' || Platform.isTV) {
       console.warn(
-        `[Player ${this.nativeId}] Method showAirPlayTargetPicker is only available on iOS (not Android/tvOS).`
+        'Method showAirPlayTargetPicker is only available on iOS (not Android/tvOS).'
       );
       return;
     }
@@ -511,7 +507,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   setVideoQuality = async (qualityId: string): Promise<void> => {
     if (Platform.OS !== 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Method setVideoQuality is not available for iOS and tvOS devices. Only Android devices.`
+        'Method setVideoQuality is not available for iOS and tvOS devices. Only Android devices.'
       );
       return;
     }
@@ -557,7 +553,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   ): Promise<boolean | undefined> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Method canPlayAtPlaybackSpeed is not available for Android. Only iOS and tvOS devices.`
+        'Method canPlayAtPlaybackSpeed is not available for Android. Only iOS and tvOS devices.'
       );
       return undefined;
     }

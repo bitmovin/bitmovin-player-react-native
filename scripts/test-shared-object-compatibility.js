@@ -92,14 +92,14 @@ function fixture(t) {
   };
   const { Player } = require(path.join(directory, 'player.js'));
   const { Source } = require(path.join(directory, 'source.js'));
-  const { lookup } = require(path.join(directory, 'nativeInstanceRegistry.js'));
+  const { getNativeOwner } = require(path.join(directory, 'nativeOwner.js'));
   return {
     Player,
     Source,
     modules,
     calls,
     creations,
-    nativeOf: (player) => lookup('player', player.nativeId),
+    nativeOf: (player) => getNativeOwner(player),
     invoke: (native, field, args, mutating = false) => {
       const entry = callbacks.get(native);
       const token = field
@@ -117,9 +117,12 @@ test('same-ID constructors eagerly share the same player', async (t) => {
   const { Player, creations } = fixture(t);
   const first = new Player({ nativeId: 'shared' });
   const alias = new Player({ nativeId: 'shared' });
+  assert.equal(first.isInitialized, false);
   await new Promise(setImmediate);
   assert.equal(creations.filter((item) => item.kind === 'player').length, 1);
   assert.equal(await alias.getVolume(), 37);
+  assert.equal(first.isInitialized, true);
+  assert.equal(alias.isInitialized, true);
   await first.destroy();
 });
 
@@ -128,9 +131,11 @@ test('each Source eagerly owns a distinct native object without an ID', async (t
   const config = { url: 'https://test/source', type: 'hls' };
   const first = new Source(config);
   const second = new Source(config);
+  assert.equal(first.isInitialized, false);
   await new Promise(setImmediate);
   assert.equal(creations.filter((item) => item.kind === 'source').length, 2);
   assert.notEqual(await first.native, await second.native);
+  assert.equal(first.isInitialized, true);
   assert.equal('nativeId' in first, false);
 });
 
@@ -147,6 +152,7 @@ test('a failed player creation stays rejected; a new wrapper can retry', async (
     assert.rejects(first.initialize(), (error) => error === failure),
     assert.rejects(alias.initialize(), (error) => error === failure),
   ]);
+  assert.equal(first.isInitialized, false);
   modules.PlayerModule.create = create;
   await assert.rejects(alias.initialize(), (error) => error === failure);
   const replacement = new Player({ nativeId: first.nativeId });
@@ -179,7 +185,10 @@ test('a canceled creation cannot replace a player reusing its ID', async (t) => 
   await initialization;
   await new Promise(setImmediate);
   assert.equal(retiredDestroyed, true);
-  assert.notEqual(nativeOf(replacement), retired);
+  const alias = new Player({ nativeId: replacement.nativeId });
+  await alias.initialize();
+  assert.equal(nativeOf(alias), nativeOf(replacement));
+  assert.notEqual(nativeOf(alias), retired);
   assert.equal(await replacement.getVolume(), 37);
   replacement.destroy();
 });

@@ -1,6 +1,6 @@
 import * as Crypto from 'expo-crypto';
 import type { SharedObject } from 'expo-modules-core/types';
-import { setNativeOwner } from './nativeOwner';
+import { getNativeOwner, setNativeOwner } from './nativeOwner';
 
 export interface NativeInstanceConfig {
   /**
@@ -50,7 +50,6 @@ export default abstract class NativeInstance<
     void creation.then(
       (native) => {
         setNativeOwner(this, native);
-        this.isInitialized = true;
         onReady?.(native);
       },
       () => {}
@@ -61,7 +60,9 @@ export default abstract class NativeInstance<
   /**
    * Whether the native creation started by the constructor has completed successfully.
    */
-  abstract isInitialized: boolean;
+  get isInitialized(): boolean {
+    return getNativeOwner(this) !== undefined;
+  }
 
   /**
    * Wait for the native object/resources created by the constructor.
