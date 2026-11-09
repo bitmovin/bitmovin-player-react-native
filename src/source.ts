@@ -216,7 +216,7 @@ export class Source extends NativeInstance<SourceConfig> {
       return;
     }
     const sourceMetadata = this.config?.analyticsSourceMetadata;
-    if (this.config?.drmConfig) {
+    if (this.config?.drmConfig && !this.drm) {
       const drm = new Drm(this.config.drmConfig, this.nativeId);
       try {
         await drm.initialize();
