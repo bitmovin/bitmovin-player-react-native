@@ -238,9 +238,10 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (source.isDestroyed) {
       throw new Error(`Source ${source.nativeId} was destroyed`);
     }
-    void source
-      .initialize()
-      .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
+    void source.initialize().then(
+      () => PlayerModule.loadSource(this.nativeId, source.nativeId),
+      (error) => ignoreIfDestroyed(error, [source])
+    );
   };
 
   /**
@@ -271,12 +272,14 @@ export class Player extends NativeInstance<PlayerConfig> {
     validatePlaylistConfig(playlistConfig);
     void Promise.all(
       playlistConfig.sources.map((source) => source.initialize())
-    ).then(() =>
-      PlayerModule.loadPlaylist(
-        this.nativeId,
-        playlistConfig.sources.map((source) => source.nativeId),
-        playlistConfig.options
-      )
+    ).then(
+      () =>
+        PlayerModule.loadPlaylist(
+          this.nativeId,
+          playlistConfig.sources.map((source) => source.nativeId),
+          playlistConfig.options
+        ),
+      (error) => ignoreIfDestroyed(error, playlistConfig.sources)
     );
   };
 
@@ -830,3 +833,12 @@ export class Player extends NativeInstance<PlayerConfig> {
     this.decoderConfig.initialize();
   };
 }
+
+/**
+ * Rethrows `error` of a load, unless one of its `sources` was destroyed while it was initializing.
+ */
+const ignoreIfDestroyed = (error: unknown, sources: Source[]) => {
+  if (!sources.some((source) => source.isDestroyed)) {
+    throw error;
+  }
+};
