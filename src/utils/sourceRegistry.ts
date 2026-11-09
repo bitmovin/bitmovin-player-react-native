@@ -1,22 +1,19 @@
 import type { Source } from '../source';
 
 /**
- * The {@link Source}s that exist natively, keyed by {@link Source.nativeId}, to resolve the native sources of a
- * player, e.g. its active source, back to their JS instances.
- *
- * A source is registered once it is created natively and unregistered once it is destroyed. Native never
- * releases a source on its own, so the registry matches the native one.
+ * The {@link Source}s that exist natively, keyed by {@link Source.nativeId}, to resolve native source ids back to
+ * their JS instances. Only {@link Source.initialize} and {@link Source.destroy} change it, as native never
+ * releases a source on its own.
  */
 const sources = new Map<string, Source>();
 
 export const SourceRegistry = {
   /**
-   * Registers `source`, unless another source with the same `nativeId` is registered. Both then share the
-   * native source of the registered one.
+   * Registers `source`, unless another source with the same `nativeId` is registered, whose native source both
+   * then share.
    */
   register(source: Source) {
-    const registered = sources.get(source.nativeId);
-    if (registered && registered !== source) {
+    if (sources.has(source.nativeId)) {
       console.warn(
         `[Source ${source.nativeId}] Another source with the same nativeId exists, whose native source this source uses. Use a unique nativeId for every source.`
       );

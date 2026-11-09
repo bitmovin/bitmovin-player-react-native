@@ -216,15 +216,12 @@ export class Source extends NativeInstance<SourceConfig> {
       return;
     }
     const sourceMetadata = this.config?.analyticsSourceMetadata;
-    if (this.config?.drmConfig && !this.drm) {
-      this.drm = new Drm(this.config.drmConfig, this.nativeId);
-    }
-    if (this.drm && !this.drm.isInitialized) {
-      const drm = this.drm;
+    if (this.config?.drmConfig) {
+      this.drm ??= new Drm(this.config.drmConfig, this.nativeId);
       try {
-        await drm.initialize();
+        await this.drm.initialize();
       } catch (error) {
-        void drm.destroy();
+        void this.drm.destroy();
         this.drm = undefined;
         throw error;
       }
