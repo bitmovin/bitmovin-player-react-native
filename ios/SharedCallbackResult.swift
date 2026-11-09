@@ -17,7 +17,7 @@ public final class SharedCallbackResult: SharedObject {
         self.completion = nil
         let result = scope.isClosed ? nil : value
         scope.condition.unlock()
-        DispatchQueue.global().async { completion(result) }
+        completion(result)
     }
 
     deinit {

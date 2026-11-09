@@ -6,8 +6,6 @@ export interface NativeInstanceConfig {
    * Used to access a certain native instance from any point in the source code then call
    * methods/properties on it.
    *
-   * IDs do not retain native objects. Keep an initialized wrapper reachable while reusing its ID.
-   *
    * @defaultValue A generated UUIDv4.
    * @example
    * Accessing or creating the `Player` with `nativeId` equal to `my-player`:

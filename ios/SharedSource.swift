@@ -8,11 +8,11 @@ public final class SharedSource: SharedObject {
     // The public API returns plain skdUri metadata; renewal still needs its native AVContentKeyRequest.
     let fairplayRequests = LockedBox(value: [String: FairplayContentKeyRequest]())
     private var fairplayCancellable: AnyCancellable?
-    private let drm: SharedDrmConfig?
+    private let callback: CallbackScope?
 
-    init(source: Source, drm: SharedDrmConfig?, remote: [String: Any]?) {
+    init(source: Source, callback: CallbackScope?, remote: [String: Any]?) {
         self.source = source
-        self.drm = drm
+        self.callback = callback
 #if os(iOS)
         castSourceConfig = RCTConvert.sourceRemoteControlConfig(remote)
 #else
@@ -27,4 +27,7 @@ public final class SharedSource: SharedObject {
                 }
             }
     }
+    func closeCallbacks() { callback?.close() }
+    deinit { callback?.close() }
+    override public func sharedObjectWillRelease() { callback?.close() }
 }

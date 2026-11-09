@@ -17,15 +17,15 @@ import OfflineModule, {
   type NativeOfflineBackend,
   type NativeOfflineEvents,
 } from './offlineModule';
-import { createNativeDrmConfig, type NativeDrmConfig } from '../drm/drmModule';
 import {
   getOrCreateAsync,
-  holdDependencies,
-  destroyDependencies,
   lookupPending,
   remove,
 } from '../nativeInstanceRegistry';
-import { serializeNativeConfig } from '../nativeCallbacks';
+import {
+  configurationCallback,
+  serializeNativeConfig,
+} from '../nativeCallbacks';
 
 const handleBitmovinNativeOfflineEvent = (
   data: BitmovinNativeOfflineEventData,
@@ -69,7 +69,6 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   private eventSubscription?: EventSubscription;
   private listeners: Set<OfflineContentManagerListener> =
     new Set<OfflineContentManagerListener>();
-  private drm?: NativeDrmConfig;
 
   /**
    * Allocates the native `OfflineManager` instance and its resources natively.
@@ -93,17 +92,10 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
         'offline',
         this.nativeId,
         () => this.createNativeOffline(),
-        async (created) => {
-          await created.destroy();
-          destroyDependencies(created);
-        }
+        (created) => created.destroy()
       );
       if (!native || getNativeOffline(this) !== native) return;
       this.observeEvents(native.events);
-      if (existing) {
-        await this.initializeDrm();
-        holdDependencies(native, [this.drm]);
-      }
     }
     this.isInitialized = true;
   };
@@ -113,39 +105,24 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
     this.observeEvents(events);
     let native: NativeOfflineBackend | undefined;
     try {
-      await this.initializeDrm();
       native = await OfflineModule.create(
         serializeNativeConfig({
           identifier: this.config?.identifier,
           sourceConfig: this.config?.sourceConfig,
         }),
-        this.drm,
-        events
+        events,
+        configurationCallback(this.config)
       );
       const created = Object.defineProperty(native, 'events', {
         value: events,
       }) as NativeOffline;
-      holdDependencies(created, [this.drm]);
       return created;
     } catch (error) {
       this.eventSubscription?.remove();
       this.eventSubscription = undefined;
       await native?.destroy();
-      await this.destroyDrm();
       throw error;
     }
-  }
-
-  private async initializeDrm() {
-    if (this.config?.sourceConfig.drmConfig) {
-      this.drm = createNativeDrmConfig(this.config.sourceConfig.drmConfig);
-    }
-  }
-
-  private async destroyDrm() {
-    const drm = this.drm;
-    this.drm = undefined;
-    await drm?.destroy();
   }
 
   private observeEvents(events: NativeOfflineEvents) {
@@ -184,7 +161,6 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
       this.isDestroyed = true;
       this.eventSubscription?.remove();
       this.listeners.clear();
-      await this.destroyDrm();
       const pending = lookupPending('offline', this.nativeId);
       if (pending) {
         remove('offline', this.nativeId, pending);
@@ -193,11 +169,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
         const native = getOfflineForOperation(this, 'release');
         if (native) {
           remove('offline', this.nativeId, native);
-          try {
-            await native.destroy();
-          } finally {
-            destroyDependencies(native);
-          }
+          await native.destroy();
         }
       }
     }

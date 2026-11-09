@@ -2,29 +2,28 @@ package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.reactnative.converter.toJson
 import expo.modules.kotlin.functions.Queues
+import expo.modules.kotlin.jni.JavaScriptFunction
+import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 class SourceModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("SourceModule")
-        AsyncFunction("create") { config: Map<String, Any>?, drm: SharedDrmConfig?,
-            _: Map<String, Any>?, analytics: Map<String, Any>?, ->
-            SharedSource.create(appContext, config, drm, analytics)
+        AsyncFunction("create") { config: Map<String, Any>?,
+            _: Map<String, Any>?, analytics: Map<String, Any>?, callback: JavaScriptFunction<JavaScriptValue>?, ->
+            SharedSource.create(appContext, config, analytics, callback)
         }.runOnQueue(Queues.MAIN)
 
         Class(SharedSource::class) {
+            AsyncFunction("closeCallbacks", SharedSource::closeCallbacks)
             AsyncFunction("isAttachedToPlayer") { shared: SharedSource ->
                 shared.source.isAttachedToPlayer
             }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("isActive") { shared: SharedSource ->
-                shared.source.isActive
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("isActive") { shared: SharedSource -> shared.source.isActive }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("duration") { shared: SharedSource ->
-                shared.source.duration
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("duration") { shared: SharedSource -> shared.source.duration }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("loadingState") { shared: SharedSource ->
                 shared.source.loadingState.toJson()

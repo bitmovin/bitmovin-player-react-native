@@ -61,7 +61,7 @@ function fixture(t, platform = 'ios') {
         },
       };
     },
-    create: async (_config, _drm, events) => {
+    create: async (_config, events) => {
       const owner = {
         emit: (event) => events.emit(event),
         getState: async () => 'Downloaded',
@@ -102,7 +102,7 @@ test('offline progress reaches listeners during creation and through iOS aliases
   };
   const create = offlineModule.create;
   offlineModule.create = async (...args) => {
-    args[2].emit(event);
+    args[1].emit(event);
     return create(...args);
   };
   const first = new OfflineContentManager(config);

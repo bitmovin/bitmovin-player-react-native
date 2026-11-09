@@ -60,6 +60,7 @@ function fixture(t) {
       destroy: async () => {
         callbacks.delete(native);
       },
+      closeCallbacks: async () => callbacks.delete(native),
       getVolume: async () => 37,
       getMetadata: async () => ({ title: 'shared source' }),
       drmFairplayRenewExpiringLicense: async (skdUri) => {
@@ -72,14 +73,10 @@ function fixture(t) {
   };
   const modules = {
     PlayerModule: {
-      create: async (...args) => create('player', args[4]),
+      create: async (...args) => create('player', args[2]),
       isGoogleImaEnabled: true,
     },
-    SourceModule: { create: async () => create('source') },
-    DrmModule: {
-      create: (_config, callback) => create('drm', callback),
-    },
-    NetworkModule: {},
+    SourceModule: { create: async (...args) => create('source', args[3]) },
     NativeCallbacksModule: {},
     OfflineModule: {},
     DebugModule: {},
@@ -213,8 +210,8 @@ test('advertising decisions and IMA settings use their own player configuration'
   second.destroy();
 });
 
-test('failed Source creation closes DRM callbacks and permits retry', async (t) => {
-  const { Source, modules, creations, invoke } = fixture(t);
+test('failed Source creation permits retry with DRM callbacks', async (t) => {
+  const { Source, modules, nativeOf, invoke } = fixture(t);
   const source = new Source({
     url: 'https://test/source',
     drmConfig: { fairplay: { prepareMessage: (message) => message } },
@@ -225,13 +222,10 @@ test('failed Source creation closes DRM callbacks and permits retry', async (t) 
     throw failure;
   };
   await assert.rejects(source.initialize(), (error) => error === failure);
-  const failedDrm = creations.find(({ kind }) => kind === 'drm').native;
-  assert.equal(invoke(failedDrm, 'fairplay.prepareMessage', ['message']), null);
   modules.SourceModule.create = create;
   await source.initialize();
-  const liveDrm = creations.filter(({ kind }) => kind === 'drm').at(-1).native;
   assert.equal(
-    invoke(liveDrm, 'fairplay.prepareMessage', ['message']),
+    invoke(nativeOf(source), 'drmConfig.fairplay.prepareMessage', ['message']),
     'message'
   );
   source.destroy();

@@ -6,12 +6,10 @@ import Foundation
 public final class SharedPlayer: SharedObject {
     let player: Player
     var source: SharedSource?
-    private let network: SharedNetworkConfig?
     private let callback: CallbackScope?
 
-    private init(player: Player, network: SharedNetworkConfig?, callback: CallbackScope?) {
+    private init(player: Player, callback: CallbackScope?) {
         self.player = player
-        self.network = network
         self.callback = callback
         super.init()
     }
@@ -34,7 +32,6 @@ public final class SharedPlayer: SharedObject {
 
     static func create(
         config: [String: Any]?,
-        network: SharedNetworkConfig?,
         analyticsConfig: [String: Any]?,
         callback: CallbackScope?
     ) throws -> SharedPlayer {
@@ -44,7 +41,9 @@ public final class SharedPlayer: SharedObject {
             callback?.close()
             throw Exception(name: "InvalidAnalyticsConfig", description: "Invalid analytics configuration")
         }
-        if let network { playerConfig.networkConfig = network.config }
+        if let network = config?["networkConfig"] as? [String: Any] {
+            playerConfig.networkConfig = RCTConvert.networkConfig(network, callback: callback)
+        }
         setupShouldLoadAdItem(config: config, playerConfig: playerConfig, callback: callback)
         setupImaBeforeInitialization(config: config, playerConfig: playerConfig, callback: callback)
 #if os(iOS)
@@ -65,7 +64,7 @@ public final class SharedPlayer: SharedObject {
         } else {
             player = PlayerFactory.create(playerConfig: playerConfig)
         }
-        let shared = SharedPlayer(player: player, network: network, callback: callback)
+        let shared = SharedPlayer(player: player, callback: callback)
 #if os(iOS)
         owner = shared
 #endif

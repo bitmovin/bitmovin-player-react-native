@@ -1,11 +1,17 @@
 import BitmovinPlayer
 import ExpoModulesCore
+import ExpoModulesJSI
 
 public class SourceModule: Module {
     public func definition() -> ModuleDefinition {
         Name("SourceModule")
-        AsyncFunction("create") { (config: [String: Any]?, drm: SharedDrmConfig?, remote: [String: Any]?, analytics: [String: Any]?) -> SharedSource in // swiftlint:disable:this line_length
-            guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drm?.config) else {
+        AsyncFunction("create") { (config: [String: Any]?, remote: [String: Any]?, analytics: [String: Any]?, callback: JavaScriptValue?) -> SharedSource in // swiftlint:disable:this line_length
+            let callback = try callback.map { try CallbackScope(callback: $0, context: appContext) }
+            let drm = (config?["drmConfig"] as? [String: Any]).flatMap {
+                RCTConvert.fairplayConfig($0, callback: callback, path: "drmConfig")
+            }
+            guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drm) else {
+                callback?.close()
                 throw Exception(name: "InvalidSourceConfig", description: "Invalid source configuration")
             }
             let source: Source
@@ -14,18 +20,15 @@ public class SourceModule: Module {
             } else {
                 source = SourceFactory.createSource(from: sourceConfig)
             }
-            return SharedSource(source: source, drm: drm, remote: remote)
+            return SharedSource(source: source, callback: callback, remote: remote)
         }.runOnQueue(.main)
         Class("Source", SharedSource.self) {
+            AsyncFunction("closeCallbacks") { (owner: SharedSource) in owner.closeCallbacks() }
             AsyncFunction("isAttachedToPlayer") { (owner: SharedSource) -> Bool? in
                 owner.source.isAttachedToPlayer
             }.runOnQueue(.main)
-            AsyncFunction("isActive") { (owner: SharedSource) -> Bool? in
-                owner.source.isActive
-            }.runOnQueue(.main)
-            AsyncFunction("duration") { (owner: SharedSource) -> Double? in
-                owner.source.duration
-            }.runOnQueue(.main)
+            AsyncFunction("isActive") { (owner: SharedSource) -> Bool? in owner.source.isActive }.runOnQueue(.main)
+            AsyncFunction("duration") { (owner: SharedSource) -> Double? in owner.source.duration }.runOnQueue(.main)
             AsyncFunction("loadingState") { (owner: SharedSource) -> Int? in
                 owner.source.loadingState.rawValue
             }.runOnQueue(.main)

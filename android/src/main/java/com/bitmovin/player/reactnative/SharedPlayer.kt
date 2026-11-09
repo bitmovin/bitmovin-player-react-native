@@ -7,8 +7,10 @@ import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
+import com.bitmovin.player.reactnative.converter.toDecoderConfig
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toMediaControlConfig
+import com.bitmovin.player.reactnative.converter.toNetworkConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.getMap
 import expo.modules.kotlin.AppContext
@@ -47,14 +49,12 @@ class SharedPlayer private constructor(
             appContext: AppContext,
             config: Map<String, Any>?,
             analytics: Map<String, Any>?,
-            network: SharedNetworkConfig?,
-            decoder: SharedDecoderConfig?,
             callback: JavaScriptFunction<JavaScriptValue>?,
             manager: MediaSessionPlaybackManager,
         ): SharedPlayer {
             val callbacks = CallbackScope(appContext, callback)
             try {
-                val playerConfig = preparePlayerConfig(config, network, decoder, callbacks)
+                val playerConfig = preparePlayerConfig(config, callbacks)
                 val context = requireNotNull(appContext.reactContext?.applicationContext) {
                     "Application context is not available"
                 }
@@ -86,8 +86,6 @@ class SharedPlayer private constructor(
 
 private fun preparePlayerConfig(
     config: Map<String, Any>?,
-    network: SharedNetworkConfig?,
-    decoder: SharedDecoderConfig?,
     callbacks: CallbackScope,
 ): PlayerConfig {
     val playerConfig = config?.toPlayerConfig() ?: PlayerConfig()
@@ -110,9 +108,9 @@ private fun preparePlayerConfig(
     if (advertising != null) playerConfig.advertisingConfig = advertisingConfig
     @Suppress("UNCHECKED_CAST")
     ImaBeforeInitializationConfigurator.configure(config as? Map<String, Any?>, playerConfig, callbacks)
-    network?.let { playerConfig.networkConfig = it.config }
-    decoder?.let {
-        playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = it.config)
+    config?.getMap("networkConfig")?.let { playerConfig.networkConfig = it.toNetworkConfig(callbacks) }
+    config?.getMap("playbackConfig")?.getMap("decoderConfig")?.let {
+        playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = toDecoderConfig(callbacks))
     }
     return playerConfig
 }

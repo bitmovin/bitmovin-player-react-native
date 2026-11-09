@@ -1,5 +1,8 @@
 {
-  "platforms": ["apple", "android"],
+  "platforms": [
+    "apple",
+    "android"
+  ],
   "apple": {
     "modules": [
       "NativeCallbacksModule",
@@ -8,14 +11,14 @@
       "BitmovinCastManagerModule",
       "PlayerModule",
       "SourceModule",
-      "NetworkModule",
       "CustomMessageHandlerModule",
-      "DrmModule",
       "FullscreenHandlerModule",
       "OfflineModule",
       "RNPlayerViewManager"
     ],
-    "appDelegateSubscribers": ["AppLifecycleDelegate"]
+    "appDelegateSubscribers": [
+      "AppLifecycleDelegate"
+    ]
   },
   "android": {
     "modules": [
@@ -24,12 +27,9 @@
       "com.bitmovin.player.reactnative.BitmovinCastManagerModule",
       "com.bitmovin.player.reactnative.PlayerModule",
       "com.bitmovin.player.reactnative.SourceModule",
-      "com.bitmovin.player.reactnative.NetworkModule",
       "com.bitmovin.player.reactnative.CustomMessageHandlerModule",
-      "com.bitmovin.player.reactnative.DrmModule",
       "com.bitmovin.player.reactnative.FullscreenHandlerModule",
       "com.bitmovin.player.reactnative.OfflineModule",
-      "com.bitmovin.player.reactnative.DecoderConfigModule",
       "com.bitmovin.player.reactnative.RNPlayerViewManager"
     ]
   }

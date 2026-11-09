@@ -2,7 +2,7 @@ import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 import type { SourceConfig } from '../source';
-import type { NativeDrmConfig } from '../drm/drmModule';
+import type { NativeCallback } from '../nativeCallbacks';
 import type { OfflineDownloadRequest } from './offlineDownloadRequest';
 import type { BitmovinNativeOfflineEventData } from './offlineContentManagerListener';
 import { lookup } from '../nativeInstanceRegistry';
@@ -81,8 +81,8 @@ declare class OfflineModule extends NativeModule {
   createEvents(): NativeOfflineEvents;
   create(
     config: { identifier: string; sourceConfig: SourceConfig },
-    drm: NativeDrmConfig | undefined,
-    events: NativeOfflineEvents
+    events: NativeOfflineEvents,
+    callback?: NativeCallback
   ): Promise<NativeOfflineBackend>;
 }
 

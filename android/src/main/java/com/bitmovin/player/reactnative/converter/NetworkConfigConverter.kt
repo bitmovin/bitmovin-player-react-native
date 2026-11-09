@@ -1,28 +1,17 @@
-package com.bitmovin.player.reactnative
+package com.bitmovin.player.reactnative.converter
 
+import com.bitmovin.player.api.network.NetworkConfig
 import com.bitmovin.player.api.network.PreprocessHttpRequestCallback
 import com.bitmovin.player.api.network.PreprocessHttpResponseCallback
-import com.bitmovin.player.reactnative.converter.toHttpRequest
-import com.bitmovin.player.reactnative.converter.toHttpResponse
-import com.bitmovin.player.reactnative.converter.toJson
-import com.bitmovin.player.reactnative.converter.toNetworkConfig
-import expo.modules.kotlin.AppContext
-import expo.modules.kotlin.jni.JavaScriptFunction
-import expo.modules.kotlin.jni.JavaScriptValue
-import expo.modules.kotlin.sharedobjects.SharedObject
+import com.bitmovin.player.reactnative.CallbackScope
 
-class SharedNetworkConfig(
-    appContext: AppContext,
-    config: Map<String, Any?>,
-    callback: JavaScriptFunction<JavaScriptValue>?,
-) :
-    SharedObject(appContext) {
-    private val callbacks = CallbackScope(appContext, callback)
-    val config = config.toNetworkConfig().apply {
+fun Map<String, Any?>.toNetworkConfig(callbacks: CallbackScope): NetworkConfig {
+    val config = this
+    return toNetworkConfig().apply {
         if (config.containsKey("preprocessHttpRequest")) {
             preprocessHttpRequestCallback = PreprocessHttpRequestCallback { type, request ->
                 callbacks.future(
-                    "preprocessHttpRequest",
+                    "networkConfig.preprocessHttpRequest",
                     listOf(type.toJson(), request.toJson()),
                     request,
                     fallbackArgument = 1,
@@ -35,7 +24,7 @@ class SharedNetworkConfig(
         if (config.containsKey("preprocessHttpResponse")) {
             preprocessHttpResponseCallback = PreprocessHttpResponseCallback { type, response ->
                 callbacks.future(
-                    "preprocessHttpResponse",
+                    "networkConfig.preprocessHttpResponse",
                     listOf(type.toJson(), response.toJson()),
                     response,
                     fallbackArgument = 1,
@@ -46,6 +35,4 @@ class SharedNetworkConfig(
             }
         }
     }
-    fun destroy() = callbacks.close()
-    override fun sharedObjectDidRelease() = destroy()
 }

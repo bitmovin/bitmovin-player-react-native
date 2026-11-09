@@ -12,7 +12,10 @@ const compiled = path.join(root, 'compiled');
 // Node resolves and loads the emitted CommonJS files normally.
 before(() => {
   const program = ts.createProgram(
-    [path.resolve(__dirname, '../src/network/index.ts')],
+    [
+      path.resolve(__dirname, '../src/network/index.ts'),
+      path.resolve(__dirname, '../src/nativeCallbacks.ts'),
+    ],
     {
       rootDir: path.resolve(__dirname, '../src'),
       outDir: compiled,
@@ -54,34 +57,18 @@ function fixture(t, config, rejectAfterCompletion = false) {
   const attempts = [];
   const completions = [];
   const nativeError = new Error('native threw after completing operation');
-  let callback;
-  let destroyed = false;
-  const native = {
-    destroy: async () => {
-      destroyed = true;
-    },
-  };
-  const bridge = {
-    create: (serialized, handler) => {
-      assert.equal(Object.hasOwn(serialized, 'nativeId'), false);
-      callback = handler;
-      return native;
-    },
-  };
   require(
     path.join(directory, 'node_modules/expo-modules-core')
   ).requireNativeModule = (name) => {
-    if (name === 'NetworkModule') return bridge;
     assert.equal(name, 'NativeCallbacksModule');
     return {};
   };
-  const { Network, HttpRequestType } = require(path.join(directory, 'network'));
+  const { HttpRequestType } = require(path.join(directory, 'network'));
   const helpers = require(path.join(directory, 'nativeCallbacks.js'));
-  const network = new Network(config);
-  t.after(() => network.destroy());
+  const callback = helpers.configurationCallback({ networkConfig: config });
   const invoke = (kind, type, payload) => {
     callback(
-      `preprocessHttp${kind}`,
+      `networkConfig.preprocessHttp${kind}`,
       [type, payload],
       {
         resolve: (result) => {
@@ -97,13 +84,11 @@ function fixture(t, config, rejectAfterCompletion = false) {
     );
   };
   return {
-    network,
     invoke,
     attempts,
     completions,
     HttpRequestType,
     helpers,
-    isDestroyed: () => destroyed,
   };
 }
 
@@ -151,9 +136,11 @@ for (const [kind, original] of [
                     return Promise.resolve(transformed);
                   },
                 };
-        const { network, invoke, attempts, completions, HttpRequestType } =
-          fixture(t, config, rejectAfterCompletion);
-        await network.initialize();
+        const { invoke, attempts, completions, HttpRequestType } = fixture(
+          t,
+          config,
+          rejectAfterCompletion
+        );
         assert.doesNotThrow(() =>
           invoke(kind, HttpRequestType.ManifestDash, original)
         );
@@ -196,7 +183,7 @@ test('mutation callbacks preserve settings changes and partial returned settings
         },
       },
     },
-    { capture: true }
+    { capture: 'ima' }
   );
   assert.deepEqual(
     callback(

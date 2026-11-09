@@ -1,4 +1,7 @@
-import { getNativePlayer } from '../modules/PlayerModule';
+import {
+  nativePlayerReference,
+  type NativePlayerReference,
+} from '../modules/PlayerModule';
 import { Platform } from 'react-native';
 import type { Player } from '../player';
 import type { CustomDataConfig } from './config';
@@ -8,10 +11,14 @@ import type { CustomDataConfig } from './config';
  * Use the `Player.analytics` property to access a `Player`'s `AnalyticsApi`.
  */
 export class AnalyticsApi {
-  constructor(private readonly player: Player) {}
+  private readonly nativePlayer: NativePlayerReference;
+
+  constructor(player: Player | NativePlayerReference) {
+    this.nativePlayer = nativePlayerReference(player);
+  }
 
   private get native() {
-    const native = getNativePlayer(this.player);
+    const native = this.nativePlayer();
     if (!native && Platform.OS === 'android') {
       throw Object.assign(new Error('Player is not initialized'), {
         code: 'PlayerAnalyticsError',

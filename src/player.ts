@@ -4,8 +4,6 @@ import { getNativeSource } from './modules/SourceModule';
 import NativeInstance from './nativeInstance';
 import {
   getOrCreateAsync,
-  holdDependencies,
-  destroyDependencies,
   lookup,
   lookupPending,
   remove,
@@ -22,14 +20,6 @@ import type { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
-import {
-  createNativeNetworkConfig,
-  type NativeNetworkConfig,
-} from './network/networkModule';
-import {
-  createNativeDecoderConfig,
-  type NativeDecoderConfig,
-} from './decoder/decoderConfigModule';
 import { getNativeOffline } from './offline/offlineModule';
 import {
   configurationCallback,
@@ -73,17 +63,14 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * The {@link BufferApi} for interactions regarding the buffer.
    */
-  buffer: BufferApi = new BufferApi(this);
+  buffer: BufferApi = new BufferApi(() => this.native);
   /**
    * The {@link MediaControlsApi} for interactions regarding the Player's media controls integration.
    *
    * @platform iOS, tvOS
    */
-  mediaControls: MediaControlsApi = new MediaControlsApi(this);
+  mediaControls: MediaControlsApi = new MediaControlsApi(() => this.native);
 
-  private network?: NativeNetworkConfig;
-
-  private decoderConfig?: NativeDecoderConfig;
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
@@ -93,12 +80,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       'player',
       this.nativeId,
       () => this.createNativePlayer(),
-      async (created) => {
-        await created.destroy();
-        destroyDependencies(created);
-        this.network = undefined;
-        this.decoderConfig = undefined;
-      }
+      (created) => created.destroy()
     );
     if (
       !native ||
@@ -107,38 +89,27 @@ export class Player extends NativeInstance<PlayerConfig> {
     )
       return;
     setNativeOwner(this, native);
-    if (this.config?.analyticsConfig) this.analytics = new AnalyticsApi(this);
+    if (this.config?.analyticsConfig)
+      this.analytics = new AnalyticsApi(() => this.native);
     this.isInitialized = true;
   };
 
   private async createNativePlayer() {
     if (this.isDestroyed) return;
-    try {
-      if (this.config?.networkConfig) await this.initializeNetwork();
-      await this.maybeInitDecoderConfig();
-      const advertising = this.config?.advertisingConfig;
-      const beforeInitialization = advertising?.ima?.beforeInitialization;
-      if (beforeInitialization && !PlayerModule.isGoogleImaEnabled) {
-        console.warn(
-          'advertisingConfig.ima.beforeInitialization is ignored because Google IMA is disabled. ' +
-            'Set features.googleIMA to true in the Bitmovin config plugin and rebuild the native app. ' +
-            'See the "Google IMA" section of the bitmovin-player-react-native README.'
-        );
-      }
-      const created = await PlayerModule.create(
-        serializeNativeConfig(this.config),
-        serializeNativeConfig(this.config?.analyticsConfig),
-        this.network,
-        this.decoderConfig,
-        configurationCallback(this.config, { capture: true })
+    const beforeInitialization =
+      this.config?.advertisingConfig?.ima?.beforeInitialization;
+    if (beforeInitialization && !PlayerModule.isGoogleImaEnabled) {
+      console.warn(
+        'advertisingConfig.ima.beforeInitialization is ignored because Google IMA is disabled. ' +
+          'Set features.googleIMA to true in the Bitmovin config plugin and rebuild the native app. ' +
+          'See the "Google IMA" section of the bitmovin-player-react-native README.'
       );
-      holdDependencies(created, [this.network, this.decoderConfig]);
-      return created;
-    } catch (error) {
-      await this.destroyNetwork();
-      this.destroyDecoder();
-      throw error;
     }
+    return PlayerModule.create(
+      serializeNativeConfig(this.config),
+      serializeNativeConfig(this.config?.analyticsConfig),
+      configurationCallback(this.config, { capture: 'advertisingConfig' })
+    );
   }
 
   /**
@@ -150,10 +121,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       const pending = lookupPending('player', this.nativeId);
       if (pending) remove('player', this.nativeId, pending);
       void native?.destroy();
-      if (native) destroyDependencies(native);
       void this.source?.destroy();
-      void this.destroyNetwork();
-      this.destroyDecoder();
       this.isDestroyed = true;
       if (native) {
         remove('player', this.nativeId, native);
@@ -602,33 +570,4 @@ export class Player extends NativeInstance<PlayerConfig> {
     }
     return (await this.native?.canPlayAtPlaybackSpeed(playbackSpeed)) ?? false;
   };
-
-  private async initializeNetwork() {
-    this.network = createNativeNetworkConfig(this.config?.networkConfig);
-  }
-
-  private async destroyNetwork() {
-    const network = this.network;
-    this.network = undefined;
-    await network?.destroy();
-  }
-
-  private destroyDecoder() {
-    const decoder = this.decoderConfig;
-    this.decoderConfig = undefined;
-    void decoder?.destroy();
-  }
-
-  private maybeInitDecoderConfig() {
-    if (this.config?.playbackConfig?.decoderConfig == null) {
-      return;
-    }
-    if (Platform.OS === 'ios') {
-      return;
-    }
-
-    this.decoderConfig = createNativeDecoderConfig(
-      this.config.playbackConfig.decoderConfig
-    );
-  }
 }

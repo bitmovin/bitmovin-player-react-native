@@ -85,34 +85,3 @@ export function remove(
   if (entries.size === 0) instances.delete(kind);
   return true;
 }
-
-// A named backend can outlive its original TS wrapper. Keep its configuration
-// objects alive with it, and close them when any alias destroys that backend.
-const dependencies = Symbol('native dependencies');
-type Dependency = { destroy(): void | Promise<void> };
-type Owner = { [dependencies]?: Dependency[] };
-
-/** @internal */
-export function holdDependencies(
-  owner: object,
-  values: (Dependency | undefined)[]
-): void {
-  const target = owner as Owner;
-  if (!target[dependencies])
-    Object.defineProperty(target, dependencies, {
-      value: [],
-      configurable: true,
-    });
-  for (const value of values) {
-    if (value && !target[dependencies]!.includes(value))
-      target[dependencies]!.push(value);
-  }
-}
-
-/** @internal */
-export function destroyDependencies(owner: object): void {
-  const target = owner as Owner;
-  const values = target[dependencies];
-  delete target[dependencies];
-  for (const value of values ?? []) void value.destroy();
-}

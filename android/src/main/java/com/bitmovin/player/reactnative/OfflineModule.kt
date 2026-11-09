@@ -1,10 +1,14 @@
 package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
+import com.bitmovin.player.reactnative.converter.toOfflineDownloadRequest
 import com.bitmovin.player.reactnative.converter.toSourceConfig
+import com.bitmovin.player.reactnative.converter.toWidevineConfig
+import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
-import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
 import expo.modules.kotlin.functions.Queues
+import expo.modules.kotlin.jni.JavaScriptFunction
+import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.security.InvalidParameterException
@@ -12,47 +16,51 @@ import java.security.InvalidParameterException
 class OfflineModule : Module() {
     private fun create(
         config: Map<String, Any?>?,
-        drm: SharedDrmConfig?,
         events: SharedOfflineEvents,
+        callback: JavaScriptFunction<JavaScriptValue>?,
     ): OfflineContentManagerBridge {
         val identifier = config?.get("identifier") as? String
             ?: throw OfflineException.InvalidIdentifier()
         val sourceConfig = (config["sourceConfig"] as? Map<String, Any?>)?.toSourceConfig()
             ?: throw OfflineException.InvalidSourceConfig()
-        sourceConfig.drmConfig = drm?.config
-        val context = appContext.reactContext
-            ?: throw InvalidParameterException("ReactApplicationContext is not available")
-        return OfflineContentManagerBridge(
-            appContext,
-            context,
-            identifier,
-            sourceConfig,
-            appContext.cacheDirectory.path,
-            events,
-        )
+        val callbacks = CallbackScope(appContext, callback)
+        try {
+            sourceConfig.drmConfig = config.getMap("sourceConfig")?.getMap("drmConfig")
+                ?.toWidevineConfig(callbacks, "sourceConfig.drmConfig")
+            val context = appContext.reactContext
+                ?: throw InvalidParameterException("ReactApplicationContext is not available")
+            return OfflineContentManagerBridge(
+                appContext,
+                context,
+                identifier,
+                sourceConfig,
+                appContext.cacheDirectory.path,
+                events,
+                callbacks,
+            )
+        } catch (error: Exception) {
+            callbacks.close()
+            throw error
+        }
     }
 
     override fun definition() = ModuleDefinition {
         Name("OfflineModule")
         Function("createEvents") { SharedOfflineEvents(appContext) }
-        AsyncFunction("create") { config: Map<String, Any?>?, drm: SharedDrmConfig?, events: SharedOfflineEvents ->
-            create(config, drm, events)
+        AsyncFunction("create") { config: Map<String, Any?>?, events: SharedOfflineEvents,
+            callback: JavaScriptFunction<JavaScriptValue>?, ->
+            create(config, events, callback)
         }.runOnQueue(Queues.MAIN)
         Class("OfflineEvents", SharedOfflineEvents::class) {
             Constructor { SharedOfflineEvents(appContext) }
             Events("onBitmovinOfflineEvent")
         }
         Class(OfflineContentManagerBridge::class) {
-            Constructor { config: Map<String, Any?>?, drm: SharedDrmConfig?, events: SharedOfflineEvents ->
-                create(config, drm, events)
-            }
+            // Expo requires a constructor even when creation uses the asynchronous factory.
+            Constructor { error("Use OfflineModule.create") }
 
-            AsyncFunction("getState") { owner: OfflineContentManagerBridge ->
-                owner.state.name
-            }
-            AsyncFunction("getOptions") { owner: OfflineContentManagerBridge ->
-                owner.getOptions()
-            }
+            AsyncFunction("getState") { owner: OfflineContentManagerBridge -> owner.state.name }
+            AsyncFunction("getOptions", OfflineContentManagerBridge::getOptions)
             AsyncFunction("download") { owner: OfflineContentManagerBridge, request: Map<String, Any?> ->
 
                 when (owner.state) {
@@ -63,45 +71,19 @@ class OfflineModule : Module() {
                     else -> {}
                 }
 
-                // ReactNative translates `number` to `Double` when de/serializing,
-                // so we need to manually parse the property to an `Int` here
-                val minimumBitRate = (request["minimumBitrate"] as? Number)?.toInt()
-                if (minimumBitRate != null && minimumBitRate < 0) {
-                    throw OfflineException.InvalidRequest()
-                }
-
-                val audioOptionIds = (request["audioOptionIds"] as? List<*>)?.filterIsInstance<String>()
-                val textOptionIds = (request["textOptionIds"] as? List<*>)?.filterIsInstance<String>()
-
-                owner.process(OfflineDownloadRequest(minimumBitRate, audioOptionIds, textOptionIds))
+                owner.process(request.toOfflineDownloadRequest())
             }
-            AsyncFunction("resume") { owner: OfflineContentManagerBridge ->
-                owner.resume()
-            }
-            AsyncFunction("suspend") { owner: OfflineContentManagerBridge ->
-                owner.suspend()
-            }
-            AsyncFunction("cancelDownload") { owner: OfflineContentManagerBridge ->
-                owner.cancelDownload()
-            }
+            AsyncFunction("resume", OfflineContentManagerBridge::resume)
+            AsyncFunction("suspend", OfflineContentManagerBridge::suspend)
+            AsyncFunction("cancelDownload", OfflineContentManagerBridge::cancelDownload)
             AsyncFunction("usedStorage") { owner: OfflineContentManagerBridge ->
                 owner.offlineContentManager.usedStorage.toDouble()
             }
-            AsyncFunction("deleteAll") { owner: OfflineContentManagerBridge ->
-                owner.deleteAll()
-            }
-            AsyncFunction("downloadLicense") { owner: OfflineContentManagerBridge ->
-                owner.downloadLicense()
-            }
-            AsyncFunction("releaseLicense") { owner: OfflineContentManagerBridge ->
-                owner.releaseLicense()
-            }
-            AsyncFunction("renewOfflineLicense") { owner: OfflineContentManagerBridge ->
-                owner.renewOfflineLicense()
-            }
-            AsyncFunction("destroy") { owner: OfflineContentManagerBridge ->
-                owner.release()
-            }
+            AsyncFunction("deleteAll", OfflineContentManagerBridge::deleteAll)
+            AsyncFunction("downloadLicense", OfflineContentManagerBridge::downloadLicense)
+            AsyncFunction("releaseLicense", OfflineContentManagerBridge::releaseLicense)
+            AsyncFunction("renewOfflineLicense", OfflineContentManagerBridge::renewOfflineLicense)
+            AsyncFunction("destroy", OfflineContentManagerBridge::release)
         }
     }
 }

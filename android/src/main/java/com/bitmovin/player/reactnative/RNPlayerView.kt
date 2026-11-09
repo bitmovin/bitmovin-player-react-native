@@ -49,6 +49,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private var scalingMode: ScalingMode? = null
     private var requestedFullscreenValue: Boolean? = null
     private var requestedPictureInPictureValue: Boolean? = null
+
+    // Expo props can arrive before the SDK view is created. Reapply them on attachment.
     private var fullscreenHandler: SharedFullscreen? = null
     private var customMessageHandler: SharedCustomMessage? = null
 
@@ -561,7 +563,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         EventSubscription<PlayerEvent.Warning> { onEvent(onBmpPlayerWarning, it.toJson()) },
         EventSubscription<PlayerEvent.Destroy> {
             onEvent(onBmpDestroy, it.toJson())
-            dispose()
         },
         EventSubscription<PlayerEvent.Muted> { onEvent(onBmpMuted, it.toJson()) },
         EventSubscription<PlayerEvent.Unmuted> { onEvent(onBmpUnmuted, it.toJson()) },

@@ -9,6 +9,7 @@ import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryAction
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.api.source.SourceConfig
+import com.bitmovin.player.reactnative.CallbackScope
 import com.bitmovin.player.reactnative.SharedOfflineEvents
 import com.bitmovin.player.reactnative.converter.toJson
 import expo.modules.kotlin.AppContext
@@ -21,17 +22,22 @@ class OfflineContentManagerBridge(
     source: SourceConfig,
     location: String,
     private val events: SharedOfflineEvents,
+    private val callbacks: CallbackScope,
 ) : SharedObject(appContext), OfflineContentManagerListener {
     private var contentOptions: OfflineContentOptions? = null
-    private var resource: OfflineContentManager? = OfflineContentManager.getOfflineContentManager(
+    val offlineContentManager: OfflineContentManager = OfflineContentManager.getOfflineContentManager(
         source,
         location,
         identifier,
         this,
         context,
     )
-    val offlineContentManager: OfflineContentManager
-        get() = checkNotNull(resource) { "Offline content manager is not initialized" }
+
+    // Explicit destruction and Expo collection must release the non-idempotent SDK manager only once.
+    private val cleanup by lazy {
+        callbacks.close()
+        offlineContentManager.release()
+    }
 
     enum class OfflineEventType(val eventName: String) {
         ON_COMPLETED("onCompleted"),
@@ -121,12 +127,7 @@ class OfflineContentManagerBridge(
         offlineContentManager.renewOfflineLicense()
     }
 
-    @Synchronized
-    fun release() {
-        val releasedManager = resource ?: return
-        resource = null
-        releasedManager.release()
-    }
+    fun release() = cleanup
 
     override fun sharedObjectDidRelease() = release()
 

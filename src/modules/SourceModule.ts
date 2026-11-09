@@ -9,12 +9,14 @@ import type {
 import { lookup } from '../nativeInstanceRegistry';
 import { getNativeOwner, setNativeOwner } from '../nativeOwner';
 import type { Thumbnail } from '../thumbnail';
-import type { NativeDrmConfig } from '../drm/drmModule';
+import type { NativeCallback } from '../nativeCallbacks';
 
 export type SourceModuleEvents = Record<string, never>;
 
 /** @internal */
 export interface NativeSource extends SharedObject<SourceModuleEvents> {
+  closeCallbacks(): Promise<void>;
+
   isAttachedToPlayer(): Promise<boolean | null>;
 
   isActive(): Promise<boolean | null>;
@@ -44,10 +46,20 @@ export function getNativeSource(source: Source): NativeSource | undefined {
 declare class SourceModule extends NativeModule {
   create(
     config?: Record<string, any>,
-    drm?: NativeDrmConfig,
     remoteControl?: SourceRemoteControlConfig,
-    analyticsSourceMetadata?: Record<string, any>
+    analyticsSourceMetadata?: Record<string, any>,
+    callback?: NativeCallback
   ): Promise<NativeSource>;
 }
 
 export default requireNativeModule<SourceModule>('SourceModule');
+
+/** @internal */
+export type NativeSourceReference = () => NativeSource | undefined;
+
+/** @internal */
+export function nativeSourceReference(
+  source: Source | NativeSourceReference
+): NativeSourceReference {
+  return typeof source === 'function' ? source : () => getNativeSource(source);
+}

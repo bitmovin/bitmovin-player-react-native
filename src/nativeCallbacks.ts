@@ -122,7 +122,7 @@ export function serializeNativeConfig(value: any): any {
 /** @internal */
 export function configurationCallback(
   config: any,
-  { capture = false }: { capture?: boolean } = {}
+  { capture }: { capture?: string } = {}
 ): NativeCallback {
   const handlers: Record<string, (...args: any[]) => any> | undefined = capture
     ? {}
@@ -135,10 +135,10 @@ export function configurationCallback(
           collect(child, path ? `${path}.${key}` : key);
       }
     };
-    collect(config, '');
+    collect(config?.[capture!], capture!);
   }
   return createNativeCallback((path, args) => {
-    if (handlers) {
+    if (handlers && path.startsWith(`${capture}.`)) {
       const handler = handlers[path];
       return handler?.(...args);
     }

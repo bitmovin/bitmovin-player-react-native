@@ -1,5 +1,6 @@
 import BitmovinPlayer
 import ExpoModulesCore
+import ExpoModulesJSI
 import Foundation
 
 public class OfflineModule: Module {
@@ -8,17 +9,29 @@ public class OfflineModule: Module {
         Name("OfflineModule")
         Function("createEvents") { SharedOfflineEvents() }
         Class("OfflineEvents", SharedOfflineEvents.self) {}
-        AsyncFunction("create") { (config: [String: Any], drm: SharedDrmConfig?, events: SharedOfflineEvents) in
+        AsyncFunction("create") { (config: [String: Any], events: SharedOfflineEvents, callback: JavaScriptValue?) in
 #if os(iOS)
+            let callback = try callback.map { try CallbackScope(callback: $0, context: appContext) }
+            let drm = ((config["sourceConfig"] as? [String: Any])?["drmConfig"] as? [String: Any]).flatMap {
+                RCTConvert.fairplayConfig($0, callback: callback, path: "sourceConfig.drmConfig")
+            }
             guard let identifier = config["identifier"] as? String,
-                  let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], drmConfig: drm?.config) else {
+                  let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], drmConfig: drm) else {
+                callback?.close()
                 throw Exception(
                     name: "InvalidOfflineConfig",
                     description: "Invalid offline identifier or source configuration"
                 )
             }
-            let manager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
-            return SharedOffline(manager: manager, identifier: identifier, drm: drm, events: events)
+            do {
+                let manager = try OfflineManager.sharedInstance().offlineContentManager(
+                    for: sourceConfig, id: identifier
+                )
+                return SharedOffline(manager: manager, identifier: identifier, callback: callback, events: events)
+            } catch {
+                callback?.close()
+                throw error
+            }
 #else
             return SharedOffline(events: events)
 #endif
@@ -33,7 +46,7 @@ public class OfflineModule: Module {
             }.runOnQueue(.main)
             AsyncFunction("getOptions") { (owner: SharedOffline) in
 #if os(iOS)
-                owner.bridge?.fetchAvailableTracks()
+                owner.bridge.fetchAvailableTracks()
 #endif
             }.runOnQueue(.main)
             AsyncFunction("usedStorage") { (owner: SharedOffline) -> Int? in

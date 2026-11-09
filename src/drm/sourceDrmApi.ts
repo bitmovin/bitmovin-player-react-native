@@ -1,3 +1,4 @@
+import type { NativeSourceReference } from '../modules/SourceModule';
 import type { Source } from '../source';
 import { FairplayDrmApi } from './fairplayDrmApi';
 
@@ -9,7 +10,7 @@ export class SourceDrmApi {
    */
   readonly fairplay: FairplayDrmApi;
 
-  constructor(source: Source) {
+  constructor(source: Source | NativeSourceReference) {
     this.fairplay = new FairplayDrmApi(source);
   }
 }

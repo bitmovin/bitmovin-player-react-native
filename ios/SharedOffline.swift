@@ -6,15 +6,15 @@ public final class SharedOffline: SharedObject {
     private let events: SharedOfflineEvents
 #if os(iOS)
     let offlineContentManager: OfflineContentManager
-    private(set) var bridge: OfflineContentManagerBridge?
-    private let drm: SharedDrmConfig?
+    let bridge: OfflineContentManagerBridge
+    private let callback: CallbackScope?
 
-    init(manager: OfflineContentManager, identifier: String, drm: SharedDrmConfig?, events: SharedOfflineEvents) {
+    init(manager: OfflineContentManager, identifier: String, callback: CallbackScope?, events: SharedOfflineEvents) {
         offlineContentManager = manager
-        self.drm = drm
+        self.callback = callback
         self.events = events
-        super.init()
         bridge = OfflineContentManagerBridge(forManager: manager, events: events, identifier: identifier)
+        super.init()
     }
 #else
     init(events: SharedOfflineEvents) {
@@ -25,17 +25,18 @@ public final class SharedOffline: SharedObject {
 
     func destroy() {
 #if os(iOS)
-        bridge?.release()
-        bridge = nil
+        callback?.close()
+        bridge.release()
 #endif
     }
 
     deinit {
 #if os(iOS)
+        callback?.close()
         let manager = offlineContentManager
         let bridge = bridge
         DispatchQueue.main.async {
-            bridge?.release()
+            bridge.release()
             withExtendedLifetime(manager) {}
         }
 #endif
@@ -43,7 +44,7 @@ public final class SharedOffline: SharedObject {
 
     func download(_ request: [String: Any]?) {
 #if os(iOS)
-        guard let bridge, let request, offlineContentManager.offlineState == .notDownloaded,
+        guard let request, offlineContentManager.offlineState == .notDownloaded,
               let tracks = bridge.currentTrackSelection else { return }
         if let audioOptionIds = request["audioOptionIds"] as? [String], !audioOptionIds.isEmpty {
             tracks.audioTracks.forEach { $0.action = audioOptionIds.contains($0.label) ? .download : .none }

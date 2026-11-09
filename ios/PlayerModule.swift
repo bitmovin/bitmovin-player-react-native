@@ -10,36 +10,25 @@ public class PlayerModule: Module {
         Constant("isGoogleImaEnabled") {
             NSClassFromString("IMAAdsLoader") != nil
         }
-        AsyncFunction("create") { (config: [String: Any]?, analytics: [String: Any]?, network: SharedNetworkConfig?, _: SharedObject?, callback: JavaScriptValue?) -> SharedPlayer in // swiftlint:disable:this line_length
+        AsyncFunction("create") { (config: [String: Any]?, analytics: [String: Any]?, callback: JavaScriptValue?) -> SharedPlayer in // swiftlint:disable:this line_length
             try SharedPlayer.create(
                 config: config,
-                network: network,
                 analyticsConfig: analytics,
                 callback: callback.map { try CallbackScope(callback: $0, context: appContext) }
             )
         }.runOnQueue(.main)
         Class("Player", SharedPlayer.self) {
-            AsyncFunction("play") { (owner: SharedPlayer) in
-                owner.player.play()
-            }.runOnQueue(.main)
-            AsyncFunction("pause") { (owner: SharedPlayer) in
-                owner.player.pause()
-            }.runOnQueue(.main)
-            AsyncFunction("mute") { (owner: SharedPlayer) in
-                owner.player.mute()
-            }.runOnQueue(.main)
-            AsyncFunction("unmute") { (owner: SharedPlayer) in
-                owner.player.unmute()
-            }.runOnQueue(.main)
+            AsyncFunction("play") { (owner: SharedPlayer) in owner.player.play() }.runOnQueue(.main)
+            AsyncFunction("pause") { (owner: SharedPlayer) in owner.player.pause() }.runOnQueue(.main)
+            AsyncFunction("mute") { (owner: SharedPlayer) in owner.player.mute() }.runOnQueue(.main)
+            AsyncFunction("unmute") { (owner: SharedPlayer) in owner.player.unmute() }.runOnQueue(.main)
             AsyncFunction("seek") { (owner: SharedPlayer, time: Double) in
                 owner.player.seek(time: time)
             }.runOnQueue(.main)
             AsyncFunction("timeShift") { (owner: SharedPlayer, offset: Double) in
                 owner.player.timeShift = offset
             }.runOnQueue(.main)
-            AsyncFunction("destroy") { (owner: SharedPlayer) in
-                owner.destroy()
-            }.runOnQueue(.main)
+            AsyncFunction("destroy") { (owner: SharedPlayer) in owner.destroy() }.runOnQueue(.main)
             AsyncFunction("setVolume") { (owner: SharedPlayer, volume: Int) in
                 owner.player.volume = volume
             }.runOnQueue(.main)
@@ -53,9 +42,7 @@ public class PlayerModule: Module {
             AsyncFunction("setMaxSelectableBitrate") { (owner: SharedPlayer, maxSelectableBitrate: Int) in
                 owner.player.maxSelectableBitrate = UInt(maxSelectableBitrate)
             }.runOnQueue(.main)
-            AsyncFunction("getVolume") { (owner: SharedPlayer) -> Int? in
-                owner.player.volume
-            }.runOnQueue(.main)
+            AsyncFunction("getVolume") { (owner: SharedPlayer) -> Int? in owner.player.volume }.runOnQueue(.main)
             AsyncFunction("currentTime") { (owner: SharedPlayer, mode: String?) -> Double? in
                 let player = owner.player
                 if let mode {
@@ -63,33 +50,21 @@ public class PlayerModule: Module {
                 }
                 return player.currentTime
             }.runOnQueue(.main)
-            AsyncFunction("isPlaying") { (owner: SharedPlayer) -> Bool? in
-                owner.player.isPlaying
-            }.runOnQueue(.main)
-            AsyncFunction("isPaused") { (owner: SharedPlayer) -> Bool? in
-                owner.player.isPaused
-            }.runOnQueue(.main)
-            AsyncFunction("duration") { (owner: SharedPlayer) -> Double? in
-                owner.player.duration
-            }.runOnQueue(.main)
-            AsyncFunction("isMuted") { (owner: SharedPlayer) -> Bool? in
-                owner.player.isMuted
-            }.runOnQueue(.main)
+            AsyncFunction("isPlaying") { (owner: SharedPlayer) -> Bool? in owner.player.isPlaying }.runOnQueue(.main)
+            AsyncFunction("isPaused") { (owner: SharedPlayer) -> Bool? in owner.player.isPaused }.runOnQueue(.main)
+            AsyncFunction("duration") { (owner: SharedPlayer) -> Double? in owner.player.duration }.runOnQueue(.main)
+            AsyncFunction("isMuted") { (owner: SharedPlayer) -> Bool? in owner.player.isMuted }.runOnQueue(.main)
             AsyncFunction("getTimeShift") { (owner: SharedPlayer) -> Double? in
                 owner.player.timeShift
             }.runOnQueue(.main)
-            AsyncFunction("isLive") { (owner: SharedPlayer) -> Bool? in
-                owner.player.isLive
-            }.runOnQueue(.main)
+            AsyncFunction("isLive") { (owner: SharedPlayer) -> Bool? in owner.player.isLive }.runOnQueue(.main)
             AsyncFunction("getMaxTimeShift") { (owner: SharedPlayer) -> Double? in
                 owner.player.maxTimeShift
             }.runOnQueue(.main)
             AsyncFunction("getPlaybackSpeed") { (owner: SharedPlayer) -> Float? in
                 owner.player.playbackSpeed
             }.runOnQueue(.main)
-            AsyncFunction("isAd") { (owner: SharedPlayer) -> Bool? in
-                owner.player.isAd
-            }.runOnQueue(.main)
+            AsyncFunction("isAd") { (owner: SharedPlayer) -> Bool? in owner.player.isAd }.runOnQueue(.main)
             AsyncFunction("canPlayAtPlaybackSpeed") { (owner: SharedPlayer, playbackSpeed: Float) -> Bool? in
                 owner.player.canPlay(atPlaybackSpeed: playbackSpeed)
             }.runOnQueue(.main)
@@ -127,15 +102,10 @@ public class PlayerModule: Module {
             }.runOnQueue(.main)
             AsyncFunction("loadOfflineContent") { (owner: SharedPlayer, offline: SharedOffline, options: [String: Any]?) in // swiftlint:disable:this line_length
                 #if os(iOS)
-                let player = owner.player
-                guard let offlineContentManagerBridge = offline.bridge else { return }
-                let optionsDictionary = options ?? [:]
-                let restrictedToAssetCache = optionsDictionary["restrictedToAssetCache"] as? Bool ?? true
-                let offlineSourceConfig = offlineContentManagerBridge.offlineContentManager.createOfflineSourceConfig(
-                    restrictedToAssetCache: restrictedToAssetCache
-                )
-                guard let offlineSourceConfig else { return }
-                player.load(sourceConfig: offlineSourceConfig)
+                guard let config = offline.offlineContentManager.createOfflineSourceConfig(
+                    restrictedToAssetCache: options?["restrictedToAssetCache"] as? Bool ?? true
+                ) else { return }
+                owner.player.load(sourceConfig: config)
                 #endif
             }.runOnQueue(.main)
             AsyncFunction("scheduleAd") { (owner: SharedPlayer, adItemJson: [String: Any]) in
@@ -164,18 +134,10 @@ public class PlayerModule: Module {
             AsyncFunction("isCastAvailable") { (owner: SharedPlayer) -> Bool? in
                 owner.player.isCastAvailable
             }.runOnQueue(.main)
-            AsyncFunction("isCasting") { (owner: SharedPlayer) -> Bool? in
-                owner.player.isCasting
-            }.runOnQueue(.main)
-            AsyncFunction("castVideo") { (owner: SharedPlayer) in
-                owner.player.castVideo()
-            }.runOnQueue(.main)
-            AsyncFunction("castStop") { (owner: SharedPlayer) in
-                owner.player.castStop()
-            }.runOnQueue(.main)
-            AsyncFunction("skipAd") { (owner: SharedPlayer) in
-                owner.player.skipAd()
-            }.runOnQueue(.main)
+            AsyncFunction("isCasting") { (owner: SharedPlayer) -> Bool? in owner.player.isCasting }.runOnQueue(.main)
+            AsyncFunction("castVideo") { (owner: SharedPlayer) in owner.player.castVideo() }.runOnQueue(.main)
+            AsyncFunction("castStop") { (owner: SharedPlayer) in owner.player.castStop() }.runOnQueue(.main)
+            AsyncFunction("skipAd") { (owner: SharedPlayer) in owner.player.skipAd() }.runOnQueue(.main)
             AsyncFunction("getBufferLevel") { (owner: SharedPlayer, type: String) -> [String: Any]? in
                 guard let bufferType = RCTConvert.bufferType(type) else { return nil }
                 let player = owner.player

@@ -7,7 +7,6 @@ import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
 import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
-import expo.modules.kotlin.Promise
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.jni.JavaScriptValue
@@ -21,9 +20,8 @@ class PlayerModule : Module() {
         Name("PlayerModule")
         Constant("isGoogleImaEnabled") { ImaBeforeInitializationConfigurator.IS_GOOGLE_IMA_ENABLED }
         AsyncFunction("create") { config: Map<String, Any>?, analytics: Map<String, Any>?,
-            network: SharedNetworkConfig?, decoder: SharedDecoderConfig?,
             callback: JavaScriptFunction<JavaScriptValue>?, ->
-            SharedPlayer.create(appContext, config, analytics, network, decoder, callback, mediaSessionPlaybackManager)
+            SharedPlayer.create(appContext, config, analytics, callback, mediaSessionPlaybackManager)
         }.runOnQueue(Queues.MAIN)
 
         Class(SharedPlayer::class) {
@@ -40,46 +38,22 @@ class PlayerModule : Module() {
                 shared.player.buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
             }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("sendCustomDataEvent") { shared: SharedPlayer, json: Map<String, Any?>, promise: Promise ->
-                try {
-                    (
-                        shared.player.analytics
-                            ?: error("Analytics is disabled")
-                        ).sendCustomDataEvent(json.toAnalyticsCustomData())
-                    promise.resolve(null)
-                } catch (e: Exception) {
-                    promise.reject("PlayerAnalyticsError", "Failed to send custom data event", e)
-                }
+            AsyncFunction("sendCustomDataEvent") { shared: SharedPlayer, json: Map<String, Any?> ->
+                requireNotNull(shared.player.analytics) { "Analytics is disabled" }
+                    .sendCustomDataEvent(json.toAnalyticsCustomData())
             }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("getAnalyticsUserId") { shared: SharedPlayer, promise: Promise ->
-                try {
-                    promise.resolve(
-                        (
-                            shared.player.analytics
-                                ?: error("Analytics is disabled")
-                            ).userId,
-                    )
-                } catch (e: Exception) {
-                    promise.reject("PlayerAnalyticsError", "Failed to get user ID", e)
-                }
+            AsyncFunction("getAnalyticsUserId") { shared: SharedPlayer ->
+                requireNotNull(shared.player.analytics) { "Analytics is disabled" }.userId
             }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("play") { shared: SharedPlayer ->
-                shared.player.play()
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("play") { shared: SharedPlayer -> shared.player.play() }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("pause") { shared: SharedPlayer ->
-                shared.player.pause()
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("pause") { shared: SharedPlayer -> shared.player.pause() }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("mute") { shared: SharedPlayer ->
-                shared.player.mute()
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("mute") { shared: SharedPlayer -> shared.player.mute() }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("unmute") { shared: SharedPlayer ->
-                shared.player.unmute()
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("unmute") { shared: SharedPlayer -> shared.player.unmute() }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("seek") { shared: SharedPlayer, time: Double ->
                 shared.player.seek(time)
@@ -89,9 +63,7 @@ class PlayerModule : Module() {
                 shared.player.timeShift(offset)
             }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("destroy") { shared: SharedPlayer ->
-                shared.destroy()
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("destroy", SharedPlayer::destroy).runOnQueue(Queues.MAIN)
 
             AsyncFunction("setVolume") { shared: SharedPlayer, volume: Double ->
                 shared.player.volume = volume.toInt()
@@ -110,33 +82,19 @@ class PlayerModule : Module() {
                 }
             }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("isPlaying") { shared: SharedPlayer ->
-                shared.player.isPlaying
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("isPlaying") { shared: SharedPlayer -> shared.player.isPlaying }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("isPaused") { shared: SharedPlayer ->
-                shared.player.isPaused
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("isPaused") { shared: SharedPlayer -> shared.player.isPaused }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("duration") { shared: SharedPlayer ->
-                shared.player.duration
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("duration") { shared: SharedPlayer -> shared.player.duration }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("isMuted") { shared: SharedPlayer ->
-                shared.player.isMuted
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("isMuted") { shared: SharedPlayer -> shared.player.isMuted }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("unload") { shared: SharedPlayer ->
-                shared.player.unload()
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("unload") { shared: SharedPlayer -> shared.player.unload() }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("getTimeShift") { shared: SharedPlayer ->
-                shared.player.timeShift
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("getTimeShift") { shared: SharedPlayer -> shared.player.timeShift }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("isLive") { shared: SharedPlayer ->
-                shared.player.isLive
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("isLive") { shared: SharedPlayer -> shared.player.isLive }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getMaxTimeShift") { shared: SharedPlayer ->
                 shared.player.maxTimeShift
@@ -150,9 +108,7 @@ class PlayerModule : Module() {
                 shared.player.playbackSpeed = playbackSpeed.toFloat()
             }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("isAd") { shared: SharedPlayer ->
-                shared.player.isAd
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("isAd") { shared: SharedPlayer -> shared.player.isAd }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("setMaxSelectableBitrate") { shared: SharedPlayer, maxBitrate: Double ->
                 shared.player.setMaxSelectableVideoBitrate(maxBitrate.toInt())
@@ -176,21 +132,13 @@ class PlayerModule : Module() {
                 shared.player.isCastAvailable
             }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("isCasting") { shared: SharedPlayer ->
-                shared.player.isCasting
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("isCasting") { shared: SharedPlayer -> shared.player.isCasting }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("castVideo") { shared: SharedPlayer ->
-                shared.player.castVideo()
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("castVideo") { shared: SharedPlayer -> shared.player.castVideo() }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("castStop") { shared: SharedPlayer ->
-                shared.player.castStop()
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("castStop") { shared: SharedPlayer -> shared.player.castStop() }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("skipAd") { shared: SharedPlayer ->
-                shared.player.skipAd()
-            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("skipAd") { shared: SharedPlayer -> shared.player.skipAd() }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("canPlayAtPlaybackSpeed") { _: SharedPlayer, _: Double ->
                 // This method is iOS-only, return false on Android
