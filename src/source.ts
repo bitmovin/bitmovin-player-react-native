@@ -229,6 +229,13 @@ export class Source extends NativeInstance<SourceConfig> {
     if (this.isDestroyed) {
       throw destroyedSourceError(this);
     }
+    const pendingDestroy = SourceRegistry.pendingDestroy(this.nativeId);
+    if (pendingDestroy) {
+      await pendingDestroy;
+      if (this.isDestroyed) {
+        throw destroyedSourceError(this);
+      }
+    }
     if (sourceMetadata) {
       await SourceModule.initializeWithAnalyticsConfig(
         this.nativeId,
@@ -268,16 +275,15 @@ export class Source extends NativeInstance<SourceConfig> {
     this.isDestroyed = true;
     SourceRegistry.unregister(this);
     this.eventListeners.removeAll();
-    const destroyNative = () => {
-      void SourceModule.destroy(this.nativeId);
-      void this.drm?.destroy();
-    };
+    const destroyNative = () =>
+      Promise.all([SourceModule.destroy(this.nativeId), this.drm?.destroy()]);
     // Destroy natively only once an initialization in progress created the native source.
-    if (this.initialization) {
-      void this.initialization.then(destroyNative, destroyNative);
-    } else {
-      destroyNative();
-    }
+    SourceRegistry.trackDestroy(
+      this.nativeId,
+      this.initialization
+        ? this.initialization.then(destroyNative, destroyNative)
+        : destroyNative()
+    );
   };
 
   /**

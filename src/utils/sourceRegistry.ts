@@ -8,6 +8,7 @@ import type { Source } from '../source';
  * releases a source on its own, so the registry matches the native one.
  */
 const sources = new Map<string, Source>();
+const pendingDestroys = new Map<string, Promise<void>>();
 
 export const SourceRegistry = {
   /**
@@ -37,4 +38,26 @@ export const SourceRegistry = {
   get(nativeId: string): Source | undefined {
     return sources.get(nativeId);
   },
+
+  /**
+   * Tracks the native destroy of the source with `nativeId` until `destroy` settles, so that a new source
+   * with the same `nativeId` is only created natively afterwards.
+   */
+  trackDestroy(nativeId: string, destroy: Promise<unknown>) {
+    const pendingDestroy: Promise<void> = destroy.then(
+      () => untrackDestroy(nativeId, pendingDestroy),
+      () => untrackDestroy(nativeId, pendingDestroy)
+    );
+    pendingDestroys.set(nativeId, pendingDestroy);
+  },
+
+  pendingDestroy(nativeId: string): Promise<void> | undefined {
+    return pendingDestroys.get(nativeId);
+  },
+};
+
+const untrackDestroy = (nativeId: string, pendingDestroy: Promise<void>) => {
+  if (pendingDestroys.get(nativeId) === pendingDestroy) {
+    pendingDestroys.delete(nativeId);
+  }
 };
