@@ -203,8 +203,13 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Loads the given {@link Source} into the player.
+   *
+   * @throws if the `source` was destroyed.
    */
   loadSource = (source: Source) => {
+    if (source.isDestroyed) {
+      throw new Error(`Source ${source.nativeId} was destroyed`);
+    }
     this.knownSources.set(source.nativeId, source);
     void source
       .initialize()

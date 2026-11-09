@@ -197,8 +197,13 @@ export class Source extends NativeInstance<SourceConfig> {
   /**
    * Allocates the native {@link Source} instance and its resources natively.
    * Calls made while an initialization is in progress share it.
+   *
+   * @returns a promise that rejects if the source was destroyed, including while it was initializing.
    */
   initialize = (): Promise<void> => {
+    if (this.isDestroyed) {
+      return Promise.reject(destroyedSourceError(this));
+    }
     this.initialization ??= this.initializeNative().finally(() => {
       this.initialization = undefined;
     });
@@ -206,44 +211,65 @@ export class Source extends NativeInstance<SourceConfig> {
   };
 
   private initializeNative = async (): Promise<void> => {
-    if (!this.isInitialized) {
-      const sourceMetadata = this.config?.analyticsSourceMetadata;
-      if (this.config?.drmConfig) {
-        this.drm = new Drm(this.config.drmConfig, this.nativeId);
-        await this.drm.initialize();
-      }
-      if (sourceMetadata) {
-        await SourceModule.initializeWithAnalyticsConfig(
-          this.nativeId,
-          this.drm?.nativeId,
-          this.config,
-          this.remoteControl || undefined,
-          sourceMetadata
-        );
-      } else {
-        await SourceModule.initializeWithConfig(
-          this.nativeId,
-          this.drm?.nativeId,
-          this.config,
-          this.remoteControl || undefined
-        );
-      }
-      this.isInitialized = true;
-      this.eventListeners.attachNative();
+    if (this.isInitialized) {
+      return;
     }
-    return Promise.resolve();
+    const sourceMetadata = this.config?.analyticsSourceMetadata;
+    if (this.config?.drmConfig) {
+      const drm = new Drm(this.config.drmConfig, this.nativeId);
+      try {
+        await drm.initialize();
+      } catch (error) {
+        void drm.destroy();
+        throw error;
+      }
+      this.drm = drm;
+    }
+    if (this.isDestroyed) {
+      throw destroyedSourceError(this);
+    }
+    if (sourceMetadata) {
+      await SourceModule.initializeWithAnalyticsConfig(
+        this.nativeId,
+        this.drm?.nativeId,
+        this.config,
+        this.remoteControl || undefined,
+        sourceMetadata
+      );
+    } else {
+      await SourceModule.initializeWithConfig(
+        this.nativeId,
+        this.drm?.nativeId,
+        this.config,
+        this.remoteControl || undefined
+      );
+    }
+    if (this.isDestroyed) {
+      throw destroyedSourceError(this);
+    }
+    this.isInitialized = true;
+    this.eventListeners.attachNative();
   };
 
   /**
-   * Destroys the native {@link Source} and releases all of its allocated resources.
-   * All listeners are removed.
+   * Destroys the native {@link Source} and releases all of its allocated resources, e.g. its DRM config.
+   * All listeners are removed, and the source cannot be initialized or loaded again.
    */
   destroy = () => {
-    if (!this.isDestroyed) {
+    if (this.isDestroyed) {
+      return;
+    }
+    this.isDestroyed = true;
+    this.eventListeners.removeAll();
+    const destroyNative = () => {
       void SourceModule.destroy(this.nativeId);
       void this.drm?.destroy();
-      this.eventListeners.removeAll();
-      this.isDestroyed = true;
+    };
+    // Destroy natively only once an initialization in progress created the native source.
+    if (this.initialization) {
+      void this.initialization.then(destroyNative, destroyNative);
+    } else {
+      destroyNative();
     }
   };
 
@@ -349,3 +375,6 @@ export class Source extends NativeInstance<SourceConfig> {
     return SourceModule.getThumbnail(this.nativeId, time);
   };
 }
+
+const destroyedSourceError = (source: Source) =>
+  new Error(`Source ${source.nativeId} was destroyed`);
