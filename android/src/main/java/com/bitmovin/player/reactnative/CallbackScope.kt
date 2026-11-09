@@ -3,6 +3,7 @@ package com.bitmovin.player.reactnative
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.jni.JavaScriptValue
+import expo.modules.kotlin.sharedobjects.SharedObject
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
@@ -31,6 +32,9 @@ class CallbackScope(private val context: AppContext, callback: JavaScriptFunctio
         callback = null
         changed.signalAll()
     }
+
+    internal fun <T : SharedObject> createSharedObject(factory: () -> T): T =
+        runCatching(factory).onFailure { close() }.getOrThrow()
 
     private fun schedule(
         operation: String,

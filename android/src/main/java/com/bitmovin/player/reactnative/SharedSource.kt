@@ -7,6 +7,7 @@ import com.bitmovin.player.reactnative.converter.toSourceConfig
 import com.bitmovin.player.reactnative.converter.toWidevineConfig
 import com.bitmovin.player.reactnative.extensions.getMap
 import expo.modules.kotlin.AppContext
+import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.sharedobjects.SharedRef
@@ -31,16 +32,17 @@ class SharedSource(appContext: AppContext, source: Source, private val callbacks
         ): SharedSource {
             val sourceConfig = config?.toSourceConfig() ?: throw SourceException.InvalidSourceConfig()
             val callbacks = CallbackScope(appContext, callback)
-            try {
+            return callbacks.createSharedObject {
                 sourceConfig.drmConfig = config.getMap("drmConfig")?.toWidevineConfig(callbacks, "drmConfig")
                 val source = analyticsSourceMetadata?.toAnalyticsSourceMetadata()?.let {
                     Source.create(sourceConfig, it)
                 } ?: Source.create(sourceConfig)
-                return SharedSource(appContext, source, callbacks)
-            } catch (error: Exception) {
-                callbacks.close()
-                throw error
+                SharedSource(appContext, source, callbacks)
             }
         }
     }
+}
+
+sealed class SourceException(message: String) : CodedException(message) {
+    class InvalidSourceConfig : SourceException("Invalid source configuration")
 }

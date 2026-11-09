@@ -10,15 +10,4 @@ export type { HttpRequest, HttpResponse, NetworkConfig };
  */
 export class Network {
   constructor(readonly config?: NetworkConfig) {}
-
-  isInitialized = false;
-  isDestroyed = false;
-
-  initialize = async () => {
-    this.isInitialized = true;
-  };
-
-  destroy = async () => {
-    this.isDestroyed = true;
-  };
 }

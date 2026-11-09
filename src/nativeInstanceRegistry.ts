@@ -1,8 +1,13 @@
+import type { SharedObject } from 'expo-modules-core/types';
+
 /** Legacy IDs live only here; native methods receive SharedObjects. @internal */
-type Entry = WeakRef<object> | Promise<object | undefined>;
+type Entry = WeakRef<SharedObject> | Promise<SharedObject | undefined>;
 const instances = new Map<string, Map<string, Entry>>();
 
-function entry(kind: string, nativeId: string): object | undefined {
+function entry(
+  kind: string,
+  nativeId: string
+): SharedObject | Promise<SharedObject | undefined> | undefined {
   const entries = instances.get(kind);
   const value = entries?.get(nativeId);
   if (!(value instanceof WeakRef)) return value;
@@ -14,7 +19,11 @@ function entry(kind: string, nativeId: string): object | undefined {
   return instance;
 }
 
-function store(kind: string, nativeId: string, value: object): void {
+function store(
+  kind: string,
+  nativeId: string,
+  value: SharedObject | Promise<SharedObject | undefined>
+): void {
   let entries = instances.get(kind);
   if (!entries) instances.set(kind, (entries = new Map()));
   // Prune collected labels during registration without timers or finalizers.
@@ -25,7 +34,7 @@ function store(kind: string, nativeId: string, value: object): void {
 }
 
 /** @internal */
-export function lookup<T extends object>(
+export function lookup<T extends SharedObject>(
   kind: string,
   nativeId: string
 ): T | undefined {
@@ -34,7 +43,7 @@ export function lookup<T extends object>(
 }
 
 /** @internal */
-export function lookupPending<T extends object>(
+export function lookupPending<T extends SharedObject>(
   kind: string,
   nativeId: string
 ): Promise<T> | undefined {
@@ -43,7 +52,7 @@ export function lookupPending<T extends object>(
 }
 
 /** @internal */
-export function getOrCreateAsync<T extends object>(
+export function getOrCreateAsync<T extends SharedObject>(
   kind: string,
   nativeId: string,
   factory: () => Promise<T | undefined>,
@@ -77,7 +86,7 @@ export function getOrCreateAsync<T extends object>(
 export function remove(
   kind: string,
   nativeId: string,
-  expected: object
+  expected: SharedObject | Promise<SharedObject | undefined>
 ): boolean {
   if (entry(kind, nativeId) !== expected) return false;
   const entries = instances.get(kind)!;

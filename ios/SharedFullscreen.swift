@@ -1,3 +1,4 @@
+import BitmovinPlayer
 import ExpoModulesCore
 
 public final class SharedFullscreen: SharedObject {
@@ -20,4 +21,14 @@ public final class SharedFullscreen: SharedObject {
     func destroy() { callback.close() }
     deinit { callback.close() }
     override public func sharedObjectWillRelease() { callback.close() }
+}
+
+nonisolated internal class FullscreenHandlerBridge: NSObject, FullscreenHandler {
+    @MainActor var isFullscreen = false
+    weak var owner: SharedFullscreen?
+
+    @MainActor
+    func onFullscreenRequested() { owner?.request("enterFullscreen") }
+    @MainActor
+    func onFullscreenExitRequested() { owner?.request("exitFullscreen") }
 }
