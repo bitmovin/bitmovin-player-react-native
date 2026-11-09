@@ -114,6 +114,9 @@ jobs:
       - name: Test playlist config validation
         run: node --test scripts/test-playlist-config-validation.js
 
+      - name: Test source lifecycle
+        run: node --test scripts/test-source-lifecycle.js
+
       - name: Build TypeScript (Module)
         run: yarn build:module
 
