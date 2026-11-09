@@ -5,7 +5,7 @@ import type { NativeCallback } from '../nativeCallbacks';
 import type { NativeOffline } from '../offline/offlineModule';
 import type { NativeSource } from './SourceModule';
 import type { BufferLevels } from '../bufferApi';
-import { setNativeOwner } from '../nativeOwner';
+import { nativeOwner } from '../nativeOwner';
 
 export type PlayerModuleEvents = Record<string, never>;
 
@@ -132,5 +132,5 @@ export async function retainLoadedSource(
   source: NativeSource | NativeOffline | undefined,
   operation: Promise<void | boolean>
 ): Promise<void> {
-  if ((await operation) !== false) setNativeOwner(player, source);
+  if ((await operation) !== false) nativeOwner.set(player, source);
 }

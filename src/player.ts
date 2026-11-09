@@ -1,5 +1,8 @@
 import { Platform } from 'react-native';
-import PlayerModule, { retainLoadedSource } from './modules/PlayerModule';
+import PlayerModule, {
+  type NativePlayer,
+  retainLoadedSource,
+} from './modules/PlayerModule';
 import NativeInstance from './nativeInstance';
 import { legacyPlayerRegistry } from './nativeInstanceRegistry';
 import type { SourceConfig } from './source';
@@ -18,7 +21,7 @@ import {
   createConfigurationCallbacks,
   createSharedObjectWithCallback,
 } from './nativeCallbacks';
-import { getNativeOwner } from './nativeOwner';
+import { nativeOwner } from './nativeOwner';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -29,17 +32,24 @@ import { getNativeOwner } from './nativeOwner';
  * Can be attached to {@link PlayerView} component in order to use Bitmovin's Player Web UI.
  * @see PlayerView
  */
-export class Player extends NativeInstance<PlayerConfig> {
-  constructor(config: PlayerConfig = {}) {
-    super(config);
+export class Player extends NativeInstance<NativePlayer> {
+  constructor(readonly config: PlayerConfig = {}) {
+    super(config.nativeId, legacyPlayerRegistry, () =>
+      this.createNativePlayer()
+    );
+    this.analytics = config.analyticsConfig
+      ? new AnalyticsApi(this.native)
+      : undefined;
+    void this.native.then(
+      (native) => nativeOwner.set(this, native),
+      () => {}
+    );
   }
 
-  /** @internal */
-  readonly native = this.retainNative(
-    legacyPlayerRegistry.getOrCreate(this.nativeId, () =>
-      this.createNativePlayer()
-    )
-  );
+  /** Whether native creation has completed successfully. */
+  get isInitialized(): boolean {
+    return nativeOwner.get(this) !== undefined;
+  }
 
   /**
    * Whether `destroy()` has been called on this wrapper.
@@ -54,9 +64,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * `undefined` if the player was created without analytics support.
    */
-  analytics?: AnalyticsApi = this.config.analyticsConfig
-    ? new AnalyticsApi(this.native)
-    : undefined;
+  analytics?: AnalyticsApi;
   /**
    * The {@link BufferApi} for interactions regarding the buffer.
    */
@@ -104,7 +112,7 @@ export class Player extends NativeInstance<PlayerConfig> {
     this.isDestroyed = true;
     legacyPlayerRegistry.remove(
       this.nativeId,
-      getNativeOwner(this) ?? this.native
+      nativeOwner.get(this) ?? this.native
     );
     let native;
     try {

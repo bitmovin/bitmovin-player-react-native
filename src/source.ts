@@ -1,5 +1,5 @@
 import type { CmcdConfig } from './cmcdConfig';
-import { getNativeOwner, setNativeOwner } from './nativeOwner';
+import { nativeOwner } from './nativeOwner';
 import type { DrmConfig } from './drm';
 import { SourceDrmApi } from './drm/sourceDrmApi';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
@@ -189,7 +189,7 @@ export class Source {
         ),
       callbacks.callback
     );
-    setNativeOwner(this, native);
+    nativeOwner.set(this, native);
     return native;
   }
 
@@ -211,7 +211,7 @@ export class Source {
    * Whether the native {@link Source} object has been created.
    */
   get isInitialized(): boolean {
-    return getNativeOwner(this) !== undefined;
+    return nativeOwner.get(this) !== undefined;
   }
 
   /**

@@ -1,6 +1,6 @@
 import * as Crypto from 'expo-crypto';
 import type { SharedObject } from 'expo-modules-core/types';
-import { getNativeOwner, setNativeOwner } from './nativeOwner';
+import type { NativeInstanceRegistry } from './nativeInstanceRegistry';
 
 export interface NativeInstanceConfig {
   /**
@@ -19,51 +19,20 @@ export interface NativeInstanceConfig {
   nativeId?: string;
 }
 
-export default abstract class NativeInstance<
-  Config extends NativeInstanceConfig,
-> {
-  /**
-   * Optionally user-defined string `id` for the native instance, or UUIDv4.
-   */
+/** Only preserves backward-compatible nativeId-based construction. */
+export default abstract class NativeInstance<T extends SharedObject> {
+  /** User-defined compatibility ID, or a generated UUIDv4. */
   readonly nativeId: string;
 
-  /**
-   * The configuration object used to initialize this instance.
-   */
-  readonly config: Config;
+  /** @internal */
+  readonly native: Promise<T>;
 
-  /**
-   * Generate UUID in case the user-defined `nativeId` is empty.
-   */
-  constructor(config: Config) {
-    this.config = config;
-    this.nativeId = config.nativeId ?? Crypto.randomUUID();
+  constructor(
+    nativeId: string | undefined,
+    registry: NativeInstanceRegistry<T>,
+    create: () => Promise<T>
+  ) {
+    this.nativeId = nativeId ?? Crypto.randomUUID();
+    this.native = registry.getOrCreate(this.nativeId, create);
   }
-
-  /** Retain one eager creation attempt; callers still observe its original rejection. */
-  protected retainNative<T extends SharedObject>(
-    creation: Promise<T>,
-    onReady?: (native: T) => void
-  ): Promise<T> {
-    void creation.then(
-      (native) => {
-        setNativeOwner(this, native);
-        onReady?.(native);
-      },
-      () => {}
-    );
-    return creation;
-  }
-
-  /**
-   * Whether the native creation started by the constructor has completed successfully.
-   */
-  get isInitialized(): boolean {
-    return getNativeOwner(this) !== undefined;
-  }
-
-  /**
-   * Wait for the native object/resources created by the constructor.
-   */
-  abstract initialize(): Promise<void>;
 }

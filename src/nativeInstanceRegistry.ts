@@ -6,8 +6,9 @@ import type { NativeOffline } from './offline/offlineModule';
  * Backward compatibility for nativeId-based construction: wrappers created with
  * the same ID share one native object. Methods and views use their owned
  * SharedObjects directly; these registries only resolve constructor aliases.
+ * @internal
  */
-class NativeInstanceRegistry<T extends SharedObject> {
+export class NativeInstanceRegistry<T extends SharedObject> {
   private readonly instances = new Map<string, WeakRef<T> | Promise<T>>();
 
   private entry(nativeId: string): T | Promise<T> | undefined {
