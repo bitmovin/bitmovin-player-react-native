@@ -81,14 +81,14 @@ function fixture(t, platform = 'ios') {
   return { OfflineContentManager, config, owners, offlineModule };
 }
 
-test('Android rejects a duplicate offline manager ID', async (t) => {
-  const { OfflineContentManager, config } = fixture(t, 'android');
+test('Android offline constructors eagerly share their ID', async (t) => {
+  const { OfflineContentManager, config, owners } = fixture(t, 'android');
   const first = new OfflineContentManager(config);
   const alias = new OfflineContentManager(config);
-  await first.initialize();
-  await assert.rejects(alias.initialize(), {
-    code: 'ERR_MANAGER_ALREADY_EXISTS',
-  });
+  await new Promise(setImmediate);
+  assert.equal(owners.length, 1);
+  await Promise.all([first.initialize(), alias.initialize()]);
+  assert.equal(await alias.state(), 'Downloaded');
   await first.destroy();
 });
 
@@ -122,7 +122,7 @@ test('offline progress reaches listeners during creation and through iOS aliases
   await alias.destroy();
 });
 
-test('iOS offline creation errors reject and permit retry', async (t) => {
+test('iOS offline creation stays rejected; a new wrapper can retry', async (t) => {
   const { OfflineContentManager, config, offlineModule } = fixture(t);
   const create = offlineModule.create;
   const failure = new Error('SDK manager creation failed');
@@ -132,7 +132,32 @@ test('iOS offline creation errors reject and permit retry', async (t) => {
   const manager = new OfflineContentManager(config);
   await assert.rejects(manager.state(), (error) => error === failure);
   offlineModule.create = create;
-  await manager.initialize();
-  assert.equal(await manager.state(), 'Downloaded');
-  await manager.destroy();
+  await assert.rejects(manager.initialize(), (error) => error === failure);
+  const replacement = new OfflineContentManager(config);
+  await replacement.initialize();
+  assert.equal(await replacement.state(), 'Downloaded');
+  await replacement.destroy();
+});
+
+test('destroy during eager offline creation releases its eventual backend', async (t) => {
+  const { OfflineContentManager, config, offlineModule } = fixture(t);
+  const create = offlineModule.create;
+  let finish;
+  offlineModule.create = (...args) =>
+    new Promise((resolve) => {
+      finish = async () => {
+        const native = await create(...args);
+        native.destroy = async () => {
+          releases++;
+        };
+        resolve(native);
+      };
+    });
+  let releases = 0;
+  const manager = new OfflineContentManager(config);
+  const destruction = manager.destroy();
+  await new Promise(setImmediate);
+  await finish();
+  await destruction;
+  assert.equal(releases, 1);
 });

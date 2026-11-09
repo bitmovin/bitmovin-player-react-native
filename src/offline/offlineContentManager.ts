@@ -1,5 +1,4 @@
 import type { EventSubscription } from 'expo-modules-core';
-import { Platform } from 'react-native';
 import NativeInstance from '../nativeInstance';
 import type {
   BitmovinNativeOfflineEventData,
@@ -8,20 +7,18 @@ import type {
 import { OfflineEventType } from './offlineContentManagerListener';
 import type { OfflineContentConfig } from './offlineContentConfig';
 import type { OfflineDownloadRequest } from './offlineDownloadRequest';
-import { OfflineState } from './offlineState';
+import type { OfflineState } from './offlineState';
 import OfflineModule, {
-  getNativeOffline,
-  offlineCompatibilityError,
   type NativeOffline,
   type NativeOfflineBackend,
   type NativeOfflineEvents,
 } from './offlineModule';
+import { getOrCreateAsync, remove } from '../nativeInstanceRegistry';
+import { getNativeOwner } from '../nativeOwner';
 import {
-  getOrCreateAsync,
-  lookupPending,
-  remove,
-} from '../nativeInstanceRegistry';
-import { createConfigurationCallbacks } from '../nativeCallbacks';
+  createConfigurationCallbacks,
+  createSharedObjectWithCallback,
+} from '../nativeCallbacks';
 
 const handleBitmovinNativeOfflineEvent = (
   data: BitmovinNativeOfflineEventData,
@@ -55,7 +52,7 @@ const handleBitmovinNativeOfflineEvent = (
 /**
  * Provides the means to download and store sources locally that can be played back with a Player
  * without an active network connection. An OfflineContentManager instance can be created via
- * the constructor. Native resources are created lazily on first use.
+ * the constructor, which starts native resource creation.
  *
  * @platform Android, iOS
  */
@@ -66,45 +63,15 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   private listeners: Set<OfflineContentManagerListener> =
     new Set<OfflineContentManagerListener>();
 
-  private get native() {
-    const existing = getNativeOffline(this);
-    if (this.isDestroyed) return Promise.resolve(existing);
-    if (existing) {
-      this.observeEvents(existing.events);
-      this.isInitialized = true;
-      return Promise.resolve(existing);
-    }
-    return getOrCreateAsync(
-      'offline',
-      this.nativeId,
-      () =>
-        this.isDestroyed
-          ? Promise.resolve(undefined)
-          : this.createNativeOffline(),
-      (created) => created.destroy()
-    ).then((native) => {
-      if (!native || getNativeOffline(this) !== native) return undefined;
-      this.observeEvents(native.events);
-      this.isInitialized = true;
-      return native;
-    });
-  }
+  private readonly native = this.retainNative(
+    getOrCreateAsync('offline', this.nativeId, () =>
+      this.createNativeOffline()
+    ),
+    (native) => this.observeEvents(native.events)
+  );
 
-  /**
-   * Allocates the native `OfflineManager` and subscribes to its events.
-   * Runtime methods initialize it automatically on first use.
-   */
+  /** Waits for the native manager creation started by the constructor. */
   initialize = async (): Promise<void> => {
-    if (!this.isInitialized && !this.isDestroyed && Platform.OS === 'android') {
-      const existing = getNativeOffline(this);
-      if (existing) this.observeEvents(existing.events);
-      if (existing)
-        throw offlineCompatibilityError(
-          'initializeWithConfig',
-          this.nativeId,
-          true
-        );
-    }
     await this.native;
   };
 
@@ -114,9 +81,13 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
     this.observeEvents(events);
     let native: NativeOfflineBackend | undefined;
     try {
-      native = await OfflineModule.create(
-        callbacks.serialize(this.config),
-        events,
+      native = await createSharedObjectWithCallback(
+        (callback) =>
+          OfflineModule.create(
+            callbacks.serialize(this.config),
+            events,
+            callback
+          ),
         callbacks.callback
       );
       const created = Object.defineProperty(native, 'events', {
@@ -132,7 +103,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   }
 
   private observeEvents(events: NativeOfflineEvents) {
-    if (this.eventSubscription) return;
+    if (this.isDestroyed || this.eventSubscription) return;
     this.eventSubscription = events.addListener(
       'onBitmovinOfflineEvent',
       (event) => {
@@ -163,36 +134,25 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Destroys the native `OfflineManager` and releases all of its allocated resources.
    */
   destroy = async (): Promise<void> => {
-    if (!this.isDestroyed) {
-      this.isDestroyed = true;
-      this.eventSubscription?.remove();
-      this.listeners.clear();
-      const pending = lookupPending('offline', this.nativeId);
-      if (pending) {
-        remove('offline', this.nativeId, pending);
-        await pending;
-      } else {
-        const native = getNativeOffline(this);
-        if (native) {
-          remove('offline', this.nativeId, native);
-          await native.destroy();
-        }
-      }
-    }
+    if (this.isDestroyed) return;
+    this.isDestroyed = true;
+    this.eventSubscription?.remove();
+    this.listeners.clear();
+    remove('offline', this.nativeId, getNativeOwner(this) ?? this.native);
+    await this.native.then(
+      async (native) => {
+        remove('offline', this.nativeId, native);
+        await native.destroy();
+      },
+      () => {}
+    );
   };
 
   /**
    * Gets the current state of the `OfflineContentManager`
    */
   state = async (): Promise<OfflineState> => {
-    const native = await this.native;
-    return (
-      native
-        ? await native.getState()
-        : Platform.OS === 'ios' && !Platform.isTV
-          ? OfflineState.NotDownloaded
-          : null
-    ) as OfflineState;
+    return (await (await this.native).getState()) as OfflineState;
   };
 
   /**
@@ -200,7 +160,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * When the options are loaded the data will be passed to the `OfflineContentManagerListener.onOptionsAvailable`.
    */
   getOptions = async (): Promise<void> => {
-    return (await this.native)?.getOptions();
+    return (await this.native).getOptions();
   };
 
   /**
@@ -210,42 +170,42 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Observe `OfflineContentManagerListener` for download completion and errors.
    */
   download = async (request: OfflineDownloadRequest): Promise<void> => {
-    return (await this.native)?.download(request);
+    return (await this.native).download(request);
   };
 
   /**
    * Resumes all suspended actions.
    */
   resume = async (): Promise<void> => {
-    return (await this.native)?.resume();
+    return (await this.native).resume();
   };
 
   /**
    * Suspends all active actions.
    */
   suspend = async (): Promise<void> => {
-    return (await this.native)?.suspend();
+    return (await this.native).suspend();
   };
 
   /**
    * Cancels and deletes the active download.
    */
   cancelDownload = async (): Promise<void> => {
-    return (await this.native)?.cancelDownload();
+    return (await this.native).cancelDownload();
   };
 
   /**
    * Resolves how many bytes of storage are used by the offline content.
    */
   usedStorage = async (): Promise<number> => {
-    return ((await (await this.native)?.usedStorage()) ?? null) as number;
+    return (await (await this.native).usedStorage()) as number;
   };
 
   /**
    * Deletes everything related to the related content ID.
    */
   deleteAll = async (): Promise<void> => {
-    return (await this.native)?.deleteAll();
+    return (await this.native).deleteAll();
   };
 
   /**
@@ -254,7 +214,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
   downloadLicense = async (): Promise<void> => {
-    return (await this.native)?.downloadLicense();
+    return (await this.native).downloadLicense();
   };
 
   /**
@@ -265,7 +225,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * @platform Android
    */
   releaseLicense = async (): Promise<void> => {
-    return (await this.native)?.releaseLicense();
+    return (await this.native).releaseLicense();
   };
 
   /**
@@ -274,6 +234,6 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
   renewOfflineLicense = async (): Promise<void> => {
-    return (await this.native)?.renewOfflineLicense();
+    return (await this.native).renewOfflineLicense();
   };
 }

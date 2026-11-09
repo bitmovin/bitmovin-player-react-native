@@ -15,7 +15,6 @@ import {
   createConfigurationCallbacks,
   createSharedObjectWithCallback,
 } from './nativeCallbacks';
-import { setNativeOwner } from './nativeOwner';
 
 /**
  * Types of media that can be handled by the player.
@@ -184,8 +183,8 @@ export class Source extends NativeInstance<SourceConfig> {
   ): Promise<EventSubscription> =>
     subscribeToNativeEvent(this.native, event, listener);
 
-  private get native() {
-    return getOrCreateAsync('source', this.nativeId, () => {
+  private readonly native = this.retainNative(
+    getOrCreateAsync('source', this.nativeId, () => {
       const callbacks = createConfigurationCallbacks();
       return createSharedObjectWithCallback(
         (callback) =>
@@ -197,19 +196,15 @@ export class Source extends NativeInstance<SourceConfig> {
           ),
         callbacks.callback
       );
-    }).then((native) => {
-      setNativeOwner(this, native);
-      this.isInitialized = true;
-      return native;
-    });
-  }
+    })
+  );
 
   /**
    * Provides access to DRM runtime APIs for this source.
    * Use `drm.fairplay` to access {@link FairplayDrmApi} for FairPlay-specific APIs such as {@link FairplayDrmApi.renewExpiringLicense}.
    * Available for every source. Read {@link SourceConfig.drmConfig} to inspect DRM configuration.
    */
-  readonly drm = new SourceDrmApi(() => this.native);
+  readonly drm = new SourceDrmApi(this.native);
 
   /**
    * The remote control config for this source.

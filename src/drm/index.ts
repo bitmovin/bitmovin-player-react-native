@@ -1,10 +1,10 @@
 import type { FairplayConfig } from './fairplayConfig';
 import type { WidevineConfig } from './widevineConfig';
 
-// Export config types and API classes from DRM module.
+// Export configuration and runtime API types.
 export type { FairplayConfig, WidevineConfig };
-export { FairplayDrmApi } from './fairplayDrmApi';
-export { SourceDrmApi } from './sourceDrmApi';
+export type { FairplayDrmApi } from './fairplayDrmApi';
+export type { SourceDrmApi } from './sourceDrmApi';
 
 /**
  * Represents the general Streaming DRM config.

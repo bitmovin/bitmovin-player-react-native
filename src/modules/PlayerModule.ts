@@ -121,8 +121,8 @@ export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
 /** @internal */
 export function getNativePlayer(player: Player): NativePlayer | undefined {
   const native =
-    lookup<NativePlayer>('player', player.nativeId) ??
-    getNativeOwner<NativePlayer>(player);
+    getNativeOwner<NativePlayer>(player) ??
+    lookup<NativePlayer>('player', player.nativeId);
   if (native) setNativeOwner(player, native);
   return native;
 }
@@ -137,21 +137,6 @@ declare class PlayerModule extends NativeModule {
 }
 
 export default requireNativeModule<PlayerModule>('PlayerModule');
-
-/** @internal */
-export type NativePlayerReference = () => Promise<NativePlayer | undefined>;
-
-/** @internal */
-export function nativePlayerReference(
-  player: Player | NativePlayerReference
-): NativePlayerReference {
-  return typeof player === 'function'
-    ? player
-    : async () => {
-        await player.initialize();
-        return getNativePlayer(player);
-      };
-}
 
 /** @internal */
 export async function retainLoadedSource(

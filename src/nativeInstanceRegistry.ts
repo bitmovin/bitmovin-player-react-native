@@ -1,13 +1,13 @@
 import type { SharedObject } from 'expo-modules-core/types';
 
 /** Legacy IDs live only here; native methods receive SharedObjects. @internal */
-type Entry = WeakRef<SharedObject> | Promise<SharedObject | undefined>;
+type Entry = WeakRef<SharedObject> | Promise<SharedObject>;
 const instances = new Map<string, Map<string, Entry>>();
 
 function entry(
   kind: string,
   nativeId: string
-): SharedObject | Promise<SharedObject | undefined> | undefined {
+): SharedObject | Promise<SharedObject> | undefined {
   const entries = instances.get(kind);
   const value = entries?.get(nativeId);
   if (!(value instanceof WeakRef)) return value;
@@ -22,7 +22,7 @@ function entry(
 function store(
   kind: string,
   nativeId: string,
-  value: SharedObject | Promise<SharedObject | undefined>
+  value: SharedObject | Promise<SharedObject>
 ): void {
   let entries = instances.get(kind);
   if (!entries) instances.set(kind, (entries = new Map()));
@@ -43,35 +43,18 @@ export function lookup<T extends SharedObject>(
 }
 
 /** @internal */
-export function lookupPending<T extends SharedObject>(
-  kind: string,
-  nativeId: string
-): Promise<T> | undefined {
-  const value = entry(kind, nativeId);
-  return value instanceof Promise ? (value as Promise<T>) : undefined;
-}
-
-/** @internal */
-export function getOrCreateAsync<T extends SharedObject | undefined>(
+export function getOrCreateAsync<T extends SharedObject>(
   kind: string,
   nativeId: string,
-  factory: () => Promise<T>,
-  dispose: (instance: NonNullable<T>) => void | Promise<void> = (instance) =>
-    instance.release()
+  factory: () => Promise<T>
 ): Promise<T> {
   const existing = entry(kind, nativeId);
   if (existing) return Promise.resolve(existing as T | Promise<T>);
   const creation = Promise.resolve()
     .then(factory)
     .then(
-      async (instance) => {
-        if (!instance) {
-          remove(kind, nativeId, creation);
-        } else if (entry(kind, nativeId) !== creation) {
-          await dispose(instance);
-        } else {
-          store(kind, nativeId, instance);
-        }
+      (instance) => {
+        if (entry(kind, nativeId) === creation) store(kind, nativeId, instance);
         return instance;
       },
       (error) => {
@@ -83,11 +66,11 @@ export function getOrCreateAsync<T extends SharedObject | undefined>(
   return creation;
 }
 
-/** A stale alias cannot remove a replacement; canceled creations dispose their result. @internal */
+/** A stale alias cannot remove a replacement. @internal */
 export function remove(
   kind: string,
   nativeId: string,
-  expected: SharedObject | Promise<SharedObject | undefined>
+  expected: SharedObject | Promise<SharedObject>
 ): boolean {
   if (entry(kind, nativeId) !== expected) return false;
   const entries = instances.get(kind)!;
