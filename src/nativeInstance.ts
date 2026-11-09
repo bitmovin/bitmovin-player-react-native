@@ -4,17 +4,10 @@ import type { NativeInstanceRegistry } from './nativeInstanceRegistry';
 
 export interface NativeInstanceConfig {
   /**
-   * Optionally user-defined string `id` for the native instance.
-   * Used to access a certain native instance from any point in the source code then call
-   * methods/properties on it.
+   * Legacy identifier for constructing wrappers that share one native object.
    *
+   * @deprecated Retain and reuse the Player or OfflineContentManager instance instead of constructing aliases by ID. Kept only for backward compatibility.
    * @defaultValue A generated UUIDv4.
-   * @example
-   * Accessing or creating the `Player` with `nativeId` equal to `my-player`:
-   * ```
-   * const player = new Player({ nativeId: 'my-player' })
-   * player.play(); // call methods and properties...
-   * ```
    */
   nativeId?: string;
 }
