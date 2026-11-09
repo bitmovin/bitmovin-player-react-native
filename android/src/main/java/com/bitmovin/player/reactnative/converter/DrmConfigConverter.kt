@@ -8,6 +8,7 @@ import com.bitmovin.player.reactnative.CallbackScope
 import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.extensions.getString
 import com.bitmovin.player.reactnative.extensions.withBoolean
+import com.bitmovin.player.reactnative.extensions.withFunction
 import com.bitmovin.player.reactnative.extensions.withMap
 import com.bitmovin.player.reactnative.extensions.withString
 
@@ -17,12 +18,12 @@ fun Map<String, Any?>.toWidevineConfig(callbacks: CallbackScope, path: String): 
             withString("preferredSecurityLevel") { preferredSecurityLevel = it }
             withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
             withMap("httpHeaders") { httpHeaders = it.mapValues { entry -> entry.value as String }.toMutableMap() }
-            if (containsKey("prepareMessage")) {
+            withFunction("prepareMessage") {
                 prepareMessageCallback = PrepareMessageCallback {
                     callbacks.prepare("$path.widevine.prepareMessage", it)
                 }
             }
-            if (containsKey("prepareLicense")) {
+            withFunction("prepareLicense") {
                 prepareLicenseCallback = PrepareLicenseCallback {
                     callbacks.prepare("$path.widevine.prepareLicense", it)
                 }

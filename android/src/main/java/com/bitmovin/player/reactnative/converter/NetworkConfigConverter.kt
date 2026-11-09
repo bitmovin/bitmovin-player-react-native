@@ -4,11 +4,11 @@ import com.bitmovin.player.api.network.NetworkConfig
 import com.bitmovin.player.api.network.PreprocessHttpRequestCallback
 import com.bitmovin.player.api.network.PreprocessHttpResponseCallback
 import com.bitmovin.player.reactnative.CallbackScope
+import com.bitmovin.player.reactnative.extensions.withFunction
 
-fun Map<String, Any?>.toNetworkConfig(callbacks: CallbackScope): NetworkConfig {
-    val config = this
-    return NetworkConfig().apply {
-        if (config.containsKey("preprocessHttpRequest")) {
+fun Map<String, Any?>.toNetworkConfig(callbacks: CallbackScope): NetworkConfig =
+    NetworkConfig().apply {
+        withFunction("preprocessHttpRequest") {
             preprocessHttpRequestCallback = PreprocessHttpRequestCallback { type, request ->
                 callbacks.future(
                     "networkConfig.preprocessHttpRequest",
@@ -21,7 +21,7 @@ fun Map<String, Any?>.toNetworkConfig(callbacks: CallbackScope): NetworkConfig {
                 }
             }
         }
-        if (config.containsKey("preprocessHttpResponse")) {
+        withFunction("preprocessHttpResponse") {
             preprocessHttpResponseCallback = PreprocessHttpResponseCallback { type, response ->
                 callbacks.future(
                     "networkConfig.preprocessHttpResponse",
@@ -35,4 +35,3 @@ fun Map<String, Any?>.toNetworkConfig(callbacks: CallbackScope): NetworkConfig {
             }
         }
     }
-}

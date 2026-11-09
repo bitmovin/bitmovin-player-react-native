@@ -5,6 +5,7 @@ import com.bitmovin.player.api.advertising.BeforeInitializationCallback
 import com.bitmovin.player.reactnative.converter.applyOnImaSettings
 import com.bitmovin.player.reactnative.converter.toMap
 import com.bitmovin.player.reactnative.extensions.getMap
+import com.bitmovin.player.reactnative.extensions.withFunction
 
 internal object ImaBeforeInitializationConfigurator {
     const val IS_GOOGLE_IMA_ENABLED = true
@@ -14,21 +15,22 @@ internal object ImaBeforeInitializationConfigurator {
         advertising: AdvertisingConfig,
         callbacks: CallbackScope,
     ): AdvertisingConfig {
-        if (config.getMap("ima")?.containsKey("beforeInitialization") != true) return advertising
-        return advertising.copy(
-            ima = advertising.ima.copy(
-                beforeInitialization = BeforeInitializationCallback { settings ->
-                    @Suppress("UNCHECKED_CAST")
-                    (
-                        callbacks.call(
-                            "advertisingConfig.ima.beforeInitialization",
-                            listOf(settings.toMap()),
-                            mutating = true,
-                        ) as? Map<String, Any?>
-                        )
-                        ?.applyOnImaSettings(settings)
-                },
-            ),
-        )
+        return config.getMap("ima")?.withFunction("beforeInitialization") {
+            advertising.copy(
+                ima = advertising.ima.copy(
+                    beforeInitialization = BeforeInitializationCallback { settings ->
+                        @Suppress("UNCHECKED_CAST")
+                        (
+                            callbacks.call(
+                                "advertisingConfig.ima.beforeInitialization",
+                                listOf(settings.toMap()),
+                                mutating = true,
+                            ) as? Map<String, Any?>
+                            )
+                            ?.applyOnImaSettings(settings)
+                    },
+                ),
+            )
+        } ?: advertising
     }
 }

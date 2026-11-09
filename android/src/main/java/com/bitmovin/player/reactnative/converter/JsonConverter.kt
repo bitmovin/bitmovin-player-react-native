@@ -100,6 +100,7 @@ import com.bitmovin.player.reactnative.extensions.toMapList
 import com.bitmovin.player.reactnative.extensions.withArray
 import com.bitmovin.player.reactnative.extensions.withBoolean
 import com.bitmovin.player.reactnative.extensions.withDouble
+import com.bitmovin.player.reactnative.extensions.withFunction
 import com.bitmovin.player.reactnative.extensions.withInt
 import com.bitmovin.player.reactnative.extensions.withMap
 import com.bitmovin.player.reactnative.extensions.withString
@@ -228,14 +229,14 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig =
 fun Map<String, Any?>.toAdvertisingConfig(callbacks: CallbackScope): AdvertisingConfig {
     val schedule = getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: emptyList()
     var config = AdvertisingConfig(schedule)
-    if (containsKey("shouldLoadAdItem")) {
+    withFunction("shouldLoadAdItem") {
         config = config.copy(
             shouldLoadAdItem = {
                 callbacks.call("advertisingConfig.shouldLoadAdItem", listOf(it.toJson())) as? Boolean ?: true
             },
         )
     }
-    if (containsKey("shouldPlayAdBreak")) {
+    withFunction("shouldPlayAdBreak") {
         config = config.copy(
             shouldPlayAdBreak = {
                 callbacks.call("advertisingConfig.shouldPlayAdBreak", listOf(it.toJson())) as? Boolean ?: true
