@@ -71,6 +71,10 @@ export class Player extends NativeInstance<PlayerConfig> {
   private onShouldPlayAdBreakSubscription?: EventSubscription;
   private onImaBeforeInitializationSubscription?: EventSubscription;
   private initialization?: Promise<void>;
+  /**
+   * The {@link Source}s created in {@link Player.load}, which the app cannot destroy once they are replaced.
+   */
+  private readonly createdSources = new Set<Source>();
   private readonly eventListeners = new EventListeners<PlayerEventMap>(
     this.nativeId,
     PlayerModule,
@@ -125,15 +129,29 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Destroys the native `Player` and releases all of its allocated resources.
    *
-   * Also destroys the {@link Source}s of its playback session. Other sources, e.g. ones removed from the
-   * player before, are not destroyed; destroy them via {@link Source.destroy} once they are no longer needed.
+   * Also destroys the {@link Source}s of its playback session, and the sources it created in {@link Player.load}
+   * that are not attached to another player. Other sources, e.g. ones removed from the player before, are not
+   * destroyed; destroy them via {@link Source.destroy} once they are no longer needed.
    * To keep using a source of the playback session, e.g. in another player, remove it or unload the player
    * before destroying it.
    */
   destroy = () => {
     if (!this.isDestroyed) {
+      const createdSources = [...this.createdSources].filter(
+        (source) => !source.isDestroyed
+      );
+      this.createdSources.clear();
+      // A source that is not initialized yet cannot be resolved, and therefore not be loaded by another player.
+      createdSources
+        .filter((source) => !source.isInitialized)
+        .forEach((source) => source.destroy());
       // Remove the listeners only after the native destroy, so they still receive the `destroy` event.
-      void PlayerModule.destroy(this.nativeId)
+      void PlayerModule.destroy(
+        this.nativeId,
+        createdSources
+          .filter((source) => source.isInitialized)
+          .map((source) => source.nativeId)
+      )
         .then((sourceNativeIds) =>
           sourceNativeIds.forEach((sourceNativeId) =>
             SourceRegistry.get(sourceNativeId)?.destroy()
@@ -187,9 +205,14 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Loads a new {@link Source} from `sourceConfig` into the player.
+   *
+   * The source stays allocated until the player is destroyed, even once a later load replaced it. Use
+   * {@link Player.loadSource} to control the lifetime of the source yourself.
    */
   load = (sourceConfig: SourceConfig) => {
-    this.loadSource(new Source(sourceConfig));
+    const source = new Source(sourceConfig);
+    this.createdSources.add(source);
+    this.loadSource(source);
   };
 
   /**

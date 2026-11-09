@@ -65,9 +65,9 @@ public class PlayerModule: Module {
         AsyncFunction("timeShift") { (nativeId: NativeId, offset: Double) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.timeShift = offset
         }.runOnQueue(.main)
-        AsyncFunction("destroy") { [weak self] (nativeId: NativeId) -> [NativeId] in
+        AsyncFunction("destroy") { [weak self] (nativeId: NativeId, createdSourceNativeIds: [NativeId]) -> [NativeId] in // swiftlint:disable:this line_length
             let player = PlayerRegistry.getPlayer(nativeId: nativeId)
-            let sourceNativeIds = player?.playlist.sources.compactMap { SourceRegistry.nativeId(of: $0) } ?? []
+            let sessionSourceNativeIds = player?.playlist.sources.compactMap { SourceRegistry.nativeId(of: $0) } ?? []
             if let player {
                 player.destroy()
                 PlayerRegistry.unregister(nativeId: nativeId)
@@ -75,6 +75,11 @@ public class PlayerModule: Module {
             self?.eventRelay.offAll(nativeId: nativeId)
             self?.appContext?.moduleRegistry.get(RNPlayerViewManager.self)?
                 .discardPendingPictureInPictureValues(playerId: nativeId)
+            let detachedCreatedSourceNativeIds = createdSourceNativeIds.filter {
+                SourceRegistry.source(nativeId: $0)?.isAttachedToPlayer == false
+            }
+            var sourceNativeIds = sessionSourceNativeIds
+            sourceNativeIds += detachedCreatedSourceNativeIds.filter { !sessionSourceNativeIds.contains($0) }
             return sourceNativeIds
         }.runOnQueue(.main)
         AsyncFunction("setVolume") { (nativeId: NativeId, volume: Int) in
