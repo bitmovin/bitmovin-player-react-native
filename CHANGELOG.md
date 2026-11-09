@@ -25,7 +25,7 @@
 - Update Bitmovin's native iOS SDK version to [`3.130.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31300)
 - **Breaking change:** Replace the `Player.source` property with `Player.getSource()`, which returns the currently active source of the native player
 - **Breaking change:** `Player.destroy()` destroys the sources of its playback session and the sources it created in `Player.load()`, instead of the source loaded last. A source passed to `Player.loadSource()` that is no longer part of the playback session, e.g. after `Player.unload()`, is no longer destroyed with the player; destroy it via `Source.destroy()`
-- **Breaking change:** `Player.loadSource()` throws and `Source.initialize()` rejects for a destroyed source, instead of creating it natively again
+- **Breaking change:** `Player.loadSource()` throws and `Source.initialize()` rejects for a destroyed source, instead of silently loading nothing, or creating it natively again if it was destroyed before it was initialized
 
 ## [1.30.0] - 2026-10-29
 

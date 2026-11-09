@@ -132,8 +132,8 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Also destroys the {@link Source}s of its playback session, and the sources it created in {@link Player.load}
    * that are not attached to another player. Other sources, e.g. ones removed from the player before, are not
    * destroyed; destroy them via {@link Source.destroy} once they are no longer needed.
-   * To keep using a source of the playback session, e.g. in another player, remove it or unload the player
-   * before destroying it.
+   * To keep using a source that was passed to the player, e.g. in another player, unload the player before
+   * destroying it.
    */
   destroy = () => {
     if (!this.isDestroyed) {
@@ -207,7 +207,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Loads a new {@link Source} from `sourceConfig` into the player.
    *
    * The source stays allocated until the player is destroyed, even once a later load replaced it. Use
-   * {@link Player.loadSource} to control the lifetime of the source yourself.
+   * {@link Player.loadSource} to destroy a replaced source earlier via {@link Source.destroy}.
    */
   load = (sourceConfig: SourceConfig) => {
     const source = new Source(sourceConfig);
