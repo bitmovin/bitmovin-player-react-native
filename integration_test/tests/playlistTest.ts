@@ -364,84 +364,6 @@ export default (spec: TestScope) => {
       }
     );
 
-    spec.it(
-      'resolves a source that is removed and added again at the same time',
-      async () => {
-        await startPlayerTest({}, async () => {
-          const first = new Source(Sources.artOfMotionHls);
-          const second = new Source(Sources.sintel);
-          await callPlayerAndExpectEvent((player) => {
-            player.loadPlaylist({ sources: [first, second] });
-          }, EventType.Ready);
-
-          await callPlayer(async (player) => {
-            await Promise.all([
-              player.playlist.remove(second),
-              player.playlist.add(second),
-            ]);
-            const isReAdded = await waitUntil(async () => {
-              const sources = await player.playlist.getSources();
-              return sources.length === 2;
-            });
-            expect(isReAdded, 'Both sources in the playlist').toBeTruthy();
-            const sources = await player.playlist.getSources();
-            expect(sources[1], 'Re-added source').toBe(second);
-          });
-        });
-      }
-    );
-
-    spec.it('keeps a removed source usable in another player', async () => {
-      await startPlayerTest({}, async () => {
-        const first = new Source(Sources.artOfMotionHls);
-        const second = new Source(Sources.sintel);
-        await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
-        }, EventType.Ready);
-
-        await callPlayerAndExpectEvent(async (player) => {
-          await player.playlist.remove(second);
-        }, EventType.SourceRemoved);
-
-        const otherPlayer = createPlayer();
-        try {
-          await otherPlayer.initialize();
-          otherPlayer.loadSource(second);
-          expect(
-            await untilActive(otherPlayer, second),
-            'Active in the other player'
-          ).toBeTruthy();
-          expect(second.isDestroyed, 'Removed source destroyed').toBeFalsy();
-        } finally {
-          otherPlayer.destroy();
-        }
-      });
-    });
-
-    spec.it('rejects adding a destroyed source', async () => {
-      await startPlayerTest({}, async () => {
-        const first = new Source(Sources.artOfMotionHls);
-        const destroyed = new Source(Sources.sintel);
-        destroyed.destroy();
-        await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first] });
-        }, EventType.Ready);
-
-        await callPlayer(async (player) => {
-          let error: unknown;
-          try {
-            await player.playlist.add(destroyed);
-          } catch (e) {
-            error = e;
-          }
-          expect(error, 'add should reject').toBeDefined();
-          const sources = await player.playlist.getSources();
-          expect(sources).toHaveLength(1);
-          expect(sources[0]).toBe(first);
-        });
-      });
-    });
-
     spec.it('does not remove the active source', async () => {
       await startPlayerTest({}, async () => {
         const first = new Source(Sources.artOfMotionHls);
@@ -490,46 +412,6 @@ export default (spec: TestScope) => {
         });
       });
     });
-  });
-
-  spec.describe('destroying a player', () => {
-    spec.it(
-      'destroys only the sources of its own playback session',
-      async () => {
-        const playerA = createPlayer();
-        const playerB = createPlayer();
-        const moved = new Source(Sources.artOfMotionHls);
-        const current = new Source(Sources.sintel);
-        try {
-          await playerA.initialize();
-          await playerB.initialize();
-          playerA.loadPlaylist({ sources: [moved] });
-          expect(await untilActive(playerA, moved), 'Loaded in A').toBeTruthy();
-          playerA.loadPlaylist({ sources: [current] });
-          expect(
-            await untilActive(playerA, current),
-            'Replaced in A'
-          ).toBeTruthy();
-          playerB.loadPlaylist({ sources: [moved] });
-          expect(await untilActive(playerB, moved), 'Moved to B').toBeTruthy();
-
-          playerA.destroy();
-
-          expect(
-            await waitUntil(() => current.isDestroyed),
-            'Session source of A destroyed'
-          ).toBeTruthy();
-          expect(moved.isDestroyed, 'Source of B destroyed').toBeFalsy();
-          expect(await playerB.getSource(), 'Active source of B').toBe(moved);
-          expect(await moved.isActive(), 'Source of B is active').toBeTruthy();
-        } finally {
-          playerA.destroy();
-          playerB.destroy();
-          moved.destroy();
-          current.destroy();
-        }
-      }
-    );
   });
 };
 

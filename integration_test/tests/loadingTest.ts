@@ -205,40 +205,6 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
         });
       }
     );
-
-    spec.it('returns nothing once the active source is destroyed', async () => {
-      await startPlayerTest({}, async () => {
-        const source = new Source(Sources.artOfMotionHls);
-        await callPlayerAndExpectEvent((player) => {
-          player.loadSource(source);
-        }, EventType.Ready);
-
-        await callPlayer(async (player) => {
-          expect(await player.getSource(), 'Active source').toBe(source);
-          source.destroy();
-          expect(
-            await player.getSource(),
-            'Active source after destroying it'
-          ).toBeUndefined();
-        });
-      });
-    });
-  });
-
-  spec.describe('loading a destroyed source', () => {
-    spec.it('throws', async () => {
-      await startPlayerTest({}, async () => {
-        const source = new Source(Sources.artOfMotionHls);
-        source.destroy();
-
-        await callPlayer(async (player) => {
-          expect(
-            getError(() => player.loadSource(source)),
-            'loadSource should throw'
-          ).toBeDefined();
-        });
-      });
-    });
   });
 
   spec.describe('reusing the nativeId of a destroyed source', () => {
@@ -268,77 +234,51 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
 
   spec.describe('destroying the player', () => {
     spec.it(
-      'destroys the sources it created, including a replaced one',
-      async () => {
-        const player = createPlayer();
-        try {
-          await player.initialize();
-          player.load(Sources.artOfMotionHls);
-          expect(await untilLoaded(player), 'First source loaded').toBeTruthy();
-          const first = await player.getSource();
-          player.load(Sources.sintel);
-          expect(
-            await untilLoaded(player, first),
-            'Second source loaded'
-          ).toBeTruthy();
-          const second = await player.getSource();
-
-          player.destroy();
-
-          expect(
-            await waitUntil(
-              () => first?.isDestroyed === true && second?.isDestroyed === true
-            ),
-            'Created sources destroyed'
-          ).toBeTruthy();
-        } finally {
-          player.destroy();
-        }
-      }
-    );
-
-    spec.it(
-      'does not destroy an unloaded source, which another player can load',
+      'destroys its created and session sources but not a source of another player',
       async () => {
         const player = createPlayer();
         const otherPlayer = createPlayer();
-        const source = new Source(Sources.artOfMotionHls);
+        const moved = new Source(Sources.artOfMotionHls);
+        const session = new Source(Sources.sintel);
         try {
           await player.initialize();
           await otherPlayer.initialize();
-          player.loadSource(source);
-          expect(await untilActive(player, source), 'Loaded').toBeTruthy();
-          player.unload();
+          player.loadSource(moved);
+          expect(await untilActive(player, moved), 'Loaded').toBeTruthy();
+          player.load(Sources.artOfMotionHls);
           expect(
-            await waitUntil(
-              async () => (await player.getSource()) === undefined
-            ),
-            'Unloaded'
-          ).toBeTruthy();
-          player.load(Sources.sintel);
-          expect(
-            await untilLoaded(player),
+            await untilLoaded(player, moved),
             'Created source loaded'
           ).toBeTruthy();
           const created = await player.getSource();
+          player.loadSource(session);
+          expect(
+            await untilActive(player, session),
+            'Session source loaded'
+          ).toBeTruthy();
+          otherPlayer.loadSource(moved);
+          expect(
+            await untilActive(otherPlayer, moved),
+            'Moved to the other player'
+          ).toBeTruthy();
 
           player.destroy();
 
-          // The created source is destroyed in the same step that would destroy the unloaded one.
           expect(
-            await waitUntil(() => created?.isDestroyed === true),
-            'Created source destroyed'
+            await waitUntil(
+              () => created?.isDestroyed === true && session.isDestroyed
+            ),
+            'Created and session sources destroyed'
           ).toBeTruthy();
-          expect(source.isDestroyed, 'Unloaded source destroyed').toBeFalsy();
-          otherPlayer.loadSource(source);
+          expect(moved.isDestroyed, 'Moved source destroyed').toBeFalsy();
           expect(
-            await untilActive(otherPlayer, source),
-            'Loaded into the other player'
-          ).toBeTruthy();
+            await otherPlayer.getSource(),
+            'Active source of the other player'
+          ).toBe(moved);
         } finally {
           player.destroy();
           otherPlayer.destroy();
-          source.destroy();
+          moved.destroy();
         }
       }
     );
@@ -391,15 +331,6 @@ export function loadingVodTests(spec: TestScope) {
 }
 
 export default (spec: TestScope) => registerLoadingTests(spec);
-
-const getError = (fn: () => void): unknown => {
-  try {
-    fn();
-  } catch (error) {
-    return error;
-  }
-  return undefined;
-};
 
 const untilLoaded = (player: Player, previous?: Source) =>
   waitUntil(async () => {

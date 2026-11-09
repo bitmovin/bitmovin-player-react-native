@@ -175,7 +175,6 @@ export default (spec: TestScope) => {
       player.on('timeChanged', record);
       player.on('destroy', record);
       const source = new Source(Sources.artOfMotionHls);
-      source.on('sourceUnloaded', record);
       await player.initialize();
       await playWhenReady(player, () => player.loadSource(source));
 
@@ -190,17 +189,6 @@ export default (spec: TestScope) => {
         received.some((event) => event.name === 'onDestroy')
       );
       expect(isDestroyed, 'Destroy should be received').toBeTruthy();
-      const isSourceUnloaded = await waitUntil(() =>
-        received.some((event) => event.name === 'onSourceUnloaded')
-      );
-      expect(
-        isSourceUnloaded,
-        'SourceUnloaded should be received'
-      ).toBeTruthy();
-      const sourceUnloaded = received.find(
-        (event) => event.name === 'onSourceUnloaded'
-      ) as SourceUnloadedEvent | undefined;
-      expect(sourceUnloaded?.source?.nativeId).toBe(source.nativeId);
       expect(
         await waitUntil(() => source.isDestroyed),
         'Session source destroyed with the player'

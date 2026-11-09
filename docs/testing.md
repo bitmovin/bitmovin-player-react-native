@@ -87,8 +87,9 @@ that the native `PlayerView` renders or that events are emitted.
 The [source lifecycle tests](../scripts/test-source-lifecycle.js) use the same
 setup with mocked Player, Source, DRM and playlist modules. They cover how JS
 resolves native source ids to `Source` instances, rejects destroyed sources,
-orders a native destroy after an initialization in progress, and which sources
-`Player.destroy` passes to and destroys after the native destroy. They do not
+sends the native destroy right away, also while an initialization is in
+progress, and which sources `Player.destroy` passes to the native destroy and
+destroys afterwards. They do not
 prove that native creates, loads or destroys a source.
 
 `yarn test:plugin` builds and tests the config plugin. The Python command tests
