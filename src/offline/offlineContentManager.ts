@@ -139,13 +139,15 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
     this.eventSubscription?.remove();
     this.listeners.clear();
     remove('offline', this.nativeId, getNativeOwner(this) ?? this.native);
-    await this.native.then(
-      async (native) => {
-        remove('offline', this.nativeId, native);
-        await native.destroy();
-      },
-      () => {}
-    );
+    let native;
+    try {
+      native = await this.native;
+    } catch {
+      // A failed constructor has no native manager to destroy.
+      return;
+    }
+    remove('offline', this.nativeId, native);
+    await native.destroy();
   };
 
   /**

@@ -82,7 +82,7 @@ export default (spec: TestScope) => {
               );
             } finally {
               subscriptions.forEach((subscription) => subscription.remove());
-              player.destroy();
+              await player.destroy();
             }
           });
         });
@@ -102,13 +102,13 @@ export default (spec: TestScope) => {
           removed.remove();
           try {
             await callPlayerAndExpectEvent((player) => {
-              player.loadSource(source);
+              return player.loadSource(source);
             }, EventType.Ready);
             await callPlayerAndExpectEvent((player) => {
-              player.play();
+              return player.play();
             }, EventType.Playing);
             await callPlayerAndExpectEvent((player) => {
-              player.unload();
+              return player.unload();
             }, EventType.SourceUnloaded);
             const replacement = new Player({
               licenseKey: PlayerTestWorld.defaultLicenseKey,
@@ -121,7 +121,7 @@ export default (spec: TestScope) => {
               expect(loads, 'Source emits for each native attachment').toBe(2);
               expect(removedCalls, 'Removed subscription stays silent').toBe(0);
             } finally {
-              replacement.destroy();
+              await replacement.destroy();
             }
           } finally {
             subscription.remove();
