@@ -1,3 +1,4 @@
+import type { SourceEvents } from '../events';
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
@@ -11,7 +12,7 @@ import { getNativeOwner, setNativeOwner } from '../nativeOwner';
 import type { Thumbnail } from '../thumbnail';
 import type { NativeCallback } from '../nativeCallbacks';
 
-export type SourceModuleEvents = Record<string, never>;
+export type SourceModuleEvents = SourceEvents;
 
 /** @internal */
 export interface NativeSource extends SharedObject<SourceModuleEvents> {

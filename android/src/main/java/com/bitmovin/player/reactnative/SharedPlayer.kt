@@ -23,6 +23,8 @@ class SharedPlayer private constructor(
     private val callbacks: CallbackScope,
     val mediaSessionPlaybackManager: MediaSessionPlaybackManager,
 ) : SharedRef<Player>(player, appContext) {
+    init { observePlayerEvents(player) }
+
     val player: Player
         get() = ref
 

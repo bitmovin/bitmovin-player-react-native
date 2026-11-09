@@ -38,6 +38,11 @@ const testRegistrations = [
     () => require('./metadataId3Test').default
   ),
   testSuite('network', androidAndIos, () => require('./networkTest').default),
+  testSuite(
+    'object-events',
+    androidAndIos,
+    () => require('./objectEventsTest').default
+  ),
   testSuite('playback', androidAndIos, () => require('./playbackTest').default),
   testSuite(
     'shared-object-lifecycle',

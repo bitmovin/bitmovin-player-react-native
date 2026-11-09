@@ -1,3 +1,6 @@
+import type { EventSubscription } from 'expo-modules-core';
+import type { SourceEvents } from './events';
+import { subscribeToNativeEvent } from './nativeEvents';
 import type { CmcdConfig } from './cmcdConfig';
 import type { DrmConfig } from './drm';
 import { SourceDrmApi } from './drm/sourceDrmApi';
@@ -7,7 +10,7 @@ import { getOrCreateAsync } from './nativeInstanceRegistry';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
-import SourceModule from './modules/SourceModule';
+import SourceModule, { getNativeSource } from './modules/SourceModule';
 import {
   createConfigurationCallbacks,
   createSharedObjectWithCallback,
@@ -168,6 +171,22 @@ export interface SourceRemoteControlConfig {
  * Represents audio and video content that can be loaded into a player.
  */
 export class Source extends NativeInstance<SourceConfig> {
+  /**
+   * Subscribes to native events, even without a PlayerView. For example,
+   * `source.on('sourceLoaded', listener)`.
+   * Use `event` to listen to all supported native object events.
+   * Call `remove()` on the returned subscription to stop listening.
+   */
+  on = <Name extends keyof SourceEvents>(
+    event: Name,
+    listener: SourceEvents[Name]
+  ): EventSubscription =>
+    subscribeToNativeEvent(
+      getNativeSource(this) ?? this.native,
+      event,
+      listener
+    );
+
   private get native() {
     return getOrCreateAsync('source', this.nativeId, () => {
       const callbacks = createConfigurationCallbacks();

@@ -1,3 +1,6 @@
+import type { EventSubscription } from 'expo-modules-core';
+import type { PlayerEvents } from './events';
+import { subscribeToNativeEvent } from './nativeEvents';
 import { Platform } from 'react-native';
 import PlayerModule, {
   getNativePlayer,
@@ -40,6 +43,22 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   constructor(config?: PlayerConfig) {
     super(config);
   }
+
+  /**
+   * Subscribes to native events, even without a PlayerView. For example,
+   * `player.on('play', listener)`.
+   * Use `event` to listen to all supported native object events.
+   * Call `remove()` on the returned subscription to stop listening.
+   */
+  on = <Name extends keyof PlayerEvents>(
+    event: Name,
+    listener: PlayerEvents[Name]
+  ): EventSubscription =>
+    subscribeToNativeEvent(
+      getNativePlayer(this) ?? this.native,
+      event,
+      listener
+    );
 
   /** @internal */
   private get native() {

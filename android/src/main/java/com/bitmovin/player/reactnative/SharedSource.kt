@@ -15,6 +15,8 @@ class SharedSource(appContext: AppContext, source: Source, private val callbacks
     source,
     appContext,
 ) {
+    init { observeSourceEvents(source) }
+
     override fun sharedObjectDidRelease() = callbacks.close()
 
     val source: Source

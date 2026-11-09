@@ -6,18 +6,23 @@ import Foundation
 public final class SharedPlayer: SharedObject {
     let player: Player
     var source: SharedSource?
+    private let events = SharedObjectEvents()
     private let callback: CallbackScope?
 
     private init(player: Player, callback: CallbackScope?) {
         self.player = player
         self.callback = callback
         super.init()
+        events.owner = self
+        player.add(listener: events)
     }
 
     deinit {
         // Expo finalizers cannot await the SDK's required main-thread cleanup.
         let player = player
+        let events = events
         DispatchQueue.main.async {
+            player.remove(listener: events)
             if !player.isDestroyed { player.destroy() }
         }
         callback?.close()

@@ -5,7 +5,6 @@
 ### Added
 
 - `Player.on` and `Source.on` subscriptions for native object events, including without a mounted `PlayerView`
-
 - iOS: Support for VMAP ad tags with the Bitmovin Advertising Module (`AdSourceType.BITMOVIN`), included in native iOS SDK `3.131.0`. VMAP no longer requires Google IMA on iOS, matching Android
 - Android: `onPlaybackSpeedChanged` event to indicate playback speed changes. The event is already available in iOS
 - `onPlayerInactive` event prop on `PlayerView` to indicate when the active playback session ends and the player becomes inactive
@@ -13,7 +12,6 @@
 ### Fixed
 
 - Deliver `PlayerView` playback and source callbacks through the attached Player's public event API
-
 - iOS: Reject invalid source or analytics configuration during initialization instead of exposing an empty native binding
 - iOS: Reject offline initialization when configuration is invalid or the SDK cannot create the content manager
 - iOS: Read and update source metadata before the source is loaded

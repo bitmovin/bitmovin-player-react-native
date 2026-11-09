@@ -9,7 +9,6 @@ import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
 import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
 import type { PlayerViewProps } from './properties';
 import type { PictureInPictureAction } from './pictureInPictureAction';
-import { addPlatformToMetadataEvent } from '../../utils/metadataPlatform';
 import type { NativePlayer } from '../../modules/PlayerModule';
 import { lookup } from '../../nativeInstanceRegistry';
 
@@ -92,6 +91,99 @@ export function PlayerView({
   const didNotifyPlayerViewReady = useRef<typeof player | undefined>(undefined);
   const currentPlayer = useRef<typeof player | undefined>(player);
   currentPlayer.current = player;
+
+  useEffect(() => {
+    const subscriptions = [
+      player.on('adBreakFinished', (event) => props.onAdBreakFinished?.(event)),
+      player.on('adBreakStarted', (event) => props.onAdBreakStarted?.(event)),
+      player.on('adClicked', (event) => props.onAdClicked?.(event)),
+      player.on('adError', (event) => props.onAdError?.(event)),
+      player.on('adFinished', (event) => props.onAdFinished?.(event)),
+      player.on('adManifestLoad', (event) => props.onAdManifestLoad?.(event)),
+      player.on('adManifestLoaded', (event) =>
+        props.onAdManifestLoaded?.(event)
+      ),
+      player.on('adQuartile', (event) => props.onAdQuartile?.(event)),
+      player.on('adScheduled', (event) => props.onAdScheduled?.(event)),
+      player.on('adSkipped', (event) => props.onAdSkipped?.(event)),
+      player.on('adStarted', (event) => props.onAdStarted?.(event)),
+      player.on('castAvailable', (event) => props.onCastAvailable?.(event)),
+      player.on('castPaused', (event) => props.onCastPaused?.(event)),
+      player.on('castPlaybackFinished', (event) =>
+        props.onCastPlaybackFinished?.(event)
+      ),
+      player.on('castPlaying', (event) => props.onCastPlaying?.(event)),
+      player.on('castStarted', (event) => props.onCastStarted?.(event)),
+      player.on('castStart', (event) => props.onCastStart?.(event)),
+      player.on('castStopped', (event) => props.onCastStopped?.(event)),
+      player.on('castTimeUpdated', (event) => props.onCastTimeUpdated?.(event)),
+      player.on('castWaitingForDevice', (event) =>
+        props.onCastWaitingForDevice?.(event)
+      ),
+      player.on('cueEnter', (event) => props.onCueEnter?.(event)),
+      player.on('cueExit', (event) => props.onCueExit?.(event)),
+      player.on('destroy', (event) => props.onDestroy?.(event)),
+      player.on('downloadFinished', (event) =>
+        props.onDownloadFinished?.(event)
+      ),
+      player.on('videoDownloadQualityChanged', (event) =>
+        props.onVideoDownloadQualityChanged?.(event)
+      ),
+      player.on('videoPlaybackQualityChanged', (event) =>
+        props.onVideoPlaybackQualityChanged?.(event)
+      ),
+      player.on('event', (event) => props.onEvent?.(event)),
+      player.on('metadata', (event) => props.onMetadata?.(event)),
+      player.on('metadataParsed', (event) => props.onMetadataParsed?.(event)),
+      player.on('muted', (event) => props.onMuted?.(event)),
+      player.on('nonLinearAdStarted', (event) =>
+        props.onNonLinearAdStarted?.(event)
+      ),
+      player.on('nonLinearAdSkipped', (event) =>
+        props.onNonLinearAdSkipped?.(event)
+      ),
+      player.on('nonLinearAdFinished', (event) =>
+        props.onNonLinearAdFinished?.(event)
+      ),
+      player.on('paused', (event) => props.onPaused?.(event)),
+      player.on('play', (event) => props.onPlay?.(event)),
+      player.on('playbackFinished', (event) =>
+        props.onPlaybackFinished?.(event)
+      ),
+      player.on('playbackSpeedChanged', (event) =>
+        props.onPlaybackSpeedChanged?.(event)
+      ),
+      player.on('playerActive', (event) => props.onPlayerActive?.(event)),
+      player.on('playerInactive', (event) => props.onPlayerInactive?.(event)),
+      player.on('playerError', (event) => props.onPlayerError?.(event)),
+      player.on('playerWarning', (event) => props.onPlayerWarning?.(event)),
+      player.on('playing', (event) => props.onPlaying?.(event)),
+      player.on('ready', (event) => props.onReady?.(event)),
+      player.on('seek', (event) => props.onSeek?.(event)),
+      player.on('seeked', (event) => props.onSeeked?.(event)),
+      player.on('timeShift', (event) => props.onTimeShift?.(event)),
+      player.on('timeShifted', (event) => props.onTimeShifted?.(event)),
+      player.on('stallStarted', (event) => props.onStallStarted?.(event)),
+      player.on('stallEnded', (event) => props.onStallEnded?.(event)),
+      player.on('sourceError', (event) => props.onSourceError?.(event)),
+      player.on('sourceLoad', (event) => props.onSourceLoad?.(event)),
+      player.on('sourceLoaded', (event) => props.onSourceLoaded?.(event)),
+      player.on('sourceUnloaded', (event) => props.onSourceUnloaded?.(event)),
+      player.on('sourceWarning', (event) => props.onSourceWarning?.(event)),
+      player.on('audioAdded', (event) => props.onAudioAdded?.(event)),
+      player.on('audioChanged', (event) => props.onAudioChanged?.(event)),
+      player.on('audioRemoved', (event) => props.onAudioRemoved?.(event)),
+      player.on('subtitleAdded', (event) => props.onSubtitleAdded?.(event)),
+      player.on('subtitleChanged', (event) => props.onSubtitleChanged?.(event)),
+      player.on('subtitleRemoved', (event) => props.onSubtitleRemoved?.(event)),
+      player.on('timeChanged', (event) => props.onTimeChanged?.(event)),
+      player.on('unmuted', (event) => props.onUnmuted?.(event)),
+      player.on('fairplayLicenseAcquired', (event) =>
+        props.onFairplayLicenseAcquired?.(event)
+      ),
+    ];
+    return () => subscriptions.forEach((subscription) => subscription.remove());
+  }, [player, props]);
 
   useEffect(() => {
     let cancelled = false;
@@ -188,95 +280,17 @@ export function PlayerView({
         didNotifyPlayerViewReady.current = player;
         onPlayerViewReady?.();
       }}
-      onBmpAdBreakFinished={proxy(props.onAdBreakFinished)}
-      onBmpAdBreakStarted={proxy(props.onAdBreakStarted)}
-      onBmpAdClicked={proxy(props.onAdClicked)}
-      onBmpAdError={proxy(props.onAdError)}
-      onBmpAdFinished={proxy(props.onAdFinished)}
-      onBmpAdManifestLoad={proxy(props.onAdManifestLoad)}
-      onBmpAdManifestLoaded={proxy(props.onAdManifestLoaded)}
-      onBmpAdQuartile={proxy(props.onAdQuartile)}
-      onBmpAdScheduled={proxy(props.onAdScheduled)}
-      onBmpAdSkipped={proxy(props.onAdSkipped)}
-      onBmpAdStarted={proxy(props.onAdStarted)}
-      onBmpCastAvailable={proxy(props.onCastAvailable)}
-      onBmpCastPaused={proxy(props.onCastPaused)}
-      onBmpCastPlaybackFinished={proxy(props.onCastPlaybackFinished)}
-      onBmpCastPlaying={proxy(props.onCastPlaying)}
-      onBmpCastStarted={proxy(props.onCastStarted)}
-      onBmpCastStart={proxy(props.onCastStart)}
-      onBmpCastStopped={proxy(props.onCastStopped)}
-      onBmpCastTimeUpdated={proxy(props.onCastTimeUpdated)}
-      onBmpCastWaitingForDevice={proxy(props.onCastWaitingForDevice)}
-      onBmpCueEnter={proxy(props.onCueEnter)}
-      onBmpCueExit={proxy(props.onCueExit)}
-      onBmpMetadata={
-        props.onMetadata
-          ? (e) => props.onMetadata?.(addPlatformToMetadataEvent(e.nativeEvent))
-          : undefined
-      }
-      onBmpMetadataParsed={
-        props.onMetadataParsed
-          ? (e) =>
-              props.onMetadataParsed?.(
-                addPlatformToMetadataEvent(e.nativeEvent)
-              )
-          : undefined
-      }
-      onBmpDestroy={proxy(props.onDestroy)}
-      onBmpEvent={proxy(props.onEvent)}
+      onBmpPictureInPictureAvailabilityChanged={proxy(
+        props.onPictureInPictureAvailabilityChanged
+      )}
       onBmpFullscreenEnabled={proxy(props.onFullscreenEnabled)}
       onBmpFullscreenDisabled={proxy(props.onFullscreenDisabled)}
       onBmpFullscreenEnter={proxy(props.onFullscreenEnter)}
       onBmpFullscreenExit={proxy(props.onFullscreenExit)}
-      onBmpMuted={proxy(props.onMuted)}
-      onBmpNonLinearAdStarted={proxy(props.onNonLinearAdStarted)}
-      onBmpNonLinearAdSkipped={proxy(props.onNonLinearAdSkipped)}
-      onBmpNonLinearAdFinished={proxy(props.onNonLinearAdFinished)}
-      onBmpPaused={proxy(props.onPaused)}
-      onBmpPictureInPictureAvailabilityChanged={proxy(
-        props.onPictureInPictureAvailabilityChanged
-      )}
       onBmpPictureInPictureEnter={proxy(props.onPictureInPictureEnter)}
       onBmpPictureInPictureEntered={proxy(props.onPictureInPictureEntered)}
       onBmpPictureInPictureExit={proxy(props.onPictureInPictureExit)}
       onBmpPictureInPictureExited={proxy(props.onPictureInPictureExited)}
-      onBmpPlay={proxy(props.onPlay)}
-      onBmpPlaybackFinished={proxy(props.onPlaybackFinished)}
-      onBmpPlaybackSpeedChanged={proxy(props.onPlaybackSpeedChanged)}
-      onBmpPlayerActive={proxy(props.onPlayerActive)}
-      onBmpPlayerInactive={proxy(props.onPlayerInactive)}
-      onBmpPlayerError={proxy(props.onPlayerError)}
-      onBmpPlayerWarning={proxy(props.onPlayerWarning)}
-      onBmpPlaying={proxy(props.onPlaying)}
-      onBmpReady={proxy(props.onReady)}
-      onBmpSeek={proxy(props.onSeek)}
-      onBmpSeeked={proxy(props.onSeeked)}
-      onBmpTimeShift={proxy(props.onTimeShift)}
-      onBmpTimeShifted={proxy(props.onTimeShifted)}
-      onBmpStallStarted={proxy(props.onStallStarted)}
-      onBmpStallEnded={proxy(props.onStallEnded)}
-      onBmpSourceError={proxy(props.onSourceError)}
-      onBmpSourceLoad={proxy(props.onSourceLoad)}
-      onBmpSourceLoaded={proxy(props.onSourceLoaded)}
-      onBmpSourceUnloaded={proxy(props.onSourceUnloaded)}
-      onBmpSourceWarning={proxy(props.onSourceWarning)}
-      onBmpAudioAdded={proxy(props.onAudioAdded)}
-      onBmpAudioChanged={proxy(props.onAudioChanged)}
-      onBmpAudioRemoved={proxy(props.onAudioRemoved)}
-      onBmpSubtitleAdded={proxy(props.onSubtitleAdded)}
-      onBmpSubtitleChanged={proxy(props.onSubtitleChanged)}
-      onBmpSubtitleRemoved={proxy(props.onSubtitleRemoved)}
-      onBmpTimeChanged={proxy(props.onTimeChanged)}
-      onBmpUnmuted={proxy(props.onUnmuted)}
-      onBmpVideoDownloadQualityChanged={proxy(
-        props.onVideoDownloadQualityChanged
-      )}
-      onBmpVideoPlaybackQualityChanged={proxy(
-        props.onVideoPlaybackQualityChanged
-      )}
-      onBmpDownloadFinished={proxy(props.onDownloadFinished)}
-      onBmpFairplayLicenseAcquired={proxy(props.onFairplayLicenseAcquired)}
     />
   );
 }

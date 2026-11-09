@@ -130,6 +130,10 @@ async function flush() {
   }
 }
 
+function mockEventSubscription() {
+  return { remove() {} };
+}
+
 function render(props) {
   rendererModule.exports.render(
     React.createElement(PlayerView, props),
@@ -151,7 +155,12 @@ function acknowledge(view = committedView) {
 test('readiness waits for native listeners and follows the current player', async () => {
   let notifications = 0;
   const viewRef = { current: null };
-  const player = { nativeId: 'first', config: {}, initialize: async () => {} };
+  const player = {
+    nativeId: 'first',
+    config: {},
+    on: mockEventSubscription,
+    initialize: async () => {},
+  };
   const props = {
     player,
     viewRef,
@@ -192,6 +201,7 @@ test('readiness waits for native listeners and follows the current player', asyn
   const replacement = {
     nativeId: 'replacement',
     config: {},
+    on: mockEventSubscription,
     initialize: () =>
       new Promise((resolve) => {
         finishInitialization = resolve;
@@ -223,6 +233,7 @@ test('readiness waits for native listeners and follows the current player', asyn
   const obsolete = {
     nativeId: 'obsolete',
     config: {},
+    on: mockEventSubscription,
     initialize: () =>
       new Promise((resolve) => {
         finishObsolete = resolve;
@@ -231,6 +242,7 @@ test('readiness waits for native listeners and follows the current player', asyn
   const current = {
     nativeId: 'current',
     config: {},
+    on: mockEventSubscription,
     initialize: () =>
       new Promise((resolve) => {
         finishCurrent = resolve;
@@ -252,6 +264,7 @@ test('readiness waits for native listeners and follows the current player', asyn
   const silentPlayer = {
     nativeId: 'silent',
     config: {},
+    on: mockEventSubscription,
     initialize: async () => {},
   };
   render({ player: silentPlayer });
@@ -275,8 +288,18 @@ test('readiness waits for native listeners and follows the current player', asyn
 });
 
 test('switching A to B to A announces each attachment once', async () => {
-  const first = { nativeId: 'A', config: {}, initialize: async () => {} };
-  const second = { nativeId: 'B', config: {}, initialize: async () => {} };
+  const first = {
+    nativeId: 'A',
+    config: {},
+    on: mockEventSubscription,
+    initialize: async () => {},
+  };
+  const second = {
+    nativeId: 'B',
+    config: {},
+    on: mockEventSubscription,
+    initialize: async () => {},
+  };
   const notifications = [];
   for (const player of [first, second, first]) {
     render({

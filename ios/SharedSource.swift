@@ -8,6 +8,7 @@ public final class SharedSource: SharedObject {
     // The public API returns plain skdUri metadata; renewal still needs its native AVContentKeyRequest.
     let fairplayRequests = LockedBox(value: [String: FairplayContentKeyRequest]())
     private var fairplayCancellable: AnyCancellable?
+    private let events = SharedObjectEvents()
     private let callback: CallbackScope?
 
     init(source: Source, callback: CallbackScope?, remote: [String: Any]?) {
@@ -19,6 +20,8 @@ public final class SharedSource: SharedObject {
         castSourceConfig = nil
 #endif
         super.init()
+        events.owner = self
+        source.add(listener: events)
         fairplayCancellable = source.events
             .on(FairplayLicenseAcquiredEvent.self)
             .sink { [weak self] event in
@@ -27,6 +30,13 @@ public final class SharedSource: SharedObject {
                 }
             }
     }
-    deinit { callback?.close() }
+    deinit {
+        callback?.close()
+        let source = source
+        let events = events
+        DispatchQueue.main.async {
+            source.remove(listener: events)
+        }
+    }
     override public func sharedObjectWillRelease() { callback?.close() }
 }

@@ -1094,3 +1094,78 @@ export interface FairplayLicenseAcquiredEvent extends Event {
    */
   contentKeyRequest: FairplayContentKeyRequest;
 }
+
+/** Events emitted by a Source, and forwarded by its attached Player. */
+export type SourceEvents = {
+  downloadFinished: (event: DownloadFinishedEvent) => void;
+  videoDownloadQualityChanged: (
+    event: VideoDownloadQualityChangedEvent
+  ) => void;
+  metadataParsed: (event: MetadataParsedEvent) => void;
+  sourceError: (event: SourceErrorEvent) => void;
+  sourceLoad: (event: SourceLoadEvent) => void;
+  sourceLoaded: (event: SourceLoadedEvent) => void;
+  sourceUnloaded: (event: SourceUnloadedEvent) => void;
+  sourceWarning: (event: SourceWarningEvent) => void;
+  audioAdded: (event: AudioAddedEvent) => void;
+  audioChanged: (event: AudioChangedEvent) => void;
+  audioRemoved: (event: AudioRemovedEvent) => void;
+  subtitleAdded: (event: SubtitleAddedEvent) => void;
+  subtitleChanged: (event: SubtitleChangedEvent) => void;
+  subtitleRemoved: (event: SubtitleRemovedEvent) => void;
+  fairplayLicenseAcquired: (event: FairplayLicenseAcquiredEvent) => void;
+  event: (event: Event) => void;
+};
+
+/** Events emitted by a Player, including its sources. View UI events belong to PlayerView. */
+export type PlayerEvents = SourceEvents & {
+  adBreakFinished: (event: AdBreakFinishedEvent) => void;
+  adBreakStarted: (event: AdBreakStartedEvent) => void;
+  adClicked: (event: AdClickedEvent) => void;
+  adError: (event: AdErrorEvent) => void;
+  adFinished: (event: AdFinishedEvent) => void;
+  adManifestLoad: (event: AdManifestLoadEvent) => void;
+  adManifestLoaded: (event: AdManifestLoadedEvent) => void;
+  adQuartile: (event: AdQuartileEvent) => void;
+  adScheduled: (event: AdScheduledEvent) => void;
+  adSkipped: (event: AdSkippedEvent) => void;
+  adStarted: (event: AdStartedEvent) => void;
+  castAvailable: (event: CastAvailableEvent) => void;
+  castPaused: (event: CastPausedEvent) => void;
+  castPlaybackFinished: (event: CastPlaybackFinishedEvent) => void;
+  castPlaying: (event: CastPlayingEvent) => void;
+  castStarted: (event: CastStartedEvent) => void;
+  castStart: (event: CastStartEvent) => void;
+  castStopped: (event: CastStoppedEvent) => void;
+  castTimeUpdated: (event: CastTimeUpdatedEvent) => void;
+  castWaitingForDevice: (event: CastWaitingForDeviceEvent) => void;
+  cueEnter: (event: CueEnterEvent) => void;
+  cueExit: (event: CueExitEvent) => void;
+  destroy: (event: DestroyEvent) => void;
+  metadata: (event: MetadataEvent) => void;
+  muted: (event: MutedEvent) => void;
+  nonLinearAdStarted: (event: NonLinearAdStartedEvent) => void;
+  nonLinearAdSkipped: (event: NonLinearAdSkippedEvent) => void;
+  nonLinearAdFinished: (event: NonLinearAdFinishedEvent) => void;
+  paused: (event: PausedEvent) => void;
+  play: (event: PlayEvent) => void;
+  playbackFinished: (event: PlaybackFinishedEvent) => void;
+  playbackSpeedChanged: (event: PlaybackSpeedChangedEvent) => void;
+  playerActive: (event: PlayerActiveEvent) => void;
+  playerInactive: (event: PlayerInactiveEvent) => void;
+  playerError: (event: PlayerErrorEvent) => void;
+  playerWarning: (event: PlayerWarningEvent) => void;
+  playing: (event: PlayingEvent) => void;
+  ready: (event: ReadyEvent) => void;
+  seek: (event: SeekEvent) => void;
+  seeked: (event: SeekedEvent) => void;
+  timeShift: (event: TimeShiftEvent) => void;
+  timeShifted: (event: TimeShiftedEvent) => void;
+  stallStarted: (event: StallStartedEvent) => void;
+  stallEnded: (event: StallEndedEvent) => void;
+  timeChanged: (event: TimeChangedEvent) => void;
+  videoPlaybackQualityChanged: (
+    event: VideoPlaybackQualityChangedEvent
+  ) => void;
+  unmuted: (event: UnmutedEvent) => void;
+};

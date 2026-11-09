@@ -1,3 +1,4 @@
+import type { PlayerEvents } from '../events';
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
@@ -9,7 +10,7 @@ import type { Player } from '../player';
 import { lookup } from '../nativeInstanceRegistry';
 import { getNativeOwner, setNativeOwner } from '../nativeOwner';
 
-export type PlayerModuleEvents = Record<string, never>;
+export type PlayerModuleEvents = PlayerEvents;
 
 /** @internal */
 export interface NativePlayer extends SharedObject<PlayerModuleEvents> {

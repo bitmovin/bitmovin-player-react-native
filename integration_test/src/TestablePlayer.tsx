@@ -76,9 +76,7 @@ export default function TestablePlayer({
               }
             }}
             onEvent={(event: Event) => {
-              // PlayerView in src/components/PlayerView/index.tsx attaches the
-              // metadata handlers only when their props are set and enriches
-              // their events with addPlatformToMetadataEvent. Ignore the raw
+              // Player.on enriches the dedicated metadata subscriptions. Ignore the raw
               // catch-all copies here to observe each metadata event once.
               if (
                 event.name !== 'onMetadata' &&

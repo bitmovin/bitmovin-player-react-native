@@ -4,6 +4,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { after, before, test } = require('node:test');
 const ts = require(process.env.TYPESCRIPT_PATH || 'typescript');
+const { EventEmitter } = require('node:events');
 
 const root = fs.mkdtempSync(
   path.join(os.tmpdir(), 'shared-object-compatibility-')
@@ -56,7 +57,13 @@ function fixture(t) {
   const creations = [];
   const callbacks = new WeakMap();
   const create = (kind, config, callback) => {
+    const emitter = new EventEmitter();
     const native = {
+      addListener(event, listener) {
+        emitter.on(event, listener);
+        return { remove: () => emitter.off(event, listener) };
+      },
+      emit: (event, payload) => emitter.emit(event, payload),
       destroy: async () => {
         callbacks.delete(native);
       },
@@ -274,4 +281,43 @@ test('a Source retains its DRM callbacks after player destruction and reuse', as
     { native, skdUri: 'skd://content' },
   ]);
   second.destroy();
+});
+
+test('object subscriptions use their native owner and can be removed before creation', async (t) => {
+  const { Player, Source, nativeOf } = fixture(t);
+  const player = new Player();
+  const other = new Player();
+  const source = new Source({
+    url: 'https://example.com/video.m3u8',
+    type: 'hls',
+  });
+  let playerCalls = 0;
+  let sourceCalls = 0;
+  let removedCalls = 0;
+  const playerSubscription = player.on('ready', () => playerCalls++);
+  const sourceSubscription = source.on('sourceLoaded', () => sourceCalls++);
+  const removed = player.on('ready', () => removedCalls++);
+  removed.remove();
+  await Promise.all([
+    player.initialize(),
+    source.initialize(),
+    other.initialize(),
+  ]);
+  nativeOf(other).emit('ready', { name: 'onReady' });
+  nativeOf(player).emit('ready', { name: 'onReady' });
+  assert.equal(playerCalls, 1);
+  assert.equal(sourceCalls, 0);
+  assert.equal(removedCalls, 0);
+  playerSubscription.remove();
+  nativeOf(player).emit('ready', { name: 'onReady' });
+  assert.equal(playerCalls, 1);
+  nativeOf(source).emit('sourceLoaded', { name: 'onSourceLoaded' });
+  assert.equal(sourceCalls, 1);
+  sourceSubscription.remove();
+  // An initialized object must register synchronously before destroy() can emit.
+  let destroyed = 0;
+  const destroyedSubscription = player.on('destroy', () => destroyed++);
+  nativeOf(player).emit('destroy', { name: 'onDestroy' });
+  assert.equal(destroyed, 1);
+  destroyedSubscription.remove();
 });
