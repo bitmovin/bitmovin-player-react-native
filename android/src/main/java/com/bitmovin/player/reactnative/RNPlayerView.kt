@@ -562,9 +562,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         EventSubscription<PlayerEvent.Inactive> { onEvent(onBmpPlayerInactive, it.toJson()) },
         EventSubscription<PlayerEvent.Error> { onEvent(onBmpPlayerError, it.toJson()) },
         EventSubscription<PlayerEvent.Warning> { onEvent(onBmpPlayerWarning, it.toJson()) },
-        EventSubscription<PlayerEvent.Destroy> {
-            onEvent(onBmpDestroy, it.toJson())
-        },
+        EventSubscription<PlayerEvent.Destroy> { onEvent(onBmpDestroy, it.toJson()) },
         EventSubscription<PlayerEvent.Muted> { onEvent(onBmpMuted, it.toJson()) },
         EventSubscription<PlayerEvent.Unmuted> { onEvent(onBmpUnmuted, it.toJson()) },
         EventSubscription<PlayerEvent.Ready> { onEvent(onBmpReady, it.toJson()) },
