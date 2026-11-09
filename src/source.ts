@@ -1,6 +1,6 @@
 import type { CmcdConfig } from './cmcdConfig';
 import type { DrmConfig } from './drm';
-import { Drm } from './drm';
+import { SourceDrmApi } from './drm/sourceDrmApi';
 import type { NativeInstanceConfig } from './nativeInstance';
 import NativeInstance from './nativeInstance';
 import {
@@ -15,7 +15,7 @@ import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import SourceModule, { getNativeSource } from './modules/SourceModule';
-import { getNativeDrmConfig } from './drm/drmModule';
+import { createNativeDrmConfig, type NativeDrmConfig } from './drm/drmModule';
 import { serializeNativeConfig } from './nativeCallbacks';
 import { setNativeOwner } from './nativeOwner';
 
@@ -176,10 +176,11 @@ export class Source extends NativeInstance<SourceConfig> {
   /**
    * Provides access to DRM runtime APIs for this source.
    * Use `drm.fairplay` to access {@link FairplayDrmApi} for FairPlay-specific APIs such as {@link FairplayDrmApi.renewExpiringLicense}.
-   *
-   * `undefined` if the source was created without a {@link DrmConfig}.
+   * Available for every source. Read {@link SourceConfig.drmConfig} to inspect DRM configuration.
    */
-  drm?: Drm;
+  readonly drm = new SourceDrmApi(this);
+
+  private drmConfig?: NativeDrmConfig;
   /**
    * The remote control config for this source.
    * This is only supported on iOS.
@@ -201,37 +202,34 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   initialize = async (): Promise<void> => {
     if (this.isInitialized || this.isDestroyed) return;
-    if (this.config?.drmConfig && (!this.drm || this.drm.isDestroyed))
-      this.drm = new Drm(this.config.drmConfig, this);
-    const drmInitialization = this.drm?.initialize();
-    const [native] = await Promise.all([
-      getOrCreateAsync(
-        'source',
-        this.nativeId,
-        async () => {
-          await drmInitialization;
-          if (this.isDestroyed) return;
-          try {
-            const created = await SourceModule.create(
-              serializeNativeConfig(this.config),
-              this.drm && getNativeDrmConfig(this.drm),
-              serializeNativeConfig(this.remoteControl || undefined),
-              serializeNativeConfig(this.config?.analyticsSourceMetadata)
-            );
-            holdDependencies(created, [this.drm]);
-            return created;
-          } catch (error) {
-            await this.drm?.destroy();
-            throw error;
-          }
-        },
-        async (created) => {
-          destroyDependencies(created);
-          await this.drm?.destroy();
+    const native = await getOrCreateAsync(
+      'source',
+      this.nativeId,
+      async () => {
+        if (this.isDestroyed) return;
+        try {
+          if (this.config?.drmConfig)
+            this.drmConfig = createNativeDrmConfig(this.config.drmConfig);
+          const created = await SourceModule.create(
+            serializeNativeConfig(this.config),
+            this.drmConfig,
+            serializeNativeConfig(this.remoteControl || undefined),
+            serializeNativeConfig(this.config?.analyticsSourceMetadata)
+          );
+          holdDependencies(created, [this.drmConfig]);
+          return created;
+        } catch (error) {
+          const drmConfig = this.drmConfig;
+          this.drmConfig = undefined;
+          await drmConfig?.destroy();
+          throw error;
         }
-      ),
-      drmInitialization,
-    ]);
+      },
+      (created) => {
+        destroyDependencies(created);
+        this.drmConfig = undefined;
+      }
+    );
     if (
       !native ||
       lookup('source', this.nativeId) !== native ||
@@ -251,7 +249,9 @@ export class Source extends NativeInstance<SourceConfig> {
       const pending = lookupPending('source', this.nativeId);
       if (pending) remove('source', this.nativeId, pending);
       if (native) destroyDependencies(native);
-      void this.drm?.destroy();
+      const drmConfig = this.drmConfig;
+      this.drmConfig = undefined;
+      void drmConfig?.destroy();
       this.isDestroyed = true;
       if (native) {
         remove('source', this.nativeId, native);

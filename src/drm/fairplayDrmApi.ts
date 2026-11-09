@@ -11,7 +11,7 @@ import type { Source } from '../source';
  * @platform iOS, tvOS
  */
 export class FairplayDrmApi {
-  constructor(private readonly source: Source | undefined) {}
+  constructor(private readonly source: Source) {}
 
   /**
    * Renews an expiring FairPlay license for the provided content key request.
@@ -27,8 +27,8 @@ export class FairplayDrmApi {
       console.warn('renewExpiringLicense is not available on Android.');
       return;
     }
-    return (
-      this.source && getNativeSource(this.source)
-    )?.drmFairplayRenewExpiringLicense(contentKeyRequest.skdUri);
+    return getNativeSource(this.source)?.drmFairplayRenewExpiringLicense(
+      contentKeyRequest.skdUri
+    );
   };
 }

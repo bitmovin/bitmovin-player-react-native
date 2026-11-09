@@ -1,13 +1,10 @@
-import { setNativeOwner } from '../nativeOwner';
-import type { Source } from '../source';
 import type { FairplayConfig } from './fairplayConfig';
 import type { WidevineConfig } from './widevineConfig';
-import { FairplayDrmApi } from './fairplayDrmApi';
-import { createNativeDrmConfig, getNativeDrmConfig } from './drmModule';
 
 // Export config types and API classes from DRM module.
 export type { FairplayConfig, WidevineConfig };
-export { FairplayDrmApi };
+export { FairplayDrmApi } from './fairplayDrmApi';
+export { SourceDrmApi } from './sourceDrmApi';
 
 /**
  * Represents the general Streaming DRM config.
@@ -28,47 +25,8 @@ export interface DrmConfig {
 }
 
 /**
- * Represents a native DRM configuration object.
- * @internal
+ * Contains streaming DRM configuration. Runtime operations are available through {@link Source.drm}.
  */
 export class Drm {
-  /**
-   * Provides FairPlay-specific DRM runtime APIs such as {@link FairplayDrmApi.renewExpiringLicense}.
-   *
-   * @platform iOS, tvOS
-   */
-  readonly fairplay: FairplayDrmApi;
-  /**
-   * Whether this object's native instance has been created.
-   */
-  isInitialized = false;
-  /**
-   * Whether this object's native instance has been disposed.
-   */
-  isDestroyed = false;
-
-  constructor(
-    readonly config?: DrmConfig,
-    source?: Source
-  ) {
-    this.fairplay = new FairplayDrmApi(source);
-  }
-
-  initialize = async () => {
-    if (!this.isInitialized) {
-      setNativeOwner(this, createNativeDrmConfig(this.config));
-      this.isInitialized = true;
-    }
-  };
-
-  destroy = async () => {
-    if (!this.isDestroyed) {
-      const native = getNativeDrmConfig(this);
-      if (native) {
-        setNativeOwner(this);
-        await native.destroy();
-      }
-      this.isDestroyed = true;
-    }
-  };
+  constructor(readonly config?: DrmConfig) {}
 }
