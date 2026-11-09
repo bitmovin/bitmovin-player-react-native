@@ -12,7 +12,11 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.sharedobjects.SharedObject
 
-class SharedDecoder(appContext: AppContext, config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>?) :
+class SharedDecoderConfig(
+    appContext: AppContext,
+    config: Map<String, Any?>,
+    callback: JavaScriptFunction<JavaScriptValue>?,
+) :
     SharedObject(appContext) {
     private val callbacks = CallbackScope(appContext, callback)
     val config = DecoderConfig(
@@ -39,13 +43,13 @@ class DecoderConfigModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("DecoderConfigModule")
         Function("create") { config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>? ->
-            SharedDecoder(appContext, config, callback)
+            SharedDecoderConfig(appContext, config, callback)
         }
-        Class(SharedDecoder::class) {
+        Class(SharedDecoderConfig::class) {
             Constructor { config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>? ->
-                SharedDecoder(appContext, config, callback)
+                SharedDecoderConfig(appContext, config, callback)
             }
-            AsyncFunction("destroy") { owner: SharedDecoder -> owner.destroy() }
+            AsyncFunction("destroy") { owner: SharedDecoderConfig -> owner.destroy() }
         }
     }
 }

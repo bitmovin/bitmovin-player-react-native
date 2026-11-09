@@ -6,15 +6,15 @@ public class DrmModule: Module {
     public func definition() -> ModuleDefinition {
         Name("DrmModule")
         Function("create") { (config: [String: Any], callback: JavaScriptValue) in
-            try SharedDrm(config: config, callback: CallbackScope(callback: callback, context: appContext))
+            try SharedDrmConfig(config: config, callback: CallbackScope(callback: callback, context: appContext))
         }
-        Class("Drm", SharedDrm.self) {
-            AsyncFunction("destroy") { (owner: SharedDrm) in owner.destroy() }
+        Class("DrmConfig", SharedDrmConfig.self) {
+            AsyncFunction("destroy") { (owner: SharedDrmConfig) in owner.destroy() }
         }
     }
 }
 
-public final class SharedDrm: SharedObject {
+public final class SharedDrmConfig: SharedObject {
     let config: FairplayConfig?
     private let callback: CallbackScope
 

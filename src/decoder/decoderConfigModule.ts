@@ -10,12 +10,15 @@ import {
 import type { DecoderConfig } from './decoderConfig';
 
 /** @internal */
-export interface NativeDecoder extends SharedObject {
+export interface NativeDecoderConfig extends SharedObject {
   destroy(): Promise<void>;
 }
 
 declare class DecoderConfigModule extends NativeModule {
-  create(config: Record<string, any>, callback: NativeCallback): NativeDecoder;
+  create(
+    config: Record<string, any>,
+    callback: NativeCallback
+  ): NativeDecoderConfig;
 }
 
 const nativeModule =
@@ -24,9 +27,9 @@ const nativeModule =
     : undefined;
 
 /** @internal */
-export function createNativeDecoder(
+export function createNativeDecoderConfig(
   config?: DecoderConfig
-): NativeDecoder | undefined {
+): NativeDecoderConfig | undefined {
   return nativeModule?.create(
     serializeNativeConfig(config ?? {}),
     createNativeCallback((operation, [context, preferredDecoders]) => {

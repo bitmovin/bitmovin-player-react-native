@@ -10,7 +10,7 @@ public class PlayerModule: Module {
         Constant("isGoogleImaEnabled") {
             NSClassFromString("IMAAdsLoader") != nil
         }
-        AsyncFunction("create") { (config: [String: Any]?, analytics: [String: Any]?, network: SharedNetwork?, _: SharedObject?, callback: JavaScriptValue?) -> SharedPlayer in // swiftlint:disable:this line_length
+        AsyncFunction("create") { (config: [String: Any]?, analytics: [String: Any]?, network: SharedNetworkConfig?, _: SharedObject?, callback: JavaScriptValue?) -> SharedPlayer in // swiftlint:disable:this line_length
             try SharedPlayer.create(
                 config: config,
                 network: network,
@@ -211,10 +211,10 @@ public class PlayerModule: Module {
 public final class SharedPlayer: SharedObject {
     let player: Player
     var source: SharedSource?
-    private let network: SharedNetwork?
+    private let network: SharedNetworkConfig?
     private let callback: CallbackScope?
 
-    private init(player: Player, network: SharedNetwork?, callback: CallbackScope?) {
+    private init(player: Player, network: SharedNetworkConfig?, callback: CallbackScope?) {
         self.player = player
         self.network = network
         self.callback = callback
@@ -239,7 +239,7 @@ public final class SharedPlayer: SharedObject {
 
     fileprivate static func create(
         config: [String: Any]?,
-        network: SharedNetwork?,
+        network: SharedNetworkConfig?,
         analyticsConfig: [String: Any]?,
         callback: CallbackScope?
     ) throws -> SharedPlayer {

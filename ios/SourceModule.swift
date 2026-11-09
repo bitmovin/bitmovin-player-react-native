@@ -5,7 +5,7 @@ import ExpoModulesCore
 public class SourceModule: Module {
     public func definition() -> ModuleDefinition {
         Name("SourceModule")
-        AsyncFunction("create") { (config: [String: Any]?, drm: SharedDrm?, remote: [String: Any]?, analytics: [String: Any]?) -> SharedSource in // swiftlint:disable:this line_length
+        AsyncFunction("create") { (config: [String: Any]?, drm: SharedDrmConfig?, remote: [String: Any]?, analytics: [String: Any]?) -> SharedSource in // swiftlint:disable:this line_length
             guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drm?.config) else {
                 throw Exception(name: "InvalidSourceConfig", description: "Invalid source configuration")
             }
@@ -59,9 +59,9 @@ public final class SharedSource: SharedObject {
     // The public API returns plain skdUri metadata; renewal still needs its native AVContentKeyRequest.
     fileprivate let fairplayRequests = LockedBox(value: [String: FairplayContentKeyRequest]())
     private var fairplayCancellable: AnyCancellable?
-    private let drm: SharedDrm?
+    private let drm: SharedDrmConfig?
 
-    fileprivate init(source: Source, drm: SharedDrm?, remote: [String: Any]?) {
+    fileprivate init(source: Source, drm: SharedDrmConfig?, remote: [String: Any]?) {
         self.source = source
         self.drm = drm
 #if os(iOS)

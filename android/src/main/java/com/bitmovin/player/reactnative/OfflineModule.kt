@@ -17,7 +17,7 @@ class SharedOfflineEvents(appContext: AppContext) : SharedObject(appContext)
 class OfflineModule : Module() {
     private fun create(
         config: Map<String, Any?>?,
-        drm: SharedDrm?,
+        drm: SharedDrmConfig?,
         events: SharedOfflineEvents,
     ): OfflineContentManagerBridge {
         val identifier = config?.get("identifier") as? String
@@ -40,7 +40,7 @@ class OfflineModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("OfflineModule")
         Function("createEvents") { SharedOfflineEvents(appContext) }
-        AsyncFunction("create") { config: Map<String, Any?>?, drm: SharedDrm?, events: SharedOfflineEvents ->
+        AsyncFunction("create") { config: Map<String, Any?>?, drm: SharedDrmConfig?, events: SharedOfflineEvents ->
             create(config, drm, events)
         }.runOnQueue(Queues.MAIN)
         Class("OfflineEvents", SharedOfflineEvents::class) {
@@ -48,7 +48,7 @@ class OfflineModule : Module() {
             Events("onBitmovinOfflineEvent")
         }
         Class(OfflineContentManagerBridge::class) {
-            Constructor { config: Map<String, Any?>?, drm: SharedDrm?, events: SharedOfflineEvents ->
+            Constructor { config: Map<String, Any?>?, drm: SharedDrmConfig?, events: SharedOfflineEvents ->
                 create(config, drm, events)
             }
 

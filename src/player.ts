@@ -28,12 +28,12 @@ import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
 import {
-  createNativeNetwork,
-  type NativeNetwork,
+  createNativeNetworkConfig,
+  type NativeNetworkConfig,
 } from './network/networkModule';
 import {
-  createNativeDecoder,
-  type NativeDecoder,
+  createNativeDecoderConfig,
+  type NativeDecoderConfig,
 } from './decoder/decoderConfigModule';
 import { getNativeOffline } from './offline/offlineModule';
 import { nativeCallback, serializeNativeConfig } from './nativeCallbacks';
@@ -83,9 +83,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   mediaControls: MediaControlsApi = new MediaControlsApi(this);
 
-  private network?: NativeNetwork;
+  private network?: NativeNetworkConfig;
 
-  private decoderConfig?: NativeDecoder;
+  private decoderConfig?: NativeDecoderConfig;
   /**
    * Allocates the native `Player` instance and its resources natively.
    */
@@ -626,7 +626,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   };
 
   private async initializeNetwork() {
-    this.network = createNativeNetwork(this.config?.networkConfig);
+    this.network = createNativeNetworkConfig(this.config?.networkConfig);
   }
 
   private async destroyNetwork() {
@@ -649,7 +649,7 @@ export class Player extends NativeInstance<PlayerConfig> {
       return;
     }
 
-    this.decoderConfig = createNativeDecoder(
+    this.decoderConfig = createNativeDecoderConfig(
       this.config.playbackConfig.decoderConfig
     );
   }

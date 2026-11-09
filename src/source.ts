@@ -15,7 +15,7 @@ import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import SourceModule, { getNativeSource } from './modules/SourceModule';
-import { getNativeDrm } from './drm/drmModule';
+import { getNativeDrmConfig } from './drm/drmModule';
 import { serializeNativeConfig } from './nativeCallbacks';
 import { setNativeOwner } from './nativeOwner';
 
@@ -214,7 +214,7 @@ export class Source extends NativeInstance<SourceConfig> {
           try {
             const created = await SourceModule.create(
               serializeNativeConfig(this.config),
-              this.drm && getNativeDrm(this.drm),
+              this.drm && getNativeDrmConfig(this.drm),
               serializeNativeConfig(this.remoteControl || undefined),
               serializeNativeConfig(this.config?.analyticsSourceMetadata)
             );

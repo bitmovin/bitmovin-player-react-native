@@ -1,5 +1,8 @@
 import { setNativeOwner } from '../nativeOwner';
-import { createNativeNetwork, getNativeNetwork } from './networkModule';
+import {
+  createNativeNetworkConfig,
+  getNativeNetworkConfig,
+} from './networkModule';
 import type { HttpRequest, HttpResponse, NetworkConfig } from './networkConfig';
 import { HttpRequestType } from './networkConfig';
 
@@ -18,14 +21,14 @@ export class Network {
 
   initialize = async () => {
     if (!this.isInitialized) {
-      setNativeOwner(this, createNativeNetwork(this.config));
+      setNativeOwner(this, createNativeNetworkConfig(this.config));
       this.isInitialized = true;
     }
   };
 
   destroy = async () => {
     if (!this.isDestroyed) {
-      const native = getNativeNetwork(this);
+      const native = getNativeNetworkConfig(this);
       if (native) {
         setNativeOwner(this);
         await native.destroy();

@@ -3,7 +3,7 @@ import type { Source } from '../source';
 import type { FairplayConfig } from './fairplayConfig';
 import type { WidevineConfig } from './widevineConfig';
 import { FairplayDrmApi } from './fairplayDrmApi';
-import { createNativeDrm, getNativeDrm } from './drmModule';
+import { createNativeDrmConfig, getNativeDrmConfig } from './drmModule';
 
 // Export config types and API classes from DRM module.
 export type { FairplayConfig, WidevineConfig };
@@ -56,14 +56,14 @@ export class Drm {
 
   initialize = async () => {
     if (!this.isInitialized) {
-      setNativeOwner(this, createNativeDrm(this.config));
+      setNativeOwner(this, createNativeDrmConfig(this.config));
       this.isInitialized = true;
     }
   };
 
   destroy = async () => {
     if (!this.isDestroyed) {
-      const native = getNativeDrm(this);
+      const native = getNativeDrmConfig(this);
       if (native) {
         setNativeOwner(this);
         await native.destroy();

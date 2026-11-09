@@ -10,23 +10,30 @@ import {
 import type { NetworkConfig } from './networkConfig';
 
 /** @internal */
-export interface NativeNetwork extends SharedObject {
+export interface NativeNetworkConfig extends SharedObject {
   destroy(): Promise<void>;
 }
 
 /** @internal */
-export function getNativeNetwork(owner: object): NativeNetwork | undefined {
-  return getNativeOwner<NativeNetwork>(owner);
+export function getNativeNetworkConfig(
+  owner: object
+): NativeNetworkConfig | undefined {
+  return getNativeOwner<NativeNetworkConfig>(owner);
 }
 
 declare class NetworkModule extends NativeModule {
-  create(config: Record<string, any>, callback: NativeCallback): NativeNetwork;
+  create(
+    config: Record<string, any>,
+    callback: NativeCallback
+  ): NativeNetworkConfig;
 }
 
 const nativeModule = requireNativeModule<NetworkModule>('NetworkModule');
 
 /** @internal */
-export function createNativeNetwork(config?: NetworkConfig): NativeNetwork {
+export function createNativeNetworkConfig(
+  config?: NetworkConfig
+): NativeNetworkConfig {
   return nativeModule.create(
     serializeNativeConfig(config ?? {}),
     createNativeCallback((operation, [type, value]) => {

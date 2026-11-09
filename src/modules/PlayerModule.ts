@@ -2,8 +2,8 @@ import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 import type { NativeCallback } from '../nativeCallbacks';
-import type { NativeNetwork } from '../network/networkModule';
-import type { NativeDecoder } from '../decoder/decoderConfigModule';
+import type { NativeNetworkConfig } from '../network/networkModule';
+import type { NativeDecoderConfig } from '../decoder/decoderConfigModule';
 import type { NativeOffline } from '../offline/offlineModule';
 import type { NativeSource } from './SourceModule';
 import type { BufferLevels } from '../bufferApi';
@@ -133,8 +133,8 @@ declare class PlayerModule extends NativeModule {
   create(
     config?: Record<string, any>,
     analyticsConfig?: Record<string, any>,
-    network?: NativeNetwork,
-    decoder?: NativeDecoder,
+    network?: NativeNetworkConfig,
+    decoder?: NativeDecoderConfig,
     callback?: NativeCallback
   ): Promise<NativePlayer>;
 }

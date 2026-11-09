@@ -12,8 +12,11 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.sharedobjects.SharedObject
 
-class SharedDrm(appContext: AppContext, config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>?) :
-    SharedObject(appContext) {
+class SharedDrmConfig(
+    appContext: AppContext,
+    config: Map<String, Any?>,
+    callback: JavaScriptFunction<JavaScriptValue>?,
+) : SharedObject(appContext) {
     private val callbacks = CallbackScope(appContext, callback)
     val config = requireNotNull(config.toWidevineConfig()) { "Invalid widevine config" }.apply {
         val widevine = config["widevine"] as? Map<*, *>
@@ -33,9 +36,9 @@ class SharedDrm(appContext: AppContext, config: Map<String, Any?>, callback: Jav
 }
 
 class DrmModule : Module() {
-    private fun create(config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>?): SharedDrm =
+    private fun create(config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>?): SharedDrmConfig =
         try {
-            SharedDrm(appContext, config, callback)
+            SharedDrmConfig(appContext, config, callback)
         } catch (error: Exception) {
             throw CodedException("DrmError", "Failed to initialize DRM config", error)
         }
@@ -45,11 +48,11 @@ class DrmModule : Module() {
         Function("create") { config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>? ->
             create(config, callback)
         }
-        Class(SharedDrm::class) {
+        Class(SharedDrmConfig::class) {
             Constructor { config: Map<String, Any?>, callback: JavaScriptFunction<JavaScriptValue>? ->
                 create(config, callback)
             }
-            AsyncFunction("destroy") { owner: SharedDrm -> owner.destroy() }
+            AsyncFunction("destroy") { owner: SharedDrmConfig -> owner.destroy() }
         }
     }
 }

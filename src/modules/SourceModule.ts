@@ -9,7 +9,7 @@ import type {
 import { lookup } from '../nativeInstanceRegistry';
 import { getNativeOwner, setNativeOwner } from '../nativeOwner';
 import type { Thumbnail } from '../thumbnail';
-import type { NativeDrm } from '../drm/drmModule';
+import type { NativeDrmConfig } from '../drm/drmModule';
 
 export type SourceModuleEvents = Record<string, never>;
 
@@ -44,7 +44,7 @@ export function getNativeSource(source: Source): NativeSource | undefined {
 declare class SourceModule extends NativeModule {
   create(
     config?: Record<string, any>,
-    drm?: NativeDrm,
+    drm?: NativeDrmConfig,
     remoteControl?: SourceRemoteControlConfig,
     analyticsSourceMetadata?: Record<string, any>
   ): Promise<NativeSource>;
