@@ -161,7 +161,7 @@ fun Map<String, Any?>.toSourceOptions(): SourceOptions = SourceOptions(
     startOffsetTimelineReference = getString("startOffsetTimelineReference")?.toTimelineReferencePoint(),
 )
 
-private fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (this) {
+fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (this) {
     "start" -> TimelineReferencePoint.Start
     "end" -> TimelineReferencePoint.End
     else -> null

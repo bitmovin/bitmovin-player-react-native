@@ -6,11 +6,11 @@ import com.bitmovin.player.api.playlist.PlaylistConfig
 import com.bitmovin.player.api.playlist.PlaylistOptions
 import com.bitmovin.player.api.playlist.ReplayMode
 import com.bitmovin.player.api.playlist.SeekTarget
-import com.bitmovin.player.api.source.TimelineReferencePoint
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
 import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
 import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.converter.toTimelineReferencePoint
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.jni.JavaScriptFunction
@@ -77,11 +77,10 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("playlistSeekTo") { shared: SharedPlayer, source: SharedSource, target: Map<String, Any> ->
-                val reference = when (target["startOffsetTimelineReference"]) {
-                    null -> null
-                    "start" -> TimelineReferencePoint.Start
-                    "end" -> TimelineReferencePoint.End
-                    else -> throw IllegalArgumentException("Unknown timeline reference point")
+                val reference = target["startOffsetTimelineReference"]?.let {
+                    requireNotNull((it as? String)?.toTimelineReferencePoint()) {
+                        "Unknown timeline reference point"
+                    }
                 }
                 shared.player.playlist.seek(
                     source.source,
