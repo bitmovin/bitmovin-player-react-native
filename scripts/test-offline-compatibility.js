@@ -45,7 +45,7 @@ function fixture(t, platform = 'ios') {
   const config = {
     nativeId: 'public-label',
     identifier: 'content',
-    sourceConfig: { url: 'https://example.com/video.m3u8' },
+    sourceConfig: { url: 'https://example.com/video.m3u8', type: 'hls' },
   };
   const owners = [];
   const offlineModule = {

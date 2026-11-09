@@ -99,7 +99,7 @@ export interface SourceConfig extends NativeInstanceConfig {
   /**
    * The `SourceType` for this configuration.
    */
-  type?: SourceType;
+  type: SourceType;
   /**
    * The title of the video source.
    */
@@ -176,7 +176,7 @@ export class Source extends NativeInstance<SourceConfig> {
           SourceModule.create(
             callbacks.serialize(this.config),
             callbacks.serialize(this.remoteControl || undefined),
-            callbacks.serialize(this.config?.analyticsSourceMetadata),
+            callbacks.serialize(this.config.analyticsSourceMetadata),
             callback
           ),
         callbacks.callback

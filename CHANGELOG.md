@@ -20,6 +20,7 @@
 
 ### Changed
 
+- **Breaking change:** Require configuration when constructing `Source` and `OfflineContentManager`, and require `SourceConfig.type`. `Player` configuration remains optional
 - **Breaking change:** Player, Source, and OfflineContentManager runtime methods now initialize and await their native object on first use instead of returning pre-initialization defaults, dropping calls, or reporting an uninitialized manager. `initialize()` remains available to await creation explicitly; `destroy()` never creates a native object
 - **Breaking change:** Remove `Source.destroy()` and `Source.isDestroyed`. Sources follow SDK ownership and remain reusable after player destruction. Source IDs stay valid while their objects remain reachable
 - **Breaking change:** Make `Network` configuration-only, removing `initialize()`, `destroy()`, `isInitialized`, and `isDestroyed`

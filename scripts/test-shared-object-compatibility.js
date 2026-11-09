@@ -123,7 +123,11 @@ for (const kind of ['player', 'source']) {
     const make = () =>
       kind === 'player'
         ? new Player({ nativeId: 'shared' })
-        : new Source({ nativeId: 'shared', url: 'https://test/source' });
+        : new Source({
+            nativeId: 'shared',
+            url: 'https://test/source',
+            type: 'hls',
+          });
     const first = make();
     const alias = make();
     await Promise.all(
@@ -224,6 +228,7 @@ test('failed Source creation permits retry with DRM callbacks', async (t) => {
   const { Source, modules, nativeOf, invoke } = fixture(t);
   const source = new Source({
     url: 'https://test/source',
+    type: 'hls',
     drmConfig: { fairplay: { prepareMessage: (message) => message } },
   });
   const create = modules.SourceModule.create;
@@ -244,6 +249,7 @@ test('a Source retains its DRM callbacks after player destruction and reuse', as
   const { Player, Source, nativeOf, calls, invoke } = fixture(t);
   const source = new Source({
     url: 'https://test/source',
+    type: 'hls',
     drmConfig: { fairplay: { prepareMessage: (message) => message } },
   });
   const first = new Player();

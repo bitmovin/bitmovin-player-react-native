@@ -36,7 +36,11 @@ import { setNativeOwner } from './nativeOwner';
  * Can be attached to {@link PlayerView} component in order to use Bitmovin's Player Web UI.
  * @see PlayerView
  */
-export class Player extends NativeInstance<PlayerConfig> {
+export class Player extends NativeInstance<PlayerConfig | undefined> {
+  constructor(config?: PlayerConfig) {
+    super(config);
+  }
+
   /** @internal */
   private get native() {
     const existing = getNativePlayer(this);

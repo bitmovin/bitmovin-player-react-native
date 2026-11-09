@@ -17,8 +17,7 @@ class OfflineModule : Module() {
         events: SharedOfflineEvents,
         callback: JavaScriptFunction<JavaScriptValue>?,
     ): OfflineContentManagerBridge {
-        val identifier = config?.get("identifier") as? String
-            ?: throw OfflineException.InvalidIdentifier()
+        val identifier = requireNotNull(config?.get("identifier") as? String) { "Invalid identifier" }
         val callbacks = CallbackScope(appContext, callback)
         return callbacks.createSharedObject {
             val sourceConfig = config.getMap("sourceConfig")?.toSourceConfig(callbacks)
@@ -72,6 +71,5 @@ class OfflineModule : Module() {
 }
 
 sealed class OfflineException(message: String) : CodedException(message) {
-    class InvalidIdentifier : OfflineException("Invalid identifier")
     class InvalidSourceConfig : OfflineException("Invalid source config")
 }
