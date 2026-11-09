@@ -5,8 +5,6 @@ import type { SourceConfig } from '../source';
 import type { NativeCallback } from '../nativeCallbacks';
 import type { OfflineDownloadRequest } from './offlineDownloadRequest';
 import type { BitmovinNativeOfflineEventData } from './offlineContentManagerListener';
-import { lookup } from '../nativeInstanceRegistry';
-import { getNativeOwner, setNativeOwner } from '../nativeOwner';
 
 type OfflineEvents = {
   onBitmovinOfflineEvent: (
@@ -37,17 +35,6 @@ export interface NativeOfflineBackend extends SharedObject {
 export type NativeOffline = NativeOfflineBackend & {
   readonly events: NativeOfflineEvents;
 };
-
-/** @internal */
-export function getNativeOffline(owner: {
-  readonly nativeId: string;
-}): NativeOffline | undefined {
-  const native =
-    getNativeOwner<NativeOffline>(owner) ??
-    lookup<NativeOffline>('offline', owner.nativeId);
-  if (native) setNativeOwner(owner, native);
-  return native;
-}
 
 declare class OfflineModule extends NativeModule {
   createEvents(): NativeOfflineEvents;

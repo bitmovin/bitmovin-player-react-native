@@ -63,7 +63,8 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   private listeners: Set<OfflineContentManagerListener> =
     new Set<OfflineContentManagerListener>();
 
-  private readonly native = this.retainNative(
+  /** @internal */
+  readonly native = this.retainNative(
     getOrCreateAsync('offline', this.nativeId, () =>
       this.createNativeOffline()
     ),

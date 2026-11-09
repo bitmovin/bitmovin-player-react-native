@@ -43,7 +43,7 @@
 - Return synchronous configuration callback values directly and simplify native resource teardown
 - Report callback-result conversion failures in JavaScript while completing native network requests with their fallback
 - Keep native Player and OfflineContentManager references while their TypeScript wrappers remain reachable after `destroy()`. Pass native creation Promises directly to API helpers without empty native objects
-- Use Expo SharedObjects for native bindings and direct configuration callbacks. Resolve compatibility IDs in a shared weak TypeScript registry. Give player views independent ownership
+- Use Expo SharedObjects for native bindings and direct configuration callbacks. Resolve compatibility IDs only when constructing aliases in a shared weak TypeScript registry. Views and methods use their owned native objects directly
 
 ## [1.30.0] - 2026-10-29
 

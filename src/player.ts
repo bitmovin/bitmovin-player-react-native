@@ -14,7 +14,6 @@ import type { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
-import { getNativeOffline } from './offline/offlineModule';
 import {
   createConfigurationCallbacks,
   createSharedObjectWithCallback,
@@ -31,7 +30,8 @@ import { getNativeOwner } from './nativeOwner';
  * @see PlayerView
  */
 export class Player extends NativeInstance<PlayerConfig | undefined> {
-  private readonly native = this.retainNative(
+  /** @internal */
+  readonly native = this.retainNative(
     getOrCreateAsync('player', this.nativeId, () => this.createNativePlayer())
   );
 
@@ -127,9 +127,8 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
     offlineContentManager: OfflineContentManager,
     options?: OfflineSourceOptions
   ): Promise<void> => {
-    await offlineContentManager.initialize();
+    const offline = await offlineContentManager.native;
     const native = await this.native;
-    const offline = getNativeOffline(offlineContentManager);
     await retainLoadedSource(
       native,
       offline,
