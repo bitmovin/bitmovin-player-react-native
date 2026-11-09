@@ -43,7 +43,7 @@ export default function PauseAds() {
 
   useFocusEffect(
     useCallback(() => {
-      player.load({
+      void player.load({
         url:
           Platform.OS === 'ios'
             ? 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
@@ -54,7 +54,7 @@ export default function PauseAds() {
           'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/poster.jpg',
       });
       return () => {
-        player.destroy();
+        void player.destroy();
       };
     }, [player])
   );
@@ -80,7 +80,7 @@ export default function PauseAds() {
   );
 
   const skipPauseAd = useCallback(() => {
-    player.skipAd();
+    void player.skipAd();
   }, [player]);
 
   return (
