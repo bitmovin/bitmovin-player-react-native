@@ -119,7 +119,7 @@ export default (spec: TestScope) => {
       });
     });
 
-    spec.it('rejects a DASH source on iOS', async () => {
+    spec.it('throws for a DASH source on iOS', async () => {
       // The iOS SDK only supports HLS, progressive and movpkg sources in a playlist.
       if (Platform.OS !== 'ios') {
         console.warn('Skipping the iOS playlist source type test on Android');
@@ -127,90 +127,75 @@ export default (spec: TestScope) => {
       }
       await startPlayerTest({}, async () => {
         await callPlayer(async (player) => {
-          let error: unknown;
-          try {
-            await player.loadPlaylist({
-              sources: [
-                new Source(Sources.artOfMotionHls),
-                new Source(Sources.artOfMotionDash),
-              ],
-            });
-          } catch (e) {
-            error = e;
-          }
-          expect(error, 'loadPlaylist should reject').toBeDefined();
+          expect(
+            getError(() =>
+              player.loadPlaylist({
+                sources: [
+                  new Source(Sources.artOfMotionHls),
+                  new Source(Sources.artOfMotionDash),
+                ],
+              })
+            ),
+            'loadPlaylist should throw'
+          ).toBeDefined();
+          expect(await player.getSource(), 'Active source').toBeUndefined();
+        });
+      });
+    });
+
+    spec.it('throws for a source listed twice', async () => {
+      await startPlayerTest({}, async () => {
+        await callPlayer(async (player) => {
+          const source = new Source(Sources.artOfMotionHls);
+          expect(
+            getError(() => player.loadPlaylist({ sources: [source, source] })),
+            'loadPlaylist should throw'
+          ).toBeDefined();
           expect(await player.getSource(), 'Active source').toBeUndefined();
         });
       });
     });
 
     spec.it(
-      'rejects a playlist with a source listed twice on iOS',
+      'does not load a source attached to another player on iOS',
       async () => {
-        // The iOS SDK ignores a source listed more than once, so the bridge rejects such a playlist.
+        // Loading a source attached to another player crashes the iOS SDK, so the bridge rejects it.
         if (Platform.OS !== 'ios') {
           console.warn(
-            'Skipping the iOS duplicate playlist source test on Android'
+            'Skipping the iOS attached playlist source test on Android'
           );
           return;
         }
         await startPlayerTest({}, async () => {
-          await callPlayer(async (player) => {
-            const source = new Source(Sources.artOfMotionHls);
-            let error: unknown;
-            try {
-              await player.loadPlaylist({ sources: [source, source] });
-            } catch (e) {
-              error = e;
-            }
-            expect(error, 'loadPlaylist should reject').toBeDefined();
-            expect(await player.getSource(), 'Active source').toBeUndefined();
-          });
+          const source = new Source(Sources.artOfMotionHls);
+
+          await callPlayerAndExpectEvent((player) => {
+            player.loadPlaylist({ sources: [source] });
+          }, EventType.Ready);
+
+          const otherPlayer = createPlayer();
+          try {
+            await otherPlayer.initialize();
+            otherPlayer.loadPlaylist({ sources: [source] });
+            await untilPlaylistLoadIsSent(source);
+            // Native handles calls in order, so this reflects the rejected load.
+            expect(
+              await otherPlayer.getSource(),
+              'Active source of the other player'
+            ).toBeUndefined();
+
+            // Checked before destroying the other player, which destroys every source passed to its
+            // `loadPlaylist`, including the rejected one.
+            await callPlayer(async (player) => {
+              expect(await player.getSource(), 'Active source').toBe(source);
+              expect(await source.isActive(), 'Source is active').toBeTruthy();
+            });
+          } finally {
+            otherPlayer.destroy();
+          }
         });
       }
     );
-
-    spec.it('rejects a source attached to another player on iOS', async () => {
-      // Loading a source attached to another player crashes the iOS SDK, so the bridge rejects it.
-      if (Platform.OS !== 'ios') {
-        console.warn(
-          'Skipping the iOS attached playlist source test on Android'
-        );
-        return;
-      }
-      await startPlayerTest({}, async () => {
-        const source = new Source(Sources.artOfMotionHls);
-
-        await callPlayerAndExpectEvent(async (player) => {
-          await player.loadPlaylist({ sources: [source] });
-        }, EventType.Ready);
-
-        const otherPlayer = createPlayer();
-        try {
-          await otherPlayer.initialize();
-          let error: unknown;
-          try {
-            await otherPlayer.loadPlaylist({ sources: [source] });
-          } catch (e) {
-            error = e;
-          }
-          expect(error, 'loadPlaylist should reject').toBeDefined();
-          expect(
-            await otherPlayer.getSource(),
-            'Active source of the other player'
-          ).toBeUndefined();
-
-          // Checked before destroying the other player, which destroys every source passed to its
-          // `loadPlaylist`, including the rejected one.
-          await callPlayer(async (player) => {
-            expect(await player.getSource(), 'Active source').toBe(source);
-            expect(await source.isActive(), 'Source is active').toBeTruthy();
-          });
-        } finally {
-          otherPlayer.destroy();
-        }
-      });
-    });
 
     spec.it('preloads all sources when enabled', async () => {
       await startPlayerTest({}, async () => {
@@ -439,8 +424,8 @@ export default (spec: TestScope) => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
 
-        await callPlayerAndExpectEvent(async (player) => {
-          await player.loadPlaylist({ sources: [first, second] });
+        await callPlayerAndExpectEvent((player) => {
+          player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         await callPlayer(async (player) => {
@@ -471,8 +456,8 @@ export default (spec: TestScope) => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
 
-        await callPlayerAndExpectEvent(async (player) => {
-          await player.loadPlaylist({ sources: [first, second] });
+        await callPlayerAndExpectEvent((player) => {
+          player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         await callPlayer(async (player) => {
@@ -529,4 +514,13 @@ const getError = (fn: () => void): unknown => {
     return error;
   }
   return undefined;
+};
+
+/**
+ * Waits until `loadPlaylist` sent its native load for a playlist containing `source`: the load is sent once the
+ * shared initialization of the sources completed, and pending promise callbacks run before the next macrotask.
+ */
+const untilPlaylistLoadIsSent = async (source: Source) => {
+  await source.initialize();
+  await new Promise((resolve) => setTimeout(resolve, 0));
 };

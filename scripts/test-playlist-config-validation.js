@@ -27,7 +27,18 @@ before(() => {
     .concat(emission.diagnostics)) {
     assert.fail(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
   }
+  // Each test sets the platform it needs.
+  const reactNative = path.join(root, 'node_modules', 'react-native');
+  fs.mkdirSync(reactNative, { recursive: true });
+  fs.writeFileSync(
+    path.join(reactNative, 'index.js'),
+    "module.exports = { Platform: { OS: 'android' } };"
+  );
 });
+
+const setPlatform = (os) => {
+  require(path.join(root, 'node_modules', 'react-native')).Platform.OS = os;
+};
 
 const load = () => {
   const { validatePlaylistConfig } = require(
@@ -40,7 +51,12 @@ const load = () => {
 };
 
 // Source doubles only carry what the validation reads.
-const source = (nativeId, isDestroyed = false) => ({ nativeId, isDestroyed });
+const source = (nativeId, options = {}) => ({
+  nativeId,
+  isDestroyed: options.isDestroyed ?? false,
+  // `type` can be set to `undefined` explicitly, for a config without a type.
+  config: { type: 'type' in options ? options.type : 'hls' },
+});
 
 test('accepts a playlist with sources and a known replay mode', () => {
   const { validatePlaylistConfig, ReplayMode } = load();
@@ -73,7 +89,48 @@ test('throws for an unknown replay mode', () => {
 test('throws for a destroyed source and names it', () => {
   const { validatePlaylistConfig } = load();
   assert.throws(
-    () => validatePlaylistConfig({ sources: [source('a'), source('b', true)] }),
+    () =>
+      validatePlaylistConfig({
+        sources: [source('a'), source('b', { isDestroyed: true })],
+      }),
     /Source b was destroyed/
   );
+});
+
+test('throws for a source listed more than once and names it', () => {
+  const { validatePlaylistConfig } = load();
+  const duplicate = source('b');
+  assert.throws(
+    () =>
+      validatePlaylistConfig({ sources: [source('a'), duplicate, duplicate] }),
+    /Source b is part of the playlist more than once/
+  );
+});
+
+test('throws for a source type that iOS cannot play in a playlist', () => {
+  const { validatePlaylistConfig } = load();
+  setPlatform('ios');
+  try {
+    validatePlaylistConfig({
+      sources: [source('a'), source('b', { type: 'progressive' })],
+    });
+    for (const type of ['dash', 'none', undefined]) {
+      assert.throws(
+        () =>
+          validatePlaylistConfig({
+            sources: [source('a'), source('b', { type })],
+          }),
+        /Source b cannot be part of a playlist on iOS/
+      );
+    }
+  } finally {
+    setPlatform('android');
+  }
+});
+
+test('accepts every source type on Android', () => {
+  const { validatePlaylistConfig } = load();
+  validatePlaylistConfig({
+    sources: [source('a', { type: 'dash' }), source('b', { type: undefined })],
+  });
 });
