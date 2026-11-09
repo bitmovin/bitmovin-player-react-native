@@ -432,15 +432,17 @@ test('playlist seekTo reports unsupported iOS use without submitting a native se
   player.destroy();
 });
 
-test('source event subscriptions attach before loading and can be canceled before creation', async (t) => {
+test('source event subscriptions register before playlist loading and can be removed', async (t) => {
   const { Player, Source, nativeOf } = fixture(t);
   const source = new Source({ url: 'https://test/source' });
   const received = [];
-  const canceled = source.on('sourceLoaded', () =>
+  const canceled = await source.on('sourceLoaded', () =>
     assert.fail('Canceled subscription called')
   );
   canceled.remove();
-  const active = source.on('sourceLoaded', (event) => received.push(event));
+  const active = await source.on('sourceLoaded', (event) =>
+    received.push(event)
+  );
   const player = new Player();
   await player.loadPlaylist({ sources: [source] });
   const event = { name: 'onSourceLoaded', timestamp: 1 };
@@ -467,7 +469,7 @@ test('native-owned sources are adopted without creating another SDK source', asy
   assert.equal(source.config, undefined);
   assert.deepEqual(await source.metadata(), { title: 'shared source' });
   const received = [];
-  const subscription = source.on('sourceLoaded', (event) =>
+  const subscription = await source.on('sourceLoaded', (event) =>
     received.push(event)
   );
   const event = { name: 'onSourceLoaded', timestamp: 1 };

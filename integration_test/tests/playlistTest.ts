@@ -45,25 +45,27 @@ export default (spec: TestScope) => {
       });
       const [first, second] = makeSources();
       const added: number[] = [];
-      const addedSubscription = player.on(
+      const addedSubscription = await player.on(
         Platform.OS === 'ios' ? 'sourceAddedEvent' : 'sourceAdded',
         (event) => added.push(event.index)
       );
       const receiving = async (
-        subscribe: (listener: () => void) => { remove(): void },
+        subscribe: (listener: () => void) => Promise<{ remove(): void }>,
         trigger: () => Promise<void>
       ) => {
         let timeout: ReturnType<typeof setTimeout> | undefined;
         let subscription: { remove(): void } | undefined;
+        let notify!: () => void;
         const received = new Promise<void>((resolve, reject) => {
           timeout = setTimeout(
             () => reject(new Error('Headless playlist event timed out')),
             15000
           );
-          subscription = subscribe(resolve);
+          notify = resolve;
         });
         void received.catch(() => {});
         try {
+          subscription = await subscribe(notify);
           await trigger();
           await received;
         } finally {
@@ -228,15 +230,16 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         const [first, second] = makeSources();
         let timeout: ReturnType<typeof setTimeout> | undefined;
-        let stopObserving = () => {};
+        let notifyLoaded!: () => void;
         const loaded = new Promise<void>((resolve, reject) => {
           timeout = setTimeout(
             () => reject(new Error('Inactive source did not preload')),
             30000
           );
-          stopObserving = second.on('sourceLoaded', () => resolve()).remove;
+          notifyLoaded = resolve;
         });
         void loaded.catch(() => {});
+        const subscription = await second.on('sourceLoaded', notifyLoaded);
         try {
           await callPlayerAndExpectEvent(
             (player) =>
@@ -254,7 +257,7 @@ export default (spec: TestScope) => {
           expect(await second.isActive()).toBeFalsy();
         } finally {
           clearTimeout(timeout);
-          stopObserving();
+          subscription.remove();
         }
       });
     });
