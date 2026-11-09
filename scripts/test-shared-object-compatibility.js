@@ -59,6 +59,7 @@ function fixture(t) {
   const create = (kind, config, callback) => {
     const emitter = new EventEmitter();
     let playlist = [];
+    const eventListeners = new Set();
     const native = {
       addListener(event, listener) {
         emitter.on(event, listener);
@@ -66,6 +67,13 @@ function fixture(t) {
       },
       emit: (event, payload) => emitter.emit(event, payload),
       sdkSource: Symbol(kind),
+      addListener: (name, listener) => {
+        assert.equal(name, 'sourceEvent');
+        eventListeners.add(listener);
+        return { remove: () => eventListeners.delete(listener) };
+      },
+      emitSourceEvent: (event) =>
+        eventListeners.forEach((listener) => listener(event)),
       isSameSource: (other) => other.sdkSource === native.sdkSource,
       destroy: async () => {
         callbacks.delete(native);
@@ -429,5 +437,26 @@ test('playlist seekTo reports unsupported iOS use without submitting a native se
     /only supported on Android/
   );
   assert.deepEqual(calls, []);
+  player.destroy();
+});
+
+test('source event subscriptions attach before loading and can be canceled before creation', async (t) => {
+  const { Player, Source, nativeOf } = fixture(t);
+  const source = new Source({ url: 'https://test/source' });
+  const received = [];
+  const canceled = source.on('sourceLoaded', () =>
+    assert.fail('Canceled subscription called')
+  );
+  canceled.remove();
+  const active = source.on('sourceLoaded', (event) => received.push(event));
+  const player = new Player();
+  await player.loadPlaylist({ sources: [source] });
+  const event = { name: 'onSourceLoaded', timestamp: 1 };
+  nativeOf(source).emitSourceEvent({ name: 'onSourceLoad', timestamp: 0 });
+  nativeOf(source).emitSourceEvent(event);
+  assert.deepEqual(received, [event]);
+  active.remove();
+  nativeOf(source).emitSourceEvent(event);
+  assert.deepEqual(received, [event]);
   player.destroy();
 });

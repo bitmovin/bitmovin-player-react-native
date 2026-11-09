@@ -96,6 +96,31 @@ export default (spec: TestScope) => {
       }
     );
 
+    spec.it('automatically transitions at the end of a source', async () => {
+      await startPlayerTest({}, async () => {
+        const [first, second] = makeSources();
+        await callPlayerAndExpectEvent(
+          (player) => player.loadPlaylist({ sources: [first, second] }),
+          EventType.Ready
+        );
+        const duration = await first.duration();
+        await callPlayerAndExpectEvent<PlaylistTransitionEvent>(
+          (player) => {
+            player.seek(duration - 1);
+            player.play();
+          },
+          FilteredEvent<PlaylistTransitionEvent>(
+            EventType.PlaylistTransition,
+            (event) => event.to.metadata?.item === 'second'
+          ),
+          30
+        );
+        await callPlayer(async (player) => {
+          expect(await player.getSource()).toBe(second);
+        });
+      });
+    });
+
     spec.it(
       'adds, removes and reuses a source without recreating it',
       async () => {
@@ -143,12 +168,13 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         const [first, second] = makeSources();
         let timeout: ReturnType<typeof setTimeout> | undefined;
+        let stopObserving = () => {};
         const loaded = new Promise<void>((resolve, reject) => {
           timeout = setTimeout(
             () => reject(new Error('Inactive source did not preload')),
             30000
           );
-          second.on('sourceLoaded', () => resolve());
+          stopObserving = second.on('sourceLoaded', () => resolve()).remove;
         });
         void loaded.catch(() => {});
         try {
@@ -168,6 +194,7 @@ export default (spec: TestScope) => {
           expect(await second.isActive()).toBeFalsy();
         } finally {
           clearTimeout(timeout);
+          stopObserving();
         }
       });
     });
