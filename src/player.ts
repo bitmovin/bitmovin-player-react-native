@@ -21,6 +21,7 @@ import { PlaylistApi } from './playlist';
 import { validatePlaylistConfig } from './playlist/validatePlaylistConfig';
 import type { PlayerEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
+import { SourceRegistry } from './utils/sourceRegistry';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -57,16 +58,11 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   mediaControls: MediaControlsApi = new MediaControlsApi(this.nativeId);
   /**
-   * All {@link Source}s handed to the native player, keyed by {@link Source.nativeId}.
-   * Used to resolve native sources back to their JS instances.
-   */
-  private readonly knownSources = new Map<string, Source>();
-  /**
    * The {@link PlaylistApi} for interactions regarding the playlist of the playback session.
    *
    * @platform Android
    */
-  playlist: PlaylistApi = new PlaylistApi(this.nativeId, this.knownSources);
+  playlist: PlaylistApi = new PlaylistApi(this.nativeId);
 
   private network?: Network;
 
@@ -128,15 +124,24 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Destroys the native `Player` and releases all of its allocated resources.
+   *
+   * Also destroys the {@link Source}s of its playback session. Other sources, e.g. ones removed from the
+   * player before, are not destroyed; destroy them via {@link Source.destroy} once they are no longer needed.
+   * To keep using a source of the playback session, e.g. in another player, remove it or unload the player
+   * before destroying it.
    */
   destroy = () => {
     if (!this.isDestroyed) {
       // Remove the listeners only after the native destroy, so they still receive the `destroy` event.
-      void PlayerModule.destroy(this.nativeId).finally(() => {
-        this.eventListeners.removeAll();
-      });
-      this.knownSources.forEach((source) => void source.destroy());
-      this.knownSources.clear();
+      void PlayerModule.destroy(this.nativeId)
+        .then((sourceNativeIds) =>
+          sourceNativeIds.forEach((sourceNativeId) =>
+            SourceRegistry.get(sourceNativeId)?.destroy()
+          )
+        )
+        .finally(() => {
+          this.eventListeners.removeAll();
+        });
       void this.network?.destroy();
       void this.decoderConfig?.destroy();
       this.onShouldLoadAdItemSubscription?.remove();
@@ -210,7 +215,6 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (source.isDestroyed) {
       throw new Error(`Source ${source.nativeId} was destroyed`);
     }
-    this.knownSources.set(source.nativeId, source);
     void source
       .initialize()
       .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
@@ -224,7 +228,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   getSource = async (): Promise<Source | undefined> => {
     const sourceNativeId = await PlayerModule.source(this.nativeId);
-    return sourceNativeId ? this.knownSources.get(sourceNativeId) : undefined;
+    return sourceNativeId ? SourceRegistry.get(sourceNativeId) : undefined;
   };
 
   /**
@@ -242,9 +246,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   loadPlaylist = (playlistConfig: PlaylistConfig) => {
     validatePlaylistConfig(playlistConfig);
-    playlistConfig.sources.forEach((source) =>
-      this.knownSources.set(source.nativeId, source)
-    );
     void Promise.all(
       playlistConfig.sources.map((source) => source.initialize())
     ).then(() =>

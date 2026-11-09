@@ -1,5 +1,6 @@
 import PlaylistModule from '../modules/PlaylistModule';
 import type { Source } from '../source';
+import { SourceRegistry } from '../utils/sourceRegistry';
 
 /**
  * Provides the means to manage multiple {@link Source}s inside a playback session.
@@ -18,11 +19,8 @@ export class PlaylistApi {
    */
   readonly nativeId: string;
 
-  private readonly knownSources: Map<string, Source>;
-
-  constructor(playerId: string, knownSources: Map<string, Source>) {
+  constructor(playerId: string) {
     this.nativeId = playerId;
-    this.knownSources = knownSources;
   }
 
   /**
@@ -35,7 +33,7 @@ export class PlaylistApi {
   getSources = async (): Promise<Source[]> => {
     const nativeIds = (await PlaylistModule?.sources(this.nativeId)) ?? [];
     return nativeIds.flatMap((nativeId) => {
-      const source = this.knownSources.get(nativeId);
+      const source = SourceRegistry.get(nativeId);
       return source ? [source] : [];
     });
   };
@@ -50,12 +48,12 @@ export class PlaylistApi {
    */
   add = async (source: Source, index?: number): Promise<void> => {
     await source.initialize();
-    this.knownSources.set(source.nativeId, source);
     return PlaylistModule?.add(this.nativeId, source.nativeId, index);
   };
 
   /**
    * Removes the `source` from the active playback session.
+   * The `source` is not destroyed and can be added or loaded again; use {@link Source.destroy} to destroy it.
    *
    * Has no effect if the `source` is not part of the playback session. Has no effect and emits a `PlayerWarning`
    * if there is no active playback session or if the `source` is the active source.

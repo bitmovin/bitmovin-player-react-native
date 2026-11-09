@@ -65,14 +65,17 @@ public class PlayerModule: Module {
         AsyncFunction("timeShift") { (nativeId: NativeId, offset: Double) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.timeShift = offset
         }.runOnQueue(.main)
-        AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
-            if let player = PlayerRegistry.getPlayer(nativeId: nativeId) {
+        AsyncFunction("destroy") { [weak self] (nativeId: NativeId) -> [NativeId] in
+            let player = PlayerRegistry.getPlayer(nativeId: nativeId)
+            let sourceNativeIds = player?.playlist.sources.compactMap { SourceRegistry.nativeId(of: $0) } ?? []
+            if let player {
                 player.destroy()
                 PlayerRegistry.unregister(nativeId: nativeId)
             }
             self?.eventRelay.offAll(nativeId: nativeId)
             self?.appContext?.moduleRegistry.get(RNPlayerViewManager.self)?
                 .discardPendingPictureInPictureValues(playerId: nativeId)
+            return sourceNativeIds
         }.runOnQueue(.main)
         AsyncFunction("setVolume") { (nativeId: NativeId, volume: Int) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.volume = volume

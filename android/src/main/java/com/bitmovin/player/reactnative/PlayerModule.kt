@@ -116,6 +116,7 @@ class PlayerModule : Module() {
 
         AsyncFunction("destroy") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
+            val sourceNativeIds = player?.playlist?.sources.orEmpty().mapNotNull { SourceRegistry.getNativeId(it) }
             if (player != null) {
                 // Note: MediaSession cleanup would need to be handled here
                 // For now, just destroy the player and remove from registry
@@ -123,6 +124,7 @@ class PlayerModule : Module() {
                 PlayerRegistry.unregister(nativeId)
             }
             eventRelay.offAll(nativeId, player)
+            sourceNativeIds
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("setVolume") { nativeId: NativeId, volume: Double ->

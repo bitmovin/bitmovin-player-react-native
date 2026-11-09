@@ -9,6 +9,7 @@ import type { SourceMetadata } from './analytics';
 import SourceModule from './modules/SourceModule';
 import type { SourceEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
+import { SourceRegistry } from './utils/sourceRegistry';
 
 /**
  * Types of media that can be handled by the player.
@@ -248,18 +249,24 @@ export class Source extends NativeInstance<SourceConfig> {
       throw destroyedSourceError(this);
     }
     this.isInitialized = true;
+    SourceRegistry.register(this);
     this.eventListeners.attachNative();
   };
 
   /**
    * Destroys the native {@link Source} and releases all of its allocated resources, e.g. its DRM config.
    * All listeners are removed, and the source cannot be initialized or loaded again.
+   *
+   * Sources are not destroyed when they are removed from a player, e.g. via {@link PlaylistApi.remove},
+   * {@link Player.unload} or a later load, so that they can be loaded again. Destroy a source once it is no
+   * longer needed. {@link Player.destroy} destroys the sources of its playback session.
    */
   destroy = () => {
     if (this.isDestroyed) {
       return;
     }
     this.isDestroyed = true;
+    SourceRegistry.unregister(this);
     this.eventListeners.removeAll();
     const destroyNative = () => {
       void SourceModule.destroy(this.nativeId);
